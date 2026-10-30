@@ -7,11 +7,12 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, read from a simulated host, by real code where there is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msome (detect, the header probe, accounts) and by the gallery's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads: no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan, no y/N, no journal. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, inferred from origin/main (unreleased), read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host, by real code where there is some (detect, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheader probe, accounts) and by the gallery's stand-ins␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156melsewhere, unit (b)'s to build. It only reads: no plan, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -31,23 +32,28 @@ $
       ␛[38;2;129;134;156mMemory␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
       ␛[38;2;129;134;156mNothing recorded␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mA login recorded␛[m$
+      ␛[38;2;129;134;156mwtmpdb's last␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mA console login␛[m$
+      ␛[38;2;129;134;156mNo remote host␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
       ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
       ␛[38;2;129;134;156mA line each, items open them␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
       ␛[38;2;129;134;156mA line each, the rest in less␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
       ␛[38;2;129;134;156mNo file written␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
       ␛[38;2;129;134;156mA file, as root␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 6$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 6$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/unreadable␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, as debian13. /proc/meminfo cannot be read.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 with the wtmpdb package added, which provides last;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits form is [unverified]. /proc/meminfo cannot be read.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's GenerateSystemStatus stops at the first␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost (details.go:91-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m117); here the rest stays and the section says which.␛[m$
@@ -72,7 +78,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -82,7 +88,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mMemory␛[m               ␛[38;2;129;134;156mCan't read /proc/meminfo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read /proc/meminfo␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
@@ -114,20 +120,24 @@ $
       ␛[38;2;129;134;156mMemory␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
       ␛[38;2;129;134;156mNothing recorded␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mA login recorded␛[m$
+      ␛[38;2;129;134;156mwtmpdb's last␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mA console login␛[m$
+      ␛[38;2;129;134;156mNo remote host␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
       ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
       ␛[38;2;129;134;156mA line each, items open them␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
       ␛[38;2;129;134;156mA line each, the rest in less␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
       ␛[38;2;129;134;156mNo file written␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
       ␛[38;2;129;134;156mA file, as root␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -140,11 +150,12 @@ $
 $
 # Note$
 # Play mode, mocks: the System Details screen proposed for slice$
-# 1, read from a simulated host, by real code where there is$
-# some (detect, the header probe, accounts) and by the gallery's$
-# stand-ins elsewhere, unit (b)'s to build. It only reads: no$
-# plan, no y/N, no journal. Nothing on this machine changes:$
-# every command and file is the fake's.$
+# 1, inferred from origin/main (unreleased), read from a$
+# simulated host, by real code where there is some (detect, the$
+# header probe, accounts) and by the gallery's stand-ins$
+# elsewhere, unit (b)'s to build. It only reads: no plan, no$
+# y/N, no journal. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # System Details hosts #########################################$
 $
@@ -164,23 +175,28 @@ $
       Memory$
    7) No last login$
       Nothing recorded$
-   8) Many users and addresses$
+   8) A login recorded$
+      wtmpdb's last$
+   9) A console login$
+      No remote host$
+  10) Many users and addresses$
       14 users, 9 addresses$
-   9) Treatment: sections$
+  11) Treatment: sections$
       A line each, items open them$
-  10) Treatment: pager$
+  12) Treatment: pager$
       A line each, the rest in less$
-  11) Treatment: Export says how$
+  13) Treatment: Export says how$
       No file written$
-  12) Treatment: Export writes$
+  14) Treatment: Export writes$
       A file, as root$
 $
    0) Return$
 $
-  > Enter your choice [0-12 or q]: 6$
+  > Enter your choice [0-14 or q]: 6$
 $
 # Info: system-details/unreadable$
-# Debian 13, as debian13. /proc/meminfo cannot be read.$
+# Debian 13 with the wtmpdb package added, which provides last;$
+# its form is [unverified]. /proc/meminfo cannot be read.$
 # origin/main's GenerateSystemStatus stops at the first$
 # collector's error and the whole report is lost (details.go:91-$
 # 117); here the rest stays and the section says which.$
@@ -205,7 +221,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
-   -  Cores                4 cores, 1 socket$
+   -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -215,7 +231,7 @@ $
 $
 # Memory -------------------------------------------------------$
 $
-  [?] Memory               Can't read /proc/meminfo$
+   -  Can't read /proc/meminfo$
 $
 # Last Login ---------------------------------------------------$
 $
@@ -247,20 +263,24 @@ $
       Memory$
    7) No last login$
       Nothing recorded$
-   8) Many users and addresses$
+   8) A login recorded$
+      wtmpdb's last$
+   9) A console login$
+      No remote host$
+  10) Many users and addresses$
       14 users, 9 addresses$
-   9) Treatment: sections$
+  11) Treatment: sections$
       A line each, items open them$
-  10) Treatment: pager$
+  12) Treatment: pager$
       A line each, the rest in less$
-  11) Treatment: Export says how$
+  13) Treatment: Export says how$
       No file written$
-  12) Treatment: Export writes$
+  14) Treatment: Export writes$
       A file, as root$
 $
    0) Return$
 $
-  > Enter your choice [0-12 or q]: 0$
+  > Enter your choice [0-14 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -273,11 +293,12 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, read from a simulated host, by real code where␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is some (detect, the header probe, accounts) and by␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins elsewhere, unit (b)'s to build. It␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly reads: no plan, no y/N, no journal. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, inferred from origin/main (unreleased), read from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma simulated host, by real code where there is some␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(detect, the header probe, accounts) and by the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno plan, no y/N, no journal. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -297,25 +318,30 @@ $
       ␛[38;2;129;134;156mMemory␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
       ␛[38;2;129;134;156mNothing recorded␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mA login recorded␛[m$
+      ␛[38;2;129;134;156mwtmpdb's last␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mA console login␛[m$
+      ␛[38;2;129;134;156mNo remote host␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
       ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
       ␛[38;2;129;134;156mA line each, items open them␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
       ␛[38;2;129;134;156mA line each, the rest in less␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
       ␛[38;2;129;134;156mNo file written␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
       ␛[38;2;129;134;156mA file, as root␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 6$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 6$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/unreadable␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, as debian13. /proc/meminfo cannot be read.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's GenerateSystemStatus stops at the first␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 with the wtmpdb package added, which provides␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlast; its form is [unverified]. /proc/meminfo cannot be␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread. origin/main's GenerateSystemStatus stops at the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirst collector's error and the whole report is lost␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(details.go:91-117); here the rest stays and the section␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays which.␛[m$
 $
@@ -346,8 +372,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -360,8 +386,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mMemory␛[m$
-      ␛[38;2;129;134;156mCan't read /proc/meminfo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read /proc/meminfo␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
@@ -395,20 +420,24 @@ $
       ␛[38;2;129;134;156mMemory␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
       ␛[38;2;129;134;156mNothing recorded␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mA login recorded␛[m$
+      ␛[38;2;129;134;156mwtmpdb's last␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mA console login␛[m$
+      ␛[38;2;129;134;156mNo remote host␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
       ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
       ␛[38;2;129;134;156mA line each, items open them␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
       ␛[38;2;129;134;156mA line each, the rest in less␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
       ␛[38;2;129;134;156mNo file written␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
       ␛[38;2;129;134;156mA file, as root␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

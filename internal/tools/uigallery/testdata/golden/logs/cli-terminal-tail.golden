@@ -6,32 +6,33 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-tail␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p to a terminal, treatment read-tail: the file and as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmany of the last lines as the terminal holds, no menu and no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt, for a shell to carry on under.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment read-tail: the file and as many of the last lines as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds, no menu and no prompt, for a shell to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcarry on under.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLog␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m49 KiB, 1204 lines␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m49 KiB␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 11 of 1204 lines␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 9 of 1204 lines␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:15:53 INFO: run 1194: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:30:54 INFO: run 1195: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:45:55 INFO: run 1196: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 11:58:02 INFO: Created ~/.hushlogin␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 11:58:40 SUCCESS: Firewall configured␛[m$
-      ␛[38;2;129;134;156msuccessfully␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: | Rule added␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:03 INSTALLED: Package ufw␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: ufw is not active␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
-      ␛[38;2;219;184;83mexit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 11:58:02 SUCCESS: debian trixie detected␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: | Rule added␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: exit 0␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:03 SUCCESS: Firewall configured␛[m$
+      ␛[38;2;129;134;156m↪ successfully␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: hardn's boot unit was not␛[m$
+      ␛[38;2;219;184;83m↪ removed: exit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m↪ exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
 $
 $
 
@@ -39,32 +40,33 @@ $
 # logs cli-terminal-tail ---------------------------------------$
 $
 # Note$
-# hardn -p to a terminal, treatment read-tail: the file and as$
-# many of the last lines as the terminal holds, no menu and no$
-# prompt, for a shell to carry on under.$
+# Inferred from v0.3.2 and origin/main. hardn -p to a terminal,$
+# treatment read-tail: the file and as many of the last lines as$
+# the terminal holds, no menu and no prompt, for a shell to$
+# carry on under.$
 $
 # Logs #########################################################$
 $
-# Log ----------------------------------------------------------$
+# File ---------------------------------------------------------$
 $
-   -  File                 /var/log/hardn.log$
-   -  Size                 49 KiB, 1204 lines$
+   -  Path                 /var/log/hardn.log$
+   -  Size                 49 KiB$
 $
-# Last 11 of 1204 lines ----------------------------------------$
+# Last 9 of 1204 lines -----------------------------------------$
 $
-   -  2026/10/13 10:15:53 INFO: run 1194: exit 0$
-   -  2026/10/13 10:30:54 INFO: run 1195: exit 0$
-   -  2026/10/13 10:45:55 INFO: run 1196: exit 0$
-   -  2026/10/20 11:58:02 INFO: Created ~/.hushlogin$
-   -  2026/10/20 11:58:40 SUCCESS: Firewall configured$
-      successfully$
-   -  2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp$
-   -  2026/10/20 12:00:01 INFO: run 1: | Rule added$
-   -  2026/10/20 12:00:01 INFO: run 1: exit 0$
-   -  2026/10/20 12:00:03 INSTALLED: Package ufw$
-   -  2026/10/20 12:00:04 WARNING: ufw is not active$
-   -  2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
-      exit status 1$
+      2026/10/20 11:58:02 SUCCESS: debian trixie detected$
+      2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp$
+      2026/10/20 12:00:01 INFO: run 1: | Rule added$
+      2026/10/20 12:00:01 INFO: run 1: exit 0$
+      2026/10/20 12:00:03 SUCCESS: Firewall configured$
+      | successfully$
+      2026/10/20 12:00:04 WARNING: hardn's boot unit was not$
+      | removed: exit status 1$
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+      2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
 $
 
@@ -72,34 +74,35 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-tail␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p to a terminal, treatment read-tail: the file and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas many of the last lines as the terminal holds, no menu␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand no prompt, for a shell to carry on under.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal, treatment read-tail: the file and as many of the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlast lines as the terminal holds, no menu and no prompt,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor a shell to carry on under.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLog␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m$
       ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m$
-      ␛[38;2;129;134;156m49 KiB, 1204 lines␛[m$
+      ␛[38;2;129;134;156m49 KiB␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 11 of 1204 lines␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 9 of 1204 lines␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:15:53 INFO: run 1194: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:30:54 INFO: run 1195: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:45:55 INFO: run 1196: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 11:58:02 INFO: Created ~/.hushlogin␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 11:58:40 SUCCESS: Firewall configured␛[m$
-      ␛[38;2;129;134;156msuccessfully␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: | Rule added␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:03 INSTALLED: Package ufw␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: ufw is not active␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
-      ␛[38;2;219;184;83mfirewall: exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 11:58:02 SUCCESS: debian trixie detected␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: | Rule added␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: exit 0␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:03 SUCCESS: Firewall configured␛[m$
+      ␛[38;2;129;134;156m↪ successfully␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: hardn's boot unit was not␛[m$
+      ␛[38;2;219;184;83m↪ removed: exit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;2;219;184;83m↪ firewall: exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
 $
 $
 
@@ -107,31 +110,32 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-tail␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p to a terminal, treatment read-tail: the file and as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmany of the last lines as the terminal holds, no menu and no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt, for a shell to carry on under.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment read-tail: the file and as many of the last lines as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds, no menu and no prompt, for a shell to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcarry on under.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLog␛[m ␛[38;2;48;52;64m----------------------------------------------------------␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m49 KiB, 1204 lines␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m49 KiB␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast 11 of 1204 lines␛[m ␛[38;2;48;52;64m----------------------------------------␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast 9 of 1204 lines␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:15:53 INFO: run 1194: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:30:54 INFO: run 1195: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/13 10:45:55 INFO: run 1196: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 11:58:02 INFO: Created ~/.hushlogin␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 11:58:40 SUCCESS: Firewall configured␛[m$
-      ␛[38;2;129;134;156msuccessfully␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: | Rule added␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: exit 0␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:03 INSTALLED: Package ufw␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: ufw is not active␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
-      ␛[38;2;219;184;83mexit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 11:58:02 SUCCESS: debian trixie detected␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: | Rule added␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:01 INFO: run 1: exit 0␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:03 SUCCESS: Firewall configured␛[m$
+      ␛[38;2;129;134;156m| successfully␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: hardn's boot unit was not␛[m$
+      ␛[38;2;219;184;83m| removed: exit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m| exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m| /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
 $
 $

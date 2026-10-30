@@ -7,16 +7,19 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, read from a simulated host, by real code where there is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msome (detect, the header probe, accounts) and by the gallery's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads: no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan, no y/N, no journal. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, inferred from origin/main (unreleased), read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host, by real code where there is some (detect, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheader probe, accounts) and by the gallery's stand-ins␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156melsewhere, unit (b)'s to build. It only reads: no plan, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, as the VM of 2026-10-21␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice ran sudo hardn.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice ran sudo hardn. last is in universe's wtmpdb package␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone (resolute's Contents-amd64), so the login row says not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mknown.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -38,7 +41,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -52,7 +55,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -73,16 +76,19 @@ $
 $
 # Note$
 # Play mode, mocks: the System Details screen proposed for slice$
-# 1, read from a simulated host, by real code where there is$
-# some (detect, the header probe, accounts) and by the gallery's$
-# stand-ins elsewhere, unit (b)'s to build. It only reads: no$
-# plan, no y/N, no journal. Nothing on this machine changes:$
-# every command and file is the fake's.$
+# 1, inferred from origin/main (unreleased), read from a$
+# simulated host, by real code where there is some (detect, the$
+# header probe, accounts) and by the gallery's stand-ins$
+# elsewhere, unit (b)'s to build. It only reads: no plan, no$
+# y/N, no journal. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # Info: system-details/ubuntu2604$
 # web-01.example.net runs Ubuntu 26.04, as the VM of 2026-10-21$
 # (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13.$
-# alice ran sudo hardn.$
+# alice ran sudo hardn. last is in universe's wtmpdb package$
+# alone (resolute's Contents-amd64), so the login row says not$
+# known.$
 $
 # System Details ###############################################$
 $
@@ -104,7 +110,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
-   -  Cores                4 cores, 1 socket$
+   -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -118,7 +124,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  alice                Oct 20 11:42 from 192.0.2.10$
+  [?] alice                Not known: last isn't installed$
 $
   Select an option$
 $
@@ -139,16 +145,19 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, read from a simulated host, by real code where␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is some (detect, the header probe, accounts) and by␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins elsewhere, unit (b)'s to build. It␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly reads: no plan, no y/N, no journal. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, inferred from origin/main (unreleased), read from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma simulated host, by real code where there is some␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(detect, the header probe, accounts) and by the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno plan, no y/N, no journal. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, as the VM of 2026-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0.2.13. alice ran sudo hardn.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0.2.13. alice ran sudo hardn. last is in universe's wtmpdb␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage alone (resolute's Contents-amd64), so the login␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow says not known.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -177,8 +186,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -196,8 +205,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
-      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

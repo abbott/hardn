@@ -19,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -32,7 +33,8 @@ import (
 // maintainer's review, nothing of it wired into hardn. There is no Figma
 // frame and it is not in v0.3.2: it is inferred from origin/main
 // (pkg/system/display.go:43-129, pkg/menu/system_details_menu.go), with
-// P-17's sections, the 2025 prototype's as reference only.
+// P-17's sections, the 2025 prototype's as reference only. Each mock's note
+// opens with sdLabel, P-17's label, but those in origin/main's own words.
 //
 // It only reads, so it has no plan, no y/N and no journal: its sequence is
 // the reading, opening, each state, refreshing and leaving.
@@ -51,6 +53,10 @@ import (
 // sdPrefix names the mocks: "system-details <mock>" in the listing,
 // "system-details" and "system-details/<host>" in play.
 const sdPrefix = "system-details"
+
+// sdLabel is the source label every mock carries (plan: "inferred from
+// origin/main (unreleased)"; P-17).
+const sdLabel = "Inferred from origin/main (unreleased)."
 
 // sdMainHost is the host the main menu's 9 leads to.
 const sdMainHost = sdPrefix + "/debian13"
@@ -80,7 +86,7 @@ const (
 	rowUptime   = "Uptime"
 	rowHostname = "Hostname"
 	rowModel    = "Model"
-	rowCores    = "Cores"
+	rowCPUs     = "CPUs"
 	rowLoad     = "Load (1, 5, 15 min)"
 	rowUsed     = "Used"
 	rowPool     = "Pool %s"
@@ -91,6 +97,12 @@ const (
 	noDoas      = "No doas"
 	noLogin     = "None recorded"
 	cantRead    = "Can't read %s"
+	notKnown    = "Not known"
+	// noLast is Last Login where the host has no last command at all, as
+	// Debian 13 and Ubuntu 26.04 have none by default.
+	noLast = "Not known: last isn't installed"
+	// onTTY follows the time of a login with no remote host.
+	onTTY = "%s on %s"
 	// notRootRow is said under Users to a user other than root, who cannot
 	// read the rules the group names do not show.
 	notRootRow = "Not root: %s not read"
@@ -165,24 +177,29 @@ const (
 // states, then the treatments on Debian 13.
 func sdHosts() []sdHost {
 	const (
-		deb   = hostFQDN + " runs Debian 13, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. alice ran sudo hardn. "
-		other = "Debian 13, as debian13. "
+		deb    = hostFQDN + " runs Debian 13, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. alice ran sudo hardn. "
+		other  = "Debian 13, as debian13. "
+		wtmpdb = "Debian 13 with the wtmpdb package added, which provides last; its form is [unverified]. "
 	)
 	return []sdHost{
 		{name: "debian13", label: "Debian 13", about: "ext4, sudo", host: details(debian13Platform), env: sudoAlice,
-			note: deb + "Treatment report-whole, export-none: the report, Refresh and Return."},
+			note: deb + "Treatment report-whole, export-none: the report, Refresh and Return. Debian 13's util-linux no longer provides last and login no longer provides lastlog (Debian 13 release notes, 5.1.9), so the login row says not known (decision 3)."},
 		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "ext4, sudo-rs", host: details(ubuntu2604Platform), env: sudoAlice,
-			note: hostFQDN + " runs Ubuntu 26.04, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13. alice ran sudo hardn."},
+			note: hostFQDN + " runs Ubuntu 26.04, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13. alice ran sudo hardn. last is in universe's wtmpdb package alone (resolute's Contents-amd64), so the login row says not known."},
 		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: details(alpine323Platform), env: doasAlice,
-			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas, BusyBox's ip, df and last, whose forms are [unverified]. alice ran doas hardn."},
+			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. BusyBox's ip and df forms are [unverified]. alice ran doas hardn. Alpine builds BusyBox's last without FEATURE_LAST_FANCY (aports 3.23-stable busyboxconfig), which takes no argument at all: last -n 1 alice prints its usage and fails (util-linux/last.c), so the section can't be read this way. Whether /var/log/wtmp exists on Alpine 3.23 is [unverified]."},
 		{name: "pve9", label: "Proxmox VE 9", about: "ZFS, root alone", host: pveDetails, env: rootLogin,
-			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85; menu/system_details_zfs_other_dataset.golden). No user but root; root logged in. The CPU's name is cut at its row."},
+			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85; menu/system_details_zfs_other_dataset.golden). No user but root. No last, by inference from Debian 13, its base [I, no VM]. The CPU's name is cut at its row."},
 		{name: "zfs-degraded", label: "ZFS degraded", about: "Pool not ONLINE", host: pveDegraded, env: rootLogin,
 			note: "As pve9, its pool DEGRADED. origin/main's zpool status -x reads \"is healthy\" alone, and otherwise falls through to the root partition's figures, ZFS not mentioned (collectors.go:384-432; menu/system_details_zfs_all_healthy.golden)."},
 		{name: "unreadable", label: "One section unreadable", about: "Memory", host: unreadableDetails, env: sudoAlice,
-			note: other + "/proc/meminfo cannot be read. origin/main's GenerateSystemStatus stops at the first collector's error and the whole report is lost (details.go:91-117); here the rest stays and the section says which."},
+			note: wtmpdb + "/proc/meminfo cannot be read. origin/main's GenerateSystemStatus stops at the first collector's error and the whole report is lost (details.go:91-117); here the rest stays and the section says which."},
 		{name: "no-last-login", label: "No last login", about: "Nothing recorded", host: noLoginDetails, env: sudoAlice,
-			note: other + "last finds no login for alice."},
+			note: wtmpdb + "last finds no login for alice."},
+		{name: "login-recorded", label: "A login recorded", about: "wtmpdb's last", host: recordedDetails, env: sudoAlice,
+			note: wtmpdb + "The login row where the host has last (decision 3 (a)). The stand-in's line is this session's, which decision 4 is about."},
+		{name: "login-console", label: "A console login", about: "No remote host", host: consoleDetails, env: sudoAlice,
+			note: wtmpdb + "alice logged in at a console, so last's line has no host column."},
 		{name: "many", label: "Many users and addresses", about: "14 users, 9 addresses", host: manyDetails, env: sudoAlice,
 			note: other + "14 users and 9 addresses, IPv6 among them: the origin/main report lists IPv4 alone (os_host_info_repository.go:161, collectors.go:186)."},
 		{name: reportSections, label: "Treatment: sections", about: "A line each, items open them", host: details(debian13Platform), env: sudoAlice, report: reportSections,
@@ -191,8 +208,8 @@ func sdHosts() []sdHost {
 			note: other + "Treatment report-pager: one line per section, an item opening the whole report in the pager. It fits 80x24. The gallery runs no pager: the item says what it would run."},
 		{name: exportCommand, label: "Treatment: Export says how", about: "No file written", host: details(debian13Platform), env: sudoAlice, export: exportCommand,
 			note: other + "Treatment export-command: Export says the command."},
-		{name: exportFile, label: "Treatment: Export writes", about: "A file, as root", host: details(debian13Platform), env: sudoAlice, export: exportFile,
-			note: other + "Treatment export-file: Export asks a full path and writes the file, as root: a change on the host, so not read only. The gallery writes nothing."},
+		{name: exportFile, label: "Treatment: Export writes", about: "A file, as root", host: recordedDetails, env: sudoAlice, export: exportFile,
+			note: wtmpdb + "Treatment export-file: Export asks a full path and writes the file, as root: a change on the host, so not read only. The gallery writes nothing."},
 	}
 }
 
@@ -208,18 +225,39 @@ func findSDHost(name string) (sdHost, bool) {
 // detailsModel is what a System Details host answers beyond statusOn's
 // model, each command's output as the stand-in reads it: gallery-local, as
 // readDetails is. The forms are written from iproute2's, coreutils', zfs's
-// and util-linux's; on Alpine BusyBox's are [unverified], and so is every
-// command's presence on a release (unit (b), on the VMs).
+// and, for last, wtmpdb's, taken to be util-linux's form [unverified]; on
+// Alpine BusyBox's are [unverified], and so is every command's presence on
+// a release (unit (b), on the VMs), but last's: see lastTool.
 type detailsModel struct {
 	addrs      string // ip -o addr show scope global
 	df         string // df -kP /
 	pool       string // zpool list -H -o health <pool>, for a pool
 	zfs        string // zfs get -Hp -o value used,available <dataset>
 	dataset    string // the dataset zfs is asked about
-	lastOutput string // last -n 1 <user>
+	last       lastTool
+	lastOutput string // last -n 1 <user>, where last takes it
 	memInfo    string // /proc/meminfo; "" is memInfo
 	noMemInfo  bool   // /proc/meminfo cannot be read
 }
+
+// lastTool is what the host's last is: the releases differ.
+type lastTool uint8
+
+// The last a host has.
+const (
+	// lastWtmpdb is the wtmpdb package's, added to the host: it takes the
+	// stand-in's form [unverified].
+	lastWtmpdb lastTool = iota
+	// lastAbsent is none, as host.Real says it: Debian 13 (release notes,
+	// 5.1.9; trixie's Contents, where wtmpdb alone has usr/bin/last), Ubuntu
+	// 26.04 (resolute's Contents: universe's wtmpdb alone) and by inference
+	// Proxmox VE 9. Whether an image adds wtmpdb is [unverified].
+	lastAbsent
+	// lastBusyBox is Alpine's: built with no FEATURE_LAST_FANCY (aports
+	// 3.23-stable main/busybox/busyboxconfig), any argument gets its usage and
+	// a failure (util-linux/last.c, "if (argv[1]) bb_show_usage()").
+	lastBusyBox
+)
 
 // answer answers the stand-in's commands.
 func (m detailsModel) answer(argv []string) (hostfake.Response, bool) {
@@ -233,6 +271,12 @@ func (m detailsModel) answer(argv []string) (hostfake.Response, bool) {
 	case m.dataset != "" && cmd == "zfs get -Hp -o value used,available "+m.dataset:
 		return hostfake.Response{Stdout: m.zfs}, true
 	case argv[0] == "last":
+		switch m.last {
+		case lastAbsent:
+			return hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "last", host.SearchPath, host.ErrNotFound)}, true
+		case lastBusyBox:
+			return hostfake.Response{Stderr: "BusyBox v1.37.0 multi-call binary.\n\nUsage: last\n", ExitCode: 1}, true
+		}
 		return hostfake.Response{Stdout: m.lastOutput}, true
 	}
 	return hostfake.Response{}, false
@@ -260,6 +304,7 @@ const (
 	memInfo     = "MemTotal:        4030544 kB\nMemFree:          812344 kB\nMemAvailable:    2801234 kB\nBuffers:           91234 kB\n"
 	dfRoot      = "Filesystem     1024-blocks    Used Available Capacity Mounted on\n/dev/vda1         40470732 4412345  36058387      11% /\n"
 	lastSession = "alice    pts/0        192.0.2.10       Tue Oct 20 11:42   still logged in\n\nwtmp begins Mon Oct 19 08:01:22 2026\n"
+	lastConsole = "alice    tty1                          Tue Oct 20 11:42   still logged in\n\nwtmp begins Mon Oct 19 08:01:22 2026\n"
 )
 
 // The kernels of the VM runs: vmtest.md §8.5 and §8.6.
@@ -292,15 +337,36 @@ func withDetails(h *fakeHost, m detailsModel, cpu string, cores, sockets int) *f
 }
 
 // vmModel is a VM's model: eth0 at 192.0.2.20, the root file system on
-// /dev/vda1 (simulate's mounts), alice's session from the runner.
+// /dev/vda1 (simulate's mounts), wtmpdb's last added and alice's session
+// from the runner.
 func vmModel() detailsModel {
 	return detailsModel{addrs: ipLine(2, "eth0", "inet", "192.0.2.20/24"), df: dfRoot, lastOutput: lastSession}
 }
 
 // details returns a function making a host of platform p as the VM runs
-// show it: its kernel, 4 cores, vmModel.
+// show it: its kernel, 4 CPUs, vmModel, and the last the release comes with.
 func details(p platform) func() *fakeHost {
-	return func() *fakeHost { return withDetails(onVMKernel(p), vmModel(), vmCPU, 4, 1) }
+	return func() *fakeHost {
+		m := vmModel()
+		m.last = lastAbsent
+		if p.openRC {
+			m.last = lastBusyBox
+		}
+		return withDetails(onVMKernel(p), m, vmCPU, 4, 1)
+	}
+}
+
+// recordedDetails is Debian 13 with wtmpdb's last added, alice's session
+// its newest line.
+func recordedDetails() *fakeHost {
+	return withDetails(onVMKernel(debian13Platform), vmModel(), vmCPU, 4, 1)
+}
+
+// consoleDetails is recordedDetails with alice's login at a console.
+func consoleDetails() *fakeHost {
+	m := vmModel()
+	m.lastOutput = lastConsole
+	return withDetails(onVMKernel(debian13Platform), m, vmCPU, 4, 1)
 }
 
 // onVMKernel is a status host of platform p on the kernel the VM run of its
@@ -331,13 +397,13 @@ func pveDetails() *fakeHost { return pveOn("ONLINE") }
 func pveDegraded() *fakeHost { return pveOn("DEGRADED") }
 
 // pveOn is a Proxmox VE 9 node with root on ZFS, its pool health as given:
-// 48 cores on 2 sockets, vmbr0, root's session.
+// 48 CPUs on 2 sockets, vmbr0, no last (lastAbsent).
 func pveOn(health string) *fakeHost {
 	h := pveNode()
 	h.f.AddFile(detect.SelfMounts, []byte("proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\n"+pveDataset+" / zfs rw,relatime,xattr,noacl 0 0\n"+
 		"/dev/fuse /etc/pve fuse rw,nosuid,nodev,relatime,user_id=0,group_id=0,default_permissions,allow_other 0 0\n"), 0o444, 0, 0)
 	return withDetails(h, detailsModel{addrs: ipLine(4, "vmbr0", "inet", "192.0.2.20/24"), pool: health, dataset: pveDataset,
-		zfs: "53687091200\n429496729600\n", memInfo: "MemTotal:       131072000 kB\nMemFree:        81234000 kB\nMemAvailable:   96123000 kB\n", lastOutput: "root     pts/0        192.0.2.10       Tue Oct 20 09:14   still logged in\n\nwtmp begins Thu Sep 10 10:00:00 2026\n"}, serverCPU, 48, 2)
+		zfs: "53687091200\n429496729600\n", memInfo: "MemTotal:       131072000 kB\nMemFree:        81234000 kB\nMemAvailable:   96123000 kB\n", last: lastAbsent}, serverCPU, 48, 2)
 }
 
 // unreadableDetails is Debian 13 whose /proc/meminfo cannot be read.
@@ -347,7 +413,7 @@ func unreadableDetails() *fakeHost {
 	return withDetails(onVMKernel(debian13Platform), m, vmCPU, 4, 1)
 }
 
-// noLoginDetails is Debian 13 where last finds nothing for alice.
+// noLoginDetails is Debian 13 where wtmpdb's last finds nothing for alice.
 func noLoginDetails() *fakeHost {
 	h := onVMKernel(debian13Platform)
 	m := vmModel()
@@ -373,6 +439,7 @@ func manyDetails() *fakeHost {
 	h.f.AddFile("/etc/passwd", []byte(passwd), 0o644, 0, 0)
 	h.f.AddFile("/etc/group", []byte(group), 0o644, 0, 0)
 	m := vmModel()
+	m.last = lastAbsent
 	m.addrs = ipLine(2, "eth0", "inet", "192.0.2.20/24") + ipLine(2, "eth0", "inet", "192.0.2.21/24") + ipLine(2, "eth0", "inet6", "2001:db8:0:1::20/64") +
 		ipLine(3, "eth1", "inet", "198.51.100.20/24") + ipLine(3, "eth1", "inet6", "2001:db8:0:2::20/64") + ipLine(4, "bond0", "inet", "203.0.113.20/24") +
 		ipLine(5, "wg0", "inet", "198.18.0.20/32") + ipLine(5, "wg0", "inet6", "2001:db8:0:3::20/128") + ipLine(6, "docker0", "inet", "198.19.0.1/16")
@@ -402,10 +469,12 @@ type detailUser struct {
 	Tool string `json:"tool"`
 }
 
-// detailCPU is /proc/cpuinfo's and /proc/loadavg's.
+// detailCPU is /proc/cpuinfo's and /proc/loadavg's: CPUs are its processor
+// lines, logical CPUs, not cores. Model is "" and Sockets 0 where the file
+// has no model name or physical id, which on arm64 is [I, not run].
 type detailCPU struct {
 	Model   string    `json:"model"`
-	Cores   int       `json:"cores"`
+	CPUs    int       `json:"cpus"`
 	Sockets int       `json:"sockets"`
 	Load    [3]string `json:"load"`
 }
@@ -430,11 +499,13 @@ type detailMemory struct {
 }
 
 // detailLogin is who ran hardn and last's line for them. origin/main asks
-// for the current user, root under sudo (collectors.go:498).
+// for the current user, root under sudo (collectors.go:498). From is "" for
+// a login with no remote host, TTY then saying where.
 type detailLogin struct {
 	User string `json:"user"`
 	When string `json:"when"`
 	From string `json:"from"`
+	TTY  string `json:"tty"`
 }
 
 // detailsReading is what readDetails read: the stand-in for what unit (b)
@@ -552,14 +623,14 @@ func (r *detailsReading) readCPU(ctx context.Context, sys host.System, fail func
 		switch {
 		case !ok:
 		case k == "processor":
-			r.cpu.Cores++
+			r.cpu.CPUs++
 		case k == "model name" && r.cpu.Model == "":
 			r.cpu.Model = v
 		case k == "physical id":
 			sockets[v] = true
 		}
 	}
-	r.cpu.Sockets = max(1, len(sockets))
+	r.cpu.Sockets = len(sockets)
 	load, err := sys.ReadFile(ctx, "/proc/loadavg")
 	if err != nil {
 		fail(secCPU, "/proc/loadavg", err)
@@ -572,7 +643,9 @@ func (r *detailsReading) readCPU(ctx context.Context, sys host.System, fail func
 
 // readDisk is the root file system's: from /proc/self/mounts its source
 // and type, then df -kP / or, on ZFS, the dataset mounted there and its
-// pool, never a dataset of the gallery's own.
+// pool, never a dataset of the gallery's own. With no zpool or zfs, as in an
+// LXC guest on ZFS [I, not run], the stand-in loses the section: unit (b)
+// falls back to df (the page, §8).
 func (r *detailsReading) readDisk(ctx context.Context, sys host.System, fail func(string, string, error)) {
 	data, err := sys.ReadFile(ctx, detect.SelfMounts)
 	if err != nil {
@@ -650,10 +723,13 @@ func (sh sdHost) who() string {
 	return "root"
 }
 
-// readLogin is last -n 1's line for who ran hardn. Which source each
-// release keeps logins in is [unverified] (wtmp; origin/main's lastlog -u,
-// lastlog_command_adapter.go:36), and last's most recent line is commonly
-// this very session [I]: unit (b)'s, on the VMs.
+// readLogin is last -n 1's line for who ran hardn. Debian 13 and Ubuntu
+// 26.04 have no last, and Alpine's refuses this form (lastTool), so which
+// source to read is the maintainer's (decision 3), and last's most recent
+// line is commonly this very session [I] (decision 4). A first line that is
+// blank is no login; one that names another user, which a name last cuts to
+// 8 columns would [I, not run], or that does not parse, is not a fact about
+// the user, so the section says it could not read it.
 func (r *detailsReading) readLogin(ctx context.Context, sys host.System, fail func(string, string, error)) {
 	r.login.User = r.sh.who()
 	res, err := sys.Run(ctx, "last", "-n", "1", r.login.User)
@@ -662,9 +738,37 @@ func (r *detailsReading) readLogin(ctx context.Context, sys host.System, fail fu
 		return
 	}
 	line, _, _ := strings.Cut(string(res.Stdout), "\n")
-	if f := strings.Fields(line); len(f) >= 7 && f[0] == r.login.User {
-		r.login.From, r.login.When = f[2], f[4]+" "+f[5]+" "+f[6]
+	if strings.TrimSpace(line) == "" {
+		return
 	}
+	login, err := parseLast(r.login.User, line)
+	if err != nil {
+		fail(secLogin, "last", err)
+		return
+	}
+	r.login = login
+}
+
+// parseLast reads a line of last for user: its name, its terminal, a host if
+// there is one, and the weekday that starts the time, by which a line with
+// no host column is told apart. A stand-in: unit (b) parses the source chosen
+// by its own format.
+func parseLast(user, line string) (detailLogin, error) {
+	f := strings.Fields(line)
+	if len(f) == 0 || f[0] != user {
+		return detailLogin{}, fmt.Errorf("a line for another name: %q", line)
+	}
+	days := []string{"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"}
+	for i := 2; i <= 3 && i+3 < len(f); i++ {
+		if slices.Contains(days, f[i]) {
+			login := detailLogin{User: user, TTY: f[1], When: f[i+1] + " " + f[i+2] + " " + f[i+3]}
+			if i == 3 {
+				login.From = f[2]
+			}
+			return login, nil
+		}
+	}
+	return detailLogin{}, fmt.Errorf("a line with no time: %q", line)
 }
 
 // gib is n bytes in GiB, one decimal, as origin/main's memory says GiB and
@@ -690,7 +794,10 @@ func percent(used, total uint64) string {
 // what it could not.
 func (r detailsReading) sectionRows(section string) []component.KeyValue {
 	if u, ok := r.unread[section]; ok {
-		return []component.KeyValue{{Key: section, Note: fmt.Sprintf(cantRead, u.source), State: component.ValueUnknown}}
+		if section == secLogin && errors.Is(u.err, host.ErrNotFound) {
+			return []component.KeyValue{{Key: r.login.User, Value: noLast, State: component.ValueUnknown}}
+		}
+		return []component.KeyValue{{Key: fmt.Sprintf(cantRead, u.source), State: component.ValueWarn}}
 	}
 	switch section {
 	case secOS:
@@ -707,7 +814,11 @@ func (r detailsReading) sectionRows(section string) []component.KeyValue {
 	case secUsers:
 		return r.userRows()
 	case secCPU:
-		return []component.KeyValue{{Key: rowModel, Value: r.cpu.Model}, {Key: rowCores, Value: coresWords(r.cpu)},
+		model := component.KeyValue{Key: rowModel, Value: r.cpu.Model}
+		if r.cpu.Model == "" {
+			model.Value, model.State = notKnown, component.ValueUnknown
+		}
+		return []component.KeyValue{model, {Key: rowCPUs, Value: cpusWords(r.cpu)},
 			{Key: rowLoad, Value: strings.Join(r.cpu.Load[:], ", ")}}
 	case secDisk:
 		rows := []component.KeyValue{{Key: rowRoot, Value: r.disk.Source + " " + r.disk.Type}, {Key: rowUsed, Value: usedOf(r.disk.Used, r.disk.Total)}}
@@ -724,6 +835,9 @@ func (r detailsReading) sectionRows(section string) []component.KeyValue {
 	case secLogin:
 		if r.login.When == "" {
 			return []component.KeyValue{{Key: r.login.User, Value: noLogin, State: component.ValueNone}}
+		}
+		if r.login.From == "" {
+			return []component.KeyValue{{Key: r.login.User, Value: fmt.Sprintf(onTTY, r.login.When, r.login.TTY)}}
 		}
 		return []component.KeyValue{{Key: r.login.User, Value: r.login.When + " from " + r.login.From}}
 	}
@@ -748,20 +862,26 @@ func (r detailsReading) userRows() []component.KeyValue {
 		rows = []component.KeyValue{{Key: noUsers, State: component.ValueNone}}
 	}
 	if r.sh.notRoot {
-		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(notRootRow, "/etc/sudoers.d"), State: component.ValueWarn})
+		// What unit (b)'s reader skips, reading as the users check reads
+		// (pkg/host/sudoers): the stand-in reads groups alone, root or not.
+		rules := sudoers.DropInDir
+		if r.facts.Elevation.Doas.Present == detect.Yes {
+			rules = sudoers.DoasConfig
+		}
+		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(notRootRow, rules), State: component.ValueWarn})
 	}
 	return rows
 }
 
-// coresWords is "4 cores, 1 socket".
-func coresWords(c detailCPU) string {
-	plural := func(n int, one string) string {
-		if n == 1 {
-			return "1 " + one
-		}
-		return fmt.Sprintf("%d %ss", n, one)
+// cpusWords is "4, 1 socket", the CPUs alone where the sockets are not known.
+func cpusWords(c detailCPU) string {
+	switch c.Sockets {
+	case 0:
+		return strconv.Itoa(c.CPUs)
+	case 1:
+		return strconv.Itoa(c.CPUs) + ", 1 socket"
 	}
-	return plural(c.Cores, "core") + ", " + plural(c.Sockets, "socket")
+	return fmt.Sprintf("%d, %d sockets", c.CPUs, c.Sockets)
 }
 
 // sdSections are the sections, in P-17's order.
@@ -809,7 +929,7 @@ func (r detailsReading) summary(section string) (string, component.ValueState) {
 			return fmt.Sprintf("%d users", n), component.ValuePlain
 		}
 	case secCPU:
-		return strconv.Itoa(r.cpu.Cores) + " cores, load " + r.cpu.Load[0], component.ValuePlain
+		return strconv.Itoa(r.cpu.CPUs) + " CPUs, load " + r.cpu.Load[0], component.ValuePlain
 	case secDisk:
 		return percent(r.disk.Used, r.disk.Total) + " of " + gib(r.disk.Total) + " GiB", component.ValuePlain
 	case secMemory:
@@ -1023,6 +1143,14 @@ func (run *sdRun) tick() {
 	f.AddFile("/proc/loadavg", []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+run.ticks*10)), 0o444, 0, 0)
 }
 
+// main()'s two lines as a user other than root: logging.go:39's and
+// cmd/hardn/main.go:61's, on stdout today, the reasons the system's words
+// [I, not run as a user other than root].
+const (
+	mainOpenLine    = "Failed to open log file /var/log/hardn.log: open /var/log/hardn.log: permission denied"
+	mainExampleLine = "Warning: Unable to create example configuration file: failed to create directory for example config: mkdir /etc/hardn: permission denied"
+)
+
 // reportCommand is what treatment report-pager's Open would run.
 const reportCommand = "LESSSECURE=1 less, the report on its standard input"
 
@@ -1064,7 +1192,7 @@ func sdStart(args []string) (string, bool, error) {
 }
 
 // sdNote is play's note for the System Details mocks.
-const sdNote = "Play mode, mocks: the System Details screen proposed for slice 1, read from a simulated host, " +
+const sdNote = "Play mode, mocks: the System Details screen proposed for slice 1, inferred from origin/main (unreleased), read from a simulated host, " +
 	"by real code where there is some (detect, the header probe, accounts) and by the gallery's stand-ins elsewhere, unit (b)'s to build. " +
 	"It only reads: no plan, no y/N, no journal. Nothing on this machine changes: every command and file is the fake's."
 
@@ -1099,7 +1227,7 @@ func onSDHost(name string, view func(detailsReading, component.Ctx) string) func
 func sdMocks() []listMock {
 	var mocks []listMock
 	for _, sh := range sdHosts() {
-		mocks = append(mocks, listMock{name: "screen-" + sh.name, note: "Mock: the System Details screen. " + sh.note,
+		mocks = append(mocks, listMock{name: "screen-" + sh.name, note: "The System Details screen. " + sh.note,
 			draw: onSDHost(sh.name, func(r detailsReading, c component.Ctx) string { return r.subMenu().Render(c) })})
 	}
 	return append(mocks,
@@ -1127,29 +1255,31 @@ func sdMocks() []listMock {
 			draw: onSDHost("debian13", planOnlyIndicator)},
 		listMock{name: "cli-terminal", note: "hardn system-details to a terminal: the report, no menu and no prompt. It reads the same as the screen.",
 			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.report(c) })},
-		listMock{name: "cli-pipe", wide: theme.ContentWidth, note: "hardn system-details not to a terminal: plain mode, no colour, ASCII, whatever the terminal around it (term.Env's Plain). Its values are cut at the 64-cell content width like any row's; see cli-pipe-cut.",
+		listMock{name: "cli-pipe", wide: theme.ContentWidth, note: "hardn system-details not to a terminal: plain mode, no colour, ASCII, whatever the terminal around it (term.Env's Plain). Its values are cut at the 64-cell content width like any row's today; unit (c) must not cut them (the page, Made here; cli-pipe-cut). As a user other than root, see cli-not-root.",
 			draw: onSDHost("debian13", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, so the pipe loses its end, as a row cuts on a terminal. Unit (b) must not cut off a terminal: nothing in pkg/ui lays out uncapped today, so it needs a decision.",
+		listMock{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, so the pipe loses its end, as a row cuts on a terminal. Unit (c) must not cut off a terminal: nothing in pkg/ui lays out uncapped today, so a new path through the components is a deviation to log.",
 			draw: onSDHost("pve9", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says; /etc/sudoers.d's files are 0440, root's [I]. origin/main's main() also prints two lines of its own first, unrelated: the log it cannot open and the example configuration it cannot write (cmd/hardn/main.go:57-62; logging.go:39).",
+		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says, naming what unit (b)'s reader skips, as the users check reads: /etc/sudoers.d's files are 0440, root's [I]; on a doas host /etc/doas.conf. The stand-in reads groups alone, so its root and non-root reads are the same today. The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:39; read, not run); unit (d) moves them to stderr.",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
 				sh := notRootHost()
-				return readDetails(ctx, sh.host().sys(), sh).report(c), nil
+				return apart(strings.Join(codeRows(c, []string{mainOpenLine, mainExampleLine}, c.Theme.Output.Render), "\n"), readDetails(ctx, sh.host().sys(), sh).report(c)), nil
 			}},
-		listMock{name: "cli-json", wide: theme.ContentWidth, note: "Proposal, depends on §3.11 (not approved: cmd/hardn/output.go:4): hardn system-details --output json. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0.",
+		listMock{name: "cli-json", wide: theme.ContentWidth, note: "Proposal, depends on §3.11 (not approved: cmd/hardn/output.go:4): hardn system-details --output json. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. Stock Debian 13 has no last, so lastLogin is null and one finding says so. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
 			draw: onSDHost("debian13", jsonDrawing)},
 		listMock{name: "cli-json-unreadable", wide: theme.ContentWidth, note: "Proposal, as cli-json: a section not read is null in details and one finding, DETAILS_UNREADABLE (proposed code), which is not an error: the rest was read, so the exit status stays 0.",
 			draw: onSDHost("unreadable", jsonDrawing)},
 		listMock{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is §3.11's: not approved, so this is a proposal.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return flagsDrawing(c), nil }},
-		listMock{name: "origin", note: "origin/main's report, its words as they are (display.go:43-129; pkg/characterization's menu/system_details_open.golden), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Its 50-column box, its screen clear, its blank lines where sections would be, and its bar graphs are left out.",
+		listMock{name: "origin", own: true, note: "origin/main's report, its words as they are (display.go:43-129; pkg/characterization's menu/system_details_open.golden), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Its 50-column box, its screen clear, its blank lines where sections would be, and its bar graphs are left out.",
 			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.originScreen(false).Render(c) })},
-		listMock{name: "origin-error", note: "origin/main's report when any collector fails (system_details_menu.go:42-62; menu/system_details_error.golden): the error, twice, the box saying to check permissions whatever it was, the report gone, Export not offered.",
+		listMock{name: "origin-error", own: true, note: "origin/main's report when any collector fails (system_details_menu.go:42-62; menu/system_details_error.golden): the error, twice, above the box and in it, the box saying to check permissions whatever it was, the report gone, Export not offered. The word \"Error:\" before each title here is the component's, not origin/main's.",
 			draw: onSDHost("unreadable", func(r detailsReading, c component.Ctx) string {
-				return apart(component.Callout{Kind: component.MessageBad, Title: "System Details Error", Body: []string{
-					"Failed to retrieve system status information.", "Error: failed to collect memory info: failed to get memory info: exec: \"free\": executable file not found in $PATH",
-					"Please check system permissions and try again.",
-				}}.Render(c), r.originScreen(true).Render(c))
+				const why = "failed to collect memory info: failed to get memory info: exec: \"free\": executable file not found in $PATH"
+				return apart(component.Message{Kind: component.MessageBad, Text: "Error retrieving system status: " + why}.Render(c),
+					component.Callout{Kind: component.MessageBad, Title: "System Details Error", Body: []string{
+						"Failed to retrieve system status information.", "Error: " + why,
+						"Please check system permissions and try again.",
+					}}.Render(c), r.originScreen(true).Render(c))
 			})},
 	)
 }
@@ -1282,7 +1412,7 @@ func (r detailsReading) originScreen(failed bool) screen.SubMenu {
 			{Key: "OS", Value: "Debian 13 Trixie"}, {Key: "Kernel", Value: "Linux " + r.kernel}, {Key: "Hostname", Value: r.hostname},
 			{Key: "IP Addresses", Value: "192.0.2.20"}, {Key: "Client IP", Value: "Not connected"}, {Key: "DNS IP 1", Value: "192.0.2.53"}, {Key: "User", Value: "root"},
 			{Key: "Non-System Users", Value: "alice (sudo)"}, {Key: "Processor", Value: r.cpu.Model}, {Key: "Cores", Value: "4 vCPU(s) / 1 Socket(s)"},
-			{Key: "Hypervisor", Value: "KVM"}, {Key: "CPU Freq", Value: "2.00 GHz"}, {Key: "Load 1m", Value: "(0.12)"}, {Key: "Load 5m", Value: "(0.08)"}, {Key: "Load 15m", Value: "(0.03)"},
+			{Key: "Hypervisor", Value: "KVM"}, {Key: "CPU Freq", Value: "0.00 GHz"}, {Key: "Load 1m", Value: "(0.12)"}, {Key: "Load 5m", Value: "(0.08)"}, {Key: "Load 15m", Value: "(0.03)"},
 			{Key: "Volume", Value: "6.17/38.60 GB [15.99%]"}, {Key: "Memory", Value: "3.07/3.84 GiB [79.84%]"},
 			{Key: "Last Login", Value: "Never logged in"}, {Key: "Uptime", Value: r.uptime},
 		}
@@ -1299,6 +1429,9 @@ type listMock struct {
 	name, note string
 	draw       func(ctx context.Context, c component.Ctx) (string, error)
 	wide       int
+	// own: its note names its source itself, as origin/main's own words do,
+	// and takes no listing label.
+	own bool
 }
 
 // listing is a mode that lists mocks with no input, as "status" and
@@ -1307,7 +1440,17 @@ type listMock struct {
 // sizes itself as play does (look.sizeTo).
 type listing struct {
 	prefix, usage string
-	mocks         func() []listMock
+	// label is the source label a mock's note opens with.
+	label string
+	mocks func() []listMock
+}
+
+// note is what m's note says, under the listing's label.
+func (l listing) note(m listMock) string {
+	if m.own {
+		return m.note
+	}
+	return l.label + " " + m.note
 }
 
 // run is the listing's mode.
@@ -1354,7 +1497,7 @@ func (l listing) run(args []string, size sizer, stdout, stderr io.Writer) int {
 			var out string
 			if out, err = m.draw(context.Background(), rc); err == nil {
 				_, err = io.WriteString(w, apart(header(rc, l.prefix+" "+m.name),
-					component.Callout{Kind: component.MessageInfo, Body: []string{m.note}}.Render(rc), out)+sectionBreak)
+					component.Callout{Kind: component.MessageInfo, Body: []string{l.note(m)}}.Render(rc), out)+sectionBreak)
 			}
 			if err != nil {
 				err = fmt.Errorf("%s: %w", m.name, err)
@@ -1391,4 +1534,4 @@ func selectListMocks(all []listMock, args []string) ([]listMock, error) {
 const sdUsage = "usage: go run ./internal/tools/uigallery system-details [flags] [mock | all]..."
 
 // sdListing is the System Details listing.
-var sdListing = listing{prefix: sdPrefix, usage: sdUsage, mocks: sdMocks}
+var sdListing = listing{prefix: sdPrefix, usage: sdUsage, label: sdLabel, mocks: sdMocks}

@@ -6,17 +6,27 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs origin-p␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's hardn -p (cmd/hardn/main.go:415-417;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:145-146; menu/logs_print_flag.golden): the same, to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma terminal or not. It needs root (cmd/hardn/main.go:148),␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthough the file is 0644.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's hardn -p, to a terminal or not, read, not run:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe config line (config.go:246, :252 or :279), the clear␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msequence, here as the four characters \x1b, and the ~~~ line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meven in a pipe (osdetect.go:50; utils.go:24-37), the OS line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(osdetect.go:93-95), then what menu/logs_print_flag.golden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mholds of PrintLogs alone (logging.go:145-146). Colour left␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mout. The config and OS lines also go into the log␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:99-100), so each -p grows it by them. It needs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (cmd/hardn/main.go:148), though the file is 0644.␛[m$
+$
+[INFO] Using configuration from: /etc/hardn/hardn.yml$
+\x1b[H\x1b[2J~~~ (a line of them)$
+$
+[SUCCESS] debian trixie detected$
 $
 # Contents of /var/log/hardn.log:$
 $
-2026/10/20 12:00:01 INFO: run 1: exit 0$
-2026/10/20 12:00:03 INSTALLED: Package ufw$
-2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+2026/10/20 12:05:11 INFO: Using configuration from: /etc/hardn/hardn.yml$
+2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
 $
 
@@ -24,17 +34,27 @@ $
 # logs origin-p ------------------------------------------------$
 $
 # Note$
-# origin/main's hardn -p (cmd/hardn/main.go:415-417;$
-# logging.go:145-146; menu/logs_print_flag.golden): the same, to$
-# a terminal or not. It needs root (cmd/hardn/main.go:148),$
-# though the file is 0644.$
+# origin/main's hardn -p, to a terminal or not, read, not run:$
+# the config line (config.go:246, :252 or :279), the clear$
+# sequence, here as the four characters \x1b, and the ~~~ line$
+# even in a pipe (osdetect.go:50; utils.go:24-37), the OS line$
+# (osdetect.go:93-95), then what menu/logs_print_flag.golden$
+# holds of PrintLogs alone (logging.go:145-146). Colour left$
+# out. The config and OS lines also go into the log$
+# (logging.go:99-100), so each -p grows it by them. It needs$
+# root (cmd/hardn/main.go:148), though the file is 0644.$
+$
+[INFO] Using configuration from: /etc/hardn/hardn.yml$
+\x1b[H\x1b[2J~~~ (a line of them)$
+$
+[SUCCESS] debian trixie detected$
 $
 # Contents of /var/log/hardn.log:$
 $
-2026/10/20 12:00:01 INFO: run 1: exit 0$
-2026/10/20 12:00:03 INSTALLED: Package ufw$
-2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+2026/10/20 12:05:11 INFO: Using configuration from: /etc/hardn/hardn.yml$
+2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
 $
 
@@ -42,16 +62,26 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs origin-p␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's hardn -p (cmd/hardn/main.go:415-417;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:145-146; menu/logs_print_flag.golden): the same, to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma terminal or not. It needs root (cmd/hardn/main.go:148),␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthough the file is 0644.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's hardn -p, to a terminal or not, read, not run:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe config line (config.go:246, :252 or :279), the clear␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msequence, here as the four characters \x1b, and the ~~~ line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meven in a pipe (osdetect.go:50; utils.go:24-37), the OS line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(osdetect.go:93-95), then what menu/logs_print_flag.golden␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mholds of PrintLogs alone (logging.go:145-146). Colour left␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mout. The config and OS lines also go into the log␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:99-100), so each -p grows it by them. It needs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (cmd/hardn/main.go:148), though the file is 0644.␛[m$
+$
+[INFO] Using configuration from: /etc/hardn/hardn.yml$
+\x1b[H\x1b[2J~~~ (a line of them)$
+$
+[SUCCESS] debian trixie detected$
 $
 # Contents of /var/log/hardn.log:$
 $
-2026/10/20 12:00:01 INFO: run 1: exit 0$
-2026/10/20 12:00:03 INSTALLED: Package ufw$
-2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+2026/10/20 12:05:11 INFO: Using configuration from: /etc/hardn/hardn.yml$
+2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
 $

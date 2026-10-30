@@ -6,15 +6,16 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-pipe-control␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe same on the control host: safe off a terminal too, since a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpipe may end at one. Who wants the bytes has cat␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/hardn.log.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same on the control␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost: safe off a terminal too, since a pipe may end at one.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWho wants the bytes has cat /var/log/hardn.log.␛[m$
 $
 2026/10/20 12:00:01 INFO: run 1: $ apt-get update$
 2026/10/20 12:00:02 INFO: run 1: | ^[[31mErr:1^[[0m http://deb.example.net$
 2026/10/20 12:00:02 INFO: run 1: | ^[]0;a title^Gdone^[[2J$
 2026/10/20 12:00:03 INFO: run 2: | abc<U+202E>def$
 2026/10/20 12:00:03 INFO: run 2: | caf<0xe9>$
+2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 → … x$
 $
 $
 
@@ -22,15 +23,16 @@ $
 # logs cli-pipe-control ----------------------------------------$
 $
 # Note$
-# The same on the control host: safe off a terminal too, since a$
-# pipe may end at one. Who wants the bytes has cat$
-# /var/log/hardn.log.$
+# Inferred from v0.3.2 and origin/main. The same on the control$
+# host: safe off a terminal too, since a pipe may end at one.$
+# Who wants the bytes has cat /var/log/hardn.log.$
 $
 2026/10/20 12:00:01 INFO: run 1: $ apt-get update$
 2026/10/20 12:00:02 INFO: run 1: | ^[[31mErr:1^[[0m http://deb.example.net$
 2026/10/20 12:00:02 INFO: run 1: | ^[]0;a title^Gdone^[[2J$
 2026/10/20 12:00:03 INFO: run 2: | abc<U+202E>def$
 2026/10/20 12:00:03 INFO: run 2: | caf<0xe9>$
+2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 → … x$
 $
 $
 
@@ -38,14 +40,15 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-pipe-control␛[m ␛[38;2;48;52;64m----------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe same on the control host: safe off a terminal too, since a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpipe may end at one. Who wants the bytes has cat␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/hardn.log.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same on the control␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost: safe off a terminal too, since a pipe may end at one.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWho wants the bytes has cat /var/log/hardn.log.␛[m$
 $
 2026/10/20 12:00:01 INFO: run 1: $ apt-get update$
 2026/10/20 12:00:02 INFO: run 1: | ^[[31mErr:1^[[0m http://deb.example.net$
 2026/10/20 12:00:02 INFO: run 1: | ^[]0;a title^Gdone^[[2J$
 2026/10/20 12:00:03 INFO: run 2: | abc<U+202E>def$
 2026/10/20 12:00:03 INFO: run 2: | caf<0xe9>$
+2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 → … x$
 $
 $

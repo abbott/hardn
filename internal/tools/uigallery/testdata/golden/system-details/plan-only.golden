@@ -6,11 +6,12 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details plan-only␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlan only, as the other sub-menus show it: they show nothing.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNo sub-menu shows the mode (SubMenu.Heading, sub.go:58: "with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno mode beside it"; play/backup-plan-only, play/environment-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain-plan-only). The screen is the same under plan only, since␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit changes nothing, and the main menu says the mode.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Plan only, as the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother sub-menus show it: they show nothing. No sub-menu shows␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe mode (SubMenu.Heading, sub.go:58: "with no mode beside␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit"; play/backup-plan-only, play/environment-main-plan-only).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe screen is the same under plan only, since it changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing, and the main menu says the mode.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -32,7 +33,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -46,7 +47,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -62,11 +63,12 @@ $
 # system-details plan-only -------------------------------------$
 $
 # Note$
-# Plan only, as the other sub-menus show it: they show nothing.$
-# No sub-menu shows the mode (SubMenu.Heading, sub.go:58: "with$
-# no mode beside it"; play/backup-plan-only, play/environment-$
-# main-plan-only). The screen is the same under plan only, since$
-# it changes nothing, and the main menu says the mode.$
+# Inferred from origin/main (unreleased). Plan only, as the$
+# other sub-menus show it: they show nothing. No sub-menu shows$
+# the mode (SubMenu.Heading, sub.go:58: "with no mode beside$
+# it"; play/backup-plan-only, play/environment-main-plan-only).$
+# The screen is the same under plan only, since it changes$
+# nothing, and the main menu says the mode.$
 $
 # System Details ###############################################$
 $
@@ -88,7 +90,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
-   -  Cores                4 cores, 1 socket$
+   -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -102,7 +104,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  alice                Oct 20 11:42 from 192.0.2.10$
+  [?] alice                Not known: last isn't installed$
 $
   Select an option$
 $
@@ -118,12 +120,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details plan-only␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlan only, as the other sub-menus show it: they show␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing. No sub-menu shows the mode (SubMenu.Heading,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msub.go:58: "with no mode beside it"; play/backup-plan-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly, play/environment-main-plan-only). The screen is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msame under plan only, since it changes nothing, and the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain menu says the mode.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Plan only, as the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother sub-menus show it: they show nothing. No sub-menu␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshows the mode (SubMenu.Heading, sub.go:58: "with no mode␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbeside it"; play/backup-plan-only, play/environment-main-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan-only). The screen is the same under plan only, since␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit changes nothing, and the main menu says the mode.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -152,8 +154,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -171,8 +173,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
-      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -189,11 +191,12 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details plan-only␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlan only, as the other sub-menus show it: they show nothing.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNo sub-menu shows the mode (SubMenu.Heading, sub.go:58: "with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno mode beside it"; play/backup-plan-only, play/environment-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain-plan-only). The screen is the same under plan only, since␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit changes nothing, and the main menu says the mode.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Plan only, as the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother sub-menus show it: they show nothing. No sub-menu shows␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe mode (SubMenu.Heading, sub.go:58: "with no mode beside␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit"; play/backup-plan-only, play/environment-main-plan-only).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe screen is the same under plan only, since it changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing, and the main menu says the mode.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -215,7 +218,7 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$
@@ -229,7 +232,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

@@ -6,11 +6,12 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/elsewhere␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1, read␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom a simulated host by the gallery's stand-ins, unit (b)'s␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto build. It only reads: no plan, no y/N, no journal. No pager␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns: an item says what it would run. Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the gallery's stand-ins, unit (b)'s to build. It only␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads: no plan, no y/N, no journal. No pager runs: an item␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays what it would run. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/elsewhere␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. hardn.yml␛[m$
@@ -20,19 +21,19 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLog␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m410 bytes, 8 lines␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mhardn.yml's logFile says /srv/log/hardn.log. hardn doesn't␛[m$
-      ␛[38;2;219;184;83mwrite there.␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m601 bytes␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mhardn.yml's logFile, /srv/log/hardn.log, isn't used␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 3 of 8 lines␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 3 of 10 lines␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:03 INSTALLED: Package ufw␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: ufw is not active␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
-      ␛[38;2;219;184;83mexit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m↪ exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -53,11 +54,12 @@ $
 # play logs/elsewhere ------------------------------------------$
 $
 # Note$
-# Play mode, mocks: the Logs screen proposed for slice 1, read$
-# from a simulated host by the gallery's stand-ins, unit (b)'s$
-# to build. It only reads: no plan, no y/N, no journal. No pager$
-# runs: an item says what it would run. Nothing on this machine$
-# changes: every command and file is the fake's.$
+# Play mode, mocks: the Logs screen proposed for slice 1,$
+# inferred from v0.3.2 and origin/main, read from a simulated$
+# host by the gallery's stand-ins, unit (b)'s to build. It only$
+# reads: no plan, no y/N, no journal. No pager runs: an item$
+# says what it would run. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # Info: logs/elsewhere$
 # web-01.example.net runs Debian 13, less installed. hardn.yml$
@@ -67,19 +69,19 @@ $
 $
 # Logs #########################################################$
 $
-# Log ----------------------------------------------------------$
+# File ---------------------------------------------------------$
 $
-   -  File                 /var/log/hardn.log$
-   -  Size                 410 bytes, 8 lines$
-   -  hardn.yml's logFile says /srv/log/hardn.log. hardn doesn't$
-      write there.$
+   -  Path                 /var/log/hardn.log$
+   -  Size                 601 bytes$
+   -  hardn.yml's logFile, /srv/log/hardn.log, isn't used$
 $
-# Last 3 of 8 lines --------------------------------------------$
+# Last 3 of 10 lines -------------------------------------------$
 $
-   -  2026/10/20 12:00:03 INSTALLED: Package ufw$
-   -  2026/10/20 12:00:04 WARNING: ufw is not active$
-   -  2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
-      exit status 1$
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+      2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
   Select an option$
 $
@@ -101,11 +103,12 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread from a simulated host by the gallery's stand-ins,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. It only reads: no plan, no y/N, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. No pager runs: an item says what it would run.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the gallery's stand-ins, unit (b)'s to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager runs: an item says what it would run. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/elsewhere␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed.␛[m$
@@ -116,19 +119,17 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLog␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m$
       ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m$
-      ␛[38;2;129;134;156m410 bytes, 8 lines␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mhardn.yml's logFile says /srv/log/hardn.log. hardn␛[m$
-      ␛[38;2;219;184;83mdoesn't write there.␛[m$
+      ␛[38;2;129;134;156m601 bytes␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mhardn.yml's logFile, /srv/log/hardn.log, isn't used␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 1 of 8 lines␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 1 of 10 lines␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
-      ␛[38;2;219;184;83mfirewall: exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

@@ -6,10 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details export-file-open␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment export-file: item 2's question, a relative path␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefused (origin/main takes it, system_details_menu.go:135, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites under the current directory as root), and the file␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten. Under plan only it says Not available in plan only.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Treatment export-file:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitem 2's question, a relative path refused (origin/main takes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit, system_details_menu.go:135, and writes under the current␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdirectory as root), and the file written. Under plan only it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays Not available in plan only.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -31,7 +32,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -70,10 +71,11 @@ $
 # system-details export-file-open ------------------------------$
 $
 # Note$
-# Treatment export-file: item 2's question, a relative path$
-# refused (origin/main takes it, system_details_menu.go:135, and$
-# writes under the current directory as root), and the file$
-# written. Under plan only it says Not available in plan only.$
+# Inferred from origin/main (unreleased). Treatment export-file:$
+# item 2's question, a relative path refused (origin/main takes$
+# it, system_details_menu.go:135, and writes under the current$
+# directory as root), and the file written. Under plan only it$
+# says Not available in plan only.$
 $
 # System Details ###############################################$
 $
@@ -95,7 +97,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
-   -  Cores                4 cores, 1 socket$
+   -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -134,11 +136,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details export-file-open␛[m ␛[38;2;48;52;64m──────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment export-file: item 2's question, a relative path␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefused (origin/main takes it, system_details_menu.go:135,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand writes under the current directory as root), and the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile written. Under plan only it says Not available in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan only.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Treatment export-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile: item 2's question, a relative path refused␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(origin/main takes it, system_details_menu.go:135, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites under the current directory as root), and the file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten. Under plan only it says Not available in plan␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -167,8 +170,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -214,10 +217,11 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details export-file-open␛[m ␛[38;2;48;52;64m------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment export-file: item 2's question, a relative path␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefused (origin/main takes it, system_details_menu.go:135, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites under the current directory as root), and the file␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten. Under plan only it says Not available in plan only.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Treatment export-file:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitem 2's question, a relative path refused (origin/main takes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit, system_details_menu.go:135, and writes under the current␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdirectory as root), and the file written. Under plan only it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays Not available in plan only.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -239,7 +243,7 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$

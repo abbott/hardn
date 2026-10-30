@@ -6,10 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-report-pager␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-pager: one line per section, an item opening␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe whole report in the pager. It fits 80x24. The gallery runs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno pager: the item says what it would run.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. Treatment report-pager: one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline per section, an item opening the whole report in the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager. It fits 80x24. The gallery runs no pager: the item says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat it would run.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -18,10 +19,10 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS and Kernel␛[m        ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mHost and IPs␛[m         ␛[38;2;129;134;156mweb-01, 192.0.2.20/24␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsers␛[m                ␛[38;2;129;134;156malice␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPU and Load␛[m         ␛[38;2;129;134;156m4 cores, load 0.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPU and Load␛[m         ␛[38;2;129;134;156m4 CPUs, load 0.12␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDisk␛[m                 ␛[38;2;129;134;156m11% of 38.6 GiB␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mMemory␛[m               ␛[38;2;129;134;156m30% of 3.8 GiB␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLast Login␛[m           ␛[38;2;129;134;156malice, Oct 20 11:42␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLast Login␛[m           ␛[38;2;129;134;156mUnknown␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -38,10 +39,11 @@ $
 # system-details screen-report-pager ---------------------------$
 $
 # Note$
-# Mock: the System Details screen. Debian 13, as debian13.$
-# Treatment report-pager: one line per section, an item opening$
-# the whole report in the pager. It fits 80x24. The gallery runs$
-# no pager: the item says what it would run.$
+# Inferred from origin/main (unreleased). The System Details$
+# screen. Debian 13, as debian13. Treatment report-pager: one$
+# line per section, an item opening the whole report in the$
+# pager. It fits 80x24. The gallery runs no pager: the item says$
+# what it would run.$
 $
 # System Details ###############################################$
 $
@@ -50,10 +52,10 @@ $
    -  OS and Kernel        Debian 13 (Trixie)$
    -  Host and IPs         web-01, 192.0.2.20/24$
    -  Users                alice$
-   -  CPU and Load         4 cores, load 0.12$
+   -  CPU and Load         4 CPUs, load 0.12$
    -  Disk                 11% of 38.6 GiB$
    -  Memory               30% of 3.8 GiB$
-   -  Last Login           alice, Oct 20 11:42$
+  [?] Last Login           Unknown$
 $
   Select an option$
 $
@@ -70,10 +72,11 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-report-pager␛[m ␛[38;2;48;52;64m───────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-pager: one line per section, an item␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mopening the whole report in the pager. It fits 80x24. The␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery runs no pager: the item says what it would run.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. Treatment report-pager:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone line per section, an item opening the whole report in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe pager. It fits 80x24. The gallery runs no pager: the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitem says what it would run.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -86,13 +89,13 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsers␛[m$
       ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPU and Load␛[m$
-      ␛[38;2;129;134;156m4 cores, load 0.12␛[m$
+      ␛[38;2;129;134;156m4 CPUs, load 0.12␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDisk␛[m$
       ␛[38;2;129;134;156m11% of 38.6 GiB␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mMemory␛[m$
       ␛[38;2;129;134;156m30% of 3.8 GiB␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLast Login␛[m$
-      ␛[38;2;129;134;156malice, Oct 20 11:42␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLast Login␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -111,10 +114,11 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details screen-report-pager␛[m ␛[38;2;48;52;64m---------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-pager: one line per section, an item opening␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe whole report in the pager. It fits 80x24. The gallery runs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno pager: the item says what it would run.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13, as debian13. Treatment report-pager: one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline per section, an item opening the whole report in the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager. It fits 80x24. The gallery runs no pager: the item says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat it would run.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -123,10 +127,10 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS and Kernel␛[m        ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mHost and IPs␛[m         ␛[38;2;129;134;156mweb-01, 192.0.2.20/24␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsers␛[m                ␛[38;2;129;134;156malice␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPU and Load␛[m         ␛[38;2;129;134;156m4 cores, load 0.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPU and Load␛[m         ␛[38;2;129;134;156m4 CPUs, load 0.12␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDisk␛[m                 ␛[38;2;129;134;156m11% of 38.6 GiB␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mMemory␛[m               ␛[38;2;129;134;156m30% of 3.8 GiB␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLast Login␛[m           ␛[38;2;129;134;156malice, Oct 20 11:42␛[m$
+  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mLast Login␛[m           ␛[38;2;129;134;156mUnknown␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

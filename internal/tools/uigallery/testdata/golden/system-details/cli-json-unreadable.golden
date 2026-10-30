@@ -6,9 +6,10 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-json-unreadable␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposal, as cli-json: a section not read is null in details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand one finding, DETAILS_UNREADABLE (proposed code), which is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot an error: the rest was read, so the exit status stays 0.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Proposal, as cli-json:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma section not read is null in details and one finding,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDETAILS_UNREADABLE (proposed code), which is not an error: the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrest was read, so the exit status stays 0.␛[m$
 $
 {$
   "schemaVersion": 1,$
@@ -79,7 +80,7 @@ $
     ],$
     "cpu": {$
       "model": "QEMU Virtual CPU version 2.5+",$
-      "cores": 4,$
+      "cpus": 4,$
       "sockets": 1,$
       "load": [$
         "0.12",$
@@ -97,7 +98,8 @@ $
     "lastLogin": {$
       "user": "alice",$
       "when": "Oct 20 11:42",$
-      "from": "192.0.2.10"$
+      "from": "192.0.2.10",$
+      "tty": "pts/0"$
     }$
   }$
 }$
@@ -108,9 +110,10 @@ $
 # system-details cli-json-unreadable ---------------------------$
 $
 # Note$
-# Proposal, as cli-json: a section not read is null in details$
-# and one finding, DETAILS_UNREADABLE (proposed code), which is$
-# not an error: the rest was read, so the exit status stays 0.$
+# Inferred from origin/main (unreleased). Proposal, as cli-json:$
+# a section not read is null in details and one finding,$
+# DETAILS_UNREADABLE (proposed code), which is not an error: the$
+# rest was read, so the exit status stays 0.$
 $
 {$
   "schemaVersion": 1,$
@@ -181,7 +184,7 @@ $
     ],$
     "cpu": {$
       "model": "QEMU Virtual CPU version 2.5+",$
-      "cores": 4,$
+      "cpus": 4,$
       "sockets": 1,$
       "load": [$
         "0.12",$
@@ -199,7 +202,8 @@ $
     "lastLogin": {$
       "user": "alice",$
       "when": "Oct 20 11:42",$
-      "from": "192.0.2.10"$
+      "from": "192.0.2.10",$
+      "tty": "pts/0"$
     }$
   }$
 }$
@@ -210,9 +214,10 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details cli-json-unreadable␛[m ␛[38;2;48;52;64m---------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposal, as cli-json: a section not read is null in details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand one finding, DETAILS_UNREADABLE (proposed code), which is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot an error: the rest was read, so the exit status stays 0.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Proposal, as cli-json:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma section not read is null in details and one finding,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDETAILS_UNREADABLE (proposed code), which is not an error: the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrest was read, so the exit status stays 0.␛[m$
 $
 {$
   "schemaVersion": 1,$
@@ -283,7 +288,7 @@ $
     ],$
     "cpu": {$
       "model": "QEMU Virtual CPU version 2.5+",$
-      "cores": 4,$
+      "cpus": 4,$
       "sockets": 1,$
       "load": [$
         "0.12",$
@@ -301,7 +306,8 @@ $
     "lastLogin": {$
       "user": "alice",$
       "when": "Oct 20 11:42",$
-      "from": "192.0.2.10"$
+      "from": "192.0.2.10",$
+      "tty": "pts/0"$
     }$
   }$
 }$

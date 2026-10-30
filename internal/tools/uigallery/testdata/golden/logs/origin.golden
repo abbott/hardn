@@ -19,10 +19,10 @@ $
 $
 # Contents of /var/log/hardn.log:$
 $
-2026/10/20 12:00:01 INFO: run 1: exit 0$
-2026/10/20 12:00:03 INSTALLED: Package ufw$
-2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+2026/10/20 12:05:11 INFO: Using configuration from: /etc/hardn/hardn.yml$
+2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
   ␛[38;2;129;134;156mPress Enter to return to the main menu...␛[m$
 $
@@ -45,10 +45,10 @@ $
 $
 # Contents of /var/log/hardn.log:$
 $
-2026/10/20 12:00:01 INFO: run 1: exit 0$
-2026/10/20 12:00:03 INSTALLED: Package ufw$
-2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+2026/10/20 12:05:11 INFO: Using configuration from: /etc/hardn/hardn.yml$
+2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
   Press Enter to return to the main menu...$
 $
@@ -71,10 +71,10 @@ $
 $
 # Contents of /var/log/hardn.log:$
 $
-2026/10/20 12:00:01 INFO: run 1: exit 0$
-2026/10/20 12:00:03 INSTALLED: Package ufw$
-2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+2026/10/20 12:05:11 INFO: Using configuration from: /etc/hardn/hardn.yml$
+2026/10/20 12:05:11 SUCCESS: debian trixie detected$
 $
   ␛[38;2;129;134;156mPress Enter to return to the main menu...␛[m$
 $

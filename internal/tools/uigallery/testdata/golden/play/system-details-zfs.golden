@@ -7,19 +7,20 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, read from a simulated host, by real code where there is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msome (detect, the header probe, accounts) and by the gallery's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads: no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan, no y/N, no journal. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, inferred from origin/main (unreleased), read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host, by real code where there is some (detect, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheader probe, accounts) and by the gallery's stand-ins␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156melsewhere, unit (b)'s to build. It only reads: no plan, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node on ZFS [I, no VM]:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot's dataset read from /proc/self/mounts, rpool/ROOT/pve-1,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhere origin/main asks zfs for its hard-coded zroot/ROOT/os␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(details.go:85; menu/system_details_zfs_other_dataset.golden).␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNo user but root; root logged in. The CPU's name is cut at its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNo user but root. No last, by inference from Debian 13, its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbase [I, no VM]. The CPU's name is cut at its row.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -41,7 +42,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mIntel(R) Xeon(R) Gold 6338 CPU @ 2.0…␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m48 cores, 2 sockets␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m48, 2 sockets␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -56,7 +57,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mOct 20 09:14 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -86,7 +87,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mIntel(R) Xeon(R) Gold 6338 CPU @ 2.0…␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m48 cores, 2 sockets␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m48, 2 sockets␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.22, 0.09, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -101,7 +102,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mOct 20 09:14 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -122,19 +123,20 @@ $
 $
 # Note$
 # Play mode, mocks: the System Details screen proposed for slice$
-# 1, read from a simulated host, by real code where there is$
-# some (detect, the header probe, accounts) and by the gallery's$
-# stand-ins elsewhere, unit (b)'s to build. It only reads: no$
-# plan, no y/N, no journal. Nothing on this machine changes:$
-# every command and file is the fake's.$
+# 1, inferred from origin/main (unreleased), read from a$
+# simulated host, by real code where there is some (detect, the$
+# header probe, accounts) and by the gallery's stand-ins$
+# elsewhere, unit (b)'s to build. It only reads: no plan, no$
+# y/N, no journal. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # Info: system-details/pve9$
 # web-01.example.net is a Proxmox VE 9 node on ZFS [I, no VM]:$
 # root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1,$
 # where origin/main asks zfs for its hard-coded zroot/ROOT/os$
 # (details.go:85; menu/system_details_zfs_other_dataset.golden).$
-# No user but root; root logged in. The CPU's name is cut at its$
-# row.$
+# No user but root. No last, by inference from Debian 13, its$
+# base [I, no VM]. The CPU's name is cut at its row.$
 $
 # System Details ###############################################$
 $
@@ -156,7 +158,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                Intel(R) Xeon(R) Gold 6338 CPU @ 2...$
-   -  Cores                48 cores, 2 sockets$
+   -  CPUs                 48, 2 sockets$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -171,7 +173,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  root                 Oct 20 09:14 from 192.0.2.10$
+  [?] root                 Not known: last isn't installed$
 $
   Select an option$
 $
@@ -201,7 +203,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                Intel(R) Xeon(R) Gold 6338 CPU @ 2...$
-   -  Cores                48 cores, 2 sockets$
+   -  CPUs                 48, 2 sockets$
    -  Load (1, 5, 15 min)  0.22, 0.09, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -216,7 +218,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  root                 Oct 20 09:14 from 192.0.2.10$
+  [?] root                 Not known: last isn't installed$
 $
   Select an option$
 $
@@ -237,11 +239,12 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, read from a simulated host, by real code where␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is some (detect, the header probe, accounts) and by␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins elsewhere, unit (b)'s to build. It␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly reads: no plan, no y/N, no journal. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, inferred from origin/main (unreleased), read from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma simulated host, by real code where there is some␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(detect, the header probe, accounts) and by the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno plan, no y/N, no journal. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node on ZFS [I, no␛[m$
@@ -249,7 +252,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrpool/ROOT/pve-1, where origin/main asks zfs for its hard-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcoded zroot/ROOT/os (details.go:85;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_other_dataset.golden). No user but␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot; root logged in. The CPU's name is cut at its row.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot. No last, by inference from Debian 13, its base [I,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno VM]. The CPU's name is cut at its row.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -277,8 +281,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mIntel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m48 cores, 2 sockets␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m48, 2 sockets␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -298,8 +302,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
-      ␛[38;2;129;134;156mOct 20 09:14 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -336,8 +340,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mIntel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m48 cores, 2 sockets␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m48, 2 sockets␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.22, 0.09, 0.03␛[m$
 $
@@ -357,8 +361,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
-      ␛[38;2;129;134;156mOct 20 09:14 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

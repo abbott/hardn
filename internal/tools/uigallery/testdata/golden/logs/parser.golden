@@ -6,16 +6,17 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs parser␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe slice's broken parser. origin/main's GetLogs on a real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The slice's broken␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mparser. origin/main's GetLogs on a real line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the stand-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min's fix. The screen needs a level only to colour WARNING and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mERROR.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
-      ␛[38;2;129;134;156mexit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m↪ exit status 1␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mGetLogs, origin/main␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
@@ -35,16 +36,17 @@ $
 # logs parser --------------------------------------------------$
 $
 # Note$
-# The slice's broken parser. origin/main's GetLogs on a real$
-# line (menu/logs_parser.golden; file_logs_repository.go:51-57;$
+# Inferred from v0.3.2 and origin/main. The slice's broken$
+# parser. origin/main's GetLogs on a real line$
+# (menu/logs_parser.golden; file_logs_repository.go:51-57;$
 # nothing calls it but its wrappers and tests), and the stand-$
 # in's fix. The screen needs a level only to colour WARNING and$
 # ERROR.$
 $
 # The line -----------------------------------------------------$
 $
-   -  2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
-      exit status 1$
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1$
 $
 # GetLogs, origin/main -----------------------------------------$
 $
@@ -64,16 +66,17 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs parser␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe slice's broken parser. origin/main's GetLogs on a real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (menu/logs_parser.golden; file_logs_repository.go:51-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m57; nothing calls it but its wrappers and tests), and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The slice's broken␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mparser. origin/main's GetLogs on a real line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-in's fix. The screen needs a level only to colour␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWARNING and ERROR.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
-      ␛[38;2;129;134;156mfirewall: exit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;2;219;184;83m↪ firewall: exit status 1␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mGetLogs, origin/main␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
@@ -99,16 +102,17 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs parser␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe slice's broken parser. origin/main's GetLogs on a real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The slice's broken␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mparser. origin/main's GetLogs on a real line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the stand-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min's fix. The screen needs a level only to colour WARNING and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mERROR.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m-----------------------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
-      ␛[38;2;129;134;156mexit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m| exit status 1␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mGetLogs, origin/main␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $

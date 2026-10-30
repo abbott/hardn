@@ -6,8 +6,9 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-pager␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p to a terminal, treatment read-pager: the pager at␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monce, as the screen's. A golden cannot run it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment read-pager: the pager at once, as the screen's. A␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgolden cannot run it.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$
@@ -19,8 +20,9 @@ $
 # logs cli-terminal-pager --------------------------------------$
 $
 # Note$
-# hardn -p to a terminal, treatment read-pager: the pager at$
-# once, as the screen's. A golden cannot run it.$
+# Inferred from v0.3.2 and origin/main. hardn -p to a terminal,$
+# treatment read-pager: the pager at once, as the screen's. A$
+# golden cannot run it.$
 $
 # Note$
 # The gallery runs no pager. hardn would run LESSSECURE=1 less$
@@ -32,8 +34,9 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-pager␛[m ␛[38;2;48;52;64m──────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p to a terminal, treatment read-pager: the pager at␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monce, as the screen's. A golden cannot run it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal, treatment read-pager: the pager at once, as the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen's. A golden cannot run it.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1␛[m$
@@ -45,8 +48,9 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-pager␛[m ␛[38;2;48;52;64m--------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p to a terminal, treatment read-pager: the pager at␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monce, as the screen's. A golden cannot run it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment read-pager: the pager at once, as the screen's. A␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgolden cannot run it.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$

@@ -6,11 +6,12 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-unreadable␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/proc/meminfo cannot be read. origin/main's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGenerateSystemStatus stops at the first collector's error and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe whole report is lost (details.go:91-117); here the rest␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstays and the section says which.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. /proc/meminfo cannot␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbe read. origin/main's GenerateSystemStatus stops at the first␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost (details.go:91-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m117); here the rest stays and the section says which.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -32,7 +33,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -42,7 +43,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mMemory␛[m               ␛[38;2;129;134;156mCan't read /proc/meminfo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read /proc/meminfo␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
@@ -62,11 +63,12 @@ $
 # system-details screen-unreadable -----------------------------$
 $
 # Note$
-# Mock: the System Details screen. Debian 13, as debian13.$
-# /proc/meminfo cannot be read. origin/main's$
-# GenerateSystemStatus stops at the first collector's error and$
-# the whole report is lost (details.go:91-117); here the rest$
-# stays and the section says which.$
+# Inferred from origin/main (unreleased). The System Details$
+# screen. Debian 13 with the wtmpdb package added, which$
+# provides last; its form is [unverified]. /proc/meminfo cannot$
+# be read. origin/main's GenerateSystemStatus stops at the first$
+# collector's error and the whole report is lost (details.go:91-$
+# 117); here the rest stays and the section says which.$
 $
 # System Details ###############################################$
 $
@@ -88,7 +90,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
-   -  Cores                4 cores, 1 socket$
+   -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -98,7 +100,7 @@ $
 $
 # Memory -------------------------------------------------------$
 $
-  [?] Memory               Can't read /proc/meminfo$
+   -  Can't read /proc/meminfo$
 $
 # Last Login ---------------------------------------------------$
 $
@@ -118,11 +120,13 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-unreadable␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/proc/meminfo cannot be read. origin/main's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGenerateSystemStatus stops at the first collector's error␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the whole report is lost (details.go:91-117); here the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrest stays and the section says which.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. /proc/meminfo␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot be read. origin/main's GenerateSystemStatus stops␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat the first collector's error and the whole report is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlost (details.go:91-117); here the rest stays and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msection says which.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -151,8 +155,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -165,8 +169,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mMemory␛[m$
-      ␛[38;2;129;134;156mCan't read /proc/meminfo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read /proc/meminfo␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
@@ -188,11 +191,12 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details screen-unreadable␛[m ␛[38;2;48;52;64m-----------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/proc/meminfo cannot be read. origin/main's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGenerateSystemStatus stops at the first collector's error and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe whole report is lost (details.go:91-117); here the rest␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstays and the section says which.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. /proc/meminfo cannot␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbe read. origin/main's GenerateSystemStatus stops at the first␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost (details.go:91-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m117); here the rest stays and the section says which.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -214,7 +218,7 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$
@@ -224,7 +228,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m-------------------------------------------------------␛[m$
 $
-  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mMemory␛[m               ␛[38;2;129;134;156mCan't read /proc/meminfo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mCan't read /proc/meminfo␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $

@@ -6,10 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-pipe-cut␛[m ␛[38;2;48;52;64m──────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe same on pve9: the CPU's name is 40 cells, its row holds␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m37, so the pipe loses its end, as a row cuts on a terminal.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnit (b) must not cut off a terminal: nothing in pkg/ui lays␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mout uncapped today, so it needs a decision.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The same on pve9: the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mCPU's name is 40 cells, its row holds 37, so the pipe loses␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits end, as a row cuts on a terminal. Unit (c) must not cut␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156moff a terminal: nothing in pkg/ui lays out uncapped today, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma new path through the components is a deviation to log.␛[m$
 $
 # ␛[1mSystem Details␛[m ###############################################$
 $
@@ -31,7 +32,7 @@ $
 # ␛[1mCPU and Load␛[m -------------------------------------------------$
 $
    -  Model                Intel(R) Xeon(R) Gold 6338 CPU @ 2...$
-   -  Cores                48 cores, 2 sockets$
+   -  CPUs                 48, 2 sockets$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # ␛[1mDisk␛[m ---------------------------------------------------------$
@@ -46,7 +47,7 @@ $
 $
 # ␛[1mLast Login␛[m ---------------------------------------------------$
 $
-   -  root                 Oct 20 09:14 from 192.0.2.10$
+  [?] root                 Not known: last isn't installed$
 $
 $
 
@@ -54,10 +55,11 @@ $
 # system-details cli-pipe-cut ----------------------------------$
 $
 # Note$
-# The same on pve9: the CPU's name is 40 cells, its row holds$
-# 37, so the pipe loses its end, as a row cuts on a terminal.$
-# Unit (b) must not cut off a terminal: nothing in pkg/ui lays$
-# out uncapped today, so it needs a decision.$
+# Inferred from origin/main (unreleased). The same on pve9: the$
+# CPU's name is 40 cells, its row holds 37, so the pipe loses$
+# its end, as a row cuts on a terminal. Unit (c) must not cut$
+# off a terminal: nothing in pkg/ui lays out uncapped today, so$
+# a new path through the components is a deviation to log.$
 $
 # System Details ###############################################$
 $
@@ -79,7 +81,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                Intel(R) Xeon(R) Gold 6338 CPU @ 2...$
-   -  Cores                48 cores, 2 sockets$
+   -  CPUs                 48, 2 sockets$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -94,7 +96,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  root                 Oct 20 09:14 from 192.0.2.10$
+  [?] root                 Not known: last isn't installed$
 $
 $
 
@@ -102,10 +104,11 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details cli-pipe-cut␛[m ␛[38;2;48;52;64m----------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe same on pve9: the CPU's name is 40 cells, its row holds␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m37, so the pipe loses its end, as a row cuts on a terminal.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnit (b) must not cut off a terminal: nothing in pkg/ui lays␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mout uncapped today, so it needs a decision.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The same on pve9: the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mCPU's name is 40 cells, its row holds 37, so the pipe loses␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits end, as a row cuts on a terminal. Unit (c) must not cut␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156moff a terminal: nothing in pkg/ui lays out uncapped today, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma new path through the components is a deviation to log.␛[m$
 $
 # ␛[1mSystem Details␛[m ###############################################$
 $
@@ -127,7 +130,7 @@ $
 # ␛[1mCPU and Load␛[m -------------------------------------------------$
 $
    -  Model                Intel(R) Xeon(R) Gold 6338 CPU @ 2...$
-   -  Cores                48 cores, 2 sockets$
+   -  CPUs                 48, 2 sockets$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # ␛[1mDisk␛[m ---------------------------------------------------------$
@@ -142,6 +145,6 @@ $
 $
 # ␛[1mLast Login␛[m ---------------------------------------------------$
 $
-   -  root                 Oct 20 09:14 from 192.0.2.10$
+  [?] root                 Not known: last isn't installed$
 $
 $

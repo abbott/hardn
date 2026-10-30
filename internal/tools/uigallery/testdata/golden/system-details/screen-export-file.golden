@@ -6,10 +6,12 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-export-file␛[m ␛[38;2;48;52;64m────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment export-file: Export asks a full path and writes the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile, as root: a change on the host, so not read only. The␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery writes nothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. Treatment export-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile: Export asks a full path and writes the file, as root: a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the host, so not read only. The gallery writes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -31,7 +33,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -62,10 +64,12 @@ $
 # system-details screen-export-file ----------------------------$
 $
 # Note$
-# Mock: the System Details screen. Debian 13, as debian13.$
-# Treatment export-file: Export asks a full path and writes the$
-# file, as root: a change on the host, so not read only. The$
-# gallery writes nothing.$
+# Inferred from origin/main (unreleased). The System Details$
+# screen. Debian 13 with the wtmpdb package added, which$
+# provides last; its form is [unverified]. Treatment export-$
+# file: Export asks a full path and writes the file, as root: a$
+# change on the host, so not read only. The gallery writes$
+# nothing.$
 $
 # System Details ###############################################$
 $
@@ -87,7 +91,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
-   -  Cores                4 cores, 1 socket$
+   -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -118,10 +122,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-export-file␛[m ␛[38;2;48;52;64m────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment export-file: Export asks a full path and writes␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe file, as root: a change on the host, so not read only.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery writes nothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. Treatment export-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile: Export asks a full path and writes the file, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot: a change on the host, so not read only. The gallery␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites nothing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -150,8 +156,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -189,10 +195,12 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details screen-export-file␛[m ␛[38;2;48;52;64m----------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. Debian 13, as debian13.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment export-file: Export asks a full path and writes the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile, as root: a change on the host, so not read only. The␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery writes nothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. Debian 13 with the wtmpdb package added, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprovides last; its form is [unverified]. Treatment export-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile: Export asks a full path and writes the file, as root: a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange on the host, so not read only. The gallery writes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -214,7 +222,7 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$

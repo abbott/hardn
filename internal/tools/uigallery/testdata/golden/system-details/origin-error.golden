@@ -8,9 +8,15 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report when any collector fails␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(system_details_menu.go:42-62;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, the box␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaying to check permissions whatever it was, the report gone,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mExport not offered.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, above the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbox and in it, the box saying to check permissions whatever it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas, the report gone, Export not offered. The word "Error:"␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbefore each title here is the component's, not origin/main's.␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError retrieving system status: failed to collect memory info:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfailed to get memory info: exec: "free": executable file not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfound in $PATH␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mError: System Details Error␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to retrieve system status information.␛[m$
@@ -36,9 +42,15 @@ $
 # Note$
 # origin/main's report when any collector fails$
 # (system_details_menu.go:42-62;$
-# menu/system_details_error.golden): the error, twice, the box$
-# saying to check permissions whatever it was, the report gone,$
-# Export not offered.$
+# menu/system_details_error.golden): the error, twice, above the$
+# box and in it, the box saying to check permissions whatever it$
+# was, the report gone, Export not offered. The word "Error:"$
+# before each title here is the component's, not origin/main's.$
+$
+# Operation Failed$
+# Error retrieving system status: failed to collect memory info:$
+# failed to get memory info: exec: "free": executable file not$
+# found in $PATH$
 $
 # Error: System Details Error$
 # Failed to retrieve system status information.$
@@ -64,9 +76,16 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report when any collector fails␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(system_details_menu.go:42-62;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbox saying to check permissions whatever it was, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreport gone, Export not offered.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, above␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe box and in it, the box saying to check permissions␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhatever it was, the report gone, Export not offered. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mword "Error:" before each title here is the component's,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot origin/main's.␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError retrieving system status: failed to collect memory␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156minfo: failed to get memory info: exec: "free": executable␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfile not found in $PATH␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mError: System Details Error␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to retrieve system status information.␛[m$
@@ -93,9 +112,15 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report when any collector fails␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(system_details_menu.go:42-62;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, the box␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaying to check permissions whatever it was, the report gone,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mExport not offered.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, above the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbox and in it, the box saying to check permissions whatever it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas, the report gone, Export not offered. The word "Error:"␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbefore each title here is the component's, not origin/main's.␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError retrieving system status: failed to collect memory info:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfailed to get memory info: exec: "free": executable file not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfound in $PATH␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mError: System Details Error␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to retrieve system status information.␛[m$

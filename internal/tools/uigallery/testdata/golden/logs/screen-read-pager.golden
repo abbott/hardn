@@ -6,10 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs screen-read-pager␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Logs screen. web-01.example.net runs Debian 13, less␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled. Treatment read-pager, P-18 as written: the main␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu's 10 runs the pager at once, and returns there. A golden␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot run it: this says what would run.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Debian 13, less installed. Treatment read-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager, P-18 as written: the main menu's 10 runs the pager at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monce, and returns there. A golden cannot run it: this says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat would run.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$
@@ -21,10 +22,11 @@ $
 # logs screen-read-pager ---------------------------------------$
 $
 # Note$
-# Mock: the Logs screen. web-01.example.net runs Debian 13, less$
-# installed. Treatment read-pager, P-18 as written: the main$
-# menu's 10 runs the pager at once, and returns there. A golden$
-# cannot run it: this says what would run.$
+# Inferred from v0.3.2 and origin/main. The Logs screen. web-$
+# 01.example.net runs Debian 13, less installed. Treatment read-$
+# pager, P-18 as written: the main menu's 10 runs the pager at$
+# once, and returns there. A golden cannot run it: this says$
+# what would run.$
 $
 # Note$
 # The gallery runs no pager. hardn would run LESSSECURE=1 less$
@@ -36,10 +38,11 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs screen-read-pager␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Logs screen. web-01.example.net runs Debian 13,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless installed. Treatment read-pager, P-18 as written: the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain menu's 10 runs the pager at once, and returns there.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mA golden cannot run it: this says what would run.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment read-pager, P-18 as written: the main menu's 10␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns the pager at once, and returns there. A golden cannot␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun it: this says what would run.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1␛[m$
@@ -51,10 +54,11 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs screen-read-pager␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the Logs screen. web-01.example.net runs Debian 13, less␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled. Treatment read-pager, P-18 as written: the main␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu's 10 runs the pager at once, and returns there. A golden␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot run it: this says what would run.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Debian 13, less installed. Treatment read-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager, P-18 as written: the main menu's 10 runs the pager at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monce, and returns there. A golden cannot run it: this says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat would run.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$

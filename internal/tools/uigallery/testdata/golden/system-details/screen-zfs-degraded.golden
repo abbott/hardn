@@ -6,10 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-zfs-degraded␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. As pve9, its pool DEGRADED.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's zpool status -x reads "is healthy" alone, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156motherwise falls through to the root partition's figures, ZFS␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot mentioned (collectors.go:384-432;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. As pve9, its pool DEGRADED. origin/main's zpool status␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m-x reads "is healthy" alone, and otherwise falls through to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root partition's figures, ZFS not mentioned␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(collectors.go:384-432;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_all_healthy.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -32,7 +33,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mIntel(R) Xeon(R) Gold 6338 CPU @ 2.0…␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m48 cores, 2 sockets␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m48, 2 sockets␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
@@ -47,7 +48,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mOct 20 09:14 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -63,10 +64,11 @@ $
 # system-details screen-zfs-degraded ---------------------------$
 $
 # Note$
-# Mock: the System Details screen. As pve9, its pool DEGRADED.$
-# origin/main's zpool status -x reads "is healthy" alone, and$
-# otherwise falls through to the root partition's figures, ZFS$
-# not mentioned (collectors.go:384-432;$
+# Inferred from origin/main (unreleased). The System Details$
+# screen. As pve9, its pool DEGRADED. origin/main's zpool status$
+# -x reads "is healthy" alone, and otherwise falls through to$
+# the root partition's figures, ZFS not mentioned$
+# (collectors.go:384-432;$
 # menu/system_details_zfs_all_healthy.golden).$
 $
 # System Details ###############################################$
@@ -89,7 +91,7 @@ $
 # CPU and Load -------------------------------------------------$
 $
    -  Model                Intel(R) Xeon(R) Gold 6338 CPU @ 2...$
-   -  Cores                48 cores, 2 sockets$
+   -  CPUs                 48, 2 sockets$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
 # Disk ---------------------------------------------------------$
@@ -104,7 +106,7 @@ $
 $
 # Last Login ---------------------------------------------------$
 $
-   -  root                 Oct 20 09:14 from 192.0.2.10$
+  [?] root                 Not known: last isn't installed$
 $
   Select an option$
 $
@@ -120,10 +122,11 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details screen-zfs-degraded␛[m ␛[38;2;48;52;64m───────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. As pve9, its pool␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDEGRADED. origin/main's zpool status -x reads "is healthy"␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, and otherwise falls through to the root partition's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfigures, ZFS not mentioned (collectors.go:384-432;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. As pve9, its pool DEGRADED. origin/main's zpool␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstatus -x reads "is healthy" alone, and otherwise falls␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthrough to the root partition's figures, ZFS not mentioned␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(collectors.go:384-432;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_all_healthy.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -152,8 +155,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
       ␛[38;2;129;134;156mIntel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
-      ␛[38;2;129;134;156m48 cores, 2 sockets␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m48, 2 sockets␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
       ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
@@ -173,8 +176,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
-      ␛[38;2;129;134;156mOct 20 09:14 from 192.0.2.10␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -191,10 +194,11 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details screen-zfs-degraded␛[m ␛[38;2;48;52;64m---------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. As pve9, its pool DEGRADED.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's zpool status -x reads "is healthy" alone, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156motherwise falls through to the root partition's figures, ZFS␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot mentioned (collectors.go:384-432;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. As pve9, its pool DEGRADED. origin/main's zpool status␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m-x reads "is healthy" alone, and otherwise falls through to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root partition's figures, ZFS not mentioned␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(collectors.go:384-432;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_all_healthy.golden).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
@@ -217,7 +221,7 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mIntel(R) Xeon(R) Gold 6338 CPU @ 2...␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m48 cores, 2 sockets␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m48, 2 sockets␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$
@@ -232,7 +236,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mOct 20 09:14 from 192.0.2.10␛[m$
+  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNot known: last isn't installed␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

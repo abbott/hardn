@@ -115,14 +115,16 @@ func TestSDHosts(t *testing.T) {
 		login                        string
 		unread                       []string
 	}{
-		{host: "debian13", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42"},
-		{host: "ubuntu2604", id: "ubuntu", kernel: ubuntuVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42"},
-		{host: "alpine323", id: "alpine", kernel: alpineVMKernel, fs: "ext4", source: "/dev/vda1", tool: "doas", users: 1, addrs: 1, login: "Oct 20 11:42"},
-		{host: "pve9", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "ONLINE", login: "Oct 20 09:14", addrs: 1},
-		{host: "zfs-degraded", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "DEGRADED", login: "Oct 20 09:14", addrs: 1},
+		{host: "debian13", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, unread: []string{secLogin}},
+		{host: "ubuntu2604", id: "ubuntu", kernel: ubuntuVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, unread: []string{secLogin}},
+		{host: "alpine323", id: "alpine", kernel: alpineVMKernel, fs: "ext4", source: "/dev/vda1", tool: "doas", users: 1, addrs: 1, unread: []string{secLogin}},
+		{host: "pve9", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "ONLINE", addrs: 1, unread: []string{secLogin}},
+		{host: "zfs-degraded", id: "debian", kernel: "6.17.2-1-pve", fs: "zfs", source: pveDataset, health: "DEGRADED", addrs: 1, unread: []string{secLogin}},
 		{host: "unreadable", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42", unread: []string{secMemory}},
 		{host: "no-last-login", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1},
-		{host: "many", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 14, addrs: 9, login: "Oct 20 11:42"},
+		{host: "login-recorded", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42"},
+		{host: "login-console", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 1, addrs: 1, login: "Oct 20 11:42"},
+		{host: "many", id: "debian", kernel: debianVMKernel, fs: "ext4", source: "/dev/vda1", tool: "sudo", users: 14, addrs: 9, unread: []string{secLogin}},
 	}
 	for _, tt := range tests {
 		r, err := readSDHost(context.Background(), tt.host)
@@ -166,6 +168,64 @@ func sdHostNamed(t *testing.T, name string) sdHost {
 	return sh
 }
 
+// TestSDLastLogin: a host with no last says so, in words of its own; Alpine's
+// BusyBox last refuses the form and the section says it can't read it; a line
+// with no host column keeps its time; and a line for another name, as a name
+// cut to 8 columns would be [I], is not read as no login.
+func TestSDLastLogin(t *testing.T) {
+	rows := func(host string) []component.KeyValue {
+		r, err := readSDHost(context.Background(), host)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return r.sectionRows(secLogin)
+	}
+	for host, want := range map[string]component.KeyValue{
+		"debian13":       {Key: "alice", Value: noLast, State: component.ValueUnknown},
+		"pve9":           {Key: "root", Value: noLast, State: component.ValueUnknown},
+		"alpine323":      {Key: "Can't read last", State: component.ValueWarn},
+		"login-recorded": {Key: "alice", Value: "Oct 20 11:42 from 192.0.2.10"},
+		"login-console":  {Key: "alice", Value: "Oct 20 11:42 on tty1"},
+		"no-last-login":  {Key: "alice", Value: noLogin, State: component.ValueNone},
+	} {
+		if got := rows(host); len(got) != 1 || got[0] != want {
+			t.Errorf("%s: %+v, want %+v", host, got, want)
+		}
+	}
+	sh := sdHostNamed(t, "login-recorded")
+	h := sh.host()
+	m := vmModel()
+	m.lastOutput = "alice-lo pts/0        192.0.2.10       Tue Oct 20 11:42   still logged in\n"
+	withDetails(h, m, vmCPU, 4, 1)
+	if r := readDetails(context.Background(), h.sys(), sh); r.unread[secLogin].source != "last" {
+		t.Errorf("a line for another name: %+v, unread %+v", r.login, r.unread)
+	}
+	if _, err := parseLast("alice", "alice pts/0 192.0.2.10 gone"); err == nil {
+		t.Error("a line with no time parsed")
+	}
+}
+
+// TestSDBlankCPU: where /proc/cpuinfo has no model name or physical id, as on
+// arm64 [I, not run], the row says so and no socket count is made up.
+func TestSDBlankCPU(t *testing.T) {
+	r := detailsReading{cpu: detailCPU{CPUs: 4}}
+	got := r.sectionRows(secCPU)
+	if got[0].Value != notKnown || got[0].State != component.ValueUnknown || got[1].Value != "4" {
+		t.Errorf("%+v", got)
+	}
+}
+
+// TestSDNotRootNamesTheRules: the row names the file the host's tool reads.
+func TestSDNotRootNamesTheRules(t *testing.T) {
+	for p, want := range map[*platform]string{&debian13Platform: "/etc/sudoers.d", &alpine323Platform: "/etc/doas.conf"} {
+		sh := sdHost{name: "not-root", host: details(*p), env: map[string]string{"USER": "alice"}, notRoot: true}
+		rows := readDetails(context.Background(), sh.host().sys(), sh).sectionRows(secUsers)
+		if got := rows[len(rows)-1].Key; !strings.Contains(got, want) {
+			t.Errorf("%s: %q", want, got)
+		}
+	}
+}
+
 // TestSDUnreadableKeepsTheRest: one section not read leaves the other six,
 // where origin/main loses the whole report (details.go:91-117): the section
 // says which file, and under export-file Export is not offered, as origin/
@@ -175,7 +235,7 @@ func TestSDUnreadableKeepsTheRest(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := r.sectionRows(secMemory); len(got) != 1 || !strings.Contains(got[0].Note, "/proc/meminfo") {
+	if got := r.sectionRows(secMemory); len(got) != 1 || !strings.Contains(got[0].Key, "/proc/meminfo") {
 		t.Errorf("Memory's rows: %+v", got)
 	}
 	for _, s := range sdSections {
@@ -276,7 +336,7 @@ func drawnLines(rows int, unicode bool, draw func(component.Ctx) string) []strin
 // (DEV-052); report-sections and report-pager fit 24 rows.
 func TestSystemDetailsHeights(t *testing.T) {
 	want := map[string]int{"debian13": 43, "ubuntu2604": 43, "alpine323": 43, "pve9": 44, "zfs-degraded": 44, "unreadable": 43,
-		"no-last-login": 43, "many": 64, reportSections: 16, reportPager: 20, exportCommand: 44, exportFile: 44}
+		"no-last-login": 43, "login-recorded": 43, "login-console": 43, "many": 64, reportSections: 16, reportPager: 20, exportCommand: 44, exportFile: 44}
 	if len(want) != len(sdHosts()) {
 		t.Fatalf("%d heights, %d hosts", len(want), len(sdHosts()))
 	}

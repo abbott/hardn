@@ -6,9 +6,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/x/ansi"
+
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
@@ -79,12 +82,12 @@ func TestLogHosts(t *testing.T) {
 		{host: "missing", state: logMissing, pager: "less"},
 		{host: "unreadable", state: logUnread, pager: "less"},
 		{host: "empty", state: logEmpty, pager: "less"},
-		{host: "control", state: logLines, lines: 5, pager: "less"},
-		{host: "elsewhere", state: logLines, lines: 8, pager: "less", elsewhere: "/srv/log/hardn.log"},
-		{host: "alpine323", state: logLines, lines: 8, pager: "less"},
-		{host: "no-pager", state: logLines, lines: 8},
+		{host: "control", state: logLines, lines: 6, pager: "less"},
+		{host: "elsewhere", state: logLines, lines: 10, pager: "less", elsewhere: "/srv/log/hardn.log"},
+		{host: "alpine323", state: logLines, lines: 10},
+		{host: "no-pager", state: logLines, lines: 10},
 		{host: "read-pager", state: logLines, lines: 1204, pager: "less"},
-		{host: "read-pager-none", state: logLines, lines: 8},
+		{host: "read-pager-none", state: logLines, lines: 10},
 	}
 	if len(tests) != len(logHosts()) {
 		t.Fatalf("%d hosts tested, %d hosts", len(tests), len(logHosts()))
@@ -107,7 +110,9 @@ func TestSafeLine(t *testing.T) {
 		"plain":              "plain",
 		"\x1b[31mred\x1b[0m": "^[[31mred^[[0m",
 		"\x1b]0;t\x07x":      "^[]0;t^Gx",
-		"a\tb":               "a b",
+		"a\tb":               "a    b",
+		"a\u00a0b":           "a<U+00A0>b",
+		"don’t “q” ≥ →":      "don’t “q” ≥ →",
 		"a\x7fb":             "a^?b",
 		"\u009b31m":          "<U+009B>31m",
 		"abc‮def":            "abc<U+202E>def",
@@ -125,6 +130,55 @@ func TestSafeLine(t *testing.T) {
 	for _, l := range r.lines {
 		if strings.ContainsAny(l, "\x1b\x07‮") {
 			t.Errorf("a control character in %q", l)
+		}
+	}
+}
+
+// TestLogRowsKeepTheCharacters: a log's line is code, as captured output is:
+// its typographic characters stay in both glyph sets, with no bullet, and a
+// line too long breaks after the wrap glyph, losing no character but spaces.
+func TestLogRowsKeepTheCharacters(t *testing.T) {
+	const typo = "2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 → … x"
+	for _, unicode := range []bool{true, false} {
+		lines := drawnLines(24, unicode, func(c component.Ctx) string { return strings.Join(logRows(c, []string{typo}), "\n") })
+		if got := strings.Join(lines, ""); !strings.Contains(got, "don’t “quote” ≥ 5 → … x") || strings.Contains(got, " - ") {
+			t.Errorf("unicode %v: %q", unicode, got)
+		}
+		long := strings.Repeat("word ", 30) + strings.Repeat("x", 80)
+		wrap := "↪"
+		if !unicode {
+			wrap = "|"
+		}
+		lines = drawnLines(24, unicode, func(c component.Ctx) string { return strings.Join(logRows(c, []string{long}), "\n") })
+		joined := ""
+		for i, l := range lines {
+			if ansi.StringWidth(l) > theme.ContentWidth {
+				t.Errorf("unicode %v: %d cells: %q", unicode, ansi.StringWidth(l), l)
+			}
+			l = strings.TrimPrefix(l, strings.Repeat(" ", theme.LabelCol))
+			if i > 0 {
+				if !strings.HasPrefix(l, wrap) {
+					t.Errorf("unicode %v: no wrap glyph on %q", unicode, l)
+				}
+				l = strings.TrimPrefix(l, wrap)
+			}
+			joined += l
+		}
+		if strings.ReplaceAll(joined, " ", "") != strings.ReplaceAll(long, " ", "") {
+			t.Errorf("unicode %v: lost characters: %q", unicode, joined)
+		}
+	}
+}
+
+// TestNotesOpenWithTheirSource: every mock's note carries its source label,
+// but those in origin/main's own words, whose notes open by saying so.
+func TestNotesOpenWithTheirSource(t *testing.T) {
+	for _, l := range []listing{sdListing, logsListing} {
+		for _, m := range l.mocks() {
+			note := l.note(m)
+			if m.own && !strings.HasPrefix(note, "origin/main's") || !m.own && !strings.HasPrefix(note, l.label) {
+				t.Errorf("%s %s: %q", l.prefix, m.name, note)
+			}
 		}
 	}
 }
@@ -165,8 +219,14 @@ func TestPagerFor(t *testing.T) {
 	if p := pagerFor(ctx, noPagerLog().system(), noEnv, false); p.name != "" {
 		t.Errorf("no less: %q", p.name)
 	}
-	if p := pagerFor(ctx, alpineLog().system(), noEnv, false); p.name != "less" {
-		t.Errorf("BusyBox's less, through its link: %q", p.name)
+	if p := pagerFor(ctx, alpineLog().system(), noEnv, false); p.name != "" || !p.busybox {
+		t.Errorf("pager-less, BusyBox's less, through its link: %+v", p)
+	}
+	if p := pagerFor(ctx, alpineLog().system(), noEnv, true); p.command(hardnLog) != "less "+hardnLog || !p.busybox {
+		t.Errorf("pager-env, BusyBox's less: %+v", p)
+	}
+	if p := pagerFor(ctx, alpineLessPackage().system(), noEnv, false); p.command(hardnLog) != "LESSSECURE=1 less "+hardnLog {
+		t.Errorf("Alpine's less package: %+v", p)
 	}
 }
 
@@ -195,10 +255,10 @@ func TestLogsUsage(t *testing.T) {
 
 // TestLogsHeights: the screen on every host at 80x24 and at 80x40, in Unicode
 // and ASCII: the prompt on its last line, within the terminal's rows, the
-// long log filling them exactly, more of its lines at 40 than at 24; so does
-// its form on a host with a shorter log, no more than it holds.
+// long log taking as many of its lines as fit, a wrapped line counting each
+// of its rows: more at 40 than at 24.
 func TestLogsHeights(t *testing.T) {
-	shown := map[int]string{24: "Last 5 of 1204 lines", 40: "Last 20 of 1204 lines"}
+	shown := map[int]string{24: "Last 3 of 1204 lines", 40: "Last 17 of 1204 lines"}
 	for _, lh := range logHosts() {
 		if lh.read == readPager && lh.name == "read-pager" {
 			continue // no screen: the pager at once
@@ -214,8 +274,8 @@ func TestLogsHeights(t *testing.T) {
 					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q", lh.name, rows, unicode, len(lines), lines[len(lines)-1])
 				}
 				if lh.name == "long" {
-					if len(lines) != rows || !strings.Contains(strings.Join(lines, "\n"), shown[rows]) {
-						t.Errorf("long at 80x%d, unicode %v: %d lines, want %d and %q:\n%s", rows, unicode, len(lines), rows, shown[rows], strings.Join(lines, "\n"))
+					if !strings.Contains(strings.Join(lines, "\n"), shown[rows]) {
+						t.Errorf("long at 80x%d, unicode %v: %d lines, want %q:\n%s", rows, unicode, len(lines), shown[rows], strings.Join(lines, "\n"))
 					}
 				}
 			}
