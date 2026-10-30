@@ -12,9 +12,10 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
+//	go run ./internal/tools/uigallery environment [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -152,6 +153,19 @@
 // mocks of refactor plan slice 3, unit (a) (docs/engine/gallery-backup.md),
 // was removed when the real screen replaced them (next/s3-screen): git
 // keeps it (backup.go, next/s3-parity).
+//
+// "environment" lists the Environment mocks of refactor plan slice 9,
+// unit (a) (environment.go, docs/engine/gallery-environment.md), each
+// under a note: the proposed Environment screen on fifteen simulated
+// hosts, read by real code (sudoers.Choose, Read and PlanFor), origin/main's
+// screen in its words, item 1 under each doas treatment, the guide and
+// the refusals. "play environment" is the menu of the hosts and "play
+// environment/<host>" the screen on one, each change on the real engine
+// (steps.Sudoers), with the gallery's stand-ins for what unit (b) builds:
+// who ran hardn, the reader of hardn's files, the plan's findings on the
+// change. -sequence dry-run stops each change at its plan, as plan only
+// would; -fail is refused there. Its flags are -list, -theme, -profile,
+// -ascii, -override, and -width and -height sized as play's.
 //
 // The Dry-Run mode, "dryrun" and "play dryrun", the mocks of refactor
 // plan slice 2b (docs/engine/gallery-dryrun.md), was removed with the
@@ -541,10 +555,10 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // run is the gallery: it parses args, renders to stdout and reports
 // errors on stderr, and returns the exit status. With "play" first it is
 // the playable mode (play), which reads the user's answers through the
-// line reader stdin returns and sizes itself with size; with "status" or
-// "glyphs" first, the status listing (statusList) or the glyphs mode
-// (glyphs), which size themselves with size too and read no input. No
-// other mode calls either.
+// line reader stdin returns and sizes itself with size; with "status",
+// "glyphs" or "environment" first, the status listing (statusList), the
+// glyphs mode (glyphs) or the Environment listing (envList), which size
+// themselves with size too and read no input. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -555,6 +569,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == "glyphs" {
 		return glyphs(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == envPrefix {
+		return envList(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -563,6 +580,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(playUsage, "usage: "))
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery status [flags] [host | all]...")
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(envUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

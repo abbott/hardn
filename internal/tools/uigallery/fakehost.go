@@ -569,6 +569,10 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		return hostfake.Response{}
 	case "visudo":
 		return hostfake.Response{Stdout: "/etc/sudoers: parsed OK\n"}
+	case "doas": // doas -C <file>, the parse check pkg/host/sudoers runs: every file passes, as on a status host (statushost.go)
+		if len(argv) == 3 && argv[1] == "-C" {
+			return hostfake.Response{}
+		}
 	case "sudo": // detect's question, which sudo it is
 		if cmd == "sudo --version" {
 			return hostfake.Response{Stdout: h.sudo + "\n"}

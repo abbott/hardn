@@ -1,0 +1,136 @@
+# Golden file of TestEnvironmentGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: item 1's refusals before asking, on the root-login, pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand alpine324 hosts, and on a host whose hardn file was edited␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1 on root-login␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn wasn't run with sudo, so there's no user to keep it for.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mRun sudo hardn as that user.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1 on pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed here.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1 on alpine324␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msetenv { HARDN_CONFIG } to the rule that lets alice use doas.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, hardn-env-alice edited␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice holds a rule hardn didn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwrite. Put hardn's back, or remove it.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# environment refusals -----------------------------------------$
+$
+# Note$
+# Mock: item 1's refusals before asking, on the root-login, pve9$
+# and alpine324 hosts, and on a host whose hardn file was edited$
+# by hand.$
+$
+# item 1 on root-login -----------------------------------------$
+$
+# Warning$
+# hardn wasn't run with sudo, so there's no user to keep it for.$
+# Run sudo hardn as that user.$
+$
+# item 1 on pve9 -----------------------------------------------$
+$
+# Warning$
+# sudo isn't installed here.$
+$
+# item 1 on alpine324 ------------------------------------------$
+$
+# Warning$
+# hardn has no doas rule for alice to keep HARDN_CONFIG on. Add$
+# setenv { HARDN_CONFIG } to the rule that lets alice use doas.$
+$
+# item 1, hardn-env-alice edited -------------------------------$
+$
+# Warning$
+# /etc/sudoers.d/hardn-env-alice holds a rule hardn didn't$
+# write. Put hardn's back, or remove it.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156menvironment refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: item 1's refusals before asking, on the root-login,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpve9 and alpine324 hosts, and on a host whose hardn file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas edited by hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1 on root-login␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn wasn't run with sudo, so there's no user to keep it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfor. Run sudo hardn as that user.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1 on pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed here.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1 on alpine324␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd setenv { HARDN_CONFIG } to the rule that lets alice␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156muse doas.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, hardn-env-alice edited␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice holds a rule hardn didn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwrite. Put hardn's back, or remove it.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156menvironment refusals␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: item 1's refusals before asking, on the root-login, pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand alpine324 hosts, and on a host whose hardn file was edited␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1 on root-login␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn wasn't run with sudo, so there's no user to keep it for.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mRun sudo hardn as that user.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1 on pve9␛[m ␛[38;2;48;52;64m-----------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed here.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1 on alpine324␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn has no doas rule for alice to keep HARDN_CONFIG on. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msetenv { HARDN_CONFIG } to the rule that lets alice use doas.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1, hardn-env-alice edited␛[m ␛[38;2;48;52;64m-------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/hardn-env-alice holds a rule hardn didn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwrite. Put hardn's back, or remove it.␛[m$
+$
+$

@@ -25,13 +25,13 @@
 
 | ID | Title | Source | Area / slice | Effort | Risk | Status |
 |---|---|---|---|---|---|---|
-| [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed; the DNS row's design agreed (2026-10-22) |
+| [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed; the DNS row's design agreed (2026-10-22); no Environment row (2026-10-29) |
 | [P-02](#p-02) | Make Run All hard to trigger by accident | brief §7.2 | Main menu; slice 8 | M | Low | proposed |
 | [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | decided (2026-10-23): one "Plan only" mode set at start; item 6 removed, its key unused |
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
 | [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-check-ssh`, `next/p4-check-firewall` |
 | [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed; the factors' place decided (2026-10-21): under their rows; implemented, `next/p4-risk-lines` |
-| [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed |
+| [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed; (c) decided (2026-10-29): item 8 "Keep HARDN_CONFIG" |
 | [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | decided (2026-10-17); implemented, `next/p1d-divider` |
 | [P-09](#p-09) | Replace "Press any key to continue" | plan §5.2 | All screens; Phase 1C | M | Low | proposed |
 | [P-10](#p-10) | Typed confirmation + confirm-or-revert where Figma shows `(y/n)` | plan §5.3 | SSH, sudo; slices 5–6 | M | Low | proposed |
@@ -77,7 +77,7 @@
 <a id="p-01"></a>
 ### P-01: Line up status rows and menu items
 
-- **Status:** proposed; the DNS row's design agreed for its unit (maintainer, 2026-10-22, slice 2 decision 8: a row from `dns.State`, Configured when the servers in use are hardn.yml's; docs/engine/gallery-dns.md §4).
+- **Status:** proposed; the DNS row's design agreed for its unit (maintainer, 2026-10-22, slice 2 decision 8: a row from `dns.State`, Configured when the servers in use are hardn.yml's; docs/engine/gallery-dns.md §4). Environment has no row (maintainer, 2026-10-29, slice 9 decision 6 (a): whether sudo keeps `HARDN_CONFIG` is how hardn is run, not how the host is hardened; [gallery-environment.md](../engine/gallery-environment.md) §5).
 - **Source:** brief §7.1. Related: [P-16](#p-16), [P-13](#p-13).
 - **Problem:**
   - AppArmor and Auto Updates show a status ("Not Configured") but have no menu item. DNS has a menu item but no status row [V, `00-TUI-MAIN` and origin/main `main_menu.go`].
@@ -183,7 +183,7 @@
 <a id="p-07"></a>
 ### P-07: Main-menu wording
 
-- **Status:** proposed (each part is decided separately)
+- **Status:** proposed (each part is decided separately); **(c) decided** (maintainer, 2026-10-29, slice 9 decision 7, "Adopt all seven slice 9 Environment recommendations in gallery-environment.md §5"): item 8's description "Keep HARDN_CONFIG", (c) without "under sudo", which is wrong on doas hosts. [gallery-environment.md](../engine/gallery-environment.md) §5.
 - **Source:** brief §7.7.
 - **Problem and proposal:**
   - **(a) Item 2:** "Toggle root SSH access" (Figma; origin/main says "Toggle SSH root access") doesn't say which way it switches, and on origin/main it can only disable [V]. Name the result instead; see [P-12](#p-12).
@@ -191,6 +191,7 @@
   - **(c) Item 8:** "Configure environment variable" should name the variable. The screen manages only sudo preservation of `HARDN_CONFIG` [V]. Proposed wording: "Keep HARDN_CONFIG under sudo".
 - **Effort:** S.
 - **Risk:** Low (wording only; goldens are updated deliberately).
+- **Mocked** (slice 9, unit (a), `next/s9-gallery`; [gallery-environment.md](../engine/gallery-environment.md) decision 7): (c)'s "Keep HARDN_CONFIG" names the Environment screen's item 1 and its flow. "Under sudo" is wrong on doas hosts, so item 8's description recommended there is "Keep HARDN_CONFIG". Item 8 itself is not drawn.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: `docs/refactor/img/p-07-before.png` (placeholder). After: `docs/refactor/img/p-07-after.png` (placeholder).
 
 ---
