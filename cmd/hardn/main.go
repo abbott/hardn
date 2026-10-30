@@ -197,9 +197,9 @@ var rootCmd = &cobra.Command{
 			!installAll && !configureUfw && !configureDns && !runAll &&
 			!updateSources && !printLogs && !setupSudoEnv {
 
-			// Create menu factory and main menu; its DNS, Backup and Environment items and its status: dns.go, backup.go, environment.go, status.go
+			// Create menu factory and main menu; its DNS, Backup and Environment items and its status: hooks.go
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			mainMenu := withStatus(withEnvironmentScreen(withBackupScreen(withDNSScreen(menuFactory.CreateMainMenu(versionService), cfg), cfg), cfg), cfg, Version)
+			mainMenu := withHooks(menuFactory.CreateMainMenu(versionService), cfg, Version)
 
 			// Handle test flags
 			if testUpdateAvailable {
