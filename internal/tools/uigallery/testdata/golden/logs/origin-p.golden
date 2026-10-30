@@ -7,8 +7,9 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's hardn -p (cmd/hardn/main.go:415-417;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:145-146): the same, to a terminal or not. It needs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (cmd/hardn/main.go:148), though the file is 0644.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:145-146; menu/logs_print_flag.golden): the same, to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma terminal or not. It needs root (cmd/hardn/main.go:148),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthough the file is 0644.␛[m$
 $
 # Contents of /var/log/hardn.log:$
 $
@@ -24,8 +25,9 @@ $
 $
 # Note$
 # origin/main's hardn -p (cmd/hardn/main.go:415-417;$
-# logging.go:145-146): the same, to a terminal or not. It needs$
-# root (cmd/hardn/main.go:148), though the file is 0644.$
+# logging.go:145-146; menu/logs_print_flag.golden): the same, to$
+# a terminal or not. It needs root (cmd/hardn/main.go:148),$
+# though the file is 0644.$
 $
 # Contents of /var/log/hardn.log:$
 $
@@ -41,8 +43,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's hardn -p (cmd/hardn/main.go:415-417;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:145-146): the same, to a terminal or not. It needs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (cmd/hardn/main.go:148), though the file is 0644.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:145-146; menu/logs_print_flag.golden): the same, to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma terminal or not. It needs root (cmd/hardn/main.go:148),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthough the file is 0644.␛[m$
 $
 # Contents of /var/log/hardn.log:$
 $

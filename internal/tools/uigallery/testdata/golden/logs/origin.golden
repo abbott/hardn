@@ -7,9 +7,9 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen, its words as they are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logs_menu.go:33-62, file_logs_repository.go:95-96), on the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdesign system: the whole file, 4 lines here, raw. Read, not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logs_menu.go:33-62, file_logs_repository.go:95-96;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_open.golden), on the design system: the whole file,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m4 lines here, raw.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -33,9 +33,9 @@ $
 $
 # Note$
 # origin/main's Logs screen, its words as they are$
-# (logs_menu.go:33-62, file_logs_repository.go:95-96), on the$
-# design system: the whole file, 4 lines here, raw. Read, not$
-# run.$
+# (logs_menu.go:33-62, file_logs_repository.go:95-96;$
+# menu/logs_open.golden), on the design system: the whole file,$
+# 4 lines here, raw.$
 $
 # View Logs ####################################################$
 $
@@ -59,9 +59,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen, its words as they are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logs_menu.go:33-62, file_logs_repository.go:95-96), on the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdesign system: the whole file, 4 lines here, raw. Read, not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logs_menu.go:33-62, file_logs_repository.go:95-96;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_open.golden), on the design system: the whole file,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m4 lines here, raw.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m####################################################␛[m$
 $

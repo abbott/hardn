@@ -7,11 +7,11 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report, its words as they are (display.go:43-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m129), on the design system, on the debian13 host: its rows,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits items (system_details_menu.go:70-80), its heading and its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt. Its 50-column box, its screen clear and its bar graphs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mare left out. Read, not run: it has no seam␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/characterization/host_info_test.go:14-27).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m129; pkg/characterization's menu/system_details_open.golden),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon the design system, on the debian13 host: its rows, its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitems (system_details_menu.go:70-80), its heading and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt. Its 50-column box, its screen clear, its blank lines␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhere sections would be, and its bar graphs are left out.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -44,7 +44,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 $
 
@@ -53,11 +53,11 @@ $
 $
 # Note$
 # origin/main's report, its words as they are (display.go:43-$
-# 129), on the design system, on the debian13 host: its rows,$
-# its items (system_details_menu.go:70-80), its heading and its$
-# prompt. Its 50-column box, its screen clear and its bar graphs$
-# are left out. Read, not run: it has no seam$
-# (pkg/characterization/host_info_test.go:14-27).$
+# 129; pkg/characterization's menu/system_details_open.golden),$
+# on the design system, on the debian13 host: its rows, its$
+# items (system_details_menu.go:70-80), its heading and its$
+# prompt. Its 50-column box, its screen clear, its blank lines$
+# where sections would be, and its bar graphs are left out.$
 $
 # System Details ###############################################$
 $
@@ -90,7 +90,7 @@ $
 $
    0) Return$
 $
-  > Enter your choice [0-2 or q]:$
+  > Enter selection [0-2 or q]:$
 $
 $
 
@@ -99,12 +99,13 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report, its words as they are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(display.go:43-129), on the design system, on the debian13␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost: its rows, its items (system_details_menu.go:70-80),␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits heading and its prompt. Its 50-column box, its screen␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mclear and its bar graphs are left out. Read, not run: it␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhas no seam (pkg/characterization/host_info_test.go:14-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m27).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(display.go:43-129; pkg/characterization's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_open.golden), on the design system, on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe debian13 host: its rows, its items␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(system_details_menu.go:70-80), its heading and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt. Its 50-column box, its screen clear, its blank␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines where sections would be, and its bar graphs are left␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mout.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -158,7 +159,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 $
 
@@ -167,11 +168,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report, its words as they are (display.go:43-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m129), on the design system, on the debian13 host: its rows,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits items (system_details_menu.go:70-80), its heading and its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt. Its 50-column box, its screen clear and its bar graphs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mare left out. Read, not run: it has no seam␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/characterization/host_info_test.go:14-27).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m129; pkg/characterization's menu/system_details_open.golden),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon the design system, on the debian13 host: its rows, its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitems (system_details_menu.go:70-80), its heading and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt. Its 50-column box, its screen clear, its blank lines␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhere sections would be, and its bar graphs are left out.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
@@ -204,6 +205,6 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
 $
 $

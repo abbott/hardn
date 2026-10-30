@@ -7,10 +7,10 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe slice's broken parser. origin/main's GetLogs on a real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (run 2026-10-30 outside the repository;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile_logs_repository.go:54-59; nothing calls it but its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrappers and tests), and the stand-in's fix. The screen needs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma level only to colour WARNING and ERROR.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the stand-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min's fix. The screen needs a level only to colour WARNING and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mERROR.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
@@ -36,10 +36,10 @@ $
 $
 # Note$
 # The slice's broken parser. origin/main's GetLogs on a real$
-# line (run 2026-10-30 outside the repository;$
-# file_logs_repository.go:54-59; nothing calls it but its$
-# wrappers and tests), and the stand-in's fix. The screen needs$
-# a level only to colour WARNING and ERROR.$
+# line (menu/logs_parser.golden; file_logs_repository.go:51-57;$
+# nothing calls it but its wrappers and tests), and the stand-$
+# in's fix. The screen needs a level only to colour WARNING and$
+# ERROR.$
 $
 # The line -----------------------------------------------------$
 $
@@ -65,10 +65,10 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe slice's broken parser. origin/main's GetLogs on a real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (run 2026-10-30 outside the repository;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile_logs_repository.go:54-59; nothing calls it but its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrappers and tests), and the stand-in's fix. The screen␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mneeds a level only to colour WARNING and ERROR.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (menu/logs_parser.golden; file_logs_repository.go:51-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m57; nothing calls it but its wrappers and tests), and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-in's fix. The screen needs a level only to colour␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWARNING and ERROR.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
@@ -100,10 +100,10 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe slice's broken parser. origin/main's GetLogs on a real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (run 2026-10-30 outside the repository;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile_logs_repository.go:54-59; nothing calls it but its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrappers and tests), and the stand-in's fix. The screen needs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma level only to colour WARNING and ERROR.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mline (menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the stand-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min's fix. The screen needs a level only to colour WARNING and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mERROR.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m-----------------------------------------------------␛[m$
 $

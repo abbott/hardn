@@ -17,8 +17,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node on ZFS [I, no VM]:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot's dataset read from /proc/self/mounts, rpool/ROOT/pve-1,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhere origin/main asks zfs for its hard-coded zroot/ROOT/os␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(details.go:85). No user but root; root logged in. The CPU's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mname is cut at its row.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(details.go:85; menu/system_details_zfs_other_dataset.golden).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNo user but root; root logged in. The CPU's name is cut at its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -131,8 +132,9 @@ $
 # web-01.example.net is a Proxmox VE 9 node on ZFS [I, no VM]:$
 # root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1,$
 # where origin/main asks zfs for its hard-coded zroot/ROOT/os$
-# (details.go:85). No user but root; root logged in. The CPU's$
-# name is cut at its row.$
+# (details.go:85; menu/system_details_zfs_other_dataset.golden).$
+# No user but root; root logged in. The CPU's name is cut at its$
+# row.$
 $
 # System Details ###############################################$
 $
@@ -245,8 +247,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node on ZFS [I, no␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mVM]: root's dataset read from /proc/self/mounts,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrpool/ROOT/pve-1, where origin/main asks zfs for its hard-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcoded zroot/ROOT/os (details.go:85). No user but root;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot logged in. The CPU's name is cut at its row.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcoded zroot/ROOT/os (details.go:85;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_other_dataset.golden). No user but␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot; root logged in. The CPU's name is cut at its row.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

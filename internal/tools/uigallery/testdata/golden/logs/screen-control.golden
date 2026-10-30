@@ -10,7 +10,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled. Lines hold what commands printed: colour, a title␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand bell, a bidi override, bytes that are not UTF-8. They show␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas ^[ and <U+202E> and <0xe9>; origin/main prints them raw to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal (logging.go:146; file_logs_repository.go:96).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal (logging.go:146; file_logs_repository.go:96;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_escape.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -47,7 +48,8 @@ $
 # installed. Lines hold what commands printed: colour, a title$
 # and bell, a bidi override, bytes that are not UTF-8. They show$
 # as ^[ and <U+202E> and <0xe9>; origin/main prints them raw to$
-# the terminal (logging.go:146; file_logs_repository.go:96).$
+# the terminal (logging.go:146; file_logs_repository.go:96;$
+# menu/logs_escape.golden).$
 $
 # Logs #########################################################$
 $
@@ -85,7 +87,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma title and bell, a bidi override, bytes that are not UTF-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m8. They show as ^[ and <U+202E> and <0xe9>; origin/main␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprints them raw to the terminal (logging.go:146;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile_logs_repository.go:96).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile_logs_repository.go:96; menu/logs_escape.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -122,7 +124,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled. Lines hold what commands printed: colour, a title␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand bell, a bidi override, bytes that are not UTF-8. They show␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas ^[ and <U+202E> and <0xe9>; origin/main prints them raw to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal (logging.go:146; file_logs_repository.go:96).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal (logging.go:146; file_logs_repository.go:96;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_escape.golden).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
 $

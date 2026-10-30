@@ -9,7 +9,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. As pve9, its pool DEGRADED.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's zpool status -x reads "is healthy" alone, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156motherwise falls through to the root partition's figures, ZFS␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot mentioned (collectors.go:384-432).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot mentioned (collectors.go:384-432;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_all_healthy.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -65,7 +66,8 @@ $
 # Mock: the System Details screen. As pve9, its pool DEGRADED.$
 # origin/main's zpool status -x reads "is healthy" alone, and$
 # otherwise falls through to the root partition's figures, ZFS$
-# not mentioned (collectors.go:384-432).$
+# not mentioned (collectors.go:384-432;$
+# menu/system_details_zfs_all_healthy.golden).$
 $
 # System Details ###############################################$
 $
@@ -121,7 +123,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. As pve9, its pool␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDEGRADED. origin/main's zpool status -x reads "is healthy"␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, and otherwise falls through to the root partition's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfigures, ZFS not mentioned (collectors.go:384-432).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfigures, ZFS not mentioned (collectors.go:384-432;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_all_healthy.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -191,7 +194,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: the System Details screen. As pve9, its pool DEGRADED.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's zpool status -x reads "is healthy" alone, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156motherwise falls through to the root partition's figures, ZFS␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot mentioned (collectors.go:384-432).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot mentioned (collectors.go:384-432;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_all_healthy.golden).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $

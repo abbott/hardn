@@ -169,7 +169,7 @@ func sdHostNamed(t *testing.T, name string) sdHost {
 // TestSDUnreadableKeepsTheRest: one section not read leaves the other six,
 // where origin/main loses the whole report (details.go:91-117): the section
 // says which file, and under export-file Export is not offered, as origin/
-// main's is not (system_details_menu.go:75-80).
+// main's is not (system_details_menu.go:75-79).
 func TestSDUnreadableKeepsTheRest(t *testing.T) {
 	r, err := readSDHost(context.Background(), "unreadable")
 	if err != nil {

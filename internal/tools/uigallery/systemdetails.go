@@ -176,9 +176,9 @@ func sdHosts() []sdHost {
 		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: details(alpine323Platform), env: doasAlice,
 			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas, BusyBox's ip, df and last, whose forms are [unverified]. alice ran doas hardn."},
 		{name: "pve9", label: "Proxmox VE 9", about: "ZFS, root alone", host: pveDetails, env: rootLogin,
-			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85). No user but root; root logged in. The CPU's name is cut at its row."},
+			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85; menu/system_details_zfs_other_dataset.golden). No user but root; root logged in. The CPU's name is cut at its row."},
 		{name: "zfs-degraded", label: "ZFS degraded", about: "Pool not ONLINE", host: pveDegraded, env: rootLogin,
-			note: "As pve9, its pool DEGRADED. origin/main's zpool status -x reads \"is healthy\" alone, and otherwise falls through to the root partition's figures, ZFS not mentioned (collectors.go:384-432)."},
+			note: "As pve9, its pool DEGRADED. origin/main's zpool status -x reads \"is healthy\" alone, and otherwise falls through to the root partition's figures, ZFS not mentioned (collectors.go:384-432; menu/system_details_zfs_all_healthy.golden)."},
 		{name: "unreadable", label: "One section unreadable", about: "Memory", host: unreadableDetails, env: sudoAlice,
 			note: other + "/proc/meminfo cannot be read. origin/main's GenerateSystemStatus stops at the first collector's error and the whole report is lost (details.go:91-117); here the rest stays and the section says which."},
 		{name: "no-last-login", label: "No last login", about: "Nothing recorded", host: noLoginDetails, env: sudoAlice,
@@ -832,7 +832,7 @@ type sdItem struct {
 
 // items are the screen's items: under report-sections one per section,
 // under report-pager Open; then Refresh; then Export under its treatments.
-// Under export-file, as origin/main's (system_details_menu.go:75-80), it is
+// Under export-file, as origin/main's (system_details_menu.go:75-79), it is
 // not offered with a section unread, the file being part of a report;
 // export-command's command prints what can be read.
 func (r detailsReading) items() []sdItem {
@@ -1142,12 +1142,12 @@ func sdMocks() []listMock {
 			draw: onSDHost("unreadable", jsonDrawing)},
 		listMock{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is §3.11's: not approved, so this is a proposal.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return flagsDrawing(c), nil }},
-		listMock{name: "origin", note: "origin/main's report, its words as they are (display.go:43-129), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Its 50-column box, its screen clear and its bar graphs are left out. Read, not run: it has no seam (pkg/characterization/host_info_test.go:14-27).",
+		listMock{name: "origin", note: "origin/main's report, its words as they are (display.go:43-129; pkg/characterization's menu/system_details_open.golden), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Its 50-column box, its screen clear, its blank lines where sections would be, and its bar graphs are left out.",
 			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.originScreen(false).Render(c) })},
-		listMock{name: "origin-error", note: "origin/main's report when any collector fails (system_details_menu.go:42-62): the box's words, the report gone, Export not offered. Read, not run.",
+		listMock{name: "origin-error", note: "origin/main's report when any collector fails (system_details_menu.go:42-62; menu/system_details_error.golden): the error, twice, the box saying to check permissions whatever it was, the report gone, Export not offered.",
 			draw: onSDHost("unreadable", func(r detailsReading, c component.Ctx) string {
 				return apart(component.Callout{Kind: component.MessageBad, Title: "System Details Error", Body: []string{
-					"Failed to retrieve system status information.", "Error: failed to collect memory info: failed to get memory info: exec: \"free\": executable file not found",
+					"Failed to retrieve system status information.", "Error: failed to collect memory info: failed to get memory info: exec: \"free\": executable file not found in $PATH",
 					"Please check system permissions and try again.",
 				}}.Render(c), r.originScreen(true).Render(c))
 			})},
@@ -1275,7 +1275,7 @@ func flagsDrawing(c component.Ctx) string {
 // offered.
 func (r detailsReading) originScreen(failed bool) screen.SubMenu {
 	items := []component.MenuItem{{Key: "1", Label: "Refresh Information", Description: "Reload system status from system"}}
-	vm := screen.SubMenu{Title: component.TitleBar{Title: sdTitle}, Heading: sdHeading, Prompt: "Enter your choice"}
+	vm := screen.SubMenu{Title: component.TitleBar{Title: sdTitle}, Heading: sdHeading, Prompt: sdPrompt}
 	if !failed {
 		items = append(items, component.MenuItem{Key: "2", Label: "Export Information", Description: "Export system status to file"})
 		rows := []component.KeyValue{

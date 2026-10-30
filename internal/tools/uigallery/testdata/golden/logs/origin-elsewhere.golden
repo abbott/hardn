@@ -8,8 +8,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen with hardn.yml's logFile set where␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing writes: it reads that path, so the log hardn does␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrite is not shown (file_logs_repository.go:81-84, P-18).␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRead, not run; the stat error's words are Go's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrite is not shown (file_logs_repository.go:81-84; P-18;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_other_path.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -32,8 +32,8 @@ $
 # Note$
 # origin/main's Logs screen with hardn.yml's logFile set where$
 # nothing writes: it reads that path, so the log hardn does$
-# write is not shown (file_logs_repository.go:81-84, P-18).$
-# Read, not run; the stat error's words are Go's.$
+# write is not shown (file_logs_repository.go:81-84; P-18;$
+# menu/logs_other_path.golden).$
 $
 # View Logs ####################################################$
 $
@@ -56,8 +56,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen with hardn.yml's logFile set␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhere nothing writes: it reads that path, so the log hardn␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoes write is not shown (file_logs_repository.go:81-84, P-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m18). Read, not run; the stat error's words are Go's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoes write is not shown (file_logs_repository.go:81-84; P-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m18; menu/logs_other_path.golden).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -81,8 +81,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen with hardn.yml's logFile set where␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing writes: it reads that path, so the log hardn does␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrite is not shown (file_logs_repository.go:81-84, P-18).␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRead, not run; the stat error's words are Go's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrite is not shown (file_logs_repository.go:81-84; P-18;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_other_path.golden).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m####################################################␛[m$
 $

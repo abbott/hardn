@@ -8,7 +8,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p with no log: this on stderr, nothing on stdout, exit␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0: a read that found nothing. origin/main logs [ERROR] Failed␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto read log file and carries on, exit 0 (logging.go:139-143).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto read log file, into the log too, and carries on, exit 0 by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreading (logging.go:139-143;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_print_flag_missing.golden).␛[m$
 $
 hardn: no log yet: /var/log/hardn.log$
 $
@@ -20,7 +22,9 @@ $
 # Note$
 # hardn -p with no log: this on stderr, nothing on stdout, exit$
 # 0: a read that found nothing. origin/main logs [ERROR] Failed$
-# to read log file and carries on, exit 0 (logging.go:139-143).$
+# to read log file, into the log too, and carries on, exit 0 by$
+# reading (logging.go:139-143;$
+# menu/logs_print_flag_missing.golden).$
 $
 hardn: no log yet: /var/log/hardn.log$
 $
@@ -32,8 +36,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p with no log: this on stderr, nothing on stdout,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mexit 0: a read that found nothing. origin/main logs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[ERROR] Failed to read log file and carries on, exit 0␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:139-143).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[ERROR] Failed to read log file, into the log too, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcarries on, exit 0 by reading (logging.go:139-143;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_print_flag_missing.golden).␛[m$
 $
 hardn: no log yet: /var/log/hardn.log$
 $
@@ -45,7 +50,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p with no log: this on stderr, nothing on stdout, exit␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0: a read that found nothing. origin/main logs [ERROR] Failed␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto read log file and carries on, exit 0 (logging.go:139-143).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto read log file, into the log too, and carries on, exit 0 by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreading (logging.go:139-143;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_print_flag_missing.golden).␛[m$
 $
 hardn: no log yet: /var/log/hardn.log$
 $

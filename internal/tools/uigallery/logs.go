@@ -173,11 +173,11 @@ func logHosts() []logHost {
 		{name: "missing", label: "No log yet", about: "No file", host: func() *fakeHost { return withLess(simulate(debian13Platform)) },
 			note: deb + "No file there. origin/main's main() makes it at every start as root, before flags (cmd/hardn/main.go:57; logging.go:38), so today this shows only where that open failed; next/p3-startup moves that write."},
 		{name: "unreadable", label: "Unreadable", about: "A directory there", host: unreadableLog,
-			note: deb + "/var/log/hardn.log is a directory. Root reads past a file's permissions [I], so a directory or an I/O error is what is left of \"unreadable\"."},
+			note: deb + "/var/log/hardn.log is a directory. Root reads past a file's permissions [I], so a directory, an I/O error or an NFS root squash is what is left of \"unreadable\" (menu/logs_unreadable.golden, not as root)."},
 		{name: "empty", label: "Empty", about: "No lines", host: logOn(""),
 			note: deb + "The file is there and empty: what main()'s open leaves on a first start, before anything is logged (logging.go:38)."},
 		{name: "control", label: "Control characters", about: "Escape sequences, shown safe", host: logOn(controlLog),
-			note: deb + "Lines hold what commands printed: colour, a title and bell, a bidi override, bytes that are not UTF-8. They show as ^[ and <U+202E> and <0xe9>; origin/main prints them raw to the terminal (logging.go:146; file_logs_repository.go:96)."},
+			note: deb + "Lines hold what commands printed: colour, a title and bell, a bidi override, bytes that are not UTF-8. They show as ^[ and <U+202E> and <0xe9>; origin/main prints them raw to the terminal (logging.go:146; file_logs_repository.go:96; menu/logs_escape.golden)."},
 		{name: "elsewhere", label: "logFile elsewhere", about: "hardn.yml says another path", host: elsewhereLog,
 			note: deb + "hardn.yml says logFile: /srv/log/hardn.log, where nothing writes. The screen reads the file hardn writes and says so; origin/main reads logFile, not what main() opens (P-18; config.go:324)."},
 		{name: "alpine323", label: "Alpine 3.23", about: "BusyBox's less", host: alpineLog,
@@ -323,8 +323,8 @@ type logLine struct{ Time, Level, Message string }
 // log.LstdFlags date and time, the level, the message. A line of any other
 // shape is not a parsed line: it stays as it is, a message with no level.
 // origin/main's GetLogs splits on the first two spaces, so its Time is the
-// date, its Level the clock and its Message "INFO: ..." (run 2026-10-30;
-// file_logs_repository.go:54-59), and nothing calls it but its wrappers and tests.
+// date, its Level the clock and its Message "INFO: ..." (menu/logs_parser.golden;
+// file_logs_repository.go:51-57), and nothing calls it but its wrappers and tests.
 func parseLogLine(line string) logLine {
 	f := strings.SplitN(line, " ", 3)
 	if len(f) == 3 && len(f[0]) == 10 && len(f[1]) == 8 {
@@ -705,13 +705,13 @@ func logsMocks() []listMock {
 			draw: onLogHost("lines", func(r logReading, _ component.Ctx) string { return strings.Join(r.lines, "\n") })},
 		listMock{name: "cli-pipe-control", wide: term80, note: "The same on the control host: safe off a terminal too, since a pipe may end at one. Who wants the bytes has cat /var/log/hardn.log.",
 			draw: onLogHost("control", func(r logReading, _ component.Ctx) string { return strings.Join(r.lines, "\n") })},
-		listMock{name: "cli-missing", note: "hardn -p with no log: this on stderr, nothing on stdout, exit 0: a read that found nothing. origin/main logs [ERROR] Failed to read log file and carries on, exit 0 (logging.go:139-143).",
+		listMock{name: "cli-missing", note: "hardn -p with no log: this on stderr, nothing on stdout, exit 0: a read that found nothing. origin/main logs [ERROR] Failed to read log file, into the log too, and carries on, exit 0 by reading (logging.go:139-143; menu/logs_print_flag_missing.golden).",
 			draw: onLogHost("missing", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliNoLog, r.path) })},
 		listMock{name: "cli-unreadable", note: "hardn -p with a log it cannot read: this on stderr, nothing on stdout, exit 1.",
 			draw: onLogHost("unreadable", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliCantRead, r.path, r.reason) })},
-		listMock{name: "parser", note: "The slice's broken parser. origin/main's GetLogs on a real line (run 2026-10-30 outside the repository; file_logs_repository.go:54-59; nothing calls it but its wrappers and tests), and the stand-in's fix. The screen needs a level only to colour WARNING and ERROR.",
+		listMock{name: "parser", note: "The slice's broken parser. origin/main's GetLogs on a real line (menu/logs_parser.golden; file_logs_repository.go:51-57; nothing calls it but its wrappers and tests), and the stand-in's fix. The screen needs a level only to colour WARNING and ERROR.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return parserDrawing(c), nil }},
-		listMock{name: "origin", wide: term80, note: "origin/main's Logs screen, its words as they are (logs_menu.go:33-62, file_logs_repository.go:95-96), on the design system: the whole file, 4 lines here, raw. Read, not run.",
+		listMock{name: "origin", wide: term80, note: "origin/main's Logs screen, its words as they are (logs_menu.go:33-62, file_logs_repository.go:95-96; menu/logs_open.golden), on the design system: the whole file, 4 lines here, raw.",
 			draw: onLogHost("lines", func(r logReading, c component.Ctx) string {
 				return apart(component.TitleBar{Title: "View Logs"}.Render(c),
 					component.BulletList{Items: []component.KeyValue{{Key: "Log file", Value: r.path}}}.Render(c),
@@ -719,11 +719,11 @@ func logsMocks() []listMock {
 					"# Contents of "+r.path+":", strings.Join(r.lines, "\n"),
 					component.Message{Text: "Press Enter to return to the main menu..."}.Render(c))
 			})},
-		listMock{name: "origin-p", wide: term80, note: "origin/main's hardn -p (cmd/hardn/main.go:415-417; logging.go:145-146): the same, to a terminal or not. It needs root (cmd/hardn/main.go:148), though the file is 0644.",
+		listMock{name: "origin-p", wide: term80, note: "origin/main's hardn -p (cmd/hardn/main.go:415-417; logging.go:145-146; menu/logs_print_flag.golden): the same, to a terminal or not. It needs root (cmd/hardn/main.go:148), though the file is 0644.",
 			draw: onLogHost("lines", func(r logReading, _ component.Ctx) string {
 				return "# Contents of " + r.path + ":\n\n" + strings.Join(r.lines, "\n")
 			})},
-		listMock{name: "origin-elsewhere", note: "origin/main's Logs screen with hardn.yml's logFile set where nothing writes: it reads that path, so the log hardn does write is not shown (file_logs_repository.go:81-84, P-18). Read, not run; the stat error's words are Go's.",
+		listMock{name: "origin-elsewhere", note: "origin/main's Logs screen with hardn.yml's logFile set where nothing writes: it reads that path, so the log hardn does write is not shown (file_logs_repository.go:81-84; P-18; menu/logs_other_path.golden).",
 			draw: func(_ context.Context, c component.Ctx) (string, error) {
 				const elsewhere = "/srv/log/hardn.log"
 				return apart(component.TitleBar{Title: "View Logs"}.Render(c),
