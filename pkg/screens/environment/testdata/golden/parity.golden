@@ -4,8 +4,8 @@
 # origin/main: pkg/characterization's goldens, read in place: environment/keep_* (item 1 as root;
 # -e and setup-sudo-env call the same function), one run for every distribution, its temp dir the
 # root; ops/setup_sudo_preservation/<distribution> (-e and setup-sudo-env). The new path: the
-# Environment control through screenkit.Session.Change (item 1, as unit (c)'s screen is to run it)
-# and through the engine (-e, as unit (d) is to run it), held equal, and its plan alone, on
+# Environment screen's Run (item 1, typed as each cell's "new path:" line says) and the Environment
+# control through the engine (-e, as unit (d) is to run it), held equal, and its plan alone, on
 # hostfake: written, not run (gate 5). On doas the golden's SUDO_USER is the new path's DOAS_USER.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n> gallery-environment.md
 # §5, and its Made here calls (adopted 2026-10-29); defect <n> gallery-environment.md §7;
@@ -24,7 +24,7 @@ origin/main: environment/keep_new.golden (V20, V18, V16)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -66,7 +66,7 @@ origin/main: environment/keep_new.golden (V20, V18, V16)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -109,7 +109,7 @@ origin/main: environment/keep_new.golden (V20, V18, V16)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  rules: none
 agree  comments: none
@@ -142,7 +142,7 @@ origin/main: environment/keep_new.golden (V20, V18, V16)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  rules: none
 agree  comments: none
@@ -177,7 +177,7 @@ origin/main: ops/setup_sudo_preservation/debian.golden (V1, V18, V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
-new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, answered y, leaves the same
+new path: -e: the control's plan and apply through the engine; the Environment screen, typed 1, y, leaves the same
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -227,7 +227,7 @@ origin/main: ops/setup_sudo_preservation/ubuntu.golden (V1, V18, V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
-new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, answered y, leaves the same
+new path: -e: the control's plan and apply through the engine; the Environment screen, typed 1, y, leaves the same
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -277,7 +277,7 @@ origin/main: ops/setup_sudo_preservation/alpine.golden (V1, V18, V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
-new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, refused before it asks, leaves the same
+new path: -e: the control's plan and apply through the engine; the Environment screen, typed 1, refused before it asks, leaves the same
   refused: SUDOERS_ENV_NEEDS_GRANT
 agree  comments: none
 agree  directories: none
@@ -316,7 +316,7 @@ origin/main: ops/setup_sudo_preservation/proxmox.golden (V1, V18, V20)
   temp /tmp/hardn_sudoers_temp 0440, removed
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -e/--setup-sudo-env, which applies them. Nothing was changed.
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with setup-sudo-env, which applies them. Nothing was changed.
-new path: -e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, refused before it asks, leaves the same
+new path: -e: the control's plan and apply through the engine; the Environment screen, typed 1, refused before it asks, leaves the same
   refused: SUDOERS_NO_TOOL
 agree  comments: none
 agree  directories: none
@@ -347,7 +347,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_already.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 72 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -385,7 +385,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_already.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 72 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -424,7 +424,7 @@ origin/main: environment/keep_already.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   doas sets DOAS_USER, not SUDO_USER [I]: the new path ran with DOAS_USER alice; under doas origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 72 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  files: none
 agree  directories: none
@@ -444,7 +444,7 @@ origin/main: environment/keep_already.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   with neither tool nothing sets SUDO_USER [I]: at a root login origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 72 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  files: none
 agree  directories: none
@@ -463,7 +463,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_commented.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 74 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | # Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -501,7 +501,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_commented.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 74 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | # Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -540,7 +540,7 @@ origin/main: environment/keep_commented.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   doas sets DOAS_USER, not SUDO_USER [I]: the new path ran with DOAS_USER alice; under doas origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 74 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | # Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  files: none
 agree  directories: none
@@ -560,7 +560,7 @@ origin/main: environment/keep_commented.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   with neither tool nothing sets SUDO_USER [I]: at a root login origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 74 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL; | # Defaults:alice env_keep += "HARDN_CONFIG"
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  files: none
 agree  directories: none
@@ -583,7 +583,7 @@ origin/main: environment/keep_dotted.golden (V16, V20)
     | Defaults:alice.smith env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice_2esmith 0440, atomic
     | # Managed by hardn
     | Defaults:alice.smith env_keep += "HARDN_CONFIG"
@@ -625,7 +625,7 @@ origin/main: environment/keep_dotted.golden (V16, V20)
     | Defaults:alice.smith env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice_2esmith 0440, atomic
     | # Managed by hardn
     | Defaults:alice.smith env_keep += "HARDN_CONFIG"
@@ -668,7 +668,7 @@ origin/main: environment/keep_dotted.golden (V16, V20)
     | Defaults:alice.smith env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  rules: none
 agree  comments: none
@@ -701,7 +701,7 @@ origin/main: environment/keep_dotted.golden (V16, V20)
     | Defaults:alice.smith env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  rules: none
 agree  comments: none
@@ -730,7 +730,7 @@ origin/main: environment/keep_no_sudoers_d.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /tmp: a directory, mode 1777
   refused: failed: sudoers.d directory does not exist; your system may not support sudo drop-in configurations
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NOT_INCLUDED): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NOT_INCLUDED): nothing written
   refused: SUDOERS_NOT_INCLUDED, before asking
 agree  files: none
 agree  directories: none
@@ -750,7 +750,7 @@ origin/main: environment/keep_no_sudoers_d.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /tmp: a directory, mode 1777
   refused: failed: sudoers.d directory does not exist; your system may not support sudo drop-in configurations
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NOT_INCLUDED): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NOT_INCLUDED): nothing written
   refused: SUDOERS_NOT_INCLUDED, before asking
 agree  files: none
 agree  directories: none
@@ -771,7 +771,7 @@ origin/main: environment/keep_no_sudoers_d.golden ()
   doas sets DOAS_USER, not SUDO_USER [I]: the new path ran with DOAS_USER alice; under doas origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /tmp: a directory, mode 1777
   refused: failed: sudoers.d directory does not exist; your system may not support sudo drop-in configurations
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  files: none
 agree  directories: none
@@ -792,7 +792,7 @@ origin/main: environment/keep_no_sudoers_d.golden ()
   with neither tool nothing sets SUDO_USER [I]: at a root login origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /tmp: a directory, mode 1777
   refused: failed: sudoers.d directory does not exist; your system may not support sudo drop-in configurations
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  files: none
 agree  directories: none
@@ -815,7 +815,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; SUDO_USER root leaves the same
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; SUDO_USER root leaves the same
   refused: ENVIRONMENT_NO_USER, before asking
 agree  rules: none
 agree  comments: none
@@ -847,7 +847,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; SUDO_USER root leaves the same
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; SUDO_USER root leaves the same
   refused: ENVIRONMENT_NO_USER, before asking
 agree  rules: none
 agree  comments: none
@@ -879,7 +879,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; DOAS_USER root leaves the same
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written; DOAS_USER root leaves the same
   refused: ENVIRONMENT_NO_USER, before asking
 agree  rules: none
 agree  comments: none
@@ -911,7 +911,7 @@ origin/main: environment/keep_root.golden (V20)
     | Defaults:root env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written; SUDO_USER root leaves the same
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written; SUDO_USER root leaves the same
   refused: SUDOERS_NO_TOOL, before asking
 agree  rules: none
 agree  comments: none
@@ -939,7 +939,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_no_user.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER unset, USER unset, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 30 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
   refused: ENVIRONMENT_NO_USER, before asking
 agree  files: none
 agree  directories: none
@@ -958,7 +958,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_no_user.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER unset, USER unset, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 30 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
   refused: ENVIRONMENT_NO_USER, before asking
 agree  files: none
 agree  directories: none
@@ -977,7 +977,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_no_user.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER unset, USER unset, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 30 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (ENVIRONMENT_NO_USER): nothing written
   refused: ENVIRONMENT_NO_USER, before asking
 agree  files: none
 agree  directories: none
@@ -996,7 +996,7 @@ hardn.yml: none loaded
 origin/main: environment/keep_no_user.golden ()
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER unset, USER unset, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /etc/sudoers.d/alice: a file, 30 bytes, mode 0440; | alice ALL=(ALL) NOPASSWD: ALL
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  files: none
 agree  directories: none
@@ -1018,7 +1018,7 @@ origin/main: environment/keep_visudo_fails.golden ()
   refused: failed: invalid sudoers configuration: exit status 1
   check visudo -c -f /tmp/hardn_sudoers_temp -> exit status 1
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   refused: failed: SUDOERS_INVALID_BEFORE
   check visudo -c -> exit status 1
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: SUDOERS_LEGACY_FILE
@@ -1049,7 +1049,7 @@ origin/main: environment/keep_visudo_fails.golden ()
   refused: failed: invalid sudoers configuration: exit status 1
   check visudo -c -f /tmp/hardn_sudoers_temp -> exit status 1
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   refused: failed: SUDOERS_INVALID_BEFORE
   check visudo -c -> exit status 1
   backup: /etc/sudoers.d/hardn-env-alice (absent before: the rollback removes it); journal: journalled first; findings: SUDOERS_LEGACY_FILE
@@ -1081,7 +1081,7 @@ origin/main: environment/keep_visudo_fails.golden ()
   refused: failed: invalid sudoers configuration: exit status 1
   check visudo -c -f /tmp/hardn_sudoers_temp -> exit status 1
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  files: none
 agree  directories: none
@@ -1106,7 +1106,7 @@ origin/main: environment/keep_visudo_fails.golden ()
   refused: failed: invalid sudoers configuration: exit status 1
   check visudo -c -f /tmp/hardn_sudoers_temp -> exit status 1
   temp /tmp/hardn_sudoers_temp 0440, removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  files: none
 agree  directories: none
@@ -1134,7 +1134,7 @@ origin/main: environment/keep_tmp_symlink.golden (V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -1179,7 +1179,7 @@ origin/main: environment/keep_tmp_symlink.golden (V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -1224,7 +1224,7 @@ origin/main: environment/keep_tmp_symlink.golden (V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  rules: none
 agree  comments: none
@@ -1259,7 +1259,7 @@ origin/main: environment/keep_tmp_symlink.golden (V20)
     | Defaults:alice env_keep += "HARDN_CONFIG"
   check visudo -c -f /tmp/hardn_sudoers_temp
   temp /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  rules: none
 agree  comments: none
@@ -1288,7 +1288,7 @@ origin/main: environment/keep_tmp_dir.golden (V20)
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /tmp/hardn_sudoers_temp: a directory, mode 0755
   refused: failed: failed to create temporary sudoers file at /tmp/hardn_sudoers_temp: open /tmp/hardn_sudoers_temp: is a directory
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -1327,7 +1327,7 @@ origin/main: environment/keep_tmp_dir.golden (V20)
   origin/main's one run stands for every distribution: nothing on its path reads the host (parity-environment.md §2)
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /tmp/hardn_sudoers_temp: a directory, mode 0755
   refused: failed: failed to create temporary sudoers file at /tmp/hardn_sudoers_temp: open /tmp/hardn_sudoers_temp: is a directory
-new path: item 1 through screenkit.Session.Change, answered y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
+new path: the Environment screen, typed 1, y; -e's plan and apply leave the same; under plan only, the plan alone: nothing written
   write /etc/sudoers.d/hardn-env-alice 0440, atomic
     | # Managed by hardn
     | Defaults:alice env_keep += "HARDN_CONFIG"
@@ -1367,7 +1367,7 @@ origin/main: environment/keep_tmp_dir.golden (V20)
   doas sets DOAS_USER, not SUDO_USER [I]: the new path ran with DOAS_USER alice; under doas origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /tmp/hardn_sudoers_temp: a directory, mode 0755
   refused: failed: failed to create temporary sudoers file at /tmp/hardn_sudoers_temp: open /tmp/hardn_sudoers_temp: is a directory
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_ENV_NEEDS_GRANT): nothing written
   refused: SUDOERS_ENV_NEEDS_GRANT, before asking
 agree  files: none
 agree  directories: none
@@ -1388,7 +1388,7 @@ origin/main: environment/keep_tmp_dir.golden (V20)
   with neither tool nothing sets SUDO_USER [I]: at a root login origin/main reads USER root and writes /etc/sudoers.d/root, as keep_root (defect 5) [I]
   start: Environment: SUDO_USER alice, USER root, HARDN_CONFIG unset, TMPDIR unset (os.TempDir() is /tmp); /etc: a directory, mode 0755; /etc/sudoers.d: a directory, mode 0750; /tmp: a directory, mode 1777; /tmp/hardn_sudoers_temp: a directory, mode 0755
   refused: failed: failed to create temporary sudoers file at /tmp/hardn_sudoers_temp: open /tmp/hardn_sudoers_temp: is a directory
-new path: item 1 through screenkit.Session.Change, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
+new path: the Environment screen, typed 1, refused before it asks; -e's plan and apply leave the same; under plan only, refused (SUDOERS_NO_TOOL): nothing written
   refused: SUDOERS_NO_TOOL, before asking
 agree  files: none
 agree  directories: none

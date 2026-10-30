@@ -23,12 +23,11 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
+	envscreen "github.com/abbott/hardn/pkg/screens/environment"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
-	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
-	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
@@ -41,9 +40,9 @@ import (
 // same start states, through the parity harness (internal/parity). This
 // file is what Environment supplies to it.
 //
-// It lives here, in the package unit (c) fills with the Environment
-// screen (control-environment.md §11), so that unit (c) keeps it and
-// drives the screen's own item 1 in place of item1, as pkg/screens/backup's
+// It lives here, in the package of the Environment screen
+// (control-environment.md §11), and since unit (c), next/s9-screen, its
+// item 1 is the screen's own (item1 drives Run), as pkg/screens/backup's
 // TestParity came to drive the Backup screen. depguard's
 // screens-through-host covers this directory's non-test files alone, so
 // the test may read goldens with os, as the harness does.
@@ -90,8 +89,8 @@ const envHeader = `# The Environment parity table: origin/main's SetupSudoPreser
 # origin/main: pkg/characterization's goldens, read in place: environment/keep_* (item 1 as root;
 # -e and setup-sudo-env call the same function), one run for every distribution, its temp dir the
 # root; ops/setup_sudo_preservation/<distribution> (-e and setup-sudo-env). The new path: the
-# Environment control through screenkit.Session.Change (item 1, as unit (c)'s screen is to run it)
-# and through the engine (-e, as unit (d) is to run it), held equal, and its plan alone, on
+# Environment screen's Run (item 1, typed as each cell's "new path:" line says) and the Environment
+# control through the engine (-e, as unit (d) is to run it), held equal, and its plan alone, on
 # hostfake: written, not run (gate 5). On doas the golden's SUDO_USER is the new path's DOAS_USER.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n> gallery-environment.md
 # §5, and its Made here calls (adopted 2026-10-29); defect <n> gallery-environment.md §7;
@@ -607,79 +606,71 @@ func stateOf(t *testing.T, h *hostfake.System, n int) parity.EndState {
 	return parity.NewStateChecked(t, h, n, isCheck, "")
 }
 
-// item1 is item 1 on c's host, as unit (c)'s screen is to run it
-// (control-environment.md §11): environment.Read, refused before it asks
-// where Read's Refusal says so, the screen saying its words
-// (screenkit.RefusalWords, then Reading.Stays); else the control's change
-// through screenkit.Session.Change, keeping or stopping as Read's Kept
-// says, under the decided words (gallery-environment.md §6), answered y,
-// or under plan only its plan alone. It returns the end state, with the
-// refusal "<code>, before asking", or "failed: <code>" for an apply that
-// failed, and what was answered.
+// item1 is item 1 on c's host through the Environment screen itself
+// (pkg/screens/environment's Run), typed 1, then y where it asks, then 0,
+// its change's engine as cmd/hardn builds it, on the cell's facts and
+// environment; under plan only, typed 1, then 0. Whether it asks is
+// read first with environment.Read, as the screen reads it: where its
+// Refusal says so, the screen must say the refusal's words
+// (screenkit.RefusalWords, then Reading.Stays) before asking anything,
+// planning nothing; else it must ask the decided question, y/N
+// (gallery-environment.md §6), and plan once (Options.Ran). It returns
+// the end state, with the refusal "<code>, before asking", or "failed:
+// <code>" for an apply that failed, and how it was reached: the screen
+// and the lines typed, its closing 0 left out, as Backup's says it.
 func item1(t *testing.T, c parity.Cell, env map[string]string, dryRun bool) (parity.EndState, string) {
 	t.Helper()
 	ctx := context.Background()
 	h := envHost(t, c.Distro, starts[c.Scenario.Name])
 	n := len(h.Calls())
 	r := environment.Read(ctx, h, c.Distro.Facts, lookup(env))
-	if err := r.Refusal(); err != nil {
-		words := screenkit.RefusalWords(err)
-		if errors.Is(r.Refused, sudoers.ErrEnvNeedsGrant) && r.Stays() == "" || words == "" {
-			t.Fatalf("item 1's refusal %v: words %q, then %q", err, words, r.Stays())
-		}
-		s := stateOf(t, h, n)
-		s.Refusal = output.CodeOf(err) + ", before asking"
-		untouched(t, h, c)
-		return s, "refused before it asks"
+	refusal := r.Refusal()
+	lines := []string{"1"}
+	if refusal == nil && !dryRun {
+		lines = append(lines, "y")
 	}
 	var out bytes.Buffer
 	tenv := term.Resolve(term.Options{}, term.Facts{Width: 120})
-	var lines []string
-	answered := "under plan only, its plan alone"
-	if !dryRun {
-		lines, answered = []string{"y"}, "answered y"
-	}
-	ty := uitest.NewTypist(&out, lines...)
+	ty := uitest.NewTypist(&out, append(slices.Clone(lines), "0")...)
 	var runs []output.Run
-	s := screenkit.Session{
-		Name:      "environment parity",
+	err := envscreen.Run(ctx, envscreen.Options{
 		Prompter:  nav.Prompter{Ctx: component.NewCtx(tenv), In: prompt.New(ty, false), Out: tenv.Writer(&out)},
 		System:    h,
-		Config:    loaded(),
+		Facts:     c.Distro.Facts,
+		Getenv:    lookup(env),
 		NewEngine: newEngine(h, c.Distro),
 		DryRun:    dryRun,
 		LogPath:   output.LegacyLogPath,
 		Now:       func() time.Time { return now },
 		Ran:       func(run output.Run) { runs = append(runs, run) },
-	}
-	title, question := "Keep HARDN_CONFIG", "Keep HARDN_CONFIG under %s?"
-	if r.Kept {
-		title, question = "Stop Keeping HARDN_CONFIG", "Stop keeping HARDN_CONFIG under %s?"
-	}
-	err := s.Change(ctx, screenkit.Change{
-		Step: screen.WorkflowStep{Title: component.TitleBar{Title: title}},
-		Flow: flow.Flow{
-			Review: func() flow.Review { return flow.Review{Title: environment.Variable} },
-			Confirm: func(p flow.Plan) flow.Confirm {
-				if p.Typed() {
-					t.Errorf("a lockout-risk plan, which no row here plans")
-				}
-				return flow.Confirm{Question: fmt.Sprintf(question, r.ToolName())}
-			},
-		},
-		Controls: func(*config.Config) []engine.Control {
-			return []engine.Control{environment.Keep{Getenv: lookup(env), Stop: r.Kept}}
-		},
 	})
-	if ty.Unread() != 0 || len(runs) != 1 {
-		t.Fatalf("item 1: %v, %d unread, %d runs:\n%s", err, ty.Unread(), len(runs), out.String())
+	if err != nil || ty.Unread() != 0 {
+		t.Fatalf("the screen: %v, %d unread:\n%s", err, ty.Unread(), out.String())
+	}
+	via := typed(lines, dryRun)
+	if refusal != nil {
+		words := screenkit.RefusalWords(refusal)
+		if st := r.Stays(); st != "" {
+			words += " " + screenkit.FullStop(st)
+		}
+		if errors.Is(r.Refused, sudoers.ErrEnvNeedsGrant) && r.Stays() == "" || len(runs) != 0 || inOrder(out.String(), "Warning "+words) != "" || strings.Contains(out.String(), "[y/N") {
+			t.Fatalf("item 1's refusal %v: not said before asking in %q, or planned (%d runs):\n%s", refusal, words, len(runs), out.String())
+		}
+		s := stateOf(t, h, n)
+		s.Refusal = output.CodeOf(refusal) + ", before asking"
+		untouched(t, h, c)
+		return s, via + ", refused before it asks"
+	}
+	question := "Keep HARDN_CONFIG under %s? [y/N"
+	if r.Kept {
+		question = "Stop keeping HARDN_CONFIG under %s? [y/N"
+	}
+	if asked := strings.Contains(out.String(), fmt.Sprintf(question, r.ToolName())); asked == dryRun || strings.Contains(out.String(), "Type the hostname") || len(runs) != 1 {
+		t.Fatalf("item 1: asked %t (a lockout-risk plan, which no row here plans, types the hostname), %d runs:\n%s", asked, len(runs), out.String())
 	}
 	run := runs[0]
-	switch {
-	case run.Plan.Err() != nil:
+	if run.Plan.Err() != nil {
 		t.Fatalf("Read asked, and the plan refused: %v:\n%s", run.Plan.Err(), out.String())
-	case err != nil && run.Err == nil:
-		t.Fatalf("item 1: %v:\n%s", err, out.String())
 	}
 	st := parity.Planned(stateOf(t, h, n), run.Plan)
 	if run.Err != nil {
@@ -687,7 +678,17 @@ func item1(t *testing.T, c parity.Cell, env map[string]string, dryRun bool) (par
 	}
 	untouched(t, h, c)
 	rootOwned(t, h, st)
-	return st, answered
+	return st, via
+}
+
+// typed is how item 1 ran: the Environment screen, under plan only with
+// dryRun, the lines typed, its closing 0 left out.
+func typed(lines []string, dryRun bool) string {
+	screen := "the Environment screen"
+	if dryRun {
+		screen += " under plan only"
+	}
+	return screen + ", typed " + strings.Join(lines, ", ")
 }
 
 // flagRun is hardn -e on c's host, as unit (d) is to run it
@@ -764,10 +765,10 @@ func same(s parity.EndState) string {
 }
 
 // envRun is the new path on c: from the start origin/main's golden names
-// (held to it), item 1 (item1), -e (flagRun), the two held equal, each
-// file either wrote root's (rootOwned); for the root row, from SUDO_USER
-// root too, held equal to unset; and plan only, which writes nothing on
-// either. A row with lines is item 1's; the grant row, -e's, with its dry
+// (held to it), item 1 through the screen (item1), -e (flagRun), the two
+// held equal, each file either wrote root's (rootOwned); for the root
+// row, from SUDO_USER root too, held equal to unset; and plan only, which
+// writes nothing on either. A row with lines is item 1's; the grant row, -e's, with its dry
 // run, the plan alone.
 func envRun(t *testing.T, c parity.Cell) parity.NewRun {
 	t.Helper()
@@ -804,10 +805,10 @@ func envRun(t *testing.T, c parity.Cell) parity.NewRun {
 	}
 	if c.Scenario.Lines == nil {
 		return parity.NewRun{Live: flagLive, Dry: dry,
-			Via: "-e: the control's plan and apply through the engine; item 1 through screenkit.Session.Change, " + answered + ", leaves the same"}
+			Via: "-e: the control's plan and apply through the engine; " + answered + ", leaves the same"}
 	}
 	return parity.NewRun{Live: screenLive,
-		Via: "item 1 through screenkit.Session.Change, " + answered + "; -e's plan and apply leave the same; under plan only, " + dry + also}
+		Via: answered + "; -e's plan and apply leave the same; under plan only, " + dry + also}
 }
 
 // TestParityGoldens: every golden of origin/main's Environment is a row of

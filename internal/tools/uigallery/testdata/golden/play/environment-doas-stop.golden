@@ -6,13 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/doas-overridden␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for slice 9,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from the Environment control's reading of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (environment.Read), each change the control's on the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine (steps.Sudoers). The screen is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's, unit (c)'s to build. Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's, and its record␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas, as␛[m$
@@ -160,13 +158,11 @@ $
 # play environment/doas-overridden -----------------------------$
 $
 # Note$
-# Play mode, mocks: the Environment screen proposed for slice 9,$
-# drawn from the Environment control's reading of a simulated$
-# host (environment.Read), each change the control's on the real$
-# plan/apply engine (steps.Sudoers). The screen is the$
-# gallery's, unit (c)'s to build. Nothing on this machine$
-# changes: every command and file is the fake's, and its record$
-# is shown when play ends.$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
 $
 # Info: environment/doas-overridden$
 # web-01.example.net runs Alpine 3.23's cloud image, doas, as$
@@ -314,13 +310,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay environment/doas-overridden␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Environment screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 9, drawn from the Environment control's reading of a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host (environment.Read), each change the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontrol's on the real plan/apply engine (steps.Sudoers).␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe screen is the gallery's, unit (c)'s to build. Nothing␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes: every command and file is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/doas-overridden␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas,␛[m$

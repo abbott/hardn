@@ -235,7 +235,8 @@ const Unit = "sudoers"
 // file that did not exist; an Old that existed and that root's rollback
 // would write back other than as a file only root owns and can write (an
 // owner or group other than 0, a group or other write bit, a bit beyond
-// the permissions); a mode other than the tool's (SudoMode, DoasMode); a
+// the permissions: File.RootsAlone); a mode other than the tool's
+// (SudoMode, DoasMode); a
 // removal with content, or of a file that did not exist; a write whose
 // content does not start with Header. It is pure. Old's content is not
 // checked: PlanFor takes any content at hardn's names (an administrator's
@@ -270,7 +271,7 @@ func (p Plan) Check() error {
 			return bad("%s is changed twice", c.Path)
 		case c.Old.Path != c.Path || !c.Old.Exists && len(c.Old.Data) > 0:
 			return bad("%s: its old state is of %q, exists %v", c.Path, c.Old.Path, c.Old.Exists)
-		case c.Old.Exists && (c.Old.UID != 0 || c.Old.GID != 0 || c.Old.Mode&^fs.ModePerm != 0 || c.Old.Mode&0o022 != 0):
+		case c.Old.Exists && !c.Old.RootsAlone():
 			return bad("%s: its old state, mode %v owned by %d:%d, is not a file only root can write", c.Path, c.Old.Mode, c.Old.UID, c.Old.GID)
 		case c.Mode != mode:
 			return bad("%s: mode %v, want %v", c.Path, c.Mode, mode)

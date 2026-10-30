@@ -261,7 +261,8 @@ func TestRefusals(t *testing.T) {
 	// hardn-env-alice with hardn's bytes, but not a file only root can
 	// write: the state read, Kept, and item 1's change refused before it
 	// asks, as Plan refuses it (the journal's check of the plan,
-	// sudoers.Plan.Check through steps.Sudoers), the error as it is.
+	// sudoers.Plan.Check through steps.Sudoers), the file named in the
+	// words adopted 2026-10-30, the code the registry's for the journal's.
 	for _, tt := range []struct {
 		name     string
 		perm     fs.FileMode
@@ -275,7 +276,8 @@ func TestRefusals(t *testing.T) {
 			n := len(h.Calls())
 			r := environment.Read(ctx, h, h.facts, lookup(sudoKept))
 			var rf *steps.Refusal
-			if r.Err != nil || !r.Kept || r.Refused == nil || errors.As(r.Refused, &rf) || output.CodeOf(r.Refused) != "PLAN_INVALID" {
+			if r.Err != nil || !r.Kept || !errors.As(r.Refused, &rf) || rf.Code != "PLAN_INVALID" || output.CodeOf(rf.Err) != "PLAN_INVALID" ||
+				rf.Why != "/etc/sudoers.d/hardn-env-alice isn't root's alone" || rf.Fix != "make it root:root, writable by root only" {
 				t.Fatalf("err %v, kept %v, refused %v (%s)", r.Err, r.Kept, r.Refused, output.CodeOf(r.Refused))
 			}
 			if _, err := (environment.Keep{Getenv: lookup(sudoKept), Stop: true}).Plan(ctx, h, engine.Input{Facts: h.facts}); err == nil || err.Error() != r.Refused.Error() {
@@ -287,7 +289,7 @@ func TestRefusals(t *testing.T) {
 	// hardn-grant-alice with hardn's bytes, but not a file only root can
 	// write: the change leaves the grant's file out (decision 16), not out
 	// of the journal's check, so item 1 is refused before it asks, as it
-	// was while the change rewrote the grant's file.
+	// was while the change rewrote the grant's file, in the same words.
 	for _, tt := range []struct {
 		name     string
 		perm     fs.FileMode
@@ -301,7 +303,8 @@ func TestRefusals(t *testing.T) {
 			n := len(h.Calls())
 			r := environment.Read(ctx, h, h.facts, lookup(sudoAlice))
 			var rf *steps.Refusal
-			if r.Err != nil || r.Kept || r.Refused == nil || errors.As(r.Refused, &rf) || output.CodeOf(r.Refused) != "PLAN_INVALID" {
+			if r.Err != nil || r.Kept || !errors.As(r.Refused, &rf) || rf.Code != "PLAN_INVALID" || output.CodeOf(rf.Err) != "PLAN_INVALID" ||
+				rf.Why != "/etc/sudoers.d/hardn-grant-alice isn't root's alone" || rf.Fix != "make it root:root, writable by root only" {
 				t.Fatalf("err %v, kept %v, refused %v (%s)", r.Err, r.Kept, r.Refused, output.CodeOf(r.Refused))
 			}
 			if _, err := (environment.Keep{Getenv: lookup(sudoAlice)}).Plan(ctx, h, engine.Input{Facts: h.facts}); err == nil || err.Error() != r.Refused.Error() {

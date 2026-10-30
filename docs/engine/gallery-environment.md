@@ -88,7 +88,7 @@ go run ./internal/tools/uigallery play environment/debian13            # the scr
 go run ./internal/tools/uigallery play -sequence dry-run environment/debian13   # plan only
 ```
 
-`play` refuses `-fail` there, and any `-sequence` but `normal` and `dry-run` (`TestEnvironmentUsage`). The screen on `debian13`, plain, at 80 columns (`screen-debian13`):
+`play` refuses `-fail` there, and any `-sequence` but `normal` and `dry-run` (`TestEnvironmentUsage`). *Since `next/s9-screen` the listing is gone ([screen-environment.md](screen-environment.md) §8, decision 8): `play environment` and `play environment/<host>` run hardn's own screen, as does the playable main menu's 8; git keeps the listing at `next/s9-parity`.* The screen on `debian13`, plain, at 80 columns (`screen-debian13`):
 
 ```text
 # Environment Variable Settings ################################
@@ -161,7 +161,7 @@ The hosts are `web-01.example.net`; alice ran hardn through the host's tool unle
 | `play/environment-legacy` | `environment/legacy`: 1, y, 0 | Kept by `/etc/sudoers.d/alice`, yet item 1 writes `hardn-env-alice`, the review listing the legacy-file finding |
 | `play/environment-hosts` | `environment`: 7, 0, 0 | The fifteen hosts' menu, `doas-overridden`'s screen, back. *Since `next/s9-control`: 5, 0, 0, the ten hosts' menu* |
 
-Each play ends with the fake's record of what changed. Checks are reads and left out of it (`engine.go:647-668`). Listed once by a test not kept, the apply on `debian13` ran `visudo -c`; wrote the copy `/run/hardn/<id>/sudoers-validate/hardn-env-alice`, 0440 root:root, and ran `visudo -cf` on it; wrote `/etc/sudoers.d/hardn-env-alice`, 0440; ran `visudo -c` again. On `alpine324-rule` it ran `doas -C` on `/etc/doas.conf` and `20-wheel.conf`, then on the copy (0640), wrote the rule, then `doas -C` on all three, as `sudoers.Apply` documents (`apply.go:104-114`). The playable main menu's 8 still says the gallery has no screen for it (`play.go`'s `links`, unchanged); the Environment mocks start at `play environment`.
+Each play ends with the fake's record of what changed. Checks are reads and left out of it (`engine.go:647-668`). Listed once by a test not kept, the apply on `debian13` ran `visudo -c`; wrote the copy `/run/hardn/<id>/sudoers-validate/hardn-env-alice`, 0440 root:root, and ran `visudo -cf` on it; wrote `/etc/sudoers.d/hardn-env-alice`, 0440; ran `visudo -c` again. On `alpine324-rule` it ran `doas -C` on `/etc/doas.conf` and `20-wheel.conf`, then on the copy (0640), wrote the rule, then `doas -C` on all three, as `sudoers.Apply` documents (`apply.go:104-114`). The playable main menu's 8 still says the gallery has no screen for it (`play.go`'s `links`, unchanged); the Environment mocks start at `play environment`. *Since `next/s9-screen` it leads to hardn's own screen on `debian13` (`envLinks`).*
 
 ### 3.2 hardn's grant, with the reader and without
 
@@ -179,6 +179,8 @@ Each play ends with the fake's record of what changed. Checks are reads and left
 | A may-override line and a Lockout risk line (`doas-overridden`) | 18 | fits | fits |
 
 *Since `next/s9-control`* the retired hosts' rows (`alpine324-rule`, `alpine323-cloud`, `grant-no-reader`, `kept-only`, `legacy-hardn-only`) are gone from `TestEnvironmentHeights`; the others' heights are unchanged ("Not kept by hardn" fits the row).
+
+*Since `next/s9-screen`* `TestEnvironmentHeights` is `pkg/ui/screen`'s and draws `screen.Environment`, the screen as built, by state: 15, 16 and 18 lines, as above; `origin`'s row went with its mock ([screen-environment.md](screen-environment.md) §8, decision 8).
 
 Each mock is the same number of lines at both heights: one form at every height. A sub-menu has no compact form, and none is proposed (the maintainer, 2026-10-23, of the main menu). At 60 columns rows and items stack, a line each more (the goldens' `truecolor-dark-unicode-60` cells).
 
@@ -323,7 +325,7 @@ Others found:
 
 - **(b) The control**, on the engine, with its own goldens: `pkg/engine/controls/environment` (`Check`, `Plan` both ways, decision 5 (a)), the reader in `pkg/host/sudoers` (hardn's files alone, on doas too: decision 1 (a), settled by words), the user lookup, `steps.Sudoers`' findings and their words, and decisions 1 to 3's engine side. The screen kit (`pkg/screens/screenkit`) and the parity harness (`internal/parity`) are there already, from slice 3. *Built in `next/s9-control`* ([sudoers.md](../safety/sudoers.md) §2.13 to §2.16; [control-environment.md](control-environment.md)).
 - **(b2) Parity:** origin/main's end state (`keep_*.golden`, `ops/setup_sudo_preservation/*.golden`) against the control's: `/etc/sudoers.d/<user>` against `hardn-env-<stem>`, each difference tied to V16, V18, V20 or a decision. `internal/parity` needs a reader for the `environment/keep_*` layout, as it gained one for Backup's. *Built in `next/s9-parity` ([parity-environment.md](parity-environment.md)): 11 rows (the 10 `keep_*` goldens and `setup_sudo_preservation`) on Debian 13, Ubuntu 26.04, Alpine 3.23 and Proxmox VE 9; every difference tied to V1, V16, V18, V20, decisions 1 (a), 2 (a), 3 (a) and 7, the Made here call for `-e`, defects 4 to 7, 11 and 12, control-environment.md, plan §3.17 and §3.21, side-effects rows 17 and 18, but one carried pending, UNEXPLAINED: hardn's header line (parity-environment.md §6).*
-- **(c) The screen** on the design system and prompt kit, `pkg/screens/environment`, retiring these mocks.
+- **(c) The screen** on the design system and prompt kit, `pkg/screens/environment`, retiring these mocks. *Built in `next/s9-screen` ([screen-environment.md](screen-environment.md)): hardn's Environment screen, `Run`, on the control; `play environment/<host>` and the playable main menu's 8 run it on the ten hosts; the listing (`uigallery environment`) and its 14 mocks are retired, `origin` among them, their goldens deleted; the 12 play transcripts are the mock's byte for byte but for play's opening note.*
 - **(d) The legacy path replaced:** main menu 8 to the new screen, its description "Keep HARDN_CONFIG" (decision 7 (a)); `-e` and `setup-sudo-env` to the control, refusing a lockout-risk plan (§5, made here, adopted); the probe and its notice removed (plan, slice row 9; decision 4, adopted); `environment_settings_menu.go`, `EnvironmentManager`, the environment service and its test, its port, `FileEnvironmentRepository`, `model.EnvironmentConfig`, `CreateEnvironmentManager` and `MenuManager`'s three methods deleted after (b2), the menu goldens frozen as the parity record. The plan's unit after slice 9 then removes what legacy code is left.
 
 ## 10. Size

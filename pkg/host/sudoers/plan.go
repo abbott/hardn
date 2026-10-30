@@ -23,6 +23,16 @@ type File struct {
 	UID, GID int
 }
 
+// RootsAlone is whether f, read where it exists, is a file only root owns
+// and can write: owner and group 0, no group or other write bit, no bit
+// beyond the permissions. Plan.Check refuses a change whose old file is
+// not (a rollback would write it back so); a caller that says that
+// refusal in words finds the file with it (the Environment control,
+// next/s9-screen).
+func (f File) RootsAlone() bool {
+	return f.UID == 0 && f.GID == 0 && f.Mode&^fs.ModePerm == 0 && f.Mode&0o022 == 0
+}
+
 // same: f has exactly this content, mode and owner (root).
 func (f File) same(data []byte, mode fs.FileMode) bool {
 	return f.Exists && bytes.Equal(f.Data, data) && f.Mode == mode && f.UID == 0 && f.GID == 0

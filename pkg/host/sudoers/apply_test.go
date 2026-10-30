@@ -642,6 +642,11 @@ func TestPlanCheck(t *testing.T) {
 			if err := p.Check(); !errors.Is(err, fs.ErrInvalid) {
 				t.Errorf("Check = %v, want fs.ErrInvalid", err)
 			}
+			// RootsAlone says which old states Check refuses for their
+			// mode or owner, and no other.
+			if unsafe := strings.HasPrefix(tc.name, "an old state "); p.Changes[0].Old.RootsAlone() == unsafe {
+				t.Errorf("RootsAlone = %v of %+v", !unsafe, p.Changes[0].Old)
+			}
 			before := len(h.Calls())
 			if err := sudoers.Rollback(context.Background(), h, p); !errors.Is(err, fs.ErrInvalid) || !errors.Is(err, sudoers.ErrNotRestored) || len(h.Calls()) != before {
 				t.Errorf("Rollback = %v, calls %q; want refused with nothing read", err, h.Calls()[before:])
