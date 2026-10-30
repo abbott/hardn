@@ -160,6 +160,8 @@ func DetectContainer(ctx context.Context, sys host.System) Container
 type Container struct { Detected Tri; Signal, Manager string; Err error }
 
 func DetectElevation(ctx context.Context, sys host.System) Elevation
+func FindElevation(ctx context.Context, sys host.System) Elevation // sudo and doas found, nothing run
+func (e Elevation) Command() string                                // "doas" where sudo is not installed and doas is, else "sudo"
 type SudoFlavor uint8 // SudoFlavorUnknown (zero), SudoOriginal, SudoRS
 type Tool struct { Present Tri; Path string; Err error }
 type Elevation struct { Sudo Tool; SudoFlavor SudoFlavor; SudoVersion string; Doas Tool; Err error }

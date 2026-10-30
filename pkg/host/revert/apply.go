@@ -280,15 +280,17 @@ func Confirm(ctx context.Context, sys host.System, s Session, opts Options) (Con
 		}
 		return ConfirmResult{}, e
 	case st.Pending.Risk != RiskLockout:
-		return ConfirmResult{Journal: *st.Pending}, fmt.Errorf("revert: confirm %s: it did not finish; undo it with `sudo hardn rollback %s`: %w", st.Pending.ID, st.Pending.ID, ErrNotConfirmable)
+		return ConfirmResult{Journal: *st.Pending}, fmt.Errorf("revert: confirm %s: it did not finish; undo it with `%s rollback %s`: %w", st.Pending.ID, st.hardn(), st.Pending.ID, ErrNotConfirmable)
 	}
 	j := *st.Pending
 	local, err := CheckConfirm(j, s)
 	switch {
 	case errors.Is(err, ErrNotConfirmable):
 		return ConfirmResult{Journal: j}, fmt.Errorf("%w; unless its apply finishes and it is confirmed, it is rolled back at %s", err, stamp(j.Deadline()))
+	case errors.Is(err, ErrSessionUnknown):
+		return ConfirmResult{Journal: j}, fmt.Errorf("%w; %s", err, loginHint(j, st.hardn()))
 	case err != nil:
-		return ConfirmResult{Journal: j}, fmt.Errorf("%w; %s", err, confirmHint(j))
+		return ConfirmResult{Journal: j}, fmt.Errorf("%w; %s", err, confirmHint(j, st.hardn()))
 	}
 	dir := opts.dir()
 	if _, err := claim(ctx, sys, filepath.Join(dir, PendingName), filepath.Join(dir, ConfirmedName), j.ID); errors.Is(err, fs.ErrNotExist) {
@@ -305,8 +307,15 @@ func Confirm(ctx context.Context, sys host.System, s Session, opts Options) (Con
 }
 
 // confirmHint says how to confirm j.
-func confirmHint(j Journal) string {
-	return fmt.Sprintf("run `sudo hardn confirm` from %s, made from another machine, before %s", confirmWhere(j), stamp(j.Deadline()))
+func confirmHint(j Journal, hardn string) string {
+	return fmt.Sprintf("run `%s confirm` from %s, made from another machine, before %s", hardn, confirmWhere(j), stamp(j.Deadline()))
+}
+
+// loginHint says how to confirm j from a session whose connection hardn
+// could not read: a login shell stays among hardn's ancestors, with
+// SSH_CONNECTION in its environment, and tmux and screen hide sshd.
+func loginHint(j Journal, hardn string) string {
+	return fmt.Sprintf("log in over %s, made from another machine, and run `%s confirm` at the prompt, not inside tmux or screen, before %s", confirmWhere(j), hardn, stamp(j.Deadline()))
 }
 
 // confirmWhere is the connection a confirmation of j must come from.

@@ -147,8 +147,7 @@ var rootCmd = &cobra.Command{
 
 		if currentUser.Uid != "0" {
 			logging.LogError("This script needs to be run as root.")
-			fmt.Println("For Ubuntu/Debian run: `sudo hardn` or switch to root `sudo -i`")
-			fmt.Println("For Alpine run: `sudo hardn` or switch to root `su`")
+			fmt.Println(rootHint())
 			exit(1)
 		}
 

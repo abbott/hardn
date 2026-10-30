@@ -56,8 +56,12 @@ func TestRevertBootCommand(t *testing.T) {
 			rebootSeams(s, time.Minute)
 			calls := len(s.f.Calls())
 			out := s.output(t, tt.args...)
-			if s.exit != tt.exit || !strings.Contains(out, tt.says) || len(s.f.Calls()) != calls {
-				t.Errorf("exit %d, want %d; %d calls; output:\n%s", s.exit, tt.exit, len(s.f.Calls())-calls, out)
+			wrote := false
+			for _, c := range s.f.Calls()[calls:] {
+				wrote = wrote || changed(c) // as alice it looks for doas
+			}
+			if s.exit != tt.exit || !strings.Contains(out, tt.says) || wrote {
+				t.Errorf("exit %d, want %d; changed the host %v; output:\n%s", s.exit, tt.exit, wrote, out)
 			}
 			dryRun = false
 		})

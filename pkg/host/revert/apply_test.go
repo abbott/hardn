@@ -505,7 +505,8 @@ func TestConfirm(t *testing.T) {
 		{"the session that applied it", remote(applyConn, applySSHD), true, ErrSameSession, "a new SSH connection to port 2230, made from another machine"},
 		{"a connection kept open since before", remote("192.0.2.10 49001 192.0.2.20 2230", keptSSHD), true, ErrOldConnection, "a new SSH connection to port 2230"},
 		{"ssh -p 2230 localhost", remote("127.0.0.1 40000 127.0.0.1 2230", newSSHD), true, ErrLocalConn, "made from another machine"},
-		{"an unknown session", Session{Remote: true}, true, ErrSessionUnknown, "sudo hardn confirm"},
+		{"an unknown session", Session{Remote: true}, true, ErrSessionUnknown, "log in over a new SSH connection to port 2230, made from another machine, and run `sudo hardn confirm` at the prompt, not inside tmux or screen, before 2026-10-18 12:03:00 UTC"},
+		{"tmux: no sshd among the ancestors", Session{Remote: true, Conn: newConn, Source: "/proc/3980/environ"}, true, ErrSessionUnknown, "not inside tmux or screen"},
 		{"before the apply has finished", newSession, false, ErrNotConfirmable, "unless its apply finishes and it is confirmed, it is rolled back at 2026-10-18 12:03:00 UTC"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

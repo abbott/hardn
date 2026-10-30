@@ -114,7 +114,7 @@ the old port, kept open during the confirm window, is dropped from
 added for that port is deleted. A console confirms and leaves that to a new
 SSH connection.
 
-Example:
+Example (doas in place of sudo on a doas host):
   sudo hardn confirm`,
 	Args:             cobra.NoArgs,
 	PersistentPreRun: noRevertNotices,
@@ -139,7 +139,7 @@ starts: a reboot stops the revert timer, so it re-arms it for what remains of
 the confirm window, or rolls the change back once its deadline has passed. It
 acts only on a journal this hardn binary wrote.
 
-Examples:
+Examples (doas in place of sudo on a doas host):
   sudo hardn rollback 20261018T120000Z-1a2b3c4d
   sudo hardn rollback --abandon 20261018T120000Z-1a2b3c4d`,
 	Args:             rollbackArgs,
@@ -162,6 +162,11 @@ func rollbackArgs(cmd *cobra.Command, args []string) error {
 	return cobra.ExactArgs(1)(cmd, args)
 }
 
+// revertElevate is the command that runs hardn as root on this host.
+func revertElevate() string {
+	return detect.FindElevation(context.Background(), revertHost()).Command()
+}
+
 // revertPreflight refuses -n, which only previews, and a user other than
 // root, who cannot read the journal.
 func revertPreflight(name string) bool {
@@ -171,7 +176,7 @@ func revertPreflight(name string) bool {
 		return false
 	}
 	if revertEUID() != 0 {
-		logging.LogError("hardn %s must be run as root: sudo hardn %s", name, name)
+		logging.LogError("hardn %s must be run as root: %s hardn %s", name, revertElevate(), name)
 		revertExit(1)
 		return false
 	}
@@ -281,7 +286,7 @@ func runAbandon(id string) {
 		logging.LogWarning("  - %s", line)
 	}
 	if res.SSHUnchecked {
-		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `sudo sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.")
+		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `%s sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.", revertElevate())
 	}
 	logging.LogInfo("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.", res.Kept)
 }

@@ -107,6 +107,14 @@ var errNotRoot = errors.New("not root")
 // exit status 1 for a failed lookup or a user other than root, in the
 // root command's words. It returns errNotRoot after exit, which the tests
 // replace.
+// rootHint says how to run hardn as root on this host.
+func rootHint() string {
+	if revertElevate() == "doas" {
+		return "Run `doas hardn` or switch to root `su`"
+	}
+	return "Run `sudo hardn` or switch to root `sudo -i`"
+}
+
 func checkRoot() error {
 	currentUser, err := lookupCurrentUser()
 	if err != nil {
@@ -116,8 +124,7 @@ func checkRoot() error {
 	}
 	if currentUser.Uid != "0" {
 		logging.LogError("This script needs to be run as root.")
-		fmt.Println("For Ubuntu/Debian run: `sudo hardn` or switch to root `sudo -i`")
-		fmt.Println("For Alpine run: `sudo hardn` or switch to root `su`")
+		fmt.Println(rootHint())
 		exit(1)
 		return errNotRoot
 	}
