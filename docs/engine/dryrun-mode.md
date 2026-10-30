@@ -30,7 +30,7 @@ Live names no source, whatever made it live (decision 2: "live names nothing"), 
 
 Refused as `-n` with one is: exit status 2, nothing run, the message naming the file and `--dry-run=false` (§5). Where:
 
-- **Before the root check**, as `-n`'s refusal: when an operation flag is given and `-n`/`--dry-run` is not, hardn reads the `dryRun` of the file the loader will find, quietly (`config.FileDryRun`: no log line, no question, no file created). The root command and `setup-sudo-env` both.
+- **Before the root check**, as `-n`'s refusal: when an operation flag is given and `-n`/`--dry-run` is not, hardn reads the `dryRun` of the file the loader will find, quietly (`config.FileDryRun`: no log line, no question, no file created). The root command and `setup-sudo-env` both. *Since `next/s9-replace`, the root command alone: `setup-sudo-env` has no refusal under plan only and shows its plan (table below).*
 - **Again once the file is loaded** (root command): the configuration the session runs on decides, should the file say `true` now where it did not before the root check, or not have been readable then. A file that does not load is the loader's to report, as before (exit 1).
 
 | Operation | No file | `dryRun: false` | `dryRun: true` | `-n` | `--dry-run=false` over `true` |

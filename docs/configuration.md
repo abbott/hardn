@@ -48,14 +48,15 @@ You can set the `HARDN_CONFIG` environment variable to specify a configuration f
 
 ### Using with sudo or doas
 
-`sudo` and `doas` drop most environment variables, `HARDN_CONFIG` among them. The main menu's Environment (8) keeps it for the user who ran `sudo hardn`, or `doas hardn`, and shows whether it is kept. `sudo hardn setup-sudo-env`, or `sudo hardn -e`, keeps it without asking.
+`sudo` and `doas` drop most environment variables, `HARDN_CONFIG` among them. The main menu's Environment (8) keeps it for the user who ran `sudo hardn`, or `doas hardn`, and shows whether it is kept. `sudo hardn setup-sudo-env`, or `sudo hardn -e`, keeps it without asking you to confirm.
 
-- **hardn writes its own file**, `/etc/sudoers.d/hardn-env-<user>`, and leaves the others as they are.
+- **hardn writes only its own file**, `/etc/sudoers.d/hardn-env-<user>` (on doas, its rule `/etc/doas.d/hardn-<user>.conf`), and leaves the others as they are.
 - **An earlier hardn's line is read.** `env_keep += "HARDN_CONFIG"` in `/etc/sudoers.d/<user>` shows as kept by that file. hardn leaves the file as it is.
-- **Both ways.** Once hardn's file keeps it, item 1 stops keeping it.
-- **doas needs a rule of hardn's for you.** Without one, hardn says to add `setenv { HARDN_CONFIG }` to the rule that lets you use doas, and changes nothing.
+- **Both ways.** Once hardn's file keeps it, Environment offers to stop keeping it.
+- **doas needs a rule of hardn's for you**, which this release does not write. Without one, hardn says to add `setenv { HARDN_CONFIG }` to the rule that lets you use doas, and changes nothing.
 - **A root login is refused.** Run `sudo hardn` as the user to keep it for.
-- **`-e` and `setup-sudo-env` apply without asking.** A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan and change nothing.
+- **`-e` and `setup-sudo-env` apply without asking you to confirm.** A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan, and the change is not made.
+- **With no hardn.yml found, hardn first asks to create one**, as at any start, with `-n` too. Answer `n` to go on without one.
 - **It takes effect at the next `sudo hardn`.**
 
 #### Workflow example
