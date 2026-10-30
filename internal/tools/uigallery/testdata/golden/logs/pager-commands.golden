@@ -1,0 +1,160 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs pager-commands␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWhat each pager treatment would run, by the environment. Under␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo and doas PAGER is dropped [I; not run for PAGER]. pager-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menv runs as root whatever a kept PAGER names, and most has its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown shell escape [I]. LESSSECURE=1 is less(1)'s secure mode,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mturning off ! and | and v [unverified: not run; BusyBox's less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munread]. The gallery's table: nothing runs.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
+      ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-env, P-18 as written␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
+      ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
+      ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
+      ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs pager-commands ------------------------------------------$
+$
+# Note$
+# What each pager treatment would run, by the environment. Under$
+# sudo and doas PAGER is dropped [I; not run for PAGER]. pager-$
+# env runs as root whatever a kept PAGER names, and most has its$
+# own shell escape [I]. LESSSECURE=1 is less(1)'s secure mode,$
+# turning off ! and | and v [unverified: not run; BusyBox's less$
+# unread]. The gallery's table: nothing runs.$
+$
+# pager-less, proposed -----------------------------------------$
+$
+   -  root login, PAGER=most$
+      LESSSECURE=1 less /var/log/hardn.log$
+   -  sudo, PAGER dropped$
+      LESSSECURE=1 less /var/log/hardn.log$
+   -  doas, PAGER dropped$
+      LESSSECURE=1 less /var/log/hardn.log$
+   -  sudo, PAGER=most kept$
+      LESSSECURE=1 less /var/log/hardn.log$
+   -  no less, no PAGER$
+      None: the last lines alone$
+$
+# pager-env, P-18 as written -----------------------------------$
+$
+   -  root login, PAGER=most$
+      most /var/log/hardn.log$
+   -  sudo, PAGER dropped$
+      LESSSECURE=1 less /var/log/hardn.log$
+   -  doas, PAGER dropped$
+      LESSSECURE=1 less /var/log/hardn.log$
+   -  sudo, PAGER=most kept$
+      most /var/log/hardn.log$
+   -  no less, no PAGER$
+      None: the last lines alone$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs pager-commands␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWhat each pager treatment would run, by the environment.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUnder sudo and doas PAGER is dropped [I; not run for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPAGER]. pager-env runs as root whatever a kept PAGER␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnames, and most has its own shell escape [I]. LESSSECURE=1␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis less(1)'s secure mode, turning off ! and | and v␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[unverified: not run; BusyBox's less unread]. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's table: nothing runs.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
+      ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-env, P-18 as written␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
+      ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
+      ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
+      ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs pager-commands␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWhat each pager treatment would run, by the environment. Under␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo and doas PAGER is dropped [I; not run for PAGER]. pager-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menv runs as root whatever a kept PAGER names, and most has its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown shell escape [I]. LESSSECURE=1 is less(1)'s secure mode,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mturning off ! and | and v [unverified: not run; BusyBox's less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munread]. The gallery's table: nothing runs.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
+      ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpager-env, P-18 as written␛[m ␛[38;2;48;52;64m-----------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot login, PAGER=most␛[m$
+      ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, PAGER dropped␛[m$
+      ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
+      ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mno less, no PAGER␛[m$
+      ␛[38;2;129;134;156mNone: the last lines alone␛[m$
+$
+$

@@ -1,0 +1,100 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs origin-elsewhere␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen with hardn.yml's logFile set where␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing writes: it reads that path, so the log hardn does␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrite is not shown (file_logs_repository.go:81-84, P-18).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRead, not run; the stat error's words are Go's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLog file␛[m             ␛[38;2;129;134;156m/srv/log/hardn.log␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLog Contents:␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError displaying logs: failed to access log file␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/srv/log/hardn.log: stat /srv/log/hardn.log: no such file or␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mdirectory␛[m$
+$
+  ␛[38;2;129;134;156mPress Enter to return to the main menu...␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs origin-elsewhere ----------------------------------------$
+$
+# Note$
+# origin/main's Logs screen with hardn.yml's logFile set where$
+# nothing writes: it reads that path, so the log hardn does$
+# write is not shown (file_logs_repository.go:81-84, P-18).$
+# Read, not run; the stat error's words are Go's.$
+$
+# View Logs ####################################################$
+$
+   -  Log file             /srv/log/hardn.log$
+$
+# Log Contents: ------------------------------------------------$
+$
+# Operation Failed$
+# Error displaying logs: failed to access log file$
+# /srv/log/hardn.log: stat /srv/log/hardn.log: no such file or$
+# directory$
+$
+  Press Enter to return to the main menu...$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs origin-elsewhere␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen with hardn.yml's logFile set␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhere nothing writes: it reads that path, so the log hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoes write is not shown (file_logs_repository.go:81-84, P-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m18). Read, not run; the stat error's words are Go's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLog file␛[m$
+      ␛[38;2;129;134;156m/srv/log/hardn.log␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLog Contents:␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError displaying logs: failed to access log file␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/srv/log/hardn.log: stat /srv/log/hardn.log: no such file␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mor directory␛[m$
+$
+  ␛[38;2;129;134;156mPress Enter to return to the main menu...␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs origin-elsewhere␛[m ␛[38;2;48;52;64m----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen with hardn.yml's logFile set where␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing writes: it reads that path, so the log hardn does␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrite is not shown (file_logs_repository.go:81-84, P-18).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRead, not run; the stat error's words are Go's.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m####################################################␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLog file␛[m             ␛[38;2;129;134;156m/srv/log/hardn.log␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLog Contents:␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError displaying logs: failed to access log file␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/srv/log/hardn.log: stat /srv/log/hardn.log: no such file or␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mdirectory␛[m$
+$
+  ␛[38;2;129;134;156mPress Enter to return to the main menu...␛[m$
+$
+$

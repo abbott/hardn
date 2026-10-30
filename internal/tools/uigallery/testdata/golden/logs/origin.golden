@@ -1,0 +1,81 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs origin␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen, its words as they are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logs_menu.go:33-62, file_logs_repository.go:95-96), on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdesign system: the whole file, 4 lines here, raw. Read, not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLog file␛[m             ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLog Contents:␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+# Contents of /var/log/hardn.log:$
+$
+2026/10/20 12:00:01 INFO: run 1: exit 0$
+2026/10/20 12:00:03 INSTALLED: Package ufw$
+2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+$
+  ␛[38;2;129;134;156mPress Enter to return to the main menu...␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs origin --------------------------------------------------$
+$
+# Note$
+# origin/main's Logs screen, its words as they are$
+# (logs_menu.go:33-62, file_logs_repository.go:95-96), on the$
+# design system: the whole file, 4 lines here, raw. Read, not$
+# run.$
+$
+# View Logs ####################################################$
+$
+   -  Log file             /var/log/hardn.log$
+$
+# Log Contents: ------------------------------------------------$
+$
+# Contents of /var/log/hardn.log:$
+$
+2026/10/20 12:00:01 INFO: run 1: exit 0$
+2026/10/20 12:00:03 INSTALLED: Package ufw$
+2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+$
+  Press Enter to return to the main menu...$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs origin␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's Logs screen, its words as they are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logs_menu.go:33-62, file_logs_repository.go:95-96), on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdesign system: the whole file, 4 lines here, raw. Read, not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mView Logs␛[m ␛[38;2;43;47;59m####################################################␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLog file␛[m             ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLog Contents:␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+# Contents of /var/log/hardn.log:$
+$
+2026/10/20 12:00:01 INFO: run 1: exit 0$
+2026/10/20 12:00:03 INSTALLED: Package ufw$
+2026/10/20 12:00:04 WARNING: ufw is not active$
+2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
+$
+  ␛[38;2;129;134;156mPress Enter to return to the main menu...␛[m$
+$
+$

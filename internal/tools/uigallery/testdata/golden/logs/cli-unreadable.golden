@@ -1,0 +1,47 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p with a log it cannot read: this on stderr, nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstdout, exit 1.␛[m$
+$
+hardn: can't read /var/log/hardn.log: is a directory$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs cli-unreadable ------------------------------------------$
+$
+# Note$
+# hardn -p with a log it cannot read: this on stderr, nothing on$
+# stdout, exit 1.$
+$
+hardn: can't read /var/log/hardn.log: is a directory$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p with a log it cannot read: this on stderr,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing on stdout, exit 1.␛[m$
+$
+hardn: can't read /var/log/hardn.log: is a directory$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn -p with a log it cannot read: this on stderr, nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstdout, exit 1.␛[m$
+$
+hardn: can't read /var/log/hardn.log: is a directory$
+$
+$

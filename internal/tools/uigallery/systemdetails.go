@@ -999,7 +999,7 @@ func (run *sdRun) action(r detailsReading, it sdItem) func() error {
 	case it.action == itemRefresh:
 		return func() error { run.tick(); return nil }
 	case it.action == itemOpen:
-		return write(pagerNote(c, "the report on its standard input"))
+		return write(pagerNote(c, reportCommand))
 	case it.action == itemExport && run.sh.export == exportCommand:
 		return s.say(component.Message{Text: saveCommand})
 	case it.action == itemExport && s.sequence == "dry-run":
@@ -1023,11 +1023,14 @@ func (run *sdRun) tick() {
 	f.AddFile("/proc/loadavg", []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+run.ticks*10)), 0o444, 0, 0)
 }
 
+// reportCommand is what treatment report-pager's Open would run.
+const reportCommand = "LESSSECURE=1 less, the report on its standard input"
+
 // pagerNote is the gallery's note where hardn would run a pager: no golden
 // can run one, and the fake models none.
-func pagerNote(c component.Ctx, what string) string {
+func pagerNote(c component.Ctx, command string) string {
 	return component.Callout{Kind: component.MessageInfo, Body: []string{
-		"The gallery runs no pager. hardn would run LESSSECURE=1 less, " + what + ", then draw this screen again.",
+		"The gallery runs no pager. hardn would run " + command + ", then draw this screen again.",
 	}}.Render(c)
 }
 
@@ -1106,7 +1109,7 @@ func sdMocks() []listMock {
 			})},
 		listMock{name: reportPager + "-open", note: "Treatment report-pager: item 1, Open. A golden cannot run a pager: this is what the screen says and the command hardn would run.",
 			draw: onSDHost(reportPager, func(r detailsReading, c component.Ctx) string {
-				return apart(r.subMenu().Render(c), pagerNote(c, "the report on its standard input"), r.subMenu().Render(c))
+				return apart(r.subMenu().Render(c), pagerNote(c, reportCommand), r.subMenu().Render(c))
 			})},
 		listMock{name: reportWide, wide: wideCols, note: fmt.Sprintf("Treatment report-wide: two columns from %d cells up (run with -width %d), a second 64-cell box beside the first, past the content cap of §7 and so a new layout; below that width it is report-whole.", wideCols, wideCols),
 			draw: onSDHost("debian13", wideDrawing)},
