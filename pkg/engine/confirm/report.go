@@ -318,14 +318,9 @@ func (w words) rules(added bool) string {
 
 // elevate is the host's elevation tool: doas where it is the one there
 // (Alpine), sudo otherwise, as pkg/output words its commands; sudo when
-// no plan established it, as revert's own messages say (finish adds that
-// doas takes its place where sudo is not installed).
-func (w words) elevate() string {
-	if w.f.Elevation.Sudo.Present == detect.No && w.f.Elevation.Doas.Present == detect.Yes {
-		return "doas"
-	}
-	return "sudo"
-}
+// no plan established it (finish adds that doas takes its place where sudo
+// is not installed).
+func (w words) elevate() string { return w.f.Elevation.Command() }
 
 // reload is the reload that makes sshd read 00-hardn.conf again, by hand,
 // as reload.PlanFor plans it for how sshd is started (reload.md §2).

@@ -92,6 +92,39 @@ func setSelf(f *hostfake.System, pid int) {
 	f.AddFile("/proc/self/stat", []byte(statLine(pid, 1, "hardn", ptsTTY, procStart(pid))), 0o444, 0, 0)
 }
 
+// oneCommand is `ssh host "doas hardn"`: hardn directly under the
+// connection's sshd-session, since the remote shell exec'd doas and doas
+// exec'd hardn with SSH_CONNECTION cleared, so no ancestor has it.
+func oneCommand(f *hostfake.System) {
+	proc(f, listenerPID, 1, "sshd", 0)
+	proc(f, newSSHD, listenerPID, "sshd-session", 0)
+	proc(f, 4000, newSSHD, "hardn", 0, "PATH=/usr/bin", "DOAS_USER=alice")
+}
+
+// sockets gives process pid these open files, from descriptor 3.
+func sockets(f *hostfake.System, pid int, targets ...string) {
+	for i, target := range targets {
+		f.AddSymlink(fmt.Sprintf("/proc/%d/fd/%d", pid, i+3), target)
+	}
+}
+
+// tcpTable is /proc/net/tcp with these lines, each "local remote st inode",
+// the fields around them filled in as Linux writes them (the kernel's
+// proc_net_tcp.rst). Addresses are in a little-endian host's byte order, as
+// on hardn's amd64 and arm64.
+func tcpTable(lines ...string) string {
+	out := "  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode\n"
+	for i, l := range lines {
+		first, rest, _ := strings.Cut(l, "\n") // a line may carry a whole further entry
+		f := strings.Fields(first)
+		out += fmt.Sprintf("%4d: %s %s %s 00000000:00000000 00:00000000 00000000     0        0 %s 1 0000000000000000 20 4 0 10 -1\n", i, f[0], f[1], f[2], f[3])
+		if rest != "" {
+			out += rest + "\n"
+		}
+	}
+	return out
+}
+
 // sshds adds the sshd processes running when a change is applied: the
 // listener, the applying connection's and a second one kept open.
 func sshds(f *hostfake.System) {

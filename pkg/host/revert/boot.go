@@ -216,7 +216,7 @@ func boot(ctx context.Context, sys host.System, in detect.Init, applyErr error, 
 		if st.Running {
 			return done(BootNothing, BootReasonRollbackRuns, "its rollback runs (process %d), and is left to finish", j.Rollback.Runner.PID)
 		}
-		return done(BootLeft, BootReasonRollbackUnfinished, "its rollback did not finish, and is left to its own path: run `sudo hardn rollback %s` to finish it, or, if it cannot finish, give it up with `sudo hardn rollback --abandon %s`", j.ID, j.ID)
+		return done(BootLeft, BootReasonRollbackUnfinished, "its rollback did not finish, and is left to its own path: run `%s rollback %s` to finish it, or, if it cannot finish, give it up with `%s rollback --abandon %s`", st.hardn(), j.ID, st.hardn(), j.ID)
 	}
 	p := st.Pending
 	if p == nil {
@@ -224,11 +224,11 @@ func boot(ctx context.Context, sys host.System, in detect.Init, applyErr error, 
 	}
 	res.Change = *p
 	if p.Risk != RiskLockout {
-		return done(BootNothing, BootReasonNoTimer, "it has no timer, and did not finish: the next run's notice says how to undo it (`sudo hardn rollback %s`)", p.ID)
+		return done(BootNothing, BootReasonNoTimer, "it has no timer, and did not finish: the next run's notice says how to undo it (`%s rollback %s`)", st.hardn(), p.ID)
 	}
 	t := *p.Timer
 	thisBoot, bootErr := bootID(ctx, sys)
-	leave := "confirm it with `sudo hardn confirm` from a new SSH connection, or undo it with `sudo hardn rollback " + p.ID + "`"
+	leave := "confirm it with `" + st.hardn() + " confirm` from a new SSH connection, or undo it with `" + st.hardn() + " rollback " + p.ID + "`"
 	if bootErr == nil && t.Boot == thisBoot {
 		// The journal says the timer runs; it may not: a re-arm stopped
 		// between its journal write and the timer's start, or a systemd
@@ -244,14 +244,14 @@ func boot(ctx context.Context, sys host.System, in detect.Init, applyErr error, 
 			// journal write and its timer's start, or removing a journal
 			// whose timer did not start. Boot re-arms only an applied
 			// change, so the holder is no other `hardn rollback --boot`.
-			return done(BootNothing, BootReasonApplyRuns, "its timer was started in this boot and is not there, it is not applied yet, and another hardn holds the run lock (%v): it is taken as that hardn's apply, which starts its timer or rolls it back; if no apply runs, run `sudo hardn rollback --boot` again once that hardn has finished", applyErr)
+			return done(BootNothing, BootReasonApplyRuns, "its timer was started in this boot and is not there, it is not applied yet, and another hardn holds the run lock (%v): it is taken as that hardn's apply, which starts its timer or rolls it back; if no apply runs, run `%s rollback --boot` again once that hardn has finished", applyErr, st.hardn())
 		case errors.Is(applyErr, host.ErrLocked):
 			// Applied: its apply is over (MarkApplied is an apply's last
 			// write), so the holder is something else: another `hardn
 			// rollback --boot` that re-arms it (a second re-arm would fail
 			// on its timer's unit, and roll it back), an uninstall, an apply
 			// about to be refused. Left, never re-armed beside it.
-			return done(BootLeft, BootReasonRunLockHeld, "its timer was started in this boot and is not there, and another hardn holds the run lock (%v), so hardn does not re-arm it beside that one: run `sudo hardn rollback --boot` again once that hardn has finished, or %s", applyErr, leave)
+			return done(BootLeft, BootReasonRunLockHeld, "its timer was started in this boot and is not there, and another hardn holds the run lock (%v), so hardn does not re-arm it beside that one: run `%s rollback --boot` again once that hardn has finished, or %s", applyErr, st.hardn(), leave)
 		}
 		opts.logf("boot: change %s (%s): its timer was started in this boot and is not there (a re-arm stopped before it started the timer, or a soft-reboot), so it is taken as after a reboot", p.ID, p.Summary)
 	}
@@ -278,20 +278,20 @@ func boot(ctx context.Context, sys host.System, in detect.Init, applyErr error, 
 		return rollBackAtBoot(ctx, sys, res, in, BootReasonApplyInterrupted, "its apply did not finish before the reboot, so it cannot be confirmed, and its files, which no check after the apply has passed, are what sshd is about to read", opts)
 	case now.Before(p.Created):
 		res.ClockUntrusted = true
-		return rearm(ctx, sys, res, in, thisBoot, p.TimeoutSeconds, now.UTC().Truncate(time.Second).Add(p.Timeout()), opts)
+		return rearm(ctx, sys, res, st, in, thisBoot, p.TimeoutSeconds, now.UTC().Truncate(time.Second).Add(p.Timeout()), opts)
 	case !now.Before(p.Deadline()):
 		return rollBackAtBoot(ctx, sys, res, in, BootReasonDeadlinePassed, "its deadline, "+stamp(p.Deadline())+", has passed", opts)
 	}
 	left := p.Deadline().Sub(now)
 	secs := int((left + time.Second - 1) / time.Second)
 	secs = min(max(secs, 1), p.TimeoutSeconds)
-	return rearm(ctx, sys, res, in, thisBoot, secs, p.Deadline(), opts)
+	return rearm(ctx, sys, res, st, in, thisBoot, secs, p.Deadline(), opts)
 }
 
 // rearm starts the timer of res.Change again, for secs seconds, with
 // deadline, in boot thisBoot; when it cannot, it rolls the change back at
 // once.
-func rearm(ctx context.Context, sys host.System, res BootResult, in detect.Init, thisBoot string, secs int, deadline time.Time, opts Options) (BootResult, error) {
+func rearm(ctx context.Context, sys host.System, res BootResult, st State, in detect.Init, thisBoot string, secs int, deadline time.Time, opts Options) (BootResult, error) {
 	j := res.Change
 	old := *j.Timer
 	t, err := timerFor(in, j.ID, old.Hardn, secs, opts.runDir())
@@ -328,7 +328,7 @@ func rearm(ctx context.Context, sys host.System, res BootResult, in detect.Init,
 	}
 	res.Change, res.Timer, res.For = j, &t, time.Duration(secs)*time.Second
 	res.Action, res.Reason = BootRearmed, BootReasonInWindow
-	how := fmt.Sprintf("it is rolled back at %s unless confirmed with `sudo hardn confirm` from %s, made from another machine", stamp(t.Deadline), confirmWhere(j))
+	how := fmt.Sprintf("it is rolled back at %s unless confirmed with `%s confirm` from %s, made from another machine", stamp(t.Deadline), st.hardn(), confirmWhere(j))
 	res.Why = fmt.Sprintf("its timer is re-armed for what remains of its window, %s: %s", res.For, how)
 	if res.ClockUntrusted {
 		res.Reason = BootReasonClockUntrusted

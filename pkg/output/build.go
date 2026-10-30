@@ -260,15 +260,8 @@ func confirmOf(c engine.Confirm, f detect.Facts) *Confirm {
 		Command: elevate + " hardn confirm", Undo: elevate + " hardn rollback " + c.ID}
 }
 
-// elevation is the command that runs hardn as root on the host: doas where
-// sudo is not installed and doas is (Alpine's default, sudoers.md), else
-// sudo, the brief's words.
-func elevation(f detect.Facts) string {
-	if f.Elevation.Sudo.Present == detect.No && f.Elevation.Doas.Present == detect.Yes {
-		return "doas"
-	}
-	return "sudo"
-}
+// elevation is the command that runs hardn as root on the host.
+func elevation(f detect.Facts) string { return f.Elevation.Command() }
 
 // rollbackOf is what rolling back the failed apply ae did, on a host with
 // facts f: the command that finishes an unfinished rollback is in the

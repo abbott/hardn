@@ -36,6 +36,7 @@ type Notice struct {
 // NoticeBadOutcome, call Acknowledge.
 func Notices(st State, now time.Time) []Notice {
 	var ns []Notice
+	hardn := st.hardn()
 	if j := st.RollingBack; j != nil && st.Running {
 		ns = append(ns, Notice{NoticeRollingBack, j.ID, fmt.Sprintf(
 			"Change %s (%s) is being rolled back (process %d, started %s, %s).",
@@ -46,27 +47,27 @@ func Notices(st State, now time.Time) []Notice {
 			why = "started " + stamp(j.Rollback.Started) + ", " + string(j.Rollback.Reason)
 		}
 		ns = append(ns, Notice{NoticeUnfinished, j.ID, fmt.Sprintf(
-			"The rollback of change %s (%s) did not finish (%s). Run `sudo hardn rollback %s` to finish it; no other change can be applied until then. If it cannot finish, fix what it names in /var/log/hardn.log; to give it up, leaving the host as it is, run `sudo hardn rollback --abandon %s`.",
-			j.ID, j.Summary, why, j.ID, j.ID)})
+			"The rollback of change %s (%s) did not finish (%s). Run `%s rollback %s` to finish it; no other change can be applied until then. If it cannot finish, fix what it names in /var/log/hardn.log; to give it up, leaving the host as it is, run `%s rollback --abandon %s`.",
+			j.ID, j.Summary, why, hardn, j.ID, hardn, j.ID)})
 	}
 	if j := st.Pending; j != nil {
 		switch {
 		case j.Risk != RiskLockout:
 			ns = append(ns, Notice{NoticeInterrupted, j.ID, fmt.Sprintf(
-				"Change %s (%s), started %s, did not finish. Undo what it did with `sudo hardn rollback %s`.",
-				j.ID, j.Summary, stamp(j.Created), j.ID)})
+				"Change %s (%s), started %s, did not finish. Undo what it did with `%s rollback %s`.",
+				j.ID, j.Summary, stamp(j.Created), hardn, j.ID)})
 		case j.Applied == nil && now.Before(j.Deadline()):
 			ns = append(ns, Notice{NoticeApplying, j.ID, fmt.Sprintf(
-				"Change %s (%s), started %s, is being applied, or its apply stopped: unless it finishes and is confirmed, it will be rolled back at %s (in %s). To undo it now, run `sudo hardn rollback %s`.",
-				j.ID, j.Summary, stamp(j.Created), stamp(j.Deadline()), j.Deadline().Sub(now).Round(time.Second), j.ID)})
+				"Change %s (%s), started %s, is being applied, or its apply stopped: unless it finishes and is confirmed, it will be rolled back at %s (in %s). To undo it now, run `%s rollback %s`.",
+				j.ID, j.Summary, stamp(j.Created), stamp(j.Deadline()), j.Deadline().Sub(now).Round(time.Second), hardn, j.ID)})
 		case now.Before(j.Deadline()):
 			ns = append(ns, Notice{NoticePending, j.ID, fmt.Sprintf(
-				"Change %s (%s) is waiting for confirmation: it will be rolled back at %s (in %s) unless you run `sudo hardn confirm` from %s. To undo it now, run `sudo hardn rollback %s`.",
-				j.ID, j.Summary, stamp(j.Deadline()), j.Deadline().Sub(now).Round(time.Second), confirmWhere(*j), j.ID)})
+				"Change %s (%s) is waiting for confirmation: it will be rolled back at %s (in %s) unless you run `%s confirm` from %s. To undo it now, run `%s rollback %s`.",
+				j.ID, j.Summary, stamp(j.Deadline()), j.Deadline().Sub(now).Round(time.Second), hardn, confirmWhere(*j), hardn, j.ID)})
 		default:
 			ns = append(ns, Notice{NoticeOverdue, j.ID, fmt.Sprintf(
-				"Change %s (%s) was not confirmed by %s, and has not been rolled back: its timer did not run (a reboot stops it). Undo it with `sudo hardn rollback %s`, or keep it with `sudo hardn confirm` from a new SSH session.",
-				j.ID, j.Summary, stamp(j.Deadline()), j.ID)})
+				"Change %s (%s) was not confirmed by %s, and has not been rolled back: its timer did not run (a reboot stops it). Undo it with `%s rollback %s`, or keep it with `%s confirm` from a new SSH session.",
+				j.ID, j.Summary, stamp(j.Deadline()), hardn, j.ID, hardn)})
 		}
 	}
 	if o := st.Reverted; o != nil {

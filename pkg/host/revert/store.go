@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 )
 
 // State is what the journal directory holds.
@@ -22,32 +23,46 @@ type State struct {
 	// OutcomeErr is why reverted.json could not be read; Reverted is then
 	// nil. It is only a notice, so it fails nothing else.
 	OutcomeErr error
+	// Elevate is the command that runs hardn as root on this host
+	// (detect.Elevation.Command), for the lines that say what to run: set by
+	// ReadState when a change is journalled. Empty reads as sudo.
+	Elevate string
 }
 
 // Busy reports whether a change is journalled: a new one is then refused.
 func (s State) Busy() bool { return s.Pending != nil || s.RollingBack != nil }
+
+// hardn is how the lines of s say to run hardn as root: "doas hardn" on a
+// doas host.
+func (s State) hardn() string {
+	if s.Elevate == "" {
+		return "sudo hardn"
+	}
+	return s.Elevate + " hardn"
+}
 
 // PendingError refuses a new change while one is journalled (one at a
 // time, brief 2.4). Is(ErrPending). Its text says how to go on.
 type PendingError struct{ State State }
 
 func (e *PendingError) Error() string {
+	hardn := e.State.hardn()
 	if j := e.State.RollingBack; j != nil {
 		if e.State.Running {
 			return fmt.Sprintf("revert: %s: change %s (%s) is being rolled back (process %d); try again once it has finished", ErrPending, j.ID, j.Summary, j.Rollback.Runner.PID)
 		}
-		return fmt.Sprintf("revert: %s: the rollback of change %s (%s) has not finished; run `sudo hardn rollback %s` to finish it", ErrPending, j.ID, j.Summary, j.ID)
+		return fmt.Sprintf("revert: %s: the rollback of change %s (%s) has not finished; run `%s rollback %s` to finish it", ErrPending, j.ID, j.Summary, hardn, j.ID)
 	}
 	j := e.State.Pending
 	switch {
 	case j.Risk != RiskLockout:
-		return fmt.Sprintf("revert: %s: change %s (%s) did not finish; undo it with `sudo hardn rollback %s`", ErrPending, j.ID, j.Summary, j.ID)
+		return fmt.Sprintf("revert: %s: change %s (%s) did not finish; undo it with `%s rollback %s`", ErrPending, j.ID, j.Summary, hardn, j.ID)
 	case j.Applied == nil:
-		return fmt.Sprintf("revert: %s: change %s (%s) is being applied, or its apply stopped; unless it finishes and is confirmed, it is rolled back at %s; undo it now with `sudo hardn rollback %s`",
-			ErrPending, j.ID, j.Summary, stamp(j.Deadline()), j.ID)
+		return fmt.Sprintf("revert: %s: change %s (%s) is being applied, or its apply stopped; unless it finishes and is confirmed, it is rolled back at %s; undo it now with `%s rollback %s`",
+			ErrPending, j.ID, j.Summary, stamp(j.Deadline()), hardn, j.ID)
 	}
-	return fmt.Sprintf("revert: %s: change %s (%s) is waiting for confirmation until %s; confirm it with `sudo hardn confirm` from %s, or undo it with `sudo hardn rollback %s`",
-		ErrPending, j.ID, j.Summary, stamp(j.Deadline()), confirmWhere(*j), j.ID)
+	return fmt.Sprintf("revert: %s: change %s (%s) is waiting for confirmation until %s; confirm it with `%s confirm` from %s, or undo it with `%s rollback %s`",
+		ErrPending, j.ID, j.Summary, stamp(j.Deadline()), hardn, confirmWhere(*j), hardn, j.ID)
 }
 
 // Is makes errors.Is(err, ErrPending) true.
@@ -162,6 +177,9 @@ func ReadState(ctx context.Context, sys host.System, opts Options) (State, error
 	}
 	if err != nil {
 		st.OutcomeErr = fmt.Errorf("%s: %w", RevertedName, err)
+	}
+	if st.Busy() {
+		st.Elevate = detect.FindElevation(ctx, sys).Command()
 	}
 	return st, nil
 }

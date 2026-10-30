@@ -3,6 +3,8 @@ package revert
 import (
 	"bytes"
 	"context"
+	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -20,16 +22,18 @@ import (
 // established: ReadSession always sets Source.
 type Session struct {
 	Remote bool `json:"remote"`
-	// Conn is SSH_CONNECTION as found ("client-addr client-port
-	// server-addr server-port"); "" when Remote was established another
-	// way, or not at all.
+	// Conn is SSH_CONNECTION as found, or the same four values read from
+	// the kernel's socket table ("client-addr client-port server-addr
+	// server-port"); "" when Remote was established another way, or not at
+	// all.
 	Conn string `json:"conn,omitempty"`
 	// SSHD is the session's closest sshd or sshd-session ancestor: the
 	// server process of its connection, which started when the connection
 	// was made. Zero when none was found (inside tmux or screen, for one).
 	SSHD ProcStart `json:"sshd,omitzero"`
 	// Source is where it was found: the environment variable, or the /proc
-	// file of an ancestor process.
+	// file of an ancestor process; with SSHD and no Conn, why the connection
+	// was not read.
 	Source string `json:"source,omitempty"`
 }
 
@@ -82,7 +86,10 @@ const maxAncestors = 64
 //     initial environment (/proc/<pid>/environ); Remote when SSH_CLIENT or
 //     SSH_TTY is in env; and, either way, SSHD is the closest ancestor
 //     whose comm is sshd or sshd-session, which makes it Remote too. The
-//     walk ends there.
+//     walk ends there. With no SSH_CONNECTION found, Conn is that sshd's
+//     own TCP connection (sshdConn): doas clears the variable and execs
+//     hardn, and over `ssh host "doas hardn confirm"` the remote shell that
+//     held it had exec'd doas, so no ancestor below sshd has it.
 //   - Otherwise local only on evidence of a console: an ancestor is
 //     login(1), or the last process below init has a controlling terminal
 //     that is not a pseudo-terminal (a virtual console or a serial line).
@@ -125,8 +132,15 @@ func ReadSession(ctx context.Context, sys host.System, env func(string) string, 
 		}
 		if slices.Contains(sshdNames, st.comm) {
 			s.Remote, s.SSHD = true, ProcStart{PID: pid, Start: st.start}
+			why := ""
+			if s.Conn == "" {
+				var conn string
+				if conn, why = sshdConn(ctx, sys, dir); conn != "" {
+					s.Conn, s.Source = conn, dir+"/fd"
+				}
+			}
 			if s.Source == "" {
-				s.Source = dir + "/stat"
+				s.Source = dir + "/stat (" + why + ")"
 			}
 			return s, nil
 		}
@@ -164,6 +178,97 @@ func environValue(block []byte, key string) string {
 		}
 	}
 	return ""
+}
+
+// sshdConn reads the connection sshd process dir serves, as SSH_CONNECTION
+// words it, from what the kernel says: the sockets among its open files
+// (dir/fd) and their lines in the TCP tables of its network namespace
+// (dir/net/tcp, tcp6). SSH_CONNECTION is the same socket's two ends (OpenSSH,
+// session.c), so CheckConfirm judges the same values. The session's closest
+// sshd does the connection's packet I/O, so it holds that socket. It also
+// holds what the session forwards (ssh -L, -R, -X, while in use), which
+// cannot be told from it here: it takes exactly one established connection,
+// and otherwise returns "" and why.
+func sshdConn(ctx context.Context, sys host.System, dir string) (conn, why string) {
+	fds, err := sys.ReadDir(ctx, dir+"/fd")
+	if err != nil {
+		return "", "its sockets cannot be read"
+	}
+	inodes := map[string]bool{}
+	for _, fd := range fds {
+		link, err := sys.Readlink(ctx, dir+"/fd/"+fd.Name())
+		if err != nil {
+			continue // it closed
+		}
+		if in, ok := strings.CutPrefix(link, "socket:["); ok {
+			inodes[strings.TrimSuffix(in, "]")] = true
+		}
+	}
+	var conns []string
+	for _, table := range []string{"tcp", "tcp6"} {
+		data, err := sys.ReadFile(ctx, dir+"/net/"+table)
+		switch {
+		case errors.Is(err, fs.ErrNotExist): // no IPv6 in this kernel
+		case err != nil:
+			return "", "its TCP table cannot be read"
+		default:
+			conns = append(conns, established(data, inodes)...)
+		}
+	}
+	switch len(conns) {
+	case 0:
+		return "", "no TCP connection among its sockets"
+	case 1:
+		return conns[0], ""
+	}
+	return "", fmt.Sprintf("%d TCP connections among its sockets", len(conns))
+}
+
+// tcpEstablished is the st field of an established connection in
+// /proc/net/tcp (the kernel's TCP_ESTABLISHED).
+const tcpEstablished = "01"
+
+// established finds, in a /proc/net/tcp or tcp6 table, the established
+// connections of the sockets inodes, as SSH_CONNECTION words them: the remote
+// end first. The kernel's proc_net_tcp.rst gives the fields: entry, local
+// address, remote address, state, then at index 9 the inode. A line it cannot
+// read is no connection.
+func established(table []byte, inodes map[string]bool) []string {
+	var out []string
+	for _, line := range strings.Split(string(table), "\n") {
+		f := strings.Fields(line)
+		if len(f) < 10 || f[3] != tcpEstablished || !inodes[f[9]] {
+			continue
+		}
+		local, lok := parseHexEnd(f[1])
+		peer, pok := parseHexEnd(f[2])
+		if lok && pok {
+			out = append(out, fmt.Sprintf("%s %d %s %d", peer.Addr(), peer.Port(), local.Addr(), local.Port()))
+		}
+	}
+	return out
+}
+
+// parseHexEnd reads one end of a connection in /proc/net/tcp: the address in
+// hex, as 32-bit words each in the host's byte order, then the port in hex.
+func parseHexEnd(s string) (netip.AddrPort, bool) {
+	a, p, ok := strings.Cut(s, ":")
+	if !ok {
+		return netip.AddrPort{}, false
+	}
+	raw, err := hex.DecodeString(a)
+	if err != nil || len(raw)%4 != 0 {
+		return netip.AddrPort{}, false
+	}
+	for i := 0; i < len(raw); i += 4 {
+		binary.NativeEndian.PutUint32(raw[i:], binary.BigEndian.Uint32(raw[i:]))
+	}
+	addr, ok := netip.AddrFromSlice(raw)
+	port, err := strconv.ParseUint(p, 16, 16)
+	if !ok || err != nil {
+		return netip.AddrPort{}, false
+	}
+	return netip.AddrPortFrom(addr.Unmap(), uint16(port)), true
 }
 
 // procStat is what hardn reads of /proc/<pid>/stat (proc_pid_stat(5)).

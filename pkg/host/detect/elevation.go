@@ -46,10 +46,26 @@ type Elevation struct {
 	Err         error // why SudoFlavor is unknown while Sudo is present
 }
 
+// Command is the command that runs hardn as root on the host: doas where
+// sudo is not installed and doas is (Alpine's default, sudoers.md), else
+// sudo, the brief's words.
+func (e Elevation) Command() string {
+	if e.Sudo.Present == No && e.Doas.Present == Yes {
+		return "doas"
+	}
+	return "sudo"
+}
+
+// FindElevation looks for sudo and doas in host.SearchPath and runs nothing:
+// enough for Command, where a message has no facts to hand.
+func FindElevation(ctx context.Context, sys host.System) Elevation {
+	return Elevation{Sudo: findTool(ctx, sys, "sudo"), Doas: findTool(ctx, sys, "doas")}
+}
+
 // DetectElevation looks for sudo and doas in host.SearchPath and asks sudo
 // for its version.
 func DetectElevation(ctx context.Context, sys host.System) Elevation {
-	e := Elevation{Sudo: findTool(ctx, sys, "sudo"), Doas: findTool(ctx, sys, "doas")}
+	e := FindElevation(ctx, sys)
 	if e.Sudo.Present != Yes {
 		return e
 	}

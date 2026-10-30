@@ -237,8 +237,8 @@ func Rollback(ctx context.Context, sys host.System, id string, opts Options) (Ro
 		}
 	}
 	if len(errs) > 0 {
-		err := fmt.Errorf("revert: rollback %s: %w; run `sudo hardn rollback %s` to take it up again (if it cannot finish, fix what this names, or give it up, leaving the host as it is, with `sudo hardn rollback --abandon %s`): %w",
-			id, ErrIncomplete, id, id, errors.Join(errs...))
+		err := fmt.Errorf("revert: rollback %s: %w; run `%s rollback %s` to take it up again (if it cannot finish, fix what this names, or give it up, leaving the host as it is, with `%s rollback --abandon %s`): %w",
+			id, ErrIncomplete, st.hardn(), id, st.hardn(), id, errors.Join(errs...))
 		opts.logf("rollback %s: did not finish: %v", id, errors.Join(errs...))
 		return res, err
 	}
@@ -507,14 +507,14 @@ func Abandon(ctx context.Context, sys host.System, id string, opts Options) (Aba
 		if err := abandonable(ctx, sys, st, id, kept); err != nil {
 			return AbandonResult{}, err
 		}
-		return AbandonResult{}, fmt.Errorf("revert: abandon %s: %s changed while it was being given up; run `sudo hardn rollback --abandon %s` again: %w", id, rb, id, ErrClaim)
+		return AbandonResult{}, fmt.Errorf("revert: abandon %s: %s changed while it was being given up; run `%s rollback --abandon %s` again: %w", id, rb, st.hardn(), id, ErrClaim)
 	case err != nil:
 		return AbandonResult{}, err
 	}
 	if p := j.Rollback; p != nil && alive(ctx, sys, p.Runner) {
 		// A `hardn rollback <id>` took it up after the read, and saved
 		// before the rename: it runs on, so its record goes back.
-		return AbandonResult{}, errors.Join(rollingBackError(id, *p, "took it up while it was being given up, and is rolling it back now; its record is put back"), sys.Rename(ctx, kept, rb))
+		return AbandonResult{}, errors.Join(rollingBackError(id, *p, st, "took it up while it was being given up, and is rolling it back now; its record is put back"), sys.Rename(ctx, kept, rb))
 	}
 	res := AbandonResult{Journal: j, Kept: kept, RunnerUnknown: j.Rollback == nil || !j.Rollback.Runner.known(), SSHUnchecked: sshUnchecked(j)}
 	p := Progress{}
@@ -528,9 +528,9 @@ func Abandon(ctx context.Context, sys host.System, id string, opts Options) (Aba
 
 // rollingBackError refuses to give up the rollback of change id while
 // process p.Runner runs it; how says what the process is doing.
-func rollingBackError(id string, p Progress, how string) error {
-	return fmt.Errorf("revert: abandon %s: %w: process %d %s (started %s); wait for it to end, and if it does not finish, run `sudo hardn rollback %s` once more before giving it up",
-		id, ErrRollingBack, p.Runner.PID, how, stamp(p.Started), id)
+func rollingBackError(id string, p Progress, st State, how string) error {
+	return fmt.Errorf("revert: abandon %s: %w: process %d %s (started %s); wait for it to end, and if it does not finish, run `%s rollback %s` once more before giving it up",
+		id, ErrRollingBack, p.Runner.PID, how, stamp(p.Started), st.hardn(), id)
 }
 
 // sshUnchecked is AbandonResult.SSHUnchecked for the record j.
@@ -592,18 +592,18 @@ func abandonable(ctx context.Context, sys host.System, st State, id, kept string
 		o := j.ID
 		switch {
 		case o == id && st.Running:
-			return rollingBackError(id, *j.Rollback, "is rolling it back now")
+			return rollingBackError(id, *j.Rollback, st, "is rolling it back now")
 		case o == id:
 			return nil
 		case st.Running:
 			return refuse(NoRollbackOtherRunning, o, fmt.Sprintf("change %s, not this one, is being rolled back now by process %d (started %s); wait for that rollback to end",
 				o, j.Rollback.Runner.PID, stamp(j.Rollback.Started)))
 		}
-		return refuse(NoRollbackOtherUnfinished, o, fmt.Sprintf("the unfinished rollback is of change %s, not this one; finish it with `sudo hardn rollback %s`, or, if it cannot finish, give it up with `sudo hardn rollback --abandon %s`", o, o, o))
+		return refuse(NoRollbackOtherUnfinished, o, fmt.Sprintf("the unfinished rollback is of change %s, not this one; finish it with `%s rollback %s`, or, if it cannot finish, give it up with `%s rollback --abandon %s`", o, st.hardn(), o, st.hardn(), o))
 	}
 	switch p := st.Pending; {
 	case p != nil && p.ID == id:
-		return refuse(NoRollbackNotStarted, "", fmt.Sprintf("change %s is journalled and its rollback has not started; to undo it, run `sudo hardn rollback %s`", id, id))
+		return refuse(NoRollbackNotStarted, "", fmt.Sprintf("change %s is journalled and its rollback has not started; to undo it, run `%s rollback %s`", id, st.hardn(), id))
 	case p != nil:
 		return refuse(NoRollbackOtherPending, p.ID, fmt.Sprintf("the journalled change is %s, not this one, and its rollback has not started", p.ID))
 	}

@@ -412,6 +412,8 @@ On Debian 13 (`ssh.service`), then Ubuntu 26.04 (`ssh.socket`):
 
 On Alpine 3.24 (OpenRC), rows 1, 3 and 5 from its `p2-clean` (no ufw: no firewall step, no ufw line), with `doas` for `sudo`: the reload is `rc-service sshd reload`, `ss -Htln` shows 2230 alone, and the confirming connection survives the reload (reload.md §4); row 5's console report says `sudo hardn confirm` and that doas takes its place where sudo is not installed.
 
+**One-command confirm and the host's tool** ([revert.md](revert.md) §9, not yet run). On Alpine 3.23, with a lockout-risk change waiting: a second change is refused saying `doas hardn confirm` and `doas hardn rollback <id>`; from the applying session `hardn confirm` is refused saying `doas`; from another machine, `ssh -p 2230 alice@web-01 "doas hardn confirm"` confirms, and `/var/log/hardn.log` shows `SSH connection <client> <port> <server> 2230`. Before it, `ls -l /proc/<pid>/fd` and `/proc/<pid>/net/tcp` of that connection's `sshd-session` as root, kept in the run's evidence. Then with `ssh -L` in use over the same connection: refused, `Source` saying 2 TCP connections, and the login-shell advice. On Debian 13, `ssh host "sudo hardn confirm"` as before (sudo stays in the chain, so `SSH_CONNECTION` is still found).
+
 **P-41** shows on a best-effort image only (none is in §5 yet): on an Alpine 3.22 or Ubuntu 22.04 VM, row 1's clean-up report shows "… is a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (PLATFORM_BEST_EFFORT)"; on Debian 13 and Ubuntu 26.04 no such line.
 
 ## 5. The images

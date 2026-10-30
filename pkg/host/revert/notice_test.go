@@ -1,10 +1,13 @@
 package revert
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
 func TestNotices(t *testing.T) {
@@ -83,4 +86,143 @@ func TestNotices(t *testing.T) {
 			}
 		})
 	}
+}
+
+// doasHost is a fake host where doas is the elevation tool: sudo is not
+// installed, as on Alpine.
+func doasHost(t *testing.T) *hostfake.System {
+	t.Helper()
+	f := newHost(t)
+	f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+	return f
+}
+
+// TestHostsToolInTheWords: every line that says to run hardn says doas on a
+// doas host (found on the Alpine 3.23 VM, 2026-10-30), and sudo where sudo is
+// installed, doas or not.
+func TestHostsToolInTheWords(t *testing.T) {
+	ctx := context.Background()
+	check := func(t *testing.T, what, got string, want ...string) {
+		t.Helper()
+		if strings.Contains(got, "sudo") {
+			t.Errorf("%s names sudo: %s", what, got)
+		}
+		for _, w := range want {
+			if !strings.Contains(got, w) {
+				t.Errorf("%s = %s\nwant %q", what, got, w)
+			}
+		}
+	}
+	second := lockout()
+	second.ID = otherID
+
+	t.Run("while a change is applied, and waits", func(t *testing.T) {
+		f := doasHost(t)
+		c := &clock{testNow}
+		armed(t, f, c)
+		_, err := Arm(ctx, f, second, systemd, testOptions(c, nil))
+		check(t, "the refusal while it is applied", err.Error(), "undo it now with `doas hardn rollback "+testID+"`")
+		st, err := ReadState(ctx, f, testOptions(c, nil))
+		if err != nil || st.Elevate != "doas" {
+			t.Fatalf("ReadState: Elevate %q, %v", st.Elevate, err)
+		}
+		check(t, "the notice while it is applied", Notices(st, c.t)[0].Text, "`doas hardn rollback "+testID+"`")
+
+		markApplied(t, f, c)
+		_, err = Arm(ctx, f, second, systemd, testOptions(c, nil))
+		check(t, "the refusal while it waits", err.Error(), "confirm it with `doas hardn confirm` from a new SSH connection to port 2230, or undo it with `doas hardn rollback "+testID+"`")
+		_, err = Confirm(ctx, f, remote(applyConn, applySSHD), testOptions(c, nil))
+		check(t, "hardn confirm's refusal", err.Error(), "run `doas hardn confirm` from a new SSH connection to port 2230, made from another machine, before")
+		_, err = Confirm(ctx, f, Session{Remote: true, Source: "/proc/11025/stat"}, testOptions(c, nil))
+		check(t, "hardn confirm's refusal, the connection not known", err.Error(), "log in over a new SSH connection to port 2230, made from another machine, and run `doas hardn confirm` at the prompt")
+		if st, err = ReadState(ctx, f, testOptions(c, nil)); err != nil {
+			t.Fatal(err)
+		}
+		check(t, "the notice while it waits", Notices(st, c.t)[0].Text, "unless you run `doas hardn confirm` from a new SSH connection to port 2230", "`doas hardn rollback "+testID+"`")
+		check(t, "the notice past its deadline", Notices(st, st.Pending.Deadline().Add(time.Hour))[0].Text, "`doas hardn rollback "+testID+"`", "`doas hardn confirm`")
+		_, err = Abandon(ctx, f, testID, testOptions(c, nil))
+		check(t, "a refused abandon", err.Error(), "to undo it, run `doas hardn rollback "+testID+"`")
+	})
+
+	t.Run("a change that did not finish, at hardn confirm", func(t *testing.T) {
+		f := doasHost(t)
+		c := &clock{testNow}
+		other := Journal{ID: otherID, Risk: RiskOther, Summary: "DNS resolvers 192.0.2.53"}
+		if _, err := Arm(ctx, f, other, systemd, testOptions(c, nil)); err != nil {
+			t.Fatal(err)
+		}
+		_, err := Confirm(ctx, f, newSession, testOptions(c, nil))
+		check(t, "the refusal", err.Error(), "undo it with `doas hardn rollback "+otherID+"`")
+	})
+
+	t.Run("a rollback that stops part-way", func(t *testing.T) {
+		ch := newChange(t)
+		ch.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+		ch.f.Respond(hostfake.Response{ExitCode: 1, Stderr: "ERROR: Could not delete non-existent rule\n"}, "ufw", "delete", "allow", "2230/tcp")
+		ch.c.t = ch.j.Deadline()
+		_, err := Rollback(ctx, ch.f, testID, ch.opts)
+		check(t, "the error", err.Error(), "run `doas hardn rollback "+testID+"` to take it up again", "with `doas hardn rollback --abandon "+testID+"`")
+	})
+
+	t.Run("at boot", func(t *testing.T) {
+		ch := rebooted(t, 100*time.Second+500*time.Millisecond)
+		respond(ch.f, hostfake.Response{}, rearmArgv("80s"))
+		ch.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+		res, err := Boot(ctx, ch.f, systemd, ch.opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		check(t, "the re-arm", res.Why, "unless confirmed with `doas hardn confirm` from a new SSH connection to port 2230")
+
+		ch = newChangeBare(t)
+		ch.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+		markApplied(t, ch.f, ch.c)
+		timerState(ch.f, "inactive")
+		ch.f.AddDir(DefaultRunDir, 0o700, 0, 0)
+		if _, err := ch.f.Lock(ctx, DefaultRunDir+"/"+RunLockName, []byte("pid 6100, hardn rollback --boot, since 2026-10-18T12:01:00Z\n")); err != nil {
+			t.Fatal(err)
+		}
+		res, err = Boot(ctx, ch.f, systemd, ch.opts)
+		if err != nil {
+			t.Fatal(err)
+		}
+		check(t, "the run lock held", res.Why, "run `doas hardn rollback --boot` again", "confirm it with `doas hardn confirm`", "undo it with `doas hardn rollback "+testID+"`")
+	})
+
+	t.Run("a change with no timer that did not finish", func(t *testing.T) {
+		st := State{Elevate: "doas", Pending: &Journal{SchemaVersion: SchemaVersion, ID: otherID, Created: testNow, Risk: RiskOther, Summary: "DNS"}}
+		check(t, "the notice", Notices(st, testNow)[0].Text, "`doas hardn rollback "+otherID+"`")
+		check(t, "the refusal", (&PendingError{State: st}).Error(), "undo it with `doas hardn rollback "+otherID+"`")
+	})
+
+	t.Run("an unfinished rollback", func(t *testing.T) {
+		j := lockout()
+		j.Rollback = &Progress{Started: testNow, Reason: ReasonTimeout}
+		st := State{Elevate: "doas", RollingBack: &j}
+		check(t, "the notice", Notices(st, testNow)[0].Text, "Run `doas hardn rollback "+testID+"` to finish it", "run `doas hardn rollback --abandon "+testID+"`")
+		check(t, "the refusal", (&PendingError{State: st}).Error(), "run `doas hardn rollback "+testID+"` to finish it")
+		err := abandonable(ctx, doasHost(t), st, otherID, "/kept")
+		check(t, "abandoning another change", err.Error(), "finish it with `doas hardn rollback "+testID+"`", "give it up with `doas hardn rollback --abandon "+testID+"`")
+		j.Rollback.Runner = ProcStart{PID: 6000, Start: 1}
+		err = rollingBackError(testID, *j.Rollback, st, "is rolling it back now")
+		check(t, "abandoning a rollback that runs", err.Error(), "run `doas hardn rollback "+testID+"` once more")
+	})
+
+	t.Run("sudo installed too, or no tool found", func(t *testing.T) {
+		f := doasHost(t)
+		f.AddFile("/usr/bin/sudo", []byte("ELF"), 0o755, 0, 0)
+		c := &clock{testNow}
+		armed(t, f, c)
+		if st, err := ReadState(ctx, f, testOptions(c, nil)); err != nil || st.Elevate != "sudo" {
+			t.Errorf("with both: Elevate %q, %v", st.Elevate, err)
+		}
+		f = newHost(t)
+		armed(t, f, c)
+		if st, err := ReadState(ctx, f, testOptions(c, nil)); err != nil || st.Elevate != "sudo" {
+			t.Errorf("with neither: Elevate %q, %v", st.Elevate, err)
+		}
+		if st, err := ReadState(ctx, doasHost(t), testOptions(c, nil)); err != nil || st.Elevate != "" {
+			t.Errorf("nothing journalled: Elevate %q, %v", st.Elevate, err)
+		}
+	})
 }

@@ -34,6 +34,12 @@ See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
 See [docs/configuration.md](../configuration.md), "`enableBackups` and `backupPath`: the Backup screen".
 
+## Fixed: `hardn confirm` over ssh, and doas
+
+- **`ssh host "doas hardn confirm"` now confirms** from a new connection. It used to be refused, because doas clears `SSH_CONNECTION`. The same rules apply: a new connection, from another machine.
+- **While `ssh -L`, `-R` or `-X` is forwarding, a one-command confirm is still refused.** The refusal says to log in and run it at the prompt.
+- **On a doas host, hardn's messages say `doas hardn`**: the refusals and notices about a change waiting for confirmation or a rollback, and "must be run as root". They said `sudo hardn`.
+
 ## Changed: Environment
 
 - **Main menu 8 says "Keep HARDN_CONFIG"**, where it said "Configure environment variable".

@@ -3,6 +3,7 @@ package revert
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/netip"
 	"reflect"
 	"strings"
@@ -94,7 +95,49 @@ func TestReadSession(t *testing.T) {
 			proc(f, 3980, 1, "sshd", 0)
 			proc(f, 3990, 3980, "su", ptsTTY)
 			proc(f, 4000, 3990, "hardn", ptsTTY)
-		}, Session{Remote: true, SSHD: sshdOf(3980), Source: "/proc/3980/stat"}, false},
+		}, Session{Remote: true, SSHD: sshdOf(3980), Source: "/proc/3980/stat (its sockets cannot be read)"}, false},
+		{"ssh host \"doas hardn\": the shell exec'd doas, which cleared it and exec'd hardn: the kernel's socket", noEnv, func(f *hostfake.System) {
+			oneCommand(f)
+			sockets(f, newSSHD, "socket:[7001]", "socket:[7002]", "pipe:[7003]", "/dev/null", "anon_inode:[eventpoll]")
+			f.AddFile("/proc/4100/net/tcp", []byte(tcpTable(
+				"00000000:08B6 00000000:0000 0A 7000", // the listener, not this process's
+				"140200C0:08B6 0A0200C0:C3CB 01 7001", // the connection
+				"140200C0:0016 0A0200C0:C366 01 8001", // another connection's
+				"zz:0016 0A0200C0:C366 01 7002",       // not readable
+			)), 0o444, 0, 0)
+		}, Session{Remote: true, Conn: newConn, SSHD: sshdOf(newSSHD), Source: "/proc/4100/fd"}, false},
+		{"the kernel's socket over IPv6: tcp6, and no IPv4 table", noEnv, func(f *hostfake.System) {
+			oneCommand(f)
+			sockets(f, newSSHD, "socket:[7001]")
+			f.AddFile("/proc/4100/net/tcp6", []byte(tcpTable("B80D0120000000000000000020000000:08B6 B80D0120000000000000000010000000:C3CB 01 7001")), 0o444, 0, 0)
+		}, Session{Remote: true, Conn: "2001:db8::10 50123 2001:db8::20 2230", SSHD: sshdOf(newSSHD), Source: "/proc/4100/fd"}, false},
+		{"the kernel's socket: an IPv4 client on an IPv6 listener", noEnv, func(f *hostfake.System) {
+			oneCommand(f)
+			sockets(f, newSSHD, "socket:[7001]")
+			f.AddFile("/proc/4100/net/tcp6", []byte(tcpTable("0000000000000000FFFF0000140200C0:08B6 0000000000000000FFFF00000A0200C0:C3CB 01 7001")), 0o444, 0, 0)
+		}, Session{Remote: true, Conn: newConn, SSHD: sshdOf(newSSHD), Source: "/proc/4100/fd"}, false},
+		{"ssh -L in use: two connections, not told apart", noEnv, func(f *hostfake.System) {
+			oneCommand(f)
+			sockets(f, newSSHD, "socket:[7001]", "socket:[7002]")
+			f.AddFile("/proc/4100/net/tcp", []byte(tcpTable("140200C0:08B6 0A0200C0:C3CB 01 7001", "140200C0:9C40 0B0200C0:0050 01 7002")), 0o444, 0, 0)
+		}, Session{Remote: true, SSHD: sshdOf(newSSHD), Source: "/proc/4100/stat (2 TCP connections among its sockets)"}, false},
+		{"no connection among its sockets", noEnv, func(f *hostfake.System) {
+			oneCommand(f)
+			sockets(f, newSSHD, "socket:[7002]")
+			f.AddFile("/proc/4100/net/tcp", []byte(tcpTable("140200C0:08B6 0A0200C0:C3CB 01 7001")), 0o444, 0, 0)
+		}, Session{Remote: true, SSHD: sshdOf(newSSHD), Source: "/proc/4100/stat (no TCP connection among its sockets)"}, false},
+		{"a TCP table that cannot be read", noEnv, func(f *hostfake.System) {
+			oneCommand(f)
+			sockets(f, newSSHD, "socket:[7001]")
+			f.AddFile("/proc/4100/net/tcp", []byte(tcpTable("140200C0:08B6 0A0200C0:C3CB 01 7001")), 0o444, 0, 0)
+			f.AddDir("/proc/4100/net/tcp6", 0o555, 0, 0)
+		}, Session{Remote: true, SSHD: sshdOf(newSSHD), Source: "/proc/4100/stat (its TCP table cannot be read)"}, false},
+		{"SSH_CONNECTION found: the sockets are not read", noEnv, func(f *hostfake.System) {
+			sshLogin(f)
+			proc(f, 4000, 3980, "hardn", ptsTTY)
+			sockets(f, newSSHD, "socket:[7001]")
+			f.AddFile("/proc/4100/net/tcp", []byte(tcpTable("140200C0:0016 0A0200C0:C366 01 7001")), 0o444, 0, 0)
+		}, Session{Remote: true, Conn: newConn, SSHD: sshdOf(newSSHD), Source: "/proc/3980/environ"}, false},
 		{"tmux attached over SSH: the variable, no sshd", noEnv, func(f *hostfake.System) {
 			proc(f, 3000, 1, "tmux: server", 0, "SSH_CONNECTION="+applyConn)
 			proc(f, 3980, 3000, "bash", ptsTTY, "SSH_CONNECTION="+newConn)
@@ -158,6 +201,47 @@ func TestReadSession(t *testing.T) {
 			}
 			if !tt.unknown && err != nil {
 				t.Fatal(err)
+			}
+		})
+	}
+}
+
+// TestConfirmOneCommand is `ssh host "doas hardn confirm"` end to end: the
+// connection read from the kernel's socket meets every check a connection
+// found in SSH_CONNECTION meets.
+func TestConfirmOneCommand(t *testing.T) {
+	ctx := context.Background()
+	noEnv := func(string) string { return "" }
+	for _, tt := range []struct {
+		name string
+		sshd int
+		line string // the sshd's line in the TCP table
+		want error
+	}{
+		{"a new connection to the new port", newSSHD, "140200C0:08B6 0A0200C0:C3CB 01 7001", nil},
+		{"the connection that applied it", applySSHD, "140200C0:0016 0A0200C0:C366 01 7001", ErrSameSession},
+		{"a connection kept open since before", keptSSHD, "140200C0:08B6 0A0200C0:BFE9 01 7001", ErrOldConnection},
+		{"a new connection over the held old port", newSSHD, "140200C0:0016 0A0200C0:C347 01 7001", ErrWrongListener},
+		{"ssh -p 2230 localhost", newSSHD, "0100007F:08B6 0100007F:9C40 01 7001", ErrLocalConn},
+		{"from the host to its own address", newSSHD, "140200C0:08B6 140200C0:9C40 01 7001", ErrLocalConn},
+		{"ssh -L in use: not established", newSSHD, "140200C0:08B6 0A0200C0:C3CB 01 7001\n 1: 140200C0:9C40 0B0200C0:0050 01 00000000:00000000 00:00000000 00000000 0 0 7002", ErrSessionUnknown},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			f := newHost(t)
+			c := &clock{testNow}
+			armed(t, f, c)
+			markApplied(t, f, c)
+			proc(f, newSSHD, listenerPID, "sshd-session", 0)
+			proc(f, 4000, tt.sshd, "hardn", 0, "PATH=/usr/bin", "DOAS_USER=alice")
+			sockets(f, tt.sshd, "socket:[7001]", "socket:[7002]")
+			f.AddFile(fmt.Sprintf("/proc/%d/net/tcp", tt.sshd), []byte(tcpTable(tt.line)), 0o444, 0, 0)
+			s, err := ReadSession(ctx, f, noEnv, 4000)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, err = Confirm(ctx, f, s, testOptions(c, nil))
+			if !errors.Is(err, tt.want) || (tt.want == nil) != (err == nil) {
+				t.Fatalf("Confirm from %+v = %v; want %v", s, err, tt.want)
 			}
 		})
 	}

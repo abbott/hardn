@@ -302,12 +302,12 @@ func TestRevertAbandonCommand(t *testing.T) {
 		args []string
 		exit int
 		says string
-		host bool // whether the host is reached at all
+		host bool // whether the host is reached at all (changed, never)
 	}{
 		{"while it runs", 0, []string{"rollback", "--abandon", revertTestID}, 1,
 			"process 7000 is rolling it back now (started 2026-10-18 12:00:00 UTC); wait for it to end", true},
 		{"as alice", 1000, []string{"rollback", "--abandon", revertTestID}, 1,
-			"hardn rollback --abandon must be run as root", false},
+			"hardn rollback --abandon must be run as root: sudo hardn rollback --abandon", true}, // looks for doas, writes nothing
 		{"with -n", 0, []string{"rollback", "--abandon", "-n", revertTestID}, 2,
 			"-n only previews, and hardn rollback --abandon changes the host: run it without -n", false},
 		{"another change", 0, []string{"rollback", "--abandon", "20261018T130000Z-5e6f7a8b"}, 1,
@@ -692,5 +692,44 @@ func TestRevertColour(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+// TestHostsToolInCommandWords: on a doas host, hardn confirm's refusal to
+// another user and the root check say doas (found on the Alpine 3.23 VM,
+// 2026-10-30); elsewhere they say sudo.
+func TestHostsToolInCommandWords(t *testing.T) {
+	s := newRevertSeams(t, 1000)
+	if got := rootHint(); got != "Run `sudo hardn` or switch to root `sudo -i`" {
+		t.Errorf("rootHint = %q", got)
+	}
+	if out := s.output(t, "confirm"); !strings.Contains(out, "hardn confirm must be run as root: sudo hardn confirm") {
+		t.Errorf("no doas:\n%s", out)
+	}
+	s.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+	if got := rootHint(); got != "Run `doas hardn` or switch to root `su`" {
+		t.Errorf("rootHint = %q", got)
+	}
+	if out := s.output(t, "confirm"); !strings.Contains(out, "hardn confirm must be run as root: doas hardn confirm") {
+		t.Errorf("doas:\n%s", out)
+	}
+	s.f.AddFile("/usr/bin/sudo", []byte("ELF"), 0o755, 0, 0)
+	if got := revertElevate(); got != "sudo" {
+		t.Errorf("sudo and doas: %q", got)
+	}
+}
+
+// TestConfirmOneCommandCommand: `ssh host "doas hardn confirm"`, from a new
+// connection: nothing above hardn holds SSH_CONNECTION, and hardn reads the
+// connection from the kernel, through the seams hardn confirm runs on.
+func TestConfirmOneCommandCommand(t *testing.T) {
+	s := newRevertSeams(t, 0)
+	s.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+	revertProc(s.f, 4000, 4100, "hardn", "DOAS_USER=alice")
+	s.f.AddSymlink("/proc/4100/fd/3", "socket:[7001]")
+	s.f.AddFile("/proc/4100/net/tcp", []byte("  sl  local_address rem_address   st tx_queue rx_queue tr tm->when retrnsmt   uid  timeout inode\n"+
+		"   0: 140200C0:08B6 0A0200C0:C3CB 01 00000000:00000000 00:00000000 00000000 0 0 7001 1 0000000000000000 20 4 0 10 -1\n"), 0o444, 0, 0)
+	if out := s.output(t, "confirm"); !strings.Contains(out, "confirmed") || s.has(revert.DefaultDir+"/"+revert.PendingName) {
+		t.Errorf("exit %d:\n%s", s.exit, out)
 	}
 }
