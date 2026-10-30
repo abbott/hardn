@@ -29,10 +29,6 @@ configure_sudo                    debian   2            0                 0
 configure_sudo                    ubuntu   2            0                 0
 configure_sudo                    alpine   3            0                 0
 configure_sudo                    proxmox  2            0                 0
-setup_sudo_preservation           debian   2            0                 0
-setup_sudo_preservation           ubuntu   2            0                 0
-setup_sudo_preservation           alpine   2            0                 0
-setup_sudo_preservation           proxmox  2            0                 0
 dns_systemd_resolved              debian   1            0                 0
 dns_systemd_resolved              ubuntu   1            0                 0
 dns_systemd_resolved              alpine   1            0                 0

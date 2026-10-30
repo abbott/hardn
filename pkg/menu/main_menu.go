@@ -47,6 +47,9 @@ type MainMenu struct {
 	// backup runs the Backup item (SetBackup).
 	backup func() error
 
+	// environment runs the Environment item (SetEnvironment).
+	environment func() error
+
 	// status reads the host block, risk level and status rows (SetStatus).
 	status func(ctx context.Context) (screen.MainMenu, error)
 
@@ -144,8 +147,23 @@ func (m *MainMenu) showBackup() error {
 	return showScreen(m.backup, "menu: the Backup item has no screen (SetBackup)")
 }
 
+// SetEnvironment sets what the Environment item (8) runs: the Environment
+// screen (pkg/screens/environment) on the plan/apply engine, which
+// cmd/hardn assembles, as SetDNS and SetBackup set theirs (refactor plan
+// slice 9, unit (d)). It returns as SetDNS's does. The screen reads and
+// saves no setting of hardn.yml, so the main menu's configuration is as it
+// was. A main menu whose Environment item is chosen without one set
+// panics: cmd/hardn sets it on the one main menu it builds.
+func (m *MainMenu) SetEnvironment(run func() error) { m.environment = run }
+
+// showEnvironment is the Environment item's action: the Environment screen
+// (showScreen).
+func (m *MainMenu) showEnvironment() error {
+	return showScreen(m.environment, "menu: the Environment item has no screen (SetEnvironment)")
+}
+
 // showScreen runs an item's screen that cmd/hardn sets (SetDNS,
-// SetBackup) from a cleared screen, as every item's screen starts, and
+// SetBackup, SetEnvironment) from a cleared screen, as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
 // from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
@@ -677,21 +695,20 @@ type handled struct{ handler interface{ Handle() } }
 func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open: origin/main's screens,
-// but the DNS and Backup items', which are the hooks cmd/hardn sets
-// (SetDNS, SetBackup).
+// but the DNS, Backup and Environment items', which are the hooks
+// cmd/hardn sets (SetDNS, SetBackup, SetEnvironment).
 type screens struct {
-	users, sshLogin, firewall, runAll, environment, systemDetails, logs func(m *MainMenu) legacyScreen
+	users, sshLogin, firewall, runAll, systemDetails, logs func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
 // handleMenuChoice built it, the same constructor with the same
 // arguments.
 var legacyScreens = screens{
-	users:       func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
-	sshLogin:    func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
-	firewall:    func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
-	runAll:      func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
-	environment: func(m *MainMenu) legacyScreen { return NewEnvironmentSettingsMenu(m.menuManager, m.config) },
+	users:    func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
+	sshLogin: func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
+	firewall: func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
+	runAll:   func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 	systemDetails: func(m *MainMenu) legacyScreen {
 		return NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
 	},
@@ -704,10 +721,12 @@ var legacyScreens = screens{
 var openScreen = func(s legacyScreen) { s.Show() }
 
 // mainMenu is the main menu's items, origin/main's unchanged in content,
-// labels, keys and descriptions, item 1's parenthesis its aside, each
-// bound to the screen it opened (legacyScreens, and the DNS and Backup
-// screens, showDNS and showBackup); its Exit item "0) Exit", "q to
-// quit" (DEV-030). Item 6,
+// labels, keys and descriptions, but item 8's description, "Keep
+// HARDN_CONFIG" where origin/main's said "Configure environment variable"
+// (refactor plan slice 9, decision 7 (a), P-07 (c)); item 1's parenthesis
+// its aside; each bound to the screen it opened (legacyScreens, and the
+// DNS, Backup and Environment screens, showDNS, showBackup and
+// showEnvironment); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
 // Dry-Run, is removed and its key left unused (slice 2b, unit (d);
 // decision 1): 6 is refused as any key no item has, 7 to 10 keep their
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
@@ -716,9 +735,10 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // set it, User Management (1), which changes the host and saves
 // ./hardn.yml whatever the mode, is refused under the prompt before its
 // screen is built, "Not available in plan only.", as a key no item has is
-// refused (decision 6); live, it opens as before. Backup (5) opens either
-// way: its screen stops each change at its plan under plan only (slice 3,
-// decision 10).
+// refused (decision 6); live, it opens as before. Backup (5) and
+// Environment (8) open either way: their screens stop each change at its
+// plan under plan only (slice 3, decision 10; slice 9,
+// gallery-environment.md §5, Made here).
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
 	open := func(build func(*MainMenu) legacyScreen) func() error {
@@ -744,7 +764,7 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: item("4", "Firewall", "Configure UFW rules"), Action: open(s.firewall)},
 			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
-			{Item: item("8", "Environment", "Configure environment variable"), Action: open(s.environment)},
+			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: m.showEnvironment},
 			{Item: item("9", "System Details", "View system information"), Action: open(s.systemDetails)},
 			{Item: item("10", "Logs", "View log file"), Action: open(s.logs)},
 		},

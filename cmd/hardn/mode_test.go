@@ -31,7 +31,6 @@ type hardnYML struct {
 func newHardnYML(t *testing.T, dryRun string) hardnYML {
 	t.Helper()
 	t.Setenv("HOME", t.TempDir()) // the loader's default location, should a search reach it
-	t.Setenv("SUDO_UID", "")      // config.DetectEnvVarLoss runs su when it is set
 	dir := t.TempDir()
 	y := hardnYML{dryRun: dryRun, logFile: filepath.Join(dir, "hardn.log")}
 	if dryRun == "" {
@@ -130,7 +129,9 @@ func TestDryRunPrecedence(t *testing.T) {
 }
 
 // TestPlanOnlyRefusesOperations: decision 9, each operation flag under each
-// source. hardn.yml's dryRun: true, no -n/--dry-run given, refuses it as -n
+// source (operationRuns: -g, -e and setup-sudo-env show their plans
+// instead, TestConfigureDNSFlagPlanOnlyFromFile and
+// TestKeepEnvironmentPlanOnlyFromFile). hardn.yml's dryRun: true, no -n/--dry-run given, refuses it as -n
 // does, exit status 2 before the root check, nothing run, naming the file
 // and --dry-run=false; -n refuses it whatever the file says; and it runs
 // live with no file, under dryRun: false, and under --dry-run=false over

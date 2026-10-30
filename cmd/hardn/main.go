@@ -97,7 +97,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
-	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Configure sudoers to preserve HARDN_CONFIG environment variable")
+	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, version.UpdateFlagUsage("Enable debugging for update checks"))
 	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, version.UpdateFlagUsage("Force update notification for testing"))
@@ -197,9 +197,9 @@ var rootCmd = &cobra.Command{
 			!installAll && !configureUfw && !configureDns && !runAll &&
 			!updateSources && !printLogs && !setupSudoEnv {
 
-			// Create menu factory and main menu; its DNS and Backup items and its status: dns.go, backup.go, status.go
+			// Create menu factory and main menu; its DNS, Backup and Environment items and its status: hooks.go
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			mainMenu := withStatus(withBackupScreen(withDNSScreen(menuFactory.CreateMainMenu(versionService), cfg), cfg), cfg, Version)
+			mainMenu := withHooks(menuFactory.CreateMainMenu(versionService), cfg, Version)
 
 			// Handle test flags
 			if testUpdateAvailable {
@@ -237,7 +237,7 @@ var rootCmd = &cobra.Command{
 		packageManager := serviceFactory.CreatePackageManager()
 		userManager := serviceFactory.CreateUserManager()
 		menuManager := serviceFactory.CreateMenuManager()
-		environmentManager := serviceFactory.CreateEnvironmentManager()
+		// (-e needs no manager: it plans and applies the Environment control, environment.go)
 
 		// Handle a complete system hardening request
 		if runAll {
@@ -404,12 +404,12 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		// Configure DNS: the DNS control through the engine, with no
-		// question (dns.go). A refusal or a failure is hardn's exit
-		// status, once the flags after it have run (V25).
+		// Configure DNS: the DNS control through the engine, with no question (dns.go).
+		// A refusal or a failure is hardn's exit status, once the flags after it have run (V25).
+		dnsStatus := 0 // what -e's status yields to (runStatus)
 		if configureDns {
-			if code := configureDNS(cfg); code != 0 {
-				defer exit(code)
+			if dnsStatus = configureDNS(cfg); dnsStatus != 0 {
+				defer exit(dnsStatus)
 			}
 		}
 
@@ -418,13 +418,14 @@ var rootCmd = &cobra.Command{
 			logging.PrintLogs(cfg.LogFile)
 		}
 
-		// Setting up sudo environment preservation
+		// Keep HARDN_CONFIG: the Environment control through the engine,
+		// with no question (environment.go). A refusal, a lockout-risk
+		// plan's among them, or a failure is hardn's exit status at once;
+		// a plan with changes to make (3) yields to -g's refusal or failure.
 		if setupSudoEnv {
-			if err := environmentManager.SetupSudoPreservation(); err != nil {
-				logging.LogError("Failed to configure sudoers: %v", err)
-				exit(1)
+			if code := keepEnvironment(cfg); code != 0 {
+				exit(runStatus(dnsStatus, code))
 			}
-			logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 			return
 		}
 
@@ -438,9 +439,8 @@ var rootCmd = &cobra.Command{
 
 var setupSudoEnvCmd = &cobra.Command{
 	Use:   "setup-sudo-env",
-	Short: "Configure sudo to preserve HARDN_CONFIG environment variable",
-	Long: `This command adds a configuration to /etc/sudoers.d/ to ensure that 
-the HARDN_CONFIG environment variable is preserved when using sudo with hardn.
+	Short: "Keep HARDN_CONFIG under sudo or doas",
+	Long: `Keeps HARDN_CONFIG for the user who runs sudo hardn (or doas hardn), in hardn's own rule.
 This allows you to consistently use a custom configuration file location across
 all commands, even when requiring elevated privileges.
 
@@ -448,39 +448,40 @@ This command must be run with sudo privileges.
 
 Example:
   sudo hardn setup-sudo-env`,
+	// What -e does (keepEnvironment), after the root command's root check
+	// and hardn.yml's load (loadExisting: none found is the defaults, with
+	// no offer to create one, which -n would let write), whose backup
+	// settings the engine takes and whose dryRun, or -n, makes it the plan
+	// alone (refactor plan slice 9,
+	// unit (d); gallery-environment.md §5, Made here, adopted 2026-10-29).
 	Run: func(cmd *cobra.Command, args []string) {
-		// -n only previews: refuse before anything runs (V1), and so does
-		// hardn.yml's dryRun: true, -n/--dry-run not given (decision 9).
-		operations := []string{hardncmd.CommandSetupSudoEnv}
-		if refuseDryRunOperations(operations) || refuseConfigDryRunOperations(cmd, operations) {
+		if checkRoot() != nil {
 			return
 		}
-
-		// Detect OS
-		osInfo, err := detectOS()
-		if err != nil {
-			logging.LogError("Failed to detect OS: %v", err)
+		var err error
+		if cfg, err = loadExisting(configFile); err != nil {
+			logging.LogError("Failed to load configuration: %v", err)
 			exit(1)
+			return
 		}
-
-		// Create service factory
-		serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
-		environmentManager := serviceFactory.CreateEnvironmentManager()
-
-		if err := environmentManager.SetupSudoPreservation(); err != nil {
-			logging.LogError("Failed to configure sudoers: %v", err)
-			exit(1)
+		warnDeprecations(cfg)
+		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
+		if code := keepEnvironment(cfg); code != 0 {
+			exit(code)
 		}
-		logging.LogSuccess("Sudo environment configured to preserve HARDN_CONFIG")
 	},
 }
 
 // The steps of the commands' Run functions that reach the host outside the
 // provider, and the process exit. cmd/hardn's tests replace them, so that a
 // test never reads this machine's user, config or OS, and never exits.
+// loadExisting is setup-sudo-env's load: hardn.yml where one is found, the
+// defaults where none is, never the offer to create one (config.LoadExisting;
+// refactor plan slice 9, unit (d)).
 var (
 	lookupCurrentUser           = osuser.Current
 	loadConfig                  = config.LoadConfig
+	loadExisting                = config.LoadExisting
 	fileDryRun                  = config.FileDryRun
 	detectOS                    = osdetect.DetectOS
 	exit                        = os.Exit
@@ -488,9 +489,11 @@ var (
 )
 
 // operationFlags names the operation flags set on the command line that
-// -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
-// whose dry run is the DNS control's plan, shown with nothing written
-// (refactor plan slice 2, unit (d); the maintainer, 2026-10-23).
+// -n refuses: the flags that change the host (pkg/cmd lists them), but -g
+// and -e, whose dry runs are the DNS and Environment controls' plans,
+// shown with nothing written (refactor plan slice 2, unit (d); the
+// maintainer, 2026-10-23; slice 9, unit (d), gallery-environment.md §5,
+// Made here, adopted 2026-10-29).
 func operationFlags() []string {
 	var names []string
 	for _, f := range []struct {
@@ -501,7 +504,6 @@ func operationFlags() []string {
 		{createUser, hardncmd.FlagCreateUser},
 		{disableRootSSH, hardncmd.FlagDisableRoot},
 		{configureUfw, hardncmd.FlagConfigureUFW},
-		{setupSudoEnv, hardncmd.FlagSetupSudoEnv},
 		{installLinux, hardncmd.FlagInstallLinux},
 		{installPython, hardncmd.FlagInstallPython},
 		{installAll, hardncmd.FlagInstallAll},

@@ -33,8 +33,8 @@ const (
 	// doasConf is Alpine's stock /etc/doas.conf, its rule commented out.
 	doasConf = "# see doas.conf(5) for configuration details\n\n# permit persist :wheel\n"
 	// legacyLines are origin/main's /etc/sudoers.d/<user> once both of
-	// its writers ran (pkg/characterization's
-	// ops/setup_sudo_preservation/debian.golden, step 9).
+	// its writers ran (ops/setup_sudo_preservation/debian.golden, step 9,
+	// frozen in pkg/screens/environment/testdata/legacy).
 	legacyLines = "alice ALL=(ALL) NOPASSWD: ALL\nDefaults:alice env_keep += \"HARDN_CONFIG\"\n"
 	keptValue   = "/home/alice/hardn.yml"
 )

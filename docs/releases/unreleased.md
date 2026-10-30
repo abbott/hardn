@@ -8,14 +8,14 @@
 
 - **`dryRun` in hardn.yml is now read.** It was ignored: `hardn` ran live whatever the file said. `dryRun: true` now starts `hardn` in plan only, as `-n` does: changes are shown, not applied.
 - **`-n` and `dryRun` both mean plan only.** A flag given wins: `-n` turns it on, `--dry-run=false` turns it off, whatever the file says.
-- **Operation flags are refused under plan only**, from `-n` or from the file: `-r`, `-c`, `-d`, `-w`, `-e` and `setup-sudo-env` exit with status 2 and change nothing. `-g` shows its plan instead, and exits 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
-- **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -g` now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
+- **Operation flags are refused under plan only**, from `-n` or from the file: `-r`, `-c`, `-d` and `-w` exit with status 2 and change nothing. `-g`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
+- **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -g`, or `-e` or `setup-sudo-env` through sudo, now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
 - **The menu no longer saves the mode.** Its saves write `dryRun` as the file had it.
 - **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
 - **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only.
 - **Run All no longer turns dry run on or off.** Its option 2 is removed: Run All runs in the mode `hardn` started in.
 - **Under plan only, some menu areas are refused.** User Management, and adding or removing a Firewall profile, say "Not available in plan only." They used to apply their changes even under `-n`.
-- **Under plan only, Backup opens.** Each of its changes stops at its plan, and it writes nothing.
+- **Under plan only, Backup and Environment open.** Each of their changes stops at its plan, and they write nothing.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
@@ -33,6 +33,21 @@ See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 - **`-g` interrupted stops the flags after it**, and exits 130 if its change applied.
 
 See [docs/configuration.md](../configuration.md), "`enableBackups` and `backupPath`: the Backup screen".
+
+## Changed: Environment
+
+- **Main menu 8 says "Keep HARDN_CONFIG"**, where it said "Configure environment variable".
+- **Environment (8) keeps `HARDN_CONFIG` in hardn's own file**, `/etc/sudoers.d/hardn-env-<user>`. It used to add the line to `/etc/sudoers.d/<user>`, which hardn's next sudo change for that user overwrote.
+- **An earlier hardn's line is read, and left.** `/etc/sudoers.d/<user>` keeping `HARDN_CONFIG` shows as kept by that file.
+- **Both ways.** Once hardn's file keeps it, Environment offers to stop keeping it.
+- **doas on Alpine.** hardn changes only a doas rule of its own for the user, which this release does not write. Without one, it says to add `setenv { HARDN_CONFIG }` to the rule that lets the user use doas, and changes nothing.
+- **A root login is refused**: there is no user to keep it for. It used to write `Defaults:root`.
+- **No more `/tmp/hardn_sudoers_temp`.** A file or link there no longer stops the change, or is written through. The change is backed up first, and rolled back if it fails.
+- **`-e` and `setup-sudo-env` do the same without asking you to confirm**, and exit 1 when refused. A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan and make no change; they used to make it anyway.
+- **`setup-sudo-env` needs root**, as `hardn` does, and reads hardn.yml where there is one, asking nothing where there is none. With none found, `-e` first asks to create one, as `hardn` does at any start, with `-n` too.
+- **No notice under sudo.** At each start hardn no longer runs your login shell through `su -` to look for `HARDN_CONFIG`. Environment (8) says whether it is kept.
+
+See [docs/configuration.md](../configuration.md), "Using with sudo or doas".
 
 ## Changed: the main menu
 

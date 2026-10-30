@@ -31,14 +31,17 @@ import (
 // only reports, a container, an empty list, a fact not established, ...)
 // is reported with its code and how to go on, and not applied.
 func configureDNS(c *config.Config) int {
-	return runControls(c, dnsctl.Controls(c))
+	return runControls(c, dnsctl.Controls(c), nil)
 }
 
 // runControls runs an operation flag's controls on the plan/apply engine:
 // planned over the configuration c with engineOptions, then applied
 // without a question, unless the plan is refused or c.DryRun (-n) asks
-// for the plan alone; its report on stdout (output.Human). A failed apply
-// is rolled back. The apply alone runs under engineSignals: Ctrl-C,
+// for the plan alone; its report on stdout (output.Human). refuse, when
+// not nil, is the flag's own refusal of a plan the engine made (-e's of a
+// lockout-risk plan, environment.go): an error from it is the run's, the
+// plan shown with it and not applied, under -n too, so that the plan
+// alone says what the flag would do. A failed apply is rolled back. The apply alone runs under engineSignals: Ctrl-C,
 // SIGTERM and a hangup during it cancel it, rolled back, and end hardn
 // at once with 130, once reported; before it they end hardn as they
 // always have, a plan having written nothing. One that reaches the apply
@@ -57,7 +60,7 @@ func configureDNS(c *config.Config) int {
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
 // or nothing to change, 3 for a dry run with changes to make, 1 for a
 // refusal or a failure.
-func runControls(c *config.Config, controls []engine.Control) int {
+func runControls(c *config.Config, controls []engine.Control, refuse func(*engine.Plan) error) int {
 	ctx := context.Background()
 	sys := engineHost()
 	e := engine.New(sys, engineOptions(ctx, sys, c))
@@ -66,6 +69,9 @@ func runControls(c *config.Config, controls []engine.Control) int {
 		run.Mode = output.ModePlan
 	}
 	run.Plan, run.Err = e.Plan(ctx, controls, c)
+	if refuse != nil && run.Err == nil && run.Plan != nil {
+		run.Err = refuse(run.Plan)
+	}
 	actx := ctx // a signal's, around the apply and its report alone
 	hungUp := func() bool { return false }
 	if run.Mode == output.ModeApply && run.Err == nil && run.Plan.Err() == nil {

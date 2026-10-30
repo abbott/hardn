@@ -11,10 +11,11 @@ import (
 )
 
 // origin/main's /etc/sudoers.d/alice, as its characterization goldens
-// hold it (pkg/characterization/testdata/golden): its grant
-// (ops/configure_sudo), its env_keep line alone (environment/keep_new),
-// both (ops/setup_sudo_preservation/debian), and the line commented out
-// (environment/keep_commented).
+// hold it (pkg/characterization/testdata/golden, the Environment ones
+// frozen in pkg/screens/environment/testdata/legacy since
+// next/s9-replace): its grant (ops/configure_sudo), its env_keep line
+// alone (environment/keep_new), both (ops/setup_sudo_preservation/debian),
+// and the line commented out (environment/keep_commented).
 const (
 	legacyGrant     = "alice ALL=(ALL) NOPASSWD: ALL\n"
 	legacyLine      = "Defaults:alice env_keep += \"HARDN_CONFIG\"\n"

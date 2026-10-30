@@ -46,18 +46,23 @@ If no configuration file exists and you decline, `hardn` will create one at `/et
 
 You can set the `HARDN_CONFIG` environment variable to specify a configuration file location. This is particularly useful in automation scripts or when you want to maintain multiple configurations.
 
-### Using with sudo
+### Using with sudo or doas
 
-When using `sudo`, environment variables are typically not preserved. To preserve the `HARDN_CONFIG` environment variable when using `sudo`, use the `setup-sudo-env` command which does the following:
+`sudo` and `doas` drop most environment variables, `HARDN_CONFIG` among them. The main menu's Environment (8) keeps it for the user who ran `sudo hardn`, or `doas hardn`, and shows whether it is kept. `sudo hardn setup-sudo-env`, or `sudo hardn -e`, keeps it without asking you to confirm.
 
-1. Create a file in `/etc/sudoers.d/` for your user
-2. Add a configuration line to preserve the `HARDN_CONFIG` environment variable
-3. Set the correct permissions on the file
+- **hardn writes only its own file**, `/etc/sudoers.d/hardn-env-<user>` (on doas, its rule `/etc/doas.d/hardn-<user>.conf`), and leaves the others as they are.
+- **An earlier hardn's line is read.** `env_keep += "HARDN_CONFIG"` in `/etc/sudoers.d/<user>` shows as kept by that file. hardn leaves the file as it is.
+- **Both ways.** Once hardn's file keeps it, Environment offers to stop keeping it.
+- **doas needs a rule of hardn's for you**, which this release does not write. Without one, hardn says to add `setenv { HARDN_CONFIG }` to the rule that lets you use doas, and changes nothing.
+- **A root login is refused.** Run `sudo hardn` as the user to keep it for.
+- **`-e` and `setup-sudo-env` apply without asking you to confirm.** A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan, and the change is not made.
+- **With no hardn.yml found,** `setup-sudo-env` goes on with the defaults and asks nothing. `-e` first asks to create one, as `hardn` does at any start, with `-n` too; answer `n` to go on without one.
+- **It takes effect at the next `sudo hardn`.**
 
 #### Workflow example
 
 ```bash
-# Set up sudo to preserve HARDN_CONFIG (only needs to be done once)
+# Keep HARDN_CONFIG under sudo (only needs to be done once)
 sudo hardn setup-sudo-env
 
 # Set your preferred config location for your current session
@@ -134,9 +139,9 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 `dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
 
 - **Some menu areas are refused.** User Management, and adding or removing a Firewall profile, say "Not available in plan only." Start without plan only to use them.
-- **Backup opens.** Each of its changes stops at its plan.
+- **Backup and Environment open.** Each of their changes stops at its plan.
 - **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
-- **Operation flags are refused** under plan only, as with `-n`: `hardn -r`, `-c`, `-d`, `-w`, `-e` and `setup-sudo-env` exit with status 2 and change nothing. `-g` shows its plan instead, and exits 3 when there are changes. To apply, add `--dry-run=false`.
+- **Operation flags are refused** under plan only, as with `-n`: `hardn -r`, `-c`, `-d` and `-w` exit with status 2 and change nothing. `-g`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
@@ -234,7 +239,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    dryRun: true      # plan only at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused and `-g` only shows its plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-g`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml

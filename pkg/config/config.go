@@ -3,8 +3,8 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -307,54 +307,14 @@ func readConfigFile(path string) (*Config, error) {
 	return config, nil
 }
 
-// DetectEnvVarLoss checks if the HARDN_CONFIG environment variable
-// is present in the original environment but lost in the sudo environment
-func DetectEnvVarLoss() bool {
-	// Check if we're running under sudo
-	sudoUID := os.Getenv("SUDO_UID")
-	if sudoUID == "" {
-		// Not running under sudo
-		return false
-	}
-
-	// Check if HARDN_CONFIG is in the current environment
-	if os.Getenv("HARDN_CONFIG") != "" {
-		// We have the variable, no loss detected
-		return false
-	}
-
-	// Check if the variable was in the original environment
-	// This requires the SUDO_USER environment variable to be set
-	sudoUser := os.Getenv("SUDO_USER")
-	if sudoUser == "" {
-		return false
-	}
-
-	// Try to check the user's environment
-	// This is a simplified approach - a complete solution would
-	// need to parse the user's shell profile which is complex
-	cmd := exec.Command("su", "-", sudoUser, "-c", "echo $HARDN_CONFIG")
-	output, err := cmd.Output()
-	if err != nil {
-		// Couldn't check, assume no loss
-		return false
-	}
-
-	// If we get a non-empty value, the variable exists in the user's environment
-	return len(strings.TrimSpace(string(output))) > 0
-}
-
-// Replace the LoadConfig function with this implementation
+// LoadConfig loads hardn's configuration as LoadConfigWithEnvPriority
+// finds it (-f, HARDN_CONFIG, then the search path), its LogsConfig set
+// from its logFile. It runs nothing: origin/main's su - probe of the sudo
+// user's login shell for HARDN_CONFIG, and the notice after it, are gone
+// (refactor plan slice 9, unit (d), decision 4; side-effects row 5): the
+// Environment screen's state row says whether sudo, or doas, keeps
+// HARDN_CONFIG, read from hardn's files (pkg/screens/environment).
 func LoadConfig(filePath string) (*Config, error) {
-	// Check for environment variable loss
-	if DetectEnvVarLoss() {
-		fmt.Println("\nNOTICE: The HARDN_CONFIG environment variable is set in your user environment")
-		fmt.Println("but is not preserved when using sudo. To fix this, run:")
-		fmt.Println("  sudo hardn setup-sudo-env")
-		fmt.Println("Then run your command again.")
-		fmt.Println()
-	}
-
 	cfg, err := LoadConfigWithEnvPriority(filePath)
 	if err != nil {
 		return nil, err
@@ -363,6 +323,33 @@ func LoadConfig(filePath string) (*Config, error) {
 	// Initialize LogsConfig
 	cfg.LogsConfig.LogFilePath = cfg.LogFile
 
+	return cfg, nil
+}
+
+// LoadExisting loads hardn's configuration as LoadConfig does where a file
+// is found (-f, HARDN_CONFIG, then the search path), and is the defaults
+// where none is: it never offers to create one, and so writes nothing. A
+// file -f or HARDN_CONFIG names that is not there is an error wrapping
+// fs.ErrNotExist, as FindConfigFile does not look elsewhere for it.
+// setup-sudo-env's (refactor plan slice 9, unit (d)): the command keeps
+// HARDN_CONFIG, so root finding no file is its usual case, and under -n it
+// writes nothing (gallery-environment.md §5, Made here, adopted
+// 2026-10-29).
+func LoadExisting(filePath string) (*Config, error) {
+	cfg := DefaultConfig()
+	path, found := FindConfigFile(filePath)
+	switch {
+	case found:
+		var err error
+		if cfg, err = readConfigFile(path); err != nil {
+			return nil, err
+		}
+	case filePath != "":
+		return nil, fmt.Errorf("config: %s (-f): %w", filePath, fs.ErrNotExist)
+	case os.Getenv("HARDN_CONFIG") != "":
+		return nil, fmt.Errorf("config: %s (HARDN_CONFIG): %w", os.Getenv("HARDN_CONFIG"), fs.ErrNotExist)
+	}
+	cfg.LogsConfig.LogFilePath = cfg.LogFile
 	return cfg, nil
 }
 

@@ -11,11 +11,7 @@ import (
 	"testing/iotest"
 	"time"
 
-	"github.com/abbott/hardn/pkg/adapter/secondary"
-	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/domain/service"
-	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
@@ -267,17 +263,15 @@ func TestAbort(t *testing.T) {
 	})
 }
 
-// newEnvironmentMenu builds the Environment screen on the repo's mock
-// file system and commander: nothing is read from or run on this host.
-func newEnvironmentMenu(t *testing.T) *EnvironmentSettingsMenu {
-	t.Helper()
-	t.Setenv("HARDN_CONFIG", "")
-	t.Setenv("SUDO_USER", "")
-	t.Setenv("USER", "alice")
-	repo := secondary.NewFileEnvironmentRepository(interfaces.NewMockFileSystem(), interfaces.NewMockCommander())
-	env := application.NewEnvironmentManager(service.NewEnvironmentServiceImpl(repo))
-	mm := application.NewMenuManager(nil, nil, nil, nil, nil, nil, env, nil, nil)
-	return NewEnvironmentSettingsMenu(mm, config.DefaultConfig())
+// profilesInPlanOnly is the Firewall menu's application profiles screen
+// under plan only, on hardn's defaults, which has no profile: its add
+// refused with a pause, as a choice it does not take is; nothing is read
+// from or run on this host, nothing saved. (The Environment screen served
+// here until refactor plan slice 9's unit (d) deleted it.)
+func profilesInPlanOnly() func() {
+	cfg := config.DefaultConfig()
+	cfg.DryRun = true
+	return NewFirewallMenu(nil, cfg, nil).manageAppProfiles
 }
 
 // TestScreens drives legacy screens with scripted stdin: each pause waits
@@ -300,9 +294,9 @@ func TestScreens(t *testing.T) {
 			pauses: 0,
 		},
 		{
-			name: "environment: guide, an invalid choice, q", script: "2\n\nx\n\nq\n",
-			run:    func(t *testing.T) { newEnvironmentMenu(t).Show() },
-			want:   []string{"Environment Variable Settings", "Environment Variables Guide", pause, "Invalid option. Please try again.", pause},
+			name: "firewall profiles: a refusal, an invalid choice, q", script: "1\n\nx\n\nq\n",
+			run:    func(*testing.T) { profilesInPlanOnly()() },
+			want:   []string{"Manage UFW Application Profiles", "Not available in plan only.", pause, "Invalid option. Please try again.", pause},
 			pauses: 2,
 		},
 	}
@@ -334,14 +328,14 @@ func TestScreens(t *testing.T) {
 		})
 	}
 	t.Run("the end of the input at a pause ends hardn there", func(t *testing.T) {
-		scripted(t, "2\n")
-		m := newEnvironmentMenu(t)
-		out, code, ended := session(t, func() { m.Show() })
+		scripted(t, "x\n")
+		show := profilesInPlanOnly()
+		out, code, ended := session(t, show)
 		if !ended || code != prompt.ExitInterrupted {
 			t.Fatalf("ended %v with %d, want exit status %d", ended, code, prompt.ExitInterrupted)
 		}
-		if !strings.HasSuffix(out, pause+"\n") || strings.Count(out, "Environment Variable Settings") != 1 {
-			t.Errorf("want the guide's pause last, and the menu not drawn again:\n%s", out)
+		if !strings.HasSuffix(out, pause+"\n") || strings.Count(out, "Manage UFW Application Profiles") != 1 {
+			t.Errorf("want the invalid choice's pause last, and the screen not drawn again:\n%s", out)
 		}
 	})
 }

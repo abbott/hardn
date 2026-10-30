@@ -10,9 +10,9 @@
 // the review, y/N, or the hostname typed for a lockout-risk plan, the
 // apply; then the screen drawn again under the result from a fresh
 // reading. Item 2 is the guide. Run is the one entry point, which
-// cmd/hardn's main menu item 8 is to call (unit (d));
-// docs/engine/screen-environment.md has its states, its words and its
-// API.
+// cmd/hardn's main menu item 8 calls (unit (d), next/s9-replace:
+// runEnvironmentScreen); docs/engine/screen-environment.md has its
+// states, its words and its API.
 //
 // The change runs through the glue every area's screen shares
 // (pkg/screens/screenkit). The package reaches the host only through
