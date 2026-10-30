@@ -456,6 +456,8 @@ var findingCodes = []Entry{
 	finding(risk.CodeUptimeNoUpdates, "the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own)"),
 	// The users control's, for locked accounts (next/p4-locked).
 	finding(users.CodeLocked, "a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it"),
+	// The System Details form's own (slice 1, next/s1-readers).
+	finding(CodeDetailsUnreadable, "a section of the System Details report, or a fact of it, was not read: source says what; the rest was read"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

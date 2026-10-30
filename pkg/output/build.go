@@ -11,6 +11,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
+	"github.com/abbott/hardn/pkg/engine/details"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -53,6 +54,11 @@ type Run struct {
 	// from ConfigPath.
 	Deprecations []config.Deprecation
 	ConfigPath   string
+	// Details is the System Details report, for that form's document alone
+	// (ModeCheck, no Reports): Document.Details and its findings. Hostname and
+	// Facts are the caller's, as for every document. No flag reaches it until
+	// slice 1's unit (d) (docs/reference/output.md §1.10).
+	Details *details.Report
 	// Reviewed: pkg/ui/flow's Plan step listed the plan's findings
 	// before its confirmation, as FlowEngine hands them (FlowEngine.Run),
 	// so that AfterFlow does not repeat them: each whose detail shows as
@@ -163,6 +169,11 @@ func Build(r Run) Document {
 		if res.Failed == nil && res.Backup != nil {
 			d.Result.Backup = keptOf(*res.Backup)
 		}
+	}
+	if r.Details != nil {
+		var fs []Finding
+		d.Details, fs = detailsOf(*r.Details)
+		d.Findings = append(d.Findings, fs...)
 	}
 	return d
 }
