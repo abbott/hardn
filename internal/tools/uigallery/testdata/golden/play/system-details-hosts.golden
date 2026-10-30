@@ -1,0 +1,417 @@
+# Golden file of TestPlaySystemDetailsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, read from a simulated host, by real code where there is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msome (detect, the header probe, accounts) and by the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads: no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan, no y/N, no journal. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mext4, sudo␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mext4, sudo-rs␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mext4, doas, BusyBox␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mZFS, root alone␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mZFS degraded␛[m$
+      ␛[38;2;129;134;156mPool not ONLINE␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mOne section unreadable␛[m$
+      ␛[38;2;129;134;156mMemory␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
+      ␛[38;2;129;134;156mNothing recorded␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+      ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+      ␛[38;2;129;134;156mA line each, items open them␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+      ␛[38;2;129;134;156mA line each, the rest in less␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+      ␛[38;2;129;134;156mNo file written␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+      ␛[38;2;129;134;156mA file, as root␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 6$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/unreadable␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, as debian13. /proc/meminfo cannot be read.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's GenerateSystemStatus stops at the first␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost (details.go:91-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m117); here the rest stays and the section says which.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mOS and Kernel␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS␛[m                   ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m               ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mHostname␛[m             ␛[38;2;129;134;156mweb-01␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216meth0␛[m                 ␛[38;2;129;134;156m192.0.2.20/24␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156msudo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m                ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m/␛[m                    ␛[38;2;129;134;156m/dev/vda1 ext4␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m                 ␛[38;2;129;134;156m4.2 of 38.6 GiB (11%)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mMemory␛[m               ␛[38;2;129;134;156mCan't read /proc/meminfo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh␛[m              ␛[38;2;129;134;156mRead the host again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mext4, sudo␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mext4, sudo-rs␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mext4, doas, BusyBox␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mZFS, root alone␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mZFS degraded␛[m$
+      ␛[38;2;129;134;156mPool not ONLINE␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mOne section unreadable␛[m$
+      ␛[38;2;129;134;156mMemory␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
+      ␛[38;2;129;134;156mNothing recorded␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+      ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+      ␛[38;2;129;134;156mA line each, items open them␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+      ␛[38;2;129;134;156mA line each, the rest in less␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+      ␛[38;2;129;134;156mNo file written␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+      ␛[38;2;129;134;156mA file, as root␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play system-details ------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the System Details screen proposed for slice$
+# 1, read from a simulated host, by real code where there is$
+# some (detect, the header probe, accounts) and by the gallery's$
+# stand-ins elsewhere, unit (b)'s to build. It only reads: no$
+# plan, no y/N, no journal. Nothing on this machine changes:$
+# every command and file is the fake's.$
+$
+# System Details hosts #########################################$
+$
+  Select a host$
+$
+   1) Debian 13$
+      ext4, sudo$
+   2) Ubuntu 26.04$
+      ext4, sudo-rs$
+   3) Alpine 3.23$
+      ext4, doas, BusyBox$
+   4) Proxmox VE 9$
+      ZFS, root alone$
+   5) ZFS degraded$
+      Pool not ONLINE$
+   6) One section unreadable$
+      Memory$
+   7) No last login$
+      Nothing recorded$
+   8) Many users and addresses$
+      14 users, 9 addresses$
+   9) Treatment: sections$
+      A line each, items open them$
+  10) Treatment: pager$
+      A line each, the rest in less$
+  11) Treatment: Export says how$
+      No file written$
+  12) Treatment: Export writes$
+      A file, as root$
+$
+   0) Return$
+$
+  > Enter your choice [0-12 or q]: 6$
+$
+# Info: system-details/unreadable$
+# Debian 13, as debian13. /proc/meminfo cannot be read.$
+# origin/main's GenerateSystemStatus stops at the first$
+# collector's error and the whole report is lost (details.go:91-$
+# 117); here the rest stays and the section says which.$
+$
+# System Details ###############################################$
+$
+# OS and Kernel ------------------------------------------------$
+$
+   -  OS                   Debian 13 (Trixie)$
+   -  Kernel               6.12.113+deb13-cloud-amd64$
+   -  Uptime               3 days, 5 hours, 12 minutes$
+$
+# Host and IPs -------------------------------------------------$
+$
+   -  Hostname             web-01$
+   -  eth0                 192.0.2.20/24$
+$
+# Users --------------------------------------------------------$
+$
+   -  alice                sudo$
+$
+# CPU and Load -------------------------------------------------$
+$
+   -  Model                QEMU Virtual CPU version 2.5+$
+   -  Cores                4 cores, 1 socket$
+   -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
+$
+# Disk ---------------------------------------------------------$
+$
+   -  /                    /dev/vda1 ext4$
+   -  Used                 4.2 of 38.6 GiB (11%)$
+$
+# Memory -------------------------------------------------------$
+$
+  [?] Memory               Can't read /proc/meminfo$
+$
+# Last Login ---------------------------------------------------$
+$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
+$
+  Select an option$
+$
+   1) Refresh              Read the host again$
+$
+   0) Return$
+$
+  > Enter selection [0-1 or q]: 0$
+$
+# System Details hosts #########################################$
+$
+  Select a host$
+$
+   1) Debian 13$
+      ext4, sudo$
+   2) Ubuntu 26.04$
+      ext4, sudo-rs$
+   3) Alpine 3.23$
+      ext4, doas, BusyBox$
+   4) Proxmox VE 9$
+      ZFS, root alone$
+   5) ZFS degraded$
+      Pool not ONLINE$
+   6) One section unreadable$
+      Memory$
+   7) No last login$
+      Nothing recorded$
+   8) Many users and addresses$
+      14 users, 9 addresses$
+   9) Treatment: sections$
+      A line each, items open them$
+  10) Treatment: pager$
+      A line each, the rest in less$
+  11) Treatment: Export says how$
+      No file written$
+  12) Treatment: Export writes$
+      A file, as root$
+$
+   0) Return$
+$
+  > Enter your choice [0-12 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, read from a simulated host, by real code where␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is some (detect, the header probe, accounts) and by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins elsewhere, unit (b)'s to build. It␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly reads: no plan, no y/N, no journal. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mext4, sudo␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mext4, sudo-rs␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mext4, doas, BusyBox␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mZFS, root alone␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mZFS degraded␛[m$
+      ␛[38;2;129;134;156mPool not ONLINE␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mOne section unreadable␛[m$
+      ␛[38;2;129;134;156mMemory␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
+      ␛[38;2;129;134;156mNothing recorded␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+      ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+      ␛[38;2;129;134;156mA line each, items open them␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+      ␛[38;2;129;134;156mA line each, the rest in less␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+      ␛[38;2;129;134;156mNo file written␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+      ␛[38;2;129;134;156mA file, as root␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 6$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/unreadable␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, as debian13. /proc/meminfo cannot be read.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's GenerateSystemStatus stops at the first␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(details.go:91-117); here the rest stays and the section␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays which.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mOS and Kernel␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS␛[m$
+      ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel␛[m$
+      ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m$
+      ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mHostname␛[m$
+      ␛[38;2;129;134;156mweb-01␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216meth0␛[m$
+      ␛[38;2;129;134;156m192.0.2.20/24␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156msudo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
+      ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCores␛[m$
+      ␛[38;2;129;134;156m4 cores, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
+      ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m/␛[m$
+      ␛[38;2;129;134;156m/dev/vda1 ext4␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m$
+      ␛[38;2;129;134;156m4.2 of 38.6 GiB (11%)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mMemory␛[m$
+      ␛[38;2;129;134;156mCan't read /proc/meminfo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh␛[m$
+      ␛[38;2;129;134;156mRead the host again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mext4, sudo␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mext4, sudo-rs␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mext4, doas, BusyBox␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mZFS, root alone␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mZFS degraded␛[m$
+      ␛[38;2;129;134;156mPool not ONLINE␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mOne section unreadable␛[m$
+      ␛[38;2;129;134;156mMemory␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNo last login␛[m$
+      ␛[38;2;129;134;156mNothing recorded␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMany users and addresses␛[m$
+      ␛[38;2;129;134;156m14 users, 9 addresses␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mTreatment: sections␛[m$
+      ␛[38;2;129;134;156mA line each, items open them␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mTreatment: pager␛[m$
+      ␛[38;2;129;134;156mA line each, the rest in less␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mTreatment: Export says how␛[m$
+      ␛[38;2;129;134;156mNo file written␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mTreatment: Export writes␛[m$
+      ␛[38;2;129;134;156mA file, as root␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

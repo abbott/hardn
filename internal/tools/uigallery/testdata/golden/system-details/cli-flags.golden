@@ -1,0 +1,141 @@
+# Golden file of TestSystemDetailsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-flags␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe five flags origin/main parses and ignores␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/cmd/system_details_cmd.go:38-42, the code using them␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommented out at :95-121). What they become is §3.11's: not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapproved, so this is a proposal.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mToday␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mProposed, if §3.11 is approved␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m--json␛[m$
+      ␛[38;2;129;134;156m--output json, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O json, --format json␛[m$
+      ␛[38;2;129;134;156m--output json, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m--yaml, -O yaml␛[m$
+      ␛[38;2;129;134;156mRefused, exit 2␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O text␛[m$
+      ␛[38;2;129;134;156mAccepted, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-S, --section␛[m$
+      ␛[38;2;129;134;156mRefused, exit 2␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m$
+      ␛[38;2;129;134;156mRefused: use > file␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mProposed, until §3.11 is decided␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# system-details cli-flags -------------------------------------$
+$
+# Note$
+# The five flags origin/main parses and ignores$
+# (pkg/cmd/system_details_cmd.go:38-42, the code using them$
+# commented out at :95-121). What they become is §3.11's: not$
+# approved, so this is a proposal.$
+$
+# Today --------------------------------------------------------$
+$
+   -  All five             Parsed and ignored$
+$
+# Proposed, if §3.11 is approved -------------------------------$
+$
+   -  --json$
+      --output json, with a warning$
+   -  -O json, --format json$
+      --output json, with a warning$
+   -  --yaml, -O yaml$
+      Refused, exit 2$
+   -  -O text$
+      Accepted, with a warning$
+   -  -S, --section$
+      Refused, exit 2$
+   -  -E, --export$
+      Refused: use > file$
+$
+# Proposed, until §3.11 is decided -----------------------------$
+$
+   -  All five             Parsed and ignored, as today$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-flags␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe five flags origin/main parses and ignores␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/cmd/system_details_cmd.go:38-42, the code using them␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommented out at :95-121). What they become is §3.11's:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot approved, so this is a proposal.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mToday␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m$
+      ␛[38;2;129;134;156mParsed and ignored␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mProposed, if §3.11 is approved␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m--json␛[m$
+      ␛[38;2;129;134;156m--output json, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O json, --format json␛[m$
+      ␛[38;2;129;134;156m--output json, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m--yaml, -O yaml␛[m$
+      ␛[38;2;129;134;156mRefused, exit 2␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O text␛[m$
+      ␛[38;2;129;134;156mAccepted, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-S, --section␛[m$
+      ␛[38;2;129;134;156mRefused, exit 2␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m$
+      ␛[38;2;129;134;156mRefused: use > file␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mProposed, until §3.11 is decided␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m$
+      ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details cli-flags␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe five flags origin/main parses and ignores␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/cmd/system_details_cmd.go:38-42, the code using them␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommented out at :95-121). What they become is §3.11's: not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapproved, so this is a proposal.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mToday␛[m ␛[38;2;48;52;64m--------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mProposed, if §3.11 is approved␛[m ␛[38;2;48;52;64m-------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m--json␛[m$
+      ␛[38;2;129;134;156m--output json, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O json, --format json␛[m$
+      ␛[38;2;129;134;156m--output json, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m--yaml, -O yaml␛[m$
+      ␛[38;2;129;134;156mRefused, exit 2␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O text␛[m$
+      ␛[38;2;129;134;156mAccepted, with a warning␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-S, --section␛[m$
+      ␛[38;2;129;134;156mRefused, exit 2␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m$
+      ␛[38;2;129;134;156mRefused: use > file␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mProposed, until §3.11 is decided␛[m ␛[38;2;48;52;64m-----------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
+$
+$

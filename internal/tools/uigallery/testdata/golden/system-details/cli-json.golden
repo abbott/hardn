@@ -1,0 +1,312 @@
+# Golden file of TestSystemDetailsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-json␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposal, depends on §3.11 (not approved:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcmd/hardn/output.go:4): hardn system-details --output json. On␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/output's document, not beside it: --output json is one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mflag with one contract (docs/reference/output.md), mode␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"check" already means "read, change nothing", host already␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mholds the name and OS, and wire.go's SchemaVersion comment␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlets a field be added without a new version. So the nine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfields, and one more, details, on this form alone; result␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing-to-do, exit 0.␛[m$
+$
+{$
+  "schemaVersion": 1,$
+  "hardnVersion": "0.4.0",$
+  "host": {$
+    "hostname": "web-01",$
+    "os": {$
+      "id": "debian",$
+      "versionId": "13",$
+      "codename": "trixie",$
+      "prettyName": "Debian GNU/Linux 13 (trixie)"$
+    },$
+    "platform": {$
+      "distro": "debian",$
+      "version": "13",$
+      "support": "supported"$
+    },$
+    "init": "systemd",$
+    "ssh": "ssh.service",$
+    "proxmox": {$
+      "installed": "no",$
+      "version": ""$
+    },$
+    "container": {$
+      "detected": "no",$
+      "manager": ""$
+    },$
+    "elevation": {$
+      "sudo": "yes",$
+      "sudoFlavor": "sudo",$
+      "doas": "no"$
+    }$
+  },$
+  "mode": "check",$
+  "result": {$
+    "outcome": "nothing-to-do",$
+    "exitCode": 0,$
+    "id": "",$
+    "risk": ""$
+  },$
+  "changes": [],$
+  "status": [],$
+  "findings": [],$
+  "errors": [],$
+  "details": {$
+    "kernel": "6.12.113+deb13-cloud-amd64",$
+    "uptime": "3 days, 5 hours, 12 minutes",$
+    "addresses": [$
+      {$
+        "interface": "eth0",$
+        "family": "inet",$
+        "address": "192.0.2.20/24"$
+      }$
+    ],$
+    "users": [$
+      {$
+        "name": "alice",$
+        "tool": "sudo"$
+      }$
+    ],$
+    "cpu": {$
+      "model": "QEMU Virtual CPU version 2.5+",$
+      "cores": 4,$
+      "sockets": 1,$
+      "load": [$
+        "0.12",$
+        "0.08",$
+        "0.03"$
+      ]$
+    },$
+    "disk": {$
+      "source": "/dev/vda1",$
+      "type": "ext4",$
+      "usedBytes": 4518241280,$
+      "totalBytes": 41442029568$
+    },$
+    "memory": {$
+      "usedBytes": 1258813440,$
+      "totalBytes": 4127277056$
+    },$
+    "lastLogin": {$
+      "user": "alice",$
+      "when": "Oct 20 11:42",$
+      "from": "192.0.2.10"$
+    }$
+  }$
+}$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# system-details cli-json --------------------------------------$
+$
+# Note$
+# Proposal, depends on §3.11 (not approved:$
+# cmd/hardn/output.go:4): hardn system-details --output json. On$
+# pkg/output's document, not beside it: --output json is one$
+# flag with one contract (docs/reference/output.md), mode$
+# "check" already means "read, change nothing", host already$
+# holds the name and OS, and wire.go's SchemaVersion comment$
+# lets a field be added without a new version. So the nine$
+# fields, and one more, details, on this form alone; result$
+# nothing-to-do, exit 0.$
+$
+{$
+  "schemaVersion": 1,$
+  "hardnVersion": "0.4.0",$
+  "host": {$
+    "hostname": "web-01",$
+    "os": {$
+      "id": "debian",$
+      "versionId": "13",$
+      "codename": "trixie",$
+      "prettyName": "Debian GNU/Linux 13 (trixie)"$
+    },$
+    "platform": {$
+      "distro": "debian",$
+      "version": "13",$
+      "support": "supported"$
+    },$
+    "init": "systemd",$
+    "ssh": "ssh.service",$
+    "proxmox": {$
+      "installed": "no",$
+      "version": ""$
+    },$
+    "container": {$
+      "detected": "no",$
+      "manager": ""$
+    },$
+    "elevation": {$
+      "sudo": "yes",$
+      "sudoFlavor": "sudo",$
+      "doas": "no"$
+    }$
+  },$
+  "mode": "check",$
+  "result": {$
+    "outcome": "nothing-to-do",$
+    "exitCode": 0,$
+    "id": "",$
+    "risk": ""$
+  },$
+  "changes": [],$
+  "status": [],$
+  "findings": [],$
+  "errors": [],$
+  "details": {$
+    "kernel": "6.12.113+deb13-cloud-amd64",$
+    "uptime": "3 days, 5 hours, 12 minutes",$
+    "addresses": [$
+      {$
+        "interface": "eth0",$
+        "family": "inet",$
+        "address": "192.0.2.20/24"$
+      }$
+    ],$
+    "users": [$
+      {$
+        "name": "alice",$
+        "tool": "sudo"$
+      }$
+    ],$
+    "cpu": {$
+      "model": "QEMU Virtual CPU version 2.5+",$
+      "cores": 4,$
+      "sockets": 1,$
+      "load": [$
+        "0.12",$
+        "0.08",$
+        "0.03"$
+      ]$
+    },$
+    "disk": {$
+      "source": "/dev/vda1",$
+      "type": "ext4",$
+      "usedBytes": 4518241280,$
+      "totalBytes": 41442029568$
+    },$
+    "memory": {$
+      "usedBytes": 1258813440,$
+      "totalBytes": 4127277056$
+    },$
+    "lastLogin": {$
+      "user": "alice",$
+      "when": "Oct 20 11:42",$
+      "from": "192.0.2.10"$
+    }$
+  }$
+}$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details cli-json␛[m ␛[38;2;48;52;64m--------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposal, depends on §3.11 (not approved:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcmd/hardn/output.go:4): hardn system-details --output json. On␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpkg/output's document, not beside it: --output json is one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mflag with one contract (docs/reference/output.md), mode␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"check" already means "read, change nothing", host already␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mholds the name and OS, and wire.go's SchemaVersion comment␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlets a field be added without a new version. So the nine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfields, and one more, details, on this form alone; result␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing-to-do, exit 0.␛[m$
+$
+{$
+  "schemaVersion": 1,$
+  "hardnVersion": "0.4.0",$
+  "host": {$
+    "hostname": "web-01",$
+    "os": {$
+      "id": "debian",$
+      "versionId": "13",$
+      "codename": "trixie",$
+      "prettyName": "Debian GNU/Linux 13 (trixie)"$
+    },$
+    "platform": {$
+      "distro": "debian",$
+      "version": "13",$
+      "support": "supported"$
+    },$
+    "init": "systemd",$
+    "ssh": "ssh.service",$
+    "proxmox": {$
+      "installed": "no",$
+      "version": ""$
+    },$
+    "container": {$
+      "detected": "no",$
+      "manager": ""$
+    },$
+    "elevation": {$
+      "sudo": "yes",$
+      "sudoFlavor": "sudo",$
+      "doas": "no"$
+    }$
+  },$
+  "mode": "check",$
+  "result": {$
+    "outcome": "nothing-to-do",$
+    "exitCode": 0,$
+    "id": "",$
+    "risk": ""$
+  },$
+  "changes": [],$
+  "status": [],$
+  "findings": [],$
+  "errors": [],$
+  "details": {$
+    "kernel": "6.12.113+deb13-cloud-amd64",$
+    "uptime": "3 days, 5 hours, 12 minutes",$
+    "addresses": [$
+      {$
+        "interface": "eth0",$
+        "family": "inet",$
+        "address": "192.0.2.20/24"$
+      }$
+    ],$
+    "users": [$
+      {$
+        "name": "alice",$
+        "tool": "sudo"$
+      }$
+    ],$
+    "cpu": {$
+      "model": "QEMU Virtual CPU version 2.5+",$
+      "cores": 4,$
+      "sockets": 1,$
+      "load": [$
+        "0.12",$
+        "0.08",$
+        "0.03"$
+      ]$
+    },$
+    "disk": {$
+      "source": "/dev/vda1",$
+      "type": "ext4",$
+      "usedBytes": 4518241280,$
+      "totalBytes": 41442029568$
+    },$
+    "memory": {$
+      "usedBytes": 1258813440,$
+      "totalBytes": 4127277056$
+    },$
+    "lastLogin": {$
+      "user": "alice",$
+      "when": "Oct 20 11:42",$
+      "from": "192.0.2.10"$
+    }$
+  }$
+}$
+$
+$
