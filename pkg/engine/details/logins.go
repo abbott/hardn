@@ -56,12 +56,9 @@ const (
 
 // Logins is the Last Login section: root, then each listed user.
 type Logins struct {
-	State LoginsState
-	List  []Login // nil unless LoginsRead
-	// Sources is what the blank guard found, in lslogins' order: nil where no
-	// account answered blank, so nothing asked.
-	Sources []Source
-	Unread  []Unread
+	State  LoginsState
+	List   []Login // nil unless LoginsRead
+	Unread []Unread
 }
 
 // Login is one account's answer. When is as lslogins printed it, and At the same
@@ -76,26 +73,26 @@ type Login struct {
 	At        time.Time
 }
 
-// SourceState is what the blank guard found of one of lslogins' sources.
-type SourceState uint8
+// guardState is what the blank guard found of one of lslogins' sources.
+type guardState uint8
 
 const (
-	// SourceUnread: it is there, and could not be read (Source.Err). The zero
-	// value.
-	SourceUnread SourceState = iota
-	// SourceMissing: it is not there.
-	SourceMissing
-	// SourceNoRecords: it was read and holds nothing: no bytes, or only NUL
+	// guardUnread: it is there, and could not be read (guardSource.Err). The
+	// zero value.
+	guardUnread guardState = iota
+	// guardMissing: it is not there.
+	guardMissing
+	// guardNoRecords: it was read and holds nothing: no bytes, or only NUL
 	// bytes as far as looked (recordsLook).
-	SourceNoRecords
-	// SourceRecords: it was read and holds records.
-	SourceRecords
+	guardNoRecords
+	// guardRecords: it was read and holds records.
+	guardRecords
 )
 
-// Source is one of lslogins' sources, as the blank guard read it.
-type Source struct {
+// guardSource is one of lslogins' sources, as the blank guard read it.
+type guardSource struct {
 	Path  string
-	State SourceState
+	State guardState
 	Err   error
 }
 
@@ -146,9 +143,8 @@ func readLogins(ctx context.Context, sys host.System, listed []User, limit time.
 	holds, refused := false, false
 	for _, p := range []string{WtmpFile, Lastlog2File, LastlogFile} {
 		src := readSource(ctx, sys, p)
-		s.Sources = append(s.Sources, src)
-		holds = holds || src.State == SourceRecords
-		refused = refused || src.State == SourceUnread
+		holds = holds || src.State == guardRecords
+		refused = refused || src.State == guardUnread
 	}
 	if !holds || refused {
 		for i := range s.List {
@@ -231,8 +227,8 @@ const recordsLook = 4 << 20
 // so a line is only a piece of it. A lastlog2 database holds a table once a login
 // has written one (lastlog2.c v2.41:239, CREATE TABLE in write_entry): any bytes
 // count as records [I, read; no VM has the file].
-func readSource(ctx context.Context, sys host.System, p string) Source {
-	s := Source{Path: p}
+func readSource(ctx context.Context, sys host.System, p string) guardSource {
+	s := guardSource{Path: p}
 	holds, cut := false, false
 	fi, err := sys.ScanLines(ctx, p, func(l host.Line) bool {
 		holds = holds || hasData(l.Text)
@@ -241,16 +237,16 @@ func readSource(ctx context.Context, sys host.System, p string) Source {
 	})
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
-		s.State = SourceMissing
+		s.State = guardMissing
 		return s
 	case err != nil:
 		s.Err = err
 		return s
 	case holds:
-		s.State = SourceRecords
+		s.State = guardRecords
 		return s
 	case !cut || fi.Size() > recordsLook:
-		s.State = SourceNoRecords
+		s.State = guardNoRecords
 		return s
 	}
 	data, _, err := sys.ReadFileNoFollow(ctx, p)
@@ -258,9 +254,9 @@ func readSource(ctx context.Context, sys host.System, p string) Source {
 		s.Err = err
 		return s
 	}
-	s.State = SourceNoRecords
+	s.State = guardNoRecords
 	if hasData(data) {
-		s.State = SourceRecords
+		s.State = guardRecords
 	}
 	return s
 }

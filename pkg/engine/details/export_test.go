@@ -21,5 +21,16 @@ func RunBounded(ctx context.Context, sys host.System, command, grace time.Durati
 	return boundedSystem{System: sys, bounds: bounds{command: command, grace: grace}}.Run(ctx, name, args...)
 }
 
-// ReadSource gives the tests the blank guard's read of a real file.
+// ReadSource gives the tests the blank guard's read of a source.
 var ReadSource = readSource
+
+// GuardState gives the tests what the blank guard found.
+type GuardState = guardState
+
+// The states, for the tests.
+const (
+	GuardUnread    = guardUnread
+	GuardMissing   = guardMissing
+	GuardNoRecords = guardNoRecords
+	GuardRecords   = guardRecords
+)

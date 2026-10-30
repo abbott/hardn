@@ -36,8 +36,8 @@ func wholeReport() details.Report {
 	return details.Report{
 		OS:   details.OSKernel{OS: header.OS{Name: "Debian", Version: "13", Codename: "trixie"}, Kernel: "6.12.113+deb13-cloud-amd64", Uptime: header.Uptime{Duration: 3*24*time.Hour + 5*time.Hour + 12*time.Minute, Known: true}},
 		Host: details.HostIPs{Hostname: "web-01", Addresses: []details.Address{{Interface: "eth0", Family: "inet", Address: "192.0.2.20/24"}, {Interface: "eth0", Family: "inet6", Address: "2001:db8::20/64"}}},
-		Users: details.Users{Root: detect.Yes, List: []details.User{{Name: "alice", UID: 1000, Grants: sudoYes},
-			{Name: "svc", UID: 1001, Grants: []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.No}}}}},
+		Users: details.Users{Root: detect.Yes, List: []details.User{{Name: "alice", Grants: sudoYes},
+			{Name: "svc", Grants: []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.No}}}}},
 		CPU:    details.CPU{Model: "QEMU Virtual CPU version 2.5+", CPUs: 4, Sockets: 1, Load: [3]string{"0.12", "0.08", "0.03"}},
 		Disk:   details.Disk{Source: "/dev/vda1", Type: "ext4", Used: 4518241280, Total: 41442029568, Known: true},
 		Memory: details.Memory{Total: 4080218931, Available: 2791728742, AvailableKnown: true},

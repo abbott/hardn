@@ -124,14 +124,13 @@ func parseAddress(line string) (Address, bool) {
 type Users struct {
 	List []User
 	// Root is whether hardn's effective uid is 0, by /proc/self/status's Uid
-	// line, read on the seam; Unknown where that was not read (RootErr). It says
-	// how a rule file not read reads: "Not root: <file> not read", a user other
-	// than root being unable to read them, where the same refusal to root is
-	// another matter. /etc/sudoers.d is drwxr-x--- on all three VMs, so it cannot
-	// even be listed, and Alpine's /etc/doas.conf is 0640 (vm-runs/s1/01-tools.log).
-	Root    detect.Tri
-	RootErr error
-	Unread  []Unread
+	// line, read on the seam; Unknown where that was not read. It says how a rule
+	// file not read reads: "Not root: <file> not read", a user other than root
+	// being unable to read them, where the same refusal to root is another
+	// matter. /etc/sudoers.d is drwxr-x--- on all three VMs, so it cannot even be
+	// listed, and Alpine's /etc/doas.conf is 0640 (vm-runs/s1/01-tools.log).
+	Root   detect.Tri
+	Unread []Unread
 }
 
 // NotRead are the rule files and directories refused, as Unread names them.
@@ -148,7 +147,6 @@ func (u Users) NotRead() []string {
 // User is one listed account and what each elevation tool decides for it.
 type User struct {
 	Name   string
-	UID    int
 	Grants []users.Grant // one per tool, sudo then doas; nil where no tool was read
 }
 
@@ -176,7 +174,7 @@ var nobodies = []string{"nobody", "nfsnobody"}
 
 func readUsers(ctx context.Context, sys host.System, f detect.Facts) Users {
 	var s Users
-	s.Root, s.RootErr = readRoot(ctx, sys)
+	s.Root = readRoot(ctx, sys)
 	db, err := accounts.Read(ctx, sys)
 	if err != nil {
 		src := accounts.PasswdFile
@@ -205,17 +203,17 @@ func readUsers(ctx context.Context, sys host.System, f detect.Facts) Users {
 		s.Unread = append(s.Unread, ruleSources(ctx, sys, n)...)
 	}
 	for _, u := range listed {
-		s.List = append(s.List, User{Name: u.Name, UID: u.UID, Grants: e.GrantsOf(db, u)})
+		s.List = append(s.List, User{Name: u.Name, Grants: e.GrantsOf(db, u)})
 	}
 	return s
 }
 
 // readRoot reads the effective uid, the second of Uid's four numbers
 // (proc_pid_status(5)). No VM printed the file [I].
-func readRoot(ctx context.Context, sys host.System) (detect.Tri, error) {
+func readRoot(ctx context.Context, sys host.System) detect.Tri {
 	data, err := sys.ReadFile(ctx, SelfStatusFile)
 	if err != nil {
-		return detect.Unknown, err
+		return detect.Unknown
 	}
 	for _, line := range strings.Split(string(data), "\n") {
 		f := strings.Fields(line)
@@ -225,18 +223,19 @@ func readRoot(ctx context.Context, sys host.System) (detect.Tri, error) {
 		switch uid, err := strconv.ParseUint(f[2], 10, 32); {
 		case err != nil:
 		case uid == 0:
-			return detect.Yes, nil
+			return detect.Yes
 		default:
-			return detect.No, nil
+			return detect.No
 		}
 	}
-	return detect.Unknown, fmt.Errorf("details: %s: no Uid line: %w", SelfStatusFile, detect.ErrUnrecognised)
+	return detect.Unknown
 }
 
 // ruleSources says what of a tool's rules was not read: the file the read
 // stopped at, or the tool's name where no file is named; where that was a
-// refusal, each other of its files that refuses too, as the read stops at the
-// first and both are the user's to know.
+// refusal, the other of its files where that refuses too, as the read stops at
+// the first and both are the user's to know. doas's read lists /etc/doas.d first
+// (sudoers' readDoas), so a refusal there is already the first.
 func ruleSources(ctx context.Context, sys host.System, n users.NotRead) []Unread {
 	first := n.Tool
 	var ce *sudoers.CheckError
@@ -259,8 +258,6 @@ func ruleSources(ctx context.Context, sys host.System, n users.NotRead) []Unread
 	if n.Tool == sudoers.ToolDoas.String() {
 		_, err := sys.ReadFile(ctx, sudoers.DoasConfig)
 		refused(sudoers.DoasConfig, err)
-		_, err = sys.ReadDir(ctx, sudoers.DoasDir)
-		refused(sudoers.DoasDir, err)
 	} else {
 		_, err := sys.ReadDir(ctx, sudoers.DropInDir)
 		refused(sudoers.DropInDir, err)

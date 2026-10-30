@@ -540,8 +540,8 @@ func TestNotRoot(t *testing.T) {
 				h.refuse(statusFile)
 			}
 			r := details.Read(ctx, h, debianFacts())
-			if r.Users.Root != detect.Unknown || r.Users.RootErr == nil {
-				t.Errorf("Root = %v, %v", r.Users.Root, r.Users.RootErr)
+			if r.Users.Root != detect.Unknown {
+				t.Errorf("Root = %v", r.Users.Root)
 			}
 			if len(r.Users.Unread) != 0 {
 				t.Errorf("the rules went with it: %+v", r.Users.Unread)
@@ -876,36 +876,36 @@ func TestBlankGuard(t *testing.T) {
 		out     string // lslogins' answer; blankRoot + blank alice when ""
 		set     func(h *fakeHost)
 		want    details.LoginState
-		sources []details.SourceState // wtmp, lastlog2, lastlog; nil: none asked
+		sources []details.GuardState // wtmp, lastlog2, lastlog
 	}{
 		{name: "all readable, holding records, and a blank: None",
 			set:     func(h *fakeHost) { h.add(lastlog2File, "SQLite format 3\x00...") },
 			want:    details.LoginNone,
-			sources: []details.SourceState{details.SourceRecords, details.SourceRecords, details.SourceRecords}},
+			sources: []details.GuardState{details.GuardRecords, details.GuardRecords, details.GuardRecords}},
 		{name: "wtmp unreadable, lastlog empty, and a blank: Unknown",
 			set:     func(h *fakeHost) { h.refuse(wtmpFile); h.add(lastlogFile, "") },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceUnread, details.SourceMissing, details.SourceNoRecords}},
+			sources: []details.GuardState{details.GuardUnread, details.GuardMissing, details.GuardNoRecords}},
 		{name: "wtmp refused, lastlog holding records, and a blank: Unknown, as a login held in wtmp alone answers blank",
 			set:     func(h *fakeHost) { h.refuse(wtmpFile) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceUnread, details.SourceMissing, details.SourceRecords}},
+			sources: []details.GuardState{details.GuardUnread, details.GuardMissing, details.GuardRecords}},
 		{name: "lastlog refused, wtmp holding records: Unknown",
 			set:     func(h *fakeHost) { h.refuse(lastlogFile) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceRecords, details.SourceMissing, details.SourceUnread}},
+			sources: []details.GuardState{details.GuardRecords, details.GuardMissing, details.GuardUnread}},
 		{name: "a lastlog2 database refused, the others holding records: Unknown",
 			set:     func(h *fakeHost) { h.add(lastlog2File, "SQLite format 3\x00..."); h.refuse(lastlog2File) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceRecords, details.SourceUnread, details.SourceRecords}},
+			sources: []details.GuardState{details.GuardRecords, details.GuardUnread, details.GuardRecords}},
 		{name: "a real login beside a blank",
 			out:  blankRoot + loginAlice,
 			set:  func(h *fakeHost) { h.refuse(wtmpFile); h.add(lastlogFile, "") },
-			want: details.LoginAt, sources: []details.SourceState{details.SourceUnread, details.SourceMissing, details.SourceNoRecords}},
+			want: details.LoginAt, sources: []details.GuardState{details.GuardUnread, details.GuardMissing, details.GuardNoRecords}},
 		{name: "all three missing",
 			set:     func(h *fakeHost) { bare(h, wtmpFile, lastlogFile) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceMissing, details.SourceMissing, details.SourceMissing}},
+			sources: []details.GuardState{details.GuardMissing, details.GuardMissing, details.GuardMissing}},
 		{name: "all three empty, as Alpine's wtmp is (08-lslogins.log:113)",
 			set: func(h *fakeHost) {
 				h.add(wtmpFile, "")
@@ -913,31 +913,31 @@ func TestBlankGuard(t *testing.T) {
 				h.add(lastlog2File, "")
 			},
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceNoRecords, details.SourceNoRecords, details.SourceNoRecords}},
+			sources: []details.GuardState{details.GuardNoRecords, details.GuardNoRecords, details.GuardNoRecords}},
 		{name: "all unreadable",
 			set:     func(h *fakeHost) { h.refuse(wtmpFile, lastlogFile, lastlog2File) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceUnread, details.SourceUnread, details.SourceUnread}},
+			sources: []details.GuardState{details.GuardUnread, details.GuardUnread, details.GuardUnread}},
 		{name: "wtmp alone holds records",
 			set:     func(h *fakeHost) { h.add(wtmpFile, wtmpRecord); bare(h, lastlogFile) },
 			want:    details.LoginNone,
-			sources: []details.SourceState{details.SourceRecords, details.SourceMissing, details.SourceMissing}},
+			sources: []details.GuardState{details.GuardRecords, details.GuardMissing, details.GuardMissing}},
 		{name: "lastlog alone holds records: wtmp rotated away",
 			set:     func(h *fakeHost) { h.add(wtmpFile, "") },
 			want:    details.LoginNone,
-			sources: []details.SourceState{details.SourceNoRecords, details.SourceMissing, details.SourceRecords}},
+			sources: []details.GuardState{details.GuardNoRecords, details.GuardMissing, details.GuardRecords}},
 		{name: "the VMs' lastlog, its record past the first look",
 			set:     func(h *fakeHost) { h.add(wtmpFile, ""); h.add(lastlogFile, sparseLastlog) },
 			want:    details.LoginNone,
-			sources: []details.SourceState{details.SourceNoRecords, details.SourceMissing, details.SourceRecords}},
+			sources: []details.GuardState{details.GuardNoRecords, details.GuardMissing, details.GuardRecords}},
 		{name: "a lastlog of nothing but NUL",
 			set:     func(h *fakeHost) { h.add(wtmpFile, ""); h.add(lastlogFile, strings.Repeat("\x00", 292*3)) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceNoRecords, details.SourceMissing, details.SourceNoRecords}},
+			sources: []details.GuardState{details.GuardNoRecords, details.GuardMissing, details.GuardNoRecords}},
 		{name: "a long lastlog of nothing but NUL",
 			set:     func(h *fakeHost) { h.add(wtmpFile, ""); h.add(lastlogFile, strings.Repeat("\x00", 292292)) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceNoRecords, details.SourceMissing, details.SourceNoRecords}},
+			sources: []details.GuardState{details.GuardNoRecords, details.GuardMissing, details.GuardNoRecords}},
 		{name: "a link at a source is not read",
 			set: func(h *fakeHost) {
 				bare(h, wtmpFile, lastlogFile)
@@ -945,11 +945,11 @@ func TestBlankGuard(t *testing.T) {
 				h.AddSymlink(wtmpFile, "/var/log/elsewhere")
 			},
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceUnread, details.SourceMissing, details.SourceMissing}},
+			sources: []details.GuardState{details.GuardUnread, details.GuardMissing, details.GuardMissing}},
 		{name: "a directory at a source is not read",
 			set:     func(h *fakeHost) { bare(h, wtmpFile, lastlogFile); h.AddDir(wtmpFile, 0o755, 0, 0) },
 			want:    details.LoginUnknown,
-			sources: []details.SourceState{details.SourceUnread, details.SourceMissing, details.SourceMissing}},
+			sources: []details.GuardState{details.GuardUnread, details.GuardMissing, details.GuardMissing}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			out := tc.out
@@ -965,27 +965,16 @@ func TestBlankGuard(t *testing.T) {
 			if got := l.List[1].State; got != tc.want {
 				t.Errorf("alice = %+v", l.List[1])
 			}
-			var got []details.SourceState
-			for _, s := range l.Sources {
-				got = append(got, s.State)
-			}
-			if !slices.Equal(got, tc.sources) {
-				t.Errorf("sources = %+v, want %v", l.Sources, tc.sources)
-			}
-			want := []string{wtmpFile, lastlog2File, lastlogFile}
-			for i, s := range l.Sources {
-				if s.Path != want[i] {
-					t.Errorf("source %d is %s", i, s.Path)
+			for i, p := range []string{wtmpFile, lastlog2File, lastlogFile} {
+				if got := details.ReadSource(context.Background(), h, p); got.State != tc.sources[i] {
+					t.Errorf("%s: %+v, want state %d", p, got, tc.sources[i])
 				}
 			}
 		})
 	}
 	t.Run("no blank, nothing asked", func(t *testing.T) {
 		h := loginsHost(t, hostfake.Response{Stdout: "root 2026-10-20T11:42:05+00:00 pts/0 192.0.2.10\n" + loginAlice})
-		l := details.Read(context.Background(), h, debianFacts()).Logins
-		if l.Sources != nil {
-			t.Errorf("sources = %+v", l.Sources)
-		}
+		details.Read(context.Background(), h, debianFacts())
 		for _, c := range h.Calls() {
 			if c.Op == "scan-lines" {
 				t.Errorf("read %s", c.Path)
@@ -1018,35 +1007,35 @@ func TestReadSourceRealFiles(t *testing.T) {
 		}
 		return p
 	}
-	check := func(name, p string, want details.SourceState) {
+	check := func(name, p string, want details.GuardState) {
 		t.Helper()
 		if got := details.ReadSource(ctx, real, p); got.State != want || got.Path != p {
 			t.Errorf("%s: %+v, want state %d", name, got, want)
 		}
 	}
-	check("records", write("wtmp", []byte("\x07\x00alice"), 0o644), details.SourceRecords)
-	check("empty", write("empty", nil, 0o644), details.SourceNoRecords)
-	check("missing", filepath.Join(dir, "nothing"), details.SourceMissing)
+	check("records", write("wtmp", []byte("\x07\x00alice"), 0o644), details.GuardRecords)
+	check("empty", write("empty", nil, 0o644), details.GuardNoRecords)
+	check("missing", filepath.Join(dir, "nothing"), details.GuardMissing)
 	sparse := append(make([]byte, 292000), 1, 0, 0, 0)
-	check("sparse, past the first look", write("lastlog", sparse, 0o644), details.SourceRecords)
-	check("all NUL, long", write("nul", make([]byte, 200<<10), 0o644), details.SourceNoRecords)
-	check("past recordsLook", write("huge", append(make([]byte, 5<<20), 1), 0o644), details.SourceNoRecords)
+	check("sparse, past the first look", write("lastlog", sparse, 0o644), details.GuardRecords)
+	check("all NUL, long", write("nul", make([]byte, 200<<10), 0o644), details.GuardNoRecords)
+	check("past recordsLook", write("huge", append(make([]byte, 5<<20), 1), 0o644), details.GuardNoRecords)
 	if os.Geteuid() != 0 {
-		check("mode 0000", write("sealed", []byte("records"), 0), details.SourceUnread)
+		check("mode 0000", write("sealed", []byte("records"), 0), details.GuardUnread)
 	}
 	fifo := filepath.Join(dir, "fifo")
 	if err := syscall.Mkfifo(fifo, 0o644); err != nil {
 		t.Fatal(err)
 	}
 	got := details.ReadSource(ctx, real, fifo)
-	if got.State != details.SourceUnread || !errors.Is(got.Err, fs.ErrInvalid) {
+	if got.State != details.GuardUnread || !errors.Is(got.Err, fs.ErrInvalid) {
 		t.Errorf("fifo: %+v", got)
 	}
 	link := filepath.Join(dir, "link")
 	if err := os.Symlink(filepath.Join(dir, "wtmp"), link); err != nil {
 		t.Fatal(err)
 	}
-	if got := details.ReadSource(ctx, real, link); got.State != details.SourceUnread || !errors.Is(got.Err, host.ErrSymlink) {
+	if got := details.ReadSource(ctx, real, link); got.State != details.GuardUnread || !errors.Is(got.Err, host.ErrSymlink) {
 		t.Errorf("link: %+v", got)
 	}
 }
