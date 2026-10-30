@@ -228,6 +228,11 @@ func TestPagerFor(t *testing.T) {
 	if p := pagerFor(ctx, alpineLessPackage().system(), noEnv, false); p.command(hardnLog) != "LESSSECURE=1 less "+hardnLog {
 		t.Errorf("Alpine's less package: %+v", p)
 	}
+	unsure := alpineLog()
+	unsure.f.AddDir("/usr/bin", 0o777, 0, 0) // a link the guarded walk will not read
+	if p := pagerFor(ctx, unsure.system(), noEnv, false); p.name != "" {
+		t.Errorf("a less it cannot tell: %+v", p)
+	}
 }
 
 // TestLogsUsage: the listing and play refuse what they do not take, with
@@ -291,7 +296,7 @@ func TestLogsWriteNothing(t *testing.T) {
 	for _, lh := range logHosts() {
 		for _, dryRun := range []bool{false, true} {
 			h := lh.host()
-			r := readLog(context.Background(), h.system(), lh)
+			r := readLog(context.Background(), h.system())
 			var lines []string
 			if lh.read != readPager || r.pager.name == "" {
 				for _, it := range r.items() {

@@ -10,6 +10,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"syscall"
 	"unicode"
 	"unicode/utf8"
 
@@ -84,10 +85,10 @@ const (
 )
 
 // The treatments the maintainer chooses between
-// (gallery-system-details.md): how the log reads. Each host draws
-// read-tail unless it names read-pager.
+// (gallery-system-details.md): how the log reads. Each host draws a screen of
+// the last lines, as many as the terminal holds, an item opening the pager
+// (read-tail, in the notes), unless it names read-pager.
 const (
-	readTail  = "read-tail"  // a screen of the last lines, as many as the terminal holds; an item opens the pager
 	readPager = "read-pager" // P-18 as written: the main menu's item runs the pager at once; the tail screen only without one
 )
 
@@ -194,7 +195,7 @@ func logHosts() []logHost {
 		{name: "lines", label: "A log with lines", about: "Fits the screen", host: logOn(logOf(logSample[len(logSample)-4:])),
 			note: deb + "Treatment read-tail: a log of 4 lines, as many as the terminal holds: 3 at 80x24, all at 80x40, as three wrap. WARNING and ERROR in the warning's colour."},
 		{name: "long", label: "A long log", about: "1204 lines", host: logOn(longLog()),
-			note: deb + "Treatment read-tail: as many of the last lines as the terminal holds: 6 rows at 80x24, 22 at 80x40 (-height 40), a wrapped line taking two; the newest are this start's own (config.go:246; osdetect.go:93-95). origin/main prints all 1204."},
+			note: deb + "Treatment read-tail: as many of the last lines as the terminal holds: room for 6 rows at 80x24, 5 drawn, and 22 at 80x40 (-height 40), a wrapped line taking two; the newest are this start's own (config.go:246; osdetect.go:93-95). origin/main prints all 1204."},
 		{name: "missing", label: "No log yet", about: "No file", host: func() *fakeHost { return withLess(simulate(debian13Platform)) },
 			note: deb + "No file there. origin/main's main() makes it at every start as root, before flags (cmd/hardn/main.go:57; logging.go:38), so today this shows only where that open failed; next/p3-startup moves that write."},
 		{name: "unreadable", label: "Unreadable", about: "A directory there", host: unreadableLog,
@@ -206,7 +207,7 @@ func logHosts() []logHost {
 		{name: "elsewhere", label: "logFile elsewhere", about: "hardn.yml says another path", host: elsewhereLog,
 			note: deb + "hardn.yml says logFile: /srv/log/hardn.log, where nothing writes. The screen reads the file hardn writes and says so; origin/main reads logFile, not what main() opens (P-18; config.go:324)."},
 		{name: "alpine323", label: "Alpine 3.23", about: "BusyBox's less", host: alpineLog,
-			note: hostFQDN + " runs Alpine 3.23, whose less is a link to BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes nothing there: s still prompts Log file, E and :e Examine (vm-runs/s1/04-less2-alpine323-vm.log). That its s writes and its E opens any path as root is read (miscutils/less.c): no path was typed. So treatment pager-less gives it no Open item (decision 7). With Alpine's less package there is one (pager-commands)."},
+			note: hostFQDN + " runs Alpine 3.23, whose less is a link to BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes nothing there: s still prompts Log file, E and :e Examine (vm-runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so its write did not run; E did try a name that does not exist. That s writes and E opens any path as root is read (miscutils/less.c, master). So treatment pager-less gives it no Open item (decision 7). With Alpine's less package there is one (pager-commands)."},
 		{name: "no-pager", label: "No pager", about: "No less installed", host: noPagerLog,
 			note: hostFQDN + " runs Debian 13 with no less: no Open item, the last lines alone."},
 		{name: "read-pager", label: "Treatment: pager first", about: "Item 10 runs less", host: logOn(longLog()), read: readPager,
@@ -235,7 +236,8 @@ func elsewhereLog() *fakeHost {
 	return logOn(logOf(logSample))().withHardnYML("logFile: /srv/log/hardn.log\n")
 }
 
-// alpineLessPackage is Alpine 3.23 with the less package: GNU less's own file.
+// alpineLessPackage is Alpine 3.23 with the less package: GNU less's own file
+// [I, not run: no VM has the package].
 func alpineLessPackage() *fakeHost {
 	h := simulate(alpine323Platform)
 	h.f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
@@ -265,7 +267,6 @@ func findLogHost(name string) (logHost, bool) {
 
 // logReading is what readLog read: the stand-in for what unit (b) builds.
 type logReading struct {
-	lh        logHost
 	path      string
 	state     logState
 	reason    string // why it cannot be read
@@ -279,8 +280,8 @@ type logReading struct {
 // logFile says, which it reads only to say so. It changes nothing. It reads
 // the whole file, as origin/main does: nothing rotates the log, so unit
 // (b)'s reader should read its end alone, which host.System has no call for.
-func readLog(ctx context.Context, sys host.System, lh logHost) logReading {
-	r := logReading{lh: lh, path: hardnLog, pager: pagerFor(ctx, sys, noEnv, false)}
+func readLog(ctx context.Context, sys host.System) logReading {
+	r := logReading{path: hardnLog, pager: pagerFor(ctx, sys, noEnv, false)}
 	if cfg, err := statusConfig(ctx, sys); err == nil && cfg.LogFile != "" && cfg.LogFile != hardnLog {
 		r.elsewhere = cfg.LogFile
 	}
@@ -403,10 +404,12 @@ func noEnv(string) string { return "" }
 // with LESSSECURE=1 (treatment pager-less, proposed), which turned off !, |,
 // v, E and :e in GNU less 668 on the VMs, as a user, not as root
 // (vm-runs/s1/04-less2-*); else none. BusyBox's less has no such mode: the
-// variable changed nothing on the VM, and miscutils/less.c reads LESS alone
-// from the environment, at :1836, its s and E keys writing and opening any path,
-// :1554-1566, :1212, read, as no path was typed. So pager-less does not choose
-// it, and pager-env runs it as it is. A stand-in: nothing on the new side runs one,
+// variable changed nothing on the VM, and miscutils/less.c (master) reads LESS
+// alone from the environment, at :1836, its s and E keys writing and opening any
+// path, :1554-1566, :1212, read: no path was typed at s, and E tried only a name
+// that does not exist. So pager-less does not choose it, and pager-env runs it
+// as it is. It goes by the link, and where it cannot tell chooses none; unit (b)
+// asks less --version (the page, §8). A stand-in: nothing on the new side runs one,
 // and host.System's Run pipes a command's output and gives it no terminal.
 func pagerFor(ctx context.Context, sys host.System, getenv func(string) string, useEnv bool) pagerChoice {
 	if useEnv {
@@ -420,6 +423,8 @@ func pagerFor(ctx context.Context, sys host.System, getenv func(string) string, 
 		}
 		_, target, err := sys.ResolveSymlink(ctx, dir+"/less")
 		switch {
+		case err != nil && !errors.Is(err, syscall.EINVAL): // EINVAL: not a link
+			return pagerChoice{}
 		case err != nil || path.Base(target) != "busybox":
 			return pagerChoice{name: "less", argv: []string{"less"}, env: "LESSSECURE=1"}
 		case useEnv:
@@ -650,7 +655,7 @@ func (s *session) logsScreen(ctx context.Context, lh logHost, h *fakeHost) error
 	if err := s.writeNote(logsPrefix+"/"+lh.name, lh.note); err != nil {
 		return err
 	}
-	if r := readLog(ctx, h.system(), lh); lh.read == readPager && r.state == logLines && r.pager.name != "" {
+	if r := readLog(ctx, h.system()); lh.read == readPager && r.state == logLines && r.pager.name != "" {
 		_, err := io.WriteString(s.p.Out, pagerSays(s.p.Ctx, r.pager.command(r.path))+"\n")
 		return err
 	}
@@ -668,7 +673,7 @@ func pagerSays(c component.Ctx, command string) string {
 // draw reads the host and returns the screen, its items bound.
 func (run *logsRun) draw(ctx context.Context) nav.Screen {
 	s := run.s
-	r := readLog(ctx, run.h.system(), run.lh)
+	r := readLog(ctx, run.h.system())
 	vm := r.subMenu(s.p.Ctx)
 	menu := nav.Menu{Exit: vm.Menu.Exit}
 	for _, it := range r.items() {
@@ -723,7 +728,7 @@ func readLogHost(ctx context.Context, name string) (logReading, error) {
 	if !ok {
 		return logReading{}, fmt.Errorf("no logs host %q", name)
 	}
-	return readLog(ctx, lh.host().system(), lh), nil
+	return readLog(ctx, lh.host().system()), nil
 }
 
 // onLogHost returns a drawing of the host named name's reading.
@@ -759,7 +764,7 @@ func pagerEnvs() []pagerEnv {
 		{"sudo, PAGER dropped", sudoAlice, logOn("")},
 		{"sudo-rs, PAGER dropped [I]", sudoAlice, logOn("")},
 		{"doas, BusyBox's less", doasAlice, alpineLog},
-		{"doas, the less package", doasAlice, alpineLessPackage},
+		{"doas, the less package [I]", doasAlice, alpineLessPackage},
 		{"sudo, PAGER=most kept", with("alice"), logOn("")},
 		{"no less, no PAGER", sudoAlice, noPagerLog},
 	}
@@ -809,7 +814,7 @@ func logsMocks() []listMock {
 			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
 				return apart(r.subMenu(c).Render(c), pagerNote(c, r.pager.command(r.path)), r.subMenu(c).Render(c))
 			})},
-		listMock{name: "pager-commands", note: "What each pager treatment would run, by the environment. Under sudo, sudo-rs and doas PAGER is dropped [I; not run for PAGER]. pager-env runs as root whatever a kept PAGER names, and most has its own shell escape [I]. LESSSECURE=1 turned off !, |, v, E and :e in GNU less 668 on the VMs, as a user, not as root (vm-runs/s1/04-less2-*). On BusyBox's less it changed nothing, s and E still prompting; that they write and open any path as root is read (miscutils/less.c), no path having been typed. The gallery's table: nothing runs.",
+		listMock{name: "pager-commands", note: "What each pager treatment would run, by the environment. Under sudo, sudo-rs and doas PAGER is dropped [I; not run for PAGER]. pager-env runs as root whatever a kept PAGER names, and most has its own shell escape [I]. LESSSECURE=1 turned off !, |, v, E and :e in GNU less 668 on the VMs, as a user, not as root (vm-runs/s1/04-less2-*). On BusyBox's less it changed nothing, s and E still prompting; that they write and open any path as root is read (miscutils/less.c, master): no path was typed at s, and E tried only a name that does not exist. Alpine's less package is [I, not run]. The gallery's table: nothing runs.",
 			draw: pagerTable},
 		listMock{name: "cli-terminal-tail", note: "hardn -p to a terminal, treatment read-tail: the file and as many of the last lines as the terminal holds, no menu and no prompt, for a shell to carry on under.",
 			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
@@ -820,7 +825,7 @@ func logsMocks() []listMock {
 			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
 				return component.Callout{Kind: component.MessageInfo, Body: []string{"The gallery runs no pager. hardn would run " + r.pager.command(r.path) + ", then exit."}}.Render(c)
 			})},
-		listMock{name: "cli-pipe", wide: term80, note: "hardn -p not to a terminal: every line, as written, in no style, no heading, so that a tool reads the log alone: this needs unit (d) to run -p ahead of the config load, or with a silent console (decision 9). origin/main's opens with the config line, the clear sequence and the rest (origin-p). Exit 0.",
+		listMock{name: "cli-pipe", wide: term80, note: "hardn -p not to a terminal: every line, as written, in no style, no heading, so that a tool reads the log alone: this needs unit (d) to run -p ahead of the config load, or with a silent console (decision 10). origin/main's opens with the config line, the clear sequence and the rest (origin-p). Exit 0.",
 			draw: onLogHost("lines", func(r logReading, _ component.Ctx) string { return strings.Join(r.lines, "\n") })},
 		listMock{name: "cli-pipe-control", wide: term80, note: "The same on the control host: safe off a terminal too, since a pipe may end at one. Who wants the bytes has cat /var/log/hardn.log.",
 			draw: onLogHost("control", func(r logReading, _ component.Ctx) string { return strings.Join(r.lines, "\n") })},
@@ -828,7 +833,7 @@ func logsMocks() []listMock {
 			draw: onLogHost("missing", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliNoLog, r.path) })},
 		listMock{name: "cli-unreadable", note: "hardn -p with a log it cannot read: this on stderr, nothing on stdout, exit 1.",
 			draw: onLogHost("unreadable", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliCantRead, r.path, r.reason) })},
-		listMock{name: "cli-unreadable-not-root", note: "The same as a user other than root, under decision 10 (a), where the log is not 0644: 0644 on the three VMs (vm-runs/s1/01-tools.log), it is what hardn asks, less the umask of the start that made it (logging.go:38; a tighter umask [I, not run]). Exit 1.",
+		listMock{name: "cli-unreadable-not-root", note: "The same as a user other than root, under decision 9 (a), where the log is not 0644: 0644 on the three VMs (vm-runs/s1/01-tools.log), it is what hardn asks, less the umask of the start that made it (logging.go:38; a tighter umask [I, not run]). Exit 1.",
 			draw: func(_ context.Context, _ component.Ctx) (string, error) {
 				return fmt.Sprintf(cliCantRead, hardnLog, "permission denied") + "\n" + fmt.Sprintf(cliRunWith, "sudo"), nil
 			}},

@@ -15,10 +15,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/long␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Treatment␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread-tail: as many of the last lines as the terminal holds: 6␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrows at 80x24, 22 at 80x40 (-height 40), a wrapped line taking␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo; the newest are this start's own (config.go:246;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mosdetect.go:93-95). origin/main prints all 1204.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread-tail: as many of the last lines as the terminal holds:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroom for 6 rows at 80x24, 5 drawn, and 22 at 80x40 (-height␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m40), a wrapped line taking two; the newest are this start's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown (config.go:246; osdetect.go:93-95). origin/main prints all␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1204.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -91,10 +92,11 @@ $
 $
 # Info: logs/long$
 # web-01.example.net runs Debian 13, less installed. Treatment$
-# read-tail: as many of the last lines as the terminal holds: 6$
-# rows at 80x24, 22 at 80x40 (-height 40), a wrapped line taking$
-# two; the newest are this start's own (config.go:246;$
-# osdetect.go:93-95). origin/main prints all 1204.$
+# read-tail: as many of the last lines as the terminal holds:$
+# room for 6 rows at 80x24, 5 drawn, and 22 at 80x40 (-height$
+# 40), a wrapped line taking two; the newest are this start's$
+# own (config.go:246; osdetect.go:93-95). origin/main prints all$
+# 1204.$
 $
 # Logs #########################################################$
 $
@@ -169,10 +171,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/long␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment read-tail: as many of the last lines as the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal holds: 6 rows at 80x24, 22 at 80x40 (-height 40),␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma wrapped line taking two; the newest are this start's own␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(config.go:246; osdetect.go:93-95). origin/main prints all␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1204.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal holds: room for 6 rows at 80x24, 5 drawn, and 22␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 80x40 (-height 40), a wrapped line taking two; the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnewest are this start's own (config.go:246;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mosdetect.go:93-95). origin/main prints all 1204.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

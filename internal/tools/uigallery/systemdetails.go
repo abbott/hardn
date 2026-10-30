@@ -46,7 +46,8 @@ import (
 // and in the page: readDetails itself, its CPU, load, memory, disk, ZFS,
 // address and login readers, and detailsModel, what the simulated host
 // answers them. Their forms ran read-only, as a user, on the Debian 13,
-// Ubuntu 26.04 and Alpine 3.23 VMs (vm-runs/s1), but ZFS's: no VM has it.
+// Ubuntu 26.04 and Alpine 3.23 VMs (vm-runs/s1), but ZFS's, no VM having it,
+// and /proc/loadavg, inet6 and df's header, which no VM printed.
 //
 // "system-details" lists the mocks with no input; "play system-details" is
 // the menu of the hosts and "play system-details/<host>" the screen on one.
@@ -129,18 +130,17 @@ const (
 )
 
 // The treatments the maintainer chooses between (gallery-system-details.md).
-// How the report fits: each host draws report-whole unless it names
-// another.
+// How the report fits: each host draws the report whole, its top scrolling
+// off a shorter terminal, as the main menu's, unless it names another.
 const (
-	reportWhole    = "report-whole"    // the report whole, its top scrolling off a shorter terminal, as the main menu's
 	reportSections = "report-sections" // one line per section; an item opens its rows
 	reportPager    = "report-pager"    // one line per section; an item opens the whole report in the pager
 	reportWide     = "report-wide"     // two columns from wideCols up; report-whole below
 )
 
-// The treatments of Export: each host offers none unless it names another.
+// The treatments of Export: each host offers none, leaving hardn
+// system-details > file, unless it names another.
 const (
-	exportNone    = "export-none"    // no item: hardn system-details > file, which writes nothing itself
 	exportCommand = "export-command" // an item that says the command
 	exportFile    = "export-file"    // an item that asks a full path and writes the file, a change as root
 )
@@ -167,9 +167,10 @@ type sdHost struct {
 	report, export string
 }
 
-// The simulated hosts' CPUs, as /proc/cpuinfo names them: a VM's, and on
-// the Proxmox VE node a server's (synthetic, its length real: origin/main
-// shows it whole in a 50-column box, display.go:32, which wraps [I]).
+// The simulated hosts' CPUs, as /proc/cpuinfo names them, each synthetic: a
+// VM's (the VMs' own say Common KVM processor, vm-runs/s1/01-tools.log), and on
+// the Proxmox VE node a server's (its length real: origin/main shows it whole
+// in a 50-column box, display.go:32, which wraps [I]).
 const (
 	vmCPU     = "QEMU Virtual CPU version 2.5+"
 	serverCPU = "Intel(R) Xeon(R) Gold 6338 CPU @ 2.00GHz"
@@ -188,7 +189,7 @@ func sdHosts() []sdHost {
 		{name: "ubuntu2604", label: "Ubuntu 26.04", about: "ext4, sudo-rs", host: details(ubuntu2604Platform),
 			note: hostFQDN + " runs Ubuntu 26.04, as the VM of 2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs 0.2.13. lslogins is in util-linux-extra there, and answers as on Debian 13 (vm-runs/s1/02-login.log)."},
 		{name: "alpine323", label: "Alpine 3.23", about: "ext4, doas, BusyBox", host: details(alpine323Platform),
-			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no lslogins, and nothing there records a login: wtmp holds 0 records after logins, and BusyBox's last -n 1 alice prints its usage and fails (vm-runs/s1/01-tools.log, 02-login.log). So one row says so."},
+			note: hostFQDN + " runs Alpine 3.23.6, as the 2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no lslogins or lastlog, /var/log/wtmp and /run/utmp stay at 0 bytes after a terminal login, and BusyBox's last -n 1 alice prints its usage and fails; sshd's own lines go to /var/log/messages, 0640 root wheel (vm-runs/s1/01-tools.log, 08-lslogins.log, 09-lslogins-blank.log). So one row says so."},
 		{name: "pve9", label: "Proxmox VE 9", about: "ZFS, root alone", host: pveDetails,
 			note: hostFQDN + " is a Proxmox VE 9 node on ZFS [I, no VM]: root's dataset read from /proc/self/mounts, rpool/ROOT/pve-1, where origin/main asks zfs for its hard-coded zroot/ROOT/os (details.go:85; menu/system_details_zfs_other_dataset.golden). No user but root. lslogins by inference from Debian 13, its base [I, no VM]. The CPU's name is cut at its row."},
 		{name: "zfs-degraded", label: "ZFS degraded", about: "Pool not ONLINE", host: pveDegraded,
@@ -225,21 +226,23 @@ func findSDHost(name string) (sdHost, bool) {
 // model, each command's output as the stand-in reads it: gallery-local, as
 // readDetails is. The forms are those the VMs printed (vm-runs/s1/01-tools.log,
 // 02-login.log), but zpool's and zfs's, written from their manuals, no VM having
-// ZFS.
+// ZFS, and /proc/loadavg, inet6 and df's header, which no VM printed.
 type detailsModel struct {
 	addrs      string            // ip -o addr show scope global
 	df         string            // df -kP /
 	pool       string            // zpool list -H -o health <pool>, for a pool
 	zfs        string            // zfs get -Hp -o value used,available <dataset>
 	dataset    string            // the dataset zfs is asked about
-	logins     map[string]string // lslogins' line for a name with a login; any other answers noLoginLine
+	logins     map[string]string // lslogins' line for a name with a login; any other it knows answers noLoginLine
+	accounts   []string          // the names lslogins knows, withDetails' from /etc/passwd
 	noLslogins bool              // no lslogins, as host.Real says it
 	memInfo    string            // /proc/meminfo; "" is memInfo
 	noMemInfo  bool              // /proc/meminfo cannot be read
 }
 
-// lsloginsArgs is how the stand-in asks lslogins about a name, which follows
-// -l: one line, raw, each blank field empty (vm-runs/s1/02-login.log).
+// lsloginsArgs is how the stand-in asks lslogins about names, which follow -l,
+// joined by commas: a raw line each, each blank field empty, no line for a name
+// it does not know, exit 0 (vm-runs/s1/02-login.log, 08-lslogins.log).
 var lsloginsArgs = []string{"--time-format=iso", "--noheadings", "--raw", "--output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME", "-l"}
 
 // answer answers the stand-in's commands.
@@ -256,11 +259,15 @@ func (m detailsModel) answer(argv []string) (hostfake.Response, bool) {
 	case argv[0] == "lslogins" && m.noLslogins:
 		return hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "lslogins", host.SearchPath, host.ErrNotFound)}, true
 	case len(argv) == len(lsloginsArgs)+2 && argv[0] == "lslogins" && slices.Equal(argv[1:len(argv)-1], lsloginsArgs):
-		name := argv[len(argv)-1]
-		if line, ok := m.logins[name]; ok {
-			return hostfake.Response{Stdout: line + "\n"}, true
+		var b strings.Builder
+		for _, name := range strings.Split(argv[len(argv)-1], ",") {
+			if line, ok := m.logins[name]; ok {
+				b.WriteString(line + "\n")
+			} else if slices.Contains(m.accounts, name) {
+				b.WriteString(noLoginLine(name) + "\n")
+			}
 		}
-		return hostfake.Response{Stdout: noLoginLine(name) + "\n"}, true
+		return hostfake.Response{Stdout: b.String()}, true
 	}
 	return hostfake.Response{}, false
 }
@@ -333,6 +340,11 @@ func withDetails(h *fakeHost, m detailsModel, cpu string, cores, sockets int) *f
 		}
 		h.f.AddFile("/proc/meminfo", []byte(mem), 0o444, 0, 0)
 	}
+	for _, line := range strings.Split(fileOn(h, "/etc/passwd"), "\n") {
+		if name, _, ok := strings.Cut(line, ":"); ok {
+			m.accounts = append(m.accounts, name)
+		}
+	}
 	run := h.f.Handler
 	h.f.Handler = func(argv []string, stdin []byte) hostfake.Response {
 		if r, ok := m.answer(argv); ok {
@@ -344,15 +356,15 @@ func withDetails(h *fakeHost, m detailsModel, cpu string, cores, sockets int) *f
 }
 
 // vmModel is a VM's model: eth0 at 192.0.2.20, the root file system on
-// /dev/vda1 (simulate's mounts), alice's session from the runner and no login
-// for root.
+// /dev/vda1 (simulate's mounts; synthetic, the VMs' being /dev/sda1 and
+// /dev/sda), alice's session from the runner and no login for root.
 func vmModel() detailsModel {
 	return detailsModel{addrs: ipLine(2, "eth0", "inet", "192.0.2.20/24"), df: dfRoot, logins: map[string]string{"alice": sessionLine("alice")}}
 }
 
 // details returns a function making a host of platform p as the VM runs
-// show it: its kernel, 4 CPUs, vmModel, and on Alpine its ip's form and no
-// lslogins.
+// show it: its kernel, vmModel, on Alpine its ip's form and no lslogins, and
+// 4 CPUs (synthetic: the VMs have 2).
 func details(p platform) func() *fakeHost {
 	return func() *fakeHost {
 		m := vmModel()
@@ -501,13 +513,15 @@ type detailMemory struct {
 
 // detailLogin is lslogins' answer for one account: its newest login, When
 // and the rest "" where it has none. When is as lslogins prints it, TTY and
-// From its other fields, From "" for a login with no remote host.
+// From its other fields, From "" for a login with no remote host. Unknown: it
+// had no line for the name, so nothing is known of the account.
 type detailLogin struct {
-	User string `json:"user"`
-	When string `json:"when"`
-	TTY  string `json:"tty"`
-	From string `json:"from"`
-	at   time.Time
+	User    string `json:"user"`
+	When    string `json:"when"`
+	TTY     string `json:"tty"`
+	From    string `json:"from"`
+	Unknown bool   `json:"unknown,omitempty"`
+	at      time.Time
 }
 
 // detailsReading is what readDetails read: the stand-in for what unit (b)
@@ -714,32 +728,57 @@ func (r *detailsReading) readMemory(ctx context.Context, sys host.System, fail f
 	r.memory = detailMemory{Used: total - avail, Total: total}
 }
 
-// readLogins is lslogins' answer for root and each user the Users section read.
-// It is the same as a user and as root, so who ran hardn does not matter
-// (vm-runs/s1/02-login.log). An answer that fails, or that does not parse, is
-// not a fact about the account, so the section says it could not read it,
-// never that there was no login.
+// readLogins is lslogins' answer for root and each user the Users section read,
+// in one call, the cost being wtmp's per call (vm-runs/s1/08-lslogins.log). It
+// is the same as a user and as root, so who ran hardn does not matter
+// (vm-runs/s1/02-login.log). An answer that fails, or a line that does not
+// parse, is not a fact about the account, so the section says it could not read
+// it, never that there was no login.
 func (r *detailsReading) readLogins(ctx context.Context, sys host.System, fail func(string, string, error)) {
 	names := []string{"root"}
 	for _, u := range r.users {
 		names = append(names, u.Name)
 	}
-	var logins []detailLogin
-	for _, name := range names {
-		res, err := sys.Run(ctx, "lslogins", append(slices.Clone(lsloginsArgs), name)...)
-		if err != nil {
-			fail(secLogin, "lslogins", err)
-			return
-		}
-		line, _, _ := strings.Cut(string(res.Stdout), "\n")
-		login, err := parseLogin(name, line)
-		if err != nil {
-			fail(secLogin, "lslogins", err)
-			return
-		}
-		logins = append(logins, login)
+	res, err := sys.Run(ctx, "lslogins", append(slices.Clone(lsloginsArgs), strings.Join(names, ","))...)
+	if err != nil {
+		fail(secLogin, "lslogins", err)
+		return
+	}
+	logins, err := parseLogins(names, string(res.Stdout))
+	if err != nil {
+		fail(secLogin, "lslogins", err)
+		return
 	}
 	r.logins = logins
+}
+
+// parseLogins reads lslogins' lines for names, keyed by name, as it need not
+// answer in the order asked: the logins come in names' order, a name with no
+// line Unknown, and a line for a name not asked for does not parse.
+func parseLogins(names []string, out string) ([]detailLogin, error) {
+	read := map[string]detailLogin{}
+	if out != "" {
+		for _, line := range strings.Split(strings.TrimSuffix(out, "\n"), "\n") {
+			name, _, _ := strings.Cut(line, " ")
+			if !slices.Contains(names, name) {
+				return nil, fmt.Errorf("a line for no name asked: %q", line)
+			}
+			login, err := parseLogin(name, line)
+			if err != nil {
+				return nil, err
+			}
+			read[name] = login
+		}
+	}
+	logins := make([]detailLogin, len(names))
+	for i, name := range names {
+		login, ok := read[name]
+		if !ok {
+			login = detailLogin{User: name, Unknown: true}
+		}
+		logins[i] = login
+	}
+	return logins, nil
 }
 
 // parseLogin reads lslogins' raw line for name: four fields, each a single
@@ -774,6 +813,8 @@ func (l detailLogin) when() string {
 // row is the login's row in the section.
 func (l detailLogin) row() component.KeyValue {
 	switch {
+	case l.Unknown:
+		return component.KeyValue{Key: l.User, Value: notKnown, State: component.ValueUnknown}
 	case l.When == "":
 		return component.KeyValue{Key: l.User, Value: noLogin, State: component.ValueNone}
 	case l.From == "":
@@ -945,12 +986,17 @@ func (r detailsReading) summary(section string) (string, component.ValueState) {
 		return percent(r.memory.Used, r.memory.Total) + " of " + gib(r.memory.Total) + " GiB", component.ValuePlain
 	case secLogin:
 		var newest detailLogin
+		unknown := false
 		for _, l := range r.logins {
+			unknown = unknown || l.Unknown
 			if l.at.After(newest.at) {
 				newest = l
 			}
 		}
-		if newest.When == "" {
+		switch {
+		case newest.When == "" && unknown:
+			return notKnown, component.ValueUnknown
+		case newest.When == "":
 			return noLogin, component.ValuePlain
 		}
 		return newest.User + ", " + newest.when(), component.ValuePlain
@@ -1285,7 +1331,7 @@ func sdMocks() []listMock {
 			draw: onSDHost("unreadable", jsonDrawing)},
 		listMock{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is §3.11's: not approved, so this is a proposal.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return flagsDrawing(c), nil }},
-		listMock{name: "origin", own: true, note: "origin/main's report, its words as they are (display.go:43-129; pkg/characterization's menu/system_details_open.golden), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Its 50-column box, its screen clear, its blank lines where sections would be, and its bar graphs are left out.",
+		listMock{name: "origin", own: true, note: "origin/main's report, its words as they are (display.go:43-129; pkg/characterization's menu/system_details_open.golden), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Last Login is blank, as lastlog is not there (menu/system_details_no_lastlog.golden). Its 50-column box, its screen clear, its blank lines where sections would be, and its bar graphs are left out.",
 			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.originScreen(false).Render(c) })},
 		listMock{name: "origin-error", own: true, note: "origin/main's report when any collector fails (system_details_menu.go:42-62; menu/system_details_error.golden): the error, twice, above the box and in it, the box saying to check permissions whatever it was, the report gone, Export not offered. The word \"Error:\" before each title here is the component's, not origin/main's.",
 			draw: onSDHost("unreadable", func(r detailsReading, c component.Ctx) string {
@@ -1429,7 +1475,7 @@ func (r detailsReading) originScreen(failed bool) screen.SubMenu {
 			{Key: "Non-System Users", Value: "alice (sudo)"}, {Key: "Processor", Value: r.cpu.Model}, {Key: "Cores", Value: "4 vCPU(s) / 1 Socket(s)"},
 			{Key: "Hypervisor", Value: "KVM"}, {Key: "CPU Freq", Value: "0.00 GHz"}, {Key: "Load 1m", Value: "(0.12)"}, {Key: "Load 5m", Value: "(0.08)"}, {Key: "Load 15m", Value: "(0.03)"},
 			{Key: "Volume", Value: "6.17/38.60 GB [15.99%]"}, {Key: "Memory", Value: "3.07/3.84 GiB [79.84%]"},
-			{Key: "Last Login", Value: "Never logged in"}, {Key: "Uptime", Value: r.uptime},
+			{Key: "Last Login"}, {Key: "Uptime", Value: r.uptime},
 		}
 		vm.Sections = []screen.Section{{Rows: component.BulletList{Items: rows}}}
 	}

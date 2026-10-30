@@ -14,8 +14,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGNU less 668 on the VMs, as a user, not as root (vm-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-*). On BusyBox's less it changed nothing, s␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand E still prompting; that they write and open any path as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot is read (miscutils/less.c), no path having been typed.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery's table: nothing runs.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot is read (miscutils/less.c, master): no path was typed at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ms, and E tried only a name that does not exist. Alpine's less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage is [I, not run]. The gallery's table: nothing runs.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
@@ -27,7 +28,7 @@ $
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mNone: BusyBox's has no secure mode␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
@@ -44,7 +45,7 @@ $
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mless /var/log/hardn.log␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
       ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
@@ -65,8 +66,9 @@ $
 # GNU less 668 on the VMs, as a user, not as root (vm-$
 # runs/s1/04-less2-*). On BusyBox's less it changed nothing, s$
 # and E still prompting; that they write and open any path as$
-# root is read (miscutils/less.c), no path having been typed.$
-# The gallery's table: nothing runs.$
+# root is read (miscutils/less.c, master): no path was typed at$
+# s, and E tried only a name that does not exist. Alpine's less$
+# package is [I, not run]. The gallery's table: nothing runs.$
 $
 # pager-less, proposed -----------------------------------------$
 $
@@ -78,7 +80,7 @@ $
       LESSSECURE=1 less /var/log/hardn.log$
    -  doas, BusyBox's less$
       None: BusyBox's has no secure mode$
-   -  doas, the less package$
+   -  doas, the less package [I]$
       LESSSECURE=1 less /var/log/hardn.log$
    -  sudo, PAGER=most kept$
       LESSSECURE=1 less /var/log/hardn.log$
@@ -95,7 +97,7 @@ $
       LESSSECURE=1 less /var/log/hardn.log$
    -  doas, BusyBox's less$
       less /var/log/hardn.log$
-   -  doas, the less package$
+   -  doas, the less package [I]$
       LESSSECURE=1 less /var/log/hardn.log$
    -  sudo, PAGER=most kept$
       most /var/log/hardn.log$
@@ -116,8 +118,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m!, |, v, E and :e in GNU less 668 on the VMs, as a user,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot as root (vm-runs/s1/04-less2-*). On BusyBox's less it␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanged nothing, s and E still prompting; that they write␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand open any path as root is read (miscutils/less.c), no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpath having been typed. The gallery's table: nothing runs.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand open any path as root is read (miscutils/less.c,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmaster): no path was typed at s, and E tried only a name␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat does not exist. Alpine's less package is [I, not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun]. The gallery's table: nothing runs.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
@@ -129,7 +133,7 @@ $
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mNone: BusyBox's has no secure mode␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
@@ -146,7 +150,7 @@ $
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mless /var/log/hardn.log␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
       ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$
@@ -167,8 +171,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mGNU less 668 on the VMs, as a user, not as root (vm-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-*). On BusyBox's less it changed nothing, s␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand E still prompting; that they write and open any path as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot is read (miscutils/less.c), no path having been typed.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery's table: nothing runs.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot is read (miscutils/less.c, master): no path was typed at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ms, and E tried only a name that does not exist. Alpine's less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage is [I, not run]. The gallery's table: nothing runs.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpager-less, proposed␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
@@ -180,7 +185,7 @@ $
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mNone: BusyBox's has no secure mode␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
@@ -197,7 +202,7 @@ $
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, BusyBox's less␛[m$
       ␛[38;2;129;134;156mless /var/log/hardn.log␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdoas, the less package [I]␛[m$
       ␛[38;2;129;134;156mLESSSECURE=1 less /var/log/hardn.log␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msudo, PAGER=most kept␛[m$
       ␛[38;2;129;134;156mmost /var/log/hardn.log␛[m$

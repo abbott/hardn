@@ -169,10 +169,12 @@ func sdHostNamed(t *testing.T, name string) sdHost {
 	return sh
 }
 
-// TestSDLastLogin holds the rows to lslogins' answers: root first, then the
-// users; a login with a host, a dotless one included, and with none; another
-// year's; blanks. An answer for another name, a garbled one or a failure says it
-// could not read it, never no login, and a host with no lslogins says that.
+// TestSDLastLogin holds the rows to lslogins' one answer: root first, then the
+// users, whatever order it answers in; a login with a host, a dotless one
+// included, and with none; another year's; blanks. A listed name with no line
+// reads not known and the others stay. A line for a name not asked, a garbled
+// one or a failure says it could not read it, never no login, and a host with no
+// lslogins says that.
 func TestSDLastLogin(t *testing.T) {
 	const at = "2026-10-20T11:42:05+00:00"
 	cant := []component.KeyValue{{Key: "Can't read lslogins", State: component.ValueWarn}}
@@ -180,21 +182,26 @@ func TestSDLastLogin(t *testing.T) {
 	alice := func(value string) []component.KeyValue {
 		return []component.KeyValue{none, {Key: "alice", Value: value}}
 	}
+	aliceUnknown := component.KeyValue{Key: "alice", Value: notKnown, State: component.ValueUnknown}
+	root := noLoginLine("root") + "\n"
 	for _, tt := range []struct {
 		name string
 		res  hostfake.Response
 		want []component.KeyValue
 	}{
-		{"a host", hostfake.Response{Stdout: "alice " + at + " pts/0 192.0.2.10\n"}, alice("Oct 20 11:42 from 192.0.2.10")},
-		{"a dotless host", hostfake.Response{Stdout: "alice " + at + " pts/0 bastion\n"}, alice("Oct 20 11:42 from bastion")},
-		{"no host", hostfake.Response{Stdout: "alice " + at + " tty1 \n"}, alice("Oct 20 11:42 on tty1")},
-		{"all blank", hostfake.Response{Stdout: "alice   \n"}, []component.KeyValue{none, {Key: "alice", Value: noLogin, State: component.ValueNone}}},
-		{"another year", hostfake.Response{Stdout: "alice 2025-12-31T23:59:00+00:00 pts/0 192.0.2.10\n"}, alice("Dec 31 2025 from 192.0.2.10")},
-		{"another name", hostfake.Response{Stdout: "alice-long " + at + " pts/0 192.0.2.10\n"}, cant},
-		{"garbled time", hostfake.Response{Stdout: "alice yesterday pts/0 192.0.2.10\n"}, cant},
-		{"too few fields", hostfake.Response{Stdout: "alice " + at + " pts/0\n"}, cant},
-		{"a terminal and no time", hostfake.Response{Stdout: "alice  pts/0 \n"}, cant},
-		{"nothing", hostfake.Response{}, cant},
+		{"a host", hostfake.Response{Stdout: root + "alice " + at + " pts/0 192.0.2.10\n"}, alice("Oct 20 11:42 from 192.0.2.10")},
+		{"a dotless host", hostfake.Response{Stdout: root + "alice " + at + " pts/0 bastion\n"}, alice("Oct 20 11:42 from bastion")},
+		{"no host", hostfake.Response{Stdout: root + "alice " + at + " tty1 \n"}, alice("Oct 20 11:42 on tty1")},
+		{"another year", hostfake.Response{Stdout: root + "alice 2025-12-31T23:59:00+00:00 pts/0 192.0.2.10\n"}, alice("Dec 31 2025 from 192.0.2.10")},
+		{"all blank", hostfake.Response{Stdout: root + noLoginLine("alice") + "\n"}, []component.KeyValue{none, {Key: "alice", Value: noLogin, State: component.ValueNone}}},
+		{"another order", hostfake.Response{Stdout: "alice " + at + " pts/0 192.0.2.10\n" + root}, alice("Oct 20 11:42 from 192.0.2.10")},
+		{"a name with no line", hostfake.Response{Stdout: root}, []component.KeyValue{none, aliceUnknown}},
+		{"no line at all", hostfake.Response{}, []component.KeyValue{{Key: "root", Value: notKnown, State: component.ValueUnknown}, aliceUnknown}},
+		{"a name not asked", hostfake.Response{Stdout: root + "alice-long " + at + " pts/0 192.0.2.10\n"}, cant},
+		{"garbled time", hostfake.Response{Stdout: root + "alice yesterday pts/0 192.0.2.10\n"}, cant},
+		{"too few fields", hostfake.Response{Stdout: root + "alice " + at + " pts/0\n"}, cant},
+		{"a terminal and no time", hostfake.Response{Stdout: root + "alice  pts/0 \n"}, cant},
+		{"a blank line", hostfake.Response{Stdout: root + "\n" + noLoginLine("alice") + "\n"}, cant},
 		{"a failure", hostfake.Response{Stderr: "lslogins: cannot open\n", ExitCode: 1}, cant},
 		{"not found", hostfake.Response{Err: host.ErrNotFound}, []component.KeyValue{{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}}},
 	} {
@@ -202,7 +209,7 @@ func TestSDLastLogin(t *testing.T) {
 		h := sh.host()
 		model := h.f.Handler
 		h.f.Handler = func(argv []string, stdin []byte) hostfake.Response {
-			if argv[0] == "lslogins" && argv[len(argv)-1] == "alice" {
+			if argv[0] == "lslogins" {
 				return tt.res
 			}
 			return model(argv, stdin)
@@ -229,6 +236,30 @@ func TestSDLastLogin(t *testing.T) {
 		if got := r.sectionRows(secLogin); !slices.Equal(got, want) {
 			t.Errorf("%s: %+v, want %+v", name, got, want)
 		}
+	}
+}
+
+// TestSDLsloginsCall: every draw asks lslogins once, all the names in the one
+// call, as its cost is per call; and the fake answers that form as the real one
+// does, no line for a name it does not know, the others still answered, exit 0
+// (vm-runs/s1/08-lslogins.log).
+func TestSDLsloginsCall(t *testing.T) {
+	sh := sdHostNamed(t, "many")
+	h := sh.host()
+	readDetails(context.Background(), h.sys(), sh)
+	var calls [][]string
+	for _, c := range h.f.Calls() {
+		if c.Op == "run" && c.Argv[0] == "lslogins" {
+			calls = append(calls, c.Argv)
+		}
+	}
+	const names = "root,alice,bob,carol,dave,erin,frank,grace,heidi,ivan,judy,mallory,niaj,olivia,peggy"
+	if want := append(append([]string{"lslogins"}, lsloginsArgs...), names); len(calls) != 1 || !slices.Equal(calls[0], want) {
+		t.Errorf("lslogins called %q, want once, %q", calls, want)
+	}
+	res, err := details(debian13Platform)().f.Run(context.Background(), "lslogins", append(slices.Clone(lsloginsArgs), "root,nosuchaccount,alice")...)
+	if want := noLoginLine("root") + "\n" + sessionLine("alice") + "\n"; err != nil || string(res.Stdout) != want {
+		t.Errorf("%q, %v; want %q", res.Stdout, err, want)
 	}
 }
 

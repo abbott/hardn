@@ -9,10 +9,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. web-01.example.net runs Alpine 3.23.6, as the 2026-10-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlslogins, and nothing there records a login: wtmp holds 0␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecords after logins, and BusyBox's last -n 1 alice prints its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musage and fails (vm-runs/s1/01-tools.log, 02-login.log). So␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone row says so.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlslogins or lastlog, /var/log/wtmp and /run/utmp stay at 0␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbytes after a terminal login, and BusyBox's last -n 1 alice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprints its usage and fails; sshd's own lines go to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/messages, 0640 root wheel (vm-runs/s1/01-tools.log,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m08-lslogins.log, 09-lslogins-blank.log). So one row says so.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -67,10 +68,11 @@ $
 # Inferred from origin/main (unreleased). The System Details$
 # screen. web-01.example.net runs Alpine 3.23.6, as the 2026-10-$
 # 21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no$
-# lslogins, and nothing there records a login: wtmp holds 0$
-# records after logins, and BusyBox's last -n 1 alice prints its$
-# usage and fails (vm-runs/s1/01-tools.log, 02-login.log). So$
-# one row says so.$
+# lslogins or lastlog, /var/log/wtmp and /run/utmp stay at 0$
+# bytes after a terminal login, and BusyBox's last -n 1 alice$
+# prints its usage and fails; sshd's own lines go to$
+# /var/log/messages, 0640 root wheel (vm-runs/s1/01-tools.log,$
+# 08-lslogins.log, 09-lslogins-blank.log). So one row says so.$
 $
 # System Details ###############################################$
 $
@@ -125,10 +127,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. web-01.example.net runs Alpine 3.23.6, as the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2026-10-21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas. It has no lslogins, and nothing there records a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin: wtmp holds 0 records after logins, and BusyBox's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlast -n 1 alice prints its usage and fails (vm-runs/s1/01-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtools.log, 02-login.log). So one row says so.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas. It has no lslogins or lastlog, /var/log/wtmp and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/run/utmp stay at 0 bytes after a terminal login, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBusyBox's last -n 1 alice prints its usage and fails;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd's own lines go to /var/log/messages, 0640 root wheel␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/01-tools.log, 08-lslogins.log, 09-lslogins-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mblank.log). So one row says so.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -197,10 +201,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). The System Details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mscreen. web-01.example.net runs Alpine 3.23.6, as the 2026-10-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m21 VM (vmtest.md §8.6): kernel 6.18.53-0-virt, doas. It has no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlslogins, and nothing there records a login: wtmp holds 0␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecords after logins, and BusyBox's last -n 1 alice prints its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musage and fails (vm-runs/s1/01-tools.log, 02-login.log). So␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone row says so.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlslogins or lastlog, /var/log/wtmp and /run/utmp stay at 0␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbytes after a terminal login, and BusyBox's last -n 1 alice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprints its usage and fails; sshd's own lines go to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/messages, 0640 root wheel (vm-runs/s1/01-tools.log,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m08-lslogins.log, 09-lslogins-blank.log). So one row says so.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $
