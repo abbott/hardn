@@ -176,7 +176,8 @@ type onTerminal struct {
 	cmd    *exec.Cmd
 	master *os.File
 	mu     sync.Mutex
-	output bytes.Buffer
+	output bytes.Buffer // not yet expected
+	seen   bytes.Buffer // all of it
 }
 
 func startOnTerminal(t *testing.T, mode string, extra ...string) *onTerminal {
@@ -196,6 +197,7 @@ func startOnTerminal(t *testing.T, mode string, extra ...string) *onTerminal {
 			n, err := master.Read(b)
 			o.mu.Lock()
 			o.output.Write(b[:n])
+			o.seen.Write(b[:n])
 			o.mu.Unlock()
 			if err != nil {
 				return
@@ -324,19 +326,25 @@ func TestRunInteractiveTerminalModes(t *testing.T) {
 }
 
 // TestRunInteractiveLess runs the installed less on the pseudo-terminal with
-// the environment logview gives it, "--" before the path: the file shows, a
-// shell escape is refused, q ends it, exit 0. It is macOS's less 581.2 here,
-// and GNU less where the tests run on Linux; written, not run there.
+// the environment logview gives it, "--" before the path: the file shows, its
+// OSC as text and not as itself, a shell escape is refused, q ends it, exit 0.
+// It is macOS's less 581.2 here, and GNU less where the tests run on Linux;
+// written, not run there.
 func TestRunInteractiveLess(t *testing.T) {
 	if _, err := NewReal(Options{}).resolve("less"); err != nil {
 		t.Skip("no less")
 	}
 	name := filepath.Join(t.TempDir(), "hardn.log")
-	if err := os.WriteFile(name, []byte("first line\nsecond line\n"), 0o644); err != nil {
+	if err := os.WriteFile(name, []byte("first line\n\x1b]0;a title\x07 second line\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	o := startOnTerminal(t, "less", "HARDN_INTERACTIVE_FILE="+name)
 	o.expect(t, "second line")
+	o.mu.Lock()
+	if all := o.seen.String(); strings.Contains(all, "\x1b]0;a title") || !strings.Contains(all, "0;a title") {
+		t.Errorf("the OSC on the terminal: %q", all)
+	}
+	o.mu.Unlock()
 	o.typed(t, "!")
 	o.expect(t, "not available")
 	o.typed(t, "\r")
