@@ -9,7 +9,8 @@
 # hostfake: written, not run (gate 5). On doas the golden's SUDO_USER is the new path's DOAS_USER.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n> gallery-environment.md
 # §5, and its Made here calls (adopted 2026-10-29); defect <n> gallery-environment.md §7;
-# control-environment.md by section; plan §3.17 and §3.21; side-effects row <n> (§3). UNEXPLAINED
+# control-environment.md by section; plan §3.17 and §3.21; side-effects row <n> (§3); sudoers.md §2 item 6,
+# hardn's header line (approved 2026-10-30). UNEXPLAINED
 # (pending): no such source says it, and the tie is proposed, not approved (parity-environment.md §6).
 # A cell's second note says where origin/main's golden, a sudo run, stands for it in part.
 
@@ -42,7 +43,7 @@ agree  hardn.yml: not saved
 differ files: /etc/sudoers.d/alice 0440 | /etc/sudoers.d/hardn-env-alice 0440
        V16; plan §3.17: /etc/sudoers.d/<user>, the file a grant overwrites; now hardn-env-<stem>, hardn's own
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -84,7 +85,7 @@ agree  hardn.yml: not saved
 differ files: /etc/sudoers.d/alice 0440 | /etc/sudoers.d/hardn-env-alice 0440
        V16; plan §3.17: /etc/sudoers.d/<user>, the file a grant overwrites; now hardn-env-<stem>, hardn's own
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -195,7 +196,7 @@ differ files: /etc/sudoers.d/alice 0440 | /etc/sudoers.d/hardn-env-alice 0440
 differ rules: alice ALL=(ALL) NOPASSWD: ALL | none
        plan §3.17; decision 3 (a); side-effects row 17: the grant carried in the file written; now the line alone, the grant left in alice's file
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -245,7 +246,7 @@ differ files: /etc/sudoers.d/alice 0440 | /etc/sudoers.d/hardn-env-alice 0440
 differ rules: alice ALL=(ALL) NOPASSWD: ALL | none
        plan §3.17; decision 3 (a); side-effects row 17: the grant carried in the file written; now the line alone, the grant left in alice's file
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -365,7 +366,7 @@ differ files: none | /etc/sudoers.d/hardn-env-alice 0440
 differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
        decision 3 (a); control-environment.md §2.2: origin/main's line found in alice's file, nothing written; now the line in hardn-env-alice too
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        decision 3 (a); control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -403,7 +404,7 @@ differ files: none | /etc/sudoers.d/hardn-env-alice 0440
 differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
        decision 3 (a); control-environment.md §2.2: origin/main's line found in alice's file, nothing written; now the line in hardn-env-alice too
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        decision 3 (a); control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -481,7 +482,7 @@ differ files: none | /etc/sudoers.d/hardn-env-alice 0440
 differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
        defect 4; decision 3 (a): a commented line read as kept, nothing written; now the line in hardn-env-alice
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        defect 4; control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -519,7 +520,7 @@ differ files: none | /etc/sudoers.d/hardn-env-alice 0440
 differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
        defect 4; decision 3 (a): a commented line read as kept, nothing written; now the line in hardn-env-alice
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        defect 4; control-environment.md §2.11: nothing written or checked; now hardn-env-alice's checks
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -601,7 +602,7 @@ agree  hardn.yml: not saved
 differ files: /etc/sudoers.d/alice.smith 0440 | /etc/sudoers.d/hardn-env-alice_2esmith 0440
        V16; plan §3.17: /etc/sudoers.d/alice.smith, a name sudo skips; now hardn-env-alice_2esmith, which it reads
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice_2esmith, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice_2esmith 0440, removed
@@ -643,7 +644,7 @@ agree  hardn.yml: not saved
 differ files: /etc/sudoers.d/alice.smith 0440 | /etc/sudoers.d/hardn-env-alice_2esmith 0440
        V16; plan §3.17: /etc/sudoers.d/alice.smith, a name sudo skips; now hardn-env-alice_2esmith, which it reads
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice_2esmith, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice_2esmith 0440, removed
@@ -1152,7 +1153,7 @@ agree  hardn.yml: not saved
 differ files: /etc/hosts 0644, /etc/sudoers.d/alice 0440 | /etc/sudoers.d/hardn-env-alice 0440
        V20; plan §3.17: /etc/hosts overwritten through the planted link (as its owner; fs.protected_symlinks refuses root here [I]), then alice's file; now hardn-env-alice alone
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -1197,7 +1198,7 @@ agree  hardn.yml: not saved
 differ files: /etc/hosts 0644, /etc/sudoers.d/alice 0440 | /etc/sudoers.d/hardn-env-alice 0440
        V20; plan §3.17: /etc/hosts overwritten through the planted link (as its owner; fs.protected_symlinks refuses root here [I]), then alice's file; now hardn-env-alice alone
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: visudo -c -f /tmp/hardn_sudoers_temp | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        control-environment.md §2.11; side-effects row 18: the temp file alone checked; now the configuration before and after, and a copy of the file
 differ temp files: /tmp/hardn_sudoers_temp 0440, written through the symlink there to /etc/hosts, the symlink removed | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -1308,7 +1309,7 @@ differ files: none | /etc/sudoers.d/hardn-env-alice 0440
 differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
        V20; control-environment.md §2.11: the planted directory stopped it before any write; now the line in hardn-env-alice
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        V20; control-environment.md §2.11: stopped before its check; now the configuration before and after, and a copy of the file
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed
@@ -1347,7 +1348,7 @@ differ files: none | /etc/sudoers.d/hardn-env-alice 0440
 differ keep lines: none | Defaults:alice env_keep += "HARDN_CONFIG"
        V20; control-environment.md §2.11: the planted directory stopped it before any write; now the line in hardn-env-alice
 differ comments: none | # Managed by hardn
-       UNEXPLAINED (pending; proposed, not approved: sudoers.md §2 item 6 (next/p2-sudoers)): no comment; now hardn's header line, # Managed by hardn
+       sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30): no comment; now hardn's header line, # Managed by hardn
 differ checks: none | visudo -c, visudo -cf /run/hardn/<run id>/sudoers-validate/hardn-env-alice, visudo -c
        V20; control-environment.md §2.11: stopped before its check; now the configuration before and after, and a copy of the file
 differ temp files: none | /run/hardn/<run id>/sudoers-validate/hardn-env-alice 0440, removed

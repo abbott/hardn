@@ -95,7 +95,8 @@ const envHeader = `# The Environment parity table: origin/main's SetupSudoPreser
 # hostfake: written, not run (gate 5). On doas the golden's SUDO_USER is the new path's DOAS_USER.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n> gallery-environment.md
 # §5, and its Made here calls (adopted 2026-10-29); defect <n> gallery-environment.md §7;
-# control-environment.md by section; plan §3.17 and §3.21; side-effects row <n> (§3). UNEXPLAINED
+# control-environment.md by section; plan §3.17 and §3.21; side-effects row <n> (§3); sudoers.md §2 item 6,
+# hardn's header line (approved 2026-10-30). UNEXPLAINED
 # (pending): no such source says it, and the tie is proposed, not approved (parity-environment.md §6).
 # A cell's second note says where origin/main's golden, a sudo run, stands for it in part.
 `
@@ -404,7 +405,7 @@ var envTable = []tie{
 	{[]string{"already"}, sudo, "files", "decision 3 (a); control-environment.md §2.2", "origin/main's line found, nothing written; now Kept by /etc/sudoers.d/alice, and item 1 still writes hardn-env-alice", false},
 	{[]string{"commented"}, sudo, "files", "defect 4; decision 3 (a)", "a commented line read as kept, nothing written; now Not kept, and item 1 writes hardn-env-alice", false},
 	{[]string{"tmp-dir"}, sudo, "files", "V20; control-environment.md §2.11", "the planted directory stopped it before any write; now hardn-env-alice, nothing under /tmp", false},
-	{append(slices.Clone(wrote), newOnly...), sudo, "comments", "sudoers.md §2 item 6 (next/p2-sudoers)", "no comment; now hardn's header line, # Managed by hardn", true},
+	{append(slices.Clone(wrote), newOnly...), sudo, "comments", "sudoers.md §2 item 6 (next/p2-sudoers; approved 2026-10-30)", "no comment; now hardn's header line, # Managed by hardn", false},
 	{wroteV, sudo, "write", "V18", "written in place; now replaced whole by a rename", false},
 	{wroteNV, sudo, "write", "defect 11", "written in place; now replaced whole by a rename", false},
 	{wroteV, sudo, "backup", "V18; control-environment.md §2.11", "nothing backed up; now recorded absent first, so a rollback removes it", false},
