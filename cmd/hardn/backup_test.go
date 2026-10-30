@@ -120,12 +120,13 @@ func TestBackupScreen(t *testing.T) {
 	}
 }
 
-// hookSet records the DNS and Backup items' hooks as withDNSScreen and
-// withBackupScreen set them.
-type hookSet struct{ dns, backup func() error }
+// hookSet records the DNS, Backup and Environment items' hooks as
+// withDNSScreen, withBackupScreen and withEnvironmentScreen set them.
+type hookSet struct{ dns, backup, environment func() error }
 
-func (h *hookSet) SetDNS(run func() error)    { h.dns = run }
-func (h *hookSet) SetBackup(run func() error) { h.backup = run }
+func (h *hookSet) SetDNS(run func() error)         { h.dns = run }
+func (h *hookSet) SetBackup(run func() error)      { h.backup = run }
+func (h *hookSet) SetEnvironment(run func() error) { h.environment = run }
 
 // TestBackupThenDNS: a path change through the Backup item leaves the main
 // menu's configuration holding the new path, and the DNS item's next

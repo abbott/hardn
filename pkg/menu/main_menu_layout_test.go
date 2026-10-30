@@ -40,8 +40,9 @@ const invalid = "  (x) Invalid option. Please try again."
 // them (openScreen), until the test ends: each is named by the screen of
 // originScreens it is, the same type built from the same values, the
 // test failing on any other, then its name recorded in the list returned
-// and printed, as a screen prints over the main menu. The DNS and Backup
-// items' screens, m's, do the same as "dns" and "backup".
+// and printed, as a screen prints over the main menu. The DNS, Backup and
+// Environment items' screens, m's, do the same as "dns", "backup" and
+// "environment".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
 	was := openScreen
@@ -62,6 +63,7 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	}
 	m.SetDNS(func() error { record("dns"); return nil })
 	m.SetBackup(func() error { record("backup"); return nil })
+	m.SetEnvironment(func() error { record("environment"); return nil })
 	return &opened
 }
 
@@ -69,16 +71,16 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 // m's items, by name, transcribed from it as next/s2b-mode had it
 // (7347cbe, pkg/menu/main_menu.go:613-675): each key's constructor and
 // its arguments, but 6's, the Dry-Run handler, which slice 2b's unit (d)
-// removed with its item, and 5's, the Backup menu, which slice 3's unit
-// (d) replaced. The DNS and Backup items' screens are m's (SetDNS,
-// SetBackup).
+// removed with its item, 5's, the Backup menu, which slice 3's unit (d)
+// replaced, and 8's, the Environment menu, which slice 9's unit (d)
+// replaced. The DNS, Backup and Environment items' screens are m's
+// (SetDNS, SetBackup, SetEnvironment).
 func originScreens(m *MainMenu) map[string]legacyScreen {
 	return map[string]legacyScreen{
 		"users":         NewUserMenu(m.menuManager, m.config, m.osInfo),
 		"sshLogin":      NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
 		"firewall":      NewFirewallMenu(m.menuManager, m.config, m.osInfo),
 		"runAll":        handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
-		"environment":   NewEnvironmentSettingsMenu(m.menuManager, m.config),
 		"systemDetails": NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager()),
 		"logs":          NewLogsMenu(m.menuManager, m.config),
 	}
@@ -138,9 +140,10 @@ func (r interrupted) Read(p []byte) (int, error) {
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 5 and 7
 // to 10 open exactly the screen origin/main's handleMenuChoice opened for
 // them, of the same constructor with the same arguments (recordScreens),
-// but 3 and 5, which open the DNS and Backup screens cmd/hardn sets, and
-// the main menu is drawn again when it returns; 6, whose item,
-// Dry-Run, slice 2b's unit (d) removed, its key left unused (decision 1),
+// but 3, 5 and 8, which open the DNS, Backup and Environment screens
+// cmd/hardn sets, and the main menu is drawn again when it returns; 6,
+// whose item, Dry-Run, slice 2b's unit (d) removed, its key left unused
+// (decision 1),
 // is refused as any key no item has, opening nothing; 0 (Exit) and q, in
 // either case, clear the screen and return, opening nothing; spaces
 // around a key are ignored, as origin/main's read trimmed them; an empty
@@ -208,9 +211,9 @@ func TestMainMenuKeys(t *testing.T) {
 			}
 			clears := strings.Count(out, clearScreen)
 			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			for _, hooked := range []string{"dns", "backup"} {
+			for _, hooked := range []string{"dns", "backup", "environment"} {
 				if slices.Contains(tc.opened, hooked) {
-					want++ // the DNS and Backup items open their screens on a cleared screen, as every legacy screen does
+					want++ // the DNS, Backup and Environment items open their screens on a cleared screen, as every legacy screen does
 				}
 			}
 			if !strings.HasPrefix(out, clearScreen) || clears != want || strings.Contains(out, "Press Enter") {
@@ -318,11 +321,14 @@ func TestMainMenuMode(t *testing.T) {
 // unit (d)): its numbers, labels and descriptions, item 1's parenthesis
 // its aside, and its Exit row (the trunk's "q to quit", DEV-030, as the
 // record holds it), but item 6, Dry-Run, removed with its key
-// (decision 1); and the same as the main-menu mock's
-// (screen.MainMenuFixture), which the gallery draws its main menus with.
+// (decision 1), and item 8's description, the decided "Keep HARDN_CONFIG"
+// (slice 9, decision 7 (a), P-07 (c)); and the same as the main-menu
+// mock's (screen.MainMenuFixture), which the gallery draws its main menus
+// with.
 // The heading and prompt are origin/main's too, the hint generated from
 // the items, "[0-5, 7-10 or q]" where origin/main's was "[0-10 or q]".
 func TestMainMenuItems(t *testing.T) {
+	const keepHardnConfig = "Keep HARDN_CONFIG"
 	data, err := os.ReadFile(filepath.Join(legacyDir, "main_menu", "ubuntu-fresh.golden"))
 	if err != nil {
 		t.Fatal(err)
@@ -333,6 +339,9 @@ func TestMainMenuItems(t *testing.T) {
 	var legacy [][]string
 	for _, l := range strings.Split(record, "\n") {
 		if r := row.FindStringSubmatch(l); r != nil && r[1] != "6" {
+			if r[1] == "8" && r[3] == "Configure environment variable" {
+				r[3] = keepHardnConfig // decided (slice 9, decision 7 (a))
+			}
 			legacy = append(legacy, r[1:])
 		}
 	}
@@ -347,7 +356,7 @@ func TestMainMenuItems(t *testing.T) {
 		layout = append(layout, []string{it.Key, it.Label, desc})
 	}
 	if len(legacy) != 10 || !slices.EqualFunc(legacy, layout, slices.Equal[[]string]) {
-		t.Errorf("the layout's items\n%q\nare not origin/main's but 6\n%q", layout, legacy)
+		t.Errorf("the layout's items\n%q\nare not origin/main's but 6 and 8's description\n%q", layout, legacy)
 	}
 	fixture := screen.MainMenuFixture()
 	if !slices.Equal(view.Items, fixture.Menu.Items) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
