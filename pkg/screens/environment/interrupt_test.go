@@ -67,21 +67,25 @@ func TestInterrupt(t *testing.T) {
 	}
 }
 
-// interrupt waits until out shows at, then sends SIGINT to the test every
-// 10 ms until done, and returns what Run did; it fails the test after 10
-// seconds.
+// interrupt waits until out shows at, for 10 seconds at most, then sends
+// SIGINT to the test every 10 ms until done, and returns what Run did; it
+// fails the test when Run has not returned 10 seconds later. Where at is
+// never shown, the signal still ends Run, so that no read is left
+// blocked on the pipe, and the caller finds at missing.
 func interrupt(t *testing.T, out *lockedBuffer, at string, done <-chan played) played {
 	t.Helper()
-	timeout := time.After(10 * time.Second)
+	shown := time.After(10 * time.Second)
+wait:
 	for !strings.Contains(out.String(), at) {
 		select {
 		case p := <-done:
 			return p
 		case <-time.After(10 * time.Millisecond):
-		case <-timeout:
-			t.Fatalf("%q not shown:\n%s", at, out.String())
+		case <-shown:
+			break wait
 		}
 	}
+	timeout := time.After(10 * time.Second)
 	for {
 		if err := syscall.Kill(os.Getpid(), syscall.SIGINT); err != nil {
 			t.Fatal(err)
