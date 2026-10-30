@@ -2,6 +2,7 @@ package host
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -23,6 +24,9 @@ const interactiveWait = 5 * time.Second
 // registered outside a prompt or an apply (pkg/ui/prompt; cmd/hardn's
 // readStatus), and Ctrl-\ by Go's for SIGQUIT, which also dumps the stacks.
 var terminalSignals = []os.Signal{os.Interrupt, syscall.SIGQUIT}
+
+// errNoTerminal is why RunInteractive runs nothing off a terminal.
+var errNoTerminal = errors.New("stdin and stdout must both be a terminal")
 
 // InteractiveEnv is the whole environment of a command RunInteractive runs
 // with env: env and Run's PATH, which no entry of env replaces.
@@ -51,9 +55,13 @@ func InteractiveEnv(env []string) []string {
 // stop, and both go on at fg. A SIGTERM or a hangup sent to hardn ends it by
 // whatever it has at the call.
 //
-// If stdin is a terminal, a child that ended without putting its modes back
-// (killed, as below, or crashed in raw mode) has them put back, so the next
-// prompt reads as before.
+// Where stdin or stdout is not a terminal nothing runs: the seam is for a
+// program that has the terminal, and such a program may do otherwise off one.
+// less given a pipe acts as cat, passing a log's bytes through raw (run: 581.2;
+// GNU's [I]), and the pipe can end at a terminal (hardn | tee).
+//
+// A child that ended without putting its modes back (killed, as below, or
+// crashed in raw mode) has them put back, so the next prompt reads as before.
 func (r *Real) RunInteractive(ctx context.Context, env []string, name string, args ...string) error {
 	argv := append([]string{name}, args...)
 	res := Result{Argv: argv, ExitCode: -1}
@@ -70,6 +78,9 @@ func (r *Real) interactive(ctx context.Context, res *Result, env []string, name 
 	path, err := r.resolve(name)
 	if err != nil {
 		return err
+	}
+	if !r.hasTerminal() {
+		return fmt.Errorf("host: run %s: %w", FormatArgv(res.Argv), errNoTerminal)
 	}
 	cmd := exec.CommandContext(ctx, path, args...)
 	cmd.Args[0] = name // as Run sets it
@@ -90,6 +101,16 @@ func (r *Real) interactive(ctx context.Context, res *Result, env []string, name 
 	return runOutcome(ctx, res, code, runErr)
 }
 
+// stdioIsTerminal reports whether stdin and stdout are both terminals.
+func stdioIsTerminal() bool {
+	for _, f := range []*os.File{os.Stdin, os.Stdout} {
+		if _, err := unix.IoctlGetTermios(int(f.Fd()), getTermios); err != nil {
+			return false
+		}
+	}
+	return true
+}
+
 // catchTerminalSignals catches terminalSignals, those not ignored, until the
 // function it returns. The channel is never read: os/signal does not block
 // sending to a full one, and a caught signal has done its work by being
@@ -105,7 +126,7 @@ func catchTerminalSignals() (release func()) {
 }
 
 // keepTerminal notes stdin's terminal modes, and returns the function that
-// puts them back if they changed. It does nothing where stdin is no terminal.
+// puts them back if they changed.
 func keepTerminal() (restore func()) {
 	fd := int(os.Stdin.Fd())
 	before, err := unix.IoctlGetTermios(fd, getTermios)

@@ -40,6 +40,8 @@ type Real struct {
 	fail func(step string) error
 	// interactiveWait is how long RunInteractive waits after SIGTERM.
 	interactiveWait time.Duration
+	// hasTerminal says whether RunInteractive has a terminal to give.
+	hasTerminal func() bool
 }
 
 var _ LegacySystem = (*Real)(nil)
@@ -68,6 +70,7 @@ func NewReal(opts Options) *Real {
 		spawn: spawnCmd,
 
 		interactiveWait: interactiveWait,
+		hasTerminal:     stdioIsTerminal,
 	}
 }
 

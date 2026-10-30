@@ -332,7 +332,8 @@ func (s *System) detach(ctx context.Context, argv []string) (int, error) {
 
 // RunInteractive runs nothing: it answers from the script, then the Handler,
 // as Run does, stdin nil, and is recorded as run-interactive with the whole
-// environment host.Real would give it, and logged as host.Real logs it.
+// environment host.Real would give it, and logged as host.Real logs it. It has
+// no terminal to ask about, so it does not refuse off one.
 func (s *System) RunInteractive(ctx context.Context, env []string, name string, args ...string) error {
 	argv := append([]string{name}, args...)
 	id := s.log.Begin(argv, -1)

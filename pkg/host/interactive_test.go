@@ -80,6 +80,7 @@ func TestRunInteractiveRefuses(t *testing.T) {
 func TestRunInteractiveExit(t *testing.T) {
 	ctx := context.Background()
 	r := NewReal(Options{})
+	r.hasTerminal = func() bool { return true }
 	if err := r.RunInteractive(ctx, nil, "sh", "-c", "exit 0"); err != nil {
 		t.Errorf("exit 0: %v", err)
 	}
@@ -110,6 +111,7 @@ func TestRunInteractiveContext(t *testing.T) {
 				t.Fatal(err)
 			}
 			r := NewReal(Options{})
+			r.hasTerminal = func() bool { return true }
 			r.interactiveWait = 200 * time.Millisecond
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
@@ -253,6 +255,52 @@ func (o *onTerminal) wait(t *testing.T) (code int, sig syscall.Signal) {
 	return ws.ExitStatus(), 0
 }
 
+// TestRunInteractiveNeedsATerminal: with stdin or stdout anywhere but a terminal
+// nothing runs, on hardn's real files: less on a pipe acts as cat, and the pipe
+// can end at a terminal (hardn | tee). Both on one, it runs.
+func TestRunInteractiveNeedsATerminal(t *testing.T) {
+	for _, tt := range []struct {
+		name          string
+		stdin, stdout bool // on the pseudo-terminal
+	}{
+		{"neither", false, false},
+		{"stdout a pipe, as hardn | tee", true, false},
+		{"stdin a pipe", false, true},
+		{"both", true, true},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			_, slave := openPTY(t)
+			outcome := filepath.Join(t.TempDir(), "outcome")
+			cmd := inChild("needs-terminal", "HARDN_INTERACTIVE_FILE="+outcome)
+			if tt.stdin {
+				cmd.Stdin = slave
+			}
+			if tt.stdout {
+				cmd.Stdout = slave
+			}
+			if err := cmd.Run(); err != nil {
+				t.Fatal(err)
+			}
+			got, err := os.ReadFile(outcome)
+			if err != nil {
+				t.Fatal(err)
+			}
+			_, ranErr := os.Stat(outcome + ".ran")
+			both := tt.stdin && tt.stdout
+			if ran := ranErr == nil; ran != both {
+				t.Errorf("the child ran: %t, %s", ran, got)
+			}
+			if both {
+				if string(got) != "RETURNED 0" {
+					t.Errorf("%s", got)
+				}
+			} else if !strings.Contains(string(got), errNoTerminal.Error()) {
+				t.Errorf("%s", got)
+			}
+		})
+	}
+}
+
 // TestRunInteractiveCtrlC: on a pseudo-terminal, Ctrl-C while the child runs
 // reaches the child, which has the terminal, and does not end "hardn"; once it
 // returns, a second Ctrl-C ends "hardn" by Go's default, as before.
@@ -379,7 +427,13 @@ func TestInteractiveChild(t *testing.T) {
 		return []string{"-c", fmt.Sprintf(`trap 'echo CAUGHT; exit %d' %s; echo READY; while :; do sleep 0.02; done`, code, sig)}
 	}
 	switch mode {
+	case "needs-terminal":
+		err := r.RunInteractive(ctx, nil, "sh", "-c", `touch "$0"`, os.Getenv("HARDN_INTERACTIVE_FILE")+".ran")
+		if werr := os.WriteFile(os.Getenv("HARDN_INTERACTIVE_FILE"), []byte(returned(err)), 0o600); werr != nil {
+			os.Exit(3)
+		}
 	case "env":
+		r.hasTerminal = func() bool { return true }
 		if err := r.RunInteractive(ctx, []string{"TERM=vt100", "LESSSECURE=1", "PATH=/tmp/evil"}, "env"); err != nil {
 			os.Exit(3)
 		}

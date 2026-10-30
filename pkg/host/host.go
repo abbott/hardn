@@ -74,7 +74,8 @@ type System interface {
 	// start and the process id. The OpenRC revert timer (p2-revert).
 	StartDetached(ctx context.Context, name string, args ...string) (pid int, err error)
 	// RunInteractive runs name with args as a child with hardn's own stdin,
-	// stdout and stderr, so it has the terminal, and waits for it. No shell;
+	// stdout and stderr, so it has the terminal, and waits for it. Where stdin
+	// or stdout is not a terminal it runs nothing and returns an error. No shell;
 	// name is resolved as Run resolves it, and the working directory is
 	// Run's. Its environment is exactly env and Run's PATH (InteractiveEnv):
 	// nothing is inherited, as for every command hardn runs (commandEnv),
