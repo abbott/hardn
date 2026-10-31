@@ -28,7 +28,7 @@ const defaultLogFile = "/var/log/hardn.log"
 // Config represents the main configuration structure
 type Config struct {
 	// Basic Configuration
-	Username      string `yaml:"username"`
+	Username string `yaml:"username"`
 	// LogFile is retired (decision 6 (a)): hardn always writes /var/log/hardn.log, and
 	// warns where this names another path. SaveConfig writes it only then.
 	LogFile       string `yaml:"logFile,omitempty"`

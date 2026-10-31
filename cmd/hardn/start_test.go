@@ -65,18 +65,18 @@ func runStart(t *testing.T, sys host.System, args ...string) startRun {
 	}
 
 	was := struct {
-		ensure  func() error
-		exit    func(int)
-		host    func() host.System
-		out     io.Writer
-		errOut  io.Writer
-		stdout  func() term.Env
-		stderr  func() term.Env
-		fallbck io.Writer
+		ensure   func() error
+		exit     func(int)
+		host     func() host.System
+		out      io.Writer
+		errOut   io.Writer
+		stdout   func() term.Env
+		stderr   func() term.Env
+		fallback io.Writer
 	}{ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, logging.FallbackOutput}
 	t.Cleanup(func() {
 		ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, logging.FallbackOutput =
-			was.ensure, was.exit, was.host, was.out, was.errOut, was.stdout, was.stderr, was.fallbck
+			was.ensure, was.exit, was.host, was.out, was.errOut, was.stdout, was.stderr, was.fallback
 		logging.InitLogging(os.DevNull)
 		resetFlags()
 		rootCmd.SetArgs(nil)

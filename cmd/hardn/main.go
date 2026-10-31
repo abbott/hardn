@@ -496,14 +496,14 @@ Example:
 // defaults where none is, never the offer to create one (config.LoadExisting;
 // refactor plan slice 9, unit (d)).
 var (
-	lookupCurrentUser           = osuser.Current
-	loadConfig                  = config.LoadConfig
-	loadExisting                = config.LoadExisting
-	fileDryRun                  = config.FileDryRun
-	ensureExampleConfig         = config.EnsureExampleConfigExists
-	detectOS                    = osdetect.DetectOS
-	exit                        = os.Exit
-	stderr            io.Writer = termStderr
+	lookupCurrentUser             = osuser.Current
+	loadConfig                    = config.LoadConfig
+	loadExisting                  = config.LoadExisting
+	fileDryRun                    = config.FileDryRun
+	ensureExampleConfig           = config.EnsureExampleConfigExists
+	detectOS                      = osdetect.DetectOS
+	exit                          = os.Exit
+	stderr              io.Writer = termStderr
 )
 
 // operationFlags names the operation flags set on the command line that
