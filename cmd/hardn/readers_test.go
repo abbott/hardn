@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	osuser "os/user"
+	"slices"
 	"strings"
 	"testing"
 
@@ -396,5 +397,69 @@ func TestReaderScreens(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+// TestPrintOnly: -p runs ahead of the root check only where no other operation flag
+// is given, as each of those would otherwise be dropped without a word.
+func TestPrintOnly(t *testing.T) {
+	printWas := printLogs
+	t.Cleanup(func() { printLogs = printWas })
+	printLogs = true
+	if !printOnly() {
+		t.Error("-p alone is not print only")
+	}
+	for name, flag := range map[string]*bool{
+		"create-user": &createUser, "disable-root": &disableRootSSH, "install-linux": &installLinux,
+		"install-python": &installPython, "install-all": &installAll, "configure-ufw": &configureUfw,
+		"configure-dns": &configureDns, "run-all": &runAll, "configure-sources": &updateSources,
+		"setup-sudo-env": &setupSudoEnv,
+	} {
+		was := *flag
+		*flag = true
+		if printOnly() {
+			t.Errorf("-p with %s is print only: %s would not run", name, name)
+		}
+		*flag = was
+	}
+	printLogs = false
+	if printOnly() {
+		t.Error("no -p is print only")
+	}
+}
+
+// TestLogsOpenTerm: Open gives less hardn's TERM, which the Logs hook reads.
+func TestLogsOpenTerm(t *testing.T) {
+	const want = "TERM=screen-256color"
+	t.Setenv("TERM", "screen-256color")
+	h := logHost(readerLog)
+	h.Handler = func(argv []string, _ []byte) hostfake.Response {
+		if slices.Equal(argv, []string{"less", "--version"}) {
+			return hostfake.Response{Stdout: "less 668 (GNU regular expressions)\n"}
+		}
+		return hostfake.Response{}
+	}
+	s := &readerSeams{}
+	useReaderHost(t, h, s)
+	inputWas := engineInput
+	t.Cleanup(func() { engineInput = inputWas })
+	in := prompt.New(uitest.NewTypist(io.Discard, "1", "0"), false)
+	engineInput = func() *prompt.Reader { return in }
+	set := &hookSet{}
+	withReaderScreens(set, config.DefaultConfig())
+	if err := set.logs(); err != nil {
+		t.Fatalf("= %v; screen:\n%s", err, s.out.String())
+	}
+	opened := false
+	for _, c := range h.Calls() {
+		if c.Op == "run-interactive" {
+			opened = true
+			if !slices.Contains(c.Env, want) {
+				t.Errorf("less's environment %v, want %s", c.Env, want)
+			}
+		}
+	}
+	if !opened {
+		t.Errorf("Open ran nothing; screen:\n%s", s.out.String())
 	}
 }
