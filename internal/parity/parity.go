@@ -7,10 +7,12 @@
 // supplies a Slice (DNS's is pkg/screens/dns's parity_test.go) and runs it
 // from its TestParity with Run.
 //
-// Its users are pkg/screens/dns, pkg/screens/backup (since next/s3-parity)
-// and pkg/screens/environment (since next/s9-parity), each in a layout of
-// its goldens' own: the ops and menu traces, the repository's
-// (parseRepository) and the root's (parseRoot).
+// Its users are pkg/screens/dns, pkg/screens/backup (since next/s3-parity),
+// pkg/screens/environment (since next/s9-parity) and
+// pkg/screens/systemdetails (since next/s1-parity), each in a layout of its
+// goldens' own: the ops and menu traces, the repository's (parseRepository),
+// the root's (parseRoot) and, read by the slice itself (Slice.Reader), the
+// rows of two read-only screens (EndState.Rows).
 //
 // It is test support: import it only from _test.go files (depguard rule
 // test-only). It links pkg/ui/uitest, which defines -update, so that make
@@ -115,21 +117,36 @@ type Slice struct {
 	// origin/main's golden stands for the cell in part (Environment's doas
 	// cells, a sudo run); "" none. nil (DNS, Backup): none.
 	CellNote func(c Cell) string
+	// Reader reads origin/main's goldens where their layout is the slice's
+	// alone (System Details' and Logs': a screen's rows), in place of
+	// parseLegacy's layouts. It must fail on any section, call or line it
+	// does not compare, as they do. The harness adds the V-numbers of the
+	// golden's KNOWN-DEFECT and FIXED lines. nil (DNS, Backup, Environment):
+	// parseLegacy's.
+	Reader func(data []byte, rel string) (LegacyRead, error)
+}
+
+// LegacyRead is origin/main's run as a Slice.Reader read it: its end state
+// and what it started from (Cell.LegacyStart).
+type LegacyRead struct {
+	Live  EndState
+	Start string
 }
 
 // reader is how a slice's goldens are read (Slice): origin/main's commands
 // that only read (Probes), its paths as the new path's (LegacyPaths), the
-// commands that check (Check), and whether a file the run wrote and
-// removed is a temp file (Temps).
+// commands that check (Check), whether a file the run wrote and removed is
+// a temp file (Temps), and the slice's own reader (Reader).
 type reader struct {
 	probes []string
 	paths  []string
 	check  func(string) bool
 	temps  bool
+	own    func([]byte, string) (LegacyRead, error)
 }
 
 func (sl Slice) reader() reader {
-	return reader{probes: sl.Probes, paths: sl.LegacyPaths, check: sl.Check, temps: sl.Temps}
+	return reader{probes: sl.Probes, paths: sl.LegacyPaths, check: sl.Check, temps: sl.Temps, own: sl.Reader}
 }
 
 // Scenario is a row of the table, run on every distribution.
@@ -150,6 +167,10 @@ type Scenario struct {
 	// of the file; "" is Slice.Setting. Backup's toggle saves enableBackups,
 	// its path item backupPath.
 	Setting string
+	// Only are the distributions this scenario runs on, by Distro.Name, where
+	// it shows nothing the others do not; none: every one. System Details'
+	// rows on Alpine 3.23 are two, where the new path differs by host.
+	Only []string
 }
 
 // HostState is a host the new path runs on, in words and in a word or two.
@@ -247,6 +268,18 @@ type EndState struct {
 	// Temps are the files the run wrote and then removed (Slice.Temps):
 	// "<path> <mode>, removed", the new path's run id as <run id>.
 	Temps []string
+	// Rows are what a read-only screen shows, or the fact that replaces it:
+	// each compared as an aspect of its name, a row one side lacks being
+	// "none". A row origin/main's golden masks (Masked) is not compared, on
+	// either side, and each side's value is recorded.
+	Rows []Row
+}
+
+// Row is one row of a read-only screen. Masked: its golden does not hold its
+// value, read from the machine the characterization ran on.
+type Row struct {
+	Name, Value string
+	Masked      bool
 }
 
 // FileWrite is one file as a run left it.
@@ -350,6 +383,9 @@ func readLegacy(t *testing.T, dir, rel string, rd reader) legacyRun {
 // pkg/screens/environment/testdata/legacy since next/s9-replace) by
 // parseRoot.
 func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
+	if rd.own != nil {
+		return parseOwn(data, rel, rd.own)
+	}
 	if bytes.Contains(data, []byte("\n"+repoCalls+"\n")) {
 		return parseRepository(data, rel, rd.paths)
 	}
@@ -491,6 +527,22 @@ func parseLegacy(data []byte, rel string, rd reader) (legacyRun, error) {
 		r.Live.Refusal = "" // an item's message is its refusal only when it saved nothing
 	}
 	r.Start = strings.Join(seed, "; ")
+	return r, nil
+}
+
+// parseOwn is data, the characterization golden rel, read by the slice's own
+// reader: its end state and its start, and the V-numbers of its KNOWN-DEFECT
+// and FIXED lines.
+func parseOwn(data []byte, rel string, own func([]byte, string) (LegacyRead, error)) (legacyRun, error) {
+	r := legacyRun{Golden: rel}
+	for _, l := range strings.Split(string(data), "\n") {
+		r.Vs = named(r.Vs, l)
+	}
+	read, err := own(data, rel)
+	if err != nil {
+		return r, fmt.Errorf("%s: %w", rel, err)
+	}
+	r.Live, r.Start = read.Live, read.Start
 	return r, nil
 }
 
@@ -1137,7 +1189,7 @@ func newState(t *testing.T, h *hostfake.System, n int, o stateOptions) EndState 
 			continue
 		}
 		switch c.Op {
-		case "read", "read-nofollow", "lstat", "stat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group", "lock", "unlock":
+		case "read", "read-nofollow", "scan-lines", "lstat", "stat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group", "lock", "unlock":
 			// reads leave no end state
 		case "write-atomic", "write-in-place":
 			if _, ok := modes[c.Path]; !ok {
@@ -1264,15 +1316,20 @@ func Planned(s EndState, p *engine.Plan) EndState {
 func Run(t *testing.T, sl Slice) {
 	t.Helper()
 	var cells []Cell
+	all := 0
 	for _, sc := range sl.Scenarios {
 		for _, d := range sl.Distros {
+			if len(sc.Only) > 0 && !slices.Contains(sc.Only, d.Name) {
+				continue
+			}
+			all++
 			t.Run(sc.Name+"/"+d.Name, func(t *testing.T) { cells = append(cells, runCell(t, sl, sc, d)) })
 		}
 	}
 	if t.Failed() {
 		return
 	}
-	if all := len(sl.Scenarios) * len(sl.Distros); len(cells) != all {
+	if len(cells) != all {
 		t.Logf("%d of %d cells ran: the table, %s and the page are checked only when every cell runs", len(cells), all, sl.Golden)
 		return
 	}
@@ -1306,6 +1363,7 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 		loaded = strings.Split(strings.TrimSuffix(string(src), "\n"), "\n")
 	}
 	c.ran = sl.Run(t, c)
+	c.ran.Live.Rows = maskedAs(c.legacy.Live.Rows, c.ran.Live.Rows)
 	c.legacy.Live.Loaded, c.ran.Live.Loaded = loaded, loaded
 	key := sc.Setting
 	if key == "" {
@@ -1319,6 +1377,36 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 		c.diffs = append(c.diffs, aspect{"dry run", legacyDry(c.legacy), c.ran.Dry})
 	}
 	return c
+}
+
+// maskedAs is rows with each row legacy masks marked so: its value is then
+// recorded, not compared.
+func maskedAs(legacy, rows []Row) []Row {
+	for i, r := range rows {
+		rows[i].Masked = slices.ContainsFunc(legacy, func(l Row) bool { return l.Masked && l.Name == r.Name })
+	}
+	return rows
+}
+
+// compareRows adds an aspect for each row of l, then each row of n alone, a
+// row a side lacks being "none"; a masked row adds none.
+func compareRows(add func(name, legacy, new string), l, n []Row) {
+	value := func(rows []Row, name string) string {
+		if i := slices.IndexFunc(rows, func(r Row) bool { return r.Name == name }); i >= 0 {
+			return rows[i].Value
+		}
+		return "none"
+	}
+	for _, r := range l {
+		if !r.Masked {
+			add(r.Name, r.Value, value(n, r.Name))
+		}
+	}
+	for _, r := range n {
+		if !r.Masked && !slices.ContainsFunc(l, func(o Row) bool { return o.Name == r.Name }) {
+			add(r.Name, "none", r.Value)
+		}
+	}
 }
 
 // unnamedSetting is an error when both paths saved hardn.yml and key, the
@@ -1435,6 +1523,7 @@ func compare(t *testing.T, sl Slice, key string, l, n EndState) (diffs, agree []
 			add("hardn.yml mode", fmt.Sprintf("%04o", uint32(l.YML.Mode)), fmt.Sprintf("%04o", uint32(n.YML.Mode)))
 		}
 	}
+	compareRows(add, l.Rows, n.Rows)
 	return diffs, agree
 }
 
@@ -1744,8 +1833,9 @@ func renderCells(sl Slice, cells []Cell) string {
 
 // writeState is s, indented: the probes, each file written with its
 // content (hardn.yml as its lines changed against the file loaded, or its
-// size when written whole), the directories, the commands, and what the
-// new path adds.
+// size when written whole), the directories, the commands, what the new
+// path adds, and each masked row; the other rows are the cell's agree and
+// differ lines.
 func writeState(b *strings.Builder, s EndState) {
 	if len(s.Probes) > 0 {
 		fmt.Fprintf(b, "  probes: %s\n", strings.Join(s.Probes, "; "))
@@ -1795,6 +1885,11 @@ func writeState(b *strings.Builder, s EndState) {
 	if s.Journal || len(s.Backups) > 0 || len(s.Findings) > 0 {
 		fmt.Fprintf(b, "  backup: %s; journal: %s; findings: %s\n", Joined(s.Backups), journal(s), Joined(s.Findings))
 	}
+	for _, r := range s.Rows {
+		if r.Masked {
+			fmt.Fprintf(b, "  masked %s (recorded, not compared): %s\n", r.Name, r.Value)
+		}
+	}
 }
 
 // lineDiff is the lines of was that are not in now ("-"), then the lines
@@ -1831,11 +1926,14 @@ func renderPage(sl Slice, cells []Cell) string {
 	by := map[string][]string{}
 	for _, sc := range sl.Scenarios {
 		var r strings.Builder
-		for _, c := range cells {
-			if c.Scenario.Name == sc.Name {
-				word, _, _ := strings.Cut(c.Shipped, ":")
-				fmt.Fprintf(&r, " %s (%s) |", c.State.Short, word)
+		for _, d := range sl.Distros {
+			i := slices.IndexFunc(cells, func(c Cell) bool { return c.Scenario.Name == sc.Name && c.Distro.Name == d.Name })
+			if i < 0 {
+				r.WriteString(" not run |") // Scenario.Only
+				continue
 			}
+			word, _, _ := strings.Cut(cells[i].Shipped, ":")
+			fmt.Fprintf(&r, " %s (%s) |", cells[i].State.Short, word)
 		}
 		if _, ok := by[r.String()]; !ok {
 			rows = append(rows, r.String())
@@ -1892,7 +1990,7 @@ func renderPage(sl Slice, cells []Cell) string {
 		}
 	}
 	for _, g := range groups {
-		scenarios, on := where(g.cells, len(sl.Distros))
+		scenarios, on := whereRows(sl, g.cells)
 		fmt.Fprintf(&b, "| %s | %s | %s | %s | %s | %s: %s |\n", scenarios, on, g.a.Name, cell(g.a.Legacy), cell(g.a.New), g.e.label(), g.e.Why)
 	}
 
@@ -1953,6 +2051,33 @@ func where(cells [][2]string, n int) (scenarios, on string) {
 		parts = append(parts, s+" ("+label(by[s])+")")
 	}
 	return strings.Join(parts, "; "), "as listed"
+}
+
+// whereRows is where, but that a group holding every cell of each of its
+// scenarios, some of them run on some distributions alone (Scenario.Only), says
+// so, rather than naming each scenario's.
+func whereRows(sl Slice, cells [][2]string) (scenarios, on string) {
+	var names []string
+	whole, only, counts := true, false, map[int]bool{}
+	for _, sc := range sl.Scenarios {
+		n := 0
+		for _, c := range cells {
+			if c[0] == sc.Name {
+				n++
+			}
+		}
+		if n == 0 {
+			continue
+		}
+		names = append(names, sc.Name)
+		only = only || len(sc.Only) > 0
+		whole = whole && (n == len(sc.Only) || n == len(sl.Distros))
+		counts[n] = true
+	}
+	if only && whole && len(counts) > 1 {
+		return strings.Join(names, ", "), "every cell of each"
+	}
+	return where(cells, len(sl.Distros))
 }
 
 // updating reports whether the test runs with -update (pkg/ui/uitest's
