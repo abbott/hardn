@@ -12,8 +12,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/charmbracelet/colorprofile"
-
 	"github.com/abbott/hardn/pkg/engine/details"
 	probe "github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
@@ -29,33 +27,32 @@ import (
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
-// The System Details mocks (refactor plan slice 1, unit (a), next/s1-gallery,
-// adopted 2026-10-30): the System Details screen, main menu 9, for unit (c) to
-// build, nothing of it wired into hardn. There is no Figma
-// frame and it is not in v0.3.2: it is inferred from origin/main
-// (pkg/system/display.go:43-129, pkg/menu/system_details_menu.go), with
-// P-17's sections, the 2025 prototype's as reference only. Each mock's note
-// opens with sdLabel, P-17's label, but those in origin/main's own words.
+// The System Details screen on the simulated hosts (refactor plan slice 1, unit (c),
+// next/s1-screen): hardn's System Details screen itself (pkg/screens/systemdetails),
+// drawn from what details.Read reads of each host, on the hosts the mocks were drawn
+// for, which it replaces (docs/engine/screen-system-details.md). There is no Figma
+// frame and it is not in v0.3.2: it is inferred from origin/main, with P-17's
+// sections. "play system-details" is the menu of the hosts and "play
+// system-details/<host>" the screen on one; the main menu's 9 leads to it on Debian
+// 13, under plan only too (-sequence dry-run), as unit (d) wires hardn's own.
 //
-// It only reads, so it has no plan, no y/N and no journal: its sequence is
-// the reading, opening, each state, refreshing and leaving.
+// detailsModel is what a simulated host answers the reader, in the forms that ran
+// read-only, as a user, on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs
+// (vm-runs/s1), but ZFS's, no VM having it, and inet6, none having a global address.
 //
-// Real code reads a simulated host: details.Read, on detect's facts, and
-// output.Build's document (next/s1-readers). The sections, rows and layout are
-// still the gallery's, unit (c)'s to build, as is detailsModel, what the
-// simulated host answers the reader, in the forms that ran read-only, as a user,
-// on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs (vm-runs/s1), but ZFS's, no
-// VM having it, and inet6, none having a global address.
-//
-// "system-details" lists the mocks with no input; "play system-details" is
-// the menu of the hosts and "play system-details/<host>" the screen on one.
+// "uigallery system-details" lists the non-interactive forms: hardn system-details'
+// through the real Print (cli-terminal, cli-pipe, cli-pipe-cut, cli-not-root), and
+// what unit (d) has not built and still takes as its reference (cli-json,
+// cli-json-unreadable, cli-flags). The listing's other mocks were retired with the
+// screen: git keeps them (systemdetails.go, next/s1-parity), and
+// gallery-system-details.md records what each showed.
 
-// sdPrefix names the mocks: "system-details <mock>" in the listing,
+// sdPrefix names the forms and hosts: "system-details <mock>" in the listing,
 // "system-details" and "system-details/<host>" in play.
 const sdPrefix = "system-details"
 
-// sdLabel is the source label every mock carries (plan: "inferred from
-// origin/main (unreleased)"; P-17).
+// sdLabel is the source label every form in the listing carries (plan: "inferred
+// from origin/main (unreleased)"; P-17).
 const sdLabel = "Inferred from origin/main (unreleased)."
 
 // sdMainHost is the host the main menu's 9 leads to.
@@ -63,59 +60,10 @@ const sdMainHost = sdPrefix + "/debian13"
 
 // sdLinks lead from a menu mock's item to the System Details screen on a
 // host, by the mock's name and the item's key, beside links: the main
-// menu's 9, which said the gallery had no screen for it until this unit.
+// menu's 9, which said the gallery had no screen for it until unit (a).
 var sdLinks = map[string]string{mainMenuMock + "/9": sdMainHost}
 
-// The screen's words: the main menu's label for the title, Backup's and
-// Environment's decided heading and prompt (screen-backup.md §5, P-29 (a));
-// P-17's sections; the rest decided (gallery-system-details.md §6).
-const (
-	sdTitle   = "System Details"
-	sdHeading = "Select an option"
-	sdPrompt  = "Enter selection"
-	secOS     = "OS and Kernel"
-	secHost   = "Host and IPs"
-	secUsers  = "Users"
-	secCPU    = "CPU and Load"
-	secDisk   = "Disk"
-	secMemory = "Memory"
-	secLogin  = "Last Login"
-	// Rows.
-	rowOS       = "OS"
-	rowKernel   = "Kernel"
-	rowUptime   = "Uptime"
-	rowHostname = "Hostname"
-	rowModel    = "Model"
-	rowCPUs     = "CPUs"
-	rowLoad     = "Load (1, 5, 15 min)"
-	rowUsed     = "Used"
-	rowPool     = "Pool %s"
-	rowRoot     = "/"
-	noAddresses = "No addresses"
-	noUsers     = "None but root"
-	noSudo      = "No sudo"
-	noDoas      = "No doas"
-	noLogin     = "None recorded"
-	cantRead    = "Can't read %s"
-	notKnown    = "Not known"
-	// rowLogins and noLslogins are Last Login's one row where the host has no
-	// lslogins, as Alpine 3.23 has none (vm-runs/s1/01-tools.log).
-	rowLogins  = "Logins"
-	noLslogins = "Not known: lslogins isn't installed"
-	// fromHost and onTTY follow the time of a login, with a remote host and
-	// with none.
-	fromHost = "%s from %s"
-	onTTY    = "%s on %s"
-	// notRootRow is said under Users to a user other than root, who cannot
-	// read the rules that say who may administer.
-	notRootRow = "Not root: %s not read"
-	// Items.
-	itemRefresh  = "Refresh"
-	aboutRefresh = "Read the host again"
-	itemOpen     = "Open"
-)
-
-// sdHost is one simulated host the System Details mocks run on.
+// sdHost is one simulated host the System Details screen runs on.
 type sdHost struct {
 	// name is the host's, after sdPrefix: "debian13".
 	name string
@@ -444,278 +392,6 @@ func readDetails(ctx context.Context, sys host.System) detailsReading {
 	return detailsReading{Report: details.Read(ctx, sys, facts), facts: facts}
 }
 
-// loginRow is a login's row in the section. When is the year in place of the
-// clock, as ls does, where it was not this year, galleryNow's on these hosts.
-func loginRow(l details.Login) component.KeyValue {
-	when := l.At.Format("Jan 2 15:04")
-	if l.At.Year() != galleryNow.Year() {
-		when = l.At.Format("Jan 2 2006")
-	}
-	switch {
-	case l.State == details.LoginUnknown:
-		return component.KeyValue{Key: l.User, Value: notKnown, State: component.ValueUnknown}
-	case l.State == details.LoginNone:
-		return component.KeyValue{Key: l.User, Value: noLogin, State: component.ValueNone}
-	case l.From == "":
-		return component.KeyValue{Key: l.User, Value: fmt.Sprintf(onTTY, when, l.TTY)}
-	}
-	return component.KeyValue{Key: l.User, Value: fmt.Sprintf(fromHost, when, l.From)}
-}
-
-// gib is n bytes in GiB, one decimal, as origin/main's memory says GiB and
-// its disk, in the same unit, says GB (collectors.go:370, :430).
-func gib(n uint64) string {
-	return strconv.FormatFloat(float64(n)/(1<<30), 'f', 1, 64)
-}
-
-// usedOf says how much of total is used: "4.2 of 38.6 GiB (11%)".
-func usedOf(used, total uint64) string {
-	return fmt.Sprintf("%s of %s GiB (%s)", gib(used), gib(total), percent(used, total))
-}
-
-// percent is used of total as a whole percentage.
-func percent(used, total uint64) string {
-	if total == 0 {
-		return "0%"
-	}
-	return fmt.Sprintf("%d%%", (used*100+total/2)/total)
-}
-
-// notKnownRow is a row whose fact is not established, though read.
-func notKnownRow(key string) component.KeyValue {
-	return component.KeyValue{Key: key, Value: notKnown, State: component.ValueUnknown}
-}
-
-// cantReadRows are the rows that say what of a section was not read.
-func cantReadRows(unread []details.Unread) []component.KeyValue {
-	var rows []component.KeyValue
-	for _, u := range unread {
-		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(cantRead, u.Source), State: component.ValueWarn})
-	}
-	return rows
-}
-
-// sectionRows are section's rows: each fact read, then a row for each thing that
-// could not be read. A fact keeps its section's others.
-func (r detailsReading) sectionRows(section string) []component.KeyValue {
-	switch section {
-	case secOS:
-		return r.osRows()
-	case secHost:
-		return r.hostRows()
-	case secUsers:
-		return r.userRows()
-	case secCPU:
-		return r.cpuRows()
-	case secDisk:
-		return r.diskRows()
-	case secMemory:
-		return r.memoryRows()
-	case secLogin:
-		return r.loginRows()
-	}
-	return nil
-}
-
-// osWords is the distribution as the header's bar names it: "Debian 13 (Trixie)".
-func (r detailsReading) osWords() string {
-	head := output.HeaderViewOf("", probe.Header{OS: r.OS.OS}).Context
-	name := strings.TrimSpace(head.Name + " " + head.Version)
-	if head.Codename != "" {
-		name += " (" + head.Codename + ")"
-	}
-	return name
-}
-
-func (r detailsReading) osRows() []component.KeyValue {
-	var rows []component.KeyValue
-	if name := r.osWords(); name != "" {
-		rows = append(rows, component.KeyValue{Key: rowOS, Value: name})
-	}
-	if r.OS.Kernel != "" {
-		rows = append(rows, component.KeyValue{Key: rowKernel, Value: r.OS.Kernel})
-	}
-	if r.OS.Uptime.Known {
-		rows = append(rows, component.KeyValue{Key: rowUptime, Value: output.FormatUptime(r.OS.Uptime.Duration)})
-	}
-	return append(rows, cantReadRows(r.OS.Unread)...)
-}
-
-func (r detailsReading) hostRows() []component.KeyValue {
-	var rows []component.KeyValue
-	if r.Host.Hostname != "" {
-		rows = append(rows, component.KeyValue{Key: rowHostname, Value: r.Host.Hostname})
-	}
-	for _, a := range r.Host.Addresses {
-		rows = append(rows, component.KeyValue{Key: a.Interface, Value: a.Address})
-	}
-	if r.Host.Addresses != nil && len(r.Host.Addresses) == 0 {
-		rows = append(rows, component.KeyValue{Key: noAddresses, State: component.ValueNone})
-	}
-	return append(rows, cantReadRows(r.Host.Unread)...)
-}
-
-// userRows are the Users section's rows: each user and what lets them administer,
-// as the users check reads it. As a user other than root the rules refused are one
-// row, naming each: where they are not read a user's row says Not known, never a
-// group's guess.
-func (r detailsReading) userRows() []component.KeyValue {
-	if r.Users.List == nil {
-		return cantReadRows(r.Users.Unread)
-	}
-	noTool := noSudo
-	if r.Users.Tool == sudoers.ToolDoas.String() {
-		noTool = noDoas
-	}
-	var rows []component.KeyValue
-	for _, u := range r.Users.List {
-		switch tool, t := u.Admin(); t {
-		case detect.Yes:
-			rows = append(rows, component.KeyValue{Key: u.Name, Value: tool})
-		case detect.No:
-			rows = append(rows, component.KeyValue{Key: u.Name, Value: noTool})
-		default:
-			rows = append(rows, notKnownRow(u.Name))
-		}
-	}
-	if len(rows) == 0 {
-		rows = []component.KeyValue{{Key: noUsers, State: component.ValueNone}}
-	}
-	unread := r.Users.Unread
-	if refused := r.Users.NotRead(); r.Users.Root == detect.No && len(refused) > 0 {
-		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(notRootRow, strings.Join(refused, ", ")), State: component.ValueWarn})
-		unread = slices.DeleteFunc(slices.Clone(unread), func(u details.Unread) bool { return slices.Contains(refused, u.Source) })
-	}
-	return append(rows, cantReadRows(unread)...)
-}
-
-// cpuRows are the CPU and Load section's rows: Model says Not known where a
-// /proc/cpuinfo read has no model name, as on arm64 [I, not run].
-func (r detailsReading) cpuRows() []component.KeyValue {
-	var rows []component.KeyValue
-	if c := r.CPU; c.CPUs > 0 {
-		model := component.KeyValue{Key: rowModel, Value: c.Model}
-		if c.Model == "" {
-			model = notKnownRow(rowModel)
-		}
-		rows = append(rows, model, component.KeyValue{Key: rowCPUs, Value: cpusWords(c)})
-	}
-	if r.CPU.Load[0] != "" {
-		rows = append(rows, component.KeyValue{Key: rowLoad, Value: strings.Join(r.CPU.Load[:], ", ")})
-	}
-	return append(rows, cantReadRows(r.CPU.Unread)...)
-}
-
-func (r detailsReading) diskRows() []component.KeyValue {
-	var rows []component.KeyValue
-	d := r.Disk
-	if d.Source != "" {
-		rows = append(rows, component.KeyValue{Key: rowRoot, Value: d.Source + " " + d.Type})
-	}
-	if d.Known {
-		rows = append(rows, component.KeyValue{Key: rowUsed, Value: usedOf(d.Used, d.Total)})
-	}
-	if d.Pool != "" {
-		pool := component.KeyValue{Key: fmt.Sprintf(rowPool, d.Pool), Value: d.Health, State: component.ValueWarn}
-		switch d.Health {
-		case "":
-			pool = notKnownRow(pool.Key)
-		case "ONLINE":
-			pool.State = component.ValueOK
-		}
-		rows = append(rows, pool)
-	}
-	return append(rows, cantReadRows(d.Unread)...)
-}
-
-func (r detailsReading) memoryRows() []component.KeyValue {
-	var rows []component.KeyValue
-	if r.Memory.Total > 0 {
-		if used, ok := r.Memory.Used(); ok {
-			rows = append(rows, component.KeyValue{Key: rowUsed, Value: usedOf(used, r.Memory.Total)})
-		} else {
-			rows = append(rows, notKnownRow(rowUsed))
-		}
-	}
-	return append(rows, cantReadRows(r.Memory.Unread)...)
-}
-
-// loginRows are the Last Login section's rows: one where no answer holds any, its
-// words by why.
-func (r detailsReading) loginRows() []component.KeyValue {
-	switch r.Logins.State {
-	case details.LoginsNoTool:
-		return []component.KeyValue{{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}}
-	case details.LoginsUnread:
-		return cantReadRows(r.Logins.Unread)
-	}
-	var rows []component.KeyValue
-	for _, l := range r.Logins.List {
-		rows = append(rows, loginRow(l))
-	}
-	return rows
-}
-
-// cpusWords is "4, 1 socket", the CPUs alone where the sockets are not known.
-func cpusWords(c details.CPU) string {
-	switch c.Sockets {
-	case 0:
-		return strconv.Itoa(c.CPUs)
-	case 1:
-		return strconv.Itoa(c.CPUs) + ", 1 socket"
-	}
-	return fmt.Sprintf("%d, %d sockets", c.CPUs, c.Sockets)
-}
-
-// sdSections are the sections, in P-17's order.
-var sdSections = []string{secOS, secHost, secUsers, secCPU, secDisk, secMemory, secLogin}
-
-// sections are the report's sections.
-func (r detailsReading) sections() []screen.Section {
-	var out []screen.Section
-	for _, s := range sdSections {
-		out = append(out, r.section(s))
-	}
-	return out
-}
-
-// section is one section of the report.
-func (r detailsReading) section(title string) screen.Section {
-	return screen.Section{Header: component.SectionHeader{Title: title}, Rows: component.BulletList{Items: r.sectionRows(title)}}
-}
-
-// items are the screen's items: Refresh.
-func (r detailsReading) items() []component.MenuItem {
-	return []component.MenuItem{{Key: "1", Label: itemRefresh, Description: aboutRefresh}}
-}
-
-// subMenu is the screen.
-func (r detailsReading) subMenu() screen.SubMenu {
-	return screen.SubMenu{
-		Title:    component.TitleBar{Title: sdTitle},
-		Sections: r.sections(),
-		Heading:  sdHeading,
-		Menu:     component.Menu{Items: r.items(), Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt:   sdPrompt,
-	}
-}
-
-// report is the report with no menu and no prompt: what hardn system-details
-// prints.
-func (r detailsReading) report(c component.Ctx) string {
-	blocks := []string{component.TitleBar{Title: sdTitle}.Render(c)}
-	for _, s := range r.sections() {
-		blocks = append(blocks, s.Render(c))
-	}
-	return apart(blocks...)
-}
-
-// offTerminal is the render environment of output that is not a terminal:
-// plain mode at the default width, whatever the listing's own cell.
-func offTerminalCtx() component.Ctx {
-	return component.NewCtx(term.Fixed(term.DefaultWidth, colorprofile.NoTTY, false, true))
-}
-
 // sdMoving is a System Details host as play reads it: each read of the uptime after
 // the first finds the host a minute on, so that a Refresh draws a change. The screen
 // has no Refresh of its own to hook: what moves is the gallery's fake's, put there
@@ -883,11 +559,11 @@ func (s asUserSys) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, err
 	return s.System.ReadDir(ctx, name)
 }
 
-// readAsUser reads a host of platform p as alice, not through sudo.
-func readAsUser(ctx context.Context, p platform) detailsReading {
+// userHost is a host of platform p as alice reads it, not through sudo.
+func userHost(p platform) host.System {
 	h := vmDetails(p)()
 	h.f.AddFile(details.SelfStatusFile, []byte(userStatus), 0o444, 0, 0)
-	return readDetails(ctx, asUserSys{h.sys()})
+	return asUserSys{h.sys()}
 }
 
 // onSDHost returns a drawing of the host named name's reading.
@@ -901,45 +577,56 @@ func onSDHost(name string, view func(detailsReading, component.Ctx) string) func
 	}
 }
 
-// sdMocks are the listing's mocks, in order: the screen on each host, plan
-// only, the non-interactive forms, and origin/main's report in its own words.
-func sdMocks() []listMock {
-	var mocks []listMock
-	for _, sh := range sdHosts() {
-		mocks = append(mocks, listMock{name: "screen-" + sh.name, note: "The System Details screen. " + sh.note,
-			draw: onSDHost(sh.name, func(r detailsReading, c component.Ctx) string { return r.subMenu().Render(c) })})
+// printDetails is what hardn system-details writes on sys in env: the real Print.
+func printDetails(ctx context.Context, sys host.System, env term.Env) (string, error) {
+	facts, _ := detect.Detect(ctx, details.Bounded(sys)) // what detect does not establish, the report says not read
+	var out strings.Builder
+	err := sdscreen.Print(ctx, sdscreen.PrintOptions{Out: &out, Env: env, System: sys, Facts: facts, Now: clock})
+	return strings.TrimSuffix(out.String(), "\n"), err
+}
+
+// sdPrinted returns a drawing of what hardn system-details writes on the host named
+// name, to a terminal of c's size or off one.
+func sdPrinted(name string, terminal bool) func(context.Context, component.Ctx) (string, error) {
+	return func(ctx context.Context, c component.Ctx) (string, error) {
+		sh, ok := findSDHost(name)
+		if !ok {
+			return "", fmt.Errorf("no system-details host %q", name)
+		}
+		return printDetails(ctx, sh.host().sys(), printEnv(c, terminal))
 	}
-	return append(mocks,
-		listMock{name: "plan-only", note: "Plan only, as the other sub-menus show it: they show nothing. No sub-menu shows the mode (SubMenu.Heading, sub.go:58: \"with no mode beside it\"; play/backup-plan-only, play/environment-main-plan-only). The screen is the same under plan only, since it changes nothing, and the main menu says the mode.",
-			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.subMenu().Render(c) })},
-		listMock{name: "cli-terminal", note: "hardn system-details to a terminal: the report, no menu and no prompt. It reads the same as the screen.",
-			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.report(c) })},
-		listMock{name: "cli-pipe", wide: theme.ContentWidth, note: "hardn system-details not to a terminal: plain mode, no colour, ASCII, whatever the terminal around it (term.Env's Plain). Its values are cut at the 64-cell content width like any row's today; unit (c) must not cut them (the page, Made here; cli-pipe-cut). As a user other than root, see cli-not-root.",
-			draw: onSDHost("debian13", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, so the pipe loses its end, as a row cuts on a terminal. Unit (c) must not cut off a terminal: nothing in pkg/ui lays out uncapped today, so a new path through the components is a deviation to log.",
-			draw: onSDHost("pve9", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-runs/s1/10-forms.log). So a user's row reads Not known, never a group's guess. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
+}
+
+// printEnv is c's environment as hardn would find it at a terminal, or with its
+// output off one, which is all Print asks of it there.
+func printEnv(c component.Ctx, terminal bool) term.Env {
+	env := c.Env
+	env.TTY = terminal
+	return env
+}
+
+// sdMocks are the listing's forms, in order: hardn system-details through the real
+// Print, then what unit (d) has not built.
+func sdMocks() []listMock {
+	return []listMock{
+		{name: "cli-terminal", note: "hardn system-details to a terminal: the report, no menu and no prompt. It reads the same as the screen.",
+			draw: sdPrinted("debian13", true)},
+		{name: "cli-pipe", wide: theme.ContentWidth, note: "hardn system-details not to a terminal: plain mode, no colour, ASCII, whatever the terminal around it. As a user other than root, see cli-not-root.",
+			draw: sdPrinted("debian13", false)},
+		{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, and off a terminal it stays whole (the page, Made here; DEV-067).",
+			draw: sdPrinted("pve9", false)},
+		{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-runs/s1/10-forms.log). So a user's row reads Not known, never a group's guess. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
-				return apart(strings.Join(codeRows(c, []string{mainOpenLine, mainExampleLine}, c.Theme.Output.Render), "\n"), readAsUser(ctx, debian13Platform).report(c)), nil
+				report, err := printDetails(ctx, userHost(debian13Platform), printEnv(c, true))
+				return apart(component.CodeBlock{Lines: []component.CodeLine{{Text: mainOpenLine}, {Text: mainExampleLine}}}.Render(c), report), err
 			}},
-		listMock{name: "cli-json", wide: theme.ContentWidth, note: "Decision 1 (a): hardn system-details --output json, whose flag is unit (d)'s; the document is output.Build's. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. logins holds each account's answer. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
+		{name: "cli-json", wide: theme.ContentWidth, note: "Decision 1 (a): hardn system-details --output json, whose flag is unit (d)'s; the document is output.Build's. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. logins holds each account's answer. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
 			draw: onSDHost("debian13", jsonDrawing)},
-		listMock{name: "cli-json-unreadable", wide: theme.ContentWidth, note: "As cli-json: a section not read is null in details and one finding, DETAILS_UNREADABLE, which is not an error: the rest was read, so the exit status stays 0.",
+		{name: "cli-json-unreadable", wide: theme.ContentWidth, note: "As cli-json: a section not read is null in details and one finding, DETAILS_UNREADABLE, which is not an error: the rest was read, so the exit status stays 0.",
 			draw: onSDHost("unreadable", jsonDrawing)},
-		listMock{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is decision 1 (a): §3.11's system-details change alone is approved, narrowed; unit (d) builds it.",
+		{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is decision 1 (a): §3.11's system-details change alone is approved, narrowed; unit (d) builds it.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return flagsDrawing(c), nil }},
-		listMock{name: "origin", own: true, note: "origin/main's report, its words as they are (display.go:43-129; pkg/characterization's menu/system_details_open.golden), on the design system, on the debian13 host: its rows, its items (system_details_menu.go:70-80), its heading and its prompt. Last Login is blank, as lastlog is not there (menu/system_details_no_lastlog.golden). Its 50-column box, its screen clear, its blank lines where sections would be, and its bar graphs are left out.",
-			draw: onSDHost("debian13", func(r detailsReading, c component.Ctx) string { return r.originScreen(false).Render(c) })},
-		listMock{name: "origin-error", own: true, note: "origin/main's report when any collector fails (system_details_menu.go:42-62; menu/system_details_error.golden): the error, twice, above the box and in it, the box saying to check permissions whatever it was, the report gone, Export not offered. The word \"Error:\" before each title here is the component's, not origin/main's.",
-			draw: onSDHost("unreadable", func(r detailsReading, c component.Ctx) string {
-				const why = "failed to collect memory info: failed to get memory info: exec: \"free\": executable file not found in $PATH"
-				return apart(component.Message{Kind: component.MessageBad, Text: "Error retrieving system status: " + why}.Render(c),
-					component.Callout{Kind: component.MessageBad, Title: "System Details Error", Body: []string{
-						"Failed to retrieve system status information.", "Error: " + why,
-						"Please check system permissions and try again.",
-					}}.Render(c), r.originScreen(true).Render(c))
-			})},
-	)
+	}
 }
 
 // document is the reading as the JSON form decision 1 (a) adopted: pkg/output's
@@ -975,28 +662,6 @@ func flagsDrawing(c component.Ctx) string {
 	)
 }
 
-// originScreen is origin/main's report in its words, on the design system.
-// failed draws its items alone, as after a collector's error, Export not
-// offered.
-func (r detailsReading) originScreen(failed bool) screen.SubMenu {
-	items := []component.MenuItem{{Key: "1", Label: "Refresh Information", Description: "Reload system status from system"}}
-	vm := screen.SubMenu{Title: component.TitleBar{Title: sdTitle}, Heading: sdHeading, Prompt: sdPrompt}
-	if !failed {
-		items = append(items, component.MenuItem{Key: "2", Label: "Export Information", Description: "Export system status to file"})
-		rows := []component.KeyValue{
-			{Key: "OS", Value: "Debian 13 Trixie"}, {Key: "Kernel", Value: "Linux " + r.OS.Kernel}, {Key: "Hostname", Value: r.Host.Hostname},
-			{Key: "IP Addresses", Value: "192.0.2.20"}, {Key: "Client IP", Value: "Not connected"}, {Key: "DNS IP 1", Value: "192.0.2.53"}, {Key: "User", Value: "root"},
-			{Key: "Non-System Users", Value: "alice (sudo)"}, {Key: "Processor", Value: r.CPU.Model}, {Key: "Cores", Value: "4 vCPU(s) / 1 Socket(s)"},
-			{Key: "Hypervisor", Value: "KVM"}, {Key: "CPU Freq", Value: "0.00 GHz"}, {Key: "Load 1m", Value: "(0.12)"}, {Key: "Load 5m", Value: "(0.08)"}, {Key: "Load 15m", Value: "(0.03)"},
-			{Key: "Volume", Value: "6.17/38.60 GB [15.99%]"}, {Key: "Memory", Value: "3.07/3.84 GiB [79.84%]"},
-			{Key: "Last Login"}, {Key: "Uptime", Value: output.FormatUptime(r.OS.Uptime.Duration)},
-		}
-		vm.Sections = []screen.Section{{Rows: component.BulletList{Items: rows}}}
-	}
-	vm.Menu = component.Menu{Items: items, Exit: component.MenuItem{Key: "0", Label: "Return"}}
-	return vm
-}
-
 // listMock is one mock a listing shows: its name, its note, its drawing,
 // and the width it needs, if more than any terminal's: its off-terminal
 // forms do not draw to the listing's width.
@@ -1004,9 +669,6 @@ type listMock struct {
 	name, note string
 	draw       func(ctx context.Context, c component.Ctx) (string, error)
 	wide       int
-	// own: its note names its source itself, as origin/main's own words do,
-	// and takes no listing label.
-	own bool
 }
 
 // listing is a mode that lists mocks with no input, as "status" and
@@ -1021,12 +683,7 @@ type listing struct {
 }
 
 // note is what m's note says, under the listing's label.
-func (l listing) note(m listMock) string {
-	if m.own {
-		return m.note
-	}
-	return l.label + " " + m.note
-}
+func (l listing) note(m listMock) string { return l.label + " " + m.note }
 
 // run is the listing's mode.
 func (l listing) run(args []string, size sizer, stdout, stderr io.Writer) int {
@@ -1106,7 +763,7 @@ func selectListMocks(all []listMock, args []string) ([]listMock, error) {
 }
 
 // sdUsage is the listing's usage line.
-const sdUsage = "usage: go run ./internal/tools/uigallery system-details [flags] [mock | all]..."
+const sdUsage = "usage: go run ./internal/tools/uigallery system-details [flags] [form | all]..."
 
 // sdListing is the System Details listing.
 var sdListing = listing{prefix: sdPrefix, usage: sdUsage, label: sdLabel, mocks: sdMocks}

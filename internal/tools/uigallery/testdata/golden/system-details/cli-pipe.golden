@@ -8,44 +8,42 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot to a terminal: plain mode, no colour, ASCII, whatever the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it (term.Env's Plain). Its values are cut at␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe 64-cell content width like any row's today; unit (c) must␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot cut them (the page, Made here; cli-pipe-cut). As a user␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother than root, see cli-not-root.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it. As a user other than root, see cli-not-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot.␛[m$
 $
-# ␛[1mSystem Details␛[m ###############################################$
+# System Details ###############################################$
 $
-# ␛[1mOS and Kernel␛[m ------------------------------------------------$
+# OS and Kernel ------------------------------------------------$
 $
    -  OS                   Debian 13 (Trixie)$
    -  Kernel               6.12.113+deb13-cloud-amd64$
    -  Uptime               3 days, 5 hours, 12 minutes$
 $
-# ␛[1mHost and IPs␛[m -------------------------------------------------$
+# Host and IPs -------------------------------------------------$
 $
    -  Hostname             web-01$
    -  eth0                 192.0.2.20/24$
 $
-# ␛[1mUsers␛[m --------------------------------------------------------$
+# Users --------------------------------------------------------$
 $
    -  alice                sudo$
 $
-# ␛[1mCPU and Load␛[m -------------------------------------------------$
+# CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
    -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
-# ␛[1mDisk␛[m ---------------------------------------------------------$
+# Disk ---------------------------------------------------------$
 $
    -  /                    /dev/vda1 ext4$
    -  Used                 4.2 of 38.6 GiB (11%)$
 $
-# ␛[1mMemory␛[m -------------------------------------------------------$
+# Memory -------------------------------------------------------$
 $
    -  Used                 1.2 of 3.8 GiB (30%)$
 $
-# ␛[1mLast Login␛[m ---------------------------------------------------$
+# Last Login ---------------------------------------------------$
 $
    -  root                 None recorded$
    -  alice                Oct 20 11:42 from 192.0.2.10$
@@ -58,10 +56,8 @@ $
 # Note$
 # Inferred from origin/main (unreleased). hardn system-details$
 # not to a terminal: plain mode, no colour, ASCII, whatever the$
-# terminal around it (term.Env's Plain). Its values are cut at$
-# the 64-cell content width like any row's today; unit (c) must$
-# not cut them (the page, Made here; cli-pipe-cut). As a user$
-# other than root, see cli-not-root.$
+# terminal around it. As a user other than root, see cli-not-$
+# root.$
 $
 # System Details ###############################################$
 $
@@ -108,44 +104,42 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot to a terminal: plain mode, no colour, ASCII, whatever the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it (term.Env's Plain). Its values are cut at␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe 64-cell content width like any row's today; unit (c) must␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot cut them (the page, Made here; cli-pipe-cut). As a user␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother than root, see cli-not-root.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it. As a user other than root, see cli-not-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot.␛[m$
 $
-# ␛[1mSystem Details␛[m ###############################################$
+# System Details ###############################################$
 $
-# ␛[1mOS and Kernel␛[m ------------------------------------------------$
+# OS and Kernel ------------------------------------------------$
 $
    -  OS                   Debian 13 (Trixie)$
    -  Kernel               6.12.113+deb13-cloud-amd64$
    -  Uptime               3 days, 5 hours, 12 minutes$
 $
-# ␛[1mHost and IPs␛[m -------------------------------------------------$
+# Host and IPs -------------------------------------------------$
 $
    -  Hostname             web-01$
    -  eth0                 192.0.2.20/24$
 $
-# ␛[1mUsers␛[m --------------------------------------------------------$
+# Users --------------------------------------------------------$
 $
    -  alice                sudo$
 $
-# ␛[1mCPU and Load␛[m -------------------------------------------------$
+# CPU and Load -------------------------------------------------$
 $
    -  Model                QEMU Virtual CPU version 2.5+$
    -  CPUs                 4, 1 socket$
    -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
 $
-# ␛[1mDisk␛[m ---------------------------------------------------------$
+# Disk ---------------------------------------------------------$
 $
    -  /                    /dev/vda1 ext4$
    -  Used                 4.2 of 38.6 GiB (11%)$
 $
-# ␛[1mMemory␛[m -------------------------------------------------------$
+# Memory -------------------------------------------------------$
 $
    -  Used                 1.2 of 3.8 GiB (30%)$
 $
-# ␛[1mLast Login␛[m ---------------------------------------------------$
+# Last Login ---------------------------------------------------$
 $
    -  root                 None recorded$
    -  alice                Oct 20 11:42 from 192.0.2.10$

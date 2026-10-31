@@ -3,25 +3,22 @@ package main
 import (
 	"bytes"
 	"context"
+	"slices"
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/x/ansi"
-
 	"github.com/abbott/hardn/pkg/engine/logview"
-	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
-	"github.com/abbott/hardn/pkg/ui/theme"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// The Logs mocks (logs.go; slice 1, unit (a)). Nothing here runs a command
-// or writes a file outside the fake.
+// The Logs screen on the simulated hosts, and hardn -p's forms (logs.go; slice 1,
+// unit (c)). Nothing here runs a command or writes a file outside the fake. The
+// screen's own tests are pkg/screens/logs'.
 
-// TestLogsGolden pins each listing mock on the core set and under LANG=C:
-// the screen on each host, Open, the pager table, hardn -p's forms, the
-// parser and origin/main's.
+// TestLogsGolden pins each listing form on the core set and under LANG=C: hardn -p's
+// forms, through the real Print.
 func TestLogsGolden(t *testing.T) { goldenListing(t, logsListing) }
 
 // TestPlayLogsGolden plays the reading end to end and pins each transcript:
@@ -64,9 +61,9 @@ func TestPlayLogsGolden(t *testing.T) {
 	}
 }
 
-// TestLogHosts holds each host's reading to what its note says: the state,
-// the number of lines, what would read it, and hardn.yml's logFile, which is
-// said but never read as the log.
+// TestLogHosts holds each host's reading to what its note says: the state, the number
+// of lines, what would read it, and hardn.yml's logFile, which is said but never read
+// as the log.
 func TestLogHosts(t *testing.T) {
 	tests := []struct {
 		host      string
@@ -88,33 +85,39 @@ func TestLogHosts(t *testing.T) {
 	if len(tests) != len(logHosts()) {
 		t.Fatalf("%d hosts tested, %d hosts", len(tests), len(logHosts()))
 	}
+	ctx := context.Background()
 	for _, tt := range tests {
-		r, err := readLogHost(context.Background(), tt.host)
+		lh, ok := findLogHost(tt.host)
+		if !ok {
+			t.Fatalf("no host %q", tt.host)
+		}
+		sys := lh.host().system()
+		r := logview.Read(ctx, sys)
+		_, pager := logview.Pager(ctx, sys, galleryTerm)
+		cfg, err := statusConfig(ctx, sys)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if r.Path != hardnLog || r.State != tt.state || r.Total != tt.total || (r.pager != nil) != tt.pager || r.elsewhere != tt.elsewhere {
-			t.Errorf("%s: path %s, state %d, %d lines, pager %v, logFile %q", tt.host, r.Path, r.State, r.Total, r.pager, r.elsewhere)
+		if r.Path != hardnLog || r.State != tt.state || r.Total != tt.total || (r.State == logview.Lines && pager != tt.pager) || logview.Elsewhere(cfg.LogFile) != tt.elsewhere {
+			t.Errorf("%s: path %s, state %d, %d lines, pager %v, logFile %q", tt.host, r.Path, r.State, r.Total, pager, cfg.LogFile)
 		}
 	}
 }
 
-// TestControlHostIsSafe: what a terminal would act on never reaches it, on the
-// screen or off it, and what a line held still shows: logview's own tests hold
-// Safe to the rest.
+// TestControlHostIsSafe: what a terminal would act on never reaches it, on the screen
+// or off it, and what a line held still shows: logview's own tests hold Safe to the
+// rest.
 func TestControlHostIsSafe(t *testing.T) {
-	r, err := readLogHost(context.Background(), "control")
+	code, out, errs, unread := playGallery([]string{"0"}, "-profile", "plain", "logs/control")
+	if code != exitOK || errs != "" || unread != 0 {
+		t.Fatalf("exit %d, stderr %q, %d lines unread", code, errs, unread)
+	}
+	piped, _, err := printLogs(context.Background(), logOn(controlLog)().system(), plainOff(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	piped, err := pipeLines(context.Background(), logOn(controlLog)().system())
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, l := range append(lineTexts(r.Last), strings.Split(piped, "\n")...) {
-		if strings.ContainsAny(l, "\x1b\x07\u202e") {
-			t.Errorf("a control character in %q", l)
-		}
+	if strings.ContainsAny(out+piped, "\x1b\x07\u202e") {
+		t.Errorf("a control character in:\n%s\n%s", out, piped)
 	}
 	for _, want := range []string{"^[[31mErr:1^[[0m", "^[]0;a title^Gdone^[[2J", "abc<U+202E>def", "caf<0xe9>", "don’t “quote” ≥ 5 → … x"} {
 		if !strings.Contains(piped, want) {
@@ -123,85 +126,45 @@ func TestControlHostIsSafe(t *testing.T) {
 	}
 }
 
-// TestPipeIsEveryLine: off a terminal every line of a long log, as many as the
-// file holds, where the screen's reading keeps logview.MaxLast.
+// plainOff is hardn's environment off a terminal.
+func plainOff() term.Env { return term.Resolve(term.Options{}, term.Facts{Width: 80}) }
+
+// TestPipeIsEveryLine: off a terminal every line of a long log, as many as the file
+// holds, where the screen's reading keeps logview.MaxLast.
 func TestPipeIsEveryLine(t *testing.T) {
-	piped, err := pipeLines(context.Background(), logOn(longLog())().system())
+	ctx := context.Background()
+	piped, printed, err := printLogs(ctx, logOn(longLog())().system(), plainOff(), "")
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := strings.Count(piped, "\n") + 1; got != 1204 {
-		t.Errorf("%d lines, want 1204", got)
+	if got := strings.Count(piped, "\n") + 1; got != 1204 || printed.Total != 1204 {
+		t.Errorf("%d lines, Print says %d, want 1204", got, printed.Total)
 	}
-	r, err := readLogHost(context.Background(), "long")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(r.Last) != logview.MaxLast || r.Total != 1204 {
+	if r := logview.Read(ctx, logOn(longLog())().system()); len(r.Last) != logview.MaxLast || r.Total != 1204 {
 		t.Errorf("%d kept of %d", len(r.Last), r.Total)
 	}
 }
 
-// TestLogRowsKeepTheCharacters: a log's line is code, as captured output is:
-// its typographic characters stay in both glyph sets, with no bullet, and a
-// line too long breaks after the wrap glyph, losing no character but spaces.
-func TestLogRowsKeepTheCharacters(t *testing.T) {
-	const typo = "2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 → … x"
-	for _, unicode := range []bool{true, false} {
-		lines := drawnLines(24, unicode, func(c component.Ctx) string { return strings.Join(logRows(c, []logview.Line{{Text: typo}}), "\n") })
-		if got := strings.Join(lines, ""); !strings.Contains(got, "don’t “quote” ≥ 5 → … x") || strings.Contains(got, " - ") {
-			t.Errorf("unicode %v: %q", unicode, got)
-		}
-		long := strings.Repeat("word ", 30) + strings.Repeat("x", 80)
-		wrap := "↪"
-		if !unicode {
-			wrap = "|"
-		}
-		lines = drawnLines(24, unicode, func(c component.Ctx) string { return strings.Join(logRows(c, []logview.Line{{Text: long}}), "\n") })
-		joined := ""
-		for i, l := range lines {
-			if ansi.StringWidth(l) > theme.ContentWidth {
-				t.Errorf("unicode %v: %d cells: %q", unicode, ansi.StringWidth(l), l)
-			}
-			l = strings.TrimPrefix(l, strings.Repeat(" ", theme.LabelCol))
-			if i > 0 {
-				if !strings.HasPrefix(l, wrap) {
-					t.Errorf("unicode %v: no wrap glyph on %q", unicode, l)
-				}
-				l = strings.TrimPrefix(l, wrap)
-			}
-			joined += l
-		}
-		if strings.ReplaceAll(joined, " ", "") != strings.ReplaceAll(long, " ", "") {
-			t.Errorf("unicode %v: lost characters: %q", unicode, joined)
-		}
-	}
-}
-
-// TestNotesOpenWithTheirSource: every mock's note carries its source label,
-// but those in origin/main's own words, whose notes open by saying so.
+// TestNotesOpenWithTheirSource: every form's note carries its source label.
 func TestNotesOpenWithTheirSource(t *testing.T) {
 	for _, l := range []listing{sdListing, logsListing} {
 		for _, m := range l.mocks() {
-			note := l.note(m)
-			if m.own && !strings.HasPrefix(note, "origin/main's") || !m.own && !strings.HasPrefix(note, l.label) {
+			if note := l.note(m); !strings.HasPrefix(note, l.label) {
 				t.Errorf("%s %s: %q", l.prefix, m.name, note)
 			}
 		}
 	}
 }
 
-// TestPagerOnTheHosts: logview.Pager on each simulated less: GNU's on Debian 13
-// and the less package [I], with the exact command; BusyBox's, through its link,
-// and no less give none. TERM is what the mock passes; a variable naming a program
-// is not read, as Pager takes none.
+// TestPagerOnTheHosts: logview.Pager on each simulated less: GNU's on Debian 13, with
+// the exact command; BusyBox's, through its link, and no less give none. TERM is what
+// play passes; a variable naming a program is not read, as Pager takes none.
 func TestPagerOnTheHosts(t *testing.T) {
 	ctx := context.Background()
 	want := "LESSSECURE=1 LESSHISTFILE=- TERM=" + galleryTerm + " LC_ALL=C.UTF-8 less -- " + hardnLog
-	for name, h := range map[string]func() *fakeHost{"Debian 13": logOn(""), "Alpine's less package": alpineLessPackage} {
-		if c, ok := logview.Pager(ctx, h().system(), galleryTerm); !ok || commandWords(c) != want {
-			t.Errorf("%s: %q, %t", name, commandWords(c), ok)
-		}
+	c, ok := logview.Pager(ctx, logOn("")().system(), galleryTerm)
+	if got := strings.Join(slices.Concat(c.Env, c.Argv), " "); !ok || got != want {
+		t.Errorf("Debian 13: %q, %t", got, ok)
 	}
 	for name, h := range map[string]func() *fakeHost{"BusyBox's less": alpineLog, "no less": noPagerLog} {
 		if c, ok := logview.Pager(ctx, h().system(), galleryTerm); ok {
@@ -215,7 +178,8 @@ func TestPagerOnTheHosts(t *testing.T) {
 func TestLogsUsage(t *testing.T) {
 	for _, args := range [][]string{
 		{logsPrefix, "nope"},
-		{logsPrefix, "screen-lines", "-list"},
+		{logsPrefix, "cli-pipe", "-list"},
+		{logsPrefix, "screen-lines"},
 		{"play", "logs/nope"},
 		{"play", "-fail", "1", "logs/lines"},
 		{"play", "-sequence", "failure", "logs/lines"},
@@ -228,35 +192,8 @@ func TestLogsUsage(t *testing.T) {
 		}
 	}
 	var out, errs bytes.Buffer
-	if code := run([]string{logsPrefix, "-list"}, nil, offTerminal, &out, &errs); code != exitOK || !strings.Contains(out.String(), "screen-lines\n") {
+	if code := run([]string{logsPrefix, "-list"}, nil, offTerminal, &out, &errs); code != exitOK || !strings.Contains(out.String(), "cli-pipe\n") {
 		t.Errorf("-list: exit %d, %q", code, out.String())
-	}
-}
-
-// TestLogsHeights: the screen on every host at 80x24 and at 80x40, in Unicode
-// and ASCII: the prompt on its last line, within the terminal's rows, the
-// long log taking as many of its lines as fit, a wrapped line counting each
-// of its rows: more at 40 than at 24.
-func TestLogsHeights(t *testing.T) {
-	shown := map[int]string{24: "Last 3 of 1204 lines", 40: "Last 17 of 1204 lines"}
-	for _, lh := range logHosts() {
-		r, err := readLogHost(context.Background(), lh.name)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, rows := range []int{24, 40} {
-			for _, unicode := range []bool{true, false} {
-				lines := drawnLines(rows, unicode, func(c component.Ctx) string { return r.subMenu(c).Render(c) })
-				if len(lines) > rows || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
-					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q", lh.name, rows, unicode, len(lines), lines[len(lines)-1])
-				}
-				if lh.name == "long" {
-					if !strings.Contains(strings.Join(lines, "\n"), shown[rows]) {
-						t.Errorf("long at 80x%d, unicode %v: %d lines, want %q:\n%s", rows, unicode, len(lines), shown[rows], strings.Join(lines, "\n"))
-					}
-				}
-			}
-		}
 	}
 }
 
@@ -269,12 +206,10 @@ func TestLogsWriteNothing(t *testing.T) {
 	for _, lh := range logHosts() {
 		for _, dryRun := range []bool{false, true} {
 			h := lh.host()
-			r := readLog(context.Background(), h.system())
-			var lines []string
-			for _, it := range r.items() {
-				lines = append(lines, it.item.Key)
+			lines := []string{"1", "0"}
+			if _, open := logview.Pager(context.Background(), h.system(), galleryTerm); open && logview.Read(context.Background(), h.system()).State == logview.Lines {
+				lines = []string{"1", "2", "0"}
 			}
-			lines = append(lines, "0")
 			s, out, code := playWith(t, logsPrefix+"/"+lh.name, func(s *session) func() error {
 				if dryRun {
 					s.sequence = "dry-run"
@@ -285,6 +220,9 @@ func TestLogsWriteNothing(t *testing.T) {
 				t.Errorf("%s, plan only %t: exit %d, %d engines, the hold taken %d times:\n%s", lh.name, dryRun, code, len(s.engineRuns), s.holds, out)
 			}
 			assertOnlyReads(t, lh.name, h)
+			if strings.Contains(out, "hardn would run") != (len(lines) == 3) {
+				t.Errorf("%s: Open's note, with the keys %q:\n%s", lh.name, lines, out)
+			}
 		}
 	}
 }

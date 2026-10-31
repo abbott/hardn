@@ -22,7 +22,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat s writes and E opens any path as root is read␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). It refuses less --version, so it␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhas no Open item (decision 7 (a)). With Alpine's less package␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is one (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is one [I, not run].␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -99,7 +99,7 @@ $
 # That s writes and E opens any path as root is read$
 # (miscutils/less.c, master). It refuses less --version, so it$
 # has no Open item (decision 7 (a)). With Alpine's less package$
-# there is one (pager-commands).$
+# there is one [I, not run].$
 $
 # Logs #########################################################$
 $
@@ -176,7 +176,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot exist. That s writes and E opens any path as root is␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread (miscutils/less.c, master). It refuses less --␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mversion, so it has no Open item (decision 7 (a)). With␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine's less package there is one (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine's less package there is one [I, not run].␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
