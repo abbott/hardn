@@ -236,6 +236,31 @@ func TestTerm(t *testing.T) {
 	}
 }
 
+// TestOpenWordsStayVisible: on a log that fills the terminal, what Open said is still
+// on it at the next prompt: the lines fit under the words, which do not scroll off.
+func TestOpenWordsStayVisible(t *testing.T) {
+	for _, rows := range []int{24, 40} {
+		h := hostNamed(t, "long")
+		model := h.Handler
+		h.Handler = func(argv []string, stdin []byte) hostfake.Response {
+			if slices.Equal(argv, lessCommand) {
+				return hostfake.Response{ExitCode: 2}
+			}
+			return model(argv, stdin)
+		}
+		p := playWith(h, terminal(rows), logs.Options{Term: "xterm-256color"}, "1", "0")
+		out := strip(p.out)
+		prompts := strings.LastIndex(out, "Enter selection")
+		words := strings.LastIndex(out, "exit status 2")
+		if p.err != nil || prompts < 0 || words < 0 {
+			t.Fatalf("%d rows: Run = %v:\n%s", rows, p.err, out)
+		}
+		if between := strings.Count(out[words:prompts], "\n"); between >= rows {
+			t.Errorf("%d rows: the words are %d rows above the prompt, off the terminal:\n%s", rows, between, out)
+		}
+	}
+}
+
 // TestOpenRefused: a refusal or the pager's failure is said, the screen goes on, and
 // no raw byte is shown: less no longer GNU's at the key press, and nothing run; off a
 // terminal, the seam's real refusal; the pager's exit status, as it is.

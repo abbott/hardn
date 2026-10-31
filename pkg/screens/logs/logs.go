@@ -83,6 +83,8 @@ func Run(ctx context.Context, o Options) error {
 type runner struct {
 	o Options
 	s screenkit.Session
+	// said is the rows Open's words took, which the next draw leaves on the terminal.
+	said int
 }
 
 // draw reads the log and returns the screen, its items bound.
@@ -95,7 +97,11 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 		}
 	}
 	view := viewOf(reading, r.o.LogFile, pager)
-	sub := view.SubMenu(r.o.Prompter.Ctx)
+	// The lines fit under what Open said, which would otherwise scroll off unread.
+	fit := r.o.Prompter.Ctx
+	fit.Env.Height -= r.said
+	r.said = 0
+	sub := view.SubMenu(fit)
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {
 		action := func() error { return nil }
@@ -115,7 +121,9 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 func (r *runner) open(ctx context.Context, c logview.Command) func() error {
 	return func() error {
 		if err := c.Run(ctx, r.o.System); err != nil {
-			return r.s.Say(screenkit.Warnings(pagerWords(err)))()
+			words := screenkit.Warnings(pagerWords(err))
+			r.said = strings.Count(screenkit.Apart(r.o.Prompter.Ctx, words), "\n")
+			return r.s.Say(words)()
 		}
 		return nil
 	}
