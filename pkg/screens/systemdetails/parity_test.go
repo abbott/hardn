@@ -439,17 +439,36 @@ func reportRun(t *testing.T, c parity.Cell, r reportRowSpec) parity.NewRun {
 	if c.Distro.Name == debian13.Name && !strings.HasPrefix(r.long, "the renderer") {
 		holdStart(t, h, c.LegacyStart())
 	}
-	ctx := context.Background()
 	n := len(h.Calls())
-	sys := setuidTools{h}
-	facts, _ := detect.Detect(ctx, details.Bounded(sys)) // what detect does not establish, the report says not read
-	report := details.Read(ctx, sys, facts)
+	report := readReportOn(h)
 	s := parity.NewState(t, h, n, readCommands, "")
 	s.Rows = factRows(report)
 	if r.lost {
+		holdKept(t, s.Rows, factRows(readReportOn(reportHost(goldenStart(), c.Distro))))
 		s.Rows = s.Rows[:1]
 	}
 	return parity.NewRun{Live: s, Via: "details.Read on detect's facts through details.Bounded; " + recordOf(t, h, n)}
+}
+
+// readReportOn is details.Read on detect's facts, through details.Bounded.
+func readReportOn(h *hostfake.System) details.Report {
+	ctx := context.Background()
+	sys := setuidTools{h}
+	facts, _ := detect.Detect(ctx, details.Bounded(sys)) // what detect does not establish, the report says not read
+	return details.Read(ctx, sys, facts)
+}
+
+// holdKept fails unless rows, a report with memory unread, hold every fact of
+// whole, the same host's report with memory read, but the report row and Memory:
+// origin/main loses these (defect 7), and sd-error's one compared row says they
+// are kept.
+func holdKept(t *testing.T, rows, whole []parity.Row) {
+	t.Helper()
+	for _, w := range whole {
+		if w.Name != reportRow && w.Name != "Memory" && !slices.Contains(rows, w) {
+			t.Errorf("%s = %q is not kept with memory unread: %+v", w.Name, w.Value, rows)
+		}
+	}
 }
 
 // setuidTools adds the setuid bit hostfake's Stat cannot show, as a real sudo and
@@ -487,7 +506,7 @@ func holdStart(t *testing.T, h *hostfake.System, start string) {
 // the label of origin/main's row each replaces, in origin/main's form where the
 // fact is the same, so that the same numbers agree. The first is the report.
 func factRows(r details.Report) []parity.Row {
-	rows := []parity.Row{{Name: reportRow, Value: keptWords(r)}}
+	var rows []parity.Row
 	add := func(name, value string) {
 		if value != "" {
 			rows = append(rows, parity.Row{Name: name, Value: value})
@@ -536,7 +555,7 @@ func factRows(r details.Report) []parity.Row {
 	}
 	var when, from []string
 	if r.Logins.State == details.LoginsNoTool {
-		when = append(when, "LoginsNoTool")
+		when = append(when, loginsNoTool)
 	}
 	for _, l := range r.Logins.List {
 		switch l.State {
@@ -556,7 +575,7 @@ func factRows(r details.Report) []parity.Row {
 	if r.OS.Uptime.Known {
 		add("Uptime", output.FormatUptime(r.OS.Uptime.Duration))
 	}
-	return rows
+	return append([]parity.Row{{Name: reportRow, Value: keptWords(r, rows)}}, rows...)
 }
 
 // sizes is used and total in GiB and the percentage, in origin/main's form, GiB
@@ -566,9 +585,12 @@ func sizes(used, total uint64) string {
 	return fmt.Sprintf("%.2f/%.2f GiB [%.2f%%]", float64(used)/gib, float64(total)/gib, 100*float64(used)/float64(total))
 }
 
-// keptWords says what the report kept: whole, or what of which section it could
-// not read, in readers §9's section words.
-func keptWords(r details.Report) string {
+// loginsNoTool is the state with no lslogins, no fact of a login.
+const loginsNoTool = "LoginsNoTool"
+
+// keptWords says what the report kept: whole, or the rows that hold a fact and what
+// of which section it could not read, in readers §9's section words.
+func keptWords(r details.Report, rows []parity.Row) string {
 	var not []string
 	for _, s := range []struct {
 		name   string
@@ -582,7 +604,13 @@ func keptWords(r details.Report) string {
 	if len(not) == 0 {
 		return reportWhole
 	}
-	return "kept; not read: " + strings.Join(not, ", ")
+	var kept []string
+	for _, row := range rows {
+		if row.Value != loginsNoTool {
+			kept = append(kept, row.Name)
+		}
+	}
+	return "kept " + strings.Join(kept, ", ") + "; not read: " + strings.Join(not, ", ")
 }
 
 // refusingScan is the golden's mode 0000: the read refused.
@@ -690,8 +718,13 @@ func parserRun(t *testing.T, c parity.Cell) parity.NewRun {
 		if !strings.Contains(c.LegacyStart(), masked) {
 			t.Errorf("%q is not a line the golden wrote: %s", masked, c.LegacyStart())
 		}
-		levels = append(levels, logview.ParseLine(l).Level)
-		kept++
+		e := logview.ParseLine(l)
+		levels = append(levels, e.Level)
+		if holdsWhole(l, e) {
+			kept++
+		} else {
+			t.Errorf("ParseLine loses part of %q: %+v", l, e)
+		}
 	}
 	h := hostfake.New(host.Options{})
 	h.AddFile(logview.File, []byte(parserLong), 0o644, 0, 0)
@@ -709,6 +742,15 @@ func parserRun(t *testing.T, c parity.Cell) parity.NewRun {
 		{Name: rowParseLong, Value: long},
 	}
 	return parity.NewRun{Live: s, Via: "logview.ParseLine, logview.Read; " + recordOf(t, h, n)}
+}
+
+// holdsWhole says that e holds line: a logger's line in its parts, any other in
+// Message alone.
+func holdsWhole(line string, e logview.Entry) bool {
+	if e.Level == "" {
+		return e.Time == "" && e.Message == line
+	}
+	return e.Time+" "+e.Level+": "+e.Message == line
 }
 
 // readOps are the calls that only read.
@@ -962,7 +1004,8 @@ func table() []tie {
 		every([]string{"sd-never"}, "Last Login", d3, "Never logged in, for whoever ran it; now each account's state, a blank guarded"),
 		debianCells(without(screenRuns, "sd-no-lastlog", "sd-never", "sd-login-hostname"), "From", d3, "one address; now each account's"),
 		every(renders, "From", d3, "one address; now each account's"),
-		every([]string{"sd-no-lastlog", "sd-login-hostname"}, "From", d3+"; defect 14; KNOWN-DEFECT (left blank)", "no row with the blank; now each account's, a name with no dot read"),
+		every([]string{"sd-no-lastlog"}, "From", d3+"; defect 14; KNOWN-DEFECT (left blank)", "no row with the blank; now each account's, by lslogins"),
+		every([]string{"sd-login-hostname"}, "From", d3+"; defect 14; KNOWN-DEFECT (left blank)", "no row with the blank; now each account's, a name with no dot read"),
 		// System Details: what a collector's failure loses, and on Alpine what is not read.
 		every([]string{"sd-error"}, "report", "defect 7; KNOWN-DEFECT (One collector's error loses the report)", "the first failed collector loses the report; now the section says what it could not read, and the rest is kept"),
 		[]tie{{[]string{"sd-open"}, onAlpine, "report", d3 + "; " + w6 + ", Not known: lslogins isn't installed", "whole, by the golden's stand-ins; now Last Login not read: no lslogins on this host", false}},

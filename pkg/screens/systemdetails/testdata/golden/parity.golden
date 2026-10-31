@@ -104,7 +104,7 @@ agree  hardn.yml: not saved
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
 agree  Uptime: 3 days, 4 hours, 5 minutes
-differ report: whole | kept; not read: last login: lslogins
+differ report: whole | kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Memory, Uptime; not read: last login: lslogins
        decision 3 (a); gallery-system-details.md §6, Not known: lslogins isn't installed: whole, by the golden's stand-ins; now Last Login not read: no lslogins on this host
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -274,7 +274,7 @@ agree  directories: none
 agree  commands: none
 agree  findings: none
 agree  hardn.yml: not saved
-differ report: lost: failed to collect memory info: failed to get memory info: exec: "free": executable file not found in $PATH | kept; not read: memory: /proc/meminfo
+differ report: lost: failed to collect memory info: failed to get memory info: exec: "free": executable file not found in $PATH | kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Last Login, From, Uptime; not read: memory: /proc/meminfo
        defect 7; KNOWN-DEFECT (One collector's error loses the report): the first failed collector loses the report; now the section says what it could not read, and the rest is kept
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
@@ -337,7 +337,7 @@ differ Last Login: blank | root LoginNone, alice 2026-10-29T08:12:44+00:00
 differ /: none | /dev/vda1 ext4
        decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type
 differ From: none | alice 192.0.2.10
-       decision 3 (a); defect 14; KNOWN-DEFECT (left blank): no row with the blank; now each account's, a name with no dot read
+       decision 3 (a); defect 14; KNOWN-DEFECT (left blank): no row with the blank; now each account's, by lslogins
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-never on Debian 13
