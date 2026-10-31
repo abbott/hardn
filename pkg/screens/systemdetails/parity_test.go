@@ -802,10 +802,12 @@ func sizeWords(n int64) string {
 
 // openedOn presses Open on sys, a twin of a cell's host, and is what ran: its
 // argument vector, then the environment logview.Pager gave it, run by that key alone
-// and held so: one run-interactive, nothing written, PATH left out as RunInteractive
-// adds Run's.
+// and held so: one run-interactive, nothing written, nothing else run but less
+// --version, PATH left out as RunInteractive adds Run's. $PAGER is set while it runs,
+// so that the row says what its entry's source does: $PAGER not read.
 func openedOn(t *testing.T, sys host.System, logFile string) string {
 	t.Helper()
+	t.Setenv("PAGER", "/tmp/evil")
 	runLogs(t, sys, logFile, 24, []string{"1", "0"})
 	h, ok := sys.(*hostfake.System)
 	if !ok {
@@ -817,7 +819,11 @@ func openedOn(t *testing.T, sys host.System, logFile string) string {
 		case "run-interactive":
 			env := slices.DeleteFunc(slices.Clone(c.Env), func(e string) bool { return strings.HasPrefix(e, "PATH=") })
 			ran = append(ran, strings.Join(c.Argv, " ")+"; "+strings.Join(env, " "))
-		case "scan-lines", "run":
+		case "scan-lines":
+		case "run":
+			if !slices.Equal(c.Argv, []string{"less", "--version"}) {
+				t.Errorf("Open: %s", c)
+			}
 		default:
 			t.Errorf("Open: %s", c)
 		}
@@ -1134,7 +1140,7 @@ func table() []tie {
 		// System Details: what a collector's failure loses, and on Alpine what is not read.
 		every([]string{"sd-error"}, "report", "defect 7; KNOWN-DEFECT (One collector's error loses the report)", "the first failed collector loses the report; now the section says what it could not read, and the rest is kept"),
 		every([]string{"sd-error"}, rowFailureWords, "defect 7; "+w6+", Can't read <source>", "\"check permissions\" whatever it was; now what it could not read"),
-		every([]string{"sd-error"}, rowTitle, "defect 7", "a title of its own for the failure; now the report's"),
+		every([]string{"sd-error"}, rowTitle, w6+", Title bars; "+made+", A section that cannot be read", "a title of its own for the failure; now the report's"),
 		// System Details: the rows drawn beside their facts, and what stands around them.
 		every(reportAll, rowCPUs, d2+"; "+w6+", CPUs", "none, Cores in its own words; now the row's, Cores the fact it draws"),
 		every(reportAll, rowDiskUsed, d2+"; "+w6+", Used", "none, Volume in its own words; now the row's, Volume the fact it draws"),

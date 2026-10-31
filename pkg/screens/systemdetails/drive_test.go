@@ -265,9 +265,13 @@ func holdWhole(t *testing.T, sys host.System, facts detect.Facts, d drawing) {
 		t.Errorf("Print off a terminal: %+v, where the screen draws %+v", off, d)
 	}
 	for _, s := range d.sections {
+		o := off.section(s.title).rows
+		if len(o) != len(s.rows) {
+			t.Errorf("%s: Print's rows %+v, the screen's %+v", s.title, o, s.rows)
+			continue
+		}
 		for i, r := range s.rows {
-			o := off.section(s.title).rows
-			if i >= len(o) || o[i].key != r.key {
+			if o[i].key != r.key {
 				t.Errorf("%s: Print's rows %+v, the screen's %+v", s.title, o, s.rows)
 				break
 			}
