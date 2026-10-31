@@ -13,9 +13,7 @@ type SystemDetailsForm struct {
 	Warnings []string
 }
 
-// The flags' words, all proposed (refactor plan slice 1, unit (d);
-// gallery-system-details.md §6 has only their summary, "--output json, with a
-// warning", "Accepted, with a warning", "Refused, exit 2", "Refused: use > file").
+// The flags' words (refactor plan slice 1, unit (d)), adopted 2026-10-31.
 const (
 	sdUseJSON     = "use --output json"
 	sdDeprecated  = "%s is deprecated: %s"

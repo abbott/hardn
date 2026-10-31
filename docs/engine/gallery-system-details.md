@@ -484,7 +484,7 @@ origin/main's where it has them; every other word is **decided** with decision 1
 | States | "No addresses", "None but root", "None recorded", "Not known", "Not known: lslogins isn't installed", "Can't read <source>", "Not root: <file> not read" (*since `next/s1-readers`,* two files joined by ", ", adopted 2026-10-30: [readers-system-details.md](readers-system-details.md) §9) | proposed |
 | Items | "Refresh" "Read the host again"; "Return" | proposed; origin/main's "Refresh Information" "Reload system status from system" shortened; its "Return" |
 | Logs sections | "File"; "Last N of M lines", "All N lines", "1 line" | proposed |
-| Logs rows | "Path", "Size" ("49 KiB", "<n> bytes", "<n> MiB"), "No log yet", "Empty", "Can't read it: <reason>", "hardn.yml's logFile, <path>, isn't used" | proposed |
+| Logs rows | "Path", "Size" ("49 KiB", "<n> bytes", "1 byte", "<n> MiB"), "No log yet", "Empty", "Can't read it: <reason>", "hardn.yml's logFile, <path>, isn't used" | proposed |
 | Logs items | "Open" "The whole log in less"; "Refresh" "Read the log again" | proposed |
 | `-p`'s stderr | "hardn: no log yet: <path>"; "hardn: can't read <path>: <reason>"; "Run it with <tool>." | proposed |
 | Flags, under 1 (a) | "Today", "All five", "Parsed and ignored"; "Proposed, if 3.11 is approved", "--output json, with a warning", "Accepted, with a warning", "Refused, exit 2", "Refused: use > file" | the mock's summary; unit (d) writes the warnings' words, proposed |
