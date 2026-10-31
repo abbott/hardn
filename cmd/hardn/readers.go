@@ -5,8 +5,9 @@ package main
 // gated): main menu 9 and 10 run the two screens (pkg/screens/systemdetails,
 // pkg/screens/logs), which pkg/menu reaches through the hooks set here, as it reaches
 // the Environment screen (environment.go), so that pkg/menu builds no reader; hardn
-// system-details and -p print through the same packages. All of it only reads, under
-// plan only as live, on a host with no run log.
+// system-details and -p print through the same packages. All of this only reads, under
+// plan only as live, on a host with no run log; main()'s start-up, ahead of it, does
+// not: as root it creates the log, and /etc/hardn/hardn.yml.example where absent.
 
 import (
 	"context"

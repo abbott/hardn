@@ -109,10 +109,10 @@ Both paths register `signal.NotifyContext` for SIGINT, SIGTERM and SIGHUP (`engi
 ### 2.11 `hardn system-details` and `-p` (`cmd/hardn/readers.go`; slice 1, unit (d))
 
 - **The host:** `readerHost`, `host.Real` with no run log, as `statusHost`. Nothing here writes to the log.
-- **`hardn system-details`:** no root check and no hardn.yml. `systemdetails.Print`, or under `--output json` `output.Build`'s document with `Run{Mode: ModeCheck, Hostname, Facts, Details}`. `--json` and `-O json` become it with a warning; `-O text` warns; `--yaml`, `-O yaml`, `-S`, `-E` and any other value of `-O` or `--output` are refused, exit 2, nothing read. A failed write: stderr, exit 1.
+- **`hardn system-details`:** no root check and no hardn.yml. `systemdetails.Print`, or under `--output json` `output.Build`'s document with `Run{Mode: ModeCheck, Hostname, Facts, Details}`. `--json` and `-O json` become it with a warning; `-O text` warns; `--yaml`, `-O yaml`, `-S`, `-E` and any other value of `-O` or `--output` are refused, exit 2, nothing read, as are `-p`, `-c`, `-d`, `-g`, `-w`, `-r` and `-e` with it. A flag counts as given whatever its value. A failed write: stderr, exit 1.
 - **`-p`, alone** (`-n` is no operation; `printOnly`): `logs.Print` ahead of the root check, the config load and `detectOS`, `LogFile` "". **With another operation flag:** where it printed, after them, `LogFile` `cfg.LogFile`.
 - **Either way:** `Printed.Stderr(tool)` on stderr, `tool` the elevation command, "" as root. Exit status `Printed.ExitCode()`, 1 for a failed write. After other flags the status combines with `-g`'s and `-e`'s by `runStatus`, once they have all run.
-- **`main()`:** its lines go to stderr, so `> file` and `--output json` hold the report alone.
+- **`main()`:** its lines go to stderr, so `> file` and `--output json` hold the report alone (`TestStartUpLeavesStdoutAlone`). A bad command line is cobra's, on stderr with the usage, exit 2, for every command (`TestUsageErrors`).
 
 ## 3. Facts relied on
 

@@ -64,9 +64,12 @@ See [docs/configuration.md](../configuration.md), "Using with sudo or doas".
 
 - **Main menu 9 and 10 only read.** System Details has no Export item: `hardn system-details > file` saves the report. Both open under plan only.
 - **Logs reads the file hardn writes,** `/var/log/hardn.log`, whatever `logFile` says.
-- **`logFile` is retired.** Where hardn.yml sets it to another path, hardn warns "hardn.yml's logFile, <path>, isn't used". The file is still accepted.
+- **`logFile` is retired.** Where hardn.yml sets it to another path, hardn warns "hardn.yml's logFile, <path>, isn't used". The file is still accepted. hardn no longer writes the key itself.
+- **`sudo hardn` keeps hardn.yml's warnings on screen.** The main menu draws below them, where it used to clear them.
 - **`hardn system-details --output json`** prints the report as hardn's JSON document, as `--json` and `-O json` now do with a warning. `-O text` warns too.
 - **`hardn system-details --yaml`, `-O yaml`, `-S` and `-E` are refused,** exit status 2. They never did anything. For `-E`, use `> file`.
+- **`hardn system-details` with `-p`, `-c`, `-d`, `-g`, `-w`, `-r` or `-e` is refused,** exit status 2. It used to print the report and not run them.
+- **A bad command line exits 2 and says so on stderr alone,** for every command: an unknown flag or command, a missing value. It used to repeat it on stdout and exit 1.
 - **`hardn -p` alone needs no root,** and off a terminal prints the log's lines and nothing else. To a terminal it prints the file's details and the last lines. With another operation flag it still prints after them.
 - **`hardn -p` has exit statuses.** 1 where the log can't be read, with the reason on stderr; 0 with "hardn: no log yet: <path>" on stderr where there is none.
 - **As a user other than root, `hardn system-details > file` holds the report alone.** hardn's two start-up lines go to stderr.

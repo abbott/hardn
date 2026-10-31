@@ -262,5 +262,5 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
 ## Troubleshooting
 
 - Run `hardn` with `--dry-run` to preview changes without applying them; if nothing is applied, check `dryRun` in your configuration file
-- Check the log file (default: `/var/log/hardn.log`) for detailed information
+- Check `/var/log/hardn.log` for detailed information
 - If you encounter issues, create a backup of your configuration before making changes

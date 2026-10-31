@@ -30,10 +30,11 @@
 //     (2026-10-23), as the legacy flags do.
 //
 // cmd/hardn renders hardn confirm's clean-up and -g (slice 2, unit (d):
-// Human, ExitCode) through it, and the DNS screen's changes through
-// FlowEngine; nothing else: refactor plan §3.11 (--output json, --yes)
-// is not approved, and the audit log's first writer comes with
-// next/p3-startup. docs/reference/output.md is the public contract;
+// Human, ExitCode) through it, the DNS screen's changes through FlowEngine,
+// and hardn system-details --output json (slice 1, unit (d): Build,
+// WriteJSON); nothing else: the rest of refactor plan §3.11 (--output json
+// on any other command, --yes) is not approved, and the audit log's first
+// writer comes with next/p3-startup. docs/reference/output.md is the public contract;
 // docs/engine/output.md says what this package guarantees.
 //
 // It reaches the host only through host.System (depguard rule

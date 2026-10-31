@@ -50,7 +50,7 @@ var logsLinks = map[string]string{mainMenuMock + "/10": logsMainHost}
 // (cmd/hardn/main.go:57).
 const hardnLog = logview.File
 
-// galleryTerm is the TERM play gives the screen: unit (d) reads hardn's.
+// galleryTerm is the TERM play gives the screen: hardn gives its own (cmd/hardn/readers.go).
 const galleryTerm = "xterm-256color"
 
 // logHost is one simulated host the Logs screen runs on.
@@ -356,7 +356,7 @@ func logsMocks() []listMock {
 	return []listMock{
 		{name: "cli-terminal-tail", note: "hardn -p to a terminal: the file and as many of the last lines as the terminal holds, no menu and no prompt, for a shell to carry on under.",
 			draw: onLogPrint("long", true)},
-		{name: "cli-pipe", wide: term80, note: "hardn -p not to a terminal: every line, as written, in no style, no heading, so that a tool reads the log alone: this needs unit (d) to run -p ahead of the config load, or with a silent console (decision 10). Exit 0.",
+		{name: "cli-pipe", wide: term80, note: "hardn -p not to a terminal: every line, as written, in no style, no heading, so that a tool reads the log alone: -p runs ahead of the config load (decision 10). Exit 0.",
 			draw: onLogPrint("lines", false)},
 		{name: "cli-pipe-control", wide: term80, note: "The same on the control host: safe off a terminal too, since a pipe may end at one. Who wants the bytes has cat /var/log/hardn.log.",
 			draw: onLogPrint("control", false)},
