@@ -1,0 +1,127 @@
+# Golden file of TestPlayLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/empty␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the gallery's stand-ins, unit (b)'s to build. It only␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads: no plan, no y/N, no journal. No pager runs: an item␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays what it would run. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/empty␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. The file is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere and empty. Nearly unreachable today, as start-up has␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten to it by the time the screen can read it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57, :155, :185; config.go:246;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mosdetect.go:93-95): only if hardn's own open failed, the file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas truncated while hardn runs, or under next/p3-startup.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mEmpty␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh␛[m              ␛[38;2;129;134;156mRead the log again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play logs/empty ----------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Logs screen proposed for slice 1,$
+# inferred from v0.3.2 and origin/main, read from a simulated$
+# host by the gallery's stand-ins, unit (b)'s to build. It only$
+# reads: no plan, no y/N, no journal. No pager runs: an item$
+# says what it would run. Nothing on this machine changes: every$
+# command and file is the fake's.$
+$
+# Info: logs/empty$
+# web-01.example.net runs Debian 13, less installed. The file is$
+# there and empty. Nearly unreachable today, as start-up has$
+# written to it by the time the screen can read it$
+# (cmd/hardn/main.go:57, :155, :185; config.go:246;$
+# osdetect.go:93-95): only if hardn's own open failed, the file$
+# was truncated while hardn runs, or under next/p3-startup.$
+$
+# Logs #########################################################$
+$
+# File ---------------------------------------------------------$
+$
+   -  Path                 /var/log/hardn.log$
+   -  Empty$
+$
+  Select an option$
+$
+   1) Refresh              Read the log again$
+$
+   0) Return$
+$
+  > Enter selection [0-1 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/empty␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the gallery's stand-ins, unit (b)'s to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager runs: an item says what it would run. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/empty␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is there and empty. Nearly unreachable today, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstart-up has written to it by the time the screen can read␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit (cmd/hardn/main.go:57, :155, :185; config.go:246;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mosdetect.go:93-95): only if hardn's own open failed, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile was truncated while hardn runs, or under next/p3-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstartup.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m$
+      ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mEmpty␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh␛[m$
+      ␛[38;2;129;134;156mRead the log again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

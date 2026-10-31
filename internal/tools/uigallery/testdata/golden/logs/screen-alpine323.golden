@@ -1,0 +1,170 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs screen-alpine323␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Alpine 3.23, whose less is a link to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing there: s still prompts Log file, E and :e Examine (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-alpine323-vm.log). No path was typed at s, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits write did not run; E did try a name that does not exist.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat s writes and E opens any path as root is read␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). So treatment pager-less gives it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno Open item (decision 7). With Alpine's less package there is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone (pager-commands).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m601 bytes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 4 of 10 lines␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+      ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: hardn's boot unit was not␛[m$
+      ␛[38;2;219;184;83m↪ removed: exit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m↪ exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh␛[m              ␛[38;2;129;134;156mRead the log again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs screen-alpine323 ----------------------------------------$
+$
+# Note$
+# Inferred from v0.3.2 and origin/main. The Logs screen. web-$
+# 01.example.net runs Alpine 3.23, whose less is a link to$
+# BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes$
+# nothing there: s still prompts Log file, E and :e Examine (vm-$
+# runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so$
+# its write did not run; E did try a name that does not exist.$
+# That s writes and E opens any path as root is read$
+# (miscutils/less.c, master). So treatment pager-less gives it$
+# no Open item (decision 7). With Alpine's less package there is$
+# one (pager-commands).$
+$
+# Logs #########################################################$
+$
+# File ---------------------------------------------------------$
+$
+   -  Path                 /var/log/hardn.log$
+   -  Size                 601 bytes$
+$
+# Last 4 of 10 lines -------------------------------------------$
+$
+      2026/10/20 12:00:04 WARNING: hardn's boot unit was not$
+      | removed: exit status 1$
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+      2026/10/20 12:05:11 SUCCESS: debian trixie detected$
+$
+  Select an option$
+$
+   1) Refresh              Read the log again$
+$
+   0) Return$
+$
+  > Enter selection [0-1 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs screen-alpine323␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23, whose less is a link␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing there: s still prompts Log file, E and :e Examine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/04-less2-alpine323-vm.log). No path was typed␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat s, so its write did not run; E did try a name that does␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot exist. That s writes and E opens any path as root is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread (miscutils/less.c, master). So treatment pager-less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgives it no Open item (decision 7). With Alpine's less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpackage there is one (pager-commands).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m$
+      ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m$
+      ␛[38;2;129;134;156m601 bytes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 2 of 10 lines␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh␛[m$
+      ␛[38;2;129;134;156mRead the log again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs screen-alpine323␛[m ␛[38;2;48;52;64m----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Alpine 3.23, whose less is a link to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mBusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing there: s still prompts Log file, E and :e Examine (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/04-less2-alpine323-vm.log). No path was typed at s, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits write did not run; E did try a name that does not exist.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat s writes and E opens any path as root is read␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). So treatment pager-less gives it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno Open item (decision 7). With Alpine's less package there is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone (pager-commands).␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m601 bytes␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast 4 of 10 lines␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
+$
+      ␛[38;2;219;184;83m2026/10/20 12:00:04 WARNING: hardn's boot unit was not␛[m$
+      ␛[38;2;219;184;83m| removed: exit status 1␛[m$
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m| exit status 1␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m| /etc/hardn/hardn.yml␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 SUCCESS: debian trixie detected␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh␛[m              ␛[38;2;129;134;156mRead the log again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$

@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -31,7 +31,9 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // screen (dnsLinks, dnsscreen.go), its 5 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
 // kept among the mocks as Figma's record (figmaRecords), and its 8 to the
-// real Environment screen (envLinks, environment.go). An item with no
+// real Environment screen (envLinks, environment.go), its 9 to the System
+// Details mock (sdLinks, systemdetails.go) and its 10 to the Logs mock
+// (logsLinks, logs.go). An item with no
 // link, and no refusal (screen.Mock.Refusals), says that the gallery has
 // no screen for it.
 var links = map[string]string{
@@ -136,6 +138,38 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
 			return s.play("play "+name, []string{engineNote}, s.openEnv(name), stderr)
+		})
+	}
+	if name, ok, err := sdStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the System Details mock applies nothing")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the System Details mock plays normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{sdNote}, s.openSD(name), stderr)
+		})
+	}
+	if name, ok, err := logsStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the Logs mock applies nothing")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the Logs mock plays normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{logsNote}, s.openLogs(name), stderr)
 		})
 	}
 	status, isStatus, err := statusStart(fs.Args())
@@ -424,8 +458,9 @@ func (s *session) open(m screen.Mock) func() error {
 }
 
 // menu returns the menu of menu mock m bound to its actions: each item
-// opens the mock links name for it, or the DNS, Backup or Environment
-// screen on the host dnsLinks, backupLinks or envLinks name, an item m
+// opens the mock links name for it, or the DNS, Backup, Environment, System
+// Details or Logs screen on the host dnsLinks, backupLinks, envLinks, sdLinks
+// or logsLinks name, an item m
 // refuses says why, and an item with none of these says that the gallery
 // has no screen for it.
 func (s *session) menu(m screen.Mock) nav.Menu {
@@ -447,6 +482,12 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := envLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openEnv(to)
+		}
+		if to, ok := sdLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openSD(to)
+		}
+		if to, ok := logsLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openLogs(to)
 		}
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
 	}

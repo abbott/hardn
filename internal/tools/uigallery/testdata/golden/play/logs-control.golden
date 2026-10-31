@@ -1,0 +1,158 @@
+# Golden file of TestPlayLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/control␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the gallery's stand-ins, unit (b)'s to build. It only␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads: no plan, no y/N, no journal. No pager runs: an item␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays what it would run. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/control␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Lines hold␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat commands printed: colour, a title and bell, a bidi␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156moverride, bytes that are not UTF-8, typographic characters.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThose a terminal would act on show as ^[ and <U+202E> and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m<0xe9>, the rest as they are, in either glyph set; origin/main␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprints them raw to the terminal (logging.go:146;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile_logs_repository.go:96; menu/logs_escape.golden).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m                 ␛[38;2;129;134;156m335 bytes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 5 of 6 lines␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+      ␛[38;2;129;134;156m2026/10/20 12:00:02 INFO: run 1: | ^[[31mErr:1^[[0m␛[m$
+      ␛[38;2;129;134;156m↪ http://deb.example.net␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:02 INFO: run 1: | ^[]0;a title^Gdone^[[2J␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:03 INFO: run 2: | abc<U+202E>def␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:03 INFO: run 2: | caf<0xe9>␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 → … x␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mOpen␛[m                 ␛[38;2;129;134;156mThe whole log in less␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mRefresh␛[m              ␛[38;2;129;134;156mRead the log again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play logs/control --------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Logs screen proposed for slice 1,$
+# inferred from v0.3.2 and origin/main, read from a simulated$
+# host by the gallery's stand-ins, unit (b)'s to build. It only$
+# reads: no plan, no y/N, no journal. No pager runs: an item$
+# says what it would run. Nothing on this machine changes: every$
+# command and file is the fake's.$
+$
+# Info: logs/control$
+# web-01.example.net runs Debian 13, less installed. Lines hold$
+# what commands printed: colour, a title and bell, a bidi$
+# override, bytes that are not UTF-8, typographic characters.$
+# Those a terminal would act on show as ^[ and <U+202E> and$
+# <0xe9>, the rest as they are, in either glyph set; origin/main$
+# prints them raw to the terminal (logging.go:146;$
+# file_logs_repository.go:96; menu/logs_escape.golden).$
+$
+# Logs #########################################################$
+$
+# File ---------------------------------------------------------$
+$
+   -  Path                 /var/log/hardn.log$
+   -  Size                 335 bytes$
+$
+# Last 5 of 6 lines --------------------------------------------$
+$
+      2026/10/20 12:00:02 INFO: run 1: | ^[[31mErr:1^[[0m$
+      | http://deb.example.net$
+      2026/10/20 12:00:02 INFO: run 1: | ^[]0;a title^Gdone^[[2J$
+      2026/10/20 12:00:03 INFO: run 2: | abc<U+202E>def$
+      2026/10/20 12:00:03 INFO: run 2: | caf<0xe9>$
+      2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 → … x$
+$
+  Select an option$
+$
+   1) Open                 The whole log in less$
+   2) Refresh              Read the log again$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/control␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the gallery's stand-ins, unit (b)'s to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager runs: an item says what it would run. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/control␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Lines␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhold what commands printed: colour, a title and bell, a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbidi override, bytes that are not UTF-8, typographic␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcharacters. Those a terminal would act on show as ^[ and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m<U+202E> and <0xe9>, the rest as they are, in either glyph␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mset; origin/main prints them raw to the terminal␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:146; file_logs_repository.go:96;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_escape.golden).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mFile␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m$
+      ␛[38;2;129;134;156m/var/log/hardn.log␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSize␛[m$
+      ␛[38;2;129;134;156m335 bytes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast 1 of 6 lines␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+      ␛[38;2;129;134;156m2026/10/20 12:00:03 INFO: run 2: | don’t “quote” ≥ 5 →␛[m$
+      ␛[38;2;129;134;156m↪ … x␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mOpen␛[m$
+      ␛[38;2;129;134;156mThe whole log in less␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mRefresh␛[m$
+      ␛[38;2;129;134;156mRead the log again␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

@@ -1,0 +1,60 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-missing␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p with no log:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis on stderr, nothing on stdout, exit 0: a read that found␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing. origin/main logs [ERROR] Failed to read log file,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minto the log too, and carries on, exit 0 by reading␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:139-143; menu/logs_print_flag_missing.golden).␛[m$
+$
+hardn: no log yet: /var/log/hardn.log$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs cli-missing ---------------------------------------------$
+$
+# Note$
+# Inferred from v0.3.2 and origin/main. hardn -p with no log:$
+# this on stderr, nothing on stdout, exit 0: a read that found$
+# nothing. origin/main logs [ERROR] Failed to read log file,$
+# into the log too, and carries on, exit 0 by reading$
+# (logging.go:139-143; menu/logs_print_flag_missing.golden).$
+$
+hardn: no log yet: /var/log/hardn.log$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-missing␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p with no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlog: this on stderr, nothing on stdout, exit 0: a read␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat found nothing. origin/main logs [ERROR] Failed to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread log file, into the log too, and carries on, exit 0 by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreading (logging.go:139-143;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/logs_print_flag_missing.golden).␛[m$
+$
+hardn: no log yet: /var/log/hardn.log$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-missing␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p with no log:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis on stderr, nothing on stdout, exit 0: a read that found␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing. origin/main logs [ERROR] Failed to read log file,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minto the log too, and carries on, exit 0 by reading␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:139-143; menu/logs_print_flag_missing.golden).␛[m$
+$
+hardn: no log yet: /var/log/hardn.log$
+$
+$

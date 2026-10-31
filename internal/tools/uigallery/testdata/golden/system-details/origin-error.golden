@@ -1,0 +1,141 @@
+# Golden file of TestSystemDetailsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details origin-error␛[m ␛[38;2;48;52;64m──────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report when any collector fails␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(system_details_menu.go:42-62;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, above the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbox and in it, the box saying to check permissions whatever it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas, the report gone, Export not offered. The word "Error:"␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbefore each title here is the component's, not origin/main's.␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError retrieving system status: failed to collect memory info:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfailed to get memory info: exec: "free": executable file not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfound in $PATH␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mError: System Details Error␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to retrieve system status information.␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError: failed to collect memory info: failed to get memory␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156minfo: exec: "free": executable file not found in $PATH␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mPlease check system permissions and try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh Information␛[m  ␛[38;2;129;134;156mReload system status from system␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# system-details origin-error ----------------------------------$
+$
+# Note$
+# origin/main's report when any collector fails$
+# (system_details_menu.go:42-62;$
+# menu/system_details_error.golden): the error, twice, above the$
+# box and in it, the box saying to check permissions whatever it$
+# was, the report gone, Export not offered. The word "Error:"$
+# before each title here is the component's, not origin/main's.$
+$
+# Operation Failed$
+# Error retrieving system status: failed to collect memory info:$
+# failed to get memory info: exec: "free": executable file not$
+# found in $PATH$
+$
+# Error: System Details Error$
+# Failed to retrieve system status information.$
+# Error: failed to collect memory info: failed to get memory$
+# info: exec: "free": executable file not found in $PATH$
+# Please check system permissions and try again.$
+$
+# System Details ###############################################$
+$
+  Select an option$
+$
+   1) Refresh Information  Reload system status from system$
+$
+   0) Return$
+$
+  > Enter selection [0-1 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details origin-error␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report when any collector fails␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(system_details_menu.go:42-62;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, above␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe box and in it, the box saying to check permissions␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhatever it was, the report gone, Export not offered. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mword "Error:" before each title here is the component's,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot origin/main's.␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError retrieving system status: failed to collect memory␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156minfo: failed to get memory info: exec: "free": executable␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfile not found in $PATH␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mError: System Details Error␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to retrieve system status information.␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError: failed to collect memory info: failed to get memory␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156minfo: exec: "free": executable file not found in $PATH␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mPlease check system permissions and try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh Information␛[m$
+      ␛[38;2;129;134;156mReload system status from system␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details origin-error␛[m ␛[38;2;48;52;64m----------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's report when any collector fails␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(system_details_menu.go:42-62;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_error.golden): the error, twice, above the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbox and in it, the box saying to check permissions whatever it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwas, the report gone, Export not offered. The word "Error:"␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbefore each title here is the component's, not origin/main's.␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError retrieving system status: failed to collect memory info:␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfailed to get memory info: exec: "free": executable file not␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mfound in $PATH␛[m$
+$
+␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mError: System Details Error␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mFailed to retrieve system status information.␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mError: failed to collect memory info: failed to get memory␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156minfo: exec: "free": executable file not found in $PATH␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mPlease check system permissions and try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRefresh Information␛[m  ␛[38;2;129;134;156mReload system status from system␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$

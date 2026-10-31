@@ -1,0 +1,64 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user other␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthan root, under decision 9 (a), where the log is not 0644:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0644 on the three VMs (vm-runs/s1/01-tools.log), it is what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn asks, less the umask of the start that made it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:38; a tighter umask [I, not run]). Exit 1.␛[m$
+$
+hardn: can't read /var/log/hardn.log: permission denied$
+Run it with sudo.$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs cli-unreadable-not-root ---------------------------------$
+$
+# Note$
+# Inferred from v0.3.2 and origin/main. The same as a user other$
+# than root, under decision 9 (a), where the log is not 0644:$
+# 0644 on the three VMs (vm-runs/s1/01-tools.log), it is what$
+# hardn asks, less the umask of the start that made it$
+# (logging.go:38; a tighter umask [I, not run]). Exit 1.$
+$
+hardn: can't read /var/log/hardn.log: permission denied$
+Run it with sudo.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mother than root, under decision 9 (a), where the log is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot 0644: 0644 on the three VMs (vm-runs/s1/01-tools.log),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit is what hardn asks, less the umask of the start that␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmade it (logging.go:38; a tighter umask [I, not run]).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mExit 1.␛[m$
+$
+hardn: can't read /var/log/hardn.log: permission denied$
+Run it with sudo.$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user other␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthan root, under decision 9 (a), where the log is not 0644:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0644 on the three VMs (vm-runs/s1/01-tools.log), it is what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn asks, less the umask of the start that made it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(logging.go:38; a tighter umask [I, not run]). Exit 1.␛[m$
+$
+hardn: can't read /var/log/hardn.log: permission denied$
+Run it with sudo.$
+$
+$

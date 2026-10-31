@@ -13,9 +13,10 @@ import (
 )
 
 // System details (menu 9 and the system-details subcommand) are collected by
-// pkg/system.GenerateSystemStatus. It cannot run hermetically, so it has no
-// golden here: besides the seamed HostInfoManager it calls the host directly,
-// with no seam to substitute:
+// pkg/system.GenerateSystemStatus. It cannot run wholly hermetically:
+// TestLegacyMenuSystemDetails runs it with stand-ins on PATH for the commands
+// below and masks what is left. Besides the seamed HostInfoManager it calls the
+// host directly, with no seam to substitute:
 //   - os.Open("/etc/os-release"), "/etc/resolv.conf", "/etc/passwd" (pkg/system/utils.go:16,41; user_info.go:36)
 //   - user.Current() (pkg/system/collectors.go:65,498)
 //   - exec.Command("nproc") and ("lscpu"), unconditionally (collectors.go:236,257)

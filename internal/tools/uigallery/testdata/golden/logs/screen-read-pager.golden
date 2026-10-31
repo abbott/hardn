@@ -1,0 +1,67 @@
+# Golden file of TestLogsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs screen-read-pager␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Debian 13, less installed. Treatment read-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager, P-18 as written: the main menu's 10 runs the pager at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monce, and returns there. A golden cannot run it: this says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat would run.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/hardn.log, then draw the main menu again.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# logs screen-read-pager ---------------------------------------$
+$
+# Note$
+# Inferred from v0.3.2 and origin/main. The Logs screen. web-$
+# 01.example.net runs Debian 13, less installed. Treatment read-$
+# pager, P-18 as written: the main menu's 10 runs the pager at$
+# once, and returns there. A golden cannot run it: this says$
+# what would run.$
+$
+# Note$
+# The gallery runs no pager. hardn would run LESSSECURE=1 less$
+# /var/log/hardn.log, then draw the main menu again.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs screen-read-pager␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment read-pager, P-18 as written: the main menu's 10␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns the pager at once, and returns there. A golden cannot␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun it: this says what would run.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mless /var/log/hardn.log, then draw the main menu again.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs screen-read-pager␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The Logs screen. web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net runs Debian 13, less installed. Treatment read-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager, P-18 as written: the main menu's 10 runs the pager at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monce, and returns there. A golden cannot run it: this says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhat would run.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe gallery runs no pager. hardn would run LESSSECURE=1 less␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/hardn.log, then draw the main menu again.␛[m$
+$
+$

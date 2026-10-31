@@ -1,0 +1,278 @@
+# Golden file of TestSystemDetailsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-not-root␛[m ␛[38;2;48;52;64m──────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas alice, not through sudo: reachable, as the subcommand has␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno root check (cmd/hardn/main.go:84; the check at :148 is in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root command's Run). The main menu and -p are not. What it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot read it says, naming what unit (b)'s reader skips, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe users check reads: /etc/sudoers.d is drwxr-x--- root root,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso a user cannot list it; on a doas host /etc/doas.conf, 0640␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log). The stand-in reads groups␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. Last␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLogin reads the same, run (vm-runs/s1/02-login.log). The two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines above the report are main()'s, unrelated, on stdout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(d) moves them to stderr.␛[m$
+$
+      ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
+      ␛[38;2;129;134;156m↪ /var/log/hardn.log: permission denied␛[m$
+      ␛[38;2;129;134;156mWarning: Unable to create example configuration file:␛[m$
+      ␛[38;2;129;134;156m↪ failed to create directory for example config: mkdir␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn: permission denied␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mOS and Kernel␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS␛[m                   ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m               ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mHostname␛[m             ␛[38;2;129;134;156mweb-01␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216meth0␛[m                 ␛[38;2;129;134;156m192.0.2.20/24␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156msudo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mNot root: /etc/sudoers.d not read␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m/␛[m                    ␛[38;2;129;134;156m/dev/vda1 ext4␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m                 ␛[38;2;129;134;156m4.2 of 38.6 GiB (11%)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m                 ␛[38;2;129;134;156m1.2 of 3.8 GiB (30%)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# system-details cli-not-root ----------------------------------$
+$
+# Note$
+# Inferred from origin/main (unreleased). hardn system-details$
+# as alice, not through sudo: reachable, as the subcommand has$
+# no root check (cmd/hardn/main.go:84; the check at :148 is in$
+# the root command's Run). The main menu and -p are not. What it$
+# cannot read it says, naming what unit (b)'s reader skips, as$
+# the users check reads: /etc/sudoers.d is drwxr-x--- root root,$
+# so a user cannot list it; on a doas host /etc/doas.conf, 0640$
+# root (vm-runs/s1/01-tools.log). The stand-in reads groups$
+# alone, so its root and non-root reads are the same today. Last$
+# Login reads the same, run (vm-runs/s1/02-login.log). The two$
+# lines above the report are main()'s, unrelated, on stdout$
+# today, so hardn system-details > file holds them$
+# (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit$
+# (d) moves them to stderr.$
+$
+      Failed to open log file /var/log/hardn.log: open$
+      | /var/log/hardn.log: permission denied$
+      Warning: Unable to create example configuration file:$
+      | failed to create directory for example config: mkdir$
+      | /etc/hardn: permission denied$
+$
+# System Details ###############################################$
+$
+# OS and Kernel ------------------------------------------------$
+$
+   -  OS                   Debian 13 (Trixie)$
+   -  Kernel               6.12.113+deb13-cloud-amd64$
+   -  Uptime               3 days, 5 hours, 12 minutes$
+$
+# Host and IPs -------------------------------------------------$
+$
+   -  Hostname             web-01$
+   -  eth0                 192.0.2.20/24$
+$
+# Users --------------------------------------------------------$
+$
+   -  alice                sudo$
+   -  Not root: /etc/sudoers.d not read$
+$
+# CPU and Load -------------------------------------------------$
+$
+   -  Model                QEMU Virtual CPU version 2.5+$
+   -  CPUs                 4, 1 socket$
+   -  Load (1, 5, 15 min)  0.12, 0.08, 0.03$
+$
+# Disk ---------------------------------------------------------$
+$
+   -  /                    /dev/vda1 ext4$
+   -  Used                 4.2 of 38.6 GiB (11%)$
+$
+# Memory -------------------------------------------------------$
+$
+   -  Used                 1.2 of 3.8 GiB (30%)$
+$
+# Last Login ---------------------------------------------------$
+$
+   -  root                 None recorded$
+   -  alice                Oct 20 11:42 from 192.0.2.10$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-not-root␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetails as alice, not through sudo: reachable, as the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msubcommand has no root check (cmd/hardn/main.go:84; the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcheck at :148 is in the root command's Run). The main menu␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand -p are not. What it cannot read it says, naming what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s reader skips, as the users check reads:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d is drwxr-x--- root root, so a user cannot␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlist it; on a doas host /etc/doas.conf, 0640 root (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/01-tools.log). The stand-in reads groups alone, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits root and non-root reads are the same today. Last Login␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads the same, run (vm-runs/s1/02-login.log). The two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines above the report are main()'s, unrelated, on stdout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run);␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (d) moves them to stderr.␛[m$
+$
+      ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
+      ␛[38;2;129;134;156m↪ /var/log/hardn.log: permission denied␛[m$
+      ␛[38;2;129;134;156mWarning: Unable to create example configuration file:␛[m$
+      ␛[38;2;129;134;156m↪ failed to create directory for example config: mkdir␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn: permission denied␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mOS and Kernel␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS␛[m$
+      ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel␛[m$
+      ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m$
+      ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mHostname␛[m$
+      ␛[38;2;129;134;156mweb-01␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216meth0␛[m$
+      ␛[38;2;129;134;156m192.0.2.20/24␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156msudo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mNot root: /etc/sudoers.d not read␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m$
+      ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m$
+      ␛[38;2;129;134;156m4, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m$
+      ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m/␛[m$
+      ␛[38;2;129;134;156m/dev/vda1 ext4␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m$
+      ␛[38;2;129;134;156m4.2 of 38.6 GiB (11%)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m$
+      ␛[38;2;129;134;156m1.2 of 3.8 GiB (30%)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m$
+      ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details cli-not-root␛[m ␛[38;2;48;52;64m----------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas alice, not through sudo: reachable, as the subcommand has␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno root check (cmd/hardn/main.go:84; the check at :148 is in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root command's Run). The main menu and -p are not. What it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot read it says, naming what unit (b)'s reader skips, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe users check reads: /etc/sudoers.d is drwxr-x--- root root,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso a user cannot list it; on a doas host /etc/doas.conf, 0640␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log). The stand-in reads groups␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so its root and non-root reads are the same today. Last␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLogin reads the same, run (vm-runs/s1/02-login.log). The two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines above the report are main()'s, unrelated, on stdout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtoday, so hardn system-details > file holds them␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(d) moves them to stderr.␛[m$
+$
+      ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
+      ␛[38;2;129;134;156m| /var/log/hardn.log: permission denied␛[m$
+      ␛[38;2;129;134;156mWarning: Unable to create example configuration file:␛[m$
+      ␛[38;2;129;134;156m| failed to create directory for example config: mkdir␛[m$
+      ␛[38;2;129;134;156m| /etc/hardn: permission denied␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mOS and Kernel␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS␛[m                   ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m               ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mHostname␛[m             ␛[38;2;129;134;156mweb-01␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216meth0␛[m                 ␛[38;2;129;134;156m192.0.2.20/24␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;48;52;64m--------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156msudo␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mNot root: /etc/sudoers.d not read␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mCPU and Load␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mModel␛[m                ␛[38;2;129;134;156mQEMU Virtual CPU version 2.5+␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCPUs␛[m                 ␛[38;2;129;134;156m4, 1 socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLoad (1, 5, 15 min)␛[m  ␛[38;2;129;134;156m0.12, 0.08, 0.03␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDisk␛[m ␛[38;2;48;52;64m---------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m/␛[m                    ␛[38;2;129;134;156m/dev/vda1 ext4␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m                 ␛[38;2;129;134;156m4.2 of 38.6 GiB (11%)␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mMemory␛[m ␛[38;2;48;52;64m-------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUsed␛[m                 ␛[38;2;129;134;156m1.2 of 3.8 GiB (30%)␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mLast Login␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mroot␛[m                 ␛[38;2;129;134;156mNone recorded␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mOct 20 11:42 from 192.0.2.10␛[m$
+$
+$
