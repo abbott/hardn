@@ -5,8 +5,7 @@
 // words), drawn by pkg/ui/screen (screen.Logs) from what pkg/engine/logview reads
 // of /var/log/hardn.log, writing nothing, under plan only too. Run shows the
 // screen, and item Open gives GNU less the terminal, by that key alone; Print
-// writes -p's forms, which unit (d) wires, and returns what its stderr and exit
-// status need.
+// writes -p's forms, and returns what its stderr and exit status need.
 //
 // The package reaches the host only through host.System and logview (depguard rule
 // screens-through-host), hardn's environment and hardn.yml only through what its

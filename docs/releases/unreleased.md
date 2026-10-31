@@ -59,3 +59,14 @@ See [docs/configuration.md](../configuration.md), "Using with sudo or doas".
 
 - **An invalid choice is answered under the prompt**, which asks again. The screen is no longer cleared, and there is no "Press Enter" to go on.
 - **After a screen, the main menu is drawn again below it**, so what the screen printed stays in view above it.
+
+## Changed: System Details and Logs
+
+- **Main menu 9 and 10 only read.** System Details has no Export item: `hardn system-details > file` saves the report. Both open under plan only.
+- **Logs reads the file hardn writes,** `/var/log/hardn.log`, whatever `logFile` says.
+- **`logFile` is retired.** Where hardn.yml sets it to another path, hardn warns "hardn.yml's logFile, <path>, isn't used". The file is still accepted.
+- **`hardn system-details --output json`** prints the report as hardn's JSON document, as `--json` and `-O json` now do with a warning. `-O text` warns too.
+- **`hardn system-details --yaml`, `-O yaml`, `-S` and `-E` are refused,** exit status 2. They never did anything. For `-E`, use `> file`.
+- **`hardn -p` alone needs no root,** and off a terminal prints the log's lines and nothing else. To a terminal it prints the file's details and the last lines. With another operation flag it still prints after them.
+- **`hardn -p` has exit statuses.** 1 where the log can't be read, with the reason on stderr; 0 with "hardn: no log yet: <path>" on stderr where there is none.
+- **As a user other than root, `hardn system-details > file` holds the report alone.** hardn's two start-up lines go to stderr.

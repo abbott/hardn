@@ -18,7 +18,7 @@ type hooksSet struct {
 // of it, the DNS, Backup, Environment, System Details and Logs items' and the status's and
 // terminal's, and returns the menu it was given. What each hook runs is
 // its own tests' (TestBackupThenDNS, TestBackupThenEnvironment,
-// TestWithStatus); that main.go:202 calls withHooks is held by reading,
+// TestWithStatus); that main.go:213 calls withHooks is held by reading,
 // and by the VM checks that choose 3, 5 and 8 (screen-environment.md §4).
 func TestWithHooks(t *testing.T) {
 	set := &hooksSet{}

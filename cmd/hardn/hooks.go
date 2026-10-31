@@ -1,7 +1,7 @@
 package main
 
 // The main menu's hooks, as main sets them on the one main menu hardn
-// builds (main.go:202): the DNS, Backup, Environment, System Details and
+// builds (main.go:213): the DNS, Backup, Environment, System Details and
 // Logs items' screens (dns.go, backup.go, environment.go, readers.go) and
 // its status and terminal (status.go). One function, so that a test holds each of them set
 // (TestWithHooks): a main menu without one panics when its item is

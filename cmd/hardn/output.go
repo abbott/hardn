@@ -1,7 +1,8 @@
 package main
 
 // The two wirings of refactor plan P3, next/p3-output, that cmd/hardn owes
-// now (and nothing of pkg/output: §3.11 is not approved, so no --output,
+// now (and nothing of pkg/output: §3.11 is not approved, but for hardn
+// system-details' --output json, readers.go, so no other --output, no
 // --yes or --confirm-timeout flag, and the audit log comes with
 // next/p3-startup; since next/p3-confirm-cleanup, hardn confirm's clean-up
 // links pkg/output and the engine, confirm.go, and since slice 2's unit

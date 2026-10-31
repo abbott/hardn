@@ -159,6 +159,8 @@ The main menu's Backup (5) shows and changes these two settings.
 - **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path.
 - **Backup Runs lists the backups in the path in use**, newest first. It only reads: restoring one is not available yet.
 
+**`logFile` is retired.** hardn always writes and reads `/var/log/hardn.log`. A file that sets `logFile` to another path is still accepted, and hardn warns: "hardn.yml's logFile, <path>, isn't used".
+
 ### Network Configuration
 
 ```yaml

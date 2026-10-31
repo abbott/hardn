@@ -429,6 +429,8 @@ The new path does what origin/main did not: it adds IPv6 ([I] for `inet6`'s form
 
 ## 8. For unit (d)
 
+*Built in `next/s1-replace`: the 33 frozen, `TestLegacyRecord` holding them, the legacy path deleted. Done differently: `TestLegacyRecord` lists SHA-256s alone, as `TestParityGoldens` already says which file is a row. The status line's "in place" and the golden's header are kept as they were; the goldens now read from `testdata/legacy`.*
+
 **What origin/main's path did:** main menu 9 and 10, `hardn system-details`, `-p`: §4's rows and §5.
 
 **The record to freeze first,** before the legacy code goes, as parity-environment.md §8 did: `TestParity` reads `pkg/characterization/testdata/golden/menu/system_details_*.golden` (22) and `menu/logs_*.golden` (11) in place, and `TestParityGoldens` lists them. Move them unchanged (`git mv`) under `pkg/screens/systemdetails/testdata/legacy/menu/`, and point `legacyDir` there, with these tests retired in the same commit:
