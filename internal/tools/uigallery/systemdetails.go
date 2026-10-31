@@ -21,6 +21,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
+	sdscreen "github.com/abbott/hardn/pkg/screens/systemdetails"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
@@ -715,11 +716,24 @@ func offTerminalCtx() component.Ctx {
 	return component.NewCtx(term.Fixed(term.DefaultWidth, colorprofile.NoTTY, false, true))
 }
 
-// sdRun is one run of the System Details screen on a simulated host.
-type sdRun struct {
-	s     *session
-	h     *fakeHost
-	ticks int
+// sdMoving is a System Details host as play reads it: each read of the uptime after
+// the first finds the host a minute on, so that a Refresh draws a change. The screen
+// has no Refresh of its own to hook: what moves is the gallery's fake's, put there
+// unrecorded.
+type sdMoving struct {
+	statusSys
+	h            *fakeHost
+	reads, ticks int
+}
+
+// ReadFile is the host's, a minute on from the second read of the uptime.
+func (m *sdMoving) ReadFile(ctx context.Context, name string) ([]byte, error) {
+	if name == probe.UptimeFile {
+		if m.reads++; m.reads > 1 {
+			m.tick()
+		}
+	}
+	return m.statusSys.ReadFile(ctx, name)
 }
 
 // openSD returns the action that opens what name names: the hosts' menu
@@ -760,41 +774,29 @@ func hostsMenu(title string, fill func(add func(label, about string, action func
 	return m
 }
 
-// sdScreen runs the screen on h, sh's host, until the user goes back from
-// it: its note above it, then each round the screen read again from the
-// host, which is all that Refresh does. Nothing is written; the plan-only
-// sequence draws the same screen, as Backup and Environment are under plan
-// only.
+// sdScreen runs hardn's System Details screen on h, sh's host, until the user goes
+// back from it: its note above it; the facts detect's through details.Bounded, as
+// hardn system-details has them. Nothing is written; the plan-only sequence draws the
+// same screen, as Options has no mode.
 func (s *session) sdScreen(ctx context.Context, sh sdHost, h *fakeHost) error {
-	run := &sdRun{s: s, h: h}
 	if err := s.writeNote(sdPrefix+"/"+sh.name, sh.note); err != nil {
 		return err
 	}
-	return s.p.Run(func() nav.Screen { return run.draw(ctx) })
-}
-
-// draw reads the host and returns the screen, its one item bound.
-func (run *sdRun) draw(ctx context.Context) nav.Screen {
-	r := readDetails(ctx, run.h.sys())
-	vm := r.subMenu()
-	menu := nav.Menu{Exit: vm.Menu.Exit}
-	for _, it := range r.items() {
-		menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { run.tick(); return nil }})
-	}
-	return vm.Screen(run.s.p.Ctx, menu)
+	facts, _ := detect.Detect(ctx, details.Bounded(h.sys())) // what detect does not establish, the report says not read
+	return sdscreen.Run(ctx, sdscreen.Options{Prompter: s.p, System: &sdMoving{statusSys: h.sys(), h: h}, Facts: facts, Now: clock})
 }
 
 // tick moves the simulated host on, as if a Refresh a minute later found it
 // so: its uptime and load, so that the screen drawn again shows a change.
-func (run *sdRun) tick() {
-	run.ticks++
-	f := run.h.f
-	up := fmt.Sprintf("%d.37 553000.12\n", 277920+60*run.ticks)
+func (m *sdMoving) tick() {
+	m.ticks++
+	f := m.h.f
+	up := fmt.Sprintf("%d.37 553000.12\n", 277920+60*m.ticks)
 	if e, ok := f.Entry(probe.UptimeFile); ok && string(e.Data) == upWeeks {
-		up = fmt.Sprintf("%d.00 7000000.00\n", 3546000+60*run.ticks)
+		up = fmt.Sprintf("%d.00 7000000.00\n", 3546000+60*m.ticks)
 	}
 	f.AddFile(probe.UptimeFile, []byte(up), 0o444, 0, 0)
-	f.AddFile(details.LoadAvgFile, []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+run.ticks*10)), 0o444, 0, 0)
+	f.AddFile(details.LoadAvgFile, []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+m.ticks*10)), 0o444, 0, 0)
 }
 
 // main()'s two lines as a user other than root: logging.go:40's and
@@ -824,9 +826,8 @@ func sdStart(args []string) (string, bool, error) {
 	return args[0], true, nil
 }
 
-// sdNote is play's note for the System Details mocks.
-const sdNote = "Play mode, mocks: the System Details screen of slice 1, inferred from origin/main (unreleased), read from a simulated host by the real reader (pkg/engine/details), " +
-	"its rows and layout unit (c)'s to build. " +
+// sdNote is play's note for the System Details screen.
+const sdNote = "Play mode: hardn's System Details screen (pkg/screens/systemdetails), inferred from origin/main (unreleased), read from a simulated host by the real reader (pkg/engine/details). " +
 	"It only reads: no plan, no y/N, no journal. Nothing on this machine changes: every command and file is the fake's."
 
 // readSDHost reads the host named name, fresh, as the screen does.

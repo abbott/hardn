@@ -6,12 +6,12 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/missing␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen of slice 1, inferred from␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2 and origin/main, read from a simulated host by the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader (pkg/engine/logview), its rows and layout unit (c)'s to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No pager␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns: an item says what it would run. Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Logs screen (pkg/screens/logs), inferred␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom v0.3.2 and origin/main, read from a simulated host by the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal reader (pkg/engine/logview). It only reads: no plan, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. No pager runs: Open says what hardn would␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun. Nothing on this machine changes: every command and file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/missing␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. No file␛[m$
@@ -60,12 +60,12 @@ $
 # play logs/missing --------------------------------------------$
 $
 # Note$
-# Play mode, mocks: the Logs screen of slice 1, inferred from$
-# v0.3.2 and origin/main, read from a simulated host by the real$
-# reader (pkg/engine/logview), its rows and layout unit (c)'s to$
-# build. It only reads: no plan, no y/N, no journal. No pager$
-# runs: an item says what it would run. Nothing on this machine$
-# changes: every command and file is the fake's.$
+# Play mode: hardn's Logs screen (pkg/screens/logs), inferred$
+# from v0.3.2 and origin/main, read from a simulated host by the$
+# real reader (pkg/engine/logview). It only reads: no plan, no$
+# y/N, no journal. No pager runs: Open says what hardn would$
+# run. Nothing on this machine changes: every command and file$
+# is the fake's.$
 $
 # Info: logs/missing$
 # web-01.example.net runs Debian 13, less installed. No file$
@@ -114,13 +114,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/missing␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen of slice 1, inferred␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom v0.3.2 and origin/main, read from a simulated host by␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real reader (pkg/engine/logview), its rows and layout␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. No pager runs: an item says what it would run.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Logs screen (pkg/screens/logs),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the real reader (pkg/engine/logview). It␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly reads: no plan, no y/N, no journal. No pager runs:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mOpen says what hardn would run. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/missing␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. No file␛[m$

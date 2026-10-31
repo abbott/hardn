@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"io/fs"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	logsscreen "github.com/abbott/hardn/pkg/screens/logs"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
@@ -474,11 +476,33 @@ func (r logReading) subMenu(c component.Ctx) logScreen {
 	return v
 }
 
-// logsRun is one run of the Logs screen on a simulated host.
-type logsRun struct {
-	s  *session
-	lh logHost
-	h  *fakeHost
+// logsMoving is a Logs host as play reads it. Each read of the log after the first,
+// but the one after a pager, finds another hardn has written a line, so that a Refresh
+// draws a change: the screen has no Refresh of its own to hook, and what moves is the
+// gallery's fake's, put there unrecorded. The gallery runs no pager: RunInteractive
+// says what hardn would run.
+type logsMoving struct {
+	engineSys
+	s      *session
+	scans  int
+	opened bool
+}
+
+// ScanLines is the host's, a line longer from the second read on, as grow has it.
+func (m *logsMoving) ScanLines(ctx context.Context, name string, yield func(host.Line) bool) (fs.FileInfo, error) {
+	if m.scans++; m.scans > 1 && !m.opened {
+		m.grow()
+	}
+	m.opened = false
+	return m.engineSys.ScanLines(ctx, name, yield)
+}
+
+// RunInteractive runs nothing: the gallery's note says the command, as no golden can
+// run a pager and the fake models none.
+func (m *logsMoving) RunInteractive(_ context.Context, env []string, name string, args ...string) error {
+	m.opened = true
+	_, err := io.WriteString(m.s.p.Out, strings.Repeat("\n", theme.SectionGap)+pagerNote(m.s.p.Ctx, strings.Join(slices.Concat(env, []string{name}, args), " "))+"\n")
+	return err
 }
 
 // openLogs returns the action that opens what name names: the hosts' menu
@@ -497,14 +521,19 @@ func (s *session) openLogs(name string) func() error {
 	}
 }
 
-// logsScreen runs the screen on h, lh's host, until the user goes back from
-// it. Nothing is written or run; the plan-only sequence draws the same screen.
+// logsScreen runs hardn's Logs screen on h, lh's host, until the user goes back from
+// it: its note above it; hardn.yml's logFile as the gallery's status reads it
+// (statusConfig), hardn's caller's in hardn; TERM the gallery's. Nothing is written or
+// run; the plan-only sequence draws the same screen, as Options has no mode.
 func (s *session) logsScreen(ctx context.Context, lh logHost, h *fakeHost) error {
-	run := &logsRun{s: s, lh: lh, h: h}
 	if err := s.writeNote(logsPrefix+"/"+lh.name, lh.note); err != nil {
 		return err
 	}
-	return s.p.Run(func() nav.Screen { return run.draw(ctx) })
+	logFile := ""
+	if cfg, err := statusConfig(ctx, h.system()); err == nil {
+		logFile = cfg.LogFile
+	}
+	return logsscreen.Run(ctx, logsscreen.Options{Prompter: s.p, System: &logsMoving{engineSys: h.system(), s: s}, LogFile: logFile, Term: galleryTerm})
 }
 
 // pagerNote is the gallery's note where hardn would run a pager: no golden
@@ -515,31 +544,12 @@ func pagerNote(c component.Ctx, command string) string {
 	}}.Render(c)
 }
 
-// draw reads the host and returns the screen, its items bound.
-func (run *logsRun) draw(ctx context.Context) nav.Screen {
-	s := run.s
-	r := readLog(ctx, run.h.system())
-	vm := r.subMenu(s.p.Ctx)
-	menu := nav.Menu{Exit: vm.Menu.Exit}
-	for _, it := range r.items() {
-		action := func() error { run.grow(); return nil }
-		if it.open {
-			action = func() error {
-				_, err := io.WriteString(s.p.Out, strings.Repeat("\n", theme.SectionGap)+pagerNote(s.p.Ctx, commandWords(*r.pager))+"\n")
-				return err
-			}
-		}
-		menu.Options = append(menu.Options, nav.Option{Item: it.item, Action: action})
-	}
-	return vm.Screen(s.p.Ctx, menu)
-}
-
 // grow moves the simulated host on, as if another hardn wrote a line before
 // a Refresh, so that the screen drawn again shows a change. A log that is
 // not a file stays as it is.
-func (run *logsRun) grow() {
-	if e, ok := run.h.f.Entry(hardnLog); ok && e.Data != nil {
-		run.h.f.AddFile(hardnLog, append(e.Data, []byte("2026/10/20 12:01:00 INFO: run 2: exit 0\n")...), 0o644, 0, 0)
+func (m *logsMoving) grow() {
+	if e, ok := m.System.Entry(hardnLog); ok && e.Data != nil {
+		m.System.AddFile(hardnLog, append(e.Data, []byte("2026/10/20 12:01:00 INFO: run 2: exit 0\n")...), 0o644, 0, 0)
 	}
 }
 
@@ -562,9 +572,9 @@ func logsStart(args []string) (string, bool, error) {
 	return args[0], true, nil
 }
 
-// logsNote is play's note for the Logs mocks.
-const logsNote = "Play mode, mocks: the Logs screen of slice 1, inferred from v0.3.2 and origin/main, read from a simulated host by the real reader (pkg/engine/logview), " +
-	"its rows and layout unit (c)'s to build. It only reads: no plan, no y/N, no journal. No pager runs: an item says what it would run. " +
+// logsNote is play's note for the Logs screen.
+const logsNote = "Play mode: hardn's Logs screen (pkg/screens/logs), inferred from v0.3.2 and origin/main, read from a simulated host by the real reader (pkg/engine/logview). " +
+	"It only reads: no plan, no y/N, no journal. No pager runs: Open says what hardn would run. " +
 	"Nothing on this machine changes: every command and file is the fake's."
 
 // readLogHost reads the host named name, fresh, as the screen does.
