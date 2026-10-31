@@ -784,6 +784,25 @@ func TestSDNotRootNamesTheRules(t *testing.T) {
 	}
 }
 
+// TestSDRootRefusedSaysCantRead: a refusal as root is not "Not root": each rule file
+// says it cannot be read, as a root process can be refused one (a root-squashed path).
+func TestSDRootRefusedSaysCantRead(t *testing.T) {
+	h := hosts["debian13"]()
+	h.add(details.SelfStatusFile, "Name:\thardn\nUid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\n")
+	r := details.Read(context.Background(), refusing{h}, h.facts)
+	if r.Users.Root != detect.Yes {
+		t.Fatalf("Root = %v", r.Users.Root)
+	}
+	want := []component.KeyValue{
+		{Key: "alice", Value: notKnown, State: component.ValueUnknown},
+		{Key: "Can't read /etc/sudoers", State: component.ValueWarn},
+		{Key: "Can't read /etc/sudoers.d", State: component.ValueWarn},
+	}
+	if rows := rowsOf(r, "Users"); !slices.Equal(rows, want) {
+		t.Errorf("%+v, want %+v", rows, want)
+	}
+}
+
 // TestSDUnreadableKeepsTheRest: one section not read leaves the other six, where
 // origin/main loses the whole report (details.go:91-117): the section says which file.
 func TestSDUnreadableKeepsTheRest(t *testing.T) {

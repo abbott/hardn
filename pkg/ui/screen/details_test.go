@@ -105,6 +105,15 @@ func TestSystemDetailsWhole(t *testing.T) {
 	}
 }
 
+// TestSizeWords: the Size row's words at each edge of their units.
+func TestSizeWords(t *testing.T) {
+	for n, want := range map[int64]string{0: "0 bytes", 1023: "1023 bytes", 1024: "1 KiB", 1<<20 - 1: "1023 KiB", 1 << 20: "1 MiB"} {
+		if got := sizeWords(n); got != want {
+			t.Errorf("sizeWords(%d) = %q, want %q", n, got, want)
+		}
+	}
+}
+
 // TestLogsStates: each state's rows and items in the decided words: lines, Open
 // and Refresh, or Refresh alone with no pager; no log, empty and unreadable,
 // Refresh alone and no lines' section; hardn.yml's logFile said in a row.
