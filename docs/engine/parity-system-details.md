@@ -117,6 +117,9 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | Scenarios | Debian 13 | Alpine 3.23 |
 |---|---|---|
 | sd-open, logs-open | the golden's start (forced) | the golden's start (forced) |
+| sd-invalid | a key no item has (forced) | not run |
+| sd-return | 0, back (forced) | not run |
+| sd-refresh | 1, Refresh (forced) | not run |
 | sd-group-no-rule | alice in the sudo group, no rule naming it (forced) | not run |
 | sd-render | the renderer's synthetic report (forced) | not run |
 | sd-render-zfs | the renderer's synthetic report, a ZFS root (forced) | not run |
@@ -149,31 +152,43 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 
 | Aspect | Agrees in | Differs in |
 |---|---|---|
-| refusal | 31 | 0 |
-| files | 27 | 4 |
-| directories | 30 | 1 |
-| commands | 31 | 0 |
-| findings | 31 | 0 |
-| hardn.yml | 31 | 0 |
-| report | 17 | 2 |
-| Non-System Users | 14 | 4 |
-| Processor | 18 | 0 |
-| Cores | 18 | 0 |
-| Volume | 13 | 5 |
-| Uptime | 18 | 0 |
-| Kernel | 0 | 18 |
-| Client IP | 0 | 18 |
-| DNS IP 1 | 0 | 18 |
-| DNS IP 2 | 0 | 18 |
-| Hypervisor | 0 | 18 |
-| CPU Freq | 0 | 18 |
-| Volume unit | 0 | 18 |
-| Disk Usage | 0 | 18 |
-| Memory | 2 | 16 |
-| Usage | 0 | 18 |
-| Last Login | 0 | 18 |
-| From | 0 | 17 |
-| / | 0 | 18 |
+| refusal | 34 | 0 |
+| files | 30 | 4 |
+| directories | 33 | 1 |
+| commands | 34 | 0 |
+| findings | 34 | 0 |
+| hardn.yml | 34 | 0 |
+| report | 20 | 2 |
+| Non-System Users | 17 | 4 |
+| Processor | 19 | 2 |
+| Cores | 21 | 0 |
+| Volume | 16 | 5 |
+| Uptime | 21 | 0 |
+| title | 21 | 10 |
+| menu heading | 20 | 9 |
+| draws | 13 | 7 |
+| Kernel | 0 | 21 |
+| Client IP | 0 | 21 |
+| DNS IP 1 | 0 | 21 |
+| DNS IP 2 | 0 | 21 |
+| Hypervisor | 0 | 21 |
+| CPU Freq | 0 | 21 |
+| Volume unit | 0 | 21 |
+| Disk Usage | 0 | 21 |
+| Memory | 2 | 19 |
+| Usage | 0 | 21 |
+| Last Login | 0 | 21 |
+| From | 0 | 20 |
+| items | 0 | 29 |
+| prompt | 1 | 28 |
+| reads a draw | 0 | 20 |
+| CPUs | 0 | 21 |
+| / | 0 | 21 |
+| Disk Used | 0 | 21 |
+| Memory Used | 0 | 21 |
+| sections | 0 | 31 |
+| key refused | 1 | 6 |
+| pause | 0 | 16 |
 | Hostname | 2 | 0 |
 | Load 1m | 2 | 0 |
 | Load 5m | 2 | 0 |
@@ -184,14 +199,17 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | User | 0 | 2 |
 | Load bars | 0 | 2 |
 | ZFS Health | 0 | 5 |
+| failure words | 0 | 1 |
 | export | 0 | 6 |
+| export prompt | 0 | 6 |
 | file read | 8 | 3 |
 | state | 6 | 5 |
 | lines | 4 | 4 |
 | raw escape | 7 | 1 |
-| size | 5 | 2 |
+| size | 4 | 3 |
 | lines shown | 1 | 7 |
 | pager | 0 | 11 |
+| file row | 0 | 9 |
 | log written | 3 | 1 |
 | logFile elsewhere | 0 | 3 |
 | -p heading | 0 | 1 |
@@ -203,43 +221,62 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 
 | Scenarios | On | Aspect | origin/main | New path | Source |
 |---|---|---|---|---|---|
-| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Kernel | `Linux 6.12.0-example-amd64` | `6.12.0-example-amd64` | decision 2 (a): Linux and the release; now the release, as screen-debian13's row |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Kernel | `Linux 6.12.0-example-amd64` | `6.12.0-example-amd64` | decision 2 (a): Linux and the release; now the release, as screen-debian13's row |
 | sd-open, sd-group-no-rule, sd-render, sd-render-zfs | every cell of each | Client IP | `192.0.2.10` | `none` | decision 2 (a), left out: SSH_CLIENT's address; no row |
-| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 1 | `192.0.2.53` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
-| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 2 | `192.0.2.54` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
-| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Hypervisor | `KVM` | `none` | decision 2 (a), left out: lscpu's vendor, or the report's; no row |
-| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | CPU Freq | `0.00 GHz` | `none` | decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row |
-| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Volume unit | `GB` | `GiB` | defect 13: bytes / 1024^3 said as GB; now GiB |
-| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | Disk Usage | `███░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
-| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Memory | `3.89/7.78 GiB [50.00%]` | `1.94/7.78 GiB [25.00%]` | defect 12: MemFree alone counted as free, so page cache as used; now by MemAvailable |
-| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Usage | `██████████░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
-| sd-open, sd-group-no-rule, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | Last Login | `Oct 29 08:12:44 +0000` | `root LoginNone, alice 2026-10-29T08:12:44+00:00` | decision 3 (a): whoever ran it, by lastlog; now root and each listed user, by lslogins |
-| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | From | `192.0.2.10` | `alice 192.0.2.10` | decision 3 (a): one address; now each account's |
-| sd-open, sd-group-no-rule, sd-render, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | / | `none` | `/dev/vda1 ext4` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |
-| sd-open | Alpine 3.23 | report | `whole` | `kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Memory, Uptime; not read: last login: lslogins` | decision 3 (a); gallery-system-details.md §6, Not known: lslogins isn't installed: whole, by the golden's stand-ins; now Last Login not read: no lslogins on this host |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 1 | `192.0.2.53` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 2 | `192.0.2.54` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Hypervisor | `KVM` | `none` | decision 2 (a), left out: lscpu's vendor, or the report's; no row |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | CPU Freq | `0.00 GHz` | `none` | decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Volume unit | `GB` | `GiB` | defect 13: bytes / 1024^3 said as GB; now GiB |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | Disk Usage | `███░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Memory | `3.89/7.78 GiB [50.00%]` | `1.94/7.78 GiB [25.00%]` | defect 12: MemFree alone counted as free, so page cache as used; now by MemAvailable |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Usage | `██████████░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | Last Login | `Oct 29 08:12:44 +0000` | `root None recorded, alice Oct 29 08:12 from 192.0.2.10` | decision 3 (a): whoever ran it, by lastlog; now root and each listed user, by lslogins |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | From | `192.0.2.10` | `alice 192.0.2.10` | decision 3 (a): one address; now each account's |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | items | `1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return` | `1) Refresh: Read the host again; 0) Return` | decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | prompt | `Enter selection [0-2 or q]` | `Enter selection [0-1 or q]` | decision 5 (a): 0-2, with Export; now 0-1, no Export item |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | reads a draw | `4` | `1` | defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | CPUs | `none` | `2, 1 socket` | decision 2 (a); gallery-system-details.md §6, CPUs: none, Cores in its own words; now the row's, Cores the fact it draws |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | / | `none` | `/dev/vda1 ext4` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | Disk Used | `none` | `6.0 of 39.3 GiB (15%)` | decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Memory Used | `none` | `1.9 of 7.8 GiB (25%)` | decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-error, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | sections | `none` | `OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login` | decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven |
+| sd-open | Alpine 3.23 | report | `whole` | `kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Memory, Uptime; Last Login: Not known: lslogins isn't installed` | decision 3 (a); gallery-system-details.md §6, Not known: lslogins isn't installed: whole, by the golden's stand-ins; now Last Login says it: no lslogins on this host |
 | sd-open | Alpine 3.23 | Non-System Users | `alice (sudo)` | `alice (doas)` | decision 2 (a); gallery-system-details.md §6, <user>: the sudo group, on a doas host; now what doas grants |
-| sd-open | Alpine 3.23 | Last Login | `Oct 29 08:12:44 +0000` | `LoginsNoTool` | decision 3 (a): lastlog's stand-in; now LoginsNoTool: no lslogins on this host |
+| sd-open | Alpine 3.23 | Last Login | `Oct 29 08:12:44 +0000` | `Logins Not known: lslogins isn't installed` | decision 3 (a); gallery-system-details.md §6, Not known: lslogins isn't installed: lastlog's stand-in; now the row says it: no lslogins on this host |
 | sd-open | Alpine 3.23 | From | `192.0.2.10` | `none` | decision 3 (a): lastlog's stand-in; now none: no lslogins on this host |
+| sd-invalid, sd-return, sd-refresh, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | Client IP | `Not connected` | `none` | decision 2 (a), left out: SSH_CLIENT's address; no row |
+| sd-invalid | Debian 13 | draws | `2` | `1` | defect 20: an invalid key reads and draws again; now refused under the prompt and asked again |
+| sd-invalid | Debian 13 | pause | `Press Enter to continue...` | `none` | gallery-system-details.md §5, Made here, No pause: a pause before the draw; now the prompt asks again |
 | sd-group-no-rule | Debian 13 | Non-System Users | `alice (sudo)` | `alice (No sudo)` | readers-system-details.md item 16 (adopted 2026-10-30); gallery-system-details.md §6, <user>: the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing |
-| sd-render, sd-render-zfs | Debian 13 | OS | `Debian 13 Trixie` | `Debian 13 trixie` | decision 2 (a): the report's own string; now os-release's name, version and codename, which the row draws |
+| sd-render, sd-render-zfs | Debian 13 | OS | `Debian 13 Trixie` | `Debian 13 (Trixie)` | decision 2 (a): the report's own string; now the row's words, as the header's bar names it |
 | sd-render, sd-render-zfs | Debian 13 | Domain | `example.internal` | `none` | decision 2 (a), left out: the machine's domain; no row |
 | sd-render, sd-render-zfs | Debian 13 | IP Addresses | `192.0.2.20, 198.51.100.20` | `eth0 192.0.2.20/24, eth0 198.51.100.20/24` | decision 2 (a); gallery-system-details.md §6, <interface>: IPv4 addresses alone; now each interface and address with its prefix (the report's fixture held none) |
 | sd-render, sd-render-zfs | Debian 13 | User | `root` | `none` | decision 2 (a), left out: the current user; no row |
 | sd-render, sd-render-zfs | Debian 13 | Non-System Users | `alice (sudo), bob` | `alice (sudo), bob (No sudo)` | decision 2 (a); gallery-system-details.md §6, <user>: a user no group marks has no word; now No sudo |
+| sd-render, sd-render-zfs | Debian 13 | Processor | `Example Corporation Example Processor 9000 64-Core Processor @ 2.00GHz` | `Example Corporation Example Proces...` | gallery-system-details.md §5, Made here, A value too long for its row: whole, past a 50-wide box (defect 4); now cut on a terminal, whole off one, which Print holds |
 | sd-render, sd-render-zfs | Debian 13 | Hypervisor | `Bare Metal` | `none` | decision 2 (a), left out: lscpu's vendor, or the report's; no row |
 | sd-render, sd-render-zfs | Debian 13 | CPU Freq | `2.00 GHz` | `none` | decision 2 (a), left out: the report's figure; no row |
 | sd-render | Debian 13 | Disk Usage | `█████░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
-| sd-render, sd-render-zfs | Debian 13 | Last Login | `Oct 29 08:12:44 +0000` | `root LoginNone, alice 2026-10-29T08:12:44+00:00, bob LoginNone` | decision 3 (a): one login, the report's; now root and each listed user |
+| sd-render, sd-render-zfs | Debian 13 | Last Login | `Oct 29 08:12:44 +0000` | `root None recorded, alice Oct 29 08:12 from 192.0.2.10, bob None recorded` | decision 3 (a): one login, the report's; now root and each listed user |
 | sd-render, sd-render-zfs | Debian 13 | Load bars | `1m █░░░░░░░░░░░░░░░░░░░, 5m ░░░░░░░░░░░░░░░░░░░░, 15m ░░░░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: 20-wide bars; the figures alone |
+| sd-render, sd-render-zfs | Debian 13 | CPUs | `none` | `64, 2 sockets` | decision 2 (a); gallery-system-details.md §6, CPUs: none, Cores in its own words; now the row's, Cores the fact it draws |
+| sd-render | Debian 13 | Disk Used | `none` | `20.0 of 80.0 GiB (25%)` | decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws |
+| sd-render, sd-render-zfs | Debian 13 | Memory Used | `none` | `31.2 of 62.5 GiB (50%)` | decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws |
 | sd-render-zfs, sd-zfs-dataset, sd-export-zfs | Debian 13 | Volume | `12.00/88.00 [12.00%]` | `12.00/100.00 [12.00%]` | defect 10: used/available; now used of total |
 | sd-render-zfs, sd-zfs-dataset, sd-export-zfs | Debian 13 | Disk Usage | `██░░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
 | sd-render-zfs, sd-zfs-dataset, sd-export-zfs | Debian 13 | ZFS Health | `HEALTH O.K.` | `zroot ONLINE` | decision 2 (a); gallery-system-details.md §6, Pool: words of its own; now the pool's state as zpool says it |
 | sd-render-zfs, sd-zfs-all-healthy, sd-zfs-dataset, sd-export-zfs | Debian 13 | / | `none` | `zroot/ROOT/os zfs` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |
-| sd-error | Debian 13 | report | `lost: failed to collect memory info: failed to get memory info: exec: "free": executable file not found in $PATH` | `kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Last Login, From, Uptime; not read: memory: /proc/meminfo` | defect 7; KNOWN-DEFECT (One collector's error loses the report): the first failed collector loses the report; now the section says what it could not read, and the rest is kept |
-| sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | Client IP | `Not connected` | `none` | decision 2 (a), left out: SSH_CLIENT's address; no row |
-| sd-no-lastlog, sd-login-hostname | Debian 13 | Last Login | `blank` | `root LoginNone, alice 2026-10-29T08:12:44+00:00` | decision 3 (a); defect 14; KNOWN-DEFECT (left blank): blank; now each login by lslogins |
+| sd-render-zfs, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export-zfs | Debian 13 | Disk Used | `none` | `12.0 of 100.0 GiB (12%)` | decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws |
+| sd-error | Debian 13 | report | `lost: failed to collect memory info: failed to get memory info: exec: "free": executable file not found in $PATH` | `kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Last Login, From, Uptime; Memory: Can't read /proc/meminfo` | defect 7; KNOWN-DEFECT (One collector's error loses the report): the first failed collector loses the report; now the section says what it could not read, and the rest is kept |
+| sd-error | Debian 13 | title | `System Details Error` | `System Details` | defect 7: a title of its own for the failure; now the report's |
+| sd-error | Debian 13 | items | `1) Refresh Information: Reload system status from system; 0) Return` | `1) Refresh: Read the host again; 0) Return` | gallery-system-details.md §6, Items: Refresh Information, in its words; now Refresh, as on every draw |
+| sd-error | Debian 13 | failure words | `Failed to retrieve system status information.; Please check system permissions and try again.` | `Can't read /proc/meminfo` | defect 7; gallery-system-details.md §6, Can't read <source>: "check permissions" whatever it was; now what it could not read |
+| sd-error | Debian 13 | reads a draw | `3` | `1` | defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read |
+| sd-no-lastlog | Debian 13 | Last Login | `blank` | `root None recorded, alice Oct 29 08:12 from 192.0.2.10` | decision 3 (a); defect 14; KNOWN-DEFECT (left blank): blank; now each login by lslogins |
 | sd-no-lastlog | Debian 13 | From | `none` | `alice 192.0.2.10` | decision 3 (a); defect 14; KNOWN-DEFECT (left blank): no row with the blank; now each account's, by lslogins |
-| sd-never | Debian 13 | Last Login | `Never logged in` | `root LoginNone, alice LoginNone` | decision 3 (a): Never logged in, for whoever ran it; now each account's state, a blank guarded |
+| sd-never | Debian 13 | Last Login | `Never logged in` | `root None recorded, alice None recorded` | decision 3 (a); gallery-system-details.md §6, None recorded: Never logged in, for whoever ran it; now each account's row, a blank guarded |
+| sd-login-hostname | Debian 13 | Last Login | `blank` | `root None recorded, alice Oct 29 08:12 from laptop` | decision 3 (a); defect 14; KNOWN-DEFECT (left blank): blank; now each login by lslogins |
 | sd-login-hostname | Debian 13 | From | `none` | `alice laptop` | decision 3 (a); defect 14; KNOWN-DEFECT (left blank): no row with the blank; now each account's, a name with no dot read |
 | sd-no-lscpu | Debian 13 | Hypervisor | `Bare Metal` | `none` | decision 2 (a), left out; defect 15; KNOWN-DEFECT (Bare Metal): not known read as Bare Metal; no row |
 | sd-zfs-all-healthy | Debian 13 | Volume | `6.00/39.34 [15.25%]` | `12.00/100.00 [12.00%]` | defect 9; KNOWN-DEFECT (a healthy ZFS host reads as no ZFS): df's figures, ZFS not seen; now the dataset's |
@@ -250,36 +287,60 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | sd-zfs-other | Debian 13 | / | `none` | `rpool/ROOT/pve-1 zfs` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |
 | sd-export, sd-export-zfs | Debian 13 | files | `system_status.txt 0644` | `none` | decision 5 (a); defect 17: the export, relative to the working directory, 0644; now no item writes, and hardn system-details > file saves |
 | sd-export, sd-export-overwrite, sd-export-zfs | Debian 13 | export | `Machine status exported to system_status.txt` | `none` | decision 5 (a): the export's message; no item |
+| sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | draws | `2` | `1` | decision 5 (a): drawn again after the export; now the key refused and asked again |
+| sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | export prompt | `Enter filename to export system status (default: system_status.txt):` | `none` | decision 5 (a): the file name asked; no item |
+| sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | pause | `Press Enter to continue...` | `none` | decision 5 (a): a pause after the export; no item |
+| sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | key refused | `none` | `Invalid option. Please try again.` | decision 5 (a): item 2 offered; now no item 2, and the key refused in origin/main's words |
 | sd-export-named | Debian 13 | files | `reports/web-01.txt 0644` | `none` | decision 5 (a); defect 17: the export under a directory it made; now no item writes |
 | sd-export-named | Debian 13 | directories | `reports 0755` | `none` | decision 5 (a); defect 17: the export's directory, 0755; now no item writes |
 | sd-export-named | Debian 13 | export | `Machine status exported to reports/web-01.txt` | `none` | decision 5 (a): the export's message; no item |
 | sd-export-overwrite | Debian 13 | files | `system_status.txt 0644` | `none` | decision 5 (a); defect 18; KNOWN-DEFECT (overwritten with no question): alice's file overwritten; now no item writes, and hardn system-details > file saves |
 | sd-export-fails | Debian 13 | export | `Failed to write file: failed to create directory reports: mkdir reports: not a directory` | `none` | decision 5 (a); defect 18: the failure said, the name not asked again; no item |
 | sd-export-dry-run | Debian 13 | export | `[DRY-RUN] Would write system status to system_status.txt` | `none` | decision 5 (a): dry run's line; no item |
-| logs-open | all | lines shown | `all 5` | `last 5 of 5` | decision 8 (a); the slice's Logs dump: the whole file at once, no count; now the last lines, at most logview.MaxLast, with the total |
+| logs-open | all | lines shown | `all 5` | `All 5 lines` | decision 8 (a); the slice's Logs dump: the whole file at once, no count; now the last lines, at most logview.MaxLast, with the total |
 | logs-open, logs-large, logs-escape, logs-other-path, logs-other-path-stale | Debian 13 | pager | `$PAGER less set, not run` | `less -- /var/log/hardn.log; LESSSECURE=1 LESSHISTFILE=- TERM=xterm-256color LC_ALL=C.UTF-8` | decision 7 (a); P-18: $PAGER set, and not run; now GNU less alone by this command, $PAGER not read, run only by the screen's key |
+| logs-open, logs-large, logs-empty, logs-missing, logs-unreadable, logs-escape, logs-other-path, logs-other-path-stale | every cell of each | title | `View Logs` | `Logs` | decision 11; gallery-system-details.md §6, Title bars: View Logs; now the main menu's label |
+| logs-open | all | sections | `~~~ line, Log Contents:, its rule, # Contents of /var/log/hardn.log:` | `File, All 5 lines` | gallery-system-details.md §6, Logs sections: a ~~~ line, Log Contents: and its rule, and # Contents of where lines print; now File, and the last lines' header |
+| logs-open, logs-large, logs-empty, logs-missing, logs-unreadable, logs-escape | every cell of each | file row | `Log file: /var/log/hardn.log` | `Path /var/log/hardn.log` | gallery-system-details.md §6, Logs rows: Log file:; now Path |
+| logs-open, logs-large, logs-empty, logs-missing, logs-unreadable, logs-escape, logs-other-path, logs-other-path-stale | every cell of each | pause | `Press Enter to return to the main menu...` | `none` | gallery-system-details.md §5, Made here, No pause: a pause; now a sub-menu's menu |
+| logs-open | Debian 13 | items | `none` | `1) Open: The whole log in less; 2) Refresh: Read the log again; 0) Return` | gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open where logview.Pager says, and Refresh |
+| logs-open, logs-large, logs-empty, logs-missing, logs-unreadable, logs-escape, logs-other-path, logs-other-path-stale | every cell of each | menu heading | `none` | `Select an option` | gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading |
+| logs-open, logs-large, logs-escape, logs-other-path, logs-other-path-stale | Debian 13 | prompt | `none` | `Enter selection [0-2 or q]` | gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt |
 | logs-open | Alpine 3.23 | pager | `$PAGER less set, not run` | `none` | decision 7 (a): $PAGER set, and not run; now none: BusyBox's less refuses less --version |
-| logs-large | Debian 13 | lines shown | `all 20000` | `last 256 of 20000` | decision 8 (a); the slice's Logs dump: the whole file at once, no count; now the last lines, at most logview.MaxLast, with the total |
-| logs-empty | Debian 13 | state | `no words` | `Empty` | defect 26; gallery-system-details.md §6, Empty: no words; now the state Empty |
+| logs-open | Alpine 3.23 | items | `none` | `1) Refresh: Read the log again; 0) Return` | gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open where logview.Pager says, and Refresh |
+| logs-open (Alpine 3.23); logs-empty (Debian 13); logs-missing (Debian 13); logs-unreadable (Debian 13) | as listed | prompt | `none` | `Enter selection [0-1 or q]` | gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt |
+| logs-large | Debian 13 | lines shown | `all 20000` | `Last 256 of 20000 lines` | decision 8 (a); the slice's Logs dump: the whole file at once, no count; now the last lines, at most logview.MaxLast, with the total |
+| logs-large | Debian 13 | sections | `~~~ line, Log Contents:, its rule, # Contents of /var/log/hardn.log:` | `File, Last 256 of 20000 lines` | gallery-system-details.md §6, Logs sections: a ~~~ line, Log Contents: and its rule, and # Contents of where lines print; now File, and the last lines' header |
+| logs-large | Debian 13 | size | `868894 bytes` | `848 KiB` | gallery-system-details.md §6, Logs rows, Size: bytes; now the row's words, the same size |
+| logs-large, logs-escape, logs-other-path, logs-other-path-stale | Debian 13 | items | `none` | `1) Open: The whole log in less; 2) Refresh: Read the log again; 0) Return` | gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open, as logview.Pager says, and Refresh |
+| logs-empty | Debian 13 | state | `no words` | `Empty` | defect 26; gallery-system-details.md §6, Empty: no words; now the row's |
 | logs-empty, logs-missing, logs-unreadable | Debian 13 | pager | `$PAGER less set, not run` | `none` | decision 7 (a); decision 8 (a), its screen-empty, screen-missing and screen-unreadable: $PAGER set, and not run; now none: no Open item where there are no lines |
-| logs-missing | Debian 13 | state | `Error displaying logs: failed to access log file /var/log/hardn.log: stat /var/log/hardn.log: no such file or directory` | `NoLog` | defect 26; gallery-system-details.md §6, No log yet: Stat's words, the path named three times; now the state NoLog |
-| logs-unreadable | Debian 13 | state | `Error displaying logs: failed to read log file /var/log/hardn.log: open /var/log/hardn.log: permission denied` | `Unreadable: permission denied` | gallery-system-details.md §6, Can't read it: <reason>: os's words and the path; now the state Unreadable and the reason |
-| logs-escape, logs-other-path-stale | Debian 13 | lines shown | `all 1` | `last 1 of 1` | decision 8 (a); the slice's Logs dump: the whole file at once, no count; now the last lines, at most logview.MaxLast, with the total |
+| logs-empty | Debian 13 | sections | `~~~ line, Log Contents:, its rule, # Contents of /var/log/hardn.log:` | `File` | gallery-system-details.md §6, Logs sections: a ~~~ line, Log Contents: and its rule, and # Contents of where lines print; now File, and the last lines' header |
+| logs-empty, logs-missing, logs-unreadable | Debian 13 | items | `none` | `1) Refresh: Read the log again; 0) Return` | gallery-system-details.md §5, Made here, Refresh stays; decision 8 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Refresh alone: nothing to open |
+| logs-missing | Debian 13 | state | `Error displaying logs: failed to access log file /var/log/hardn.log: stat /var/log/hardn.log: no such file or directory` | `No log yet` | defect 26; gallery-system-details.md §6, No log yet: Stat's words, the path named three times; now the row's |
+| logs-missing, logs-unreadable | Debian 13 | sections | `~~~ line, Log Contents:, its rule` | `File` | gallery-system-details.md §6, Logs sections: a ~~~ line, Log Contents: and its rule, and # Contents of where lines print; now File, and the last lines' header |
+| logs-unreadable | Debian 13 | state | `Error displaying logs: failed to read log file /var/log/hardn.log: open /var/log/hardn.log: permission denied` | `Can't read it: permission denied` | gallery-system-details.md §6, Can't read it: <reason>: os's words and the path; now the row's, and the reason |
+| logs-escape, logs-other-path-stale | Debian 13 | lines shown | `all 1` | `1 line` | decision 8 (a); the slice's Logs dump: the whole file at once, no count; now the last lines, at most logview.MaxLast, with the total |
 | logs-escape | Debian 13 | lines | `2026/10/29 08:12:44 INFO: run 1: \| \x1b]0;a title a command set\a\x1b[31mred` | `2026/10/29 08:12:44 INFO: run 1: \| ^[]0;a title a command set^G^[[31mred` | defect 22; KNOWN-DEFECT (bytes go to the terminal as they are): the line's escape as it is; now logview.Safe's ^[ and ^G |
 | logs-escape | Debian 13 | raw escape | `raw` | `none` | defect 22; KNOWN-DEFECT (bytes go to the terminal as they are): reaches the terminal raw; now made safe |
+| logs-escape | Debian 13 | sections | `~~~ line, Log Contents:, its rule, # Contents of /var/log/hardn.log:` | `File, 1 line` | gallery-system-details.md §6, Logs sections: a ~~~ line, Log Contents: and its rule, and # Contents of where lines print; now File, and the last lines' header |
 | logs-other-path, logs-other-path-stale, logs-p-missing | Debian 13 | file read | `/srv/log/custom.log` | `/var/log/hardn.log` | decision 6 (a); defect 21; P-18: cfg.LogFile, which hardn has never written; now the file hardn writes |
 | logs-other-path | Debian 13 | state | `Error displaying logs: failed to access log file /srv/log/custom.log: stat /srv/log/custom.log: no such file or directory` | `lines` | decision 6 (a); defect 21; KNOWN-DEFECT (says the log is not there): the log said not there; now the file hardn writes, with its line |
-| logs-other-path | Debian 13 | lines shown | `none` | `last 1 of 1` | decision 6 (a); decision 8 (a): none, the log said not there; now the last lines, with the total |
+| logs-other-path | Debian 13 | sections | `~~~ line, Log Contents:, its rule` | `File, 1 line` | gallery-system-details.md §6, Logs sections: a ~~~ line, Log Contents: and its rule, and # Contents of where lines print; now File, and the last lines' header |
+| logs-other-path, logs-other-path-stale | Debian 13 | file row | `Log file: /srv/log/custom.log` | `Path /var/log/hardn.log` | decision 6 (a); gallery-system-details.md §6, Logs rows: Log file:, the other path; now Path, the file hardn writes |
+| logs-other-path | Debian 13 | lines shown | `none` | `1 line` | decision 6 (a); decision 8 (a): none, the log said not there; now the last lines, with the total |
 | logs-other-path, logs-p-missing | Debian 13 | lines | `none` | `2026/10/29 08:12:44 INFO: Line written at start-up` | decision 6 (a); defect 21: the line just written not shown; now shown |
 | logs-other-path | Debian 13 | size | `none` | `51 bytes` | decision 6 (a): the other file's size, or no read; now the size of the file hardn writes |
-| logs-other-path, logs-other-path-stale, logs-p-missing | Debian 13 | logFile elsewhere | `none` | `/srv/log/custom.log` | decision 6 (a); gallery-system-details.md §6, hardn.yml's logFile: nothing says the two part; now logview.Elsewhere's path, for the row and unit (d)'s warning |
+| logs-other-path, logs-other-path-stale | Debian 13 | logFile elsewhere | `none` | `hardn.yml's logFile, /srv/log/custom.log, isn't used` | decision 6 (a); gallery-system-details.md §6, hardn.yml's logFile: nothing says the two part; now the row says so |
 | logs-other-path-stale | Debian 13 | lines | `2025/01/02 03:04:05 INFO: An old line` | `2026/10/29 08:12:44 INFO: Line written at start-up` | decision 6 (a); defect 21; KNOWN-DEFECT (the other file's lines as hardn's): another file's old line shown as hardn's; now the line just written |
+| logs-other-path-stale | Debian 13 | sections | `~~~ line, Log Contents:, its rule, # Contents of /srv/log/custom.log:` | `File, 1 line` | gallery-system-details.md §6, Logs sections: a ~~~ line, Log Contents: and its rule, and # Contents of where lines print; now File, and the last lines' header |
 | logs-other-path-stale | Debian 13 | size | `38 bytes` | `51 bytes` | decision 6 (a): the other file's size, or no read; now the size of the file hardn writes |
 | logs-p, logs-p-missing | Debian 13 | pager | `$PAGER less set, not run` | `none` | decision 7 (a); decision 10 (a): $PAGER set, and not run; now none: every line off a terminal, no pager |
 | logs-p | Debian 13 | -p heading | `# Contents of /var/log/hardn.log:` | `none` | decision 10 (a): a heading naming the path; now the lines alone, off a terminal |
 | logs-p-missing | Debian 13 | state | `[ERROR] Failed to read log file /srv/log/custom.log: open /srv/log/custom.log: no such file or directory` | `lines` | decision 6 (a); defect 21: -p's failure on the other path; now the file hardn writes, with its line |
 | logs-p-missing | Debian 13 | log written | `<date> <time> ERROR: Failed to read log file /srv/log/custom.log: open /srv/log/custom.log: no such file or directory` | `none` | defect 24; KNOWN-DEFECT (writes an ERROR line to the log); decision 10 (a): a failed read written into the log; now nothing written |
 | logs-p-missing | Debian 13 | lines shown | `none` | `all 1` | decision 6 (a); decision 10 (a): none, -p's failure; now every line, off a terminal |
+| logs-p-missing | Debian 13 | logFile elsewhere | `none` | `/srv/log/custom.log` | decision 6 (a); gallery-system-details.md §6, hardn.yml's logFile: nothing says the two part; now logview.Elsewhere's path, for unit (d)'s warning, as -p's forms hold the log alone |
 | logs-parser | Debian 13 | parser lines kept | `11 of 14 lines` | `14 of 14 lines` | the slice's Broken log parser; KNOWN-DEFECT (dropped if it has fewer); its Made here, The parser: a second line taken as an entry, or dropped; now each line whole, no level |
 | logs-parser | Debian 13 | parser levels | `<time> 10, a 1` | `INFO 6, WARNING 1, ERROR 1, SUCCESS 1, INSTALLED 1, none 4` | the slice's Broken log parser; KNOWN-DEFECT (No entry has a level); its Made here, The parser: Level holds the clock, no entry has a level; now logging's level, for the colour alone |
 | logs-parser | Debian 13 | parser long line | `1 of 3 lines, no error` | `3 of 3 lines, no error, the long one cut` | the slice's Broken log parser; KNOWN-DEFECT (ends the read with no error); readers §9, <cut>: the read ends at the long line, the rest lost; now the line cut, the read going on |
@@ -288,7 +349,7 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 
 | Scenarios | v0.3.2 |
 |---|---|
-| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-error, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read) |
+| sd-open, sd-invalid, sd-return, sd-refresh, sd-group-no-rule, sd-render, sd-render-zfs, sd-error, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read) |
 | logs-open, logs-large, logs-empty, logs-missing, logs-unreadable, logs-escape, logs-other-path, logs-other-path-stale, logs-p, logs-p-missing | as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read) |
 | logs-parser | no such parser: v0.3.2's log is pkg/logging alone (run: git ls-tree v0.3.2) |
 

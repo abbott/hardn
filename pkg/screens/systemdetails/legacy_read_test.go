@@ -112,8 +112,11 @@ func plain(l string) (string, error) {
 var (
 	reportTitle = regexp.MustCompile(`^System Details(?: Error)? ─+╮$`)
 	reportShade = regexp.MustCompile(`^░ System Details(?: Error)? ░+$`)
-	reportItem  = regexp.MustCompile(`^(?:Select an option|\s*[012]\) (?:Refresh Information|Export Information|Return)\b.*|❯ Enter selection \[0-[12] or q\]:|❯ Press Enter to continue\.\.\.)$`)
-	reportAsk   = "-  Enter filename to export system status (default: system_status.txt):"
+	reportItem  = regexp.MustCompile(`^\s*([012])\) (Refresh Information|Export Information|Return)(?:\s{2,}(\S.*))?$`)
+	reportAsk   = regexp.MustCompile(`^-  (Enter filename to export system status \(default: system_status\.txt\):)$`)
+	reportEnter = regexp.MustCompile(`^❯ (Enter selection \[0-[12] or q\]):$`)
+	reportPause = regexp.MustCompile(`^❯ (Press Enter to continue\.\.\.)$`)
+	reportNo    = regexp.MustCompile(`^✗ (Invalid option\. Please try again\.)$`)
 	reportSaid  = regexp.MustCompile(`^(?:✓ (Machine status exported to \S+)|✗ (Failed to write file: .+)|ℹ (\[DRY-RUN\] Would write system status to \S+))$`)
 	reportError = regexp.MustCompile(`^(?:✗ Error retrieving system status|Error): (.+)$`)
 	reportWords = []string{"Failed to retrieve system status information.", "Please check system permissions and try again."}
@@ -145,6 +148,10 @@ func readReport(g golden) (parity.LegacyRead, error) {
 	var bars [][]string // each draw's, as its rows
 	var said []string
 	lost, list, printed := "", "", 0
+	var title, heading, enter, ask, pause, refused string
+	var items []string
+	titles := 0
+	var words []string
 	_, masks := g.has("# Masked, read from ")
 	for _, raw := range g.body {
 		l, err := plain(raw)
@@ -164,9 +171,37 @@ func readReport(g golden) (parity.LegacyRead, error) {
 		label, value, isRow := strings.Cut(l, ":")
 		value = strings.TrimSpace(value)
 		isRow = isRow && slices.Contains(reportLabels, label)
+		item, typedAsk, typedEnter := reportItem.FindStringSubmatch(l), reportAsk.FindStringSubmatch(l), reportEnter.FindStringSubmatch(l)
+		paused, no := reportPause.FindStringSubmatch(l), reportNo.FindStringSubmatch(l)
 		switch {
-		case l == "", reportShade.MatchString(l), reportItem.MatchString(l), l == reportAsk, slices.Contains(reportWords, l):
+		case l == "", reportShade.MatchString(l):
+		case l == reportHeading:
+			heading = l
+		case item != nil:
+			words := item[1] + ") " + item[2]
+			if item[3] != "" {
+				words += ": " + item[3]
+			}
+			if !slices.Contains(items, words) {
+				items = append(items, words)
+			}
+		case typedAsk != nil:
+			ask = typedAsk[1]
+		case typedEnter != nil:
+			enter = typedEnter[1]
+		case paused != nil:
+			pause = paused[1]
+		case no != nil:
+			refused = no[1]
+		case slices.Contains(reportWords, l):
+			if !slices.Contains(words, l) {
+				words = append(words, l)
+			}
 		case reportTitle.MatchString(l):
+			if title == "" {
+				title = strings.TrimSpace(strings.TrimRight(l, "─╮ "))
+			}
+			titles++
 			if !strings.Contains(l, "Error") {
 				draws, bars = append(draws, nil), append(bars, nil)
 			}
@@ -263,21 +298,76 @@ func readReport(g golden) (parity.LegacyRead, error) {
 	if len(said) > 0 {
 		rows = append(rows, parity.Row{Name: exportRow, Value: strings.Join(said, "; ")})
 	}
-	out.Live.Rows = rows
 	if _, renderer := g.has("# Renderer: "); renderer {
 		if len(g.trailer) != 0 {
 			return out, fmt.Errorf("a renderer golden with a trailer: %q", g.trailer[0])
 		}
+		if items != nil || heading != "" || enter != "" {
+			return out, errors.New("a renderer golden with a menu")
+		}
+		out.Live.Rows = append(rows, parity.Row{Name: rowTitle, Value: title})
 		out.Start = "a synthetic report, no calls"
 		return out, nil
 	}
-	return out, readReportTrailer(g, &out)
+	rows = append(rows, parity.Row{Name: rowTitle, Value: title}, parity.Row{Name: rowItems, Value: strings.Join(items, "; ")},
+		parity.Row{Name: rowMenuHeading, Value: heading}, parity.Row{Name: rowPrompt, Value: enter}, parity.Row{Name: rowDraws, Value: strconv.Itoa(titles)})
+	for _, r := range []parity.Row{{Name: rowAsk, Value: ask}, {Name: rowPause, Value: pause}, {Name: rowRefusedKey, Value: refused}, {Name: rowFailureWords, Value: strings.Join(words, "; ")}} {
+		if r.Value != "" {
+			rows = append(rows, r)
+		}
+	}
+	out.Live.Rows = rows
+	if err := readReportTrailer(g, &out); err != nil {
+		return out, err
+	}
+	reads, err := readsADraw(out.Live.Probes, titles)
+	if err != nil {
+		return out, err
+	}
+	out.Live.Rows = append(out.Live.Rows, parity.Row{Name: rowReadsADraw, Value: reads})
+	return out, nil
+}
+
+// readsADraw is how often each draw read /proc/meminfo, one of the host-info service's
+// files, from the mocks' counts: four times, or three where memory is the collector
+// that fails (defect 20).
+func readsADraw(probes []string, draws int) (string, error) {
+	i := slices.IndexFunc(probes, func(p string) bool { return strings.Contains(p, "x read /proc/meminfo") })
+	if i < 0 || draws == 0 {
+		return "", fmt.Errorf("no read of /proc/meminfo among %q, in %d draws", probes, draws)
+	}
+	n, _, _ := strings.Cut(probes[i], "x ")
+	count, err := strconv.Atoi(n)
+	if err != nil {
+		return "", err
+	}
+	if count%draws != 0 {
+		return "", fmt.Errorf("%d reads of /proc/meminfo in %d draws", count, draws)
+	}
+	return strconv.Itoa(count / draws), nil
 }
 
 const (
-	reportRow   = "report"
-	reportWhole = "whole"
-	exportRow   = "export"
+	reportRow     = "report"
+	reportWhole   = "whole"
+	exportRow     = "export"
+	reportHeading = "Select an option"
+	// What stands around the report and the log (parity-system-details.md §2).
+	rowTitle        = "title"
+	rowSections     = "sections"
+	rowItems        = "items"
+	rowMenuHeading  = "menu heading"
+	rowPrompt       = "prompt"
+	rowPause        = "pause"
+	rowAsk          = "export prompt"
+	rowRefusedKey   = "key refused"
+	rowFailureWords = "failure words"
+	rowDraws        = "draws"
+	rowReadsADraw   = "reads a draw"
+	// The rows drawn beside the facts of origin/main's form: Cores, Volume, Memory.
+	rowCPUs       = "CPUs"
+	rowDiskUsed   = "Disk Used"
+	rowMemoryUsed = "Memory Used"
 	// rowVolumeUnit is the Volume row's unit, apart from its figures, so that the
 	// same figures agree and a wrong one fails (defect 13 is the unit alone).
 	rowVolumeUnit = "Volume unit"
@@ -388,7 +478,9 @@ type dirItem struct {
 var (
 	logFileLine = regexp.MustCompile(`^/tmp-root(\S+); hardn writes /tmp-root/var/log/hardn\.log \(/tmp-root stands for /\)$`)
 	logCount    = regexp.MustCompile(`^(\d+) lines, (\d+) bytes;`)
-	logFrame    = regexp.MustCompile(`^(?:~+|View Logs|Log Contents:|-+|-  Press Enter to return to the main menu\.\.\.)$`)
+	logRule     = regexp.MustCompile(`^~+$`)
+	logDashes   = regexp.MustCompile(`^-+$`)
+	logPause    = regexp.MustCompile(`^-  (Press Enter to return to the main menu\.\.\.)$`)
 	logPath     = regexp.MustCompile(`^-  Log file: /tmp-root(\S+)$`)
 	logContents = regexp.MustCompile(`^# Contents of /tmp-root(\S+):$`)
 	logFailed   = regexp.MustCompile(`^(?:✗ (Error displaying logs: .+)|(\[ERROR\] Failed to read log file .+))$`)
@@ -406,6 +498,7 @@ const (
 	logHeldLine   = "# What hardn's log holds afterwards, the date and time masked:"
 	logRawEscape  = `\x1b`
 	rowFile       = "file read"
+	rowFileRow    = "file row"
 	rowState      = "state"
 	rowSize       = "size"
 	rowShown      = "lines shown"
@@ -457,6 +550,8 @@ func readLog(g golden) (parity.LegacyRead, error) {
 	var lines []string
 	shown, failed := false, ""
 	total := 0
+	var title, fileRow, pause string
+	var frame []string
 	for _, raw := range g.body {
 		text, ok := strings.CutSuffix(raw, "$")
 		if !ok {
@@ -491,11 +586,26 @@ func readLog(g golden) (parity.LegacyRead, error) {
 		}
 		c, f := logContents.FindStringSubmatch(l), logFailed.FindStringSubmatch(l)
 		p := logPath.FindStringSubmatch(l)
+		paused := logPause.FindStringSubmatch(l)
 		switch {
-		case l == "", logFrame.MatchString(l):
+		case l == "":
+		case logRule.MatchString(l):
+			frame = append(frame, "~~~ line")
+		case l == "View Logs":
+			title = l
+		case l == "Log Contents:":
+			frame = append(frame, l)
+		case logDashes.MatchString(l):
+			frame = append(frame, "its rule")
+		case paused != nil:
+			pause = paused[1]
 		case p != nil && p[1] == logFile:
+			fileRow = "Log file: " + p[1]
 		case c != nil && c[1] == logFile && part == before:
 			part, shown = heading, true
+			if !flag {
+				frame = append(frame, "# Contents of "+c[1]+":")
+			}
 		case f != nil && part == before && failed == "":
 			failed = strings.ReplaceAll(f[1]+f[2], "/tmp-root", "")
 		default:
@@ -527,10 +637,17 @@ func readLog(g golden) (parity.LegacyRead, error) {
 	if flag && shown {
 		rows = append(rows, parity.Row{Name: rowHeading, Value: "# Contents of " + logFile + ":"})
 	}
+	if !flag {
+		rows = append(rows, parity.Row{Name: rowTitle, Value: title}, parity.Row{Name: rowSections, Value: strings.Join(frame, ", ")},
+			parity.Row{Name: rowFileRow, Value: fileRow}, parity.Row{Name: rowPause, Value: pause})
+	}
 	var held []string
 	section := ""
 	if calls := countOf(g.trailer, logCallsLine); calls > 1 || flag == (calls == 1) {
 		return out, fmt.Errorf("%d sections of the repository's calls, where -p is %t", calls, flag)
+	}
+	if flag != (title == "") {
+		return out, fmt.Errorf("title %q, where -p is %t", title, flag)
 	}
 	if countOf(g.trailer, logHeldLine) > 1 {
 		return out, errors.New("two sections of what hardn's log holds")
@@ -743,6 +860,7 @@ func TestReaderRefuses(t *testing.T) {
 # logFile: /tmp-root/var/log/hardn.log; hardn writes /tmp-root/var/log/hardn.log (/tmp-root stands for /)
 # $PAGER: less, on PATH, a stand-in that records being run; not run.
 # ----
+View Logs$
 # Contents of /tmp-root/var/log/hardn.log:$
 $
 2026/10/29 08:12:44 INFO: one$
@@ -766,6 +884,12 @@ $
 		{"a command of the mocks that changes", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "read   /etc/passwd -> 148 bytes", "exec   useradd bob -> ok", 1)), "only read"},
 		{"a row masked that the line does not name", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Kernel: "+shownMask+"$", 1)), "the Kernel row masked"},
 		{"a mask with no Masked line", "menu/system_details_x.golden", strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Kernel: "+shownMask+"$", 1), "the Kernel row masked"},
+		{"an item it does not know", "menu/system_details_x.golden", strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", " 3) New Item     Words$", 1), "does not know"},
+		{"a renderer with a menu", "menu/system_details_x.golden", strings.Replace(maskAll(strings.Replace(reportGolden, "# Screen: System Details (main menu 9), q (pkg/menu), run in a child process\n", "# Renderer: a report\n", 1)), "Kernel: Linux 6.12.0-example-amd64                $", " 1) Refresh Information     Words$", 1), "renderer"},
+		{"no read of a draw", "menu/system_details_x.golden", maskAll(reportGolden), "no read of /proc/meminfo"},
+		{"reads no draw divides", "menu/system_details_x.golden", barsDraws(3), "reads of /proc/meminfo"},
+		{"a title on -p", "menu/logs_x.golden", strings.Replace(logs[:strings.Index(logs, "# The repository's calls:")], "# Screen: Logs (main menu 10), Enter (pkg/menu), run in a child process", "# Operation: logging.PrintLogs", 1), "title"},
+		{"no title on the screen", "menu/logs_x.golden", strings.Replace(logs, "View Logs$\n", "", 1), "title"},
 		{"a Volume line of another form", "menu/system_details_x.golden", strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Volume: 6 GB$", 1), "Volume line"},
 		{"a later draw's bars", "menu/system_details_x.golden", barsGolden("█░░", "███"), "differ from the first's"},
 		{"a tool that changes", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "#   nproc", "#   useradd bob", 1)), "only read"},
@@ -791,6 +915,15 @@ $
 			}
 		})
 	}
+}
+
+// barsDraws is a System Details golden of two draws reading /proc/meminfo reads
+// times, every masked row in each.
+func barsDraws(reads int) string {
+	once := maskAll(strings.Replace(reportGolden, "#   5x read   /etc/passwd -> 148 bytes", fmt.Sprintf("#   %dx read   /proc/meminfo -> 84 bytes", reads), 1))
+	head, body, _ := strings.Cut(once, "# ----\n")
+	draw, rest, _ := strings.Cut(body, "# ----\n")
+	return head + "# ----\n" + draw + draw + "# ----\n" + rest
 }
 
 // barsGolden is a System Details golden of two draws, its Load 15m bar each draw's.
