@@ -804,6 +804,10 @@ func TestSDRows(t *testing.T) {
 			[]component.KeyValue{{Key: rowHostname, Value: "web-01"}, cant(details.SourceIP)}},
 		{"ip answered none", "Host", details.Report{Host: details.HostIPs{Hostname: "web-01", Addresses: []details.Address{}}},
 			[]component.KeyValue{{Key: rowHostname, Value: "web-01"}, {Key: noAddresses, State: component.ValueNone}}},
+		{"ip answered only lines not read", "Host", details.Report{Host: details.HostIPs{Hostname: "web-01", Addresses: []details.Address{}, Unread: unread(details.SourceIP)}},
+			[]component.KeyValue{{Key: rowHostname, Value: "web-01"}, cant(details.SourceIP)}},
+		{"ip answered none, the hostname not read", "Host", details.Report{Host: details.HostIPs{Addresses: []details.Address{}, Unread: unread("/proc/sys/kernel/hostname")}},
+			[]component.KeyValue{{Key: noAddresses, State: component.ValueNone}, cant("/proc/sys/kernel/hostname")}},
 		{"no account file", "Users", details.Report{Users: details.Users{Unread: unread("/etc/passwd")}}, []component.KeyValue{cant("/etc/passwd")}},
 		{"root alone", "Users", details.Report{Users: details.Users{List: []details.User{}}}, []component.KeyValue{{Key: noUsers, State: component.ValueNone}}},
 		{"as root, a rule the tool rejects", "Users", details.Report{Users: details.Users{List: []details.User{{Name: "alice"}}, Root: detect.Yes, Unread: unread("/etc/sudoers")}},
@@ -851,7 +855,8 @@ func TestSDZFSDatasetIsRead(t *testing.T) {
 }
 
 // TestSDReadsAddrs: the rows take the forms the VMs print: Debian's and Ubuntu's with a
-// metric, Alpine's with noprefixroute and none (vm-runs/s1/01-tools.log).
+// metric, Alpine's with noprefixroute and none (vm-runs/s1/01-tools.log); a form it
+// does not know is not read.
 func TestSDReadsAddrs(t *testing.T) {
 	want := component.KeyValue{Key: "eth0", Value: "192.0.2.20/24"}
 	for name, addrs := range map[string]string{
@@ -863,5 +868,10 @@ func TestSDReadsAddrs(t *testing.T) {
 		if got := rowsOf(readOn(h), "Host"); len(got) != 2 || got[1] != want {
 			t.Errorf("%s: %+v", name, got)
 		}
+	}
+	h := hosts["debian13"]()
+	h.m.addrs = "nonsense\n"
+	if got := rowsOf(readOn(h), "Host"); len(got) != 2 || got[1].Key != "Can't read "+details.SourceIP {
+		t.Errorf("a form not read says so, and not that there are none: %+v", got)
 	}
 }

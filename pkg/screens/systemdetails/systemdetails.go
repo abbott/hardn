@@ -209,7 +209,10 @@ func hostRows(r details.Report) []component.KeyValue {
 	for _, a := range r.Host.Addresses {
 		rows = append(rows, component.KeyValue{Key: a.Interface, Value: a.Address})
 	}
-	if r.Host.Addresses != nil && len(r.Host.Addresses) == 0 {
+	// None is established only where ip's answer was read: a line hardn cannot read
+	// may be the address (details.HostIPs.Unread).
+	unreadIP := slices.ContainsFunc(r.Host.Unread, func(u details.Unread) bool { return u.Source == details.SourceIP })
+	if r.Host.Addresses != nil && len(r.Host.Addresses) == 0 && !unreadIP {
 		rows = append(rows, component.KeyValue{Key: noAddresses, State: component.ValueNone})
 	}
 	return append(rows, cantReadRows(r.Host.Unread)...)
