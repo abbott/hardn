@@ -181,7 +181,7 @@ differ DNS IP 1: 192.0.2.53 | none
 differ DNS IP 2: 192.0.2.54 | none
        decision 2 (a), left out: DNS has main menu 3's screen; no row
 differ Non-System Users: alice (sudo) | alice (No sudo)
-       readers §12 decision 23 (engineering, not adopted); gallery-system-details.md §6, <user>: the sudo group alone marked alice; now the rules alone: "a group names nothing a rule does not"
+       UNEXPLAINED (pending; proposed, not approved: readers-system-details.md item 16; gallery-system-details.md §6, <user>): the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1500,7 +1500,7 @@ agree  size: 0 bytes
 differ state: no words | Empty
        defect 26; gallery-system-details.md §6, Empty: no words; now the state Empty
 differ pager: $PAGER less set, not run | none
-       decision 7 (a); readers §12 decision 37 (engineering, not adopted): $PAGER set, and not run; now none, as Pager is asked only where there are lines
+       decision 7 (a); decision 8 (a), its screen-empty, screen-missing and screen-unreadable: $PAGER set, and not run; now none: no Open item where there are no lines
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
 == logs-missing on Debian 13
@@ -1519,7 +1519,7 @@ agree  file read: /var/log/hardn.log
 differ state: Error displaying logs: failed to access log file /var/log/hardn.log: stat /var/log/hardn.log: no such file or directory | NoLog
        defect 26; gallery-system-details.md §6, No log yet: Stat's words, the path named three times; now the state NoLog
 differ pager: $PAGER less set, not run | none
-       decision 7 (a); readers §12 decision 37 (engineering, not adopted): $PAGER set, and not run; now none, as Pager is asked only where there are lines
+       decision 7 (a); decision 8 (a), its screen-empty, screen-missing and screen-unreadable: $PAGER set, and not run; now none: no Open item where there are no lines
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
 == logs-unreadable on Debian 13
@@ -1539,7 +1539,7 @@ agree  file read: /var/log/hardn.log
 differ state: Error displaying logs: failed to read log file /var/log/hardn.log: open /var/log/hardn.log: permission denied | Unreadable: permission denied
        gallery-system-details.md §6, Can't read it: <reason>: os's words and the path; now the state Unreadable and the reason
 differ pager: $PAGER less set, not run | none
-       decision 7 (a); readers §12 decision 37 (engineering, not adopted): $PAGER set, and not run; now none, as Pager is asked only where there are lines
+       decision 7 (a); decision 8 (a), its screen-empty, screen-missing and screen-unreadable: $PAGER set, and not run; now none: no Open item where there are no lines
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
 == logs-escape on Debian 13

@@ -990,7 +990,7 @@ func table() []tie {
 		every(reportAll, "DNS IP 2", d2Out, "DNS has main menu 3's screen; no row"),
 		every(renders, "User", d2Out, "the current user; no row"),
 		every(renders, "Non-System Users", d2+"; "+w6+", <user>", "a user no group marks has no word; now No sudo"),
-		every([]string{"sd-group-no-rule"}, "Non-System Users", "readers §12 decision 23 (engineering, not adopted); "+w6+", <user>", "the sudo group alone marked alice; now the rules alone: \"a group names nothing a rule does not\""),
+		[]tie{{[]string{"sd-group-no-rule"}, onDebian, "Non-System Users", "readers-system-details.md item 16; " + w6 + ", <user>", "the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing", true}},
 		[]tie{{[]string{"sd-open"}, onAlpine, "Non-System Users", d2 + "; " + w6 + ", <user>", "the sudo group, on a doas host; now what doas grants", false}},
 		every(without(reportAll, "sd-no-lscpu"), "Hypervisor", d2Out, "lscpu's vendor, or the report's; no row"),
 		every([]string{"sd-no-lscpu"}, "Hypervisor", d2Out+"; defect 15; KNOWN-DEFECT (Bare Metal)", "not known read as Bare Metal; no row"),
@@ -1051,7 +1051,7 @@ func table() []tie {
 		// Logs: the pager.
 		debianCells([]string{"logs-open", "logs-large", "logs-escape", "logs-other-path", "logs-other-path-stale"}, rowPager, d7+"; P-18", "$PAGER set, and not run; now GNU less alone by this command, $PAGER not read, run only by the screen's key"),
 		[]tie{{[]string{"logs-open"}, onAlpine, rowPager, d7, "$PAGER set, and not run; now none: BusyBox's less refuses less --version", false}},
-		every([]string{"logs-empty", "logs-missing", "logs-unreadable"}, rowPager, d7+"; readers §12 decision 37 (engineering, not adopted)", "$PAGER set, and not run; now none, as Pager is asked only where there are lines"),
+		every([]string{"logs-empty", "logs-missing", "logs-unreadable"}, rowPager, d7+"; "+d8+", its screen-empty, screen-missing and screen-unreadable", "$PAGER set, and not run; now none: no Open item where there are no lines"),
 		every([]string{"logs-p", "logs-p-missing"}, rowPager, d7+"; "+d10, "$PAGER set, and not run; now none: every line off a terminal, no pager"),
 		// -p.
 		every([]string{"logs-p"}, rowHeading, d10, "a heading naming the path; now the lines alone, off a terminal"),
