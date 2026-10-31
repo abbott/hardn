@@ -446,7 +446,7 @@ Then prove it: each file `cmp` equal to its old path at the freeze's parent; `go
 
 ## 9. Written, not run (gate 5)
 
-Nothing here ran on Linux or as root. origin/main's rows are its run's on macOS, as the test's user, with stand-ins and mocks; the new path's are hostfake's. **Run elsewhere, not by this unit, read only:** both readers on the three VMs, as the user and as root, compared by hand with what each host says (`vm-runs/s1/15-readers-*.log`, `16-truth-*.log`; readers-system-details.md §4). **Not run anywhere:** hardn itself; `less` under hardn; `zpool` and `zfs`; Proxmox VE 9; origin/main's screens on a host (`system_details_flags`' NOTE says so of its one case).
+Nothing here ran on Linux or as root. origin/main's rows are its run's on macOS, as the test's user, with stand-ins and mocks; the new path's are hostfake's. **Run elsewhere, not by this unit, read only:** both readers on the three VMs, as the user and as root, compared by hand with what each host says (`vm-runs/s1/15-readers-*.log`, `16-truth-*.log`; readers-system-details.md §4). *Since `next/s1-replace`, hardn itself and `less` under hardn have run on the three VMs (screen-system-details.md §4).* **Not run anywhere:** `zpool` and `zfs`; Proxmox VE 9; origin/main's screens on a host (`system_details_flags`' NOTE says so of its one case).
 
 ## 10. Files and size
 

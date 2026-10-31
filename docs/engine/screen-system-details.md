@@ -57,6 +57,8 @@ origin/main's System Details screen loses the whole report at one collector's er
 
 ## 4. Written, not run (gate 5)
 
+**Run 2026-10-31, build 32038c8b, on Debian 13 (sudo), Ubuntu 26.04 (sudo-rs) and Alpine 3.23 (doas), each host put back and checked as found: every check below but the following passed.** Not run: colour on a person's terminal and a resize between draws (check 4); ZFS (check 7); Proxmox VE 9; arm64; a root process refused by a root-squashed path. Run on a terminal over ssh, driven by script, 24 and 40 rows at 80 columns and 24 at 60. The run found one defect: what loading hardn.yml warns of was gone behind `detectOS`'s clear (32038c8b).
+
 Nothing here has run on Linux, as root, or at a person's terminal. For the maintainer's VM runs, now unit (d) has wired it, on Debian 13 (sudo), Ubuntu 26.04 (sudo-rs) and Alpine 3.23 (doas), and by hand on Proxmox VE 9 and a ZFS root where there is one, each host put back after:
 
 1. **hardn itself:** main menu 9 and 10 open the screens under `sudo hardn`, `doas hardn` and at a root login, under `-n` too; 0 back to the main menu; `find /etc /var/backups /var/lib/hardn -newer <stamp>` finds nothing after each (`lslogins`' `/etc/.pwd.lock` aside, which is not hardn's: readers-system-details.md item 24).
