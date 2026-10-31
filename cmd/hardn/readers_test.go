@@ -292,6 +292,10 @@ func TestSystemDetailsFlags(t *testing.T) {
 				} `json:"result"`
 			}
 			err := json.Unmarshal(s.out.Bytes(), &doc)
+			var fields map[string]json.RawMessage
+			if tc.json && (json.Unmarshal(s.out.Bytes(), &fields) != nil || len(fields) != 10) {
+				t.Errorf("%d top-level fields, want the nine and details", len(fields))
+			}
 			if tc.json && (err != nil || doc.Mode != "check" || len(doc.Details) == 0 || doc.Result.ExitCode != 0) {
 				t.Errorf("not the document (%v):\n%s", err, s.out.String())
 			}

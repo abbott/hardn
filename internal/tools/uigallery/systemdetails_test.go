@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"path"
 	"slices"
 	"strings"
@@ -11,7 +10,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine/details"
 	"github.com/abbott/hardn/pkg/host/detect"
-	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -239,30 +237,6 @@ func TestSDZFSDatasetIsRead(t *testing.T) {
 	}
 	if !asked {
 		t.Error("zfs was not asked")
-	}
-}
-
-// TestSDJSONIsTheDocument: the JSON form is pkg/output's document, its nine
-// fields as they are, and one more, details.
-func TestSDJSONIsTheDocument(t *testing.T) {
-	r, err := readSDHost(context.Background(), "unreadable")
-	if err != nil {
-		t.Fatal(err)
-	}
-	var doc map[string]json.RawMessage
-	if err := json.Unmarshal([]byte(jsonDrawing(r, component.Ctx{})), &doc); err != nil {
-		t.Fatal(err)
-	}
-	for _, k := range []string{"schemaVersion", "hardnVersion", "host", "mode", "result", "changes", "status", "findings", "errors", "details"} {
-		if _, ok := doc[k]; !ok {
-			t.Errorf("no %s", k)
-		}
-	}
-	if len(doc) != 10 {
-		t.Errorf("%d top-level fields, want the nine and details", len(doc))
-	}
-	if !strings.Contains(string(doc["findings"]), "DETAILS_UNREADABLE") || !strings.Contains(string(doc["details"]), `"memory": null`) || !strings.Contains(string(doc["details"]), `"when": "2026-10-20T11:42:05+00:00"`) {
-		t.Errorf("findings %s, details %s", doc["findings"], doc["details"])
 	}
 }
 

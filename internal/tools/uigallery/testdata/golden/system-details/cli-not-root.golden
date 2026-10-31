@@ -16,9 +16,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/10-forms.log). So a user's row reads Not known, never␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma group's guess. Last Login reads the same, run (vm-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log). The two lines above the report are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stdout today, so hardn system-details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m> file holds them (cmd/hardn/main.go:57-62; logging.go:40;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, not run); unit (d) moves them to stderr.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stderr, so hardn system-details > file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mholds the report alone (cmd/hardn/main.go, logging.go; read,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot run).␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
       ␛[38;2;129;134;156m↪ /var/log/hardn.log: permission denied␛[m$
@@ -80,9 +80,9 @@ $
 # runs/s1/10-forms.log). So a user's row reads Not known, never$
 # a group's guess. Last Login reads the same, run (vm-$
 # runs/s1/02-login.log). The two lines above the report are$
-# main()'s, unrelated, on stdout today, so hardn system-details$
-# > file holds them (cmd/hardn/main.go:57-62; logging.go:40;$
-# read, not run); unit (d) moves them to stderr.$
+# main()'s, unrelated, on stderr, so hardn system-details > file$
+# holds the report alone (cmd/hardn/main.go, logging.go; read,$
+# not run).$
 $
       Failed to open log file /var/log/hardn.log: open$
       | /var/log/hardn.log: permission denied$
@@ -145,10 +145,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/10-forms.log). So a user's row reads Not known,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnever a group's guess. Last Login reads the same, run (vm-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log). The two lines above the report are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stdout today, so hardn system-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetails > file holds them (cmd/hardn/main.go:57-62;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:40; read, not run); unit (d) moves them to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstderr.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stderr, so hardn system-details >␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile holds the report alone (cmd/hardn/main.go,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go; read, not run).␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
       ␛[38;2;129;134;156m↪ /var/log/hardn.log: permission denied␛[m$
@@ -224,9 +223,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/10-forms.log). So a user's row reads Not known, never␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma group's guess. Last Login reads the same, run (vm-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log). The two lines above the report are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stdout today, so hardn system-details␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m> file holds them (cmd/hardn/main.go:57-62; logging.go:40;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, not run); unit (d) moves them to stderr.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stderr, so hardn system-details > file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mholds the report alone (cmd/hardn/main.go, logging.go; read,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot run).␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
       ␛[38;2;129;134;156m| /var/log/hardn.log: permission denied␛[m$
