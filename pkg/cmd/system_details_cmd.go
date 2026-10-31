@@ -23,7 +23,20 @@ const (
 	sdTextDefault = "text is the default"
 	sdNoFilter    = "nothing filters the report"
 	sdUseRedirect = "use > file"
+	sdAlone       = "run it without system-details"
 )
+
+// rootOperations are root's flags that run something, each with the name a refusal
+// gives it. Root's others (-f, -u, -n, -v, --no-color) change nothing here.
+var rootOperations = []struct{ flag, name string }{
+	{"print-logs", "-p"},
+	{"create-user", "-c"},
+	{"disable-root", "-d"},
+	{"configure-dns", "-g"},
+	{"configure-ufw", "-w"},
+	{"run-all", "-r"},
+	{"setup-sudo-env", "-e"},
+}
 
 // systemDetailsFlags are the command's flags as given. -E, -S, -O, --json and --yaml
 // never did anything and are in no release, so only --output shows in its help.
@@ -35,11 +48,17 @@ type systemDetailsFlags struct {
 // form is decision 1 (a) (gallery-system-details.md §5): --output json is the JSON
 // form; --json and -O json become it with a warning; -O text is accepted with a
 // warning; --yaml, -O yaml, -S and -E are refused, as is any other value of --output
-// or -O. given says which flags were on the command line. A refusal is the error, for
-// exit status 2 (ExitUsage).
+// or -O. A flag counts as given whatever its value, as --yaml=false. Root's operation
+// flags, which this command would not run, are refused too. given says which flags
+// were on the command line. A refusal is the error, for exit status 2 (ExitUsage).
 func (f systemDetailsFlags) form(given func(name string) bool) (SystemDetailsForm, error) {
+	for _, op := range rootOperations {
+		if given(op.flag) {
+			return SystemDetailsForm{}, fmt.Errorf(sdRefused, op.name, sdAlone)
+		}
+	}
 	switch {
-	case f.yaml:
+	case given("yaml"):
 		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "--yaml", sdUseJSON)
 	case given("format") && f.format != "json" && f.format != "text":
 		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "-O "+f.format, sdUseJSON)
@@ -51,8 +70,8 @@ func (f systemDetailsFlags) form(given func(name string) bool) (SystemDetailsFor
 		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "-E", sdUseRedirect)
 	}
 	form := SystemDetailsForm{JSON: given("output")}
-	if f.json {
-		form.JSON = true
+	if given("json") {
+		form.JSON = form.JSON || f.json
 		form.Warnings = append(form.Warnings, fmt.Sprintf(sdDeprecated, "--json", sdUseJSON))
 	}
 	if given("format") {

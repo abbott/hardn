@@ -239,7 +239,7 @@ func TestLogFileWarning(t *testing.T) {
 // TestSystemDetailsFlags: each form's outcome and exit status (decision 1 (a)): no
 // root check and no hardn.yml; a refusal reads nothing and writes nothing on stdout.
 func TestSystemDetailsFlags(t *testing.T) {
-	const useJSON = "use --output json"
+	const useJSON, runAlone = "use --output json", "run it without system-details"
 	for _, tc := range []struct {
 		args   []string
 		code   int
@@ -253,13 +253,28 @@ func TestSystemDetailsFlags(t *testing.T) {
 		{args: []string{"--format=json"}, json: true, stderr: []string{"-O json is deprecated: " + useJSON}},
 		{args: []string{"-O", "text"}, stderr: []string{"-O text is deprecated: text is the default"}},
 		{args: []string{"--output", "json", "-O", "text"}, json: true, stderr: []string{"-O text is deprecated"}},
+		{args: []string{"--json=false"}, stderr: []string{"--json is deprecated: " + useJSON}},
+		{args: []string{"--output", "json", "--json=false"}, json: true, stderr: []string{"--json is deprecated: " + useJSON}},
 		{args: []string{"--yaml"}, code: 2, stderr: []string{"hardn: --yaml is refused: " + useJSON}},
+		{args: []string{"--yaml=false"}, code: 2, stderr: []string{"hardn: --yaml is refused: " + useJSON}},
 		{args: []string{"-O", "yaml"}, code: 2, stderr: []string{"hardn: -O yaml is refused: " + useJSON}},
 		{args: []string{"-O", "nonsense"}, code: 2, stderr: []string{"hardn: -O nonsense is refused: " + useJSON}},
 		{args: []string{"--output", "yaml"}, code: 2, stderr: []string{"hardn: --output yaml is refused: " + useJSON}},
 		{args: []string{"-S", "disk"}, code: 2, stderr: []string{"hardn: -S is refused: nothing filters the report"}},
 		{args: []string{"--section=disk", "--json"}, code: 2, stderr: []string{"hardn: -S is refused"}},
 		{args: []string{"-E", "out.txt"}, code: 2, stderr: []string{"hardn: -E is refused: use > file"}},
+		{args: []string{"-p"}, code: 2, stderr: []string{"hardn: -p is refused: " + runAlone}},
+		{args: []string{"--print-logs", "--json"}, code: 2, stderr: []string{"hardn: -p is refused: " + runAlone}},
+		{args: []string{"-c"}, code: 2, stderr: []string{"hardn: -c is refused: " + runAlone}},
+		{args: []string{"-d"}, code: 2, stderr: []string{"hardn: -d is refused: " + runAlone}},
+		{args: []string{"-d=false"}, code: 2, stderr: []string{"hardn: -d is refused: " + runAlone}},
+		{args: []string{"-g"}, code: 2, stderr: []string{"hardn: -g is refused: " + runAlone}},
+		{args: []string{"-w"}, code: 2, stderr: []string{"hardn: -w is refused: " + runAlone}},
+		{args: []string{"-r"}, code: 2, stderr: []string{"hardn: -r is refused: " + runAlone}},
+		{args: []string{"-e"}, code: 2, stderr: []string{"hardn: -e is refused: " + runAlone}},
+		{args: []string{"-n"}},
+		{args: []string{"--no-color"}},
+		{args: []string{"-f", "hardn.yml"}},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			s := &readerSeams{}
@@ -303,6 +318,16 @@ func TestSystemDetailsFlags(t *testing.T) {
 				t.Errorf("not the report (%v):\n%s", err, s.out.String())
 			}
 		})
+	}
+}
+
+// TestSystemDetailsRootFlagFirst: root's operation flag is refused ahead of the
+// command as after it, nothing read.
+func TestSystemDetailsRootFlagFirst(t *testing.T) {
+	s := &readerSeams{}
+	r := runReader(t, hostUnreachable, logHost(readerLog), s, "-p", "system-details")
+	if !r.ended || r.code != 2 || !strings.Contains(r.stderr, "hardn: -p is refused") || s.out.Len() != 0 || s.reached != 0 {
+		t.Errorf("ended %v with %d; stdout %q, the host asked %d times; stderr:\n%s", r.ended, r.code, s.out.String(), s.reached, r.stderr)
 	}
 }
 
