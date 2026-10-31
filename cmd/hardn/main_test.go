@@ -132,6 +132,13 @@ func resetFlags() {
 	cfg = nil
 	// A flag given in one run stays given in pflag for the next (dryRunGiven).
 	rootCmd.PersistentFlags().Lookup("dry-run").Changed = false
+	if c, _, err := rootCmd.Find([]string{"system-details"}); err == nil {
+		for _, name := range []string{"output", "export", "section", "format", "json", "yaml"} {
+			f := c.Flags().Lookup(name)
+			_ = f.Value.Set(f.DefValue)
+			f.Changed = false
+		}
+	}
 }
 
 func runHardn(t *testing.T, mode hostMode, args ...string) result {
@@ -317,13 +324,14 @@ func TestDryRunRefusesOperations(t *testing.T) {
 	})
 }
 
-// TestDryRunAloneIsNotRefused checks that -n without an operation, with
-// only -p, or with -g, -e or setup-sudo-env, whose dry runs are their
-// plans, still reaches the root check (and then the menus in dry-run
-// mode, or the plan); the stubbed root check fails, so the run ends
-// there with status 1.
+// TestDryRunAloneIsNotRefused checks that -n without an operation, or with
+// -g, -e or setup-sudo-env, whose dry runs are their plans, still reaches the
+// root check (and then the menus in dry-run mode, or the plan); the stubbed
+// root check fails, so the run ends there with status 1. -n -p no longer
+// does: -p alone runs ahead of the root check (decisions 9 (a), 10 (a);
+// TestPrintLogAlone).
 func TestDryRunAloneIsNotRefused(t *testing.T) {
-	for _, args := range [][]string{{"-n"}, {"-n", "-p"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "setup-sudo-env"}, {"-d"}} {
+	for _, args := range [][]string{{"-n"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "setup-sudo-env"}, {"-d"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -11,6 +12,7 @@ import (
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/osdetect"
 )
 
 // The session's mode (refactor plan §3.19, "explicit flag wins, otherwise
@@ -89,9 +91,10 @@ func (y hardnYML) setup(t *testing.T) func() {
 
 // TestDryRunPrecedence: each start's mode and its source, -n/--dry-run
 // given (true or false) winning over hardn.yml's dryRun, which wins over
-// the default, live; live names no source (decision 2). Run with -p, which changes nothing, so that the run
-// ends past where the mode is set and the menus are not opened; the menus
-// take the same configuration.
+// the default, live; live names no source (decision 2). detectOS fails, so that
+// the run ends past where the mode is set and the menus are not opened (-p alone,
+// which this ran with, now runs ahead of the load); the menus take the same
+// configuration.
 func TestDryRunPrecedence(t *testing.T) {
 	for _, tc := range []struct {
 		name, file string // file: hardn.yml's dryRun, "" for no file
@@ -111,9 +114,13 @@ func TestDryRunPrecedence(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			y := newHardnYML(t, tc.file)
-			r := runHardnWith(t, asRoot, y.setup(t), y.args(append(tc.flag, "-p")...)...)
-			if r.ended {
-				t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
+			setup := y.setup(t)
+			r := runHardnWith(t, asRoot, func() {
+				setup()
+				detectOS = func() (*osdetect.OSInfo, error) { return nil, errors.New("test: past the mode") }
+			}, y.args(tc.flag...)...)
+			if !r.ended || r.code != 1 {
+				t.Fatalf("ended %v with %d, want status 1 at detectOS; stderr:\n%s", r.ended, r.code, r.stderr)
 			}
 			if cfg == nil {
 				t.Fatal("no configuration loaded")

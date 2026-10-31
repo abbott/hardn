@@ -40,9 +40,9 @@ const invalid = "  (x) Invalid option. Please try again."
 // them (openScreen), until the test ends: each is named by the screen of
 // originScreens it is, the same type built from the same values, the
 // test failing on any other, then its name recorded in the list returned
-// and printed, as a screen prints over the main menu. The DNS, Backup and
-// Environment items' screens, m's, do the same as "dns", "backup" and
-// "environment".
+// and printed, as a screen prints over the main menu. The DNS, Backup,
+// Environment, System Details and Logs items' screens, m's, do the same as
+// "dns", "backup", "environment", "systemDetails" and "logs".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
 	was := openScreen
@@ -64,6 +64,8 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	m.SetDNS(func() error { record("dns"); return nil })
 	m.SetBackup(func() error { record("backup"); return nil })
 	m.SetEnvironment(func() error { record("environment"); return nil })
+	m.SetSystemDetails(func() error { record("systemDetails"); return nil })
+	m.SetLogs(func() error { record("logs"); return nil })
 	return &opened
 }
 
@@ -72,17 +74,16 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 // (7347cbe, pkg/menu/main_menu.go:613-675): each key's constructor and
 // its arguments, but 6's, the Dry-Run handler, which slice 2b's unit (d)
 // removed with its item, 5's, the Backup menu, which slice 3's unit (d)
-// replaced, and 8's, the Environment menu, which slice 9's unit (d)
-// replaced. The DNS, Backup and Environment items' screens are m's
-// (SetDNS, SetBackup, SetEnvironment).
+// replaced, 8's, the Environment menu, which slice 9's unit (d) replaced,
+// and 9's and 10's, which slice 1's unit (d) replaced. The DNS, Backup,
+// Environment, System Details and Logs items' screens are m's (SetDNS,
+// SetBackup, SetEnvironment, SetSystemDetails, SetLogs).
 func originScreens(m *MainMenu) map[string]legacyScreen {
 	return map[string]legacyScreen{
-		"users":         NewUserMenu(m.menuManager, m.config, m.osInfo),
-		"sshLogin":      NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
-		"firewall":      NewFirewallMenu(m.menuManager, m.config, m.osInfo),
-		"runAll":        handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
-		"systemDetails": NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager()),
-		"logs":          NewLogsMenu(m.menuManager, m.config),
+		"users":    NewUserMenu(m.menuManager, m.config, m.osInfo),
+		"sshLogin": NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
+		"firewall": NewFirewallMenu(m.menuManager, m.config, m.osInfo),
+		"runAll":   handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
 	}
 }
 
@@ -140,8 +141,8 @@ func (r interrupted) Read(p []byte) (int, error) {
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 5 and 7
 // to 10 open exactly the screen origin/main's handleMenuChoice opened for
 // them, of the same constructor with the same arguments (recordScreens),
-// but 3, 5 and 8, which open the DNS, Backup and Environment screens
-// cmd/hardn sets, and the main menu is drawn again when it returns; 6,
+// but 3, 5, 8, 9 and 10, which open the DNS, Backup, Environment, System
+// Details and Logs screens cmd/hardn sets, and the main menu is drawn again when it returns; 6,
 // whose item, Dry-Run, slice 2b's unit (d) removed, its key left unused
 // (decision 1),
 // is refused as any key no item has, opening nothing; 0 (Exit) and q, in
@@ -211,9 +212,9 @@ func TestMainMenuKeys(t *testing.T) {
 			}
 			clears := strings.Count(out, clearScreen)
 			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			for _, hooked := range []string{"dns", "backup", "environment"} {
+			for _, hooked := range []string{"dns", "backup", "environment", "systemDetails", "logs"} {
 				if slices.Contains(tc.opened, hooked) {
-					want++ // the DNS, Backup and Environment items open their screens on a cleared screen, as every legacy screen does
+					want++ // the items cmd/hardn sets open their screens on a cleared screen, as every legacy screen does
 				}
 			}
 			if !strings.HasPrefix(out, clearScreen) || clears != want || strings.Contains(out, "Press Enter") {

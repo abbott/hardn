@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
 )
@@ -59,7 +61,7 @@ func main() {
 	// Ensure config directory and example config exist
 	if err := config.EnsureExampleConfigExists(); err != nil {
 		// Just log a warning, don't exit - the program can still run with defaults
-		fmt.Printf("Warning: Unable to create example configuration file: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Warning: Unable to create example configuration file: %v\n", err)
 	}
 
 	// Execute command
@@ -81,7 +83,7 @@ func init() {
 	cobra.OnInitialize(initializeColor)
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
-	rootCmd.AddCommand(hardncmd.SystemDetailsCmd())
+	rootCmd.AddCommand(hardncmd.SystemDetailsCmd(runSystemDetails))
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
@@ -135,6 +137,16 @@ var rootCmd = &cobra.Command{
 		// Check if version flag is set and display version info
 		if showVersion {
 			versionService.PrintVersionInfo()
+			return
+		}
+
+		// -p alone only reads what any user can cat: ahead of the root check, the
+		// config load and detectOS, so that its pipe form holds the log alone
+		// (decisions 9 (a), 10 (a)).
+		if printOnly() {
+			if code := printLog(context.Background(), ""); code != 0 {
+				exit(code)
+			}
 			return
 		}
 
@@ -196,7 +208,7 @@ var rootCmd = &cobra.Command{
 			!installAll && !configureUfw && !configureDns && !runAll &&
 			!updateSources && !printLogs && !setupSudoEnv {
 
-			// Create menu factory and main menu; its DNS, Backup and Environment items and its status: hooks.go
+			// Create menu factory and main menu; its screens' items and its status: hooks.go
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
 			mainMenu := withHooks(menuFactory.CreateMainMenu(versionService), cfg, Version)
 
@@ -266,7 +278,7 @@ var rootCmd = &cobra.Command{
 				logging.LogError("Failed to complete system hardening: %v", err)
 			} else {
 				logging.LogSuccess("System hardening completed successfully!")
-				fmt.Printf("Check the log file at %s for details.\n", cfg.LogFile)
+				fmt.Printf("Check the log file at %s for details.\n", output.LegacyLogPath)
 			}
 			return
 		}
@@ -405,16 +417,20 @@ var rootCmd = &cobra.Command{
 
 		// Configure DNS: the DNS control through the engine, with no question (dns.go).
 		// A refusal or a failure is hardn's exit status, once the flags after it have run (V25).
-		dnsStatus := 0 // what -e's status yields to (runStatus)
-		if configureDns {
-			if dnsStatus = configureDNS(cfg); dnsStatus != 0 {
-				defer exit(dnsStatus)
+		status := 0 // -g's and -p's, what -e's yields to (runStatus)
+		defer func() {
+			if status != 0 {
+				exit(status)
 			}
+		}()
+		if configureDns {
+			status = configureDNS(cfg)
 		}
 
-		// Print logs
+		// Print the log, after the others: their lines stay on stdout (with no other
+		// operation flag it ran ahead of the root check, printOnly).
 		if printLogs {
-			logging.PrintLogs(cfg.LogFile)
+			status = runStatus(status, printLog(context.Background(), cfg.LogFile))
 		}
 
 		// Keep HARDN_CONFIG: the Environment control through the engine,
@@ -422,9 +438,7 @@ var rootCmd = &cobra.Command{
 		// plan's among them, or a failure is hardn's exit status at once;
 		// a plan with changes to make (3) yields to -g's refusal or failure.
 		if setupSudoEnv {
-			if code := keepEnvironment(cfg); code != 0 {
-				exit(runStatus(dnsStatus, code))
-			}
+			status = runStatus(status, keepEnvironment(cfg))
 			return
 		}
 

@@ -15,7 +15,7 @@ type hooksSet struct {
 }
 
 // TestWithHooks: withHooks, as main builds the main menu, sets every hook
-// of it, the DNS, Backup and Environment items' and the status's and
+// of it, the DNS, Backup, Environment, System Details and Logs items' and the status's and
 // terminal's, and returns the menu it was given. What each hook runs is
 // its own tests' (TestBackupThenDNS, TestBackupThenEnvironment,
 // TestWithStatus); that main.go:202 calls withHooks is held by reading,
@@ -27,6 +27,7 @@ func TestWithHooks(t *testing.T) {
 	}
 	for name, ok := range map[string]bool{
 		"DNS": set.dns != nil, "Backup": set.backup != nil, "Environment": set.environment != nil,
+		"System Details": set.systemDetails != nil, "Logs": set.logs != nil,
 		"the status": set.read != nil, "the terminal": set.env != nil,
 	} {
 		if !ok {

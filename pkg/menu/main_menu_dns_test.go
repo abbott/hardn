@@ -57,6 +57,22 @@ func TestEnvironmentItem(t *testing.T) {
 	})
 }
 
+// TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
+// sets, and map what they return as TestDNSItem's 3 does (refactor plan slice 1, unit
+// (d)); neither saves a setting.
+func TestSystemDetailsAndLogsItems(t *testing.T) {
+	for _, it := range []screenItem{
+		{key: "9", name: "SYSTEM DETAILS", set: (*MainMenu).SetSystemDetails},
+		{key: "10", name: "LOGS", set: (*MainMenu).SetLogs},
+	} {
+		t.Run(it.name, func(t *testing.T) {
+			it.edit = func(*config.Config) {}
+			it.edited = func(c *config.Config) bool { return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) }
+			testScreenItem(t, it)
+		})
+	}
+}
+
 // screenItem is a main-menu item whose screen cmd/hardn sets: its key, the
 // name its stand-in prints, its setter, and what the stand-in changes in
 // the configuration, as the screen adopts hardn.yml as saved, and whether
