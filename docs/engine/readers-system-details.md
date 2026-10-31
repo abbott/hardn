@@ -291,14 +291,14 @@ const LevelError, LevelWarning, LevelInfo, LevelSuccess, LevelInstalled // "ERRO
 type State uint8 // Lines, NoLog, Empty, Unreadable
 type Reading struct { Path string; State State; Reason string; Err error; Size int64; Total int; Last []Line }
 type Line struct { Text, Level string }
-type Entry struct { Time, Level, Message string }
+type Entry struct { Time, Level, Message string } // since next/s1-screen, gone (decision 50)
 type Command struct { Argv, Env []string }
 func Read(ctx context.Context, sys host.System) Reading
 func Each(ctx context.Context, sys host.System, yield func(Line) bool) Reading
 func Elsewhere(logFile string) string
 func Safe(s string) string
 func Show(l host.Line) string
-func ParseLine(line string) Entry
+func ParseLine(line string) Entry // since next/s1-screen, ParseLine(line string) string, the level
 func Pager(ctx context.Context, sys host.System, term string) (Command, bool)
 func (c Command) Run(ctx context.Context, sys host.System) error
 
@@ -400,10 +400,11 @@ type Details struct { Kernel, Uptime *string; Addresses []DetailAddress; Users [
 47. `details.Read` takes the header's three reads, not the probe: `TestReadWritesNothing` holds that the rest is gone, and the header's own output does not change.
 48. `RunBounded` is in `pkg/host`, beside `Run`: two readers use it, and neither should import the other.
 49. `Users.Tool` is doas where detect found doas and not sudo, else sudo: where both are installed a No means neither grants, so "No sudo" is true, and it is the rarer form's word kept short. No mock has both; the gallery's stand-in rule said "No doas" there.
-50. Kept with no live consumer past the gallery: `logview.Entry`'s `Time` and `Message`, for the `parser` mock, and `LevelInfo`, `LevelSuccess` and `LevelInstalled`, the values `Line.Level` can hold. Unit (c) reduces `ParseLine` to the level when that mock retires. Gone: `Logins.Sources`, `User.UID`, `Users.RootErr` and `onSearchPath`, with no use a later unit is named for.
+50. Kept with no live consumer past the gallery: `logview.Entry`'s `Time` and `Message`, for the `parser` mock, and `LevelInfo`, `LevelSuccess` and `LevelInstalled`, the values `Line.Level` can hold. Unit (c) reduces `ParseLine` to the level when that mock retires (*done, `next/s1-screen`*). Gone: `Logins.Sources`, `User.UID`, `Users.RootErr` and `onSearchPath`, with no use a later unit is named for.
 
 ## 13. Not in this unit
 
+- *Built in `next/s1-screen` ([screen-system-details.md](screen-system-details.md)), every point of the next line, decision 50's among them: `ParseLine` now returns the level, `Entry`, `LevelInfo`, `LevelSuccess` and `LevelInstalled` gone; the gallery's words and rows are the screens'.*
 - **Unit (c):** the screens on `screenkit`: the rows and words now in the gallery; "Last N of M lines" and the size's words; Open, what it does with a pager's error, a refusal off a terminal or a less no longer GNU's among them (§9), `Flush`; a section that holds code; report values through `logview.Safe` before a row, and on the uncapped off-terminal path (decision 32); `ParseLine` reduced to the level with the `parser` mock (decision 50).
 - **Unit (d):** main menu 9 and 10; `-p`'s forms and exit statuses on `logview.Each`, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`; `--output json`, its `Run{Mode: ModeCheck, Hostname, Facts, Details}`; `hardn system-details`' host with no run log, and its `detect.Detect` through `details.Bounded`; the legacy code's deletion.
 - **(b2) Parity,** gallery-system-details.md §9. *Built in `next/s1-parity`: [parity-system-details.md](parity-system-details.md), each row against §7's fact.*
