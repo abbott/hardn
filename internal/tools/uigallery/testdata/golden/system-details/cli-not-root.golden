@@ -12,13 +12,13 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root command's Run). The main menu and -p are not. What it␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot read it says: /etc/sudoers.d is drwxr-x--- root root,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso a user cannot list it; on a doas host /etc/doas.conf, 0640␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log); /etc/sudoers 0440 is [I]. So a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muser's row reads Not known, never a group's guess. Last Login␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads the same, run (vm-runs/s1/02-login.log). The two lines␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mabove the report are main()'s, unrelated, on stdout today, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn system-details > file holds them (cmd/hardn/main.go:57-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m62; logging.go:40; read, not run); unit (d) moves them to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstderr.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/10-forms.log). So a user's row reads Not known, never␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma group's guess. Last Login reads the same, run (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log). The two lines above the report are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stdout today, so hardn system-details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m> file holds them (cmd/hardn/main.go:57-62; logging.go:40;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, not run); unit (d) moves them to stderr.␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
       ␛[38;2;129;134;156m↪ /var/log/hardn.log: permission denied␛[m$
@@ -76,13 +76,13 @@ $
 # the root command's Run). The main menu and -p are not. What it$
 # cannot read it says: /etc/sudoers.d is drwxr-x--- root root,$
 # so a user cannot list it; on a doas host /etc/doas.conf, 0640$
-# root (vm-runs/s1/01-tools.log); /etc/sudoers 0440 is [I]. So a$
-# user's row reads Not known, never a group's guess. Last Login$
-# reads the same, run (vm-runs/s1/02-login.log). The two lines$
-# above the report are main()'s, unrelated, on stdout today, so$
-# hardn system-details > file holds them (cmd/hardn/main.go:57-$
-# 62; logging.go:40; read, not run); unit (d) moves them to$
-# stderr.$
+# root (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-$
+# runs/s1/10-forms.log). So a user's row reads Not known, never$
+# a group's guess. Last Login reads the same, run (vm-$
+# runs/s1/02-login.log). The two lines above the report are$
+# main()'s, unrelated, on stdout today, so hardn system-details$
+# > file holds them (cmd/hardn/main.go:57-62; logging.go:40;$
+# read, not run); unit (d) moves them to stderr.$
 $
       Failed to open log file /var/log/hardn.log: open$
       | /var/log/hardn.log: permission denied$
@@ -141,13 +141,14 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand -p are not. What it cannot read it says:␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d is drwxr-x--- root root, so a user cannot␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlist it; on a doas host /etc/doas.conf, 0640 root (vm-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/01-tools.log); /etc/sudoers 0440 is [I]. So a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muser's row reads Not known, never a group's guess. Last␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLogin reads the same, run (vm-runs/s1/02-login.log). The␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo lines above the report are main()'s, unrelated, on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstdout today, so hardn system-details > file holds them␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(cmd/hardn/main.go:57-62; logging.go:40; read, not run);␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (d) moves them to stderr.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/01-tools.log); /etc/sudoers is 0440 (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/10-forms.log). So a user's row reads Not known,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnever a group's guess. Last Login reads the same, run (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log). The two lines above the report are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stdout today, so hardn system-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetails > file holds them (cmd/hardn/main.go:57-62;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogging.go:40; read, not run); unit (d) moves them to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstderr.␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
       ␛[38;2;129;134;156m↪ /var/log/hardn.log: permission denied␛[m$
@@ -219,13 +220,13 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe root command's Run). The main menu and -p are not. What it␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcannot read it says: /etc/sudoers.d is drwxr-x--- root root,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso a user cannot list it; on a doas host /etc/doas.conf, 0640␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log); /etc/sudoers 0440 is [I]. So a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muser's row reads Not known, never a group's guess. Last Login␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads the same, run (vm-runs/s1/02-login.log). The two lines␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mabove the report are main()'s, unrelated, on stdout today, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn system-details > file holds them (cmd/hardn/main.go:57-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m62; logging.go:40; read, not run); unit (d) moves them to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstderr.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/10-forms.log). So a user's row reads Not known, never␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma group's guess. Last Login reads the same, run (vm-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log). The two lines above the report are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmain()'s, unrelated, on stdout today, so hardn system-details␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m> file holds them (cmd/hardn/main.go:57-62; logging.go:40;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, not run); unit (d) moves them to stderr.␛[m$
 $
       ␛[38;2;129;134;156mFailed to open log file /var/log/hardn.log: open␛[m$
       ␛[38;2;129;134;156m| /var/log/hardn.log: permission denied␛[m$

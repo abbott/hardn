@@ -217,7 +217,7 @@ func readUsers(ctx context.Context, sys host.System, f detect.Facts) Users {
 }
 
 // readRoot reads the effective uid, the second of Uid's four numbers
-// (proc_pid_status(5)). No VM printed the file [I].
+// (proc_pid_status(5); vm-runs/s1/10-forms.log).
 func readRoot(ctx context.Context, sys host.System) detect.Tri {
 	data, err := sys.ReadFile(ctx, SelfStatusFile)
 	if err != nil {
@@ -332,8 +332,8 @@ func (s *CPU) readInfo(ctx context.Context, sys host.System) error {
 	return nil
 }
 
-// readLoad reads "0.12 0.08 0.03 1/234 5678" (proc_loadavg(5); no VM printed the
-// file [I]).
+// readLoad reads "0.12 0.08 0.03 1/234 5678" (proc_loadavg(5);
+// vm-runs/s1/10-forms.log).
 func (s *CPU) readLoad(ctx context.Context, sys host.System) error {
 	data, err := sys.ReadFile(ctx, LoadAvgFile)
 	if err != nil {
@@ -439,7 +439,7 @@ func (s *Disk) readZFS(ctx context.Context, sys host.System) bool {
 	return false
 }
 
-// readDF reads df -kP /: its header (no VM printed one [I]) has no last field
+// readDF reads df -kP /: its header (vm-runs/s1/10-forms.log) has no last field
 // "/", and each real line does, "/dev/sda1 10113424 1409984 8242784 15% /", the
 // figures in KiB (vm-runs/s1/01-tools.log, GNU's and BusyBox's).
 func (s *Disk) readDF(ctx context.Context, sys host.System) error {

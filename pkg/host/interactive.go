@@ -57,8 +57,8 @@ func InteractiveEnv(env []string) []string {
 //
 // Where stdin or stdout is not a terminal nothing runs: the seam is for a
 // program that has the terminal, and such a program may do otherwise off one.
-// less given a pipe acts as cat, passing a log's bytes through raw (run: 581.2;
-// GNU's [I]), and the pipe can end at a terminal (hardn | tee).
+// less given a pipe acts as cat, passing a log's bytes through raw (run: 581.2,
+// GNU's 668), and the pipe can end at a terminal (hardn | tee).
 //
 // A child that ended without putting its modes back (killed, as below, or
 // crashed in raw mode) has them put back, so the next prompt reads as before.

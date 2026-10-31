@@ -496,8 +496,8 @@ func TestUsers(t *testing.T) {
 // report carries, and each user's grant is not established. Modes as on the
 // three VMs: /etc/sudoers.d drwxr-x---, Alpine's /etc/doas.conf 0640 and
 // /etc/doas.d drwxr-x--- (01-tools.log:65, :130, :191-193); /etc/sudoers 0440
-// [I]. How it knows it is not root is /proc/self/status's effective uid, [I] for
-// the form: no VM printed it.
+// (10-forms.log). How it knows it is not root is /proc/self/status's effective
+// uid, in the form 10-forms.log has.
 func TestNotRoot(t *testing.T) {
 	ctx := context.Background()
 	const asUser = "Name:\thardn\nUid:\t1000\t1000\t1000\t1000\nGid:\t1000\t1000\t1000\t1000\n"

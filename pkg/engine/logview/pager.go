@@ -67,10 +67,11 @@ func pager(ctx context.Context, sys host.System, term string, limit, grace time.
 	return Command{
 		// "--" ends less's options: the path is hardn's own, and this
 		// keeps it from ever being one (less(1); run on this Mac's less 581.2,
-		// TestRunInteractiveLess; written, not run on GNU less 668).
+		// TestRunInteractiveLess, and GNU less 668, vm-runs/s1/11-less3-*.log).
 		Argv: []string{"less", "--", File},
 		Env: []string{
-			// Turns off !, |, E, :e and v (vm-runs/s1/04-less2-deb13-vm.log).
+			// Turns off !, |, E, :e and v (vm-runs/s1/04-less2-deb13-vm.log; as
+			// root, 11-less3-*.log).
 			"LESSSECURE=1",
 			// No history file: what is typed at less's prompts stays out of
 			// root's home, and "-" says so whatever less takes for that
@@ -79,8 +80,8 @@ func pager(ctx context.Context, sys host.System, term string, limit, grace time.
 			"TERM=" + safeTerm(term),
 			// So a log's non-ASCII shows as itself: where the locale is
 			// missing, less shows its bytes as <C3><A9>, which is safe. C.UTF-8
-			// is built into glibc from 2.35 and any name is UTF-8 to musl
-			// [I: not run on a VM].
+			// is built into glibc from 2.35 (run: vm-runs/s1/11-less3-*.log) and
+			// any name is UTF-8 to musl [I].
 			"LC_ALL=C.UTF-8",
 		},
 	}, true

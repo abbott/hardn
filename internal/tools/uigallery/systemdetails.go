@@ -270,7 +270,7 @@ func cpuinfo(model string, n, sockets int) string {
 // print them; the figures are synthetic. A wtmp record is 384 bytes on amd64
 // (vm-runs/s1/05-wtmp-*.tail), which the reader does not parse: it asks only that
 // the file hold a byte other than NUL, so this is a record's start. As root, the
-// status file's Uid line says 0 (proc_pid_status(5); no VM printed it [I]).
+// status file's Uid line says 0 (proc_pid_status(5); vm-runs/s1/10-forms.log).
 const (
 	wtmpRecord = "\x06\x00\x00\x00\x10\x02\x00\x00LOGIN\x00"
 	rootStatus = "Name:\thardn\nUid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\n"
@@ -843,8 +843,8 @@ func readSDHost(ctx context.Context, name string) (detailsReading, error) {
 // system-details can (cmd/hardn/main.go:148, its Run's root check, which a
 // subcommand's RunE does not pass through): the rules refuse them, /etc/sudoers.d
 // and /etc/doas.d being drwxr-x--- and /etc/doas.conf 0640 on the VMs
-// (vm-runs/s1/01-tools.log:65, :130, :191-193); /etc/sudoers 0440 is [I], no log
-// lists it.
+// (vm-runs/s1/01-tools.log:65, :130, :191-193), and /etc/sudoers 0440
+// (vm-runs/s1/10-forms.log).
 type asUserSys struct{ host.System }
 
 // refusesUser reports whether a user other than root is refused name.
@@ -918,7 +918,7 @@ func sdMocks() []listMock {
 			draw: onSDHost("debian13", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
 		listMock{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, so the pipe loses its end, as a row cuts on a terminal. Unit (c) must not cut off a terminal: nothing in pkg/ui lays out uncapped today, so a new path through the components is a deviation to log.",
 			draw: onSDHost("pve9", func(r detailsReading, _ component.Ctx) string { return r.report(offTerminalCtx()) })},
-		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log); /etc/sudoers 0440 is [I]. So a user's row reads Not known, never a group's guess. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
+		listMock{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-runs/s1/10-forms.log). So a user's row reads Not known, never a group's guess. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
 				return apart(strings.Join(codeRows(c, []string{mainOpenLine, mainExampleLine}, c.Theme.Output.Render), "\n"), readAsUser(ctx, debian13Platform).report(c)), nil
 			}},
