@@ -694,7 +694,7 @@ Every component of `pkg/ui/component`, the section that records it, and its gold
 | Component | § | Normal | Empty | Unknown | Not applicable | Error | Also |
 |---|---|---|---|---|---|---|---|
 | `Header` | 9.2 | `normal` | `no-version`, `no-url` | – | – | – | |
-| `CodeBlock` | 9.12 | `lines`, `typography` | `empty` | – | – | – | `long` |
+| `CodeBlock` | 9.12 | `lines` | `empty` | – | – | – | `long`, `shown` |
 | `ContextBar` | 9.2 | `normal` | as unknown | `unknown` | – | – | `no-codename`, `long` |
 | `TitleBar` | 9.2 | `normal`, `trail`, `trail-deep` | `empty` | – | – | – | `long`, `trail-long` |
 | `HostBlock` | 9.2 | `normal` | as unknown | `unknown-address`, `unknown-uptime`, `no-hostname`, `all-unknown`, `reboot-unknown` | – | as unknown | `long-hostname`, `reboot-pending` |
