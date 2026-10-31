@@ -2,6 +2,7 @@ package parity
 
 import (
 	"context"
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -830,5 +831,119 @@ func TestPending(t *testing.T) {
 	const want = "UNEXPLAINED (pending; proposed, not approved: a page): a header"
 	if g, p := renderCells(sl, []Cell{cell}), renderPage(sl, []Cell{cell}); !strings.Contains(g, want) || !strings.Contains(p, want) {
 		t.Errorf("the golden or the page do not say %q:\n%s\n%s", want, g, p)
+	}
+}
+
+// TestOwnReader: a slice's own reader gives the end state and the start, the
+// harness the V-numbers of the KNOWN-DEFECT and FIXED lines, not a NOTE's; its
+// failure names the golden.
+func TestOwnReader(t *testing.T) {
+	data := []byte("# KNOWN-DEFECT: V20 here\n# NOTE: V12 said in a note\n# FIXED by next/x: V18\nthe screen\n")
+	own := func(got []byte, rel string) (LegacyRead, error) {
+		if rel != "menu/x.golden" || string(got) != string(data) {
+			t.Errorf("the reader was given %q, %q", rel, got)
+		}
+		return LegacyRead{Live: EndState{Rows: []Row{{Name: "OS", Value: "Debian"}}}, Start: "a start"}, nil
+	}
+	r, err := parseLegacy(data, "menu/x.golden", reader{own: own})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(r.Vs, []string{"V20", "V18"}) || r.Start != "a start" || r.Golden != "menu/x.golden" || len(r.Live.Rows) != 1 {
+		t.Errorf("got %+v", r)
+	}
+	_, err = parseLegacy(data, "menu/x.golden", reader{own: func([]byte, string) (LegacyRead, error) { return LegacyRead{}, errors.New("a line it does not know") }})
+	if err == nil || err.Error() != "menu/x.golden: a line it does not know" {
+		t.Errorf("got %v", err)
+	}
+}
+
+// TestRows: each row is an aspect, a row one side lacks being none; a row the
+// golden masks is compared on neither side, and each side's value is recorded.
+func TestRows(t *testing.T) {
+	l := EndState{Rows: []Row{{Name: "OS", Value: "<masked>", Masked: true}, {Name: "Kernel", Value: "6.12"}, {Name: "Cores", Value: "2"}, {Name: "Domain", Value: "example.internal"}}}
+	n := EndState{Rows: maskedAs(l.Rows, []Row{{Name: "OS", Value: "Debian"}, {Name: "Kernel", Value: "6.12"}, {Name: "Cores", Value: "4"}, {Name: "/", Value: "/dev/vda1 ext4"}})}
+	diffs, agree := compare(t, Slice{}, "", l, n)
+	want := []aspect{{"Cores", "2", "4"}, {"Domain", "example.internal", "none"}, {"/", "none", "/dev/vda1 ext4"}}
+	if !slices.Equal(diffs, want) {
+		t.Errorf("differ %+v, want %+v", diffs, want)
+	}
+	if !slices.Contains(agree, aspect{"Kernel", "6.12", "6.12"}) {
+		t.Errorf("agree %+v", agree)
+	}
+	for _, a := range slices.Concat(diffs, agree) {
+		if a.Name == "OS" {
+			t.Errorf("a masked row compared: %+v", a)
+		}
+	}
+	var b strings.Builder
+	writeState(&b, n)
+	if got := b.String(); got != "  masked OS (recorded, not compared): Debian\n" {
+		t.Errorf("writeState %q", got)
+	}
+}
+
+// TestRowsProblem: a row named twice would go uncompared, and one named for an
+// aspect would merge into it.
+func TestRowsProblem(t *testing.T) {
+	if err := rowsProblem([]Row{{Name: "OS"}, {Name: "Kernel"}}); err != nil {
+		t.Error(err)
+	}
+	for _, tt := range []struct {
+		rows []Row
+		want string
+	}{
+		{[]Row{{Name: "Cores"}, {Name: "Kernel"}, {Name: "Cores"}}, "twice"},
+		{[]Row{{Name: "commands"}}, "aspect"},
+		{[]Row{{Name: "hardn.yml dns"}}, "aspect"},
+	} {
+		if err := rowsProblem(tt.rows); err == nil || !strings.Contains(err.Error(), tt.want) {
+			t.Errorf("%+v: got %v, want an error with %q", tt.rows, err, tt.want)
+		}
+	}
+}
+
+// TestOnlyProblem: an Only naming no distribution fails, as its cell would never run.
+func TestOnlyProblem(t *testing.T) {
+	sl := Slice{Distros: []Distro{{Name: "d"}}, Scenarios: []Scenario{{Name: "all"}, {Name: "one", Only: []string{"d"}}}}
+	if err := onlyProblem(sl); err != nil {
+		t.Error(err)
+	}
+	sl.Scenarios[1].Only = []string{"debian-13"}
+	if err := onlyProblem(sl); err == nil || !strings.Contains(err.Error(), `"debian-13"`) {
+		t.Errorf("got %v", err)
+	}
+}
+
+// TestOnly: a scenario run on some distributions alone says not run on the others;
+// a group holding every cell of each scenario says so.
+func TestOnly(t *testing.T) {
+	deb, alp := Distro{Name: "d", Label: "Debian"}, Distro{Name: "a", Label: "Alpine"}
+	sl := Slice{Pkg: "pkg/screens/example", Golden: "parity.golden", Distros: []Distro{deb, alp}, Scenarios: []Scenario{{Name: "both"}, {Name: "one", Only: []string{"d"}}}}
+	cell := func(sc Scenario, d Distro) Cell {
+		return Cell{Scenario: sc, Distro: d, State: HostState{Short: "s"}, Shipped: "forced", diffs: []aspect{{"x", "1", "2"}}}
+	}
+	got := renderPage(sl, []Cell{cell(sl.Scenarios[0], deb), cell(sl.Scenarios[0], alp), cell(sl.Scenarios[1], deb)})
+	if !strings.Contains(got, "| one | s (forced) | not run |") {
+		t.Errorf("no not run:\n%s", got)
+	}
+	if !strings.Contains(got, "| both, one | every cell of each | x |") {
+		t.Errorf("no group of whole scenarios:\n%s", got)
+	}
+	if s, on := whereRows(sl, [][2]string{{"one", "Debian"}, {"both", "Debian"}}); s != "one, both" || on != "Debian" {
+		t.Errorf("where one distribution's: %q, %q", s, on)
+	}
+}
+
+// TestNewStateScanLines: a scan of the log is a read, and leaves no end state.
+func TestNewStateScanLines(t *testing.T) {
+	ctx := context.Background()
+	h := hostfake.New(host.Options{})
+	h.AddFile("/var/log/hardn.log", []byte("one\n"), 0o644, 0, 0)
+	if _, err := h.ScanLines(ctx, "/var/log/hardn.log", func(host.Line) bool { return true }); err != nil {
+		t.Fatal(err)
+	}
+	if s := NewState(t, h, 0, nil, ""); s.Wrote() || len(s.Actions) != 0 {
+		t.Errorf("a scan left %+v", s)
 	}
 }

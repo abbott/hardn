@@ -217,7 +217,7 @@ The command is item 11's: `less -- /var/log/hardn.log`, under `LESSSECURE=1 LESS
 
 gallery-system-details.md §6 is used as it stands, and "§6" in this section and the next is that page's; the words themselves are unit (c)'s and (d)'s to draw, and the gallery still draws them. New here, **decided**:
 
-**Adopted (the maintainer, 2026-10-30):** "Adopt, start (b2)", answering "Adopt the not-root row and the proposed words?": `cli-not-root` as drawn, a user's row "Not known" and "Not root: /etc/sudoers, /etc/sudoers.d not read", and every row of this table.
+**Adopted (the maintainer, 2026-10-30):** "Adopt, start (b2)", answering "Adopt the not-root row and the proposed words?": `cli-not-root` as drawn, a user's row "Not known" and "Not root: /etc/sudoers, /etc/sudoers.d not read", and every row of this table. Then, "Adopt, start (c)", answering "Should a user's sudo mark come from the rules alone?": item 16's reading, as the source of [parity-system-details.md](parity-system-details.md)'s `sd-group-no-rule`.
 
 | Where | Words | Why |
 |---|---|---|
@@ -406,7 +406,7 @@ type Details struct { Kernel, Uptime *string; Addresses []DetailAddress; Users [
 
 - **Unit (c):** the screens on `screenkit`: the rows and words now in the gallery; "Last N of M lines" and the size's words; Open, what it does with a pager's error, a refusal off a terminal or a less no longer GNU's among them (§9), `Flush`; a section that holds code; report values through `logview.Safe` before a row, and on the uncapped off-terminal path (decision 32); `ParseLine` reduced to the level with the `parser` mock (decision 50).
 - **Unit (d):** main menu 9 and 10; `-p`'s forms and exit statuses on `logview.Each`, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`; `--output json`, its `Run{Mode: ModeCheck, Hostname, Facts, Details}`; `hardn system-details`' host with no run log, and its `detect.Detect` through `details.Bounded`; the legacy code's deletion.
-- **(b2) Parity,** gallery-system-details.md §9.
+- **(b2) Parity,** gallery-system-details.md §9. *Built in `next/s1-parity`: [parity-system-details.md](parity-system-details.md), each row against §7's fact.*
 - **On a Linux VM:** §4's lists. `p4status`' guard alone changed for the new methods (`ScanLines` passed, `RunInteractive` refused; [vmcheck.md](vmcheck.md) §2).
 
 ## 14. Size
