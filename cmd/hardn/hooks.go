@@ -1,7 +1,7 @@
 package main
 
 // The main menu's hooks, as main sets them on the one main menu hardn
-// builds (main.go:213): the DNS, Backup, Environment, System Details and
+// builds (main.go:217): the DNS, Backup, Environment, System Details and
 // Logs items' screens (dns.go, backup.go, environment.go, readers.go) and
 // its status and terminal (status.go). One function, so that a test holds each of them set
 // (TestWithHooks): a main menu without one panics when its item is
@@ -20,6 +20,7 @@ type hookedMenu interface {
 	environmentMenu
 	readerMenu
 	statusMenu
+	SetWarnedAtLoad(warned bool)
 }
 
 // The main menu is a hookedMenu.
@@ -29,7 +30,8 @@ var _ hookedMenu = (*menu.MainMenu)(nil)
 // m was given, and hardn's version: its DNS, Backup, Environment, System
 // Details and Logs items (withDNSScreen, withBackupScreen,
 // withEnvironmentScreen, withReaderScreens) and its status and terminal
-// (withStatus).
+// (withStatus); and whether c warned at load, for the menu to keep the warning.
 func withHooks[M hookedMenu](m M, c *config.Config, version string) M {
+	m.SetWarnedAtLoad(loadWarnings(c) != "")
 	return withStatus(withReaderScreens(withEnvironmentScreen(withBackupScreen(withDNSScreen(m, c), c), c), c), c, version)
 }

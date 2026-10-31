@@ -56,6 +56,9 @@ type MainMenu struct {
 	// logs runs the Logs item (SetLogs).
 	logs func() error
 
+	// warned: warnings above the first draw stay on screen (SetWarnedAtLoad).
+	warned bool
+
 	// status reads the host block, risk level and status rows (SetStatus).
 	status func(ctx context.Context) (screen.MainMenu, error)
 
@@ -207,6 +210,11 @@ func showScreen(run func() error, unset string) error {
 	}
 	return err
 }
+
+// SetWarnedAtLoad says that loading hardn.yml warned on stderr, as cmd/hardn does
+// (warnDeprecations): the main menu then draws below the warning, where it would clear
+// the screen and lose it.
+func (m *MainMenu) SetWarnedAtLoad(warned bool) { m.warned = warned }
 
 // SetStatus sets what reads the main menu's host block, risk level and
 // status rows: the status model (the controls' checks, the header probe
@@ -633,7 +641,9 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 	// Check for updates when the menu starts
 	m.CheckForUpdatesWithEnvVars()
 
-	utils.ClearScreen()
+	if !m.warned {
+		utils.ClearScreen()
+	}
 	for {
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()

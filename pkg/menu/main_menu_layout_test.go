@@ -419,6 +419,26 @@ func TestMainMenuHeights(t *testing.T) {
 	}
 }
 
+// TestMainMenuKeepsLoadWarning: a warning at load stays above the first draw; without
+// one the screen is cleared first.
+func TestMainMenuKeepsLoadWarning(t *testing.T) {
+	for _, warned := range []bool{false, true} {
+		env := plainEnv()
+		m := liveMenu(t, env, fixtureStatus(new(int)), "q")
+		m.SetWarnedAtLoad(warned)
+		out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+		if ended {
+			t.Fatalf("ended hardn:\n%s", out)
+		}
+		if got := strings.HasPrefix(out, clearScreen); got == warned {
+			t.Errorf("warned %v: cleared first %v:\n%q", warned, got, out)
+		}
+		if strings.Count(out, clearScreen) != map[bool]int{false: 2, true: 1}[warned] {
+			t.Errorf("warned %v: %d clears, the one on leaving aside:\n%q", warned, strings.Count(out, clearScreen), out)
+		}
+	}
+}
+
 // TestMainMenuDraw: the main menu hardn draws is exactly the layout's
 // Render for the view-model it fills, on a terminal of 24 rows too, in
 // colour and Unicode: the full form, one column of items, nothing of
