@@ -120,6 +120,7 @@ var (
 	reportBar   = regexp.MustCompile(`^([█░]+) \(([0-9.]+)\)$`)
 	asked       = regexp.MustCompile(`^#   (\d+)x (read|exec)\s+(\S.*?) -> (.+)$`)
 	toolRead    = regexp.MustCompile(`^(?:nproc|lscpu|lastlog -u <the test's user>|zpool status -x|zfs get -Hp (?:available|used) \S+)$`)
+	mockRead    = regexp.MustCompile(`^(?:uname -r|df -k|cat /proc/meminfo)$`)
 	dirEntry    = regexp.MustCompile(`^#   (\S+?)(/?) mode=(\d{4})$`)
 )
 
@@ -140,7 +141,8 @@ var maskedLabels = []string{"OS", "Hostname", "IP Addresses", "User", "Load 1m",
 func readReport(g golden) (parity.LegacyRead, error) {
 	var out parity.LegacyRead
 	var draws [][]parity.Row
-	var bars, said []string
+	var bars [][]string // each draw's, as its rows
+	var said []string
 	lost, list, printed := "", "", 0
 	_, masks := g.has("# Masked, read from ")
 	for _, raw := range g.body {
@@ -165,7 +167,7 @@ func readReport(g golden) (parity.LegacyRead, error) {
 		case l == "", reportShade.MatchString(l), reportItem.MatchString(l), l == reportAsk, slices.Contains(reportWords, l):
 		case reportTitle.MatchString(l):
 			if !strings.Contains(l, "Error") {
-				draws = append(draws, nil)
+				draws, bars = append(draws, nil), append(bars, nil)
 			}
 			list = ""
 		case m != nil:
@@ -194,7 +196,10 @@ func readReport(g golden) (parity.LegacyRead, error) {
 					if b == nil {
 						return out, fmt.Errorf("a load line the reader does not know: %q", l)
 					}
-					bars = append(bars, strings.TrimPrefix(label, "Load ")+" "+b[1])
+					if len(bars) == 0 {
+						return out, fmt.Errorf("a row before the screen's title: %q", raw)
+					}
+					bars[len(bars)-1] = append(bars[len(bars)-1], strings.TrimPrefix(label, "Load ")+" "+b[1])
 					value = b[2]
 				}
 			}
@@ -221,9 +226,14 @@ func readReport(g golden) (parity.LegacyRead, error) {
 		rows = []parity.Row{{Name: reportRow, Value: "lost: " + lost}}
 	} else {
 		rows = append([]parity.Row{{Name: reportRow, Value: reportWhole}}, draws[0]...)
-		for _, d := range draws[1:] {
-			if !slices.Equal(d, draws[0]) {
+		for i, d := range draws[1:] {
+			if !slices.Equal(d, draws[0]) || !slices.Equal(bars[i+1], bars[0]) {
 				return out, errors.New("a draw whose rows differ from the first's, which the reader does not compare")
+			}
+		}
+		for _, r := range rows {
+			if r.Masked && (!masks || !slices.Contains(maskedLabels, r.Name)) {
+				return out, fmt.Errorf("the %s row masked, which the golden's Masked line does not name", r.Name)
 			}
 		}
 		for _, name := range maskedLabels {
@@ -235,9 +245,8 @@ func readReport(g golden) (parity.LegacyRead, error) {
 		if masks {
 			rows = append(rows, parity.Row{Name: "Domain", Value: "<dropped>", Masked: true})
 		}
-		if len(bars) > 0 {
-			bars = bars[:min(len(bars), 3)]
-			rows = append(rows, parity.Row{Name: "Load bars", Value: strings.Join(bars, ", ")})
+		if len(bars[0]) > 0 {
+			rows = append(rows, parity.Row{Name: "Load bars", Value: strings.Join(bars[0], ", ")})
 		}
 	}
 	if len(said) > 0 {
@@ -283,6 +292,9 @@ func readReportTrailer(g golden, out *parity.LegacyRead) error {
 			}
 			if m[2] == "exec" && m[4] != "ok" {
 				return fmt.Errorf("a command that failed, which the reader does not compare: %q", l)
+			}
+			if m[2] == "exec" && !mockRead.MatchString(m[3]) {
+				return fmt.Errorf("a command the reader does not take to only read: %q", l)
 			}
 			if m[2] == "read" {
 				start = append(start, m[3]+" -> "+m[4])
@@ -503,6 +515,12 @@ func readLog(g golden) (parity.LegacyRead, error) {
 	}
 	var held []string
 	section := ""
+	if calls := countOf(g.trailer, logCallsLine); calls > 1 || flag == (calls == 1) {
+		return out, fmt.Errorf("%d sections of the repository's calls, where -p is %t", calls, flag)
+	}
+	if countOf(g.trailer, logHeldLine) > 1 {
+		return out, errors.New("two sections of what hardn's log holds")
+	}
 	for _, l := range g.trailer {
 		if l == logCallsLine || l == logHeldLine {
 			section = l
@@ -513,6 +531,9 @@ func readLog(g golden) (parity.LegacyRead, error) {
 			c := logCall.FindStringSubmatch(l)
 			if c == nil {
 				return out, fmt.Errorf("a call the reader does not know: %q", l)
+			}
+			if strings.TrimPrefix(c[2], "/tmp-root") != logFile {
+				return out, fmt.Errorf("a call on another file than logFile, %s: %q", logFile, l)
 			}
 			res := strings.ReplaceAll(c[3], "/tmp-root", "")
 			out.Live.Probes = append(out.Live.Probes, c[1]+" "+strings.TrimPrefix(c[2], "/tmp-root")+" -> "+res)
@@ -544,6 +565,17 @@ func readLog(g golden) (parity.LegacyRead, error) {
 	return out, nil
 }
 
+// countOf is how many of lines are line.
+func countOf(lines []string, line string) int {
+	n := 0
+	for _, l := range lines {
+		if l == line {
+			n++
+		}
+	}
+	return n
+}
+
 // rawWord says whether a line's escape reaches the output as it is.
 func rawWord(raw bool) string {
 	if raw {
@@ -552,15 +584,42 @@ func rawWord(raw bool) string {
 	return "none"
 }
 
+// parserEntry is an entry of GetLogs as its golden prints it: unknown fields fail.
+type parserEntry struct{ Level, Message, Time string }
+
+// readEntry is the JSON line l, an entry.
+func readEntry(l string) (parserEntry, error) {
+	var e parserEntry
+	dec := json.NewDecoder(strings.NewReader(l))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&e); err != nil {
+		return e, fmt.Errorf("%q: %w", l, err)
+	}
+	return e, nil
+}
+
+// splitEntries is what GetLogs makes of written lines, a line split on its first
+// two spaces, and one with fewer than three words dropped (file_logs_repository.go:51-57).
+func splitEntries(written []string) []parserEntry {
+	var out []parserEntry
+	for _, w := range written {
+		if f := strings.SplitN(w, " ", 3); len(f) == 3 {
+			out = append(out, parserEntry{Time: f[0], Level: f[1], Message: f[2]})
+		}
+	}
+	return out
+}
+
 // readParser reads logs_parser: for each block, the lines written and GetLogs'
-// entries, the first block's levels and how many lines it kept, the second's
-// long line; then the callers, recorded. Its lines' date and time are masked.
+// entries, each held to its line's split, the first block's levels and how many
+// lines it kept, the second's long line, where the entries stop at that line; then
+// the callers, recorded. Its lines' date and time are masked.
 func readParser(g golden) (parity.LegacyRead, error) {
 	var out parity.LegacyRead
 	type block struct {
 		written []string
 		said    int
-		levels  []string
+		entries []parserEntry
 	}
 	var blocks []*block
 	inEntries := false
@@ -584,11 +643,11 @@ func readParser(g golden) (parity.LegacyRead, error) {
 			}
 			blocks[len(blocks)-1].said, inEntries = n, true
 		case inEntries && strings.HasPrefix(l, "{"):
-			var e struct{ Level string }
-			if err := json.Unmarshal([]byte(l), &e); err != nil {
-				return out, fmt.Errorf("%q: %w", l, err)
+			e, err := readEntry(l)
+			if err != nil {
+				return out, err
 			}
-			blocks[len(blocks)-1].levels = append(blocks[len(blocks)-1].levels, e.Level)
+			blocks[len(blocks)-1].entries = append(blocks[len(blocks)-1].entries, e)
 		default:
 			return out, fmt.Errorf("a line of the parser's record the reader does not know: %q", l)
 		}
@@ -597,15 +656,22 @@ func readParser(g golden) (parity.LegacyRead, error) {
 		return out, fmt.Errorf("%d blocks, where the reader takes two: the lines hardn writes, and the long line", len(blocks))
 	}
 	for _, b := range blocks {
-		if len(b.levels) != b.said {
-			return out, fmt.Errorf("GetLogs says %d entries, and the record holds %d", b.said, len(b.levels))
+		if len(b.entries) != b.said {
+			return out, fmt.Errorf("GetLogs says %d entries, and the record holds %d", b.said, len(b.entries))
+		}
+		if split := splitEntries(b.written); len(b.entries) > len(split) || !slices.Equal(b.entries, split[:len(b.entries)]) {
+			return out, fmt.Errorf("the entries %+v are not the written lines' split, %+v", b.entries, split)
 		}
 	}
 	a, long := blocks[0], blocks[1]
+	var levels []string
+	for _, e := range a.entries {
+		levels = append(levels, e.Level)
+	}
 	out.Start = strings.Join(a.written, "; ")
 	out.Live.Rows = []parity.Row{
 		{Name: rowParseKept, Value: fmt.Sprintf("%d of %d lines", a.said, len(a.written))},
-		{Name: rowParseLevel, Value: levelCounts(a.levels)},
+		{Name: rowParseLevel, Value: levelCounts(levels)},
 		{Name: rowParseLong, Value: fmt.Sprintf("%d of %d lines, no error", long.said, len(long.written))},
 	}
 	for _, l := range g.trailer {
@@ -683,15 +749,25 @@ $
 		{"a row before the title", "menu/system_details_x.golden", strings.Replace(reportGolden, "System Details ─────────╮$\n", "", 1), "before the screen's title"},
 		{"a masked row left out", "menu/system_details_x.golden", reportGolden, "the OS row"},
 		{"a write of the mocks", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "read   /etc/passwd", "write  /etc/passwd", 1)), "call of the mocks"},
+		{"a command of the mocks that changes", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "read   /etc/passwd -> 148 bytes", "exec   useradd bob -> ok", 1)), "only read"},
+		{"a row masked that the line does not name", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Kernel: "+shownMask+"$", 1)), "the Kernel row masked"},
+		{"a mask with no Masked line", "menu/system_details_x.golden", strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Kernel: "+shownMask+"$", 1), "the Kernel row masked"},
+		{"a later draw's bars", "menu/system_details_x.golden", barsGolden("█░░", "███"), "differ from the first's"},
 		{"a tool that changes", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "#   nproc", "#   useradd bob", 1)), "only read"},
 		{"a file gone", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "before:\n#   (none)", "before:\n#   notes.txt mode=0644", 1)), "gone afterwards"},
 		{"a missing section", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "# The working directory afterwards:\n#   (none)\n", "", 1)), "no \"# The working"},
 		{"a log's write", "menu/logs_x.golden", strings.Replace(logs, "  1 stat  ", "  1 write ", 1), "call the reader does not know"},
+		{"a read of another file", "menu/logs_x.golden", strings.Replace(logs, "  2 read   /tmp-root/var/log/hardn.log", "  2 read   /tmp-root/etc/other.log", 1), "another file"},
+		{"a screen with no calls", "menu/logs_x.golden", logs[:strings.Index(logs, "# The repository's calls:")], "sections of the repository's calls"},
+		{"the calls twice", "menu/logs_x.golden", logs + "# The repository's calls:\n", "sections of the repository's calls"},
+		{"-p with the repository's calls", "menu/logs_x.golden", strings.Replace(logs, "# Screen: Logs (main menu 10), Enter (pkg/menu), run in a child process", "# Operation: logging.PrintLogs", 1), "sections of the repository's calls"},
 		{"no $PAGER line", "menu/logs_x.golden", strings.Replace(logs, "# $PAGER: less, on PATH, a stand-in that records being run; not run.\n", "", 1), "$PAGER"},
 		{"the pager ran", "menu/logs_x.golden", strings.Replace(logs, "; not run.", "; run.", 1), "$PAGER"},
 		{"a line of the Logs screen", "menu/logs_x.golden", strings.Replace(logs, "# Contents of /tmp-root/var/log/hardn.log:$", "A new heading$", 1), "does not know"},
 		{"neither lines nor a failure", "menu/logs_x.golden", strings.Replace(logs, "# Contents of /tmp-root/var/log/hardn.log:$\n$\n2026/10/29 08:12:44 INFO: one$\n$\n", "", 1), "neither"},
 		{"one parser block", "menu/logs_parser.golden", "# ----\n# Written, line by line:\n# ----\n", "blocks"},
+		{"a parser entry that is not its line", "menu/logs_parser.golden", parserGolden(`{"Level":"b","Message":"SOMETHING ELSE","Time":"a"}`), "split"},
+		{"a parser entry with a new field", "menu/logs_parser.golden", parserGolden(`{"Level":"b","Message":"c d","Time":"a","Extra":"new"}`), "unknown field"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			_, err := readGolden([]byte(tt.data), tt.rel)
@@ -700,6 +776,20 @@ $
 			}
 		})
 	}
+}
+
+// barsGolden is a System Details golden of two draws, its Load 15m bar each draw's.
+func barsGolden(first, second string) string {
+	draw := func(bar string) string {
+		return "System Details ─────────╮$\nLoad 15m: " + bar + " (0.03)$\n"
+	}
+	return "# ----\n" + draw(first) + draw(second) + "# ----\n"
+}
+
+// parserGolden is logs_parser's layout: one line written, entry its entry, and the
+// long line's block.
+func parserGolden(entry string) string {
+	return "# ----\n# Written, line by line:\n\"a b c d\"\n# GetLogs: 1 entries, error <nil>\n" + entry + "\n# Written, line by line:\n# GetLogs: 0 entries, error <nil>\n# ----\n"
 }
 
 // maskAll is reportGolden with every masked row and the Masked line, so that the

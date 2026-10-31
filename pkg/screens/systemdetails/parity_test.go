@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
@@ -784,6 +785,61 @@ func TestParityGoldens(t *testing.T) {
 			t.Error(err)
 		}
 	}
+	for g, draws := range notRowDraws {
+		probes, wrote := trailerOf(t, g)
+		if wrote {
+			t.Errorf("%s: its not-row's reason is that it writes nothing, and it wrote", g)
+		}
+		base, _ := trailerOf(t, draws.of)
+		if want := timesProbes(t, base, draws.times); !slices.Equal(probes, want) {
+			t.Errorf("%s: asks %q, where its not-row's reason is %d times %s's, %q", g, probes, draws.times, draws.of, want)
+		}
+	}
+}
+
+// notRowDraws holds what the screen-layout not-rows' reasons say: nothing written
+// or run but reads (readReportTrailer), and each read the row's named, by the draws.
+var notRowDraws = map[string]struct {
+	of    string
+	times int
+}{
+	"menu/system_details_return.golden":       {"menu/system_details_open.golden", 1},
+	"menu/system_details_invalid.golden":      {"menu/system_details_open.golden", 2},
+	"menu/system_details_refresh.golden":      {"menu/system_details_open.golden", 2},
+	"menu/system_details_error_export.golden": {"menu/system_details_error.golden", 2},
+}
+
+// trailerOf is what the golden rel's trailer asked, and whether it wrote.
+func trailerOf(t *testing.T, rel string) (probes []string, wrote bool) {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(legacyDir, filepath.FromSlash(rel)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	g, err := splitGolden(data)
+	if err != nil {
+		t.Fatalf("%s: %v", rel, err)
+	}
+	var read parity.LegacyRead
+	if err := readReportTrailer(g, &read); err != nil {
+		t.Fatalf("%s: %v", rel, err)
+	}
+	return read.Live.Probes, len(read.Live.Files)+len(read.Live.Dirs) > 0
+}
+
+// timesProbes is probes, each "<n>x ..." n times over.
+func timesProbes(t *testing.T, probes []string, times int) []string {
+	t.Helper()
+	out := make([]string, len(probes))
+	for i, p := range probes {
+		n, rest, _ := strings.Cut(p, "x ")
+		count, err := strconv.Atoi(n)
+		if err != nil {
+			t.Fatalf("%q: %v", p, err)
+		}
+		out[i] = fmt.Sprintf("%dx %s", count*times, rest)
+	}
+	return out
 }
 
 // notRows are this slice's goldens with no row, each with why.
