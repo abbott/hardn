@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"charm.land/lipgloss/v2"
 	"github.com/charmbracelet/colorprofile"
@@ -454,7 +455,7 @@ func (c Ctx) codeFrom(col int, open span, s string, style lipgloss.Style) []stri
 	w := c.width()
 	var out []string
 	for lead := ""; ; {
-		head := ansi.Truncate(s, max(0, w-col-lipgloss.Width(open.text)-lipgloss.Width(lead)), "")
+		head := codeHead(s, max(0, w-col-lipgloss.Width(open.text)-lipgloss.Width(lead)))
 		rest, ok := strings.CutPrefix(s, head)
 		if head == "" || !ok {
 			return append(out, c.fit(line{gap(col), open, {lead + s, style}}, w))
@@ -475,6 +476,24 @@ func (c Ctx) codeFrom(col int, open span, s string, style lipgloss.Style) []stri
 		out = append(out, line{gap(col), open, {lead + head, style}}.String())
 		s, lead, open = s[len(head):], c.Theme.Glyphs.Wrap, span{}
 	}
+}
+
+// codeHead is the start of s that fits in limit cells, as ansi.Truncate has it,
+// reading no more of s than it takes to find it, so that a line lays out in time
+// its length, however long, and not its square. A part of s whose every cell fits
+// says nothing of what follows it, so a part twice the size is read then, as
+// grapheme clusters can take more bytes to a cell than a rune does.
+func codeHead(s string, limit int) string {
+	for n := (limit + 1) * utf8.UTFMax; n < len(s); n *= 2 {
+		cut := n
+		for cut > 0 && !utf8.RuneStart(s[cut]) {
+			cut--
+		}
+		if head := ansi.Truncate(s[:cut], limit, ""); len(head) < cut {
+			return head
+		}
+	}
+	return ansi.Truncate(s, limit, "")
 }
 
 // known returns s in style, shown as text shows it, or the word Unknown

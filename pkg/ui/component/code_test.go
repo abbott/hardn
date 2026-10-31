@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
@@ -59,6 +60,38 @@ func TestCodeBlock(t *testing.T) {
 	}
 	if got := (CodeBlock{}).Render(NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))); got != "" {
 		t.Errorf("no lines: %q", got)
+	}
+}
+
+// TestCodeLongLine: a line of any length breaks where ansi.Truncate says, every
+// character kept, wide and combining characters too, and lays out in time its
+// length: 64 KiB of bytes that are not UTF-8, as logview.Safe shows them, is 393,216
+// cells, a hung draw when each row read all that was left of it.
+func TestCodeLongLine(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	indent := strings.Repeat(" ", theme.LabelCol)
+	for _, unit := range []string{"x", "<0xff>", "界", "e\u0301", "\U0001F44D\U0001F3FD", "a" + strings.Repeat("\u0301", 200)} {
+		s := strings.Repeat(unit, 500)
+		rows := CodeBlock{Lines: []CodeLine{{Text: s}}}.Rows(c)
+		if got, want := ansi.Strip(rows[0]), indent+ansi.Truncate(s, theme.ContentWidth-theme.LabelCol, ""); got != want {
+			t.Errorf("%q: the first row %q, want %q", unit, got, want)
+		}
+		joined := ""
+		for i, r := range rows {
+			r = strings.TrimPrefix(ansi.Strip(r), indent)
+			if i > 0 {
+				r = strings.TrimPrefix(r, c.Theme.Glyphs.Wrap)
+			}
+			joined += r
+		}
+		if joined != s {
+			t.Errorf("%q: not every character, %d bytes of %d", unit, len(joined), len(s))
+		}
+	}
+	start := time.Now()
+	rows := CodeBlock{Lines: []CodeLine{{Text: strings.Repeat("<0xff>", 64<<10)}}}.Rows(c)
+	if took := time.Since(start); took > 5*time.Second {
+		t.Errorf("%d rows took %s", len(rows), took)
 	}
 }
 
