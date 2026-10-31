@@ -70,7 +70,7 @@ The Phase 0 audit found every hardening mutation going through `interfaces.Comma
 - **`OwnSessions` does not apply:** the child stays in hardn's session and group, or it has no terminal (run: `TestRunInteractiveCommand`, under `OwnSessions`).
 - **Context.** A done ctx runs nothing. Done while the child runs: SIGTERM, which it can act on, then SIGKILL after 5 s, an error wrapping `ctx.Err()` (run: `TestRunInteractiveContext`, with a trap and with SIGTERM ignored). A caller holding `signal.NotifyContext` around the call gets this on Ctrl-C too, so a screen does not hold one: `cmd/hardn`'s are around an apply and `hardn confirm`'s clean-up alone (`screenApplyContext`, `confirmSignals`).
 - **The terminal's modes.** A child that ends with them changed, killed or crashed in raw mode, has them put back from before the call (`keepTerminal`), so the next prompt reads cooked (run: `TestRunInteractiveTerminalModes`: `stty raw -echo`, then a line typed reads whole).
-- **Real less on a pseudo-terminal, this Mac's 581.2** (run: `TestRunInteractiveLess`): with `LESSSECURE=1` and `--` before the path the file shows, `!` says "not available", `q` ends it, exit 0. **Not run:** a person's real terminal; GNU less 668 under hardn; as root; on Linux at all (`pty_linux_test.go` is written, vetted by `make check-cross`).
+- **Real less on a pseudo-terminal, this Mac's 581.2, and GNU's 668 on the Debian and Ubuntu VMs, as a user and as root** (run: `TestRunInteractiveLess`, `vm-runs/s1/13-gotest-*.log`): with `LESSSECURE=1` and `--` before the path the file shows, `!` says "not available", `q` ends it, exit 0. **Not run:** a person's real terminal; `less` under hardn; Alpine's less package.
 - **`RunBounded`,** a free function and no method, runs a command through any `System` under a limit, and returns a grace past it whether or not the command has ended, leaving it behind: for a read a person waits for (run: `TestHungCommand`, `TestPagerBound`, `TestBoundOnARealChild`). *Since `next/s1-readers`.*
 - **Known limits, written, not run:** Ctrl-Z stops the group, hardn with it, and `fg` resumes both, as any foreground program's child; a SIGTERM or hangup sent to hardn alone ends hardn by what it has at the call and leaves the child to its terminal.
 
@@ -100,6 +100,8 @@ The Phase 0 audit found every hardening mutation going through `interfaces.Comma
 | `install.sh` installs hardn as `/usr/local/bin/hardn` | `install.sh:53` (this repo) | §2.2: hardn is re-invoked by absolute path |
 
 ## 4. Written, not run (gate 5)
+
+*Since `next/s1-readers`, run on Linux 2026-10-30, as the user and as root on Debian 13, Ubuntu 26.04 and Alpine 3.23: this package's tests and `hostfake`'s, `pty_linux_test.go`, `ScanLines` and `RunInteractive` among them (`vm-runs/s1/13-gotest-*.log`). Those tests pin the umask, since `t.TempDir`'s directories under 0002 are not trusted.*
 
 *Since 2026-10-28, run in part on Linux, as root: `OwnSessions`, with `systemctl` during the engine's rollback on Debian 13 and Ubuntu 26.04 (§2.5, the last item below; [screen-backup.md](../engine/screen-backup.md) §4.2, the hangup rerun).* *At `4a0079e`, on Ubuntu 26.04: `OwnSessions` again, now with a hangup sent to hardn's process group, and hardn with `pkg/host/hangup`'s writers (§2.5); on Debian 13 too the next day; that package's own pty test not (below).*
 

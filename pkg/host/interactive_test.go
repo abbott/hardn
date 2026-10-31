@@ -377,8 +377,8 @@ func TestRunInteractiveTerminalModes(t *testing.T) {
 // TestRunInteractiveLess runs the installed less on the pseudo-terminal with
 // the environment logview gives it, "--" before the path: the file shows, its
 // OSC as text and not as itself, a shell escape is refused, q ends it, exit 0.
-// It is macOS's less 581.2 here, and GNU less where the tests run on Linux;
-// written, not run there. BusyBox's, whose ! does nothing
+// It is macOS's less 581.2 here, and GNU less 668 on the Debian and Ubuntu VMs
+// (vm-runs/s1/13-gotest-*.log). BusyBox's, whose ! does nothing
 // (vm-runs/s1/04-less2-alpine323-vm.log), is skipped with a less that is none.
 func TestRunInteractiveLess(t *testing.T) {
 	res, err := NewReal(Options{}).Run(context.Background(), "less", "--version")

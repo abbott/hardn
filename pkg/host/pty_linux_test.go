@@ -15,7 +15,7 @@ import (
 // pseudo-terminal to give, as in a container without devpts. Both are closed
 // when the test ends.
 //
-// Written, not run: the tests have run on macOS only.
+// Run on the Debian, Ubuntu and Alpine VMs (vm-runs/s1/13-gotest-*.log).
 func openPTY(t *testing.T) (master, slave *os.File) {
 	t.Helper()
 	m, err := os.OpenFile("/dev/ptmx", os.O_RDWR|syscall.O_NOCTTY, 0)
