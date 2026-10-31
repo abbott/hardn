@@ -7,6 +7,7 @@ import (
 	"unicode"
 
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -23,11 +24,26 @@ const unknown = "Unknown"
 type Ctx struct {
 	Env   term.Env
 	Theme *theme.Theme
+	// Whole cuts nothing and breaks no row: a value or a bullet item stays on
+	// its line whole, however long, past the content width. For output that is
+	// not a terminal, which a file or a tool holds and no width limits
+	// (OffTerminal, DEV-067). NewCtx leaves it false, as every screen has it.
+	Whole bool
 }
 
 // NewCtx returns the render context for env, building its theme once.
 func NewCtx(env term.Env) Ctx {
 	return Ctx{Env: env, Theme: theme.New(env)}
+}
+
+// OffTerminal returns the render context of what is written off a terminal,
+// such as hardn system-details > file: plain mode at term.DefaultWidth, whatever
+// the environment says, and nothing cut (Whole, DEV-067). Write what it renders
+// through its Env's Writer, which strips every escape sequence.
+func OffTerminal() Ctx {
+	c := NewCtx(term.Fixed(term.DefaultWidth, colorprofile.NoTTY, false, true))
+	c.Whole = true
+	return c
 }
 
 // termWidth is the terminal's width, or term.DefaultWidth when the Env
@@ -113,9 +129,10 @@ func (l line) to(col int) line {
 // dropped, in whichever spans they are, and the ellipsis ends the last
 // span that keeps any text, in that span's style. So a cut looks the same
 // wherever the line's spans begin and end. With no text left, or no room
-// for the whole glyph, the line is as much of the ellipsis as fits.
+// for the whole glyph, the line is as much of the ellipsis as fits. With
+// Whole set no line is cut.
 func (c Ctx) fit(l line, limit int) string {
-	if l.width() <= limit {
+	if c.Whole || l.width() <= limit {
 		return l.String()
 	}
 	ellipsis := c.Theme.Glyphs.Ellipsis
@@ -144,9 +161,9 @@ func (c Ctx) fit(l line, limit int) string {
 // truncate shortens plain text s to at most limit cells, ending it with
 // the ellipsis glyph when it is cut. As in fit, the spaces before the cut
 // are dropped, and with no text left, or no room for the whole glyph, the
-// result is as much of the ellipsis as fits.
+// result is as much of the ellipsis as fits. With Whole set s is not cut.
 func (c Ctx) truncate(s string, limit int) string {
-	if lipgloss.Width(s) <= limit {
+	if c.Whole || lipgloss.Width(s) <= limit {
 		return s
 	}
 	ellipsis := c.Theme.Glyphs.Ellipsis

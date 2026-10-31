@@ -15,8 +15,8 @@
 //     theme.CompactBelow, is gated (CompactMainMenu, DISABLED 2026-10-23;
 //     see MainMenu).
 //   - SubMenu, after 01-USER: the TitleBar, a SubjectLine, the area's
-//     StatusList, its sections (Section: a SectionHeader, a Badge and a
-//     BulletList), a MenuHeading, the Menu and the PromptLine.
+//     StatusList, its sections (Section: a SectionHeader, a Badge, a
+//     BulletList and a CodeBlock), a MenuHeading, the Menu and the PromptLine.
 //   - WorkflowStep, after USER-MANAGE_SUDO-CONFIRMATION: the TitleBar and
 //     a SubjectLine above a run of the canonical flow (pkg/ui/flow), which
 //     writes each step and asks its prompts.
@@ -72,6 +72,13 @@
 // pkg/screens/environment makes, which also runs its items; Step and
 // Review give item 1's workflow, EnvironmentGuide item 2
 // (docs/engine/screen-environment.md).
+//
+// SystemDetails and Logs are the System Details and Logs screens (slice 1,
+// next/s1-screen): origin/main's main menu 9 and 10 as the maintainer adopted
+// their mocks, read only, filled from what pkg/screens/systemdetails and
+// pkg/screens/logs read, which also run their items. SystemDetails.Report draws
+// hardn system-details, and Logs.Terminal hardn -p to a terminal
+// (docs/engine/gallery-system-details.md §5).
 //
 // # Fixtures and mocks
 //

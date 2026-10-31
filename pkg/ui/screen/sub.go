@@ -100,8 +100,9 @@ func (vm SubMenu) above(c component.Ctx, withTrail bool) string {
 
 // Section is one titled block of a sub-menu's details, as Figma's "User
 // Configuration" on 01-USER: the SectionHeader, then the Badge naming
-// what the rows describe, then the rows, each block after theme.SectionGap
-// blank lines.
+// what the rows describe, then the rows, then the code, each block after
+// theme.SectionGap blank lines. Code is lines of captured output in the
+// rows' place, such as the Logs screen's (DEV-066).
 type Section struct {
 	// Header is the section's header, such as "User Configuration".
 	Header component.SectionHeader
@@ -110,13 +111,15 @@ type Section struct {
 	Badge component.Badge
 	// Rows are the key-value rows.
 	Rows component.BulletList
+	// Code is lines of captured output; with none the block is left out.
+	Code component.CodeBlock
 }
 
-// Render renders the section for c. A section with neither a badge nor a
-// row renders as the empty string, so the layout leaves it out with its
-// gap rather than show a header over nothing.
+// Render renders the section for c. A section with no badge, row or code
+// renders as the empty string, so the layout leaves it out with its gap
+// rather than show a header over nothing.
 func (s Section) Render(c component.Ctx) string {
-	body := join(s.Badge.Render(c), s.Rows.Render(c))
+	body := join(s.Badge.Render(c), s.Rows.Render(c), s.Code.Render(c))
 	if body == "" {
 		return ""
 	}

@@ -114,7 +114,8 @@ func (s ValueState) word() string {
 // not a warning ("- " in text.muted), as an empty list's line (DEV-061).
 // A bullet item's text is prose with nothing beside it, so it wraps at
 // spaces under itself, at theme.LabelCol, rather than being cut. A row
-// with neither key nor value renders as the empty string.
+// with neither key nor value renders as the empty string. With Ctx.Whole
+// nothing is cut and a bullet item does not wrap (DEV-067).
 type KeyValue struct {
 	// Key names the setting, such as "Root SSH Login"; or, with no value,
 	// is the bullet item's text.
@@ -155,8 +156,12 @@ func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 		text = t.Value
 	}
 	lead := marker(c.Theme.Glyphs.Bullet, bullet).to(theme.LabelCol)
+	rows := wrap(c.text(vm.Key), w-theme.LabelCol)
+	if c.Whole {
+		rows = []string{c.text(vm.Key)}
+	}
 	var out []string
-	for _, l := range wrap(c.text(vm.Key), w-theme.LabelCol) {
+	for _, l := range rows {
 		out = append(out, c.fit(append(lead, span{l, text}), w))
 		lead = line{gap(theme.LabelCol)}
 	}
