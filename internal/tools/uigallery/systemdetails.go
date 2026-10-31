@@ -385,8 +385,7 @@ type detailsReading struct {
 }
 
 // readDetails reads sys with the real reader, on detect's facts, as unit (d)'s
-// command and unit (c)'s screen will. It changes nothing, and what it cannot read
-// the sections say.
+// command will. It changes nothing, and what it cannot read the sections say.
 func readDetails(ctx context.Context, sys host.System) detailsReading {
 	facts, _ := detect.Detect(ctx, details.Bounded(sys)) // what detect does not establish, the report says not read
 	return detailsReading{Report: details.Read(ctx, sys, facts), facts: facts}
@@ -693,7 +692,7 @@ func (l listing) run(args []string, size sizer, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, l.usage)
 		fs.PrintDefaults()
 	}
-	list := fs.Bool("list", false, "print the names of the mocks it would list, and exit")
+	list := fs.Bool("list", false, "print the names of the forms it would list, and exit")
 	look := lookFlags(fs, true)
 	if err := fs.Parse(args); err != nil {
 		if errors.Is(err, flag.ErrHelp) {
@@ -754,9 +753,9 @@ func selectListMocks(all []listMock, args []string) ([]listMock, error) {
 	for _, a := range args {
 		switch found := slices.ContainsFunc(all, func(m listMock) bool { return m.name == a }); {
 		case !found && strings.HasPrefix(a, "-"):
-			return nil, fmt.Errorf("flag %s comes after a mock's name; flags go before them", a)
+			return nil, fmt.Errorf("flag %s comes after a form's name; flags go before them", a)
 		case !found:
-			return nil, fmt.Errorf("no mock %q; -list shows them", a)
+			return nil, fmt.Errorf("no form %q; -list shows them", a)
 		}
 	}
 	return slices.DeleteFunc(all, func(m listMock) bool { return !slices.Contains(args, m.name) }), nil
