@@ -49,10 +49,10 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 10$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/lines␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Treatment␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread-tail: a log of 4 lines, as many as the terminal holds: 3␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 80x24, all at 80x40, as three wrap. WARNING and ERROR in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe warning's colour.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. A log of 4␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines, as many as the terminal holds: 3 at 80x24, all at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m80x40, as three wrap. WARNING and ERROR in the warning's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolour.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -191,10 +191,10 @@ $
   > Enter selection [0-5, 7-10 or q]: 10$
 $
 # Info: logs/lines$
-# web-01.example.net runs Debian 13, less installed. Treatment$
-# read-tail: a log of 4 lines, as many as the terminal holds: 3$
-# at 80x24, all at 80x40, as three wrap. WARNING and ERROR in$
-# the warning's colour.$
+# web-01.example.net runs Debian 13, less installed. A log of 4$
+# lines, as many as the terminal holds: 3 at 80x24, all at$
+# 80x40, as three wrap. WARNING and ERROR in the warning's$
+# colour.$
 $
 # Logs #########################################################$
 $
@@ -354,10 +354,10 @@ $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 10$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/lines␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment read-tail: a log of 4 lines, as many as the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal holds: 3 at 80x24, all at 80x40, as three wrap.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWARNING and ERROR in the warning's colour.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. A log␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof 4 lines, as many as the terminal holds: 3 at 80x24, all␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 80x40, as three wrap. WARNING and ERROR in the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarning's colour.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

@@ -45,7 +45,7 @@ const DefaultTailLines = 20
 //
 // Paths should be absolute. Symlinks in the parent directories of a path are
 // followed by every method except the guarded ones (WriteFileAtomic, Chown,
-// Chmod, Remove, ReadFileNoFollow, ResolveSymlink): those take an absolute
+// Chmod, Remove, ReadFileNoFollow, ScanLines, ResolveSymlink): those take an absolute
 // path, and follow a symlink on the way only when the directory holding it is
 // trusted: owned by root (or by hardn's own user) and writable by neither its
 // group nor others. Otherwise they refuse with ErrSymlinkParent, so a user who
@@ -73,6 +73,21 @@ type System interface {
 	// entry only: it never kills the process. The run log records the
 	// start and the process id. The OpenRC revert timer (p2-revert).
 	StartDetached(ctx context.Context, name string, args ...string) (pid int, err error)
+	// RunInteractive runs name with args as a child with hardn's own stdin,
+	// stdout and stderr, so it has the terminal, and waits for it. Where stdin
+	// or stdout is not a terminal it runs nothing and returns an error. No shell;
+	// name is resolved as Run resolves it, and the working directory is
+	// Run's. Its environment is exactly env and Run's PATH (InteractiveEnv):
+	// nothing is inherited, as for every command hardn runs (commandEnv),
+	// and an entry of env naming PATH is dropped. Ctrl-C and Ctrl-\ while it
+	// runs reach it and do not end hardn, and hardn's signal handling is as
+	// it was once it returns. A non-zero exit is an *ExitError, ExitCode -1
+	// when ended by a signal. A done ctx runs nothing; ctx done while it runs
+	// sends it SIGTERM, then SIGKILL 5 s later, and returns an error wrapping
+	// ctx.Err(). The run log records the argv and the exit, not env. See
+	// Real.RunInteractive. For a program that needs a terminal, on the
+	// person's say: the Logs screen's pager.
+	RunInteractive(ctx context.Context, env []string, name string, args ...string) error
 
 	// ReadFile returns the content of name, following symlinks.
 	ReadFile(ctx context.Context, name string) ([]byte, error)
@@ -82,6 +97,20 @@ type System interface {
 	// EISDIR, anything else that is not a regular file with fs.ErrInvalid;
 	// it is guarded (see System). Backups read through it.
 	ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error)
+	// ScanLines calls yield with each line of the regular file name, in
+	// order, until the file ends or yield returns false (which is no error),
+	// in memory bounded whatever the file holds, and returns the file's
+	// FileInfo, nil when it was not opened. It opens what ReadFileNoFollow
+	// opens and refuses what it refuses, without blocking: a symlink at name
+	// with ErrSymlink, a directory with EISDIR, anything else that is not a
+	// regular file (a FIFO, a device) with fs.ErrInvalid; it is guarded (see
+	// System), as a read as root of a file a user could have linked to shows
+	// that file to whoever asked. It reads no further than the file's size
+	// when opened, so a file that reports size 0 (/proc's) reads as empty:
+	// use ReadFile there. A line past MaxLine is cut, the Line says so, and
+	// the read goes on at the next line. ctx is asked between reads, not only
+	// on entry. It adds nothing to the run log. The log's reader.
+	ScanLines(ctx context.Context, name string, yield func(Line) bool) (fs.FileInfo, error)
 	// Stat describes name, following a symlink at name.
 	Stat(ctx context.Context, name string) (fs.FileInfo, error)
 	// Lstat describes name itself: a symlink at name is not followed.

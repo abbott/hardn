@@ -34,6 +34,7 @@ func newSeamed(t *testing.T, opts Options, dirs []string, fake func(cmd *exec.Cm
 	opts.RunLog = s.log
 	s.Real = NewReal(opts)
 	s.dirs = dirs
+	s.hasTerminal = func() bool { return true }
 	s.exec = func(cmd *exec.Cmd) (int, error) {
 		s.cmds = append(s.cmds, cmd)
 		if fake == nil {

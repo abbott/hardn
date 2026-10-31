@@ -169,8 +169,8 @@
 // "system-details" lists the System Details mocks of refactor plan slice
 // 1, unit (a) (systemdetails.go, docs/engine/gallery-system-details.md),
 // each under a note: the proposed screen on Debian 13, Ubuntu 26.04, Alpine
-// 3.23 and Proxmox VE, its states, its treatments, the non-interactive forms
-// as they would print, and origin/main's report in its words. "play
+// 3.23 and Proxmox VE, its states, the non-interactive forms as they would
+// print, and origin/main's report in its words. "play
 // system-details" is the menu of the hosts and "play
 // system-details/<host>" the screen on one; the main menu's 9 leads to it on
 // Debian 13. It only reads: no plan, no y/N, no journal. -sequence dry-run
@@ -181,8 +181,8 @@
 // "logs" lists the Logs mocks of the same unit (logs.go, the same page),
 // each under a note: the proposed screen with a log of lines, a long log, no
 // log, one it cannot read, an empty one, control characters shown safe,
-// logFile set elsewhere; each treatment of how it reads, a golden saying
-// what the pager would be, since none can run one; hardn -p to a terminal
+// logFile set elsewhere; a golden saying what the pager would be, since none
+// can run one; hardn -p to a terminal
 // and not to one; the parser; and origin/main's in its words. "play logs" is
 // the menu of the hosts and "play logs/<host>" the screen on one; the main
 // menu's 10 leads to it. -sequence dry-run draws the same; -fail is refused

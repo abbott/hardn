@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"syscall"
 	"testing"
 
@@ -65,6 +66,20 @@ func fakeWorld(*testing.T) world {
 		dir:     func(rel string) { f.AddDir(filepath.Join(root, rel), 0o755, 0, 0) },
 		symlink: func(rel, target string) { f.AddSymlink(filepath.Join(root, rel), target) },
 	}
+}
+
+// scanned is every line of rel, through ScanLines, and its FileInfo.
+func scanned(t *testing.T, w world, rel string) ([]string, fs.FileInfo) {
+	t.Helper()
+	got := []string{}
+	fi, err := w.sys.ScanLines(context.Background(), w.path(rel), func(l host.Line) bool {
+		got = append(got, string(l.Text))
+		return true
+	})
+	if err != nil {
+		t.Fatalf("%s: %v", rel, err)
+	}
+	return got, fi
 }
 
 // TestContract runs each case against host.Real in a temporary directory and
@@ -406,6 +421,117 @@ func TestContract(t *testing.T) {
 			}
 			wantFile(t, w, "real/target", "new\n", 0o600)
 			wantLink(t, w, "real/sub/rel", "../target")
+		}},
+		{"scan lines: endings, empty lines, the size, in order", func(t *testing.T, w world) {
+			for content, want := range map[string][]string{
+				"":               {},
+				"one":            {"one"},
+				"one\n":          {"one"},
+				"one\ntwo":       {"one", "two"},
+				"\n":             {""},
+				"\n\n":           {"", ""},
+				"one\n\ntwo\n":   {"one", "", "two"},
+				"one\r\ntwo\r\n": {"one", "two"},
+				"one\r\ntwo\r":   {"one", "two"},
+				"a\rb\n":         {"a\rb"},
+				"one\r\r\n":      {"one\r"},
+				"\r\n":           {""},
+				"caf\xe9 \x00\n": {"caf\xe9 \x00"},
+			} {
+				w.file("log", content, 0o640)
+				got, fi := scanned(t, w, "log")
+				if !reflect.DeepEqual(got, want) {
+					t.Errorf("%q: lines %q, want %q", content, got, want)
+				}
+				if fi.Size() != int64(len(content)) || !fi.Mode().IsRegular() {
+					t.Errorf("%q: FileInfo %d %v", content, fi.Size(), fi.Mode())
+				}
+			}
+		}},
+		{"scan lines: a line past the cap is cut and the read goes on", func(t *testing.T, w world) {
+			long := strings.Repeat("x", host.MaxLine)
+			for _, c := range []struct {
+				name, content string
+				want          []string
+				cut           []bool
+			}{
+				{"at the cap", long + "\nnext\n", []string{long, "next"}, []bool{false, false}},
+				{"at the cap, CRLF", long + "\r\nnext\n", []string{long, "next"}, []bool{false, false}},
+				{"at the cap, no ending", long, []string{long}, []bool{false}},
+				{"at the cap, a last CR", long + "\r", []string{long}, []bool{false}},
+				{"one past", long + "y\nnext\n", []string{long, "next"}, []bool{true, false}},
+				{"one past, CRLF", long + "y\r\nnext\n", []string{long, "next"}, []bool{true, false}},
+				{"one past, no ending", long + "y", []string{long}, []bool{true}},
+				{"at the cap, a CR, then more", long + "\ry\nnext\n", []string{long, "next"}, []bool{true, false}},
+				{"far past", long + strings.Repeat("y", 3*host.MaxLine) + "\nnext\nlast", []string{long, "next", "last"}, []bool{true, false, false}},
+				{"far past, no ending", long + strings.Repeat("y", 3*host.MaxLine), []string{long}, []bool{true}},
+				{"two in a row", long + "y\n" + long + "z\n", []string{long, long}, []bool{true, true}},
+			} {
+				w.file("log", c.content, 0o640)
+				var got []string
+				var cut []bool
+				if _, err := w.sys.ScanLines(ctx, w.path("log"), func(l host.Line) bool {
+					got, cut = append(got, string(l.Text)), append(cut, l.Cut)
+					return true
+				}); err != nil {
+					t.Fatalf("%s: %v", c.name, err)
+				}
+				if !reflect.DeepEqual(got, c.want) || !reflect.DeepEqual(cut, c.cut) {
+					t.Errorf("%s: %d lines, cut %v; want %d, cut %v", c.name, len(got), cut, len(c.want), c.cut)
+				}
+			}
+		}},
+		{"scan lines: false stops the read, no error, the FileInfo kept", func(t *testing.T, w world) {
+			w.file("log", "one\ntwo\n", 0o640)
+			n := 0
+			fi, err := w.sys.ScanLines(ctx, w.path("log"), func(host.Line) bool { n++; return false })
+			if err != nil || n != 1 || fi == nil || fi.Size() != 8 {
+				t.Errorf("n = %d, fi = %v, err = %v", n, fi, err)
+			}
+		}},
+		{"scan lines: refusals", func(t *testing.T, w world) {
+			w.file("keys", "root:x\n", 0o600)
+			w.symlink("link", w.path("keys"))
+			w.symlink("dangling", w.path("nowhere"))
+			w.dir("d")
+			for name, want := range map[string]error{
+				"link":     host.ErrSymlink,
+				"dangling": host.ErrSymlink,
+				"d":        syscall.EISDIR,
+				"missing":  fs.ErrNotExist,
+			} {
+				fi, err := w.sys.ScanLines(ctx, w.path(name), func(host.Line) bool {
+					t.Errorf("%s: a line", name)
+					return true
+				})
+				if !errors.Is(err, want) || fi != nil {
+					t.Errorf("%s: fi = %v, err = %v, want %v", name, fi, err, want)
+				}
+			}
+			done, cancel := context.WithCancel(ctx)
+			cancel()
+			if _, err := w.sys.ScanLines(done, w.path("keys"), func(host.Line) bool {
+				t.Error("a line under a done context")
+				return true
+			}); !errors.Is(err, context.Canceled) {
+				t.Errorf("done: err = %v", err)
+			}
+		}},
+		{"scan lines: guarded, a link on the way only from a trusted directory", func(t *testing.T, w world) {
+			w.dir("real")
+			w.file("real/log", "one\n", 0o640)
+			w.symlink("alias", w.path("real"))
+			if got, _ := scanned(t, w, "alias/log"); !reflect.DeepEqual(got, []string{"one"}) {
+				t.Errorf("through a trusted directory: %q", got)
+			}
+			w.dir("open")
+			if err := w.sys.Chmod(ctx, w.path("open"), 0o777); err != nil {
+				t.Fatal(err)
+			}
+			w.symlink("open/alias", w.path("real"))
+			if _, err := w.sys.ScanLines(ctx, w.path("open/alias/log"), func(host.Line) bool { return true }); !errors.Is(err, host.ErrSymlinkParent) {
+				t.Errorf("through an untrusted directory: err = %v, want ErrSymlinkParent", err)
+			}
 		}},
 		{"readlink: a relative target as stored, a file, a missing path", func(t *testing.T, w world) {
 			w.file("f", "", 0o600)

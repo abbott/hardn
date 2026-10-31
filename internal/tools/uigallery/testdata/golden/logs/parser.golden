@@ -9,9 +9,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The slice's broken␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mparser. origin/main's GetLogs on a real line␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the stand-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min's fix. The screen needs a level only to colour WARNING and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mERROR.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogview.ParseLine, the fix. The screen needs a level only to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolour WARNING and ERROR.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
@@ -24,7 +24,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLevel␛[m                ␛[38;2;129;134;156m12:00:05␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mMessage␛[m              ␛[38;2;129;134;156mERROR: Failed to configure firewall:…␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mparseLogLine, the stand-in␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogview.ParseLine␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTime␛[m                 ␛[38;2;129;134;156m2026/10/20 12:00:05␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLevel␛[m                ␛[38;2;129;134;156mERROR␛[m$
@@ -39,9 +39,9 @@ $
 # Inferred from v0.3.2 and origin/main. The slice's broken$
 # parser. origin/main's GetLogs on a real line$
 # (menu/logs_parser.golden; file_logs_repository.go:51-57;$
-# nothing calls it but its wrappers and tests), and the stand-$
-# in's fix. The screen needs a level only to colour WARNING and$
-# ERROR.$
+# nothing calls it but its wrappers and tests), and$
+# logview.ParseLine, the fix. The screen needs a level only to$
+# colour WARNING and ERROR.$
 $
 # The line -----------------------------------------------------$
 $
@@ -54,7 +54,7 @@ $
    -  Level                12:00:05$
    -  Message              ERROR: Failed to configure firewal...$
 $
-# parseLogLine, the stand-in -----------------------------------$
+# logview.ParseLine --------------------------------------------$
 $
    -  Time                 2026/10/20 12:00:05$
    -  Level                ERROR$
@@ -69,9 +69,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The slice's broken␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mparser. origin/main's GetLogs on a real line␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-in's fix. The screen needs a level only to colour␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWARNING and ERROR.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogview.ParseLine, the fix. The screen needs a level only␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto colour WARNING and ERROR.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
@@ -87,7 +87,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mMessage␛[m$
       ␛[38;2;129;134;156mERROR: Failed to configure firewall: exit status 1␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mparseLogLine, the stand-in␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogview.ParseLine␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTime␛[m$
       ␛[38;2;129;134;156m2026/10/20 12:00:05␛[m$
@@ -105,9 +105,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The slice's broken␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mparser. origin/main's GetLogs on a real line␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(menu/logs_parser.golden; file_logs_repository.go:51-57;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and the stand-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min's fix. The screen needs a level only to colour WARNING and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mERROR.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing calls it but its wrappers and tests), and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogview.ParseLine, the fix. The screen needs a level only to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolour WARNING and ERROR.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mThe line␛[m ␛[38;2;48;52;64m-----------------------------------------------------␛[m$
 $
@@ -120,7 +120,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLevel␛[m                ␛[38;2;129;134;156m12:00:05␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mMessage␛[m              ␛[38;2;129;134;156mERROR: Failed to configure firewal...␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mparseLogLine, the stand-in␛[m ␛[38;2;48;52;64m-----------------------------------␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogview.ParseLine␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTime␛[m                 ␛[38;2;129;134;156m2026/10/20 12:00:05␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLevel␛[m                ␛[38;2;129;134;156mERROR␛[m$

@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "unknown",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "check",
+  "result": {
+    "outcome": "nothing-to-do",
+    "exitCode": 0,
+    "id": "",
+    "risk": ""
+  },
+  "changes": [],
+  "status": [],
+  "findings": [
+    {
+      "code": "DETAILS_UNREADABLE",
+      "detail": "os and kernel not read",
+      "source": "/proc/sys/kernel/osrelease, /proc/uptime",
+      "control": "",
+      "change": ""
+    },
+    {
+      "code": "DETAILS_UNREADABLE",
+      "detail": "host and ips not read",
+      "source": "ip addr",
+      "control": "",
+      "change": ""
+    },
+    {
+      "code": "DETAILS_UNREADABLE",
+      "detail": "users not read",
+      "source": "/etc/passwd",
+      "control": "",
+      "change": ""
+    },
+    {
+      "code": "DETAILS_UNREADABLE",
+      "detail": "cpu and load not read",
+      "source": "/proc/cpuinfo, /proc/loadavg",
+      "control": "",
+      "change": ""
+    },
+    {
+      "code": "DETAILS_UNREADABLE",
+      "detail": "disk not read",
+      "source": "/proc/self/mounts, df",
+      "control": "",
+      "change": ""
+    },
+    {
+      "code": "DETAILS_UNREADABLE",
+      "detail": "memory not read",
+      "source": "/proc/meminfo",
+      "control": "",
+      "change": ""
+    },
+    {
+      "code": "DETAILS_UNREADABLE",
+      "detail": "last login not read",
+      "source": "lslogins",
+      "control": "",
+      "change": ""
+    }
+  ],
+  "errors": [],
+  "details": {
+    "kernel": null,
+    "uptime": null,
+    "addresses": null,
+    "users": null,
+    "cpu": null,
+    "disk": null,
+    "memory": null,
+    "logins": null
+  }
+}

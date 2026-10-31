@@ -6,22 +6,20 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details/debian13␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, inferred from origin/main (unreleased), read from a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host, by real code where there is some (detect, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheader probe, accounts) and by the gallery's stand-ins␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156melsewhere, unit (b)'s to build. It only reads: no plan, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the real reader (pkg/engine/details), its rows and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlayout unit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-whole, export-none: the report, Refresh and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mReturn. Last Login is lslogins' newest login for root and each␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muser (decision 3 (a)), the same answer as a user and as root,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156man account with none answering blanks (vm-runs/s1/02-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin.log).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreport, Refresh and Return. Last Login is lslogins' newest␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin for root and each user (decision 3 (a)), the same answer␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas a user and as root, an account with none answering blanks␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -123,22 +121,20 @@ $
 # play system-details/debian13 ---------------------------------$
 $
 # Note$
-# Play mode, mocks: the System Details screen proposed for slice$
-# 1, inferred from origin/main (unreleased), read from a$
-# simulated host, by real code where there is some (detect, the$
-# header probe, accounts) and by the gallery's stand-ins$
-# elsewhere, unit (b)'s to build. It only reads: no plan, no$
-# y/N, no journal. Nothing on this machine changes: every$
-# command and file is the fake's.$
+# Play mode, mocks: the System Details screen of slice 1,$
+# inferred from origin/main (unreleased), read from a simulated$
+# host by the real reader (pkg/engine/details), its rows and$
+# layout unit (c)'s to build. It only reads: no plan, no y/N, no$
+# journal. Nothing on this machine changes: every command and$
+# file is the fake's.$
 $
 # Info: system-details/debian13$
 # web-01.example.net runs Debian 13, as the VM of 2026-10-21$
-# (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo.$
-# Treatment report-whole, export-none: the report, Refresh and$
-# Return. Last Login is lslogins' newest login for root and each$
-# user (decision 3 (a)), the same answer as a user and as root,$
-# an account with none answering blanks (vm-runs/s1/02-$
-# login.log).$
+# (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. The$
+# report, Refresh and Return. Last Login is lslogins' newest$
+# login for root and each user (decision 3 (a)), the same answer$
+# as a user and as root, an account with none answering blanks$
+# (vm-runs/s1/02-login.log).$
 $
 # System Details ###############################################$
 $
@@ -240,22 +236,20 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details/debian13␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 1, inferred from origin/main (unreleased), read from␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma simulated host, by real code where there is some␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(detect, the header probe, accounts) and by the gallery's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins elsewhere, unit (b)'s to build. It only reads:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno plan, no y/N, no journal. Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the real reader (pkg/engine/details),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits rows and layout unit (c)'s to build. It only reads: no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan, no y/N, no journal. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-whole, export-none: the report, Refresh␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand Return. Last Login is lslogins' newest login for root␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand each user (decision 3 (a)), the same answer as a user␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand as root, an account with none answering blanks (vm-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe report, Refresh and Return. Last Login is lslogins'␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnewest login for root and each user (decision 3 (a)), the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msame answer as a user and as root, an account with none␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswering blanks (vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -387,22 +381,20 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mplay system-details/debian13␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1, inferred from origin/main (unreleased), read from a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host, by real code where there is some (detect, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mheader probe, accounts) and by the gallery's stand-ins␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156melsewhere, unit (b)'s to build. It only reads: no plan, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the real reader (pkg/engine/details), its rows and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlayout unit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-whole, export-none: the report, Refresh and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mReturn. Last Login is lslogins' newest login for root and each␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muser (decision 3 (a)), the same answer as a user and as root,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156man account with none answering blanks (vm-runs/s1/02-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin.log).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreport, Refresh and Return. Last Login is lslogins' newest␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin for root and each user (decision 3 (a)), the same answer␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas a user and as root, an account with none answering blanks␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m###############################################␛[m$
 $

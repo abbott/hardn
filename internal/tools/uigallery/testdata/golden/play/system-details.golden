@@ -48,12 +48,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-whole, export-none: the report, Refresh and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mReturn. Last Login is lslogins' newest login for root and each␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muser (decision 3 (a)), the same answer as a user and as root,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156man account with none answering blanks (vm-runs/s1/02-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin.log).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreport, Refresh and Return. Last Login is lslogins' newest␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogin for root and each user (decision 3 (a)), the same answer␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas a user and as root, an account with none answering blanks␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -187,12 +186,11 @@ $
 $
 # Info: system-details/debian13$
 # web-01.example.net runs Debian 13, as the VM of 2026-10-21$
-# (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo.$
-# Treatment report-whole, export-none: the report, Refresh and$
-# Return. Last Login is lslogins' newest login for root and each$
-# user (decision 3 (a)), the same answer as a user and as root,$
-# an account with none answering blanks (vm-runs/s1/02-$
-# login.log).$
+# (vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo. The$
+# report, Refresh and Return. Last Login is lslogins' newest$
+# login for root and each user (decision 3 (a)), the same answer$
+# as a user and as root, an account with none answering blanks$
+# (vm-runs/s1/02-login.log).$
 $
 # System Details ###############################################$
 $
@@ -348,11 +346,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vmtest.md §8.5): kernel 6.12.113+deb13-cloud-amd64, sudo.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment report-whole, export-none: the report, Refresh␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand Return. Last Login is lslogins' newest login for root␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand each user (decision 3 (a)), the same answer as a user␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand as root, an account with none answering blanks (vm-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns/s1/02-login.log).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe report, Refresh and Return. Last Login is lslogins'␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnewest login for root and each user (decision 3 (a)), the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msame answer as a user and as root, an account with none␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswering blanks (vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

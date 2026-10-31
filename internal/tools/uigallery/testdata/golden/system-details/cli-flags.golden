@@ -10,7 +10,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main parses and ignores, -E/--export, -S/--section, -␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mO/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m42, the code using them commented out at :95-121). What they␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbecome is §3.11's: not approved, so this is a proposal.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbecome is decision 1 (a): §3.11's system-details change alone␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis approved, narrowed; unit (d) builds it.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mToday␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
 $
@@ -24,10 +25,6 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-S, --section␛[m        ␛[38;2;129;134;156mRefused, exit 2␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m         ␛[38;2;129;134;156mRefused: use > file␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUntil 3.11 is decided␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
-$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -38,7 +35,8 @@ $
 # origin/main parses and ignores, -E/--export, -S/--section, -$
 # O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-$
 # 42, the code using them commented out at :95-121). What they$
-# become is §3.11's: not approved, so this is a proposal.$
+# become is decision 1 (a): §3.11's system-details change alone$
+# is approved, narrowed; unit (d) builds it.$
 $
 # Today --------------------------------------------------------$
 $
@@ -52,10 +50,6 @@ $
    -  -S, --section        Refused, exit 2$
    -  -E, --export         Refused: use > file$
 $
-# Until 3.11 is decided ----------------------------------------$
-$
-   -  All five             Parsed and ignored, as today$
-$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -66,8 +60,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main parses and ignores, -E/--export, -S/--section,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m-O/--format, --json, --yaml␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/cmd/system_details_cmd.go:38-42, the code using them␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommented out at :95-121). What they become is §3.11's:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot approved, so this is a proposal.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommented out at :95-121). What they become is decision 1␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(a): §3.11's system-details change alone is approved,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnarrowed; unit (d) builds it.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mToday␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
 $
@@ -87,11 +82,6 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m$
       ␛[38;2;129;134;156mRefused: use > file␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUntil 3.11 is decided␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m$
-      ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
-$
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
@@ -102,7 +92,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main parses and ignores, -E/--export, -S/--section, -␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mO/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m42, the code using them commented out at :95-121). What they␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbecome is §3.11's: not approved, so this is a proposal.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbecome is decision 1 (a): §3.11's system-details change alone␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis approved, narrowed; unit (d) builds it.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mToday␛[m ␛[38;2;48;52;64m--------------------------------------------------------␛[m$
 $
@@ -115,9 +106,5 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-O text␛[m              ␛[38;2;129;134;156mAccepted, with a warning␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-S, --section␛[m        ␛[38;2;129;134;156mRefused, exit 2␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m-E, --export␛[m         ␛[38;2;129;134;156mRefused: use > file␛[m$
-$
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUntil 3.11 is decided␛[m ␛[38;2;48;52;64m----------------------------------------␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAll five␛[m             ␛[38;2;129;134;156mParsed and ignored, as today␛[m$
 $
 $

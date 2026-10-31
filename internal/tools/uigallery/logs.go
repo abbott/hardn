@@ -2,42 +2,36 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
-	"io/fs"
-	"math"
-	"path"
+	"slices"
 	"strconv"
 	"strings"
-	"syscall"
-	"unicode"
-	"unicode/utf8"
 
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
-	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
-// The Logs mocks (refactor plan slice 1, unit (a), next/s1-gallery): a
-// proposal of the Logs screen, main menu 10, for the maintainer's review,
-// nothing of it wired into hardn. It starts from origin/main's screen,
+// The Logs mocks (refactor plan slice 1, unit (a), next/s1-gallery, adopted
+// 2026-10-30): the Logs screen, main menu 10, for unit (c) to build, nothing of
+// it wired into hardn. It starts from origin/main's screen,
 // which prints the whole file (pkg/menu/logs_menu.go:32-63), v0.3.2's item
 // and P-18. Each mock's note opens with logsLabel, but those in origin/main's
 // own words.
 //
-// It only reads, so it has no plan, no y/N and no journal. Nothing on the
-// new side runs a pager or reads a log for display, so all of the reading
-// is the gallery's, each a stand-in for unit (b)'s work, labelled so here
-// and in the page: readLog, the file hardn writes read through host.System;
-// safeLine, what makes a line safe to show; parseLogLine, the fixed parser;
-// and pagerFor, which says what a pager would be. No golden can run a pager:
-// the gallery says what the screen says and the command hardn would run.
+// It only reads, so it has no plan, no y/N and no journal. Real code reads a
+// simulated host: logview.Read for the log, the file hardn writes, what makes a
+// line safe to show and its level, and logview.Pager for what a pager would be
+// (next/s1-readers). The sections, rows and layout are still the gallery's, unit
+// (c)'s to build. No golden can run a pager: the gallery says what the screen
+// says and the command hardn would run.
 //
 // "logs" lists the mocks with no input; "play logs" is the menu of the
 // hosts and "play logs/<host>" the screen on one.
@@ -60,10 +54,14 @@ var logsLinks = map[string]string{mainMenuMock + "/10": logsMainHost}
 
 // hardnLog is the file hardn writes, whatever hardn.yml's logFile says
 // (cmd/hardn/main.go:57).
-const hardnLog = output.LegacyLogPath
+const hardnLog = logview.File
+
+// galleryTerm is the TERM the mocks pass logview.Pager: unit (d) reads hardn's.
+const galleryTerm = "xterm-256color"
 
 // The screen's words: the main menu's label for the title, the decided
-// heading and prompt (screen-backup.md §5, P-29 (a)); the rest proposed.
+// heading and prompt (screen-backup.md §5, P-29 (a)); the rest decided
+// (gallery-system-details.md §6).
 const (
 	logsTitle    = "Logs"
 	secLog       = "File"
@@ -84,25 +82,6 @@ const (
 	cliRunWith  = "Run it with %s."
 )
 
-// The treatments the maintainer chooses between
-// (gallery-system-details.md): how the log reads. Each host draws a screen of
-// the last lines, as many as the terminal holds, an item opening the pager
-// (read-tail, in the notes), unless it names read-pager.
-const (
-	readPager = "read-pager" // P-18 as written: the main menu's item runs the pager at once; the tail screen only without one
-)
-
-// logState is what readLog found.
-type logState uint8
-
-// The states.
-const (
-	logLines   logState = iota // lines to show
-	logMissing                 // no file there
-	logUnread                  // a file that cannot be read
-	logEmpty                   // a file with nothing in it
-)
-
 // logHost is one simulated host the Logs mocks run on.
 type logHost struct {
 	// name is the host's, after logsPrefix: "lines".
@@ -113,8 +92,6 @@ type logHost struct {
 	note string
 	// host returns the simulated host, fresh.
 	host func() *fakeHost
-	// read is the treatment it draws; "" is read-tail.
-	read string
 }
 
 // startupLines are what every start of hardn with a hardn.yml writes before
@@ -181,21 +158,22 @@ func logOn(content string) func() *fakeHost {
 }
 
 // withLess installs less, as Debian's and Ubuntu's own package, GNU less 668
-// on their VMs (vm-runs/s1/01-tools.log).
+// on their VMs, its first line as they print it (vm-runs/s1/01-tools.log:22, :88).
 func withLess(h *fakeHost) *fakeHost {
 	h.f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
+	h.f.Respond(hostfake.Response{Stdout: "less 668 (GNU regular expressions)\n"}, "less", "--version")
 	return h
 }
 
 // logHosts are the hosts, in the menu's order: the log's states, then the
-// other pager's and the treatment on the same logs.
+// hosts with no pager.
 func logHosts() []logHost {
 	const deb = hostFQDN + " runs Debian 13, less installed. "
 	return []logHost{
 		{name: "lines", label: "A log with lines", about: "Fits the screen", host: logOn(logOf(logSample[len(logSample)-4:])),
-			note: deb + "Treatment read-tail: a log of 4 lines, as many as the terminal holds: 3 at 80x24, all at 80x40, as three wrap. WARNING and ERROR in the warning's colour."},
+			note: deb + "A log of 4 lines, as many as the terminal holds: 3 at 80x24, all at 80x40, as three wrap. WARNING and ERROR in the warning's colour."},
 		{name: "long", label: "A long log", about: "1204 lines", host: logOn(longLog()),
-			note: deb + "Treatment read-tail: as many of the last lines as the terminal holds: room for 6 rows at 80x24, 5 drawn, and 22 at 80x40 (-height 40), a wrapped line taking two; the newest are this start's own (config.go:246; osdetect.go:93-95). origin/main prints all 1204."},
+			note: deb + "As many of the last lines as the terminal holds: room for 6 rows at 80x24, 5 drawn, and 22 at 80x40 (-height 40), a wrapped line taking two; the newest are this start's own (config.go:246; osdetect.go:93-95). origin/main prints all 1204."},
 		{name: "missing", label: "No log yet", about: "No file", host: func() *fakeHost { return withLess(simulate(debian13Platform)) },
 			note: deb + "No file there. origin/main's main() makes it at every start as root, before flags (cmd/hardn/main.go:57; logging.go:38), so today this shows only where that open failed; next/p3-startup moves that write."},
 		{name: "unreadable", label: "Unreadable", about: "A directory there", host: unreadableLog,
@@ -207,13 +185,9 @@ func logHosts() []logHost {
 		{name: "elsewhere", label: "logFile elsewhere", about: "hardn.yml says another path", host: elsewhereLog,
 			note: deb + "hardn.yml says logFile: /srv/log/hardn.log, where nothing writes. The screen reads the file hardn writes and says so; origin/main reads logFile, not what main() opens (P-18; config.go:324)."},
 		{name: "alpine323", label: "Alpine 3.23", about: "BusyBox's less", host: alpineLog,
-			note: hostFQDN + " runs Alpine 3.23, whose less is a link to BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes nothing there: s still prompts Log file, E and :e Examine (vm-runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so its write did not run; E did try a name that does not exist. That s writes and E opens any path as root is read (miscutils/less.c, master). So treatment pager-less gives it no Open item (decision 7). With Alpine's less package there is one (pager-commands)."},
+			note: hostFQDN + " runs Alpine 3.23, whose less is a link to BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes nothing there: s still prompts Log file, E and :e Examine (vm-runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so its write did not run; E did try a name that does not exist. That s writes and E opens any path as root is read (miscutils/less.c, master). It refuses less --version, so it has no Open item (decision 7 (a)). With Alpine's less package there is one (pager-commands)."},
 		{name: "no-pager", label: "No pager", about: "No less installed", host: noPagerLog,
 			note: hostFQDN + " runs Debian 13 with no less: no Open item, the last lines alone."},
-		{name: "read-pager", label: "Treatment: pager first", about: "Item 10 runs less", host: logOn(longLog()), read: readPager,
-			note: deb + "Treatment read-pager, P-18 as written: the main menu's 10 runs the pager at once, and returns there. A golden cannot run it: this says what would run."},
-		{name: "read-pager-none", label: "Pager first, no pager", about: "The last lines instead", host: noPagerLog, read: readPager,
-			note: hostFQDN + " runs Debian 13 with no less: treatment read-pager falls back to read-tail's screen, P-18's \"otherwise the last N lines\"."},
 	}
 }
 
@@ -221,6 +195,7 @@ func logHosts() []logHost {
 func noPagerLog() *fakeHost {
 	h := simulate(debian13Platform)
 	h.f.AddFile(hardnLog, []byte(logOf(logSample)), 0o644, 0, 0)
+	h.f.Respond(hostfake.Response{Err: fmt.Errorf("host: less: %w", host.ErrNotFound)}, "less", "--version") // as Run says of a host with no less
 	return h
 }
 
@@ -236,21 +211,25 @@ func elsewhereLog() *fakeHost {
 	return logOn(logOf(logSample))().withHardnYML("logFile: /srv/log/hardn.log\n")
 }
 
-// alpineLessPackage is Alpine 3.23 with the less package: GNU less's own file
-// [I, not run: no VM has the package].
+// alpineLessPackage is Alpine 3.23 with the less package: GNU less's own file,
+// its version line of that form, and its number synthetic [I, not run: no VM has
+// the package].
 func alpineLessPackage() *fakeHost {
 	h := simulate(alpine323Platform)
 	h.f.AddFile("/usr/bin/less", []byte("ELF"), 0o755, 0, 0)
+	h.f.Respond(hostfake.Response{Stdout: "less 643 (PCRE2 regular expressions)\n"}, "less", "--version")
 	h.f.AddFile(hardnLog, []byte(logOf(logSample)), 0o644, 0, 0)
 	return h
 }
 
-// alpineLog is Alpine 3.23 with BusyBox's less: a link to /bin/busybox
-// (vm-runs/s1/01-tools.log).
+// alpineLog is Alpine 3.23 with BusyBox's less: a link to /bin/busybox, which
+// refuses --version (vm-runs/s1/01-tools.log:151-153), exit 1
+// (15-readers-alpine323-vm-*.log).
 func alpineLog() *fakeHost {
 	h := simulate(alpine323Platform)
 	h.f.AddFile("/bin/busybox", []byte("ELF"), 0o755, 0, 0)
 	h.f.AddSymlink("/usr/bin/less", "/bin/busybox")
+	h.f.Respond(hostfake.Response{Stderr: "less: unrecognized option: version\n", ExitCode: 1}, "less", "--version")
 	h.f.AddFile(hardnLog, []byte(logOf(logSample)), 0o644, 0, 0)
 	return h
 }
@@ -265,189 +244,60 @@ func findLogHost(name string) (logHost, bool) {
 	return logHost{}, false
 }
 
-// logReading is what readLog read: the stand-in for what unit (b) builds.
+// logReading is what the real readers read, and what the gallery adds to it.
 type logReading struct {
-	path      string
-	state     logState
-	reason    string // why it cannot be read
-	size      int64
-	lines     []string // every line, safe to show
-	elsewhere string   // hardn.yml's logFile, where it is not the file hardn writes
-	pager     pagerChoice
+	logview.Reading
+	elsewhere string           // hardn.yml's logFile, where it is not the file hardn writes
+	pager     *logview.Command // what Open would run; nil for no Open item
 }
 
-// readLog reads the file hardn writes through sys, whatever hardn.yml's
-// logFile says, which it reads only to say so. It changes nothing. It reads
-// the whole file, as origin/main does: nothing rotates the log, so unit
-// (b)'s reader should read its end alone, which host.System has no call for.
+// readLog reads the log through sys with the real reader, and asks for the pager
+// only where there is something to open. hardn.yml's logFile is read only to say
+// so, and the mocks' reading of it, statusConfig, is the caller's in hardn (unit
+// (c)'s and (d)'s). It changes nothing.
 func readLog(ctx context.Context, sys host.System) logReading {
-	r := logReading{path: hardnLog, pager: pagerFor(ctx, sys, noEnv, false)}
-	if cfg, err := statusConfig(ctx, sys); err == nil && cfg.LogFile != "" && cfg.LogFile != hardnLog {
-		r.elsewhere = cfg.LogFile
+	r := logReading{Reading: logview.Read(ctx, sys)}
+	if cfg, err := statusConfig(ctx, sys); err == nil {
+		r.elsewhere = logview.Elsewhere(cfg.LogFile)
 	}
-	fi, err := sys.Stat(ctx, r.path)
-	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		r.state = logMissing
-		return r
-	case err != nil:
-		r.state, r.reason = logUnread, reasonOf(err)
-		return r
-	}
-	r.size = fi.Size()
-	data, err := sys.ReadFile(ctx, r.path)
-	if err != nil {
-		r.state, r.reason = logUnread, reasonOf(err)
-		return r
-	}
-	for _, l := range host.TailLines(data, math.MaxInt) {
-		r.lines = append(r.lines, safeLine(l))
-	}
-	if len(r.lines) == 0 {
-		r.state = logEmpty
+	if r.State == logview.Lines {
+		if c, ok := logview.Pager(ctx, sys, galleryTerm); ok {
+			r.pager = &c
+		}
 	}
 	return r
 }
 
-// reasonOf is err's own words, without the path, which the row names.
-func reasonOf(err error) string {
-	var pe *fs.PathError
-	if errors.As(err, &pe) {
-		return pe.Err.Error()
-	}
-	return err.Error()
+// commandWords is c as a shell would read it, RunInteractive adding Run's PATH.
+func commandWords(c logview.Command) string {
+	return strings.Join(slices.Concat(c.Env, c.Argv), " ")
 }
 
-// safeLine makes a line of the log safe to show, keeping it readable: what
-// a terminal would act on shows as it does in less and cat -v, ^[ for ESC,
-// ^G for BEL; a character that draws as nothing, or as a blank other than the
-// space, as its code point, as a plan shows it (component's raw, invisible); a
-// tab as 4 spaces, as raw; a byte that is not UTF-8 as <0xe9>. Everything else
-// keeps its characters, typographic ones too. A stand-in for unit (b): the
-// row components map or strip such text (component's text and clean,
-// ctx.go:284), which would hide what a line held.
-func safeLine(s string) string {
-	var b strings.Builder
-	for len(s) > 0 {
-		r, n := utf8.DecodeRuneInString(s)
-		switch {
-		case r == utf8.RuneError && n == 1:
-			fmt.Fprintf(&b, "<0x%02x>", s[0])
-		case r == '\t':
-			b.WriteString("    ")
-		case r < 0x20:
-			b.WriteByte('^')
-			b.WriteByte(byte(r) + 0x40)
-		case r == 0x7f:
-			b.WriteString("^?")
-		case unicode.IsControl(r), r != ' ' && unicode.In(r, unicode.Cf, unicode.Zs, unicode.Zl, unicode.Zp, unicode.Variation_Selector, unicode.Other_Default_Ignorable_Code_Point):
-			fmt.Fprintf(&b, "<U+%04X>", r)
-		default:
-			b.WriteRune(r)
-		}
-		s = s[n:]
-	}
-	return b.String()
-}
-
-// logLevels are the words logging.go writes after the date and time.
-var logLevels = []string{"ERROR", "WARNING", "INFO", "SUCCESS", "INSTALLED"}
-
-// logLine is one line of the log, parsed.
-type logLine struct{ Time, Level, Message string }
-
-// parseLogLine is the fixed parser, a stand-in for unit (b)'s: Go's
-// log.LstdFlags date and time, the level, the message. A line of any other
-// shape is not a parsed line: it stays as it is, a message with no level.
-// origin/main's GetLogs splits on the first two spaces, so its Time is the
-// date, its Level the clock and its Message "INFO: ..." (menu/logs_parser.golden;
-// file_logs_repository.go:51-57), and nothing calls it but its wrappers and tests.
-func parseLogLine(line string) logLine {
-	f := strings.SplitN(line, " ", 3)
-	if len(f) == 3 && len(f[0]) == 10 && len(f[1]) == 8 {
-		if word, msg, ok := strings.Cut(f[2], ": "); ok {
-			for _, l := range logLevels {
-				if word == l {
-					return logLine{Time: f[0] + " " + f[1], Level: l, Message: msg}
-				}
-			}
-		}
-	}
-	return logLine{Message: line}
-}
-
-// pagerChoice is what would read the log; name is "" for no pager. busybox
-// says the less found is BusyBox's: chosen only under pager-env, without
-// LESSSECURE, which it does not read.
-type pagerChoice struct {
-	name    string
-	argv    []string
-	env     string // what it needs set, "NAME=value"
-	busybox bool
-}
-
-// command is the choice's command line, reading file.
-func (p pagerChoice) command(file string) string {
-	cmd := strings.Join(append(append([]string(nil), p.argv...), file), " ")
-	if p.env != "" {
-		return p.env + " " + cmd
-	}
-	return cmd
-}
-
-// noEnv is an environment with nothing in it.
-func noEnv(string) string { return "" }
-
-// pagerFor is what would read the log: with useEnv (treatment pager-env,
-// P-18 as written) $PAGER where it is set, its words as the argv, through
-// no shell; else less, found where hardn finds a command (host.SearchPath),
-// with LESSSECURE=1 (treatment pager-less, proposed), which turned off !, |,
-// v, E and :e in GNU less 668 on the VMs, as a user, not as root
-// (vm-runs/s1/04-less2-*); else none. BusyBox's less has no such mode: the
-// variable changed nothing on the VM, and miscutils/less.c (master) reads LESS
-// alone from the environment, at :1836, its s and E keys writing and opening any
-// path, :1554-1566, :1212, read: no path was typed at s, and E tried only a name
-// that does not exist. So pager-less does not choose it, and pager-env runs it
-// as it is. It goes by the link, and where it cannot tell chooses none; unit (b)
-// asks less --version (the page, §8). A stand-in: nothing on the new side runs one,
-// and host.System's Run pipes a command's output and gives it no terminal.
-func pagerFor(ctx context.Context, sys host.System, getenv func(string) string, useEnv bool) pagerChoice {
-	if useEnv {
-		if f := strings.Fields(getenv("PAGER")); len(f) > 0 {
-			return pagerChoice{name: path.Base(f[0]), argv: f}
-		}
-	}
-	for _, dir := range strings.Split(host.SearchPath, ":") {
-		if _, err := sys.Stat(ctx, dir+"/less"); err != nil {
-			continue
-		}
-		_, target, err := sys.ResolveSymlink(ctx, dir+"/less")
-		switch {
-		case err != nil && !errors.Is(err, syscall.EINVAL): // EINVAL: not a link
-			return pagerChoice{}
-		case err != nil || path.Base(target) != "busybox":
-			return pagerChoice{name: "less", argv: []string{"less"}, env: "LESSSECURE=1"}
-		case useEnv:
-			return pagerChoice{name: "less", argv: []string{"less"}, busybox: true}
-		}
-		return pagerChoice{busybox: true}
-	}
-	return pagerChoice{}
+// pipeLines is every line of the log as hardn -p writes it off a terminal:
+// logview.Each, in memory bounded by the line. Unit (d) writes each as it reads,
+// and says a failure in the Reading's words.
+func pipeLines(ctx context.Context, sys host.System) (string, error) {
+	var out []string
+	r := logview.Each(ctx, sys, func(l logview.Line) bool {
+		out = append(out, l.Text)
+		return true
+	})
+	return strings.Join(out, "\n"), r.Err
 }
 
 // logRows are lines of the log as code, as an error report's captured output
 // (component's code and raw; README §9.1, "captured output"): no bullet, from
 // theme.LabelCol, every character kept in both glyph sets, never cut. WARNING
 // and ERROR take the warning's colour, the rest the output's, muted.
-func logRows(c component.Ctx, lines []string) []string {
+func logRows(c component.Ctx, lines []logview.Line) []string {
 	var out []string
 	for _, l := range lines {
 		p := c.Theme.Output.Render
-		switch parseLogLine(l).Level {
-		case "WARNING", "ERROR":
+		switch l.Level {
+		case logview.LevelWarning, logview.LevelError:
 			p = c.Theme.KeyValue.ValueWarn.Render
 		}
-		out = append(out, codeRows(c, []string{l}, p)...)
+		out = append(out, codeRows(c, []string{l.Text}, p)...)
 	}
 	return out
 }
@@ -455,8 +305,8 @@ func logRows(c component.Ctx, lines []string) []string {
 // codeRows lays out lines as component's code does (ctx.go:426), which is not
 // exported and which a section's rows, a BulletList, cannot hold: from
 // theme.LabelCol, breaking where the content width ends at the last space or
-// else inside a word, each further piece opening with Glyphs.Wrap. A stand-in
-// for unit (c): a section that holds code is a new block in pkg/ui, a deviation
+// else inside a word, each further piece opening with Glyphs.Wrap. Unit (c)'s to
+// replace: a section that holds code is a new block in pkg/ui, a deviation
 // to log.
 func codeRows(c component.Ctx, lines []string, p paint) []string {
 	w := contentWidth(c.Env) - theme.LabelCol
@@ -503,16 +353,16 @@ func sizeWords(n int64) string {
 
 // fileSection is the section that names the file and says its state.
 func (r logReading) fileSection() screen.Section {
-	rows := []component.KeyValue{{Key: rowFile, Value: r.path}}
-	switch r.state {
-	case logMissing:
+	rows := []component.KeyValue{{Key: rowFile, Value: r.Path}}
+	switch r.State {
+	case logview.NoLog:
 		rows = append(rows, component.KeyValue{Key: noLogYet, State: component.ValueNone})
-	case logUnread:
-		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(cantReadIt, r.reason), State: component.ValueWarn})
-	case logEmpty:
+	case logview.Unreadable:
+		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(cantReadIt, r.Reason), State: component.ValueWarn})
+	case logview.Empty:
 		rows = append(rows, component.KeyValue{Key: logEmptyRow, State: component.ValueNone})
 	default:
-		rows = append(rows, component.KeyValue{Key: rowSize, Value: sizeWords(r.size)})
+		rows = append(rows, component.KeyValue{Key: rowSize, Value: sizeWords(r.Size)})
 	}
 	if r.elsewhere != "" {
 		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(logFileOff, r.elsewhere), State: component.ValueWarn})
@@ -522,11 +372,11 @@ func (r logReading) fileSection() screen.Section {
 
 // tailHeader is the header over the last n lines.
 func (r logReading) tailHeader(n int) component.SectionHeader {
-	title := fmt.Sprintf(lastOf, n, len(r.lines))
+	title := fmt.Sprintf(lastOf, n, r.Total)
 	switch {
-	case n == len(r.lines) && n == 1:
+	case n == r.Total && n == 1:
 		title = oneLine
-	case n == len(r.lines):
+	case n == r.Total:
 		title = fmt.Sprintf(allLines, n)
 	}
 	return component.SectionHeader{Title: title}
@@ -534,14 +384,15 @@ func (r logReading) tailHeader(n int) component.SectionHeader {
 
 // tailRows are the last n lines, drawn.
 func (r logReading) tailRows(c component.Ctx, n int) string {
-	return strings.Join(logRows(c, r.lines[len(r.lines)-n:]), "\n")
+	return strings.Join(logRows(c, r.Last[len(r.Last)-n:]), "\n")
 }
 
 // fitTail is as many of the last lines as room rows hold, a wrapped line
-// counting each of its rows, measured as they draw: at least one.
+// counting each of its rows, measured as they draw: at least one, at most the
+// logview.MaxLast that Read keeps.
 func (r logReading) fitTail(c component.Ctx, room int) int {
 	n := 0
-	for n < len(r.lines) && len(logRows(c, r.lines[len(r.lines)-n-1:])) <= room {
+	for n < len(r.Last) && len(logRows(c, r.Last[len(r.Last)-n-1:])) <= room {
 		n++
 	}
 	return max(1, n)
@@ -583,8 +434,8 @@ func (r logReading) items() []logItem {
 	add := func(label, about string, open bool) {
 		out = append(out, logItem{item: component.MenuItem{Key: strconv.Itoa(len(out) + 1), Label: label, Description: about}, open: open})
 	}
-	if r.state == logLines && r.pager.name != "" {
-		add(itemOpen, fmt.Sprintf(aboutLogOpen, r.pager.name), true)
+	if r.pager != nil {
+		add(itemOpen, fmt.Sprintf(aboutLogOpen, r.pager.Argv[0]), true)
 	}
 	add(itemRefresh, aboutLogRead, false)
 	return out
@@ -611,7 +462,7 @@ func (r logReading) subMenu(c component.Ctx) logScreen {
 		Prompt:   sdPrompt,
 	}
 	v := logScreen{SubMenu: vm}
-	if r.state == logLines {
+	if r.State == logview.Lines {
 		// The section's header and the gap each side of it (theme.SectionGap),
 		// beside the rest of the screen, which is what is left of the height.
 		room := c.Env.Height - (strings.Count(vm.Render(c), "\n") + 1) - 2*theme.SectionGap - 1
@@ -647,26 +498,20 @@ func (s *session) openLogs(name string) func() error {
 }
 
 // logsScreen runs the screen on h, lh's host, until the user goes back from
-// it, or under read-pager with a pager at hand says what it would run and
-// returns. Nothing is written or run; the plan-only sequence draws the same
-// screen.
+// it. Nothing is written or run; the plan-only sequence draws the same screen.
 func (s *session) logsScreen(ctx context.Context, lh logHost, h *fakeHost) error {
 	run := &logsRun{s: s, lh: lh, h: h}
 	if err := s.writeNote(logsPrefix+"/"+lh.name, lh.note); err != nil {
 		return err
 	}
-	if r := readLog(ctx, h.system()); lh.read == readPager && r.state == logLines && r.pager.name != "" {
-		_, err := io.WriteString(s.p.Out, pagerSays(s.p.Ctx, r.pager.command(r.path))+"\n")
-		return err
-	}
 	return s.p.Run(func() nav.Screen { return run.draw(ctx) })
 }
 
-// pagerSays is the gallery's note for treatment read-pager, whose item runs
-// the pager at once and returns to the main menu.
-func pagerSays(c component.Ctx, command string) string {
+// pagerNote is the gallery's note where hardn would run a pager: no golden
+// can run one, and the fake models none.
+func pagerNote(c component.Ctx, command string) string {
 	return component.Callout{Kind: component.MessageInfo, Body: []string{
-		"The gallery runs no pager. hardn would run " + command + ", then draw the main menu again.",
+		"The gallery runs no pager. hardn would run " + command + ", then draw this screen again.",
 	}}.Render(c)
 }
 
@@ -680,7 +525,7 @@ func (run *logsRun) draw(ctx context.Context) nav.Screen {
 		action := func() error { run.grow(); return nil }
 		if it.open {
 			action = func() error {
-				_, err := io.WriteString(s.p.Out, strings.Repeat("\n", theme.SectionGap)+pagerNote(s.p.Ctx, r.pager.command(r.path))+"\n")
+				_, err := io.WriteString(s.p.Out, strings.Repeat("\n", theme.SectionGap)+pagerNote(s.p.Ctx, commandWords(*r.pager))+"\n")
 				return err
 			}
 		}
@@ -718,8 +563,8 @@ func logsStart(args []string) (string, bool, error) {
 }
 
 // logsNote is play's note for the Logs mocks.
-const logsNote = "Play mode, mocks: the Logs screen proposed for slice 1, inferred from v0.3.2 and origin/main, read from a simulated host by the gallery's stand-ins, " +
-	"unit (b)'s to build. It only reads: no plan, no y/N, no journal. No pager runs: an item says what it would run. " +
+const logsNote = "Play mode, mocks: the Logs screen of slice 1, inferred from v0.3.2 and origin/main, read from a simulated host by the real reader (pkg/engine/logview), " +
+	"its rows and layout unit (c)'s to build. It only reads: no plan, no y/N, no journal. No pager runs: an item says what it would run. " +
 	"Nothing on this machine changes: every command and file is the fake's."
 
 // readLogHost reads the host named name, fresh, as the screen does.
@@ -745,8 +590,8 @@ func onLogHost(name string, view func(logReading, component.Ctx) string) func(co
 // pagerEnv is one environment hardn may run in, as the pager table shows it.
 type pagerEnv struct {
 	label string
-	env   map[string]string
 	host  func() *fakeHost
+	none  string // what the row says where logview.Pager gives none
 }
 
 // pagerEnvs are the environments the pager table shows: a root login, where
@@ -754,44 +599,40 @@ type pagerEnv struct {
 // HARDN_CONFIG on the VMs, vmtest.md §4.9; PAGER was not run; sudo-rs took
 // env_keep from a drop-in, vmtest.md:315, so a rule may keep it there too;
 // doas keeps only what setenv or keepenv says, sudoers.md:102]; sudo where a
-// rule or -E keeps it; and a host with no less.
+// rule or -E keeps it; and a host with no less. PAGER is not read in any.
 func pagerEnvs() []pagerEnv {
-	with := func(user string) map[string]string {
-		return map[string]string{"SUDO_USER": user, "USER": "root", "PAGER": "most"}
-	}
 	return []pagerEnv{
-		{"root login, PAGER=most", map[string]string{"USER": "root", "PAGER": "most"}, logOn("")},
-		{"sudo, PAGER dropped", sudoAlice, logOn("")},
-		{"sudo-rs, PAGER dropped [I]", sudoAlice, logOn("")},
-		{"doas, BusyBox's less", doasAlice, alpineLog},
-		{"doas, the less package [I]", doasAlice, alpineLessPackage},
-		{"sudo, PAGER=most kept", with("alice"), logOn("")},
-		{"no less, no PAGER", sudoAlice, noPagerLog},
+		{"root login, PAGER=most", logOn(""), ""},
+		{"sudo, PAGER dropped", logOn(""), ""},
+		{"sudo-rs, PAGER dropped [I]", logOn(""), ""},
+		{"doas, BusyBox's less", alpineLog, "None: BusyBox's has no secure mode"},
+		{"doas, the less package [I]", alpineLessPackage, ""},
+		{"sudo, PAGER=most kept", logOn(""), ""},
+		{"no less, no PAGER", noPagerLog, "None: the last lines alone"},
 	}
 }
 
-// pagerTable draws what each treatment would run in each environment.
+// pagerTable draws what would run in each environment, logview.Pager's: the
+// command, then what it runs under, RunInteractive adding Run's PATH.
 func pagerTable(ctx context.Context, c component.Ctx) (string, error) {
-	rows := func(useEnv bool) []component.KeyValue {
-		var out []component.KeyValue
-		for _, e := range pagerEnvs() {
-			p := pagerFor(ctx, e.host().system(), lookup(e.env), useEnv)
-			v := p.command(hardnLog)
-			switch {
-			case p.busybox && p.name == "":
-				v = "None: BusyBox's has no secure mode"
-			case p.name == "":
-				v = "None: the last lines alone"
+	var rows, env []component.KeyValue
+	for _, e := range pagerEnvs() {
+		v := e.none
+		if p, ok := logview.Pager(ctx, e.host().system(), galleryTerm); ok {
+			v = strings.Join(p.Argv, " ")
+			env = nil
+			for _, kv := range p.Env {
+				k, val, _ := strings.Cut(kv, "=")
+				env = append(env, component.KeyValue{Key: k, Value: val})
 			}
-			out = append(out, component.KeyValue{Key: e.label, Value: v})
 		}
-		return out
+		rows = append(rows, component.KeyValue{Key: e.label, Value: v})
 	}
 	return apart(
-		component.SectionHeader{Title: "pager-less, proposed"}.Render(c),
-		component.BulletList{Items: rows(false)}.Render(c),
-		component.SectionHeader{Title: "pager-env, P-18 as written"}.Render(c),
-		component.BulletList{Items: rows(true)}.Render(c),
+		component.SectionHeader{Title: "pager-less, adopted"}.Render(c),
+		component.BulletList{Items: rows}.Render(c),
+		component.SectionHeader{Title: "Its environment"}.Render(c),
+		component.BulletList{Items: env}.Render(c),
 	), nil
 }
 
@@ -802,55 +643,46 @@ func logsMocks() []listMock {
 	var mocks []listMock
 	for _, lh := range logHosts() {
 		mocks = append(mocks, listMock{name: "screen-" + lh.name, note: "The Logs screen. " + lh.note,
-			draw: onLogHost(lh.name, func(r logReading, c component.Ctx) string {
-				if lh.read == readPager && r.state == logLines && r.pager.name != "" {
-					return pagerSays(c, r.pager.command(r.path))
-				}
-				return r.subMenu(c).Render(c)
-			})})
+			draw: onLogHost(lh.name, func(r logReading, c component.Ctx) string { return r.subMenu(c).Render(c) })})
 	}
 	return append(mocks,
-		listMock{name: "open", note: "Treatment read-tail: item 1, Open. A golden cannot run a pager: this is what the screen says and the command hardn would run, the screen drawn again when it exits.",
+		listMock{name: "open", note: "Item 1, Open. A golden cannot run a pager: this is what the screen says and the command hardn would run, the screen drawn again when it exits.",
 			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
-				return apart(r.subMenu(c).Render(c), pagerNote(c, r.pager.command(r.path)), r.subMenu(c).Render(c))
+				return apart(r.subMenu(c).Render(c), pagerNote(c, commandWords(*r.pager)), r.subMenu(c).Render(c))
 			})},
-		listMock{name: "pager-commands", note: "What each pager treatment would run, by the environment. Under sudo, sudo-rs and doas PAGER is dropped [I; not run for PAGER]. pager-env runs as root whatever a kept PAGER names, and most has its own shell escape [I]. LESSSECURE=1 turned off !, |, v, E and :e in GNU less 668 on the VMs, as a user, not as root (vm-runs/s1/04-less2-*). On BusyBox's less it changed nothing, s and E still prompting; that they write and open any path as root is read (miscutils/less.c, master): no path was typed at s, and E tried only a name that does not exist. Alpine's less package is [I, not run]. The gallery's table: nothing runs.",
+		listMock{name: "pager-commands", note: "What would run, by the environment: PAGER is not read, kept or dropped (decision 7 (a)). Under sudo, sudo-rs and doas it is dropped [I; not run for PAGER]. LESSSECURE=1 turned off !, |, v, E and :e in GNU less 668 on the VMs, as a user, not as root (vm-runs/s1/04-less2-*). On BusyBox's less it changed nothing, s and E still prompting; that they write and open any path as root is read (miscutils/less.c, master): no path was typed at s, and E tried only a name that does not exist. Alpine's less package is [I, not run]. The gallery's table: nothing runs.",
 			draw: pagerTable},
-		listMock{name: "cli-terminal-tail", note: "hardn -p to a terminal, treatment read-tail: the file and as many of the last lines as the terminal holds, no menu and no prompt, for a shell to carry on under.",
+		listMock{name: "cli-terminal-tail", note: "hardn -p to a terminal: the file and as many of the last lines as the terminal holds, no menu and no prompt, for a shell to carry on under.",
 			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
 				n := r.fitTail(c, c.Env.Height-cliChrome)
 				return apart(component.TitleBar{Title: logsTitle}.Render(c), r.fileSection().Render(c), r.tailHeader(n).Render(c), r.tailRows(c, n))
 			})},
-		listMock{name: "cli-terminal-pager", note: "hardn -p to a terminal, treatment read-pager: the pager at once, as the screen's. A golden cannot run it.",
-			draw: onLogHost("long", func(r logReading, c component.Ctx) string {
-				return component.Callout{Kind: component.MessageInfo, Body: []string{"The gallery runs no pager. hardn would run " + r.pager.command(r.path) + ", then exit."}}.Render(c)
-			})},
 		listMock{name: "cli-pipe", wide: term80, note: "hardn -p not to a terminal: every line, as written, in no style, no heading, so that a tool reads the log alone: this needs unit (d) to run -p ahead of the config load, or with a silent console (decision 10). origin/main's opens with the config line, the clear sequence and the rest (origin-p). Exit 0.",
-			draw: onLogHost("lines", func(r logReading, _ component.Ctx) string { return strings.Join(r.lines, "\n") })},
+			draw: onPipe("lines")},
 		listMock{name: "cli-pipe-control", wide: term80, note: "The same on the control host: safe off a terminal too, since a pipe may end at one. Who wants the bytes has cat /var/log/hardn.log.",
-			draw: onLogHost("control", func(r logReading, _ component.Ctx) string { return strings.Join(r.lines, "\n") })},
+			draw: onPipe("control")},
 		listMock{name: "cli-missing", note: "hardn -p with no log: this on stderr, nothing on stdout, exit 0: a read that found nothing. origin/main logs [ERROR] Failed to read log file, into the log too, and carries on, exit 0 by reading (logging.go:139-143; menu/logs_print_flag_missing.golden).",
-			draw: onLogHost("missing", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliNoLog, r.path) })},
+			draw: onLogHost("missing", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliNoLog, r.Path) })},
 		listMock{name: "cli-unreadable", note: "hardn -p with a log it cannot read: this on stderr, nothing on stdout, exit 1.",
-			draw: onLogHost("unreadable", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliCantRead, r.path, r.reason) })},
+			draw: onLogHost("unreadable", func(r logReading, _ component.Ctx) string { return fmt.Sprintf(cliCantRead, r.Path, r.Reason) })},
 		listMock{name: "cli-unreadable-not-root", note: "The same as a user other than root, under decision 9 (a), where the log is not 0644: 0644 on the three VMs (vm-runs/s1/01-tools.log), it is what hardn asks, less the umask of the start that made it (logging.go:38; a tighter umask [I, not run]). Exit 1.",
 			draw: func(_ context.Context, _ component.Ctx) (string, error) {
 				return fmt.Sprintf(cliCantRead, hardnLog, "permission denied") + "\n" + fmt.Sprintf(cliRunWith, "sudo"), nil
 			}},
-		listMock{name: "parser", note: "The slice's broken parser. origin/main's GetLogs on a real line (menu/logs_parser.golden; file_logs_repository.go:51-57; nothing calls it but its wrappers and tests), and the stand-in's fix. The screen needs a level only to colour WARNING and ERROR.",
+		listMock{name: "parser", note: "The slice's broken parser. origin/main's GetLogs on a real line (menu/logs_parser.golden; file_logs_repository.go:51-57; nothing calls it but its wrappers and tests), and logview.ParseLine, the fix. The screen needs a level only to colour WARNING and ERROR.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) { return parserDrawing(c), nil }},
 		listMock{name: "origin", own: true, wide: term80, note: "origin/main's Logs screen, its words as they are (logs_menu.go:33-62, file_logs_repository.go:95-96; menu/logs_open.golden), on the design system: the whole file, 4 lines here, raw.",
 			draw: onLogHost("lines", func(r logReading, c component.Ctx) string {
 				return apart(component.TitleBar{Title: "View Logs"}.Render(c),
-					component.BulletList{Items: []component.KeyValue{{Key: "Log file", Value: r.path}}}.Render(c),
+					component.BulletList{Items: []component.KeyValue{{Key: "Log file", Value: r.Path}}}.Render(c),
 					component.SectionHeader{Title: "Log Contents:"}.Render(c),
-					"# Contents of "+r.path+":", strings.Join(r.lines, "\n"),
+					"# Contents of "+r.Path+":", strings.Join(lineTexts(r.Last), "\n"),
 					component.Message{Text: "Press Enter to return to the main menu..."}.Render(c))
 			})},
 		listMock{name: "origin-p", own: true, wide: term80, note: "origin/main's hardn -p, to a terminal or not, read, not run: the config line (config.go:246, :252 or :279), the clear sequence, here as the four characters \\x1b, and the ~~~ line even in a pipe (osdetect.go:50; utils.go:24-37), the OS line (osdetect.go:93-95), then what menu/logs_print_flag.golden holds of PrintLogs alone (logging.go:145-146). Colour left out. The config and OS lines also go into the log (logging.go:99-100), so each -p grows it by them. It needs root (cmd/hardn/main.go:148), though the file is 0644.",
 			draw: onLogHost("lines", func(r logReading, _ component.Ctx) string {
 				return strings.Join(append([]string{"[INFO] Using configuration from: /etc/hardn/hardn.yml",
-					`\x1b[H\x1b[2J~~~ (a line of them)`, "", "[SUCCESS] debian trixie detected", "", "# Contents of " + r.path + ":", ""}, r.lines...), "\n")
+					`\x1b[H\x1b[2J~~~ (a line of them)`, "", "[SUCCESS] debian trixie detected", "", "# Contents of " + r.Path + ":", ""}, lineTexts(r.Last)...), "\n")
 			})},
 		listMock{name: "origin-elsewhere", own: true, note: "origin/main's Logs screen with hardn.yml's logFile set where nothing writes: it reads that path, so the log hardn does write is not shown (file_logs_repository.go:81-84; P-18; menu/logs_other_path.golden).",
 			draw: func(_ context.Context, c component.Ctx) (string, error) {
@@ -864,6 +696,27 @@ func logsMocks() []listMock {
 	)
 }
 
+// lineTexts are the lines' texts.
+func lineTexts(lines []logview.Line) []string {
+	var out []string
+	for _, l := range lines {
+		out = append(out, l.Text)
+	}
+	return out
+}
+
+// onPipe returns a drawing of the host named name's log as hardn -p writes it off
+// a terminal.
+func onPipe(name string) func(context.Context, component.Ctx) (string, error) {
+	return func(ctx context.Context, _ component.Ctx) (string, error) {
+		lh, ok := findLogHost(name)
+		if !ok {
+			return "", fmt.Errorf("no logs host %q", name)
+		}
+		return pipeLines(ctx, lh.host().system())
+	}
+}
+
 // cliChrome is the rows hardn -p takes on a terminal besides the lines: the
 // title, the file's two rows, two headers, their gaps, and a shell's prompt
 // and the command above it.
@@ -872,17 +725,17 @@ const cliChrome = 11
 // term80 is the width the raw forms need: their lines do not wrap.
 const term80 = 80
 
-// parserDrawing is a line, as GetLogs reads it and as the stand-in does.
+// parserDrawing is a line, as GetLogs reads it and as logview.ParseLine does.
 func parserDrawing(c component.Ctx) string {
 	const line = "2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1"
-	p := parseLogLine(line)
+	p := logview.ParseLine(line)
 	return apart(
 		component.SectionHeader{Title: "The line"}.Render(c),
-		strings.Join(logRows(c, []string{line}), "\n"),
+		strings.Join(logRows(c, []logview.Line{{Text: line, Level: p.Level}}), "\n"),
 		component.SectionHeader{Title: "GetLogs, origin/main"}.Render(c),
 		component.BulletList{Items: []component.KeyValue{{Key: "Time", Value: "2026/10/20"}, {Key: "Level", Value: "12:00:05"},
 			{Key: "Message", Value: "ERROR: Failed to configure firewall: exit status 1"}}}.Render(c),
-		component.SectionHeader{Title: "parseLogLine, the stand-in"}.Render(c),
+		component.SectionHeader{Title: "logview.ParseLine"}.Render(c),
 		component.BulletList{Items: []component.KeyValue{{Key: "Time", Value: p.Time}, {Key: "Level", Value: p.Level},
 			{Key: "Message", Value: p.Message}}}.Render(c),
 	)

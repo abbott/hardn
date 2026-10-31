@@ -596,6 +596,7 @@ func TestPlayTouchesNothing(t *testing.T) {
 	)
 	realSide := map[string]string{
 		"pkg/host/real.go": real, "pkg/host/guard.go": real, "pkg/host/lock.go": real, "pkg/host/append.go": real, "pkg/host/detach.go": real,
+		"pkg/host/scan.go": real, "pkg/host/interactive.go": real, "pkg/host/terminal_linux.go": real, "pkg/host/terminal_darwin.go": real,
 		"pkg/engine/hold/hold.go": holding, "pkg/engine/hold/restore_darwin.go": holding,
 		"pkg/engine/hold/restore_linux.go": holding, "pkg/engine/hold/restore_other.go": holding,
 		"pkg/config/config.go": start, "pkg/config/embed.go": start, "pkg/logging/logging.go": start,

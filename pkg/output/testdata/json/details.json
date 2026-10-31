@@ -1,0 +1,111 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported"
+    },
+    "init": "systemd",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "unknown",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "check",
+  "result": {
+    "outcome": "nothing-to-do",
+    "exitCode": 0,
+    "id": "",
+    "risk": ""
+  },
+  "changes": [],
+  "status": [],
+  "findings": [],
+  "errors": [],
+  "details": {
+    "kernel": "6.12.113+deb13-cloud-amd64",
+    "uptime": "3 days, 5 hours, 12 minutes",
+    "addresses": [
+      {
+        "interface": "eth0",
+        "family": "inet",
+        "address": "192.0.2.20/24"
+      },
+      {
+        "interface": "eth0",
+        "family": "inet6",
+        "address": "2001:db8::20/64"
+      }
+    ],
+    "users": [
+      {
+        "name": "alice",
+        "tool": "sudo"
+      },
+      {
+        "name": "svc",
+        "tool": ""
+      }
+    ],
+    "cpu": {
+      "model": "QEMU Virtual CPU version 2.5+",
+      "cpus": 4,
+      "sockets": 1,
+      "load": [
+        "0.12",
+        "0.08",
+        "0.03"
+      ]
+    },
+    "disk": {
+      "source": "/dev/vda1",
+      "type": "ext4",
+      "usedBytes": 4518241280,
+      "totalBytes": 41442029568
+    },
+    "memory": {
+      "usedBytes": 1288490189,
+      "totalBytes": 4080218931
+    },
+    "logins": [
+      {
+        "user": "root",
+        "when": "",
+        "tty": "",
+        "from": ""
+      },
+      {
+        "user": "alice",
+        "when": "2026-10-20T11:42:05+00:00",
+        "tty": "pts/0",
+        "from": "192.0.2.10"
+      },
+      {
+        "user": "svc",
+        "when": "",
+        "tty": "",
+        "from": "",
+        "unknown": true
+      }
+    ]
+  }
+}

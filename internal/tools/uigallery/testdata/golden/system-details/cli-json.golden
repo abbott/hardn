@@ -6,10 +6,10 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msystem-details cli-json␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Proposal, depends on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m§3.11 (not approved: cmd/hardn/output.go:4): hardn system-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetails --output json. On pkg/output's document, not beside␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit: --output json is one flag with one contract␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Decision 1 (a): hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem-details --output json, whose flag is unit (d)'s; the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdocument is output.Build's. On pkg/output's document, not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbeside it: --output json is one flag with one contract␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(docs/reference/output.md), mode "check" already means "read,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange nothing", host already holds the name and OS, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwire.go's SchemaVersion comment lets a field be added without␛[m$
@@ -121,10 +121,10 @@ $
 # system-details cli-json --------------------------------------$
 $
 # Note$
-# Inferred from origin/main (unreleased). Proposal, depends on$
-# §3.11 (not approved: cmd/hardn/output.go:4): hardn system-$
-# details --output json. On pkg/output's document, not beside$
-# it: --output json is one flag with one contract$
+# Inferred from origin/main (unreleased). Decision 1 (a): hardn$
+# system-details --output json, whose flag is unit (d)'s; the$
+# document is output.Build's. On pkg/output's document, not$
+# beside it: --output json is one flag with one contract$
 # (docs/reference/output.md), mode "check" already means "read,$
 # change nothing", host already holds the name and OS, and$
 # wire.go's SchemaVersion comment lets a field be added without$
@@ -236,10 +236,10 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msystem-details cli-json␛[m ␛[38;2;48;52;64m--------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Proposal, depends on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m§3.11 (not approved: cmd/hardn/output.go:4): hardn system-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetails --output json. On pkg/output's document, not beside␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit: --output json is one flag with one contract␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). Decision 1 (a): hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem-details --output json, whose flag is unit (d)'s; the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdocument is output.Build's. On pkg/output's document, not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbeside it: --output json is one flag with one contract␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(docs/reference/output.md), mode "check" already means "read,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange nothing", host already holds the name and OS, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwire.go's SchemaVersion comment lets a field be added without␛[m$

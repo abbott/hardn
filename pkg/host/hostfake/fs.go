@@ -235,6 +235,34 @@ func (s *System) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.
 	return data, fi, err
 }
 
+// ScanLines scans a regular file with host.ScanReader, as host.Real does, as
+// the file is at the call. It refuses what ReadFileNoFollow refuses and adds
+// nothing to the run log. The call is recorded before the scan, so yield may
+// call the fake; what yield or ctx then stops is not in the record's Err.
+func (s *System) ScanLines(ctx context.Context, name string, yield func(host.Line) bool) (fs.FileInfo, error) {
+	var data []byte
+	var fi fs.FileInfo
+	err := s.do(ctx, Call{Op: "scan-lines", Path: name}, func() error {
+		_, n, err := s.guardedLookup(name)
+		switch {
+		case err != nil:
+			return perr("open", name, err)
+		case n.mode&fs.ModeSymlink != 0:
+			return perr("open", name, host.ErrSymlink)
+		case n.mode.IsDir():
+			return perr("read", name, syscall.EISDIR)
+		case !n.mode.IsRegular():
+			return perr("open", name, fs.ErrInvalid)
+		}
+		data, fi = bytes.Clone(n.data), info(path.Base(name), n)
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return fi, host.ScanReader(ctx, bytes.NewReader(data), yield)
+}
+
 // Stat follows a symlink at name.
 func (s *System) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
 	return s.stat(ctx, "stat", name, true)

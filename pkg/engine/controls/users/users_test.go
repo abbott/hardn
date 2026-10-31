@@ -931,3 +931,61 @@ func TestCheckOnly(t *testing.T) {
 		}
 	}
 }
+
+// TestElevation: the reader the System Details report takes (pkg/engine/details)
+// decides as the row does: a rule counts where group membership would miss it,
+// as cloud-init's does, and what cannot be read is not established.
+func TestElevation(t *testing.T) {
+	ctx := context.Background()
+	const cloudInit = sudoers.DropInDir + "/90-cloud-init-users"
+	alice := "alice:x:1000:1000::/home/alice:/bin/bash"
+	george := "george:x:1001:1001::/home/george:/bin/bash"
+	read := func(t *testing.T, s site) (users.Elevation, accounts.DB) {
+		t.Helper()
+		sys, _ := s.build(t)
+		db, err := accounts.Read(ctx, sys)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return users.ReadElevation(ctx, sys, s.plat.facts), db
+	}
+	byName := func(t *testing.T, db accounts.DB, name string) accounts.User {
+		t.Helper()
+		i := slices.IndexFunc(db.Users, func(u accounts.User) bool { return u.Name == name })
+		if i < 0 {
+			t.Fatalf("no %s in %v", name, db.Users)
+		}
+		return db.Users[i]
+	}
+
+	t.Run("a rule, in no group", func(t *testing.T) {
+		e, db := read(t, site{plat: debian13(), users: []string{alice, george},
+			files: map[string]string{cloudInit: "alice ALL=(ALL) NOPASSWD:ALL\n"}})
+		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.Yes}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
+			t.Errorf("alice: %v, want %v", got, want)
+		}
+		if got, want := e.GrantsOf(db, byName(t, db, "george")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
+			t.Errorf("george: %v, want %v", got, want)
+		}
+		if got := e.NotRead(); len(got) != 0 {
+			t.Errorf("not read: %v", got)
+		}
+	})
+	t.Run("doas, by group", func(t *testing.T) {
+		e, db := read(t, site{plat: alpine324(), users: []string{alice}, members: map[string]string{"wheel": "alice"}})
+		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.Yes}}; !slices.Equal(got, want) {
+			t.Errorf("alice: %v, want %v", got, want)
+		}
+	})
+	t.Run("rules not read", func(t *testing.T) {
+		e, db := read(t, site{plat: debian13(), users: []string{alice},
+			fail: map[string]error{"read " + sudoers.MainConfig: fs.ErrPermission}})
+		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.Unknown}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
+			t.Errorf("alice: %v, want %v", got, want)
+		}
+		got := e.NotRead()
+		if len(got) != 1 || got[0].Tool != "sudo" || !errors.Is(got[0].Err, fs.ErrPermission) {
+			t.Errorf("not read: %v", got)
+		}
+	})
+}

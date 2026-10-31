@@ -6,18 +6,18 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/lines␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the gallery's stand-ins, unit (b)'s to build. It only␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads: no plan, no y/N, no journal. No pager runs: an item␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays what it would run. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen of slice 1, inferred from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2 and origin/main, read from a simulated host by the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader (pkg/engine/logview), its rows and layout unit (c)'s to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No pager␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns: an item says what it would run. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/lines␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Treatment␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread-tail: a log of 4 lines, as many as the terminal holds: 3␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 80x24, all at 80x40, as three wrap. WARNING and ERROR in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe warning's colour.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. A log of 4␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines, as many as the terminal holds: 3 at 80x24, all at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m80x40, as three wrap. WARNING and ERROR in the warning's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolour.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -78,18 +78,18 @@ $
 # play logs/lines ----------------------------------------------$
 $
 # Note$
-# Play mode, mocks: the Logs screen proposed for slice 1,$
-# inferred from v0.3.2 and origin/main, read from a simulated$
-# host by the gallery's stand-ins, unit (b)'s to build. It only$
-# reads: no plan, no y/N, no journal. No pager runs: an item$
-# says what it would run. Nothing on this machine changes: every$
-# command and file is the fake's.$
+# Play mode, mocks: the Logs screen of slice 1, inferred from$
+# v0.3.2 and origin/main, read from a simulated host by the real$
+# reader (pkg/engine/logview), its rows and layout unit (c)'s to$
+# build. It only reads: no plan, no y/N, no journal. No pager$
+# runs: an item says what it would run. Nothing on this machine$
+# changes: every command and file is the fake's.$
 $
 # Info: logs/lines$
-# web-01.example.net runs Debian 13, less installed. Treatment$
-# read-tail: a log of 4 lines, as many as the terminal holds: 3$
-# at 80x24, all at 80x40, as three wrap. WARNING and ERROR in$
-# the warning's colour.$
+# web-01.example.net runs Debian 13, less installed. A log of 4$
+# lines, as many as the terminal holds: 3 at 80x24, all at$
+# 80x40, as three wrap. WARNING and ERROR in the warning's$
+# colour.$
 $
 # Logs #########################################################$
 $
@@ -150,19 +150,19 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/lines␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the gallery's stand-ins, unit (b)'s to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpager runs: an item says what it would run. Nothing on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen of slice 1, inferred␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom v0.3.2 and origin/main, read from a simulated host by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real reader (pkg/engine/logview), its rows and layout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. No pager runs: an item says what it would run.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/lines␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mTreatment read-tail: a log of 4 lines, as many as the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal holds: 3 at 80x24, all at 80x40, as three wrap.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWARNING and ERROR in the warning's colour.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. A log␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mof 4 lines, as many as the terminal holds: 3 at 80x24, all␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 80x40, as three wrap. WARNING and ERROR in the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarning's colour.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -223,18 +223,18 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mplay logs/lines␛[m ␛[38;2;48;52;64m----------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen proposed for slice 1,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the gallery's stand-ins, unit (b)'s to build. It only␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads: no plan, no y/N, no journal. No pager runs: an item␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays what it would run. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen of slice 1, inferred from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2 and origin/main, read from a simulated host by the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader (pkg/engine/logview), its rows and layout unit (c)'s to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No pager␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns: an item says what it would run. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/lines␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Treatment␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread-tail: a log of 4 lines, as many as the terminal holds: 3␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 80x24, all at 80x40, as three wrap. WARNING and ERROR in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe warning's colour.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. A log of 4␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlines, as many as the terminal holds: 3 at 80x24, all at␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m80x40, as three wrap. WARNING and ERROR in the warning's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolour.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
 $

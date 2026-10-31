@@ -38,11 +38,16 @@ type Real struct {
 	// fail, when set, is asked before each step of WriteFileAtomic; an
 	// error makes that step fail with it (crash-safety tests).
 	fail func(step string) error
+	// interactiveWait is how long RunInteractive waits after SIGTERM.
+	interactiveWait time.Duration
+	// hasTerminal says whether RunInteractive has a terminal to give.
+	hasTerminal func() bool
 }
 
 var _ LegacySystem = (*Real)(nil)
 
-// commandEnv is the whole environment of every command Real runs. Nothing is
+// commandEnv is the whole environment of every command Real runs, but
+// RunInteractive's, which is what its caller passes and this PATH. Nothing is
 // inherited from hardn's own environment: no PATH, IFS, ENV, BASH_ENV,
 // LD_PRELOAD or locale from whoever started hardn.
 var commandEnv = []string{"PATH=" + SearchPath, "LC_ALL=C"}
@@ -63,6 +68,9 @@ func NewReal(opts Options) *Real {
 		stat:  os.Stat,
 		exec:  runCmd,
 		spawn: spawnCmd,
+
+		interactiveWait: interactiveWait,
+		hasTerminal:     stdioIsTerminal,
 	}
 }
 
@@ -153,6 +161,12 @@ func (r *Real) start(ctx context.Context, res *Result, stdin []byte, name string
 	res.Stdout, res.Stderr, res.Combined = stdout.Bytes(), stderr.Bytes(), combined.Bytes()
 	res.ExitCode = code
 	res.Tail = TailLines(res.Combined, r.tail)
+	return runOutcome(ctx, res, code, runErr)
+}
+
+// runOutcome is what a command that was started returns: nil, or an
+// *ExitError, or why it did not finish.
+func runOutcome(ctx context.Context, res *Result, code int, runErr error) error {
 	var xe *exec.ExitError
 	switch {
 	case code == 0 && (runErr == nil || errors.Is(runErr, exec.ErrWaitDelay)):
@@ -236,13 +250,28 @@ func (r *Real) ReadFile(ctx context.Context, name string) ([]byte, error) {
 	return os.ReadFile(name)
 }
 
-// ReadFileNoFollow checks what name is before opening it (a FIFO or a device
-// is never opened), then opens it with O_NOFOLLOW|O_NONBLOCK in its guarded
-// parent and reads content and FileInfo from that one descriptor.
+// ReadFileNoFollow reads what openRegular opens.
 func (r *Real) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
 	if err := ctxErr(ctx, "read", name); err != nil {
 		return nil, nil, err
 	}
+	f, fi, err := r.openRegular(name)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer func() { _ = f.Close() }()
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return nil, nil, err
+	}
+	return data, fi, nil
+}
+
+// openRegular checks what name is before opening it (a FIFO or a device is
+// never opened), then opens it with O_NOFOLLOW|O_NONBLOCK in its guarded
+// parent and returns it with the FileInfo of that one descriptor, which is
+// asked again, as name could have been swapped between the look and the open.
+func (r *Real) openRegular(name string) (*os.File, fs.FileInfo, error) {
 	dir, base, err := r.openParent("open", name)
 	if err != nil {
 		return nil, nil, err
@@ -252,19 +281,15 @@ func (r *Real) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.Fi
 	if err != nil {
 		return nil, nil, err
 	}
-	defer func() { _ = f.Close() }()
 	fi, err := f.Stat()
 	if err == nil {
 		err = regularOnly(name, fi.Mode())
 	}
 	if err != nil {
+		_ = f.Close()
 		return nil, nil, err
 	}
-	data, err := io.ReadAll(f)
-	if err != nil {
-		return nil, nil, err
-	}
-	return data, fi, nil
+	return f, fi, nil
 }
 
 // openNoFollow opens base in dir read-only with O_NOFOLLOW|O_NONBLOCK, after

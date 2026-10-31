@@ -90,10 +90,10 @@ type Uptime struct {
 // every fact not yet read with ctx's error.
 func Read(ctx context.Context, sys host.System, f detect.Facts) Header {
 	return Header{
-		OS:       osOf(f),
-		Hostname: readHostname(ctx, sys),
+		OS:       OSOf(f),
+		Hostname: ReadHostname(ctx, sys),
 		Address:  readAddress(ctx, sys),
-		Uptime:   readUptime(ctx, sys),
+		Uptime:   ReadUptime(ctx, sys),
 		Reboot:   readReboot(ctx, sys, f),
 	}
 }
@@ -101,9 +101,9 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) Header {
 // names are the distributions hardn names, by os-release ID.
 var names = map[string]string{"debian": "Debian", "ubuntu": "Ubuntu", "alpine": "Alpine"}
 
-// osOf names the distribution from detect's facts: Proxmox VE when it is
+// OSOf names the distribution from detect's facts: Proxmox VE when it is
 // installed (its os-release is Debian's), else by os-release's ID.
-func osOf(f detect.Facts) OS {
+func OSOf(f detect.Facts) OS {
 	r := f.OS
 	switch {
 	case !r.Known():
@@ -120,8 +120,8 @@ func osOf(f detect.Facts) OS {
 	return OS{Name: r.ID}
 }
 
-// readHostname reads the kernel's hostname.
-func readHostname(ctx context.Context, sys host.System) Hostname {
+// ReadHostname reads the kernel's hostname.
+func ReadHostname(ctx context.Context, sys host.System) Hostname {
 	data, err := sys.ReadFile(ctx, HostnameFile)
 	if err != nil {
 		return Hostname{Err: fmt.Errorf("header: hostname: %w", err)}
@@ -136,9 +136,9 @@ func readHostname(ctx context.Context, sys host.System) Hostname {
 // maxUptime is the longest uptime a time.Duration holds, in whole seconds.
 const maxUptime = 9e9
 
-// readUptime reads /proc/uptime's first number: two decimal numbers of
+// ReadUptime reads /proc/uptime's first number: two decimal numbers of
 // seconds, the uptime and the idle time.
-func readUptime(ctx context.Context, sys host.System) Uptime {
+func ReadUptime(ctx context.Context, sys host.System) Uptime {
 	data, err := sys.ReadFile(ctx, UptimeFile)
 	if err != nil {
 		return Uptime{Err: fmt.Errorf("header: uptime: %w", err)}

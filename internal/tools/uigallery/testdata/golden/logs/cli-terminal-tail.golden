@@ -6,10 +6,9 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-tail␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment read-tail: the file and as many of the last lines as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds, no menu and no prompt, for a shell to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcarry on under.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe file and as many of the last lines as the terminal holds,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno menu and no prompt, for a shell to carry on under.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -40,10 +39,9 @@ $
 # logs cli-terminal-tail ---------------------------------------$
 $
 # Note$
-# Inferred from v0.3.2 and origin/main. hardn -p to a terminal,$
-# treatment read-tail: the file and as many of the last lines as$
-# the terminal holds, no menu and no prompt, for a shell to$
-# carry on under.$
+# Inferred from v0.3.2 and origin/main. hardn -p to a terminal:$
+# the file and as many of the last lines as the terminal holds,$
+# no menu and no prompt, for a shell to carry on under.$
 $
 # Logs #########################################################$
 $
@@ -75,9 +73,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal, treatment read-tail: the file and as many of the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlast lines as the terminal holds, no menu and no prompt,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor a shell to carry on under.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal: the file and as many of the last lines as the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal holds, no menu and no prompt, for a shell to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcarry on under.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -110,10 +108,9 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-terminal-tail␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtreatment read-tail: the file and as many of the last lines as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe terminal holds, no menu and no prompt, for a shell to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcarry on under.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p to a terminal:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe file and as many of the last lines as the terminal holds,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno menu and no prompt, for a shell to carry on under.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m#########################################################␛[m$
 $

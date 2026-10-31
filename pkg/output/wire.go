@@ -23,6 +23,10 @@ type Document struct {
 	Status        []Status  `json:"status"`
 	Findings      []Finding `json:"findings"`
 	Errors        []Error   `json:"errors"`
+	// Details is the System Details report, on that form's document alone
+	// (Run.Details); every other document, and so the audit log's lines, has the
+	// nine fields above.
+	Details *Details `json:"details,omitempty"`
 }
 
 // Mode is what the run was asked to do.

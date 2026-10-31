@@ -55,10 +55,11 @@ type Response struct {
 
 // Call is one recorded call.
 type Call struct {
-	Op       string   // run, start-detached, read, read-nofollow, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, append, lock, unlock, lookup-user, lookup-group
-	Argv     []string // run, start-detached
+	Op       string   // run, start-detached, run-interactive, read, read-nofollow, scan-lines, stat, lstat, readdir, mkdir, remove, removeall, rename, readlink, resolve-symlink, chmod, chown, write-atomic, write-in-place, append, lock, unlock, lookup-user, lookup-group
+	Argv     []string // run, start-detached, run-interactive
 	Stdin    []byte   // run: nil for Run, the input for RunInput
-	ExitCode int      // run
+	Env      []string // run-interactive: the whole environment (host.InteractiveEnv)
+	ExitCode int      // run, run-interactive
 	PID      int      // start-detached
 	Path     string   // file operations and lookups
 	To       string   // rename
@@ -78,6 +79,9 @@ func (c Call) String() string {
 		if c.Stdin != nil {
 			fmt.Fprintf(&b, " <stdin %d bytes>", len(c.Stdin))
 		}
+	case "run-interactive":
+		b.WriteString(host.FormatArgv(c.Argv))
+		fmt.Fprintf(&b, " <env %s>", host.FormatArgv(c.Env))
 	case "rename":
 		b.WriteString(c.Path + " -> " + c.To)
 	case "write-atomic":
@@ -94,7 +98,7 @@ func (c Call) String() string {
 	switch {
 	case c.Err != nil:
 		b.WriteString(": error: " + c.Err.Error())
-	case c.Op == "run":
+	case c.Op == "run", c.Op == "run-interactive":
 		fmt.Fprintf(&b, ": exit %d", c.ExitCode)
 	case c.Op == "start-detached":
 		fmt.Fprintf(&b, ": pid %d", c.PID)
@@ -324,6 +328,19 @@ func (s *System) detach(ctx context.Context, argv []string) (int, error) {
 	}
 	s.pid++
 	return s.pid, nil
+}
+
+// RunInteractive runs nothing: it answers from the script, then the Handler,
+// as Run does, stdin nil, and is recorded as run-interactive with the whole
+// environment host.Real would give it, and logged as host.Real logs it. It has
+// no terminal to ask about, so it does not refuse off one.
+func (s *System) RunInteractive(ctx context.Context, env []string, name string, args ...string) error {
+	argv := append([]string{name}, args...)
+	id := s.log.Begin(argv, -1)
+	res, err := s.answer(ctx, argv, nil)
+	s.log.End(id, res, err)
+	s.record(Call{Op: "run-interactive", Argv: argv, Env: host.InteractiveEnv(env), ExitCode: res.ExitCode, Err: err})
+	return err
 }
 
 // LookupUser finds an account added with AddUser.

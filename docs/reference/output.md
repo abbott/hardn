@@ -1,11 +1,11 @@
 # hardn's output: the JSON document, codes, exit statuses and the audit log
 
 > **What this is:** the public contract of what hardn reports, to a script and to a person (brief §2, "A fixed exit-code set and versioned JSON output", decided; brief Phase 3, the JSON contract, the exit codes and the audit log). Built by refactor plan Phase 3, `next/p3-output`, in `pkg/output`; [docs/engine/output.md](../engine/output.md) says what the package guarantees and how. **Once released, none of it changes but by the rules below.**
-> **Status:** built and tested on macOS (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake). **Not reachable from the command line yet:** refactor plan §3.11 (`--output json`, `--yes`) is not approved, so no flag selects JSON, and the audit log's first writer comes with `next/p3-startup`. What runs today is the deprecation warning and the colour rule of §5, `hardn confirm`'s clean-up report, and, since slice 2's unit (d) (`next/s2-replace`), `-g`'s report and exit status (§3). Nothing has run on Linux (gate 5).
+> **Status:** built and tested on macOS (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake). **Not reachable from the command line yet:** refactor plan §3.11 (`--output json`, `--yes`) is not approved but for `hardn system-details`' narrowed change (§1.10), which has no flag until slice 1's unit (d), so no flag selects JSON, and the audit log's first writer comes with `next/p3-startup`. What runs today is the deprecation warning and the colour rule of §5, `hardn confirm`'s clean-up report, and, since slice 2's unit (d) (`next/s2-replace`), `-g`'s report and exit status (§3). Nothing has run on Linux (gate 5).
 
 ## 1. The JSON document
 
-One run writes **exactly one JSON value on stdout**, then a newline; everything for a person (progress, warnings, notices) goes to stderr, so stdout parses whole (`TestStdoutIsOneDocument`). The same document, with a `time`, is one line of the audit log (§4). Strings are UTF-8; `<`, `>` and `&` are not escaped. **Arrays are never `null`**: an empty one is `[]`. Optional objects (`result.confirm`, `result.rollback`, `result.boot`) are left out when they do not apply.
+One run writes **exactly one JSON value on stdout**, then a newline; everything for a person (progress, warnings, notices) goes to stderr, so stdout parses whole (`TestStdoutIsOneDocument`). The same document, with a `time`, is one line of the audit log (§4). Strings are UTF-8; `<`, `>` and `&` are not escaped; DEL, C1 controls and format characters are, as `\uXXXX`, as stdout may be a terminal, the string's value unchanged (`TestJSONEscapesWhatATerminalActsOn`). **Arrays are never `null`**: an empty one is `[]`. Optional objects (`result.confirm`, `result.rollback`, `result.boot`) are left out when they do not apply.
 
 ### 1.1 `schemaVersion` and the rule for bumping it
 
@@ -120,6 +120,25 @@ The goldens are the reference, each a whole document: `pkg/output/testdata/json/
   }
 }
 ```
+
+### 1.10 `details`: `hardn system-details`'s form alone
+
+**No flag reaches it until slice 1's unit (d):** `Run.Details` is built and tested in `pkg/output` (`TestDetailsDocuments`), and nothing passes it yet (§3.11's change for this one command, approved on 2026-10-30, narrowed: [gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 1 (a)). When it does, the form is the document of §1, mode `check`, with the nine fields and one more; **every other document, and so the audit log's lines (§4), has the nine alone** (`TestDetailsOnThisFormAlone`, `pkg/output/output_test.go`'s `TestStdoutIsOneDocument`). Added as §1.1 allows, so `schemaVersion` stays `1`. Goldens: `pkg/output/testdata/json/details.json` (every section read), `details-unreadable.json` (none).
+
+**Here a `null` is a fact**, where the rest of the document's arrays are never `null`: a section, or one fact of it, that was not read or is not known is `null`. An array read and holding none is `[]`. Each section with anything not read adds one finding, `DETAILS_UNREADABLE`, `detail` `<section> not read`, `source` each thing not read, joined by `, `. It stops nothing: the rest was read, so the exit status stays as it was.
+
+| Field | Type | Meaning |
+|---|---|---|
+| `kernel` | string or null | `/proc/sys/kernel/osrelease` |
+| `uptime` | string or null | as the main menu's header words it: `3 days, 5 hours, 12 minutes` |
+| `addresses` | array or null | each global address: `interface`, `family` (`inet`, `inet6`), `address` (with its prefix length, as `ip` prints it) |
+| `users` | array or null | uid 1000 and up, but `nobody` and `nfsnobody`: `name`, `tool`: `sudo` or `doas` (open) for the tool whose rules let them run every command as root, `""` for none, `unknown` where that is not established, as where hardn runs as another user and cannot read the rules |
+| `cpu` | object or null | `model` (null where `/proc/cpuinfo` has none, as on arm64 [I, not run]), `cpus` (logical CPUs), `sockets` (null likewise; none is made up), `load` (the 1, 5 and 15 minute figures as `/proc/loadavg` writes them) |
+| `disk` | object or null | `source` and `type` from `/proc/self/mounts`' line for `/` (the device, or on ZFS the dataset), `usedBytes` and `totalBytes`; on ZFS alone, `pool` and `health`: as `zpool` says it (open), or `unknown` where no `zpool` answers, as in an LXC guest on ZFS. Every ZFS form is [unverified]: no ZFS VM |
+| `memory` | object or null | `totalBytes`, and `usedBytes`, what `MemAvailable` leaves; null on a kernel with no `MemAvailable` |
+| `logins` | array or null | root, then each listed user, from one `lslogins` call: `user`, `when` (as `lslogins` prints it), `tty`, `from`, each `""` for none recorded; `unknown: true`, there only then, where nothing is known of the account: `lslogins` had no line for it, or a blank where a source refuses or none holds records. `null` where `lslogins` failed or is not installed, never "no login" |
+
+`host.hostname` and `host.os` hold the rest of what the screen shows. A blank `when` with no `unknown` says "none recorded", which sees only logins with a terminal: `ssh host cmd` moves nothing ([gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 3).
 
 ## 2. Codes
 
@@ -383,6 +402,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `REBOOT_KERNEL_REPLACED` | a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running ([header.md](../engine/header.md)) |
 | `UPTIME_NO_AUTO_UPDATES` | the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own); the risk level's cross-check, with no `control` ([risk.md](../engine/risk.md)) |
 | `USERS_LOCKED` | a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it ([check-users.md](../engine/check-users.md)) |
+| `DETAILS_UNREADABLE` | a section of the System Details report, or a fact of it, was not read: `source` says what; the rest was read (§1.10) |
 
 The save's finding that hardn.yml's comments would be lost (CONFIG_COMMENTS_LOST, added by `next/s2-control`) is gone: the save now edits the settings that changed and keeps every comment but those of a list item it replaces or removes, which its diff shows, and the maintainer dropped the warning (2026-10-22). It was never merged or released, so no released code went ([config-edit.md](../engine/config-edit.md)).
 
