@@ -1315,6 +1315,9 @@ func Planned(s EndState, p *engine.Plan) EndState {
 // when every cell ran: a -run filter checks the cells it runs and no more.
 func Run(t *testing.T, sl Slice) {
 	t.Helper()
+	if err := onlyProblem(sl); err != nil {
+		t.Fatal(err)
+	}
 	var cells []Cell
 	all := 0
 	for _, sc := range sl.Scenarios {
@@ -1364,6 +1367,11 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 	}
 	c.ran = sl.Run(t, c)
 	c.ran.Live.Rows = maskedAs(c.legacy.Live.Rows, c.ran.Live.Rows)
+	for side, rows := range map[string][]Row{"origin/main": c.legacy.Live.Rows, "the new path": c.ran.Live.Rows} {
+		if err := rowsProblem(rows); err != nil {
+			t.Fatalf("%s: %v", side, err)
+		}
+	}
 	c.legacy.Live.Loaded, c.ran.Live.Loaded = loaded, loaded
 	key := sc.Setting
 	if key == "" {
@@ -1377,6 +1385,40 @@ func runCell(t *testing.T, sl Slice, sc Scenario, d Distro) Cell {
 		c.diffs = append(c.diffs, aspect{"dry run", legacyDry(c.legacy), c.ran.Dry})
 	}
 	return c
+}
+
+// onlyProblem is an error for a Scenario.Only naming no distribution of the
+// slice, whose cell would never run and whose golden would never be read.
+func onlyProblem(sl Slice) error {
+	for _, sc := range sl.Scenarios {
+		for _, name := range sc.Only {
+			if !slices.ContainsFunc(sl.Distros, func(d Distro) bool { return d.Name == name }) {
+				return fmt.Errorf("%s: Only names %q, no distribution of this slice", sc.Name, name)
+			}
+		}
+	}
+	return nil
+}
+
+// builtInAspects are the aspects compare adds itself, which a row must not be
+// named for ("hardn.yml <key>" and the like too).
+var builtInAspects = []string{"refusal", "files", "content", "mode", "directories", "commands", "checks", "temp files",
+	"backupPath dirs", "backupPath files", "backupPath after", "write", "backup", "journal", "findings", "dry run"}
+
+// rowsProblem is an error for rows compareRows could not hold: a name twice, the
+// second then neither compared nor recorded, or an aspect's name.
+func rowsProblem(rows []Row) error {
+	seen := map[string]bool{}
+	for _, r := range rows {
+		switch {
+		case seen[r.Name]:
+			return fmt.Errorf("the row %q twice", r.Name)
+		case slices.Contains(builtInAspects, r.Name), strings.HasPrefix(r.Name, "hardn.yml"):
+			return fmt.Errorf("a row named %q, an aspect the harness compares itself", r.Name)
+		}
+		seen[r.Name] = true
+	}
+	return nil
 }
 
 // maskedAs is rows with each row legacy masks marked so: its value is then

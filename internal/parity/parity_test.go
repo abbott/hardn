@@ -883,6 +883,38 @@ func TestRows(t *testing.T) {
 	}
 }
 
+// TestRowsProblem: a row named twice would go uncompared, and one named for an
+// aspect would merge into it.
+func TestRowsProblem(t *testing.T) {
+	if err := rowsProblem([]Row{{Name: "OS"}, {Name: "Kernel"}}); err != nil {
+		t.Error(err)
+	}
+	for _, tt := range []struct {
+		rows []Row
+		want string
+	}{
+		{[]Row{{Name: "Cores"}, {Name: "Kernel"}, {Name: "Cores"}}, "twice"},
+		{[]Row{{Name: "commands"}}, "aspect"},
+		{[]Row{{Name: "hardn.yml dns"}}, "aspect"},
+	} {
+		if err := rowsProblem(tt.rows); err == nil || !strings.Contains(err.Error(), tt.want) {
+			t.Errorf("%+v: got %v, want an error with %q", tt.rows, err, tt.want)
+		}
+	}
+}
+
+// TestOnlyProblem: an Only naming no distribution fails, as its cell would never run.
+func TestOnlyProblem(t *testing.T) {
+	sl := Slice{Distros: []Distro{{Name: "d"}}, Scenarios: []Scenario{{Name: "all"}, {Name: "one", Only: []string{"d"}}}}
+	if err := onlyProblem(sl); err != nil {
+		t.Error(err)
+	}
+	sl.Scenarios[1].Only = []string{"debian-13"}
+	if err := onlyProblem(sl); err == nil || !strings.Contains(err.Error(), `"debian-13"`) {
+		t.Errorf("got %v", err)
+	}
+}
+
 // TestOnly: a scenario run on some distributions alone says not run on the others;
 // a group holding every cell of each scenario says so.
 func TestOnly(t *testing.T) {
