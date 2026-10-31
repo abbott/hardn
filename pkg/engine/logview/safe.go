@@ -9,7 +9,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 )
 
-// The words this package shows (proposed; readers-system-details.md).
+// The words this package shows (adopted 2026-10-30; readers-system-details.md §9).
 const (
 	// cutMark ends a line host.ScanLines cut at host.MaxLine.
 	cutMark = "<cut>"

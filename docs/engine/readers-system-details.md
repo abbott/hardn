@@ -76,7 +76,7 @@ origin/main's report stops at its first collector's error and loses all it read 
 
     | Golden | Why |
     |---|---|
-    | `system-details/cli-not-root` | **The one adopted screen whose drawing differs from what unit (a) drew: two lines.** The row `alice  sudo`, its bullet `-`, is now `alice  Not known`, with the unknown marker (`[?]`, `?` in the Unicode cells); and "Not root: /etc/sudoers.d not read" is now "Not root: /etc/sudoers, /etc/sudoers.d not read". The reader does not guess from a group, and the report carries both files. It is what the gallery page's §6 state says, the two files' form is proposed (§9), and the note above it now says so too (decisions 23 and 38 below). Stated as a finding, as the adopted mock's row was the stand-in's guess. The commit that made it, 434d58fd, says "the one drawn change" of the row alone |
+    | `system-details/cli-not-root` | **The one adopted screen whose drawing differs from what unit (a) drew: two lines.** The row `alice  sudo`, its bullet `-`, is now `alice  Not known`, with the unknown marker (`[?]`, `?` in the Unicode cells); and "Not root: /etc/sudoers.d not read" is now "Not root: /etc/sudoers, /etc/sudoers.d not read". The reader does not guess from a group, and the report carries both files. It is what the gallery page's §6 state says, the two files' form is adopted (§9), and the note above it now says so too (decisions 23 and 38 below). Stated as a finding, as the adopted mock's row was the stand-in's guess. The commit that made it, 434d58fd, says "the one drawn change" of the row alone |
     | `logs/pager-commands` | The "pager-env" half gone; each row the argv, `less -- /var/log/hardn.log`, under "pager-less, adopted"; a section "Its environment" holds `Pager`'s four variables, as the whole command would be cut at the row |
     | `logs/open`, `play/logs-open` | The command in the gallery's note: `LESSSECURE=1 LESSHISTFILE=- TERM=xterm-256color LC_ALL=C.UTF-8 less -- /var/log/hardn.log`, `Pager`'s, for the stand-in's `LESSSECURE=1 less <path>` |
     | `logs/parser` | The heading "logview.ParseLine" for "parseLogLine, the stand-in", and its note |
@@ -215,7 +215,9 @@ The command is item 11's: `less -- /var/log/hardn.log`, under `LESSSECURE=1 LESS
 
 ## 9. Words
 
-gallery-system-details.md §6 is used as it stands, and "§6" in this section and the next is that page's; the words themselves are unit (c)'s and (d)'s to draw, and the gallery still draws them. New here, **proposed**:
+gallery-system-details.md §6 is used as it stands, and "§6" in this section and the next is that page's; the words themselves are unit (c)'s and (d)'s to draw, and the gallery still draws them. New here, **decided**:
+
+**Adopted (the maintainer, 2026-10-30):** "Adopt, start (b2)", answering "Adopt the not-root row and the proposed words?": `cli-not-root` as drawn, a user's row "Not known" and "Not root: /etc/sudoers, /etc/sudoers.d not read", and every row of this table.
 
 | Where | Words | Why |
 |---|---|---|
@@ -386,7 +388,7 @@ type Details struct { Kernel, Uptime *string; Addresses []DetailAddress; Users [
 35. The retirement comes before the moves, each its own commit, so that a golden's diff has one cause.
 36. The gallery's rows put each fact first and `Can't read <source>` after, so a fact keeps its place in the section and unit (c) can move the rest; the row is the source's, not one row per section as the stand-in had.
 37. `Pager` is asked only where there are lines: a draw with nothing to open runs no `less --version`.
-38. Two refused files are one row, joined by ", " (§9, proposed): the row names what a user cannot read, and two rows would repeat "Not root".
+38. Two refused files are one row, joined by ", " (§9, adopted): the row names what a user cannot read, and two rows would repeat "Not root".
 39. The gallery's `TERM` is a constant, `xterm-256color`, as a golden's must be; unit (d) passes hardn's.
 40. `asUserSys` refuses in the gallery: `hostfake` has no user to refuse, and the reader's own tests refuse the same way.
 41. `pager-commands` draws the argv in its rows and `Env` in its own section, as the whole command would be cut at a row; a Callout, which wraps, draws it whole in `open`.
