@@ -828,29 +828,38 @@ func openedOn(t *testing.T, sys host.System, logFile string) string {
 	return ran[0]
 }
 
-// parserRun is logview.ParseLine on logs_parser's lines, and logview.Read on its
-// long line.
+// parserRun is logview.Read on logs_parser's lines and on its long line: each line
+// as it reads, whole, and each line's level, for the colour alone. Both are held to
+// the lines themselves, by what a level looks like, as the row's values are tied.
 func parserRun(t *testing.T, c parity.Cell) parity.NewRun {
 	t.Helper()
-	var levels []string
-	kept := 0
 	for _, l := range parserWritten {
-		masked := logStamp.ReplaceAllString(l, logStampMask)
-		if !strings.Contains(c.LegacyStart(), masked) {
+		if masked := logStamp.ReplaceAllString(l, logStampMask); !strings.Contains(c.LegacyStart(), masked) {
 			t.Errorf("%q is not a line the golden wrote: %s", masked, c.LegacyStart())
-		}
-		e := logview.ParseLine(l)
-		levels = append(levels, e.Level)
-		if holdsWhole(l, e) {
-			kept++
-		} else {
-			t.Errorf("ParseLine loses part of %q: %+v", l, e)
 		}
 	}
 	h := hostfake.New(host.Options{})
-	h.AddFile(logview.File, []byte(parserLong), 0o644, 0, 0)
+	h.AddFile(logview.File, []byte(strings.Join(parserWritten, "\n")+"\n"), 0o644, 0, 0)
 	ctx := context.Background()
 	n := len(h.Calls())
+	written := logview.Read(ctx, h)
+	var levels []string
+	kept := 0
+	for i, l := range written.Last {
+		levels = append(levels, l.Level)
+		if i < len(parserWritten) && l.Text == parserWritten[i] {
+			kept++
+		} else {
+			t.Errorf("Read loses part of line %d: %+v", i, l)
+		}
+		if want := writtenLevel.FindStringSubmatch(l.Text); want == nil && l.Level != "" || want != nil && l.Level != want[1] {
+			t.Errorf("%q: the level %q", l.Text, l.Level)
+		}
+	}
+	if written.Total != len(parserWritten) {
+		t.Errorf("Read counts %d of %d lines", written.Total, len(parserWritten))
+	}
+	h.AddFile(logview.File, []byte(parserLong), 0o644, 0, 0)
 	r := logview.Read(ctx, h)
 	long := fmt.Sprintf("%d of %d lines, no error", len(r.Last), r.Total)
 	if len(r.Last) == 3 && strings.HasSuffix(r.Last[1].Text, "<cut>") {
@@ -862,17 +871,11 @@ func parserRun(t *testing.T, c parity.Cell) parity.NewRun {
 		{Name: rowParseLevel, Value: levelCounts(levels)},
 		{Name: rowParseLong, Value: long},
 	}
-	return parity.NewRun{Live: s, Via: "logview.ParseLine, logview.Read; " + recordOf(t, h, n)}
+	return parity.NewRun{Live: s, Via: "logview.Read, its lines and each line's level; " + recordOf(t, h, n)}
 }
 
-// holdsWhole says that e holds line: a logger's line in its parts, any other in
-// Message alone.
-func holdsWhole(line string, e logview.Entry) bool {
-	if e.Level == "" {
-		return e.Time == "" && e.Message == line
-	}
-	return e.Time+" "+e.Level+": "+e.Message == line
-}
+// writtenLevel is the level a logger's line holds, by logs_parser's written lines.
+var writtenLevel = regexp.MustCompile(`^\d{4}/\d{2}/\d{2} \d{2}:\d{2}:\d{2} ([A-Z]+): `)
 
 // readOps are the calls that only read.
 var readOps = []string{"read", "read-nofollow", "scan-lines", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group", "run"}

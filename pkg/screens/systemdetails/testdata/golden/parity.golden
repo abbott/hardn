@@ -2404,7 +2404,7 @@ origin/main: menu/logs_parser.golden ()
   dead code on origin/main: no live path calls GetLogs (its NOTE); ParseLine is for a line's colour alone (gallery-system-details.md §5, Made here)
   start: <date> <time> INFO: Configuring DNS; <date> <time> WARNING: No backup taken; <date> <time> ERROR: Failed to restart systemd-resolved; <date> <time> SUCCESS: Script completed selected hardening operations.; <date> <time> INSTALLED: ufw; <date> <time> INFO: hangup during the apply: hardn ends; <date> <time> INFO: run 1: $ ufw allow 2230/tcp; <date> <time> INFO: run 1: | Rule added; <date> <time> INFO: run 1: exit 0; <date> <time> INFO: A message; with a second line of more words; two words; ; one more
   probes: the code calls cmd/hardn/main.go: logging.PrintLogs(); the code calls pkg/application/log_manager.go: m.logsService.GetLogs(); the code calls pkg/application/log_manager.go: m.logsService.PrintLogs(); the code calls pkg/application/menu_manager.go: m.logsManager.PrintLogs(); the code calls pkg/domain/service/logs_service.go: s.repository.GetLogs(); the code calls pkg/domain/service/logs_service.go: s.repository.PrintLogs(); the code calls pkg/menu/logs_menu.go: m.menuManager.PrintLogs()
-new path: logview.ParseLine, logview.Read; hostfake's record: scan-lines; nothing written
+new path: logview.Read, its lines and each line's level; hostfake's record: scan-lines; nothing written
 agree  refusal: none
 agree  files: none
 agree  directories: none

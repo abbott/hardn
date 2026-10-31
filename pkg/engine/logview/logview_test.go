@@ -242,33 +242,32 @@ func TestElsewhere(t *testing.T) {
 	}
 }
 
-// TestParseLine: hardn's five levels, the date and the clock together, the
-// message whole; real forms (vm-runs/s3/57-log-ubuntu26-vm.log), with hardn's
-// run log's lines among them; any other shape stays whole, with no level.
+// TestParseLine: hardn's five levels; real forms (vm-runs/s3/57-log-ubuntu26-vm.log),
+// with hardn's run log's lines among them, a command's own "ERROR:" not the line's;
+// any other shape has none.
 func TestParseLine(t *testing.T) {
-	for _, l := range []string{logview.LevelError, logview.LevelWarning, logview.LevelInfo, logview.LevelSuccess, logview.LevelInstalled} {
-		got := logview.ParseLine("2026/10/20 12:00:05 " + l + ": a: b")
-		if want := (logview.Entry{Time: "2026/10/20 12:00:05", Level: l, Message: "a: b"}); got != want {
-			t.Errorf("%s: %+v", l, got)
+	for _, l := range []string{logview.LevelError, logview.LevelWarning, "INFO", "SUCCESS", "INSTALLED"} {
+		if got := logview.ParseLine("2026/10/20 12:00:05 " + l + ": a: b"); got != l {
+			t.Errorf("%s: %q", l, got)
 		}
 	}
-	for line, want := range map[string]logview.Entry{
-		"2026/10/20 12:00:05 INFO: run 5: $ systemctl is-active ssh.service": {Time: "2026/10/20 12:00:05", Level: "INFO", Message: "run 5: $ systemctl is-active ssh.service"},
-		"2026/10/20 12:00:05 INFO: run 5: | active":                          {Time: "2026/10/20 12:00:05", Level: "INFO", Message: "run 5: | active"},
-		"2026/10/20 12:00:05 INFO: run 5: | ERROR: a command's own":          {Time: "2026/10/20 12:00:05", Level: "INFO", Message: "run 5: | ERROR: a command's own"},
-		"2026/10/20 12:00:05 SUCCESS: debian trixie detected":                {Time: "2026/10/20 12:00:05", Level: "SUCCESS", Message: "debian trixie detected"},
-		"2026/10/20 12:00:05 INFO: ":                                         {Time: "2026/10/20 12:00:05", Level: "INFO"},
+	for line, want := range map[string]string{
+		"2026/10/20 12:00:05 INFO: run 5: $ systemctl is-active ssh.service": "INFO",
+		"2026/10/20 12:00:05 INFO: run 5: | active":                          "INFO",
+		"2026/10/20 12:00:05 INFO: run 5: | ERROR: a command's own":          "INFO",
+		"2026/10/20 12:00:05 SUCCESS: debian trixie detected":                "SUCCESS",
+		"2026/10/20 12:00:05 INFO: ":                                         "INFO",
 	} {
 		if got := logview.ParseLine(line); got != want {
-			t.Errorf("%q: %+v", line, got)
+			t.Errorf("%q: %q", line, got)
 		}
 	}
 	for _, line := range []string{
 		"", "not a line", "2026/10/20 12:00:05 DEBUG: x", "a b c: d", "with a second line",
 		"2026/10/20 12:00:05 INFO:x", "2026-10-20 12:00:05 INFO: x", "abcdefghij 12345678 ERROR: x", " 2026/10/20 12:00:05 INFO: x",
 	} {
-		if got := logview.ParseLine(line); got.Level != "" || got.Message != line || got.Time != "" {
-			t.Errorf("%q: %+v", line, got)
+		if got := logview.ParseLine(line); got != "" {
+			t.Errorf("%q: %q", line, got)
 		}
 	}
 }
