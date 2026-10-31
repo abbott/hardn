@@ -406,7 +406,7 @@ type Details struct { Kernel, Uptime *string; Addresses []DetailAddress; Users [
 
 - **Unit (c):** the screens on `screenkit`: the rows and words now in the gallery; "Last N of M lines" and the size's words; Open, what it does with a pager's error, a refusal off a terminal or a less no longer GNU's among them (§9), `Flush`; a section that holds code; report values through `logview.Safe` before a row, and on the uncapped off-terminal path (decision 32); `ParseLine` reduced to the level with the `parser` mock (decision 50).
 - **Unit (d):** main menu 9 and 10; `-p`'s forms and exit statuses on `logview.Each`, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`; `--output json`, its `Run{Mode: ModeCheck, Hostname, Facts, Details}`; `hardn system-details`' host with no run log, and its `detect.Detect` through `details.Bounded`; the legacy code's deletion.
-- **(b2) Parity,** gallery-system-details.md §9.
+- **(b2) Parity,** gallery-system-details.md §9. *Built in `next/s1-parity`: [parity-system-details.md](parity-system-details.md), each row against §7's fact.*
 - **On a Linux VM:** §4's lists. `p4status`' guard alone changed for the new methods (`ScanLines` passed, `RunInteractive` refused; [vmcheck.md](vmcheck.md) §2).
 
 ## 14. Size
