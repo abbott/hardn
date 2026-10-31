@@ -173,7 +173,6 @@ var rootCmd = &cobra.Command{
 			logging.LogError("Failed to load configuration: %v", err)
 			exit(1)
 		}
-		warnDeprecations(cfg)
 
 		// The session's mode: -n/--dry-run when given, true or false, else
 		// the dryRun of the file loaded, as loaded (§3.19; decision 2). The
@@ -202,6 +201,10 @@ var rootCmd = &cobra.Command{
 			logging.LogError("Failed to detect OS: %v", err)
 			exit(1)
 		}
+
+		// After detectOS, which clears the terminal: said before it, these are gone
+		// before anyone can read them.
+		warnDeprecations(cfg)
 
 		// Create service factory
 		serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
