@@ -14,12 +14,14 @@ package main
 //     (docs/safety/vmtest.md §4.9).
 
 import (
+	"fmt"
 	"io"
 	"os"
 
 	"github.com/fatih/color"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host/hangup"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -83,24 +85,36 @@ func streamEnv(f *os.File) term.Env {
 // pkg/ui, with the file they were read from. The root command calls it
 // once, right after the configuration loads; it is the one warning of
 // them (pkg/output's documents carry them as findings, and its Emit does
-// not warn again).
+// not warn again). A logFile naming another path than the one hardn writes
+// is one too (decision 6 (a); gallery-system-details.md §6's words).
 func warnDeprecations(c *config.Config) {
 	env := stderrEnv()
-	if w := deprecationWarnings(env, c.Path(), c.Deprecations()); w != "" {
+	var retired []string
+	if p := logview.Elsewhere(c.LogFile); p != "" {
+		retired = append(retired, fmt.Sprintf(logFileNotUsed, p))
+	}
+	if w := deprecationWarnings(env, c.Path(), c.Deprecations(), retired...); w != "" {
 		_, _ = io.WriteString(env.Writer(stderr), w)
 	}
 }
 
+// logFileNotUsed is decision 6 (a)'s warning, and the Logs screen's row.
+const logFileNotUsed = "hardn.yml's logFile, %s, isn't used"
+
 // deprecationWarnings renders deps as one Warning callout, a line for each
 // after the file path it was read from (component.Messages: a run of
-// warnings, its title once), for stderr; "" when there are none.
-func deprecationWarnings(env term.Env, path string, deps []config.Deprecation) string {
+// warnings, its title once), then each of retired, a line naming hardn.yml
+// itself, for stderr; "" when there are none.
+func deprecationWarnings(env term.Env, path string, deps []config.Deprecation, retired ...string) string {
 	var run component.Messages
 	for _, d := range deps {
 		text := d.String()
 		if path != "" {
 			text = path + ": " + text
 		}
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: text})
+	}
+	for _, text := range retired {
 		run = append(run, component.Message{Kind: component.MessageWarn, Text: text})
 	}
 	out := run.Render(component.NewCtx(env))

@@ -128,7 +128,6 @@ Here are the main configuration sections in YAML:
 
 ```yaml
 username: "george"                # Default username to create
-logFile: "/var/log/hardn.log"       # Log file path
 dryRun: false                       # Preview changes without applying them
 enableBackups: true                 # Backup files before modifying them
 backupPath: "/var/backups/hardn"    # Path to store backups

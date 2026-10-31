@@ -9,6 +9,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/utils"
 )
@@ -275,7 +276,7 @@ func (m *RunAllMenu) runAllHardening() {
 
 	fmt.Printf("\n%s Check the log file at %s for details\n",
 		style.Colored(style.Cyan, style.SymInfo),
-		style.Colored(style.Cyan, m.config.LogFile))
+		style.Colored(style.Cyan, output.LegacyLogPath))
 }
 
 // calculateTotalSteps determines the total number of hardening steps

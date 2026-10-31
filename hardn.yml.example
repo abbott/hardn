@@ -4,7 +4,6 @@
 # Basic Configuration
 #################################################
 username: "george"                # Default username to create. (See: `sshAllowedUsers`)
-logFile: "/var/log/hardn.log"     # Log file path
 dryRun: false                     # Preview changes without applying them
 enableBackups: true               # Backup files before modifying them
 backupPath: "/var/backups/hardn"  # Path to store backups
