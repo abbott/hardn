@@ -133,15 +133,3 @@ func LogFileOnly(format string, v ...interface{}) {
 		logger.Printf("INFO: %s", fmt.Sprintf(format, v...))
 	}
 }
-
-// PrintLogs prints the content of the log file
-func PrintLogs(logPath string) {
-	data, err := os.ReadFile(logPath)
-	if err != nil {
-		LogError("Failed to read log file %s: %v", logPath, err)
-		return
-	}
-
-	fmt.Printf("\n# Contents of %s:\n\n", logPath)
-	fmt.Println(string(data))
-}

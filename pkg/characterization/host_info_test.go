@@ -12,23 +12,10 @@ import (
 	"github.com/abbott/hardn/pkg/osdetect"
 )
 
-// System details (menu 9 and the system-details subcommand) are collected by
-// pkg/system.GenerateSystemStatus. It cannot run wholly hermetically:
-// TestLegacyMenuSystemDetails (retired; its goldens are frozen in
-// pkg/screens/systemdetails/testdata/legacy) ran it with stand-ins on PATH for the commands
-// below and masks what is left. Besides the seamed HostInfoManager it calls the
-// host directly, with no seam to substitute:
-//   - os.Open("/etc/os-release"), "/etc/resolv.conf", "/etc/passwd" (pkg/system/utils.go:16,41; user_info.go:36)
-//   - user.Current() (pkg/system/collectors.go:65,498)
-//   - exec.Command("nproc") and ("lscpu"), unconditionally (collectors.go:236,257)
-//   - gopsutil cpu.Info, load.Avg, disk.Usage (collectors.go:207,247,278,445)
-//   - exec.Command("free"), ("groups"), ("sudo", "-l", ...), exec.LookPath("zfs") (collectors.go:337,383; user_info.go:81,89)
-//   - exec.Command("lastlog", ...) via LastlogCommandAdapter (lastlog_command_adapter.go:36)
+// The main menu's host block reads HostInfoManager, and System Details no longer does
+// (pkg/screens/systemdetails, refactor plan slice 1, unit (d)).
 //
-// So the gopsutil v3 -> v4 move (Phase 0 refresh) is covered by build, vet and
-// cross-builds only, until it runs on the test VMs.
-//
-// TestHostInfoGolden records the seamed half instead: HostInfoManager.GetHostInfo
+// TestHostInfoGolden records the seamed half: HostInfoManager.GetHostInfo
 // through OSHostInfoRepository and OSUserRepository with the mocks. Hostname,
 // Domain and IPAddresses are left out of the golden because the repository
 // reads them from os.Hostname and net.Interfaces (os_host_info_repository.go:123,210),

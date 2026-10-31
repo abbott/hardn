@@ -51,7 +51,7 @@ func liveMenu(t *testing.T, env term.Env, read func(ctx context.Context) (screen
 		t.Skip("legacySecurityStatus is set: the main menu would read this machine (pkg/security)")
 	}
 	scripted(t, strings.Join(append(lines, ""), "\n"))
-	mm := application.NewMenuManager(nil, nil, nil, nil, nil, nil, nil, application.NewHostInfoManager(nil))
+	mm := application.NewMenuManager(nil, nil, nil, nil, nil, nil, application.NewHostInfoManager(nil))
 	m := NewMainMenu(mm, config.DefaultConfig(), &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"},
 		version.NewService("0.4.0", "", ""))
 	if read != nil {

@@ -16,7 +16,6 @@ type MenuManager struct {
 	dnsManager      *DNSManager
 	packageManager  *PackageManager
 	securityManager *SecurityManager
-	logsManager     *LogsManager
 	hostInfoManager *HostInfoManager
 	// proxmoxCheck is the host's Proxmox VE check (SetProxmoxCheck)
 	proxmoxCheck func() bool
@@ -30,7 +29,6 @@ func NewMenuManager(
 	dnsManager *DNSManager,
 	packageManager *PackageManager,
 	securityManager *SecurityManager,
-	logsManager *LogsManager,
 	hostInfoManager *HostInfoManager,
 ) *MenuManager {
 	return &MenuManager{
@@ -40,7 +38,6 @@ func NewMenuManager(
 		dnsManager:      dnsManager,
 		packageManager:  packageManager,
 		securityManager: securityManager,
-		logsManager:     logsManager,
 		hostInfoManager: hostInfoManager,
 	}
 }
@@ -124,16 +121,6 @@ func (m *MenuManager) GetFirewallStatus() (bool, bool, bool, []string, error) {
 	return m.firewallManager.GetFirewallStatus()
 }
 
-// print the log file content to the console
-func (m *MenuManager) PrintLogs() error {
-	return m.logsManager.PrintLogs()
-}
-
-// retrieve the current log configuration
-func (m *MenuManager) GetLogConfig() (*model.LogsConfig, error) {
-	return m.logsManager.GetLogConfig()
-}
-
 // retrieve host information
 func (m *MenuManager) GetHostInfo() (*model.HostInfo, error) {
 	return m.hostInfoManager.GetHostInfo()
@@ -182,9 +169,4 @@ func (m *MenuManager) FormatUptime(uptime time.Duration) string {
 // format byte size to human readable format
 func (m *MenuManager) FormatBytes(bytes int64) string {
 	return m.hostInfoManager.FormatBytes(bytes)
-}
-
-// GetHostInfoManager returns the host info manager
-func (m *MenuManager) GetHostInfoManager() *HostInfoManager {
-	return m.hostInfoManager
 }
