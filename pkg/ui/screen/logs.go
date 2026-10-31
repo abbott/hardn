@@ -108,9 +108,12 @@ func (l Logs) fileSection() Section {
 }
 
 // fit is how many of the last lines room rows hold, a wrapped line counting each
-// of its rows, measured as they draw: at least one, whatever the room, as the
-// newest line is never left out.
+// of its rows, measured as they draw: at least one there is, whatever the room, as
+// the newest line is never left out.
 func (l Logs) fit(c component.Ctx, room int) int {
+	if len(l.Last) == 0 {
+		return 0
+	}
 	n, rows := 0, 0
 	for n < len(l.Last) {
 		rows += len(component.CodeBlock{Lines: l.Last[len(l.Last)-n-1 : len(l.Last)-n]}.Rows(c))

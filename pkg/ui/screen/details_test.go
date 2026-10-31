@@ -37,14 +37,14 @@ func logLines(n int) []component.CodeLine {
 	return out
 }
 
-// plainAt is the render context of a terminal of that height, in Unicode or ASCII,
-// and drawn is a drawing of it in plain text, line by line.
+// plainAt is the render context of a terminal of that height, in Unicode or ASCII.
 func plainAt(rows int, unicode bool) component.Ctx {
 	env := term.Fixed(80, colorprofile.TrueColor, unicode, true)
 	env.Height = rows
 	return component.NewCtx(env)
 }
 
+// drawn is a drawing in plain text, line by line.
 func drawn(s string) []string { return strings.Split(ansi.Strip(s), "\n") }
 
 // TestSystemDetailsScreen: the report's seven sections in P-17's order, in the
@@ -210,6 +210,10 @@ func TestLogsTerminal(t *testing.T) {
 				t.Errorf("%dx%d: a menu:\n%s", width, rows, ansi.Strip(s))
 			}
 		}
+	}
+	// A reading with no lines holds no section of them, in any state.
+	if s := ansi.Strip((Logs{Path: "/var/log/hardn.log"}).Terminal(plainAt(24, false))); strings.Contains(s, "line") {
+		t.Errorf("no lines:\n%s", s)
 	}
 	empty := Logs{Path: "/var/log/hardn.log", State: LogsEmpty}
 	if s := ansi.Strip(empty.Terminal(plainAt(24, false))); strings.Contains(s, "line") || !strings.Contains(s, "Empty") || len(strings.Split(s, "\n")) != 6 {

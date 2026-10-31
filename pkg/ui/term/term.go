@@ -56,8 +56,9 @@ type Env struct {
 	Animate bool
 }
 
-// Fixed returns an Env for tests, goldens and the gallery, built only from
-// its arguments: it never reads the terminal or the environment. Height is
+// Fixed returns an Env for tests, goldens, the gallery and output off a terminal
+// (component.OffTerminal), built only from its arguments: it never reads the
+// terminal or the environment. Height is
 // DefaultHeight and Animate is false, so output is deterministic. A profile
 // of NoTTY or lower makes the Env plain with no TTY, as Resolve does for piped
 // output; any other profile is an interactive terminal (TTY and InputTTY

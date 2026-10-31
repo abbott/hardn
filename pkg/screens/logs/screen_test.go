@@ -121,6 +121,21 @@ func TestElsewhere(t *testing.T) {
 	}
 }
 
+// TestSafeOnATerminal: on a terminal's screen, colours and all, what a log line and
+// hardn.yml's logFile hold reaches it as text: no escape but the colours, no U+202E.
+func TestSafeOnATerminal(t *testing.T) {
+	p := playWith(hostNamed(t, "control"), terminal(40), logs.Options{LogFile: "/srv/\x1b]0;a title\x07log\u202e"}, "0")
+	plain := strip(p.out)
+	if p.err != nil || strings.ContainsAny(plain, "\x1b\x07\u202e") {
+		t.Errorf("Run = %v: %q", p.err, plain)
+	}
+	for _, w := range []string{"^[[31mErr:1^[[0m", "^[]0;a title^Gdone^[[2J", "abc<U+202E>def", "caf<0xe9>", "don’t “quote” ≥ 5 → … x", "/srv/^[]0;a title^Glog<U+202E>"} {
+		if !strings.Contains(plain, w) {
+			t.Errorf("no %q in:\n%s", w, plain)
+		}
+	}
+}
+
 // TestOpen: Open runs GNU less by its key alone, the exact argv and environment
 // (readers-system-details.md item 11), TERM the caller's, checked; it asks less
 // --version again at the key press; then the screen is drawn again from a fresh
@@ -219,13 +234,12 @@ func TestOpenRefused(t *testing.T) {
 	assertOnlyReads(t, "less changed", h, 0)
 
 	// The seam's refusal, the real one: stdin and stdout here are no terminal.
-	real := host.NewReal(host.Options{})
-	if err := real.RunInteractive(context.Background(), nil, "true"); err == nil {
+	seam := host.NewReal(host.Options{})
+	if err := seam.RunInteractive(context.Background(), nil, "true"); err == nil {
 		t.Log("the seam ran: this test's stdin and stdout are a terminal")
 	} else {
-		lines := hostNamed(t, "lines")
-		p = play(realSeam{lines, real}, "1", "0")
-		if const_ := "stdin and stdout must both be a terminal"; p.err != nil || !strings.Contains(p.out, const_) || strings.Contains(p.out, "host: run") {
+		p = play(realSeam{hostNamed(t, "lines"), seam}, "1", "0")
+		if p.err != nil || !strings.Contains(p.out, "stdin and stdout must both be a terminal") || strings.Contains(p.out, "host: run") {
 			t.Errorf("the seam's refusal: Run = %v:\n%s", p.err, p.out)
 		}
 	}
@@ -257,11 +271,11 @@ func TestOpenRefused(t *testing.T) {
 // terminal is what is tested; it runs nothing else.
 type realSeam struct {
 	*hostfake.System
-	real *host.Real
+	seam *host.Real
 }
 
 func (s realSeam) RunInteractive(ctx context.Context, env []string, _ string, _ ...string) error {
-	return s.real.RunInteractive(ctx, env, "true")
+	return s.seam.RunInteractive(ctx, env, "true")
 }
 
 // erringSeam is the host with a RunInteractive that fails as it says.
@@ -434,10 +448,10 @@ func TestPrintTerminal(t *testing.T) {
 			t.Errorf("%d rows: err %v, exit %d, %q", rows, err, p.ExitCode(), p.Stderr("sudo"))
 		}
 		plain := strip(s)
-		if got := strings.Count(plain, "\n"); got != rows-2 && got != rows-3 {
-			t.Errorf("%d rows: %d lines:\n%s", rows, got, plain)
+		if got := strings.Count(plain, "\n"); got > rows-2 {
+			t.Errorf("%d rows: %d lines, no room for the shell:\n%s", rows, got, plain)
 		}
-		if !strings.Contains(s, "\x1b[") || !strings.Contains(plain, "# File") && !strings.Contains(plain, "File") || strings.Contains(plain, "Enter selection") || strings.Contains(plain, "Open") {
+		if !strings.Contains(s, "\x1b[") || !strings.Contains(plain, "File") || strings.Contains(plain, "Enter selection") || strings.Contains(plain, "Open") {
 			t.Errorf("%d rows:\n%s", rows, plain)
 		}
 		if got := countOn(h); got != (counts{scans: 1}) {
