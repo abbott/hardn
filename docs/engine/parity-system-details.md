@@ -5,15 +5,22 @@
 
 ## 1. Why
 
-Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, and deletes `pkg/menu/system_details_menu.go`, `pkg/menu/logs_menu.go`, `pkg/system` and the log's layers. This page and its test are the record of what they showed and wrote, kept after their code is gone: every row and every state, against the fact that replaces it, with the source that explains the difference.
+Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, and deletes `pkg/menu/system_details_menu.go`, `pkg/menu/logs_menu.go`, `pkg/system` and the log's layers. This page and its test are the record of what they showed and wrote, kept after their code is gone: every row and every state, against the fact that replaces it, with the source that explains the difference. §2 names the lines it knows and does not compare.
 
 ## 2. Method
 
 - **origin/main:** the 33 goldens `menu/system_details_*` (22) and `menu/logs_*` (11), read in place by a reader of their layouts (`readGolden`, `legacy_read_test.go`, through `Slice.Reader`). It sits beside the test because every line it knows is these two screens'. Any section, call or line it does not know fails the test, so that no golden reads as a run that did nothing:
-  - **`readReport`** (`TestLegacyMenuSystemDetails`): each row of the first draw, by its label, and a later draw must print the same rows; the lost report, the error printed twice; an export's message; "What the host-info service asked of the mocks" and "The tools the screen ran itself", which must only read and are recorded with their counts, not compared; the working directory before and afterwards, whose change is what the run wrote. The two renderer goldens have no trailer.
-  - **`readLog`** (`TestLegacyMenuLogs`): the file read, what was shown or said, "The repository's calls" (`stat` and `read` alone), and what hardn's log holds afterwards, less the lines it held and the start-up's line. A golden without its `$PAGER` line, which says the pager did not run, fails.
-  - **`readParser`** (`TestLegacyLogsParser`): for each of its two blocks the lines written and `GetLogs`' entries.
-- **Masked rows.** The screen goldens mask what has no seam, as their "Masked" line says: the OS, Hostname, User and Load lines, the addresses, and Domain dropped. A masked row is **recorded on both sides and not compared** (`Row.Masked`), and the reader fails if a row that line names is not masked, or one is where the line is absent. The two renderer goldens hold those rows on synthetic values, and are where they are compared (`sd-render`, `sd-render-zfs`).
+  - **`readReport`** (`TestLegacyMenuSystemDetails`): each row of the first draw, by its label, and a later draw must print the same rows; the lost report, the error printed twice; an export's message; "What the host-info service asked of the mocks" and "The tools the screen ran itself", which must only read, each held to a list, and are recorded with their counts, not compared; the working directory before and afterwards, whose change is what the run wrote. The two renderer goldens have no trailer.
+  - **`readLog`** (`TestLegacyMenuLogs`): the file read, what was shown or said, "The repository's calls" (`stat` and `read` alone, on `logFile`, the section once on the screen and not at all under `-p`), and what hardn's log holds afterwards, less the lines it held and the start-up's line. A golden without its `$PAGER` line, which says the pager did not run, fails.
+  - **`readParser`** (`TestLegacyLogsParser`): for each of its two blocks the lines written and `GetLogs`' entries, each entry held to its line's split and an unknown field failing.
+- **Lines the reader knows and does not compare.** Each is drawn, not a fact of the report, and goes with its owner:
+  - the titles ("System Details", "System Details Error", "View Logs", which decision 11 makes "Logs"), the `~~~` line, "Log Contents:" and its rule, and "Log file:", held to name `logFile`: unit (c);
+  - Logs' pause, "Press Enter to return to the main menu", against a sub-menu's menu (Made here, P-28): unit (c);
+  - the items, "Select an option" and the prompt, item 2 not offered after an error: unit (c);
+  - "Failed to retrieve system status information." and "Please check system permissions and try again.", defect 7's words: unit (c), by "Can't read <source>";
+  - the export's prompt, "Enter filename": no item, decision 5 (a);
+  - the blank lines around `-p`'s log: unit (d).
+- **Masked rows.** The screen goldens mask what has no seam, as their "Masked" line says: the OS, Hostname, User and Load lines, the addresses, and Domain dropped. A masked row is **recorded on both sides and not compared** (`Row.Masked`), and the reader fails if a row that line names is not masked, if one it does not name is, or if one is where the line is absent. The two renderer goldens hold those rows on synthetic values, and are where they are compared (`sd-render`, `sd-render-zfs`).
 - **The new path** (`TestParity`, `pkg/screens/systemdetails/parity_test.go`, through `internal/parity`), on hostfake:
   - **System Details:** `details.Read` on `detect.Detect`'s facts through `details.Bounded`, as readers-system-details.md item 23 has `hardn system-details`' path; each fact under the label of the row it replaces (§7's map), `none` where nothing replaces it (`factRows`).
   - **Logs:** `logview.Read`, `logview.Elsewhere` and, where there are lines, `logview.Pager`, as the screen is to; `logview.Each` for `-p` off a terminal, and in every cell `Each`'s last lines are held equal to `Read`'s.
@@ -27,17 +34,17 @@ Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, an
 - **What is written: nothing.** In every cell `parity.NewState` reads hostfake's record, and a write, an append or `run-interactive` fails the test ("a change the harness does not compare"); `recordOf` holds every call to the reads and says which, in the cell's "new path:" line; a command not in `readCommands` differs in `commands` (mutation 24). The commands the readers and `detect` run are recorded as probes, not compared.
 - **The harness's end state fits as it is:** an export's file is `files` (path and mode), its directory `directories`, each against none. What was missing is rows: `EndState.Rows` compares each as an aspect of its name, a row one side lacks being `none`. `refusal`, `commands`, `findings` and `hardn.yml` agree in every cell. Backups, the journal, checks and temp files are empty on both sides, and not aspects.
 - **One slice, one package, one page.** `pkg/screens/systemdetails` holds both screens' rows: the plan has one slice, its page and golden are one, and the harness's region is one per page. A directory holding only tests, as `pkg/screens/environment` was. `details` would collide with `pkg/engine/details` on import; `systemdetails` does not, and it is the package gallery-system-details.md §8 names for unit (c).
-- **Hosts: 31 cells of 29 rows.** The legacy goldens are host-independent: their host is stand-ins and mocks. The new path differs by host in two things alone, so two rows have a second cell (`Scenario.Only`):
+- **Hosts: 31 cells of 29 rows.** The legacy goldens are host-independent: their host is stand-ins and mocks. The new path differs by host in the elevation tool, the login tool and `less`, which the second cells show (`Scenario.Only`), and in the OS row, masked in every screen run, so that no cell shows it:
   - **Debian 13 (sudo, `lslogins`, GNU `less`):** every row, its start forced. 28 of the 33 goldens are rows, `system_details_open` twice (`sd-open`, `sd-group-no-rule`).
   - **Alpine 3.23:** `sd-open` (doas; no `lslogins`, so `LoginsNoTool`; `ip`'s `noprefixroute` form, whose address reads the same) and `logs-open` (BusyBox's `less`, so no pager). Run: `vm-runs/s1/01-tools.log`, for those forms.
-  - **Not cells:** Ubuntu 26.04 reads as Debian 13 here (sudo-rs is `visudo -c` and "sudo" to the report; GNU `less` 668; `lslogins`), and Proxmox VE 9's differences are a root-only `Users`, which no golden's start holds, and a ZFS root, which `sd-zfs-other` runs on Debian 13 with `rpool/ROOT/pve-1` [I for the name; no VM].
+  - **Not cells:** Ubuntu 26.04 reads as Debian 13 here: sudo-rs is `visudo -c` and "sudo" to the report, and `lslogins` answers (run: `vm-runs/s1/15-readers-ubuntu26-vm-root.log`); GNU `less` 668 (run: `vm-runs/s1/01-tools.log`:88). Proxmox VE 9's differences are the OS row, which names Proxmox VE (read: `header.OSOf`), and is masked in every screen run; a root-only `Users`, which no golden's start holds; and a ZFS root, which `sd-zfs-other` runs on Debian 13 with `rpool/ROOT/pve-1` [I for each; no VM].
 - **Rows:** 18 of System Details (`sd-*`) and 11 of Logs (`logs-*`). **Not rows** (`TestParityGoldens` holds each of the 33 a row or a not-row, and each named there):
   - `menu/system_details_flags`: the five flags, in a layout of its own: decision 1 (a), and unit (d) builds `--output json` and the warnings. Nothing here has the flags.
-  - `menu/system_details_invalid`, `_return`, `_refresh`: navigation, or a read again, unit (c)'s; their reads are `sd-open`'s, twice over where they draw twice (defect 20).
-  - `menu/system_details_error_export`: `sd-error`'s start and a key not offered, nothing written; its words go with Export (decision 5 (a)).
-- **Commands and reads that only read** are recorded, not compared. Defect 20 shows in each `sd-*` cell's probes: `4x exec uname -r`, `4x read /proc/meminfo`, against the new path's one read of each (readers-system-details.md §10, run there).
+  - `menu/system_details_invalid`, `_return`, `_refresh`: navigation, or a read again, unit (c)'s; their reads are `sd-open`'s, twice over where they draw twice (defect 20), and they write nothing (held: `notRowDraws`).
+  - `menu/system_details_error_export`: `sd-error`'s start and a key not offered, nothing written; its words go with Export (decision 5 (a)). Its reads are `sd-error`'s twice over (held: `notRowDraws`).
+- **Commands and reads that only read** are recorded, not compared. Defect 20 shows in each screen run's probes: `4x exec uname -r`, `4x read /proc/meminfo` for one draw, 3x in `sd-error` and 8x where a run draws twice; the two renderer rows have no calls. Against that, the new path's one read of each is readers-system-details.md §10's, run there: this table's probes name the new path's commands, and its reads by operation alone.
 - **The table is a test:** `table()` (`parity_test.go`) holds every difference, keyed by scenario, cell and aspect, with its source and one line. `TestParity` fails on a difference not in it (UNEXPLAINED), on an entry whose difference no longer occurs, on an entry listed twice, and on a V-number the cell's golden does not name. `logs_print_flag_missing` alone names one, V25's class, for the exit status, which unit (d) compares. `TestTiesCiteTheirGoldens` fails where an entry cites a `KNOWN-DEFECT` line by a phrase that cell's golden does not hold. Two ties rest on unit (b)'s engineering, and say so: no pager where there are no lines (readers-system-details.md §12 decision 37), and a group no rule names counting for nothing (its decision 23, whose reason is "a group names nothing a rule does not"; its item 16 states the behaviour). An entry with no source would be `Tie.Pending`, carried and marked UNEXPLAINED (§6); there is none.
-- **Mutation-checked** (run at this unit's tip, each on a copy outside the repository through `go test -overlay`; the goldens from a changed copy):
+- **Mutation-checked** (run at this unit's tip, each on a copy outside the repository):
   1. `Kernel`'s entry removed: UNEXPLAINED;
   2. an entry for `Processor`, which agrees: stale;
   3. `Memory` tied to V20: "does not name";
@@ -59,11 +66,26 @@ Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, an
   19. `Memory.Used` wrong: UNEXPLAINED, `Memory`, in the render rows, where it agrees;
   20. `Safe` not applied: `raw escape` stale;
   21. `logview.Read` appending to the log: "a change the harness does not compare";
-  22. `details.Read` writing a file: "a call that does not only read";
+  22. `details.Read` writing a file: "written, then gone";
   23. the pager run: "a change the harness does not compare";
   24. `details.Read` running `useradd`: UNEXPLAINED, `commands`;
   25. `less --version` not GNU's on Debian 13: only `parity.golden` and the page fail (limit 1);
-  26. a heading row on the new path's side: UNEXPLAINED, `-p heading`.
+  26. a heading row on the new path's side: UNEXPLAINED, `-p heading`;
+  27. `details.read` keeping only memory where memory is unread: "not kept";
+  28. `ParseLine` returning `Entry{}` for a line not the logger's: "loses part";
+  29. `ParseLine` returning `Entry{Level: m[2]}`: "loses part";
+  30. `s.Used` doubled in `df`'s reader: UNEXPLAINED, `Volume`, on a plain root;
+  31. `sd-group-no-rule`'s start left with `%sudo`: its `Non-System Users` entry stale;
+  32. `useradd bob` among the mocks' commands: "only read";
+  33. `Processor` masked: "the Processor row masked";
+  34. a second `Processor` row on the new path's side: "twice";
+  35. an `Only` naming no distribution: "no distribution of this slice";
+  36. a `logs_parser` entry changed: "split"; given a new field: "unknown field";
+  37. a `read` of another file: "another file"; `logs_missing` with no calls, and `logs_open` with them twice: "sections of the repository's calls";
+  38. a later draw whose Load 15m bar differs: "differ from the first's";
+  39. `system_details_error_export` with a file added: "it wrote"; `_refresh` with `useradd bob`: "only read"; `_return` with another count: "asks";
+  40. a `Volume` line of another form: "Volume line";
+  41. `details.Read` taking a lock: "a call that does not only read".
 - **Its limits:** (1) a difference already tied whose values change fails only on `parity.golden` and the page, which `make golden-update` accepts: the review of that diff is the guard; (2) a `-run` filter checks only the cells it runs, and the table, the golden and the page only when every cell ran; (3) origin/main's rows are its run's in a child process, with stand-ins on `PATH` and mocks, as the test's user, on macOS, and its masked rows hold nothing but the render rows' synthetic values; (4) the new path's forms are the readers' tests', typed from the VMs' logs, ZFS's [unverified]; (5) no row here is drawn, until unit (c) (§7); (6) `logs_large`'s golden keeps 6 of its 20,000 lines, so `lines` compares its last three, with the count and the size.
 - **Its renderings:** [`parity.golden`](../../pkg/screens/systemdetails/testdata/golden/parity.golden), every cell with what agrees and what differs; and the region of §4. `make golden-update` rewrites both; without `-update` the test fails when either is not what it makes.
 
@@ -286,16 +308,20 @@ From the table, and, where marked, from the code:
 8. **It read `cfg.LogFile`,** which hardn has never written (defect 21, P-18): a line just written not shown, another file's old line shown as hardn's. Now `/var/log/hardn.log`, and `Elsewhere` gives the path for the row and unit (d)'s warning.
 9. **A line's escape reached the terminal raw** (`logs-escape`, defect 22). Now `Safe`, on and off the screen.
 10. **A log's state had no words of its own:** none when empty, Stat's words when missing, the path three times (defect 26). Now `NoLog`, `Empty`, `Unreadable` and a reason, which unit (c) words as §6 has them.
-11. **`-p` printed a heading and, on a failed read, wrote an ERROR line into the log** (`logs-p`, `logs-p-missing`; defect 24), and exits 0 (defect 23; read, unit (d)'s). Now every line alone, off a terminal, and nothing written. The rest of `-p`'s stream (the config line, the clear, the OS line; defect 25) is in no golden: read, gallery-system-details.md §2.9.
+11. **`-p` printed a heading and, on a failed read, wrote an ERROR line into the log** (`logs-p`, `logs-p-missing`; defect 24), and exits 0 (defect 23; read, unit (d)'s). Now every line alone, off a terminal, and nothing written. Every `-p` cell is off a terminal, so `lines shown` agreeing at `all 5` on `logs-p` says nothing of a terminal (§8). The rest of `-p`'s stream (the config line, the clear, the OS line; defect 25) is in no golden: read, gallery-system-details.md §2.9.
 12. **`$PAGER` was set and never run.** Now GNU `less` alone, by a fixed command, with no key pressed nothing runs (decision 7 (a)); on BusyBox's, no pager.
 13. **`GetLogs` read a format hardn does not write,** no entry with a level, a second line an entry or dropped, a line over 64 KiB ending the read (`logs-parser`). It had no live caller; `ParseLine` is for a line's colour alone.
 14. **Each draw read everything again,** four `GetHostInfo`s, and each option recursed (defect 20; the probes; `system_details_refresh`, a not-row). The loop is unit (c)'s.
+
+15. **It drew and built rows in ways no row holds,** which go with unit (c) or (d) and are not in the table: a box fixed at 50 columns, a longer line past it (defect 4); a renderer that does I/O, which nothing can place or test (defect 5); a clear on each draw, the title twice, and a clear in a pipe (defect 6); three copies of the print, one with no caller (defect 27).
+16. **The export was its own text** (defect 19): headings, Root Partition, Root Free, Memory Free, DNS Servers and, on ZFS, "ZFS Filesystem: zroot/ROOT/os", found nowhere else. Those lines are recorded in `parity.golden`, not compared: under decision 5 (a) there is no export.
+17. **Outside these rows,** both read: "Check the log file at" after Run All names a file not written (defect 21's third clause), and `main()`'s two lines as a user other than root spoil `> file` (defect 28). Both are unit (d)'s. The log's 0644 (defect 29) is not this slice's to correct (gallery-system-details.md §7).
 
 The new path does what origin/main did not: it adds IPv6 ([I] for `inet6`'s form; defect 16), the root's source and type, and each listed user's login.
 
 ## 6. UNEXPLAINED differences
 
-**None.** Every difference has a source this table may cite, or a `KNOWN-DEFECT` line its golden holds. No entry is `Tie.Pending`.
+**None.** Every difference has a source this table may cite, or a `KNOWN-DEFECT` line its golden holds, two by engineering not adopted, which say so (§2). No entry is `Tie.Pending`.
 
 ## 7. For unit (c)
 
@@ -305,6 +331,7 @@ The new path does what origin/main did not: it adds IPv6 ([I] for `inet6`'s form
 - **What the table gains then:**
   - each cell's rows read from the screen's own output, not `factRows`: a drawn row beside its fact, so that "Debian 13 (Trixie)", "4.2 of 38.6 GiB (11%)", "No sudo" and "None recorded" are compared, and `Cores` and `Uptime` against the words §6 decides;
   - the items: Refresh on both, Open where `Pager` says, no Export;
+  - the lines §2 lists as not compared, the title "Logs" and no pause on Logs among them;
   - `system_details_invalid`, `_return`, `_refresh` as rows, with defect 20's recursion gone;
   - the driver held to one read a draw, as `recordOf` holds it to reads.
   The table's differences stay but for the values the words change: a screen that draws otherwise shows as UNEXPLAINED or a failed golden.
@@ -322,7 +349,7 @@ Then prove it: each file `cmp` equal to its old path at the freeze's parent; `go
 
 **What may then go** (gallery-system-details.md §9; written, not run; each with its `git grep`): `pkg/menu/system_details_menu.go`; `pkg/menu/logs_menu.go`; `pkg/system`; the log manager, service, model, port and repository (`GetLogs`, `PrintLogs`); the lastlog adapter; `utils.PrintLogs`; `HostInfoManager` stays where the main menu uses it. Then main menu 9 and 10 open the screens, `hardn system-details` takes decision 1 (a)'s flags, `-p` decisions 9 and 10 (a).
 
-**What unit (d) must add, as no aspect here compares it:** exit statuses and `-p`'s stderr ("hardn: no log yet: <path>", "hardn: can't read <path>: <reason>", "Run it with sudo."); `system_details_flags`' eleven command lines against decision 1 (a); `-p` ahead of the config load and `detectOS`, so that its pipe form holds the log alone (`logs-p`'s `-p heading` row holds `PrintLogs` alone: gallery-system-details.md §2.9).
+**What unit (d) must add, as no aspect here compares it:** exit statuses and `-p`'s stderr ("hardn: no log yet: <path>", "hardn: can't read <path>: <reason>", "Run it with sudo."); `system_details_flags`' eleven command lines against decision 1 (a); `-p` ahead of the config load and `detectOS`, so that its pipe form holds the log alone (`logs-p`'s `-p heading` row holds `PrintLogs` alone: gallery-system-details.md §2.9); `-p` to a terminal, decision 10 (a)'s file rows and last lines (`cli-terminal-tail`), with its blank-line form; "Check the log file" and `main()`'s two lines (§5 item 17).
 
 ## 9. Written, not run (gate 5)
 
@@ -331,5 +358,5 @@ Nothing here ran on Linux or as root. origin/main's rows are its run's on macOS,
 ## 10. Files and size
 
 - **Added:** `pkg/screens/systemdetails/parity_test.go`, `legacy_read_test.go`; `pkg/screens/systemdetails/testdata/golden/parity.golden`; this page.
-- **Changed:** `internal/parity` (`Slice.Reader`, `LegacyRead`, `EndState.Rows`, `Row`, `Scenario.Only`, `scan-lines` among `NewState`'s reads, `whereRows`, and their tests); [screen-kit.md](screen-kit.md) §2 and §7, [gallery-system-details.md](gallery-system-details.md) §9, [readers-system-details.md](readers-system-details.md) §13, the design-system README's "Running and regenerating" and the makefile's comment on `golden-update`. [parity-environment.md](parity-environment.md) has no section for the next slice, so it is not touched. No non-test Go outside `internal/parity`; no legacy code, no reader, no existing golden or testdata file.
-- **Size** (`git diff --numstat 41ef415e` and `wc -l`, run): `internal/parity` 141 lines added and 16 removed, its tests 83 and 0, under the guideline of about 300 for the harness. The slice's part is larger than Environment's because its 33 goldens are in four layouts, and two screens' rows. This slice's part: `parity_test.go` 980 lines of test Go, its table 81 entries, 290 differences in 30 cells; the reader and its refusals, `legacy_read_test.go`, 718, beside the test as every line it knows is these screens'; `parity.golden` 1,619 lines; this page about 330 lines. Environment's unit (b2) for comparison (parity-environment.md §10): the harness 585 and 54, its part 887 lines, 69 entries.
+- **Changed:** `internal/parity` (`Slice.Reader`, `LegacyRead`, `EndState.Rows`, `Row`, `Scenario.Only`, `scan-lines` among `NewState`'s reads, `whereRows`, `rowsProblem`, `onlyProblem`, and their tests); [screen-kit.md](screen-kit.md) §2 and §7, [gallery-system-details.md](gallery-system-details.md) §9, [readers-system-details.md](readers-system-details.md) §13, the design-system README's "Running and regenerating" and the makefile's comment on `golden-update`. [parity-environment.md](parity-environment.md) has no section for the next slice, so it is not touched. No non-test Go outside `internal/parity`; no legacy code, no reader, no existing golden or testdata file.
+- **Size** (`git diff --numstat 41ef415e` and `wc -l`, run): `internal/parity` 183 lines added and 16 removed, its tests 115 and 0, under the guideline of about 300 for the harness. The slice's part is larger than Environment's because its 33 goldens are in four layouts, and two screens' rows. This slice's part: `parity_test.go` 1,089 lines of test Go, its table 83 entries, 309 differences in 31 cells; the reader and its refusals, `legacy_read_test.go`, 823, beside the test as every line it knows is these screens'; `parity.golden` 1,705 lines; this page about 360 lines. Environment's unit (b2) for comparison (parity-environment.md §10): the harness 585 and 54, its part 887 lines, 69 entries.
