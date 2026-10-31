@@ -131,7 +131,9 @@ func resetFlags() {
 	showVersion, setupSudoEnv, debugUpdates, testUpdateAvailable, testSecurityUpdate = false, false, false, false, false
 	cfg = nil
 	// A flag given in one run stays given in pflag for the next (dryRunGiven).
-	rootCmd.PersistentFlags().Lookup("dry-run").Changed = false
+	for _, name := range []string{"dry-run", "print-logs", "create-user", "disable-root", "configure-dns", "configure-ufw", "run-all", "setup-sudo-env"} {
+		rootCmd.PersistentFlags().Lookup(name).Changed = false
+	}
 	if c, _, err := rootCmd.Find([]string{"system-details"}); err == nil {
 		for _, name := range []string{"output", "export", "section", "format", "json", "yaml"} {
 			f := c.Flags().Lookup(name)

@@ -55,19 +55,23 @@ var (
 // Create provider as a global for dependency injection
 var provider = interfaces.NewProvider()
 
-func main() {
-	logging.InitLogging("/var/log/hardn.log")
+func main() { start("/var/log/hardn.log") }
+
+// start is main, with the log's path for the tests: what hardn says before the
+// command goes to stderr, so that stdout holds the command's output alone (defect 28).
+func start(logPath string) {
+	logging.InitLogging(logPath)
 
 	// Ensure config directory and example config exist
-	if err := config.EnsureExampleConfigExists(); err != nil {
+	if err := ensureExampleConfig(); err != nil {
 		// Just log a warning, don't exit - the program can still run with defaults
 		fmt.Fprintf(os.Stderr, "Warning: Unable to create example configuration file: %v\n", err)
 	}
 
-	// Execute command
+	// All Execute returns is a bad command line, which cobra has said on stderr with
+	// the usage: a usage error, as refuse's.
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
+		exit(hardncmd.ExitUsage)
 	}
 }
 
@@ -496,6 +500,7 @@ var (
 	loadConfig                  = config.LoadConfig
 	loadExisting                = config.LoadExisting
 	fileDryRun                  = config.FileDryRun
+	ensureExampleConfig         = config.EnsureExampleConfigExists
 	detectOS                    = osdetect.DetectOS
 	exit                        = os.Exit
 	stderr            io.Writer = termStderr
