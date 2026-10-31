@@ -152,7 +152,7 @@ The command is item 11's: `less -- /var/log/hardn.log`, under `LESSSECURE=1 LESS
 | A shell, another file or an editor from inside it | `LESSSECURE=1`: `!`, `\|`, `E`, `:e`, `v` say "Command not available" | run as a user: `vm-runs/s1/04-less2-deb13-vm.log`, `04-less2-ubuntu26-vm.log`; as root, through sudo and sudo-rs: `11-less3-*.log` |
 | A log written over any file | `s` says "Input is not a pipe" on a file, with or without `LESSSECURE`, and hardn passes a file | run as a user: `04-less2-*.log`; as root: `11-less3-*.log` |
 | BusyBox's `less`, whose `s` writes and `E` opens any path, `LESSSECURE` changing nothing | Not run at all: `less --version` must print `less <digits>`, and BusyBox's refuses it; any other answer, any error, is no pager; asked at the draw and again at the key press | run: `TestPager`, 16 answers; `TestCommandRunChecksAgain`; `01-tools.log`:153; `04-less2-alpine323-vm.log`; the write itself read, not run |
-| A program named by the environment | `$PAGER` is not read: `Pager` takes no environment | run: `TestPager`; the type |
+| A program named by the environment | `$PAGER` is not read: `Pager` takes no environment | the type; `TestPager` holds the command with none set; *since `next/s1-screen`,* run: `pkg/screens/logs`' `TestOpen`, with `PAGER`, `LESSOPEN` and `LESS` set (mutation-checked) |
 | `LESS`, `LESSOPEN`, `LESSKEY`, `EDITOR`, `SHELL`, `HOME` reaching it | `RunInteractive` passes `env` and `PATH` alone | run: `TestRunInteractiveExactEnvironment`, each set in the parent |
 | A `TERM` that names a path | `safeTerm`, else `vt100` | run: `TestSafeTerm`, `TestPagerTerm` |
 | The path taken for an option | `--` | run: this Mac's less 581.2 (`TestRunInteractiveLess`); GNU 668, `11-less3-*.log` |
@@ -232,6 +232,8 @@ gallery-system-details.md §6 is used as it stands, and "§6" in this section an
 | JSON: `users[].tool`, `disk.health` | "unknown" | §6's word, as `host`'s facts use it, where the rules are not read and where no `zpool` answers |
 | Users, as a user other than root, two files refused | "Not root: /etc/sudoers, /etc/sudoers.d not read"; "Not root: /etc/doas.conf, /etc/doas.d not read" | §6's form has one `<file>`, the report carries both, and the finding's source joins by ", " too |
 | The gallery's, dev-only | "pager-less, adopted", "Its environment", "logview.ParseLine" | Headings of `pager-commands` and `parser`; retire with them |
+
+*Since `next/s1-screen`:* "less is not GNU less" is also what a done context or a timed-out `less --version` gives at the key press (`gnuLess`; run on a done context), beyond this table's Why: open in [screen-system-details.md](screen-system-details.md) §11. A pager's other failure has no row here, and is proposed there (§5).
 
 **For unit (c):** a user's row where the rules are not read is "Not known" (§6's state), since the report no longer says what a group says (`cli-not-root`). `cli-flags` keeps §6's heading "Proposed, if 3.11 is approved", though §3.11's change is approved, narrowed: the words are decided, and unit (d) writes the warnings. "Until 3.11 is decided" and "Parsed and ignored, as today" are retired from §6.
 

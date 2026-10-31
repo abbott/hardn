@@ -200,7 +200,7 @@ The Logs screen on `long`, plain, at 80×24 (`screen-long`), recommended options
 | `plan-only` | The same screen: other sub-menus show the mode nowhere (§5, Made here) |
 | `cli-terminal` | `hardn system-details` to a terminal: title and sections, no menu, no prompt |
 | `cli-pipe` (64+) | The same off a terminal: plain mode, whatever the surrounding cell |
-| `cli-pipe-cut` (64+) | The same on `pve9`: the CPU's name cut in the pipe (§5, Made here) |
+| `cli-pipe-cut` (64+) | The same on `pve9`: the CPU's name cut in the pipe (§5, Made here). *Since `next/s1-screen`, drawn whole, DEV-067* |
 | `cli-not-root` | As alice off sudo: `main()`'s two lines first, then the report, *since `next/s1-readers`,* the row "Not root: /etc/sudoers, /etc/sudoers.d not read" (`/etc/doas.conf, /etc/doas.d` on a doas host) naming what the reader cannot read, and "alice  Not known", never a group's guess. Last Login reads the same as a user (run: `vm-runs/s1/02-login.log`) |
 | `cli-json` (64+), `cli-json-unreadable` (64+) | Decision 1 (a): the real `output.Build`'s nine fields and `details`; a section not read is null and one finding `DETAILS_UNREADABLE`, registered, exit 0; `details` carries the logins; as a user other than root, `main()`'s lines come first until unit (d) moves them |
 | `cli-flags` | The five flags: today, and as decision 1 (a) has them |
@@ -552,7 +552,7 @@ Others found:
 | `detailsModel`, `withDetails`, `ipLine`, `alpineIPLine`, `cpuinfo` | Stay: what a fake host answers. They gain `/proc/self/status` and a wtmp record |
 | `detailsDocument`, `detailsJSON` | `Run.Details`, `Document.Details`, `output.Details` and `DETAILS_UNREADABLE` in `pkg/output` (items 25, 26); `--output` is unit (d)'s |
 | `report`, `offTerminalCtx` | *Since `next/s1-screen`,* `screen.SystemDetails.Report`, `component.OffTerminal` (DEV-067) |
-| `readLog` | `logview.Read`, in bounded memory through `host.System`'s `ScanLines` (items 1, 7); the gallery's `readLog` adds `Elsewhere` and `Pager`, and `pipeLines` is `logview.Each` |
+| `readLog` | `logview.Read`, in bounded memory through `host.System`'s `ScanLines` (items 1, 7); the gallery's `readLog` adds `Elsewhere` and `Pager`, and `pipeLines` is `logview.Each`. *Since `next/s1-screen`, both gone: `logs.Print` on `logview.Each`, and the screens read for themselves* |
 | `safeLine` | `logview.Safe`, and `Show` for a cut line (item 8) |
 | `parseLogLine` | `logview.ParseLine`, for the colour alone (item 9) |
 | `logRows`, `codeRows`, `logScreen` | *Since `next/s1-screen`,* `component.CodeBlock`, `Section.Code` (DEV-066) |

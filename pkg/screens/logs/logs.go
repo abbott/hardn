@@ -122,8 +122,9 @@ func (r *runner) open(ctx context.Context, c logview.Command) func() error {
 }
 
 // pagerWords is err as the screen says it: the decided words where it is a refusal
-// of the seam's or the pager's, without the wrapping of who said it; else as it is,
-// safe to show, as an exit status or a done context has no words of its own.
+// of the seam's or the pager's, without the wrapping of who said it; else as host
+// says it, safe to show, which is proposed, as no adopted source words an exit status
+// (docs/engine/screen-system-details.md §5, §11).
 func pagerWords(err error) string {
 	for _, words := range pagerRefusals {
 		if strings.HasSuffix(err.Error(), words) {
