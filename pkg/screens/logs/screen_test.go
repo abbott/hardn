@@ -142,7 +142,8 @@ func TestElsewhere(t *testing.T) {
 }
 
 // TestSafeOnATerminal: on a terminal's screen, colours and all, what a log line and
-// hardn.yml's logFile hold reaches it as text: no escape but the colours, no U+202E.
+// hardn.yml's logFile and why the log cannot be read hold reaches it as text: no
+// escape but the colours, no U+202E.
 func TestSafeOnATerminal(t *testing.T) {
 	p := playWith(hostNamed(t, "control"), terminal(40), logs.Options{LogFile: "/srv/\x1b]0;a title\x07log\u202e"}, "0")
 	plain := strip(p.out)
@@ -154,13 +155,22 @@ func TestSafeOnATerminal(t *testing.T) {
 			t.Errorf("no %q in:\n%s", w, plain)
 		}
 	}
+	p = playWith(hostileScan{hostNamed(t, "lines")}, terminal(40), logs.Options{}, "0")
+	if plain = strip(p.out); p.err != nil || strings.ContainsAny(plain, "\x1b\u202e") || !strings.Contains(plain, "Can't read it: "+hostileShown) {
+		t.Errorf("a reason: Run = %v: %q", p.err, plain)
+	}
 }
 
 // TestOpen: Open runs GNU less by its key alone, the exact argv and environment
-// (readers-system-details.md item 11), TERM the caller's, checked; it asks less
-// --version again at the key press; then the screen is drawn again from a fresh
-// reading, what the log gained showing.
+// (readers-system-details.md item 11), TERM the caller's, checked, and neither the
+// program nor the environment taken from hardn's, whatever that says (decision 7 (a),
+// P-18: $PAGER names a program a root process would run); it asks less --version again
+// at the key press; then the screen is drawn again from a fresh reading, what the log
+// gained showing.
 func TestOpen(t *testing.T) {
+	t.Setenv("PAGER", "/tmp/evil")
+	t.Setenv("LESSOPEN", "|/tmp/evil %s")
+	t.Setenv("LESS", "-r")
 	h := hostNamed(t, "lines")
 	model := h.Handler
 	h.Handler = func(argv []string, stdin []byte) hostfake.Response {
@@ -498,7 +508,8 @@ func TestPrintTerminal(t *testing.T) {
 // in the decided words, exit 0; unreadable, exit 1; refused, "Run it with <tool>.",
 // where the caller names one; empty, nothing on either and exit 0, off a terminal; a
 // read that fails part way, the lines gone before it, exit 1; stdout empty in each
-// state that has words, to a terminal or not. Nothing written.
+// state that has words, to a terminal or not; a reason and a tool safe to show; a
+// failed write ends the pass. Nothing written.
 func TestPrintStates(t *testing.T) {
 	const noLog = "hardn: no log yet: /var/log/hardn.log"
 	dir := "hardn: can't read /var/log/hardn.log: is a directory"
@@ -533,8 +544,15 @@ func TestPrintStates(t *testing.T) {
 	if err != nil || s != "a line\n^[[2Janother\n" || p.ExitCode() != 1 || !slices.Equal(p.Stderr("sudo"), []string{"hardn: can't read /var/log/hardn.log: input/output error"}) {
 		t.Errorf("part way: err %v, stdout %q, stderr %q, exit %d", err, s, p.Stderr("sudo"), p.ExitCode())
 	}
-	if _, _, err := printOnFailing(hostNamed(t, "lines"), off()); err == nil || !strings.Contains(err.Error(), "write") {
-		t.Errorf("a failed write off a terminal: %v", err)
+	if _, p, _ := printOn(hostileScan{hostNamed(t, "lines")}, off(), ""); !slices.Equal(p.Stderr("sudo"), []string{"hardn: can't read /var/log/hardn.log: " + hostileShown}) {
+		t.Errorf("a reason: %q", p.Stderr("sudo"))
+	}
+	if _, p, _ := printOn(refusingScan{hostNamed(t, "lines")}, off(), ""); !slices.Equal(p.Stderr("do\x1b[2Jas\u202e")[1:], []string{"Run it with do^[[2Jas<U+202E>."}) {
+		t.Errorf("a tool: %q", p.Stderr("do\x1b[2Jas\u202e"))
+	}
+	var writes failing
+	if _, err := logs.Print(context.Background(), logs.PrintOptions{Out: &writes, Env: off(), System: hostNamed(t, "lines")}); err == nil || !strings.Contains(err.Error(), "write") || writes.n != 1 {
+		t.Errorf("a failed write off a terminal: %v, %d writes", err, writes.n)
 	}
 	if _, _, err := printOnFailing(hostNamed(t, "lines"), terminal(24)); err == nil || !strings.Contains(err.Error(), "write") {
 		t.Errorf("a failed write to a terminal: %v", err)
@@ -543,10 +561,14 @@ func TestPrintStates(t *testing.T) {
 
 // printOnFailing runs Print with a stdout that fails, as a closed pipe does.
 func printOnFailing(sys host.System, env term.Env) (string, logs.Printed, error) {
-	p, err := logs.Print(context.Background(), logs.PrintOptions{Out: failing{}, Env: env, System: sys})
+	p, err := logs.Print(context.Background(), logs.PrintOptions{Out: &failing{}, Env: env, System: sys})
 	return "", p, err
 }
 
-type failing struct{}
+// failing is a stdout that fails each write, and counts them.
+type failing struct{ n int }
 
-func (failing) Write([]byte) (int, error) { return 0, errors.New("broken pipe") }
+func (f *failing) Write([]byte) (int, error) {
+	f.n++
+	return 0, errors.New("broken pipe")
+}

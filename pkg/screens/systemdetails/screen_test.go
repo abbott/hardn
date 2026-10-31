@@ -600,34 +600,46 @@ func TestLongValue(t *testing.T) {
 
 // TestSafe: what the host holds reaches no terminal raw, on the screen or from Print,
 // on or off a terminal: a value with U+202E and an OSC shows them as text, in a value,
-// a user's name and an interface's (readers-system-details.md §12, decision 32).
+// a user's name and an interface's, a mount's source and type, a pool's name and health
+// (readers-system-details.md §12, decision 32).
 func TestSafe(t *testing.T) {
 	const bad = "\u202e\x1b]0;a title\x07\x1b[2J"
 	const shown = "<U+202E>^[]0;a title^G^[[2J"
+	const field, fieldShown = "\u202e", "<U+202E>" // short: a mount's row is cut on a terminal
 	mk := func() *testHost {
 		h := hosts["debian13"]()
 		h.add(header.KernelReleaseFile, "6.12"+bad+"\n")
 		h.add(details.CPUInfoFile, cpuinfo("cpu"+bad, 4, 1))
 		h.m.addrs = ipLine(2, "eth0\u202e", "inet", "192.0.2.20/24")
 		h.add("/etc/passwd", passwd+"bob\u202e:x:1001:1001::/home/bob:/bin/bash\n")
+		h.add(detect.SelfMounts, "/dev/vda1"+field+" / ext4"+field+" rw,relatime 0 0\n")
 		return h
 	}
-	check := func(name, s string) {
+	check := func(name, s string, wants ...string) {
 		t.Helper()
 		plain := strip(s)
 		if strings.ContainsAny(plain, "\u202e\x1b\x07") {
 			t.Errorf("%s: raw: %q", name, plain)
 		}
-		for _, w := range []string{"6.12" + shown, "cpu" + shown, "eth0<U+202E>", "bob<U+202E>"} {
+		for _, w := range wants {
 			if !strings.Contains(plain, w) {
 				t.Errorf("%s: no %q in:\n%s", name, w, plain)
 			}
 		}
 	}
-	check("the screen", playIn(mk(), terminalEnv(), "0").out)
-	check("the screen, plain", play(mk(), "0").out)
-	check("Print to a terminal", printed(t, mk(), terminalEnv()))
-	check("Print off a terminal", printed(t, mk(), offEnv()))
+	each := func(mk func() *testHost, wants ...string) {
+		t.Helper()
+		check("the screen", playIn(mk(), terminalEnv(), "0").out, wants...)
+		check("the screen, plain", play(mk(), "0").out, wants...)
+		check("Print to a terminal", printed(t, mk(), terminalEnv()), wants...)
+		check("Print off a terminal", printed(t, mk(), offEnv()), wants...)
+	}
+	each(mk, "6.12"+shown, "cpu"+shown, "eth0<U+202E>", "bob<U+202E>", "/dev/vda1"+fieldShown+" ext4"+fieldShown)
+	each(func() *testHost {
+		h := pve("DEGRADED" + field)
+		h.add(detect.SelfMounts, "rpool"+field+"/ROOT/pve-1 / zfs rw,relatime,xattr,noacl 0 0\n")
+		return h
+	}, "rpool"+fieldShown+"/ROOT/pve-1 zfs", "Pool rpool"+fieldShown, "DEGRADED"+fieldShown)
 }
 
 // rowsOf is section's rows from a report, as the view holds them.

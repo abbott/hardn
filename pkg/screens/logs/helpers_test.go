@@ -210,6 +210,16 @@ func (h refusingScan) ScanLines(_ context.Context, name string, _ func(host.Line
 	return nil, &fs.PathError{Op: "open", Path: name, Err: fs.ErrPermission}
 }
 
+// hostileScan is a host whose log cannot be read, for a reason a terminal would act on.
+type hostileScan struct{ *hostfake.System }
+
+// hostileShown is that reason, safe to show.
+const hostileShown = "^[[2J<U+202E>bad"
+
+func (h hostileScan) ScanLines(_ context.Context, name string, _ func(host.Line) bool) (fs.FileInfo, error) {
+	return nil, &fs.PathError{Op: "open", Path: name, Err: fmt.Errorf("\x1b[2J\u202ebad")}
+}
+
 // failingScan gives its lines, then fails, as a read part way does.
 type failingScan struct {
 	*hostfake.System

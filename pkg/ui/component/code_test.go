@@ -131,6 +131,13 @@ func TestWhole(t *testing.T) {
 	if s := ansi.Strip(bullets.Render(off)); strings.Contains(s, "\n") {
 		t.Errorf("a bullet item off a terminal wraps: %q", s)
 	}
+	badge := Badge{Text: long}
+	if s := ansi.Strip(badge.Render(off)); !strings.Contains(s, long) {
+		t.Errorf("a badge off a terminal, not whole: %q", s)
+	}
+	if s := ansi.Strip(badge.Render(on)); strings.Contains(s, long) {
+		t.Errorf("a badge on a terminal, whole: %q", s)
+	}
 	if env := off.Env; env.Plain != true || env.TTY || env.HasColor() || env.Unicode || env.Width != term.DefaultWidth {
 		t.Errorf("OffTerminal's Env: %+v", env)
 	}
