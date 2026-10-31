@@ -24,8 +24,8 @@ import (
 
 // The parity table of System Details and Logs (refactor plan §2, slice 1's unit
 // (b2), next/s1-parity; docs/engine/parity-system-details.md): origin/main's two
-// read-only screens and -p, read from pkg/characterization's goldens in place,
-// against the screens that replace them (systemdetails.Run, logs.Run, logs.Print,
+// read-only screens and -p, read from pkg/characterization's goldens, frozen under
+// testdata/legacy, against the screens that replace them (systemdetails.Run, logs.Run, logs.Print,
 // unit (c), next/s1-screen) on hostfake, through the parity harness. Each row of the
 // new side is read from what the screen drew (drive_test.go), beside the fact it
 // draws where origin/main's form holds figures the words round.
@@ -57,8 +57,8 @@ var sdParity = parity.Slice{
 	V032Sections: "(no row for these two screens) and gallery-system-details.md §2.11",
 }
 
-// legacyDir is origin/main's record, read in place until unit (d) freezes it.
-var legacyDir = filepath.Join("..", "..", "characterization", "testdata", "golden")
+// legacyDir is origin/main's record, frozen by unit (d) (legacy_record_test.go).
+var legacyDir = filepath.Join("testdata", "legacy")
 
 const header = `# The parity table of System Details and Logs: origin/main's two read-only screens and -p against
 # the screens that replace them (refactor plan §2, slice 1's unit (c), next/s1-screen;

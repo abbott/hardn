@@ -20,10 +20,10 @@ import (
 // header of "# " lines, the screen as printed between two "# ----" lines, and
 // a trailer:
 //
-//   - readReport: System Details' screen runs (TestLegacyMenuSystemDetails),
+//   - readReport: System Details' screen runs (TestLegacyMenuSystemDetails, retired),
 //     and its two renderer goldens, which have no trailer;
-//   - readLog: the Logs screen and logging.PrintLogs (TestLegacyMenuLogs);
-//   - readParser: GetLogs on the lines hardn writes (TestLegacyLogsParser).
+//   - readLog: the Logs screen and logging.PrintLogs (TestLegacyMenuLogs, retired);
+//   - readParser: GetLogs on the lines hardn writes (TestLegacyLogsParser, retired).
 //
 // It lives here and not in internal/parity because every line it knows is
 // these two screens'. A section, a call or a line it does not know fails the

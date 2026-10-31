@@ -14,7 +14,8 @@ import (
 
 // System details (menu 9 and the system-details subcommand) are collected by
 // pkg/system.GenerateSystemStatus. It cannot run wholly hermetically:
-// TestLegacyMenuSystemDetails runs it with stand-ins on PATH for the commands
+// TestLegacyMenuSystemDetails (retired; its goldens are frozen in
+// pkg/screens/systemdetails/testdata/legacy) ran it with stand-ins on PATH for the commands
 // below and masks what is left. Besides the seamed HostInfoManager it calls the
 // host directly, with no seam to substitute:
 //   - os.Open("/etc/os-release"), "/etc/resolv.conf", "/etc/passwd" (pkg/system/utils.go:16,41; user_info.go:36)
