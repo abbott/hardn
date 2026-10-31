@@ -63,7 +63,7 @@ Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, an
   23. the pager run: "a change the harness does not compare";
   24. `details.Read` running `useradd`: UNEXPLAINED, `commands`;
   25. `less --version` not GNU's on Debian 13: only `parity.golden` and the page fail (limit 1);
-  26. `Each` printing the heading: UNEXPLAINED, `-p heading`.
+  26. a heading row on the new path's side: UNEXPLAINED, `-p heading`.
 - **Its limits:** (1) a difference already tied whose values change fails only on `parity.golden` and the page, which `make golden-update` accepts: the review of that diff is the guard; (2) a `-run` filter checks only the cells it runs, and the table, the golden and the page only when every cell ran; (3) origin/main's rows are its run's in a child process, with stand-ins on `PATH` and mocks, as the test's user, on macOS, and its masked rows hold nothing but the render rows' synthetic values; (4) the new path's forms are the readers' tests', typed from the VMs' logs, ZFS's [unverified]; (5) no row here is drawn, until unit (c) (§7); (6) `logs_large`'s golden keeps 6 of its 20,000 lines, so `lines` compares its last three, with the count and the size.
 - **Its renderings:** [`parity.golden`](../../pkg/screens/systemdetails/testdata/golden/parity.golden), every cell with what agrees and what differs; and the region of §4. `make golden-update` rewrites both; without `-update` the test fails when either is not what it makes.
 
