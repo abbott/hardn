@@ -223,8 +223,8 @@ func alpineLessPackage() *fakeHost {
 }
 
 // alpineLog is Alpine 3.23 with BusyBox's less: a link to /bin/busybox, which
-// refuses --version (vm-runs/s1/01-tools.log:151-153; its exit is [I], the log
-// keeping none, and Pager takes either).
+// refuses --version (vm-runs/s1/01-tools.log:151-153), exit 1
+// (15-readers-alpine323-vm-*.log).
 func alpineLog() *fakeHost {
 	h := simulate(alpine323Platform)
 	h.f.AddFile("/bin/busybox", []byte("ELF"), 0o755, 0, 0)

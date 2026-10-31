@@ -44,8 +44,7 @@ import (
 // still the gallery's, unit (c)'s to build, as is detailsModel, what the
 // simulated host answers the reader, in the forms that ran read-only, as a user,
 // on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs (vm-runs/s1), but ZFS's, no
-// VM having it, and /proc/loadavg, inet6, df's header and /proc/self/status, which
-// no VM printed.
+// VM having it, and inet6, none having a global address.
 //
 // "system-details" lists the mocks with no input; "play system-details" is
 // the menu of the hosts and "play system-details/<host>" the screen on one.
@@ -177,8 +176,8 @@ func findSDHost(name string) (sdHost, bool) {
 // detailsModel is what a System Details host answers beyond statusOn's
 // model, each command's output as details.Read reads it. The forms are those the
 // VMs printed (vm-runs/s1/01-tools.log, 02-login.log), but zpool's and zfs's,
-// written from their manuals, no VM having ZFS, and /proc/loadavg, inet6 and df's
-// header, which no VM printed.
+// written from their manuals, no VM having ZFS, and inet6, none having a global
+// address.
 type detailsModel struct {
 	addrs      string            // ip -o addr show scope global
 	df         string            // df -kP /

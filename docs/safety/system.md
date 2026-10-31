@@ -101,7 +101,7 @@ The Phase 0 audit found every hardening mutation going through `interfaces.Comma
 
 ## 4. Written, not run (gate 5)
 
-*Since `next/s1-readers`, run on Linux 2026-10-30, as the user and as root on Debian 13, Ubuntu 26.04 and Alpine 3.23: this package's tests and `hostfake`'s, `pty_linux_test.go`, `ScanLines` and `RunInteractive` among them (`vm-runs/s1/13-gotest-*.log`). Those tests pin the umask, since `t.TempDir`'s directories under 0002 are not trusted.*
+*Since `next/s1-readers`, run on Linux 2026-10-30, as the user and as root on Debian 13, Ubuntu 26.04 and Alpine 3.23: this package's tests and `hostfake`'s, `pty_linux_test.go`, `ScanLines` and `RunInteractive` among them (`vm-runs/s1/13-gotest-*.log`); and `ScanLines` on `/var/log/hardn.log`, `/var/log/wtmp` and `/var/log/lastlog`, as both (`15-readers-*.log`). Those tests pin the umask, since `t.TempDir`'s directories under 0002 are not trusted.*
 
 *Since 2026-10-28, run in part on Linux, as root: `OwnSessions`, with `systemctl` during the engine's rollback on Debian 13 and Ubuntu 26.04 (§2.5, the last item below; [screen-backup.md](../engine/screen-backup.md) §4.2, the hangup rerun).* *At `4a0079e`, on Ubuntu 26.04: `OwnSessions` again, now with a hangup sent to hardn's process group, and hardn with `pkg/host/hangup`'s writers (§2.5); on Debian 13 too the next day; that package's own pty test not (below).*
 
