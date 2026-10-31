@@ -138,6 +138,70 @@ differ /: none | /dev/vda1 ext4
        decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
+== sd-group-no-rule on Debian 13
+host: alice in the sudo group, no rule naming it (forced: the golden's synthetic start, with what only the new path reads)
+hardn.yml: none loaded
+origin/main: menu/system_details_open.golden ()
+  origin/main marks by the group here, its mocks asking only /etc/group and /etc/passwd; the other rows' /etc/sudoers has %sudo, so that the group means what it says
+  start: /etc/resolv.conf -> 66 bytes; /etc/passwd -> 148 bytes; /etc/group -> 40 bytes; /etc/os-release -> 139 bytes; /proc/uptime -> 22 bytes; /proc/cpuinfo -> 75 bytes; /proc/meminfo -> 84 bytes
+  probes: 5x read /etc/resolv.conf -> 66 bytes; 5x read /etc/passwd -> 148 bytes; 9x read /etc/group -> 40 bytes; 4x read /etc/os-release -> 139 bytes; 5x read /proc/uptime -> 22 bytes; 4x exec uname -r -> ok; 4x read /proc/cpuinfo -> 75 bytes; 4x read /proc/meminfo -> 84 bytes; 4x exec df -k -> ok; 1x tool nproc; 1x tool lscpu; 1x tool lastlog -u <the test's user>
+  masked OS (recorded, not compared): <read from the host>
+  masked Hostname (recorded, not compared): <read from the host>
+  masked IP Addresses (recorded, not compared): <read from the host>
+  masked User (recorded, not compared): <read from the host>
+  masked Load 1m (recorded, not compared): <read from the host>
+  masked Load 5m (recorded, not compared): <read from the host>
+  masked Load 15m (recorded, not compared): <read from the host>
+  masked Domain (recorded, not compared): <dropped>
+new path: details.Read on detect's facts through details.Bounded; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  masked OS (recorded, not compared): Debian 13 trixie
+  masked Hostname (recorded, not compared): web-01
+  masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
+  masked Load 1m (recorded, not compared): 0.12
+  masked Load 5m (recorded, not compared): 0.08
+  masked Load 15m (recorded, not compared): 0.03
+agree  refusal: none
+agree  files: none
+agree  directories: none
+agree  commands: none
+agree  findings: none
+agree  hardn.yml: not saved
+agree  report: whole
+agree  Processor: Example CPU @ 2.00GHz
+agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
+agree  Uptime: 3 days, 4 hours, 5 minutes
+differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
+       decision 2 (a): Linux and the release; now the release, as screen-debian13's row
+differ Client IP: 192.0.2.10 | none
+       decision 2 (a), left out: SSH_CLIENT's address; no row
+differ DNS IP 1: 192.0.2.53 | none
+       decision 2 (a), left out: DNS has main menu 3's screen; no row
+differ DNS IP 2: 192.0.2.54 | none
+       decision 2 (a), left out: DNS has main menu 3's screen; no row
+differ Non-System Users: alice (sudo) | alice (No sudo)
+       readers §12 decision 23 (engineering, not adopted); gallery-system-details.md §6, <user>: the sudo group alone marked alice; now the rules alone: "a group names nothing a rule does not"
+differ Hypervisor: KVM | none
+       decision 2 (a), left out: lscpu's vendor, or the report's; no row
+differ CPU Freq: 0.00 GHz | none
+       decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
+differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
+       decision 2 (a), left out: a 20-wide bar; no row
+differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
+       defect 12: MemFree alone counted as free, so page cache as used; now by MemAvailable
+differ Usage: ██████████░░░░░░░░░░ | none
+       decision 2 (a), left out: a 20-wide bar; no row
+differ Last Login: Oct 29 08:12:44 +0000 | root LoginNone, alice 2026-10-29T08:12:44+00:00
+       decision 3 (a): whoever ran it, by lastlog; now root and each listed user, by lslogins
+differ From: 192.0.2.10 | alice 192.0.2.10
+       decision 3 (a): one address; now each account's
+differ /: none | /dev/vda1 ext4
+       decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type
+v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
+
 == sd-render on Debian 13
 host: the renderer's synthetic report (forced: the golden's synthetic start, with what only the new path reads)
 hardn.yml: none loaded

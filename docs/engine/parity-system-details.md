@@ -1,6 +1,6 @@
 # The parity table of System Details and Logs: origin/main's two read-only screens and `-p` against the readers (`TestParity`)
 
-> **Unit:** refactor plan slice 1 (System Details + Logs), unit (b2), `next/s1-parity`, from `next/s1-readers` at 41ef415e: "Parity table: end state … of legacy vs new path, per fixture distro, with each difference tied to a V-number or an approved proposal" (plan §2, "Phases 3-5 together", §3.22); [gallery-system-details.md](gallery-system-details.md) §9: "origin/main's goldens (`menu/system_details_*`, `menu/logs_*`) against the new forms by row, each difference tied to a decision or defect of this page". Sources the table ties to: decisions 2, 3, 5, 6, 7, 8 and 10 of gallery-system-details.md §5 and its Made here calls, its §6 words, its §7 defects and the slice's two listed there (adopted 2026-10-30); [readers-system-details.md](readers-system-details.md) §9's words (adopted 2026-10-30) and one engineering decision of its §12, which says it was not adopted; [P-18](../refactor/proposals.md#p-18), decided; a `KNOWN-DEFECT` line that cell's golden holds. No V-number: no golden names one for what is compared (§2).
+> **Unit:** refactor plan slice 1 (System Details + Logs), unit (b2), `next/s1-parity`, from `next/s1-readers` at 41ef415e: "Parity table: end state … of legacy vs new path, per fixture distro, with each difference tied to a V-number or an approved proposal" (plan §2, "Phases 3-5 together", §3.22); [gallery-system-details.md](gallery-system-details.md) §9: "origin/main's goldens (`menu/system_details_*`, `menu/logs_*`) against the new forms by row, each difference tied to a decision or defect of this page". Sources the table ties to: decisions 2, 3, 5, 6, 7, 8 and 10 of gallery-system-details.md §5 and its Made here calls, its §6 words, its §7 defects and the slice's two listed there (adopted 2026-10-30); [readers-system-details.md](readers-system-details.md) §9's words (adopted 2026-10-30) and two engineering decisions of its §12, each saying it was not adopted; [P-18](../refactor/proposals.md#p-18), decided; a `KNOWN-DEFECT` line that cell's golden holds. No V-number: no golden names one for what is compared (§2).
 > **Status:** built and tested on macOS, in process: origin/main from `pkg/characterization`'s goldens, read in place; the new path on the recording fake (`hostfake`). **No screen exists yet: the new form of a row is the reader's fact, by readers-system-details.md §7's map, in values a person can compare, not the gallery's drawing** (§7 says what unit (c) adds). Nothing ran on Linux or as root here: a claim about a host is **written, not run (gate 5)**, or cites `_support/hardn-audit-2026-10-16/vm-runs/s1/` (§9). No existing golden or testdata file changed; DNS's, Backup's and Environment's `TestParity`, their `parity.golden` and the regions of their pages are byte for byte as at 41ef415e, `-update` included (run). **No difference is UNEXPLAINED** (§6). Exit statuses and `-p`'s stderr are unit (d)'s: no aspect here compares them.
 
 ## 1. Why
@@ -21,22 +21,22 @@ Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, an
 - **Values.** A row takes origin/main's form where the fact is the same (`Cores`, `Uptime`, `Volume`, `Memory`), so that the same numbers agree, and a wrong reading fails as UNEXPLAINED; `Volume`'s unit is a row of its own, `Volume unit`, as GB against GiB is defect 13 and the figures on a plain root are the same. On a ZFS root `Volume` differs by defects 8 to 10, so a wrong figure there is limit 1's. Otherwise the reader's states and reasons (`LoginNone`, `LoginsNoTool`, `NoLog`, `Unreadable: permission denied`). None of this is what the screens will draw.
 - **The same start.** `holdStart` holds the host's `/etc/os-release`, `/etc/passwd`, `/etc/group`, `/proc/uptime` and `/proc/meminfo` to the sizes the golden's trailer records (their bytes are `runSystemDetailsChild`'s). On Logs, the `size` row agrees with the golden's `read` where the file is the same one, and the lines agree. **Where a fact cannot be the same:**
   - `/proc/cpuinfo`: the golden's holds one `processor` line (75 bytes), its `nproc` and `lscpu` stand-ins say 2 and 1, and origin/main's row takes those. The new path reads this file alone, so the host's says 2 and 1.
-  - What origin/main has no file for, and the new path reads: `/proc/sys/kernel/hostname`, `/proc/loadavg`, `/proc/self/mounts`, `/proc/self/status`, `/etc/sudoers` (with `%sudo`, so that the golden's group means what it says) or `/etc/doas.conf`, `/var/log/wtmp`, and the forms of `ip`, `df -kP /` (the figures of the golden's `df -k`), `lslogins`, `zpool list` and `zfs get` (the figures of the `zfs_dataset` stand-in).
+  - What origin/main has no file for, and the new path reads: `/proc/sys/kernel/hostname`, `/proc/loadavg`, `/proc/self/mounts`, `/proc/self/status`, `/etc/sudoers` (with `%sudo`, so that the golden's group means what it says, and without it in `sd-group-no-rule`) or `/etc/doas.conf`, `/var/log/wtmp`, and the forms of `ip`, `df -kP /` (the figures of the golden's `df -k`), `lslogins`, `zpool list` and `zfs get` (the figures of the `zfs_dataset` stand-in).
   - `sd-zfs-*`: the golden's `zpool` stand-in answers words to reach origin/main's branch; the new path's says ONLINE. Its form is [unverified], no ZFS VM.
   - `logs-unreadable`: mode 0000 as a user in the golden; the new path's read is refused the same way (`refusingScan`). hardn as root meets it only as the golden's NOTE says [I].
 - **What is written: nothing.** In every cell `parity.NewState` reads hostfake's record, and a write, an append or `run-interactive` fails the test ("a change the harness does not compare"); `recordOf` holds every call to the reads and says which, in the cell's "new path:" line; a command not in `readCommands` differs in `commands` (mutation 24). The commands the readers and `detect` run are recorded as probes, not compared.
 - **The harness's end state fits as it is:** an export's file is `files` (path and mode), its directory `directories`, each against none. What was missing is rows: `EndState.Rows` compares each as an aspect of its name, a row one side lacks being `none`. `refusal`, `commands`, `findings` and `hardn.yml` agree in every cell. Backups, the journal, checks and temp files are empty on both sides, and not aspects.
 - **One slice, one package, one page.** `pkg/screens/systemdetails` holds both screens' rows: the plan has one slice, its page and golden are one, and the harness's region is one per page. A directory holding only tests, as `pkg/screens/environment` was. `details` would collide with `pkg/engine/details` on import; `systemdetails` does not, and it is the package gallery-system-details.md §8 names for unit (c).
-- **Hosts: 30 cells of 28 rows.** The legacy goldens are host-independent: their host is stand-ins and mocks. The new path differs by host in two things alone, so two rows have a second cell (`Scenario.Only`):
-  - **Debian 13 (sudo, `lslogins`, GNU `less`):** every row. Each of the 28 goldens below is this cell, its start forced.
+- **Hosts: 31 cells of 29 rows.** The legacy goldens are host-independent: their host is stand-ins and mocks. The new path differs by host in two things alone, so two rows have a second cell (`Scenario.Only`):
+  - **Debian 13 (sudo, `lslogins`, GNU `less`):** every row, its start forced. 28 of the 33 goldens are rows, `system_details_open` twice (`sd-open`, `sd-group-no-rule`).
   - **Alpine 3.23:** `sd-open` (doas; no `lslogins`, so `LoginsNoTool`; `ip`'s `noprefixroute` form, whose address reads the same) and `logs-open` (BusyBox's `less`, so no pager). Run: `vm-runs/s1/01-tools.log`, for those forms.
   - **Not cells:** Ubuntu 26.04 reads as Debian 13 here (sudo-rs is `visudo -c` and "sudo" to the report; GNU `less` 668; `lslogins`), and Proxmox VE 9's differences are a root-only `Users`, which no golden's start holds, and a ZFS root, which `sd-zfs-other` runs on Debian 13 with `rpool/ROOT/pve-1` [I for the name; no VM].
-- **Rows:** 17 of System Details (`sd-*`) and 11 of Logs (`logs-*`). **Not rows** (`TestParityGoldens` holds each of the 33 a row or a not-row, and each named there):
+- **Rows:** 18 of System Details (`sd-*`) and 11 of Logs (`logs-*`). **Not rows** (`TestParityGoldens` holds each of the 33 a row or a not-row, and each named there):
   - `menu/system_details_flags`: the five flags, in a layout of its own: decision 1 (a), and unit (d) builds `--output json` and the warnings. Nothing here has the flags.
   - `menu/system_details_invalid`, `_return`, `_refresh`: navigation, or a read again, unit (c)'s; their reads are `sd-open`'s, twice over where they draw twice (defect 20).
   - `menu/system_details_error_export`: `sd-error`'s start and a key not offered, nothing written; its words go with Export (decision 5 (a)).
 - **Commands and reads that only read** are recorded, not compared. Defect 20 shows in each `sd-*` cell's probes: `4x exec uname -r`, `4x read /proc/meminfo`, against the new path's one read of each (readers-system-details.md §10, run there).
-- **The table is a test:** `table()` (`parity_test.go`) holds every difference, keyed by scenario, cell and aspect, with its source and one line. `TestParity` fails on a difference not in it (UNEXPLAINED), on an entry whose difference no longer occurs, on an entry listed twice, and on a V-number the cell's golden does not name. `logs_print_flag_missing` alone names one, V25's class, for the exit status, which unit (d) compares. `TestTiesCiteTheirGoldens` fails where an entry cites a `KNOWN-DEFECT` line by a phrase that cell's golden does not hold. One tie rests on unit (b)'s engineering, and says so: no pager where there are no lines (readers-system-details.md §12 decision 37). An entry with no source would be `Tie.Pending`, carried and marked UNEXPLAINED (§6); there is none.
+- **The table is a test:** `table()` (`parity_test.go`) holds every difference, keyed by scenario, cell and aspect, with its source and one line. `TestParity` fails on a difference not in it (UNEXPLAINED), on an entry whose difference no longer occurs, on an entry listed twice, and on a V-number the cell's golden does not name. `logs_print_flag_missing` alone names one, V25's class, for the exit status, which unit (d) compares. `TestTiesCiteTheirGoldens` fails where an entry cites a `KNOWN-DEFECT` line by a phrase that cell's golden does not hold. Two ties rest on unit (b)'s engineering, and say so: no pager where there are no lines (readers-system-details.md §12 decision 37), and a group no rule names counting for nothing (its decision 23, whose reason is "a group names nothing a rule does not"; its item 16 states the behaviour). An entry with no source would be `Tie.Pending`, carried and marked UNEXPLAINED (§6); there is none.
 - **Mutation-checked** (run at this unit's tip, each on a copy outside the repository through `go test -overlay`; the goldens from a changed copy):
   1. `Kernel`'s entry removed: UNEXPLAINED;
   2. an entry for `Processor`, which agrees: stale;
@@ -74,6 +74,7 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | Scenario | origin/main's golden | Start | The new path |
 |---|---|---|---|
 | `sd-open` | `system_details_open` | the golden's, `SSH_CLIENT` set | `details.Read` |
+| `sd-group-no-rule` | `system_details_open` | the golden's, with no rule naming the sudo group | `details.Read` |
 | `sd-render`, `sd-render-zfs` | `system_details_render`, `_render_zfs` | the renderer's synthetic report, in files | `details.Read`; each row compared |
 | `sd-error` | `system_details_error` | `/proc/meminfo` unreadable | `details.Read`; `report` alone compared, naming the rows kept, each held equal to the same host's with memory read (`holdKept`) |
 | `sd-no-lastlog`, `sd-never`, `sd-login-hostname` | `_no_lastlog`, `_never_logged_in`, `_login_hostname` | `lslogins` as usual, a blank for alice, or a host with no dot | `details.Read` |
@@ -94,6 +95,7 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | Scenarios | Debian 13 | Alpine 3.23 |
 |---|---|---|
 | sd-open, logs-open | the golden's start (forced) | the golden's start (forced) |
+| sd-group-no-rule | alice in the sudo group, no rule naming it (forced) | not run |
 | sd-render | the renderer's synthetic report (forced) | not run |
 | sd-render-zfs | the renderer's synthetic report, a ZFS root (forced) | not run |
 | sd-error | /proc/meminfo unreadable (forced) | not run |
@@ -125,31 +127,31 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 
 | Aspect | Agrees in | Differs in |
 |---|---|---|
-| refusal | 30 | 0 |
-| files | 26 | 4 |
-| directories | 29 | 1 |
-| commands | 30 | 0 |
-| findings | 30 | 0 |
-| hardn.yml | 30 | 0 |
-| report | 16 | 2 |
-| Non-System Users | 14 | 3 |
-| Processor | 17 | 0 |
-| Cores | 17 | 0 |
-| Volume | 12 | 5 |
-| Uptime | 17 | 0 |
-| Kernel | 0 | 17 |
-| Client IP | 0 | 17 |
-| DNS IP 1 | 0 | 17 |
-| DNS IP 2 | 0 | 17 |
-| Hypervisor | 0 | 17 |
-| CPU Freq | 0 | 17 |
-| Volume unit | 0 | 17 |
-| Disk Usage | 0 | 17 |
-| Memory | 2 | 15 |
-| Usage | 0 | 17 |
-| Last Login | 0 | 17 |
-| From | 0 | 16 |
-| / | 0 | 17 |
+| refusal | 31 | 0 |
+| files | 27 | 4 |
+| directories | 30 | 1 |
+| commands | 31 | 0 |
+| findings | 31 | 0 |
+| hardn.yml | 31 | 0 |
+| report | 17 | 2 |
+| Non-System Users | 14 | 4 |
+| Processor | 18 | 0 |
+| Cores | 18 | 0 |
+| Volume | 13 | 5 |
+| Uptime | 18 | 0 |
+| Kernel | 0 | 18 |
+| Client IP | 0 | 18 |
+| DNS IP 1 | 0 | 18 |
+| DNS IP 2 | 0 | 18 |
+| Hypervisor | 0 | 18 |
+| CPU Freq | 0 | 18 |
+| Volume unit | 0 | 18 |
+| Disk Usage | 0 | 18 |
+| Memory | 2 | 16 |
+| Usage | 0 | 18 |
+| Last Login | 0 | 18 |
+| From | 0 | 17 |
+| / | 0 | 18 |
 | Hostname | 2 | 0 |
 | Load 1m | 2 | 0 |
 | Load 5m | 2 | 0 |
@@ -179,23 +181,24 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 
 | Scenarios | On | Aspect | origin/main | New path | Source |
 |---|---|---|---|---|---|
-| sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Kernel | `Linux 6.12.0-example-amd64` | `6.12.0-example-amd64` | decision 2 (a): Linux and the release; now the release, as screen-debian13's row |
-| sd-open, sd-render, sd-render-zfs | every cell of each | Client IP | `192.0.2.10` | `none` | decision 2 (a), left out: SSH_CLIENT's address; no row |
-| sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 1 | `192.0.2.53` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
-| sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 2 | `192.0.2.54` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
-| sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Hypervisor | `KVM` | `none` | decision 2 (a), left out: lscpu's vendor, or the report's; no row |
-| sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | CPU Freq | `0.00 GHz` | `none` | decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row |
-| sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Volume unit | `GB` | `GiB` | defect 13: bytes / 1024^3 said as GB; now GiB |
-| sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | Disk Usage | `███░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
-| sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Memory | `3.89/7.78 GiB [50.00%]` | `1.94/7.78 GiB [25.00%]` | defect 12: MemFree alone counted as free, so page cache as used; now by MemAvailable |
-| sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Usage | `██████████░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
-| sd-open, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | Last Login | `Oct 29 08:12:44 +0000` | `root LoginNone, alice 2026-10-29T08:12:44+00:00` | decision 3 (a): whoever ran it, by lastlog; now root and each listed user, by lslogins |
-| sd-open, sd-render, sd-render-zfs, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | From | `192.0.2.10` | `alice 192.0.2.10` | decision 3 (a): one address; now each account's |
-| sd-open, sd-render, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | / | `none` | `/dev/vda1 ext4` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Kernel | `Linux 6.12.0-example-amd64` | `6.12.0-example-amd64` | decision 2 (a): Linux and the release; now the release, as screen-debian13's row |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs | every cell of each | Client IP | `192.0.2.10` | `none` | decision 2 (a), left out: SSH_CLIENT's address; no row |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 1 | `192.0.2.53` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 2 | `192.0.2.54` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
+| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Hypervisor | `KVM` | `none` | decision 2 (a), left out: lscpu's vendor, or the report's; no row |
+| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | CPU Freq | `0.00 GHz` | `none` | decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Volume unit | `GB` | `GiB` | defect 13: bytes / 1024^3 said as GB; now GiB |
+| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | Disk Usage | `███░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
+| sd-open, sd-group-no-rule, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Memory | `3.89/7.78 GiB [50.00%]` | `1.94/7.78 GiB [25.00%]` | defect 12: MemFree alone counted as free, so page cache as used; now by MemAvailable |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Usage | `██████████░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
+| sd-open, sd-group-no-rule, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | Last Login | `Oct 29 08:12:44 +0000` | `root LoginNone, alice 2026-10-29T08:12:44+00:00` | decision 3 (a): whoever ran it, by lastlog; now root and each listed user, by lslogins |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | Debian 13 | From | `192.0.2.10` | `alice 192.0.2.10` | decision 3 (a): one address; now each account's |
+| sd-open, sd-group-no-rule, sd-render, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | / | `none` | `/dev/vda1 ext4` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |
 | sd-open | Alpine 3.23 | report | `whole` | `kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Memory, Uptime; not read: last login: lslogins` | decision 3 (a); gallery-system-details.md §6, Not known: lslogins isn't installed: whole, by the golden's stand-ins; now Last Login not read: no lslogins on this host |
 | sd-open | Alpine 3.23 | Non-System Users | `alice (sudo)` | `alice (doas)` | decision 2 (a); gallery-system-details.md §6, <user>: the sudo group, on a doas host; now what doas grants |
 | sd-open | Alpine 3.23 | Last Login | `Oct 29 08:12:44 +0000` | `LoginsNoTool` | decision 3 (a): lastlog's stand-in; now LoginsNoTool: no lslogins on this host |
 | sd-open | Alpine 3.23 | From | `192.0.2.10` | `none` | decision 3 (a): lastlog's stand-in; now none: no lslogins on this host |
+| sd-group-no-rule | Debian 13 | Non-System Users | `alice (sudo)` | `alice (No sudo)` | readers §12 decision 23 (engineering, not adopted); gallery-system-details.md §6, <user>: the sudo group alone marked alice; now the rules alone: "a group names nothing a rule does not" |
 | sd-render, sd-render-zfs | Debian 13 | OS | `Debian 13 Trixie` | `Debian 13 trixie` | decision 2 (a): the report's own string; now os-release's name, version and codename, which the row draws |
 | sd-render, sd-render-zfs | Debian 13 | Domain | `example.internal` | `none` | decision 2 (a), left out: the machine's domain; no row |
 | sd-render, sd-render-zfs | Debian 13 | IP Addresses | `192.0.2.20, 198.51.100.20` | `eth0 192.0.2.20/24, eth0 198.51.100.20/24` | decision 2 (a); gallery-system-details.md §6, <interface>: IPv4 addresses alone; now each interface and address with its prefix (the report's fixture held none) |
@@ -263,7 +266,7 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 
 | Scenarios | v0.3.2 |
 |---|---|
-| sd-open, sd-render, sd-render-zfs, sd-error, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read) |
+| sd-open, sd-group-no-rule, sd-render, sd-render-zfs, sd-error, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read) |
 | logs-open, logs-large, logs-empty, logs-missing, logs-unreadable, logs-escape, logs-other-path, logs-other-path-stale, logs-p, logs-p-missing | as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read) |
 | logs-parser | no such parser: v0.3.2's log is pkg/logging alone (run: git ls-tree v0.3.2) |
 
@@ -278,7 +281,7 @@ From the table, and, where marked, from the code:
 3. **It showed rows the report no longer has:** Domain, Client IP, DNS IP n, the User row, Hypervisor, CPU Freq, the three bars (decision 2 (a)). "Bare Metal" with no `lscpu` (defect 15) and "0.00 GHz" (defect 11) go with their rows.
 4. **It read figures wrong:** MemFree alone as free (defect 12), bytes / 1024³ as "GB" (defect 13), on ZFS used/available as used/total (defect 10), a hard-coded dataset (defect 8) and a health check that may never run (defect 9). `sd-zfs-*`'s forms are [unverified].
 5. **Last Login was one account's,** root's under sudo (read: `collectors.go:498`), from `lastlog`, blank with none, or with a From that has no dot (defect 14). Now root's and each listed user's, from `lslogins`, a blank guarded; on Alpine `LoginsNoTool`.
-6. **A user's mark was "sudo" whatever the tool:** the sudo or wheel group, a file named for the user in `/etc/sudoers.d`, or the name anywhere in `/etc/sudoers` (read: `os_user_repository.go:322-362`). Now the rules, by `users.Elevation`, so `sd-open` on Alpine says doas, and a group no rule names counts for nothing; the rows agree where the group and the rule do.
+6. **A user's mark was "sudo" whatever the tool:** the sudo or wheel group, a file named for the user in `/etc/sudoers.d`, or the name anywhere in `/etc/sudoers` (read: `os_user_repository.go:322-362`). Now the rules, by `users.Elevation`, so `sd-open` on Alpine says doas, and a group no rule names counts for nothing (`sd-group-no-rule`, readers-system-details.md §12 decision 23, not adopted); the rows agree where the group and the rule do. A file named for the user and the name in `/etc/sudoers` are read, not run: the golden's mocks answer at the group.
 7. **It printed the whole log at once,** read whole into memory, 20,000 of 20,000 lines (`logs-large`). Now the last lines, at most 256, with the total.
 8. **It read `cfg.LogFile`,** which hardn has never written (defect 21, P-18): a line just written not shown, another file's old line shown as hardn's. Now `/var/log/hardn.log`, and `Elsewhere` gives the path for the row and unit (d)'s warning.
 9. **A line's escape reached the terminal raw** (`logs-escape`, defect 22). Now `Safe`, on and off the screen.

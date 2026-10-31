@@ -136,6 +136,7 @@ const (
 	mountsRoot = "proc /proc proc rw,nosuid,nodev,noexec,relatime 0 0\n/dev/vda1 / ext4 rw,relatime 0 0\n"
 	addrs      = "2: eth0    inet 192.0.2.20/24 metric 100 brd 192.0.2.255 scope global dynamic eth0\\       valid_lft 7104sec preferred_lft 7104sec\n"
 	sudoersOn  = "root ALL=(ALL:ALL) ALL\n%sudo ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n"
+	sudoersOff = "root ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n" // the golden's group, no rule naming it
 	wtmpRecord = "\x06\x00\x00\x00\x10\x02\x00\x00LOGIN\x00"
 	rootStatus = "Name:\thardn\nUid:\t0\t0\t0\t0\nGid:\t0\t0\t0\t0\n"
 	aliceLogin = "2026-10-29T08:12:44+00:00 pts/0 192.0.2.10"
@@ -145,15 +146,15 @@ const (
 
 // fixture is a System Details host: the golden's start, as each row changes it.
 type fixture struct {
-	osRelease, uptime, memInfo, passwd, group, kernel, df, cpu, hostname, load, mounts, addrs string
-	noMemInfo                                                                                 bool
-	dataset, pool                                                                             string // a ZFS root
-	logins                                                                                    map[string]string
+	osRelease, uptime, memInfo, passwd, group, kernel, df, cpu, hostname, load, mounts, addrs, sudoers string
+	noMemInfo                                                                                          bool
+	dataset, pool                                                                                      string // a ZFS root
+	logins                                                                                             map[string]string
 }
 
 func goldenStart() *fixture {
 	return &fixture{osRelease: osRelease, uptime: uptime, memInfo: memInfo, passwd: passwd, group: group, kernel: kernel, df: dfRoot,
-		cpu: cpuinfo(cpuModel, 2, 1), hostname: hostname, load: loadAvg, mounts: mountsRoot, addrs: addrs,
+		cpu: cpuinfo(cpuModel, 2, 1), hostname: hostname, load: loadAvg, mounts: mountsRoot, addrs: addrs, sudoers: sudoersOn,
 		logins: map[string]string{"alice": aliceLogin}}
 }
 
@@ -198,6 +199,9 @@ func reportRows() []reportRowSpec {
 	zfs := zfsRoot("zroot/ROOT/os")
 	return []reportRowSpec{
 		{name: "sd-open", golden: "system_details_open", keys: []string{"q"}, both: true},
+		{name: "sd-group-no-rule", golden: "system_details_open", keys: []string{"q"}, long: "alice in the sudo group, no rule naming it",
+			note: "origin/main marks by the group here, its mocks asking only /etc/group and /etc/passwd; the other rows' /etc/sudoers has %sudo, so that the group means what it says",
+			fix:  func(f *fixture) { f.sudoers = sudoersOff }},
 		{name: "sd-render", golden: "system_details_render", keys: []string{}, long: "the renderer's synthetic report", note: renderNote, fix: rendered},
 		{name: "sd-render-zfs", golden: "system_details_render_zfs", keys: []string{}, long: "the renderer's synthetic report, a ZFS root", note: renderNote,
 			fix: func(f *fixture) { rendered(f); zfs(f) }},
@@ -372,7 +376,7 @@ func reportHost(f *fixture, d parity.Distro) *hostfake.System {
 		cmds["doas -C /etc/doas.conf"] = hostfake.Response{}
 	} else {
 		h.AddFile("/usr/bin/sudo", []byte("ELF"), 0o4755, 0, 0)
-		h.AddFile("/etc/sudoers", []byte(sudoersOn), 0o440, 0, 0)
+		h.AddFile("/etc/sudoers", []byte(f.sudoers), 0o440, 0, 0)
 		h.AddDir("/etc/sudoers.d", 0o750, 0, 0)
 		h.AddFile(details.WtmpFile, []byte(wtmpRecord), 0o664, 0, 43)
 		cmds["sudo --version"] = hostfake.Response{Stdout: "Sudo version 1.9.16p2\n"}
@@ -919,7 +923,7 @@ func ties(table []tie) []parity.Tie {
 // screen's, reportAll both, exports those that wrote at the default name.
 var (
 	renders    = []string{"sd-render", "sd-render-zfs"}
-	plainRoot  = []string{"sd-open", "sd-no-lastlog", "sd-never", "sd-login-hostname", "sd-no-lscpu", "sd-export", "sd-export-named", "sd-export-overwrite", "sd-export-fails", "sd-export-dry-run"}
+	plainRoot  = []string{"sd-open", "sd-group-no-rule", "sd-no-lastlog", "sd-never", "sd-login-hostname", "sd-no-lscpu", "sd-export", "sd-export-named", "sd-export-overwrite", "sd-export-fails", "sd-export-dry-run"}
 	zfsDefault = []string{"sd-zfs-dataset", "sd-export-zfs"}
 	zfsOthers  = []string{"sd-zfs-all-healthy", "sd-zfs-other"}
 	screenRuns = slices.Concat(plainRoot, zfsDefault, zfsOthers)
@@ -986,6 +990,7 @@ func table() []tie {
 		every(reportAll, "DNS IP 2", d2Out, "DNS has main menu 3's screen; no row"),
 		every(renders, "User", d2Out, "the current user; no row"),
 		every(renders, "Non-System Users", d2+"; "+w6+", <user>", "a user no group marks has no word; now No sudo"),
+		every([]string{"sd-group-no-rule"}, "Non-System Users", "readers §12 decision 23 (engineering, not adopted); "+w6+", <user>", "the sudo group alone marked alice; now the rules alone: \"a group names nothing a rule does not\""),
 		[]tie{{[]string{"sd-open"}, onAlpine, "Non-System Users", d2 + "; " + w6 + ", <user>", "the sudo group, on a doas host; now what doas grants", false}},
 		every(without(reportAll, "sd-no-lscpu"), "Hypervisor", d2Out, "lscpu's vendor, or the report's; no row"),
 		every([]string{"sd-no-lscpu"}, "Hypervisor", d2Out+"; defect 15; KNOWN-DEFECT (Bare Metal)", "not known read as Bare Metal; no row"),
