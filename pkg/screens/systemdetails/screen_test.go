@@ -105,7 +105,7 @@ func cpuinfo(model string, n, sockets int) string {
 func (h *testHost) add(name, data string) { h.AddFile(name, []byte(data), 0o644, 0, 0) }
 
 // on returns a host of the release: its files, sudo or doas, the kernel, its CPU;
-// alice in the sudo group, or on doas in wheel, her login from 192.0.2.10, root's
+// alice in the sudo group, or on doas in wheel, their login from 192.0.2.10, root's
 // none.
 func on(release string) *testHost {
 	h := &testHost{System: hostfake.New(host.Options{})}
