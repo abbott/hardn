@@ -193,6 +193,39 @@ func TestLogsFit(t *testing.T) {
 	}
 }
 
+// TestLogsBlankLine: a blank line is a line: where it is all the tail holds, the
+// section's header and its empty row stay, the row counted, as Open offers it. A
+// Section of no lines is still no section.
+func TestLogsBlankLine(t *testing.T) {
+	blank := []component.CodeLine{{}}
+	for _, tt := range []struct {
+		name  string
+		rows  int
+		l     Logs
+		title string
+	}{
+		{"alone", 24, Logs{Path: "/var/log/hardn.log", Size: 1, Total: 1, Last: blank, Pager: "less"}, "1 line"},
+		{"the newest, all that fits", 19, Logs{Path: "/var/log/hardn.log", Size: 24, Total: 3, Last: append(logLines(2), blank...), Pager: "less"}, "Last 1 of 3 lines"},
+	} {
+		c := plainAt(tt.rows, true)
+		lines := drawn(tt.l.SubMenu(c).Render(c))
+		i := slices.IndexFunc(lines, func(l string) bool { return strings.Contains(l, tt.title) })
+		if i < 0 || lines[i+1] != "" || lines[i+2] != "" || lines[i+3] != "" || !strings.Contains(lines[i+4], "Select an option") {
+			t.Errorf("%s: no section of %q over an empty row:\n%s", tt.name, tt.title, strings.Join(lines, "\n"))
+		}
+		if len(lines) > tt.rows {
+			t.Errorf("%s: %d lines at %d rows", tt.name, len(lines), tt.rows)
+		}
+	}
+	alone := Logs{Path: "/var/log/hardn.log", Size: 1, Total: 1, Last: blank}
+	if s := ansi.Strip(alone.Terminal(plainAt(24, true))); !strings.Contains(s, "1 line") {
+		t.Errorf("Terminal:\n%s", s)
+	}
+	if s := (Section{Header: component.SectionHeader{Title: "Lines"}}).Render(plainAt(24, true)); s != "" {
+		t.Errorf("no lines: %q", s)
+	}
+}
+
 // TestLogsTerminal: hardn -p to a terminal holds the title, the file's rows and the
 // last lines, no menu, no prompt, with two rows left for the shell, at 80 and at
 // 60 columns, where the rows stack; with no lines, the title and the rows alone.

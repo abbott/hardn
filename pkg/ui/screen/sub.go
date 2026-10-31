@@ -1,8 +1,11 @@
 package screen
 
 import (
+	"strings"
+
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
+	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // SubMenu is the sub-menu layout (brief 1B), after Figma's 01-USER. Here
@@ -117,11 +120,15 @@ type Section struct {
 
 // Render renders the section for c. A section with no badge, row or code
 // renders as the empty string, so the layout leaves it out with its gap
-// rather than show a header over nothing.
+// rather than show a header over nothing. A line of code is something though
+// it is blank: a block of one blank line keeps its header and its empty row.
 func (s Section) Render(c component.Ctx) string {
 	body := join(s.Badge.Render(c), s.Rows.Render(c), s.Code.Render(c))
-	if body == "" {
-		return ""
+	switch {
+	case body != "":
+		return join(s.Header.Render(c), body)
+	case len(s.Code.Lines) > 0:
+		return s.Header.Render(c) + strings.Repeat("\n", theme.SectionGap+1)
 	}
-	return join(s.Header.Render(c), body)
+	return ""
 }

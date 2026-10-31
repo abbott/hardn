@@ -68,6 +68,26 @@ func TestScreen(t *testing.T) {
 	}
 }
 
+// TestBlankNewestLine: a log whose newest line is blank draws its section and offers
+// Open, at a height where that line is all the tail holds as at one where it is the file.
+func TestBlankNewestLine(t *testing.T) {
+	for _, tt := range []struct {
+		log, title string
+		rows       int
+	}{
+		{"\n", "1 line", 24},
+		{"  \t\n", "1 line", 24},
+		{"first line\nsecond line\n\n", "Last 1 of 3 lines", 16},
+	} {
+		env := off()
+		env.Height = tt.rows
+		p := playWith(newLog(tt.log), env, logs.Options{}, "0")
+		if p.err != nil || !strings.Contains(p.out, "# "+tt.title+" ---") || !strings.Contains(p.out, "1) Open") {
+			t.Errorf("%q: Run = %v:\n%s", tt.log, p.err, p.out)
+		}
+	}
+}
+
 // TestHeights: as many of the last lines as the terminal holds, measured as they
 // draw: long's 3 at 80x24 and 18 at 80x40, a wrapped line taking two rows, within the
 // terminal's rows and the content width.
