@@ -107,7 +107,7 @@ func TestSystemDetailsWhole(t *testing.T) {
 
 // TestSizeWords: the Size row's words at each edge of their units.
 func TestSizeWords(t *testing.T) {
-	for n, want := range map[int64]string{0: "0 bytes", 1023: "1023 bytes", 1024: "1 KiB", 1<<20 - 1: "1023 KiB", 1 << 20: "1 MiB"} {
+	for n, want := range map[int64]string{0: "0 bytes", 1: "1 byte", 2: "2 bytes", 1023: "1023 bytes", 1024: "1 KiB", 1<<20 - 1: "1023 KiB", 1 << 20: "1 MiB"} {
 		if got := sizeWords(n); got != want {
 			t.Errorf("sizeWords(%d) = %q, want %q", n, got, want)
 		}

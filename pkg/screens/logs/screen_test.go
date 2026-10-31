@@ -299,7 +299,7 @@ func TestOpenRefused(t *testing.T) {
 		}
 	}
 
-	// The pager's failure: the error as it is, safe.
+	// The pager's failure: how it ended, in the decided words, safe.
 	bad := hostNamed(t, "lines")
 	model = bad.Handler
 	bad.Handler = func(argv []string, stdin []byte) hostfake.Response {
@@ -309,7 +309,7 @@ func TestOpenRefused(t *testing.T) {
 		return model(argv, stdin)
 	}
 	p = play(bad, "1", "0")
-	if p.err != nil || !strings.Contains(p.out, "exit status 2") || strings.Count(p.out, "# Logs ###") != 2 || strings.ContainsAny(p.out, "\x1b\x07") {
+	if p.err != nil || !strings.Contains(p.out, "less ended: exit status 2") || strings.Contains(p.out, "host:") || strings.Count(p.out, "# Logs ###") != 2 || strings.ContainsAny(p.out, "\x1b\x07") {
 		t.Errorf("the pager's failure: Run = %v:\n%q", p.err, p.out)
 	}
 	assertOnlyReads(t, "the pager's failure", bad, 1)

@@ -112,29 +112,3 @@ func SetupHushlogin(cfg *config.Config) error {
 
 	return nil
 }
-
-// PrintLogs prints the content of the log file
-func PrintLogs(logPath string) {
-	data, err := os.ReadFile(logPath)
-	if err != nil {
-		logging.LogError("Failed to read log file %s: %v", logPath, err)
-		return
-	}
-
-	fmt.Printf("\n# Contents of %s:\n\n", logPath)
-	fmt.Println(string(data))
-}
-
-// WriteToFile writes string content to a file
-func WriteToFile(filePath string, content string) error {
-	// Create directory if it doesn't exist
-	dir := filepath.Dir(filePath)
-	if dir != "." {
-		if err := os.MkdirAll(dir, 0755); err != nil {
-			return fmt.Errorf("failed to create directory %s: %w", dir, err)
-		}
-	}
-
-	// Write the file
-	return os.WriteFile(filePath, []byte(content), 0644)
-}

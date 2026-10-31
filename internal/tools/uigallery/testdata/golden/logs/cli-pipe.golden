@@ -8,9 +8,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p not to a␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal: every line, as written, in no style, no heading, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat a tool reads the log alone: this needs unit (d) to run -p␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mahead of the config load, or with a silent console (decision␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10). Exit 0.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat a tool reads the log alone: -p runs ahead of the config␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mload (decision 10). Exit 0.␛[m$
 $
 2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
@@ -25,9 +24,8 @@ $
 # Note$
 # Inferred from v0.3.2 and origin/main. hardn -p not to a$
 # terminal: every line, as written, in no style, no heading, so$
-# that a tool reads the log alone: this needs unit (d) to run -p$
-# ahead of the config load, or with a silent console (decision$
-# 10). Exit 0.$
+# that a tool reads the log alone: -p runs ahead of the config$
+# load (decision 10). Exit 0.$
 $
 2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$
@@ -42,9 +40,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. hardn -p not to a␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal: every line, as written, in no style, no heading, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat a tool reads the log alone: this needs unit (d) to run -p␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mahead of the config load, or with a silent console (decision␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10). Exit 0.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthat a tool reads the log alone: -p runs ahead of the config␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mload (decision 10). Exit 0.␛[m$
 $
 2026/10/20 12:00:04 WARNING: hardn's boot unit was not removed: exit status 1$
 2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1$

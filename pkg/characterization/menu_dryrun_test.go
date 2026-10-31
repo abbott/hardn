@@ -144,7 +144,7 @@ func runMenuChild(name string) {
 		pve := secondary.NewProxmoxHost(fsys, mc, "debian", false)
 		osInfo := model.OSInfo{Type: "debian", Version: "13", Codename: "trixie"}
 		firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fsys, mc, pve), osInfo))
-		mm := application.NewMenuManager(nil, nil, firewall, nil, nil, nil, nil, nil)
+		mm := application.NewMenuManager(nil, nil, firewall, nil, nil, nil, nil)
 		menu.NewFirewallMenu(mm, cfg, &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"}).Show()
 		fmt.Print(childTrailer)
 		fmt.Printf("# Commands the screen ran (mock commander): %s\n", strings.Join(mc.ExecutedCommands, "; "))

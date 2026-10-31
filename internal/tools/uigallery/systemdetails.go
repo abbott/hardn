@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"flag"
@@ -18,7 +17,6 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sudoers"
-	"github.com/abbott/hardn/pkg/output"
 	sdscreen "github.com/abbott/hardn/pkg/screens/systemdetails"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -41,11 +39,10 @@ import (
 // (vm-runs/s1), but ZFS's, no VM having it, and inet6, none having a global address.
 //
 // "uigallery system-details" lists the non-interactive forms: hardn system-details'
-// through the real Print (cli-terminal, cli-pipe, cli-pipe-cut, cli-not-root), and
-// what unit (d) has not built and still takes as its reference (cli-json,
-// cli-json-unreadable, cli-flags). The listing's other mocks were retired with the
-// screen: git keeps them (systemdetails.go, next/s1-parity), and
-// gallery-system-details.md records what each showed.
+// through the real Print (cli-terminal, cli-pipe, cli-pipe-cut, cli-not-root). The
+// listing's other mocks were retired with the screen and, cli-json, cli-json-unreadable
+// and cli-flags, once unit (d) built them: git keeps them (next/s1-parity, next/s1-screen),
+// and gallery-system-details.md records what each showed.
 
 // sdPrefix names the forms and hosts: "system-details <mock>" in the listing,
 // "system-details" and "system-details/<host>" in play.
@@ -474,8 +471,8 @@ func (m *sdMoving) tick() {
 	f.AddFile(details.LoadAvgFile, []byte(fmt.Sprintf("0.%02d 0.09 0.03 1/123 4567\n", 12+m.ticks*10)), 0o444, 0, 0)
 }
 
-// main()'s two lines as a user other than root: logging.go:40's and
-// cmd/hardn/main.go:62's, on stdout today, the reasons the system's words
+// main()'s two lines as a user other than root: logging.go's and
+// cmd/hardn/main.go's, on stderr since unit (d), the reasons the system's words
 // [I, not run as a user other than root].
 const (
 	mainOpenLine    = "Failed to open log file /var/log/hardn.log: open /var/log/hardn.log: permission denied"
@@ -565,17 +562,6 @@ func userHost(p platform) host.System {
 	return asUserSys{h.sys()}
 }
 
-// onSDHost returns a drawing of the host named name's reading.
-func onSDHost(name string, view func(detailsReading, component.Ctx) string) func(context.Context, component.Ctx) (string, error) {
-	return func(ctx context.Context, c component.Ctx) (string, error) {
-		r, err := readSDHost(ctx, name)
-		if err != nil {
-			return "", err
-		}
-		return view(r, c), nil
-	}
-}
-
 // printDetails is what hardn system-details writes on sys in env: the real Print.
 func printDetails(ctx context.Context, sys host.System, env term.Env) (string, error) {
 	facts, _ := detect.Detect(ctx, details.Bounded(sys)) // what detect does not establish, the report says not read
@@ -605,7 +591,7 @@ func printEnv(c component.Ctx, terminal bool) term.Env {
 }
 
 // sdMocks are the listing's forms, in order: hardn system-details through the real
-// Print, then what unit (d) has not built.
+// Print.
 func sdMocks() []listMock {
 	return []listMock{
 		{name: "cli-terminal", note: "hardn system-details to a terminal: the report, no menu and no prompt. It reads the same as the screen.",
@@ -614,51 +600,12 @@ func sdMocks() []listMock {
 			draw: sdPrinted("debian13", false)},
 		{name: "cli-pipe-cut", wide: theme.ContentWidth, note: "The same on pve9: the CPU's name is 40 cells, its row holds 37, and off a terminal it stays whole (the page, Made here; DEV-067).",
 			draw: sdPrinted("pve9", false)},
-		{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-runs/s1/10-forms.log). So a user's row reads Not known, never a group's guess. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stdout today, so hardn system-details > file holds them (cmd/hardn/main.go:57-62; logging.go:40; read, not run); unit (d) moves them to stderr.",
+		{name: "cli-not-root", note: "hardn system-details as alice, not through sudo: reachable, as the subcommand has no root check (cmd/hardn/main.go:84; the check at :148 is in the root command's Run). The main menu and -p are not. What it cannot read it says: /etc/sudoers.d is drwxr-x--- root root, so a user cannot list it; on a doas host /etc/doas.conf, 0640 root (vm-runs/s1/01-tools.log); /etc/sudoers is 0440 (vm-runs/s1/10-forms.log). So a user's row reads Not known, never a group's guess. Last Login reads the same, run (vm-runs/s1/02-login.log). The two lines above the report are main()'s, unrelated, on stderr, so hardn system-details > file holds the report alone (cmd/hardn/main.go, logging.go; read, not run).",
 			draw: func(ctx context.Context, c component.Ctx) (string, error) {
 				report, err := printDetails(ctx, userHost(debian13Platform), printEnv(c, true))
 				return apart(component.CodeBlock{Lines: []component.CodeLine{{Text: mainOpenLine}, {Text: mainExampleLine}}}.Render(c), report), err
 			}},
-		{name: "cli-json", wide: theme.ContentWidth, note: "Decision 1 (a): hardn system-details --output json, whose flag is unit (d)'s; the document is output.Build's. On pkg/output's document, not beside it: --output json is one flag with one contract (docs/reference/output.md), mode \"check\" already means \"read, change nothing\", host already holds the name and OS, and wire.go's SchemaVersion comment lets a field be added without a new version. So the nine fields, and one more, details, on this form alone; result nothing-to-do, exit 0. logins holds each account's answer. As a user other than root main()'s two lines (cli-not-root) reach stdout first until unit (d) moves them, and the output would not parse.",
-			draw: onSDHost("debian13", jsonDrawing)},
-		{name: "cli-json-unreadable", wide: theme.ContentWidth, note: "As cli-json: a section not read is null in details and one finding, DETAILS_UNREADABLE, which is not an error: the rest was read, so the exit status stays 0.",
-			draw: onSDHost("unreadable", jsonDrawing)},
-		{name: "cli-flags", note: "The five flags origin/main parses and ignores, -E/--export, -S/--section, -O/--format, --json, --yaml (pkg/cmd/system_details_cmd.go:38-42, the code using them commented out at :95-121). What they become is decision 1 (a): §3.11's system-details change alone is approved, narrowed; unit (d) builds it.",
-			draw: func(_ context.Context, c component.Ctx) (string, error) { return flagsDrawing(c), nil }},
 	}
-}
-
-// document is the reading as the JSON form decision 1 (a) adopted: pkg/output's
-// document, built by output.Build.
-func (r detailsReading) document() output.Document {
-	facts, report := r.facts, r.Report
-	return output.Build(output.Run{Mode: output.ModeCheck, HardnVersion: "0.4.0", Hostname: r.Host.Hostname, Facts: &facts, Details: &report})
-}
-
-// jsonDrawing is the JSON form as it prints: output.WriteJSON's.
-func jsonDrawing(r detailsReading, _ component.Ctx) string {
-	var b bytes.Buffer
-	if err := output.WriteJSON(&b, r.document()); err != nil {
-		return err.Error()
-	}
-	return strings.TrimRight(b.String(), "\n")
-}
-
-// flagsDrawing is the five flags, today and as decision 1 (a) has them.
-func flagsDrawing(c component.Ctx) string {
-	const warn = "--output json, with a warning"
-	return apart(
-		component.SectionHeader{Title: "Today"}.Render(c),
-		component.BulletList{Items: []component.KeyValue{{Key: "All five", Value: "Parsed and ignored"}}}.Render(c),
-		component.SectionHeader{Title: "Proposed, if 3.11 is approved"}.Render(c),
-		component.BulletList{Items: []component.KeyValue{
-			{Key: "--json, -O json", Value: warn},
-			{Key: "--yaml, -O yaml", Value: "Refused, exit 2"},
-			{Key: "-O text", Value: "Accepted, with a warning"},
-			{Key: "-S, --section", Value: "Refused, exit 2"},
-			{Key: "-E, --export", Value: "Refused: use > file"},
-		}}.Render(c),
-	)
 }
 
 // listMock is one mock a listing shows: its name, its note, its drawing,

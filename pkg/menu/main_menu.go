@@ -50,6 +50,15 @@ type MainMenu struct {
 	// environment runs the Environment item (SetEnvironment).
 	environment func() error
 
+	// systemDetails runs the System Details item (SetSystemDetails).
+	systemDetails func() error
+
+	// logs runs the Logs item (SetLogs).
+	logs func() error
+
+	// warned: warnings above the first draw stay on screen (SetWarnedAtLoad).
+	warned bool
+
 	// status reads the host block, risk level and status rows (SetStatus).
 	status func(ctx context.Context) (screen.MainMenu, error)
 
@@ -162,8 +171,30 @@ func (m *MainMenu) showEnvironment() error {
 	return showScreen(m.environment, "menu: the Environment item has no screen (SetEnvironment)")
 }
 
-// showScreen runs an item's screen that cmd/hardn sets (SetDNS,
-// SetBackup, SetEnvironment) from a cleared screen, as every item's screen starts, and
+// SetSystemDetails sets what the System Details item (9) runs: the screen
+// (pkg/screens/systemdetails), which cmd/hardn assembles, as SetEnvironment
+// sets Environment's (refactor plan slice 1, unit (d)). It reads and
+// changes nothing else, under plan only as live. A main menu whose item is
+// chosen without one set panics: cmd/hardn sets it on the one main menu it
+// builds.
+func (m *MainMenu) SetSystemDetails(run func() error) { m.systemDetails = run }
+
+// showSystemDetails is the System Details item's action (showScreen).
+func (m *MainMenu) showSystemDetails() error {
+	return showScreen(m.systemDetails, "menu: the System Details item has no screen (SetSystemDetails)")
+}
+
+// SetLogs sets what the Logs item (10) runs: the screen (pkg/screens/logs),
+// as SetSystemDetails sets 9's.
+func (m *MainMenu) SetLogs(run func() error) { m.logs = run }
+
+// showLogs is the Logs item's action (showScreen).
+func (m *MainMenu) showLogs() error {
+	return showScreen(m.logs, "menu: the Logs item has no screen (SetLogs)")
+}
+
+// showScreen runs an item's screen that cmd/hardn sets (SetDNS, SetBackup,
+// SetEnvironment, SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
 // from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
@@ -179,6 +210,11 @@ func showScreen(run func() error, unset string) error {
 	}
 	return err
 }
+
+// SetWarnedAtLoad says that loading hardn.yml warned on stderr, as cmd/hardn does
+// (warnDeprecations): the main menu then draws below the warning, where it would clear
+// the screen and lose it.
+func (m *MainMenu) SetWarnedAtLoad(warned bool) { m.warned = warned }
 
 // SetStatus sets what reads the main menu's host block, risk level and
 // status rows: the status model (the controls' checks, the header probe
@@ -605,7 +641,9 @@ func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
 	// Check for updates when the menu starts
 	m.CheckForUpdatesWithEnvVars()
 
-	utils.ClearScreen()
+	if !m.warned {
+		utils.ClearScreen()
+	}
 	for {
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()
@@ -695,10 +733,10 @@ type handled struct{ handler interface{ Handle() } }
 func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open: origin/main's screens,
-// but the DNS, Backup and Environment items', which are the hooks
-// cmd/hardn sets (SetDNS, SetBackup, SetEnvironment).
+// but the items whose screens are the hooks cmd/hardn sets (SetDNS,
+// SetBackup, SetEnvironment, SetSystemDetails, SetLogs).
 type screens struct {
-	users, sshLogin, firewall, runAll, systemDetails, logs func(m *MainMenu) legacyScreen
+	users, sshLogin, firewall, runAll func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
@@ -709,10 +747,6 @@ var legacyScreens = screens{
 	sshLogin: func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
 	firewall: func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
 	runAll:   func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
-	systemDetails: func(m *MainMenu) legacyScreen {
-		return NewSystemDetailsMenu(m.config, m.osInfo, m.menuManager.GetHostInfoManager())
-	},
-	logs: func(m *MainMenu) legacyScreen { return NewLogsMenu(m.menuManager, m.config) },
 }
 
 // openScreen opens the screen an item built. A seam for the tests, which
@@ -725,8 +759,8 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // HARDN_CONFIG" where origin/main's said "Configure environment variable"
 // (refactor plan slice 9, decision 7 (a), P-07 (c)); item 1's parenthesis
 // its aside; each bound to the screen it opened (legacyScreens, and the
-// DNS, Backup and Environment screens, showDNS, showBackup and
-// showEnvironment); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
+// DNS, Backup, Environment, System Details and Logs screens, showDNS,
+// showBackup, showEnvironment, showSystemDetails and showLogs); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
 // Dry-Run, is removed and its key left unused (slice 2b, unit (d);
 // decision 1): 6 is refused as any key no item has, 7 to 10 keep their
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
@@ -765,8 +799,8 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
 			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: m.showEnvironment},
-			{Item: item("9", "System Details", "View system information"), Action: open(s.systemDetails)},
-			{Item: item("10", "Logs", "View log file"), Action: open(s.logs)},
+			{Item: item("9", "System Details", "View system information"), Action: m.showSystemDetails},
+			{Item: item("10", "Logs", "View log file"), Action: m.showLogs},
 		},
 		Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()},
 	}

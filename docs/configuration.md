@@ -128,7 +128,6 @@ Here are the main configuration sections in YAML:
 
 ```yaml
 username: "george"                # Default username to create
-logFile: "/var/log/hardn.log"       # Log file path
 dryRun: false                       # Preview changes without applying them
 enableBackups: true                 # Backup files before modifying them
 backupPath: "/var/backups/hardn"    # Path to store backups
@@ -159,6 +158,8 @@ The main menu's Backup (5) shows and changes these two settings.
 - **A path change backs up under the new path**, as does every change after it.
 - **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path.
 - **Backup Runs lists the backups in the path in use**, newest first. It only reads: restoring one is not available yet.
+
+**`logFile` is retired.** hardn always writes and reads `/var/log/hardn.log`. A file that sets `logFile` to another path is still accepted, and hardn warns: "hardn.yml's logFile, <path>, isn't used".
 
 ### Network Configuration
 
@@ -261,5 +262,5 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
 ## Troubleshooting
 
 - Run `hardn` with `--dry-run` to preview changes without applying them; if nothing is applied, check `dryRun` in your configuration file
-- Check the log file (default: `/var/log/hardn.log`) for detailed information
+- Check `/var/log/hardn.log` for detailed information
 - If you encounter issues, create a backup of your configuration before making changes

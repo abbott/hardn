@@ -56,8 +56,8 @@ type Run struct {
 	ConfigPath   string
 	// Details is the System Details report, for that form's document alone
 	// (ModeCheck, no Reports): Document.Details and its findings. Hostname and
-	// Facts are the caller's, as for every document. No flag reaches it until
-	// slice 1's unit (d) (docs/reference/output.md §1.10).
+	// Facts are the caller's, as for every document. hardn system-details
+	// --output json alone reaches it (docs/reference/output.md §1.10).
 	Details *details.Report
 	// Reviewed: pkg/ui/flow's Plan step listed the plan's findings
 	// before its confirmation, as FlowEngine hands them (FlowEngine.Run),

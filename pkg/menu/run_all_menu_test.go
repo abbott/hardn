@@ -49,7 +49,7 @@ func newRunAllMenuOn(t *testing.T, dryRun, pve bool) (*RunAllMenu, *interfaces.M
 	firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fs, mc, host), osInfo))
 	dns := application.NewDNSManager(service.NewDNSServiceImpl(secondary.NewFileDNSRepository(fs, mc, "debian"), osInfo))
 	security := application.NewSecurityManager(users, ssh, firewall, dns)
-	mm := application.NewMenuManager(users, ssh, firewall, dns, nil, security, nil, nil)
+	mm := application.NewMenuManager(users, ssh, firewall, dns, nil, security, nil)
 	mm.SetProxmoxCheck(host.IsProxmox)
 
 	cfg := config.DefaultConfig()
@@ -269,5 +269,25 @@ func TestRunAllDryRunOnProxmox(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestRunAllNamesHardnsLog: Run All's closing line names the file hardn writes,
+// whatever hardn.yml's logFile says (decision 6 (a); defect 21).
+func TestRunAllNamesHardnsLog(t *testing.T) {
+	t.Chdir(t.TempDir())
+	m, _, _ := newRunAllMenu(t, false)
+	m.config.LogFile = "/srv/log/elsewhere.log"
+	scripted(t, "1\nyes\n\n")
+	out, code, ended := session(t, m.Show)
+	if ended {
+		t.Fatalf("ended hardn with %d:\n%s", code, out)
+	}
+	plain := style.StripAnsi(out)
+	if !strings.Contains(plain, "Check the log file at /var/log/hardn.log for details") {
+		t.Errorf("does not name /var/log/hardn.log:\n%s", plain)
+	}
+	if strings.Contains(plain, m.config.LogFile) {
+		t.Errorf("names hardn.yml's logFile:\n%s", plain)
 	}
 }

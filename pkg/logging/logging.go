@@ -29,7 +29,7 @@ func InitLogging(logPath string) {
 	dir := filepath.Dir(logPath)
 	if dir != "." {
 		if err := os.MkdirAll(dir, 0755); err != nil {
-			fmt.Printf("Failed to create log directory: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Failed to create log directory: %v\n", err)
 		}
 	}
 
@@ -37,7 +37,7 @@ func InitLogging(logPath string) {
 	var err error
 	logFile, err = os.OpenFile(logPath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
-		fmt.Printf("Failed to open log file %s: %v\n", logPath, err)
+		fmt.Fprintf(os.Stderr, "Failed to open log file %s: %v\n", logPath, err)
 		logFile = nil
 	}
 
@@ -132,16 +132,4 @@ func LogFileOnly(format string, v ...interface{}) {
 	if logger != nil {
 		logger.Printf("INFO: %s", fmt.Sprintf(format, v...))
 	}
-}
-
-// PrintLogs prints the content of the log file
-func PrintLogs(logPath string) {
-	data, err := os.ReadFile(logPath)
-	if err != nil {
-		LogError("Failed to read log file %s: %v", logPath, err)
-		return
-	}
-
-	fmt.Printf("\n# Contents of %s:\n\n", logPath)
-	fmt.Println(string(data))
 }

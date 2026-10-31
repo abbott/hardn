@@ -5,8 +5,7 @@
 // words), drawn by pkg/ui/screen (screen.Logs) from what pkg/engine/logview reads
 // of /var/log/hardn.log, writing nothing, under plan only too. Run shows the
 // screen, and item Open gives GNU less the terminal, by that key alone; Print
-// writes -p's forms, which unit (d) wires, and returns what its stderr and exit
-// status need.
+// writes -p's forms, and returns what its stderr and exit status need.
 //
 // The package reaches the host only through host.System and logview (depguard rule
 // screens-through-host), hardn's environment and hardn.yml only through what its
@@ -36,6 +35,10 @@ const (
 	cliCantRead = "hardn: can't read %s: %s"
 	cliRunWith  = "Run it with %s."
 )
+
+// pagerEnded is what the screen says where the pager ran and did not exit 0: how it
+// ended, as os/exec words it (adopted 2026-10-31).
+const pagerEnded = "%s ended: %s"
 
 // pagerRefusals are what Open's seam and pager refuse, in the words the user is
 // shown (readers-system-details.md §9, adopted 2026-10-30). Each is the end of the
@@ -121,7 +124,7 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 func (r *runner) open(ctx context.Context, c logview.Command) func() error {
 	return func() error {
 		if err := c.Run(ctx, r.o.System); err != nil {
-			words := screenkit.Warnings(pagerWords(err))
+			words := screenkit.Warnings(pagerWords(err, c.Argv[0]))
 			r.said = strings.Count(screenkit.Apart(r.o.Prompter.Ctx, words), "\n")
 			return r.s.Say(words)()
 		}
@@ -130,14 +133,21 @@ func (r *runner) open(ctx context.Context, c logview.Command) func() error {
 }
 
 // pagerWords is err as the screen says it: the decided words where it is a refusal
-// of the seam's or the pager's, without the wrapping of who said it; else as host
-// says it, safe to show, which is proposed, as no adopted source words an exit status
-// (docs/engine/screen-system-details.md §5, §11).
-func pagerWords(err error) string {
+// of the seam's or the pager's, without the wrapping of who said it; how program
+// ended where it ran and did not exit 0; else as host says it, safe to show.
+func pagerWords(err error, program string) string {
 	for _, words := range pagerRefusals {
 		if strings.HasSuffix(err.Error(), words) {
 			return words
 		}
+	}
+	var ended *host.ExitError
+	if errors.As(err, &ended) {
+		how := fmt.Sprintf("exit status %d", ended.ExitCode)
+		if ended.Err != nil {
+			how = ended.Err.Error()
+		}
+		return logview.Safe(fmt.Sprintf(pagerEnded, program, how))
 	}
 	return logview.Safe(err.Error())
 }

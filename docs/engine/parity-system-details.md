@@ -10,7 +10,7 @@ Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, an
 
 ## 2. Method
 
-- **origin/main:** the 33 goldens `menu/system_details_*` (22) and `menu/logs_*` (11), read in place by a reader of their layouts (`readGolden`, `legacy_read_test.go`, through `Slice.Reader`). It sits beside the test because every line it knows is these two screens'. Any section, call or line it does not know fails the test, so that no golden reads as a run that did nothing:
+- **origin/main:** the 33 goldens `menu/system_details_*` (22) and `menu/logs_*` (11), frozen under `testdata/legacy/` (§8), read there by a reader of their layouts (`readGolden`, `legacy_read_test.go`, through `Slice.Reader`). It sits beside the test because every line it knows is these two screens'. Any section, call or line it does not know fails the test, so that no golden reads as a run that did nothing:
   - **`readReport`** (`TestLegacyMenuSystemDetails`): each row of the first draw, by its label, and a later draw must print the same rows; the lost report, the error printed twice; an export's message; "What the host-info service asked of the mocks" and "The tools the screen ran itself", which must only read, each held to a list, and are recorded with their counts, not compared; the working directory before and afterwards, whose change is what the run wrote. The two renderer goldens have no trailer.
   - **`readLog`** (`TestLegacyMenuLogs`): the file read, what was shown or said, "The repository's calls" (`stat` and `read` alone, on `logFile`, the section once on the screen and not at all under `-p`), and what hardn's log holds afterwards, less the lines it held and the start-up's line. A golden without its `$PAGER` line, which says the pager did not run, fails.
   - **`readParser`** (`TestLegacyLogsParser`): for each of its two blocks the lines written and `GetLogs`' entries, each entry held to its line's split and an unknown field failing.
@@ -429,6 +429,8 @@ The new path does what origin/main did not: it adds IPv6 ([I] for `inet6`'s form
 
 ## 8. For unit (d)
 
+*Built in `next/s1-replace`: the 33 frozen, `TestLegacyRecord` holding them, the legacy path deleted. Done differently: `TestLegacyRecord` lists SHA-256s alone, as `TestParityGoldens` already says which file is a row. The status line's "in place" and the golden's header are kept as they were; the goldens now read from `testdata/legacy`.*
+
 **What origin/main's path did:** main menu 9 and 10, `hardn system-details`, `-p`: §4's rows and §5.
 
 **The record to freeze first,** before the legacy code goes, as parity-environment.md §8 did: `TestParity` reads `pkg/characterization/testdata/golden/menu/system_details_*.golden` (22) and `menu/logs_*.golden` (11) in place, and `TestParityGoldens` lists them. Move them unchanged (`git mv`) under `pkg/screens/systemdetails/testdata/legacy/menu/`, and point `legacyDir` there, with these tests retired in the same commit:
@@ -444,7 +446,7 @@ Then prove it: each file `cmp` equal to its old path at the freeze's parent; `go
 
 ## 9. Written, not run (gate 5)
 
-Nothing here ran on Linux or as root. origin/main's rows are its run's on macOS, as the test's user, with stand-ins and mocks; the new path's are hostfake's. **Run elsewhere, not by this unit, read only:** both readers on the three VMs, as the user and as root, compared by hand with what each host says (`vm-runs/s1/15-readers-*.log`, `16-truth-*.log`; readers-system-details.md §4). **Not run anywhere:** hardn itself; `less` under hardn; `zpool` and `zfs`; Proxmox VE 9; origin/main's screens on a host (`system_details_flags`' NOTE says so of its one case).
+Nothing here ran on Linux or as root. origin/main's rows are its run's on macOS, as the test's user, with stand-ins and mocks; the new path's are hostfake's. **Run elsewhere, not by this unit, read only:** both readers on the three VMs, as the user and as root, compared by hand with what each host says (`vm-runs/s1/15-readers-*.log`, `16-truth-*.log`; readers-system-details.md §4). *Since `next/s1-replace`, hardn itself and `less` under hardn have run on the three VMs (screen-system-details.md §4).* **Not run anywhere:** `zpool` and `zfs`; Proxmox VE 9; origin/main's screens on a host (`system_details_flags`' NOTE says so of its one case).
 
 ## 10. Files and size
 

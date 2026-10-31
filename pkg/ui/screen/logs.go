@@ -80,6 +80,8 @@ type Logs struct {
 // sizeWords is n bytes as a reader says it: "49 KiB".
 func sizeWords(n int64) string {
 	switch {
+	case n == 1:
+		return "1 byte"
 	case n < 1024:
 		return fmt.Sprintf("%d bytes", n)
 	case n < 1024*1024:

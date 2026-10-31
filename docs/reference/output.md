@@ -1,7 +1,7 @@
 # hardn's output: the JSON document, codes, exit statuses and the audit log
 
 > **What this is:** the public contract of what hardn reports, to a script and to a person (brief §2, "A fixed exit-code set and versioned JSON output", decided; brief Phase 3, the JSON contract, the exit codes and the audit log). Built by refactor plan Phase 3, `next/p3-output`, in `pkg/output`; [docs/engine/output.md](../engine/output.md) says what the package guarantees and how. **Once released, none of it changes but by the rules below.**
-> **Status:** built and tested on macOS (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake). **Not reachable from the command line yet:** refactor plan §3.11 (`--output json`, `--yes`) is not approved but for `hardn system-details`' narrowed change (§1.10), which has no flag until slice 1's unit (d), so no flag selects JSON, and the audit log's first writer comes with `next/p3-startup`. What runs today is the deprecation warning and the colour rule of §5, `hardn confirm`'s clean-up report, and, since slice 2's unit (d) (`next/s2-replace`), `-g`'s report and exit status (§3). Nothing has run on Linux (gate 5).
+> **Status:** built and tested on macOS (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake). **JSON reaches the command line on `hardn system-details --output json` alone** (§1.10, slice 1's unit (d)): refactor plan §3.11 (`--output json`, `--yes`) is otherwise not approved, and the audit log's first writer comes with `next/p3-startup`. What runs today is the deprecation warning and the colour rule of §5, `hardn confirm`'s clean-up report, and, since slice 2's unit (d) (`next/s2-replace`), `-g`'s report and exit status (§3). Nothing has run on Linux (gate 5).
 
 ## 1. The JSON document
 
@@ -123,7 +123,7 @@ The goldens are the reference, each a whole document: `pkg/output/testdata/json/
 
 ### 1.10 `details`: `hardn system-details`'s form alone
 
-**No flag reaches it until slice 1's unit (d):** `Run.Details` is built and tested in `pkg/output` (`TestDetailsDocuments`), and nothing passes it yet (§3.11's change for this one command, approved on 2026-10-30, narrowed: [gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 1 (a)). When it does, the form is the document of §1, mode `check`, with the nine fields and one more; **every other document, and so the audit log's lines (§4), has the nine alone** (`TestDetailsOnThisFormAlone`, `pkg/output/output_test.go`'s `TestStdoutIsOneDocument`). Added as §1.1 allows, so `schemaVersion` stays `1`. Goldens: `pkg/output/testdata/json/details.json` (every section read), `details-unreadable.json` (none).
+**`hardn system-details --output json` reaches it** (`cmd/hardn/readers.go`; `TestDetailsDocuments` holds the form; §3.11's change for this one command, approved on 2026-10-30, narrowed: [gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 1 (a)). The form is the document of §1, mode `check`, with the nine fields and one more; **every other document, and so the audit log's lines (§4), has the nine alone** (`TestDetailsOnThisFormAlone`, `pkg/output/output_test.go`'s `TestStdoutIsOneDocument`). Added as §1.1 allows, so `schemaVersion` stays `1`. Goldens: `pkg/output/testdata/json/details.json` (every section read), `details-unreadable.json` (none).
 
 **Here a `null` is a fact**, where the rest of the document's arrays are never `null`: a section, or one fact of it, that was not read or is not known is `null`. An array read and holding none is `[]`. Each section with anything not read adds one finding, `DETAILS_UNREADABLE`, `detail` `<section> not read`, `source` each thing not read, joined by `, `. It stops nothing: the rest was read, so the exit status stays as it was.
 
@@ -471,7 +471,8 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
   In the JSON document it is a finding, `CONFIG_DEPRECATED_VALUE`; nothing else repeats the warning. The value still works. **A limit:** `sudo hardn` with no operation flag goes on to the legacy main menu, which clears the screen as it opens, so there the warning is gone at once (left in the terminal's scrollback on some terminals); every other command keeps it on screen. The main menu slice (Phase 4) is to show it.
 - **No colour codes** from `hardn confirm`, `hardn rollback <id>`, `--abandon` and `--boot` unless both stdout (where their lines go) and stderr (where the notices go) are colour terminals, by `pkg/ui/term`'s detection (`NO_COLOR`, `TERM=dumb`, `HARDN_PLAIN` and `--no-color` turn it off): under the systemd timer both are the journal, under the OpenRC sleeper the null device. The Debian 13 and Ubuntu 26.04 VM runs found escape codes in the journal ([vmtest.md](../safety/vmtest.md) §4.9).
 - **`-g`** (since slice 2's unit (d), `next/s2-replace`, 2026-10-23): the human report of §7 on stdout and the exit statuses of §3, in place of its legacy lines; it applies without asking (§6).
-- Nothing else: no `--output`, `--yes` or `--confirm-timeout` flag (§3.11 is not approved), and the other existing flags behave as before.
+- **`hardn system-details --output json`** (§1.10) and `-p`'s exit statuses (since slice 1's unit (d)).
+- Nothing else: no other `--output`, no `--yes` or `--confirm-timeout` flag (§3.11 is not approved), and the other existing flags behave as before.
 
 ## 6. Non-interactive use
 

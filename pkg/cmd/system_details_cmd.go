@@ -1,127 +1,109 @@
 package cmd
 
 import (
-	// "encoding/json"
 	"fmt"
-	// "strings"
 
-	"github.com/abbott/hardn/pkg/adapter/secondary"
-	"github.com/abbott/hardn/pkg/application"
-	"github.com/abbott/hardn/pkg/domain/model"
-	"github.com/abbott/hardn/pkg/domain/service"
-	"github.com/abbott/hardn/pkg/interfaces"
-	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/system"
 	"github.com/spf13/cobra"
 )
 
-var (
-	exportFile    string
-	outputFormat  string
-	sectionFilter string
-	formatAsJson  bool
-	formatAsYaml  bool
+// SystemDetailsForm is what hardn system-details' flags ask for: the JSON document or
+// the report, and the warnings to say first.
+type SystemDetailsForm struct {
+	JSON     bool
+	Warnings []string
+}
+
+// The flags' words (refactor plan slice 1, unit (d)), adopted 2026-10-31.
+const (
+	sdUseJSON     = "use --output json"
+	sdDeprecated  = "%s is deprecated: %s"
+	sdRefused     = "hardn: %s is refused: %s"
+	sdTextDefault = "text is the default"
+	sdNoFilter    = "nothing filters the report"
+	sdUseRedirect = "use > file"
+	sdAlone       = "run it without system-details"
 )
 
-// SystemDetailsCmd returns the system command
-func SystemDetailsCmd() *cobra.Command {
+// rootOperations are root's flags that run something, each with the name a refusal
+// gives it. Root's others (-f, -u, -n, -v, --no-color) change nothing here.
+var rootOperations = []struct{ flag, name string }{
+	{"print-logs", "-p"},
+	{"create-user", "-c"},
+	{"disable-root", "-d"},
+	{"configure-dns", "-g"},
+	{"configure-ufw", "-w"},
+	{"run-all", "-r"},
+	{"setup-sudo-env", "-e"},
+}
+
+// systemDetailsFlags are the command's flags as given. -E, -S, -O, --json and --yaml
+// never did anything and are in no release, so only --output shows in its help.
+type systemDetailsFlags struct {
+	output, format, section, export string
+	json, yaml                      bool
+}
+
+// form is decision 1 (a) (gallery-system-details.md §5): --output json is the JSON
+// form; --json and -O json become it with a warning; -O text is accepted with a
+// warning; --yaml, -O yaml, -S and -E are refused, as is any other value of --output
+// or -O. A flag counts as given whatever its value, as --yaml=false. Root's operation
+// flags, which this command would not run, are refused too. given says which flags
+// were on the command line. A refusal is the error, for exit status 2 (ExitUsage).
+func (f systemDetailsFlags) form(given func(name string) bool) (SystemDetailsForm, error) {
+	for _, op := range rootOperations {
+		if given(op.flag) {
+			return SystemDetailsForm{}, fmt.Errorf(sdRefused, op.name, sdAlone)
+		}
+	}
+	switch {
+	case given("yaml"):
+		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "--yaml", sdUseJSON)
+	case given("format") && f.format != "json" && f.format != "text":
+		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "-O "+f.format, sdUseJSON)
+	case given("output") && f.output != "json":
+		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "--output "+f.output, sdUseJSON)
+	case given("section"):
+		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "-S", sdNoFilter)
+	case given("export"):
+		return SystemDetailsForm{}, fmt.Errorf(sdRefused, "-E", sdUseRedirect)
+	}
+	form := SystemDetailsForm{JSON: given("output")}
+	if given("json") {
+		form.JSON = form.JSON || f.json
+		form.Warnings = append(form.Warnings, fmt.Sprintf(sdDeprecated, "--json", sdUseJSON))
+	}
+	if given("format") {
+		if f.format == "json" {
+			form.JSON = true
+			form.Warnings = append(form.Warnings, fmt.Sprintf(sdDeprecated, "-O json", sdUseJSON))
+		} else {
+			form.Warnings = append(form.Warnings, fmt.Sprintf(sdDeprecated, "-O text", sdTextDefault))
+		}
+	}
+	return form, nil
+}
+
+// SystemDetailsCmd returns the system-details command, whose flags it reads and whose
+// work is run's, cmd/hardn's, which has the host and the terminal: run gets the form,
+// or the refusal.
+func SystemDetailsCmd(run func(SystemDetailsForm, error)) *cobra.Command {
+	var f systemDetailsFlags
 	cmd := &cobra.Command{
 		Use:   "system-details",
 		Short: "Display detailed system summary",
-		Long:  `Generate and display a comprehensive system summary including CPU, memory, disk and network information with a focus on ZFS-based systems.`,
-		RunE: func(cmd *cobra.Command, args []string) error {
-			return runSystemDetails()
+		Long:  `Print the host's report: OS and kernel, host and IPs, users, CPU and load, disk, memory, last login. Save it with > file. --output json prints it as hardn's JSON document.`,
+		Run: func(cmd *cobra.Command, _ []string) {
+			run(f.form(cmd.Flags().Changed))
 		},
 	}
-	// Add flags
-	cmd.Flags().StringVarP(&exportFile, "export", "E", "", "Export host information to file")
-	cmd.Flags().StringVarP(&sectionFilter, "section", "S", "", "Display only specific section (system, network, users, storage)")
-	cmd.Flags().StringVarP(&outputFormat, "format", "O", "text", "Output format (text, json, yaml)")
-	cmd.Flags().BoolVar(&formatAsJson, "json", false, "Output in JSON format (shorthand)")
-	cmd.Flags().BoolVar(&formatAsYaml, "yaml", false, "Output in YAML format (shorthand)")
-
+	cmd.Flags().StringVar(&f.output, "output", "", "Print the report in this format (json)")
+	cmd.Flags().StringVarP(&f.export, "export", "E", "", "Refused: use > file")
+	cmd.Flags().StringVarP(&f.section, "section", "S", "", "Refused: nothing filters the report")
+	cmd.Flags().StringVarP(&f.format, "format", "O", "text", "Deprecated: use --output json")
+	cmd.Flags().BoolVar(&f.json, "json", false, "Deprecated: use --output json")
+	cmd.Flags().BoolVar(&f.yaml, "yaml", false, "Refused: use --output json")
+	for _, name := range []string{"export", "section", "format", "json", "yaml"} {
+		_ = cmd.Flags().MarkHidden(name)
+	}
 	return cmd
-}
-
-// runSystemDetails executes the system command
-func runSystemDetails() error {
-	// Enable silent mode to prevent logs from appearing in output
-	logging.SetSilentMode(true)
-	// Create a new HostInfoService and HostInfoManager instance
-	// Set up provider
-	provider := interfaces.NewProvider()
-
-	// Enable silent mode to prevent logs from appearing in output
-	logging.SetSilentMode(true)
-	defer logging.SetSilentMode(false) // Restore normal logging when function exits
-
-	// Detect OS
-	osInfo, err := osdetect.DetectOS()
-	if err != nil {
-		return fmt.Errorf("failed to detect OS: %w", err)
-	}
-
-	// Set output format from shorthand flags if they were used
-	if formatAsJson {
-		outputFormat = "json"
-	} else if formatAsYaml {
-		outputFormat = "yaml"
-	}
-
-	// Create user repository first
-	userRepo := secondary.NewOSUserRepository(provider.FS, provider.Commander, osInfo.OsType)
-
-	// Create host info repository
-	hostInfoRepo := secondary.NewOSHostInfoRepository(provider.FS, provider.Commander, osInfo.OsType, userRepo)
-
-	// Create domain service
-	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, userRepo, model.OSInfo{
-		Type:      osInfo.OsType,
-		Version:   osInfo.OsVersion,
-		Codename:  osInfo.OsCodename,
-		IsProxmox: osInfo.IsProxmox,
-	})
-
-	// Create application service
-	hostInfoManager := application.NewHostInfoManager(hostInfoService)
-
-	// Generate system status information with our enhanced implementation
-	info, err := system.GenerateSystemStatus(hostInfoManager)
-	if err != nil {
-		return fmt.Errorf("failed to generate system status: %w", err)
-	}
-
-	// // If export file is specified, write to file
-	// if exportFile != "" {
-	// 	err := exportHostInfo(exportFile, info, hostInfoManager, outputFormat)
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to export host information: %w", err)
-	// 	}
-	// 	fmt.Printf("Host information exported to %s\n", exportFile)
-	// 	return nil
-	// }
-
-	// // Otherwise, print to console
-	// if outputFormat == "json" {
-	// 	// Output as JSON
-	// 	jsonData, err := json.MarshalIndent(info, "", "  ")
-	// 	if err != nil {
-	// 		return fmt.Errorf("failed to marshal host information to JSON: %w", err)
-	// 	}
-	// 	fmt.Println(string(jsonData))
-	// 	return nil
-	// } else if outputFormat == "yaml" {
-	// 	// For YAML we'd need to import a YAML library
-	// 	// For now just indicate it's not implemented
-	// 	return fmt.Errorf("YAML output format not implemented yet")
-	// } else {
-	// 	// Default to text output
-	// 	printHostInfo(info, hostInfoManager, sectionFilter)
-	// }
-
-	// Display the formatted system status with our enhanced display function
-	system.DisplayMachineStatus(info)
-
-	return nil
 }

@@ -22,11 +22,16 @@ type UfwAppProfile struct {
 	Ports       []string `yaml:"ports"`
 }
 
+// defaultLogFile is the log hardn writes, and logFile's default.
+const defaultLogFile = "/var/log/hardn.log"
+
 // Config represents the main configuration structure
 type Config struct {
 	// Basic Configuration
-	Username      string `yaml:"username"`
-	LogFile       string `yaml:"logFile"`
+	Username string `yaml:"username"`
+	// LogFile is retired (decision 6 (a)): hardn always writes /var/log/hardn.log, and
+	// warns where this names another path. SaveConfig writes it only then.
+	LogFile       string `yaml:"logFile,omitempty"`
 	DryRun        bool   `yaml:"dryRun"`
 	EnableBackups bool   `yaml:"enableBackups"`
 	BackupPath    string `yaml:"backupPath"`
@@ -113,7 +118,7 @@ func DefaultConfig() *Config {
 	return &Config{
 		// Basic Configuration
 		// Username:      "george",
-		LogFile:       "/var/log/hardn.log",
+		LogFile:       defaultLogFile,
 		DryRun:        false,
 		EnableBackups: true,
 		BackupPath:    "/var/backups/hardn",
@@ -462,6 +467,11 @@ func CreateDefaultConfig(path string, config *Config) error {
 func SaveConfig(config *Config, filePath string) error {
 	saved := *config
 	saved.DryRun = config.loaded.dryRun
+	// logFile is retired: only a path the file itself named is written back, so that
+	// its warning stays until the person removes it.
+	if filepath.Clean(saved.LogFile) == defaultLogFile {
+		saved.LogFile = ""
+	}
 
 	// Marshal YAML
 	data, err := yaml.Marshal(&saved)
