@@ -15,8 +15,8 @@
 //	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
-//	go run ./internal/tools/uigallery system-details [flags] [mock | all]...
-//	go run ./internal/tools/uigallery logs [flags] [mock | all]...
+//	go run ./internal/tools/uigallery system-details [flags] [form | all]...
+//	go run ./internal/tools/uigallery logs [flags] [form | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -166,27 +166,24 @@
 // real screen replaced them (next/s9-screen): git keeps it
 // (environment.go, next/s9-parity).
 //
-// "system-details" lists the System Details mocks of refactor plan slice
-// 1, unit (a) (systemdetails.go, docs/engine/gallery-system-details.md),
-// each under a note: the proposed screen on Debian 13, Ubuntu 26.04, Alpine
-// 3.23 and Proxmox VE, its states, the non-interactive forms as they would
-// print, and origin/main's report in its words. "play
-// system-details" is the menu of the hosts and "play
-// system-details/<host>" the screen on one; the main menu's 9 leads to it on
-// Debian 13. It only reads: no plan, no y/N, no journal. -sequence dry-run
-// draws the same screen, as plan only would; -fail is refused there. The
-// listing's flags are -list, -theme, -profile, -ascii, -override, and -width
-// and -height sized as play's.
+// "play system-details" is the menu of the hosts the System Details screen
+// plays on and "play system-details/<host>" hardn's System Details screen itself on
+// one (pkg/screens/systemdetails; systemdetails.go,
+// docs/engine/screen-system-details.md); the main menu's 9 leads to it on Debian 13.
+// "play logs" and "play logs/<host>" are the same of the Logs screen
+// (pkg/screens/logs; logs.go); the main menu's 10 leads to it on a log of lines. Each
+// only reads: no plan, no y/N, no journal. -sequence dry-run draws the same screen, as
+// plan only would; -fail is refused there. No pager runs: Open says what hardn would
+// run.
 //
-// "logs" lists the Logs mocks of the same unit (logs.go, the same page),
-// each under a note: the proposed screen with a log of lines, a long log, no
-// log, one it cannot read, an empty one, control characters shown safe,
-// logFile set elsewhere; a golden saying what the pager would be, since none
-// can run one; hardn -p to a terminal
-// and not to one; the parser; and origin/main's in its words. "play logs" is
-// the menu of the hosts and "play logs/<host>" the screen on one; the main
-// menu's 10 leads to it. -sequence dry-run draws the same; -fail is refused
-// there. Its flags are the System Details listing's.
+// "system-details" lists hardn system-details' non-interactive forms and "logs" hardn
+// -p's, each under a note, what unit (c) built through the real Print, and for
+// System Details what unit (d) has not built and takes as its reference (the JSON
+// form, the five flags). The listing's other mocks, of refactor plan slice 1, unit (a)
+// (docs/engine/gallery-system-details.md), were removed when the real screens replaced
+// them (next/s1-screen): git keeps them (systemdetails.go, logs.go, next/s1-parity).
+// Their flags are -list, -theme, -profile, -ascii, -override, and -width and -height
+// sized as play's.
 //
 // The Dry-Run mode, "dryrun" and "play dryrun", the mocks of refactor
 // plan slice 2b (docs/engine/gallery-dryrun.md), was removed with the

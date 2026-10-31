@@ -6,10 +6,10 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details/ubuntu2604␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost by the real reader (pkg/engine/details), its rows and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlayout unit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's System Details screen␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/screens/systemdetails), inferred from origin/main␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(unreleased), read from a simulated host by the real reader␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/engine/details). It only reads: no plan, no y/N, no␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. Nothing on this machine changes: every command and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's.␛[m$
 $
@@ -74,10 +74,10 @@ $
 # play system-details/ubuntu2604 -------------------------------$
 $
 # Note$
-# Play mode, mocks: the System Details screen of slice 1,$
-# inferred from origin/main (unreleased), read from a simulated$
-# host by the real reader (pkg/engine/details), its rows and$
-# layout unit (c)'s to build. It only reads: no plan, no y/N, no$
+# Play mode: hardn's System Details screen$
+# (pkg/screens/systemdetails), inferred from origin/main$
+# (unreleased), read from a simulated host by the real reader$
+# (pkg/engine/details). It only reads: no plan, no y/N, no$
 # journal. Nothing on this machine changes: every command and$
 # file is the fake's.$
 $
@@ -142,12 +142,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay system-details/ubuntu2604␛[m ␛[38;2;48;52;64m───────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the System Details screen of slice 1,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from origin/main (unreleased), read from a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the real reader (pkg/engine/details),␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits rows and layout unit (c)'s to build. It only reads: no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan, no y/N, no journal. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's System Details screen␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/screens/systemdetails), inferred from origin/main␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(unreleased), read from a simulated host by the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader (pkg/engine/details). It only reads: no plan, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, as the VM of 2026-␛[m$

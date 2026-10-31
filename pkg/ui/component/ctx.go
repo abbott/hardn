@@ -5,8 +5,10 @@ import (
 	"slices"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -23,11 +25,26 @@ const unknown = "Unknown"
 type Ctx struct {
 	Env   term.Env
 	Theme *theme.Theme
+	// Whole cuts nothing and breaks no row: a value or a bullet item stays on
+	// its line whole, however long, past the content width. For output that is
+	// not a terminal, which a file or a tool holds and no width limits
+	// (OffTerminal, DEV-067). NewCtx leaves it false, as every screen has it.
+	Whole bool
 }
 
 // NewCtx returns the render context for env, building its theme once.
 func NewCtx(env term.Env) Ctx {
 	return Ctx{Env: env, Theme: theme.New(env)}
+}
+
+// OffTerminal returns the render context of what is written off a terminal,
+// such as hardn system-details > file: plain mode at term.DefaultWidth, whatever
+// the environment says, and nothing cut (Whole, DEV-067). Write what it renders
+// through its Env's Writer, which strips every escape sequence.
+func OffTerminal() Ctx {
+	c := NewCtx(term.Fixed(term.DefaultWidth, colorprofile.NoTTY, false, true))
+	c.Whole = true
+	return c
 }
 
 // termWidth is the terminal's width, or term.DefaultWidth when the Env
@@ -113,9 +130,10 @@ func (l line) to(col int) line {
 // dropped, in whichever spans they are, and the ellipsis ends the last
 // span that keeps any text, in that span's style. So a cut looks the same
 // wherever the line's spans begin and end. With no text left, or no room
-// for the whole glyph, the line is as much of the ellipsis as fits.
+// for the whole glyph, the line is as much of the ellipsis as fits. With
+// Whole set no line is cut.
 func (c Ctx) fit(l line, limit int) string {
-	if l.width() <= limit {
+	if c.Whole || l.width() <= limit {
 		return l.String()
 	}
 	ellipsis := c.Theme.Glyphs.Ellipsis
@@ -144,9 +162,9 @@ func (c Ctx) fit(l line, limit int) string {
 // truncate shortens plain text s to at most limit cells, ending it with
 // the ellipsis glyph when it is cut. As in fit, the spaces before the cut
 // are dropped, and with no text left, or no room for the whole glyph, the
-// result is as much of the ellipsis as fits.
+// result is as much of the ellipsis as fits. With Whole set s is not cut.
 func (c Ctx) truncate(s string, limit int) string {
-	if lipgloss.Width(s) <= limit {
+	if c.Whole || lipgloss.Width(s) <= limit {
 		return s
 	}
 	ellipsis := c.Theme.Glyphs.Ellipsis
@@ -437,7 +455,7 @@ func (c Ctx) codeFrom(col int, open span, s string, style lipgloss.Style) []stri
 	w := c.width()
 	var out []string
 	for lead := ""; ; {
-		head := ansi.Truncate(s, max(0, w-col-lipgloss.Width(open.text)-lipgloss.Width(lead)), "")
+		head := codeHead(s, max(0, w-col-lipgloss.Width(open.text)-lipgloss.Width(lead)))
 		rest, ok := strings.CutPrefix(s, head)
 		if head == "" || !ok {
 			return append(out, c.fit(line{gap(col), open, {lead + s, style}}, w))
@@ -458,6 +476,24 @@ func (c Ctx) codeFrom(col int, open span, s string, style lipgloss.Style) []stri
 		out = append(out, line{gap(col), open, {lead + head, style}}.String())
 		s, lead, open = s[len(head):], c.Theme.Glyphs.Wrap, span{}
 	}
+}
+
+// codeHead is the start of s that fits in limit cells, as ansi.Truncate has it,
+// reading no more of s than it takes to find it, so that a line lays out in time
+// its length, however long, and not its square. A part of s whose every cell fits
+// says nothing of what follows it, so a part twice the size is read then, as
+// grapheme clusters can take more bytes to a cell than a rune does.
+func codeHead(s string, limit int) string {
+	for n := (limit + 1) * utf8.UTFMax; n < len(s); n *= 2 {
+		cut := n
+		for cut > 0 && !utf8.RuneStart(s[cut]) {
+			cut--
+		}
+		if head := ansi.Truncate(s[:cut], limit, ""); len(head) < cut {
+			return head
+		}
+	}
+	return ansi.Truncate(s, limit, "")
 }
 
 // known returns s in style, shown as text shows it, or the word Unknown

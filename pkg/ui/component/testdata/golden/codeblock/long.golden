@@ -1,0 +1,339 @@
+# Golden file of TestGolden/codeblock/long, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;2;219;184;83m↪ firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;2;219;184;83m↪ than two rows at any width the cells have␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;219;184;83m↪ at any width the cells have␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;219;184;83m↪ at any width the cells have␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m↪ /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;2;219;184;83m| firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;2;219;184;83m| than two rows at any width the cells have␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m| /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;219;184;83m| at any width the cells have␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m| /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
+      ␛[38;2;219;184;83m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;219;184;83m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;219;184;83m| at any width the cells have␛[m$
+      ␛[38;2;129;134;156m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;129;134;156m| /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
+      ␛[38;2;138;97;0m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;2;138;97;0m↪ firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;2;138;97;0m↪ than two rows at any width the cells have␛[m$
+      ␛[38;2;87;92;110m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;87;92;110m↪ /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
+      ␛[38;2;138;97;0m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;138;97;0m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;138;97;0m↪ at any width the cells have␛[m$
+      ␛[38;2;87;92;110m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;87;92;110m↪ /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
+      ␛[38;2;138;97;0m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;138;97;0m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;138;97;0m↪ at any width the cells have␛[m$
+      ␛[38;2;87;92;110m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;87;92;110m↪ /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
+      ␛[38;2;138;97;0m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;2;138;97;0m| firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;2;138;97;0m| than two rows at any width the cells have␛[m$
+      ␛[38;2;87;92;110m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;87;92;110m| /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
+      ␛[38;2;138;97;0m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;138;97;0m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;138;97;0m| at any width the cells have␛[m$
+      ␛[38;2;87;92;110m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;87;92;110m| /etc/hardn/hardn.yml␛[m$
+
+=== truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
+      ␛[38;2;138;97;0m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;2;138;97;0m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;2;138;97;0m| at any width the cells have␛[m$
+      ␛[38;2;87;92;110m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;2;87;92;110m| /etc/hardn/hardn.yml␛[m$
+
+=== 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
+      ␛[38;5;179m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;5;179m↪ firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;5;179m↪ than two rows at any width the cells have␛[m$
+      ␛[38;5;103m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;103m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
+      ␛[38;5;179m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;179m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;179m↪ at any width the cells have␛[m$
+      ␛[38;5;103m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;103m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
+      ␛[38;5;179m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;179m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;179m↪ at any width the cells have␛[m$
+      ␛[38;5;103m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;103m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
+      ␛[38;5;179m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;5;179m| firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;5;179m| than two rows at any width the cells have␛[m$
+      ␛[38;5;103m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;103m| /etc/hardn/hardn.yml␛[m$
+
+=== 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
+      ␛[38;5;179m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;179m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;179m| at any width the cells have␛[m$
+      ␛[38;5;103m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;103m| /etc/hardn/hardn.yml␛[m$
+
+=== 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
+      ␛[38;5;179m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;179m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;179m| at any width the cells have␛[m$
+      ␛[38;5;103m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;103m| /etc/hardn/hardn.yml␛[m$
+
+=== 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
+      ␛[38;5;94m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;5;94m↪ firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;5;94m↪ than two rows at any width the cells have␛[m$
+      ␛[38;5;59m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;59m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
+      ␛[38;5;94m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;94m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;94m↪ at any width the cells have␛[m$
+      ␛[38;5;59m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;59m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
+      ␛[38;5;94m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;94m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;94m↪ at any width the cells have␛[m$
+      ␛[38;5;59m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;59m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
+      ␛[38;5;94m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[38;5;94m| firewall: exit status 1 and a line that takes more␛[m$
+      ␛[38;5;94m| than two rows at any width the cells have␛[m$
+      ␛[38;5;59m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;59m| /etc/hardn/hardn.yml␛[m$
+
+=== 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
+      ␛[38;5;94m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;94m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;94m| at any width the cells have␛[m$
+      ␛[38;5;59m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;59m| /etc/hardn/hardn.yml␛[m$
+
+=== 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
+      ␛[38;5;94m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[38;5;94m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[38;5;94m| at any width the cells have␛[m$
+      ␛[38;5;59m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[38;5;59m| /etc/hardn/hardn.yml␛[m$
+
+=== 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[33m↪ firewall: exit status 1 and a line that takes more␛[m$
+      ␛[33m↪ than two rows at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m↪ at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m↪ at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[33m| firewall: exit status 1 and a line that takes more␛[m$
+      ␛[33m| than two rows at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m| /etc/hardn/hardn.yml␛[m$
+
+=== 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m| at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m| /etc/hardn/hardn.yml␛[m$
+
+=== 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m| at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m| /etc/hardn/hardn.yml␛[m$
+
+=== 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[33m↪ firewall: exit status 1 and a line that takes more␛[m$
+      ␛[33m↪ than two rows at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m↪ at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m↪ exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m↪ at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m↪ /etc/hardn/hardn.yml␛[m$
+
+=== 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure␛[m$
+      ␛[33m| firewall: exit status 1 and a line that takes more␛[m$
+      ␛[33m| than two rows at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m| /etc/hardn/hardn.yml␛[m$
+
+=== 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m| at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m| /etc/hardn/hardn.yml␛[m$
+
+=== 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
+      ␛[33m2026/10/20 12:00:05 ERROR: Failed to configure firewall:␛[m$
+      ␛[33m| exit status 1 and a line that takes more than two rows␛[m$
+      ␛[33m| at any width the cells have␛[m$
+      ␛[90m2026/10/20 12:05:11 INFO: Using configuration from:␛[m$
+      ␛[90m| /etc/hardn/hardn.yml␛[m$
+
+=== none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
+      2026/10/20 12:00:05 ERROR: Failed to configure$
+      ↪ firewall: exit status 1 and a line that takes more$
+      ↪ than two rows at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      ↪ /etc/hardn/hardn.yml$
+
+=== none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      ↪ exit status 1 and a line that takes more than two rows$
+      ↪ at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      ↪ /etc/hardn/hardn.yml$
+
+=== none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      ↪ exit status 1 and a line that takes more than two rows$
+      ↪ at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      ↪ /etc/hardn/hardn.yml$
+
+=== none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
+      2026/10/20 12:00:05 ERROR: Failed to configure$
+      | firewall: exit status 1 and a line that takes more$
+      | than two rows at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+
+=== none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1 and a line that takes more than two rows$
+      | at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+
+=== none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1 and a line that takes more than two rows$
+      | at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+
+=== none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
+      2026/10/20 12:00:05 ERROR: Failed to configure$
+      ↪ firewall: exit status 1 and a line that takes more$
+      ↪ than two rows at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      ↪ /etc/hardn/hardn.yml$
+
+=== none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      ↪ exit status 1 and a line that takes more than two rows$
+      ↪ at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      ↪ /etc/hardn/hardn.yml$
+
+=== none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      ↪ exit status 1 and a line that takes more than two rows$
+      ↪ at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      ↪ /etc/hardn/hardn.yml$
+
+=== none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
+      2026/10/20 12:00:05 ERROR: Failed to configure$
+      | firewall: exit status 1 and a line that takes more$
+      | than two rows at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+
+=== none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1 and a line that takes more than two rows$
+      | at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$
+
+=== none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
+      2026/10/20 12:00:05 ERROR: Failed to configure firewall:$
+      | exit status 1 and a line that takes more than two rows$
+      | at any width the cells have$
+      2026/10/20 12:05:11 INFO: Using configuration from:$
+      | /etc/hardn/hardn.yml$

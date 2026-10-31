@@ -387,6 +387,17 @@ func States() []State {
 			{Key: "Unattended Upgrades Mail Reports", Value: "alice"},
 		}}},
 		{"bulletlist/empty", component.BulletList{}},
+		{"codeblock/lines", component.CodeBlock{Lines: []component.CodeLine{
+			{Text: "2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp"},
+			{Text: "2026/10/20 12:00:04 WARNING: a warning", Warn: true},
+			{Text: "2026/10/20 12:00:05 ERROR: an error", Warn: true},
+		}}},
+		{"codeblock/long", component.CodeBlock{Lines: []component.CodeLine{
+			{Text: "2026/10/20 12:00:05 ERROR: Failed to configure firewall: exit status 1 and a line that takes more than two rows at any width the cells have", Warn: true},
+			{Text: "2026/10/20 12:05:11 INFO: Using configuration from: /etc/hardn/hardn.yml"},
+		}}},
+		{"codeblock/shown", component.CodeBlock{Lines: []component.CodeLine{{Text: "^[[31mErr:1^[[0m <U+202E> <0xe9>"}}}},
+		{"codeblock/empty", component.CodeBlock{}},
 		{"message/ok", component.Message{Kind: component.MessageOK, Text: "DNS configured successfully"}},
 		{"message/warn", component.Message{Kind: component.MessageWarn, Text: "No nameservers configured"}},
 		{"message/bad", component.Message{Kind: component.MessageBad, Text: "Failed to configure sudo: exit status 1"}},

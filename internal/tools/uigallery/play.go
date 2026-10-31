@@ -31,8 +31,8 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // screen (dnsLinks, dnsscreen.go), its 5 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
 // kept among the mocks as Figma's record (figmaRecords), and its 8 to the
-// real Environment screen (envLinks, environment.go), its 9 to the System
-// Details mock (sdLinks, systemdetails.go) and its 10 to the Logs mock
+// real Environment screen (envLinks, environment.go), its 9 to the real System
+// Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
 // (logsLinks, logs.go). An item with no
 // link, and no refusal (screen.Mock.Refusals), says that the gallery has
 // no screen for it.
@@ -147,9 +147,9 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the System Details mock applies nothing")
+			return usage("-fail is for the fixture plans of the screen mocks; the System Details screen applies nothing")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the System Details mock plays normal or dry-run", *sequence)
+			return usage("-sequence %s: the System Details screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
@@ -163,9 +163,9 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Logs mock applies nothing")
+			return usage("-fail is for the fixture plans of the screen mocks; the Logs screen applies nothing")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Logs mock plays normal or dry-run", *sequence)
+			return usage("-sequence %s: the Logs screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence

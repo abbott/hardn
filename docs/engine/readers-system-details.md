@@ -152,7 +152,7 @@ The command is item 11's: `less -- /var/log/hardn.log`, under `LESSSECURE=1 LESS
 | A shell, another file or an editor from inside it | `LESSSECURE=1`: `!`, `\|`, `E`, `:e`, `v` say "Command not available" | run as a user: `vm-runs/s1/04-less2-deb13-vm.log`, `04-less2-ubuntu26-vm.log`; as root, through sudo and sudo-rs: `11-less3-*.log` |
 | A log written over any file | `s` says "Input is not a pipe" on a file, with or without `LESSSECURE`, and hardn passes a file | run as a user: `04-less2-*.log`; as root: `11-less3-*.log` |
 | BusyBox's `less`, whose `s` writes and `E` opens any path, `LESSSECURE` changing nothing | Not run at all: `less --version` must print `less <digits>`, and BusyBox's refuses it; any other answer, any error, is no pager; asked at the draw and again at the key press | run: `TestPager`, 16 answers; `TestCommandRunChecksAgain`; `01-tools.log`:153; `04-less2-alpine323-vm.log`; the write itself read, not run |
-| A program named by the environment | `$PAGER` is not read: `Pager` takes no environment | run: `TestPager`; the type |
+| A program named by the environment | `$PAGER` is not read: `Pager` takes no environment | the type; `TestPager` holds the command with none set; *since `next/s1-screen`,* run: `pkg/screens/logs`' `TestOpen`, with `PAGER`, `LESSOPEN` and `LESS` set (mutation-checked) |
 | `LESS`, `LESSOPEN`, `LESSKEY`, `EDITOR`, `SHELL`, `HOME` reaching it | `RunInteractive` passes `env` and `PATH` alone | run: `TestRunInteractiveExactEnvironment`, each set in the parent |
 | A `TERM` that names a path | `safeTerm`, else `vt100` | run: `TestSafeTerm`, `TestPagerTerm` |
 | The path taken for an option | `--` | run: this Mac's less 581.2 (`TestRunInteractiveLess`); GNU 668, `11-less3-*.log` |
@@ -233,6 +233,8 @@ gallery-system-details.md §6 is used as it stands, and "§6" in this section an
 | Users, as a user other than root, two files refused | "Not root: /etc/sudoers, /etc/sudoers.d not read"; "Not root: /etc/doas.conf, /etc/doas.d not read" | §6's form has one `<file>`, the report carries both, and the finding's source joins by ", " too |
 | The gallery's, dev-only | "pager-less, adopted", "Its environment", "logview.ParseLine" | Headings of `pager-commands` and `parser`; retire with them |
 
+*Since `next/s1-screen`:* "less is not GNU less" is also what a done context or a timed-out `less --version` gives at the key press (`gnuLess`; run on a done context), beyond this table's Why: open in [screen-system-details.md](screen-system-details.md) §11. A pager's other failure has no row here, and is proposed there (§5).
+
 **For unit (c):** a user's row where the rules are not read is "Not known" (§6's state), since the report no longer says what a group says (`cli-not-root`). `cli-flags` keeps §6's heading "Proposed, if 3.11 is approved", though §3.11's change is approved, narrowed: the words are decided, and unit (d) writes the warnings. "Until 3.11 is decided" and "Parsed and ignored, as today" are retired from §6.
 
 ## 10. Defects fixed (gallery-system-details.md §7)
@@ -291,14 +293,14 @@ const LevelError, LevelWarning, LevelInfo, LevelSuccess, LevelInstalled // "ERRO
 type State uint8 // Lines, NoLog, Empty, Unreadable
 type Reading struct { Path string; State State; Reason string; Err error; Size int64; Total int; Last []Line }
 type Line struct { Text, Level string }
-type Entry struct { Time, Level, Message string }
+type Entry struct { Time, Level, Message string } // since next/s1-screen, gone (decision 50)
 type Command struct { Argv, Env []string }
 func Read(ctx context.Context, sys host.System) Reading
 func Each(ctx context.Context, sys host.System, yield func(Line) bool) Reading
 func Elsewhere(logFile string) string
 func Safe(s string) string
 func Show(l host.Line) string
-func ParseLine(line string) Entry
+func ParseLine(line string) Entry // since next/s1-screen, ParseLine(line string) string, the level
 func Pager(ctx context.Context, sys host.System, term string) (Command, bool)
 func (c Command) Run(ctx context.Context, sys host.System) error
 
@@ -400,10 +402,11 @@ type Details struct { Kernel, Uptime *string; Addresses []DetailAddress; Users [
 47. `details.Read` takes the header's three reads, not the probe: `TestReadWritesNothing` holds that the rest is gone, and the header's own output does not change.
 48. `RunBounded` is in `pkg/host`, beside `Run`: two readers use it, and neither should import the other.
 49. `Users.Tool` is doas where detect found doas and not sudo, else sudo: where both are installed a No means neither grants, so "No sudo" is true, and it is the rarer form's word kept short. No mock has both; the gallery's stand-in rule said "No doas" there.
-50. Kept with no live consumer past the gallery: `logview.Entry`'s `Time` and `Message`, for the `parser` mock, and `LevelInfo`, `LevelSuccess` and `LevelInstalled`, the values `Line.Level` can hold. Unit (c) reduces `ParseLine` to the level when that mock retires. Gone: `Logins.Sources`, `User.UID`, `Users.RootErr` and `onSearchPath`, with no use a later unit is named for.
+50. Kept with no live consumer past the gallery: `logview.Entry`'s `Time` and `Message`, for the `parser` mock, and `LevelInfo`, `LevelSuccess` and `LevelInstalled`, the values `Line.Level` can hold. Unit (c) reduces `ParseLine` to the level when that mock retires (*done, `next/s1-screen`*). Gone: `Logins.Sources`, `User.UID`, `Users.RootErr` and `onSearchPath`, with no use a later unit is named for.
 
 ## 13. Not in this unit
 
+- *Built in `next/s1-screen` ([screen-system-details.md](screen-system-details.md)), every point of the next line, decision 50's among them: `ParseLine` now returns the level, `Entry`, `LevelInfo`, `LevelSuccess` and `LevelInstalled` gone; the gallery's words and rows are the screens'.*
 - **Unit (c):** the screens on `screenkit`: the rows and words now in the gallery; "Last N of M lines" and the size's words; Open, what it does with a pager's error, a refusal off a terminal or a less no longer GNU's among them (§9), `Flush`; a section that holds code; report values through `logview.Safe` before a row, and on the uncapped off-terminal path (decision 32); `ParseLine` reduced to the level with the `parser` mock (decision 50).
 - **Unit (d):** main menu 9 and 10; `-p`'s forms and exit statuses on `logview.Each`, the `logFile` warning, reading `TERM` from hardn's environment for `Pager`; `--output json`, its `Run{Mode: ModeCheck, Hostname, Facts, Details}`; `hardn system-details`' host with no run log, and its `detect.Detect` through `details.Bounded`; the legacy code's deletion.
 - **(b2) Parity,** gallery-system-details.md §9. *Built in `next/s1-parity`: [parity-system-details.md](parity-system-details.md), each row against §7's fact.*

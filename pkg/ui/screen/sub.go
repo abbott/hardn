@@ -1,8 +1,11 @@
 package screen
 
 import (
+	"strings"
+
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
+	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // SubMenu is the sub-menu layout (brief 1B), after Figma's 01-USER. Here
@@ -100,8 +103,9 @@ func (vm SubMenu) above(c component.Ctx, withTrail bool) string {
 
 // Section is one titled block of a sub-menu's details, as Figma's "User
 // Configuration" on 01-USER: the SectionHeader, then the Badge naming
-// what the rows describe, then the rows, each block after theme.SectionGap
-// blank lines.
+// what the rows describe, then the rows, then the code, each block after
+// theme.SectionGap blank lines. Code is lines of captured output in the
+// rows' place, such as the Logs screen's (DEV-066).
 type Section struct {
 	// Header is the section's header, such as "User Configuration".
 	Header component.SectionHeader
@@ -110,15 +114,21 @@ type Section struct {
 	Badge component.Badge
 	// Rows are the key-value rows.
 	Rows component.BulletList
+	// Code is lines of captured output; with none the block is left out.
+	Code component.CodeBlock
 }
 
-// Render renders the section for c. A section with neither a badge nor a
-// row renders as the empty string, so the layout leaves it out with its
-// gap rather than show a header over nothing.
+// Render renders the section for c. A section with no badge, row or code
+// renders as the empty string, so the layout leaves it out with its gap
+// rather than show a header over nothing. A line of code is something though
+// it is blank: a block of one blank line keeps its header and its empty row.
 func (s Section) Render(c component.Ctx) string {
-	body := join(s.Badge.Render(c), s.Rows.Render(c))
-	if body == "" {
-		return ""
+	body := join(s.Badge.Render(c), s.Rows.Render(c), s.Code.Render(c))
+	switch {
+	case body != "":
+		return join(s.Header.Render(c), body)
+	case len(s.Code.Lines) > 0:
+		return s.Header.Render(c) + strings.Repeat("\n", theme.SectionGap+1)
 	}
-	return join(s.Header.Render(c), body)
+	return ""
 }

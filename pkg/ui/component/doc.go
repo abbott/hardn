@@ -49,6 +49,11 @@
 //     every character of a plan: a line too long breaks at its last space,
 //     else inside a word, and each further piece starts with Glyphs.Wrap,
 //     then the spaces at the break (DEV-038).
+//   - Off a terminal. OffTerminal is the render context of what is written
+//     off a terminal: plain mode at the default width, and Ctx.Whole, under
+//     which nothing is cut and a bullet item does not wrap, past the content
+//     width if it must (DEV-067). NewCtx leaves Whole false, so every screen
+//     keeps to the rule above.
 //   - Degrading. Colours, glyphs and columns come only from the theme. A
 //     bar's stub and fill are Glyphs.Shade at every profile, uncoloured
 //     when Env.HasColor is false (DEV-018). With no colour there is no

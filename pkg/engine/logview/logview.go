@@ -81,7 +81,7 @@ type Reading struct {
 // Line is one line of the log, safe to show (Show).
 type Line struct {
 	Text string
-	// Level is one of the Level values, "" for a line of any other shape.
+	// Level is the level logging.go wrote, "" for a line of any other shape.
 	Level string
 }
 
@@ -142,7 +142,7 @@ func scan(ctx context.Context, sys host.System, file string, yield func(host.Lin
 // lineOf is a line of the file as Read and Each give it.
 func lineOf(l host.Line) Line {
 	text := Show(l)
-	return Line{Text: text, Level: ParseLine(text).Level}
+	return Line{Text: text, Level: ParseLine(text)}
 }
 
 // tail keeps the last MaxLast lines it is given, reusing their memory: a log
@@ -193,34 +193,25 @@ func Elsewhere(logFile string) string {
 	return Safe(logFile)
 }
 
-// The levels logging.go writes after the date and time.
+// The levels a line takes the warning's colour for, of those logging.go writes after
+// the date and time; it writes INFO, SUCCESS and INSTALLED too.
 const (
-	LevelError     = "ERROR"
-	LevelWarning   = "WARNING"
-	LevelInfo      = "INFO"
-	LevelSuccess   = "SUCCESS"
-	LevelInstalled = "INSTALLED"
+	LevelError   = "ERROR"
+	LevelWarning = "WARNING"
 )
-
-// Entry is one line of the log, parsed.
-type Entry struct {
-	Time    string // "2026/10/20 12:00:05"
-	Level   string
-	Message string
-}
 
 // logLine is Go's log.LstdFlags date and time (pkg/logging/logging.go:46), a
 // level and its message.
-var logLine = regexp.MustCompile(`^([0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}) (ERROR|WARNING|INFO|SUCCESS|INSTALLED): (.*)$`)
+var logLine = regexp.MustCompile(`^[0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2} (ERROR|WARNING|INFO|SUCCESS|INSTALLED): `)
 
-// ParseLine reads "DATE TIME LEVEL: message", origin/main's GetLogs taking the
-// date for the time and the clock for the level
-// (gallery-system-details.md §2.10). A line of any other shape is no entry: it
-// stays whole, as a Message with no Level, as the second line of a message is.
-// For a line's colour alone: nothing else depends on it.
-func ParseLine(line string) Entry {
+// ParseLine reads the level of "DATE TIME LEVEL: message", where origin/main's
+// GetLogs took the date for the time and the clock for the level
+// (gallery-system-details.md §2.10). A line of any other shape has none, as the
+// second line of a message has none. For a line's colour alone: nothing else depends
+// on it.
+func ParseLine(line string) string {
 	if m := logLine.FindStringSubmatch(line); m != nil {
-		return Entry{Time: m[1], Level: m[2], Message: m[3]}
+		return m[1]
 	}
-	return Entry{Message: line}
+	return ""
 }

@@ -3,6 +3,7 @@
 > **Unit:** refactor plan slice 1, unit (a), `next/s1-gallery`: "Gallery mock and full sequence, reviewed first" (plan §2, "Phases 3–5 together", §3.22). Slice table row 1: "System Details + Logs (read-only) | No frame. System Details inferred from origin/main (not in v0.3.2); 2025 hex-lineage sections are reference. Logs from v0.3.2 + origin/main | No-op system-details flags; Logs dump → `$PAGER` or tail; broken log parser | §3.11 (system-details flags)". Decisions cited, not reopened: P-03 (decided 2026-10-23: one "Plan only" mode set at start); the main menu's one form at every height (the maintainer, 2026-10-23; DEV-052); Backup's decided heading and prompt (gallery-backup.md §6). Proposals shown: [P-17](../refactor/proposals.md#p-17) and [P-18](../refactor/proposals.md#p-18), both decided (§5). Proposals these mocks take a side in, both still proposed: [P-28](../refactor/proposals.md#p-28) with [P-09](../refactor/proposals.md#p-09), which the design-system guide says these two screens wait on (README §9.12, "The other screens"): the mocks draw P-28 (a), a sub-menu with no pause (§5, Made here). §3.11's change for the five flags alone is approved, narrowed (decision 1); the rest of §3.11 is not. V-numbers: none holds any of the slice's three defects; nearest are V25, V26 and side-effects rows 1 and 31 (§7).
 > **Status:** built and tested on macOS, in process. No hardn binary ran. Read-only checks of the hosts' tools ran on the three VMs as a user (`_support/hardn-audit-2026-10-16/vm-runs/s1/`, `vm-runs/s1/` below; `lslogins`, `sshd -T` and sshd's logs alone also through sudo or doas); the rest is read. The mocks read simulated hosts; the characterization runs pkg/menu's two screens and `hardncmd.SystemDetailsCmd` in child test processes, with stand-ins on `PATH` for what `pkg/system` runs itself. The eleven decisions in §5 are adopted; every word new to origin/main is decided with them (§6). Nothing is wired into `cmd/hardn`, `pkg/menu`, `pkg/system`, `pkg/cmd`, `pkg/logging`, `pkg/engine`, `pkg/host`, `pkg/screens` or `pkg/ui`. `make check` passes on this Mac.
 > *Since `next/s1-readers`* (slice 1, unit (b); [readers-system-details.md](readers-system-details.md)): the mocks read simulated hosts with the real readers, `pkg/engine/details`, `pkg/engine/logview` and `output.Build`, and none of §8's stand-ins for unit (b) is left. The mocks of the options not adopted are retired with their goldens, tables and words; git keeps them at 701449ae, and §5 records what they showed. §1, §2, §5, §7, §9 and §10 stay the record of unit (a); §3, §4, §6 and §8 are current. A mock named there or in §5 for an option not adopted is at that commit.
+> *Since `next/s1-screen`* (slice 1, unit (c); [screen-system-details.md](screen-system-details.md)): **play runs the real screens**, `pkg/screens/systemdetails` and `pkg/screens/logs`, on the simulated hosts, byte for byte the mocks' but play's notes (1,536 transcripts compared, its §9). **The listing's mocks are retired,** git keeping them at `next/s1-parity`: `screen-<host>`, `plan-only`, `parser`, `pager-commands`, `open`, `origin`, `origin-p`, `origin-elsewhere`, `origin-error`, and the gallery's copies of the screens' code. What remains listed draws real code or is unit (d)'s reference: `cli-terminal`, `cli-pipe`, `cli-pipe-cut`, `cli-not-root`, `cli-terminal-tail`, `cli-pipe-control`, `cli-missing`, `cli-unreadable`, `cli-unreadable-not-root`, `cli-json`, `cli-json-unreadable`, `cli-flags`. §3's tables and §5 stay the record of what each mock showed. §6's words are the screens' now.
 
 ## 1. Review description
 
@@ -91,9 +92,9 @@ Each claim is **run** (a golden of `TestLegacyMenuSystemDetails`, `TestLegacySys
 From the repository root, with `GOTOOLCHAIN=local GOWORK=off` (add `-profile plain`, `-ascii`, `-width 60`, `-height 40` or `-theme light`, before the names):
 
 ```text
-go run ./internal/tools/uigallery system-details                 # every mock under its note
-go run ./internal/tools/uigallery system-details screen-debian13 origin   # some; -list names them
-go run ./internal/tools/uigallery logs                           # every mock under its note
+go run ./internal/tools/uigallery system-details                 # every form under its note
+go run ./internal/tools/uigallery system-details cli-pipe cli-json   # some; -list names them
+go run ./internal/tools/uigallery logs                           # every form under its note
 go run ./internal/tools/uigallery play                           # the main menu: 9 and 10 lead to them
 go run ./internal/tools/uigallery play system-details            # the hosts' menu
 go run ./internal/tools/uigallery play system-details/debian13   # the screen on one host
@@ -101,7 +102,7 @@ go run ./internal/tools/uigallery play logs/long                 # likewise
 go run ./internal/tools/uigallery play -sequence dry-run logs/lines   # plan only
 ```
 
-`play` refuses `-fail` on them (`TestSystemDetailsUsage`, `TestLogsUsage`). **The sequence is the reading:** opening, each state, refreshing, leaving and the non-interactive forms. There is no plan, no y/N and no journal; `TestSystemDetailsWritesNothing` and `TestLogsWriteNothing` play every host live and under plan only, every item chosen: nothing written, no command but reads, no pager, no engine, no hold. *Since `next/s1-readers`,* `less --version`, which `logview.Pager` asks, is among the reads, and no call runs a pager (`assertOnlyReads`). The listing mocks draw the core cells and `truecolor-dark-ascii-80`; those marked 64+ or 80+ leave out the 60-column cell.
+*Since `next/s1-screen`,* the listing holds the forms named at the top of this page, and play the real screens. `play` refuses `-fail` on them (`TestSystemDetailsUsage`, `TestLogsUsage`). **The sequence is the reading:** opening, each state, refreshing, leaving and the non-interactive forms. There is no plan, no y/N and no journal; `TestSystemDetailsWritesNothing` and `TestLogsWriteNothing` play every host live and under plan only, every item chosen: nothing written, no command but reads, no pager, no engine, no hold. *Since `next/s1-readers`,* `less --version`, which `logview.Pager` asks, is among the reads, and no call runs a pager (`assertOnlyReads`). The listing mocks draw the core cells and `truecolor-dark-ascii-80`; those marked 64+ or 80+ leave out the 60-column cell.
 
 The System Details screen on `debian13`, plain, at 80 columns (`screen-debian13`), recommended options:
 
@@ -199,7 +200,7 @@ The Logs screen on `long`, plain, at 80×24 (`screen-long`), recommended options
 | `plan-only` | The same screen: other sub-menus show the mode nowhere (§5, Made here) |
 | `cli-terminal` | `hardn system-details` to a terminal: title and sections, no menu, no prompt |
 | `cli-pipe` (64+) | The same off a terminal: plain mode, whatever the surrounding cell |
-| `cli-pipe-cut` (64+) | The same on `pve9`: the CPU's name cut in the pipe (§5, Made here) |
+| `cli-pipe-cut` (64+) | The same on `pve9`: the CPU's name cut in the pipe (§5, Made here). *Since `next/s1-screen`, drawn whole, DEV-067* |
 | `cli-not-root` | As alice off sudo: `main()`'s two lines first, then the report, *since `next/s1-readers`,* the row "Not root: /etc/sudoers, /etc/sudoers.d not read" (`/etc/doas.conf, /etc/doas.d` on a doas host) naming what the reader cannot read, and "alice  Not known", never a group's guess. Last Login reads the same as a user (run: `vm-runs/s1/02-login.log`) |
 | `cli-json` (64+), `cli-json-unreadable` (64+) | Decision 1 (a): the real `output.Build`'s nine fields and `details`; a section not read is null and one finding `DETAILS_UNREADABLE`, registered, exit 0; `details` carries the logins; as a user other than root, `main()`'s lines come first until unit (d) moves them |
 | `cli-flags` | The five flags: today, and as decision 1 (a) has them |
@@ -255,7 +256,7 @@ The Logs screen on `long`, plain, at 80×24 (`screen-long`), recommended options
 
 ## 4. Heights (run: `TestSystemDetailsHeights`, `TestLogsHeights`, Unicode and ASCII, at 80×24 and 80×40)
 
-`TestSystemDetailsHeights` pins each System Details count. `TestLogsHeights` pins that every Logs screen ends with its prompt within the rows, and `long`'s "Last 3" and "Last 17"; the other Logs counts are counted from one listing run at each height.
+`TestSystemDetailsHeights` pins each System Details count. `TestLogsHeights` pins that every Logs screen ends with its prompt within the rows, and `long`'s "Last 3" and "Last 17"; the other Logs counts are counted from one listing run at each height. *Since `next/s1-screen`,* they hold on the real screens: `pkg/screens/systemdetails`' `TestScreenHosts`, `pkg/screens/logs`' `TestHeights`, and the play goldens.
 
 | Screen | Lines to the prompt | 80×24 | 80×40 |
 |---|---|---|---|
@@ -488,7 +489,7 @@ origin/main's where it has them; every other word is **decided** with decision 1
 | `-p`'s stderr | "hardn: no log yet: <path>"; "hardn: can't read <path>: <reason>"; "Run it with <tool>." | proposed |
 | Flags, under 1 (a) | "Today", "All five", "Parsed and ignored"; "Proposed, if 3.11 is approved", "--output json, with a warning", "Accepted, with a warning", "Refused, exit 2", "Refused: use > file" | the mock's summary; unit (d) writes the warnings' words, proposed |
 | The JSON form | `details`, `logins`, `unknown`; the code `DETAILS_UNREADABLE`; its detail "<section> not read" | proposed |
-| The gallery's, dev-only | "System Details hosts", "Logs hosts", "Select a host", "Enter your choice", each host's label, about and note; "The gallery runs no pager. hardn would run ..."; `pager-commands`' and `parser`'s headings and rows, "Its environment" among them | the gallery's |
+| The gallery's, dev-only | "System Details hosts", "Logs hosts", "Select a host", "Enter your choice", each host's label, about and note; "The gallery runs no pager. hardn would run ..."; *`pager-commands`' and `parser`'s headings and rows retired with them, `next/s1-screen`* | the gallery's |
 
 *Since `next/s1-readers`,* retired with their mocks, git keeping them at 701449ae: decision 4 (b) and (c)'s words; decision 5 (b) and (c)'s; "Not available in plan only." here, the phrase staying decided for what it was decided for ([dryrun-replace.md](dryrun-replace.md)); "Until 3.11 is decided" and "Parsed and ignored, as today". New words of unit (b): [readers-system-details.md](readers-system-details.md) §9.
 
@@ -550,26 +551,26 @@ Others found:
 | `readDetails`: `readAddrs`, `readUsers`, `readCPU`, `readDisk`, `readMemory`, `readLogins`, `parseLogin` | `details.Read`, section by section, on a host with no run log (items 13 to 24). The gallery's `readDetails` is `detect.Detect`, through `details.Bounded`, and that call. Users are as the users check reads them; a blank is guarded; a fact keeps its section's others; ZFS with no `zpool` or `zfs` falls back to `df`; arm64's blanks say Not known |
 | `detailsModel`, `withDetails`, `ipLine`, `alpineIPLine`, `cpuinfo` | Stay: what a fake host answers. They gain `/proc/self/status` and a wtmp record |
 | `detailsDocument`, `detailsJSON` | `Run.Details`, `Document.Details`, `output.Details` and `DETAILS_UNREADABLE` in `pkg/output` (items 25, 26); `--output` is unit (d)'s |
-| `report`, `offTerminalCtx` | Stay until unit (c): the uncapped plain form, in `pkg/ui` |
-| `readLog` | `logview.Read`, in bounded memory through `host.System`'s `ScanLines` (items 1, 7); the gallery's `readLog` adds `Elsewhere` and `Pager`, and `pipeLines` is `logview.Each` |
+| `report`, `offTerminalCtx` | *Since `next/s1-screen`,* `screen.SystemDetails.Report`, `component.OffTerminal` (DEV-067) |
+| `readLog` | `logview.Read`, in bounded memory through `host.System`'s `ScanLines` (items 1, 7); the gallery's `readLog` adds `Elsewhere` and `Pager`, and `pipeLines` is `logview.Each`. *Since `next/s1-screen`, both gone: `logs.Print` on `logview.Each`, and the screens read for themselves* |
 | `safeLine` | `logview.Safe`, and `Show` for a cut line (item 8) |
 | `parseLogLine` | `logview.ParseLine`, for the colour alone (item 9) |
-| `logRows`, `codeRows`, `logScreen` | Stay until unit (c): a section that holds code, in `pkg/ui`, a deviation to log |
-| `pagerFor`, `pagerChoice`, the fake's `less` | `logview.Pager` and `Command`, by `less --version` and failing closed (item 10), run through `host.System`'s `RunInteractive` (items 3 to 5, 11); the fake's `less` answers as the VMs' did. `pagerTable` stays, drawing `Pager`'s answer |
+| `logRows`, `codeRows`, `logScreen` | *Since `next/s1-screen`,* `component.CodeBlock`, `Section.Code` (DEV-066) |
+| `pagerFor`, `pagerChoice`, the fake's `less` | `logview.Pager` and `Command`, by `less --version` and failing closed (item 10), run through `host.System`'s `RunInteractive` (items 3 to 5, 11); the fake's `less` answers as the VMs' did. *`pagerTable` retired with `pager-commands`, `next/s1-screen`* |
 | `sdHosts`' and `logHosts`' treatments (`report`, `export`, `read`) | Nothing: retired with the mocks |
-| The words of §6 | Stay until unit (c) |
+| The words of §6 | *Since `next/s1-screen`,* `pkg/screens/systemdetails`, `pkg/ui/screen`'s `systemdetails.go` and `logs.go`, `pkg/screens/logs` |
 
 **Live helpers each later unit needs** (not added here):
 
 - **(b):** *since `next/s1-readers`, built, but for what has not run, [readers-system-details.md](readers-system-details.md) §4.* the two readers above, on `host.System`, with no run log; a tail read; the interactive seam (decision 7), with `TERM` and a locale; `pkg/output`'s `details` and its code (decision 1); what has not run: `less` under hardn and as root, Alpine's less package, `lslogins`' time on a usual host, a real rotation, `lslogins` as root for more than one account, `zpool` and `zfs`, a tighter umask and the arm64 `/proc/cpuinfo` where one can be run.
-- **(c):** `pkg/screens/systemdetails` and `pkg/screens/logs` on `screenkit`, with no engine; `hardn system-details`' and `-p`'s forms rendered off a terminal, nothing cut (§5, Made here); a section that holds code.
+- **(c):** `pkg/screens/systemdetails` and `pkg/screens/logs` on `screenkit`, with no engine; `hardn system-details`' and `-p`'s forms rendered off a terminal, nothing cut (§5, Made here); a section that holds code. *Built in `next/s1-screen`: [screen-system-details.md](screen-system-details.md).*
 - **(d):** see §9.
 
 ## 9. Not in this unit
 
 - **(b) The readers** (*since `next/s1-readers`, built: [readers-system-details.md](readers-system-details.md)*), with their own goldens, as §8; no control on the engine and no `Check`, as neither screen has a main-menu row or a change. Decisions 1, 2, 3, 6 and 7 shape it. A ZFS root with no `zpool` is named in §8.
 - **(b2) Parity:** the plan's every-slice unit, smallest here: origin/main's goldens (`menu/system_details_*`, `menu/logs_*`) against the new forms by row, each difference tied to a decision or defect of this page. `internal/parity` compares end states (`internal/parity/parity.go:1-8`), and under decision 5 (a) there is only "nothing written" to hold, against origin/main's export, which is decision 5's difference. It needs a reader for these goldens' layout. *Built in `next/s1-parity`: [parity-system-details.md](parity-system-details.md), 29 rows and 5 not-rows, the reader beside the test.*
-- **(c) The screens** on the design system, retiring these mocks, with the off-terminal forms.
+- **(c) The screens** on the design system, retiring these mocks, with the off-terminal forms. *Built in `next/s1-screen`: [screen-system-details.md](screen-system-details.md), `TestParity` on the screens, play on the real code, the mocks retired.*
 - **(d) The legacy path replaced:** main menu 9 and 10 to the new screens; `hardn system-details` and its flags (decision 1); `main()`'s two prints to stdout moved to stderr (`pkg/logging/logging.go:40`, `cmd/hardn/main.go:62`), so that as a user other than root `> file` and `--output json` hold only the report, which does not wait for the start-up unit's move of the log's write; `-p` (decisions 9 and 10), ahead of the config load and `detectOS` or on a silent console, so that its pipe form holds the log alone; the `logFile` warning, the "Check the log file" lines and the example file (decision 6); then, after (b2), `pkg/menu/system_details_menu.go`, `pkg/menu/logs_menu.go`, `pkg/system`, the log manager, service, model, port and repository, the lastlog adapter and `utils.PrintLogs` deleted, each with its grep (`HostInfoManager` also serves the main menu, `pkg/menu/main_menu.go`, so what stays is that grep's), the goldens frozen as the parity record.
 - **On a Linux VM:** the new characterization and gallery tests, as they have run on macOS alone. Proxmox VE 9 and a ZFS host have no VM, so that release, `zpool` and `zfs` stay [unverified] without one.
 - **Rotation of the log,** `next/p7-install`'s. **The write's move,** `next/p3-startup`'s (`_support/hardn-refactor-plan.md:86`).

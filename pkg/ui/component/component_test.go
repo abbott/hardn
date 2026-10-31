@@ -121,6 +121,8 @@ func empty(vm renderer) bool {
 		return v == KeyValue{}
 	case BulletList:
 		return len(v.Items) == 0
+	case CodeBlock:
+		return len(v.Lines) == 0
 	case Message:
 		return v.Text == ""
 	case Messages:

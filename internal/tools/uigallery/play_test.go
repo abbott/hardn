@@ -766,7 +766,8 @@ func TestPlayTouchesNothing(t *testing.T) {
 	for _, p := range []string{"pkg/ui/prompt", "pkg/ui/screen", "pkg/ui/component/fixture", "pkg/diff", "pkg/engine", "pkg/engine/steps",
 		"pkg/engine/confirm", "pkg/engine/controls/dns", "pkg/host/dns", "pkg/output", "pkg/host/hostfake", "pkg/screens/dns", "pkg/screens/screenkit",
 		"pkg/screens/backup", "pkg/engine/controls/backup", "pkg/host/backup",
-		"pkg/screens/environment", "pkg/engine/controls/environment", "pkg/host/sudoers"} {
+		"pkg/screens/environment", "pkg/engine/controls/environment", "pkg/host/sudoers",
+		"pkg/screens/systemdetails", "pkg/screens/logs", "pkg/engine/details", "pkg/engine/logview"} {
 		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
 			t.Errorf("%s, which play links, was not checked", p)
 		}

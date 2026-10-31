@@ -6,12 +6,12 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/alpine323␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen of slice 1, inferred from␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2 and origin/main, read from a simulated host by the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreader (pkg/engine/logview), its rows and layout unit (c)'s to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. It only reads: no plan, no y/N, no journal. No pager␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mruns: an item says what it would run. Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Logs screen (pkg/screens/logs), inferred␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom v0.3.2 and origin/main, read from a simulated host by the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal reader (pkg/engine/logview). It only reads: no plan, no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156my/N, no journal. No pager runs: Open says what hardn would␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrun. Nothing on this machine changes: every command and file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/alpine323␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23, whose less is a link to␛[m$
@@ -22,7 +22,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThat s writes and E opens any path as root is read␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(miscutils/less.c, master). It refuses less --version, so it␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhas no Open item (decision 7 (a)). With Alpine's less package␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is one (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere is one [I, not run].␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -83,12 +83,12 @@ $
 # play logs/alpine323 ------------------------------------------$
 $
 # Note$
-# Play mode, mocks: the Logs screen of slice 1, inferred from$
-# v0.3.2 and origin/main, read from a simulated host by the real$
-# reader (pkg/engine/logview), its rows and layout unit (c)'s to$
-# build. It only reads: no plan, no y/N, no journal. No pager$
-# runs: an item says what it would run. Nothing on this machine$
-# changes: every command and file is the fake's.$
+# Play mode: hardn's Logs screen (pkg/screens/logs), inferred$
+# from v0.3.2 and origin/main, read from a simulated host by the$
+# real reader (pkg/engine/logview). It only reads: no plan, no$
+# y/N, no journal. No pager runs: Open says what hardn would$
+# run. Nothing on this machine changes: every command and file$
+# is the fake's.$
 $
 # Info: logs/alpine323$
 # web-01.example.net runs Alpine 3.23, whose less is a link to$
@@ -99,7 +99,7 @@ $
 # That s writes and E opens any path as root is read$
 # (miscutils/less.c, master). It refuses less --version, so it$
 # has no Open item (decision 7 (a)). With Alpine's less package$
-# there is one (pager-commands).$
+# there is one [I, not run].$
 $
 # Logs #########################################################$
 $
@@ -160,13 +160,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay logs/alpine323␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Logs screen of slice 1, inferred␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom v0.3.2 and origin/main, read from a simulated host by␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real reader (pkg/engine/logview), its rows and layout␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (c)'s to build. It only reads: no plan, no y/N, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal. No pager runs: an item says what it would run.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Logs screen (pkg/screens/logs),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minferred from v0.3.2 and origin/main, read from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host by the real reader (pkg/engine/logview). It␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156monly reads: no plan, no y/N, no journal. No pager runs:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mOpen says what hardn would run. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/alpine323␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23, whose less is a link␛[m$
@@ -177,7 +176,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot exist. That s writes and E opens any path as root is␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread (miscutils/less.c, master). It refuses less --␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mversion, so it has no Open item (decision 7 (a)). With␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine's less package there is one (pager-commands).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine's less package there is one [I, not run].␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
