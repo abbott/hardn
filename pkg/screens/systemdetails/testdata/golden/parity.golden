@@ -181,7 +181,7 @@ differ DNS IP 1: 192.0.2.53 | none
 differ DNS IP 2: 192.0.2.54 | none
        decision 2 (a), left out: DNS has main menu 3's screen; no row
 differ Non-System Users: alice (sudo) | alice (No sudo)
-       UNEXPLAINED (pending; proposed, not approved: readers-system-details.md item 16; gallery-system-details.md §6, <user>): the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing
+       readers-system-details.md item 16 (adopted 2026-10-30); gallery-system-details.md §6, <user>: the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none

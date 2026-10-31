@@ -990,7 +990,7 @@ func table() []tie {
 		every(reportAll, "DNS IP 2", d2Out, "DNS has main menu 3's screen; no row"),
 		every(renders, "User", d2Out, "the current user; no row"),
 		every(renders, "Non-System Users", d2+"; "+w6+", <user>", "a user no group marks has no word; now No sudo"),
-		[]tie{{[]string{"sd-group-no-rule"}, onDebian, "Non-System Users", "readers-system-details.md item 16; " + w6 + ", <user>", "the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing", true}},
+		every([]string{"sd-group-no-rule"}, "Non-System Users", "readers-system-details.md item 16 (adopted 2026-10-30); "+w6+", <user>", "the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing"),
 		[]tie{{[]string{"sd-open"}, onAlpine, "Non-System Users", d2 + "; " + w6 + ", <user>", "the sudo group, on a doas host; now what doas grants", false}},
 		every(without(reportAll, "sd-no-lscpu"), "Hypervisor", d2Out, "lscpu's vendor, or the report's; no row"),
 		every([]string{"sd-no-lscpu"}, "Hypervisor", d2Out+"; defect 15; KNOWN-DEFECT (Bare Metal)", "not known read as Bare Metal; no row"),

@@ -217,7 +217,7 @@ The command is item 11's: `less -- /var/log/hardn.log`, under `LESSSECURE=1 LESS
 
 gallery-system-details.md §6 is used as it stands, and "§6" in this section and the next is that page's; the words themselves are unit (c)'s and (d)'s to draw, and the gallery still draws them. New here, **decided**:
 
-**Adopted (the maintainer, 2026-10-30):** "Adopt, start (b2)", answering "Adopt the not-root row and the proposed words?": `cli-not-root` as drawn, a user's row "Not known" and "Not root: /etc/sudoers, /etc/sudoers.d not read", and every row of this table.
+**Adopted (the maintainer, 2026-10-30):** "Adopt, start (b2)", answering "Adopt the not-root row and the proposed words?": `cli-not-root` as drawn, a user's row "Not known" and "Not root: /etc/sudoers, /etc/sudoers.d not read", and every row of this table. Then, "Adopt, start (c)", answering "Should a user's sudo mark come from the rules alone?": item 16's reading, as the source of [parity-system-details.md](parity-system-details.md)'s `sd-group-no-rule`.
 
 | Where | Words | Why |
 |---|---|---|
