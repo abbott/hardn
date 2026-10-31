@@ -118,6 +118,7 @@ var (
 	reportError = regexp.MustCompile(`^(?:✗ Error retrieving system status|Error): (.+)$`)
 	reportWords = []string{"Failed to retrieve system status information.", "Please check system permissions and try again."}
 	reportBar   = regexp.MustCompile(`^([█░]+) \(([0-9.]+)\)$`)
+	reportDisk  = regexp.MustCompile(`^([0-9.]+/[0-9.]+) (\S+) (\[[0-9.]+%\])$`)
 	asked       = regexp.MustCompile(`^#   (\d+)x (read|exec)\s+(\S.*?) -> (.+)$`)
 	toolRead    = regexp.MustCompile(`^(?:nproc|lscpu|lastlog -u <the test's user>|zpool status -x|zfs get -Hp (?:available|used) \S+)$`)
 	mockRead    = regexp.MustCompile(`^(?:uname -r|df -k|cat /proc/meminfo)$`)
@@ -203,6 +204,16 @@ func readReport(g golden) (parity.LegacyRead, error) {
 					value = b[2]
 				}
 			}
+			if label == "Volume" {
+				d := reportDisk.FindStringSubmatch(value)
+				if d == nil {
+					return out, fmt.Errorf("a Volume line the reader does not know: %q", l)
+				}
+				if err := add(rowVolumeUnit, d[2], false); err != nil {
+					return out, err
+				}
+				value = d[1] + " " + d[3]
+			}
 			if value == "" && list == "" {
 				value = "blank"
 			}
@@ -267,6 +278,9 @@ const (
 	reportRow   = "report"
 	reportWhole = "whole"
 	exportRow   = "export"
+	// rowVolumeUnit is the Volume row's unit, apart from its figures, so that the
+	// same figures agree and a wrong one fails (defect 13 is the unit alone).
+	rowVolumeUnit = "Volume unit"
 )
 
 // readReportTrailer reads a screen run's four sections, in their order: what the
@@ -752,6 +766,7 @@ $
 		{"a command of the mocks that changes", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "read   /etc/passwd -> 148 bytes", "exec   useradd bob -> ok", 1)), "only read"},
 		{"a row masked that the line does not name", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Kernel: "+shownMask+"$", 1)), "the Kernel row masked"},
 		{"a mask with no Masked line", "menu/system_details_x.golden", strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Kernel: "+shownMask+"$", 1), "the Kernel row masked"},
+		{"a Volume line of another form", "menu/system_details_x.golden", strings.Replace(reportGolden, "Kernel: Linux 6.12.0-example-amd64                $", "Volume: 6 GB$", 1), "Volume line"},
 		{"a later draw's bars", "menu/system_details_x.golden", barsGolden("█░░", "███"), "differ from the first's"},
 		{"a tool that changes", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "#   nproc", "#   useradd bob", 1)), "only read"},
 		{"a file gone", "menu/system_details_x.golden", maskAll(strings.Replace(reportGolden, "before:\n#   (none)", "before:\n#   notes.txt mode=0644", 1)), "gone afterwards"},

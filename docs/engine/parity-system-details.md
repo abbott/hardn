@@ -18,7 +18,7 @@ Unit (d) replaces origin/main's two screens, `hardn system-details` and `-p`, an
   - **System Details:** `details.Read` on `detect.Detect`'s facts through `details.Bounded`, as readers-system-details.md item 23 has `hardn system-details`' path; each fact under the label of the row it replaces (§7's map), `none` where nothing replaces it (`factRows`).
   - **Logs:** `logview.Read`, `logview.Elsewhere` and, where there are lines, `logview.Pager`, as the screen is to; `logview.Each` for `-p` off a terminal, and in every cell `Each`'s last lines are held equal to `Read`'s.
   - **The parser:** `logview.ParseLine` on the golden's lines, and `logview.Read` on its long line.
-- **Values.** A row takes origin/main's form where the fact is the same (`Cores`, `Uptime`, `Volume`, `Memory`), so that the same numbers agree, and a wrong reading fails as UNEXPLAINED; otherwise the reader's states and reasons (`LoginNone`, `LoginsNoTool`, `NoLog`, `Unreadable: permission denied`). None of this is what the screens will draw.
+- **Values.** A row takes origin/main's form where the fact is the same (`Cores`, `Uptime`, `Volume`, `Memory`), so that the same numbers agree, and a wrong reading fails as UNEXPLAINED; `Volume`'s unit is a row of its own, `Volume unit`, as GB against GiB is defect 13 and the figures on a plain root are the same. On a ZFS root `Volume` differs by defects 8 to 10, so a wrong figure there is limit 1's. Otherwise the reader's states and reasons (`LoginNone`, `LoginsNoTool`, `NoLog`, `Unreadable: permission denied`). None of this is what the screens will draw.
 - **The same start.** `holdStart` holds the host's `/etc/os-release`, `/etc/passwd`, `/etc/group`, `/proc/uptime` and `/proc/meminfo` to the sizes the golden's trailer records (their bytes are `runSystemDetailsChild`'s). On Logs, the `size` row agrees with the golden's `read` where the file is the same one, and the lines agree. **Where a fact cannot be the same:**
   - `/proc/cpuinfo`: the golden's holds one `processor` line (75 bytes), its `nproc` and `lscpu` stand-ins say 2 and 1, and origin/main's row takes those. The new path reads this file alone, so the host's says 2 and 1.
   - What origin/main has no file for, and the new path reads: `/proc/sys/kernel/hostname`, `/proc/loadavg`, `/proc/self/mounts`, `/proc/self/status`, `/etc/sudoers` (with `%sudo`, so that the golden's group means what it says) or `/etc/doas.conf`, `/var/log/wtmp`, and the forms of `ip`, `df -kP /` (the figures of the golden's `df -k`), `lslogins`, `zpool list` and `zfs get` (the figures of the `zfs_dataset` stand-in).
@@ -135,6 +135,7 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | Non-System Users | 14 | 3 |
 | Processor | 17 | 0 |
 | Cores | 17 | 0 |
+| Volume | 12 | 5 |
 | Uptime | 17 | 0 |
 | Kernel | 0 | 17 |
 | Client IP | 0 | 17 |
@@ -142,7 +143,7 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | DNS IP 2 | 0 | 17 |
 | Hypervisor | 0 | 17 |
 | CPU Freq | 0 | 17 |
-| Volume | 0 | 17 |
+| Volume unit | 0 | 17 |
 | Disk Usage | 0 | 17 |
 | Memory | 2 | 15 |
 | Usage | 0 | 17 |
@@ -184,7 +185,7 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | DNS IP 2 | `192.0.2.54` | `none` | decision 2 (a), left out: DNS has main menu 3's screen; no row |
 | sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Hypervisor | `KVM` | `none` | decision 2 (a), left out: lscpu's vendor, or the report's; no row |
 | sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | CPU Freq | `0.00 GHz` | `none` | decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row |
-| sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | Volume | `6.00/39.34 GB [15.25%]` | `6.00/39.34 GiB [15.25%]` | defect 13: bytes / 1024^3 said as GB; now GiB, the same figures |
+| sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Volume unit | `GB` | `GiB` | defect 13: bytes / 1024^3 said as GB; now GiB |
 | sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run | every cell of each | Disk Usage | `███░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
 | sd-open, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Memory | `3.89/7.78 GiB [50.00%]` | `1.94/7.78 GiB [25.00%]` | defect 12: MemFree alone counted as free, so page cache as used; now by MemAvailable |
 | sd-open, sd-render, sd-render-zfs, sd-no-lastlog, sd-never, sd-login-hostname, sd-no-lscpu, sd-zfs-all-healthy, sd-zfs-dataset, sd-zfs-other, sd-export, sd-export-named, sd-export-overwrite, sd-export-fails, sd-export-dry-run, sd-export-zfs | every cell of each | Usage | `██████████░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
@@ -202,11 +203,10 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | sd-render, sd-render-zfs | Debian 13 | Non-System Users | `alice (sudo), bob` | `alice (sudo), bob (No sudo)` | decision 2 (a); gallery-system-details.md §6, <user>: a user no group marks has no word; now No sudo |
 | sd-render, sd-render-zfs | Debian 13 | Hypervisor | `Bare Metal` | `none` | decision 2 (a), left out: lscpu's vendor, or the report's; no row |
 | sd-render, sd-render-zfs | Debian 13 | CPU Freq | `2.00 GHz` | `none` | decision 2 (a), left out: the report's figure; no row |
-| sd-render | Debian 13 | Volume | `20.00/80.00 GB [25.00%]` | `20.00/80.00 GiB [25.00%]` | defect 13: bytes / 1024^3 said as GB; now GiB, the same figures |
 | sd-render | Debian 13 | Disk Usage | `█████░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
 | sd-render, sd-render-zfs | Debian 13 | Last Login | `Oct 29 08:12:44 +0000` | `root LoginNone, alice 2026-10-29T08:12:44+00:00, bob LoginNone` | decision 3 (a): one login, the report's; now root and each listed user |
 | sd-render, sd-render-zfs | Debian 13 | Load bars | `1m █░░░░░░░░░░░░░░░░░░░, 5m ░░░░░░░░░░░░░░░░░░░░, 15m ░░░░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: 20-wide bars; the figures alone |
-| sd-render-zfs, sd-zfs-dataset, sd-export-zfs | Debian 13 | Volume | `12.00/88.00 GB [12.00%]` | `12.00/100.00 GiB [12.00%]` | defect 10; defect 13: used/available, as GB; now used of total, GiB |
+| sd-render-zfs, sd-zfs-dataset, sd-export-zfs | Debian 13 | Volume | `12.00/88.00 [12.00%]` | `12.00/100.00 [12.00%]` | defect 10: used/available; now used of total |
 | sd-render-zfs, sd-zfs-dataset, sd-export-zfs | Debian 13 | Disk Usage | `██░░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
 | sd-render-zfs, sd-zfs-dataset, sd-export-zfs | Debian 13 | ZFS Health | `HEALTH O.K.` | `zroot ONLINE` | decision 2 (a); gallery-system-details.md §6, Pool: words of its own; now the pool's state as zpool says it |
 | sd-render-zfs, sd-zfs-all-healthy, sd-zfs-dataset, sd-export-zfs | Debian 13 | / | `none` | `zroot/ROOT/os zfs` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |
@@ -217,9 +217,9 @@ Every cell's host is forced: the golden's synthetic start with what only the new
 | sd-never | Debian 13 | Last Login | `Never logged in` | `root LoginNone, alice LoginNone` | decision 3 (a): Never logged in, for whoever ran it; now each account's state, a blank guarded |
 | sd-login-hostname | Debian 13 | From | `none` | `alice laptop` | decision 3 (a); defect 14; KNOWN-DEFECT (left blank): no row with the blank; now each account's, a name with no dot read |
 | sd-no-lscpu | Debian 13 | Hypervisor | `Bare Metal` | `none` | decision 2 (a), left out; defect 15; KNOWN-DEFECT (Bare Metal): not known read as Bare Metal; no row |
-| sd-zfs-all-healthy | Debian 13 | Volume | `6.00/39.34 GB [15.25%]` | `12.00/100.00 GiB [12.00%]` | defect 9; KNOWN-DEFECT (a healthy ZFS host reads as no ZFS): df's figures, ZFS not seen; now the dataset's |
+| sd-zfs-all-healthy | Debian 13 | Volume | `6.00/39.34 [15.25%]` | `12.00/100.00 [12.00%]` | defect 9; KNOWN-DEFECT (a healthy ZFS host reads as no ZFS): df's figures, ZFS not seen; now the dataset's |
 | sd-zfs-all-healthy | Debian 13 | ZFS Health | `none` | `zroot ONLINE` | defect 9: no row, ZFS not seen; now the mount's pool, as zpool says it |
-| sd-zfs-other | Debian 13 | Volume | `0.00/0.00 GB [0.00%]` | `12.00/100.00 GiB [12.00%]` | defect 8; KNOWN-DEFECT (hard-coded default): 0.00/0.00, the hard-coded dataset not there; now the mount's |
+| sd-zfs-other | Debian 13 | Volume | `0.00/0.00 [0.00%]` | `12.00/100.00 [12.00%]` | defect 8; KNOWN-DEFECT (hard-coded default): 0.00/0.00, the hard-coded dataset not there; now the mount's |
 | sd-zfs-other | Debian 13 | Disk Usage | `░░░░░░░░░░░░░░░░░░░░` | `none` | decision 2 (a), left out: a 20-wide bar; no row |
 | sd-zfs-other | Debian 13 | ZFS Health | `HEALTH O.K.` | `rpool ONLINE` | defect 8; decision 2 (a): HEALTH O.K. with the dataset not there; now the mount's pool, as zpool says it |
 | sd-zfs-other | Debian 13 | / | `none` | `rpool/ROOT/pve-1 zfs` | decision 2 (a); gallery-system-details.md §6, /: no row; now the root's source and type |

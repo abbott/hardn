@@ -43,6 +43,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -56,8 +57,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -103,6 +104,7 @@ agree  findings: none
 agree  hardn.yml: not saved
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ report: whole | kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Memory, Uptime; not read: last login: lslogins
        decision 3 (a); gallery-system-details.md §6, Not known: lslogins isn't installed: whole, by the golden's stand-ins; now Last Login not read: no lslogins on this host
@@ -120,8 +122,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -157,6 +159,7 @@ agree  Cores: 64 vCPU(s) / 2 Socket(s)
 agree  Load 1m: 3.20
 agree  Load 5m: 1.60
 agree  Load 15m: 0.80
+agree  Volume: 20.00/80.00 [25.00%]
 agree  Memory: 31.25/62.50 GiB [50.00%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ OS: Debian 13 Trixie | Debian 13 trixie
@@ -181,8 +184,8 @@ differ Hypervisor: Bare Metal | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 2.00 GHz | none
        decision 2 (a), left out: the report's figure; no row
-differ Volume: 20.00/80.00 GB [25.00%] | 20.00/80.00 GiB [25.00%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: █████░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Usage: ██████████░░░░░░░░░░ | none
@@ -242,8 +245,10 @@ differ Hypervisor: Bare Metal | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 2.00 GHz | none
        decision 2 (a), left out: the report's figure; no row
-differ Volume: 12.00/88.00 GB [12.00%] | 12.00/100.00 GiB [12.00%]
-       defect 10; defect 13: used/available, as GB; now used of total, GiB
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
+differ Volume: 12.00/88.00 [12.00%] | 12.00/100.00 [12.00%]
+       defect 10: used/available; now used of total
 differ Disk Usage: ██░░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ ZFS Health: HEALTH O.K. | zroot ONLINE
@@ -311,6 +316,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -324,8 +330,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -372,6 +378,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -385,8 +392,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -431,6 +438,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -444,8 +452,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -493,6 +501,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -506,8 +515,8 @@ differ Hypervisor: Bare Metal | none
        decision 2 (a), left out; defect 15; KNOWN-DEFECT (Bare Metal): not known read as Bare Metal; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -568,7 +577,9 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 12.00/100.00 GiB [12.00%]
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
+differ Volume: 6.00/39.34 [15.25%] | 12.00/100.00 [12.00%]
        defect 9; KNOWN-DEFECT (a healthy ZFS host reads as no ZFS): df's figures, ZFS not seen; now the dataset's
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
@@ -632,8 +643,10 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 12.00/88.00 GB [12.00%] | 12.00/100.00 GiB [12.00%]
-       defect 10; defect 13: used/available, as GB; now used of total, GiB
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
+differ Volume: 12.00/88.00 [12.00%] | 12.00/100.00 [12.00%]
+       defect 10: used/available; now used of total
 differ Disk Usage: ██░░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ ZFS Health: HEALTH O.K. | zroot ONLINE
@@ -696,7 +709,9 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 0.00/0.00 GB [0.00%] | 12.00/100.00 GiB [12.00%]
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
+differ Volume: 0.00/0.00 [0.00%] | 12.00/100.00 [12.00%]
        defect 8; KNOWN-DEFECT (hard-coded default): 0.00/0.00, the hard-coded dataset not there; now the mount's
 differ Disk Usage: ░░░░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
@@ -800,6 +815,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ files: system_status.txt 0644 | none
        decision 5 (a); defect 17: the export, relative to the working directory, 0644; now no item writes, and hardn system-details > file saves
@@ -815,8 +831,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -919,6 +935,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ files: reports/web-01.txt 0644 | none
        decision 5 (a); defect 17: the export under a directory it made; now no item writes
@@ -936,8 +953,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -1040,6 +1057,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ files: system_status.txt 0644 | none
        decision 5 (a); defect 18; KNOWN-DEFECT (overwritten with no question): alice's file overwritten; now no item writes, and hardn system-details > file saves
@@ -1055,8 +1073,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -1105,6 +1123,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -1118,8 +1137,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -1168,6 +1187,7 @@ agree  report: whole
 agree  Non-System Users: alice (sudo)
 agree  Processor: Example CPU @ 2.00GHz
 agree  Cores: 2 vCPU(s) / 1 Socket(s)
+agree  Volume: 6.00/39.34 [15.25%]
 agree  Uptime: 3 days, 4 hours, 5 minutes
 differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
        decision 2 (a): Linux and the release; now the release, as screen-debian13's row
@@ -1181,8 +1201,8 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 6.00/39.34 GB [15.25%] | 6.00/39.34 GiB [15.25%]
-       defect 13: bytes / 1024^3 said as GB; now GiB, the same figures
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
 differ Disk Usage: ███░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ Memory: 3.89/7.78 GiB [50.00%] | 1.94/7.78 GiB [25.00%]
@@ -1301,8 +1321,10 @@ differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
        decision 2 (a), left out; defect 11: 0.00 GHz on the usual host; no row
-differ Volume: 12.00/88.00 GB [12.00%] | 12.00/100.00 GiB [12.00%]
-       defect 10; defect 13: used/available, as GB; now used of total, GiB
+differ Volume unit: GB | GiB
+       defect 13: bytes / 1024^3 said as GB; now GiB
+differ Volume: 12.00/88.00 [12.00%] | 12.00/100.00 [12.00%]
+       defect 10: used/available; now used of total
 differ Disk Usage: ██░░░░░░░░░░░░░░░░░░ | none
        decision 2 (a), left out: a 20-wide bar; no row
 differ ZFS Health: HEALTH O.K. | zroot ONLINE

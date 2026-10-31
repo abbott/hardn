@@ -545,13 +545,14 @@ func factRows(r details.Report) []parity.Row {
 		add("/", r.Disk.Source+" "+r.Disk.Type)
 	}
 	if r.Disk.Known {
-		add("Volume", sizes(r.Disk.Used, r.Disk.Total))
+		add("Volume", sizes(r.Disk.Used, r.Disk.Total, ""))
+		add(rowVolumeUnit, "GiB")
 	}
 	if r.Disk.Pool != "" {
 		add("ZFS Health", r.Disk.Pool+" "+r.Disk.Health)
 	}
 	if used, ok := r.Memory.Used(); ok {
-		add("Memory", sizes(used, r.Memory.Total))
+		add("Memory", sizes(used, r.Memory.Total, "GiB"))
 	}
 	var when, from []string
 	if r.Logins.State == details.LoginsNoTool {
@@ -578,11 +579,15 @@ func factRows(r details.Report) []parity.Row {
 	return append([]parity.Row{{Name: reportRow, Value: keptWords(r, rows)}}, rows...)
 }
 
-// sizes is used and total in GiB and the percentage, in origin/main's form, GiB
-// for its Volume row's mislabelled GB.
-func sizes(used, total uint64) string {
+// sizes is used and total in GiB and the percentage, in origin/main's form, with
+// unit where its row says it there. Volume's is a row of its own (rowVolumeUnit).
+func sizes(used, total uint64, unit string) string {
 	const gib = 1024 * 1024 * 1024
-	return fmt.Sprintf("%.2f/%.2f GiB [%.2f%%]", float64(used)/gib, float64(total)/gib, 100*float64(used)/float64(total))
+	pair := fmt.Sprintf("%.2f/%.2f", float64(used)/gib, float64(total)/gib)
+	if unit != "" {
+		pair += " " + unit
+	}
+	return fmt.Sprintf("%s [%.2f%%]", pair, 100*float64(used)/float64(total))
 }
 
 // loginsNoTool is the state with no lslogins, no fact of a login.
@@ -606,7 +611,7 @@ func keptWords(r details.Report, rows []parity.Row) string {
 	}
 	var kept []string
 	for _, row := range rows {
-		if row.Value != loginsNoTool {
+		if row.Value != loginsNoTool && row.Name != rowVolumeUnit {
 			kept = append(kept, row.Name)
 		}
 	}
@@ -990,8 +995,8 @@ func table() []tie {
 		every(reportAll, "Disk Usage", d2Out, "a 20-wide bar; no row"),
 		every(reportAll, "Usage", d2Out, "a 20-wide bar; no row"),
 		every(reportAll, "/", d2+"; "+w6+", /", "no row; now the root's source and type"),
-		every(slices.Concat(plainRoot, []string{"sd-render"}), "Volume", "defect 13", "bytes / 1024^3 said as GB; now GiB, the same figures"),
-		every(slices.Concat(zfsDefault, []string{"sd-render-zfs"}), "Volume", "defect 10; defect 13", "used/available, as GB; now used of total, GiB"),
+		every(reportAll, rowVolumeUnit, "defect 13", "bytes / 1024^3 said as GB; now GiB"),
+		every(slices.Concat(zfsDefault, []string{"sd-render-zfs"}), "Volume", "defect 10", "used/available; now used of total"),
 		every([]string{"sd-zfs-all-healthy"}, "Volume", "defect 9; KNOWN-DEFECT (a healthy ZFS host reads as no ZFS)", "df's figures, ZFS not seen; now the dataset's"),
 		every([]string{"sd-zfs-other"}, "Volume", "defect 8; KNOWN-DEFECT (hard-coded default)", "0.00/0.00, the hard-coded dataset not there; now the mount's"),
 		every(slices.Concat(zfsDefault, []string{"sd-render-zfs"}), "ZFS Health", d2+"; "+w6+", Pool", "words of its own; now the pool's state as zpool says it"),
