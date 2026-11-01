@@ -1028,7 +1028,7 @@ func (e *fwRunner) addProfile(ctx context.Context, r fwReading) error {
 		&form.Text{Title: "Profile name", Description: "Such as WebServer.", Value: &name, Validate: func(s string) error {
 			switch {
 			case !fwNameForm.MatchString(s):
-				return errors.New("Use letters, digits, dots, dashes and underscores.")
+				return nav.Refuse("Use letters, digits, dots, dashes and underscores.")
 			case slices.ContainsFunc(r.cfg.UfwAppProfiles, func(p config.UfwAppProfile) bool { return p.Name == s }):
 				return nav.Warn("A profile with this name already exists.")
 			}
@@ -1039,7 +1039,7 @@ func (e *fwRunner) addProfile(ctx context.Context, r fwReading) error {
 		&form.Text{Title: "Ports", Description: "Such as 80/tcp,443/tcp.", Value: &ports, Validate: func(s string) error {
 			for _, p := range strings.Split(s, ",") {
 				if !fwPortForm.MatchString(strings.TrimSpace(p)) {
-					return errors.New("Give each port with its protocol, such as 80/tcp.")
+					return nav.Refuse("Give each port with its protocol, such as 80/tcp.")
 				}
 			}
 			return nil

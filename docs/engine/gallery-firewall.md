@@ -129,9 +129,7 @@ Proposed, unless marked origin/main's. Its "consider changing" and "good securit
 
 ## 7. For unit (b)
 
-Stand-ins, each labelled in `firewall.go`:
-
-| Stand-in | What it must become |
+| Stand-in, labelled in `firewall.go` | What it must become |
 |---|---|
 | `fwControl`, wrapping `firewall.Incoming` | `Incoming.Plan`, replacing `engine.ErrNotMigrated` |
 | `fwSockets`, a third copy of `sockets.go`'s reading | that reading exported, shared with the row |
