@@ -12,11 +12,12 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
 //	go run ./internal/tools/uigallery system-details [flags] [form | all]...
 //	go run ./internal/tools/uigallery logs [flags] [form | all]...
+//	go run ./internal/tools/uigallery firewall [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -184,6 +185,18 @@
 // them (next/s1-screen): git keeps them (systemdetails.go, logs.go, next/s1-parity).
 // Their flags are -list, -theme, -profile, -ascii, -override, and -width and -height
 // sized as play's.
+//
+// "firewall" lists the Firewall mocks of refactor plan slice 4, unit (a)
+// (firewall.go, docs/engine/gallery-firewall.md), each under a note: the
+// proposed Firewall screen on fifteen simulated hosts, read by real code
+// (firewall.Incoming.Check, ufw.Read, pve.ReadFirewall), the profiles'
+// sub-screen, the refusals and the unreloaded edit's plan. "play firewall" is
+// the menu of the hosts and "play firewall/<host>" the screen on one, Enable
+// on the real engine (steps.PlanUFWEnable), with the gallery's stand-ins for
+// what unit (b) builds; the main menu's 4 leads to it on Debian 13. -sequence
+// dry-run stops each change at its plan, as plan only would; -fail is refused
+// there. Its flags are -list, -theme, -profile, -ascii, -override, and -width
+// and -height sized as play's.
 //
 // The Dry-Run mode, "dryrun" and "play dryrun", the mocks of refactor
 // plan slice 2b (docs/engine/gallery-dryrun.md), was removed with the
@@ -576,8 +589,9 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // line reader stdin returns and sizes itself with size; with "status",
 // "glyphs", "system-details" or "logs" first, the status listing
 // (statusList), the glyphs mode (glyphs), the System Details listing
-// (sdListing) or the Logs listing (logsListing), which size themselves with
-// size too and read no input. No other mode calls either.
+// (sdListing), the Logs listing (logsListing) or, with "firewall" first, the
+// Firewall listing (fwListing), which size themselves with size too and read
+// no input. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -594,6 +608,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == logsPrefix {
 		return logsListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == fwPrefix {
+		return fwListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -604,6 +621,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(sdUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(logsUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(fwUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

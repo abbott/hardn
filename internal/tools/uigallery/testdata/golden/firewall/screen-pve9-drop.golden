@@ -1,0 +1,116 @@
+# Golden file of TestFirewallGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mfirewall screen-pve9-drop␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net is a Proxmox VE␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m9 node, no ufw. The datacenter firewall on, policy_in DROP,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe management IP set written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdrop policy␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpve-firewall␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnabled␛[m              ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDrop␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH (22)␛[m             ␛[38;2;112;212;127mManagement network␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mWeb UI (8006)␛[m        ␛[38;2;112;212;127mManagement network␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn reads pve-firewall and doesn't change it: a wrong␛[m$
+      ␛[38;2;129;134;156mrule can cut off the web UI and the cluster.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# firewall screen-pve9-drop ------------------------------------$
+$
+# Note$
+# Mock: The Firewall screen. web-01.example.net is a Proxmox VE$
+# 9 node, no ufw. The datacenter firewall on, policy_in DROP,$
+# the management IP set written.$
+$
+# Firewall Configuration #######################################$
+$
+  [+] Firewall             Configured drop policy$
+$
+# pve-firewall -------------------------------------------------$
+$
+  [+] Enabled              Yes$
+  [+] Incoming policy      Drop$
+  [+] SSH (22)             Management network$
+  [+] Web UI (8006)        Management network$
+   -  hardn reads pve-firewall and doesn't change it: a wrong$
+      rule can cut off the web UI and the cluster.$
+$
+   0) Return$
+$
+  > Enter selection [0 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mfirewall screen-pve9-drop␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net is a Proxmox␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mVE 9 node, no ufw. The datacenter firewall on, policy_in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDROP, the management IP set written.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdrop policy␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpve-firewall␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mEnabled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;112;212;127mDrop␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH (22)␛[m$
+      ␛[38;2;112;212;127mManagement network␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mWeb UI (8006)␛[m$
+      ␛[38;2;112;212;127mManagement network␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn reads pve-firewall and doesn't change it: a␛[m$
+      ␛[38;2;129;134;156mwrong rule can cut off the web UI and the cluster.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mfirewall screen-pve9-drop␛[m ␛[38;2;48;52;64m------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net is a Proxmox VE␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m9 node, no ufw. The datacenter firewall on, policy_in DROP,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe management IP set written.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m#######################################␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdrop policy␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpve-firewall␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mEnabled␛[m              ␛[38;2;112;212;127mYes␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDrop␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH (22)␛[m             ␛[38;2;112;212;127mManagement network␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mWeb UI (8006)␛[m        ␛[38;2;112;212;127mManagement network␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn reads pve-firewall and doesn't change it: a wrong␛[m$
+      ␛[38;2;129;134;156mrule can cut off the web UI and the cluster.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
