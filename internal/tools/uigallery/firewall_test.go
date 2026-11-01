@@ -527,6 +527,21 @@ func TestFirewallStaleListener(t *testing.T) {
 	}
 }
 
+// TestFirewallDeniedPlansNothing is another finding for unit (b): a deny rule
+// on SSH's port under an active ufw is "ssh blocked", item 1 is Enable, and the
+// real plan is empty: ufw.PlanFor does not change a rule it finds, and says
+// nothing to do.
+func TestFirewallDeniedPlansNothing(t *testing.T) {
+	h := fwWith(ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "deny", port: "22"}}})()
+	r, err := (&session{}).readFW(context.Background(), h.system(), fwSession(h))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if r.status.Rows[0].Detail != "ssh blocked" || r.first() != fwDoEnable || r.planErr != nil || len(r.plan) != 0 {
+		t.Errorf("row %q, item 1 %v, plan %d changes, %v", r.status.Rows[0].Detail, r.first(), len(r.plan), r.planErr)
+	}
+}
+
 // TestFirewallPlanOnlyWritesNothing: on every host, each item under plan only
 // opens as live and stops at its plan, profiles too: nothing changes outside
 // hardn's own state, no command runs that changes the host.

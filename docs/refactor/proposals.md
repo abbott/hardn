@@ -339,6 +339,7 @@
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: n/a (no screen exists).
   - After: `docs/refactor/img/p-16-after-*.png` (placeholders; inferred screens, labelled as such in the gallery).
+- **Slice 4:** the UFW install is drawn, with its alternative, for the maintainer: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 1.
 
 <a id="p-43"></a>
 ### P-43: Turning AppArmor and Auto Updates off
@@ -679,7 +680,7 @@
 - **Source:** `next/p1d-gallery-screens`, which mocks the screens that fit a layout; brief 1B: a screen that fits no layout becomes a proposal, not a one-off. Related: [P-16](#p-16), [P-23](#p-23), [P-28](#p-28).
 - **Problem:**
   - origin/main's Firewall screen (pkg/menu firewall_menu.go), of which the export holds a legacy screenshot (images/04-firewall-legacy-tui.png), shows three status rows, then, with UFW installed and no rule listed, a warning line, "No firewall rules configured", before its menu. That is what it shows on every host with UFW, since the rules list is effectively unreachable ([interaction.md](phase0/interaction.md) §4.3). With rules it shows a "Current Firewall Rules:" heading over a line per rule, marked ✓ for allow, ✗ for deny and - otherwise.
-  - The sub-menu layout has status rows, sections of key-value rows under a header, and a menu, but no line of its own for a notice: as a section, the line would need a header origin/main does not show; as a key-value row, a key it does not have. So no Firewall mock is built ([README](../design-system/README.md) §9.12).
+  - The sub-menu layout has status rows, sections of key-value rows under a header, and a menu, but no line of its own for a notice: as a section, the line would need a header origin/main does not show; as a key-value row, a key it does not have. So no Firewall mock was built ([README](../design-system/README.md) §9.12) until slice 4's, which draws (b): [gallery-firewall.md](../engine/gallery-firewall.md).
   - The DNS screen's empty state is the same case: with no nameserver configured, origin/main shows "No nameservers configured" under its "Configured Nameservers:" heading. The DNS mock shows two nameservers configured instead (DEV-058).
 - **Proposal:** for the maintainer to choose:
   - (a) a notice block in the sub-menu layout, after the status rows and the sections: one or more `Message`s, such as "⭘ Warning: No firewall rules configured", the kind's word added as every glyph sentence has it (DEV-031, [P-23](#p-23)); the DNS screen's empty state the same, under its section's place.
@@ -689,6 +690,7 @@
 - **Effort:** S (a block of `SubMenu` and its goldens for (a); fixture data for (b) and (c)).
 - **Risk:** Low: display only.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: the export's `images/04-firewall-legacy-tui.png` (reference only). After: `docs/refactor/img/p-30-after.png` (placeholder).
+- **Slice 4:** the Firewall screen's mock draws (b), "No firewall rules configured" under "Rules": [gallery-firewall.md](../engine/gallery-firewall.md) §3.
 
 <a id="p-31"></a>
 ### P-31: Figma's words or origin/main's on the other Figma frames
@@ -740,6 +742,7 @@
 - **Effort:** S for (1), (2)(c) and (3)(a); M for (2)(b) and (3)(b) (a new input, new rule forms and their undo).
 - **Risk:** Low for (1) and (2)(a); Medium for (2)(b) (new rule forms to read back and undo) and (3)(b) (the session's address is one client among those the blocklist may concern).
 - **Screenshots:** none (no screen changes).
+- **Slice 4:** what (1) and (3) mean on the Firewall screen, for the maintainer; (2) is slice 6's: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 5.
 
 <a id="p-34"></a>
 ### P-34: A reboot inside the confirm window
