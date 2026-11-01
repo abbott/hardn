@@ -14,7 +14,48 @@ go run ./internal/tools/uigallery play                     # main menu 4 leads t
 
 ## 2. What origin/main does
 
-<!-- origin -->
+## What origin/main does
+
+Golden names are `pkg/characterization/testdata/golden/menu/firewall_<name>.golden`. The trunk differs from origin/main in these files by three things: "Press Enter" pauses (DEV-050), add and remove refused under plan only (slice 2b), ufw changes refused on Proxmox (V10).
+
+**Reached by.** Main menu 4 (read main_menu.go:748, :798). `hardn -w` runs the same sequence without the screen and without profiles (run ops/configure_secure_firewall/debian.golden; read cmd/hardn/main.go:417-418).
+
+**Shows.** UFW Installed, UFW Status, SSH Port, a rules line, configured profiles, a menu: 1 and 0 with ufw missing, else 1, 2, 3, 0 (run open_not_installed, open_inactive, open_profiles). SSH Port is `cfg.SshPort`, warned at 22, "good security" otherwise (run open_port_22_warns, open_port_2230_while_sshd_says_22).
+
+**Rules list.** Needs "deny (incoming)" and "allow (outgoing)" in the text of `ufw status`; the repository never asks for verbose (read ufw_firewall_repository.go:55, :93-94). Plain status with rules reads "No firewall rules configured" (run open_active_rules_never_listed). Verbose's text, fed by the mock, lists them (run open_active_rules_listed_if_status_is_verbose); so does a rule whose comment holds both phrases (run open_active_rule_listed_by_its_comment). That plain `ufw status` lacks the phrases is from ufw's source, not run on a host.
+
+**Items.**
+- 1, ufw missing: "isn't yet implemented"; dry run says it would install (run item1_not_installed_stub, item1_not_installed_dry_run).
+- 1, inactive: no confirmation; default deny incoming, default allow outgoing, `ufw disable`, `ufw reset`, profiles, allow SSH port, `yes | ufw enable` (run item1_inactive_enable_runs_configure). Dry run prints one line (run item1_inactive_dry_run).
+- 1, active: asks; y prints the stub, n cancels; ufw stays active (run item1_active_yes_stub, item1_active_no, item1_active_yes_dry_run).
+- 2: the same sequence, no confirmation (run item2_allows_configured_port_not_sshds, item2_active_rules_are_reset). Profiles: writes /etc/ufw/applications.d/hardn, one `ufw allow from any to any app <name>` each, before the SSH rule (run item2_profiles). Dry run (run firewall_configure_dry_run).
+- 2, ufw missing: hidden, still runs, "UFW firewall is not installed" (run item2_not_installed_hidden_still_runs). 3 likewise (run profiles_not_installed_hidden_still_runs).
+- 3, sub-screen: add (four answers), remove, apply (run profiles_none, profiles_two, profiles_add, profiles_remove_yes, profiles_remove_no). Add and remove save ./hardn.yml and run no ufw command. Apply live is a stub; dry run names a file (run profiles_apply_stub, profiles_apply_dry_run). Add and remove under plan only: refused (run profiles_add_plan_only_refused, profiles_remove_plan_only_refused).
+- Invalid key redraws; 0 and q return to the main menu (run invalid_key, return_0, quit_q).
+
+**Failure part way.** Allow rule fails after disable and reset: ufw off, no rules, default deny set; the screen says only "failed to add rule allow 2230/tcp" (run item2_fails_part_way, on a fixture that takes `ufw reset` as done).
+
+**Proxmox.** Open screen says nothing about ufw there and offers Enable and Configure (run proxmox_open_says_nothing). 1 and 2 print "UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, ..." and run no change (run proxmox_item1_refused, proxmox_item2_refused).
+
+**hardn.yml fields.** Written back on every save (run profiles_add). Read by the screen or `-w`: none.
+- `ufwDefaultIncomingPolicy`, `ufwDefaultOutgoingPolicy`: read by nothing; deny and allow are constants (read firewall_manager.go:66-69, config.go:85-86).
+- `ufwAllowedPorts`: Run All only (read run_all_menu.go:195); the screen and `-w` pass `[]int{}` (read firewall_menu.go:227, :263; main.go:418).
+- `enableUfwSshPolicy`: Run All and `-r` only (read run_all_menu.go:194, main.go:273).
+
+### Defects
+1. **Disable/reset sequence (slice):** `ufw disable` and `ufw reset` precede the allow rule, and a failure leaves ufw off. V9 (run item2_active_rules_are_reset, item2_fails_part_way).
+2. **Configured vs effective port (slice):** only `cfg.SshPort` is allowed; sshd's file says 22 and is not read. V9, V12, and V8's order (run item2_allows_configured_port_not_sshds; read side-effects.md:273-277).
+3. **Enable without confirm (slice):** item 1 runs item 2's whole sequence on one key under the words "Start UFW" (run item1_inactive_enable_runs_configure).
+4. **Stubs (slice):** Install, Disable and Apply print "isn't yet implemented"; `DisableFirewall` exists, uncalled (run item1_not_installed_stub, item1_active_yes_stub, profiles_apply_stub; read firewall_manager.go:96).
+5. **Proxmox (slice):** no word on the open screen; the disable that is the way out is the stub. V10 (run proxmox_open_says_nothing, proxmox_active_disable_stub).
+6. Rules never listed on plain `ufw status` output (run open_active_rules_never_listed).
+7. A failing `ufw status` reads Inactive; the "Error getting firewall status" branch cannot show (run open_status_fails_reads_inactive; read ufw_firewall_repository.go:98).
+8. Sub-screen messages are cleared at once, with no pause (run profiles_add, profiles_hidden_items_none_to_act_on, others so marked; read firewall_menu.go:373, :386, :398).
+9. Each item 1 adds a "Press Enter to return to the main menu" pause on leaving (run item1_active_no; read firewall_menu.go:241, :304).
+10. Dry-run lines claim what live does not do: install, write the profile file (run item1_not_installed_dry_run, profiles_apply_dry_run).
+11. Port check is a slash; refusal comes after four answers and drops them (run profiles_add_port_check_is_a_slash, profiles_add_bad_port_after_all_answers).
+12. Save goes to ./hardn.yml, not the file loaded (run profiles_add; read firewall_menu.go:497). Removing a profile leaves its ufw rule and file (read firewall_menu.go:541-551).
+13. `-w` failure is logged and exit status stays 0: V25 (read main.go:418-419). The ops golden's "cmd/hardn/main.go:386-392" is stale; the call is at :417-418.
 
 ## 3. The mocks
 
