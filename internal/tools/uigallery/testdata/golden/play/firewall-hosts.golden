@@ -30,15 +30,18 @@ $
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAllowlist␛[m            ␛[38;2;129;134;156mSSH from some sources␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mBlocklist␛[m            ␛[38;2;129;134;156mA saved deny before the allow␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdit not reloaded␛[m    ␛[38;2;129;134;156mConfigured 2230, sshd on 22␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m          ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mBound elsewhere␛[m      ␛[38;2;129;134;156mConfigured 22, sshd on 2230␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDenied␛[m               ␛[38;2;129;134;156mufw denies 22␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m          ␛[38;2;129;134;156mNo ufw␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m          ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 3$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 3$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/active22␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, default deny␛[m$
@@ -88,15 +91,18 @@ $
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAllowlist␛[m            ␛[38;2;129;134;156mSSH from some sources␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mBlocklist␛[m            ␛[38;2;129;134;156mA saved deny before the allow␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdit not reloaded␛[m    ␛[38;2;129;134;156mConfigured 2230, sshd on 22␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m          ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mBound elsewhere␛[m      ␛[38;2;129;134;156mConfigured 22, sshd on 2230␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDenied␛[m               ␛[38;2;129;134;156mufw denies 22␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m          ␛[38;2;129;134;156mNo ufw␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m          ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -132,15 +138,18 @@ $
    8) Allowlist            SSH from some sources$
    9) Blocklist            A saved deny before the allow$
   10) Edit not reloaded    Configured 2230, sshd on 22$
-  11) Alpine 3.24          No ufw$
-  12) Alpine, no runlevel  Active, gone after a reboot$
-  13) Proxmox VE 9         pve-firewall disabled$
-  14) Proxmox VE 9, drop   pve-firewall on, DROP$
-  15) Two profiles         hardn.yml has two$
+  11) Bound elsewhere      Configured 22, sshd on 2230$
+  12) Denied               ufw denies 22$
+  13) Alpine 3.24          No ufw$
+  14) Alpine, no runlevel  Active, gone after a reboot$
+  15) Service off          Active, gone after a reboot$
+  16) Proxmox VE 9         pve-firewall disabled$
+  17) Proxmox VE 9, drop   pve-firewall on, DROP$
+  18) Two profiles         hardn.yml has two$
 $
    0) Return$
 $
-  > Enter your choice [0-15 or q]: 3$
+  > Enter your choice [0-18 or q]: 3$
 $
 # Info: firewall/active22$
 # web-01.example.net runs Debian 13. ufw active, default deny$
@@ -190,15 +199,18 @@ $
    8) Allowlist            SSH from some sources$
    9) Blocklist            A saved deny before the allow$
   10) Edit not reloaded    Configured 2230, sshd on 22$
-  11) Alpine 3.24          No ufw$
-  12) Alpine, no runlevel  Active, gone after a reboot$
-  13) Proxmox VE 9         pve-firewall disabled$
-  14) Proxmox VE 9, drop   pve-firewall on, DROP$
-  15) Two profiles         hardn.yml has two$
+  11) Bound elsewhere      Configured 22, sshd on 2230$
+  12) Denied               ufw denies 22$
+  13) Alpine 3.24          No ufw$
+  14) Alpine, no runlevel  Active, gone after a reboot$
+  15) Service off          Active, gone after a reboot$
+  16) Proxmox VE 9         pve-firewall disabled$
+  17) Proxmox VE 9, drop   pve-firewall on, DROP$
+  18) Two profiles         hardn.yml has two$
 $
    0) Return$
 $
-  > Enter your choice [0-15 or q]: 0$
+  > Enter your choice [0-18 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -244,20 +256,26 @@ $
       ␛[38;2;129;134;156mA saved deny before the allow␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdit not reloaded␛[m$
       ␛[38;2;129;134;156mConfigured 2230, sshd on 22␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mBound elsewhere␛[m$
+      ␛[38;2;129;134;156mConfigured 22, sshd on 2230␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDenied␛[m$
+      ␛[38;2;129;134;156mufw denies 22␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m$
       ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
       ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m$
+      ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
       ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
       ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 3$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 3$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/active22␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, default␛[m$
@@ -328,20 +346,26 @@ $
       ␛[38;2;129;134;156mA saved deny before the allow␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdit not reloaded␛[m$
       ␛[38;2;129;134;156mConfigured 2230, sshd on 22␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mBound elsewhere␛[m$
+      ␛[38;2;129;134;156mConfigured 22, sshd on 2230␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDenied␛[m$
+      ␛[38;2;129;134;156mufw denies 22␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m$
       ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
       ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m$
+      ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
       ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
       ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

@@ -18,7 +18,7 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/lockout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. sshd on 2230, ufw active␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mallowing 443 alone: a new SSH session is refused. Enable lets␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mallowing 443 alone: a new SSH session is refused. Item 1 lets␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit through.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -44,15 +44,16 @@ $
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, deny the rest␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mLet SSH through␛[m      ␛[38;2;129;134;156mAdd its rules; other rules stay␛[m$
                            ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDisable firewall␛[m     ␛[38;2;129;134;156mStop ufw (not recommended)␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable Firewall␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLet SSH Through␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
 $
@@ -104,7 +105,7 @@ $
       ␛[38;2;129;134;156mufw␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-  ␛[38;2;192;196;216mEnable the firewall?␛[m$
+  ␛[38;2;192;196;216mLet SSH through?␛[m$
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $
@@ -194,7 +195,7 @@ $
 $
 # Info: firewall/lockout$
 # web-01.example.net runs Debian 13. sshd on 2230, ufw active$
-# allowing 443 alone: a new SSH session is refused. Enable lets$
+# allowing 443 alone: a new SSH session is refused. Item 1 lets$
 # it through.$
 $
 # UFW Firewall Configuration ###################################$
@@ -220,15 +221,16 @@ $
 $
   Select an option$
 $
-   1) Enable firewall      Let SSH through, deny the rest$
+   1) Let SSH through      Add its rules; other rules stay$
                            [ ] Lockout risk$
    2) Application Profiles Add, remove, apply$
+   3) Disable firewall     Stop ufw (not recommended)$
 $
    0) Return$
 $
-  > Enter selection [0-2 or q]: 1$
+  > Enter selection [0-3 or q]: 1$
 $
-# Enable Firewall ##############################################$
+# Let SSH Through ##############################################$
 $
 # ufw ----------------------------------------------------------$
 $
@@ -280,7 +282,7 @@ $
       ufw$
       $ ufw allow 2230/tcp$
 $
-  Enable the firewall?$
+  Let SSH through?$
 $
   Type the hostname [web-01, 0 or q]: web-01$
 $
@@ -371,7 +373,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/lockout␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. sshd on 2230, ufw␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mactive allowing 443 alone: a new SSH session is refused.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEnable lets it through.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mItem 1 lets it through.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -405,17 +407,19 @@ $
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m$
-      ␛[38;2;129;134;156mLet SSH through, deny the rest␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mLet SSH through␛[m$
+      ␛[38;2;129;134;156mAdd its rules; other rules stay␛[m$
       ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
       ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDisable firewall␛[m$
+      ␛[38;2;129;134;156mStop ufw (not recommended)␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable Firewall␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLet SSH Through␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
 $
@@ -472,7 +476,7 @@ $
       ␛[38;2;129;134;156mufw␛[m$
       ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
 $
-  ␛[38;2;192;196;216mEnable the firewall?␛[m$
+  ␛[38;2;192;196;216mLet SSH through?␛[m$
 $
   ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
 $

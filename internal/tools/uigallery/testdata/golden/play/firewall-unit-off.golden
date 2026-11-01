@@ -1,0 +1,358 @@
+# Golden file of TestPlayFirewallGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay firewall/unit-off␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice 4,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine. Install,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDisable, the runlevel and the profiles' plans are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/unit-off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, deny incoming,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mallowing 22, ENABLED=yes, ufw.service disabled. Whether that␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstops ufw at boot on Debian is [unverified] (ufw.md).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mService disabled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m[::]:22␛[m              ␛[38;2;112;212;127mAllowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m           ␛[38;2;112;212;127mAllowed␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp␛[m               ␛[38;2;112;212;127mAllow␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp (v6)␛[m          ␛[38;2;112;212;127mAllow␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mStart ufw at boot␛[m    ␛[38;2;129;134;156mAdd it to the boot services␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDisable firewall␛[m     ␛[38;2;129;134;156mStop ufw (not recommended)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mStart at Boot␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;112;212;127mYes␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStart ufw at boot␛[m$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;129;134;156m$ systemctl enable ufw.service␛[m$
+$
+  ␛[38;2;192;196;216mStart ufw at boot?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStart ufw at boot␛[m    ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;112;212;127mYes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m[::]:22␛[m              ␛[38;2;112;212;127mAllowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m           ␛[38;2;112;212;127mAllowed␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp␛[m               ␛[38;2;112;212;127mAllow␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp (v6)␛[m          ␛[38;2;112;212;127mAllow␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable firewall␛[m     ␛[38;2;129;134;156mStop ufw (not recommended)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/unit-off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Start ufw at boot␛[m$
+      ␛[38;2;129;134;156m$ systemctl enable ufw.service␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play firewall/unit-off ---------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Firewall screen proposed for slice 4,$
+# drawn from what real code reads of a simulated host$
+# (firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,$
+# sshd.ReadEffective, reload.ReadBound), Enable the real$
+# steps.PlanUFWEnable on the real plan/apply engine. Install,$
+# Disable, the runlevel and the profiles' plans are the$
+# gallery's stand-ins, unit (b)'s to build. Nothing on this$
+# machine changes: every command and file is the fake's, and its$
+# record is shown when play ends.$
+$
+# Info: firewall/unit-off$
+# web-01.example.net runs Debian 13. ufw active, deny incoming,$
+# allowing 22, ENABLED=yes, ufw.service disabled. Whether that$
+# stops ufw at boot on Debian is [unverified] (ufw.md).$
+$
+# UFW Firewall Configuration ###################################$
+$
+  [+] Firewall             Configured deny policy$
+$
+# ufw ----------------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [+] Status               Active$
+  [+] Incoming policy      Deny$
+  [ ] At boot              Service disabled$
+$
+# SSH ----------------------------------------------------------$
+$
+  [+] [::]:22              Allowed$
+  [+] 0.0.0.0:22           Allowed$
+$
+# Rules --------------------------------------------------------$
+$
+  [+] 22/tcp               Allow$
+  [+] 22/tcp (v6)          Allow$
+$
+  Select an option$
+$
+   1) Start ufw at boot    Add it to the boot services$
+   2) Application Profiles Add, remove, apply$
+   3) Disable firewall     Stop ufw (not recommended)$
+$
+   0) Return$
+$
+  > Enter selection [0-3 or q]: 1$
+$
+# Start at Boot ################################################$
+$
+# ufw ----------------------------------------------------------$
+$
+  [+] Status               Active$
+  [+] Incoming policy      Deny$
+  [+] At boot              Yes$
+$
+   -  Start ufw at boot$
+      ufw$
+      $ systemctl enable ufw.service$
+$
+  Start ufw at boot? [y/N, 0 or q]: y$
+$
+  [+] Start ufw at boot    Done$
+$
+# Operation Successful$
+$
+# UFW Firewall Configuration ###################################$
+$
+  [+] Firewall             Configured deny policy$
+$
+# ufw ----------------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [+] Status               Active$
+  [+] Incoming policy      Deny$
+  [+] At boot              Yes$
+$
+# SSH ----------------------------------------------------------$
+$
+  [+] [::]:22              Allowed$
+  [+] 0.0.0.0:22           Allowed$
+$
+# Rules --------------------------------------------------------$
+$
+  [+] 22/tcp               Allow$
+  [+] 22/tcp (v6)          Allow$
+$
+  Select an option$
+$
+   1) Disable firewall     Stop ufw (not recommended)$
+   2) Application Profiles Add, remove, apply$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: firewall/unit-off$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Start ufw at boot$
+      $ systemctl enable ufw.service$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay firewall/unit-off␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m4, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInstall, Disable, the runlevel and the profiles' plans are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/unit-off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, deny␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mincoming, allowing 22, ENABLED=yes, ufw.service disabled.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWhether that stops ufw at boot on Debian is [unverified]␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(ufw.md).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;219;184;83mService disabled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m[::]:22␛[m$
+      ␛[38;2;112;212;127mAllowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m$
+      ␛[38;2;112;212;127mAllowed␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp␛[m$
+      ␛[38;2;112;212;127mAllow␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp (v6)␛[m$
+      ␛[38;2;112;212;127mAllow␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mStart ufw at boot␛[m$
+      ␛[38;2;129;134;156mAdd it to the boot services␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
+      ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDisable firewall␛[m$
+      ␛[38;2;129;134;156mStop ufw (not recommended)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mStart at Boot␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStart ufw at boot␛[m$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;129;134;156m$ systemctl enable ufw.service␛[m$
+$
+  ␛[38;2;192;196;216mStart ufw at boot?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStart ufw at boot␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m[::]:22␛[m$
+      ␛[38;2;112;212;127mAllowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m$
+      ␛[38;2;112;212;127mAllowed␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp␛[m$
+      ␛[38;2;112;212;127mAllow␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp (v6)␛[m$
+      ␛[38;2;112;212;127mAllow␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable firewall␛[m$
+      ␛[38;2;129;134;156mStop ufw (not recommended)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
+      ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/unit-off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Start ufw at boot␛[m$
+      ␛[38;2;129;134;156m$ systemctl enable ufw.service␛[m$
+$

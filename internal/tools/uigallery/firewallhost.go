@@ -31,7 +31,15 @@ import (
 // simRule is one saved rule of ufwSim: action on port/tcp, from anywhere
 // in both IP versions, or from src in src's alone; app names the
 // application profile it came from.
-type simRule struct{ action, port, src, app string }
+type simRule struct{ action, port, src, app, proto string }
+
+// protocol is the rule's, tcp unless it says.
+func (r simRule) protocol() string {
+	if r.proto != "" {
+		return r.proto
+	}
+	return "tcp"
+}
 
 // ufwSim is ufw on one host.
 type ufwSim struct {
@@ -39,6 +47,8 @@ type ufwSim struct {
 	incoming string // deny, allow or reject
 	active   bool   // its chains loaded
 	enabled  bool   // ENABLED=yes
+	noIPv6   bool   // IPV6=no in /etc/default/ufw
+	unitOff  bool   // ufw.service disabled, on systemd
 	rules    []simRule
 }
 
@@ -72,8 +82,9 @@ func ufwOn(h *fakeHost) *fakeHost {
 func (r simRule) v4() bool { return !strings.Contains(r.src, ":") }
 func (r simRule) v6() bool { return r.src == "" || strings.Contains(r.src, ":") }
 
-// status is ufw status verbose as ufw 0.36.2 prints it: an application's
-// rule in the verbose form, "<port>/tcp (<app>)".
+// status is ufw status verbose in the forms pkg/host/ufw's parser test models:
+// an application's rule "<port>/tcp (<app>)", and for IPv6
+// "<port>/tcp (<app> (v6))".
 func (s *ufwSim) status() string {
 	if !s.active {
 		return "Status: inactive\n"
@@ -84,14 +95,19 @@ func (s *ufwSim) status() string {
 		fmt.Fprintf(&b, "\n%-26s %-12s%s\n%-26s %-12s%s\n", "To", "Action", "From", "--", "------", "----")
 	}
 	row := func(r simRule, v6 bool) {
-		to, from := r.port+"/tcp", r.src
-		if r.app != "" {
+		to, from := r.port+"/"+r.protocol(), r.src
+		switch {
+		case r.app != "" && v6:
+			to += " (" + r.app + " (v6))"
+		case r.app != "":
 			to += " (" + r.app + ")"
+		case v6 && r.src == "":
+			to += " (v6)"
 		}
 		if r.src == "" {
 			from = "Anywhere"
 			if v6 {
-				to, from = to+" (v6)", "Anywhere (v6)"
+				from = "Anywhere (v6)"
 			}
 		}
 		fmt.Fprintf(&b, "%-26s %-12s%s\n", to, strings.ToUpper(r.action)+" IN", from)
@@ -102,7 +118,7 @@ func (s *ufwSim) status() string {
 		}
 	}
 	for _, r := range s.rules {
-		if r.v6() {
+		if r.v6() && !s.noIPv6 {
 			row(r, true)
 		}
 	}
@@ -116,7 +132,11 @@ func (s *ufwSim) save() {
 	f := s.h.f
 	word := map[string]string{"deny": "DROP", "allow": "ACCEPT", "reject": "REJECT"}[s.incoming]
 	f.AddDir(ufw.KernelIPv6, 0o555, 0, 0)
-	f.AddFile(ufw.DefaultsFile, []byte(fmt.Sprintf("IPV6=yes\nDEFAULT_INPUT_POLICY=%q\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n", word)), 0o644, 0, 0)
+	ipv6 := "yes"
+	if s.noIPv6 {
+		ipv6 = "no"
+	}
+	f.AddFile(ufw.DefaultsFile, []byte(fmt.Sprintf("IPV6=%s\nDEFAULT_INPUT_POLICY=%q\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n", ipv6, word)), 0o644, 0, 0)
 	enabled := "no"
 	if s.enabled {
 		enabled = "yes"
@@ -137,10 +157,10 @@ func (s *ufwSim) save() {
 				src = list.any
 			}
 			if r.app != "" {
-				fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s %s - in\n", r.action, r.port, list.any, src, r.app)
+				fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s %s - in\n", r.action, r.protocol(), r.port, list.any, src, r.app)
 				continue
 			}
-			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.action, r.port, list.any, src)
+			fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s in\n", r.action, r.protocol(), r.port, list.any, src)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		f.AddFile(list.path, []byte(b.String()), 0o640, 0, 0)
@@ -171,6 +191,16 @@ func (s *ufwSim) run(argv []string, in []byte) hostfake.Response {
 	case cmd == "rc-update del ufw default" && s.h.openRC:
 		_ = s.h.f.RemoveAll(context.Background(), revert.OpenRCDefault+"/ufw")
 		return hostfake.Response{}
+	case cmd == "systemctl is-enabled ufw.service" && !s.unitOff:
+		return hostfake.Response{Stdout: "enabled\n"}
+	case cmd == "systemctl is-enabled ufw.service":
+		return hostfake.Response{Stdout: "disabled\n", ExitCode: 1}
+	case cmd == "systemctl enable ufw.service":
+		s.unitOff = false
+		return hostfake.Response{}
+	case cmd == "systemctl disable ufw.service":
+		s.unitOff = true
+		return hostfake.Response{}
 	}
 	return s.h.run(argv, in)
 }
@@ -187,9 +217,10 @@ func (s *ufwSim) install() {
 	}
 }
 
-// ufw answers ufw's commands, and reports whether it did. A port's allow or
-// delete says "Rule added", or "Rules updated" while inactive, as
-// fakeHost.ufw does (vmtest.md §4.9).
+// ufw answers ufw's commands, and reports whether it did. A port's allow says
+// "Rule added", or "Rules updated" while inactive, as fakeHost.ufw does
+// (vmtest.md §4.9); a delete "Rule deleted" (frontend.py as remembered, not
+// run), reached only on a rollback.
 func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 	cmd := strings.Join(argv[1:], " ")
 	word := "Rule added"
@@ -197,6 +228,10 @@ func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 		word = "Rules updated"
 	}
 	both := word + "\n" + word + " (v6)\n"
+	gone := "Rule deleted\nRule deleted (v6)\n"
+	if !s.active {
+		gone = both
+	}
 	switch cmd {
 	case "status verbose":
 		return hostfake.Response{Stdout: s.status()}, true
@@ -222,25 +257,33 @@ func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 		port := strings.TrimSuffix(argv[3], "/tcp")
 		s.rules = slices.DeleteFunc(s.rules, func(r simRule) bool { return r.action == "allow" && r.port == port && r.src == "" && r.app == "" })
 		s.save()
-		return hostfake.Response{Stdout: both}, true
+		return hostfake.Response{Stdout: gone}, true
+	case strings.HasPrefix(cmd, "delete allow from any to any app "):
+		app := argv[len(argv)-1]
+		s.rules = slices.DeleteFunc(s.rules, func(r simRule) bool { return r.app == app })
+		s.save()
+		return hostfake.Response{Stdout: gone}, true
 	case strings.HasPrefix(cmd, "allow from any to any app "):
 		app := argv[len(argv)-1]
-		if port := s.profilePort(app); port != "" {
-			s.rules = append(s.rules, simRule{action: "allow", port: port, app: app})
-			s.save()
-			return hostfake.Response{Stdout: both}, true
+		rules := s.profileRules(app)
+		if len(rules) == 0 {
+			return hostfake.Response{Stderr: "ERROR: Could not find a profile matching '" + app + "'\n", ExitCode: 1}, true
 		}
-		return hostfake.Response{Stderr: "ERROR: Could not find a profile matching '" + app + "'\n", ExitCode: 1}, true
+		s.rules = append(s.rules, rules...)
+		s.save()
+		return hostfake.Response{Stdout: both}, true
 	}
 	return hostfake.Response{}, false
 }
 
-// profilePort is the first port of application app in hardn's profile file,
-// as ufw reads it (ufw-framework(8)), "" for no such application.
-func (s *ufwSim) profilePort(app string) string {
+// profileRules are application app's rules, from hardn's profile file: one per
+// protocol, its ports joined by a comma, as "ufw status verbose" prints a
+// profile of several ("80,443/tcp (Web)", from memory of such a host, not run;
+// ufw-framework(8) has the file's form). None for no such application.
+func (s *ufwSim) profileRules(app string) []simRule {
 	data, err := s.h.f.ReadFile(context.Background(), fwProfileFile)
 	if err != nil {
-		return ""
+		return nil
 	}
 	in := false
 	for _, line := range strings.Split(string(data), "\n") {
@@ -248,11 +291,23 @@ func (s *ufwSim) profilePort(app string) string {
 		case line == "["+app+"]":
 			in = true
 		case in && strings.HasPrefix(line, "ports="):
-			first, _, _ := strings.Cut(strings.TrimPrefix(line, "ports="), "|")
-			return strings.TrimSuffix(first, "/tcp")
+			var protos []string
+			ports := map[string][]string{}
+			for _, spec := range strings.Split(strings.TrimPrefix(line, "ports="), "|") {
+				port, proto, _ := strings.Cut(spec, "/")
+				if !slices.Contains(protos, proto) {
+					protos = append(protos, proto)
+				}
+				ports[proto] = append(ports[proto], port)
+			}
+			var rules []simRule
+			for _, proto := range protos {
+				rules = append(rules, simRule{action: "allow", port: strings.Join(ports[proto], ","), app: app, proto: proto})
+			}
+			return rules
 		}
 	}
-	return ""
+	return nil
 }
 
 // The hardn.yml lines of the hosts: each ufw host has one, so that the
@@ -316,6 +371,51 @@ func fwPVEDrop() *fakeHost {
 	return h
 }
 
+// fwMoved is Debian 13, ufw active allowing 22, sshd -T saying 22, and sshd
+// still bound on 2230: the stale listener the other way round.
+func fwMoved() *fakeHost {
+	h := fwDebian()
+	h.bound = []string{"0.0.0.0:2230", "[::]:2230"}
+	return h
+}
+
+// fwPVEStopped is the DROP node with pve-firewall stopped: what it loaded
+// before is not read.
+func fwPVEStopped() *fakeHost {
+	h := fwPVEDrop()
+	run := h.f.Handler
+	h.f.Handler = func(argv []string, in []byte) hostfake.Response {
+		if strings.Join(argv, " ") == "systemctl is-active "+pve.FirewallUnit {
+			return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}
+		}
+		return run(argv, in)
+	}
+	return h
+}
+
+// fwPVEMoved is the DROP node with sshd on 2230.
+func fwPVEMoved() *fakeHost {
+	h := fwPVEDrop()
+	h.bound, h.configured = []string{"0.0.0.0:2230", "[::]:2230"}, []string{"0.0.0.0:2230", "[::]:2230"}
+	h.f.AddFile(sshd.HardnDropIn, []byte("Port 2230\n"), 0o644, 0, 0)
+	return h
+}
+
+// fwPVEBlacklist is the DROP node with the blacklist IP set written.
+func fwPVEBlacklist() *fakeHost {
+	h := pveNode()
+	h.f.AddFile(pve.ClusterFW, []byte("[OPTIONS]\nenable: 1\npolicy_in: DROP\n\n[IPSET management]\n192.0.2.0/24\n\n[IPSET blacklist]\n198.51.100.7\n"), 0o640, 0, 33)
+	return h
+}
+
+// fwPVEUFW is a disabled-pve-firewall node where origin/main enabled ufw (V10):
+// ufw answers as active, and the screen, which makes no ufw call, cannot say so.
+func fwPVEUFW() *fakeHost {
+	h := pveNode()
+	h.noUFW = false
+	return simulateUFW(h, ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "allow", port: "22"}}})
+}
+
 // The refusals' hosts, which the menu of hosts leaves out (refusalsMock).
 
 // fwNoSS is Debian 13 with ufw inactive and no ss to read the bound sockets
@@ -330,6 +430,26 @@ func fwNoSS() *fakeHost {
 		}
 		return run(argv, in)
 	}
+	return h
+}
+
+// fwSSFailing is Debian 13 with ufw inactive and an ss that runs and fails.
+func fwSSFailing() *fakeHost {
+	h := fwUbuntu()
+	run := h.f.Handler
+	h.f.Handler = func(argv []string, in []byte) hostfake.Response {
+		if path.Base(argv[0]) == "ss" {
+			return hostfake.Response{Stderr: "ss: netlink error\n", ExitCode: 1}
+		}
+		return run(argv, in)
+	}
+	return h
+}
+
+// fwMovedInactive is fwMoved with ufw inactive: Enable would refuse 2230.
+func fwMovedInactive() *fakeHost {
+	h := fwWith(ufwSim{incoming: "deny"})()
+	h.bound = []string{"0.0.0.0:2230", "[::]:2230"}
 	return h
 }
 

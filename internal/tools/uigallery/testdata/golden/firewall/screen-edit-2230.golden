@@ -8,9 +8,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net runs Debian 13.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPort 2230 in hardn's drop-in, sshd not reloaded, so still on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22, ufw inactive. PlanUFWEnable reads sshd -T alone, so it␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlets 2230 through, and 22 only as the session's port (§7's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfinding).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22, ufw inactive. What accepts SSH is not what is configured,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso Enable refuses (decision 2; mock stale-listener has what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan does).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -20,7 +20,7 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;219;184;83mInactive␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;129;134;156mDeny␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
@@ -36,8 +36,7 @@ $
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, deny the rest␛[m$
-                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -52,9 +51,9 @@ $
 # Note$
 # Mock: The Firewall screen. web-01.example.net runs Debian 13.$
 # Port 2230 in hardn's drop-in, sshd not reloaded, so still on$
-# 22, ufw inactive. PlanUFWEnable reads sshd -T alone, so it$
-# lets 2230 through, and 22 only as the session's port (§7's$
-# finding).$
+# 22, ufw inactive. What accepts SSH is not what is configured,$
+# so Enable refuses (decision 2; mock stale-listener has what$
+# the real plan does).$
 $
 # UFW Firewall Configuration ###################################$
 $
@@ -64,7 +63,7 @@ $
 $
   [+] Installed            Yes$
   [ ] Status               Inactive$
-  [+] Incoming policy      Deny$
+   -  Incoming policy      Deny$
   [ ] At boot              No$
 $
 # SSH ----------------------------------------------------------$
@@ -80,8 +79,7 @@ $
 $
   Select an option$
 $
-   1) Enable firewall      Let SSH through, deny the rest$
-                           [ ] Lockout risk$
+   1) Enable firewall      Let SSH through, then start ufw$
    2) Application Profiles Add, remove, apply$
 $
    0) Return$
@@ -96,9 +94,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net runs Debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13. Port 2230 in hardn's drop-in, sshd not reloaded, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstill on 22, ufw inactive. PlanUFWEnable reads sshd -T␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone, so it lets 2230 through, and 22 only as the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msession's port (§7's finding).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstill on 22, ufw inactive. What accepts SSH is not what is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigured, so Enable refuses (decision 2; mock stale-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlistener has what the real plan does).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -111,8 +109,8 @@ $
       ␛[38;2;112;212;127mYes␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m$
       ␛[38;2;219;184;83mInactive␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
-      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;129;134;156mDeny␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m$
       ␛[38;2;219;184;83mNo␛[m$
 $
@@ -134,8 +132,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m$
-      ␛[38;2;129;134;156mLet SSH through, deny the rest␛[m$
-      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
       ␛[38;2;129;134;156mAdd, remove, apply␛[m$
 $
@@ -151,9 +148,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net runs Debian 13.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPort 2230 in hardn's drop-in, sshd not reloaded, so still on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22, ufw inactive. PlanUFWEnable reads sshd -T alone, so it␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlets 2230 through, and 22 only as the session's port (§7's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfinding).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22, ufw inactive. What accepts SSH is not what is configured,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso Enable refuses (decision 2; mock stale-listener has what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan does).␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m###################################␛[m$
 $
@@ -163,7 +160,7 @@ $
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
   ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;219;184;83mInactive␛[m$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;129;134;156mDeny␛[m$
   ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m----------------------------------------------------------␛[m$
@@ -179,8 +176,7 @@ $
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, deny the rest␛[m$
-                           ␛[1;38;2;219;184;83m[ ] Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
