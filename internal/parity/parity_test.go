@@ -287,6 +287,20 @@ func TestNewState(t *testing.T) {
 // out; the backups are still read from the run's manifest, one taken
 // with backups off said so; a run that wrote nothing there has an empty
 // record, not none.
+// TestNewStateDetached: a revert timer started detached, on OpenRC, is a command
+// that changes something.
+func TestNewStateDetached(t *testing.T) {
+	h := hostfake.New(host.Options{})
+	h.Handler = func([]string, []byte) hostfake.Response { return hostfake.Response{} }
+	if _, err := h.StartDetached(context.Background(), "/bin/sh", "-c", "sleep 1"); err != nil {
+		t.Fatal(err)
+	}
+	s := NewState(t, h, 0, nil, "")
+	if !slices.Equal(s.Actions, []string{`/bin/sh -c "sleep 1"`}) {
+		t.Errorf("actions %q", s.Actions)
+	}
+}
+
 func TestNewStateUnder(t *testing.T) {
 	ctx := context.Background()
 	h := hostfake.New(host.Options{})
@@ -835,21 +849,22 @@ func TestPending(t *testing.T) {
 }
 
 // TestOwnReader: a slice's own reader gives the end state and the start, the
-// harness the V-numbers of the KNOWN-DEFECT and FIXED lines, not a NOTE's; its
-// failure names the golden.
+// harness the V-numbers of the KNOWN-DEFECT and FIXED lines, not a NOTE's; an
+// ops layout's dry run and hardn -n's refusals pass through; its failure names
+// the golden.
 func TestOwnReader(t *testing.T) {
 	data := []byte("# KNOWN-DEFECT: V20 here\n# NOTE: V12 said in a note\n# FIXED by next/x: V18\nthe screen\n")
 	own := func(got []byte, rel string) (LegacyRead, error) {
 		if rel != "menu/x.golden" || string(got) != string(data) {
 			t.Errorf("the reader was given %q, %q", rel, got)
 		}
-		return LegacyRead{Live: EndState{Rows: []Row{{Name: "OS", Value: "Debian"}}}, Start: "a start"}, nil
+		return LegacyRead{Live: EndState{Rows: []Row{{Name: "OS", Value: "Debian"}}}, Start: "a start", Dry: EndState{Actions: []string{"ufw reset"}}, CLI: []string{"exit status 2: refused"}}, nil
 	}
 	r, err := parseLegacy(data, "menu/x.golden", reader{own: own})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !slices.Equal(r.Vs, []string{"V20", "V18"}) || r.Start != "a start" || r.Golden != "menu/x.golden" || len(r.Live.Rows) != 1 {
+	if !slices.Equal(r.Vs, []string{"V20", "V18"}) || r.Start != "a start" || r.Golden != "menu/x.golden" || len(r.Live.Rows) != 1 || !slices.Equal(r.Dry.Actions, []string{"ufw reset"}) || !slices.Equal(r.CLI, []string{"exit status 2: refused"}) {
 		t.Errorf("got %+v", r)
 	}
 	_, err = parseLegacy(data, "menu/x.golden", reader{own: func([]byte, string) (LegacyRead, error) { return LegacyRead{}, errors.New("a line it does not know") }})

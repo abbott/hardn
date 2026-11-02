@@ -8,11 +8,12 @@
 // from its TestParity with Run.
 //
 // Its users are pkg/screens/dns, pkg/screens/backup (since next/s3-parity),
-// pkg/screens/environment (since next/s9-parity) and
-// pkg/screens/systemdetails (since next/s1-parity), each in a layout of its
-// goldens' own: the ops and menu traces, the repository's (parseRepository),
-// the root's (parseRoot) and, read by the slice itself (Slice.Reader), the
-// rows of two read-only screens (EndState.Rows).
+// pkg/screens/environment (since next/s9-parity),
+// pkg/screens/systemdetails (since next/s1-parity) and pkg/screens/firewall
+// (since next/s4-parity), each in a layout of its goldens' own: the ops and
+// menu traces, the repository's (parseRepository), the root's (parseRoot) and,
+// read by the slice itself (Slice.Reader), the rows of two read-only screens
+// (EndState.Rows) and Firewall's menu and failed ops runs.
 //
 // It is test support: import it only from _test.go files (depguard rule
 // test-only). It links pkg/ui/uitest, which defines -update, so that make
@@ -131,6 +132,10 @@ type Slice struct {
 type LegacyRead struct {
 	Live  EndState
 	Start string
+	// Dry and CLI are an ops layout's cfg.DryRun=true section and hardn -n's
+	// refusals (legacyRun's), for a scenario with no lines: its dry run.
+	Dry EndState
+	CLI []string
 }
 
 // reader is how a slice's goldens are read (Slice): origin/main's commands
@@ -542,7 +547,7 @@ func parseOwn(data []byte, rel string, own func([]byte, string) (LegacyRead, err
 	if err != nil {
 		return r, fmt.Errorf("%s: %w", rel, err)
 	}
-	r.Live, r.Start = read.Live, read.Start
+	r.Live, r.Start, r.Dry, r.CLI = read.Live, read.Start, read.Dry, read.CLI
 	return r, nil
 }
 
@@ -1200,6 +1205,8 @@ func newState(t *testing.T, h *hostfake.System, n int, o stateOptions) EndState 
 			s.Dirs = append(s.Dirs, fmt.Sprintf("%s %04o", c.Path, uint32(c.Mode.Perm())))
 		case "chmod":
 			s.Dirs = append(s.Dirs, fmt.Sprintf("chmod %s %04o", c.Path, uint32(c.Mode.Perm())))
+		case "start-detached": // a revert timer on OpenRC, as a command is
+			s.Actions = append(s.Actions, host.FormatArgv(c.Argv))
 		case "run":
 			argv := host.FormatArgv(c.Argv)
 			switch {
@@ -1217,7 +1224,7 @@ func newState(t *testing.T, h *hostfake.System, n int, o stateOptions) EndState 
 			case !slices.Contains(s.Probes, argv):
 				s.Probes = append(s.Probes, argv)
 			}
-		default: // remove, removeall, rename, chown, append, start-detached, ...
+		default: // remove, removeall, rename, chown, append, ...
 			t.Fatalf("a change the harness does not compare: %s", c)
 		}
 	}
