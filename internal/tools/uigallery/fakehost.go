@@ -736,6 +736,8 @@ func (h *fakeHost) systemctl(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: "active\n"}, true
 	case cmd == "systemctl is-enabled ssh.service":
 		return state(!h.socket, "enabled", "disabled", 1), true
+	case cmd == "systemctl is-enabled ufw.service": // as its package leaves it (deb13-vm.log, ubuntu26-vm.log)
+		return hostfake.Response{Stdout: "enabled\n"}, true
 	case cmd == "systemctl is-active ssh.socket":
 		return state(h.socket, "active", "inactive", 3), true
 	case cmd == "systemctl is-enabled ssh.socket":

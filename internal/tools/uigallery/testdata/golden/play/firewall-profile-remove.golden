@@ -8,11 +8,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice 4,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine. Install,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDisable, the runlevel and the profiles' plans are the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, firewall.Read), on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Install, Disable, the runlevel and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprofiles' plans are firewall.Incoming's. Nothing on this␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and its␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord is shown when play ends.␛[m$
 $
@@ -177,11 +175,9 @@ $
 # Note$
 # Play mode, mocks: the Firewall screen proposed for slice 4,$
 # drawn from what real code reads of a simulated host$
-# (firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,$
-# sshd.ReadEffective, reload.ReadBound), Enable the real$
-# steps.PlanUFWEnable on the real plan/apply engine. Install,$
-# Disable, the runlevel and the profiles' plans are the$
-# gallery's stand-ins, unit (b)'s to build. Nothing on this$
+# (firewall.Incoming.Check, firewall.Read), on the real$
+# plan/apply engine. Install, Disable, the runlevel and the$
+# profiles' plans are firewall.Incoming's. Nothing on this$
 # machine changes: every command and file is the fake's, and its$
 # record is shown when play ends.$
 $
@@ -346,13 +342,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m4, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInstall, Disable, the runlevel and the profiles' plans are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins, unit (b)'s to build. Nothing on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, firewall.Read), on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Install, Disable, the runlevel and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprofiles' plans are firewall.Incoming's. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/profiles␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active on 22,␛[m$

@@ -6,12 +6,30 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mfirewall refusals␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real error or␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma stand-in's: no ss, ss failing, sshd's configuration not in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meffect, ufw's state not read, ENABLED and the chains␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisagreeing, a saved blocklist, a saved deny, IPv6 off in ufw,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma one-family allowlist, an active deny, Proxmox VE not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mestablished; then Apply on an inactive ufw.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each the control's: Install␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfinding no package or changing others, no ss, ss failing,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd's configuration not in effect, ufw's state not read,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mENABLED and the chains disagreeing, a saved blocklist, a saved␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdeny, IPv6 off in ufw, a one-family allowlist, an active deny,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE not established; then Apply on an inactive ufw.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, apt finds no ufw␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't find ufw in apt's package lists. Run apt-get␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupdate, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, apk finds no ufw␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't find ufw in apk's package lists. Check the network␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mand the community repository, run apk update, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, other packages change␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstalling ufw would also change other packages: nftables.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstall it by hand, then try again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, no ss␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
 $
@@ -105,12 +123,30 @@ $
 # firewall refusals --------------------------------------------$
 $
 # Note$
-# Mock: The refusals before asking, each from the real error or$
-# a stand-in's: no ss, ss failing, sshd's configuration not in$
-# effect, ufw's state not read, ENABLED and the chains$
-# disagreeing, a saved blocklist, a saved deny, IPv6 off in ufw,$
-# a one-family allowlist, an active deny, Proxmox VE not$
-# established; then Apply on an inactive ufw.$
+# Mock: The refusals before asking, each the control's: Install$
+# finding no package or changing others, no ss, ss failing,$
+# sshd's configuration not in effect, ufw's state not read,$
+# ENABLED and the chains disagreeing, a saved blocklist, a saved$
+# deny, IPv6 off in ufw, a one-family allowlist, an active deny,$
+# Proxmox VE not established; then Apply on an inactive ufw.$
+$
+# item 1, apt finds no ufw -------------------------------------$
+$
+# Warning$
+# hardn can't find ufw in apt's package lists. Run apt-get$
+# update, then try again.$
+$
+# item 1, apk finds no ufw -------------------------------------$
+$
+# Warning$
+# hardn can't find ufw in apk's package lists. Check the network$
+# and the community repository, run apk update, then try again.$
+$
+# item 1, other packages change --------------------------------$
+$
+# Warning$
+# Installing ufw would also change other packages: nftables.$
+# Install it by hand, then try again.$
 $
 # item 1, no ss ------------------------------------------------$
 $
@@ -204,12 +240,32 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mfirewall refusals␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real error␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mor a stand-in's: no ss, ss failing, sshd's configuration␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot in effect, ufw's state not read, ENABLED and the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchains disagreeing, a saved blocklist, a saved deny, IPv6␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156moff in ufw, a one-family allowlist, an active deny,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE not established; then Apply on an inactive ufw.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each the control's:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInstall finding no package or changing others, no ss, ss␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfailing, sshd's configuration not in effect, ufw's state␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot read, ENABLED and the chains disagreeing, a saved␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mblocklist, a saved deny, IPv6 off in ufw, a one-family␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mallowlist, an active deny, Proxmox VE not established;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthen Apply on an inactive ufw.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, apt finds no ufw␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't find ufw in apt's package lists. Run apt-get␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupdate, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, apk finds no ufw␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't find ufw in apk's package lists. Check the␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnetwork and the community repository, run apk update, then␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtry again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, other packages change␛[m ␛[38;2;48;52;64m────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstalling ufw would also change other packages: nftables.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstall it by hand, then try again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mitem 1, no ss␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
@@ -307,12 +363,30 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mfirewall refusals␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real error or␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma stand-in's: no ss, ss failing, sshd's configuration not in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meffect, ufw's state not read, ENABLED and the chains␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisagreeing, a saved blocklist, a saved deny, IPv6 off in ufw,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma one-family allowlist, an active deny, Proxmox VE not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mestablished; then Apply on an inactive ufw.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each the control's: Install␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfinding no package or changing others, no ss, ss failing,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd's configuration not in effect, ufw's state not read,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mENABLED and the chains disagreeing, a saved blocklist, a saved␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdeny, IPv6 off in ufw, a one-family allowlist, an active deny,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE not established; then Apply on an inactive ufw.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1, apt finds no ufw␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't find ufw in apt's package lists. Run apt-get␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupdate, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1, apk finds no ufw␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't find ufw in apk's package lists. Check the network␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mand the community repository, run apk update, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1, other packages change␛[m ␛[38;2;48;52;64m--------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstalling ufw would also change other packages: nftables.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstall it by hand, then try again.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mitem 1, no ss␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
 $

@@ -10,12 +10,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m3.24. ufw active, deny incoming, allowing 22, ENABLED=yes, in␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno runlevel, so it does not come back after a reboot (ufw.md␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m§6, [I]). v0.3.2 ran rc-update add ufw default. The Firewall␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow cannot see this (check-firewall.md §6): the At boot row␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcan.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow says off after restart.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107moff after restart␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
 $
@@ -54,12 +53,11 @@ $
 # 3.24. ufw active, deny incoming, allowing 22, ENABLED=yes, in$
 # no runlevel, so it does not come back after a reboot (ufw.md$
 # §6, [I]). v0.3.2 ran rc-update add ufw default. The Firewall$
-# row cannot see this (check-firewall.md §6): the At boot row$
-# can.$
+# row says off after restart.$
 $
 # UFW Firewall Configuration ###################################$
 $
-  [+] Firewall             Configured deny policy$
+  [ ] Firewall             Partial off after restart$
 $
 # ufw ----------------------------------------------------------$
 $
@@ -98,13 +96,12 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m3.24. ufw active, deny incoming, allowing 22, ENABLED=yes,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min no runlevel, so it does not come back after a reboot␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(ufw.md §6, [I]). v0.3.2 ran rc-update add ufw default.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe Firewall row cannot see this (check-firewall.md §6):␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe At boot row can.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe Firewall row says off after restart.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107moff after restart␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
 $
@@ -154,12 +151,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m3.24. ufw active, deny incoming, allowing 22, ENABLED=yes, in␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno runlevel, so it does not come back after a reboot (ufw.md␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m§6, [I]). v0.3.2 ran rc-update add ufw default. The Firewall␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow cannot see this (check-firewall.md §6): the At boot row␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcan.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow says off after restart.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m###################################␛[m$
 $
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107moff after restart␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m----------------------------------------------------------␛[m$
 $

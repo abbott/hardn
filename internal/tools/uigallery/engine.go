@@ -649,7 +649,8 @@ var stateDirs = []string{revert.DefaultDir, "/run/hardn", backup.DefaultPath}
 // lists as pkg/host/dns asks them (dns and domain with nothing after:
 // given a link and values they set the link's), visudo's and doas -C's checks, the
 // boot unit's checks (systemd-analyze verify, sh -n) on its copy, and
-// detect's questions (sudo --version, dpkg-query).
+// detect's questions (sudo --version, dpkg-query), and the package tools'
+// simulations and reads (apt-get install -s, apk add --simulate, apk info).
 func reads(argv []string) bool {
 	switch path.Base(argv[0]) {
 	case "sshd", "ss", "systemd-analyze", "visudo", "dpkg-query":
@@ -664,6 +665,10 @@ func reads(argv []string) bool {
 		return slices.Contains([]string{"is-active", "is-enabled", "show", "list-timers"}, argv[1])
 	case "sh":
 		return len(argv) > 1 && argv[1] == "-n"
+	case "apt-get":
+		return len(argv) > 2 && argv[1] == "install" && argv[2] == "-s"
+	case "apk":
+		return len(argv) > 2 && (argv[1] == "info" || argv[1] == "add" && argv[2] == "--simulate")
 	}
 	return strings.Join(argv, " ") == "ufw status verbose"
 }
