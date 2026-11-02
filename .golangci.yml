@@ -296,6 +296,26 @@ linters:
               desc: the ufw unit makes no network calls (docs/safety/ufw.md §2)
             - pkg: plugin
               desc: the ufw unit loads no code (docs/safety/ufw.md §2)
+        # Slice 4, unit (b): a package is read and installed only through
+        # host.System, as ufw is.
+        packages-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/host/packages/**"
+            - "!$test"
+          deny:
+            - pkg: os
+              desc: packages are read and installed only through host.System (docs/safety/packages.md §2)
+            - pkg: io/ioutil
+              desc: packages are read and installed only through host.System (docs/safety/packages.md §2)
+            - pkg: golang.org/x/sys
+              desc: the packages unit makes no system calls of its own (docs/safety/packages.md §2)
+            - pkg: syscall
+              desc: the packages unit makes no system calls of its own (docs/safety/packages.md §2)
+            - pkg: net
+              desc: the packages unit makes no network calls (docs/safety/packages.md §2)
+            - pkg: plugin
+              desc: the packages unit loads no code (docs/safety/packages.md §2)
         # next/p2-revert: the journal, the timer, the confirmation and the
         # rollback reach the host only through host.System, as the reload
         # does; net/netip parses SSH_CONNECTION and the listeners. hardn's
