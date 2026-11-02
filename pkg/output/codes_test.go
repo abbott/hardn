@@ -36,6 +36,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -194,6 +195,10 @@ var sentinels = map[string]error{
 	"sudoers.ErrUnsupported":         sudoers.ErrUnsupported,
 	"sudoers.ErrUserName":            sudoers.ErrUserName,
 	"sudoers.ErrVarName":             sudoers.ErrVarName,
+	"packages.ErrNoTool":             packages.ErrNoTool,
+	"packages.ErrNotInRepos":         packages.ErrNotInRepos,
+	"packages.ErrOtherPackages":      packages.ErrOtherPackages,
+	"packages.ErrVerify":             packages.ErrVerify,
 	"ufw.ErrBadProfile":              ufw.ErrBadProfile,
 	"ufw.ErrBlocks":                  ufw.ErrBlocks,
 	"ufw.ErrEnabledMismatch":         ufw.ErrEnabledMismatch,
@@ -491,26 +496,27 @@ func TestAbandonCodes(t *testing.T) {
 // sample in typedSamples that the registry gives a code.
 func TestTypedErrors(t *testing.T) {
 	samples := map[string]error{
-		"host.ExitError":         &host.ExitError{ExitCode: 1},
-		"revert.NoRollbackError": &revert.NoRollbackError{Kind: revert.NoRollbackNotStarted},
-		"revert.PendingError":    &revert.PendingError{},
-		"revert.LockedError":     &revert.LockedError{Run: true, Err: host.ErrLocked},
-		"revert.NotPendingError": &revert.NotPendingError{},
-		"sshd.ConfigError":       &sshd.ConfigError{},
-		"sshd.EnvError":          &sshd.EnvError{Kind: sshd.EnvHostKeys},
-		"sshd.UnexpectedError":   &sshd.UnexpectedError{ExitCode: 3},
-		"migrate.NarrowError":    &migrate.NarrowError{},
-		"sudoers.CheckError":     &sudoers.CheckError{Stage: sudoers.StageCandidate, Err: sudoers.ErrPerms},
-		"sudoers.EditedError":    &sudoers.EditedError{Path: "/etc/sudoers.d/hardn-env-alice"},
-		"reload.HoldError":       &reload.HoldError{},
-		"reload.ListenerError":   &reload.ListenerError{Err: reload.ErrSocketConfig},
-		"ufw.BlockError":         &ufw.BlockError{},
-		"ufw.RollbackError":      &ufw.RollbackError{Err: errors.New("x")},
-		"engine.ApplyError":      &engine.ApplyError{Err: engine.ErrWindow},
-		"steps.Refusal":          &steps.Refusal{Code: steps.CodeNoRunDir},
-		"backup.DirError":        &backup.DirError{Dir: "/tmp", Err: backup.ErrUnsafeDir},
-		"backup.WriteError":      &backup.WriteError{Err: syscall.EROFS},
-		"backup.FieldError":      &backupctl.FieldError{Words: "Others can change /tmp", Err: &backup.DirError{Dir: "/tmp", Err: backup.ErrUnsafeDir}},
+		"host.ExitError":              &host.ExitError{ExitCode: 1},
+		"revert.NoRollbackError":      &revert.NoRollbackError{Kind: revert.NoRollbackNotStarted},
+		"revert.PendingError":         &revert.PendingError{},
+		"revert.LockedError":          &revert.LockedError{Run: true, Err: host.ErrLocked},
+		"revert.NotPendingError":      &revert.NotPendingError{},
+		"sshd.ConfigError":            &sshd.ConfigError{},
+		"sshd.EnvError":               &sshd.EnvError{Kind: sshd.EnvHostKeys},
+		"sshd.UnexpectedError":        &sshd.UnexpectedError{ExitCode: 3},
+		"migrate.NarrowError":         &migrate.NarrowError{},
+		"sudoers.CheckError":          &sudoers.CheckError{Stage: sudoers.StageCandidate, Err: sudoers.ErrPerms},
+		"sudoers.EditedError":         &sudoers.EditedError{Path: "/etc/sudoers.d/hardn-env-alice"},
+		"reload.HoldError":            &reload.HoldError{},
+		"reload.ListenerError":        &reload.ListenerError{Err: reload.ErrSocketConfig},
+		"ufw.BlockError":              &ufw.BlockError{},
+		"ufw.RollbackError":           &ufw.RollbackError{Err: errors.New("x")},
+		"packages.OtherPackagesError": &packages.OtherPackagesError{},
+		"engine.ApplyError":           &engine.ApplyError{Err: engine.ErrWindow},
+		"steps.Refusal":               &steps.Refusal{Code: steps.CodeNoRunDir},
+		"backup.DirError":             &backup.DirError{Dir: "/tmp", Err: backup.ErrUnsafeDir},
+		"backup.WriteError":           &backup.WriteError{Err: syscall.EROFS},
+		"backup.FieldError":           &backupctl.FieldError{Words: "Others can change /tmp", Err: &backup.DirError{Dir: "/tmp", Err: backup.ErrUnsafeDir}},
 	}
 	found := map[string]bool{}
 	for _, dir := range []string{filepath.Join("..", "host"), filepath.Join("..", "engine")} {

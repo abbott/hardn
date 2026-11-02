@@ -54,12 +54,15 @@ const (
 	codeBlocks        = "UFW_WOULD_BLOCK"
 	codeInactive      = "UFW_INACTIVE"
 	codeBadProfile    = "UFW_BAD_PROFILE"
+	codeNoTool        = "PACKAGE_NO_TOOL"
+	codeNotInRepos    = "PACKAGE_NOT_IN_REPOS"
+	codeOtherPackages = "PACKAGE_OTHER_CHANGES"
 )
 
 // Plan is what Action does on the host in.Facts describe. ActionNone, the
 // status list's, is engine.ErrNotMigrated with no change, as a check-only
-// control's; and so, for now, is ActionInstall, on a host where it may run.
-// Every other action reads the host, and refuses before anything changes.
+// control's. Every other action reads the host, and refuses before anything
+// changes.
 func (c Incoming) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	if c.Action == ActionNone {
 		return nil, engine.ErrNotMigrated
@@ -69,7 +72,7 @@ func (c Incoming) Plan(ctx context.Context, sys host.System, in engine.Input) ([
 	}
 	switch c.Action {
 	case ActionInstall:
-		return nil, engine.ErrNotMigrated
+		return install(ctx, sys, in.Facts)
 	case ActionEnable:
 		return enable(ctx, sys, in)
 	case ActionDisable:

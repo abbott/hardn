@@ -257,6 +257,10 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UFW_ENABLED_MISMATCH` | 1 | ufw's ENABLED setting and its loaded chains disagree |
 | `UFW_INACTIVE` | 1 | ufw is not running: its rules would only be saved |
 | `UFW_BAD_PROFILE` | 1 | the application profile is not one ufw reads |
+| `PACKAGE_NO_TOOL` | 1 | hardn can't install packages on this system |
+| `PACKAGE_NOT_IN_REPOS` | 1 | package not found in the repositories |
+| `PACKAGE_OTHER_CHANGES` | 1 | installing it would change other packages |
+| `PACKAGE_VERIFY_FAILED` | 1 | package not installed after the install |
 | `PVE_NOT_APPLICABLE` | 1 | not a Proxmox VE host |
 | `PVE_UNKNOWN` | 1 | whether the host runs Proxmox VE is not established, so its rules cannot be applied |
 | `PVE_PORT_CHANGE_REFUSED` | 1 | the SSH port stays 22 on Proxmox VE: cluster SSH and pve-firewall's management rule use port 22 |

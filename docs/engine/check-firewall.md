@@ -150,7 +150,7 @@ const ID, ProfileSetting = "firewall.incoming", "ufwAppProfiles"
 var ErrNoSS, ErrSSFailed, ErrNotInEffect, ErrRefused, ErrBootUnknown error // Enable's refusals
 
 type Action uint8 // ActionNone (zero), ActionInstall, ActionEnable, ActionDisable, ActionSaveProfiles, ActionApplyProfiles
-type Incoming struct{ Action Action } // "Firewall"; ActionNone's and, for now, ActionInstall's Plan is engine.ErrNotMigrated
+type Incoming struct{ Action Action } // "Firewall"; ActionNone's Plan is engine.ErrNotMigrated
 func Controls() []engine.Control      // Incoming{}: the status list's, which plans nothing
 
 // One reading of the SSH listeners, the row's, Enable's and the screen's.

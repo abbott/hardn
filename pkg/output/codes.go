@@ -36,6 +36,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -270,6 +271,12 @@ var errorCodes = []Entry{
 	is("UFW_ENABLED_MISMATCH", ufw.ErrEnabledMismatch),
 	is("UFW_INACTIVE", ufw.ErrInactive),
 	is("UFW_BAD_PROFILE", ufw.ErrBadProfile),
+
+	// Packages (pkg/host/packages): an OtherPackagesError is its sentinel's.
+	is("PACKAGE_NO_TOOL", packages.ErrNoTool),
+	is("PACKAGE_NOT_IN_REPOS", packages.ErrNotInRepos),
+	is("PACKAGE_OTHER_CHANGES", packages.ErrOtherPackages),
+	is("PACKAGE_VERIFY_FAILED", packages.ErrVerify),
 
 	// Proxmox VE (pkg/host/pve).
 	is("PVE_NOT_APPLICABLE", pve.ErrNotApplicable),

@@ -7,7 +7,8 @@
 // over the status list can start planning a lockout change. A screen plans
 // Incoming with the Action it was asked for: Enable, the first lockout plan
 // since the SSH primitives, refused wherever what accepts SSH is not read
-// (decision 2); Disable, plain; the application profiles' Save and Apply.
+// (decision 2); Install and Disable, plain; the application profiles' Save and
+// Apply.
 // Every refusal is a *steps.Refusal in the decided words
 // (docs/engine/gallery-firewall.md §6), before anything changes. Every action
 // refuses on Proxmox VE before any ufw call (brief 2.5). Read gives the screen
@@ -81,14 +82,12 @@ type Action uint8
 const (
 	// ActionNone is the status list's: Plan is engine.ErrNotMigrated, with
 	// no change.
-	ActionNone Action = iota
-	// ActionInstall installs ufw: engine.ErrNotMigrated until the package
-	// primitive is wired.
-	ActionInstall
-	ActionEnable        // let SSH through, deny by default, start ufw, start it at boot
-	ActionDisable       // ufw disable (decision 6)
-	ActionSaveProfiles  // hardn.yml's ufwAppProfiles, as in.Config has them
-	ActionApplyProfiles // hardn's profile file, and a rule for each profile
+	ActionNone          Action = iota
+	ActionInstall              // the ufw package, through apt-get or apk (decision 1)
+	ActionEnable               // let SSH through, deny by default, start ufw, start it at boot
+	ActionDisable              // ufw disable (decision 6)
+	ActionSaveProfiles         // hardn.yml's ufwAppProfiles, as in.Config has them
+	ActionApplyProfiles        // hardn's profile file, and a rule for each profile
 )
 
 // Incoming is Figma's Firewall row: the host's firewall for incoming

@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/output"
@@ -79,6 +80,18 @@ func liveOn(t *testing.T, s site) *live {
 			return hostfake.Response{Stdout: l.u.boot + "\n", ExitCode: 1}
 		case argv[0] == "ufw" && l.u.missing:
 			return inner(argv, stdin)
+		case argv[0] == "dpkg-query" && argv[len(argv)-1] == "ufw" && l.u.missing:
+			return hostfake.Response{Stderr: "dpkg-query: no packages found matching ufw\n", ExitCode: 1}
+		case argv[0] == "dpkg-query" && argv[len(argv)-1] == "ufw":
+			return hostfake.Response{Stdout: "install ok installed\t0.36.2-9\n"}
+		case cmd == "apk info -e ufw" && l.u.missing:
+			return hostfake.Response{ExitCode: 1}
+		case cmd == "apk info -e ufw":
+			return hostfake.Response{Stdout: "ufw\n"}
+		case cmd == "apt-get install -s -y ufw":
+			return aptSim
+		case cmd == "apk add --simulate ufw":
+			return apkSim
 		}
 		if out, ok := l.run(argv); ok {
 			return hostfake.Response{Stdout: out}
@@ -815,6 +828,7 @@ func TestReadChangesNothing(t *testing.T) {
 				case "run":
 					switch cmd := strings.Join(c.Argv, " "); {
 					case cmd == "ufw status verbose", cmd == "ss -Htln", cmd == "systemctl is-enabled ufw.service",
+						c.Argv[0] == "dpkg-query", cmd == "apt-get install -s -y ufw", cmd == "apk info -e ufw", cmd == "apk add --simulate ufw",
 						cmd == "systemctl show -p Listen ssh.socket", strings.Contains(cmd, "sshd -T") || strings.HasSuffix(c.Argv[0], "sshd"),
 						strings.HasPrefix(cmd, "systemctl is-active "):
 					default:
@@ -919,4 +933,158 @@ func TestRollback(t *testing.T) {
 			}
 		})
 	}
+}
+
+// installOn is a site with no ufw whose package tool answers as sim says, the
+// install itself bringing ufw.
+func installOn(t *testing.T, p platform, sim hostfake.Response) *live {
+	t.Helper()
+	l := liveOn(t, site{plat: p, ufw: fw{missing: true}})
+	inner := l.Handler
+	l.Handler = func(argv []string, stdin []byte) hostfake.Response {
+		switch strings.Join(argv, " ") {
+		case "apt-get install -s -y ufw", "apk add --simulate ufw":
+			return sim
+		case "apt-get install -y ufw", "apk add ufw":
+			l.u.missing = false
+			return hostfake.Response{Stdout: "ufw installed\n"}
+		case "apt-get remove -y ufw", "apk del ufw":
+			l.u.missing = true
+			return hostfake.Response{}
+		}
+		return inner(argv, stdin)
+	}
+	return l
+}
+
+// The simulations, in the forms of deb13-vm-2.log and, for apk's success, of
+// pkg/host/alpine's tests ([I]: no VM has shown it for ufw).
+var (
+	aptSim = hostfake.Response{Stdout: "Reading package lists...\nThe following NEW packages will be installed:\n  ufw\nInst ufw (0.36.2-9 Debian:13.7/stable [all])\nConf ufw (0.36.2-9 Debian:13.7/stable [all])\n"}
+	apkSim = hostfake.Response{Stdout: "(1/1) Installing ufw (0.36.2-r0)\nOK: 9 MiB in 26 packages\n"}
+)
+
+// TestInstall: through the engine on each tool: the tool's command, one
+// package-install change, verified, its undo the tool's, a plain y/N.
+func TestInstall(t *testing.T) {
+	for _, tt := range []struct {
+		name       string
+		plat       platform
+		sim        hostfake.Response
+		argv, undo string
+	}{
+		{"apt", debian13(), aptSim, "apt-get install -y ufw", "apt-get remove -y ufw"},
+		{"apk", alpine324(), apkSim, "apk add ufw", "apk del ufw"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			l := installOn(t, tt.plat, tt.sim)
+			e, p := planOn(t, l, firewall.ActionInstall, console, nil)
+			if p.Err() != nil || !slices.Equal(commands(p), []string{tt.argv}) || p.Risk != engine.RiskPackageInstall {
+				t.Fatalf("plan: %v, %q, risk %v", p.Err(), commands(p), p.Risk)
+			}
+			c := p.Changes[0]
+			if c.ID != firewall.ID+"/install" || c.Title != "Install ufw" || c.Stage != engine.StagePackages || c.StateBefore != "not installed" || c.StateAfter != "installed, inactive" {
+				t.Errorf("change %+v", c)
+			}
+			if got := undoWords(c); !strings.Contains(got, tt.undo) {
+				t.Errorf("undo %q, want %q", got, tt.undo)
+			}
+			if _, err := e.Apply(context.Background(), p); err != nil {
+				t.Fatal(err)
+			}
+			if l.u.missing {
+				t.Error("ufw not installed")
+			}
+		})
+	}
+}
+
+// TestInstallInstalled: ufw there plans nothing, and simulates nothing.
+func TestInstallInstalled(t *testing.T) {
+	l := installOn(t, debian13(), aptSim)
+	l.u.missing = false
+	_, p := planOn(t, l, firewall.ActionInstall, console, nil)
+	if p.Err() != nil || len(p.Changes) != 0 {
+		t.Errorf("plan: %v, %q", p.Err(), commands(p))
+	}
+	for _, c := range l.Calls() {
+		if c.Op == "run" && c.Argv[0] == "apt-get" {
+			t.Errorf("ran %v", c.Argv)
+		}
+	}
+}
+
+// TestInstallRefusals: each in its words before anything changes, each error
+// the registry's.
+func TestInstallRefusals(t *testing.T) {
+	notFound := hostfake.Response{Stdout: "Reading package lists...\n", Stderr: "E: Unable to locate package ufw\n", ExitCode: 100}
+	noIndex := hostfake.Response{Stderr: "ERROR: unable to select packages:\n  ufw (no such package):\n    required by: world[ufw]\n", ExitCode: 1}
+	remv := hostfake.Response{Stdout: "Remv nftables [1.1.3-1]\nRemv libnftables1 [1.1.3-1]\nInst ufw (0.36.2-9 Debian:13.7/stable [all])\nConf ufw (0.36.2-9 Debian:13.7/stable [all])\n"}
+	upgrade := hostfake.Response{Stdout: "(1/2) Upgrading musl (1.2.5-r0 -> 1.2.5-r1)\n(2/2) Installing ufw (0.36.2-r0)\n"}
+	for _, tt := range []struct {
+		name  string
+		plat  platform
+		sim   hostfake.Response
+		words string
+		want  error
+		code  string
+	}{
+		{"apt finds none", debian13(), notFound, "hardn can't find ufw in apt's package lists. Run apt-get update, then try again.", packages.ErrNotInRepos, "PACKAGE_NOT_IN_REPOS"},
+		{"apk finds none", alpine324(), noIndex, "hardn can't find ufw in apk's package lists. Check the network and the community repository, run apk update, then try again.", packages.ErrNotInRepos, "PACKAGE_NOT_IN_REPOS"},
+		{"a removal", debian13(), remv, "Installing ufw would also change other packages: nftables, libnftables1. Install it by hand, then try again.", packages.ErrOtherPackages, "PACKAGE_OTHER_CHANGES"},
+		{"an upgrade", alpine324(), upgrade, "Installing ufw would also change other packages: musl. Install it by hand, then try again.", packages.ErrOtherPackages, "PACKAGE_OTHER_CHANGES"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			l := installOn(t, tt.plat, tt.sim)
+			_, p := planOn(t, l, firewall.ActionInstall, console, nil)
+			refused(t, p, tt.words, tt.want)
+			if got := output.CodeOf(p.Err()); got != tt.code {
+				t.Errorf("code %s, want %s", got, tt.code)
+			}
+			for _, c := range l.Calls() {
+				if c.Op == "run" && slices.Contains([]string{"apt-get install -y ufw", "apk add ufw"}, strings.Join(c.Argv, " ")) {
+					t.Errorf("ran %v", c.Argv)
+				}
+			}
+		})
+	}
+	t.Run("no tool", func(t *testing.T) {
+		l := installOn(t, debian13(), aptSim)
+		l.facts.Platform.Distro = detect.DistroOther
+		_, p := planOn(t, l, firewall.ActionInstall, console, nil)
+		refused(t, p, "hardn can't install packages on this system.", packages.ErrNoTool)
+	})
+}
+
+// TestInstallFails: a failed install keeps its undo in the journal's rollback,
+// and an install that does not read as installed is refused as such.
+func TestInstallFails(t *testing.T) {
+	l := installOn(t, debian13(), aptSim)
+	inner := l.Handler
+	l.Handler = func(argv []string, stdin []byte) hostfake.Response {
+		if strings.Join(argv, " ") == "apt-get install -y ufw" {
+			return hostfake.Response{Stdout: "ufw installed\n"} // and it isn't
+		}
+		return inner(argv, stdin)
+	}
+	e, p := planOn(t, l, firewall.ActionInstall, console, nil)
+	if _, err := e.Apply(context.Background(), p); !errors.Is(err, packages.ErrVerify) || output.CodeOf(err) != "PACKAGE_VERIFY_FAILED" {
+		t.Errorf("apply: %v", err)
+	}
+}
+
+// TestReadInstall: Read plans Install where item 1 is Install: its refusal is
+// there before asking, and nothing changes.
+func TestReadInstall(t *testing.T) {
+	l := installOn(t, alpine324(), hostfake.Response{Stderr: "ERROR: unable to select packages:\n  ufw (no such package):\n", ExitCode: 1})
+	r := firewall.Read(context.Background(), l, l.facts, nil, console)
+	if r.First != firewall.ItemInstall || !errors.Is(r.PlanErr, packages.ErrNotInRepos) || len(r.Plan) != 0 {
+		t.Errorf("reading %+v", r)
+	}
+	l = installOn(t, debian13(), aptSim)
+	r = firewall.Read(context.Background(), l, l.facts, nil, console)
+	if r.First != firewall.ItemInstall || r.PlanErr != nil || len(r.Plan) != 1 {
+		t.Errorf("reading %+v", r)
+	}
+	changedNothing(t, l)
 }

@@ -80,6 +80,10 @@ migrate.ErrNotEstablished SSH_MIGRATE_NOT_ESTABLISHED
 output.ErrAuditDir AUDIT_DIR_UNSAFE
 output.ErrConfirmationRequired CONFIRMATION_REQUIRED
 output.ErrUsage USAGE
+packages.ErrNoTool PACKAGE_NO_TOOL
+packages.ErrNotInRepos PACKAGE_NOT_IN_REPOS
+packages.ErrOtherPackages PACKAGE_OTHER_CHANGES
+packages.ErrVerify PACKAGE_VERIFY_FAILED
 plans.ErrPlan PLAN_INVALID
 prompt.ErrAborted CANCELLED
 pve.ErrBadKey PVE_BAD_KEY

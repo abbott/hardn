@@ -57,8 +57,8 @@ type Reading struct {
 	// own: ufw is active, and item 1 is not Disable.
 	First         Item
 	DisableBeside bool
-	// Plan and PlanErr are what Enable plans, its refusal, read only where
-	// First is ItemEnable; Does, what that plan does.
+	// Plan and PlanErr are what item 1 plans, its refusal, read only where
+	// First is ItemInstall or ItemEnable; Does, what Enable's plan does.
 	Plan    []engine.Change
 	PlanErr error
 	Does    Does
@@ -67,7 +67,8 @@ type Reading struct {
 // Read reads what the screen draws of sys, changing nothing and running only
 // reads: Proxmox VE first, whichever firewall is read depending on it, with no
 // ufw call there (brief 2.5); then the SSH listeners, ufw, its service at boot,
-// and, where item 1 is Enable, Enable's plan, for session, as Plan makes it.
+// and, where item 1 is Install or Enable, its plan, for session, as Plan makes
+// it: Install's simulates, which changes nothing.
 func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Config, session revert.Session) Reading {
 	var r Reading
 	if cfg != nil {
@@ -89,8 +90,11 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	}
 	r.First = r.first()
 	r.DisableBeside = r.First == ItemEnable && r.State.Status.Known && r.State.Status.Active
-	if r.First == ItemEnable {
-		in := engine.Input{Facts: f, Config: cfg, Session: session}
+	in := engine.Input{Facts: f, Config: cfg, Session: session}
+	switch r.First {
+	case ItemInstall:
+		r.Plan, r.PlanErr = Incoming{Action: ActionInstall}.Plan(ctx, sys, in)
+	case ItemEnable:
 		r.Plan, r.PlanErr = Incoming{Action: ActionEnable}.Plan(ctx, sys, in)
 		r.Does = does(r.Plan)
 	}
