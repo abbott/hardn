@@ -958,7 +958,7 @@ func TestReadFirst(t *testing.T) {
 		"not in effect, active":   {site{plat: debian13(), ports: []uint16{2230}, bound: stale22, ufw: allow22}, firewall.ItemEnable, true},
 		"Proxmox VE":              {site{plat: pve9(), pve: pf{cluster: "[OPTIONS]\nenable: 1\n"}}, firewall.ItemNone, false},
 		"Proxmox not established": {site{plat: debian13(), ufw: allow22, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{} }}, firewall.ItemEnable, false},
-		"a status row not read":   {site{plat: debian13(), ufw: fw{active: true, table: rows("22/tcp", "ALLOW IN", "Anywhere") + "garbage ALLOW\n"}}, firewall.ItemEnable, true},
+		"a status row not read":   {site{plat: debian13(), ufw: fw{active: true, noKernel6: true, table: rows("22/tcp", "ALLOW IN", "Anywhere") + "garbage ALLOW\n"}}, firewall.ItemEnable, true},
 		"no Logging line":         {site{plat: debian13(), ufw: fw{fail: &hostfake.Response{Stdout: "Status: active\nDefault: deny (incoming), allow (outgoing), disabled (routed)\n"}}}, firewall.ItemEnable, false},
 		"ufw status fails":        {site{plat: debian13(), ufw: fw{fail: &hostfake.Response{Stderr: "ERROR: You need to be root to run this script\n", ExitCode: 1}}}, firewall.ItemEnable, false},
 	} {

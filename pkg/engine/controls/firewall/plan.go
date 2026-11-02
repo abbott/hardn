@@ -239,9 +239,10 @@ func stateRefusal(err error) error {
 	return &steps.Refusal{Code: codeState, Why: "hardn can't read ufw's state", Fix: "check ufw status verbose, then try again", Err: err}
 }
 
-// ipv6Off: ufw refuses c because IPv6 is off in its file, not by any rule.
+// ipv6Off: ufw refuses c because IPv6 is off in its file, not by any rule. With
+// no IPv6 in the kernel nothing is refused on it (ufw.Unreachable).
 func ipv6Off(st ufw.State, c ufw.Coverage) bool {
-	return c.Need.Family == ufw.IPv6 && !st.IPv6 && !st.NoKernelIPv6
+	return c.Need.Family == ufw.IPv6 && !st.IPv6
 }
 
 func ipv6Refusal(c ufw.Coverage, err error) error {
