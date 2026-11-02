@@ -143,7 +143,7 @@ func TestAllowed(t *testing.T) {
 		{"systemctl", "is-enabled", "apparmor.service"}, {"systemctl", "is-enabled", "apt-daily-upgrade.service"},
 		{"systemctl", "is-active", "apt-daily.timer"}, {"systemctl", "is-active", "pve-firewall.service"},
 		{"systemctl", "is-active", "proxmox-firewall.service"}, {"systemctl", "show", "-p", "Listen", "ssh.socket"},
-		{"ss", "-Htln"}, {"ufw", "status", "verbose"},
+		{"ss", "-Htln"}, {"ufw", "status", "verbose"}, {"systemctl", "is-enabled", "ufw.service"},
 		{"apt-config", "dump", "APT::Periodic", "Unattended-Upgrade::Origins-Pattern", "Unattended-Upgrade::Allowed-Origins"},
 		{"dpkg-query", "--show", format, "pve-manager"}, {"dpkg-query", "--show", format, "unattended-upgrades"},
 		{"dpkg-query", "--show", format, "linux-image-6.12.43+deb13-amd64"},
