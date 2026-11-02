@@ -21,9 +21,11 @@ import (
 // (TestLegacyMenuFirewall, TestLegacyMenuDryRun's firewall_configure_dry_run)
 // and the ops layout (TestOperationGoldens), whose failed runs the harness's
 // own ops reader does not compare. What it does not know fails: a header line,
-// a section, a call, a command, a trailer line. The screen as printed is words
-// and rows, unit (c)'s: of it, the reader takes the result lines alone, and the
-// menu's items where the Proxmox VE row compares them.
+// a section, a fixture's line, a call, a command, a trailer line, a section left
+// out. A header line it knows by its prefix and does not read, but Start; the
+// harness reads KNOWN-DEFECT's and FIXED's V-numbers. The screen as printed is
+// words and rows, unit (c)'s: of it, the reader takes the result lines alone, and
+// the menu's items where the Proxmox VE row compares them.
 
 var (
 	escape    = regexp.MustCompile(`\\x1b\[[0-9;?]*[A-Za-z]`)
@@ -55,6 +57,8 @@ type run struct {
 	active bool // ufw's chains, as the commands leave them
 	lines  int  // the start's rule lines, left by no ufw reset
 	rules  []string
+	failed string // the command that failed: it left no rule
+	result bool   // an ops section's result line, read
 	last   *parity.FileWrite
 }
 
@@ -112,7 +116,7 @@ func (r *run) call(l string) (bool, error) {
 			if r.s.Refusal != "" {
 				return false, fmt.Errorf("a second command that failed: %q", l)
 			}
-			r.s.Refusal = "failed: " + failed
+			r.s.Refusal, r.failed = "failed: "+failed, arg
 			return true, nil
 		}
 		return true, r.ufw(arg)
@@ -233,6 +237,9 @@ func readMenu(data []byte, rel string) (parity.LegacyRead, error) {
 		case l == "# The repository's calls, in order:", l == "# ./hardn.yml: not written", l == "# Files it wrote (mock file system): 0":
 		case strings.HasPrefix(l, "# Commands the screen ran (mock commander): "):
 			for _, c := range strings.Split(strings.TrimPrefix(l, "# Commands the screen ran (mock commander): "), "; ") {
+				if !isProbe(c) {
+					return out, fmt.Errorf("a command of the screen's it does not read: %q", c)
+				}
 				r.s.Probes = append(r.s.Probes, c+" -> ok")
 			}
 		case strings.HasPrefix(l, "# ufw as the fixture ends: "):
@@ -253,7 +260,7 @@ func readMenu(data []byte, rel string) (parity.LegacyRead, error) {
 	if at == head || at == screen {
 		return out, errors.New("no Start line or no screen, or no trailer: a layout it does not read")
 	}
-	if err := r.heldTo(ended, installed); err != nil {
+	if err := r.heldTo(ended, installed, rel); err != nil {
 		return out, err
 	}
 	if stub {
@@ -331,10 +338,14 @@ func (r *run) begin(out *parity.LegacyRead, data []byte) (bool, error) {
 }
 
 // heldTo fails unless the fixture ended as the commands leave it: "active, rule
-// lines: 6"; each allow is two lines. firewall_configure_dry_run says nothing.
-func (r *run) heldTo(ended string, installed bool) error {
+// lines: 6"; each allow is two lines. firewall_configure_dry_run alone says
+// nothing.
+func (r *run) heldTo(ended string, installed bool, rel string) error {
 	if ended == "" {
-		return nil
+		if strings.HasSuffix(rel, "/firewall_configure_dry_run.golden") {
+			return nil
+		}
+		return errors.New("no end of the fixture's ufw")
 	}
 	m := endsAs.FindStringSubmatch(ended)
 	if m == nil {
@@ -347,6 +358,17 @@ func (r *run) heldTo(ended string, installed bool) error {
 	return nil
 }
 
+// fixtureLine: a line of an ops golden's fixture section that says nothing of
+// the firewall's start, but the host and config lines read.
+func fixtureLine(l string) bool {
+	return slices.Contains([]string{
+		"commands that fail on this host (every other command succeeds with empty output):",
+		"  systemctl is-active systemd-resolved -> fixture: systemd-resolved inactive",
+		"  systemctl is-active systemd-resolved -> fixture: systemctl not installed",
+		"  which resolvconf -> fixture: resolvconf not installed",
+	}, l) || strings.HasPrefix(l, "config sshKeys: ")
+}
+
 // readOps reads the ops layout. The fixture's ufw answers every command, its
 // start not said; the new path's host holds it installed and inactive.
 func readOps(data []byte) (parity.LegacyRead, error) {
@@ -355,6 +377,7 @@ func readOps(data []byte) (parity.LegacyRead, error) {
 	var cur *run
 	var hostLine, port, profiles string
 	section := ""
+	seen := map[string]bool{}
 	sc := bufio.NewScanner(bytes.NewReader(data))
 	sc.Buffer(nil, 1<<20)
 	for sc.Scan() {
@@ -369,6 +392,7 @@ func readOps(data []byte) (parity.LegacyRead, error) {
 			continue
 		case l == "== fixture", l == "== cfg.DryRun=false", l == "== cfg.DryRun=true", strings.HasPrefix(l, "== hardn -n "):
 			section, cur = l, nil
+			seen[l] = true
 			switch l {
 			case "== cfg.DryRun=false":
 				cur = live
@@ -376,22 +400,27 @@ func readOps(data []byte) (parity.LegacyRead, error) {
 				cur = dry
 			}
 			continue
-		case strings.HasPrefix(l, "cfg.DryRun=true section identical"):
+		case strings.HasPrefix(l, "== "):
+			return out, fmt.Errorf("a section it does not read: %q", l)
+		case l == "cfg.DryRun=true section identical to cfg.DryRun=false: true":
 			continue
 		}
 		switch {
 		case section == "== fixture":
 			if v, ok := strings.CutPrefix(l, "host: "); ok {
 				hostLine = v
+				continue
 			}
-			if v, ok := strings.CutPrefix(l, "config (DefaultConfig plus overrides): "); ok {
-				for _, f := range strings.Fields(v) {
-					if p, ok := strings.CutPrefix(f, "sshPort="); ok {
-						port = p
-					}
-					if p, ok := strings.CutPrefix(f, "ufwAppProfiles="); ok {
-						profiles = p
-					}
+			v, ok := strings.CutPrefix(l, "config (DefaultConfig plus overrides): ")
+			if !ok && !fixtureLine(l) {
+				return out, fmt.Errorf("a fixture's line it does not read: %q", l)
+			}
+			for _, f := range strings.Fields(v) {
+				if p, ok := strings.CutPrefix(f, "sshPort="); ok {
+					port = p
+				}
+				if p, ok := strings.CutPrefix(f, "ufwAppProfiles="); ok {
+					profiles = p
 				}
 			}
 		case strings.HasPrefix(section, "== hardn -n "):
@@ -400,11 +429,15 @@ func readOps(data []byte) (parity.LegacyRead, error) {
 				out.CLI = append(out.CLI, strings.TrimPrefix(l, "refused: "))
 			case strings.HasPrefix(l, "stderr: ") && len(out.CLI) > 0:
 				out.CLI[len(out.CLI)-1] += ": " + strings.TrimPrefix(l, "stderr: ")
-			case !strings.HasPrefix(l, "trace: "):
+			case l != "trace: not recorded here; TestDryRunRefusesOperations checks that no call reaches the provider":
 				return out, fmt.Errorf("a line of hardn -n it does not read: %q", l)
 			}
 		case cur != nil:
 			if v, ok := strings.CutPrefix(l, "result "); ok {
+				if cur.result {
+					return out, fmt.Errorf("a second result: %q", l)
+				}
+				cur.result = true
 				_, res, _ := strings.Cut(v, ": ")
 				if e, ok := strings.CutPrefix(res, "error: "); ok {
 					cur.s.Refusal = "failed: " + e
@@ -429,6 +462,9 @@ func readOps(data []byte) (parity.LegacyRead, error) {
 	}
 	if err := sc.Err(); err != nil {
 		return out, err
+	}
+	if !seen["== cfg.DryRun=false"] || !seen["== cfg.DryRun=true"] {
+		return out, errors.New("no cfg.DryRun section: a layout it does not read")
 	}
 	if hostLine == "" || port == "" || profiles == "" {
 		return out, errors.New("no fixture's host or config line: a layout it does not read")
@@ -460,16 +496,26 @@ func TestReaderRefuses(t *testing.T) {
 		from, to string
 		want     string
 	}{
-		"a header line":  {from: "# Pauses: ", to: "# Paused: ", want: "a header line"},
-		"no screen":      {from: "# ----\n", to: "", want: "a header line"},
-		"an operation":   {from: "write  /etc/ufw/applications.d/hardn", to: "chmod  /etc/ufw/applications.d/hardn", want: "an operation"},
-		"a command":      {from: "ufw reset -> ok", to: "ufw reload -> ok", want: "a command"},
-		"a second fail":  {from: "ufw reset -> ok", to: "ufw reset -> error: x\n 9 exec   ufw disable -> error: y", want: "a second command"},
-		"a trailer line": {from: "# Files under / afterwards", to: "# Files beside / afterwards", want: "a trailer line"},
-		"a file unsaid":  {from: "afterwards: /etc/ufw/applications.d/hardn", to: "afterwards: /etc/hosts", want: "a file afterwards"},
-		"a wrong end":    {from: "active, rule lines: 6", to: "active, rule lines: 8", want: "the fixture ended"},
-		"an ops line":    {ops: true, from: "trace:\n", to: "traced:\n", want: "a trace line"},
-		"an ops section": {ops: true, from: "== fixture\n", to: "", want: "a line outside"},
+		"a header line":      {from: "# Pauses: ", to: "# Paused: ", want: "a header line"},
+		"no screen":          {from: "# ----\n", to: "", want: "a header line"},
+		"an operation":       {from: "write  /etc/ufw/applications.d/hardn", to: "chmod  /etc/ufw/applications.d/hardn", want: "an operation"},
+		"a command":          {from: "ufw reset -> ok", to: "ufw reload -> ok", want: "a command"},
+		"a second fail":      {from: "ufw reset -> ok", to: "ufw reset -> error: x\n 9 exec   ufw disable -> error: y", want: "a second command"},
+		"a trailer line":     {from: "# Files under / afterwards", to: "# Files beside / afterwards", want: "a trailer line"},
+		"a file unsaid":      {from: "afterwards: /etc/ufw/applications.d/hardn", to: "afterwards: /etc/hosts", want: "a file afterwards"},
+		"a wrong end":        {from: "active, rule lines: 6", to: "active, rule lines: 8", want: "the fixture ended"},
+		"an ops line":        {ops: true, from: "trace:\n", to: "traced:\n", want: "a trace line"},
+		"an ops section":     {ops: true, from: "== fixture\n", to: "", want: "a line outside"},
+		"a screen's command": {from: "# Files under / afterwards", to: "# Commands the screen ran (mock commander): ufw reset; ufw disable\n# Files under / afterwards", want: "a command of the screen's"},
+		"no end":             {from: "# ufw as the fixture ends: active, rule lines: 6\n", to: "", want: "no end of"},
+		"an unknown section": {ops: true, from: "== cfg.DryRun=false\n", to: "== cfg.Other\nufw reset ran\n== cfg.DryRun=false\n", want: "a section it does not read"},
+		"a fixture's line":   {ops: true, from: "== cfg.DryRun=false\n", to: "ufw: active, rule lines: 2\n\n== cfg.DryRun=false\n", want: "a fixture's line"},
+		"a failing command":  {ops: true, from: "  which resolvconf -> fixture", to: "  ufw reset -> fixture: fails\n  which resolvconf -> fixture", want: "a fixture's line"},
+		"a trace of -n":      {ops: true, from: "trace: not recorded here; TestDryRunRefusesOperations checks that no call reaches the provider", to: "trace: 3 ufw reset -> ok", want: "a line of hardn -n"},
+		"no live section":    {ops: true, from: "== cfg.DryRun=false\n", to: "== cfg.DryRun=true\n", want: "a second result"},
+		"no dry section":     {ops: true, from: "== cfg.DryRun=true\n", to: "== cfg.DryRun=false\n", want: "a second result"},
+		"a second result":    {ops: true, from: "trace:\n", to: "result FirewallManager.ConfigureSecureFirewall: ok\ntrace:\n", want: "a second result"},
+		"not identical":      {ops: true, from: "cfg.DryRun=false: true", to: "cfg.DryRun=false: false", want: "a trace line"},
 	} {
 		t.Run(name, func(t *testing.T) {
 			src, rel := data, "menu/firewall_item2_profiles.golden"

@@ -3,6 +3,7 @@ package firewall_test
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -249,7 +250,11 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 		h.rules = slices.DeleteFunc(h.rules, func(r fwRule) bool { return r.port == port && r.app == "" && !r.start })
 		return hostfake.Response{Stdout: "Rule deleted\nRule deleted (v6)\n"}
 	case len(argv) == 8 && argv[1] == "allow" && argv[6] == "app":
-		h.rules = append(h.rules, fwRule{port: "80", app: argv[7]})
+		port := h.appPorts(argv[7])
+		if port == "" {
+			return hostfake.Response{Stderr: "ERROR: Could not find a profile matching '" + argv[7] + "'\n", ExitCode: 1}
+		}
+		h.rules = append(h.rules, fwRule{port: port, app: argv[7]})
 		return hostfake.Response{Stdout: "Rule added\nRule added (v6)\n"}
 	case argv[0] == h.bin && slices.Contains(argv, "-T"):
 		return hostfake.Response{Stdout: h.sshdT()}
@@ -304,17 +309,48 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 		return hostfake.Response{}
 	case cmd == "systemctl is-active "+pve.FirewallUnit:
 		return hostfake.Response{Stdout: "active\n"}
-	case isTimer(argv):
+	case timerCommand(host.FormatArgv(argv)):
 		return hostfake.Response{}
 	}
 	t.Errorf("unexpected command %q", cmd)
 	return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
 }
 
-// isTimer: a command of the revert timer and the boot unit a lockout-risk plan
-// arms, which the engine runs for any such plan.
-func isTimer(argv []string) bool {
-	cmd := strings.Join(argv, " ")
-	return argv[0] == "systemd-run" || argv[0] == "systemd-analyze" || argv[0] == "sh" || argv[0] == "/bin/sh" || argv[0] == "setsid" || argv[0] == "rc-service" ||
-		argv[0] == "rc-update" && strings.Contains(cmd, "hardn") || argv[0] == "systemctl" && strings.Contains(cmd, "hardn") || cmd == "systemctl daemon-reload"
+// appPorts are application app's ports in hardn's profile file, comma-joined as
+// ufw's status prints several of one protocol, without it ("80,443"); "" for no
+// such application, or no file. The profile's protocol is tcp in every fixture.
+func (h *fwHost) appPorts(app string) string {
+	data, err := h.ReadFile(context.Background(), ufw.ProfileFile)
+	if err != nil {
+		return ""
+	}
+	in := false
+	for _, line := range strings.Split(string(data), "\n") {
+		if strings.HasPrefix(line, "[") {
+			in = line == "["+app+"]"
+		}
+		if v, ok := strings.CutPrefix(line, "ports="); ok && in {
+			return strings.ReplaceAll(strings.ReplaceAll(v, "/tcp", ""), "|", ",")
+		}
+	}
+	return ""
 }
+
+// timerForm is each command of the revert timer and the boot unit a lockout-risk
+// plan arms, which the engine runs for any such plan, as host.FormatArgv gives
+// it, and no other.
+var timerForm = regexp.MustCompile(`^(?:` + strings.Join([]string{
+	`systemd-run --unit=` + revert.UnitPrefix + `\S+ .* ` + hardnBinary + ` rollback \S+`,
+	`systemctl (?:stop|is-active) ` + revert.UnitPrefix + `\S+`,
+	`systemctl list-timers --all --output=json --no-pager ` + revert.UnitPrefix + `\S+`,
+	`/bin/sh -c ` + regexp.QuoteMeta(host.FormatArgv([]string{revert.SleeperScript})) + ` ` + hardnBinary + ` \d+ \S+`,
+	`systemd-analyze verify --recursive-errors=no \S*/` + revert.BootUnitName + `\.service`,
+	`sh -n \S*/` + revert.BootUnitName,
+	`systemctl --no-reload (?:enable|disable) ` + revert.BootUnitName + `\.service`,
+	`rc-update (?:add|del) ` + revert.BootUnitName + ` default`,
+	`systemctl daemon-reload`,
+}, "|") + `)$`)
+
+// timerCommand: cmd, as host.FormatArgv gives it, is the timer's or the boot
+// unit's; the row "asks" says them, and the boot unit's files are in "files".
+func timerCommand(cmd string) bool { return timerForm.MatchString(cmd) }

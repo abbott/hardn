@@ -393,13 +393,6 @@ func isRead(cmd string) bool {
 	return false
 }
 
-// timerCommand: the revert timer's and the boot unit's, the engine's for any
-// lockout-risk plan; the row "asks" says them, and the boot unit's files are in
-// "files".
-func timerCommand(cmd string) bool {
-	return isTimer(strings.Fields(cmd))
-}
-
 // stateOf is the end state h's calls from the nth on left.
 func stateOf(t *testing.T, h *fwHost, n int) parity.EndState {
 	t.Helper()
@@ -650,10 +643,14 @@ func pveRows(t *testing.T, h *fwHost, n int, r firewall.Reading, s *parity.EndSt
 	}
 }
 
-// armed: the run armed the revert timer.
+// armed: the run armed the revert timer, systemd-run on systemd, a detached
+// sleeper on OpenRC.
 func armed(h *fwHost, n int) bool {
 	return slices.ContainsFunc(h.Calls()[n:], func(c hostfake.Call) bool {
-		return c.Op == "run" && (c.Argv[0] == "systemd-run" || c.Argv[0] == "setsid" || c.Argv[0] == "sh" || c.Argv[0] == "/bin/sh")
+		if h.facts.Init.Kind == detect.OpenRC {
+			return c.Op == "start-detached" && timerCommand(host.FormatArgv(c.Argv))
+		}
+		return c.Op == "run" && c.Argv[0] == "systemd-run"
 	})
 }
 
