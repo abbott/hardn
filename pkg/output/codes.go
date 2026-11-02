@@ -248,6 +248,15 @@ var errorCodes = []Entry{
 	is("RELOAD_NOT_IN_EFFECT", reload.ErrNotInEffect),
 	is("RELOAD_OPENRC_CONFD", reload.ErrConfd),
 
+	// The Firewall control's refusals (refactor plan slice 4, unit (b)): the
+	// first three wrap ufw's ErrListenersUnknown, of which they are the more
+	// specific cases.
+	is("FIREWALL_SS_NOT_INSTALLED", firewall.ErrNoSS).what("ss is not installed, so which ports SSH uses is not established and the firewall is not enabled"),
+	is("FIREWALL_SS_FAILED", firewall.ErrSSFailed).what("ss failed, so which ports SSH uses is not established and the firewall is not enabled"),
+	is("FIREWALL_SSH_NOT_IN_EFFECT", firewall.ErrNotInEffect).what("a listener sshd is configured for is not bound, so the firewall is not enabled"),
+	is("FIREWALL_SSH_REFUSED", firewall.ErrRefused),
+	is("FIREWALL_BOOT_UNKNOWN", firewall.ErrBootUnknown),
+
 	// ufw (pkg/host/ufw).
 	typed("UFW_ROLLBACK_FAILED", "an undo of ufw's rules failed; those after it did not run",
 		as(func(*ufw.RollbackError) bool { return true })),

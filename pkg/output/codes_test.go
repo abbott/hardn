@@ -206,6 +206,11 @@ var sentinels = map[string]error{
 	"ufw.ErrVerify":                  ufw.ErrVerify,
 	"engine.ErrNotMigrated":          engine.ErrNotMigrated,
 	"environment.ErrNoUser":          environment.ErrNoUser,
+	"firewall.ErrBootUnknown":        firewall.ErrBootUnknown,
+	"firewall.ErrNoSS":               firewall.ErrNoSS,
+	"firewall.ErrNotInEffect":        firewall.ErrNotInEffect,
+	"firewall.ErrRefused":            firewall.ErrRefused,
+	"firewall.ErrSSFailed":           firewall.ErrSSFailed,
 }
 
 // otherSentinels are the sentinels of other packages that have codes of

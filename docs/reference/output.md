@@ -241,6 +241,11 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `RELOAD_RESTORED_LISTENERS` | 1 | the restored ssh.socket drop-ins do not give the socket the listeners it had |
 | `RELOAD_NOT_IN_EFFECT` | 1 | the configured listeners are not the ones in effect |
 | `RELOAD_OPENRC_CONFD` | 1 | conf.d sets the sshd binary, configuration file or arguments |
+| `FIREWALL_SS_NOT_INSTALLED` | 1 | ss is not installed, so which ports SSH uses is not established and the firewall is not enabled |
+| `FIREWALL_SS_FAILED` | 1 | ss failed, so which ports SSH uses is not established and the firewall is not enabled |
+| `FIREWALL_SSH_NOT_IN_EFFECT` | 1 | a listener sshd is configured for is not bound, so the firewall is not enabled |
+| `FIREWALL_SSH_REFUSED` | 1 | ufw refuses an SSH listener, and hardn changes no rule it finds |
+| `FIREWALL_BOOT_UNKNOWN` | 1 | whether ufw starts at boot is not established |
 | `UFW_ROLLBACK_FAILED` | 1 | an undo of ufw's rules failed; those after it did not run |
 | `UFW_NOT_APPLICABLE` | 1 | ufw is not used on Proxmox VE: pve-firewall manages its packet filter |
 | `UFW_PROXMOX_UNKNOWN` | 1 | ufw: whether the host runs Proxmox VE (no ufw there) is not established |

@@ -1,7 +1,17 @@
-// Package firewall holds the firewall area's control (refactor plan Phase
-// 4, next/p4-check-firewall): Figma's Firewall row ("deny policy"). In v0.4
-// it is check-only: Check reads the host, and Plan returns
-// engine.ErrNotMigrated (engine.CheckOnly) until slice 4 migrates it.
+// Package firewall holds the firewall area's control: Figma's Firewall row
+// ("deny policy"), and the changes the Firewall screen makes (refactor plan
+// slice 4, next/s4-control). It no longer only checks.
+//
+// Controls() is the status list: Incoming with ActionNone, whose Plan is
+// engine.ErrNotMigrated, as a check-only control's, so that nothing that plans
+// over the status list can start planning a lockout change. A screen plans
+// Incoming with the Action it was asked for: Enable, the first lockout plan
+// since the SSH primitives, refused wherever what accepts SSH is not read
+// (decision 2); Disable, plain; the application profiles' Save and Apply.
+// Every refusal is a *steps.Refusal in the decided words
+// (docs/engine/gallery-firewall.md §6), before anything changes. Every action
+// refuses on Proxmox VE before any ufw call (brief 2.5). Read gives the screen
+// what it draws, changing nothing.
 //
 // Check reads the host through the Phase 2 readers, never from the files
 // alone (brief §3 principle 3): off Proxmox VE, ufw's state (ufw.Read) and
@@ -58,17 +68,38 @@ const (
 	DetailAcceptPolicy = "accept policy"     // pve-firewall: policy_in ACCEPT
 )
 
-// Controls are the firewall controls in Figma's order: Firewall.
+// ID is the control's ID.
+const ID = "firewall.incoming"
+
+// Controls are the firewall controls in Figma's order: Firewall, with
+// ActionNone, which plans nothing.
 func Controls() []engine.Control { return []engine.Control{Incoming{}} }
+
+// Action is what Incoming's Plan does.
+type Action uint8
+
+const (
+	// ActionNone is the status list's: Plan is engine.ErrNotMigrated, with
+	// no change.
+	ActionNone Action = iota
+	// ActionInstall installs ufw: engine.ErrNotMigrated until the package
+	// primitive is wired.
+	ActionInstall
+	ActionEnable        // let SSH through, deny by default, start ufw, start it at boot
+	ActionDisable       // ufw disable (decision 6)
+	ActionSaveProfiles  // hardn.yml's ufwAppProfiles, as in.Config has them
+	ActionApplyProfiles // hardn's profile file, and a rule for each profile
+)
 
 // Incoming is Figma's Firewall row: the host's firewall for incoming
 // connections. Configured is the firewall active, refusing what no rule
 // accepts (the default incoming policy deny or reject; DROP or REJECT on
-// Proxmox VE), and letting every SSH listener through.
-type Incoming struct{ engine.CheckOnly }
+// Proxmox VE), and letting every SSH listener through. Action is what Plan
+// does; Check is the same for each.
+type Incoming struct{ Action Action }
 
-// ID is "firewall.incoming".
-func (Incoming) ID() string { return "firewall.incoming" }
+// ID returns ID.
+func (Incoming) ID() string { return ID }
 
 // Title is Figma's row label.
 func (Incoming) Title() string { return "Firewall" }
