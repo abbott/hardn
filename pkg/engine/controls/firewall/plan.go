@@ -110,8 +110,8 @@ func applies(p detect.Proxmox) error {
 // enable is Enable's plan: refused where what accepts SSH is not read (decision
 // 2: ss missing or failing, or a configured listener not bound, with a session
 // or from a console); steps.PlanUFWEnable, lockout-risk; and where ufw's service
-// does not start at boot, a plain change after it, so that a plan holding that
-// change alone is plain. Nothing to plan under a row that says a listener is
+// does not start at boot, a plain change before it, so that a plan holding that
+// change alone is plain, and its undo runs last. Nothing to plan under a row that says a listener is
 // refused, or whether ufw starts at boot not read, is a refusal with its cause;
 // on a host that is set, an empty plan.
 func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
@@ -133,11 +133,7 @@ func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Cha
 	}
 	boot := ufw.ReadBoot(ctx, sys, in.Facts)
 	if boot == detect.No {
-		var after []string
-		for _, c := range changes {
-			after = append(after, c.ID)
-		}
-		changes = append(changes, steps.UFWBootChange(ID, in.Facts, after))
+		changes = slices.Insert(changes, 0, steps.UFWBootChange(ID, in.Facts))
 	}
 	if len(changes) > 0 {
 		return changes, nil

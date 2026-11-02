@@ -183,17 +183,19 @@ func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefi
 // UFWBootChange is the change that adds ufw's service to the boot services,
 // a step of Enable (gallery-firewall.md §5, Made here): "rc-update add ufw
 // default" on OpenRC, "systemctl enable ufw.service" elsewhere, plain, id
-// prefix+"/boot", after the changes after names. It is checked by reading
-// again once it ran (ErrVerify). "ufw enable" adds no runlevel, and ENABLED
-// is not what starts ufw.service (docs/safety/ufw.md §3).
-func UFWBootChange(prefix string, f detect.Facts, after []string) engine.Change {
+// prefix+"/boot". It goes before ufw's change: a rollback undoes in reverse and
+// stops at the first undo that fails, and this undo, a boot link, must not stand
+// in the way of "ufw disable", which is what reverses a lockout. It is checked by
+// reading again once it ran (ErrVerify). "ufw enable" adds no runlevel, and
+// ENABLED is not what starts ufw.service (docs/safety/ufw.md §3).
+func UFWBootChange(prefix string, f detect.Facts) engine.Change {
 	argv, undo := []string{"systemctl", "enable", "ufw.service"}, []string{"systemctl", "disable", "ufw.service"}
 	if f.Init.Kind == detect.OpenRC {
 		argv, undo = []string{"rc-update", "add", "ufw", "default"}, []string{"rc-update", "del", "ufw", "default"}
 	}
 	const title = "Start ufw at boot"
 	c := engine.Change{ID: prefix + "/boot", Summary: title, Title: title, Target: "ufw", Commands: []string{host.FormatArgv(argv)},
-		Risk: engine.RiskPlain, Stage: engine.StageFirewall, After: after, Resources: []string{ResourceUFW},
+		Risk: engine.RiskPlain, Stage: engine.StageFirewall, Resources: []string{ResourceUFW},
 		Rollback: engine.Undo{Steps: runSteps(firewallWhy, [][]string{undo})}}
 	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
 		if _, err := sys.Run(ctx, argv[0], argv[1:]...); err != nil {

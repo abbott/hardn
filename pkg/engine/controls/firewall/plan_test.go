@@ -395,7 +395,7 @@ func ranUFW(l *live) []string {
 }
 
 // TestEnableBoot: where ufw's service does not start at boot, a plain change
-// after ufw's, with its undo, checked by reading again. ufw's stays lockout-risk;
+// before ufw's, with its undo, checked by reading again. ufw's stays lockout-risk;
 // a plan holding the boot change alone is plain.
 func TestEnableBoot(t *testing.T) {
 	ctx := context.Background()
@@ -420,13 +420,16 @@ func TestEnableBoot(t *testing.T) {
 			if p.Err() != nil {
 				t.Fatal(p.Err())
 			}
-			want := []string{"ufw allow 22/tcp", "ufw --force enable", tc.cmd}
+			want := []string{tc.cmd, "ufw allow 22/tcp", "ufw --force enable"}
 			if got := commands(p); !slices.Equal(got, want) {
 				t.Fatalf("commands %q, want %q", got, want)
 			}
-			c := p.Changes[len(p.Changes)-1]
-			if c.ID != firewall.ID+"/boot" || c.Risk != engine.RiskPlain || c.Stage != engine.StageFirewall || c.Title != "Start ufw at boot" ||
-				!slices.Equal(c.After, []string{firewall.ID + "/firewall"}) || undoWords(c) != tc.undo {
+			i := slices.IndexFunc(p.Changes, func(c engine.Change) bool { return c.ID == firewall.ID+"/boot" })
+			if i < 0 || p.Changes[i+1].ID != firewall.ID+"/firewall" {
+				t.Fatalf("changes %+v", p.Changes)
+			}
+			c := p.Changes[i]
+			if c.Risk != engine.RiskPlain || c.Stage != engine.StageFirewall || c.Title != "Start ufw at boot" || undoWords(c) != tc.undo {
 				t.Errorf("boot change %+v", c)
 			}
 			if p.Risk != engine.RiskLockout {
@@ -914,8 +917,10 @@ func TestRollback(t *testing.T) {
 			"ufw allow 22/tcp", "ufw default deny incoming",
 			"ufw default allow incoming", "ufw delete allow 22/tcp"}},
 		"the boot change fails": {site{plat: debian13(), ufw: fw{boot: "disabled"}}, "systemctl enable ufw.service", []string{
-			"ufw allow 22/tcp", "ufw --force enable", "systemctl enable ufw.service",
-			"systemctl disable ufw.service", "ufw disable", "ufw delete allow 22/tcp"}},
+			"systemctl enable ufw.service", "systemctl disable ufw.service"}},
+		"enable fails, boot off": {site{plat: debian13(), ufw: fw{boot: "disabled"}}, "ufw --force enable", []string{
+			"systemctl enable ufw.service", "ufw allow 22/tcp", "ufw --force enable",
+			"ufw disable", "ufw delete allow 22/tcp", "systemctl disable ufw.service"}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			l := liveOn(t, tc.s)
@@ -930,6 +935,43 @@ func TestRollback(t *testing.T) {
 			}
 			if got := ranUFW(l); !slices.Equal(got, tc.want) {
 				t.Errorf("ran\n got %q\nwant %q", got, tc.want)
+			}
+		})
+	}
+}
+
+// TestTimerRollback: the timer's rollback of an Enable that ran, where the boot
+// change's undo fails: ufw is stopped first, as the undo that reverses a lockout
+// must not wait on a service manager.
+func TestTimerRollback(t *testing.T) {
+	ctx := context.Background()
+	alpine := alpine324()
+	alpine.noSS = false
+	for name, tc := range map[string]struct {
+		plat platform
+		undo string
+	}{
+		"systemd": {debian13(), "systemctl disable ufw.service"},
+		"OpenRC":  {alpine, "rc-update del ufw default"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			l := liveOn(t, site{plat: tc.plat, ufw: fw{boot: "disabled"}})
+			e, p := planOn(t, l, firewall.ActionEnable, remote22, nil)
+			res, err := e.Apply(ctx, p)
+			if err != nil {
+				t.Fatal(err)
+			}
+			n := len(ranUFW(l))
+			l.fail = tc.undo
+			_, err = revert.Rollback(ctx, l, res.ID, revert.Options{Now: func() time.Time { return time.Date(2026, 11, 2, 12, 1, 0, 0, time.UTC) }, Hardn: hardnBinary, Reason: revert.ReasonTimeout})
+			if err == nil {
+				t.Fatal("the undo that fails: no error")
+			}
+			if l.u.active {
+				t.Error("ufw left active")
+			}
+			if got, want := ranUFW(l)[n:], []string{"ufw disable", "ufw delete allow 22/tcp", tc.undo}; !slices.Equal(got, want) {
+				t.Errorf("rollback ran %q, want %q", got, want)
 			}
 		})
 	}
