@@ -259,6 +259,8 @@ var errorCodes = []Entry{
 	is("UFW_WOULD_BLOCK", ufw.ErrBlocks),
 	is("UFW_VERIFY_FAILED", ufw.ErrVerify),
 	is("UFW_ENABLED_MISMATCH", ufw.ErrEnabledMismatch),
+	is("UFW_INACTIVE", ufw.ErrInactive),
+	is("UFW_BAD_PROFILE", ufw.ErrBadProfile),
 
 	// Proxmox VE (pkg/host/pve).
 	is("PVE_NOT_APPLICABLE", pve.ErrNotApplicable),

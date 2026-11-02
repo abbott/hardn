@@ -79,7 +79,7 @@ func Execute(ctx context.Context, sys host.System, p Plan) (Report, error) {
 		switch {
 		case err == nil:
 			sr.Undo, sr.Note = undo(s, res.Stdout)
-		case s.Kind == StepAllow:
+		case s.Kind.allows():
 			sr.Note = "not undone: the allow failed, so what it saved is not established"
 		default:
 			sr.Undo, sr.Note = s.Undo, "undone although it failed: ufw may have applied part of it"
@@ -102,7 +102,7 @@ func Execute(ctx context.Context, sys host.System, p Plan) (Report, error) {
 
 // undo reads ufw's answer to a step.
 func undo(s Step, out []byte) ([]string, string) {
-	if s.Kind != StepAllow {
+	if !s.Kind.allows() {
 		return s.Undo, ""
 	}
 	var added, skipped, other int

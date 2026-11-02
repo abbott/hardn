@@ -46,9 +46,11 @@ const (
 	StepAllow   StepKind = iota + 1 // ufw allow <port>/tcp
 	StepDefault                     // ufw default <policy> incoming|outgoing
 	StepEnable                      // ufw --force enable
+	StepDisable                     // ufw disable (PlanDisable)
+	StepAllowApp                    // ufw allow from any to any app <name> (PlanApps)
 )
 
-var stepNames = [...]string{"unknown", "allow", "default", "enable"}
+var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app"}
 
 func (k StepKind) String() string {
 	if int(k) >= len(stepNames) {
@@ -56,6 +58,9 @@ func (k StepKind) String() string {
 	}
 	return stepNames[k]
 }
+
+// allows: the step adds a rule, so its undo depends on ufw's answer.
+func (k StepKind) allows() bool { return k == StepAllow || k == StepAllowApp }
 
 // Step is one command of a Plan, with the command that undoes it.
 type Step struct {
@@ -92,15 +97,15 @@ func (p Plan) firewall() Firewall {
 	return Firewall{Active: p.Active, IPv6: p.IPv6, NoKernelIPv6: p.NoKernelIPv6, Incoming: p.Incoming}
 }
 
-// PreUndo are the undos of p's StepDefault and StepEnable steps, last
-// first: safe to journal before Execute runs (p2-revert), as each puts back
+// PreUndo are the undos of p's StepDefault, StepEnable and StepDisable
+// steps, last first: safe to journal before Execute runs (p2-revert), as each puts back
 // the state before the plan and does no harm when its step never ran. An
 // allow's undo depends on ufw's answer (Report.Undo); an allow left behind
 // never locks anyone out.
 func (p Plan) PreUndo() [][]string {
 	var u [][]string
 	for _, s := range p.Steps {
-		if s.Kind == StepDefault || s.Kind == StepEnable {
+		if s.Kind == StepDefault || s.Kind == StepEnable || s.Kind == StepDisable {
 			u = append([][]string{s.Undo}, u...)
 		}
 	}
@@ -227,6 +232,30 @@ func PlanFor(in Input) (Plan, error) {
 			Undo: []string{"ufw", "disable"}, Why: "start ufw, after its rules"})
 	}
 	return p, nil
+}
+
+// PlanDisable plans, with no I/O, "ufw disable", with "ufw --force enable"
+// its undo: decision 6's exception to PlanFor's "never ufw disable"
+// (docs/safety/ufw.md §2.7). Its rules stay saved, and it never resets. An
+// inactive ufw plans nothing. It reads the status line alone, so that a ufw
+// whose rule files hold a line not read still has a way off. Errors:
+// ErrProxmoxUnknown, ErrNotInstalled, ErrStateUnknown for a status not read.
+func PlanDisable(st State, pve detect.Proxmox) (Plan, error) {
+	if err := Applies(pve); errors.Is(err, ErrNotApplicable) {
+		return Plan{NotApplicable: true}, nil
+	} else if err != nil {
+		return Plan{}, err
+	}
+	switch {
+	case !st.Installed:
+		return Plan{}, fmt.Errorf("ufw: %w", ErrNotInstalled)
+	case !st.Status.Known:
+		return Plan{}, fmt.Errorf("ufw: %w (unread lines %q)", ErrStateUnknown, st.Status.Bad)
+	case !st.Status.Active:
+		return Plan{}, nil
+	}
+	return Plan{Steps: []Step{{Kind: StepDisable, Argv: []string{"ufw", "disable"},
+		Undo: []string{"ufw", "--force", "enable"}, Why: "stop ufw, its rules left saved"}}}, nil
 }
 
 // writes are the IP versions "ufw allow <port>/tcp" writes a rule for:

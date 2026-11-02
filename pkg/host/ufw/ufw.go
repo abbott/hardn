@@ -7,9 +7,11 @@
 // effective SSH listener set (sshd.ReadEffective), the ports a change adds
 // and that state, it returns the steps, allow rules first, then the default
 // policy, then "ufw --force enable", and refuses a plan after which an SSH
-// listener that is reachable now would be blocked. Execute runs the steps,
-// then checks "ufw status verbose"; Check is the same cross-check for a
-// status report. What ufw shows is its saved rules with its chains loaded:
+// listener that is reachable now would be blocked. PlanDisable and PlanApps
+// are the Firewall control's other plans, the same Execute running them:
+// "ufw disable" (decision 6), and an application profile's rule, with the
+// profile file's bytes from ProfileBytes. Execute runs the steps, then checks
+// "ufw status verbose"; Check is the same cross-check for a status report. What ufw shows is its saved rules with its chains loaded:
 // the proof that new connections pass is the confirmation from a new
 // session (brief 2.4).
 //
@@ -49,6 +51,12 @@ var (
 	// loaded disagree, so ufw's commands would not do what the plan
 	// expects (State.Enabled).
 	ErrEnabledMismatch = errors.New("ufw's ENABLED setting and its loaded chains disagree")
+	// ErrInactive: ufw is not running, so an application's rule would only
+	// be saved (decision 5: no rule is saved while ufw stays inactive).
+	ErrInactive = errors.New("ufw is not running: its rules would only be saved")
+	// ErrBadProfile: an application profile ufw would not read
+	// (ValidProfile).
+	ErrBadProfile = errors.New("the application profile is not one ufw reads")
 )
 
 // Applies says whether UFW may be used: ErrNotApplicable on Proxmox VE,

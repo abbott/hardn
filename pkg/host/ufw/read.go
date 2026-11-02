@@ -355,3 +355,50 @@ func Read(ctx context.Context, sys host.System, pve detect.Proxmox) (State, erro
 	}
 	return st, nil
 }
+
+// ReadEnabled reads ENABLED from ConfFile alone: Yes for ENABLED=yes, No
+// otherwise, and No where the file is not there (ufw not installed). It runs
+// no ufw and takes no Proxmox fact, so that a Proxmox VE node can say ufw was
+// left on there with no ufw call (decision 7's warning row, brief 2.5). Any
+// other failure to read is Unknown, with the error.
+func ReadEnabled(ctx context.Context, sys host.System) (detect.Tri, error) {
+	data, err := sys.ReadFile(ctx, ConfFile)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return detect.No, nil
+	case err != nil:
+		return detect.Unknown, fmt.Errorf("ufw: %w", err)
+	}
+	if readDefaults(data)["enabled"] == "yes" {
+		return detect.Yes, nil
+	}
+	return detect.No, nil
+}
+
+// ReadBoot reads whether ufw's service starts at boot: on OpenRC, whether it
+// is in a runlevel; on systemd, ufw.service's is-enabled, where "enabled" is
+// Yes and "disabled", "masked" and "enabled-runtime" (gone at the next boot,
+// detect.SystemctlIsEnabled's note) are No. Unknown where that is not read.
+//
+// ENABLED is not this: ufw's Python has no systemctl call, and ufw.service
+// runs ufw-init with WantedBy=multi-user.target, so nothing else starts it at
+// boot (read in ufw 0.36.2 on Debian 13 and Ubuntu 26.04, not run:
+// docs/safety/ufw.md §3).
+func ReadBoot(ctx context.Context, sys host.System, f detect.Facts) detect.Tri {
+	switch f.Init.Kind {
+	case detect.OpenRC:
+		_, in, _ := detect.ServiceRunlevels(ctx, sys, "ufw")
+		return in
+	case detect.Systemd:
+		state, err := detect.SystemctlIsEnabled(ctx, sys, "ufw.service")
+		switch {
+		case err != nil:
+			return detect.Unknown
+		case state == "enabled":
+			return detect.Yes
+		case state == "disabled", state == "enabled-runtime", state == "masked":
+			return detect.No
+		}
+	}
+	return detect.Unknown
+}

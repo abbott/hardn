@@ -156,8 +156,10 @@ sudoers.ErrUnsafeRunDir UNSAFE_DIRECTORY
 sudoers.ErrUnsupported SUDOERS_DOAS_UNSUPPORTED
 sudoers.ErrUserName SUDOERS_USER_NAME
 sudoers.ErrVarName SUDOERS_VAR_NAME
+ufw.ErrBadProfile UFW_BAD_PROFILE
 ufw.ErrBlocks UFW_WOULD_BLOCK
 ufw.ErrEnabledMismatch UFW_ENABLED_MISMATCH
+ufw.ErrInactive UFW_INACTIVE
 ufw.ErrListenersUnknown UFW_LISTENERS_UNKNOWN
 ufw.ErrNotApplicable UFW_NOT_APPLICABLE
 ufw.ErrNotInstalled UFW_NOT_INSTALLED
