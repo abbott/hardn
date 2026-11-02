@@ -145,10 +145,11 @@ package firewall // pkg/engine/controls/firewall (new)
 const (
 	CodeSSHBlocked   = "FIREWALL_SSH_BLOCKED"   // the critical cross-check
 	CodeSSHUnchecked = "FIREWALL_SSH_UNCHECKED" // the listeners not established, beside a state that does not depend on them
+	CodeBootUnchecked = "FIREWALL_BOOT_UNCHECKED" // whether an active ufw starts at the next boot not read
 	CodeLocalOnly    = "FIREWALL_PVE_LOCAL_ONLY" // Proxmox VE: no management IP set written
 )
 const ID, ProfileSetting = "firewall.incoming", "ufwAppProfiles"
-var ErrNoSS, ErrSSFailed, ErrNotInEffect, ErrRefused, ErrBootUnknown error // Enable's refusals
+var ErrNoSS, ErrSSFailed, ErrNotInEffect, ErrRefused, ErrBootUnknown, ErrBootBlocked error // Enable's refusals
 
 type Action uint8 // ActionNone (zero), ActionInstall, ActionEnable, ActionDisable, ActionSaveProfiles, ActionApplyProfiles
 type Incoming struct{ Action Action } // "Firewall"; ActionNone's Plan is engine.ErrNotMigrated
@@ -169,7 +170,7 @@ type Does struct{ Allows, SetsDeny, StartsUFW, Boot bool }
 type Reading struct {
 	OnPVE bool; Proxmox error; Profiles []config.UfwAppProfile
 	PVE pve.Firewall; PVEErr error; PVEUFWEnabled detect.Tri; PVEUFWErr error
-	State ufw.State; StateErr error; Boot detect.Tri; Sockets Sockets
+	State ufw.State; StateErr error; Boot detect.Tri; BootUnit string; Sockets Sockets
 	First Item; DisableBeside bool
 	Plan []engine.Change; PlanErr error; Does Does
 }
