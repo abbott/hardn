@@ -1,7 +1,7 @@
 # Firewall in the gallery, before any build (slice 4, unit (a): `firewall`, `play firewall`)
 
 > **Unit:** refactor plan slice 4, unit (a), `next/s4-gallery`: a proposal for the maintainer's review, nothing of it wired into hardn. No change under `pkg/` or `cmd/`.
-> **Status:** built and tested on macOS, in process; no hardn binary ran. One existing golden changed: `play/user-management` recorded main menu 4's "no screen for Firewall" line, so it now takes 7, Run All, for that line.
+> **Status:** built and tested on macOS, in process; no hardn binary ran. One existing golden changed: `play/user-management` recorded main menu 4's "no screen for Firewall" line, so it now takes 7, Run All, for that line. The ten decisions of §5 are adopted (the maintainer, 2026-11-01), with the Made here calls as stated and the words of §6.
 
 ## 1. What to run
 
@@ -81,6 +81,20 @@ Fit 80x24: the profiles' sub-screen 16, Proxmox VE 17, no ufw 20. Over it: most 
 
 ## 5. Decisions for the maintainer
 
+**Adopted (the maintainer, 2026-11-01):** "Adopt all ten." Every recommended answer below is adopted, and every Made here call as stated. What follows from them:
+
+- Install is restored through the plan, apt or apk, never on Proxmox VE; unit (b) builds the package primitive, which slice 7 can share (1, [P-16](../refactor/proposals.md#p-16)).
+- Enable refuses whenever a configured listener is not bound, with a session or from a console, so the real plan gains a read of `ss` (2).
+- The profiles' sub-screen stays: Add, Remove and Apply through the flow (3).
+- `hardn -w` on a terminal asks the typed hostname and arms the timer, and refuses off a terminal; `runControls` gains that question in unit (d), and slice 6's `-d` takes the same answer (4).
+- No rule is saved while ufw stays inactive, and Apply refuses there; a saved blocklist refuses Enable; P-33 (2) stays open for slice 6 (5, [P-33](../refactor/proposals.md#p-33)).
+- `ufw disable` is a plain y/N change that warns, on every active ufw (6).
+- Proxmox VE gets the read-only screen, titled "Firewall Configuration", and main menu 4 reads "View pve-firewall" there. A node where ufw was left active gets a warning row read from `ufw.conf`, with no `ufw` call: the adoption allows that read under brief 2.5. P-20 stays out of this slice (7).
+- `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` warn on load, the file still accepted; `ufwAllowedPorts` waits for slice 8 (8).
+- Full sections at every height; the title and the Firewall row scroll off at 24 rows (9).
+- §6's words are decided (10), "No firewall rules configured" under "Rules" with them ([P-30](../refactor/proposals.md#p-30) (b)).
+- The mocks of options not adopted, `no-install` and `stale-listener`'s last section, go when the real screen replaces the mocks.
+
 The slice's defects (§2), and where each is answered:
 
 | Defect | Answer |
@@ -139,7 +153,7 @@ Drawn: the screen on every host, each change through the canonical flow, decisio
 
 ## 6. Words
 
-Proposed, unless marked origin/main's. Its "consider changing" and "good security" are gone: this screen reads what sshd does, not which port is better.
+Decided with decision 10 (2026-11-01). Each is new unless marked origin/main's. Its "consider changing" and "good security" are gone: this screen reads what sshd does, not which port is better.
 
 | Where | Words |
 |---|---|

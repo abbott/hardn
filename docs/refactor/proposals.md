@@ -31,7 +31,7 @@
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
 | [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-check-ssh`, `next/p4-check-firewall` |
 | [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed; the factors' place decided (2026-10-21): under their rows; implemented, `next/p4-risk-lines` |
-| [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed; (c) decided (2026-10-29): item 8 "Keep HARDN_CONFIG" |
+| [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed; (c) decided (2026-10-29): item 8 "Keep HARDN_CONFIG"; on Proxmox VE, item 4 "View pve-firewall" (2026-11-01) |
 | [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | decided (2026-10-17); implemented, `next/p1d-divider` |
 | [P-09](#p-09) | Replace "Press any key to continue" | plan §5.2 | All screens; Phase 1C | M | Low | proposed |
 | [P-10](#p-10) | Typed confirmation + confirm-or-revert where Figma shows `(y/n)` | plan §5.3 | SSH, sudo; slices 5–6 | M | Low | proposed |
@@ -40,7 +40,7 @@
 | [P-13](#p-13) | "Sudo Method" row; "Users" vs "User" | plan §5.6 | Main menu | S | Low | proposed |
 | [P-14](#p-14) | Reachable risk bands, with factors shown | plan §5.7 | RiskSummary; Phase 4 | S | Low | proposed; the factors' place decided (2026-10-21), see P-06 |
 | [P-15](#p-15) | Update checker: opt-in and non-blocking | plan §5.8 | Startup; Phase 3 | M | Low | proposed |
-| [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, no screen |
+| [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, no screen; UFW install decided (2026-11-01): restored through the plan, never on Proxmox VE |
 | [P-17](#p-17) | System Details content | plan §5.10 | System Details; slice 1 | M | Low | proposed |
 | [P-18](#p-18) | Logs via `$PAGER` or a tail, from the file hardn writes | plan §5.11 | Logs; slice 1 | S | Low | proposed |
 | [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | decided (2026-10-27): Backup Runs, read only, in slice 3; the restore a later unit |
@@ -57,7 +57,7 @@
 | [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | decided for DNS (2026-10-22): (b); implemented for DNS, `next/s2-screen`; Firewall's proposed |
 | [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed; 05-BACKUP decided (2026-10-27) |
 | [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
-| [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slice 4 | S | Low | proposed |
+| [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slices 4, 6 | S | Low | (1) and (3) decided (2026-11-01): (1) (b), (3) (a); (2) proposed, slice 6 |
 | [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; implemented, `next/p3-revert-boot` |
 | [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | decided (2026-10-19): (a) `hardn rollback --abandon <id>`; implemented, `next/p3-rollback-abandon` |
 | [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
@@ -183,7 +183,7 @@
 <a id="p-07"></a>
 ### P-07: Main-menu wording
 
-- **Status:** proposed (each part is decided separately); **(c) decided** (maintainer, 2026-10-29, slice 9 decision 7, "Adopt all seven slice 9 Environment recommendations in gallery-environment.md §5"): item 8's description "Keep HARDN_CONFIG", (c) without "under sudo", which is wrong on doas hosts. [gallery-environment.md](../engine/gallery-environment.md) §5.
+- **Status:** proposed (each part is decided separately); **on Proxmox VE, item 4's description decided** (maintainer, 2026-11-01, slice 4 decision 7, "Adopt all ten"): "View pve-firewall"; **(c) decided** (maintainer, 2026-10-29, slice 9 decision 7, "Adopt all seven slice 9 Environment recommendations in gallery-environment.md §5"): item 8's description "Keep HARDN_CONFIG", (c) without "under sudo", which is wrong on doas hosts. [gallery-environment.md](../engine/gallery-environment.md) §5.
 - **Source:** brief §7.7.
 - **Problem and proposal:**
   - **(a) Item 2:** "Toggle root SSH access" (Figma; origin/main says "Toggle SSH root access") doesn't say which way it switches, and on origin/main it can only disable [V]. Name the result instead; see [P-12](#p-12).
@@ -323,7 +323,7 @@
 <a id="p-16"></a>
 ### P-16: Restore UFW install; add AppArmor and Auto Updates screens
 
-- **Status:** proposed; the AppArmor part decided (maintainer, 2026-10-20): **status only in v0.4**. No AppArmor screen or action; its status line is Phase 4's (`next/p4-check-apparmor`; the lines in [P-43](#p-43) (3)) and counts in the risk level. UFW install, Auto Updates and Lynis stay proposed.
+- **Status:** proposed; the AppArmor part decided (maintainer, 2026-10-20): **status only in v0.4**. No AppArmor screen or action; its status line is Phase 4's (`next/p4-check-apparmor`; the lines in [P-43](#p-43) (3)) and counts in the risk level. **UFW install decided** (maintainer, 2026-11-01, slice 4 decision 1, "Adopt all ten"): restored through the plan, never on Proxmox VE. Auto Updates and Lynis stay proposed.
 - **Source:** plan §5.9; brief §7.1. Related: [P-01](#p-01).
 - **Problem:**
   - v0.3.2 could install UFW and set up AppArmor, Lynis and unattended-upgrades.
@@ -339,7 +339,7 @@
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
   - Before: n/a (no screen exists).
   - After: `docs/refactor/img/p-16-after-*.png` (placeholders; inferred screens, labelled as such in the gallery).
-- **Slice 4:** the UFW install is drawn, with its alternative, for the maintainer: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 1.
+- **Slice 4:** the UFW install is drawn and adopted: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 1.
 
 <a id="p-43"></a>
 ### P-43: Turning AppArmor and Auto Updates off
@@ -676,7 +676,7 @@
 <a id="p-30"></a>
 ### P-30: A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list
 
-- **Status:** decided for DNS (maintainer, 2026-10-22, slice 2 decision 3): (b), a muted bullet item, "- No nameservers configured" (`ValueNone`, DEV-061; `next/s2-gallery`). Implemented for DNS by slice 2 (merged 2026-10-23): `next/s2-screen` draws the item on the real DNS screen and refuses Configure DNS with none, "Please add nameservers first.". The Firewall screen's notice stays proposed (slice 4).
+- **Status:** decided for DNS (maintainer, 2026-10-22, slice 2 decision 3): (b), a muted bullet item, "- No nameservers configured" (`ValueNone`, DEV-061; `next/s2-gallery`). Implemented for DNS by slice 2 (merged 2026-10-23): `next/s2-screen` draws the item on the real DNS screen and refuses Configure DNS with none, "Please add nameservers first.". **Decided for the Firewall too** (maintainer, 2026-11-01, slice 4 decision 10, "Adopt all ten"): (b), the muted item "No firewall rules configured" under "Rules".
 - **Source:** `next/p1d-gallery-screens`, which mocks the screens that fit a layout; brief 1B: a screen that fits no layout becomes a proposal, not a one-off. Related: [P-16](#p-16), [P-23](#p-23), [P-28](#p-28).
 - **Problem:**
   - origin/main's Firewall screen (pkg/menu firewall_menu.go), of which the export holds a legacy screenshot (images/04-firewall-legacy-tui.png), shows three status rows, then, with UFW installed and no rule listed, a warning line, "No firewall rules configured", before its menu. That is what it shows on every host with UFW, since the rules list is effectively unreachable ([interaction.md](phase0/interaction.md) §4.3). With rules it shows a "Current Firewall Rules:" heading over a line per rule, marked ✓ for allow, ✗ for deny and - otherwise.
@@ -690,7 +690,7 @@
 - **Effort:** S (a block of `SubMenu` and its goldens for (a); fixture data for (b) and (c)).
 - **Risk:** Low: display only.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)): Before: the export's `images/04-firewall-legacy-tui.png` (reference only). After: `docs/refactor/img/p-30-after.png` (placeholder).
-- **Slice 4:** the Firewall screen's mock draws (b), "No firewall rules configured" under "Rules": [gallery-firewall.md](../engine/gallery-firewall.md) §3.
+- **Slice 4:** the Firewall screen's mock draws (b), adopted: [gallery-firewall.md](../engine/gallery-firewall.md) §3, §6.
 
 <a id="p-31"></a>
 ### P-31: Figma's words or origin/main's on the other Figma frames
@@ -729,7 +729,7 @@
 <a id="p-33"></a>
 ### P-33: UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist
 
-- **Status:** proposed
+- **Status:** (1) and (3) decided (maintainer, 2026-11-01, slice 4 decision 5, "Adopt all ten"): (1) (b), save none and report what a later start would block; (3) (a), refuse the enable. (2) stays proposed, for slice 6
 - **Source:** `next/p2-ufw` and its review (2026-10-17): V8's open approach, "adding an allow rule the user didn't ask for", which has no §3 row ([side-effects.md](phase0/side-effects.md), V8 row); [docs/safety/ufw.md](../safety/ufw.md) §2.7, §2.9. Related: [P-16](#p-16), [P-20](#p-20).
 - **Problem:** the UFW primitive makes three choices on the user's behalf:
   - (1) With ufw inactive and staying so, `PlanFor` saves `ufw allow <port>/tcp` for each SSH listener and the new port (ufw writes them to its rule files without loading them), so that a later `ufw enable` keeps SSH open. That adds rules to a firewall the user may not use.
@@ -742,7 +742,7 @@
 - **Effort:** S for (1), (2)(c) and (3)(a); M for (2)(b) and (3)(b) (a new input, new rule forms and their undo).
 - **Risk:** Low for (1) and (2)(a); Medium for (2)(b) (new rule forms to read back and undo) and (3)(b) (the session's address is one client among those the blocklist may concern).
 - **Screenshots:** none (no screen changes).
-- **Slice 4:** what (1) and (3) mean on the Firewall screen, for the maintainer; (2) is slice 6's: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 5.
+- **Slice 4:** (1) (b) and (3) (a) adopted (maintainer, 2026-11-01, "Adopt all ten"); (2) is slice 6's: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 5.
 
 <a id="p-34"></a>
 ### P-34: A reboot inside the confirm window
