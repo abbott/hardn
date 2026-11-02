@@ -175,7 +175,8 @@ func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefi
 		return nil, err
 	}
 	c := firewallChange(prefix+"/disable", p, engine.RiskPlain)
-	c.Resources = []string{ResourceUFW}
+	const title = "Disable ufw"
+	c.Summary, c.Title, c.Resources = title, title, []string{ResourceUFW}
 	return []engine.Change{c}, nil
 }
 
