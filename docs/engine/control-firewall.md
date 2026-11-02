@@ -31,7 +31,7 @@ firewall.ReadSockets(ctx, sys, facts) firewall.Sockets        // the one reading
 
 ## Engineering calls
 
-- `ValidProfile` also takes `n:m/proto`, which the gallery's form accepts; a profile name used twice is refused.
+- `ValidProfile` also takes `n:m/proto`, which the gallery's form accepts; a profile name used twice, in any case, is refused, as origin/main refuses it.
 - A right profile file with the wrong mode or owner counts as needing a write.
 - `PlanApps` also matches `%20` in a saved app name [I].
 - `firewallChange` stays lockout-risk; `PlanUFWDisable` alone sets its change plain.

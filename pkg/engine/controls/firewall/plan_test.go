@@ -853,6 +853,13 @@ func TestSave(t *testing.T) {
 	_, p = planOn(t, l, firewall.ActionSaveProfiles, remote22, cfg)
 	refused(t, p, "ufw can't read the profile all. Correct it in hardn.yml, then try again.", ufw.ErrBadProfile)
 	changedNothing(t, l)
+
+	l = liveOn(t, site{plat: debian13(), ufw: fw{}})
+	cfg = cfgOn(t, l, yml)
+	cfg.UfwAppProfiles = append(cfg.UfwAppProfiles, config.UfwAppProfile{Name: "dns", Title: "x", Description: "y", Ports: []string{"80/tcp"}})
+	_, p = planOn(t, l, firewall.ActionSaveProfiles, remote22, cfg)
+	refused(t, p, "ufw can't read the profile dns. Correct it in hardn.yml, then try again.", ufw.ErrBadProfile)
+	changedNothing(t, l)
 }
 
 // TestProxmoxNoUFW: every action, Check and Read on Proxmox VE, no ufw command,

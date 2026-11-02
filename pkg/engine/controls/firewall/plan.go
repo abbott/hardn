@@ -278,7 +278,8 @@ func verdicts(st ufw.State, sk Sockets) []ufw.Coverage {
 }
 
 // profilesOf is hardn.yml's application profiles as ufw's, every one valid, none
-// named twice; else a refusal naming the first that is not. Nil cfg is none.
+// named twice in any case, as origin/main's Add refuses (firewall_menu.go:450);
+// else a refusal naming the first that is not. Nil cfg is none.
 func profilesOf(cfg *config.Config) ([]ufw.Profile, error) {
 	if cfg == nil {
 		return nil, nil
@@ -287,7 +288,7 @@ func profilesOf(cfg *config.Config) ([]ufw.Profile, error) {
 	for _, p := range cfg.UfwAppProfiles {
 		pr := ufw.Profile{Name: p.Name, Title: p.Title, Description: p.Description, Ports: p.Ports}
 		err := ufw.ValidProfile(pr)
-		if err == nil && slices.ContainsFunc(out, func(o ufw.Profile) bool { return o.Name == p.Name }) {
+		if err == nil && slices.ContainsFunc(out, func(o ufw.Profile) bool { return strings.EqualFold(o.Name, p.Name) }) {
 			err = fmt.Errorf("ufw: profile %q: named twice: %w", p.Name, ufw.ErrBadProfile)
 		}
 		if err != nil {

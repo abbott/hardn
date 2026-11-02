@@ -88,9 +88,9 @@ The region below is generated.
 | refusal | 19 | 23 |
 | profile file | 10 | 1 |
 | directories | 42 | 0 |
-| backup | 12 | 7 |
+| backup | 12 | 6 |
 | findings | 42 | 0 |
-| hardn.yml | 38 | 4 |
+| hardn.yml | 39 | 3 |
 | ufw after | 36 | 6 |
 | rules after | 38 | 4 |
 | SSH rule added | 40 | 2 |
@@ -98,8 +98,8 @@ The region below is generated.
 | packages | 39 | 3 |
 | files | 31 | 11 |
 | commands | 26 | 16 |
-| journal | 1 | 18 |
-| asks | 24 | 18 |
+| journal | 1 | 17 |
+| asks | 25 | 17 |
 | rule comment | 0 | 11 |
 | how ufw starts | 0 | 11 |
 | mode | 4 | 0 |
@@ -167,11 +167,7 @@ The region below is generated.
 | add-slash | Debian 13 | hardn.yml | `./hardn.yml, in the working directory` | `not saved` | defect 11; defect 12: saved with a port that is none; now refused, nothing saved |
 | add-no-name | Debian 13 | refusal | `refused: Profile name cannot be empty` | `UFW_BAD_PROFILE, before asking` | decision 3 (a): refused in its words; the plan's code now (Add's form refuses at the field: unit (c)) |
 | add-no-ports | Debian 13 | refusal | `refused: Ports cannot be empty` | `UFW_BAD_PROFILE, before asking` | decision 3 (a): refused in its words; the plan's code now (Add's form refuses at the field: unit (c)) |
-| add-case | Debian 13 | refusal | `refused: A profile with this name already exists` | `none` | UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): webserver beside WebServer refused, ignoring case (firewall_menu.go:450, strings.EqualFold); now only the same case is the same name, and it saves |
-| add-case | Debian 13 | backup | `none` | `/etc/hardn/hardn.yml` | UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): not saved; now hardn.yml backed up |
-| add-case | Debian 13 | journal | `none` | `journalled first` | UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): not saved; now journalled |
-| add-case | Debian 13 | hardn.yml | `not saved` | `/etc/hardn/hardn.yml, the file loaded` | UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): not saved; now saved |
-| add-case | Debian 13 | asks | `nothing` | `y/N` | UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): refused at the name; now asked y/N |
+| add-case | Debian 13 | refusal | `refused: A profile with this name already exists` | `UFW_BAD_PROFILE, before asking` | decision 3 (a): refused in its words; the plan's code now (Add's form refuses at the field: unit (c)) |
 | apply | Debian 13 | refusal | `stub: isn't yet implemented` | `UFW_INACTIVE, before asking` | defect 4; decision 3 (a); decision 5; P-33 (1) (b): the stub; now no rule saved while ufw stays inactive |
 | dry-configure | Debian 13 | plan names | `Would configure UFW with default policies and SSH rules; SSH port: 2230/tcp` | `ufw allow 2230/tcp; ufw --force enable` | defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: words naming no command; now Enable's plan |
 | dry-enable | Debian 13 | plan names | `Would enable UFW` | `ufw allow 2230/tcp; ufw --force enable` | defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: words naming no command (the golden's KNOWN-DEFECT); now Enable's plan |
@@ -250,7 +246,6 @@ No source the table may cite says these. Each is carried as `Tie.Pending`, marke
 | The SSH rule's comment, `SSH access`, goes (`rule comment`) | `enable`, `configure`, `active-rules`, `profiles`, `w`, `item2-profile` | `firewall_manager.go:47` (a golden's note, read); `steps.PlanUFWEnable` passes none (run) | gallery-firewall.md §3, Enable's commands; docs/safety/ufw.md §2 item 7 |
 | `sh -c "yes \| ufw enable"` becomes `ufw --force enable` (`how ufw starts`) | `enable`, `configure`, `profiles`, `w`, `item2-profile` | docs/safety/ufw.md §3 says `enable` prompts under SSH unless `--force` (read) | that section |
 | A profile's ports join by `\|`, not a comma (`profile file`) | `profiles` | `ports=80/tcp,443/tcp` against `ports=80/tcp\|443/tcp` (run); whether ufw reads the comma is [I] | gallery-firewall.md §7's finding; ufw-framework(8) [I] |
-| A name held in another case: `webserver` beside `WebServer` is refused on origin/main (`strings.EqualFold`, `firewall_menu.go:450`, read), saved here (`profilesOf` compares exactly; the gallery's form too) | `add-case`: `refusal`, `hardn.yml`, `backup`, `journal`, `asks` | `firewall_profiles_add_duplicate_name` against this run | control-firewall.md's "a profile name used twice is refused", read as exact; or make `profilesOf` and the form ignore case |
 | `hardn -n -w` ran live on origin/main (V1) and is refused with exit status 2 by the trunk's P0.8 gate; `runControls` shows the plan alone, or its refusal. If the refusal stays, every cell changes | `w` on all four, `w-stock` | the ops goldens; `cmd/hardn/dns.go`'s `runControls` (read); decision 4 says nothing of `-n` | as `-e` (gallery-environment.md's Made here) |
 
 ## 7. For unit (c)

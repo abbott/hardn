@@ -876,7 +876,7 @@ var fwTable = []tie{
 	{[]string{"apply"}, deb, "refusal", "defect 4; decision 3 (a); decision 5; P-33 (1) (b)", "the stub; now no rule saved while ufw stays inactive", false},
 	{[]string{"add-bad-port"}, deb, "refusal", "defect 11; decision 3 (a); §6's words", "refused after four answers, dropping them; the plan's code now (Add's form refuses at the field: unit (c))", false},
 	{[]string{"add-slash"}, deb, "refusal", "defect 11; §6's words", "saved: its check was a slash; now refused, 1 to 65535 with a protocol", false},
-	{[]string{"add-no-name", "add-no-ports"}, deb, "refusal", "decision 3 (a)", "refused in its words; the plan's code now (Add's form refuses at the field: unit (c))", false},
+	{[]string{"add-no-name", "add-no-ports", "add-case"}, deb, "refusal", "decision 3 (a)", "refused in its words; the plan's code now (Add's form refuses at the field: unit (c))", false},
 	{[]string{"dry-add", "dry-remove"}, deb, "refusal", "Made here (under plan only, Add and Remove stop at their plan)", "the trunk refuses since slice 2b, where origin/main saved ./hardn.yml under dry run (the golden's NOTE); now the plan, nothing saved", false},
 	{[]string{"dry-apply"}, deb, "refusal", "defect 10; decision 5; P-33 (1) (b)", "said it would write the file, which live does not; now refused on an inactive ufw", false},
 
@@ -886,11 +886,6 @@ var fwTable = []tie{
 	{[]string{"add-slash"}, deb, "hardn.yml", "defect 11; defect 12", "saved with a port that is none; now refused, nothing saved", false},
 
 	// Add's name, held in another case: no source says it.
-	{[]string{"add-case"}, deb, "refusal", "control-firewall.md: a profile name used twice is refused" + eng, "webserver beside WebServer refused, ignoring case (firewall_menu.go:450, strings.EqualFold); now only the same case is the same name, and it saves", true},
-	{[]string{"add-case"}, deb, "hardn.yml", "control-firewall.md: a profile name used twice is refused" + eng, "not saved; now saved", true},
-	{[]string{"add-case"}, deb, "backup", "control-firewall.md: a profile name used twice is refused" + eng, "not saved; now hardn.yml backed up", true},
-	{[]string{"add-case"}, deb, "journal", "control-firewall.md: a profile name used twice is refused" + eng, "not saved; now journalled", true},
-	{[]string{"add-case"}, deb, "asks", "control-firewall.md: a profile name used twice is refused" + eng, "refused at the name; now asked y/N", true},
 
 	// Plan only: what each names, and -n -w.
 	{[]string{"dry-configure"}, deb, "plan names", flowed, "words naming no command; now Enable's plan", false},

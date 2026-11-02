@@ -844,30 +844,22 @@ origin/main: menu/firewall_profiles_add_duplicate_name.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 2 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: A profile with this name already exists
-new path: firewall.Read, then the save, y
+new path: firewall.Read, then the save refused before it asks
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
-  write /etc/hardn/hardn.yml 0600, atomic
-    +   - name: webserver
-  backup: /etc/hardn/hardn.yml; journal: journalled first; findings: none
+  refused: UFW_BAD_PROFILE, before asking
 agree  files: none
 agree  directories: none
 agree  commands: none
 agree  findings: none
+agree  hardn.yml: not saved
 agree  ufw after: inactive
 agree  rules after: none
 agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
-differ refusal: refused: A profile with this name already exists | none
-       UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): webserver beside WebServer refused, ignoring case (firewall_menu.go:450, strings.EqualFold); now only the same case is the same name, and it saves
-differ backup: none | /etc/hardn/hardn.yml
-       UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): not saved; now hardn.yml backed up
-differ journal: none | journalled first
-       UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): not saved; now journalled
-differ hardn.yml: not saved | /etc/hardn/hardn.yml, the file loaded
-       UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): not saved; now saved
-differ asks: nothing | y/N
-       UNEXPLAINED (pending; proposed, not approved: control-firewall.md: a profile name used twice is refused; engineering call, not adopted by the maintainer): refused at the name; now asked y/N
+agree  asks: nothing
+differ refusal: refused: A profile with this name already exists | UFW_BAD_PROFILE, before asking
+       decision 3 (a): refused in its words; the plan's code now (Add's form refuses at the field: unit (c))
 v0.3.2: not compared: §4.4 records v0.3.2's configure alone
 
 == remove on Debian 13
