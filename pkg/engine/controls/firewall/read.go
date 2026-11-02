@@ -133,11 +133,7 @@ func (r Reading) set() bool {
 func (r Reading) Coverage() []ufw.Coverage { return verdicts(r.State, r.Sockets) }
 
 // Applied reports whether ufw's saved rules hold application name's rule.
-func (r Reading) Applied(name string) bool {
-	return slices.ContainsFunc(r.State.Rules, func(rl ufw.Rule) bool {
-		return rl.App == name || rl.App == strings.ReplaceAll(name, " ", "%20")
-	})
-}
+func (r Reading) Applied(name string) bool { return ufw.HasApp(r.State.Rules, name) }
 
 // does says what Enable's plan does, from its commands.
 func does(plan []engine.Change) Does {

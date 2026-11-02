@@ -122,7 +122,7 @@ func PlanApps(st State, names []string, pve detect.Proxmox) (Plan, error) {
 		if !validProfileName(name) {
 			return Plan{}, fmt.Errorf("ufw: profile %q: its name: %w", name, ErrBadProfile)
 		}
-		if slices.Contains(planned, name) || appRule(st.Rules, name) {
+		if slices.Contains(planned, name) || HasApp(st.Rules, name) {
 			continue
 		}
 		planned = append(planned, name)
@@ -135,6 +135,6 @@ func PlanApps(st State, names []string, pve detect.Proxmox) (Plan, error) {
 // appRule: a saved rule has application name. A saved rule's name has its
 // spaces as "%20", so that the tuple's fields stay split ([I], from memory of
 // ufw's backend, not run; ParseTuples splits on spaces).
-func appRule(rules []Rule, name string) bool {
+func HasApp(rules []Rule, name string) bool {
 	return slices.ContainsFunc(rules, func(r Rule) bool { return r.App == name || r.App == strings.ReplaceAll(name, " ", "%20") })
 }

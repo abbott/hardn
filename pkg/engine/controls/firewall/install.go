@@ -22,7 +22,8 @@ const ufwPackage = "ufw"
 const installWhy = "firewall"
 
 // install is Install's plan (decision 1): packages.PlanInstall, which only
-// reads, as one change with RiskPackageInstall, a plain y/N; none where ufw is
+// reads, as one change with RiskPackageInstall, a plain y/N, its state after
+// naming the other new packages the simulation lists; none where ufw is
 // installed. A simulation that finds no package, or would change another, is a
 // refusal saying what to do, before anything changes. Install brings ufw alone:
 // on a stock Alpine Enable then refuses for want of ss until iproute2 is there.
@@ -39,8 +40,12 @@ func install(ctx context.Context, sys host.System, f detect.Facts) ([]engine.Cha
 		return nil, nil
 	}
 	const title = "Install ufw"
+	after := "installed, inactive"
+	if also := slices.DeleteFunc(slices.Clone(p.Adds), func(n string) bool { return n == ufwPackage }); len(also) > 0 {
+		after += ", with " + strings.Join(also, ", ")
+	}
 	return []engine.Change{{ID: ID + "/install", Summary: title, Title: title, Target: ufwPackage,
-		StateBefore: "not installed", StateAfter: "installed, inactive", Commands: []string{host.FormatArgv(p.Argv)},
+		StateBefore: "not installed", StateAfter: after, Commands: []string{host.FormatArgv(p.Argv)},
 		Risk: engine.RiskPackageInstall, Stage: engine.StagePackages, Resources: []string{steps.ResourceUFW},
 		Rollback: engine.Undo{Steps: undoSteps(p.Undo)},
 		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {

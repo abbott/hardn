@@ -737,6 +737,14 @@ func TestApply(t *testing.T) {
 		t.Errorf("its mode: %+v, %v", p.Changes, p.Err())
 	}
 
+	// The file right, its owner not.
+	l = liveOn(t, site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "allow", port: "22"}, {action: "allow", port: "80", app: "Web"}}}})
+	l.AddFile(ufw.ProfileFile, ufw.ProfileBytes([]ufw.Profile{{Name: web.Name, Title: web.Title, Description: web.Description, Ports: web.Ports}}), 0o644, 1000, 0)
+	_, p = planOn(t, l, firewall.ActionApplyProfiles, remote22, &config.Config{UfwAppProfiles: []config.UfwAppProfile{web}})
+	if p.Err() != nil || len(p.Changes) != 1 || len(p.Changes[0].Backups) != 1 {
+		t.Errorf("its owner: %+v, %v", p.Changes, p.Err())
+	}
+
 	// Kept since the plan: ufw says so, and the journal holds no delete.
 	l = liveOn(t, site{plat: debian13(), ufw: allow22})
 	e, p = planOn(t, l, firewall.ActionApplyProfiles, remote22, &config.Config{UfwAppProfiles: []config.UfwAppProfile{web}})
@@ -950,6 +958,9 @@ func TestReadFirst(t *testing.T) {
 		"not in effect, active":   {site{plat: debian13(), ports: []uint16{2230}, bound: stale22, ufw: allow22}, firewall.ItemEnable, true},
 		"Proxmox VE":              {site{plat: pve9(), pve: pf{cluster: "[OPTIONS]\nenable: 1\n"}}, firewall.ItemNone, false},
 		"Proxmox not established": {site{plat: debian13(), ufw: allow22, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{} }}, firewall.ItemEnable, false},
+		"a status row not read":   {site{plat: debian13(), ufw: fw{active: true, table: rows("22/tcp", "ALLOW IN", "Anywhere") + "garbage ALLOW\n"}}, firewall.ItemEnable, true},
+		"no Logging line":         {site{plat: debian13(), ufw: fw{fail: &hostfake.Response{Stdout: "Status: active\nDefault: deny (incoming), allow (outgoing), disabled (routed)\n"}}}, firewall.ItemEnable, false},
+		"ufw status fails":        {site{plat: debian13(), ufw: fw{fail: &hostfake.Response{Stderr: "ERROR: You need to be root to run this script\n", ExitCode: 1}}}, firewall.ItemEnable, false},
 	} {
 		t.Run(name, func(t *testing.T) {
 			l := liveOn(t, tc.s)
@@ -958,6 +969,30 @@ func TestReadFirst(t *testing.T) {
 				t.Errorf("item %d, beside %t", r.First, r.DisableBeside)
 			}
 		})
+	}
+}
+
+// TestReadProxmoxUnknown: with Proxmox VE not established nothing below it is
+// read, sshd and ss included.
+func TestReadProxmoxUnknown(t *testing.T) {
+	l := liveOn(t, site{plat: debian13(), ufw: allow22, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{} }})
+	r := firewall.Read(context.Background(), l, l.facts, nil, remote22)
+	if !errors.Is(r.PlanErr, ufw.ErrProxmoxUnknown) || r.Sockets.Read {
+		t.Errorf("reading %+v", r)
+	}
+	if runs := l.Runs(); len(runs) != 0 {
+		t.Errorf("ran %q", runs)
+	}
+}
+
+// TestApplied: a saved application rule by its name, a space in it as ufw holds
+// it ([I]: docs/safety/ufw.md §3).
+func TestApplied(t *testing.T) {
+	r := firewall.Reading{State: ufw.State{Rules: []ufw.Rule{{App: "Web"}, {App: "Mail%20Server"}}}}
+	for name, want := range map[string]bool{"Web": true, "Mail Server": true, "DNS": false} {
+		if got := r.Applied(name); got != want {
+			t.Errorf("%s: %t", name, got)
+		}
 	}
 }
 
@@ -1187,20 +1222,57 @@ func TestInstallRefusals(t *testing.T) {
 	})
 }
 
-// TestInstallFails: a failed install keeps its undo in the journal's rollback,
-// and an install that does not read as installed is refused as such.
+// TestInstallFails: a failed install is rolled back by its tool, whether the
+// command failed or did not read as installed, by the journal's undo replaced with
+// Report.Undo; one not found has done nothing, and has nothing to undo.
 func TestInstallFails(t *testing.T) {
-	l := installOn(t, debian13(), aptSim)
-	inner := l.Handler
-	l.Handler = func(argv []string, stdin []byte) hostfake.Response {
-		if strings.Join(argv, " ") == "apt-get install -y ufw" {
-			return hostfake.Response{Stdout: "ufw installed\n"} // and it isn't
-		}
-		return inner(argv, stdin)
+	for name, tc := range map[string]struct {
+		plat      platform
+		sim       hostfake.Response
+		cmd, undo string
+		answer    hostfake.Response
+		code      string
+		undone    bool
+	}{
+		"apt: not read as installed": {debian13(), aptSim, "apt-get install -y ufw", "apt-get remove -y ufw", hostfake.Response{Stdout: "ufw installed\n"}, "PACKAGE_VERIFY_FAILED", true},
+		"apk: not read as installed": {alpine324(), apkSim, "apk add ufw", "apk del ufw", hostfake.Response{Stdout: "ufw installed\n"}, "PACKAGE_VERIFY_FAILED", true},
+		"apt: the command fails":     {debian13(), aptSim, "apt-get install -y ufw", "apt-get remove -y ufw", hostfake.Response{Stderr: "E: Sub-process failed\n", ExitCode: 100}, "", true},
+		"apt: not found":             {debian13(), aptSim, "apt-get install -y ufw", "apt-get remove -y ufw", hostfake.Response{Err: host.ErrNotFound, ExitCode: -1}, "", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			l := installOn(t, tc.plat, tc.sim)
+			inner := l.Handler
+			l.Handler = func(argv []string, stdin []byte) hostfake.Response {
+				if strings.Join(argv, " ") == tc.cmd {
+					return tc.answer
+				}
+				return inner(argv, stdin)
+			}
+			e, p := planOn(t, l, firewall.ActionInstall, console, nil)
+			_, err := e.Apply(context.Background(), p)
+			if err == nil {
+				t.Fatal("no failure")
+			}
+			if tc.code != "" && (!errors.Is(err, packages.ErrVerify) || output.CodeOf(err) != tc.code) {
+				t.Errorf("apply: %v", err)
+			}
+			var ran []string
+			for _, argv := range l.Runs() {
+				ran = append(ran, strings.Join(argv, " "))
+			}
+			if got := slices.Contains(ran, tc.undo); got != tc.undone {
+				t.Errorf("undo %q ran %t, want %t: %q", tc.undo, got, tc.undone, ran)
+			}
+		})
 	}
-	e, p := planOn(t, l, firewall.ActionInstall, console, nil)
-	if _, err := e.Apply(context.Background(), p); !errors.Is(err, packages.ErrVerify) || output.CodeOf(err) != "PACKAGE_VERIFY_FAILED" {
-		t.Errorf("apply: %v", err)
+}
+
+// TestInstallNames: the plan says the other new packages the simulation lists.
+func TestInstallNames(t *testing.T) {
+	sim := hostfake.Response{Stdout: "Inst iptables (1.8.11-2 Debian:13.7/stable [amd64])\nInst ufw (0.36.2-9 Debian:13.7/stable [all])\nConf iptables (1.8.11-2 Debian:13.7/stable [amd64])\nConf ufw (0.36.2-9 Debian:13.7/stable [all])\n"}
+	_, p := planOn(t, installOn(t, debian13(), sim), firewall.ActionInstall, console, nil)
+	if p.Err() != nil || p.Changes[0].StateAfter != "installed, inactive, with iptables" {
+		t.Errorf("plan: %v, %+v", p.Err(), p.Changes)
 	}
 }
 
