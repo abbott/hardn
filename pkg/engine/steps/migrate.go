@@ -75,7 +75,7 @@ func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix
 	var out []engine.Change
 	switch {
 	case fw != nil && !fw.Empty():
-		out = append(out, firewallChange(prefix+"/firewall", *fw))
+		out = append(out, firewallChange(prefix+"/firewall", *fw, engine.RiskLockout))
 	case fw != nil:
 		files.Findings = append(files.Findings, ufwFindings(fw.Findings)...)
 	}

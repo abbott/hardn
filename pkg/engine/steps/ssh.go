@@ -135,7 +135,7 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 	}
 	switch {
 	case fw != nil && !fw.Empty():
-		out = append(out, firewallChange(s.Prefix+"/firewall", *fw))
+		out = append(out, firewallChange(s.Prefix+"/firewall", *fw, engine.RiskLockout))
 	case fw != nil:
 		files.Findings = append(files.Findings, ufwFindings(fw.Findings)...)
 	}

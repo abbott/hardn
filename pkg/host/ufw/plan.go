@@ -43,11 +43,11 @@ type Input struct {
 type StepKind uint8
 
 const (
-	StepAllow   StepKind = iota + 1 // ufw allow <port>/tcp
-	StepDefault                     // ufw default <policy> incoming|outgoing
-	StepEnable                      // ufw --force enable
-	StepDisable                     // ufw disable (PlanDisable)
-	StepAllowApp                    // ufw allow from any to any app <name> (PlanApps)
+	StepAllow    StepKind = iota + 1 // ufw allow <port>/tcp
+	StepDefault                      // ufw default <policy> incoming|outgoing
+	StepEnable                       // ufw --force enable
+	StepDisable                      // ufw disable (PlanDisable)
+	StepAllowApp                     // ufw allow from any to any app <name> (PlanApps)
 )
 
 var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app"}

@@ -297,7 +297,9 @@ func TestReadBoot(t *testing.T) {
 		}
 	}
 	h := hostfake.New(host.Options{})
-	h.Handler = func([]string, []byte) hostfake.Response { return hostfake.Response{Stderr: "Failed to connect to bus\n", ExitCode: 1} }
+	h.Handler = func([]string, []byte) hostfake.Response {
+		return hostfake.Response{Stderr: "Failed to connect to bus\n", ExitCode: 1}
+	}
 	if got := ufw.ReadBoot(ctx, h, systemd); got != detect.Unknown {
 		t.Errorf("no bus: %v", got)
 	}
