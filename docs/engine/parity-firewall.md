@@ -8,21 +8,28 @@ Unit (d) deletes `pkg/menu/firewall_menu.go`, the UFW repository and `-w`'s path
 
 ## 2. Method
 
-- **origin/main, read in place** from `pkg/characterization/testdata/golden`, by a reader beside the test (`legacy_read_test.go`, `Slice.Reader`), which fails on any header, section, call, command or trailer line it does not compare (`TestReaderRefuses`):
-  - `menu/firewall_*.golden` (49): `Start:`, `KNOWN-DEFECT` and `NOTE` lines, the screen, the repository's calls, ufw as the fixture ends, the files after, `./hardn.yml` as written. Of the screen it takes the result lines alone (a `✗`, the stub's line, `[DRY-RUN]`, a y/n question); drawn rows and words are unit (c)'s, not compared. The calls are replayed from `Start:` and held to the fixture's end, and the files after to the writes.
-  - `ops/configure_secure_firewall/` and `ops/configure_secure_firewall_profiles/` (8), its dry-run section and `hardn -n` refusal too. Their fixture's ufw answers everything, its start unsaid: the new path's host holds ufw installed and inactive.
+- **origin/main, read in place** from `pkg/characterization/testdata/golden`, by a reader beside the test (`legacy_read_test.go`, `Slice.Reader`), which fails on any header, section, fixture, call, command, `-n` trace or trailer line it does not compare, and on a section left out (`TestReaderRefuses`):
+  - `menu/firewall_*.golden` (49): the `Start:` line (any other header line it knows by its prefix and does not read; the harness takes V-numbers from `KNOWN-DEFECT` and `FIXED`), the screen, the repository's calls, ufw as the fixture ends, the files after, `./hardn.yml` as written. Of the screen it takes the result lines alone (a `✗`, the stub's line, `[DRY-RUN]`, a y/n question); drawn rows and words are unit (c)'s, not compared. The calls are replayed from `Start:` and held to the fixture's end, and the files after to the writes.
+  - `ops/configure_secure_firewall/` (4), `hardn -w`, its dry-run section and `hardn -n` refusal too. Its start holds a profile, and origin/main's `-w` passes none (`cmd/hardn/main.go:418`, read), nor does the new one: no `-w` applies a profile.
+  - `ops/configure_secure_firewall_profiles/` (4), menu item 2 with a profile, which no flag reaches (its header): the row `item2-profile`, Enable then Apply. Its dry-run section, which the menu skips (its `NOTE`), is not compared; `dry-configure` is that item's dry run.
+  - Both ops layouts' fixture ufw answers everything, its start unsaid: the new path's host holds ufw installed and inactive.
+- **The origin/main column is the goldens', which are origin/main plus the trunk's gates** (gallery-firewall.md §2; each golden's header): add and remove refused under plan only (slice 2b; origin/main saved `./hardn.yml` under dry run); ufw changes refused on Proxmox VE (P0.8; on origin/main ufw ran, V10); `hardn -n` with an operation flag refused (P0.8; on origin/main it ran live, V1); the pauses (DEV-050). §4's cells show the gate; their why-lines say what origin/main did.
 - **The fixture's ufw takes `ufw reset` as done**, which probably aborts on a real host (V9's correction, [I]). "Rules after" is the fixture's outcome, not a host's. `ufw disable`, and a failure after it, stand either way.
-- **The new path**, as unit (c) is to run it (`parity_test.go`, `host_test.go`): `firewall.Read` for what the screen would offer or refuse; then the action's `Incoming` through `screenkit.Session.Change` on `hostfake`, answered y/N where plain and with the hostname typed where lockout-risk, the timer checked armed. Refused: said before asking, nothing planned. Under plan only: stops at the plan. The driver is this test's until unit (c).
+- **The new path**, as unit (c) is to run it (`parity_test.go`, `host_test.go`): `firewall.Read` for what the screen would offer or refuse; then the action's `Incoming` through `screenkit.Session.Change` on `hostfake`, answered y/N where plain and with the hostname typed where lockout-risk, the timer checked armed. Refused: said before asking, nothing planned; where no item leads to the action (Proxmox VE's rows, `no-ufw-item2`) the cell says so, the control's plan and no screen path (§7). Under plan only: stops at the plan. The driver is this test's until unit (c).
 - **`-w`'s new form:** `Incoming{ActionEnable}` through the engine, as `runControls` builds it, in every cell equal to the screen's Enable (checked). **Decision 4's question comes in unit (d):** on a terminal the hostname typed, off a terminal a refusal. The rows say the timer is armed and the question is to come; neither is claimed run.
 - **The same start:** each cell's host is held to its golden's (`Cell.LegacyStart`): ufw's state, `cfg.SshPort`, the profiles, from a loaded `hardn.yml` (`testdata/fixtures`). The golden does not say where sshd is, so the row does: on `cfg.SshPort`, 2230, but `configure`, whose golden seeds `Port 22` and whose cell note says so.
-- **Rows and cells:** 33 rows, 42 cells, every menu golden on Debian 13 (Proxmox VE's on Proxmox VE 9). Install alone also runs on the others, as its plan differs by host (`apt-get`, `apk add`, refused). `-w`'s two run on all four. Alpine's stock shape has its own: `install-stock` (no ufw in apk's index), `w-stock` (no `ss`). Enable, Disable, Apply and the saves plan alike on every host off Proxmox VE, which `w`'s cells show for Enable.
+- **Rows and cells:** 33 rows, 42 cells, every menu golden on Debian 13 (Proxmox VE's on Proxmox VE 9). Install alone also runs on the others, as its plan differs by host (`apt-get`, `apk add`, refused). `w` and `item2-profile` run on all four. Alpine's stock shape has its own: `install-stock` (no ufw in apk's index), `w-stock` (no `ss`). Enable differs on Alpine (`rc-update add ufw default`, `/etc/init.d/hardn-boot`). Disable and the saves are not run off Debian 13.
 - **Not rows** (`TestParityGoldens` holds each of the 57 goldens a row or a not-row, `notRows` with why): each ran no change.
   - Unit (c)'s, drawn: `firewall_open_active_no_rule`, `_inactive`, `_not_installed`, `_profiles`, `_active_rules_never_listed` and its two `_listed_*` sides (defect 6; P-30 (b)), `firewall_profiles_none`, `_two`.
   - Unit (c)'s, a key: `firewall_invalid_key`, `_return_0`, `_quit_q`, `firewall_profiles_invalid`, `_quit_q`, `_hidden_items_none_to_act_on`.
   - `firewall_profiles_not_installed_hidden_still_runs`: opened and left; whether the sub-screen opens with no ufw is unit (c)'s. `firewall_profiles_remove_bad_number`: nothing saved; Remove's Select refuses at the field.
   - `firewall_open_status_fails_reads_inactive`, `firewall_open_port_22_warns`, `firewall_open_port_2230_while_sshd_says_22`: drawn, but what they show differs (§5, `TestOpenDifferences`).
-- **Aspects compared:** the refusal (none, the code and "before asking", `failed:`, origin/main's words); `commands`, the ufw commands in order; what they leave, `ufw after`, `default policy`, `rules after`; `SSH rule added`, by which port; `rule comment`, `how ufw starts`; `at boot`; `packages`; `files`, path and mode, `profile file` content, `write`, in place or atomic; `hardn.yml`, which file, the key, the other settings, the rest; `asks`, none, y/N, or the hostname typed and the timer; `plan names` under plan only; `backup`, `journal`, `findings`; `dry run` for `-w`.
-- **Recorded, not compared:** commands that only read (`probes:`); the revert timer's commands, which `asks` says. **Not compared:** drawn rows and words (unit (c)); exit statuses (unit (d), V25); a file's owner, not in the goldens. The default policy agrees in every cell because no start holds another, [I] ufw's stock; the control's tests hold `allow-policy`.
+- **Aspects compared:** the refusal (none, the code and "before asking", `failed:`, origin/main's words); `commands`, the ufw commands in order; what they leave, `ufw after`, `rules after`; `SSH rule added`, by which port, and `rule comment`, `how ufw starts`, none for a command that failed; `at boot`; `packages`; `files`, path and mode, `profile file` content, `write`, in place or atomic; `hardn.yml`, which file, the key, the other settings, the rest; `asks`, none, y/N, or the hostname typed and the timer; `plan names` under plan only; `backup`, `journal`, `findings`; `dry run` for `-w`.
+- **Recorded, not compared:** commands that only read (`probes:`); the revert timer's and the boot unit's commands, each by its whole form (`timerForm`), which `asks` says. Any other command fails the test. **Not compared:**
+  - drawn rows and words (unit (c)); the pauses and defects 8 and 9 (unit (c));
+  - exit statuses (unit (d), V25); a file's owner, not in the goldens;
+  - `./hardn.yml`'s mode, not in the goldens: 0644 on origin/main (`config.go:491`, read); the `0600` of `add` and `remove` is this test's `AddFile`;
+  - the default policy: no golden says what a start held. origin/main's commands set deny incoming and allow outgoing whatever the host holds; Enable plans deny incoming and leaves outgoing (Made here), so a host whose outgoing policy is not allow keeps it (§5). The control's tests hold `allow-policy`.
 - **The table is a test:** `fwTable` keys every difference by scenario, cell and aspect, with its source and one line. `TestParity` fails on an unlisted difference (UNEXPLAINED), a stale entry and a V-number the cell's golden does not name.
 - **Mutation-checked** (run at this unit's tip, each through `go test -overlay`, nothing in the repository changed; goldens from a changed copy):
   1. `disable`'s `commands` entry removed: UNEXPLAINED;
@@ -37,9 +44,11 @@ Unit (d) deletes `pkg/menu/firewall_menu.go`, the UFW repository and `-w`'s path
   10. V9 taken from `firewall_item2_active_rules_are_reset`: "does not name";
   11. the profile file's mode 0640 in `firewall_item2_profiles`: UNEXPLAINED, `mode`;
   12. `-w` planning Disable: "the screen's Enable left … -w left";
-  13. the pending `how ufw starts` entry made explained, and the control's Proxmox VE gate dropped: only `parity.golden` and the page fail (limit 1; `ufw.Read` refuses Proxmox VE again below it, so no ufw call).
+  13. the pending `how ufw starts` entry made explained, and the control's Proxmox VE gate dropped: only `parity.golden` and the page fail (limit 1; `ufw.Read` refuses Proxmox VE again below it, so no ufw call);
+  14. `sh -c "ufw reset"` and `rc-service ufw stop` at the top of `ufw.Execute`: `unexpected command`, each;
+  15. the fake finding no profile file: Apply's allow exits 1, and `profiles` fails.
 - **Its limits:** (1) a difference already tied whose values change fails only on `parity.golden` and the page, which `make golden-update` accepts: the review of that diff is the guard; (2) the driver is this test's, not a screen, until unit (c); (3) ufw's answers are a model, in `plan_test.go`'s shape, not captured.
-- **Size:** `internal/parity` 14 lines added, 7 removed (5 of them its package comment), its tests 19 and 4; `pkg/screens/firewall` 1,789 lines of test (`parity_test.go` 981, above Environment's 899, its reader 488 and its host 320 where Environment's are the harness's and a sudoers file).
+- **Size:** `internal/parity` 14 lines added, 7 removed (5 of them its package comment), its tests 19 and 4; `pkg/screens/firewall` 1,892 lines of test (`parity_test.go` 1,002, above Environment's 899, its reader 534 and its host 356 where Environment's are the harness's and a sudoers file).
 
 ## 3. Host states
 
@@ -218,13 +227,14 @@ Each is intended unless §6 lists it.
 
 | What goes | Where | Source |
 |---|---|---|
-| `ufw disable`, `ufw reset`, restating the default policies before the allow: saved rules stay | `enable`, `configure`, `active-rules`, `fails`, `w*` | V9; defect 1; Made here |
-| Item 2, "Configure firewall", the same sequence | `configure`, `profiles`, `no-ufw-item2` | Made here |
+| `ufw disable`, `ufw reset` before the allow: saved rules stay | `enable`, `configure`, `active-rules`, `fails`, `w*`, `item2-profile` | V9; defect 1; Made here |
+| `ufw default allow outgoing`, whatever the host holds: an outgoing policy that is not allow now stays, which no cell's start holds | `commands` of the same rows | Made here |
+| Item 2, "Configure firewall", the same sequence | `configure`, `profiles`, `item2-profile`, `no-ufw-item2` | Made here |
 | Allowing `cfg.SshPort` regardless of sshd | `configure` | V9; defect 2; decision 2 |
-| Applying profiles with Enable or `-w` | `profiles`, `w-profiles` | decision 3 (a) |
+| Applying profiles in Enable's sequence, items 1 and 2; now Apply alone. `-w` applies none, on either path | `profiles`, `item2-profile` | decision 3 (a) |
 | Saving to `./hardn.yml` in the working directory, the whole configuration | `add`, `remove` | defect 12 |
 | A port checked by its slash, and saved | `add-slash` | defect 11; §6 |
-| Refusing Add and Remove under plan only | `dry-add`, `dry-remove` | Made here |
+| Saving `./hardn.yml` under plan only, origin/main's (the goldens' `NOTE`), and the trunk's refusal since slice 2b: each now stops at its plan | `dry-add`, `dry-remove` | Made here |
 | **Drawn only, named here:** a failing `ufw status` reading Inactive, the "Error getting firewall status" branch unreachable; now ufw's state is not established and Enable refuses, `UFW_STATE_UNKNOWN` | `firewall_open_status_fails_reads_inactive` | defect 7; §6's words |
 | **Drawn only, named here:** SSH Port from `cfg.SshPort`, warned at 22, "good security" otherwise; now what `sshd -T` and `ss` read | `firewall_open_port_22_warns`, `_2230_while_sshd_says_22` | defect 2; §6 |
 | **UNEXPLAINED:** the SSH rule's comment; `yes \| ufw enable`; a comma in a profile's ports; a name refused in another case; `hardn -n -w` refused | §6 | none |
@@ -237,22 +247,24 @@ No source the table may cite says these. Each is carried as `Tie.Pending`, marke
 
 | Difference | Cells | Evidence | Proposed |
 |---|---|---|---|
-| The SSH rule's comment, `SSH access`, goes (`rule comment`) | `enable`, `configure`, `active-rules`, `fails`, `profiles`, `w`, `w-profiles` | `firewall_manager.go:47` (a golden's note, read); `steps.PlanUFWEnable` passes none (run) | gallery-firewall.md §3, Enable's commands; docs/safety/ufw.md §2 item 7 |
-| `sh -c "yes \| ufw enable"` becomes `ufw --force enable` (`how ufw starts`) | `enable`, `configure`, `profiles`, `w`, `w-profiles` | docs/safety/ufw.md §3 says `enable` prompts under SSH unless `--force` (read) | that section |
+| The SSH rule's comment, `SSH access`, goes (`rule comment`) | `enable`, `configure`, `active-rules`, `profiles`, `w`, `item2-profile` | `firewall_manager.go:47` (a golden's note, read); `steps.PlanUFWEnable` passes none (run) | gallery-firewall.md §3, Enable's commands; docs/safety/ufw.md §2 item 7 |
+| `sh -c "yes \| ufw enable"` becomes `ufw --force enable` (`how ufw starts`) | `enable`, `configure`, `profiles`, `w`, `item2-profile` | docs/safety/ufw.md §3 says `enable` prompts under SSH unless `--force` (read) | that section |
 | A profile's ports join by `\|`, not a comma (`profile file`) | `profiles` | `ports=80/tcp,443/tcp` against `ports=80/tcp\|443/tcp` (run); whether ufw reads the comma is [I] | gallery-firewall.md §7's finding; ufw-framework(8) [I] |
 | A name held in another case: `webserver` beside `WebServer` is refused on origin/main (`strings.EqualFold`, `firewall_menu.go:450`, read), saved here (`profilesOf` compares exactly; the gallery's form too) | `add-case`: `refusal`, `hardn.yml`, `backup`, `journal`, `asks` | `firewall_profiles_add_duplicate_name` against this run | control-firewall.md's "a profile name used twice is refused", read as exact; or make `profilesOf` and the form ignore case |
-| `hardn -n -w` is refused with exit status 2 (V1) or, for `w-profiles`' golden, the menu skips the call; `runControls` shows the plan alone | `w`, `w-profiles` on Debian 13, Ubuntu 26.04, Alpine 3.23 | the ops goldens; `cmd/hardn/dns.go`'s `runControls` (read); decision 4 says nothing of `-n` | as `-e` (gallery-environment.md's Made here) |
+| `hardn -n -w` ran live on origin/main (V1) and is refused with exit status 2 by the trunk's P0.8 gate; `runControls` shows the plan alone, or its refusal. If the refusal stays, every cell changes | `w` on all four, `w-stock` | the ops goldens; `cmd/hardn/dns.go`'s `runControls` (read); decision 4 says nothing of `-n` | as `-e` (gallery-environment.md's Made here) |
 
 ## 7. For unit (c)
 
-**What the screen must leave equal:** every cell's end state, through `firewall.Read`, then each item's `Session.Change`. Point `screenRun` at the screen's `Run`, typing what it types, and keep the table: nothing here should change but `Via`. Hold in particular:
+**What the screen must leave equal:** every cell's end state, through `firewall.Read`, then each item's `Session.Change`. Point `screenRun` at the screen's `Run`, typing what it types, and keep the table. `Via` changes, and the cells below; no other cell should. Hold in particular:
 
 - Enable through the flow, the hostname typed; Disable and Install y/N. Disable beside Enable where item 1 is not it: `disable`'s start, active with no rule on sshd's port, has `First` Enable and `DisableBeside`.
 - Apply refused by planning `ActionApplyProfiles` first (`apply`, `dry-apply`): `Reading` does not hold it.
 - Under plan only, every item stops at its plan; Add and Remove too.
 - Proxmox VE: Return alone, no ufw call, the warning row where `PVEUFWEnabled` is Yes.
 
-**What the table gains:** the drawn rows and words of §2's not-rows, in the screen's own golden; Add's form refusing at the field in `add-bad-port`, `add-no-name`, `add-no-ports` and `add-slash`, which plan here; `firewall_profiles_remove_bad_number` as a row through its Select; what opens with no ufw (`firewall_profiles_not_installed_hidden_still_runs`). Item 2 hidden and still running is gone with Made here's item 2: a test should hold that key.
+**Cells that change, as no key leads to the action:** `pve-item1`, `pve-item2`, `pve-active`, `install` and `item2-profile` on Proxmox VE (Return alone), and `no-ufw-item2` (item 2 gone). Each `refusal` here, "no item: the control's plan", and `pve-active`'s `asks` are not a screen path (`onPVE`, `hidden` in `screenRun`): at unit (c) each row becomes what its key does, the plan's refusal held by the control's tests, and its tie's why-line changes with it. `add-bad-port`, `add-no-name`, `add-no-ports` and `add-slash` change too, below.
+
+**What the table gains:** the pauses (defects 8 and 9); the drawn rows and words of §2's not-rows, in the screen's own golden; Add's form refusing at the field in `add-bad-port`, `add-no-name`, `add-no-ports` and `add-slash`, which plan here; `firewall_profiles_remove_bad_number` as a row through its Select; what opens with no ufw (`firewall_profiles_not_installed_hidden_still_runs`). Item 2 hidden and still running is gone with Made here's item 2: a test should hold that key.
 
 ## 8. For unit (d)
 
@@ -262,7 +274,7 @@ No source the table may cite says these. Each is carried as `Tie.Pending`, marke
 - `ops/configure_secure_firewall*` (8) with their `TestOperationGoldens` cases (`operations_test.go:661`, `:679`);
 - a `TestLegacyRecord` holding each file's bytes, as Environment's. Nothing regenerates them.
 
-**Then:** `-w` on `runControls` with decision 4's question; `TestParity`'s `flagRun` is the end state to keep, and its `asks` row gains the hostname typed; `-n -w` as §6 is answered; exit statuses, not compared here, including V25 (defect 13). **Other callers of the sequence, not rows here (read):** `pkg/application/security_manager.go:58`, Run All's and `-r`'s, with `ufwAllowedPorts`; the repository cannot go while it stands, and it is not this table's to explain.
+**Then:** `-w` on `runControls` with decision 4's question; `TestParity`'s `flagRun` is the end state to keep, and its `asks` row gains the hostname typed; `-n -w` as §6 is answered; exit statuses, not compared here, including V25 (defect 13); decision 8's warning on load, unbuilt (`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` in `pkg/config`, control-firewall.md). **Other callers of the sequence, not rows here (read):** `pkg/application/security_manager.go:58`, Run All's and `-r`'s, with `ufwAllowedPorts`; the repository cannot go while it stands, and it is not this table's to explain.
 
 ## 9. Written, not run (gate 5)
 
