@@ -160,24 +160,30 @@ func read(ctx context.Context, sys host.System) Updates {
 // verbosity, apk(8)). Exit 0 with one of those outputs is Yes, exit 1 with
 // no output on either stream is No; anything else is Unknown.
 func installed(ctx context.Context, sys host.System) (detect.Tri, error) {
-	res, err := sys.Run(ctx, "apk", "info", "-e", Package)
+	return Installed(ctx, sys, Package)
+}
+
+// Installed reads apk info -e for name, by installed's rule: pkg/host/packages
+// shares it.
+func Installed(ctx context.Context, sys host.System, name string) (detect.Tri, error) {
+	res, err := sys.Run(ctx, "apk", "info", "-e", name)
 	var exit *host.ExitError
 	out := strings.TrimSuffix(string(res.Stdout), "\n")
 	switch {
-	case err == nil && (out == "" || out == Package || versioned(out)):
+	case err == nil && (out == "" || out == name || versioned(out, name)):
 		return detect.Yes, nil
 	case errors.As(err, &exit) && exit.ExitCode == 1 && len(res.Stdout) == 0 && len(res.Stderr) == 0:
 		return detect.No, nil
 	case err == nil:
 		err = fmt.Errorf("output %q: %w", res.Stdout, detect.ErrUnrecognised)
 	}
-	return detect.Unknown, fmt.Errorf("apk info -e %s: %w", Package, err)
+	return detect.Unknown, fmt.Errorf("apk info -e %s: %w", name, err)
 }
 
-// versioned: s is Package-<version>, the version starting with a digit,
-// on one line.
-func versioned(s string) bool {
-	v, ok := strings.CutPrefix(s, Package+"-")
+// versioned: s is name-<version>, the version starting with a digit, on one
+// line.
+func versioned(s, name string) bool {
+	v, ok := strings.CutPrefix(s, name+"-")
 	return ok && v != "" && v[0] >= '0' && v[0] <= '9' && !strings.ContainsAny(v, " \n")
 }
 

@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 )
 
@@ -99,9 +100,9 @@ func commands(t Tool, name string) (install, undo, simulate []string, err error)
 }
 
 // Installed reads whether name is installed. Apt is detect.DpkgInstalled's
-// rule. Apk is "apk info -e", by pkg/host/alpine's rule: exit 0 with nothing,
-// the name, or the name and a version is Yes; exit 1 with no output on either
-// stream is No (alpine323-vm.log); anything else is Unknown with the error.
+// rule, apk alpine.Installed's: exit 0 with nothing, the name, or the name and
+// a version is Yes; exit 1 with no output on either stream is No
+// (alpine323-vm.log); anything else is Unknown with the error.
 func Installed(ctx context.Context, sys host.System, t Tool, name string) (detect.Tri, error) {
 	if _, _, _, err := commands(t, name); err != nil {
 		return detect.Unknown, err
@@ -113,23 +114,9 @@ func Installed(ctx context.Context, sys host.System, t Tool, name string) (detec
 		}
 		return tri, nil
 	}
-	res, err := sys.Run(ctx, "apk", "info", "-e", name)
-	var exit *host.ExitError
-	out := strings.TrimSuffix(string(res.Stdout), "\n")
-	switch {
-	case err == nil && (out == "" || out == name || versioned(out, name)):
-		return detect.Yes, nil
-	case errors.As(err, &exit) && exit.ExitCode == 1 && len(res.Stdout) == 0 && len(res.Stderr) == 0:
-		return detect.No, nil
-	case err == nil:
-		err = fmt.Errorf("output %q: %w", res.Stdout, detect.ErrUnrecognised)
+	tri, err := alpine.Installed(ctx, sys, name)
+	if err != nil {
+		return tri, fmt.Errorf("packages: %w", err)
 	}
-	return detect.Unknown, fmt.Errorf("packages: apk info -e %s: %w", name, err)
-}
-
-// versioned: s is name-<version>, the version starting with a digit, on one
-// line.
-func versioned(s, name string) bool {
-	v, ok := strings.CutPrefix(s, name+"-")
-	return ok && v != "" && v[0] >= '0' && v[0] <= '9' && !strings.ContainsAny(v, " \n")
+	return tri, nil
 }
