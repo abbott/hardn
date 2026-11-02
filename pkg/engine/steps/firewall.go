@@ -104,10 +104,10 @@ func ufwTitle(p ufw.Plan) string {
 // (StageFirewall): its default and enable undos journalled before it runs
 // (Plan.PreUndo), and once it ran, error or not, the undos of what it did
 // (Report.Undo, from ufw's answers: an allow ufw kept is not deleted), which
-// the engine journals under a context without the apply's cancellation. An
-// SSH change's and Enable's are lockout-risk; Disable's cannot lock anyone out
-// (decision 6).
-func firewallChange(id string, p ufw.Plan, risk engine.RiskClass) engine.Change {
+// the engine journals under a context without the apply's cancellation. It is
+// lockout-risk; PlanUFWDisable's, which cannot lock anyone out (decision 6), says
+// otherwise.
+func firewallChange(id string, p ufw.Plan) engine.Change {
 	var argvs [][]string
 	for _, s := range p.Steps {
 		argvs = append(argvs, s.Argv)
@@ -115,7 +115,7 @@ func firewallChange(id string, p ufw.Plan, risk engine.RiskClass) engine.Change 
 	c := engine.Change{
 		ID: id, Summary: "Firewall: " + strings.Join(formatArgvs(argvs), "; "), Title: ufwTitle(p), Target: "ufw", Commands: formatArgvs(argvs),
 		StateBefore: activeWord(p, false), StateAfter: activeWord(p, true),
-		Risk: risk, Stage: engine.StageFirewall, Findings: ufwFindings(p.Findings),
+		Risk: engine.RiskLockout, Stage: engine.StageFirewall, Findings: ufwFindings(p.Findings),
 		Rollback: engine.Undo{Steps: runSteps(firewallWhy, p.PreUndo())},
 	}
 	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
@@ -167,7 +167,7 @@ func (st sshState) enableUFW(ctx context.Context, sys host.System, prefix string
 	if err != nil || p.Empty() {
 		return nil, err
 	}
-	return claim([]engine.Change{firewallChange(prefix+"/firewall", *p, engine.RiskLockout)}), nil
+	return claim([]engine.Change{firewallChange(prefix+"/firewall", *p)}), nil
 }
 
 // PlanUFWDisable plans "ufw disable": one plain change, id prefix+"/disable",
@@ -184,9 +184,9 @@ func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefi
 	if err != nil || p.Empty() {
 		return nil, err
 	}
-	c := firewallChange(prefix+"/disable", p, engine.RiskPlain)
+	c := firewallChange(prefix+"/disable", p)
 	const title = "Disable ufw"
-	c.Summary, c.Title, c.Resources = title, title, []string{ResourceUFW}
+	c.Summary, c.Title, c.Risk, c.Resources = title, title, engine.RiskPlain, []string{ResourceUFW}
 	return []engine.Change{c}, nil
 }
 

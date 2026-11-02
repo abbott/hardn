@@ -560,6 +560,19 @@ func TestEngineRollsBack(t *testing.T) {
 // holds one copy of each file, not p2drive's two. On the socket host the
 // journal's reload names listen.conf as restored and holds the socket's
 // listener before the change.
+// TestFirewallChangeRisk: the ufw change of an SSH port's plan is lockout-risk by
+// itself, whatever else the plan holds.
+func TestFirewallChangeRisk(t *testing.T) {
+	p, _, err := newVM(t).viaEngine(context.Background(), debian13, port2230())
+	if err != nil {
+		t.Fatal(err)
+	}
+	i := slices.IndexFunc(p.Changes, func(c engine.Change) bool { return c.ID == "ssh/firewall" })
+	if i < 0 || p.Changes[i].Risk != engine.RiskLockout {
+		t.Errorf("changes %+v", p.Changes)
+	}
+}
+
 func TestEngineMigrate(t *testing.T) {
 	t.Run("Debian 13", func(t *testing.T) {
 		v := v032Debian(t)
