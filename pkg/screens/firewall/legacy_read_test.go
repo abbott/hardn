@@ -163,7 +163,7 @@ func (r *run) rows(installed bool, asks string) []parity.Row {
 			ufw = "active"
 		}
 	}
-	return endRows(ufw, rulesAfter(r.lines, r.rules), r.s.Actions, asks)
+	return endRows(ufw, rulesAfter(r.lines, r.rules), r.s.Actions, r.failed, asks)
 }
 
 // readMenu reads the menu layout.
