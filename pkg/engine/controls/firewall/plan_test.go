@@ -945,6 +945,8 @@ func TestReadChangesNothing(t *testing.T) {
 // TestReadFirst: item 1 as the gallery's first() has it.
 func TestReadFirst(t *testing.T) {
 	ctx := context.Background()
+	noSS := debian13()
+	noSS.noSS = true
 	for name, tc := range map[string]struct {
 		s      site
 		first  firewall.Item
@@ -956,6 +958,7 @@ func TestReadFirst(t *testing.T) {
 		"allow policy":            {site{plat: debian13(), ufw: fw{active: true, incoming: "allow", rules: allow("22")}}, firewall.ItemEnable, true},
 		"refused":                 {site{plat: debian13(), ufw: on}, firewall.ItemEnable, true},
 		"not in effect, active":   {site{plat: debian13(), ports: []uint16{2230}, bound: stale22, ufw: allow22}, firewall.ItemEnable, true},
+		"set, ss not read":        {site{plat: noSS, ufw: allow22}, firewall.ItemEnable, true},
 		"Proxmox VE":              {site{plat: pve9(), pve: pf{cluster: "[OPTIONS]\nenable: 1\n"}}, firewall.ItemNone, false},
 		"Proxmox not established": {site{plat: debian13(), ufw: allow22, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{} }}, firewall.ItemEnable, false},
 		"a status row not read":   {site{plat: debian13(), ufw: fw{active: true, noKernel6: true, table: rows("22/tcp", "ALLOW IN", "Anywhere") + "garbage ALLOW\n"}}, firewall.ItemEnable, true},

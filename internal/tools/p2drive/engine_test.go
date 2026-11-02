@@ -554,12 +554,6 @@ func TestEngineRollsBack(t *testing.T) {
 	}
 }
 
-// TestEngineMigrate: the R8 migration through the engine, on Debian and on
-// Ubuntu's ssh.socket. The engine backs up Plan.Sources and journals them
-// before migrate.Apply, which takes those backups (Options.Taken): the run
-// holds one copy of each file, not p2drive's two. On the socket host the
-// journal's reload names listen.conf as restored and holds the socket's
-// listener before the change.
 // TestFirewallChangeRisk: the ufw change of an SSH port's plan is lockout-risk by
 // itself, whatever else the plan holds.
 func TestFirewallChangeRisk(t *testing.T) {
@@ -573,6 +567,12 @@ func TestFirewallChangeRisk(t *testing.T) {
 	}
 }
 
+// TestEngineMigrate: the R8 migration through the engine, on Debian and on
+// Ubuntu's ssh.socket. The engine backs up Plan.Sources and journals them
+// before migrate.Apply, which takes those backups (Options.Taken): the run
+// holds one copy of each file, not p2drive's two. On the socket host the
+// journal's reload names listen.conf as restored and holds the socket's
+// listener before the change.
 func TestEngineMigrate(t *testing.T) {
 	t.Run("Debian 13", func(t *testing.T) {
 		v := v032Debian(t)

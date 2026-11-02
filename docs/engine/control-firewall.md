@@ -44,6 +44,7 @@ firewall.ReadSockets(ctx, sys, facts) firewall.Sockets        // the one reading
 - Install's state after names the other new packages a simulation adds.
 - Install's undo is journalled before it runs, and replaced by `Report.Undo` after.
 - Other packages are named by the second word of each change the simulation lists, or the change itself when it is one word.
+- `pkg/menu`'s `statusRuns` pin rises by one on three hosts, for the row's read of `ufw.service`: the unit's only change under `pkg/menu`, and no golden.
 - Mock and play notes that named stand-ins changed, so every `play/firewall-*` golden did. No other golden outside the Firewall listing changed.
 
 ## Findings
@@ -51,7 +52,6 @@ firewall.ReadSockets(ctx, sys, facts) firewall.Sockets        // the one reading
 - Apply with no profile left plans nothing: the last one removed stays in the file, and an inactive ufw does not refuse. The sub-screen hides Apply there.
 - `revert.Rollback` restores backups before undos, so rolling back a first Apply runs `ufw delete … app` with the profile file gone. If ufw minds [I], the rollback stops incomplete with the allow left: no lockout.
 - A changed profile's existing rule keeps its old ports without `ufw app update` [I].
-- `TestLiveStatusOnHosts` (`pkg/menu`, protected here) pins the status pass's command count: the row's read of `ufw.service` adds one, so it fails until its `statusRuns` says 29, 32, 29.
 
 ## Words proposed
 

@@ -132,7 +132,7 @@ func PlanApps(st State, names []string, pve detect.Proxmox) (Plan, error) {
 	return p, nil
 }
 
-// appRule: a saved rule has application name. A saved rule's name has its
+// HasApp: a saved rule has application name. A saved rule's name has its
 // spaces as "%20", so that the tuple's fields stay split ([I], from memory of
 // ufw's backend, not run; ParseTuples splits on spaces).
 func HasApp(rules []Rule, name string) bool {
