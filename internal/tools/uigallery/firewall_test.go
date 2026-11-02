@@ -754,8 +754,8 @@ func TestFirewallAtBoot(t *testing.T) {
 	if (r.First == firewall.ItemDisable) || !strings.Contains(fwRefusalText(r), "can't tell if ufw starts at boot") {
 		t.Errorf("unread: set %v, %q", (r.First == firewall.ItemDisable), fwRefusalText(r))
 	}
-	if rev := rowOf(r.enableReview(), fwKeyBoot); rev.State != component.ValueUnknown {
-		t.Errorf("review: %+v", rev)
+	if len(r.Plan) != 0 {
+		t.Errorf("unread: planned %+v", r.Plan)
 	}
 }
 
