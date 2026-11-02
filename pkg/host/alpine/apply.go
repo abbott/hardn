@@ -236,7 +236,7 @@ func simulate(ctx context.Context, sys host.System, argv []string, verb string) 
 	if err != nil {
 		return err
 	}
-	cs := apkChanges(res.Combined)
+	cs := Changes(res.Combined)
 	switch {
 	case len(cs) == 1 && strings.HasPrefix(cs[0], verb+" "+Package+" ("):
 		return nil
@@ -246,11 +246,11 @@ func simulate(ctx context.Context, sys host.System, argv []string, verb string) 
 	return fmt.Errorf("%s: %s: %w", host.FormatArgv(res.Argv), strings.Join(cs, "; "), ErrOtherPackages)
 }
 
-// apkChanges returns the package changes apk's commit lists, one per
+// Changes returns the package changes apk's commit lists, one per
 // line as "(<i>/<n>) <verb> <name> (<version>)", the counter padded with
 // spaces (apk-tools v3.0.8 src/commit.c, print_change), without the
 // counter. Other lines (fetches, warnings, the OK: summary) are skipped.
-func apkChanges(out []byte) []string {
+func Changes(out []byte) []string {
 	var cs []string
 	for _, l := range strings.Split(string(out), "\n") {
 		l = strings.TrimSpace(l)
