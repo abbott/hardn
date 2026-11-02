@@ -74,6 +74,8 @@ func liveOn(t *testing.T, s site) *live {
 		switch {
 		case cmd == l.fail:
 			return hostfake.Response{Stderr: "ERROR: failed\n", ExitCode: 1}
+		case cmd == "ufw status verbose" && l.u.fail != nil:
+			return *l.u.fail
 		case cmd == "systemctl is-enabled ufw.service" && l.u.boot == "":
 			return hostfake.Response{Stdout: "enabled\n"}
 		case cmd == "systemctl is-enabled ufw.service" && l.u.boot != "fail":
@@ -273,6 +275,28 @@ func TestEnableNotInEffect(t *testing.T) {
 				changedNothing(t, l)
 			})
 		}
+	}
+}
+
+// TestEnableSessionNotRead: a remote session whose connection was not read, the
+// form revert.ReadSession returns under tmux, fails closed: its port cannot be
+// kept, even with a socket on 22 as its only clue.
+func TestEnableSessionNotRead(t *testing.T) {
+	const words = "hardn can't tell which port this session uses. Run hardn outside tmux or screen, or from a console, then try again."
+	for name, s := range map[string]site{
+		"no stray": {plat: debian13(), ufw: fw{}},
+		"a stray":  {plat: debian13(), ports: []uint16{2230}, bound: []string{"0.0.0.0:2230", "[::]:2230", "0.0.0.0:22", "[::]:22"}, ufw: fw{}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			l := liveOn(t, s)
+			session := revert.Session{Remote: true, Source: "SSH_TTY"}
+			_, p := planOn(t, l, firewall.ActionEnable, session, nil)
+			refused(t, p, words, steps.ErrSessionPort)
+			changedNothing(t, l)
+			if got := output.CodeOf(p.Items[0].Err); got != "UFW_LISTENERS_UNKNOWN" {
+				t.Errorf("code %s", got)
+			}
+		})
 	}
 }
 
@@ -604,6 +628,43 @@ func TestDisable(t *testing.T) {
 	if _, p = planOn(t, l, firewall.ActionDisable, remote22, nil); p.Err() != nil || len(p.Changes) != 1 {
 		t.Errorf("a saved line not read: %d changes, %v", len(p.Changes), p.Err())
 	}
+}
+
+// TestNoUFW: every action on a host with no ufw says so, in words naming Install,
+// as hardn -w does with no item 1 to show it.
+func TestNoUFW(t *testing.T) {
+	for _, a := range []firewall.Action{firewall.ActionEnable, firewall.ActionDisable, firewall.ActionApplyProfiles} {
+		t.Run(fmt.Sprint("action ", a), func(t *testing.T) {
+			l := liveOn(t, site{plat: debian13(), ufw: fw{missing: true}})
+			_, p := planOn(t, l, a, remote22, &config.Config{UfwAppProfiles: []config.UfwAppProfile{web}})
+			refused(t, p, "ufw isn't installed. Install it, then try again.", ufw.ErrNotInstalled)
+		})
+	}
+}
+
+// TestDisableStateNotRead: Disable reads the status alone. A settings file that
+// cannot be read leaves an active ufw its way off, and a status that cannot be
+// read is refused in the decided words, as Apply is.
+func TestDisableStateNotRead(t *testing.T) {
+	l := liveOn(t, site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.noDefault = true })})
+	r := firewall.Read(context.Background(), l, l.facts, nil, remote22)
+	if r.StateErr == nil || !r.DisableBeside {
+		t.Errorf("read: %v, beside %t", r.StateErr, r.DisableBeside)
+	}
+	if _, p := planOn(t, l, firewall.ActionDisable, remote22, nil); p.Err() != nil || !slices.Equal(commands(p), []string{"ufw disable"}) {
+		t.Errorf("no settings file: %q, %v", commands(p), p.Err())
+	}
+	failing := &hostfake.Response{Stderr: "ERROR: You need to be root to run this script\n", ExitCode: 1}
+	const words = "hardn can't read ufw's state. Check ufw status verbose, then try again."
+	for _, a := range []firewall.Action{firewall.ActionDisable, firewall.ActionApplyProfiles} {
+		l = liveOn(t, site{plat: debian13(), ufw: fw{fail: failing}})
+		_, p := planOn(t, l, a, remote22, &config.Config{UfwAppProfiles: []config.UfwAppProfile{web}})
+		refused(t, p, words, ufw.ErrStateUnknown)
+	}
+	// An inactive ufw with no settings file: not active, so it is refused, not "nothing".
+	l = liveOn(t, site{plat: debian13(), ufw: fw{noDefault: true}})
+	_, p := planOn(t, l, firewall.ActionDisable, remote22, nil)
+	refused(t, p, words, ufw.ErrStateUnknown)
 }
 
 // cfgOn writes hardn.yml on l and reads it, as the screen has it.

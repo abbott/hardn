@@ -153,6 +153,7 @@ steps.ErrNoWriteStrategy SSHD_NO_WRITE_STRATEGY
 steps.ErrNotInEffect SSHD_CHANGE_NOT_IN_EFFECT
 steps.ErrProxmoxRoot PVE_ROOT_LOGIN_NOT_KEPT
 steps.ErrSessionNotKept SSH_CLEANUP_SESSION_NOT_KEPT
+steps.ErrSessionPort UFW_LISTENERS_UNKNOWN
 sudoers.ErrAmbiguous SUDOERS_TOOL_AMBIGUOUS
 sudoers.ErrChanged SUDOERS_CHANGED
 sudoers.ErrEdited SUDOERS_FILE_EDITED

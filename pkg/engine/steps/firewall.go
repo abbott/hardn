@@ -33,6 +33,11 @@ const (
 // firewallWhy is the why of every ufw undo step the journal holds.
 const firewallWhy = "firewall"
 
+// ErrSessionPort: a remote session whose connection was not read, as under tmux,
+// so that starting ufw cannot be shown to keep its port. It wraps
+// ufw.ErrListenersUnknown, of which it is the more specific case.
+var ErrSessionPort = fmt.Errorf("the port this session is connected to is not established: %w", ufw.ErrListenersUnknown)
+
 // planUFW plans ufw's part of a change: listeners, the ones that accept
 // connections now (sshd.ReadEffective's, or a migration's Plan.Listening),
 // and the ports the change adds let through before sshd moves, with the
@@ -55,8 +60,12 @@ func (st sshState) planUFW(ctx context.Context, sys host.System, listeners sshd.
 		return nil, fmt.Errorf("ufw: %w", ufw.ErrNotInstalled)
 	}
 	in := ufw.Input{Proxmox: st.in.Facts.Proxmox, Listeners: listeners, Add: add, State: state}
-	if c, err := revert.ParseConn(st.in.Session.Conn); err == nil {
+	c, cerr := revert.ParseConn(st.in.Session.Conn)
+	switch {
+	case cerr == nil:
 		in.Keep = []uint16{c.Server.Port()}
+	case mode == UFWEnable && st.in.Session.Remote: // fails closed, as inEffect does
+		return nil, fmt.Errorf("%w: %v", ErrSessionPort, cerr)
 	}
 	if mode == UFWEnable {
 		in.Desired = ufw.Desired{Enable: true, Incoming: ufw.PolicyDeny}
@@ -83,8 +92,6 @@ func ufwTitle(p ufw.Plan) string {
 			rest = append(rest, "default policy")
 		case ufw.StepEnable:
 			rest = append(rest, "enable")
-		case ufw.StepDisable:
-			rest = append(rest, "disable")
 		}
 	}
 	if len(ports) > 0 {
@@ -137,7 +144,8 @@ func activeWord(p ufw.Plan, after bool) string {
 // rules for every listener sshd is configured for and for the applying
 // session's port (ufw.md §2.7; p2drive's ufw-enable): one lockout-risk
 // change, id prefix+"/firewall", or none when ufw is already so. The
-// listeners must be established (ufw.ErrListenersUnknown).
+// listeners must be established (ufw.ErrListenersUnknown), and so must a remote
+// session's port (ErrSessionPort).
 func PlanUFWEnable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error) {
 	st, err := readSSH(ctx, sys, in, "")
 	if err != nil {
@@ -164,11 +172,13 @@ func (st sshState) enableUFW(ctx context.Context, sys host.System, prefix string
 
 // PlanUFWDisable plans "ufw disable": one plain change, id prefix+"/disable",
 // which cannot lock anyone out (decision 6), or none on an inactive ufw. Its
-// rules stay saved, and it never resets.
+// rules stay saved, and it never resets. A status read as active is all it
+// needs, so a settings or rule file that cannot be read leaves that way off
+// (ufw.PlanDisable); any other failure to read is ufw.ErrStateUnknown.
 func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error) {
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
-	if err != nil {
-		return nil, err
+	if err != nil && !(st.Status.Known && st.Status.Active) {
+		return nil, ufwStateErr(err)
 	}
 	p, err := ufw.PlanDisable(st, in.Facts.Proxmox)
 	if err != nil || p.Empty() {
@@ -178,6 +188,14 @@ func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefi
 	const title = "Disable ufw"
 	c.Summary, c.Title, c.Resources = title, title, []string{ResourceUFW}
 	return []engine.Change{c}, nil
+}
+
+// ufwStateErr is err, ufw.Read's, as ufw.ErrStateUnknown; Proxmox VE's as it is.
+func ufwStateErr(err error) error {
+	if errors.Is(err, ufw.ErrNotApplicable) || errors.Is(err, ufw.ErrProxmoxUnknown) {
+		return err
+	}
+	return fmt.Errorf("%w: %v", ufw.ErrStateUnknown, err)
 }
 
 // UFWBootChange is the change that adds ufw's service to the boot services,
@@ -221,7 +239,7 @@ const profileMode fs.FileMode = 0o644
 func PlanUFWApps(ctx context.Context, sys host.System, in engine.Input, prefix string, profiles []ufw.Profile) ([]engine.Change, error) {
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil {
-		return nil, err
+		return nil, ufwStateErr(err)
 	}
 	names := make([]string, len(profiles))
 	for i, pr := range profiles {

@@ -53,6 +53,7 @@ const (
 	codeProxmox       = "UFW_PROXMOX_UNKNOWN"
 	codeListeners     = "UFW_LISTENERS_UNKNOWN"
 	codeState         = "UFW_STATE_UNKNOWN"
+	codeNotInstalled  = "UFW_NOT_INSTALLED"
 	codeMismatch      = "UFW_ENABLED_MISMATCH"
 	codeBlocks        = "UFW_WOULD_BLOCK"
 	codeInactive      = "UFW_INACTIVE"
@@ -132,7 +133,7 @@ func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Cha
 	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil {
-		return nil, refusal(ctx, sys, in, fmt.Errorf("%w: %v", ufw.ErrStateUnknown, err))
+		return nil, stateRefusal(fmt.Errorf("%w: %v", ufw.ErrStateUnknown, err))
 	}
 	changes, err := steps.PlanUFWEnable(ctx, sys, in, ID)
 	if err != nil {
@@ -208,10 +209,15 @@ func refusal(ctx context.Context, sys host.System, in engine.Input, err error) e
 		}
 		return &steps.Refusal{Code: codeBlocks, Why: fmt.Sprintf("A saved ufw rule would block SSH on port %d, for some addresses or all", be.Coverage[0].Need.Port),
 			Fix: "remove it with ufw delete, then try again", Err: err}
+	case errors.Is(err, steps.ErrSessionPort):
+		return &steps.Refusal{Code: codeListeners, Why: "hardn can't tell which port this session uses",
+			Fix: "run hardn outside tmux or screen, or from a console, then try again", Err: err}
 	case errors.Is(err, ufw.ErrListenersUnknown):
 		return &steps.Refusal{Code: codeListeners, Why: "hardn can't tell which ports SSH uses", Err: err}
 	case errors.Is(err, ufw.ErrStateUnknown):
-		return &steps.Refusal{Code: codeState, Why: "hardn can't read ufw's state", Fix: "check ufw status verbose, then try again", Err: err}
+		return stateRefusal(err)
+	case errors.Is(err, ufw.ErrNotInstalled):
+		return &steps.Refusal{Code: codeNotInstalled, Why: "ufw isn't installed", Fix: "install it, then try again", Err: err}
 	case errors.Is(err, ufw.ErrInactive):
 		return &steps.Refusal{Code: codeInactive, Why: "ufw isn't running, so hardn saves no rule for it", Fix: "enable the firewall, then apply", Err: err}
 	case errors.Is(err, ufw.ErrEnabledMismatch):
@@ -226,6 +232,11 @@ func refusal(ctx context.Context, sys host.System, in engine.Input, err error) e
 		return &steps.Refusal{Code: codeMismatch, Why: "ufw is running but isn't set to start at boot", Fix: "run ufw enable", Err: err}
 	}
 	return err
+}
+
+// stateRefusal is err, ufw.ErrStateUnknown, in its words.
+func stateRefusal(err error) error {
+	return &steps.Refusal{Code: codeState, Why: "hardn can't read ufw's state", Fix: "check ufw status verbose, then try again", Err: err}
 }
 
 // ipv6Off: ufw refuses c because IPv6 is off in its file, not by any rule.
