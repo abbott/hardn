@@ -189,7 +189,11 @@ func refusal(ctx context.Context, sys host.System, in engine.Input, err error) e
 	case errors.Is(err, ufw.ErrInactive):
 		return &steps.Refusal{Code: codeInactive, Why: "ufw isn't running, so hardn saves no rule for it", Fix: "enable the firewall, then apply", Err: err}
 	case errors.Is(err, ufw.ErrEnabledMismatch):
-		if st, rerr := ufw.Read(ctx, sys, in.Facts.Proxmox); rerr == nil && !st.Status.Active {
+		st, rerr := ufw.Read(ctx, sys, in.Facts.Proxmox)
+		if rerr != nil {
+			return err
+		}
+		if !st.Status.Active {
 			return &steps.Refusal{Code: codeMismatch, Why: "ufw is set to start at boot but isn't running",
 				Fix: "check that its rules let SSH through, then run ufw enable", Err: err}
 		}

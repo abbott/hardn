@@ -758,6 +758,54 @@ func TestEngineCheck(t *testing.T) {
 	}
 }
 
+// TestCheckBoot: an active ufw whose service does not start at boot is "off
+// after restart", as ENABLED=no is, with evidence naming the unit or runlevel,
+// over Configured and the lesser findings; a listener refused, an allow policy
+// and a rule that opens every port stay as they are. Not read, nothing changes.
+func TestCheckBoot(t *testing.T) {
+	alpine := alpine324()
+	alpine.noSS = false
+	const unit, runlevel = "systemctl is-enabled ufw.service: not enabled", "OpenRC: ufw in no runlevel"
+	for _, tc := range []struct {
+		name     string
+		site     site
+		state    engine.State
+		detail   string
+		evidence string
+	}{
+		{"disabled", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "disabled" })}, engine.Partial, "off after restart", unit},
+		{"masked", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "masked" })}, engine.Partial, "off after restart", unit},
+		{"enabled-runtime", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "enabled-runtime" })}, engine.Partial, "off after restart", unit},
+		{"in no runlevel", site{plat: alpine, ufw: with(allow22, func(u *fw) { u.boot = "disabled" })}, engine.Partial, "off after restart", runlevel},
+		{"over an allowlist", site{plat: debian13(), ufw: fw{active: true, noKernel6: true, boot: "disabled", rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}}, engine.Partial, "off after restart", unit},
+		{"a listener refused stays", site{plat: debian13(), ufw: fw{active: true, boot: "disabled"}}, engine.Partial, "ssh blocked", unit},
+		{"an allow policy stays", site{plat: debian13(), ufw: fw{active: true, incoming: "allow", boot: "disabled", rules: allow("22")}}, engine.Partial, firewall.DetailAllowPolicy, unit},
+		{"enabled", site{plat: debian13(), ufw: allow22}, engine.Configured, "deny policy", ""},
+		{"in a runlevel", site{plat: alpine, ufw: allow22}, engine.Configured, "deny policy", ""},
+		{"not read: the bus", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "fail" })}, engine.Configured, "deny policy", ""},
+		{"not read: static", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "static" })}, engine.Configured, "deny policy", ""},
+		{"inactive: not asked", site{plat: debian13(), ufw: fw{boot: "fail"}}, engine.NotConfigured, "inactive", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, facts := tc.site.build(t)
+			st, err := firewall.Incoming{}.Check(context.Background(), h, facts)
+			if err != nil || st.State != tc.state || st.Detail != tc.detail {
+				t.Errorf("%s %q, %v", st.State, st.Detail, err)
+			}
+			if has := slices.Contains(st.Evidence, tc.evidence); has != (tc.evidence != "") {
+				t.Errorf("evidence %q", st.Evidence)
+			}
+			if tc.name == "inactive: not asked" {
+				for _, r := range h.Runs() {
+					if strings.Contains(strings.Join(r, " "), "is-enabled") {
+						t.Errorf("ran %q", r)
+					}
+				}
+			}
+		})
+	}
+}
+
 // TestActionNone: the status list's control plans nothing: Plan is
 // ErrNotMigrated, and a plan with the control is refused with it
 // (CONTROL_NOT_MIGRATED), changing nothing, so that nothing that plans over
