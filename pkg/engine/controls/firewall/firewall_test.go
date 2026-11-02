@@ -107,10 +107,10 @@ func rows(cells ...string) string {
 }
 
 // rule is a saved rule: action on port/tcp from anywhere, in both IP
-// versions, or from src, in IPv4 only.
+// versions, or from src or to dst, in IPv4 only.
 type rule struct {
-	action, port, src string
-	app               string // the application's name, a rule ufw allow app adds
+	action, port, src, dst string
+	app                    string // the application's name, a rule ufw allow app adds
 }
 
 func allow(ports ...string) []rule {
@@ -154,13 +154,16 @@ func (u fw) status() string {
 			from = "Anywhere"
 		}
 		to := r.port + "/tcp"
+		if r.dst != "" {
+			to = r.dst + " " + to
+		}
 		if r.app != "" {
 			to += " (" + r.app + ")"
 		}
 		fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, strings.ToUpper(r.action)+" IN", from)
 	}
 	for _, r := range u.rules {
-		if r.src == "" && u.v6() {
+		if r.src == "" && r.dst == "" && u.v6() {
 			to := r.port + "/tcp (v6)"
 			if r.app != "" {
 				to = r.port + "/tcp (" + r.app + " (v6))"
@@ -188,18 +191,21 @@ func (u fw) files(h *hostfake.System) {
 		var b strings.Builder
 		b.WriteString("*filter\n### RULES ###\n")
 		for _, r := range u.rules {
-			src := r.src
+			src, dst := r.src, r.dst
 			switch {
-			case src != "" && f.any == "::/0":
+			case (src != "" || dst != "") && f.any == "::/0":
 				continue
 			case src == "":
 				src = f.any
+			}
+			if dst == "" {
+				dst = f.any
 			}
 			if r.app != "" {
 				fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s %s - in\n", r.action, r.port, f.any, src, r.app)
 				continue
 			}
-			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.action, r.port, f.any, src)
+			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.action, r.port, dst, src)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		h.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)

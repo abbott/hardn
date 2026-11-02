@@ -52,6 +52,9 @@ type Reading struct {
 	State    ufw.State
 	StateErr error
 	Boot     detect.Tri
+	// BootUnit is the state is-enabled printed on systemd, "" where none was
+	// read: masked and not-found are what Enable refuses (ufw.ReadBootUnit).
+	BootUnit string
 	Sockets  Sockets
 	// First is what item 1 does; DisableBeside, that Disable has an item of its
 	// own: ufw is active, and item 1 is not Disable.
@@ -86,7 +89,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	}
 	r.State, r.StateErr = ufw.Read(ctx, sys, f.Proxmox)
 	if r.State.Installed {
-		r.Boot = ufw.ReadBoot(ctx, sys, f)
+		r.Boot, r.BootUnit = ufw.ReadBootUnit(ctx, sys, f)
 	}
 	r.First = r.first()
 	r.DisableBeside = r.First == ItemEnable && r.State.Status.Known && r.State.Status.Active

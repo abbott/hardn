@@ -72,7 +72,7 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.Findings = ufwFindings(fs)
 		for _, x := range fs {
 			n, k := x.Coverage.Need, x.Kind
-			if k == ufw.FindingRestricted && loopbackOnly(st, n) {
+			if k == ufw.FindingRestricted && loopbackOnly(st.Status.Rules, ufw.Firewall{Active: active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Status.Incoming}, n) {
 				k = ufw.FindingNotAllowed
 			}
 			a := netip.AddrPortFrom(n.Addr, n.Port)
@@ -169,15 +169,14 @@ func bootSource(f detect.Facts) string {
 	return "systemctl is-enabled ufw.service"
 }
 
-// loopbackOnly reports whether ufw lets n through from loopback only, so
-// that no remote session reaches it: its verdict is Restricted, and with
-// the allow and limit rules that admit loopback alone (in on lo, from or
+// loopbackOnly reports whether rules under fw let n through from loopback
+// only, so that no remote session reaches it: its verdict is Restricted, and
+// with the allow and limit rules that admit loopback alone (in on lo, from or
 // to a loopback address) left out, ufw.Evaluate blocks or denies it.
-func loopbackOnly(st ufw.State, n ufw.Need) bool {
-	rules := slices.DeleteFunc(slices.Clone(st.Status.Rules), func(r ufw.Rule) bool {
+func loopbackOnly(rules []ufw.Rule, fw ufw.Firewall, n ufw.Need) bool {
+	rules = slices.DeleteFunc(slices.Clone(rules), func(r ufw.Rule) bool {
 		return (r.Action == "allow" || r.Action == "limit") && (r.Iface == "lo" || loopback(r.Src) || loopback(r.Dst))
 	})
-	fw := ufw.Firewall{Active: st.Status.Active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Status.Incoming}
 	v := ufw.Evaluate(rules, fw, []ufw.Need{n})[0].Verdict
 	return v == ufw.Blocked || v == ufw.Denied
 }

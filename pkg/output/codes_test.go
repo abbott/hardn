@@ -212,6 +212,7 @@ var sentinels = map[string]error{
 	"engine.ErrNotMigrated":          engine.ErrNotMigrated,
 	"environment.ErrNoUser":          environment.ErrNoUser,
 	"firewall.ErrBootUnknown":        firewall.ErrBootUnknown,
+	"firewall.ErrBootBlocked":        firewall.ErrBootBlocked,
 	"firewall.ErrNoSS":               firewall.ErrNoSS,
 	"firewall.ErrNotInEffect":        firewall.ErrNotInEffect,
 	"firewall.ErrRefused":            firewall.ErrRefused,

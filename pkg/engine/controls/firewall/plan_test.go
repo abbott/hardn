@@ -351,26 +351,40 @@ func TestEnableOrder(t *testing.T) {
 	}
 }
 
-// TestEnableStray pins decision 2's edge: a socket on 22 with every configured
-// listener bound is not refused, as ss does not say whose it is. From a console
-// the plan lets the configured 2230 through and not 22, so ufw refuses that
-// socket once it starts; 2230 stays reachable, and with a session on 22 the
-// session's port is kept (TestEnableOrder). The next Enable then names it.
+// TestEnableStray: a socket on 22 with every configured listener bound may be
+// sshd's or another program's, as ss does not say. Enable refuses while ufw would
+// refuse it, with a session or from a console, on a fresh ufw and under an allow
+// policy the plan would change; with a session on 22 that port is kept, and with
+// a saved allow for it there is nothing to refuse.
 func TestEnableStray(t *testing.T) {
-	ctx := context.Background()
-	l := liveOn(t, site{plat: debian13(), ports: []uint16{2230}, bound: []string{"0.0.0.0:2230", "[::]:2230", "0.0.0.0:22", "[::]:22"}, ufw: fw{}})
-	e, p := planOn(t, l, firewall.ActionEnable, console, nil)
-	if p.Err() != nil {
-		t.Fatal(p.Err())
+	const words = "Port 22 is bound, sshd's config doesn't list it, and ufw would refuse it. Reload sshd, stop what's on it, or run ufw allow 22/tcp, then try again."
+	on2230 := revert.Session{Remote: true, Conn: "192.0.2.10 50022 192.0.2.20 2230", Source: "SSH_CONNECTION"}
+	both := []string{"0.0.0.0:2230", "[::]:2230", "0.0.0.0:22", "[::]:22"}
+	for name, tc := range map[string]struct {
+		u       fw
+		session revert.Session
+		want    []string
+	}{
+		"a console":                {fw{}, console, nil},
+		"a session on 2230":        {fw{}, on2230, nil},
+		"an allow policy":          {fw{incoming: "allow"}, console, nil},
+		"active, 2230 let through": {fw{active: true, rules: allow("2230")}, on2230, nil},
+		"a session on 22 keeps it": {fw{}, remote22, []string{"ufw allow 22/tcp", "ufw allow 2230/tcp", "ufw --force enable"}},
+		"a saved allow for 22":     {fw{rules: allow("22")}, on2230, []string{"ufw allow 2230/tcp", "ufw --force enable"}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			l := liveOn(t, site{plat: debian13(), ports: []uint16{2230}, bound: both, ufw: tc.u})
+			_, p := planOn(t, l, firewall.ActionEnable, tc.session, nil)
+			if tc.want == nil {
+				refused(t, p, words, firewall.ErrRefused)
+				changedNothing(t, l)
+				return
+			}
+			if p.Err() != nil || !slices.Equal(commands(p), tc.want) {
+				t.Errorf("plan %q, %v", commands(p), p.Err())
+			}
+		})
 	}
-	if got := commands(p); !slices.Equal(got, []string{"ufw allow 2230/tcp", "ufw --force enable"}) {
-		t.Errorf("commands %q", got)
-	}
-	if _, err := e.Apply(ctx, p); err != nil {
-		t.Fatal(err)
-	}
-	_, p = planOn(t, l, firewall.ActionEnable, console, nil)
-	refused(t, p, "ufw refuses SSH on 0.0.0.0:22, and hardn doesn't change a rule it finds. Fix it with ufw allow or ufw delete, then try again.", firewall.ErrRefused)
 }
 
 func undoWords(c engine.Change) string {
@@ -407,7 +421,7 @@ func TestEnableBoot(t *testing.T) {
 		cmd, undo string
 	}{
 		"systemd, disabled":   {debian13(), "disabled", "systemctl enable ufw.service", "[systemctl disable ufw.service]"},
-		"systemd, masked":     {debian13(), "masked", "systemctl enable ufw.service", "[systemctl disable ufw.service]"},
+		"systemd, linked":     {debian13(), "linked", "systemctl enable ufw.service", "[systemctl disable ufw.service]"},
 		"OpenRC, no runlevel": {alpine, "disabled", "rc-update add ufw default", "[rc-update del ufw default]"},
 	} {
 		t.Run(name, func(t *testing.T) {
@@ -479,9 +493,12 @@ func TestEnableBoot(t *testing.T) {
 // TestEnableRefusals: each refusal in its words, with its port or address.
 func TestEnableRefusals(t *testing.T) {
 	const (
-		blocks   = "A saved ufw rule would block SSH on port 22, for some addresses or all. Remove it with ufw delete, then try again."
-		ipv6     = "ufw's IPv6 is off in /etc/default/ufw, so it would refuse SSH on port 22. Set IPV6=yes, then try again."
-		refused6 = "ufw refuses SSH on [::]:22, and hardn doesn't change a rule it finds. Fix it with ufw allow or ufw delete, then try again."
+		blocks      = "A saved ufw rule would block SSH on port 22, for some addresses or all. Remove it with ufw delete, then try again."
+		ipv6        = "ufw's IPv6 is off in /etc/default/ufw, so it would refuse SSH on port 22. Set IPV6=yes, then try again."
+		refused6    = "ufw refuses SSH on [::]:22, and hardn doesn't change a rule it finds. Fix it with ufw allow or ufw delete, then try again."
+		refused4    = "ufw refuses SSH on 0.0.0.0:22, and hardn doesn't change a rule it finds. Fix it with ufw allow or ufw delete, then try again."
+		bootNotRead = "hardn can't tell if ufw starts at boot. Check its service, then try again."
+		masked      = "ufw's service is masked, so it can't start at boot. Run systemctl unmask ufw.service, then try again."
 	)
 	for name, tc := range map[string]struct {
 		s     site
@@ -496,11 +513,22 @@ func TestEnableRefusals(t *testing.T) {
 		"an active deny":             {site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "deny", port: "22"}}}}, refused6, firewall.ErrRefused},
 		"a dual-stack socket refused": {site{plat: ubuntu2604(), ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "deny", port: "22"}}},
 			failT: &hostfake.Response{Stdout: "port 22\nlistenaddress [::]:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\nusepam yes\n"}}, refused6, firewall.ErrRefused},
-		"not read":                    {site{plat: debian13(), ufw: fw{active: true, garbage: true}}, "hardn can't read ufw's state. Check ufw status verbose, then try again.", ufw.ErrStateUnknown},
-		"enabled, not running":        {site{plat: debian13(), ufw: fw{enabled: "yes"}}, "ufw is set to start at boot but isn't running. Check that its rules let SSH through, then run ufw enable.", ufw.ErrEnabledMismatch},
-		"running, not enabled":        {site{plat: debian13(), ufw: fw{active: true, enabled: "no", rules: allow("22")}}, "ufw is running but isn't set to start at boot. Run ufw enable.", ufw.ErrEnabledMismatch},
-		"boot not read, nothing else": {site{plat: debian13(), ufw: fw{active: true, rules: allow("22"), boot: "fail"}}, "hardn can't tell if ufw starts at boot. Check its service, then try again.", firewall.ErrBootUnknown},
-		"Proxmox VE not established":  {site{plat: debian13(), ufw: allow22, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{} }}, "hardn can't tell if this host runs Proxmox VE, where it leaves the firewall alone.", ufw.ErrProxmoxUnknown},
+		"not read":                     {site{plat: debian13(), ufw: fw{active: true, garbage: true}}, "hardn can't read ufw's state. Check ufw status verbose, then try again.", ufw.ErrStateUnknown},
+		"enabled, not running":         {site{plat: debian13(), ufw: fw{enabled: "yes"}}, "ufw is set to start at boot but isn't running. Check that its rules let SSH through, then run ufw enable.", ufw.ErrEnabledMismatch},
+		"running, not enabled":         {site{plat: debian13(), ufw: fw{active: true, enabled: "no", rules: allow("22")}}, "ufw is running but isn't set to start at boot. Run ufw enable.", ufw.ErrEnabledMismatch},
+		"boot not read, nothing else":  {site{plat: debian13(), ufw: fw{active: true, rules: allow("22"), boot: "fail"}}, bootNotRead, firewall.ErrBootUnknown},
+		"boot not read, inactive":      {site{plat: debian13(), ufw: fw{boot: "fail"}}, bootNotRead, firewall.ErrBootUnknown},
+		"boot static, a port to allow": {site{plat: debian13(), ufw: fw{active: true, boot: "static"}}, bootNotRead, firewall.ErrBootUnknown},
+		"masked, inactive":             {site{plat: debian13(), ufw: fw{boot: "masked"}}, masked, firewall.ErrBootBlocked},
+		"masked, active":               {site{plat: debian13(), ufw: fw{active: true, rules: allow("22"), boot: "masked"}}, masked, firewall.ErrBootBlocked},
+		"masked for now":               {site{plat: debian13(), ufw: fw{boot: "masked-runtime"}}, masked, firewall.ErrBootBlocked},
+		"no unit":                      {site{plat: debian13(), ufw: fw{boot: "not-found"}}, "ufw's service isn't on this system, so it can't start at boot. Reinstall ufw, then try again.", firewall.ErrBootBlocked},
+		"denied, boot off":             {site{plat: debian13(), ufw: fw{active: true, boot: "disabled", rules: []rule{{action: "deny", port: "22"}}}}, refused6, firewall.ErrRefused},
+		"IPv6 off, active, boot off":   {site{plat: debian13(), ufw: fw{active: true, noV6: true, boot: "disabled", rules: allow("22")}}, ipv6, firewall.ErrRefused},
+		"from loopback only":           {site{plat: debian13(), ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "allow", port: "22", src: "127.0.0.1"}}}}, refused4, firewall.ErrRefused},
+		"to loopback only":             {site{plat: debian13(), ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "allow", port: "22", dst: "127.0.0.1"}}}}, refused4, firewall.ErrRefused},
+		"saved, from loopback only":    {site{plat: debian13(), ufw: fw{noKernel6: true, rules: []rule{{action: "allow", port: "22", src: "127.0.0.1"}}}}, blocks, ufw.ErrBlocks},
+		"Proxmox VE not established":   {site{plat: debian13(), ufw: allow22, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{} }}, "hardn can't tell if this host runs Proxmox VE, where it leaves the firewall alone.", ufw.ErrProxmoxUnknown},
 	} {
 		t.Run(name, func(t *testing.T) {
 			l := liveOn(t, tc.s)

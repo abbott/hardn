@@ -275,6 +275,17 @@ func fwPlan(t *testing.T, h *fakeHost, action firewall.Action) (*engine.Engine, 
 	return e, p
 }
 
+// TestFirewallBootRow: At boot says a masked or missing service as what it is,
+// not as one that is only disabled.
+func TestFirewallBootRow(t *testing.T) {
+	for unit, want := range map[string]string{"disabled": "Service disabled", "linked": "Service disabled", "masked": "Service masked", "masked-runtime": "Service masked", "not-found": "No service"} {
+		r := fwReading{Reading: firewall.Reading{Boot: detect.No, BootUnit: unit, State: ufw.State{Installed: true, Enabled: true}}}
+		if i := slices.IndexFunc(r.ufwRows(), func(k component.KeyValue) bool { return k.Key == fwKeyBoot }); i < 0 || r.ufwRows()[i].Value != want {
+			t.Errorf("%s: %+v", unit, r.ufwRows())
+		}
+	}
+}
+
 // TestFirewallPlans holds each plan's commands: Enable's are the real plan's;
 // no ufw disable or ufw reset in any plan but Disable's, whose one command is
 // ufw disable; Install by the host's package tool; the runlevel on Alpine;

@@ -56,6 +56,7 @@ engine.ErrUnjournalled CHANGE_UNJOURNALLED
 engine.ErrUnsupported PLATFORM_UNSUPPORTED
 engine.ErrWindow CONFIRM_WINDOW_CLOSING
 environment.ErrNoUser ENVIRONMENT_NO_USER
+firewall.ErrBootBlocked FIREWALL_BOOT_BLOCKED
 firewall.ErrBootUnknown FIREWALL_BOOT_UNKNOWN
 firewall.ErrNoSS FIREWALL_SS_NOT_INSTALLED
 firewall.ErrNotInEffect FIREWALL_SSH_NOT_IN_EFFECT

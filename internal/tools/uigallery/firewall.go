@@ -383,6 +383,10 @@ func (r fwReading) ufwRows() []component.KeyValue {
 		boot = component.KeyValue{Key: fwKeyBoot, State: component.ValueUnknown}
 	case r.Boot == detect.No && r.facts.Init.Kind == detect.OpenRC:
 		boot.Value, boot.State = "In no runlevel", component.ValueWarn
+	case ufw.BootMasked(r.BootUnit):
+		boot.Value, boot.State = "Service masked", component.ValueWarn
+	case r.BootUnit == "not-found":
+		boot.Value, boot.State = "No service", component.ValueWarn
 	case r.Boot == detect.No:
 		boot.Value, boot.State = "Service disabled", component.ValueWarn
 	}
@@ -742,17 +746,14 @@ func (e *fwRunner) disable(ctx context.Context, r fwReading) error {
 }
 
 // enableReview is ufw as Enable's plan leaves it: active, its policy, and at
-// boot, unless ufw's service was not read.
+// boot. Its service not read, Enable refuses before this.
 func (r fwReading) enableReview() []component.KeyValue {
 	policy := "Deny"
 	if !r.Does.SetsDeny && r.State.Status.Incoming == ufw.PolicyReject {
 		policy = "Reject"
 	}
-	boot := component.KeyValue{Key: fwKeyBoot, Value: "Yes", State: component.ValueOK}
-	if r.Boot == detect.Unknown {
-		boot = component.KeyValue{Key: fwKeyBoot, State: component.ValueUnknown}
-	}
-	return []component.KeyValue{{Key: fwKeyStatus, Value: "Active", State: component.ValueOK}, {Key: fwKeyPolicy, Value: policy, State: component.ValueOK}, boot}
+	return []component.KeyValue{{Key: fwKeyStatus, Value: "Active", State: component.ValueOK}, {Key: fwKeyPolicy, Value: policy, State: component.ValueOK},
+		{Key: fwKeyBoot, Value: "Yes", State: component.ValueOK}}
 }
 
 // change runs one plain change of action through the flow.

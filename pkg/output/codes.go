@@ -257,6 +257,7 @@ var errorCodes = []Entry{
 	is("FIREWALL_SSH_NOT_IN_EFFECT", firewall.ErrNotInEffect).what("a listener sshd is configured for is not bound, so the firewall is not enabled"),
 	is("FIREWALL_SSH_REFUSED", firewall.ErrRefused),
 	is("FIREWALL_BOOT_UNKNOWN", firewall.ErrBootUnknown),
+	is("FIREWALL_BOOT_BLOCKED", firewall.ErrBootBlocked),
 
 	// ufw (pkg/host/ufw).
 	typed("UFW_ROLLBACK_FAILED", "an undo of ufw's rules failed; those after it did not run",
