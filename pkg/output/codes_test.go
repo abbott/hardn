@@ -588,10 +588,10 @@ func TestFindingCodes(t *testing.T) {
 		return out
 	}
 	want := []string{steps.CodeMigrateDropped, output.CodeDeprecated, engine.CodeBestEffort}
-	want = append(want, ssh.CodeMatchAllowsMore, ssh.CodeNotInEffect, ssh.CodeMatchValueUnknown, ssh.Code22Bound) // next/p4-check-ssh
-	want = append(want, firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked, firewall.CodeLocalOnly)               // next/p4-check-firewall
-	want = append(want, users.CodeNoPassword, users.CodeRuleNotRead, users.CodeUID0)                              // next/p4-check-users
-	want = append(want, apparmor.CodeGlobalModeUnknown, apparmor.CodeBootUnknown)                                 // next/p4-check-apparmor
+	want = append(want, ssh.CodeMatchAllowsMore, ssh.CodeNotInEffect, ssh.CodeMatchValueUnknown, ssh.Code22Bound)               // next/p4-check-ssh
+	want = append(want, firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked, firewall.CodeBootUnchecked, firewall.CodeLocalOnly) // next/p4-check-firewall
+	want = append(want, users.CodeNoPassword, users.CodeRuleNotRead, users.CodeUID0)                                            // next/p4-check-users
+	want = append(want, apparmor.CodeGlobalModeUnknown, apparmor.CodeBootUnknown)                                               // next/p4-check-apparmor
 	// next/p4-check-updates
 	want = append(want, updates.CodeAptValueUnknown, updates.CodeScheduleUnknown, updates.CodeProxmoxNotUpgraded, updates.CodeOriginsUnknown)
 	want = append(want, header.CodeRebootRequired, header.CodeNewerKernel, header.CodeModulesMissing, header.CodeKernelReplaced) // next/p4-header

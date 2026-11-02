@@ -53,6 +53,9 @@ const (
 	// the firewall lets them through is not established either, beside a
 	// state that does not depend on it.
 	CodeSSHUnchecked = "FIREWALL_SSH_UNCHECKED"
+	// CodeBootUnchecked: ufw is active, and whether it starts at the next boot
+	// is not read, so Configured would be a guess.
+	CodeBootUnchecked = "FIREWALL_BOOT_UNCHECKED"
 	// CodeLocalOnly: on Proxmox VE no management IP set is written, so
 	// pve-firewall's management rule accepts SSH and the web UI from the
 	// cluster's local network only, which is not read.

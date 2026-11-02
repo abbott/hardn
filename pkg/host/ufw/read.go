@@ -377,28 +377,43 @@ func ReadEnabled(ctx context.Context, sys host.System) (detect.Tri, error) {
 
 // ReadBoot reads whether ufw's service starts at boot: on OpenRC, whether it
 // is in a runlevel; on systemd, ufw.service's is-enabled, where "enabled" is
-// Yes and "disabled", "masked" and "enabled-runtime" (gone at the next boot,
-// detect.SystemctlIsEnabled's note) are No. Unknown where that is not read.
+// Yes and "disabled", "masked", "masked-runtime", "linked", "linked-runtime",
+// "not-found" (detect's table's No) and "enabled-runtime" (gone at the next
+// boot, detect.SystemctlIsEnabled's note) are No. Unknown where that is not
+// read, and for a state that says nothing of it, such as "static".
 //
 // ENABLED is not this: ufw's Python has no systemctl call, and ufw.service
 // runs ufw-init with WantedBy=multi-user.target, so nothing else starts it at
 // boot (read in ufw 0.36.2 on Debian 13 and Ubuntu 26.04, not run:
 // docs/safety/ufw.md §3).
 func ReadBoot(ctx context.Context, sys host.System, f detect.Facts) detect.Tri {
+	tri, _ := ReadBootUnit(ctx, sys, f)
+	return tri
+}
+
+// ReadBootUnit is ReadBoot, and on systemd the state is-enabled printed, "" where
+// none was read: masked (BootMasked) and "not-found" are states "systemctl
+// enable" cannot change, the first as systemctl refuses to enable a masked unit
+// [I: from memory of systemd, no VM has shown it].
+func ReadBootUnit(ctx context.Context, sys host.System, f detect.Facts) (detect.Tri, string) {
 	switch f.Init.Kind {
 	case detect.OpenRC:
 		_, in, _ := detect.ServiceRunlevels(ctx, sys, "ufw")
-		return in
+		return in, ""
 	case detect.Systemd:
 		state, err := detect.SystemctlIsEnabled(ctx, sys, "ufw.service")
 		switch {
 		case err != nil:
-			return detect.Unknown
+			return detect.Unknown, ""
 		case state == "enabled":
-			return detect.Yes
-		case state == "disabled", state == "enabled-runtime", state == "masked":
-			return detect.No
+			return detect.Yes, state
+		case state == "disabled", state == "enabled-runtime", state == "linked", state == "linked-runtime", state == "not-found", BootMasked(state):
+			return detect.No, state
 		}
+		return detect.Unknown, state
 	}
-	return detect.Unknown
+	return detect.Unknown, ""
 }
+
+// BootMasked: is-enabled's state is masked, until the next boot or for good.
+func BootMasked(state string) bool { return state == "masked" || state == "masked-runtime" }

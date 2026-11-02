@@ -31,7 +31,9 @@ var codeUFWUnknown = steps.FindingCode("UFW", ufw.FindingUnknown.String())
 // only, or from all but some, Partial: whether the user's own address is
 // let through is not established (ufw.Verdict.OK). Unknown while the
 // listeners are not established, while ufw refuses a socket on 22 that no
-// configured listener names, and for an incoming policy ufw does not set.
+// configured listener names, for an incoming policy ufw does not set, and in
+// place of Configured while whether ufw starts at boot is not read
+// (CodeBootUnchecked).
 func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	st, err := ufw.Read(ctx, sys, f.Proxmox)
 	switch {
@@ -96,10 +98,14 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.Findings = append(out.Findings, sk.bound22())
 	}
 	open, allPorts := allOpen(st.Status.Rules)
-	noBoot := false
+	noBoot, bootUnread := false, false
 	if active {
-		if noBoot = ufw.ReadBoot(ctx, sys, f) == detect.No; noBoot {
+		boot := ufw.ReadBoot(ctx, sys, f)
+		switch noBoot, bootUnread = boot == detect.No, boot == detect.Unknown; {
+		case noBoot:
 			out.Evidence = append(out.Evidence, bootEvidence(f))
+		case bootUnread:
+			out.Findings = append(out.Findings, engine.Finding{Code: CodeBootUnchecked, Detail: "whether ufw starts at boot not read", Source: bootSource(f)})
 		}
 	}
 	switch {
@@ -133,6 +139,9 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 	case except:
 		out.State, out.Detail = engine.Partial, "ssh blocklist"
 		return out, nil
+	case bootUnread:
+		out.State, out.Detail = engine.Unknown, "can't tell boot state"
+		return out, nil
 	default: // deny or reject
 		out.State, out.Detail = engine.Configured, string(st.Status.Incoming)+" policy"
 		return out, nil
@@ -150,6 +159,14 @@ func bootEvidence(f detect.Facts) string {
 		return "OpenRC: ufw in no runlevel"
 	}
 	return "systemctl is-enabled ufw.service: not enabled"
+}
+
+// bootSource is what whether ufw starts at boot is read from.
+func bootSource(f detect.Facts) string {
+	if f.Init.Kind == detect.OpenRC {
+		return "OpenRC runlevels"
+	}
+	return "systemctl is-enabled ufw.service"
 }
 
 // loopbackOnly reports whether ufw lets n through from loopback only, so

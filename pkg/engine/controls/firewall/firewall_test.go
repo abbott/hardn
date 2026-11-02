@@ -761,7 +761,8 @@ func TestEngineCheck(t *testing.T) {
 // TestCheckBoot: an active ufw whose service does not start at boot is "off
 // after restart", as ENABLED=no is, with evidence naming the unit or runlevel,
 // over Configured and the lesser findings; a listener refused, an allow policy
-// and a rule that opens every port stay as they are. Not read, nothing changes.
+// and a rule that opens every port stay as they are. Not read, Unknown in place
+// of Configured, with its finding, and no other line changes.
 func TestCheckBoot(t *testing.T) {
 	alpine := alpine324()
 	alpine.noSS = false
@@ -782,8 +783,11 @@ func TestCheckBoot(t *testing.T) {
 		{"an allow policy stays", site{plat: debian13(), ufw: fw{active: true, incoming: "allow", boot: "disabled", rules: allow("22")}}, engine.Partial, firewall.DetailAllowPolicy, unit},
 		{"enabled", site{plat: debian13(), ufw: allow22}, engine.Configured, "deny policy", ""},
 		{"in a runlevel", site{plat: alpine, ufw: allow22}, engine.Configured, "deny policy", ""},
-		{"not read: the bus", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "fail" })}, engine.Configured, "deny policy", ""},
-		{"not read: static", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "static" })}, engine.Configured, "deny policy", ""},
+		{"linked", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "linked" })}, engine.Partial, "off after restart", unit},
+		{"not-found", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "not-found" })}, engine.Partial, "off after restart", unit},
+		{"not read: the bus", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "fail" })}, engine.Unknown, "can't tell boot state", ""},
+		{"not read: static", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "static" })}, engine.Unknown, "can't tell boot state", ""},
+		{"not read, an allowlist stays", site{plat: debian13(), ufw: fw{active: true, noKernel6: true, boot: "fail", rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}}, engine.Partial, "ssh allowlist", ""},
 		{"inactive: not asked", site{plat: debian13(), ufw: fw{boot: "fail"}}, engine.NotConfigured, "inactive", ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -794,6 +798,10 @@ func TestCheckBoot(t *testing.T) {
 			}
 			if has := slices.Contains(st.Evidence, tc.evidence); has != (tc.evidence != "") {
 				t.Errorf("evidence %q", st.Evidence)
+			}
+			finding := slices.ContainsFunc(st.Findings, func(f engine.Finding) bool { return f.Code == firewall.CodeBootUnchecked })
+			if finding != strings.HasPrefix(tc.name, "not read") {
+				t.Errorf("findings %+v", st.Findings)
 			}
 			if tc.name == "inactive: not asked" {
 				for _, r := range h.Runs() {

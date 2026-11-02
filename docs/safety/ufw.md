@@ -45,7 +45,7 @@ origin/main's firewall step sets the defaults, runs `ufw disable`, then `ufw res
 18. **`PlanApps` lets an application profile through.** `ufw allow from any to any app <name>`, undone by `ufw delete allow from any to any app <name>`, for each name no saved rule has as its application (`Rule.App`, in `user.rules` and `user6.rules`), in the order given. An active ufw only: inactive is `ErrInactive`, as decision 5 saves no rule on a ufw that stays off, and `ENABLED=no` while loaded is `ErrEnabledMismatch`, as for `PlanFor`. `Execute` reads ufw's answer as it does for an allow (§2.12), so a rule ufw kept is not deleted. Tested.
 19. **`ValidProfile` is ufw's own rule** (§3): a name matching `^[a-zA-Z0-9][a-zA-Z0-9 _\-.+]*$`, not `all`, not what Python's `int()` takes; a title and a description not empty; no line break in any field; each port a number or an ascending range from 1 to 65535 with `/tcp` or `/udp`, the form the screen's Add takes. Errors are `Is(ErrBadProfile)`. `ProfileBytes` joins a profile's ports by `|`, which is what ufw splits on (§3); origin/main joined them by a comma, which ufw would take for one port spec. This settles [gallery-firewall.md](../engine/gallery-firewall.md) §7's comma finding. Tested.
 20. **`ReadEnabled` reads `ENABLED` from `ufw.conf` alone**, with no `ufw` call and no Proxmox fact: decision 7's warning row, which the adoption allows under brief 2.5. No file is `No`: ufw not installed. Tested: no command runs.
-21. **`ReadBoot` reads whether ufw's service starts at boot**: on OpenRC its runlevels (`detect.ServiceRunlevels`), on systemd `systemctl is-enabled ufw.service`, `enabled` being `Yes`, and `disabled`, `masked` and `enabled-runtime` `No`. Anything else is `Unknown`. `ENABLED` does not answer this (§3). Tested with `is-enabled`'s answers.
+21. **`ReadBoot` reads whether ufw's service starts at boot**: on OpenRC its runlevels (`detect.ServiceRunlevels`), on systemd `systemctl is-enabled ufw.service`, `enabled` being `Yes`, and `disabled`, `enabled-runtime`, `masked`, `masked-runtime`, `linked`, `linked-runtime` and `not-found` `No`, as `detect`'s table but for `enabled-runtime`. Anything else is `Unknown`. `ReadBootUnit` also gives the state, for Enable's refusal of a masked or missing unit, which `systemctl enable` cannot change ([I] for masked, from memory of systemd, not run). `ENABLED` does not answer this (§3). Tested with `is-enabled`'s answers.
 
 ## 3. Platform facts relied on
 
@@ -123,6 +123,8 @@ type State struct { Installed bool; Status Status; Enabled, IPv6, NoKernelIPv6 b
 func Read(ctx context.Context, sys host.System, pve detect.Proxmox) (State, error)
 func ReadEnabled(ctx context.Context, sys host.System) (detect.Tri, error) // ufw.conf alone
 func ReadBoot(ctx context.Context, sys host.System, f detect.Facts) detect.Tri
+func ReadBootUnit(ctx context.Context, sys host.System, f detect.Facts) (detect.Tri, string)
+func BootMasked(state string) bool
 func ParseStatus(out []byte) Status
 func ParseTuples(data []byte, fam Family) (rules []Rule, bad []string)
 

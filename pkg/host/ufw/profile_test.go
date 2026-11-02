@@ -278,8 +278,9 @@ func TestReadBoot(t *testing.T) {
 	ctx := context.Background()
 	systemd := detect.Facts{Init: detect.Init{Kind: detect.Systemd}}
 	for answer, want := range map[string]detect.Tri{
-		"enabled": detect.Yes, "disabled": detect.No, "masked": detect.No, "enabled-runtime": detect.No,
-		"static": detect.Unknown, "not-found": detect.Unknown, "garbage": detect.Unknown,
+		"enabled": detect.Yes, "disabled": detect.No, "masked": detect.No, "masked-runtime": detect.No, "enabled-runtime": detect.No,
+		"linked": detect.No, "linked-runtime": detect.No, "not-found": detect.No,
+		"static": detect.Unknown, "indirect": detect.Unknown, "garbage": detect.Unknown,
 	} {
 		h := hostfake.New(host.Options{})
 		h.Handler = func(argv []string, _ []byte) hostfake.Response {
@@ -294,6 +295,12 @@ func TestReadBoot(t *testing.T) {
 		}
 		if got := ufw.ReadBoot(ctx, h, systemd); got != want {
 			t.Errorf("%s: %v, want %v", answer, got, want)
+		}
+		if _, state := ufw.ReadBootUnit(ctx, h, systemd); answer != "garbage" && state != answer {
+			t.Errorf("%s: state %q", answer, state)
+		}
+		if got, masked := ufw.BootMasked(answer), strings.HasPrefix(answer, "masked"); got != masked {
+			t.Errorf("%s: masked %t", answer, got)
 		}
 	}
 	h := hostfake.New(host.Options{})
