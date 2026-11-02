@@ -192,7 +192,7 @@ const (
 
 // statusRuns are the commands each host's status runs, per pass of the
 // main menu: detect's, the eight rows' checks' and the header probe's.
-var statusRuns = map[string]int{"debian13": 28, "ubuntu2604": 31, "alpine324": 13, "pve9": 23, "hardened": 28}
+var statusRuns = map[string]int{"debian13": 29, "ubuntu2604": 32, "alpine324": 13, "pve9": 23, "hardened": 29}
 
 // queries are the commands a status may run, by their first words: each
 // only reads (docs/engine/vmcheck.md §2.5 has each one's arguments).
