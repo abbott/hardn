@@ -233,7 +233,7 @@ Each is intended unless §6 lists it.
 | Saving `./hardn.yml` under plan only, origin/main's (the goldens' `NOTE`), and the trunk's refusal since slice 2b: each now stops at its plan | `dry-add`, `dry-remove` | Made here |
 | **Drawn only, named here:** a failing `ufw status` reading Inactive, the "Error getting firewall status" branch unreachable; now ufw's state is not established and Enable refuses, `UFW_STATE_UNKNOWN` | `firewall_open_status_fails_reads_inactive` | defect 7; §6's words |
 | **Drawn only, named here:** SSH Port from `cfg.SshPort`, warned at 22, "good security" otherwise; now what `sshd -T` and `ss` read | `firewall_open_port_22_warns`, `_2230_while_sshd_says_22` | defect 2; §6 |
-| **UNEXPLAINED:** the SSH rule's comment; `yes \| ufw enable`; a comma in a profile's ports; a name refused in another case; `hardn -n -w` refused | §6 | none |
+| **UNEXPLAINED:** the SSH rule's comment; `yes \| ufw enable`; a comma in a profile's ports; `hardn -n -w` refused | §6 | none |
 
 Removing a profile still leaves its rule, on both (§6's notice); the rule goes with neither.
 
@@ -245,7 +245,7 @@ No source the table may cite says these. Each is carried as `Tie.Pending`, marke
 |---|---|---|---|
 | The SSH rule's comment, `SSH access`, goes (`rule comment`) | `enable`, `configure`, `active-rules`, `profiles`, `w`, `item2-profile` | `firewall_manager.go:47` (a golden's note, read); `steps.PlanUFWEnable` passes none (run) | gallery-firewall.md §3, Enable's commands; docs/safety/ufw.md §2 item 7 |
 | `sh -c "yes \| ufw enable"` becomes `ufw --force enable` (`how ufw starts`) | `enable`, `configure`, `profiles`, `w`, `item2-profile` | docs/safety/ufw.md §3 says `enable` prompts under SSH unless `--force` (read) | that section |
-| A profile's ports join by `\|`, not a comma (`profile file`) | `profiles` | `ports=80/tcp,443/tcp` against `ports=80/tcp\|443/tcp` (run); whether ufw reads the comma is [I] | gallery-firewall.md §7's finding; ufw-framework(8) [I] |
+| A profile's ports join by `\|`, not a comma (`profile file`) | `profiles` | `ports=80/tcp,443/tcp` against `ports=80/tcp\|443/tcp` (run). ufw 0.36.2's `verify_profile` refuses the comma form, "Invalid ports in profile", and takes the `\|` form (run on Ubuntu 26.04, in memory: `vm-runs/s4/unit-b/ubuntu26-vm-3.log`) | gallery-firewall.md §7's finding; that run |
 | `hardn -n -w` ran live on origin/main (V1) and is refused with exit status 2 by the trunk's P0.8 gate; `runControls` shows the plan alone, or its refusal. If the refusal stays, every cell changes | `w` on all four, `w-stock` | the ops goldens; `cmd/hardn/dns.go`'s `runControls` (read); decision 4 says nothing of `-n` | as `-e` (gallery-environment.md's Made here) |
 
 ## 7. For unit (c)
