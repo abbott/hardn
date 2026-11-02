@@ -171,6 +171,7 @@ Decided with decision 10 (2026-11-01). Each is new unless marked origin/main's. 
 ## 7. For unit (b)
 
 > **Since `next/s4-control`:** the stand-ins below are gone. The gallery runs on `firewall.Read` and `firewall.Incoming` ([control-firewall.md](control-firewall.md)); `no-install` and `stale-listener`'s last section went with them. The screen's words, rows and layout stay in the gallery until unit (c).
+> **Since `next/s4-parity`:** origin/main's Firewall screen and `-w` against the control, difference by difference: [parity-firewall.md](parity-firewall.md).
 
 | Stand-in, labelled in `firewall.go` | What it must become |
 |---|---|
