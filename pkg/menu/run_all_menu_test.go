@@ -113,12 +113,11 @@ func TestRunAllConfirmation(t *testing.T) {
 	}
 }
 
-// TestRunAllWithoutUsername: with no username, Run All asks nothing before
-// its screen (refactor plan slice 5, unit (d)): live, it says "Continuing
-// without user creation", origin/main's "n" answer's words, and opens the
-// screen; under plan only it says nothing, as origin/main did. Its offer,
-// "Would you like to set a username now?", which opened the legacy User
-// Management, is gone with it.
+// TestRunAllWithoutUsername: with no username, Run All asks and says
+// nothing before its screen, live and under plan only (refactor plan slice
+// 5, unit (d)): it opens the screen, whose Username row says "Not set".
+// Its offer, "Would you like to set a username now?", which opened the
+// legacy User Management, is gone with it.
 func TestRunAllWithoutUsername(t *testing.T) {
 	for _, dryRun := range []bool{false, true} {
 		t.Run(map[bool]string{false: "live", true: "plan only"}[dryRun], func(t *testing.T) {
@@ -134,10 +133,10 @@ func TestRunAllWithoutUsername(t *testing.T) {
 			if strings.Contains(out, "set a username") {
 				t.Errorf("Run All offered to set a username:\n%s", out)
 			}
-			if got := strings.Contains(out, "Continuing without user creation"); got != !dryRun {
-				t.Errorf("said it continues without user creation: %v, want %v:\n%s", got, !dryRun, out)
+			if strings.Contains(out, "Continuing without user creation") {
+				t.Errorf("said it continues without user creation, a line the screen clears at once:\n%s", out)
 			}
-			if !strings.Contains(out, "Return to main menu") {
+			if !strings.Contains(out, "Not set") || !strings.Contains(out, "Return to main menu") {
 				t.Errorf("the Run All screen was not shown:\n%s", out)
 			}
 			if len(fs.Files) > 0 || len(mc.ExecutedCommands) > 0 {
