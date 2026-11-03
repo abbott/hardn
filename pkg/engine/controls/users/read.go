@@ -54,7 +54,9 @@ type Reading struct {
 // a password: GrantsOf's), its password (accounts.Shadow.PasswordOf), and
 // hardn's own grant for it (sudoers.Read and PolicyOf; PolicyErr why not
 // read), and its keys in the files sshd reads (authkeys.Read; Keys each
-// once, authkeys.Keys), with KeyEntries read.
+// once, authkeys.Keys, each saying whether its options may stop a login,
+// Restricted, which the last-key rule does not count), with KeyEntries
+// read.
 type User struct {
 	accounts.User
 	Admin      detect.Tri

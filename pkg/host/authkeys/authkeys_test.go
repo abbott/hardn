@@ -319,3 +319,42 @@ func TestTrailingSlashHome(t *testing.T) {
 		t.Errorf("no home: PlanRemove = %+v, %v", p, err)
 	}
 }
+
+// TestRestricted: a key whose options may stop a login is Restricted: each
+// option outside the allow-list, an unknown one, an allowed name in the
+// wrong form; the allowed ones, any case, quoted values with commas, are
+// not.
+func TestRestricted(t *testing.T) {
+	for opts, want := range map[string]bool{
+		"": false,
+		"agent-forwarding,no-agent-forwarding,port-forwarding,no-port-forwarding,X11-forwarding,no-X11-forwarding": false,
+		"user-rc,no-user-rc,pty,no-touch-required,verify-required":                                                false,
+		`environment="A=1,2",permitopen="192.0.2.10:22",permitlisten="localhost:8080"`:                            false,
+		"NO-PTY":                      true,
+		"no-pty":                      true,
+		`command="/bin/false"`:        true,
+		`from="192.0.2.0/24"`:         true,
+		`expiry-time="20261231"`:      true,
+		"restrict":                    true,
+		`principals="george"`:         true,
+		"cert-authority":              true,
+		`tunnel="0"`:                  true,
+		"no-such-option":              true,
+		"pty,command=\"/bin/true\"":   true,
+		"environment":                 true,
+		"pty=yes":                     true,
+		`environment="X=\"a,b\"",pty`: false,
+	} {
+		line := edKey
+		if opts != "" {
+			line = opts + " " + edKey
+		}
+		k, err := authkeys.ParseLine(line)
+		if err != nil {
+			t.Fatalf("%q: %v", opts, err)
+		}
+		if k.Restricted() != want {
+			t.Errorf("%q: Restricted %v, want %v", opts, k.Restricted(), want)
+		}
+	}
+}

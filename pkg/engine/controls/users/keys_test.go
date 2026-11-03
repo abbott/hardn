@@ -244,6 +244,37 @@ func TestKeyRisk(t *testing.T) {
 	}
 }
 
+// TestRestrictedKey: a key whose options may stop a login (authkeys
+// Restricted) does not count toward the last key. george, the session
+// user, with key1 plain and key2 command="/bin/false": removing key1
+// refuses as his last key; removing key2 plans, a lockout risk as his.
+// alice's (another user's) key3 plain and key4 restricted: removing key3 is
+// a lockout risk, key4 plain.
+func TestRestrictedKey(t *testing.T) {
+	homes := map[string]home{"george": {uid: 1000, files: map[string][]string{".ssh/authorized_keys": {key1, `command="/bin/false" ` + key2}}},
+		"alice": {uid: 1001, files: map[string][]string{".ssh/authorized_keys": {key3, `from="192.0.2.0/24" ` + key4}}}}
+	_, p, _, _ := planOn(t, keyed(sshdKeys, homes), users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)})
+	refused(t, p, "USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first.")
+	for _, tc := range []struct {
+		user, key string
+		want      engine.RiskClass
+	}{{"george", key2, engine.RiskLockout}, {"alice", key3, engine.RiskLockout}, {"alice", key4, engine.RiskPlain}} {
+		_, p, _, _ := planOn(t, keyed(sshdKeys, homes), users.Admin{Action: users.ActionRemoveKey, User: tc.user, Fingerprint: fpOf(t, tc.key), Getenv: env(sudoGeorge)})
+		if p.Err() != nil || p.Risk != tc.want || p.Changes[len(p.Changes)-1].ID != users.ChangeKeys {
+			t.Errorf("%s's %s: %v, risk %v, want %v", tc.user, tc.key, p.Err(), p.Risk, tc.want)
+		}
+	}
+	r, err := users.Read(context.Background(), func() host.System { s, _ := live(t, keyed(sshdKeys, homes)); return s }(), debian13Login().plat.facts, env(sudoGeorge))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, u := range r.Users {
+		if u.Name == "george" && (len(u.Keys) != 2 || u.Keys[0].Restricted() || !u.Keys[1].Restricted()) {
+			t.Errorf("george's keys %+v", u.Keys)
+		}
+	}
+}
+
 // TestAddKey: alice with no ~/.ssh: install makes it, 0700 and hers, then
 // the file 0600, hers; with the write failing, the rollback removes ~/.ssh.
 // The key there already is an empty plan.
