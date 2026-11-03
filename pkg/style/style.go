@@ -120,7 +120,6 @@ const (
 	Blink     = "\033[5m"
 	Reverse   = "\033[7m"
 	Hidden    = "\033[8m"
-	Strike    = "\033[9m"
 
 	// Cursor control
 	CursorOn  = "\033[?25h"

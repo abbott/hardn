@@ -1,7 +1,7 @@
 # SSH Login on the engine: the SSH Login control (`pkg/engine/controls/sshchange`)
 
 > **Unit:** refactor plan slice 6 (SSH Login), unit (b), `next/s6-control`, from `3eb43194`. It builds on unit (a) ([gallery-ssh.md](gallery-ssh.md)), whose ten decisions and Made here calls the maintainer adopted on 2026-11-03 ("Adopt all, start (b)").
-> **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine; the gallery's SSH Login mock runs on it. Nothing has run on Linux or as root (§7). Nothing is wired into `cmd/hardn` or the main menu; `pkg/menu` and `pkg/characterization` goldens are unchanged. Words: gallery-ssh.md §6's, used exactly; the rest proposed (§6). *Since `next/s6-replace` (unit (d)), main menu 2's screen and `-d` call it ([cmd-engine.md](cmd-engine.md) §2.16, §2.17).*
+> **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine; the gallery's SSH Login mock runs on it. Nothing has run on Linux or as root (§7). Nothing is wired into `cmd/hardn` or the main menu; `pkg/menu` and `pkg/characterization` goldens are unchanged. Words: gallery-ssh.md §6's, used exactly; the rest proposed (§6). *Since `next/s6-replace` (unit (d)), main menu 2's screen and `-d` call it ([cmd-engine.md](cmd-engine.md) §2.16, §2.17), and `pkg/characterization`'s `disable_root_ssh` case and its goldens are deleted (cmd-engine.md's goldens).*
 
 The SSH Login control is every change the SSH Login screen makes: root login, password login, the port, and moving hardn's old files. `Read` gives the screen what it draws; `Plan` refuses before anything is written, in the decided words, or plans the change on the real engine, every change lockout-risk, so typed and confirmed or reverted.
 

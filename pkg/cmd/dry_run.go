@@ -40,8 +40,9 @@ const (
 //
 // With it true, hardn -n combined with an operation flag runs the operation
 // for real: cmd/hardn/main.go only sets cfg.DryRun, and no layer below the
-// menus reads it, so -r and -d apply every command and file write they
-// would apply without -n (V1; Phase 0 side-effects §1, harness A1). -g,
+// menus reads it, so -r applies every command and file write it would
+// apply without -n (V1; Phase 0 side-effects §1, harness A1; -d left
+// operationFlags in slice 6, unit (d)). -g,
 // -w, -c, -d, -e and setup-sudo-env are not refused, whatever it says:
 // their dry run is their control's plan (refactor plan slices 2, 4, 5, 6
 // and 9, unit (d)). That path is the unchanged flag dispatch in cmd/hardn/main.go,
