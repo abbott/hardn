@@ -961,7 +961,8 @@ func TestElevation(t *testing.T) {
 	t.Run("a rule, in no group", func(t *testing.T) {
 		e, db := read(t, site{plat: debian13(), users: []string{alice, george},
 			files: map[string]string{cloudInit: "alice ALL=(ALL) NOPASSWD:ALL\n"}})
-		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.Yes}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
+		cloud := users.Rule{Kind: users.RuleFile, File: cloudInit, Line: 1, Text: "alice ALL=(ALL) NOPASSWD:ALL"}
+		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.Yes, Rule: cloud, NoPassword: true}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
 			t.Errorf("alice: %v, want %v", got, want)
 		}
 		if got, want := e.GrantsOf(db, byName(t, db, "george")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
@@ -973,8 +974,21 @@ func TestElevation(t *testing.T) {
 	})
 	t.Run("doas, by group", func(t *testing.T) {
 		e, db := read(t, site{plat: alpine324(), users: []string{alice}, members: map[string]string{"wheel": "alice"}})
-		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.Yes}}; !slices.Equal(got, want) {
+		wheel := users.Rule{Kind: users.RuleGroup, File: sudoers.DoasDir + "/20-wheel.conf", Line: 1, Group: "wheel", Text: "permit persist :wheel"}
+		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.Yes, Rule: wheel}}; !slices.Equal(got, want) {
 			t.Errorf("alice: %v, want %v", got, want)
+		}
+	})
+	t.Run("hardn's own, a group's, without a password", func(t *testing.T) {
+		grant := written(t, debian13(), sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword})
+		e, db := read(t, site{plat: debian13(), users: []string{alice, george}, members: map[string]string{"sudo": "alice,george"}, files: grant})
+		hardn := users.Rule{Kind: users.RuleHardn, File: grantDir + "hardn-grant-alice", Line: 2, Text: "alice ALL=(ALL) NOPASSWD: ALL"}
+		if got := e.GrantsOf(db, byName(t, db, "alice"))[0]; got != (users.Grant{Tool: "sudo", Grants: detect.Yes, Rule: hardn, NoPassword: true}) {
+			t.Errorf("alice: %+v", got)
+		}
+		group := users.Rule{Kind: users.RuleGroup, File: sudoers.MainConfig, Line: 22, Group: "sudo", Text: "%sudo ALL=(ALL:ALL) ALL"}
+		if got := e.GrantsOf(db, byName(t, db, "george"))[0]; got != (users.Grant{Tool: "sudo", Grants: detect.Yes, Rule: group}) {
+			t.Errorf("george: %+v", got)
 		}
 	})
 	t.Run("rules not read", func(t *testing.T) {

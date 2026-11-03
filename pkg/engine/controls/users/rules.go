@@ -29,12 +29,15 @@ type rule struct {
 	// (covers).
 	anyUser, anyGroup bool
 	at                string // file:line
+	file              string
+	line              int
 	text              string // the line, its white space collapsed
 }
 
 // tool is one elevation tool as the host has it.
 type tool struct {
 	name  string     // "sudo" (sudo or sudo-rs) or "doas"
+	kind  sudoers.Tool
 	state detect.Tri // Yes: installed, its rules read; No: it makes no one root (why); Unknown: err says why
 	rules []rule
 	// auth are sudo's lines that may change whose password it asks, or
@@ -90,10 +93,38 @@ func (e Elevation) NotRead() []NotRead {
 // Grant is what one tool's rules decide for one account: Yes, the rule that
 // decides lets it run every command as root; No, the tool makes no one root
 // or no rule that decides does; Unknown, a rule hardn does not read may decide,
-// or the tool's rules are not read (Elevation.NotRead). Passwords are not said.
+// or the tool's rules are not read (Elevation.NotRead). Rule is the rule that
+// decides (with No, a deny), or the last not read that may; the zero Rule for
+// none. NoPassword, with Yes, is the check's USERS_NOPASSWD: that rule, or one
+// before it that still decides some requests, asks no password (NOPASSWD,
+// nopass). Both are read from the rules themselves (slice 5, unit (b)).
 type Grant struct {
-	Tool   string // "sudo" (sudo or sudo-rs) or "doas"
-	Grants detect.Tri
+	Tool       string // "sudo" (sudo or sudo-rs) or "doas"
+	Grants     detect.Tri
+	Rule       Rule
+	NoPassword bool
+}
+
+// RuleKind is what a Rule is: hardn's own file for the account, another
+// file's rule for it, or a group's rule.
+type RuleKind uint8
+
+// The kinds of rule. The zero value is no rule.
+const (
+	RuleNone  RuleKind = iota
+	RuleHardn          // the account's file of hardn's (sudoers.FileNames' Grant)
+	RuleFile           // a rule for the account, or not read, in any other file
+	RuleGroup          // a rule for a group (sudo's %group, doas's :group)
+)
+
+// Rule is one rule of a tool's, where it is: its file and line, from 1, its
+// group with RuleGroup, and its text, white space collapsed.
+type Rule struct {
+	Kind  RuleKind
+	File  string
+	Line  int
+	Group string
+	Text  string
 }
 
 // GrantsOf is what each tool decides for u, by the rules Check decides by, in
@@ -101,7 +132,23 @@ type Grant struct {
 func (e Elevation) GrantsOf(db accounts.DB, u accounts.User) []Grant {
 	var out []Grant
 	for _, t := range e.tools {
-		out = append(out, Grant{Tool: t.name, Grants: t.decide(db, u).tri})
+		g := t.decide(db, u)
+		out = append(out, Grant{Tool: t.name, Grants: g.tri, Rule: t.ruleOf(g.by, u.Name), NoPassword: g.tri == detect.Yes && g.nopass})
+	}
+	return out
+}
+
+// ruleOf is r as a Rule: a group's, hardn's own file for user, or another
+// file's; the zero Rule for none.
+func (t tool) ruleOf(r rule, user string) Rule {
+	if r.at == "" {
+		return Rule{}
+	}
+	out := Rule{Kind: RuleFile, File: r.file, Line: r.line, Text: r.text}
+	if r.who != "" && (r.who[0] == '%' || r.who[0] == ':') {
+		out.Kind, out.Group = RuleGroup, r.who[1:]
+	} else if n, err := sudoers.FileNames(t.kind, user); err == nil && n.Grant == r.file {
+		out.Kind = RuleHardn
 	}
 	return out
 }
@@ -114,7 +161,7 @@ func (e Elevation) GrantsOf(db accounts.DB, u accounts.User) []Grant {
 // file it cannot parse may stop it applying any rule [I], which the lines
 // hardn reads would not show.
 func readTool(ctx context.Context, sys host.System, f detect.Facts, want sudoers.Tool, present detect.Tool) tool {
-	t := tool{name: want.String(), detail: "can't read", why: "not installed"}
+	t := tool{name: want.String(), kind: want, detail: "can't read", why: "not installed"}
 	switch present.Present {
 	case detect.No:
 		t.state = detect.No
@@ -227,6 +274,8 @@ func readDoas(ctx context.Context, sys host.System, st sudoers.State) ([]rule, e
 // '\' is continued, and the lines it joins are one, never of a known form.
 type line struct {
 	text, at string
+	file     string
+	n        int
 	joined   bool
 }
 
@@ -239,7 +288,7 @@ func lines(data []byte, file string) []line {
 			out[len(out)-1].text += " " + t
 			out[len(out)-1].joined = true
 		} else {
-			out = append(out, line{text: t, at: steps.SourceAt(file, i+1)})
+			out = append(out, line{text: t, at: steps.SourceAt(file, i+1), file: file, n: i + 1})
 		}
 		cont = strings.HasSuffix(t, `\`)
 	}
@@ -271,7 +320,7 @@ var (
 // other than the drop-ins; a continued line with a comment in it), or
 // neither: blank, a comment, any other Defaults, an alias.
 func sudoLine(l line) (r rule, isRule, isAuth bool) {
-	r = rule{at: l.at, text: strings.Join(strings.Fields(l.text), " ")}
+	r = rule{at: l.at, file: l.file, line: l.n, text: strings.Join(strings.Fields(l.text), " ")}
 	t := l.text
 	if i := commentAt(t, true); i >= 0 && !strings.HasPrefix(t, "#include") {
 		if l.joined {
@@ -380,7 +429,7 @@ func doasRule(l line) (rule, bool) {
 	if t == "" && !l.joined {
 		return rule{}, false
 	}
-	r := rule{at: l.at, text: strings.Join(strings.Fields(t), " ")}
+	r := rule{at: l.at, file: l.file, line: l.n, text: strings.Join(strings.Fields(t), " ")}
 	f := strings.Fields(t)
 	if l.joined || strings.Contains(t, `"`) || len(f) < 2 || f[0] != "permit" && f[0] != "deny" {
 		return r, true
