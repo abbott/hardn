@@ -247,6 +247,13 @@ func (f faulty) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
 	return fi, err
 }
 
+func (f faulty) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if err := f.fail["write "+name]; err != nil {
+		return &fs.PathError{Op: "write", Path: name, Err: err}
+	}
+	return f.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
 // setuid is a file's information with its setuid bit set.
 type setuid struct{ fs.FileInfo }
 

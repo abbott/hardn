@@ -386,7 +386,8 @@ func TestRead(t *testing.T) {
 			runs = append(runs, strings.Join(c.Argv, " "))
 		}
 	}
-	if want := []string{"visudo -c", "sshd -T -f " + sshdConfig, "visudo -c"}; !slices.Equal(runs, want) { // Check's, for george's "!" too; Read's
+	// Check's, for george's "!" too; Read's: the rules, sshd's PAM, its key files.
+	if want := []string{"visudo -c", "sshd -T -f " + sshdConfig, "visudo -c", "sshd -T -f " + sshdConfig, "sshd -T -f " + sshdConfig}; !slices.Equal(runs, want) {
 		t.Errorf("ran %q, want %q", runs, want)
 	}
 
@@ -407,15 +408,12 @@ func TestRead(t *testing.T) {
 	readOnly(t, h)
 }
 
-// TestNotMigrated: the status list's Admin (ActionNone) and the actions
-// the next stage builds (Create, Add and Remove SSH key) plan nothing:
+// TestNotMigrated: the status list's Admin (ActionNone) plans nothing:
 // engine.ErrNotMigrated, reading nothing.
 func TestNotMigrated(t *testing.T) {
-	for _, a := range []users.Action{users.ActionNone, users.ActionCreate, users.ActionAddKey, users.ActionRemoveKey} {
-		sys, h := debian13Login().build(t)
-		cs, err := users.Admin{Action: a, User: "george"}.Plan(context.Background(), sys, engine.Input{Facts: debian13().facts})
-		if !errors.Is(err, engine.ErrNotMigrated) || cs != nil || len(h.Calls()) != 0 {
-			t.Errorf("action %d: %v, %v, %d calls", a, cs, err, len(h.Calls()))
-		}
+	sys, h := debian13Login().build(t)
+	cs, err := users.Admin{User: "george"}.Plan(context.Background(), sys, engine.Input{Facts: debian13().facts})
+	if !errors.Is(err, engine.ErrNotMigrated) || cs != nil || len(h.Calls()) != 0 {
+		t.Errorf("%v, %v, %d calls", cs, err, len(h.Calls()))
 	}
 }
