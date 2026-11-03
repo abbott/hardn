@@ -1,0 +1,901 @@
+# Golden file of TestPlayUsersGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay users/debian13␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Admin.Check, users.ReadElevation, sudoers.Read,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPolicyOf, Invoker, ssh.ReadPAM), each grant the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudoers.PlanFor on the real plan/apply engine. Creating a user␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the keys are the gallery's stand-ins, unit (b)'s to build.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george, uid␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1000, no password (!), in sudo and adm, two keys, NOPASSWD by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcloud-init's 90-cloud-init-users; alice, uid 1001, a password,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min sudo, no key. hardn runs through george's sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malice␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mgroup sudo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mSet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m          ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m          ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mr␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m  ␛[38;2;129;134;156mTake them away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m     ␛[38;2;129;134;156mFor admin rights␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 3$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging SSH keys for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Keys␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA␛[m$
+      ␛[38;2;129;134;156mgeorge@laptop-1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA␛[m$
+      ␛[38;2;129;134;156mgeorge@laptop-2␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAdd SSH key␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mRemove SSH key␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 2$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRemove SSH key␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;192;196;216mRemove which key?␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA george…␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA george…␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[1-2, 0 or q]:␛[m 2$
+  ␛[38;2;192;196;216mRemove which key?␛[m␛[38;2;192;196;216m:␛[m$
+      ␛[38;2;129;134;156mSHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA george…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Keys␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m1 key␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mRemove a key from george␛[m$
+$
+      ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1 @@␛[m$
+      ␛[38;2;129;134;156m ssh-ed25519␛[m$
+      ␛[38;2;129;134;156m↪ AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB␛[m$
+      ␛[38;2;129;134;156m↪AQEBAQEBAQEB george@laptop-1␛[m$
+      ␛[38;2;231;70;105m-ssh-ed25519␛[m$
+      ␛[38;2;231;70;105m↪ AAAAC3NzaC1lZDI1NTE5AAAAIAICAgICAgICAgICAgICAgICAgICAgIC␛[m$
+      ␛[38;2;231;70;105m↪AgICAgICAgIC george@laptop-2␛[m$
+$
+  ␛[38;2;192;196;216mRemove the key from george?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRemove a key from george␛[m   ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
+  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /home/george/.ssh/authorized_keys kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging SSH keys for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Keys␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA␛[m$
+      ␛[38;2;129;134;156mgeorge@laptop-1␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAdd SSH key␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mRemove SSH key␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m1 key␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m  ␛[38;2;129;134;156mTake them away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m     ␛[38;2;129;134;156mFor admin rights␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mr␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m1 key␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malice␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mgroup sudo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mSet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m          ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m          ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ systemd-run␛[m$
+      ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261020T120000Z-xxxxxxxx␛[m$
+      ␛[38;2;129;134;156m↪ "--description=hardn: roll back change␛[m$
+      ␛[38;2;129;134;156m↪ 20261020T120000Z-xxxxxxxx unless confirmed"␛[m$
+      ␛[38;2;129;134;156m↪ --on-active=180s --timer-property=AccuracySec=1s␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn rollback 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Remove a key from george␛[m$
+      ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play users/debian13 ------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the User Management screen proposed for$
+# slice 5, drawn from what real code reads of a simulated host$
+# (users.Admin.Check, users.ReadElevation, sudoers.Read,$
+# PolicyOf, Invoker, ssh.ReadPAM), each grant the real$
+# sudoers.PlanFor on the real plan/apply engine. Creating a user$
+# and the keys are the gallery's stand-ins, unit (b)'s to build.$
+# Nothing on this machine changes: every command and file is the$
+# fake's.$
+$
+# Info: users/debian13$
+# web-01.example.net runs Debian 13. As the VM: george, uid$
+# 1000, no password (!), in sudo and adm, two keys, NOPASSWD by$
+# cloud-init's 90-cloud-init-users; alice, uid 1001, a password,$
+# in sudo, no key. hardn runs through george's sudo.$
+$
+# User Management ##############################################$
+$
+  [+] User                 Configured non-root, sudo$
+$
+# george -------------------------------------------------------$
+$
+  [ ] Sudo                 Enabled, No password to ask for$
+   -  Granted by           /etc/sudoers.d/90-cloud-init-users$
+   -  SSH Keys             2 keys$
+   -  Password             None$
+$
+# alice --------------------------------------------------------$
+$
+  [+] Sudo                 Enabled$
+   -  Granted by           group sudo$
+  [ ] SSH Keys             None$
+   -  Password             Set$
+$
+  Select an option$
+$
+   1) Manage User          Configure sudo, SSH keys$
+   2) Create User          Configure a new user$
+$
+   0) Return$
+$
+  > Enter your choice [0-2 or q]: 1$
+$
+# Manage User ##################################################$
+$
+  Select a user$
+$
+   1) george$
+   2) alice$
+$
+   0) Return$
+$
+  > Enter your choice [0-2 or q]: 1$
+$
+# Manage User ##################################################$
+$
+  Managing: [george]$
+$
+# User Configuration -------------------------------------------$
+$
+  [ ] Sudo                 Enabled, No password to ask for$
+   -  Granted by           /etc/sudoers.d/90-cloud-init-users$
+   -  SSH Keys             2 keys$
+   -  Password             None$
+$
+  Select an option$
+$
+   1) Remove admin rights  Take them away$
+   2) Ask for password     For admin rights$
+   3) SSH Keys             Add or remove SSH keys$
+$
+   0) Return$
+$
+  > Enter your choice [0-3 or q]: 3$
+$
+# Manage User ##################################################$
+$
+  Managing SSH keys for: [george]$
+$
+# SSH Keys -----------------------------------------------------$
+$
+   -  SHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA$
+      george@laptop-1$
+   -  SHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA$
+      george@laptop-2$
+$
+  Select an option$
+$
+   1) Add SSH key$
+   2) Remove SSH key$
+$
+   0) Return$
+$
+  > Enter your choice [0-2 or q]: 2$
+$
+# Remove SSH key ###############################################$
+$
+  Remove which key?$
+$
+   1) SHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA geor...$
+   2) SHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA geor...$
+$
+  > Enter your choice [1-2, 0 or q]: 2$
+  Remove which key?:$
+      SHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA geor...$
+$
+# SSH Keys -----------------------------------------------------$
+$
+   -  SSH Keys             1 key$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      Remove a key from george$
+$
+      /home/george/.ssh/authorized_keys$
+      @@ -1,2 +1 @@$
+       ssh-ed25519$
+      | AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB$
+      |AQEBAQEBAQEB george@laptop-1$
+      -ssh-ed25519$
+      | AAAAC3NzaC1lZDI1NTE5AAAAIAICAgICAgICAgICAgICAgICAgICAgIC$
+      |AgICAgICAgIC george@laptop-2$
+$
+  Remove the key from george?$
+$
+  Type the hostname [web-01, 0 or q]: web-01$
+$
+  [+] Install hardn's boot unit  Done$
+  [+] Remove a key from george   Done$
+$
+# Operation Successful$
+$
+# Warning$
+# This change reverts automatically in 3:01$
+# To keep it, open a new SSH session and run:$
+$
+      $ sudo hardn confirm$
+$
+  Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
+  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
+  20261020T120000Z-xxxxxxxx.$
+$
+  Backup of /home/george/.ssh/authorized_keys kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
+$
+# Manage User ##################################################$
+$
+  Managing SSH keys for: [george]$
+$
+# SSH Keys -----------------------------------------------------$
+$
+   -  SHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA$
+      george@laptop-1$
+$
+  Select an option$
+$
+   1) Add SSH key$
+   2) Remove SSH key$
+$
+   0) Return$
+$
+  > Enter your choice [0-2 or q]: 0$
+$
+# Manage User ##################################################$
+$
+  Managing: [george]$
+$
+# User Configuration -------------------------------------------$
+$
+  [ ] Sudo                 Enabled, No password to ask for$
+   -  Granted by           /etc/sudoers.d/90-cloud-init-users$
+   -  SSH Keys             1 key$
+   -  Password             None$
+$
+  Select an option$
+$
+   1) Remove admin rights  Take them away$
+   2) Ask for password     For admin rights$
+   3) SSH Keys             Add or remove SSH keys$
+$
+   0) Return$
+$
+  > Enter your choice [0-3 or q]: 0$
+$
+# Manage User ##################################################$
+$
+  Select a user$
+$
+   1) george$
+   2) alice$
+$
+   0) Return$
+$
+  > Enter your choice [0-2 or q]: 0$
+$
+# User Management ##############################################$
+$
+  [+] User                 Configured non-root, sudo$
+$
+# george -------------------------------------------------------$
+$
+  [ ] Sudo                 Enabled, No password to ask for$
+   -  Granted by           /etc/sudoers.d/90-cloud-init-users$
+   -  SSH Keys             1 key$
+   -  Password             None$
+$
+# alice --------------------------------------------------------$
+$
+  [+] Sudo                 Enabled$
+   -  Granted by           group sudo$
+  [ ] SSH Keys             None$
+   -  Password             Set$
+$
+  Select an option$
+$
+   1) Manage User          Configure sudo, SSH keys$
+   2) Create User          Configure a new user$
+$
+   0) Return$
+$
+  > Enter your choice [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: users/debian13$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+   -  Armed the revert timer$
+      $ systemd-run$
+      | --unit=hardn-revert-20261020T120000Z-xxxxxxxx$
+      | "--description=hardn: roll back change$
+      | 20261020T120000Z-xxxxxxxx unless confirmed"$
+      | --on-active=180s --timer-property=AccuracySec=1s$
+      | /usr/local/bin/hardn rollback 20261020T120000Z-xxxxxxxx$
+$
+   -  Applied: Remove a key from george$
+      /home/george/.ssh/authorized_keys$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay users/debian13␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (users.Admin.Check, users.ReadElevation,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudoers.Read, PolicyOf, Invoker, ssh.ReadPAM), each grant␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real sudoers.PlanFor on the real plan/apply engine.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mCreating a user and the keys are the gallery's stand-ins,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george, uid␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1000, no password (!), in sudo and adm, two keys, NOPASSWD␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mby cloud-init's 90-cloud-init-users; alice, uid 1001, a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword, in sudo, no key. hardn runs through george's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malice␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156mgroup sudo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mSet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m$
+      ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m$
+      ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mr␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m$
+      ␛[38;2;129;134;156mTake them away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m$
+      ␛[38;2;129;134;156mFor admin rights␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 3$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging SSH keys for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Keys␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA␛[m$
+      ␛[38;2;129;134;156mgeorge@laptop-1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA␛[m$
+      ␛[38;2;129;134;156mgeorge@laptop-2␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAdd SSH key␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mRemove SSH key␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 2$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRemove SSH key␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;192;196;216mRemove which key?␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA ge…␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA ge…␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[1-2, 0 or q]:␛[m 2$
+  ␛[38;2;192;196;216mRemove which key?␛[m␛[38;2;192;196;216m:␛[m$
+      ␛[38;2;129;134;156mSHA256:baqJQcVDEweKmw1OiZxGooCG2MGxYtwsQQzzOstxmiA ge…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Keys␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m1 key␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mRemove a key from george␛[m$
+$
+      ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
+      ␛[38;2;86;91;107m@@ -1,2 +1 @@␛[m$
+      ␛[38;2;129;134;156m ssh-ed25519␛[m$
+      ␛[38;2;129;134;156m↪ AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEB␛[m$
+      ␛[38;2;129;134;156m↪AQEBAQEBAQEBAQEB george@laptop-1␛[m$
+      ␛[38;2;231;70;105m-ssh-ed25519␛[m$
+      ␛[38;2;231;70;105m↪ AAAAC3NzaC1lZDI1NTE5AAAAIAICAgICAgICAgICAgICAgICAgIC␛[m$
+      ␛[38;2;231;70;105m↪AgICAgICAgICAgIC george@laptop-2␛[m$
+$
+  ␛[38;2;192;196;216mRemove the key from george?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRemove a key from george␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
+  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /home/george/.ssh/authorized_keys kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging SSH keys for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Keys␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA␛[m$
+      ␛[38;2;129;134;156mgeorge@laptop-1␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAdd SSH key␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mRemove SSH key␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m1 key␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m$
+      ␛[38;2;129;134;156mTake them away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m$
+      ␛[38;2;129;134;156mFor admin rights␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mu␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mr␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216malice␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m1 key␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malice␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156mgroup sudo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mSet␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m$
+      ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m$
+      ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ systemd-run␛[m$
+      ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261020T120000Z-xxxxxxxx␛[m$
+      ␛[38;2;129;134;156m↪ "--description=hardn: roll back change␛[m$
+      ␛[38;2;129;134;156m↪ 20261020T120000Z-xxxxxxxx unless confirmed"␛[m$
+      ␛[38;2;129;134;156m↪ --on-active=180s --timer-property=AccuracySec=1s␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn rollback␛[m$
+      ␛[38;2;129;134;156m↪ 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Remove a key from george␛[m$
+      ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
+$

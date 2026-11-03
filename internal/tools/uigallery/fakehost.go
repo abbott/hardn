@@ -100,6 +100,9 @@ type fakeHost struct {
 	mu         sync.Mutex
 	timers     map[string]time.Time // each systemd-run timer unit, and when it fires
 	unexpected []string             // the commands the model does not answer
+	// users answers the User Management mock's commands (usershost.go);
+	// nil on every other host.
+	users *userSim
 }
 
 // platform is what a simulated host's release ships, as detect reads it.
@@ -544,6 +547,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 	cmd := strings.Join(argv, " ")
 	if !h.installed(path.Base(argv[0])) {
 		return hostfake.Response{Err: host.ErrNotFound, ExitCode: -1}
+	}
+	if r, ok := h.users.answer(h, argv); ok {
+		return r
 	}
 	switch path.Base(argv[0]) {
 	case "sshd":
