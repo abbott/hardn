@@ -59,8 +59,8 @@ func TestRead(t *testing.T) {
 		t.Fatalf("errors: %v, %v, %v, %v", r.EffErr, r.FoundErr, r.UsersErr, r.LoginErr)
 	case r.Login != sshd.Accepted{User: "george", Method: "publickey", KeyType: "ED25519", Fingerprint: "SHA256:c3ludGhldGljLWtleS1vZi1nZW9yZ2UtbGFwdG9wLTE"}:
 		t.Errorf("login %+v", r.Login)
-	case r.RootValue() != "prohibit-password" || r.PasswordsOn() || r.PVE || r.RootLocked || r.ListenPort != "" || r.OnlyFrom22 != nil:
-		t.Errorf("root %q, passwords %v, pve %v, locked %v, listen %q, only from %v", r.RootValue(), r.PasswordsOn(), r.PVE, r.RootLocked, r.ListenPort, r.OnlyFrom22)
+	case r.RootValue() != "prohibit-password" || r.PasswordsOn() || r.PVE || r.RootLocked || r.ListenPort != "" || r.OnlyFrom != nil:
+		t.Errorf("root %q, passwords %v, pve %v, locked %v, listen %q, only from %v", r.RootValue(), r.PasswordsOn(), r.PVE, r.RootLocked, r.ListenPort, r.OnlyFrom)
 	case r.DecidedBy("passwordauthentication") != "sshd_config" || r.DecidedBy("permitrootlogin") != "":
 		t.Errorf("decided by %q, %q", r.DecidedBy("passwordauthentication"), r.DecidedBy("permitrootlogin"))
 	case r.Root.Name != "root" || len(r.Users.Users) != 2:
@@ -422,6 +422,13 @@ func TestRefusals(t *testing.T) {
 			return v
 		}, port2230, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
 			"ufw lets port 22 in from 192.0.2.0/24 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
+		{"ufw lets 2230, where sshd listens now, in from 192.0.2.0/24 alone", func(t *testing.T) *vm {
+			v := debianVM(t).file(sshd.HardnDropIn, "Port 2230\n")
+			v.rules = []ufwRule{{port: 22}, {port: 2230, src: "192.0.2.0/24"}}
+			v.saveRules()
+			return v
+		}, sshchange.Port{To: 2231}, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
+			"ufw lets port 2230 in from 192.0.2.0/24 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
 		{"ufw lets 22 in on eth0 alone", func(t *testing.T) *vm {
 			v := debianVM(t)
 			v.rules = []ufwRule{{port: 22, iface: "eth0"}}

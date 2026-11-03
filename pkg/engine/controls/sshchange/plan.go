@@ -39,7 +39,7 @@ const (
 	wordsPVENoKey    = "Root would lose SSH login: %s. Add a key for root first."
 	wordsListenConf  = "hardn v0.3.x's listen.conf (port %s for ssh.socket) never took effect: ssh.socket listens on %s. Moving it now couldn't be undone. Let %s through the firewall, run systemctl daemon-reload and systemctl restart ssh.socket, check a new connection to %s works, then try again."
 	wordsPVEPort     = "The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it."
-	wordsRestricted  = "ufw lets port 22 in from %s alone. A new port would be open to anyone. Move that rule to the new port by hand first."
+	wordsRestricted  = "ufw lets port %d in from %s alone. A new port would be open to anyone. Move that rule to the new port by hand first."
 	wordsMigrate     = "hardn's old SSH files are still here (%s). Move them into 00-hardn.conf first: item 4."
 	wordsIncludeNot  = "sshd_config doesn't start with \"" + sshd.IncludeLine + "\", so hardn's settings wouldn't be read first. Put that line first, then try again."
 	wordsNoAdminRoot = "there's no admin besides root"
@@ -72,8 +72,9 @@ var (
 	ErrPVEPasswordSession = errors.New("the session is root's own SSH login, by password")
 	// ErrPVENoRootKey: on Proxmox VE, root could not log in by key afterwards.
 	ErrPVENoRootKey = errors.New("root could not log in by key afterwards")
-	// ErrPortRestricted: ufw lets port 22 in from some sources alone.
-	ErrPortRestricted = errors.New("ufw lets port 22 in from some sources alone")
+	// ErrPortRestricted: ufw lets the port sshd listens on in from some
+	// sources alone.
+	ErrPortRestricted = errors.New("ufw lets the SSH port in from some sources alone")
 )
 
 // The refusals' codes, the registry's for the errors they wrap (pkg/output;
@@ -267,8 +268,8 @@ func (r Reading) portRefusal() error {
 	switch {
 	case r.PVE:
 		return refuse(codePVEPort, pve.ErrPortChange, nil, wordsPVEPort)
-	case len(r.OnlyFrom22) > 0:
-		return refuse(codePortRestricted, ErrPortRestricted, nil, fmt.Sprintf(wordsRestricted, strings.Join(r.OnlyFrom22, ", ")))
+	case len(r.OnlyFrom) > 0:
+		return refuse(codePortRestricted, ErrPortRestricted, nil, fmt.Sprintf(wordsRestricted, r.OnlyFromPort, strings.Join(r.OnlyFrom, ", ")))
 	}
 	return nil
 }
