@@ -83,8 +83,9 @@ type Reading struct {
 	// there is none.
 	ListenPort string
 	// OnlyFrom22 are the sources an active ufw lets port 22 in from where
-	// it lets it in from some alone (ufw.OnlyFrom), nil where ufw is not
-	// installed, not read, or lets 22 in from anywhere.
+	// it lets it in from some alone, an interface rule's "<src> on
+	// <iface>" (ufw.OnlyFrom), nil where ufw is not installed, not read,
+	// or lets 22 in from anywhere on any interface.
 	OnlyFrom22 []string
 }
 

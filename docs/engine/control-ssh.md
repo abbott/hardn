@@ -9,7 +9,7 @@ The SSH Login control is every change the SSH Login screen makes: root login, pa
 
 - **Root** (`plan.go`): Disallow root login (`PermitRootLogin no`) and Allow root key-only back (`prohibit-password`, never `yes`); on Proxmox VE Root key-only, `prohibit-password` whatever is asked, refused once there (decision 3 (a)).
 - **Auth**: Key-only login (`PasswordAuthentication no`, and `KbdInteractiveAuthentication no` where it is yes and sshd uses PAM) and Password login on (decision 4 (a)). Whether passwords log in is read through `AuthenticationMethods` (`Reading.PasswordsOn`, `sshd.MethodsMet`), as the SSH Auth check reads it ([check-ssh.md](check-ssh.md) §10).
-- **Port**: adds the port, 22 held until confirmed (`steps.PlanSSH`); refused on Proxmox VE and where an active ufw lets 22 in from some sources alone (decision 5 (a), `ufw.OnlyFrom`).
+- **Port**: adds the port, 22 held until confirmed (`steps.PlanSSH`); refused on Proxmox VE and where an active ufw lets 22 in from some sources alone, or on one interface alone, named "<src> on <iface>" or "anywhere on <iface>" (decision 5 (a), `ufw.OnlyFrom`).
 - **Migrate**: hardn's old files into `00-hardn.conf` (`steps.PlanMigration`); the other changes refuse until it is done, and refuse an Include not first (decision 6 (a), P-38 (a)).
 - **The proof** (decision 2 (a), `paths.go`): before a change that closes a way in, for each admin, sshd's own answer from the session's address (`sshd.ReadUser`), `DenyUsers` and `AllowUsers` matched by hardn (`sshd.Listed`), the keys sshd reads, their type and RSA size (`authkeys.TypeAccepted`, `Key.RSABits`), StrictModes, `PubkeyAuthentication`, one `AuthenticationMethods` list met, the lock without PAM, and becoming root after. Refused: root's own SSH login, a password session for Key-only, a session sshd's log has no line for (`sshd.ReadAccepted`: the last line from the session's address and port, logged by its sshd or that process's `[priv]` parent where `/proc` shows them, `revert.Session.LogPIDs`; on systemd the current boot's journal); from a console, the admins alone.
 
@@ -46,6 +46,7 @@ The SSH Login control is every change the SSH Login screen makes: root login, pa
 
 - `Migrate`'s title "Move old settings" (the decided item name).
 - Several ufw sources in the restricted-port refusal, joined by ", ".
+- An interface rule's source in the restricted-port refusal: "<src> on <iface>", "anywhere on <iface>".
 - The registry's one-line meanings, the sentinels' texts.
 - SSH Auth's detail "key and password" and evidence `sshd -T: authenticationmethods <lists>` (check-ssh.md §10).
 

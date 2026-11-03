@@ -416,6 +416,13 @@ func TestRefusals(t *testing.T) {
 			return v
 		}, port2230, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
 			"ufw lets port 22 in from 192.0.2.0/24 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
+		{"ufw lets 22 in on eth0 alone", func(t *testing.T) *vm {
+			v := debianVM(t)
+			v.rules = []ufwRule{{port: 22, iface: "eth0"}}
+			v.saveRules()
+			return v
+		}, port2230, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
+			"ufw lets port 22 in from anywhere on eth0 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
 		{"the port with v0.3.2's files", d9, port2230, "SSH_MIGRATE_FIRST", steps.ErrMigrateFirst,
 			"hardn's old SSH files are still here (manage.conf, listen.conf). Move them into 00-hardn.conf first: item 4.", false},
 		{"listen.conf never in effect (P-39)", d9, sshchange.Migrate{}, steps.CodeListenConfNotInEffect, steps.ErrListenConfNotInEffect,
