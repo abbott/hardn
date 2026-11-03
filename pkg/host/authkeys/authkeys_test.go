@@ -1,7 +1,10 @@
 package authkeys_test
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"io/fs"
 	"slices"
@@ -78,6 +81,113 @@ func TestParseLine(t *testing.T) {
 	}
 }
 
+// sshString is s as an SSH string (RFC 4251 §5): its length, then s.
+func sshString(s []byte) []byte {
+	return append(binary.BigEndian.AppendUint32(nil, uint32(len(s))), s...)
+}
+
+// blobOf is a blob of fields, each an SSH string, typ first.
+func blobOf(typ string, fields ...[]byte) []byte {
+	b := sshString([]byte(typ))
+	for _, f := range fields {
+		b = append(b, sshString(f)...)
+	}
+	return b
+}
+
+// lineOf is the line of a key of type typ, blob b, comment carol@laptop.
+func lineOf(typ string, b []byte) string {
+	return typ + " " + base64.StdEncoding.EncodeToString(b) + " carol@laptop"
+}
+
+// filled is n bytes of c after first, as a point (0x04) or a modulus.
+func filled(first byte, c byte, n int) []byte {
+	return append([]byte{first}, bytes.Repeat([]byte{c}, n-1)...)
+}
+
+// blobOfLine is the blob of a key's line.
+func blobOfLine(t *testing.T, line string) []byte {
+	t.Helper()
+	b, err := base64.StdEncoding.DecodeString(strings.Fields(line)[1])
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
+
+// TestParseBlob: the whole blob is read in its type's wire form, with no
+// x/crypto. A well-formed key of each type OpenSSH 9 and 10 take parses;
+// one cut short, one with bytes after it, ed25519's header alone, a
+// 768-bit RSA modulus, a wrong curve or point are ErrNotKey, saying why
+// after the existing words. Synthetic keys, built here, no one's.
+func TestParseBlob(t *testing.T) {
+	e := []byte{1, 0, 1}
+	rsa1024 := filled(0, 0xc5, 129) // 0x00, then 1024 bits, the top one set
+	good := map[string]string{
+		"ssh-ed25519":                        edKey,
+		"ssh-rsa":                            rsaKey,
+		"ssh-rsa, 1024 bits":                 lineOf("ssh-rsa", blobOf("ssh-rsa", e, rsa1024)),
+		"ecdsa-sha2-nistp256":                ecKey,
+		"ecdsa-sha2-nistp384":                lineOf("ecdsa-sha2-nistp384", blobOf("ecdsa-sha2-nistp384", []byte("nistp384"), filled(4, 7, 97))),
+		"ecdsa-sha2-nistp521":                lineOf("ecdsa-sha2-nistp521", blobOf("ecdsa-sha2-nistp521", []byte("nistp521"), filled(4, 7, 133))),
+		"sk-ssh-ed25519@openssh.com":         skKey,
+		"sk-ecdsa-sha2-nistp256@openssh.com": lineOf("sk-ecdsa-sha2-nistp256@openssh.com", blobOf("sk-ecdsa-sha2-nistp256@openssh.com", []byte("nistp256"), filled(4, 7, 65), []byte("ssh:"))),
+	}
+	for name, line := range good {
+		t.Run(name, func(t *testing.T) {
+			k, err := authkeys.ParsePublic(line)
+			if err != nil || k.Type != strings.Fields(line)[0] {
+				t.Fatalf("ParsePublic = %+v, %v", k, err)
+			}
+			typ, b := k.Type, blobOfLine(t, line)
+			for _, bad := range []struct {
+				name, line, why string
+			}{
+				{"cut short", lineOf(typ, b[:len(b)-1]), "it ends early"},
+				{"its last field gone", lineOf(typ, b[:len(b)-4-int(binary.BigEndian.Uint32(lastField(b)))]), "it ends early"},
+				{"bytes after it", lineOf(typ, append(slices.Clone(b), 0)), "bytes follow the key"},
+			} {
+				_, err := authkeys.ParsePublic(bad.line)
+				if want := "authkeys: not a key: its blob is not a " + typ + " key: " + bad.why; !errors.Is(err, authkeys.ErrNotKey) || err.Error() != want {
+					t.Errorf("%s: %v, want %s", bad.name, err, want)
+				}
+				if _, err := authkeys.ParseLine("no-pty " + bad.line); !errors.Is(err, authkeys.ErrNotKey) {
+					t.Errorf("%s: ParseLine = %v, want ErrNotKey", bad.name, err)
+				}
+			}
+		})
+	}
+	for _, tc := range []struct{ name, line, why string }{
+		{"ed25519's header alone", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5 carol@laptop", "it ends early"},
+		{"an ed25519 key of 31 bytes", lineOf("ssh-ed25519", blobOf("ssh-ed25519", filled(1, 1, 31))), "its key is 31 bytes, not 32"},
+		{"RSA, 768 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, filled(0, 0xc5, 97))), "its modulus is 768 bits, under 1024"},
+		{"RSA, 1023 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, append([]byte{0x7f}, rsa1024[2:]...))), "its modulus is 1023 bits, under 1024"},
+		{"RSA, a negative modulus", lineOf("ssh-rsa", blobOf("ssh-rsa", e, rsa1024[1:])), "its modulus isn't positive"},
+		{"RSA, a zero exponent", lineOf("ssh-rsa", blobOf("ssh-rsa", nil, rsa1024)), "its exponent isn't positive"},
+		{"ECDSA, another curve", lineOf("ecdsa-sha2-nistp256", blobOf("ecdsa-sha2-nistp256", []byte("nistp384"), filled(4, 7, 65))), `its curve is "nistp384", not nistp256`},
+		{"ECDSA, a compressed point", lineOf("ecdsa-sha2-nistp384", blobOf("ecdsa-sha2-nistp384", []byte("nistp384"), filled(2, 7, 49))), "its point isn't an uncompressed nistp384 point"},
+		{"ECDSA, a point of the wrong length", lineOf("ecdsa-sha2-nistp521", blobOf("ecdsa-sha2-nistp521", []byte("nistp521"), filled(4, 7, 97))), "its point isn't an uncompressed nistp521 point"},
+		{"sk, no application", lineOf("sk-ssh-ed25519@openssh.com", blobOf("sk-ssh-ed25519@openssh.com", filled(1, 1, 32))), "it ends early"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			typ := strings.Fields(tc.line)[0]
+			if _, err := authkeys.ParseLine(tc.line); !errors.Is(err, authkeys.ErrNotKey) || err.Error() != "authkeys: not a key: its blob is not a "+typ+" key: "+tc.why {
+				t.Errorf("ParseLine = %v, want %s", err, tc.why)
+			}
+		})
+	}
+}
+
+// lastField is the length field of b's last SSH string.
+func lastField(b []byte) []byte {
+	var at int
+	for i := 0; i+4 <= len(b); {
+		at = i
+		i += 4 + int(binary.BigEndian.Uint32(b[i:]))
+	}
+	return b[at : at+4]
+}
+
 // TestParsePublic: a pasted key, trimmed; no options, one line.
 func TestParsePublic(t *testing.T) {
 	k, err := authkeys.ParsePublic("  " + ecKey + "\r\n")
@@ -135,9 +245,10 @@ const (
 )
 
 // TestRead: the files in order, "none" skipped, authorized_keys2 counted
-// and a key in both once; a file not there has no Data.
+// and a key in both once; a line sshd would refuse, ed25519's header
+// alone, neither listed nor counted; a file not there has no Data.
 func TestRead(t *testing.T) {
-	h := keyHost(true, map[string]string{keysFile: "# george\n" + edKey + "\n\n" + ecKey + "\r\n", keys2File: edKey + "\n" + rsaKey})
+	h := keyHost(true, map[string]string{keysFile: "# george\n" + edKey + "\nssh-ed25519 AAAAC3NzaC1lZDI1NTE5 george@old\n\n" + ecKey + "\r\n", keys2File: edKey + "\n" + rsaKey})
 	files := authkeys.Read(ctx, h, append([]string{"none"}, debian...), george)
 	if len(files) != 2 || files[0].Path != keysFile || files[1].Path != keys2File || len(files[0].Keys) != 2 || len(files[1].Keys) != 2 {
 		t.Fatalf("Read = %+v", files)
