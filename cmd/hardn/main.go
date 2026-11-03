@@ -204,7 +204,7 @@ var rootCmd = &cobra.Command{
 		// whether -c's user has a key, so it stays right should -c take one.
 		if createUser {
 			n := createNew(cfg)
-			if refuse(hardncmd.RefuseCreateDisableRoot(createUser, disableRootSSH, n.Name, n.Key)) {
+			if refuse(hardncmd.RefuseCreateDisableRoot(createUser, disableRootSSH, n.Name, n.Keys)) {
 				return
 			}
 		}

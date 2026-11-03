@@ -7,22 +7,23 @@ import (
 )
 
 // TestRefuseCreateDisableRoot: -c with -d is refused, a usage error, where
-// -c's user gets no key; -c alone, -d alone, and -c with a key are not.
+// -c's user gets no key; -c alone, -d alone, and -c with keys are not.
 func TestRefuseCreateDisableRoot(t *testing.T) {
 	for _, tc := range []struct {
 		name                string
 		create, disableRoot bool
-		key                 string
+		keys                []string
 		want                string // "" for no refusal
 	}{
-		{"-c alone", true, false, "", ""},
-		{"-d alone", false, true, "", ""},
-		{"-c -d, a key", true, true, "ssh-ed25519 AAAA george@web-01", ""},
-		{"-c -d, no key", true, true, "",
+		{"-c alone", true, false, nil, ""},
+		{"-d alone", false, true, nil, ""},
+		{"-c -d, a key", true, true, []string{"ssh-ed25519 AAAA george@web-01"}, ""},
+		{"-c -d, two keys", true, true, []string{"ssh-ed25519 AAAA george@web-01", "ssh-ed25519 AAAB carol@web-01"}, ""},
+		{"-c -d, no key", true, true, []string{},
 			"hardn -c -d would leave no SSH login: carol has no key, and -d turns off root's. Give carol a key first."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			err := RefuseCreateDisableRoot(tc.create, tc.disableRoot, "carol", tc.key)
+			err := RefuseCreateDisableRoot(tc.create, tc.disableRoot, "carol", tc.keys)
 			switch {
 			case tc.want == "" && err != nil:
 				t.Errorf("refused: %v", err)
