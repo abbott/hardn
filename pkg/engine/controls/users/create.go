@@ -95,18 +95,16 @@ func (r Reading) CheckNew(ctx context.Context, sys host.System, n New) error {
 }
 
 // newKeys are n's Keys parsed, in order, the same key (authkeys.Key.Same)
-// once. One that is not a key is refused: in ParseKey's words where n has
-// one, else naming which, by its place in Keys from 1 (proposed words).
+// once. One that is not a key is refused naming which, by its place in Keys
+// from 1, one key or several (proposed words): -c's come from hardn.yml's
+// sshKeys, where "Paste" does not fit, and the screen refuses a pasted one
+// at its field (ParseKey) before CheckNew sees it.
 func newKeys(n New) ([]authkeys.Key, error) {
 	var ks []authkeys.Key
 	for i, s := range n.Keys {
 		k, err := authkeys.ParsePublic(s)
 		if err != nil {
-			why := pasteOneKey
-			if len(n.Keys) > 1 {
-				why = fmt.Sprintf("Key %d isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name", i+1)
-			}
-			return nil, refuse(codeNotKey, err, nil, why, "")
+			return nil, refuse(codeNotKey, err, nil, fmt.Sprintf("Key %d isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name", i+1), "")
 		}
 		if !slices.ContainsFunc(ks, k.Same) {
 			ks = append(ks, k)
