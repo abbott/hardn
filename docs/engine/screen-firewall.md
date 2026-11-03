@@ -1,15 +1,15 @@
 # The Firewall screen on the Firewall control (`pkg/screens/firewall`, `screen.Firewall`)
 
-> **Unit:** refactor plan slice 4, unit (c), `next/s4-screen`, from 088c1026. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake, ufw answering from its model. No real terminal, no hardn binary, no VM. Nothing is wired into `cmd/hardn` or `pkg/menu` (unit (d)); the gallery and `TestParity` still run their own copies (the next stage).
+> **Unit:** refactor plan slice 4, unit (c), `next/s4-screen`, from 088c1026. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake, ufw answering from its model. No real terminal, no hardn binary, no VM. Nothing is wired into `cmd/hardn` or `pkg/menu` (unit (d)). The gallery and `TestParity` run `Run`: done, below.
 
 ## What it does
 
-Main menu 4 as adopted on 2026-11-01 ([gallery-firewall.md](gallery-firewall.md) §5, all ten decisions, §6's words), drawn from `firewall.Read` and the Firewall row (`Incoming.Check` through `output.StatusViewOf`, no engine), writing nothing, under plan only too.
+Main menu 4 as adopted on 2026-11-01 ([gallery-firewall.md](gallery-firewall.md) §5, all ten decisions, §6's words), drawn from `firewall.Read` and the Firewall row (`Incoming.Check` through `output.StatusViewOf`, no engine), writing nothing, under plan only too. The row is Check's own reading, a second `ufw status`, kept on purpose so that it is the main menu's row to the letter.
 
 - **ufw's screen:** sections ufw, SSH, Rules, Application Profiles. Item 1 by `Reading.First`: Install, Enable in the words of what its plan does (`Reading.Does`), Disable. A refused item 1 keeps its words and says the control's refusal when selected, before asking. Item 2 where ufw is installed; item 3, Disable, where `DisableBeside`.
 - **The profiles' screen:** Add, and with a profile Remove and Apply. Add's fields are checked at the field by `ufw.ValidProfile`; a name held in any case is a warning. Remove's Select refuses a number no profile has. Apply's refusal is said by planning `ActionApplyProfiles` first. Add and Remove with no hardn.yml read say `screenkit.NotLoaded`'s words before asking. After a save, `Config` adopts it (`screenkit.Adopt`).
-- **Proxmox VE:** "Firewall Configuration", read only, Return alone. No ufw call, and hardn.yml not used. Decision 7's row, from `PVEUFWEnabled`.
-- **Each change** runs through `screenkit.Session.Change`: the review, y/N, or the hostname typed for a lockout-risk plan (`p.Typed()`), the apply, the screen read again. A lockout-risk item 1 or Apply, live, whose hostname can't be read, says so before asking. Plan only stops every item at its plan, Add and Remove too, and needs no hostname.
+- **Proxmox VE:** "Firewall Configuration", read only, Return alone. No ufw call, and no item offered, so hardn.yml plays no part. Decision 7's row, from `PVEUFWEnabled`.
+- **Each change** runs through `screenkit.Session.Change`: the review, y/N, or the hostname typed for a lockout-risk plan (`p.Typed()`), the apply, the screen read again. A lockout-risk item 1, live, whose hostname can't be read, says so before asking; a plan that turns lockout-risk by the key says so in place of the question. The question's words are the draw's; only the confirmation follows the plan made at the key. Plan only stops every item at its plan, Add and Remove too, and needs no hostname.
 - **0** returns (nil), **q** quits (`nav.ErrQuit`), the end of the input and Ctrl-C abort (`prompt.ErrAborted`), from every screen, question and the form.
 
 ## API
@@ -24,12 +24,10 @@ firewall.Run(ctx, firewall.Options{
 - `pkg/ui/screen`: `Firewall` (`SubMenu`, `FirstChange`), `FirewallPVE`, `FirewallProfiles` (`SubMenu`, `ApplyChange`); `FirewallFirst` and its values; `FirewallDisableChange`, `FirewallAdd*`, `FirewallRemove*`; the item keys; `FirewallStatusKey`, `FirewallPolicyKey`, `FirewallBootKey`. No host type enters `pkg/ui`: `rows.go` maps them.
 - `pkg/screens/screenkit` (its own commit): `Hostname`, `TypeTheHostname`, `Session.CantConfirm`, moved from Environment, whose goldens are unchanged.
 
-## What the gallery stage must do
+## The gallery stage: done
 
-- **Retire** from `internal/tools/uigallery/firewall.go`: the words, `fwPortOK` and its regexps, `fwReading`'s rows, `subMenu`, `pveMenu`, `profilesMenu`, `enableWords`, `risky`, `refusal`, `applyRefusal`, `fwRunner` and its flows, `fwConfirm`. Retire the mocks `no-install` and `stale-listener`'s last section (§5).
-- **Retire** from `firewall_test.go`, moved here: `TestFirewallRows`, `BootRow`, `AtBoot`, `AddChecks`, `ItemWords`, `DisableBeside`, `InactiveMarks`, `IPv6Off`, `ProxmoxMarks`, `Heights`.
-- **Call** `firewall.Run` from `fwScreen` and the listing, with the gallery's host, `detect.Detect`'s facts, `fwSession(h)`, `statusConfig` and `kit`'s engine. The play goldens then change where this screen differs (below).
-- **`TestParity`:** point `screenRun` at `Run` (parity-firewall.md §7).
+- **`TestParity`** drives `Run` through `screenRun` (00aa7015; [parity-firewall.md](parity-firewall.md) §7).
+- **The gallery** plays `Run` from `fwScreen` on the mocks' hosts, with `detect.Detect`'s facts, `fwSession(h)`, `statusConfig` and the gallery's engine (5a059f44; [gallery-firewall.md](gallery-firewall.md)). The mocks, their copies of the screen's code and the tests moved here are retired.
 
 ## What unit (d) must do
 
@@ -39,11 +37,11 @@ firewall.Run(ctx, firewall.Options{
 
 ## Decisions made here
 
-- On Proxmox VE, or where that is not established, `firewall.Read` gets no configuration.
+- On Proxmox VE no item is offered, so hardn.yml plays no part; `firewall.Read` gets it as on any host.
 - Proxmox VE not established: ufw's title, the row ("can't tell if Proxmox"), and item 1 "Enable firewall", refused in the control's words. No section.
 - pve-firewall not read (a done context, `/etc/pve` not mounted): each row Unknown under the row's own words. ufw's state not read: Installed Unknown, item 1 refused.
 - Decision 7's row goes last in pve-firewall, above the muted line. Nothing is drawn where ufw.conf says No.
-- Only item 1 and Apply are checked for the hostname before asking. Neither knows its plan sooner. A plan that turns lockout-risk later says the same in place of the question, as Environment's does.
+- Only item 1 is checked for the hostname before asking, its plan read with the screen. Apply's plan is plain (`steps.PlanUFWApps`), so it is not. A plan that turns lockout-risk by the key says the same in place of the question, as Environment's does (`TestHostnameAtTheQuestion`).
 - Add checks each field with the others filled with what ufw takes. So a name may hold spaces and `+`, which the gallery refused, and "all" or a number is refused. Ports split on commas, each one entry; ufw's file joins them with `|`.
 - `NotLoaded` gets the control's save id, `firewall.ID+"/profiles"`, which the control does not export. Its words don't depend on it. Apply saves no hardn.yml, so it is not refused there.
 - The profiles' screen reads the host again each round, the Firewall row too, which it does not draw.
