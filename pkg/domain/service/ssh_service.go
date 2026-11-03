@@ -8,9 +8,6 @@ type SSHService interface {
 	// ConfigureSSH applies SSH configuration settings
 	ConfigureSSH(config model.SSHConfig) error
 
-	// disable SSH access for the root user
-	DisableRootSSH() error
-
 	// retrieve the current SSH configuration
 	GetCurrentConfig() (*model.SSHConfig, error)
 }
@@ -33,16 +30,11 @@ func NewSSHServiceImpl(repository SSHRepository, osInfo model.OSInfo) *SSHServic
 type SSHRepository interface {
 	SaveSSHConfig(config model.SSHConfig) error
 	GetSSHConfig() (*model.SSHConfig, error)
-	DisableRootSSH() error
 }
 
 // Implement SSHService methods
 func (s *SSHServiceImpl) ConfigureSSH(config model.SSHConfig) error {
 	return s.repository.SaveSSHConfig(config)
-}
-
-func (s *SSHServiceImpl) DisableRootSSH() error {
-	return s.repository.DisableRootSSH()
 }
 
 func (s *SSHServiceImpl) GetCurrentConfig() (*model.SSHConfig, error) {

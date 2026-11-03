@@ -55,7 +55,6 @@ func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.Main
 	// Create menu manager (use := instead of = since we're not declaring it above anymore)
 	hostInfoManager := f.serviceFactory.CreateHostInfoManager()
 	menuManager := application.NewMenuManager(
-		sshManager,
 		dnsManager,
 		packageManager,
 		securityManager,

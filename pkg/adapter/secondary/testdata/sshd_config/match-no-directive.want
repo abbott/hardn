@@ -1,8 +1,0 @@
-# Synthetic fixture (hardn tests): no global PermitRootLogin, a Match block.
-Port 2230
-#PermitRootLogin yes
-PasswordAuthentication no
-
-PermitRootLogin no
-Match User alice
-	PermitRootLogin yes
