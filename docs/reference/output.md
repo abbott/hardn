@@ -275,6 +275,18 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `PVE_NO_BACKUP` | 1 | Proxmox VE's keys edit needs a backup run |
 | `PVE_PLAN_MISMATCH` | 1 | the keys plan's new content does not follow from its edit |
 | `PVE_FIREWALL_UNKNOWN` | 1 | pve-firewall's state is not established |
+| `USERS_ELEVATION_NOT_READ` | 1 | the elevation tool's rules are not read, so no grant is planned (`users.Err*`, each a `steps.Refusal` in the words of [gallery-users.md](../engine/gallery-users.md) §6); new in `next/s5-control` |
+| `USERS_NO_TOOL` | 1 | no elevation tool is installed, so no grant is planned |
+| `USERS_NOT_LISTED` | 1 | not a user the User Management screen lists |
+| `USERS_GRANT_EDITED` | 1 | hardn's file for the user holds a rule hardn did not write |
+| `USERS_NOT_ADMIN` | 1 | a password choice for a user who is not an admin |
+| `USERS_GROUP_GRANT` | 1 | the user is an admin through a group's rule, which hardn leaves alone |
+| `USERS_GRANT_NOT_HARDNS` | 1 | the user is an admin through a rule hardn did not write |
+| `USERS_STILL_UNKNOWN` | 1 | whether the user stays an admin without hardn's grant is not established |
+| `USERS_STILL_ADMIN` | 1 | the user stays an admin without hardn's grant |
+| `USERS_SESSION_USER` | 1 | the grant is the session user's own way to become root |
+| `USERS_LAST_ADMIN` | 1 | the session user is not known, and the user is the last admin |
+| `USERS_NO_PASSWORD_TO_ASK` | 1 | the user has no password the elevation tool could ask |
 | `SUDOERS_INVALID_BEFORE` | 1 | the installed elevation configuration does not check, before anything is written |
 | `SUDOERS_INVALID_AFTER` | 1 | the elevation configuration does not check with the plan installed (put back) |
 | `SUDOERS_INVALID_RESTORED` | 1 | the elevation configuration does not check after the old files were put back |
