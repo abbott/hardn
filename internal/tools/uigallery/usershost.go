@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
@@ -43,7 +44,10 @@ type simUser struct {
 // mock's stand-in plans run, and visudo -c rejecting the files (rejects).
 type userSim struct {
 	rejects bool
-	home    int // HOME_MODE: login.defs 0700 (Debian 13) or 0750 (Ubuntu 26.04)
+	// home is a new home's mode: login.defs' HOME_MODE, 0700 (Debian 13) or
+	// 0750 (Ubuntu 26.04); 0755 on Alpine [I: login.defs has no HOME_MODE;
+	// the VM's login home is 0755].
+	home int
 }
 
 // answer answers argv when it is the accounts', or reports that it is not.
@@ -57,14 +61,22 @@ func (u *userSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		if u.rejects && slices.Equal(argv, []string{"visudo", "-c"}) {
 			return hostfake.Response{ExitCode: 1, Stderr: "/etc/sudoers.d/90-cloud-init-users:4:27: syntax error\n"}, true
 		}
-	case "useradd": // useradd(8): --create-home --shell S [--password P] NAME; the user's own group (USERGROUPS_ENAB yes); "!" without --password
-		name, shell, pw := argv[len(argv)-1], "/bin/sh", "!"
-		for i := 1; i+1 < len(argv); i++ {
+	case "useradd": // useradd(8): [--home-dir D] [--create-home] --shell S [--password P] NAME; the user's own group (USERGROUPS_ENAB yes, on all three VMs); "!" without --password; the home, HOME_MODE's, only with --create-home
+		name := argv[len(argv)-1]
+		shell, pw, home, mkHome := "/bin/sh", "!", "/home/"+name, false
+		for i := 1; i < len(argv)-1; i++ {
 			switch argv[i] {
 			case "--shell":
-				shell = argv[i+1]
+				i++
+				shell = argv[i]
 			case "--password":
-				pw = argv[i+1]
+				i++
+				pw = argv[i]
+			case "--home-dir":
+				i++
+				home = argv[i]
+			case "--create-home":
+				mkHome = true
 			}
 		}
 		db, _ := accounts.Read(ctx, h.f)
@@ -74,11 +86,13 @@ func (u *userSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 				uid = x.UID + 1
 			}
 		}
-		h.appendLine("/etc/passwd", fmt.Sprintf("%s:x:%d:%d::/home/%s:%s", name, uid, uid, name, shell), 0o644, 0)
+		h.appendLine("/etc/passwd", fmt.Sprintf("%s:x:%d:%d::%s:%s", name, uid, uid, home, shell), 0o644, 0)
 		h.appendLine("/etc/group", fmt.Sprintf("%s:x:%d:", name, uid), 0o644, 0)
 		h.appendLine(accounts.ShadowFile, name+":"+pw+":20000:0:99999:7:::", 0o640, 42)
-		h.f.AddUser(host.User{Name: name, UID: uid, GID: uid, HomeDir: "/home/" + name})
-		h.f.AddDir("/home/"+name, fsMode(u.home), uid, uid)
+		h.f.AddUser(host.User{Name: name, UID: uid, GID: uid, HomeDir: home})
+		if mkHome {
+			h.f.AddDir(home, fsMode(u.home), uid, uid)
+		}
 		return hostfake.Response{}, true
 	case "userdel": // userdel(8) --remove NAME: the lines and the home directory
 		name := argv[len(argv)-1]
@@ -164,6 +178,10 @@ func usersOn(p platform, cloud bool, us ...simUser) *fakeHost {
 		nologin, rootShell = "/sbin/nologin", "/bin/ash"
 		tools = []string{"wheel:x:10:root", "adm:x:4:root"}
 		h.f.AddFile("/bin/ash", []byte("ELF"), 0o755, 0, 0)
+		h.users.home = 0o755
+		// The Alpine VM's sshd -T: authorizedkeysfile .ssh/authorized_keys
+		// alone (00-inspect-alpine323-vm.log), as its sshd_config sets it.
+		h.f.AddFile(sshd.MainConfig, []byte(stockMain+"AuthorizedKeysFile .ssh/authorized_keys\n"), 0o644, 0, 0)
 	}
 	passwd := "root:x:0:0:root:/root:" + rootShell + "\nsshd:x:100:65534::/run/sshd:" + nologin + "\nnobody:x:65534:65534:nobody:/nonexistent:" + nologin + "\n"
 	rootPW := syntheticHash
@@ -266,9 +284,12 @@ func usrUbuntu() *fakeHost {
 	return h
 }
 
-func usrAlpine() *fakeHost {
+func usrAlpine() *fakeHost { return alpineVM() }
+
+// alpineVM is the Alpine VM's accounts, alpine and george, then more.
+func alpineVM(more ...simUser) *fakeHost {
 	p := alpine323CloudPlatform
-	h := usersOn(p, true, simUser{name: "alpine", uid: 1000, groups: []string{"wheel"}, pw: "*", shell: "/bin/ash"}, george(p))
+	h := usersOn(p, true, append([]simUser{{name: "alpine", uid: 1000, groups: []string{"wheel"}, pw: "*", shell: "/bin/ash"}, george(p)}, more...)...)
 	h.f.AddFile(sudoers.DropInDir+"/90-cloud-init-users", []byte("# Created by cloud-init v. 25.1\n\n# User rules for george\ngeorge ALL=(ALL) NOPASSWD:ALL\n"), 0o440, 0, 0)
 	h.f.AddFile("/etc/sudoers", []byte("root ALL=(ALL:ALL) ALL\n#includedir /etc/sudoers.d\n"), 0o440, 0, 0)
 	h.f.AddFile(sudoers.DoasConfig, []byte("# See doas.conf(5) for configuration details.\n# Uncomment to allow group \"wheel\" to become root.\n"), 0o640, 0, 0)
@@ -320,16 +341,25 @@ func usrAlpineNoRule() *fakeHost {
 }
 
 func usrAlpineLocked() *fakeHost {
-	h := usrAlpine()
-	h.users = &userSim{home: 0o700}
-	a := simUser{name: "alice", uid: 1002, groups: []string{"wheel"}, pw: "!", shell: "/bin/ash", keys: []byte{4}}
-	h.appendLine("/etc/passwd", "alice:x:1002:1002::/home/alice:/bin/ash", 0o644, 0)
-	h.appendLine(accounts.ShadowFile, "alice:!:20000:0:99999:7:::", 0o640, 42)
-	data, _ := h.f.ReadFile(context.Background(), "/etc/group")
-	group := strings.Replace(string(data), "wheel:x:10:root,alpine,george", "wheel:x:10:root,alpine,george,alice", 1) + "alice:x:1002:\n"
-	h.f.AddFile("/etc/group", []byte(group), 0o644, 0, 0)
-	h.f.AddDir("/home/alice/.ssh", 0o700, a.uid, a.uid)
-	h.f.AddFile("/home/alice/.ssh/authorized_keys", []byte(synthKey(4, "alice@laptop-1")+"\n"), 0o600, a.uid, a.uid)
+	return alpineVM(simUser{name: "alice", uid: 1002, groups: []string{"wheel"}, pw: "!", shell: "/bin/ash", keys: []byte{4}})
+}
+
+func usrAlpineStray() *fakeHost {
+	h := alpineVM()
+	h.f.AddFile("/home/george/.ssh/authorized_keys", []byte(synthKey(1, "george@laptop-1")+"\n"), 0o600, 1001, 1001)
+	h.f.AddFile("/home/george/.ssh/authorized_keys2", []byte(synthKey(6, "george@old-laptop")+"\n"), 0o600, 1001, 1001)
+	return h
+}
+
+func usrDebianNoPAM() *fakeHost {
+	h := usrDebian13()
+	h.f.AddFile(sshd.DropInDir+"/50-usepam.conf", []byte("UsePAM no\n"), 0o644, 0, 0)
+	return h
+}
+
+func usrGroupHome() *fakeHost {
+	h := usrDebian13()
+	h.f.AddDir("/home/alice", 0o775, 1001, 1001)
 	return h
 }
 
