@@ -73,7 +73,7 @@ See [docs/configuration.md](../configuration.md), "Firewall Configuration with U
 - **Main menu 1 is rebuilt.** It shows each user's admin rights, how they were granted, their SSH keys and their password state. Opening it changes nothing.
 - **Each change is shown first.** Grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key, create a user. A change that could lock you out asks you to type the hostname, and rolls back unless you run `sudo hardn confirm` from a new session.
 - **Some changes are refused before anything is asked**, such as removing the admin rights you are using, or your last key.
-- **`hardn -c` creates the user without asking**, with admin rights, no password, and every key in hardn.yml's `sshKeys`. With `-n` it shows the plan and exits 3; it used to be refused. A name already taken, or a key that isn't one, is refused, exit status 1. With no keys, `-c -d` is refused, exit status 2.
+- **`hardn -c` creates the user without asking**, with admin rights, no password, and every key in hardn.yml's `sshKeys`. With `-n` it shows the plan and exits 3; it used to be refused. A name already taken, or a key that isn't one, is refused, exit status 1. `-c` with `-d` is refused, exit status 2: run `-c`, check the user can log in, then run `-d`.
 - **`-c` no longer changes sshd_config.**
 - **`sudoNoPassword: false` warns.** User Management and `-c` don't use it: a new user has no password to ask. hardn warns "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it.
 - **Run All no longer offers to set a username.** With none, it goes on without creating a user.
