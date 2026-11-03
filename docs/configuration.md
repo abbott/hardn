@@ -137,9 +137,9 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 
 `dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
 
-- **User Management, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
+- **User Management, SSH Login, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
 - **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
-- **Operation flags are refused** under plan only, as with `-n`: `hardn -r` and `-d` exit with status 2 and change nothing. `-c`, `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
+- **Operation flags are refused** under plan only, as with `-n`: `hardn -r` exits with status 2 and changes nothing. `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
@@ -172,7 +172,7 @@ sshKeys:                            # -c adds them all; Create's default is the 
 The main menu's User Management (1) shows the users, their admin rights and SSH keys, and changes them.
 
 - **In User Management, `username` and `sshKeys` are only Create's defaults:** they never choose which user a change is about, and no change saves them.
-- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c` with `-d` is refused, exit status 2: run `-c`, check the user can log in, then run `-d`.
+- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`.
 - **`-c` no longer changes sshd_config.**
 - **`sudoNoPassword` isn't used by User Management or `-c`.** A new user has no password, so their admin rights never ask one. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it, until their slice.
 
@@ -188,19 +188,24 @@ nameservers:                        # DNS servers to configure
 ### SSH Configuration
 
 ```yaml
-sshPort: 22                         # SSH port (this is the authoritative SSH port used throughout the configuration)
-                                    # Consider using a non-standard port (e.g., 2208) as a security measure
-permitRootLogin: "no"               # Root SSH login: "no" or "yes";
+sshPort: 22                         # SSH Login's default for Change SSH port
+permitRootLogin: "no"               # not used by SSH Login or -d
                                     # true and false still work but are deprecated: write "no" or "yes"
-sshAllowedUsers:                    # List of users allowed to access via SSH
+sshAllowedUsers:                    # not used by SSH Login or -d
   - "george"
-sshListenAddress: "0.0.0.0"         # IP address to listen on
-sshKeyPath: ".ssh_%u"               # Path to SSH keys (%u = username)
-sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # SSH config file location
+sshListenAddress: "0.0.0.0"         # not used by SSH Login or -d
+sshKeyPath: ".ssh_%u"               # not used by SSH Login or -d
+sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # the old file Move old settings moves
 ```
 
-**Important**: The `sshPort` setting is the single source of truth for SSH port configuration throughout the application.
-Hardn will automatically set an SSH policy with your configured port.
+The main menu's SSH Login (2) shows root login, password login, the SSH port and who is allowed to log in, as sshd reads them, and changes all but the last.
+
+- **It reads sshd, not hardn.yml.** Opening it changes nothing.
+- **Each change asks you to type the hostname**, since it could lock you out. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
+- **Some changes are refused before anything is asked**, such as turning root login off where no other admin could log in by key. With hardn's old sshd settings, every change but Move old settings is refused until it moves them.
+- **`hardn -d` turns root login off the same way.** On a terminal it asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -d` from a terminal. With `-n` it shows the plan. Root login already off is nothing to change, exit status 0. On Proxmox VE it makes root key-only, which the cluster needs.
+- **`sshPort` is Change SSH port's default.** **`sshConfigFile` is read by Move old settings alone**, to find hardn's old file.
+- **`permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH` and `sshKeyPath` aren't used by SSH Login or `-d`.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used by SSH Login or -d". Run All and `-r` still read `sshPort`, `sshAllowedUsers` and `sshListenAddress`, until their slice.
 
 ### Feature Toggles
 
@@ -210,7 +215,7 @@ enableLynis: false                  # Install and run Lynis security audit
 enableUnattendedUpgrades: false     # Configure automatic security updates
 enableUfwSshPolicy: false           # Configure UFW with SSH rules
 configureDns: false                 # Configure DNS settings
-disableRoot: false                  # Disable root SSH access
+disableRootSSH: false               # shown by Run All; changes nothing
 ```
 
 ### Firewall Configuration with UFW Application Profiles
@@ -254,7 +259,6 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    enableUnattendedUpgrades: true
    enableUfwSshPolicy: true
    configureDns: true
-   disableRoot: true
    ```
 
 2. **Development Environment**: For testing, you may want to use:
@@ -262,7 +266,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    dryRun: true      # plan only at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-c`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml
