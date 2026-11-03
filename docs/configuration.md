@@ -172,7 +172,7 @@ sshKeys:                            # -c adds them all; Create's default is the 
 The main menu's User Management (1) shows the users, their admin rights and SSH keys, and changes them.
 
 - **In User Management, `username` and `sshKeys` are only Create's defaults:** they never choose which user a change is about, and no change saves them.
-- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`.
+- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`, which goes on if the new user, or another admin, can still log in.
 - **`-c` no longer changes sshd_config.**
 - **`sudoNoPassword` isn't used by User Management or `-c`.** A new user has no password, so their admin rights never ask one. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it, until their slice.
 
@@ -203,7 +203,7 @@ The main menu's SSH Login (2) shows root login, password login, the SSH port and
 - **It reads sshd, not hardn.yml.** Opening it changes nothing.
 - **Each change asks you to type the hostname**, since it could lock you out. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
 - **Some changes are refused before anything is asked**, such as turning root login off where no other admin could log in by key. With hardn's old sshd settings, every change but Move old settings is refused until it moves them.
-- **`hardn -d` turns root login off the same way.** On a terminal it asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -d` from a terminal. With `-n` it shows the plan. Root login already off is nothing to change, exit status 0. On Proxmox VE it makes root key-only, which the cluster needs.
+- **`hardn -d` turns root login off the same way.** On a terminal it asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -d` from a terminal. With `-n` it shows the plan. Root login already off is nothing to change, exit status 0. It is refused where no other admin could log in afterwards, by key, or by password while password login is on, and become root. On Proxmox VE it makes root key-only, which the cluster needs.
 - **`sshPort` is Change SSH port's default.** **`sshConfigFile` is read by Move old settings alone**, to find hardn's old file.
 - **`permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH` and `sshKeyPath` aren't used by SSH Login or `-d`.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used by SSH Login or -d". Run All and `-r` still read `sshPort`, `sshAllowedUsers` and `sshListenAddress`, until their slice.
 
