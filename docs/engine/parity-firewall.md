@@ -4,7 +4,7 @@
 
 ## 1. Why
 
-Unit (d) deletes `pkg/menu/firewall_menu.go`, the UFW repository and `-w`'s path. This table holds, before that, what origin/main does against what the control does, per fixture distribution, each difference tied to a V-number or an adopted decision, so that nothing is lost by accident. Where no source says a difference, it stays UNEXPLAINED (§6), and unit (d) waits on it.
+Unit (d) deletes `pkg/menu/firewall_menu.go`, the UFW repository and `-w`'s path. This table holds, before that, what origin/main does against what the control does, per fixture distribution, each difference tied to a V-number or an adopted decision, so that nothing is lost by accident. Where no source says a difference, it stays UNEXPLAINED, and unit (d) waits on it; none does (§6).
 
 ## 2. Method
 
@@ -35,7 +35,7 @@ Unit (d) deletes `pkg/menu/firewall_menu.go`, the UFW repository and `-w`'s path
   1. `disable`'s `commands` entry removed: UNEXPLAINED;
   2. an entry for `disable-no`'s `commands` added: stale;
   3. `enable`'s `commands` tied to V18: "does not name";
-  4. the pending `rule comment` entry removed: UNEXPLAINED, on each of its cells;
+  4. the `rule comment` entry, pending then, removed: UNEXPLAINED, on each of its cells;
   5. a not-row left out: `TestParityGoldens` fails;
   6. a not-row misnamed: "not there";
   7. a row's golden also a not-row: "one or the other";
@@ -44,7 +44,7 @@ Unit (d) deletes `pkg/menu/firewall_menu.go`, the UFW repository and `-w`'s path
   10. V9 taken from `firewall_item2_active_rules_are_reset`: "does not name";
   11. the profile file's mode 0640 in `firewall_item2_profiles`: UNEXPLAINED, `mode`;
   12. `-w` planning Disable: "the screen's Enable left … -w left";
-  13. the pending `how ufw starts` entry made explained, and the control's Proxmox VE gate dropped: only `parity.golden` and the page fail (limit 1; `ufw.Read` refuses Proxmox VE again below it, so no ufw call);
+  13. the `how ufw starts` entry, pending then, made explained, and the control's Proxmox VE gate dropped: only `parity.golden` and the page fail (limit 1; `ufw.Read` refuses Proxmox VE again below it, so no ufw call);
   14. `sh -c "ufw reset"` and `rc-service ufw stop` at the top of `ufw.Execute`: `unexpected command`, each;
   15. the fake finding no profile file: Apply's allow exits 1, and `profiles` fails.
 - **Its limits:** (1) a difference already tied whose values change fails only on `parity.golden` and the page, which `make golden-update` accepts: the review of that diff is the guard; (2) the driver is this test's, not a screen, until unit (c); (3) ufw's answers are a model, in `plan_test.go`'s shape, not captured.
@@ -120,8 +120,8 @@ The region below is generated.
 | enable | Debian 13 | commands | `ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow 2230/tcp comment "SSH access", sh -c "yes \| ufw enable"` | `ufw allow 2230/tcp, ufw --force enable` | V9; defect 1; Made here: default deny, default allow outgoing, disable and reset gone; the allow, then the start (the comment and the start's form are rows of their own) |
 | enable (Debian 13); configure (Debian 13); active-rules (Debian 13); fails (Debian 13); profiles (Debian 13); item2-profile (Debian 13, Ubuntu 26.04, Alpine 3.23) | as listed | journal | `none` | `journalled first` | defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: no rollback; now journalled first |
 | enable (Debian 13); configure (Debian 13); active-rules (Debian 13); fails (Debian 13); profiles (Debian 13); item2-profile (Debian 13, Ubuntu 26.04, Alpine 3.23) | as listed | asks | `nothing` | `the hostname typed; the timer armed` | defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed |
-| enable (Debian 13); configure (Debian 13); active-rules (Debian 13); profiles (Debian 13); w (Debian 13, Ubuntu 26.04, Alpine 3.23); item2-profile (Debian 13, Ubuntu 26.04, Alpine 3.23) | as listed | rule comment | `SSH access` | `none` | UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it |
-| enable (Debian 13); configure (Debian 13); profiles (Debian 13); w (Debian 13, Ubuntu 26.04, Alpine 3.23); item2-profile (Debian 13, Ubuntu 26.04, Alpine 3.23) | as listed | how ufw starts | `sh -c "yes \| ufw enable"` | `ufw --force enable` | UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable |
+| enable (Debian 13); configure (Debian 13); active-rules (Debian 13); profiles (Debian 13); w (Debian 13, Ubuntu 26.04, Alpine 3.23); item2-profile (Debian 13, Ubuntu 26.04, Alpine 3.23) | as listed | rule comment | `SSH access` | `none` | parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it |
+| enable (Debian 13); configure (Debian 13); profiles (Debian 13); w (Debian 13, Ubuntu 26.04, Alpine 3.23); item2-profile (Debian 13, Ubuntu 26.04, Alpine 3.23) | as listed | how ufw starts | `sh -c "yes \| ufw enable"` | `ufw --force enable` | parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable |
 | configure | Debian 13 | commands | `ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow 2230/tcp comment "SSH access", sh -c "yes \| ufw enable"` | `ufw allow 22/tcp, ufw --force enable` | V9; defect 1; Made here; defect 2; decision 2: as enable; and sshd's port, 22, from sshd -T and ss, not cfg.SshPort's 2230 |
 | configure | Debian 13 | rules after | `2230/tcp` | `22/tcp` | V9; defect 2; decision 2: cfg.SshPort's 2230, while sshd is on 22; now 22 |
 | configure | Debian 13 | SSH rule added | `2230/tcp` | `22/tcp` | V9; defect 2; decision 2: the configured port; now what sshd -T and ss say |
@@ -133,7 +133,7 @@ The region below is generated.
 | fails | Debian 13 | ufw after | `inactive` | `active` | V9; defect 1; Made here: disable ran before the allow failed, and nothing restored it; now ufw stays active |
 | fails | Debian 13 | rules after | `none` | `the start's 2 lines` | V9; defect 1; Made here: as active-rules, and the allow failed; now the start's rule stays |
 | profiles (Debian 13); item2-profile (Debian 13, Ubuntu 26.04) | as listed | files | `/etc/ufw/applications.d/hardn 0644` | `/etc/systemd/system/hardn-boot.service 0644, /etc/ufw/applications.d/hardn 0644` | defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed; decision 3 (a): the boot unit beside the profile file, written by Apply |
-| profiles | Debian 13 | profile file | `[WebServer] / title=Web Server / description=Public web / ports=80/tcp,443/tcp / [Metrics] / title=Metrics / description=Node exporter / ports=9100/tcp` | `[WebServer] / title=Web Server / description=Public web / ports=80/tcp\|443/tcp / [Metrics] / title=Metrics / description=Node exporter / ports=9100/tcp` | UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §7 findings; ufw-framework(8) [I]): ports=80/tcp,443/tcp, which ufw-framework(8)'s | form does not read [I]; now ports=80/tcp|443/tcp |
+| profiles | Debian 13 | profile file | `[WebServer] / title=Web Server / description=Public web / ports=80/tcp,443/tcp / [Metrics] / title=Metrics / description=Node exporter / ports=9100/tcp` | `[WebServer] / title=Web Server / description=Public web / ports=80/tcp\|443/tcp / [Metrics] / title=Metrics / description=Node exporter / ports=9100/tcp` | parity-firewall.md §6, adopted 2026-11-02: ports=80/tcp,443/tcp, which ufw 0.36.2's own check refuses; now ports=80/tcp|443/tcp |
 | profiles | Debian 13 | commands | `ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow from any to any app WebServer, ufw allow from any to any app Metrics, ufw allow 2230/tcp comment "SSH access", sh -c "yes \| ufw enable"` | `ufw allow 2230/tcp, ufw --force enable, ufw allow from any to any app WebServer, ufw allow from any to any app Metrics` | V9; defect 1; Made here; decision 3 (a): as enable; and the profiles' rules at Apply, after the start, not before it |
 | profiles | Debian 13 | write | `in place` | `atomic` | decision 3 (a): the profile file in place; now atomic, through the plan |
 | profiles | Debian 13 | backup | `none` | `/etc/ufw/applications.d/hardn (absent before: the rollback removes it)` | decision 3 (a): nothing backed up; now the profile file recorded absent, so a rollback removes it |
@@ -182,12 +182,12 @@ The region below is generated.
 | w | Debian 13, Ubuntu 26.04 | commands | `ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow 2230/tcp comment "SSH access", sh -c "yes \| ufw enable"` | `ufw allow 2230/tcp, ufw --force enable` | V9; defect 1; Made here: as enable, on -w |
 | w | Debian 13, Ubuntu 26.04, Alpine 3.23 | journal | `none` | `journalled first` | decision 4: no rollback; now journalled first |
 | w | Debian 13, Ubuntu 26.04, Alpine 3.23 | asks | `nothing` | `the timer armed; the hostname typed in unit (d) (decision 4)` | decision 4: no question; the plan arms the timer, and unit (d) adds the hostname typed, off a terminal a refusal |
-| w | Debian 13, Ubuntu 26.04, Alpine 3.23 | dry run | `the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)` | `the plan alone: nothing written` | UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there |
+| w | Debian 13, Ubuntu 26.04, Alpine 3.23 | dry run | `the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)` | `the plan alone: nothing written` | parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there |
 | w | Alpine 3.23 | files | `none` | `/etc/init.d/hardn-boot 0755` | decision 4: hardn's boot unit, the engine's for any lockout-risk plan: the timer unit (d)'s question arms |
 | w | Alpine 3.23 | commands | `ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow 2230/tcp comment "SSH access", sh -c "yes \| ufw enable"` | `rc-update add ufw default, ufw allow 2230/tcp, ufw --force enable` | V9; defect 1; Made here; Made here (a service that does not start at boot is a step of Enable); control-firewall.md: the boot change goes before ufw's; engineering call, not adopted by the maintainer: as enable, on -w; and rc-update add ufw default first, as ufw enable adds no runlevel |
 | w, item2-profile | Alpine 3.23 | at boot | `not changed` | `rc-update add ufw default` | Made here (a service that does not start at boot is a step of Enable): ufw enable adds no runlevel; now rc-update add ufw default |
 | w | Proxmox VE 9 | refusal | `failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW` | `UFW_NOT_APPLICABLE, before asking` | V10; decision 7; control-firewall.md: code UFW_NOT_APPLICABLE; engineering call, not adopted by the maintainer: on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now the plan refuses |
-| w | Proxmox VE 9 | dry run | `the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)` | `refused (UFW_NOT_APPLICABLE): nothing written` | UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal once unit (d) moves it there |
+| w | Proxmox VE 9 | dry run | `the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)` | `refused (UFW_NOT_APPLICABLE): nothing written` | parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal once unit (d) moves it there |
 | item2-profile | Debian 13, Ubuntu 26.04 | commands | `ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow from any to any app ExampleHTTPS, ufw allow 2230/tcp comment "SSH access", sh -c "yes \| ufw enable"` | `ufw allow 2230/tcp, ufw --force enable, ufw allow from any to any app ExampleHTTPS` | V9; defect 1; Made here; decision 3 (a): as profiles, with its one profile |
 | item2-profile | Debian 13, Ubuntu 26.04, Alpine 3.23 | write | `in place` | `atomic` | V18; decision 3 (a): the profile file in place; now atomic, through the plan |
 | item2-profile | Debian 13, Ubuntu 26.04, Alpine 3.23 | backup | `none` | `/etc/ufw/applications.d/hardn (absent before: the rollback removes it)` | V18; decision 3 (a): nothing backed up; now the profile file recorded absent, so a rollback removes it |
@@ -201,7 +201,7 @@ The region below is generated.
 | w-stock | Alpine 3.23 | SSH rule added | `2230/tcp` | `none` | V9; decision 1; decision 2: refused: no rule added |
 | w-stock | Alpine 3.23 | rule comment | `SSH access` | `none` | V9; decision 1; decision 2: refused: no rule |
 | w-stock | Alpine 3.23 | how ufw starts | `sh -c "yes \| ufw enable"` | `none` | V9; decision 1; decision 2: refused: no start |
-| w-stock | Alpine 3.23 | dry run | `the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)` | `refused (FIREWALL_SS_NOT_INSTALLED): nothing written` | UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal, no ss, once unit (d) moves it there |
+| w-stock | Alpine 3.23 | dry run | `the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2)` | `refused (FIREWALL_SS_NOT_INSTALLED): nothing written` | parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal, no ss, once unit (d) moves it there |
 
 **v0.3.2** (§4): where it differs from origin/main, from [v032-reference.md](../refactor/phase0/v032-reference.md) §4.4.
 
@@ -219,7 +219,7 @@ The region below is generated.
 
 ## 5. What origin/main's path did that the new one does not
 
-Each is intended unless §6 lists it.
+Each is intended.
 
 | What goes | Where | Source |
 |---|---|---|
@@ -233,20 +233,20 @@ Each is intended unless §6 lists it.
 | Saving `./hardn.yml` under plan only, origin/main's (the goldens' `NOTE`), and the trunk's refusal since slice 2b: each now stops at its plan | `dry-add`, `dry-remove` | Made here |
 | **Drawn only, named here:** a failing `ufw status` reading Inactive, the "Error getting firewall status" branch unreachable; now ufw's state is not established and Enable refuses, `UFW_STATE_UNKNOWN` | `firewall_open_status_fails_reads_inactive` | defect 7; §6's words |
 | **Drawn only, named here:** SSH Port from `cfg.SshPort`, warned at 22, "good security" otherwise; now what `sshd -T` and `ss` read | `firewall_open_port_22_warns`, `_2230_while_sshd_says_22` | defect 2; §6 |
-| **UNEXPLAINED:** the SSH rule's comment; `yes \| ufw enable`; a comma in a profile's ports; `hardn -n -w` refused | §6 | none |
+| The SSH rule's comment; `yes \| ufw enable`; a comma in a profile's ports; `hardn -n -w` refused | §6 | Adopted 2026-11-02 |
 
 Removing a profile still leaves its rule, on both (§6's notice); the rule goes with neither.
 
 ## 6. UNEXPLAINED differences
 
-No source the table may cite says these. Each is carried as `Tie.Pending`, marked in the golden and in §4, its tie proposed and not approved. **Each blocks unit (d) until answered.**
+None. These four had no source, and the maintainer adopted each (2026-11-02: "Adopt, start unit (c)"); the table cites this section.
 
-| Difference | Cells | Evidence | Proposed |
+| Difference | Cells | Evidence | Adopted |
 |---|---|---|---|
-| The SSH rule's comment, `SSH access`, goes (`rule comment`) | `enable`, `configure`, `active-rules`, `profiles`, `w`, `item2-profile` | `firewall_manager.go:47` (a golden's note, read); `steps.PlanUFWEnable` passes none (run) | gallery-firewall.md §3, Enable's commands; docs/safety/ufw.md §2 item 7 |
-| `sh -c "yes \| ufw enable"` becomes `ufw --force enable` (`how ufw starts`) | `enable`, `configure`, `profiles`, `w`, `item2-profile` | docs/safety/ufw.md §3 says `enable` prompts under SSH unless `--force` (read) | that section |
-| A profile's ports join by `\|`, not a comma (`profile file`) | `profiles` | `ports=80/tcp,443/tcp` against `ports=80/tcp\|443/tcp` (run). ufw 0.36.2's `verify_profile` refuses the comma form, "Invalid ports in profile", and takes the `\|` form (run on Ubuntu 26.04, in memory: `vm-runs/s4/unit-b/ubuntu26-vm-3.log`) | gallery-firewall.md §7's finding; that run |
-| `hardn -n -w` ran live on origin/main (V1) and is refused with exit status 2 by the trunk's P0.8 gate; `runControls` shows the plan alone, or its refusal. If the refusal stays, every cell changes | `w` on all four, `w-stock` | the ops goldens; `cmd/hardn/dns.go`'s `runControls` (read); decision 4 says nothing of `-n` | as `-e` (gallery-environment.md's Made here) |
+| The SSH rule's comment, `SSH access`, goes (`rule comment`) | `enable`, `configure`, `active-rules`, `profiles`, `w`, `item2-profile` | `firewall_manager.go:47` (a golden's note, read); `steps.PlanUFWEnable` passes none (run) | The rule works the same; `ufw status` no longer labels it |
+| `sh -c "yes \| ufw enable"` becomes `ufw --force enable` (`how ufw starts`) | `enable`, `configure`, `profiles`, `w`, `item2-profile` | docs/safety/ufw.md §3 says `enable` prompts under SSH unless `--force` (read) | No shell pipe in the plan |
+| A profile's ports join by `\|`, not a comma (`profile file`) | `profiles` | `ports=80/tcp,443/tcp` against `ports=80/tcp\|443/tcp` (run). ufw 0.36.2's `verify_profile` refuses the comma form, "Invalid ports in profile", and takes the `\|` form (run on Ubuntu 26.04, in memory: `vm-runs/s4/unit-b/ubuntu26-vm-3.log`) | Origin/main's two-port profiles never worked |
+| `hardn -n -w` ran live on origin/main (V1) and is refused with exit status 2 by the trunk's P0.8 gate; `runControls` shows the plan alone, or its refusal | `w` on all four, `w-stock` | the ops goldens; `cmd/hardn/dns.go`'s `runControls` (read); decision 4 says nothing of `-n` | As `-g` and `-e`: the plan alone or its refusal, exit status 3 with changes to make; unit (d) builds it |
 
 ## 7. For unit (c)
 
@@ -269,7 +269,7 @@ No source the table may cite says these. Each is carried as `Tie.Pending`, marke
 - `ops/configure_secure_firewall*` (8) with their `TestOperationGoldens` cases (`operations_test.go:661`, `:679`);
 - a `TestLegacyRecord` holding each file's bytes, as Environment's. Nothing regenerates them.
 
-**Then:** `-w` on `runControls` with decision 4's question; `TestParity`'s `flagRun` is the end state to keep, and its `asks` row gains the hostname typed; `-n -w` as §6 is answered; exit statuses, not compared here, including V25 (defect 13); decision 8's warning on load, unbuilt (`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` in `pkg/config`, control-firewall.md). **Other callers of the sequence, not rows here (read):** `pkg/application/security_manager.go:58`, Run All's and `-r`'s, with `ufwAllowedPorts`; the repository cannot go while it stands, and it is not this table's to explain.
+**Then:** `-w` on `runControls` with decision 4's question; `TestParity`'s `flagRun` is the end state to keep, and its `asks` row gains the hostname typed; `-n -w` as §6 adopted; exit statuses, not compared here, including V25 (defect 13); decision 8's warning on load, unbuilt (`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` in `pkg/config`, control-firewall.md). **Other callers of the sequence, not rows here (read):** `pkg/application/security_manager.go:58`, Run All's and `-r`'s, with `ufwAllowedPorts`; the repository cannot go while it stands, and it is not this table's to explain.
 
 ## 9. Written, not run (gate 5)
 

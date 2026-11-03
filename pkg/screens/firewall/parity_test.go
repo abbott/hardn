@@ -83,8 +83,8 @@ const fwHeader = `# The Firewall parity table: origin/main's Firewall screen and
 # item leads to the action, the refusal is the control's plan's, and the cell says so.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n>, Made here, §6's words
 # gallery-firewall.md §5, §6 (adopted 2026-11-01); defect <n> its §2; P-16, P-30, P-33 as decided;
-# control-firewall.md's calls, each "engineering call, not adopted by the maintainer". UNEXPLAINED
-# (pending): no such source says it, and the tie is proposed, not approved (parity-firewall.md §6).
+# control-firewall.md's calls, each "engineering call, not adopted by the maintainer"; parity-firewall.md
+# §6's four differences, adopted 2026-11-02.
 `
 
 // The aspects beyond the harness's own (parity.Row), each read alike from
@@ -783,16 +783,15 @@ const (
 	eng     = "; engineering call, not adopted by the maintainer"
 	// bootFirst is rc-update add ufw default's place, before the allow.
 	bootFirst = "; control-firewall.md: the boot change goes before ufw's" + eng
-	// dryProposed is the tie proposed for -n -w, which no adopted text says.
-	dryProposed = "V1; docs: -n and -e's plan (gallery-environment.md Made here)"
+	// adopted is the maintainer's answer to the four differences no other source said.
+	adopted = "parity-firewall.md §6, adopted 2026-11-02"
 )
 
 // fwTable is every difference, with its source: a V-number that origin/main's
 // golden for the cell names; decisions, Made here and the words of
 // gallery-firewall.md §5, §6 (adopted 2026-11-01); its §2 defects; P-16, P-30,
-// P-33 as decided; control-firewall.md's Engineering calls, labelled. A
-// difference no such source says is pending, its tie proposed
-// (parity-firewall.md §6).
+// P-33 as decided; control-firewall.md's Engineering calls, labelled;
+// parity-firewall.md §6's four, adopted.
 var fwTable = []tie{
 	// The ufw commands in order.
 	{[]string{"enable"}, deb, "commands", seq, "default deny, default allow outgoing, disable and reset gone; the allow, then the start (the comment and the start's form are rows of their own)", false},
@@ -825,18 +824,18 @@ var fwTable = []tie{
 	{[]string{"w-stock"}, alpine, "how ufw starts", "V9; decision 1; decision 2", "refused: no start", false},
 	{[]string{"w-stock"}, alpine, "rule comment", "V9; decision 1; decision 2", "refused: no rule", false},
 
-	// Pending: no source says the rule's comment or the start's form.
-	{screened, deb, "rule comment", "gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7", "the SSH rule's comment, SSH access, is gone: ufw status no longer names it", true},
-	{opsRows, ufwHosts, "rule comment", "gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7", "the SSH rule's comment, SSH access, is gone: ufw status no longer names it", true},
-	{[]string{"enable", "configure", "profiles"}, deb, "how ufw starts", "docs/safety/ufw.md (enable prompts under SSH unless --force)", "sh -c \"yes | ufw enable\"; now ufw --force enable", true},
-	{opsRows, ufwHosts, "how ufw starts", "docs/safety/ufw.md (enable prompts under SSH unless --force)", "sh -c \"yes | ufw enable\"; now ufw --force enable", true},
+	// The rule's comment and the start's form, adopted.
+	{screened, deb, "rule comment", adopted, "the SSH rule's comment, SSH access, is gone: ufw status no longer names it", false},
+	{opsRows, ufwHosts, "rule comment", adopted, "the SSH rule's comment, SSH access, is gone: ufw status no longer names it", false},
+	{[]string{"enable", "configure", "profiles"}, deb, "how ufw starts", adopted + "; docs/safety/ufw.md §3", "sh -c \"yes | ufw enable\"; now ufw --force enable", false},
+	{opsRows, ufwHosts, "how ufw starts", adopted + "; docs/safety/ufw.md §3", "sh -c \"yes | ufw enable\"; now ufw --force enable", false},
 
 	// Files, and how they are written.
 	{[]string{"enable", "configure", "active-rules", "fails"}, deb, "files", flowed, "hardn's boot unit, the engine's for any lockout-risk plan; it stays after a rollback, until a boot finds nothing journalled", false},
 	{[]string{"profiles"}, deb, "files", flowed + "; decision 3 (a)", "the boot unit beside the profile file, written by Apply", false},
 	{[]string{"w"}, ufwHosts, "files", "decision 4", "hardn's boot unit, the engine's for any lockout-risk plan: the timer unit (d)'s question arms", false},
 	{[]string{"item2-profile"}, ufwHosts, "files", flowed + "; decision 3 (a)", "the boot unit beside the profile file, written by Apply", false},
-	{[]string{"profiles"}, deb, "profile file", "gallery-firewall.md §7 findings; ufw-framework(8) [I]", "ports=80/tcp,443/tcp, which ufw-framework(8)'s | form does not read [I]; now ports=80/tcp|443/tcp", true},
+	{[]string{"profiles"}, deb, "profile file", adopted, "ports=80/tcp,443/tcp, which ufw 0.36.2's own check refuses; now ports=80/tcp|443/tcp", false},
 	{[]string{"profiles"}, deb, "write", "decision 3 (a)", "the profile file in place; now atomic, through the plan", false},
 	{[]string{"item2-profile"}, ufwHosts, "write", "V18; decision 3 (a)", "the profile file in place; now atomic, through the plan", false},
 	{[]string{"add", "remove"}, deb, "write", "defect 12; decision 3 (a)", "hardn.yml in place; now atomic, through the plan", false},
@@ -894,9 +893,9 @@ var fwTable = []tie{
 	{[]string{"dry-disable"}, deb, "plan names", "defect 4's answer (§5); decision 6", "words for the stub; now the plan", false},
 	{[]string{"dry-apply"}, deb, "plan names", "defect 10; decision 5", "words for what live does not do; now refused, no plan", false},
 	{[]string{"dry-add", "dry-remove"}, deb, "plan names", "Made here (under plan only, Add and Remove stop at their plan)", "refused, no plan; now the plan, its target the file loaded", false},
-	{[]string{"w"}, ufwHosts, "dry run", dryProposed, "the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there", true},
-	{[]string{"w"}, pveOnly, "dry run", dryProposed, "the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal once unit (d) moves it there", true},
-	{[]string{"w-stock"}, alpine, "dry run", dryProposed, "the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal, no ss, once unit (d) moves it there", true},
+	{[]string{"w"}, ufwHosts, "dry run", adopted, "the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there", false},
+	{[]string{"w"}, pveOnly, "dry run", adopted, "the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal once unit (d) moves it there", false},
+	{[]string{"w-stock"}, alpine, "dry run", adopted, "the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal, no ss, once unit (d) moves it there", false},
 
 	// Proxmox VE's screen.
 	{[]string{"pve-open"}, pveOnly, "items offered", "V10; defect 5; decision 7", "Enable, Configure and Profiles offered, no word of Proxmox VE; now read-only", false},

@@ -10,8 +10,8 @@
 # item leads to the action, the refusal is the control's plan's, and the cell says so.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n>, Made here, §6's words
 # gallery-firewall.md §5, §6 (adopted 2026-11-01); defect <n> its §2; P-16, P-30, P-33 as decided;
-# control-firewall.md's calls, each "engineering call, not adopted by the maintainer". UNEXPLAINED
-# (pending): no such source says it, and the tie is proposed, not approved (parity-firewall.md §6).
+# control-firewall.md's calls, each "engineering call, not adopted by the maintainer"; parity-firewall.md
+# §6's four differences, adopted 2026-11-02.
 
 == enable on Debian 13
 host: ufw inactive, no rules, sshd on 2230 (forced: the fixture's start, with sshd as the row says, not read from Debian 13's stock install)
@@ -73,9 +73,9 @@ differ journal: none | journalled first
 differ asks: nothing | the hostname typed; the timer armed
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check
 
 == configure on Debian 13
@@ -141,9 +141,9 @@ differ SSH rule added: 2230/tcp | 22/tcp
 differ asks: nothing | the hostname typed; the timer armed
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check
 
 == active-rules on Debian 13
@@ -206,7 +206,7 @@ differ rules after: 2230/tcp | the start's 2 lines, 2230/tcp
 differ asks: nothing | the hostname typed; the timer armed
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | none
        V9; defect 1; Made here: disable, then a start; now ufw stays active, no start
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check
@@ -356,7 +356,7 @@ agree  packages: none
 differ files: /etc/ufw/applications.d/hardn 0644 | /etc/systemd/system/hardn-boot.service 0644, /etc/ufw/applications.d/hardn 0644
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed; decision 3 (a): the boot unit beside the profile file, written by Apply
 differ profile file: [WebServer] / title=Web Server / description=Public web / ports=80/tcp,443/tcp / [Metrics] / title=Metrics / description=Node exporter / ports=9100/tcp | [WebServer] / title=Web Server / description=Public web / ports=80/tcp|443/tcp / [Metrics] / title=Metrics / description=Node exporter / ports=9100/tcp
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §7 findings; ufw-framework(8) [I]): ports=80/tcp,443/tcp, which ufw-framework(8)'s | form does not read [I]; now ports=80/tcp|443/tcp
+       parity-firewall.md §6, adopted 2026-11-02: ports=80/tcp,443/tcp, which ufw 0.36.2's own check refuses; now ports=80/tcp|443/tcp
 differ commands: ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow from any to any app WebServer, ufw allow from any to any app Metrics, ufw allow 2230/tcp comment "SSH access", sh -c "yes | ufw enable" | ufw allow 2230/tcp, ufw --force enable, ufw allow from any to any app WebServer, ufw allow from any to any app Metrics
        V9; defect 1; Made here; decision 3 (a): as enable; and the profiles' rules at Apply, after the start, not before it
 differ write: in place | atomic
@@ -368,9 +368,9 @@ differ journal: none | journalled first
 differ asks: nothing | the hostname typed; the timer armed
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check
 
 == no-ufw-item2 on Debian 13
@@ -1177,11 +1177,11 @@ differ journal: none | journalled first
 differ asks: nothing | the timer armed; the hostname typed in unit (d) (decision 4)
        decision 4: no question; the plan arms the timer, and unit (d) adds the hostname typed, off a terminal a refusal
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 differ dry run: the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2) | the plan alone: nothing written
-       UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there
+       parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; -w also wrote a host's profiles and allowed them, which origin/main's -w, passing none, does not; Proxmox VE as Debian, no gating (V10)
 
 == w on Ubuntu 26.04
@@ -1246,11 +1246,11 @@ differ journal: none | journalled first
 differ asks: nothing | the timer armed; the hostname typed in unit (d) (decision 4)
        decision 4: no question; the plan arms the timer, and unit (d) adds the hostname typed, off a terminal a refusal
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 differ dry run: the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2) | the plan alone: nothing written
-       UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there
+       parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; -w also wrote a host's profiles and allowed them, which origin/main's -w, passing none, does not; Proxmox VE as Debian, no gating (V10)
 
 == w on Alpine 3.23
@@ -1316,11 +1316,11 @@ differ at boot: not changed | rc-update add ufw default
 differ asks: nothing | the timer armed; the hostname typed in unit (d) (decision 4)
        decision 4: no question; the plan arms the timer, and unit (d) adds the hostname typed, off a terminal a refusal
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 differ dry run: the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2) | the plan alone: nothing written
-       UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there
+       parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; runControls' plan alone once unit (d) moves it there
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; -w also wrote a host's profiles and allowed them, which origin/main's -w, passing none, does not; Proxmox VE as Debian, no gating (V10)
 
 == w on Proxmox VE 9
@@ -1345,7 +1345,7 @@ agree  asks: nothing
 differ refusal: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW | UFW_NOT_APPLICABLE, before asking
        V10; decision 7; control-firewall.md: code UFW_NOT_APPLICABLE; engineering call, not adopted by the maintainer: on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now the plan refuses
 differ dry run: the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2) | refused (UFW_NOT_APPLICABLE): nothing written
-       UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal once unit (d) moves it there
+       parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal once unit (d) moves it there
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; -w also wrote a host's profiles and allowed them, which origin/main's -w, passing none, does not; Proxmox VE as Debian, no gating (V10)
 
 == item2-profile on Debian 13
@@ -1428,9 +1428,9 @@ differ journal: none | journalled first
 differ asks: nothing | the hostname typed; the timer armed
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; the profile file backed up, written 0644, an allow per profile; Proxmox VE as Debian, no gating (V10)
 
 == item2-profile on Ubuntu 26.04
@@ -1514,9 +1514,9 @@ differ journal: none | journalled first
 differ asks: nothing | the hostname typed; the timer armed
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; the profile file backed up, written 0644, an allow per profile; Proxmox VE as Debian, no gating (V10)
 
 == item2-profile on Alpine 3.23
@@ -1601,9 +1601,9 @@ differ at boot: not changed | rc-update add ufw default
 differ asks: nothing | the hostname typed; the timer armed
        defect 3's answer (§5): through the flow, the hostname typed, confirm-or-revert armed: one key, no question; now the hostname typed, the timer armed
 differ rule comment: SSH access | none
-       UNEXPLAINED (pending; proposed, not approved: gallery-firewall.md §3 (Enable's commands, the real plan's); docs/safety/ufw.md §2 item 7): the SSH rule's comment, SSH access, is gone: ufw status no longer names it
+       parity-firewall.md §6, adopted 2026-11-02: the SSH rule's comment, SSH access, is gone: ufw status no longer names it
 differ how ufw starts: sh -c "yes | ufw enable" | ufw --force enable
-       UNEXPLAINED (pending; proposed, not approved: docs/safety/ufw.md (enable prompts under SSH unless --force)): sh -c "yes | ufw enable"; now ufw --force enable
+       parity-firewall.md §6, adopted 2026-11-02; docs/safety/ufw.md §3: sh -c "yes | ufw enable"; now ufw --force enable
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; the profile file backed up, written 0644, an allow per profile; Proxmox VE as Debian, no gating (V10)
 
 == item2-profile on Proxmox VE 9
@@ -1666,5 +1666,5 @@ differ rule comment: SSH access | none
 differ how ufw starts: sh -c "yes | ufw enable" | none
        V9; decision 1; decision 2: refused: no start
 differ dry run: the service writes and runs as live (cfg.DryRun unread below the menus); no path reaches it: hardn -n refused (exit status 2) | refused (FIREWALL_SS_NOT_INSTALLED): nothing written
-       UNEXPLAINED (pending; proposed, not approved: V1; docs: -n and -e's plan (gallery-environment.md Made here)): the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal, no ss, once unit (d) moves it there
+       parity-firewall.md §6, adopted 2026-11-02: the trunk's P0.8 gate refuses hardn -n -w, exit status 2, as V1's fix; the plan's refusal, no ss, once unit (d) moves it there
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check
