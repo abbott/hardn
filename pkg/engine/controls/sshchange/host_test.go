@@ -121,8 +121,9 @@ type vm struct {
 	// last daemon-reload set it; socket: ssh.socket holds the listeners.
 	bound, configured []string
 	socket            bool
-	// noPAM: sshd -T prints no usepam line, as a build without PAM.
-	noPAM bool
+	// noPAM: sshd -T prints no usepam line, as a build without PAM;
+	// noRSASize no requiredrsasize line, as OpenSSH before 9.1.
+	noPAM, noRSASize bool
 }
 
 // key is a synthetic ssh-ed25519 key line, every byte of its key seed.
@@ -324,7 +325,7 @@ var modelDefaults = []struct{ k, v string }{
 // accumulating one (one per line, as sshd prints AllowUsers), the
 // defaults for the rest; and the listeners: every Port on [::] and
 // 0.0.0.0, a ListenAddress with a port as it is.
-func sshdT(main []byte, drops []sshd.File, noPAM bool) (out string, listeners []string) {
+func sshdT(main []byte, drops []sshd.File, noPAM, noRSASize bool) (out string, listeners []string) {
 	first, acc := map[string]string{}, map[string][]string{}
 	for _, l := range sshd.ReadOrder(main, drops) {
 		switch {
@@ -371,7 +372,7 @@ func sshdT(main []byte, drops []sshd.File, noPAM bool) (out string, listeners []
 		b.WriteString("listenaddress " + l + "\n")
 	}
 	for _, d := range modelDefaults {
-		if d.k == "usepam" && noPAM {
+		if d.k == "usepam" && noPAM || d.k == "requiredrsasize" && noRSASize {
 			continue
 		}
 		v, ok := first[d.k]
@@ -569,14 +570,14 @@ func (v *vm) sshd(argv []string) hostfake.Response {
 	if i := slices.Index(argv, "-C"); i >= 0 {
 		main = matched(main, drops, argv[i+1])
 	}
-	out, _ := sshdT(main, drops, v.noPAM)
+	out, _ := sshdT(main, drops, v.noPAM, v.noRSASize)
 	return hostfake.Response{Stdout: out}
 }
 
 // listening is the listeners the installed files configure.
 func (v *vm) listening() []string {
 	main, drops := v.files(sshd.MainConfig)
-	_, ls := sshdT(main, drops, v.noPAM)
+	_, ls := sshdT(main, drops, v.noPAM, v.noRSASize)
 	return ls
 }
 
