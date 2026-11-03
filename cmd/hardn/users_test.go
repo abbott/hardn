@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -419,6 +420,36 @@ func TestCreateUserFlagWithOthers(t *testing.T) {
 				t.Errorf("-g's file written %t, want %t: %q", written, tc.dns, h.writes())
 			}
 		})
+	}
+}
+
+// TestCreateUserRefused: -c hands its guard (createRefuse) to runControls:
+// a plan it refuses, Create's here taken as lockout-risk, is shown and
+// refused, PLAN_REFUSED, exit status 1, nothing run or written. The guard
+// is refuseCreateLockoutRisk.
+func TestCreateUserRefused(t *testing.T) {
+	if reflect.ValueOf(createRefuse).Pointer() != reflect.ValueOf(refuseCreateLockoutRisk).Pointer() {
+		t.Fatal("-c's guard is not refuseCreateLockoutRisk")
+	}
+	h, cfg := newUsersHost(t)
+	was := createRefuse
+	t.Cleanup(func() { createRefuse = was })
+	r, s := runC(t, h, cfg, func(*dnsSeams) {
+		createRefuse = func(p *engine.Plan) error {
+			lockout := *p
+			lockout.Risk = engine.RiskLockout
+			return refuseCreateLockoutRisk(&lockout)
+		}
+	}, "-c", "-u", "carol")
+	report := style.StripAnsi(s.out.String())
+	if !r.ended || r.code != 1 {
+		t.Fatalf("exit status %d (ended %v), want 1; report:\n%s\nstderr:\n%s", r.code, r.ended, report, r.stderr)
+	}
+	if w := inOrder(report, "Create user carol", "PLAN_REFUSED"); w != "" {
+		t.Errorf("the report lacks %q after the text before it:\n%s", w, report)
+	}
+	if got := h.writes(); len(got) > 0 || len(h.commands("useradd")) > 0 || s.applies != 0 {
+		t.Errorf("wrote %q, ran %q, %d applies", got, h.commands("useradd"), s.applies)
 	}
 }
 

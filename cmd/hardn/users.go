@@ -45,8 +45,13 @@ import (
 // changes to make, 1 refused or failed.
 func createAdmin(c *config.Config) int {
 	create := usersctl.Admin{Action: usersctl.ActionCreate, New: usersctl.New{Name: c.Username, Admin: true}, Getenv: os.Getenv}
-	return runControls(c, []engine.Control{create}, refuseCreateLockoutRisk, nil)
+	return runControls(c, []engine.Control{create}, createRefuse, nil)
 }
+
+// createRefuse is -c's refusal of a plan, refuseCreateLockoutRisk; a seam,
+// so that a test can show -c hands it to runControls, Create's plan never
+// being lockout-risk.
+var createRefuse = refuseCreateLockoutRisk
 
 // errCreateLockoutRisk is -c's refusal of a lockout-risk plan (proposed
 // words, refactor plan slice 5, unit (d), on -e's pattern): its code the
