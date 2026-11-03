@@ -76,6 +76,26 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check. Check␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem with visudo -c, then try again.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, root-login, george␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't tell who you're logged in as, and george is the␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlast admin. Grant another user first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove-key, alpine-stray, george␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis is george's last key, and you're logged in as george. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156manother key first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156madd-key, group-home, alice␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msshd would ignore a key for alice: /home/alice is writable by␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mits group (0775). With StrictModes it takes keys only where␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe home and ~/.ssh are the user's own and no one else can␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwrite to them.␛[m$
+$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -151,6 +171,26 @@ $
 # Warning$
 # hardn can't read sudo's rules: its files don't check. Check$
 # them with visudo -c, then try again.$
+$
+# remove, root-login, george -----------------------------------$
+$
+# Warning$
+# hardn can't tell who you're logged in as, and george is the$
+# last admin. Grant another user first.$
+$
+# remove-key, alpine-stray, george -----------------------------$
+$
+# Warning$
+# This is george's last key, and you're logged in as george. Add$
+# another key first.$
+$
+# add-key, group-home, alice -----------------------------------$
+$
+# Warning$
+# sshd would ignore a key for alice: /home/alice is writable by$
+# its group (0775). With StrictModes it takes keys only where$
+# the home and ~/.ssh are the user's own and no one else can$
+# write to them.$
 $
 $
 
@@ -232,6 +272,26 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check.␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mCheck them with visudo -c, then try again.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, root-login, george␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't tell who you're logged in as, and george is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe last admin. Grant another user first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove-key, alpine-stray, george␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis is george's last key, and you're logged in as george.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd another key first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156madd-key, group-home, alice␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msshd would ignore a key for alice: /home/alice is writable␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mby its group (0775). With StrictModes it takes keys only␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwhere the home and ~/.ssh are the user's own and no one␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156melse can write to them.␛[m$
+$
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
@@ -307,5 +367,25 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check. Check␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem with visudo -c, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove, root-login, george␛[m ␛[38;2;48;52;64m-----------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't tell who you're logged in as, and george is the␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlast admin. Grant another user first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove-key, alpine-stray, george␛[m ␛[38;2;48;52;64m-----------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis is george's last key, and you're logged in as george. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156manother key first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156madd-key, group-home, alice␛[m ␛[38;2;48;52;64m-----------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msshd would ignore a key for alice: /home/alice is writable by␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mits group (0775). With StrictModes it takes keys only where␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe home and ~/.ssh are the user's own and no one else can␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwrite to them.␛[m$
 $
 $

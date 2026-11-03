@@ -27,7 +27,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -57,11 +57,11 @@ $
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mgeorge already exists.␛[m$
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mA new user has no password, so sudo couldn't ask for one.␛[m$
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
    ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
@@ -70,7 +70,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
 $
@@ -78,7 +78,8 @@ $
       ␛[38;2;129;134;156m/etc/passwd␛[m$
       ␛[38;2;231;70;105m-absent␛[m$
       ␛[38;2;112;212;127m+no password, key login␛[m$
-      ␛[38;2;129;134;156m$ useradd --create-home --shell /bin/bash carol␛[m$
+      ␛[38;2;129;134;156m$ useradd --home-dir /home/carol --create-home --shell␛[m$
+      ␛[38;2;129;134;156m↪ /bin/bash carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLet carol use sudo␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
@@ -99,7 +100,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -113,7 +114,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mcarol␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mhardn␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -135,7 +136,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Create user carol␛[m$
-      ␛[38;2;129;134;156m$ useradd --create-home --shell /bin/bash carol␛[m$
+      ␛[38;2;129;134;156m$ useradd --home-dir /home/carol --create-home --shell␛[m$
+      ␛[38;2;129;134;156m↪ /bin/bash carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Let carol use sudo␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
@@ -166,7 +168,7 @@ $
 $
 # george -------------------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password$
+  [ ] Sudo                 Enabled, No password to ask for$
    -  Granted by           /etc/sudoers.d/90-cloud-init-users$
    -  SSH Keys             2 keys$
    -  Password             None$
@@ -196,11 +198,11 @@ $
   (x) george already exists.$
    1. Username [0 or q]: carol$
 $
-   2. Grant sudo privilege? [y/N, 0 or q]: y$
+   2. Grant admin rights? [y/N, 0 or q]: y$
 $
-   3. Require sudo password? [y/N, 0 or q]: y$
+   3. Require password for admin rights? [y/N, 0 or q]: y$
   (x) A new user has no password, so sudo couldn't ask for one.$
-   3. Require sudo password? [y/N, 0 or q]: n$
+   3. Require password for admin rights? [y/N, 0 or q]: n$
 $
    4. Add SSH key? [y/N, 0 or q]: n$
 $
@@ -209,7 +211,7 @@ $
 $
 # User Configuration -------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password$
+  [ ] Sudo                 Enabled, No password to ask for$
   [ ] SSH Keys             None$
    -  Password             None$
 $
@@ -217,7 +219,8 @@ $
       /etc/passwd$
       -absent$
       +no password, key login$
-      $ useradd --create-home --shell /bin/bash carol$
+      $ useradd --home-dir /home/carol --create-home --shell$
+      | /bin/bash carol$
 $
    -  Let carol use sudo$
       /etc/sudoers.d/hardn-grant-carol$
@@ -238,7 +241,7 @@ $
 $
 # george -------------------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password$
+  [ ] Sudo                 Enabled, No password to ask for$
    -  Granted by           /etc/sudoers.d/90-cloud-init-users$
    -  SSH Keys             2 keys$
    -  Password             None$
@@ -252,7 +255,7 @@ $
 $
 # carol --------------------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password$
+  [ ] Sudo                 Enabled, No password to ask for$
    -  Granted by           hardn$
   [ ] SSH Keys             None$
    -  Password             None$
@@ -274,7 +277,8 @@ $
 # own journal, run directory and backups left out.$
 $
    -  Applied: Create user carol$
-      $ useradd --create-home --shell /bin/bash carol$
+      $ useradd --home-dir /home/carol --create-home --shell$
+      | /bin/bash carol$
 $
    -  Applied: Let carol use sudo$
       /etc/sudoers.d/hardn-grant-carol$
@@ -307,8 +311,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
@@ -347,12 +351,12 @@ $
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mgeorge already exists.␛[m$
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mA new user has no password, so sudo couldn't ask for␛[m$
       ␛[38;2;231;70;105mone.␛[m$
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
    ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
@@ -361,8 +365,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
       ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
@@ -372,7 +376,8 @@ $
       ␛[38;2;129;134;156m/etc/passwd␛[m$
       ␛[38;2;231;70;105m-absent␛[m$
       ␛[38;2;112;212;127m+no password, key login␛[m$
-      ␛[38;2;129;134;156m$ useradd --create-home --shell /bin/bash carol␛[m$
+      ␛[38;2;129;134;156m$ useradd --home-dir /home/carol --create-home --shell␛[m$
+      ␛[38;2;129;134;156m↪ /bin/bash carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLet carol use sudo␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
@@ -396,8 +401,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
@@ -418,8 +423,8 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mcarol␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
       ␛[38;2;129;134;156mhardn␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
@@ -446,7 +451,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Create user carol␛[m$
-      ␛[38;2;129;134;156m$ useradd --create-home --shell /bin/bash carol␛[m$
+      ␛[38;2;129;134;156m$ useradd --home-dir /home/carol --create-home --shell␛[m$
+      ␛[38;2;129;134;156m↪ /bin/bash carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Let carol use sudo␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
@@ -477,7 +483,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m-------------------------------------------------------␛[m$
 $
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -507,11 +513,11 @@ $
   ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mgeorge already exists.␛[m$
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant sudo privilege?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
   ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mA new user has no password, so sudo couldn't ask for one.␛[m$
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire sudo password?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
    ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
@@ -520,7 +526,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
 $
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
   ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
 $
@@ -528,7 +534,8 @@ $
       ␛[38;2;129;134;156m/etc/passwd␛[m$
       ␛[38;2;231;70;105m-absent␛[m$
       ␛[38;2;112;212;127m+no password, key login␛[m$
-      ␛[38;2;129;134;156m$ useradd --create-home --shell /bin/bash carol␛[m$
+      ␛[38;2;129;134;156m$ useradd --home-dir /home/carol --create-home --shell␛[m$
+      ␛[38;2;129;134;156m| /bin/bash carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLet carol use sudo␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
@@ -549,7 +556,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m-------------------------------------------------------␛[m$
 $
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -563,7 +570,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mcarol␛[m ␛[38;2;48;52;64m--------------------------------------------------------␛[m$
 $
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mhardn␛[m$
   ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
@@ -585,7 +592,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Create user carol␛[m$
-      ␛[38;2;129;134;156m$ useradd --create-home --shell /bin/bash carol␛[m$
+      ␛[38;2;129;134;156m$ useradd --home-dir /home/carol --create-home --shell␛[m$
+      ␛[38;2;129;134;156m| /bin/bash carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Let carol use sudo␛[m$
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
