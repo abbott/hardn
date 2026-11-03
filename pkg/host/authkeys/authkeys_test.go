@@ -161,6 +161,7 @@ func TestParseBlob(t *testing.T) {
 	for _, tc := range []struct{ name, line, why string }{
 		{"ed25519's header alone", "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5 carol@laptop", "it ends early"},
 		{"an ed25519 key of 31 bytes", lineOf("ssh-ed25519", blobOf("ssh-ed25519", filled(1, 1, 31))), "its key is 31 bytes, not 32"},
+		{"an ed25519 key of 33 bytes", lineOf("ssh-ed25519", blobOf("ssh-ed25519", filled(1, 1, 33))), "its key is 33 bytes, not 32"},
 		{"RSA, 768 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, filled(0, 0xc5, 97))), "its modulus is 768 bits, under 1024"},
 		{"RSA, 1023 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, append([]byte{0x7f}, rsa1024[2:]...))), "its modulus is 1023 bits, under 1024"},
 		{"RSA, 16392 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, filled(0, 0xc5, 2050))), "its modulus is 16392 bits, over 16384"},
@@ -168,6 +169,7 @@ func TestParseBlob(t *testing.T) {
 		{"RSA, a zero exponent", lineOf("ssh-rsa", blobOf("ssh-rsa", nil, rsa1024)), "its exponent isn't positive"},
 		{"ECDSA, another curve", lineOf("ecdsa-sha2-nistp256", blobOf("ecdsa-sha2-nistp256", []byte("nistp384"), filled(4, 7, 65))), `its curve is "nistp384", not nistp256`},
 		{"ECDSA, a compressed point", lineOf("ecdsa-sha2-nistp384", blobOf("ecdsa-sha2-nistp384", []byte("nistp384"), filled(2, 7, 49))), "its point isn't an uncompressed nistp384 point"},
+		{"ECDSA, a point of the right length not starting 0x04", lineOf("ecdsa-sha2-nistp256", blobOf("ecdsa-sha2-nistp256", []byte("nistp256"), filled(2, 7, 65))), "its point isn't an uncompressed nistp256 point"},
 		{"ECDSA, a point of the wrong length", lineOf("ecdsa-sha2-nistp521", blobOf("ecdsa-sha2-nistp521", []byte("nistp521"), filled(4, 7, 97))), "its point isn't an uncompressed nistp521 point"},
 		{"sk, no application", lineOf("sk-ssh-ed25519@openssh.com", blobOf("sk-ssh-ed25519@openssh.com", filled(1, 1, 32))), "it ends early"},
 	} {
