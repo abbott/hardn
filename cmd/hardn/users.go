@@ -44,8 +44,15 @@ import (
 // returns the exit status: 0 applied or nothing to change, 3 a plan with
 // changes to make, 1 refused or failed.
 func createAdmin(c *config.Config) int {
-	create := usersctl.Admin{Action: usersctl.ActionCreate, New: usersctl.New{Name: c.Username, Admin: true}, Getenv: os.Getenv}
+	create := usersctl.Admin{Action: usersctl.ActionCreate, New: createNew(c), Getenv: os.Getenv}
 	return runControls(c, []engine.Control{create}, createRefuse, nil)
+}
+
+// createNew is the user -c creates on c: c.Username, an admin, with no
+// key (decision 6 (a)); main refuses -c with -d where it has none
+// (hardncmd.RefuseCreateDisableRoot).
+func createNew(c *config.Config) usersctl.New {
+	return usersctl.New{Name: c.Username, Admin: true}
 }
 
 // createRefuse is -c's refusal of a plan, refuseCreateLockoutRisk; a seam,
