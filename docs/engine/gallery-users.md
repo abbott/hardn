@@ -15,7 +15,43 @@ go run ./internal/tools/uigallery play                            # main menu 1 
 
 ## 2. What origin/main does
 
-<!-- origin -->
+## What origin/main does
+
+Goldens: pkg/characterization/testdata/golden/menu/users_<case>.golden (TestLegacyMenuUsers). "run" = its golden; "read" = file:line.
+
+- Reached from main menu 1 (main_menu.go:781, read); under plan only the trunk now refuses it before the screen (main_menu.go:819-824, read). From the CLI, -c -u alice runs CreateUser(username, true, sudoNoPassword, sshKeys) then ConfigureSSH (main.go:396-411, read; run: ops/create_user_c_path/*.golden); -n with -c is refused, exit 2 (main.go:526, read; cmd/hardn TestDryRunRefusesOperations).
+- Which menu shows depends on os/user on the machine, not the host's `id` (user_options.go:69, read). Configured user present: 1 Manage a user, 2 Create a user (run: open_configured_user_on_host). Absent: 1 Change username, 2 sudo-password toggle, 3 Manage SSH keys, 4 Create user (run: open_configured_user_absent). No username: 1-3, item 4 hidden (run: open_no_configured_user).
+- The box lists every passwd entry with UID >= 1000 and a login shell, each with Sudo, SSH Keys, UID:GID, Directory, last login (run: open_*); each redraw runs id, id -u/-g, getent, last, groups, sudo cat per user, twice (run: any golden's call log).
+- Create a user: username, "Allow sudo access?", "Allow sudo without password?" (only after y), "Add SSH public key?", key, summary, confirm (run: create_sudo_no_password_with_key, create_sudo_password_required_no_key, create_key_yes_empty, create_declined). Runs adduser --disabled-password, usermod -aG sudo, su - u -c mkdir/cat >>/chmod, writes /etc/sudoers.d/<u> 0440 and /home/<u>/.ssh/authorized_keys 0600, sh -c chown -R (run: same).
+- Refusals: empty name, upper case, reserved name, a name os/user finds (run: create_empty_name, create_bad_name, create_reserved_name, create_existing_name).
+- Manage a user: pick a user, then 1 Sudo Method, 2 Manage SSH keys, 0 (run: manage_select_user_menu, manage_select_0, manage_select_bad_number, manage_invalid_option).
+- Sudo Method flips the user's NOPASSWD state: dropping the password asks nothing; requiring it asks "Require password for sudo?" (run: manage_sudo_drop_password, manage_sudo_require_password, manage_sudo_require_password_answer_n). Either way CreateUser rewrites sudoers and re-appends every key (run: same).
+- Manage SSH keys: Add writes the key unchecked (run: manage_keys_add); Remove calls CreateUser with the other keys (run: manage_keys_remove_is_a_noop); Remove is hidden with no key, still taken (run: manage_keys_remove_hidden_no_keys).
+- Absent-user menu: 1 and 2 save ./hardn.yml only (run: absent_1_change_username, absent_2_toggle_sudo_password); 3 adds to sshKeys, saves, and reaches the host only if os/user finds the user (run: absent_3_add_key_saves_config; ssh_keys_options.go:75-87, read); a key not starting ssh-/ecdsa- is refused (run: absent_3_invalid_key); 4 creates the configured user and leaves the screen (run: absent_4_create_user).
+- Alpine: adduser -D -g "", addgroup wheel, sudoers.d written; no sudo install, no word about it (run: alpine_create_user_with_sudo, alpine_manage_sudo_require_password).
+- Keys: 7 says "Invalid option" (run: invalid_key); 0 and q return (run: return_0, quit_q).
+- With no config file, the repository's LoadConfig asks "No configuration file found. Would you like to create one?" mid-screen (os_user_repository.go:20-33, config.go:383-396, read; the goldens seed $HOME/.hardn.yml to avoid it).
+
+hardn.yml keys read: username, sudoNoPassword, sshKeys, dryRun (the screen; user_options.go:65, :110, :805, :401); sshKeyPath (the repository, by its own LoadConfig, os_user_repository.go:543-548); -c also reads sshPort, sshListenAddress, permitRootLogin, sshAllowedUsers (main.go:396-411). All read; the whole configuration is written back to ./hardn.yml (run: absent_*).
+
+## Defects
+
+- Mutates in dry run (V2): create, sudo toggle, add and remove key, item 4 run as live; only the success line is dropped (run: create_dry_run_mutates, manage_sudo_*_dry_run, manage_keys_add_dry_run, absent_4_create_user_dry_run). Absent-menu items save hardn.yml under dry run (run: absent_2_toggle_sudo_password_dry_run).
+- Sudo answer ignored (V22): "Allow sudo access? n" still gets usermod -aG sudo and sudoers ALL=(ALL) ALL; the summary says Disabled (run: create_sudo_no_still_grants_sudo).
+- Key removal a no-op (V22): "SSH key removed successfully", authorized_keys unchanged (run: manage_keys_remove_is_a_noop).
+- Keys re-appended with no dedupe on every sudo toggle and key change, through su ... cat >> (V22; run: manage_sudo_require_password).
+- Hidden options: Create-a-user menu takes 3 (SSH Key Management) and 4 (rewrites the configured user's sudoers NOPASSWD, leaves the screen); 4 with no username; Remove with no key (run: hidden_3_ssh_keys_menu, hidden_4_updates_configured_user, hidden_4_declined, hidden_4_no_username, manage_keys_remove_hidden_no_keys).
+- Alpine elevation (V14): wheel and sudoers.d, sudo never installed (run: alpine_create_user_with_sudo).
+- "Require sudo password?" polarity: the form asks "Allow sudo without password?", Figma USER-CREATE_USER the opposite (run: create_sudo_no_password_with_key; proposals.md:257).
+- V16: sudoers written in place, no visudo -c (run: create_*, manage_sudo_*).
+- V17: users created with no password; "Required" sudo is then unusable (run: create_sudo_password_required_no_key).
+- V21: root writes /home/<u>/.ssh, home assumed, sh -c chown with the name interpolated (run: manage_keys_add).
+- Dropping the sudo password takes one key, no confirmation (run: manage_sudo_drop_password).
+- Existence decided by os/user, the repository by id (read: user_options.go:69, os_user_repository.go:60).
+- "creatingd"/"updatingd" in the success line (run: absent_4_create_user, hidden_4_updates_configured_user).
+- Cancelling the sudo question reads two lines for one pause (run: manage_sudo_require_password_answer_n).
+- SSH Key Management box prints "Last login: 2023-10-01" and "This is a bottom line example." (run: hidden_3_ssh_keys_menu).
+- hardn.yml saved to ./hardn.yml, not the loaded file (run: absent_1_change_username).
 
 ## 3. The mocks
 
