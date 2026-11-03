@@ -23,8 +23,8 @@ func TestRefuseDryRunOperations(t *testing.T) {
 		{"-n alone", true, nil, ""},
 		{"one", true, []string{FlagDisableRoot},
 			"hardn: -n/--dry-run only previews changes, so it can't be combined with -d/--disable-root, which applies them. Nothing was changed."},
-		{"two", true, []string{FlagCreateUser, FlagConfigureUFW},
-			"hardn: -n/--dry-run only previews changes, so it can't be combined with -c/--create-user and -w/--configure-ufw, which apply them. Nothing was changed."},
+		{"two", true, []string{FlagRunAll, FlagDisableRoot},
+			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all and -d/--disable-root, which apply them. Nothing was changed."},
 		{"three", true, []string{FlagRunAll, FlagConfigureUFW, FlagDisableRoot},
 			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all, -w/--configure-ufw and -d/--disable-root, which apply them. Nothing was changed."},
 	} {
