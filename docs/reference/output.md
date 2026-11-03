@@ -155,6 +155,17 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `CANCELLED` | 130 | interrupted: Ctrl-C, SIGTERM or a hangup, or a prompt aborted (Ctrl-C, the end of the input) |
 | `SSH_LISTEN_CONF_NOT_IN_EFFECT` | 1 | v0.3.x's listen.conf never took effect (D9): refused, with a report (P-39 (a)) |
 | `SSHD_ENV_NO_RUNDIR` | 1 | sshd -T cannot run: its privilege separation directory (/run/sshd) is missing or not root's alone |
+| `SSH_SETTINGS_NOT_READ` | 1 | sshd's settings are not read, so no SSH change is planned (the SSH Login screen's refusals, `sshchange.Err*`; new in `next/s6-control`) |
+| `SSH_SESSION_NOT_LOGGED` | 1 | the session's login is not in sshd's log, so nothing that closes a way in is planned |
+| `SSH_ROOT_SESSION` | 1 | the session is root's own SSH login |
+| `SSH_NO_ADMIN_LOGIN` | 1 | no admin could log in over SSH and become root afterwards |
+| `SSH_PASSWORD_SESSION` | 1 | the session logged in with a password |
+| `SSH_ADMIN_PASSWORD_ONLY` | 1 | an admin with a password and no key would lose SSH login |
+| `SSH_MATCH_LETS_MORE` | 1 | a Match block lets more in than hardn's setting |
+| `SSH_PVE_ROOT_KEY_ONLY` | 1 | root stays key-only on Proxmox VE |
+| `SSH_PVE_ROOT_PASSWORD_SESSION` | 1 | the session is root's own SSH login, by password |
+| `SSH_PVE_NO_ROOT_KEY` | 1 | root could not log in by key afterwards |
+| `SSH_PORT_SOURCE_RESTRICTED` | 1 | ufw lets port 22 in from some sources alone |
 | `SSHD_NO_WRITE_STRATEGY` | 1 | no write strategy for this sshd_config |
 | `SSH_MIGRATE_FIRST` | 1 | legacy hardn SSH files: migrate them first |
 | `SSH_PORT_NO_NEW_LISTENER` | 1 | the port change adds no listener |
@@ -221,6 +232,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSHD_INCLUDE_UNSUPPORTED` | 1 | an Include the validation copy cannot reproduce |
 | `SSHD_DROPIN_NOT_INCLUDED` | 1 | sshd_config does not Include sshd_config.d |
 | `SSHD_CONFIG_NOT_REGULAR` | 1 | an sshd configuration file is not a regular file |
+| `SSHD_LOGIN_NOT_LOGGED` | 1 | sshd's log has no login for this session (`sshd.ReadAccepted`; new in `next/s6-control`) |
 | `SSH_MIGRATE_INCLUDE_OTHER` | 1 | sshd_config's first directive is not the stock Include, so hardn has no place for its settings |
 | `SSH_MIGRATE_NOT_ESTABLISHED` | 1 | the configuration's login paths are not established |
 | `SSH_MIGRATE_FEWER_LOGIN_PATHS` | 1 | fewer working login paths than the installed configuration |
