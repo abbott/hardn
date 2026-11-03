@@ -20,8 +20,7 @@ import (
 // With it false, brief §2's rules apply on a Proxmox host (ProxmoxHost):
 // hardn never configures or enables UFW there (errUFWOnProxmox, before any
 // ufw command), and wherever it would write PermitRootLogin no it writes
-// PermitRootLogin prohibit-password, key-only root login, instead; the
-// disable-root edit then also leaves root in AllowUsers.
+// PermitRootLogin prohibit-password, key-only root login, instead.
 const proxmoxTreatedAsDebian = false
 
 // errUFWOnProxmox is the refusal of a UFW change on a Proxmox host.

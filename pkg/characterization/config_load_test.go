@@ -29,7 +29,7 @@ func configCases() []configCase {
 			},
 			notes: []string{
 				"The unknown key notAConfigKey is ignored without a warning.",
-				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48, and sshdConfigFile for disable-root).",
+				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48).",
 			},
 		},
 		{name: "full-hardn-config-env", fixture: "full.yml", viaEnv: true},

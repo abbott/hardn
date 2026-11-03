@@ -4,7 +4,7 @@
 # Fixture: testdata/fixtures/config/full.yml, passed as explicit path (hardn -f <file>, cmd/hardn/main.go:151)
 # FIXED: V3 (refactor plan slice 2b, next/s2b-mode): LoadConfig keeps dryRun from the file, and the session now runs in it unless -n/--dry-run is given, true or false (§3.19: cmd/hardn/main.go, config.Config.ResolveDryRun); origin/main overwrote it with the -n flag's value.
 # NOTE: The unknown key notAConfigKey is ignored without a warning.
-# NOTE: sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48, and sshdConfigFile for disable-root).
+# NOTE: sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48).
 # Output: the loaded Config as JSON (Go field names), or the error with the temp dir shown as <tmp>.
 
 {
