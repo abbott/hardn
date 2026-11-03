@@ -138,8 +138,8 @@ const (
 // and -c's, asks none whatever it says. Only false warns: the defaults have
 // true (config.DefaultConfig), which is what Create does, so true, set or
 // not, is hardn's, not a value unused. username and sshKeys never warn:
-// the screen's Create offers both, and -c takes username (its missing key
-// is its plan's own finding, USERS_NO_KEY). Run All (-r, main menu 7)
+// the screen's Create offers both, and -c takes both (with no key, its
+// plan's own finding, USERS_NO_KEY, says so). Run All (-r, main menu 7)
 // still reads sudoNoPassword, through origin/main's UserManager, until
 // slice 8.
 const sudoNoPasswordNotUsed = "hardn.yml's sudoNoPassword: false isn't used by User Management or -c"

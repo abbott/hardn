@@ -198,10 +198,10 @@ var rootCmd = &cobra.Command{
 		}
 
 		// -c with -d: -d turns off root's SSH login, and -c's user, with no
-		// key and no password, can't log in, so together they would leave
-		// no SSH login. Refused here, the name known, before either runs,
-		// as -n's refusals are (refactor plan slice 5, unit (d)). It asks
-		// whether -c's user has a key, so it stays right should -c take one.
+		// key (hardn.yml's sshKeys empty) and no password, can't log in, so
+		// together they would leave no SSH login. Refused here, the name
+		// known, before either runs, as -n's refusals are (refactor plan
+		// slice 5, unit (d)). With keys the two run.
 		if createUser {
 			n := createNew(cfg)
 			if refuse(hardncmd.RefuseCreateDisableRoot(createUser, disableRootSSH, n.Name, n.Keys)) {

@@ -29,16 +29,17 @@ import (
 // createAdmin is -c: the User control's Create of c.Username, -u's when
 // given, else hardn.yml's username (Create's default, decision 7 (a); the
 // root command refuses -c with neither), with admin rights, hardn's grant
-// asking no password, and no password and no key (decision 6 (a): -c
-// takes no key, so the plan's own finding, USERS_NO_KEY, says the user
-// can't log in until one is added); planned and applied as runControls
+// asking no password, no password, and every key in hardn.yml's sshKeys
+// (the maintainer, 2026-11-03: "(a) Add sshKeys", replacing decision 6
+// (a)'s no key; with none, the plan's own finding, USERS_NO_KEY, says the
+// user can't log in until one is added); planned and applied as runControls
 // runs a flag's controls, without a question, as -g's; its report
 // output.Human's on stdout; under -n, or hardn.yml's dryRun: true, the
 // plan alone, nothing written. The control's refusals, said before
 // anything is written (a name useradd would refuse, a name a user or
-// group has, /home/<name> already there, no elevation tool, ...), are
-// reported with their code and how to go on, and not applied. hardn.yml's
-// sudoNoPassword and sshKeys are not read (loadWarnings says so of
+// group has, /home/<name> already there, no elevation tool, a key that is
+// not one, ...), are reported with their code and how to go on, and not
+// applied. hardn.yml's sudoNoPassword is not read (loadWarnings says so of
 // sudoNoPassword: false). It no longer configures sshd after the user, as
 // origin/main's -c did (SSHManager.ConfigureSSH): sshd is slice 6's. It
 // returns the exit status: 0 applied or nothing to change, 3 a plan with
@@ -48,11 +49,12 @@ func createAdmin(c *config.Config) int {
 	return runControls(c, []engine.Control{create}, createRefuse, nil)
 }
 
-// createNew is the user -c creates on c: c.Username, an admin, with no
-// key (decision 6 (a)); main refuses -c with -d where it has none
-// (hardncmd.RefuseCreateDisableRoot).
+// createNew is the user -c creates on c: c.Username, an admin, with
+// c.SshKeys as loaded, every one (the maintainer, 2026-11-03: "(a) Add
+// sshKeys"), an empty entry refused by the control as not a key; main
+// refuses -c with -d where it has none (hardncmd.RefuseCreateDisableRoot).
 func createNew(c *config.Config) usersctl.New {
-	return usersctl.New{Name: c.Username, Admin: true}
+	return usersctl.New{Name: c.Username, Admin: true, Keys: c.SshKeys}
 }
 
 // createRefuse is -c's refusal of a plan, refuseCreateLockoutRisk; a seam,
