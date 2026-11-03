@@ -47,6 +47,18 @@ type fwHost struct {
 	noIndex     bool   // apk's index holds no ufw (Alpine as shipped)
 	inBoot      bool   // ufw's service starts at boot
 	statusFails bool
+
+	// The screen's states (helpers_test.go); each zero value is the parity
+	// table's host.
+	incoming  string             // ufw's default incoming policy: deny, allow or reject; "" is deny
+	stale     bool               // ENABLED=yes while ufw is not running
+	noIPv6    bool               // IPV6=no in ufw's defaults
+	unit      string             // what systemctl is-enabled ufw.service prints, "" enabled; "fails" fails
+	bound     []uint16           // the ports sshd is bound on, as ss shows them; nil is ports
+	statusOut string             // what ufw status verbose prints, "" the model's
+	ssFails   bool               // ss runs and fails
+	sim       *hostfake.Response // apt-get's simulation, nil aptSim
+	pveDown   bool               // pve-firewall's service stopped
 }
 
 // fwRule is a rule in ufw: what ufw's status prints it for, and the words a
@@ -54,7 +66,21 @@ type fwHost struct {
 type fwRule struct {
 	port, app string
 	start     bool // a rule of the start
+	// action is allow where ""; src is the source, anywhere where "", one IP
+	// version's alone where set.
+	action, src string
 }
+
+// verb is the rule's action.
+func (r fwRule) verb() string {
+	if r.action == "" {
+		return "allow"
+	}
+	return r.action
+}
+
+// in reports whether the rule applies in the IP version v6 says.
+func (r fwRule) in(v6 bool) bool { return r.src == "" || strings.Contains(r.src, ":") == v6 }
 
 func (r fwRule) words() string {
 	switch {
@@ -136,18 +162,30 @@ func (h *fwHost) session() revert.Session {
 
 // syncFiles writes ufw's settings and saved rules as the model has them.
 func (h *fwHost) syncFiles() {
-	enabled := map[bool]string{true: "yes", false: "no"}[h.active]
-	h.AddFile(ufw.DefaultsFile, []byte("IPV6=yes\nDEFAULT_INPUT_POLICY=\"DROP\"\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n"), 0o644, 0, 0)
+	enabled := map[bool]string{true: "yes", false: "no"}[h.active || h.stale]
+	ipv6 := map[bool]string{true: "no", false: "yes"}[h.noIPv6]
+	policy := map[string]string{"": "DROP", "deny": "DROP", "allow": "ACCEPT", "reject": "REJECT"}[h.incoming]
+	h.AddFile(ufw.DefaultsFile, []byte("IPV6="+ipv6+"\nDEFAULT_INPUT_POLICY=\""+policy+"\"\nDEFAULT_OUTPUT_POLICY=\"ACCEPT\"\n"), 0o644, 0, 0)
 	h.AddFile(ufw.ConfFile, []byte("ENABLED="+enabled+"\nLOGLEVEL=low\n"), 0o644, 0, 0)
-	for _, f := range []struct{ path, any string }{{ufw.UserRules, "0.0.0.0/0"}, {ufw.User6Rules, "::/0"}} {
+	for _, f := range []struct {
+		path, any string
+		v6        bool
+	}{{ufw.UserRules, "0.0.0.0/0", false}, {ufw.User6Rules, "::/0", true}} {
 		var b strings.Builder
 		b.WriteString("*filter\n### RULES ###\n")
 		for _, r := range h.rules {
+			src := f.any
+			switch {
+			case !r.in(f.v6):
+				continue
+			case r.src != "":
+				src = r.src
+			}
 			if r.app != "" {
-				fmt.Fprintf(&b, "\n### tuple ### allow tcp %s %s any %s %s - in\n", r.port, f.any, f.any, r.app)
+				fmt.Fprintf(&b, "\n### tuple ### allow tcp %s %s any %s %s - in\n", r.port, f.any, src, r.app)
 				continue
 			}
-			fmt.Fprintf(&b, "\n### tuple ### allow tcp %s %s any %s in\n", r.port, f.any, f.any)
+			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.verb(), r.port, f.any, src)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		h.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
@@ -161,26 +199,39 @@ func (h *fwHost) status() string {
 		return "Status: inactive\n"
 	}
 	var b strings.Builder
-	b.WriteString("Status: active\nLogging: on (low)\nDefault: deny (incoming), allow (outgoing), disabled (routed)\nNew profiles: skip\n")
+	incoming := h.incoming
+	if incoming == "" {
+		incoming = "deny"
+	}
+	b.WriteString("Status: active\nLogging: on (low)\nDefault: " + incoming + " (incoming), allow (outgoing), disabled (routed)\nNew profiles: skip\n")
 	if len(h.rules) > 0 {
 		fmt.Fprintf(&b, "\n%-26s %-12s%s\n%-26s %-12s%s\n", "To", "Action", "From", "--", "------", "----")
 	}
 	for _, v6 := range []string{"", " (v6)"} {
 		for _, r := range h.rules {
-			to := r.port + "/tcp" + v6
-			if r.app != "" {
-				to = r.port + "/tcp (" + r.app + v6 + ")"
+			if !r.in(v6 != "") || v6 != "" && h.noIPv6 {
+				continue
 			}
-			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, "ALLOW IN", "Anywhere"+v6)
+			to, from := r.port+"/tcp"+v6, "Anywhere"+v6
+			switch {
+			case r.app != "":
+				to = r.port + "/tcp (" + r.app + v6 + ")"
+			case r.src != "":
+				to, from = r.port+"/tcp", r.src
+			}
+			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, strings.ToUpper(r.verb())+" IN", from)
 		}
 	}
 	return b.String()
 }
 
 // listeners are sshd's: every port on [::] and 0.0.0.0.
-func (h *fwHost) listeners() []string {
+func (h *fwHost) listeners() []string { return listenersOn(h.ports) }
+
+// listenersOn are every port of ports on [::] and 0.0.0.0.
+func listenersOn(ports []uint16) []string {
 	var ls []string
-	for _, p := range h.ports {
+	for _, p := range ports {
 		ls = append(ls, fmt.Sprintf("[::]:%d", p), fmt.Sprintf("0.0.0.0:%d", p))
 	}
 	return ls
@@ -202,7 +253,11 @@ func (h *fwHost) sshdT() string {
 // ss is ss -Htln's output; on a socket host [::] is dual-stack, printed "*".
 func (h *fwHost) ss() string {
 	var b strings.Builder
-	for _, s := range h.listeners() {
+	bound := h.listeners()
+	if h.bound != nil {
+		bound = listenersOn(h.bound)
+	}
+	for _, s := range bound {
 		peer := "0.0.0.0:*"
 		if strings.HasPrefix(s, "[") {
 			peer = "[::]:*"
@@ -234,13 +289,18 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 		return hostfake.Response{Err: fmt.Errorf("host: run ufw: %w", host.ErrNotFound)}
 	case cmd == "ufw status verbose" && h.statusFails:
 		return hostfake.Response{Stderr: "ERROR: failed\n", ExitCode: 1}
+	case cmd == "ufw status verbose" && h.statusOut != "":
+		return hostfake.Response{Stdout: h.statusOut}
+	case len(argv) == 4 && argv[1] == "default" && argv[3] == "incoming":
+		h.incoming = argv[2]
+		return hostfake.Response{Stdout: fmt.Sprintf("Default incoming policy changed to '%s'\n(be sure to update your rules accordingly)\n", argv[2])}
 	case cmd == "ufw status verbose":
 		return hostfake.Response{Stdout: h.status()}
 	case cmd == "ufw --force enable":
 		h.active = true
 		return hostfake.Response{Stdout: "Firewall is active and enabled on system startup\n"}
 	case cmd == "ufw disable":
-		h.active = false
+		h.active, h.stale = false, false
 		return hostfake.Response{Stdout: "Firewall stopped and disabled on system startup\n"}
 	case len(argv) == 3 && argv[1] == "allow":
 		h.rules = append(h.rules, fwRule{port: strings.TrimSuffix(argv[2], "/tcp")})
@@ -266,12 +326,24 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 		return hostfake.Response{Stdout: b.String()}
 	case cmd == "ss -Htln" && h.noSS:
 		return hostfake.Response{Err: fmt.Errorf("host: run ss: %w", host.ErrNotFound)}
+	case cmd == "ss -Htln" && h.ssFails:
+		return hostfake.Response{Stderr: "ss: netlink error\n", ExitCode: 1}
 	case cmd == "ss -Htln":
 		return hostfake.Response{Stdout: h.ss()}
 	case cmd == "systemctl is-enabled ufw.service" && h.missing:
 		return hostfake.Response{Stdout: "not-found\n", ExitCode: 1}
+	case cmd == "systemctl is-enabled ufw.service" && h.unit == "fails":
+		return hostfake.Response{Stderr: "failed\n", ExitCode: 2}
+	case cmd == "systemctl is-enabled ufw.service" && h.unit != "" && h.unit != "enabled":
+		return hostfake.Response{Stdout: h.unit + "\n", ExitCode: 1}
 	case cmd == "systemctl is-enabled ufw.service":
 		return hostfake.Response{Stdout: "enabled\n"}
+	case cmd == "systemctl enable ufw.service":
+		h.unit = "enabled"
+		return hostfake.Response{}
+	case cmd == "systemctl disable ufw.service":
+		h.unit = "disabled"
+		return hostfake.Response{}
 	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "ufw" && h.missing:
 		return hostfake.Response{Stderr: "dpkg-query: no packages found matching ufw\n", ExitCode: 1}
 	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "ufw":
@@ -280,6 +352,8 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 		return hostfake.Response{ExitCode: 1}
 	case cmd == "apk info -e ufw":
 		return hostfake.Response{Stdout: "ufw\n"}
+	case cmd == "apt-get install -s -y ufw" && h.sim != nil:
+		return *h.sim
 	case cmd == "apt-get install -s -y ufw":
 		return hostfake.Response{Stdout: aptSim}
 	case cmd == "apk add --simulate ufw" && h.noIndex:
@@ -307,6 +381,8 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 	case cmd == "rc-update add hardn-boot default":
 		h.AddSymlink(detect.OpenRCRunlevels+"/default/hardn-boot", "/etc/init.d/hardn-boot")
 		return hostfake.Response{}
+	case cmd == "systemctl is-active "+pve.FirewallUnit && h.pveDown:
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}
 	case cmd == "systemctl is-active "+pve.FirewallUnit:
 		return hostfake.Response{Stdout: "active\n"}
 	case timerCommand(host.FormatArgv(argv)):
