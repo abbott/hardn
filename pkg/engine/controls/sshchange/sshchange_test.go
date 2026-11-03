@@ -407,6 +407,12 @@ func TestRefusals(t *testing.T) {
 			return v
 		}, allowRoot, "SSH_PVE_NO_ROOT_KEY", sshchange.ErrPVENoRootKey,
 			"Root would lose SSH login: root has no key sshd reads. Add a key for root first.", false},
+		{"Proxmox VE: Key-only, root without a key, from a console", func(t *testing.T) *vm {
+			v := pveVM(t).file(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication yes\n").console()
+			_ = v.f.Remove(context.Background(), "/root/.ssh/authorized_keys")
+			return v
+		}, keyOnly, "SSH_PVE_NO_ROOT_KEY", sshchange.ErrPVENoRootKey,
+			"Root would lose SSH login: root has no key sshd reads. Add a key for root first.", false},
 		{"the port on Proxmox VE", pveVM, port2230, "PVE_PORT_CHANGE_REFUSED", nil,
 			"The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it.", false},
 		{"ufw lets 22 in from 192.0.2.0/24 alone", func(t *testing.T) *vm {
@@ -473,6 +479,9 @@ func TestPlans(t *testing.T) {
 		}, allowRoot, true},
 		{"Key-only on Proxmox VE, root by key", func(t *testing.T) *vm {
 			return pveVM(t).file(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication yes\n")
+		}, keyOnly, true},
+		{"Key-only on Proxmox VE from a console, root's key", func(t *testing.T) *vm {
+			return pveVM(t).file(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication yes\n").console()
 		}, keyOnly, true},
 		{"Root key-only on Proxmox VE, root's key", pveVM, allowRoot, true},
 		{"Root key-only on Proxmox VE asked as Disallow", pveVM, disallow, true},
