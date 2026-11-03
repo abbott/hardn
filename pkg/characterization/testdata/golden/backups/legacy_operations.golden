@@ -21,10 +21,6 @@ configure_secure_firewall         debian   0            0                 0
 configure_secure_firewall         ubuntu   0            0                 0
 configure_secure_firewall         alpine   0            0                 0
 configure_secure_firewall         proxmox  0            0                 0
-configure_secure_firewall_profiles debian   2            0                 0
-configure_secure_firewall_profiles ubuntu   2            0                 0
-configure_secure_firewall_profiles alpine   2            0                 0
-configure_secure_firewall_profiles proxmox  0            0                 0
 configure_sudo                    debian   2            0                 0
 configure_sudo                    ubuntu   2            0                 0
 configure_sudo                    alpine   3            0                 0

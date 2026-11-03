@@ -35,7 +35,8 @@ import (
 
 // The Firewall parity table (refactor plan slice 4, unit (b2), next/s4-parity;
 // docs/engine/parity-firewall.md): origin/main's Firewall screen and hardn -w,
-// read from pkg/characterization's goldens in place, against the Firewall
+// read from pkg/characterization's goldens, frozen under legacyDir in unit (d)
+// (next/s4-replace), against the Firewall
 // control from the same starts, through the parity harness. This file is what
 // Firewall supplies to it. Since unit (c) (next/s4-screen) each row runs through
 // the Firewall screen's Run, typed as a user types it.
@@ -45,8 +46,22 @@ import (
 // docs/engine/parity-firewall.md's region.
 func TestParity(t *testing.T) { parity.Run(t, fwParity) }
 
+// legacyDir is origin/main's record: pkg/characterization's Firewall goldens,
+// moved here unchanged (git mv) in unit (d)'s first commit, in their layout
+// there, before the code they recorded was deleted, as parity-environment.md
+// §8 froze Environment's: menu/firewall_* (TestLegacyMenuFirewall) and
+// menu/firewall_configure_dry_run (TestLegacyMenuDryRun, whose only case it
+// was), each test retired with its goldens, and
+// ops/configure_secure_firewall_profiles, moved with its TestOperationGoldens
+// case, retired too; ops/configure_secure_firewall, copied byte for byte, as
+// TestOperationGoldens still records FirewallManager.ConfigureSecureFirewall,
+// which Run All and hardn -r call until slice 8. Nothing regenerates them: no
+// test writes under testdata/legacy (TestLegacyRecord holds each file's
+// bytes). parity.golden's header still says "read in place": it is part of
+// the golden, kept as it was so that the record is provably unchanged
+// (parity-firewall.md §8).
 var (
-	legacyDir = filepath.Join("..", "..", "characterization", "testdata", "golden")
+	legacyDir = filepath.Join("testdata", "legacy")
 	fixtures  = filepath.Join("testdata", "fixtures")
 )
 

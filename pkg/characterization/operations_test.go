@@ -190,15 +190,6 @@ func hardeningConfigFromCLI(cfg *config.Config) *model.HardeningConfig {
 	}
 }
 
-// profilesFromMenu mirrors pkg/menu/firewall_menu.go:252-260.
-func profilesFromMenu(cfg *config.Config) []model.FirewallProfile {
-	var profiles []model.FirewallProfile
-	for _, p := range cfg.UfwAppProfiles {
-		profiles = append(profiles, model.FirewallProfile{Name: p.Name, Title: p.Title, Description: p.Description, Ports: p.Ports})
-	}
-	return profiles
-}
-
 // callResult is the error returned by one top-level call of a scenario.
 type callResult struct {
 	call string
@@ -675,28 +666,13 @@ func opScenarios() []opScenario {
 			},
 			gates: proxmoxUFWGates,
 		},
-		{
-			name:     "configure_secure_firewall_profiles",
-			op:       "MenuManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, cfg.UfwAppProfiles)",
-			entry:    "Firewall menu option 2 (pkg/menu/firewall_menu.go:243-263); menu-only, the CLI passes no profiles",
-			notes:    []string{"Menu path: when cfg.DryRun is true the menu prints a preview and skips this call (pkg/menu/firewall_menu.go:247-249). The cfg.DryRun=true section shows that the managers and adapters themselves ignore it."},
-			pveCheck: true,
-			run: func(e *opEnv) []callResult {
-				err := e.factory.CreateMenuManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, profilesFromMenu(e.cfg))
-				return []callResult{{"MenuManager.ConfigureSecureFirewall", err}}
-			},
-			defects: func(c osCell, o observed) []string {
-				var d []string
-				if !c.proxmox {
-					d = append(d, "V9")
-				}
-				if o.writes > 0 {
-					d = append(d, "V18")
-				}
-				return d
-			},
-			gates: proxmoxUFWGates,
-		},
+		// configure_secure_firewall_profiles, origin/main's Firewall menu
+		// item 2 with cfg.UfwAppProfiles (MenuManager.ConfigureSecureFirewall),
+		// is retired (refactor plan slice 4, unit (d), next/s4-replace): the
+		// unit replaces the Firewall menu with the Firewall screen, and the
+		// menu was that method's only caller. Its four goldens moved
+		// unchanged to pkg/screens/firewall/testdata/legacy/ops, Firewall's
+		// parity record (docs/engine/parity-firewall.md §8).
 		{
 			name:  "configure_sudo",
 			op:    "UserManager.CreateUser for an existing user -> OSUserRepository.ConfigureSudo, then AddSSHKey",
