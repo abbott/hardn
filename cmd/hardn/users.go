@@ -6,19 +6,72 @@ package main
 // menu's User Management item runs the User Management screen
 // (pkg/screens/users), which pkg/menu reaches through the hook set here, as
 // it reaches the Firewall screen (firewall.go), so that pkg/menu builds no
-// engine. The engine's options are engine.go's.
+// engine; and -c plans and applies the User control's Create through
+// runControls, as -g runs the DNS control (gallery-users.md §5, decision 6
+// (a), adopted 2026-11-03). The engine's options are engine.go's.
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
+	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	usrscreen "github.com/abbott/hardn/pkg/screens/users"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
+
+// createAdmin is -c: the User control's Create of c.Username, -u's when
+// given, else hardn.yml's username (Create's default, decision 7 (a); the
+// root command refuses -c with neither), with admin rights, hardn's grant
+// asking no password, and no password and no key (decision 6 (a): -c
+// takes no key, so the plan's own finding, USERS_NO_KEY, says the user
+// can't log in until one is added); planned and applied as runControls
+// runs a flag's controls, without a question, as -g's; its report
+// output.Human's on stdout; under -n, or hardn.yml's dryRun: true, the
+// plan alone, nothing written. The control's refusals, said before
+// anything is written (a name useradd would refuse, a name a user or
+// group has, /home/<name> already there, no elevation tool, ...), are
+// reported with their code and how to go on, and not applied. hardn.yml's
+// sudoNoPassword and sshKeys are not read (loadWarnings says so of
+// sudoNoPassword: false). It no longer configures sshd after the user, as
+// origin/main's -c did (SSHManager.ConfigureSSH): sshd is slice 6's. It
+// returns the exit status: 0 applied or nothing to change, 3 a plan with
+// changes to make, 1 refused or failed.
+func createAdmin(c *config.Config) int {
+	create := usersctl.Admin{Action: usersctl.ActionCreate, New: usersctl.New{Name: c.Username, Admin: true}, Getenv: os.Getenv}
+	return runControls(c, []engine.Control{create}, refuseCreateLockoutRisk, nil)
+}
+
+// errCreateLockoutRisk is -c's refusal of a lockout-risk plan (proposed
+// words, refactor plan slice 5, unit (d), on -e's pattern): its code the
+// registry's PLAN_REFUSED (engine.ErrRefused, a refusal with no code of
+// its own), exit status 1.
+var errCreateLockoutRisk = &steps.Refusal{
+	Code: "PLAN_REFUSED",
+	Why:  "Creating this user here risks a lockout",
+	Fix:  "create it from main menu 1, User Management, which asks you to confirm",
+	Err:  fmt.Errorf("%w: a lockout-risk plan, which -c does not confirm", engine.ErrRefused),
+}
+
+// refuseCreateLockoutRisk refuses p when it is lockout-risk
+// (engine.RiskLockout), as refuseLockoutRisk refuses -e's: such a plan is
+// confirmed by the hostname typed and armed with the revert timer, which a
+// flag that applies without asking must not arm unasked. Create's plan is
+// never one (its grant is a new user's, plain: gallery-users.md §5,
+// decision 4, y/N); a guard, so that one that ever is is shown and refused,
+// not applied. Any other plan it leaves to the engine.
+func refuseCreateLockoutRisk(p *engine.Plan) error {
+	if p.Risk == engine.RiskLockout {
+		return errCreateLockoutRisk
+	}
+	return nil
+}
 
 // usersMenu is what withUsersScreen sets the User Management item of:
 // pkg/menu's main menu, and the tests' record of what was set.

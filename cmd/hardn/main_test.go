@@ -271,15 +271,15 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 // arguments that run it and the name the refusal gives it: every one but
 // -g, whose dry run is the DNS control's plan (TestConfigureDNSFlag), -e
 // and setup-sudo-env, whose dry run is the Environment control's
-// (TestKeepEnvironmentFlag; refactor plan slice 9, unit (d)), and -w,
+// (TestKeepEnvironmentFlag; refactor plan slice 9, unit (d)), -w,
 // whose dry run is the Firewall control's (TestConfigureFirewallFlag;
-// slice 4, unit (d)).
+// slice 4, unit (d)), and -c, whose dry run is the User control's
+// (TestCreateUserFlag; slice 5, unit (d)).
 var operationRuns = []struct {
 	args []string
 	name string
 }{
 	{[]string{"-r"}, hardncmd.FlagRunAll},
-	{[]string{"-c", "-u", "alice"}, hardncmd.FlagCreateUser},
 	{[]string{"-d"}, hardncmd.FlagDisableRoot},
 }
 
@@ -310,7 +310,7 @@ func TestDryRunRefusesOperations(t *testing.T) {
 		}
 	}
 	t.Run("several operations are all named", func(t *testing.T) {
-		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-r", "-w", "-g", "-e")
+		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c")
 		if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 || len(r.reached) != 0 {
 			t.Fatalf("ended %v with %d, reached %v, calls %v", r.ended, r.code, r.reached, r.calls)
 		}
@@ -321,20 +321,21 @@ func TestDryRunRefusesOperations(t *testing.T) {
 		if strings.Contains(r.stderr, "print-logs") {
 			t.Errorf("-p only reads, but the refusal names it:\n%s", r.stderr)
 		}
-		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) || strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) || strings.Contains(r.stderr, hardncmd.FlagConfigureUFW) {
-			t.Errorf("-n -g, -n -e and -n -w show the plan, but the refusal names -g, -e or -w:\n%s", r.stderr)
+		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) || strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) || strings.Contains(r.stderr, hardncmd.FlagConfigureUFW) ||
+			strings.Contains(r.stderr, hardncmd.FlagCreateUser) {
+			t.Errorf("-n -g, -n -e, -n -w and -n -c show the plan, but the refusal names -g, -e, -w or -c:\n%s", r.stderr)
 		}
 	})
 }
 
 // TestDryRunAloneIsNotRefused checks that -n without an operation, or with
-// -g, -e or setup-sudo-env, whose dry runs are their plans, still reaches the
+// -g, -e, -w, -c or setup-sudo-env, whose dry runs are their plans, still reaches the
 // root check (and then the menus in dry-run mode, or the plan); the stubbed
 // root check fails, so the run ends there with status 1. -n -p no longer
 // does: -p alone runs ahead of the root check (decisions 9 (a), 10 (a);
 // TestPrintLogAlone).
 func TestDryRunAloneIsNotRefused(t *testing.T) {
-	for _, args := range [][]string{{"-n"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "setup-sudo-env"}, {"-d"}} {
+	for _, args := range [][]string{{"-n"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "-w"}, {"-n", "-c", "-u", "carol"}, {"-n", "setup-sudo-env"}, {"-d"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {
@@ -368,26 +369,6 @@ func TestOperationsApplyWithoutDryRun(t *testing.T) {
 				t.Errorf("no write or command recorded; calls: %v", r.calls)
 			}
 		})
-	}
-}
-
-// TestCreateUserAuthorizedKeysFile checks V5's gate through the real -c
-// path: hardn.conf names both v0.3.2's files on one AuthorizedKeysFile
-// line, the first of which is where -c writes alice's key.
-func TestCreateUserAuthorizedKeysFile(t *testing.T) {
-	r := runHardn(t, asRoot, "-c", "-u", "alice")
-	if r.ended {
-		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
-	}
-	conf := r.files["/etc/ssh/sshd_config.d/hardn.conf"]
-	var lines []string
-	for _, l := range strings.Split(conf, "\n") {
-		if strings.HasPrefix(l, "AuthorizedKeysFile") {
-			lines = append(lines, l)
-		}
-	}
-	if want := "AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys"; len(lines) != 1 || lines[0] != want {
-		t.Errorf("AuthorizedKeysFile lines %q, want just %q; hardn.conf:\n%s", lines, want, conf)
 	}
 }
 

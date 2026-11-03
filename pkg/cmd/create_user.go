@@ -22,10 +22,12 @@ import "strings"
 const authorizedKeysSSHUOnly = false
 
 // CreateUserAuthorizedKeysFiles returns the AuthorizedKeysFile paths
-// hardn -c passes to SSHManager.ConfigureSSH for the sshKeyPath setting,
-// which v0.3.2 and the user screens read as a directory under the home
-// directory holding authorized_keys. A value ending in authorized_keys
-// names the file itself, as the user screens read it
+// origin/main's hardn -c passed to SSHManager.ConfigureSSH for the
+// sshKeyPath setting (since refactor plan slice 5, unit (d), -c is the User
+// control's Create and configures no sshd; pkg/characterization's record
+// of the old -c path still calls it), which v0.3.2 and the user screens
+// read as a directory under the home directory holding authorized_keys. A
+// value ending in authorized_keys names the file itself, as the user screens read it
 // (OSUserRepository.GetExtendedUserInfo) and as origin/main wrote it, so
 // it is listed as it is. An empty sshKeyPath adds nothing to
 // .ssh/authorized_keys, and neither does one naming .ssh itself.

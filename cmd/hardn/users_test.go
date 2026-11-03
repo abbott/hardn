@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -233,5 +234,196 @@ func TestUsersHook(t *testing.T) {
 	}
 	if got := h.writes(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("wrote %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
+	}
+}
+
+// runC runs hardn with args as root (runG) on the User Management host h,
+// its configuration cfg as loaded, hardn's environment george's sudo;
+// setup, when set, run once the seams are in place.
+func runC(t *testing.T, h *usrTestHost, cfg *config.Config, setup func(*dnsSeams), args ...string) (result, *dnsSeams) {
+	t.Helper()
+	return runG(t, h.dnsHost, cfg, func(s *dnsSeams) {
+		engineHost = func() host.System { return h }
+		t.Setenv("SUDO_USER", "george")
+		if setup != nil {
+			setup(s)
+		}
+	}, args...)
+}
+
+// TestCreateUserFlag: -c plans and applies the User control's Create
+// through the engine, without a question, as -g applies DNS's (refactor
+// plan slice 5, unit (d); gallery-users.md §5, decision 6 (a), adopted
+// 2026-11-03): the user -u names, else hardn.yml's username (decision 7
+// (a)), with admin rights asking no password and no key, the plan's
+// USERS_NO_KEY finding said; useradd run, hardn's grant written, exit
+// status 0. -n -c the plan alone, nothing run or written, 3. A name taken,
+// one useradd would refuse, or one whose home is there: the control's
+// refusal, its code, nothing run or written, 1, under -n too. sshd's
+// configuration is not touched (origin/main's -c rewrote it: slice 6's
+// now), hardn.yml is never saved, nothing goes through the legacy
+// provider, and the signals are registered for an apply alone.
+func TestCreateUserFlag(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		args    []string
+		home    bool // /home/carol already there
+		code    int  // the exit status; 0: hardn did not exit
+		said    []string
+		applied string // the user created; "" none
+	}{
+		{name: "-c -u carol", args: []string{"-c", "-u", "carol"}, applied: "carol",
+			said: []string{"Create user carol", "Let carol use sudo", "Operation Successful", "Without a key carol can't log in", "USERS_NO_KEY"}},
+		{name: "-c: hardn.yml's username", args: []string{"-c"}, applied: "alice",
+			said: []string{"Create user alice", "Let alice use sudo", "Operation Successful"}},
+		{name: "-n -c -u carol", args: []string{"-n", "-c", "-u", "carol"}, code: 3,
+			said: []string{"Create user carol", "Let carol use sudo", "No actual changes were made to your system."}},
+		{name: "a name taken", args: []string{"-c", "-u", "george"}, code: 1, said: []string{"george already exists", "USERS_NAME_TAKEN"}},
+		{name: "a name taken, -n", args: []string{"-n", "-c", "-u", "george"}, code: 1, said: []string{"USERS_NAME_TAKEN"}},
+		{name: "a name useradd refuses", args: []string{"-c", "-u", "Carol"}, code: 1, said: []string{"USERS_NAME_FORM"}},
+		{name: "its home there", args: []string{"-c", "-u", "carol"}, home: true, code: 1, said: []string{"/home/carol is already there", "USERS_HOME_THERE"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newUsersHost(t)
+			if tc.home {
+				h.AddDir("/home/carol", 0o755, 0, 0)
+			}
+			yml, sshdConfig := h.content(dnsTestYML), h.content(sshd.MainConfig)
+			r, s := runC(t, h, cfg, nil, tc.args...)
+			report := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stdout, r.stderr)
+			}
+			if w := inOrder(report, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, report)
+			}
+			for _, w := range []string{"y/N", "Type the hostname", "[SUCCESS]", "[ERROR]", "Script completed", "created successfully"} {
+				if strings.Contains(report+r.stdout, w) {
+					t.Errorf("printed %q:\n%s%s", w, report, r.stdout)
+				}
+			}
+			ran := h.commands("useradd")
+			if tc.applied == "" {
+				if got := h.writes(); len(got) > 0 || len(ran) > 0 {
+					t.Errorf("wrote %q, ran %q", got, ran)
+				}
+			} else {
+				want := "useradd --home-dir /home/" + tc.applied + " --create-home --shell /bin/bash " + tc.applied
+				grant := sudoers.DropInDir + "/hardn-grant-" + tc.applied
+				if !slices.Equal(ran, []string{want}) || !strings.Contains(h.content(grant), tc.applied+" ALL=(ALL) NOPASSWD: ALL") {
+					t.Errorf("ran %q, %s:\n%s\nwant %q and hardn's grant asking no password", ran, grant, h.content(grant), want)
+				}
+				if _, ok := h.Entry("/home/" + tc.applied + "/.ssh"); ok {
+					t.Error("-c added a key")
+				}
+			}
+			if h.content(sshd.MainConfig) != sshdConfig || slices.ContainsFunc(h.writes(), func(w string) bool { return strings.Contains(w, " /etc/ssh/") }) {
+				t.Errorf("sshd's configuration written: %q", h.writes())
+			}
+			if h.content(dnsTestYML) != yml {
+				t.Errorf("hardn.yml changed:\n%s", h.content(dnsTestYML))
+			}
+			if len(r.calls) != 0 {
+				t.Errorf("-c went through the legacy provider: %v", r.calls)
+			}
+			if want := map[bool]int{true: 1}[tc.applied != ""]; s.applies != want || s.live != 0 {
+				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
+			}
+		})
+	}
+}
+
+// TestCreateUserPlanOnlyFromFile: hardn.yml's dryRun: true makes -c the
+// plan alone, as -n does: nothing run or written, 3; --dry-run=false over
+// it applies as live, 0.
+func TestCreateUserPlanOnlyFromFile(t *testing.T) {
+	for _, tc := range []struct {
+		args []string
+		code int
+	}{
+		{[]string{"-c", "-u", "carol"}, 3},
+		{[]string{"--dry-run=false", "-c", "-u", "carol"}, 0},
+	} {
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			h, _ := newUsersHost(t)
+			h.AddFile(dnsTestYML, []byte("username: alice\ndryRun: true\n"), 0o644, 0, 0)
+			cfg, err := config.Read(context.Background(), h, dnsTestYML)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r, s := runC(t, h, cfg, func(*dnsSeams) {
+				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
+			}, tc.args...)
+			report := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
+			}
+			live := tc.code == 0
+			if strings.Contains(report, "No actual changes were made to your system.") == live || (len(h.commands("useradd")) > 0) != live {
+				t.Errorf("useradd ran %q, want applied %t; report:\n%s", h.commands("useradd"), live, report)
+			}
+		})
+	}
+}
+
+// TestCreateUserNoName: -c with no -u and no username in hardn.yml is
+// refused as it was, in its words, exit status 1, before the engine's host
+// is reached (runHardnWith fails the test if it is).
+func TestCreateUserNoName(t *testing.T) {
+	for _, args := range [][]string{{"-c"}, {"-n", "-c"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			r := runHardnWith(t, asRoot, func() {
+				loadConfig = func(string) (*config.Config, error) { return config.DefaultConfig(), nil }
+			}, args...)
+			if !r.ended || r.code != 1 || !strings.Contains(r.stdout+r.stderr, "Please specify a username with -u flag or in the configuration file.") {
+				t.Errorf("ended %v with %d; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.stdout, r.stderr)
+			}
+		})
+	}
+}
+
+// TestCreateUserFlagWithOthers: -c's exit status combines with -g's as
+// -w's does (runStatus): -g runs after -c's refusal, and the refusal is
+// hardn's exit status once it has; -c applied and -g applied, 0; under
+// plan only both plans shown, nothing written, 3, and -c's refusal, 1,
+// over -g's plan.
+func TestCreateUserFlagWithOthers(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		args []string
+		code int // the exit status; 0: hardn did not exit
+		said []string
+		dns  bool // -g's file written
+	}{
+		{"-c refused, then -g", []string{"-c", "-u", "george", "-g"}, 1, []string{"USERS_NAME_TAKEN", "Set the nameservers  Done"}, true},
+		{"-c applied, then -g", []string{"-c", "-u", "carol", "-g"}, 0, []string{"Create user carol", "Set the nameservers  Done"}, true},
+		{"-n: -c's plan, then -g's", []string{"-n", "-c", "-u", "carol", "-g"}, 3, []string{"Create user carol", "+nameserver 192.0.2.53"}, false},
+		{"-n: -c refused, then -g's plan", []string{"-n", "-c", "-u", "george", "-g"}, 1, []string{"USERS_NAME_TAKEN", "+nameserver 192.0.2.53"}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newUsersHost(t)
+			r, s := runC(t, h, cfg, nil, tc.args...)
+			report := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
+			}
+			if w := inOrder(report, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, report)
+			}
+			if written := slices.Contains(h.writes(), "write-atomic /etc/resolv.conf"); written != tc.dns {
+				t.Errorf("-g's file written %t, want %t: %q", written, tc.dns, h.writes())
+			}
+		})
+	}
+}
+
+// TestRefuseCreateLockoutRisk: -c's guard refuses a lockout-risk plan,
+// PLAN_REFUSED, and leaves a plain one, Create's, to the engine.
+func TestRefuseCreateLockoutRisk(t *testing.T) {
+	if err := refuseCreateLockoutRisk(&engine.Plan{Risk: engine.RiskLockout}); !errors.Is(err, engine.ErrRefused) {
+		t.Errorf("a lockout-risk plan: %v, want a refusal wrapping engine.ErrRefused", err)
+	}
+	if err := refuseCreateLockoutRisk(&engine.Plan{Risk: engine.RiskPlain}); err != nil {
+		t.Errorf("a plain plan refused: %v", err)
 	}
 }

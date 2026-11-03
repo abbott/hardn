@@ -184,7 +184,9 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
-		// If username is provided, override config
+		// If username is provided, override config: -c's name, and the
+		// default of the User Management screen's Create and Run All's user
+		// (users.go)
 		if username != "" {
 			cfg.Username = username
 		}
@@ -253,7 +255,7 @@ var rootCmd = &cobra.Command{
 		// (-w needs no manager: it plans and applies the Firewall control, firewall.go)
 		// (-g needs no manager: it plans and applies the DNS control, dns.go)
 		packageManager := serviceFactory.CreatePackageManager()
-		userManager := serviceFactory.CreateUserManager()
+		// (-c needs no manager: it plans and applies the User control's Create, users.go)
 		menuManager := serviceFactory.CreateMenuManager()
 		// (-e needs no manager: it plans and applies the Environment control, environment.go)
 
@@ -392,39 +394,25 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		// Create user
+		// Create user: the User control's Create through the engine, with no
+		// question, as -g's (users.go). Its status is hardn's as -g's is,
+		// composed by runStatus, once the flags after it have run. It no
+		// longer configures sshd after the user (SSH is slice 6's).
+		status := 0 // -c's, -w's, -g's and -p's, what -e's yields to (runStatus)
 		if createUser {
-			if err := userManager.CreateUser(cfg.Username, true, cfg.SudoNoPassword, cfg.SshKeys); err != nil {
-				logging.LogError("Failed to create user: %v", err)
-			} else {
-				logging.LogSuccess("User '%s' created successfully", cfg.Username)
-			}
-
-			// Configure SSH after user creation
-			// TODO: This might need to be refactored to avoid duplicating the SSH configuration
-			if err := sshManager.ConfigureSSH(
-				cfg.SshPort,
-				[]string{cfg.SshListenAddress},
-				cfg.PermitRootLogin,
-				cfg.SshAllowedUsers,
-				hardncmd.CreateUserAuthorizedKeysFiles(cfg.SshKeyPath),
-			); err != nil {
-				logging.LogError("Failed to configure SSH: %v", err)
-			}
+			status = createAdmin(cfg)
 		}
 
 		// Configure firewall: the Firewall control through the engine, the hostname
 		// typed on a terminal, refused off one (firewall.go). Its status is hardn's
-		// as -g's is, the two composed by runStatus, once the flags after it have run.
-		firewallStatus := 0
+		// as -g's is, composed by runStatus, once the flags after it have run.
 		if configureUfw {
-			firewallStatus = configureFirewall(cfg)
+			status = runStatus(status, configureFirewall(cfg))
 		}
 		// (-w no longer goes through FirewallManager, which Run All and -r keep)
 
 		// Configure DNS: the DNS control through the engine, with no question (dns.go).
 		// A refusal or a failure is hardn's exit status, once the flags after it have run (V25).
-		status := firewallStatus // -w's, -g's and -p's, what -e's yields to (runStatus)
 		defer func() {
 			if status != 0 {
 				exit(status)
@@ -450,8 +438,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Output completion message for the legacy operations other than the all-in-one run
-		if createUser || disableRootSSH || installLinux || installPython ||
-			installAll || updateSources {
+		if disableRootSSH || installLinux || installPython || installAll || updateSources {
 			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},
@@ -511,11 +498,12 @@ var (
 
 // operationFlags names the operation flags set on the command line that
 // -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
-// -e and -w, whose dry runs are the DNS, Environment and Firewall
-// controls' plans, shown with nothing written (refactor plan slice 2,
+// -e, -w and -c, whose dry runs are the DNS, Environment, Firewall and
+// User controls' plans, shown with nothing written (refactor plan slice 2,
 // unit (d); the maintainer, 2026-10-23; slice 9, unit (d),
 // gallery-environment.md §5, Made here, adopted 2026-10-29; slice 4, unit
-// (d), parity-firewall.md §6, adopted 2026-11-02).
+// (d), parity-firewall.md §6, adopted 2026-11-02; slice 5, unit (d),
+// gallery-users.md §5, decision 6 (a), adopted 2026-11-03).
 func operationFlags() []string {
 	var names []string
 	for _, f := range []struct {
@@ -523,7 +511,6 @@ func operationFlags() []string {
 		name string
 	}{
 		{runAll, hardncmd.FlagRunAll},
-		{createUser, hardncmd.FlagCreateUser},
 		{disableRootSSH, hardncmd.FlagDisableRoot},
 		{installLinux, hardncmd.FlagInstallLinux},
 		{installPython, hardncmd.FlagInstallPython},
