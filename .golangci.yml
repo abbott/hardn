@@ -316,6 +316,29 @@ linters:
               desc: the packages unit makes no network calls (docs/safety/packages.md §2)
             - pkg: plugin
               desc: the packages unit loads no code (docs/safety/packages.md §2)
+        # Slice 5, unit (b): a user's authorized_keys are read and planned
+        # only through host.System, as ufw's files are; the keys are parsed
+        # without x/crypto.
+        authkeys-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/host/authkeys/**"
+            - "!$test"
+          deny:
+            - pkg: os
+              desc: keys are read only through host.System (docs/safety/authkeys.md)
+            - pkg: io/ioutil
+              desc: keys are read only through host.System (docs/safety/authkeys.md)
+            - pkg: golang.org/x/sys
+              desc: the authkeys unit makes no system calls of its own (docs/safety/authkeys.md)
+            - pkg: syscall
+              desc: the authkeys unit makes no system calls of its own (docs/safety/authkeys.md)
+            - pkg: golang.org/x/crypto
+              desc: keys are parsed by the unit's own reader (docs/safety/authkeys.md)
+            - pkg: net
+              desc: the authkeys unit makes no network calls (docs/safety/authkeys.md)
+            - pkg: plugin
+              desc: the authkeys unit loads no code (docs/safety/authkeys.md)
         # next/p2-revert: the journal, the timer, the confirmation and the
         # rollback reach the host only through host.System, as the reload
         # does; net/netip parses SSH_CONNECTION and the listeners. hardn's
