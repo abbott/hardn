@@ -536,6 +536,9 @@ func TestCreateForm(t *testing.T) {
 	if p := play(newHost(t, "debian13"), false, "2", "carol", "n", "n", "q"); strings.Contains(p.out, "Require password") {
 		t.Errorf("the password asked with no admin rights:\n%s", p.out)
 	}
+	if p := play(newHost(t, "no-sudo"), false, "2", "carol", "y", "n", "q"); strings.Contains(p.out, "Require password") {
+		t.Errorf("admin rights taken at their field with no sudo:\n%s", p.out)
+	}
 }
 
 // TestCreateDefaults: Create's defaults are hardn.yml's username and first
@@ -647,6 +650,19 @@ func TestHostname(t *testing.T) {
 	}
 	if w := writes(h, 0); slices.ContainsFunc(w, func(s string) bool { return strings.Contains(s, "sudoers") }) {
 		t.Errorf("declined wrote %v", w)
+	}
+	// The hostname read before asking, gone by the question: said as it is,
+	// alice's grant kept.
+	h = newHost(t, "second-admin")
+	p = playWith(h, false, func(o *usrscreen.Options) {
+		build := o.NewEngine
+		o.NewEngine = func(progress func(engine.Event)) *engine.Engine {
+			_ = h.Remove(context.Background(), header.HostnameFile)
+			return build(progress)
+		}
+	}, "1", "2", "1", "0", "0", "0")
+	if _, err := h.ReadFile(context.Background(), n.Grant); err != nil || p.err != nil || !shows(p.out, cantConfirm) || shows(p.out, applied) {
+		t.Errorf("the hostname gone by the question: Run = %v, %v:\n%s", p.err, err, p.out)
 	}
 }
 
