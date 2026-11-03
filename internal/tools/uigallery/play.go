@@ -140,6 +140,22 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 			return s.play("play "+name, []string{engineNote}, s.openEnv(name), stderr)
 		})
 	}
+	if name, ok, err := usrStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the User Management mock fails where its host does")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the User Management mock plays normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{usrNote}, s.openUsers(name), stderr)
+		})
+	}
 	if name, ok, err := fwStart(fs.Args()); ok || err != nil {
 		set := map[string]bool{}
 		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
@@ -501,6 +517,9 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := fwLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openFW(to)
+		}
+		if to, ok := usrLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openUsers(to)
 		}
 		if to, ok := sdLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openSD(to)
