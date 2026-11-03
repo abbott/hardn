@@ -148,7 +148,9 @@ func madeOf(list string, in ...string) (ok bool, named map[string]bool) {
 // passwordAlone: one of lists lets a password login in with password
 // authentication on: "any", or a list of password alone, or of password
 // and keyboard-interactive with keyboard-interactive on (counted whether or
-// not sshd uses PAM: it errs toward a password path).
+// not sshd uses PAM: it errs toward a password path). Not sshd.MethodsMet:
+// the list must name password, which a list of keyboard-interactive alone
+// meets without.
 func passwordAlone(lists []string, kbd bool) bool {
 	return slices.ContainsFunc(lists, func(l string) bool {
 		if l == "any" {
@@ -164,12 +166,10 @@ func passwordAlone(lists []string, kbd bool) bool {
 }
 
 // kbdAlone: one of lists lets keyboard-interactive in alone: "any", or a
-// list of keyboard-interactive alone.
+// list of keyboard-interactive alone (sshd.MethodsMet; no list is none
+// here, not "any").
 func kbdAlone(lists []string) bool {
-	return slices.ContainsFunc(lists, func(l string) bool {
-		ok, _ := madeOf(l, "keyboard-interactive")
-		return l == "any" || ok
-	})
+	return len(lists) > 0 && sshd.MethodsMet(lists, map[string]bool{"keyboard-interactive": true})
 }
 
 // keyAndPassword: no list lets a key in alone, and one asks for a key and a
@@ -177,7 +177,7 @@ func kbdAlone(lists []string) bool {
 func keyAndPassword(lists []string, pw, kbd bool) bool {
 	both := false
 	for _, l := range lists {
-		if ok, _ := madeOf(l, "publickey"); ok || l == "any" {
+		if sshd.MethodsMet([]string{l}, map[string]bool{"publickey": true}) { // "any", or a key alone
 			return false
 		}
 		ok, named := madeOf(l, "publickey", "password", "keyboard-interactive")
