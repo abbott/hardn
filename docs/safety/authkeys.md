@@ -6,7 +6,7 @@
 ## 1. What it reads
 - **The files sshd reads for a user:** `sshd.Effective.AuthorizedKeysFile`, sshd -T's `authorizedkeysfile` fields as printed. On the VMs (read 2026-11-03): Debian 13 and Ubuntu 26.04 `.ssh/authorized_keys .ssh/authorized_keys2`, Alpine 3.23 `.ssh/authorized_keys`. `Path` expands `%h`, `%u` and `%%` (sshd_config(5) TOKENS) and puts a relative entry under the home, cleaned (`path.Clean`: a home `/home/x/` plans `/home/x/.ssh/authorized_keys` both ways). `none` is skipped. **Match blocks are not read**: a block that sets the files for one user is not seen.
 - `Read` reads each file through a symlink, as sshd does, in order: not there is `Data` nil, any other failure `Err`. `Keys` is their keys, each once, so a key in both `authorized_keys` and `authorized_keys2` counts once.
-- **A key** is parsed with no `x/crypto` (`ParseLine`, `ParsePublic`): a type OpenSSH 9 and 10 take (ed25519, RSA, the three ECDSA curves, both `sk-` types; no DSA), a base64 blob whose first string is that same type, then the comment. `ParseLine` reads past the options before the type, commas and spaces inside double quotes among them (sshd(8) AUTHORIZED_KEYS FILE FORMAT); blank and `#` lines are `ErrNotKey`. A pasted key (`ParsePublic`) is one line with no options, its surrounding space and a CR trimmed. The fingerprint is ssh-keygen -l's (`SHA256:` and unpadded base64 of the blob's SHA-256), tested against ssh-keygen's output for three synthetic keys made on macOS. The key material inside the blob is not checked.
+- **A key** is parsed with no `x/crypto` (`ParseLine`, `ParsePublic`): a type OpenSSH 9 and 10 take (ed25519, RSA, the three ECDSA curves, both `sk-` types; no DSA), a base64 blob whose first string is that same type, then the comment. `ParseLine` reads past the options before the type, commas and spaces inside double quotes among them (sshd(8) AUTHORIZED_KEYS FILE FORMAT); blank and `#` lines are `ErrNotKey`. A pasted key (`ParsePublic`) is one line with no options, its surrounding space and a CR trimmed. The fingerprint is ssh-keygen -l's (`SHA256:` and unpadded base64 of the blob's SHA-256), tested against ssh-keygen's output for three synthetic keys made on macOS. The key material inside the blob is not checked. `Restricted` is true where the options hold any outside sshd(8)'s that leave a login alone (the forwarding, `user-rc` and `pty` flags and their `no-` forms, `no-touch-required`, `verify-required`, `environment=`, `permitopen=`, `permitlisten=`; any case): such a key may not log in, so the users control does not count it as the last key.
 
 ## 2. What it plans
 - **One file:** `Planned`, `~/.ssh/authorized_keys`. Where the files sshd reads leave it out (`Plannable`: `.ssh/authorized_keys` or `%h/.ssh/authorized_keys`), both plans are `ErrNotPlanned`; so are they where no file read is the planned one (`%h` with no home), never an empty plan.
@@ -24,6 +24,7 @@ var ErrNotKey, ErrStrictModes, ErrNotPlanned error
 func ParseLine(line string) (Key, error)
 func ParsePublic(s string) (Key, error)
 func (k Key) Same(o Key) bool
+func (k Key) Restricted() bool
 func Path(entry string, u accounts.User) string
 type File struct { Path string; Data *string; Keys []Key; Err error }
 func Read(ctx context.Context, sys host.System, entries []string, u accounts.User) []File

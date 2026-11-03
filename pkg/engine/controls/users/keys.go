@@ -37,9 +37,10 @@ func (r Reading) KeysRefusal() error {
 
 // keyRefusal is why a key action refuses for u before the key is asked:
 // KeysRefusal's; for Add, a home or ~/.ssh sshd's StrictModes would ignore
-// a key in (authkeys.CheckStrict); for Remove, the session user's last key,
-// counted across every file sshd reads (decision 4).
-func (r Reading) keyRefusal(ctx context.Context, sys host.System, action Action, u User) error {
+// a key in (authkeys.CheckStrict); for Remove, the session user's last key
+// (lastKey: fp's, or before one is picked, ""), counted across every file
+// sshd reads (decision 4).
+func (r Reading) keyRefusal(ctx context.Context, sys host.System, action Action, u User, fp string) error {
 	if err := r.KeysRefusal(); err != nil {
 		return err
 	}
@@ -50,7 +51,7 @@ func (r Reading) keyRefusal(ctx context.Context, sys host.System, action Action,
 			return refuse(codeStrictModes, err, nil, "sshd would ignore a key for "+u.Name+": "+why,
 				"with StrictModes it takes keys only where the home and ~/.ssh are the user's own and no one else can write to them")
 		}
-	case u.Name == r.Invoker && len(u.Keys) == 1:
+	case u.Name == r.Invoker && lastKey(u, fp):
 		return refuse(codeLastKey, ErrLastKey, nil, fmt.Sprintf("This is %s's last key, and you're logged in as %s", u.Name, u.Name), "add another key first")
 	}
 	return nil
@@ -104,18 +105,38 @@ func (r Reading) planKey(ctx context.Context, sys host.System, a Admin) ([]engin
 		return nil, err
 	}
 	c := keysChange(u.Name, p, nil, "Remove a key from "+u.Name)
-	if r.keyRisk(u) {
+	if r.keyRisk(u, a.Fingerprint) {
 		c.Risk = engine.RiskLockout
 	}
 	return []engine.Change{c}, nil
 }
 
-// keyRisk is whether removing one of u's keys is a lockout risk (decision
-// 4): the session user's (sshd's log, which says which key it logged in
-// with, is not read), anyone's with the session user not known, or
-// anyone's last key.
-func (r Reading) keyRisk(u User) bool {
-	return r.Invoker == "" || u.Name == r.Invoker || len(u.Keys) == 1
+// keyRisk is whether removing u's key of fingerprint fp is a lockout risk
+// (decision 4): the session user's (sshd's log, which says which key it
+// logged in with, is not read), anyone's with the session user not known,
+// or anyone's last key (lastKey).
+func (r Reading) keyRisk(u User, fp string) bool {
+	return r.Invoker == "" || u.Name == r.Invoker || lastKey(u, fp)
+}
+
+// lastKey reports whether removing u's key of fingerprint fp leaves u no
+// way to log in with a key: it is not Restricted (authkeys), and no other
+// key of u's is unrestricted. A Restricted key (command=, from=, …) may
+// stop a login, so it does not count, but is listed and removable. With
+// fp "" (no key picked yet), whether every key's removal would be the
+// last: u's one key, not Restricted.
+func lastKey(u User, fp string) bool {
+	open := 0
+	for _, k := range u.Keys {
+		if !k.Restricted() {
+			open++
+		}
+	}
+	if fp == "" {
+		return len(u.Keys) == 1 && open == 1
+	}
+	i := slices.IndexFunc(u.Keys, func(k authkeys.Key) bool { return k.Fingerprint == fp })
+	return i >= 0 && !u.Keys[i].Restricted() && open == 1
 }
 
 // keysChange is p as a change: mkdir run first where set (~/.ssh made,

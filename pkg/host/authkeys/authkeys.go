@@ -63,6 +63,46 @@ type Key struct {
 // Same reports whether k and o are the same key: type and blob.
 func (k Key) Same(o Key) bool { return k.Type == o.Type && k.Blob == o.Blob }
 
+// flags and valued are the options (sshd(8) AUTHORIZED_KEYS FILE FORMAT)
+// that do not stop a login with the key: flags as a bare word, valued with
+// "=" and a value.
+var (
+	flags = []string{"agent-forwarding", "no-agent-forwarding", "port-forwarding", "no-port-forwarding", "x11-forwarding", "no-x11-forwarding",
+		"user-rc", "no-user-rc", "pty", "no-touch-required", "verify-required"}
+	valued = []string{"environment", "permitopen", "permitlisten"}
+)
+
+// Restricted reports whether k's options may stop a login with it: any
+// option, case-insensitive, outside flags and valued, such as command=,
+// from=, expiry-time=, restrict, principals=, cert-authority, no-pty,
+// tunnel= or one sshd does not know. Such a key does not count as a way
+// to log in.
+func (k Key) Restricted() bool {
+	var opts []string
+	start, quoted := 0, false
+	for i := 0; i < len(k.Options); i++ {
+		switch c := k.Options[i]; {
+		case c == '\\' && quoted && i+1 < len(k.Options) && k.Options[i+1] == '"':
+			i++
+		case c == '"':
+			quoted = !quoted
+		case c == ',' && !quoted:
+			opts = append(opts, k.Options[start:i])
+			start = i + 1
+		}
+	}
+	if k.Options != "" {
+		opts = append(opts, k.Options[start:])
+	}
+	for _, o := range opts {
+		name, _, hasValue := strings.Cut(strings.ToLower(o), "=")
+		if hasValue && !slices.Contains(valued, name) || !hasValue && !slices.Contains(flags, name) {
+			return true
+		}
+	}
+	return false
+}
+
 // ParseLine parses one authorized_keys line: options before the type are
 // read past, commas and spaces inside double quotes (a \" there kept)
 // among them. Blank and # lines are ErrNotKey.

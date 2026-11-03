@@ -30,7 +30,7 @@ The User control is Figma's User row and every change the User Management screen
 - `Locked` is a `!` password where sshd's PAM is not established as on, not only where it is off [I].
 - The key actions skip the tool's and hardn's-file-edited refusals: a key needs neither.
 - A key in another file sshd reads is refused from `Read`'s files, naming that file, before `PlanRemove`.
-- The last key is the session user's with one key, counted once across every file sshd reads.
+- The last key is the session user's last key not `Restricted` (options that may stop a login: `command=`, `from=`, `restrict`, …), counted once across every file sshd reads; a restricted key is listed and removable.
 - The keys change is in `StageAccounts` (the engine's "the user and the key in place"); the mock's was `StageFiles`.
 - The keys change always backs up `authorized_keys`: a new one is removed on rollback, then a `~/.ssh` it made.
 - The file's uid and gid are read from `/etc/passwd` at apply, so a user Create makes in the same plan has them.

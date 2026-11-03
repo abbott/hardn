@@ -215,7 +215,7 @@ func (r Reading) Refusal(ctx context.Context, sys host.System, a Admin) error {
 	case !ok:
 		return refuse(codeNotListed, ErrNotListed, nil, a.User+" isn't a user hardn manages here", "choose one of the users listed")
 	case a.Action == ActionAddKey || a.Action == ActionRemoveKey:
-		return r.keyRefusal(ctx, sys, a.Action, u)
+		return r.keyRefusal(ctx, sys, a.Action, u, a.Fingerprint)
 	case errors.Is(u.PolicyErr, sudoers.ErrEdited):
 		n, _ := sudoers.FileNames(r.Choice.Tool, u.Name)
 		return refuse(codeGrantEdited, ErrGrantEdited, u.PolicyErr, n.Grant+" holds a rule hardn didn't write", "change it there, then try again")
