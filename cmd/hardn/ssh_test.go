@@ -510,3 +510,65 @@ func TestDisallowRootFlagWithOthers(t *testing.T) {
 		})
 	}
 }
+
+// TestCreateUserThenDisallowRoot: -c with -d is no longer refused (slice
+// 6, decision 8 (a)): -c runs first, so -d's proof sees the user -c
+// created. Under -n both plans are shown, nothing written, 3; and with
+// george's key gone -d is refused, no admin able, as -c's carol is not
+// created, 1. Off a terminal -c is applied, carol created with
+// hardn.yml's key, and -d refused off a terminal, nothing written to
+// sshd's files, 1. On a terminal with george's key gone, -d's proof finds
+// carol able by the key -c gave her: typed and applied, 0. Nothing goes
+// through the legacy provider.
+func TestCreateUserThenDisallowRoot(t *testing.T) {
+	key := usrTestKey(5, "carol@laptop")
+	for _, tc := range []struct {
+		name, host string
+		args       []string
+		tty        bool
+		lines      []string
+		code       int // the exit status; 0: hardn did not exit
+		said       []string
+		made       bool // -c created carol
+		applied    bool // -d applied
+	}{
+		{name: "-n -c -d", host: "debian13", args: []string{"-n", "-c", "-d", "-u", "carol"}, code: 3,
+			said: []string{"Create user carol", "No actual changes were made to your system.", "Lockout risk", "Disallow root login", "No actual changes were made to your system."}},
+		{name: "-n -c -d, george's key gone", host: "no-key", args: []string{"-n", "-c", "-d", "-u", "carol"}, code: 1,
+			said: []string{"Create user carol", "SSH_NO_ADMIN_LOGIN"}},
+		{name: "-c -d off a terminal", host: "debian13", args: []string{"-c", "-d", "-u", "carol"}, code: 1, made: true,
+			said: []string{"Create user carol", "Operation Successful", "Lockout risk", dLockoutWords}},
+		{name: "-c -d on a terminal, george's key gone", host: "no-key", args: []string{"-c", "-d", "-u", "carol"}, tty: true, lines: []string{"web-01"},
+			made: true, applied: true, said: []string{"Create user carol", "Disallow root login?", "Type the hostname", "Operation Successful", "sudo hardn confirm"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, _ := newSSHHost(t, tc.host)
+			cfg := withKeys(t, h.usrTestHost, key)
+			was, before := h.rootLogin(), len(h.writes())
+			var env func() term.Env
+			if tc.tty {
+				env = onTTY
+			}
+			r, s := runD(t, h, cfg, env, tc.lines, nil, tc.args...)
+			out := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
+			}
+			if w := inOrder(out, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, out)
+			}
+			if made := h.content("/home/carol/.ssh/authorized_keys") == key+"\n"; made != tc.made {
+				t.Errorf("-c created carol %t, want %t: ran %q", made, tc.made, h.commands("useradd"))
+			}
+			if got := h.rootLogin(); tc.applied != (got == "no") || h.armed() != tc.applied || !tc.applied && (got != was || len(h.sshdWrites()) > 0) {
+				t.Errorf("PermitRootLogin %s (was %s), armed %t, wrote %q; want -d applied %t", got, was, h.armed(), h.sshdWrites(), tc.applied)
+			}
+			if w := h.writes()[before:]; !tc.made && len(w) > 0 {
+				t.Errorf("wrote %q", w)
+			}
+			if len(r.calls) != 0 || strings.Contains(r.stderr, "hardn -c -d") {
+				t.Errorf("legacy calls %q; stderr:\n%s", r.calls, r.stderr)
+			}
+		})
+	}
+}

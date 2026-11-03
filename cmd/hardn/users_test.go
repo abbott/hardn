@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/hold"
@@ -472,59 +471,6 @@ func TestCreateUserNoName(t *testing.T) {
 			}, args...)
 			if !r.ended || r.code != 1 || !strings.Contains(r.stdout+r.stderr, "Please specify a username with -u flag or in the configuration file.") {
 				t.Errorf("ended %v with %d; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.stdout, r.stderr)
-			}
-		})
-	}
-}
-
-// TestCreateUserDisableRoot: -c with -d is refused on stderr, exit status
-// 2, before anything runs, whatever hardn.yml holds (the maintainer,
-// 2026-11-03): with sshKeys, with none, under -n, and under hardn.yml's
-// dryRun: true, no user created, nothing written, the legacy provider
-// never reached. -c alone runs as it did, creating carol with her key; -d
-// alone is TestDisallowRootFlag's.
-func TestCreateUserDisableRoot(t *testing.T) {
-	key := usrTestKey(5, "carol@laptop")
-	const refused = "hardn -c -d: -d turns off root's SSH login before hardn can tell the new user can log in. Run -c, check the user can log in, then run -d."
-	for _, tc := range []struct {
-		name   string
-		args   []string
-		keys   []string
-		dryRun bool // hardn.yml's dryRun: true
-		code   int  // the exit status; 0: hardn did not exit
-		made   bool // -c created carol
-	}{
-		{name: "-c -d, sshKeys", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, code: hardncmd.ExitUsage},
-		{name: "-c -d, no key", args: []string{"-c", "-d", "-u", "carol"}, code: hardncmd.ExitUsage},
-		{name: "-n -c -d", args: []string{"-n", "-c", "-d", "-u", "carol"}, keys: []string{key}, code: hardncmd.ExitUsage},
-		{name: "-c -d, dryRun: true", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, dryRun: true, code: hardncmd.ExitUsage},
-		{name: "-c alone", args: []string{"-c", "-u", "carol"}, keys: []string{key}, made: true},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			h, _ := newUsersHost(t)
-			cfg := withKeys(t, h, tc.keys...)
-			r, s := runC(t, h, cfg, func(*dnsSeams) {
-				if tc.dryRun {
-					fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
-				}
-			}, tc.args...)
-			report := style.StripAnsi(s.out.String())
-			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
-				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
-			}
-			if said := strings.TrimSpace(r.stderr) == refused; said != (tc.code == hardncmd.ExitUsage) {
-				t.Errorf("stderr:\n%s\nwant %q alone: %t", r.stderr, refused, !said)
-			}
-			if made := h.content("/home/carol/.ssh/authorized_keys") == key+"\n"; made != tc.made {
-				t.Errorf("-c created carol %t, want %t: ran %q", made, tc.made, h.commands("useradd"))
-			}
-			if len(r.calls) != 0 {
-				t.Errorf("legacy calls %q", r.calls)
-			}
-			if tc.code == hardncmd.ExitUsage {
-				if got := h.writes(); len(got) > 0 || len(h.commands("useradd")) > 0 || len(r.calls) != 0 || s.applies != 0 || report != "" {
-					t.Errorf("wrote %q, ran %q, %d legacy calls %v, %d applies; report:\n%s", got, h.commands("useradd"), len(r.calls), r.calls, s.applies, report)
-				}
 			}
 		})
 	}
