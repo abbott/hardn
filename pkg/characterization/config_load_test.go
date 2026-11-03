@@ -29,7 +29,7 @@ func configCases() []configCase {
 			},
 			notes: []string{
 				"The unknown key notAConfigKey is ignored without a warning.",
-				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48).",
+				"sshConfigFile is loaded but not read by FileSSHRepository (Run All's ConfigureSSH; the path hard-coded); main menu 2's Move old settings reads it.",
 			},
 		},
 		{name: "full-hardn-config-env", fixture: "full.yml", viaEnv: true},
