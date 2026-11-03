@@ -1,7 +1,7 @@
 # User Management mock (slice 5, unit (a))
 
 Unit (a) of slice 5, `next/s5-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`users.go`, `usershost.go`).
-Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM: not `useradd --password '*'` (on the fake only), `install -d -o`, sudo-rs's reading of `hardn-grant-*`, nor `gpasswd -d`'s effect. That sshd without PAM refuses a key to a `!` account is [I], from the brief. The eight decisions of §5 are adopted (the maintainer, 2026-11-03), with the Made here calls as stated and the words of §6.
+Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM: not `useradd --password '*'` (on the fake only), `install -d -o`, sudo-rs's reading of `hardn-grant-*`, nor `gpasswd -d`'s effect. That sshd without PAM refuses a key to a `!` account is [I], from the brief. The eight decisions of §5 are adopted (the maintainer, 2026-11-03), with the Made here calls as stated and the words of §6. *Since `next/s5-control` (unit (b)): the mock runs on the real control, no stand-in left ([control-users.md](control-users.md)).*
 
 ## 1. What to run
 
@@ -50,7 +50,7 @@ hardn.yml keys read: username, sudoNoPassword, sshKeys, dryRun (the screen; user
 
 ## 3. The mocks
 
-Every row comes from real readers: the User row from `users.Admin.Check` through the main menu's own mapping (`output.StatusViewOf`), each user's admin rights from `users.ReadElevation`'s `GrantsOf`, hardn's own grant from `sudoers.Read` and `PolicyOf`, the session user from `sudoers.Invoker` (`SUDO_USER`, `DOAS_USER`), sshd's PAM from `ssh.ReadPAM`. Never from hardn.yml. Grants are planned by the real `sudoers.PlanFor` and `steps.Sudoers` and run on the real engine; a lockout-risk plan asks the typed hostname and is confirmed or reverted, as Firewall's Enable is. Values are synthetic: george is the login user, alice a second one, `web-01`.
+Every row comes from real readers: the User row from `users.Admin.Check` through the main menu's own mapping (`output.StatusViewOf`), each user's admin rights from `users.ReadElevation`'s `GrantsOf`, hardn's own grant from `sudoers.Read` and `PolicyOf`, the session user from `sudoers.Invoker` (`SUDO_USER`, `DOAS_USER`), sshd's PAM from `ssh.ReadPAM`. Never from hardn.yml. *Since `next/s5-control`: every row is `users.Read`'s, each refusal the control's, each change `users.Admin`'s plan.* Grants are planned by the real `sudoers.PlanFor` and `steps.Sudoers` and run on the real engine; a lockout-risk plan asks the typed hostname and is confirmed or reverted, as Firewall's Enable is. Values are synthetic: george is the login user, alice a second one, `web-01`.
 
 | Host | What it shows |
 |---|---|
@@ -62,7 +62,7 @@ Every row comes from real readers: the User row from `users.Admin.Check` through
 | `second-admin` | alice with a password, one key, `hardn-grant-alice`: Remove and Ask for password are typed, confirm-or-revert |
 | `one-key` | george's one key: Remove SSH key refuses; alice with no `.ssh` |
 | `sudo-password` | hardn's grant asking george's password: Don't ask password, y/N |
-| `alpine-no-rule` | george in no doas rule: Grant writes `/etc/doas.d/hardn-george.conf` |
+| `alpine-no-rule` | george in no doas rule: Grant writes `/etc/doas.d/zz-hardn-george.conf` (`hardn-george.conf` before `next/s5-control`) |
 | `alpine-locked` | alice's field `!`, sshd without PAM: "Locked, key login refused" [I: not run] |
 | `yml-missing` | hardn.yml names `deploy`, not on the host: nothing shows it (decision 7) |
 | `not-read` | `visudo -c` rejects the files: every row "Can't read", every change refuses |
@@ -160,6 +160,8 @@ Drawn: every recommendation below. Not mocked: deleting a user, setting a passwo
 Proposed: one term, "admin rights", in Create's questions ("Grant admin rights?", "Require password for admin rights?") and Manage's items; the rows name the tool (Sudo, doas), and so does Manage User's detail ("Configure doas, SSH keys" on Alpine). "Granted by"; "Enabled, No password to ask for"; "Password": Set, None, "Locked, key login refused"; "No user besides root"; items "Grant admin rights" ("Let george become root"), "Remove admin rights" ("Take them away"), "Ask for password", "Don't ask password" ("For admin rights"), "Add SSH key", "Remove SSH key", "Remove which key?". Refusals: "You're running hardn through george's sudo. Removing it would leave no way to become root. Grant another user first."; "george is an admin through <file>, which hardn didn't write, so hardn can't remove it. Change it there."; "alice is an admin through the sudo group, which hardn leaves alone. Take alice out of it with gpasswd -d alice sudo."; "<user> would stay an admin through <rule> and the sudo group, …"; "hardn can't tell who you're logged in as, and george is the last admin. Grant another user first."; "sshd would ignore a key for alice: /home/alice is writable by its group (0775). …"; "george has no password, so sudo couldn't ask for one. Set one with passwd george, then try again."; "This is george's last key, and you're logged in as george. Add another key first."; "sudo isn't installed, so hardn can't grant admin rights. Install sudo, then try again."; "hardn can't read sudo's rules: its files don't check. Check them with visudo -c, then try again."; "A new user has no password, so sudo couldn't ask for one."; "Without a key carol can't log in: there's no password."; "sshd refuses alice's keys: the account is locked (!) and sshd doesn't use PAM."; the name and key checks' lines.
 
 ## 7. For unit (b)
+
+*Since `next/s5-control`: every stand-in below is gone, built in the control ([control-users.md](control-users.md)) and [authkeys](../safety/authkeys.md); the fake host still answers `useradd`, `userdel` and `install`, and wheel.conf no longer overrides hardn's rule, which is `zz-hardn-<stem>.conf`.*
 
 Stand-ins, each labelled in `users.go`:
 
