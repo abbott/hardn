@@ -335,6 +335,73 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 	}
 }
 
+// TestSSHSettingsWarning: where hardn.yml loads, each SSH setting that SSH
+// Login and -d don't read warns once, in slice 6's decision 9 (a) words,
+// where its value is not config.DefaultConfig's: permitRootLogin, as
+// RootLogin reads it ("yes", or the deprecated true, whose deprecation is
+// said once beside it; false and "no", the default, only the deprecation
+// or nothing), sshAllowedUsers, sshListenAddress, disableRootSSH and
+// sshKeyPath; set to the default, as origin/main's SaveConfig writes it,
+// none warns. sshPort and sshConfigFile, which the screen reads, never
+// warn. Through hardn, the warning is on stderr, once.
+func TestSSHSettingsWarning(t *testing.T) {
+	const deprecated = "is deprecated"
+	words := func(key string) string { return "hardn.yml's " + key + " isn't used by SSH Login or -d" }
+	keys := []string{"permitRootLogin", "sshAllowedUsers", "sshListenAddress", "disableRootSSH", "sshKeyPath", "sshPort", "sshConfigFile"}
+	for _, tc := range []struct {
+		name, yml  string
+		warned     []string // the keys warned of
+		deprecated bool     // the bool's deprecation said
+	}{
+		{"left out", "username: alice\n", nil, false},
+		{"the defaults, as SaveConfig writes them", "username: alice\npermitRootLogin: \"no\"\nsshAllowedUsers: []\nsshListenAddress: 0.0.0.0\n" +
+			"disableRootSSH: false\nsshKeyPath: .ssh_%u\nsshPort: 22\nsshConfigFile: /etc/ssh/sshd_config.d/hardn.conf\n", nil, false},
+		{"permitRootLogin yes", "username: alice\npermitRootLogin: \"yes\"\n", []string{"permitRootLogin"}, false},
+		{"permitRootLogin true, deprecated", "username: alice\npermitRootLogin: true\n", []string{"permitRootLogin"}, true},
+		{"permitRootLogin false, deprecated", "username: alice\npermitRootLogin: false\n", nil, true},
+		{"sshAllowedUsers", "username: alice\nsshAllowedUsers:\n  - george\n", []string{"sshAllowedUsers"}, false},
+		{"sshListenAddress", "username: alice\nsshListenAddress: 192.0.2.10\n", []string{"sshListenAddress"}, false},
+		{"disableRootSSH", "username: alice\ndisableRootSSH: true\n", []string{"disableRootSSH"}, false},
+		{"sshKeyPath", "username: alice\nsshKeyPath: .ssh/authorized_keys\n", []string{"sshKeyPath"}, false},
+		{"sshPort and sshConfigFile", "username: alice\nsshPort: 2230\nsshConfigFile: /etc/ssh/sshd_config.d/old.conf\n", nil, false},
+		{"all five", "username: alice\npermitRootLogin: \"yes\"\nsshAllowedUsers: [george]\nsshListenAddress: 192.0.2.10\n" +
+			"disableRootSSH: true\nsshKeyPath: .ssh/authorized_keys\n", keys[:5], false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			const path = "/etc/hardn/hardn.yml"
+			f := hostfake.New(host.Options{})
+			f.AddFile(path, []byte(tc.yml), 0o644, 0, 0)
+			c, err := config.Read(context.Background(), f, path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			w := strings.ReplaceAll(loadWarnings(c), "\n# ", " ") // the callout wraps its lines
+			for _, key := range keys {
+				if n := strings.Count(w, words(key)); n != map[bool]int{true: 1}[slices.Contains(tc.warned, key)] {
+					t.Errorf("%s warned %d times, want warned %v:\n%s", key, n, slices.Contains(tc.warned, key), w)
+				}
+			}
+			if n := strings.Count(w, deprecated); n != map[bool]int{true: 1}[tc.deprecated] {
+				t.Errorf("deprecated said %d times, want said %v:\n%s", n, tc.deprecated, w)
+			}
+		})
+	}
+	if w := loadWarnings(config.DefaultConfig()); strings.Contains(w, "SSH Login") {
+		t.Errorf("hardn's defaults warn:\n%s", w)
+	}
+	r := runHardnWith(t, asRoot, func() {
+		loadConfig = func(string) (*config.Config, error) {
+			c := config.DefaultConfig()
+			c.Username, c.DisableRootSSH = "alice", true
+			return c, nil
+		}
+	}, "-r")
+	flat := strings.ReplaceAll(r.stderr, "\n# ", " ")
+	if r.ended || strings.Count(flat, words("disableRootSSH")) != 1 || strings.Contains(r.stdout, "SSH Login or -d") {
+		t.Errorf("ended %v with %d; stderr:\n%s\nstdout:\n%s", r.ended, r.code, r.stderr, r.stdout)
+	}
+}
+
 // TestWarningsFollowDetectOS: detectOS clears the terminal (utils.PrintHeader), so what
 // loading hardn.yml warns of is said after it, or no one reads it (run: the VMs).
 func TestWarningsFollowDetectOS(t *testing.T) {
