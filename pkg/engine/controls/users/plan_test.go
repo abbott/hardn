@@ -460,3 +460,16 @@ func TestNotMigrated(t *testing.T) {
 		t.Errorf("%v, %v, %d calls", cs, err, len(h.Calls()))
 	}
 }
+
+// TestNewGrant: Grant asks the password of a user with a usable one, and
+// of no other; the screen's review row says this one choice.
+func TestNewGrant(t *testing.T) {
+	for pw, want := range map[accounts.Password]sudoers.Grant{
+		accounts.PasswordSet: sudoers.GrantPassword, accounts.PasswordNone: sudoers.GrantNoPassword,
+		accounts.PasswordEmpty: sudoers.GrantNoPassword, accounts.PasswordNotRead: sudoers.GrantNoPassword,
+	} {
+		if got := (users.User{Password: pw}).NewGrant(); got != want {
+			t.Errorf("%v: %v, want %v", pw, got, want)
+		}
+	}
+}
