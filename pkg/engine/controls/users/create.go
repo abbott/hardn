@@ -122,9 +122,19 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 	add := engine.Change{ID: ChangeCreate, Summary: "Create user " + n.Name, Target: accounts.PasswdFile, Commands: []string{host.FormatArgv(argv)},
 		Stage: engine.StageAccounts, Resources: []string{"accounts"}, StateBefore: "absent", StateAfter: "no password, key login",
 		Rollback: engine.Undo{Steps: []revert.Step{{Op: revert.OpRun, Argv: undo, Why: "accounts"}}},
+		// The engine keeps Rollback (userdel --remove) unless Ran's replaces
+		// it: where the name or its home has appeared since the plan
+		// (CheckName on the live host), or useradd fails, nothing of
+		// useradd's is there to undo, so an empty undo, and userdel never
+		// removes what hardn did not make.
 		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			_, err := sys.Run(ctx, argv[0], argv[1:]...)
-			return engine.Ran{Detail: host.FormatArgv(argv)}, err
+			if err := r.CheckName(ctx, sys, n.Name); err != nil {
+				return engine.Ran{Rollback: &engine.Undo{}}, err
+			}
+			if _, err := sys.Run(ctx, argv[0], argv[1:]...); err != nil {
+				return engine.Ran{Detail: host.FormatArgv(argv), Rollback: &engine.Undo{}}, err
+			}
+			return engine.Ran{Detail: host.FormatArgv(argv)}, nil
 		}}
 	if n.Key == "" {
 		add.Findings = []engine.Finding{{Code: CodeNoKey, Detail: "Without a key " + n.Name + " can't log in: there's no password"}}
