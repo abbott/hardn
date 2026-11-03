@@ -80,7 +80,7 @@ func TestScreen(t *testing.T) {
 			if got != [4]string{tt.user, tt.under, tt.value, tt.item1} {
 				t.Errorf("%s: User, state, Value and item 1 %q, want %q", tt.host, got, [4]string{tt.user, tt.under, tt.value, tt.item1})
 			}
-			if strings.Contains(s[0], "/etc/doas.d/wheel.conf may override hardn's rule") != tt.later || strings.Contains(s[0], "Lockout risk") != tt.risk {
+			if strings.Contains(s[0], "/etc/doas.d/zz-local.conf may override hardn's rule") != tt.later || strings.Contains(s[0], "Lockout risk") != tt.risk {
 				t.Errorf("%s: the later file shown %t, Lockout risk %t:\n%s", tt.host, !tt.later, !tt.risk, s[0])
 			}
 			if !strings.Contains(s[0], "2) Guide How to set HARDN_CONFIG") && !strings.Contains(flat(s[0]), "2) Guide How to set HARDN_CONFIG") ||
@@ -205,11 +205,11 @@ func TestLockoutRisk(t *testing.T) {
 	if p.err != nil || p.unread != 0 || len(p.runs) != 1 || p.runs[0].Err != nil || p.runs[0].Plan.Risk != engine.RiskLockout {
 		t.Fatalf("Run = %v, %d unread, runs %+v:\n%s", p.err, p.unread, p.runs, p.out)
 	}
-	if w := inOrder(p.out, "Under doas Kept by hardn", "/etc/doas.d/wheel.conf may override hardn's rule", "1) Under doas Stop keeping HARDN_CONFIG", "Lockout risk",
-		"Stop Keeping HARDN_CONFIG #", "User alice", "Under doas Not kept by hardn", "/etc/doas.d/wheel.conf may override hardn's rule",
+	if w := inOrder(p.out, "Under doas Kept by hardn", "/etc/doas.d/zz-local.conf may override hardn's rule", "1) Under doas Stop keeping HARDN_CONFIG", "Lockout risk",
+		"Stop Keeping HARDN_CONFIG #", "User alice", "Under doas Not kept by hardn", "/etc/doas.d/zz-local.conf may override hardn's rule",
 		"Install hardn's boot unit", "Lockout risk Stop keeping HARDN_CONFIG", "+permit persist alice", "Stop keeping HARDN_CONFIG under doas?",
 		"Type the hostname [web-01, 0 or q]: y", "That does not match exactly.", "Type the hostname [web-01, 0 or q]: web-01",
-		"Operation Successful", "This change reverts automatically", "doas hardn confirm", "Backup of /etc/doas.d/hardn-alice.conf kept in", keepDoas,
+		"Operation Successful", "This change reverts automatically", "doas hardn confirm", "Backup of /etc/doas.d/zz-hardn-alice.conf kept in", keepDoas,
 		"Environment Variable Settings #", "Under doas Not kept by hardn", "1) Under doas Keep HARDN_CONFIG", "Lockout risk"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}

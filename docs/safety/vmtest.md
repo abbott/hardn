@@ -187,7 +187,7 @@ As 4.4 steps 1, 2, 5 to 13 (without ufw: steps 3 and 4 do not apply, the plans h
 - the timer is the sleeper: `cat /run/hardn/revert-<id>.pid` names a process whose `/proc/<pid>/cmdline` is `/bin/sh -c sleep "$1" && "$0" rollback "$2" /usr/local/bin/hardn 180 <id>`; it survives the end of the applying session and of `doas`; `confirm` removes the pidfile and ends the sleeper (revert.md §4, OpenRC);
 - `p2drive facts` shows `openrc sshd binary: /usr/sbin/sshd` (or `sshd.pam` with `UsePAM yes`), the Alpine row of detect.md §3, and `sudoers: doas`;
 - `rc-service sshd reload` moving the port, and how long sshd takes to rebind against the 10 × 500 ms poll (reload.md §4);
-- step 13 with doas: `/etc/doas.d/hardn-alice.conf` `0640`, `doas -C` on the copy, `doas -n true` as alice (sudoers.md §4);
+- step 13 with doas: `/etc/doas.d/zz-hardn-alice.conf` `0640`, `doas -C` on the copy, `doas -n true` as alice (sudoers.md §4);
 - **an Alpine 3.24 cloud image** (plan §7: "Alpine cloud images' sshd drop-ins", §3 **[unverified]**), booted as the image ships it, before any change: `ls -la /etc/ssh/sshd_config.d`, then `$P2 facts`. Record every drop-in, the `include:` line and each conflict `facts` lists; then steps 1, 2, 5 and 6 above on it. A drop-in that sets a lockout-relevant keyword (`PasswordAuthentication`, `PermitRootLogin`, `Port`, `ListenAddress`) after `00-hardn.conf` shows as a `shadowed` conflict, as `50-cloud-init.conf` does on Ubuntu (§4.5); one that sorts before `00-hardn.conf` is a finding for [sshd-effective.md](sshd-effective.md).
 
 ### 4.7 Proxmox VE 9 (by hand; plan `p2-vmtest`, adjustment §3.18)
