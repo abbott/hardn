@@ -85,10 +85,10 @@ See [docs/configuration.md](../configuration.md), "`username`, `sudoNoPassword` 
 - **Main menu 2 is rebuilt.** It shows root login, password login, the SSH port, who is allowed to log in, and how you logged in, as sshd reads them. Opening it changes nothing.
 - **Each change is shown first.** Disallow root login or allow it key-only, turn password login off or on, change the SSH port, move hardn's old settings. Each asks you to type the hostname, and rolls back unless you run `sudo hardn confirm` from a new session.
 - **Some changes are refused before anything is asked**, such as turning root login off where no other admin could log in by key and become root.
-- **`hardn -d` turns root login off the same way.** On a terminal it asks you to type the hostname. Off a terminal it is refused, exit status 1: run `hardn -d` from a terminal. With `-n` it shows the plan and exits 3; it used to be refused. Root login already off is nothing to change, exit status 0.
+- **`hardn -d` turns root login off the same way.** On a terminal it asks you to type the hostname. Off a terminal it is refused, exit status 1: run `hardn -d` from a terminal. With `-n` it shows the plan and exits 3; it used to be refused. Root login already off is nothing to change, exit status 0. It is refused where no other admin could log in afterwards, by key, or by password while password login is on, and become root.
 - **`-d` changes root login alone.** It no longer rewrites hardn's sshd file from a stub, which reset the port and the allowed users (builds of main since v0.3.2).
 - **With hardn's old sshd settings, `-d` and SSH Login's other changes are refused** until Move old settings (main menu 2) moves them.
-- **`hardn -c -d` works again.** It creates the user first, then turns root login off only if an admin, the new user among them, can still log in by key.
+- **`hardn -c -d` works again.** It creates the user first, then turns root login off only if an admin, the new user among them, can still log in.
 - **hardn.yml's SSH settings warn where unused.** SSH Login and `-d` read sshd. `sshPort` is Change SSH port's default, and `sshConfigFile` is read to move hardn's old settings. Where `permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH` or `sshKeyPath` is set to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used by SSH Login or -d". Run All and `-r` still read `sshAllowedUsers` and `sshListenAddress`.
 
 See [docs/configuration.md](../configuration.md), "SSH Configuration".
