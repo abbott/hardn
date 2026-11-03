@@ -137,10 +137,9 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 
 `dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
 
-- **User Management is refused.** It says "Not available in plan only." Start without plan only to use it.
-- **Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
+- **User Management, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
 - **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
-- **Operation flags are refused** under plan only, as with `-n`: `hardn -r`, `-c` and `-d` exit with status 2 and change nothing. `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
+- **Operation flags are refused** under plan only, as with `-n`: `hardn -r` and `-d` exit with status 2 and change nothing. `-c`, `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
@@ -160,6 +159,22 @@ The main menu's Backup (5) shows and changes these two settings.
 - **Backup Runs lists the backups in the path in use**, newest first. It only reads: restoring one is not available yet.
 
 **`logFile` is retired.** hardn always writes and reads `/var/log/hardn.log`. A file that sets `logFile` to another path is still accepted, and hardn warns: "hardn.yml's logFile, <path>, isn't used".
+
+#### `username`, `sudoNoPassword` and `sshKeys`: User Management
+
+```yaml
+username: "george"                  # Create's default name; -c's user
+sudoNoPassword: true                # not used by User Management or -c
+sshKeys:                            # Create's default key
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
+```
+
+The main menu's User Management (1) shows the users, their admin rights and SSH keys, and changes them.
+
+- **`username` and `sshKeys` are Create's defaults.** Create offers them. They never choose the user a change is about, and no change saves them.
+- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password and no key: add a key from User Management. With `-n` it shows the plan. A name already taken is refused, exit status 1.
+- **`-c` no longer changes sshd_config.**
+- **`sudoNoPassword` isn't used by User Management or `-c`.** A new user has no password, so their admin rights never ask one. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it, until their slice.
 
 ### Network Configuration
 
@@ -247,7 +262,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    dryRun: true      # plan only at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-c`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml
