@@ -352,7 +352,7 @@ func TestCreateRefusals(t *testing.T) {
 		{"its home there", there, users.New{Name: "carol"}, "USERS_HOME_THERE", "/home/carol is already there, and undoing Create would delete it. Choose another name."},
 		{"a password", keyed(sshdKeys, nil), users.New{Name: "carol", Admin: true, Password: true}, "USERS_NEW_PASSWORD", "A new user has no password, so sudo couldn't ask for one."},
 		{"admin, no tool", site{plat: pve9(), users: []string{georgeLine}}, users.New{Name: "carol", Admin: true}, "USERS_NO_TOOL", "sudo isn't installed, so hardn can't grant admin rights. Install sudo, then try again."},
-		{"not a key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Paste one OpenSSH public key, such as ssh-ed25519 AAAA… name."},
+		{"not a key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 		{"a bad second key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{key4, "ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 2 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 		{"an empty key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"", key4}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 	} {
