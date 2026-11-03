@@ -10,30 +10,32 @@ import (
 	"testing"
 
 	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
+	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// The Firewall mocks on the real control (firewall.go, firewallhost.go; slice 4).
-// Nothing here runs a command or writes a file outside the fake.
-
-// TestFirewallGolden pins each listing mock on the core set and under
-// LANG=C. The golden files are testdata/golden/firewall/<mock>.golden.
-func TestFirewallGolden(t *testing.T) { goldenListing(t, fwListing) }
+// The Firewall screen on the simulated hosts (firewall.go, firewallhost.go;
+// slice 4): the hosts and the plans the screen makes on them. What the screen
+// draws and asks is pkg/screens/firewall's and pkg/ui/screen's to test. Nothing
+// here runs a command or writes a file outside the fake.
 
 // TestPlayFirewallGolden plays the mocks end to end and pins each transcript.
 // Each change id's random suffix is written xxxxxxxx (sessionIDs).
@@ -62,6 +64,7 @@ func TestPlayFirewallGolden(t *testing.T) {
 		{"firewall-runlevel", []string{"firewall/alpine-runlevel"}, []string{"1", "y", "0"}, nil},
 		{"firewall-pve9", []string{"firewall/pve9"}, []string{"0"}, nil},
 		{"firewall-pve9-drop", []string{"firewall/pve9-drop"}, []string{"0"}, nil},
+		{"firewall-pve9-ufw", []string{"firewall/pve9-ufw"}, []string{"0"}, nil},
 		{"firewall-profile-add", []string{"firewall/profiles"}, addAnswers, nil},
 		{"firewall-profile-remove", []string{"firewall/profiles"}, []string{"2", "2", "1", "y", "0", "0"}, nil},
 		{"firewall-profile-apply", []string{"firewall/profiles"}, []string{"2", "3", "y", "0", "0"}, nil},
@@ -97,6 +100,48 @@ func fwHostNamed(t *testing.T, name string) fwHost {
 	return fh
 }
 
+// fwReading is one reading of a host, as the screen reads it: firewall.Read's,
+// with the Firewall row as the main menu draws it, and what the screen's changes
+// plan with.
+type fwReading struct {
+	firewall.Reading
+	status component.StatusList
+	facts  detect.Facts
+	cfg    *config.Config
+}
+
+// readFW reads sys as the screen does (pkg/screens/firewall's read), writing
+// nothing: detect's facts, the Firewall row, and firewall.Read with hardn.yml,
+// which on Proxmox VE is not used.
+func (s *session) readFW(ctx context.Context, sys host.System, session revert.Session) (fwReading, error) {
+	var r fwReading
+	var err error
+	if r.facts, err = detect.Detect(ctx, sys); err != nil {
+		return r, err
+	}
+	e := engine.New(sys, engine.Options{Detect: func(context.Context, host.System) (detect.Facts, error) { return r.facts, nil },
+		Hold: s.hold})
+	reports, err := e.Check(ctx, firewall.Controls())
+	if err != nil {
+		return r, err
+	}
+	view := output.StatusViewOf(reports, risk.Level{}).Status
+	r.status.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != firewall.Incoming.Title(firewall.Incoming{}) })
+	if onPVE, perr := pve.Applies(r.facts.Proxmox); !onPVE && perr == nil {
+		if r.cfg, err = statusConfig(ctx, sys); err != nil {
+			return r, err
+		}
+	}
+	r.Reading = firewall.Read(ctx, sys, r.facts, r.cfg, session)
+	return r, r.PVEErr
+}
+
+// fwLockout is whether item 1's plan is lockout-risk, which the screen asks the
+// hostname typed for.
+func fwLockout(r fwReading) bool {
+	return r.PlanErr == nil && slices.ContainsFunc(r.Plan, func(c engine.Change) bool { return c.Risk == engine.RiskLockout })
+}
+
 // readFWHost reads the host named name, fresh, as the screen does, and
 // returns the reading and the host.
 func readFWHost(t *testing.T, name string) (fwReading, *fakeHost) {
@@ -119,16 +164,6 @@ func playFW(t *testing.T, fh fwHost, h *fakeHost, dryRun bool, lines ...string) 
 		}
 		return func() error { return s.fwScreen(context.Background(), fh, h) }
 	}, lines...)
-}
-
-// rowOf is the row whose key is key among rows.
-func rowOf(rows []component.KeyValue, key string) component.KeyValue {
-	for _, kv := range rows {
-		if kv.Key == key {
-			return kv
-		}
-	}
-	return component.KeyValue{}
 }
 
 // TestFirewallHosts holds each host's screen to the real readers: the row
@@ -162,6 +197,7 @@ func TestFirewallHosts(t *testing.T) {
 		{host: "unit-off", state: component.StatusPartial, detail: "off after restart", first: firewall.ItemEnable},
 		{host: "pve9", state: component.StatusNotConfigured, detail: "disabled", first: firewall.ItemNone},
 		{host: "pve9-drop", state: component.StatusConfigured, detail: "drop policy", first: firewall.ItemNone},
+		{host: "pve9-ufw", state: component.StatusNotConfigured, detail: "disabled", first: firewall.ItemNone},
 		{host: "profiles", state: component.StatusConfigured, detail: "deny policy", first: firewall.ItemDisable},
 	}
 	if len(tests) != len(fwHosts()) {
@@ -185,64 +221,12 @@ func TestFirewallHosts(t *testing.T) {
 		if got := r.First; got != tt.first {
 			t.Errorf("%s: item 1 %v, want %v", tt.host, got, tt.first)
 		}
-		if (r.refusal() != nil) != (tt.refused != nil) || tt.refused != nil && !errors.Is(r.PlanErr, tt.refused) {
-			t.Errorf("%s: refused %v, plan's error %v, want %v", tt.host, r.refusal() != nil, r.PlanErr, tt.refused)
+		if (r.PlanErr != nil) != (tt.refused != nil) || tt.refused != nil && !errors.Is(r.PlanErr, tt.refused) {
+			t.Errorf("%s: refused %v, plan's error %v, want %v", tt.host, r.PlanErr != nil, r.PlanErr, tt.refused)
 		}
-		if r.risky() != tt.risky {
-			t.Errorf("%s: lockout risk %v", tt.host, r.risky())
+		if fwLockout(r) != tt.risky {
+			t.Errorf("%s: lockout risk %v", tt.host, fwLockout(r))
 		}
-	}
-}
-
-// TestFirewallRows holds what the sections say to the readers: never
-// hardn.yml's sshPort, every listener with ufw's verdict from ufw.Evaluate,
-// the rules from ufw status verbose or, inactive, its files; none a muted item.
-func TestFirewallRows(t *testing.T) {
-	r, _ := readFWHost(t, "hardened")
-	rows := r.sshRows()
-	if len(rows) != 2 || rows[0].Key != "[::]:2230" || rows[0].Value != "Allowed" || rows[1].Key != "0.0.0.0:2230" {
-		t.Errorf("hardened: SSH rows %+v", rows)
-	}
-	r, _ = readFWHost(t, "lockout")
-	if rows := r.sshRows(); rows[0].Value != "Refused" || rows[0].State != component.ValueBad {
-		t.Errorf("lockout: SSH rows %+v", rows)
-	}
-	r, _ = readFWHost(t, "lockout-at-start")
-	if rows := r.sshRows(); rows[0].Value != "Refused at start" {
-		t.Errorf("lockout-at-start: SSH rows %+v", rows)
-	}
-	r, _ = readFWHost(t, "edit-2230")
-	rows = r.sshRows()
-	if rowOf(rows, "0.0.0.0:2230").Note != "Not bound" || rowOf(rows, "0.0.0.0:22").Note != "Not configured" {
-		t.Errorf("edit-2230: SSH rows %+v", rows)
-	}
-	r, _ = readFWHost(t, "ubuntu2604")
-	if rows := r.ruleRows(); len(rows) != 1 || rows[0].Key != fwNoRules || rows[0].State != component.ValueNone {
-		t.Errorf("no rule: %+v", rows)
-	}
-	r, _ = readFWHost(t, "blocklist")
-	rows = r.ruleRows()
-	if rows[0].Key != "22/tcp from 198.51.100.0/24" || rows[0].Value != "Deny" || rows[0].State != component.ValueBad || rows[0].Note != "Saved" || rows[1].State != component.ValuePlain {
-		t.Errorf("blocklist: rule rows %+v", rows)
-	}
-	r, _ = readFWHost(t, "alpine-runlevel")
-	if boot := rowOf(r.ufwRows(), fwKeyBoot); boot.Value != "In no runlevel" || boot.State != component.ValueWarn {
-		t.Errorf("alpine-runlevel: at boot %+v", boot)
-	}
-	r, _ = readFWHost(t, "pve9-drop")
-	vm := r.subMenu()
-	if len(vm.Menu.Items) != 0 || !strings.Contains(flatText(vm.Render(component.NewCtx(term.Fixed(200, colorprofile.NoTTY, false, true)))), fwNoChange) {
-		t.Errorf("pve9-drop: items %+v", vm.Menu.Items)
-	}
-	// hardn.yml's sshPort is not read: a port there changes no row.
-	h := statusOn(debian13Platform).withHardnYML(fwYML + "sshPort: 2230\n")
-	ufwOn(h)
-	r, err := (&session{}).readFW(context.Background(), h.system(), fwSession(h))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if rows := r.sshRows(); len(rows) != 2 || rows[1].Key != "0.0.0.0:22" {
-		t.Errorf("sshPort 2230: SSH rows %+v", rows)
 	}
 }
 
@@ -273,17 +257,6 @@ func fwPlan(t *testing.T, h *fakeHost, action firewall.Action) (*engine.Engine, 
 		t.Fatal(err)
 	}
 	return e, p
-}
-
-// TestFirewallBootRow: At boot says a masked or missing service as what it is,
-// not as one that is only disabled.
-func TestFirewallBootRow(t *testing.T) {
-	for unit, want := range map[string]string{"disabled": "Service disabled", "linked": "Service disabled", "masked": "Service masked", "masked-runtime": "Service masked", "not-found": "No service"} {
-		r := fwReading{Reading: firewall.Reading{Boot: detect.No, BootUnit: unit, State: ufw.State{Installed: true, Enabled: true}}}
-		if i := slices.IndexFunc(r.ufwRows(), func(k component.KeyValue) bool { return k.Key == fwKeyBoot }); i < 0 || r.ufwRows()[i].Value != want {
-			t.Errorf("%s: %+v", unit, r.ufwRows())
-		}
-	}
 }
 
 // TestFirewallPlans holds each plan's commands: Enable's are the real plan's;
@@ -371,8 +344,8 @@ func TestFirewallApplies(t *testing.T) {
 	if r := read(apply("ubuntu2604", firewall.ActionEnable)); !r.State.Status.Active || r.First != firewall.ItemDisable || r.status.Rows[0].Detail != "deny policy" {
 		t.Errorf("enable: %+v, %q", r.State.Status, r.status.Rows[0].Detail)
 	}
-	if r := read(apply("lockout", firewall.ActionEnable)); r.First != firewall.ItemDisable || r.sshRows()[0].Value != "Allowed" {
-		t.Errorf("lockout: %+v", r.sshRows())
+	if r := read(apply("lockout", firewall.ActionEnable)); r.First != firewall.ItemDisable || r.Coverage()[0].Verdict != ufw.Allowed {
+		t.Errorf("lockout: %+v", r.Coverage())
 	}
 	if r := read(apply("active22", firewall.ActionDisable)); r.State.Status.Active || r.State.Enabled || len(r.State.Rules) != 2 || r.First != firewall.ItemEnable {
 		t.Errorf("disable: active %v, enabled %v, rules %d", r.State.Status.Active, r.State.Enabled, len(r.State.Rules))
@@ -386,8 +359,8 @@ func TestFirewallApplies(t *testing.T) {
 	if !strings.Contains(h.content(ufw.ProfileFile), "[LabHTTPS]\ntitle=Lab Web Server (HTTPS)\n") {
 		t.Errorf("apply: %q", h.content(ufw.ProfileFile))
 	}
-	if r := read(h); !r.Applied("LabHTTPS") || !r.Applied("LabDNS") || r.profileRows()[0].Note != "Applied" {
-		t.Errorf("apply: %+v", r.profileRows())
+	if r := read(h); !r.Applied("LabHTTPS") || !r.Applied("LabDNS") {
+		t.Errorf("apply: %+v", r.State.Rules)
 	}
 	if _, p := fwPlan(t, h, firewall.ActionApplyProfiles); p.Err() != nil || len(p.Changes) != 0 {
 		t.Errorf("apply again: %v, %d changes", p.Err(), len(p.Changes))
@@ -400,12 +373,12 @@ func TestFirewallProfilesSave(t *testing.T) {
 	fh := fwHostNamed(t, "profiles")
 	h := fh.host()
 	n := len(h.f.Calls())
-	_, out, code := playFW(t, fh, h, false, "2", "1", "LabDNS", "bad name", "Web", "Web Server", "A web server", "80", "80/tcp,443/tcp", "y", "0", "0")
+	_, out, code := playFW(t, fh, h, false, "2", "1", "LabDNS", "all", "Web", "Web Server", "A web server", "80", "80/tcp,443/tcp", "y", "0", "0")
 	if code != exitOK {
 		t.Fatalf("exit %d:\n%s", code, out)
 	}
 	text := flatText(out)
-	for _, want := range []string{"A profile with this name already exists.", "Use letters, digits", "Give each port, 1 to 65535"} {
+	for _, want := range []string{"A profile with this name already exists.", "ufw can't use that name.", "Give each port, 1 to 65535"} {
 		if !strings.Contains(text, want) {
 			t.Errorf("no %q:\n%s", want, text)
 		}
@@ -425,7 +398,7 @@ func TestFirewallProfilesSave(t *testing.T) {
 	if _, out, code = playFW(t, fh, h, false, "2", "2", "1", "y", "0", "0"); code != exitOK {
 		t.Fatalf("exit %d:\n%s", code, out)
 	}
-	if !strings.Contains(flatText(out), fwRemoveNotice) {
+	if !strings.Contains(flatText(out), "A rule already in ufw stays.") {
 		t.Errorf("no notice:\n%s", out)
 	}
 	cfg, err = config.Read(context.Background(), h.system(), hardnYML)
@@ -441,7 +414,7 @@ func TestFirewallProfilesSave(t *testing.T) {
 // of any kind, no read under /etc/ufw but ufw.conf (decision 7), no item but
 // Return.
 func TestFirewallProxmoxNoUFW(t *testing.T) {
-	for _, name := range []string{"pve9", "pve9-drop"} {
+	for _, name := range []string{"pve9", "pve9-drop", "pve9-ufw"} {
 		for _, dry := range []bool{false, true} {
 			fh := fwHostNamed(t, name)
 			h := fh.host()
@@ -470,13 +443,47 @@ func TestFirewallProxmoxNoUFW(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !errors.Is(r.Proxmox, pve.ErrProxmoxUnknown) || r.refusal() == nil {
-		t.Errorf("not established: %v, refusal %v", r.Proxmox, r.refusal())
+	if !errors.Is(r.Proxmox, pve.ErrProxmoxUnknown) || r.PlanErr == nil {
+		t.Errorf("not established: %v, plan's error %v", r.Proxmox, r.PlanErr)
 	}
 	for _, c := range h.f.Calls()[n:] {
 		if c.Op == "run" && path.Base(c.Argv[0]) == "ufw" {
 			t.Errorf("not established: a ufw call: %s", c)
 		}
+	}
+}
+
+// fwSavedDeny is ufw inactive with a deny on SSH's port saved first.
+func fwSavedDeny() *fakeHost {
+	return fwWith(ufwSim{incoming: "deny", rules: []simRule{{action: "deny", port: "22"}}})()
+}
+
+// fwRefusalHosts are the hosts on which item 1 refuses before asking, by what
+// each shows, beside the menu's.
+func fwRefusalHosts() []struct {
+	name string
+	host func() *fakeHost
+} {
+	return []struct {
+		name string
+		host func() *fakeHost
+	}{
+		{"apt finds no ufw", fwNoUFWSim(debian13Platform, fwAPTNotFound)},
+		{"apk finds no ufw", fwAlpineStock},
+		{"other packages change", fwNoUFWSim(debian13Platform, fwAPTRemoves)},
+		{"no ss", fwNoSS},
+		{"ss failing", fwSSFailing},
+		{"sshd's configuration not in effect", fwEdit},
+		{"bound elsewhere, inactive", fwMovedInactive},
+		{"ufw's state not read", fwGarbled},
+		{"lockout-at-start", func() *fakeHost { return ufwOn(lockoutAtStart().withHardnYML(fwYML)) }},
+		{"blocklist", fwWith(ufwSim{incoming: "deny", rules: []simRule{{action: "deny", port: "22", src: "198.51.100.0/24"}, {action: "allow", port: "22"}}})},
+		{"a saved deny", fwSavedDeny},
+		{"IPv6 off in ufw", fwWith(ufwSim{incoming: "deny", noIPv6: true})},
+		{"IPv6 off in ufw, active", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, noIPv6: true, rules: []simRule{{action: "allow", port: "22"}}})},
+		{"an allowlist of one family", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "allow", port: "22", src: "192.0.2.0/24"}}})},
+		{"an active deny", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "deny", port: "22"}}})},
+		{"Proxmox VE not established", fwProxmoxUnknown},
 	}
 }
 
@@ -489,7 +496,7 @@ func TestFirewallRefusals(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", rh.name, err)
 		}
-		if r.refusal() == nil {
+		if r.PlanErr == nil {
 			t.Errorf("%s: no refusal", rh.name)
 		}
 		s, out, code := playFW(t, fwHost{name: "refusal", host: rh.host}, h, false, "1", "0")
@@ -572,18 +579,19 @@ func fwRead(t *testing.T, h *fakeHost) fwReading {
 
 // fwRefusalText is the refusal's words, plain.
 func fwRefusalText(r fwReading) string {
-	return flatText(r.refusal().Render(component.NewCtx(term.Fixed(200, colorprofile.NoTTY, false, true))))
+	return flatText(screenkit.Warnings(screenkit.RefusalWords(r.PlanErr)).Render(component.NewCtx(term.Fixed(200, colorprofile.NoTTY, false, true))))
 }
 
 // TestFirewallBoundUnread: an ss that fails is refused as a missing one is, on
-// every state, and the SSH section says so; Disable is still there when active.
+// every state, and the reading says ss failed; Disable is still there when
+// active.
 func TestFirewallBoundUnread(t *testing.T) {
 	r := fwRead(t, fwSSFailing())
 	if !errors.Is(r.PlanErr, firewall.ErrSSFailed) || !strings.Contains(fwRefusalText(r), "ss failed") {
 		t.Errorf("inactive: %v", r.PlanErr)
 	}
-	if got := rowOf(r.sshRows(), fwKeyBound); got.Value != "ss failed" || got.State != component.ValueWarn {
-		t.Errorf("row %+v", got)
+	if !r.Sockets.SSFailed {
+		t.Errorf("sockets %+v", r.Sockets)
 	}
 	h := fwDebian()
 	run := h.f.Handler
@@ -597,22 +605,18 @@ func TestFirewallBoundUnread(t *testing.T) {
 	if r.First != firewall.ItemEnable || !errors.Is(r.PlanErr, firewall.ErrSSFailed) || !r.DisableBeside {
 		t.Errorf("active: item 1 %v, %v", r.First, r.PlanErr)
 	}
-	if rowOf(r.sshRows(), fwKeyBound).Value != "ss failed" {
-		t.Errorf("active: %+v", r.sshRows())
+	if !r.Sockets.SSFailed {
+		t.Errorf("active: sockets %+v", r.Sockets)
 	}
 }
 
 // TestFirewallBoundElsewhere: configured 22, sshd bound on 2230, is the stale
-// listener the other way round. ss says no socket's program, so 2230 gets no
-// row; the 22 rows don't read good, the section says so, and Enable refuses.
+// listener the other way round. ss says no socket's program, so 2230 is not
+// sshd's: 22 is unbound, none is bound on SSH's ports, and Enable refuses.
 func TestFirewallBoundElsewhere(t *testing.T) {
 	r, _ := readFWHost(t, "moved-2230")
-	rows := r.sshRows()
-	if got := rowOf(rows, "0.0.0.0:22"); got.Note != "Not bound" || got.State != component.ValueWarn {
-		t.Errorf("22: %+v", got)
-	}
-	if got := rowOf(rows, fwKeyBound); got.Value != "None on SSH's ports" {
-		t.Errorf("bound: %+v", rows)
+	if !slices.ContainsFunc(r.Sockets.Unbound, func(l sshd.Listener) bool { return l.String() == "0.0.0.0:22" }) || !r.Sockets.NoneBound() {
+		t.Errorf("sockets %+v", r.Sockets)
 	}
 	if !strings.Contains(fwRefusalText(r), "isn't listening where its config says") || !r.DisableBeside {
 		t.Errorf("refusal %q", fwRefusalText(r))
@@ -663,99 +667,13 @@ func TestFirewallNothingRefused(t *testing.T) {
 		tt.sim.incoming, tt.sim.active, tt.sim.enabled = "deny", true, true
 		h := fwWith(tt.sim)()
 		r := fwRead(t, h)
-		if !errors.Is(r.PlanErr, firewall.ErrRefused) || !strings.Contains(fwRefusalText(r), tt.want) || r.enableWords().label != fwRepairLabel {
-			t.Errorf("%s: %v, %q, %q", tt.name, r.PlanErr, fwRefusalText(r), r.enableWords().label)
+		if !errors.Is(r.PlanErr, firewall.ErrRefused) || !strings.Contains(fwRefusalText(r), tt.want) {
+			t.Errorf("%s: %v, %q", tt.name, r.PlanErr, fwRefusalText(r))
 		}
 		_, out, code := playFW(t, fwHost{name: "nothing", host: fwWith(tt.sim)}, h, false, "1", "0")
 		if code != exitOK || strings.Contains(flatText(out), "Nothing needs changing") {
 			t.Errorf("%s: exit %d:\n%s", tt.name, code, out)
 		}
-	}
-}
-
-// TestFirewallIPv6Off: IPV6=no is said as such, never as a saved rule to delete.
-func TestFirewallIPv6Off(t *testing.T) {
-	h := statusOn(ubuntu2604Platform).withHardnYML(fwYML)
-	h.ufwAsShipped()
-	r := fwRead(t, simulateUFW(h, ufwSim{incoming: "deny", noIPv6: true}))
-	if !errors.Is(r.PlanErr, ufw.ErrBlocks) {
-		t.Fatalf("plan: %v", r.PlanErr)
-	}
-	text := fwRefusalText(r)
-	if !strings.Contains(text, "IPv6 is off") || strings.Contains(text, "ufw delete") {
-		t.Errorf("refusal %q", text)
-	}
-	if got := rowOf(r.ufwRows(), fwKeyIPv6); got.Value != "Off" {
-		t.Errorf("row %+v", r.ufwRows())
-	}
-}
-
-// TestFirewallProxmoxMarks: no row reads good where the host is less protected
-// than it says; the reading's service and findings are drawn; and ufw left
-// active by origin/main is neither read nor shown, as decision 7 says.
-func TestFirewallProxmoxMarks(t *testing.T) {
-	r := fwRead(t, fwPVEStopped())
-	rows := r.pveMenu().Sections[0].Rows.Items
-	if got := rowOf(rows, fwKeyService); got.Value != "Stopped" || got.State != component.ValueWarn {
-		t.Errorf("service %+v", got)
-	}
-	for _, key := range []string{fwKeyEnabled, fwKeyPolicy} {
-		if got := rowOf(rows, key); got.State == component.ValueOK {
-			t.Errorf("stopped: %s reads good: %+v", key, got)
-		}
-	}
-	r = fwRead(t, fwPVEMoved())
-	if got := rowOf(r.pveMenu().Sections[0].Rows.Items, fwKeySSH); got.State != component.ValueWarn || got.Note != "sshd on 2230" {
-		t.Errorf("moved: %+v", got)
-	}
-	r = fwRead(t, fwPVEBlacklist())
-	if got := rowOf(r.pveMenu().Sections[0].Rows.Items, "Blacklist"); got.Value != "Has entries" {
-		t.Errorf("blacklist: %+v", r.pveMenu().Sections[0].Rows.Items)
-	}
-	h := fwPVEUFW()
-	n := len(h.f.Calls())
-	r = fwRead(t, h)
-	if len(r.subMenu().Menu.Items) != 0 {
-		t.Errorf("ufw active: items %+v", r.subMenu().Menu.Items)
-	}
-	for _, c := range h.f.Calls()[n:] {
-		if c.Op == "run" && path.Base(c.Argv[0]) == "ufw" {
-			t.Errorf("ufw active: a ufw call: %s", c)
-		}
-	}
-}
-
-// TestFirewallAtBoot: At boot says Yes only with ENABLED=yes and the service
-// read as starting at boot; a service off or not read says so, and only a
-// service read as on is "set".
-func TestFirewallAtBoot(t *testing.T) {
-	r, _ := readFWHost(t, "unit-off")
-	if got := rowOf(r.ufwRows(), fwKeyBoot); got.Value != "Service disabled" || got.State != component.ValueWarn {
-		t.Errorf("off: %+v", got)
-	}
-	if r.First != firewall.ItemEnable || r.enableWords().label != fwBootLabel {
-		t.Errorf("off: item 1 %v, %q", r.First, r.enableWords().label)
-	}
-	unread := func(base func() *fakeHost, hit string) fwReading {
-		h := base()
-		run := h.f.Handler
-		h.f.Handler = func(argv []string, in []byte) hostfake.Response {
-			if strings.Contains(strings.Join(argv, " "), hit) {
-				return hostfake.Response{Stderr: "failed\n", ExitCode: 2}
-			}
-			return run(argv, in)
-		}
-		return fwRead(t, h)
-	}
-	r = unread(fwDebian, "is-enabled ufw.service")
-	if got := rowOf(r.ufwRows(), fwKeyBoot); got.State != component.ValueUnknown || got.Value != "" {
-		t.Errorf("unread: %+v", got)
-	}
-	if (r.First == firewall.ItemDisable) || !strings.Contains(fwRefusalText(r), "can't tell if ufw starts at boot") {
-		t.Errorf("unread: set %v, %q", (r.First == firewall.ItemDisable), fwRefusalText(r))
-	}
-	if len(r.Plan) != 0 {
-		t.Errorf("unread: planned %+v", r.Plan)
 	}
 }
 
@@ -786,76 +704,6 @@ func TestFirewallModel(t *testing.T) {
 	}
 	if res, _ := h.system().Run(context.Background(), "ufw", "delete", "allow", "22/tcp"); !strings.Contains(string(res.Stdout), "Rule deleted") {
 		t.Errorf("delete says %q", res.Stdout)
-	}
-}
-
-// TestFirewallAddChecks: the form refuses what ufw's file could not hold.
-func TestFirewallAddChecks(t *testing.T) {
-	for p, want := range map[string]bool{"80/tcp": true, "1:65535/udp": true, "99999/tcp": false, "0/tcp": false, "90:80/tcp": false, "80": false} {
-		if fwPortOK(p) != want {
-			t.Errorf("%q: %v", p, !want)
-		}
-	}
-	fh := fwHostNamed(t, "profiles")
-	h := fh.host()
-	_, out, code := playFW(t, fh, h, false, "2", "1", "Web", "", "Web Server", "", "About", "99999/tcp", "80/tcp", "y", "0", "0")
-	text := flatText(out)
-	for _, want := range []string{"Give the profile a title.", "Give the profile a description.", "Give each port, 1 to 65535"} {
-		if code != exitOK || !strings.Contains(text, want) {
-			t.Errorf("exit %d, no %q:\n%s", code, want, text)
-		}
-	}
-}
-
-// TestFirewallItemWords: item 1 says what its plan does on each host, and the
-// flow asks the same; "Enable" is said only of a ufw not running.
-func TestFirewallItemWords(t *testing.T) {
-	for host, want := range map[string]string{"ubuntu2604": fwEnableLabel, "allow-policy": fwDenyLabel, "lockout": fwAllowLabel,
-		"alpine-runlevel": fwBootLabel, "unit-off": fwBootLabel, "moved-2230": fwRepairLabel, "denied": fwRepairLabel} {
-		r, _ := readFWHost(t, host)
-		if got := r.subMenu().Menu.Items[0].Label; got != want {
-			t.Errorf("%s: %q, want %q", host, got, want)
-		}
-	}
-}
-
-// TestFirewallDisableBeside: an active ufw always has Disable; a repair beside
-// it keeps Profiles at 2 and Disable at 3.
-func TestFirewallDisableBeside(t *testing.T) {
-	for _, fh := range fwHosts() {
-		r, _ := readFWHost(t, fh.name)
-		var items []string
-		for _, it := range r.subMenu().Menu.Items {
-			items = append(items, it.Key+" "+it.Label)
-		}
-		active := r.State.Status.Known && r.State.Status.Active
-		hasOff := slices.Contains(items, "1 "+fwDisableLabel) || slices.Contains(items, "3 "+fwDisableLabel)
-		if hasOff != active {
-			t.Errorf("%s: active %v, items %q", fh.name, active, items)
-		}
-	}
-	fh := fwHostNamed(t, "lockout")
-	h := fh.host()
-	if _, out, code := playFW(t, fh, h, false, "3", "y", "0"); code != exitOK || !strings.Contains(flatText(out), fwDisableWarning) {
-		t.Errorf("exit %d:\n%s", code, out)
-	}
-	if r := fwRead(t, h); r.State.Status.Active {
-		t.Errorf("still active")
-	}
-}
-
-// TestFirewallInactiveMarks: an inactive ufw filters nothing, so no policy or
-// saved allow reads good, as Proxmox VE's screen treats the same case.
-func TestFirewallInactiveMarks(t *testing.T) {
-	r, _ := readFWHost(t, "ubuntu2604")
-	if got := rowOf(r.ufwRows(), fwKeyPolicy); got.Value != "Deny" || got.State != component.ValuePlain {
-		t.Errorf("policy %+v", got)
-	}
-	r, _ = readFWHost(t, "lockout-at-start")
-	for _, row := range r.ruleRows() {
-		if row.Value == "Allow" && row.State != component.ValuePlain {
-			t.Errorf("saved %+v", row)
-		}
 	}
 }
 
@@ -895,7 +743,7 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 			lines = []string{"0"}
 		case !r.State.Installed:
 			lines = []string{"1", "0"}
-		case r.First == firewall.ItemEnable && r.refusal() != nil:
+		case r.First == firewall.ItemEnable && r.PlanErr != nil:
 			lines = []string{"1", "0"}
 		default:
 			lines = []string{"1", "0"}
@@ -904,7 +752,7 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 		if code != exitOK {
 			t.Errorf("%s: exit %d:\n%s", fh.name, code, out)
 		}
-		if !r.OnPVE && r.refusal() == nil && !stops(out) {
+		if !r.OnPVE && r.PlanErr == nil && !stops(out) {
 			t.Errorf("%s: plan only did not stop at the plan:\n%s", fh.name, out)
 		}
 		if cmds, files := changed(h.f.Calls()[n:]); len(cmds) > 0 || len(files) > 0 {
@@ -929,44 +777,12 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 	}
 }
 
-// TestFirewallHeights: the screen on every host and the sub-screen, at 80x24
-// and at 80x40, in Unicode and ASCII: each is as many lines at either height,
-// the prompt on its last. Those over 24 rows are the page's §4.
-func TestFirewallHeights(t *testing.T) {
-	want := map[string]int{"debian13": 20, "ubuntu2604": 29, "active22": 29, "hardened": 29, "allow-policy": 30, "lockout": 31,
-		"lockout-at-start": 29, "allowlist": 31, "blocklist": 33, "edit-2230": 30, "moved-2230": 31, "denied": 30, "alpine324": 20, "alpine-stock": 21, "alpine-runlevel": 30,
-		"unit-off": 30, "pve9": 17, "pve9-drop": 17, "profiles": 34, "sub-profiles": 16}
-	draws := map[string]func(component.Ctx) string{}
-	for _, fh := range fwHosts() {
-		r, _ := readFWHost(t, fh.name)
-		draws[fh.name] = func(c component.Ctx) string { return r.subMenu().Render(c) }
-	}
-	r, _ := readFWHost(t, "profiles")
-	draws["sub-profiles"] = func(c component.Ctx) string { return r.profilesMenu().Render(c) }
-	if len(draws) != len(want) {
-		t.Fatalf("%d drawings, %d heights", len(draws), len(want))
-	}
-	for name, draw := range draws {
-		for _, rows := range []int{24, 40} {
-			for _, unicode := range []bool{true, false} {
-				env := term.Fixed(80, colorprofile.TrueColor, unicode, true)
-				env.Height = rows
-				lines := strings.Split(ansi.Strip(draw(component.NewCtx(env))), "\n")
-				if len(lines) != want[name] || !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
-					t.Errorf("%s at 80x%d, unicode %v: %d lines, the last %q; want %d, the prompt", name, rows, unicode, len(lines), lines[len(lines)-1], want[name])
-				}
-			}
-		}
-	}
-}
-
-// TestFirewallUsage: the listing and play refuse what they do not take, with
-// status 2 and nothing on stdout; the listing lists with no input; the main
-// menu's 4 leads to debian13's.
+// TestFirewallUsage: play refuses what it does not take, with status 2 and
+// nothing on stdout; the listing of the mocks is gone; the main menu's 4 leads
+// to debian13's.
 func TestFirewallUsage(t *testing.T) {
 	for _, args := range [][]string{
-		{fwPrefix, "nope"},
-		{fwPrefix, "screen-debian13", "-width", "60"},
+		{fwPrefix},
 		{"play", "firewall/nope"},
 		{"play", "-fail", "1", "firewall/debian13"},
 		{"play", "-sequence", "failure", "firewall/debian13"},
@@ -975,10 +791,6 @@ func TestFirewallUsage(t *testing.T) {
 		if code := run(args, nil, offTerminal, &out, &errs); code != exitUsage || out.Len() > 0 || errs.Len() == 0 {
 			t.Errorf("%v: exit %d, stdout %q, stderr %q", args, code, out.String(), errs.String())
 		}
-	}
-	var out bytes.Buffer
-	if code := run([]string{fwPrefix, "-list"}, nil, offTerminal, &out, &bytes.Buffer{}); code != exitOK || len(strings.Fields(out.String())) != len(fwMocks()) {
-		t.Errorf("-list: exit %d, %q", code, out.String())
 	}
 	if fwLinks[mainMenuMock+"/4"] != fwMainHost {
 		t.Errorf("the main menu's 4 leads to %q", fwLinks[mainMenuMock+"/4"])

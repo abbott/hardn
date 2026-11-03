@@ -16,6 +16,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	firewall "github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -23,12 +24,11 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/output"
+	fwscreen "github.com/abbott/hardn/pkg/screens/firewall"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
-	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
-	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
@@ -37,8 +37,8 @@ import (
 // docs/engine/parity-firewall.md): origin/main's Firewall screen and hardn -w,
 // read from pkg/characterization's goldens in place, against the Firewall
 // control from the same starts, through the parity harness. This file is what
-// Firewall supplies to it. No screen exists yet: the driver here runs each
-// change through screenkit.Session.Change, as unit (c) is to run it.
+// Firewall supplies to it. Since unit (c) (next/s4-screen) each row runs through
+// the Firewall screen's Run, typed as a user types it.
 
 // TestParity is Firewall's parity table (parity.Run). The whole table is
 // testdata/golden/parity.golden; its summary is
@@ -78,9 +78,9 @@ const fwHeader = `# The Firewall parity table: origin/main's Firewall screen and
 # gates (parity-firewall.md §2): menu/firewall_* (TestLegacyMenuFirewall, TestLegacyMenuDryRun; Debian 13
 # fixtures, or Proxmox VE on them), ops/configure_secure_firewall (TestOperationGoldens; hardn -w) and
 # ops/configure_secure_firewall_profiles (menu item 2). ufw is the fixture's: it takes ufw reset as done, which probably aborts on a
-# real host (V9, [I]). The new path: firewall.Read, then each change through screenkit.Session.Change,
-# or Incoming{ActionEnable} through the engine (-w), on hostfake: written, not run (gate 5). Where no
-# item leads to the action, the refusal is the control's plan's, and the cell says so.
+# real host (V9, [I]). The new path: the Firewall screen's Run (unit (c), next/s4-screen), typed as a
+# user types it, or Incoming{ActionEnable} through the engine (-w), on hostfake: written, not run (gate 5).
+# Where no item leads to the action, the key is refused, and the cell says so.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n>, Made here, §6's words
 # gallery-firewall.md §5, §6 (adopted 2026-11-01); defect <n> its §2; P-16, P-30, P-33 as decided;
 # control-firewall.md's calls, each "engineering call, not adopted by the maintainer"; parity-firewall.md
@@ -236,12 +236,27 @@ func (st start) words(d string) string {
 
 // step is one change the row makes: the action, its edit of hardn.yml, the
 // answer where it is not the flow's (y, or the hostname typed), and whether the
-// screen offers it, as what Read says of item 1.
+// screen offers it, as what Read says of item 1. A save is Add's, its answers
+// typed, or Remove's of the first profile.
 type step struct {
 	action firewall.Action
 	edit   func(*config.Config)
 	answer string
-	hidden bool // no item leads here: the row plans the action as -w does, so its refusal is the control's plan's
+	hidden bool   // no item leads here: the key is typed, and refused as no item
+	key    string // the key a hidden step types; "" is 1
+	add    *config.UfwAppProfile
+	field  string // the field of Add's form that refuses the answer
+}
+
+// adding is Add's step with p's answers; field, when set, the field that
+// refuses its answer.
+func adding(p config.UfwAppProfile, field string) step {
+	return step{action: firewall.ActionSaveProfiles, edit: addProfile(p), add: &p, field: field}
+}
+
+// removing is Remove's step, of the first profile.
+func removing(answer string) step {
+	return step{action: firewall.ActionSaveProfiles, edit: dropFirst, answer: answer}
 }
 
 // row is a scenario, its start and its steps; flag runs Incoming{ActionEnable}
@@ -292,7 +307,7 @@ var rows = []row{
 	{sc: menu("active-rules", "item2_active_rules_are_reset", "ufw active, a rule on 22, sshd on 2230", "active, a rule", v032Enable), st: start{active: true, ruleOn22: true}, steps: []step{enable}},
 	{sc: menu("fails", "item2_fails_part_way", "ufw active, a rule on 22, sshd on 2230, its allow failing", "allow fails", v032Fails), st: start{active: true, ruleOn22: true, fails: "ufw allow 2230/tcp"}, steps: []step{enable}},
 	{sc: menu("profiles", "item2_profiles", "ufw inactive, two profiles, sshd on 2230: Enable, then Apply", "two profiles", v032Enable), st: start{profiles: 2}, steps: []step{enable, apply}},
-	{sc: menu("no-ufw-item2", "item2_not_installed_hidden_still_runs", "ufw not installed", "no ufw", v032Install), st: start{missing: true}, steps: []step{{action: firewall.ActionEnable, hidden: true}}},
+	{sc: menu("no-ufw-item2", "item2_not_installed_hidden_still_runs", "ufw not installed", "no ufw", v032Install), st: start{missing: true}, steps: []step{{action: firewall.ActionEnable, hidden: true, key: "2"}}},
 	{sc: only(menu("install", "item1_not_installed_stub", "ufw not installed", "no ufw", v032Install), "debian", "ubuntu", "alpine", "proxmox"), st: start{missing: true}, steps: []step{install}},
 	{sc: only(menu("install-stock", "item1_not_installed_stub", "Alpine as shipped: no ufw in apk's index", "index empty", v032Install), "alpine"), st: start{missing: true, noIndex: true}, steps: []step{install}},
 	{sc: menu("disable", "item1_active_yes_stub", "ufw active, no rules, sshd on 2230", "active", v032None), st: start{active: true}, steps: []step{disable}},
@@ -300,17 +315,17 @@ var rows = []row{
 
 	{sc: only(menu("pve-open", "proxmox_open_says_nothing", "Proxmox VE, ufw inactive", "ufw inactive", v032PVE), "proxmox"), st: start{pve: true}},
 	{sc: only(menu("pve-item1", "proxmox_item1_refused", "Proxmox VE, ufw inactive", "ufw inactive", v032PVE), "proxmox"), st: start{pve: true}, steps: []step{enable}},
-	{sc: only(menu("pve-item2", "proxmox_item2_refused", "Proxmox VE, ufw inactive", "ufw inactive", v032PVE), "proxmox"), st: start{pve: true}, steps: []step{enable}},
+	{sc: only(menu("pve-item2", "proxmox_item2_refused", "Proxmox VE, ufw inactive", "ufw inactive", v032PVE), "proxmox"), st: start{pve: true}, steps: []step{{action: firewall.ActionEnable, key: "2"}}},
 	{sc: only(menu("pve-active", "proxmox_active_disable_stub", "Proxmox VE, ufw left active", "ufw active", v032PVE), "proxmox"), st: start{pve: true, active: true}, steps: []step{disable}},
 
-	{sc: menu("add", "profiles_add", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{{action: firewall.ActionSaveProfiles, edit: addProfile(api)}}},
-	{sc: menu("add-bad-port", "profiles_add_bad_port_after_all_answers", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{{action: firewall.ActionSaveProfiles, edit: addProfile(config.UfwAppProfile{Name: "Api", Title: "Internal API", Description: "Internal service", Ports: []string{"8080"}})}}},
-	{sc: menu("add-slash", "profiles_add_port_check_is_a_slash", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{{action: firewall.ActionSaveProfiles, edit: addProfile(config.UfwAppProfile{Name: "Api", Title: "Internal API", Description: "Internal service", Ports: []string{"not-a-port/nothing"}})}}},
-	{sc: menu("add-no-name", "profiles_add_empty_name", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{{action: firewall.ActionSaveProfiles, edit: addProfile(config.UfwAppProfile{Title: "Internal API", Description: "Internal service", Ports: []string{"8080/tcp"}})}}},
-	{sc: menu("add-no-ports", "profiles_add_empty_ports", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{{action: firewall.ActionSaveProfiles, edit: addProfile(config.UfwAppProfile{Name: "Api", Title: "Internal API", Description: "Internal service"})}}},
-	{sc: menu("add-case", "profiles_add_duplicate_name", "ufw inactive, two profiles; the name held already in another case", "two profiles", v032None), st: start{profiles: 2}, steps: []step{{action: firewall.ActionSaveProfiles, edit: addProfile(config.UfwAppProfile{Name: "webserver", Title: "Web Server", Description: "Public web", Ports: []string{"80/tcp"}})}}},
-	{sc: menu("remove", "profiles_remove_yes", "ufw inactive, two profiles", "two profiles", v032None), st: start{profiles: 2}, steps: []step{{action: firewall.ActionSaveProfiles, edit: dropFirst}}},
-	{sc: menu("remove-no", "profiles_remove_no", "ufw inactive, two profiles", "two profiles", v032None), st: start{profiles: 2}, steps: []step{{action: firewall.ActionSaveProfiles, edit: dropFirst, answer: "n"}}},
+	{sc: menu("add", "profiles_add", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{adding(api, "")}},
+	{sc: menu("add-bad-port", "profiles_add_bad_port_after_all_answers", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{adding(config.UfwAppProfile{Name: "Api", Title: "Internal API", Description: "Internal service", Ports: []string{"8080"}}, portsTitle)}},
+	{sc: menu("add-slash", "profiles_add_port_check_is_a_slash", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{adding(config.UfwAppProfile{Name: "Api", Title: "Internal API", Description: "Internal service", Ports: []string{"not-a-port/nothing"}}, portsTitle)}},
+	{sc: menu("add-no-name", "profiles_add_empty_name", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{adding(config.UfwAppProfile{Title: "Internal API", Description: "Internal service", Ports: []string{"8080/tcp"}}, nameTitle)}},
+	{sc: menu("add-no-ports", "profiles_add_empty_ports", "ufw inactive, no profiles", "no profiles", v032None), steps: []step{adding(config.UfwAppProfile{Name: "Api", Title: "Internal API", Description: "Internal service"}, portsTitle)}},
+	{sc: menu("add-case", "profiles_add_duplicate_name", "ufw inactive, two profiles; the name held already in another case", "two profiles", v032None), st: start{profiles: 2}, steps: []step{adding(config.UfwAppProfile{Name: "webserver", Title: "Web Server", Description: "Public web", Ports: []string{"80/tcp"}}, nameTitle)}},
+	{sc: menu("remove", "profiles_remove_yes", "ufw inactive, two profiles", "two profiles", v032None), st: start{profiles: 2}, steps: []step{removing("")}},
+	{sc: menu("remove-no", "profiles_remove_no", "ufw inactive, two profiles", "two profiles", v032None), st: start{profiles: 2}, steps: []step{removing("n")}},
 	{sc: menu("apply", "profiles_apply_stub", "ufw inactive, two profiles", "two profiles", v032None), st: start{profiles: 2}, steps: []step{apply}},
 
 	{sc: dry("dry-configure", "configure_dry_run", "ufw inactive, under plan only", v032None), st: start{dry: true}, steps: []step{enable}},
@@ -318,8 +333,8 @@ var rows = []row{
 	{sc: dry("dry-install", "item1_not_installed_dry_run", "ufw not installed, under plan only", v032None), st: start{dry: true, missing: true}, steps: []step{install}},
 	{sc: dry("dry-disable", "item1_active_yes_dry_run", "ufw active, under plan only", v032None), st: start{dry: true, active: true}, steps: []step{disable}},
 	{sc: dry("dry-apply", "profiles_apply_dry_run", "ufw inactive, two profiles, under plan only", v032None), st: start{dry: true, profiles: 2}, steps: []step{apply}},
-	{sc: dry("dry-add", "profiles_add_plan_only_refused", "ufw inactive, under plan only", v032None), st: start{dry: true}, steps: []step{{action: firewall.ActionSaveProfiles, edit: addProfile(api)}}},
-	{sc: dry("dry-remove", "profiles_remove_plan_only_refused", "ufw inactive, two profiles, under plan only", v032None), st: start{dry: true, profiles: 2}, steps: []step{{action: firewall.ActionSaveProfiles, edit: dropFirst}}},
+	{sc: dry("dry-add", "profiles_add_plan_only_refused", "ufw inactive, under plan only", v032None), st: start{dry: true}, steps: []step{adding(api, "")}},
+	{sc: dry("dry-remove", "profiles_remove_plan_only_refused", "ufw inactive, two profiles, under plan only", v032None), st: start{dry: true, profiles: 2}, steps: []step{removing("")}},
 
 	{sc: ops("w", "configure_secure_firewall", "ufw inactive, a profile -w applies on neither path, sshd on 2230", "inactive", v032W), st: start{ops: true, profiles: 1}, flag: true},
 	{sc: opsItem("item2-profile", "configure_secure_firewall_profiles", "ufw inactive, a profile, sshd on 2230: Enable, then Apply", "a profile", v032Item2), st: start{ops: true, profiles: 1}, steps: []step{enable, apply}},
@@ -506,15 +521,61 @@ func offered(r firewall.Reading, s step) bool {
 var actionWords = map[firewall.Action]string{firewall.ActionInstall: "Install", firewall.ActionEnable: "Enable", firewall.ActionDisable: "Disable",
 	firewall.ActionSaveProfiles: "the save", firewall.ActionApplyProfiles: "Apply"}
 
-// screenRun is the row through the screen's path, as unit (c) is to run it:
-// firewall.Read for what it would offer or refuse, then each step: refused before
-// asking where its plan refuses, else through screenkit.Session.Change, answered
-// y/N where plain and with the hostname typed where lockout-risk; under plan only
-// it stops at the plan. It returns the end state and how it ran.
+// The fields of Add's form a row's answer is refused at, by their titles.
+const (
+	nameTitle  = "Profile name"
+	portsTitle = "Ports"
+)
+
+// fieldWords are the words each field refuses with (pkg/screens/firewall's
+// actions.go): a name ufw refuses, or one held in another case; a port.
+var fieldWords = map[string][]string{
+	nameTitle:  {"ufw can't use that name.", "A profile with this name already exists."},
+	portsTitle: {"Give each port, 1 to 65535, with its protocol, such as 80/tcp."},
+}
+
+// keys are what a step types on the Firewall screen to reach its action, read
+// from r: item 1 for Install and Enable, and Disable where it is item 1, else 3
+// beside it; 2, then the sub-screen's item, for a save or Apply. Add's answers
+// follow its 1, up to the field that refuses one, then a 0 for each field back
+// out of the form.
+func keys(r firewall.Reading, s step) []string {
+	switch {
+	case s.action == firewall.ActionDisable && r.First != firewall.ItemDisable:
+		return []string{"3"}
+	case s.action == firewall.ActionApplyProfiles:
+		return []string{"2", "3"}
+	case s.action == firewall.ActionSaveProfiles && s.add == nil:
+		return []string{"2", "2", "1"}
+	case s.action == firewall.ActionSaveProfiles:
+		p := s.add
+		answers := []string{p.Name, p.Title, p.Description, strings.Join(p.Ports, ",")}
+		if s.field == nameTitle {
+			answers = []string{p.Name, "0"}
+		} else if s.field == portsTitle {
+			answers = append(answers, "0", "0", "0", "0") // back a field each, out of the form at the first
+		}
+		return append([]string{"2", "1"}, answers...)
+	}
+	return []string{"1"}
+}
+
+// screenRun is the row through the Firewall screen (pkg/screens/firewall's Run),
+// one run of it a step, typing what a user types: the step's keys (keys), then y,
+// n or the hostname where it asks, then 0 out of each screen; its change's engine
+// as cmd/hardn builds it. A lockout-risk step leaves the timer armed, so the next
+// waits for hardn confirm, from a console. What the screen offers is read first
+// with firewall.Read, as the screen reads it: where a step's plan refuses, the
+// screen must say the refusal's words before asking, planning nothing; where Add's
+// form refuses an answer, it must say so at the field, planning nothing; where no
+// item leads to the action, Proxmox VE's and no-ufw-item2's, the key is refused as
+// no item. Under plan only it stops at the plan. It returns the end state and how
+// it ran: the screen and the lines typed, the closing 0s left out.
 func screenRun(t *testing.T, c parity.Cell, rw row) (parity.EndState, string) {
 	t.Helper()
 	ctx := context.Background()
 	h := newHost(t, c.Distro.Name, rw.st)
+	h.AddFile(header.HostnameFile, []byte(hostName+"\n"), 0o444, 0, 0) // what the hostname typed is checked against
 	cfg := loaded(t, h, rw.st)
 	n := len(h.Calls())
 	var findings, via, plans []string
@@ -525,8 +586,16 @@ func screenRun(t *testing.T, c parity.Cell, rw row) (parity.EndState, string) {
 	if onPVE && (!r.OnPVE || r.First != firewall.ItemNone) {
 		t.Errorf("Proxmox VE: on PVE %t, item %d", r.OnPVE, r.First)
 	}
+	screenName := "the Firewall screen"
+	if rw.st.dry {
+		screenName += " under plan only"
+	}
 	if len(rw.steps) == 0 {
-		via = append(via, "firewall.Read alone: the read-only screen, Return alone")
+		lines, out, ran := runScreen(t, h, cfg, rw.st.dry, nil, 0)
+		if len(ran) != 0 || strings.Contains(out, "[y/N") {
+			t.Errorf("the open screen: %d runs:\n%s", len(ran), out)
+		}
+		via = append(via, screenName+", typed "+strings.Join(lines, ", ")+": Return alone")
 	}
 	for i, s := range rw.steps {
 		if i > 0 && pending {
@@ -537,72 +606,83 @@ func screenRun(t *testing.T, c parity.Cell, rw row) (parity.EndState, string) {
 			via = append(via, "hardn confirm, from a console")
 		}
 		r = firewall.Read(ctx, h, h.facts, cfg, h.session())
-		if !onPVE && !s.hidden && !offered(r, s) {
+		if onPVE || s.hidden {
+			// No item leads here: the key is refused, and the screen drawn again.
+			key := s.key
+			if key == "" {
+				key = "1"
+			}
+			if !onPVE && (r.State.Installed || r.First == firewall.ItemEnable) {
+				t.Errorf("key %s: an item is there: installed %t, item %d", key, r.State.Installed, r.First)
+			}
+			_, out, ran := runScreen(t, h, cfg, rw.st.dry, []string{key}, 1)
+			if len(ran) != 0 || strings.Count(out, nav.InvalidOption) != 1 || strings.Contains(out, "[y/N") || strings.Contains(out, "Type the hostname") {
+				t.Errorf("key %s: not refused as no item, or planned (%d runs):\n%s", key, len(ran), out)
+			}
+			refusal = "no item: the key refused"
+			via = append(via, screenName+", typed "+key+": no such item")
+			break
+		}
+		if !offered(r, s) {
 			t.Fatalf("%s: not offered: item %d, beside %t, installed %t", actionWords[s.action], r.First, r.DisableBeside, r.State.Installed)
 		}
 		pre, err := preview(ctx, h, cfg, s)
 		if (s.action == firewall.ActionEnable && r.First == firewall.ItemEnable || s.action == firewall.ActionInstall && r.First == firewall.ItemInstall) && output.CodeOf(err) != output.CodeOf(r.PlanErr) {
 			t.Errorf("Read's refusal %v, the plan's %v", r.PlanErr, err)
 		}
-		if err != nil {
-			refusal = output.CodeOf(err) + ", before asking"
-			via = append(via, actionWords[s.action]+" refused before it asks")
-			if onPVE || s.hidden {
-				refusal = output.CodeOf(err) + ", no item: the control's plan"
-				via[len(via)-1] = "no item leads to " + actionWords[s.action] + ": the control's plan refuses"
+		k := keys(r, s)
+		exits := 1
+		if len(k) > 1 && k[0] == "2" {
+			exits = 2
+		}
+		if s.field != "" {
+			// Add's form refuses the answer at its field: backed out with 0.
+			if output.CodeOf(err) != "UFW_BAD_PROFILE" {
+				t.Errorf("Add at %s: the plan's %v, not UFW_BAD_PROFILE", s.field, err)
 			}
+			lines, out, ran := runScreen(t, h, cfg, rw.st.dry, k, exits)
+			said := slices.ContainsFunc(fieldWords[s.field], func(w string) bool { return inOrder(out, s.field, w) == "" })
+			if len(ran) != 0 || !said || strings.Contains(out, "[y/N") {
+				t.Errorf("Add: not refused at %s, or planned (%d runs):\n%s", s.field, len(ran), out)
+			}
+			refusal = "at the field: " + s.field
+			via = append(via, screenName+", typed "+strings.Join(lines, ", ")+": refused at "+s.field)
+			break
+		}
+		if err != nil {
+			lines, out, ran := runScreen(t, h, cfg, rw.st.dry, k, exits)
+			if len(ran) != 0 || !strings.Contains(flat(out), screenkit.RefusalWords(err)) || strings.Contains(out, "[y/N") || strings.Contains(out, "Type the hostname") {
+				t.Errorf("%s's refusal %v: not said before asking, or planned (%d runs):\n%s", actionWords[s.action], err, len(ran), out)
+			}
+			refusal = output.CodeOf(err) + ", before asking"
+			via = append(via, screenName+", typed "+strings.Join(lines, ", ")+": refused before it asks")
 			break
 		}
 		typed := slices.ContainsFunc(pre, func(c engine.Change) bool { return c.Risk == engine.RiskLockout })
-		var lines []string
 		answer := s.answer
 		switch {
 		case rw.st.dry || len(pre) == 0:
 		case answer == "" && typed:
 			answer = hostName
-			lines = []string{answer}
+			k = append(k, answer)
 		case answer == "":
 			answer = "y"
-			lines = []string{answer}
+			k = append(k, answer)
 		default:
-			lines = []string{answer}
+			k = append(k, answer)
 		}
-		var out bytes.Buffer
-		env := term.Resolve(term.Options{}, term.Facts{Width: 120})
-		ty := uitest.NewTypist(&out, lines...)
-		var ran []output.Run
-		kit := screenkit.Session{Name: "firewall screen", Prompter: nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(ty, false), Out: env.Writer(&out)},
-			System: h, Config: cfg, DryRun: rw.st.dry, LogPath: output.LegacyLogPath, Now: clock, NewEngine: newEngine(h),
-			Ran: func(run output.Run) { ran = append(ran, run) }}
-		edit := s.edit
-		action := s.action
-		err = kit.Change(ctx, screenkit.Change{
-			Step: screen.WorkflowStep{Title: component.TitleBar{Title: actionWords[action]}},
-			Flow: flow.Flow{Confirm: func(p flow.Plan) flow.Confirm {
-				if p.Typed() {
-					return flow.Confirm{Question: "Enable the firewall?", Label: "Type the hostname", Phrase: hostName}
-				}
-				return flow.Confirm{Question: actionWords[action] + "?"}
-			}},
-			Controls: func(edited *config.Config) []engine.Control {
-				if edit != nil {
-					edit(edited)
-				}
-				return []engine.Control{firewall.Incoming{Action: action}}
-			},
-		})
-		if err != nil || ty.Unread() != 0 || len(ran) != 1 {
-			t.Fatalf("the flow: %v, %d unread, %d runs:\n%s", err, ty.Unread(), len(ran), out.String())
+		lines, out, ran := runScreen(t, h, cfg, rw.st.dry, k, exits)
+		if len(ran) != 1 {
+			t.Fatalf("the screen: %d runs:\n%s", len(ran), out)
 		}
 		st := parity.Planned(parity.EndState{}, ran[0].Plan)
 		findings = append(findings, st.Findings...)
 		if st.Refusal != "" {
 			t.Fatalf("the preview planned and the flow refused: %s", st.Refusal)
 		}
-		how := actionWords[action]
+		how := screenName + ", typed " + strings.Join(lines, ", ")
 		switch {
 		case rw.st.dry:
-			how += " under plan only"
 			for _, ch := range ran[0].Plan.Changes {
 				if len(ch.Commands) == 0 {
 					plans = append(plans, ch.Target)
@@ -610,21 +690,20 @@ func screenRun(t *testing.T, c parity.Cell, rw row) (parity.EndState, string) {
 				plans = append(plans, slices.DeleteFunc(slices.Clone(ch.Commands), timerCommand)...)
 			}
 		case typed:
-			how += ", the hostname typed"
+			how += ": the hostname typed"
 			pending = true
 			asks = "the hostname typed; the timer armed"
-			if !strings.Contains(out.String(), "Type the hostname") || !armed(h, n) {
-				t.Errorf("lockout risk: the hostname asked %t, the timer armed %t:\n%s", strings.Contains(out.String(), "Type the hostname"), armed(h, n), out.String())
+			if !strings.Contains(out, "Type the hostname") || !armed(h, n) {
+				t.Errorf("lockout risk: the hostname asked %t, the timer armed %t:\n%s", strings.Contains(out, "Type the hostname"), armed(h, n), out)
 			}
 		case len(pre) == 0:
-			how += ", nothing to change"
+			how += ": nothing to change"
 		default:
-			how += ", " + answer
 			if asks == "nothing" {
 				asks = "y/N"
 			}
-			if !strings.Contains(out.String(), "[y/N") {
-				t.Errorf("a plain change not asked y/N:\n%s", out.String())
+			if !strings.Contains(out, "[y/N") {
+				t.Errorf("a plain change not asked y/N:\n%s", out)
 			}
 		}
 		via = append(via, how)
@@ -641,7 +720,36 @@ func screenRun(t *testing.T, c parity.Cell, rw row) (parity.EndState, string) {
 	if onPVE {
 		pveRows(t, h, n, r, &state, rw)
 	}
-	return state, "firewall.Read, then " + strings.Join(via, "; then ")
+	return state, strings.Join(via, "; then ")
+}
+
+// runScreen runs the Firewall screen once on h, typing lines, then 0 exits
+// times, out of each screen the lines left open; at least once. It returns the
+// lines typed but the 0s, what the screen wrote, and what each change did
+// (Options.Ran). Run must return nil with every line read.
+func runScreen(t *testing.T, h *fwHost, cfg *config.Config, dryRun bool, lines []string, exits int) ([]string, string, []output.Run) {
+	t.Helper()
+	typed := slices.Clone(lines)
+	for range max(exits, 1) {
+		typed = append(typed, "0")
+	}
+	var out bytes.Buffer
+	env := term.Resolve(term.Options{}, term.Facts{Width: 120})
+	ty := uitest.NewTypist(&out, typed...)
+	var ran []output.Run
+	err := fwscreen.Run(context.Background(), fwscreen.Options{
+		Prompter: nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(ty, false), Out: env.Writer(&out)},
+		System:   h, Facts: h.facts, Session: h.session(), Config: cfg, NewEngine: newEngine(h),
+		DryRun: dryRun, LogPath: output.LegacyLogPath, Now: clock,
+		Ran: func(run output.Run) { ran = append(ran, run) },
+	})
+	if err != nil || ty.Unread() != 0 {
+		t.Fatalf("the screen typed %q: %v, %d unread:\n%s", typed, err, ty.Unread(), out.String())
+	}
+	if len(lines) == 0 {
+		lines = []string{"0"}
+	}
+	return lines, out.String(), ran
 }
 
 // pveRows holds Proxmox VE's: no ufw command of any kind, and what the read-only
@@ -726,6 +834,16 @@ func same(s parity.EndState) string {
 	return fmt.Sprintf("%s\nbackups %q\njournal %t\nfindings %q\nrefusal %q", parity.HostText(s), s.Backups, s.Journal, s.Findings, code)
 }
 
+// sameAs is same of -w's run w and the screen's s, but where no item leads to
+// Enable on the screen: there -w's plan must refuse, and the refusals are left
+// out, as the screen planned nothing.
+func sameAs(w, s parity.EndState) (string, string) {
+	if strings.HasPrefix(s.Refusal, "no item") && w.Refusal != "" {
+		w.Refusal, s.Refusal = "", ""
+	}
+	return same(w), same(s)
+}
+
 // runCell is the new path on c, from the start origin/main's golden names, held
 // to it (parity.Cell.LegacyStart). A -w row runs the flag's form and its plan
 // alone, and holds the screen's Enable equal; a screen's Enable holds -w equal.
@@ -738,9 +856,9 @@ func runCell(t *testing.T, c parity.Cell) parity.NewRun {
 	if rw.flag {
 		live := flagRun(t, c, rw, false)
 		screenSide := rw
-		screenSide.steps = []step{{action: firewall.ActionEnable, hidden: true}}
+		screenSide.steps = []step{enable}
 		s, _ := screenRun(t, c, screenSide)
-		if a, b := same(live), same(s); a != b {
+		if a, b := sameAs(live, s); a != b {
 			t.Errorf("-w left\n%s\nthe screen's Enable left\n%s", a, b)
 		}
 		dryRun := flagRun(t, c, rw, true)
@@ -755,7 +873,7 @@ func runCell(t *testing.T, c parity.Cell) parity.NewRun {
 	}
 	live, via := screenRun(t, c, rw)
 	if len(rw.steps) == 1 && rw.steps[0].action == firewall.ActionEnable && !rw.st.dry {
-		if a, b := same(live), same(flagRun(t, c, rw, false)); a != b {
+		if b, a := sameAs(flagRun(t, c, rw, false), live); a != b {
 			t.Errorf("the screen's Enable left\n%s\n-w left\n%s", a, b)
 		}
 		via += "; -w's plan and apply leave the same"
@@ -858,24 +976,24 @@ var fwTable = []tie{
 	{[]string{"install"}, ufwHosts, "asks", "decision 1", "the stub; now plain, y/N", false},
 	{[]string{"add"}, deb, "asks", "decision 3 (a)", "saved on the fourth answer; now through the flow, y/N", false},
 	{[]string{"dry-disable"}, deb, "asks", "defect 4's answer (§5): Disable through the flow", "asked, then said what it would do; now stops at its plan, unasked", false},
-	{[]string{"pve-active"}, pveOnly, "asks", "V10; decision 7", "asked, then the stub; now no item, nothing asked", false},
+	{[]string{"pve-active"}, pveOnly, "asks", "V10; decision 7", "asked, then the stub; now key 1 is refused, nothing asked", false},
 
 	// Refusals.
 	{[]string{"install"}, ufwHosts, "refusal", stubbed, "the stub; now it installs", false},
-	{[]string{"install"}, pveOnly, "refusal", "defect 4; decision 1; P-16", "the stub, on any host; now no item on Proxmox VE, and the control's plan refuses", false},
+	{[]string{"install"}, pveOnly, "refusal", "defect 4; decision 1; P-16; decision 7", "the stub, on any host; now Proxmox VE's screen is read-only: key 1 is refused, nothing planned", false},
 	{[]string{"install-stock"}, alpine, "refusal", "defect 4; decision 1; control-firewall.md: Read also plans Install, so its refusal is said before asking" + eng, "the stub; now apk's index has no ufw, refused before asking", false},
 	{[]string{"disable"}, deb, "refusal", "defect 4; decision 6", "the stub; now ufw disable", false},
 	{[]string{"fails"}, deb, "refusal", seq, "the command's exit status, with ufw left off; now its code, rolled back", false},
-	{[]string{"no-ufw-item2"}, deb, "refusal", "Made here (origin/main's item 2 goes)", "hidden item 2 still ran and failed; it is gone, and Enable's plan, as -w's, refuses", false},
+	{[]string{"no-ufw-item2"}, deb, "refusal", "Made here (origin/main's item 2 goes)", "hidden item 2 still ran and failed; it is gone: with no ufw, key 2 is refused, nothing planned", false},
 	{[]string{"w-stock"}, alpine, "refusal", "V9; decision 1; decision 2; §6's words", "no ss: Enable refuses until iproute2 is there, as Install does not bring it", false},
-	{[]string{"pve-item1", "pve-item2"}, pveOnly, "refusal", "decision 7; control-firewall.md: code UFW_NOT_APPLICABLE" + eng, "on origin/main ufw ran here (the golden's NOTE, V10); the trunk's P0.8 gate refuses after the key; now no item leads here, the screen read-only, and the control's plan refuses", false},
+	{[]string{"pve-item1", "pve-item2"}, pveOnly, "refusal", "decision 7", "on origin/main ufw ran here (the golden's NOTE, V10); the trunk's P0.8 gate refuses after the key; now the screen is read-only: the key is refused, nothing planned", false},
 	{[]string{"w"}, pveOnly, "refusal", "V10; decision 7; control-firewall.md: code UFW_NOT_APPLICABLE" + eng, "on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now the plan refuses", false},
-	{[]string{"item2-profile"}, pveOnly, "refusal", "V10; decision 7; control-firewall.md: code UFW_NOT_APPLICABLE" + eng, "on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now no item leads here, and the control's plan refuses", false},
-	{[]string{"pve-active"}, pveOnly, "refusal", "V10; defect 5; decision 7", "the stub, the way out on the screen; now no item leads here, the control's plan refuses, and the warning row says to run ufw disable", false},
+	{[]string{"item2-profile"}, pveOnly, "refusal", "V10; decision 7", "on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now the screen is read-only: key 1 is refused, nothing planned", false},
+	{[]string{"pve-active"}, pveOnly, "refusal", "V10; defect 5; decision 7", "the stub, the way out on the screen; now the screen is read-only: key 1 is refused, and the warning row says to run ufw disable", false},
 	{[]string{"apply"}, deb, "refusal", "defect 4; decision 3 (a); decision 5; P-33 (1) (b)", "the stub; now no rule saved while ufw stays inactive", false},
-	{[]string{"add-bad-port"}, deb, "refusal", "defect 11; decision 3 (a); §6's words", "refused after four answers, dropping them; the plan's code now (Add's form refuses at the field: unit (c))", false},
-	{[]string{"add-slash"}, deb, "refusal", "defect 11; §6's words", "saved: its check was a slash; now refused, 1 to 65535 with a protocol", false},
-	{[]string{"add-no-name", "add-no-ports", "add-case"}, deb, "refusal", "decision 3 (a)", "refused in its words; the plan's code now (Add's form refuses at the field: unit (c))", false},
+	{[]string{"add-bad-port"}, deb, "refusal", "defect 11; decision 3 (a); §6's words", "refused after four answers, dropping them; now Add's form refuses the port at its field, nothing planned", false},
+	{[]string{"add-slash"}, deb, "refusal", "defect 11; §6's words", "saved: its check was a slash; now Add's form refuses it at its field: 1 to 65535 with a protocol", false},
+	{[]string{"add-no-name", "add-no-ports", "add-case"}, deb, "refusal", "decision 3 (a)", "refused in its words; now Add's form refuses it at its field, nothing planned", false},
 	{[]string{"dry-add", "dry-remove"}, deb, "refusal", "Made here (under plan only, Add and Remove stop at their plan)", "the trunk refuses since slice 2b, where origin/main saved ./hardn.yml under dry run (the golden's NOTE); now the plan, nothing saved", false},
 	{[]string{"dry-apply"}, deb, "refusal", "defect 10; decision 5; P-33 (1) (b)", "said it would write the file, which live does not; now refused on an inactive ufw", false},
 
@@ -918,6 +1036,39 @@ func TestOpenDifferences(t *testing.T) {
 	r = firewall.Read(ctx, h, h.facts, loaded(t, h, start{sshd: 22}), h.session())
 	if got := r.Sockets.Ports(); !slices.Equal(got, []uint16{22}) {
 		t.Errorf("sshd on 22, cfg.SshPort 2230: the row reads %v", got)
+	}
+}
+
+// TestNotRowKeys: three of TestParityGoldens' not-rows through the screen,
+// each changing nothing. With no ufw, origin/main's hidden items still ran: key
+// 2, its Configure firewall (no-ufw-item2's), and key 3, its profiles, which
+// opened (firewall_profiles_not_installed_hidden_still_runs); each is now
+// refused as no item, and no sub-screen opens. A number no profile has, 9, is
+// refused at Remove's Select and asked again (firewall_profiles_remove_bad_number).
+func TestNotRowKeys(t *testing.T) {
+	for _, tt := range []struct {
+		st      start
+		lines   []string
+		exits   int
+		refused string
+	}{
+		{start{missing: true}, []string{"2"}, 1, nav.InvalidOption},
+		{start{missing: true}, []string{"3"}, 1, nav.InvalidOption},
+		{start{profiles: 2}, []string{"2", "2", "9", "0"}, 2, nav.InvalidOption},
+	} {
+		h := newHost(t, "debian", tt.st)
+		cfg := loaded(t, h, tt.st)
+		n := len(h.Calls())
+		_, out, ran := runScreen(t, h, cfg, false, tt.lines, tt.exits)
+		if len(ran) != 0 || strings.Contains(out, "Manage UFW Application Profiles") != (tt.st.profiles > 0) || len(writes(h, n)) > 0 {
+			t.Errorf("%q: %d runs, wrote %v:\n%s", tt.lines, len(ran), writes(h, n), out)
+		}
+		if tt.st.missing && strings.Count(out, tt.refused) != 1 {
+			t.Errorf("%q: not refused as no item:\n%s", tt.lines, out)
+		}
+		if tt.st.profiles > 0 && (inOrder(out, "Remove which profile?", "Enter your choice [1-2, 0 or q]: 9", tt.refused, "Enter your choice") != "" || strings.Contains(out, "[y/N")) {
+			t.Errorf("%q: 9 not refused at the Select:\n%s", tt.lines, out)
+		}
 	}
 }
 
@@ -976,8 +1127,8 @@ var notRows = func() map[string]string {
 		"open_status_fails_reads_inactive":              draw + "; a failing status reads Inactive (defect 7)" + nearby,
 		"open_port_22_warns":                            draw + "; SSH Port is cfg.SshPort's, warned at 22 (§6: gone)" + nearby,
 		"open_port_2230_while_sshd_says_22":             draw + "; SSH Port is cfg.SshPort's while sshd says 22 (defect 2)" + nearby,
-		"profiles_remove_bad_number":                    "a number no profile has, nothing saved: Remove's Select refuses it at the field, unit (c)'s form",
-		"profiles_not_installed_hidden_still_runs":      "the sub-screen opened and left with no ufw, nothing changed: whether it opens is unit (c)'s",
+		"profiles_remove_bad_number":                    "a number no profile has, nothing saved: Remove's Select refuses it and asks again (TestNotRowKeys)",
+		"profiles_not_installed_hidden_still_runs":      "the sub-screen opened and left with no ufw, nothing changed: now its key is refused, nothing opens (TestNotRowKeys)",
 		"open_active_rules_never_listed":                draw + "; rules not listed (defect 6): P-30 (b) and the Rules section are unit (c)'s",
 		"open_active_rules_listed_if_status_is_verbose": draw + "; defect 6's other side: unit (c) reads rules from Reading",
 		"open_active_rule_listed_by_its_comment":        draw + "; defect 6's other side: unit (c) reads rules from Reading",

@@ -4,13 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	envctl "github.com/abbott/hardn/pkg/engine/controls/environment"
-	"github.com/abbott/hardn/pkg/engine/header"
-	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -21,20 +18,13 @@ import (
 
 // The screen's own words (docs/engine/screen-environment.md §5): the
 // questions and the line after a change applied, decided with decision 7
-// (gallery-environment.md §6); the typed confirmation's label, the flow's
-// (P-25 (d)), proposed there; cantConfirm and cantAsk, new in this unit,
-// proposed. The state's, the change's and the refusals' words are the
-// control's.
+// (gallery-environment.md §6). The typed confirmation's are screenkit's
+// (Hostname, TypeTheHostname, Session.CantConfirm); the state's, the
+// change's and the refusals' are the control's.
 const (
-	askKeep         = "Keep HARDN_CONFIG under %s?"
-	askStop         = "Stop keeping HARDN_CONFIG under %s?"
-	takesEffect     = "Takes effect at the next %s hardn."
-	typeTheHostname = "Type the hostname"
-	// cantConfirm says why a lockout-risk change cannot be confirmed with
-	// the hostname: it cannot be read (the error as it is), it is empty,
-	// or the prompt cannot ask for it (cantAsk).
-	cantConfirm = "Can't confirm with the hostname: %s"
-	cantAsk     = "the prompt can't ask for %q"
+	askKeep     = "Keep HARDN_CONFIG under %s?"
+	askStop     = "Stop keeping HARDN_CONFIG under %s?"
+	takesEffect = "Takes effect at the next %s hardn."
 )
 
 // action returns what choosing the item keyed key does with the reading
@@ -52,8 +42,8 @@ func (r *runner) action(ctx context.Context, h reading, key string) func() error
 		}
 		return func() error {
 			if h.Risk && !r.o.DryRun {
-				if _, _, err := hostname(ctx, r.o.System); err != nil {
-					return r.cantConfirm(err)
+				if _, _, err := screenkit.Hostname(ctx, r.o.System); err != nil {
+					return r.s.CantConfirm(err)
 				}
 			}
 			return r.change(ctx, h)
@@ -113,8 +103,8 @@ func (r *runner) change(ctx context.Context, h reading) error {
 			Confirm: func(p flow.Plan) flow.Confirm {
 				c := flow.Confirm{Question: question}
 				if p.Typed() {
-					c.Label = typeTheHostname
-					c.Phrase, c.Short, phraseErr = hostname(ctx, r.o.System)
+					c.Label = screenkit.TypeTheHostname
+					c.Phrase, c.Short, phraseErr = screenkit.Hostname(ctx, r.o.System)
 				}
 				return c
 			},
@@ -128,42 +118,9 @@ func (r *runner) change(ctx context.Context, h reading) error {
 		// The plan became lockout-risk after the screen read the host,
 		// which said it was not, and the hostname cannot be read: the
 		// flow asked nothing.
-		return r.cantConfirm(phraseErr)
+		return r.s.CantConfirm(phraseErr)
 	case err == nil && applied:
 		return r.s.Say(component.Messages{{Text: fmt.Sprintf(takesEffect, tool)}})()
 	}
 	return err
-}
-
-// cantConfirm says, as a warning, that a lockout-risk change cannot be
-// confirmed with the hostname, and why (hostname's error); nothing is
-// asked.
-func (r *runner) cantConfirm(err error) error {
-	return r.s.Say(screenkit.Warnings(screenkit.FullStop(fmt.Sprintf(cantConfirm, err))))()
-}
-
-// hostname is the phrase a lockout-risk change is confirmed by typing:
-// the host's name as the kernel has it (header.HostnameFile), as
-// hostname(1) prints it and the main menu's header shows it; and its
-// first label where the name has more, asked in its place where the name
-// does not show whole beside the label (flow.Confirm.Short; P-27 (e),
-// proposed). An error where the name cannot be read, as it is; where it
-// is empty; or where it is no phrase nav can ask for (nav.CheckPhrase),
-// in the user's words (cantAsk), nav's own being a developer's.
-func hostname(ctx context.Context, sys host.System) (phrase, short string, err error) {
-	data, err := sys.ReadFile(ctx, header.HostnameFile)
-	if err != nil {
-		return "", "", err
-	}
-	phrase = strings.TrimSpace(string(data))
-	switch err := nav.CheckPhrase(phrase); {
-	case phrase == "":
-		return "", "", fmt.Errorf("%s is empty", header.HostnameFile)
-	case err != nil:
-		return "", "", fmt.Errorf(cantAsk, phrase)
-	}
-	if first, _, ok := strings.Cut(phrase, "."); ok && nav.CheckPhrase(first) == nil {
-		short = first
-	}
-	return phrase, short, nil
 }

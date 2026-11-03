@@ -23,7 +23,7 @@ firewall.ReadSockets(ctx, sys, facts) firewall.Sockets        // the one reading
 ## What units (c) and (d) must do
 
 - **Parity:** origin/main against this control, by scenario and distribution: [parity-firewall.md](parity-firewall.md).
-- **Unit (c), the screen:** draw from `Reading`, the host's facts (the At boot row's init kind), the config (Apply, Add, Remove) and `Check`'s row, as `fwReading` does; move the words, rows and layout out of `internal/tools/uigallery/firewall.go`. Apply's refusal is said by planning `ActionApplyProfiles` first, as the gallery's `applyRefusal` does: `Reading` does not hold it.
+- **Unit (c), the screen:** done: [screen-firewall.md](screen-firewall.md). Draw from `Reading`, the host's facts (the At boot row's init kind), the config (Apply, Add, Remove) and `Check`'s row, as `fwReading` does; move the words, rows and layout out of `internal/tools/uigallery/firewall.go`. Apply's refusal is said by planning `ActionApplyProfiles` first, as the gallery's `applyRefusal` does: `Reading` does not hold it.
 - **Main menu 4** reads "View pve-firewall" on Proxmox VE, and a node with ufw left on gets its warning row from `PVEUFWEnabled` (decision 7). The gallery draws neither.
 - **`hardn -w`, unit (d):** in `runControls` (`cmd/hardn/dns.go:71`), on a terminal ask the typed hostname and arm the timer; off a terminal refuse (decision 4).
 - **Decision 8:** `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` warn on load in `pkg/config`, as `logFile` does.

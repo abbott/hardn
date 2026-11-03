@@ -2,6 +2,7 @@
 
 > **Unit:** refactor plan slice 4, unit (a), `next/s4-gallery`: a proposal for the maintainer's review, nothing of it wired into hardn. No change under `pkg/` or `cmd/`.
 > **Status:** built and tested on macOS, in process; no hardn binary ran. One existing golden changed: `play/user-management` recorded main menu 4's "no screen for Firewall" line, so it now takes 7, Run All, for that line. The ten decisions of §5 are adopted (the maintainer, 2026-11-01), with the Made here calls as stated and the words of §6.
+> *Since `next/s4-screen` ([screen-firewall.md](screen-firewall.md)): the listing and its mocks are gone; git keeps them at `next/s4-control`, and §3 records what they showed. `play firewall` and `play firewall/<host>` run hardn's own screen on the same hosts, as does main menu 4; each host's screen is the mock's line for line, and each `play/firewall-*` golden changed in its opening note alone. One host is added, `pve9-ufw`, for decision 7's row.*
 
 ## 1. What to run
 
@@ -170,7 +171,7 @@ Decided with decision 10 (2026-11-01). Each is new unless marked origin/main's. 
 
 ## 7. For unit (b)
 
-> **Since `next/s4-control`:** the stand-ins below are gone. The gallery runs on `firewall.Read` and `firewall.Incoming` ([control-firewall.md](control-firewall.md)); `no-install` and `stale-listener`'s last section went with them. The screen's words, rows and layout stay in the gallery until unit (c).
+> **Since `next/s4-control`:** the stand-ins below are gone. The gallery runs on `firewall.Read` and `firewall.Incoming` ([control-firewall.md](control-firewall.md)); `no-install` and `stale-listener`'s last section went with them. The screen's words, rows and layout stayed in the gallery until unit (c), which moved them to `pkg/screens/firewall`.
 > **Since `next/s4-parity`:** origin/main's Firewall screen and `-w` against the control, difference by difference: [parity-firewall.md](parity-firewall.md).
 
 | Stand-in, labelled in `firewall.go` | What it must become |

@@ -5,9 +5,9 @@
 # gates (parity-firewall.md §2): menu/firewall_* (TestLegacyMenuFirewall, TestLegacyMenuDryRun; Debian 13
 # fixtures, or Proxmox VE on them), ops/configure_secure_firewall (TestOperationGoldens; hardn -w) and
 # ops/configure_secure_firewall_profiles (menu item 2). ufw is the fixture's: it takes ufw reset as done, which probably aborts on a
-# real host (V9, [I]). The new path: firewall.Read, then each change through screenkit.Session.Change,
-# or Incoming{ActionEnable} through the engine (-w), on hostfake: written, not run (gate 5). Where no
-# item leads to the action, the refusal is the control's plan's, and the cell says so.
+# real host (V9, [I]). The new path: the Firewall screen's Run (unit (c), next/s4-screen), typed as a
+# user types it, or Incoming{ActionEnable} through the engine (-w), on hostfake: written, not run (gate 5).
+# Where no item leads to the action, the key is refused, and the cell says so.
 # Sources: V<n> side-effects.md §8, named by the cell's golden; decision <n>, Made here, §6's words
 # gallery-firewall.md §5, §6 (adopted 2026-11-01); defect <n> its §2; P-16, P-30, P-33 as decided;
 # control-firewall.md's calls, each "engineering call, not adopted by the maintainer"; parity-firewall.md
@@ -24,7 +24,7 @@ origin/main: menu/firewall_item1_inactive_enable_runs_configure.golden (V9)
   run ufw reset
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
-new path: firewall.Read, then Enable, the hostname typed; -w's plan and apply leave the same
+new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan and apply leave the same
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/systemd/system/hardn-boot.service 0644, atomic
     | # hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
@@ -90,7 +90,7 @@ origin/main: menu/firewall_item2_allows_configured_port_not_sshds.golden (V9)
   run ufw reset
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
-new path: firewall.Read, then Enable, the hostname typed; -w's plan and apply leave the same
+new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan and apply leave the same
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/systemd/system/hardn-boot.service 0644, atomic
     | # hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
@@ -157,7 +157,7 @@ origin/main: menu/firewall_item2_active_rules_are_reset.golden (V9)
   run ufw reset
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
-new path: firewall.Read, then Enable, the hostname typed; -w's plan and apply leave the same
+new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan and apply leave the same
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/systemd/system/hardn-boot.service 0644, atomic
     | # hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
@@ -222,7 +222,7 @@ origin/main: menu/firewall_item2_fails_part_way.golden (V9)
   run ufw disable
   run ufw reset
   run ufw allow 2230/tcp comment "SSH access"
-new path: firewall.Read, then Enable, the hostname typed; -w's plan and apply leave the same
+new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan and apply leave the same
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   refused: failed: COMMAND_FAILED
   write /etc/systemd/system/hardn-boot.service 0644, atomic
@@ -300,7 +300,7 @@ origin/main: menu/firewall_item2_profiles.golden (V9)
   run ufw allow from any to any app Metrics
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
-new path: firewall.Read, then Enable, the hostname typed; then hardn confirm, from a console; then Apply, y
+new path: the Firewall screen, typed 1, host-01: the hostname typed; then hardn confirm, from a console; then the Firewall screen, typed 2, 3, y
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/systemd/system/hardn-boot.service 0644, atomic
     | # hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
@@ -379,9 +379,9 @@ origin/main: menu/firewall_item2_not_installed_hidden_still_runs.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> error: exit status 1; dpkg-query -W "--showformat=${Status}" pve-manager -> ok; which ufw -> error: exit status 1
   refused: failed: UFW firewall is not installed
-new path: firewall.Read, then no item leads to Enable: the control's plan refuses; -w's plan and apply leave the same
+new path: the Firewall screen, typed 2: no such item; -w's plan and apply leave the same
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
-  refused: UFW_NOT_INSTALLED, no item: the control's plan
+  refused: no item: the key refused
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -393,8 +393,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: failed: UFW firewall is not installed | UFW_NOT_INSTALLED, no item: the control's plan
-       Made here (origin/main's item 2 goes): hidden item 2 still ran and failed; it is gone, and Enable's plan, as -w's, refuses
+differ refusal: failed: UFW firewall is not installed | no item: the key refused
+       Made here (origin/main's item 2 goes): hidden item 2 still ran and failed; it is gone: with no ufw, key 2 is refused, nothing planned
 v0.3.2: apt-get install -y ufw, or apk add ufw, inside configure, where ufw is not on PATH
 
 == install on Debian 13
@@ -403,8 +403,8 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
-new path: firewall.Read, then Install, y
-  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
+new path: the Firewall screen, typed 1, y
+  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw; systemctl is-enabled ufw.service
   run apt-get install -y ufw
   backup: none; journal: journalled first; findings: none
 agree  files: none
@@ -436,8 +436,8 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
-new path: firewall.Read, then Install, y
-  probes: sshd -T -f /etc/ssh/sshd_config; systemctl show -p Listen ssh.socket; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
+new path: the Firewall screen, typed 1, y
+  probes: sshd -T -f /etc/ssh/sshd_config; systemctl show -p Listen ssh.socket; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw; systemctl is-enabled ufw.service
   run apt-get install -y ufw
   backup: none; journal: journalled first; findings: none
 agree  files: none
@@ -469,7 +469,7 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
-new path: firewall.Read, then Install, y
+new path: the Firewall screen, typed 1, y
   probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; apk info -e ufw; apk add --simulate ufw
   run apk add ufw
   backup: none; journal: journalled first; findings: none
@@ -502,9 +502,9 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
-new path: firewall.Read, then no item leads to Install: the control's plan refuses
+new path: the Firewall screen, typed 1: no such item
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; systemctl is-active pve-firewall.service
-  refused: UFW_NOT_APPLICABLE, no item: the control's plan
+  refused: no item: the key refused
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -516,8 +516,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: stub: isn't yet implemented | UFW_NOT_APPLICABLE, no item: the control's plan
-       defect 4; decision 1; P-16: the stub, on any host; now no item on Proxmox VE, and the control's plan refuses
+differ refusal: stub: isn't yet implemented | no item: the key refused
+       defect 4; decision 1; P-16; decision 7: the stub, on any host; now Proxmox VE's screen is read-only: key 1 is refused, nothing planned
 v0.3.2: apt-get install -y ufw, or apk add ufw, inside configure, where ufw is not on PATH
 
 == install-stock on Alpine 3.23
@@ -527,7 +527,7 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
-new path: firewall.Read, then Install refused before it asks
+new path: the Firewall screen, typed 1: refused before it asks
   probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; apk info -e ufw; apk add --simulate ufw
   refused: PACKAGE_NOT_IN_REPOS, before asking
 agree  files: none
@@ -551,7 +551,7 @@ origin/main: menu/firewall_item1_active_yes_stub.golden ()
   start: Debian 13; ufw active, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: stub: isn't yet implemented
-new path: firewall.Read, then Disable, y
+new path: the Firewall screen, typed 3, y
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   run ufw disable
   backup: none; journal: journalled first; findings: none
@@ -580,7 +580,7 @@ host: ufw active, no rules, sshd on 2230 (forced: the fixture's start, with sshd
 origin/main: menu/firewall_item1_active_no.golden ()
   start: Debian 13; ufw active, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
-new path: firewall.Read, then Disable, n
+new path: the Firewall screen, typed 3, n
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  refusal: none
 agree  files: none
@@ -601,7 +601,7 @@ host: Proxmox VE, ufw inactive (forced: the fixture's start, with sshd as the ro
 origin/main: menu/firewall_proxmox_open_says_nothing.golden (V10)
   start: Proxmox VE on Debian 13 (/etc/pve there, osdetect saying so); ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok
-new path: firewall.Read, then firewall.Read alone: the read-only screen, Return alone
+new path: the Firewall screen, typed 0: Return alone
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; systemctl is-active pve-firewall.service
 agree  refusal: none
 agree  files: none
@@ -625,9 +625,9 @@ origin/main: menu/firewall_proxmox_item1_refused.golden ()
   start: Proxmox VE on Debian 13 (/etc/pve there, osdetect saying so); ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW
-new path: firewall.Read, then no item leads to Enable: the control's plan refuses; -w's plan and apply leave the same
+new path: the Firewall screen, typed 1: no such item; -w's plan and apply leave the same
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; systemctl is-active pve-firewall.service
-  refused: UFW_NOT_APPLICABLE, no item: the control's plan
+  refused: no item: the key refused
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -639,8 +639,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW | UFW_NOT_APPLICABLE, no item: the control's plan
-       decision 7; control-firewall.md: code UFW_NOT_APPLICABLE; engineering call, not adopted by the maintainer: on origin/main ufw ran here (the golden's NOTE, V10); the trunk's P0.8 gate refuses after the key; now no item leads here, the screen read-only, and the control's plan refuses
+differ refusal: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW | no item: the key refused
+       decision 7: on origin/main ufw ran here (the golden's NOTE, V10); the trunk's P0.8 gate refuses after the key; now the screen is read-only: the key is refused, nothing planned
 v0.3.2: configure ran as on Debian, no Proxmox VE gating (V10); §4.4 records no other item
 
 == pve-item2 on Proxmox VE 9
@@ -649,9 +649,9 @@ origin/main: menu/firewall_proxmox_item2_refused.golden ()
   start: Proxmox VE on Debian 13 (/etc/pve there, osdetect saying so); ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok
   refused: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW
-new path: firewall.Read, then no item leads to Enable: the control's plan refuses; -w's plan and apply leave the same
+new path: the Firewall screen, typed 2: no such item; -w's plan and apply leave the same
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; systemctl is-active pve-firewall.service
-  refused: UFW_NOT_APPLICABLE, no item: the control's plan
+  refused: no item: the key refused
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -663,8 +663,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW | UFW_NOT_APPLICABLE, no item: the control's plan
-       decision 7; control-firewall.md: code UFW_NOT_APPLICABLE; engineering call, not adopted by the maintainer: on origin/main ufw ran here (the golden's NOTE, V10); the trunk's P0.8 gate refuses after the key; now no item leads here, the screen read-only, and the control's plan refuses
+differ refusal: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW | no item: the key refused
+       decision 7: on origin/main ufw ran here (the golden's NOTE, V10); the trunk's P0.8 gate refuses after the key; now the screen is read-only: the key is refused, nothing planned
 v0.3.2: configure ran as on Debian, no Proxmox VE gating (V10); §4.4 records no other item
 
 == pve-active on Proxmox VE 9
@@ -673,9 +673,9 @@ origin/main: menu/firewall_proxmox_active_disable_stub.golden (V10)
   start: Proxmox VE on Debian 13 (/etc/pve there, osdetect saying so); ufw active, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: stub: isn't yet implemented
-new path: firewall.Read, then no item leads to Disable: the control's plan refuses
+new path: the Firewall screen, typed 1: no such item
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; systemctl is-active pve-firewall.service
-  refused: UFW_NOT_APPLICABLE, no item: the control's plan
+  refused: no item: the key refused
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -686,10 +686,10 @@ agree  rules after: none
 agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
-differ refusal: stub: isn't yet implemented | UFW_NOT_APPLICABLE, no item: the control's plan
-       V10; defect 5; decision 7: the stub, the way out on the screen; now no item leads here, the control's plan refuses, and the warning row says to run ufw disable
+differ refusal: stub: isn't yet implemented | no item: the key refused
+       V10; defect 5; decision 7: the stub, the way out on the screen; now the screen is read-only: key 1 is refused, and the warning row says to run ufw disable
 differ asks: y/N | nothing
-       V10; decision 7: asked, then the stub; now no item, nothing asked
+       V10; decision 7: asked, then the stub; now key 1 is refused, nothing asked
 differ ufw left active: not said; item 1 is the stub | a warning row, from ufw.conf; no ufw call
        V10; defect 5; decision 7: not said; now a warning row from ufw.conf, no ufw call
 v0.3.2: configure ran as on Debian, no Proxmox VE gating (V10); §4.4 records no other item
@@ -701,7 +701,7 @@ origin/main: menu/firewall_profiles_add.golden ()
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   write ./hardn.yml (mode not recorded), in place
-new path: firewall.Read, then the save, y
+new path: the Firewall screen, typed 2, 1, Api, Internal API, Internal service, 8080/tcp,8443/tcp, y
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/hardn/hardn.yml 0600, atomic
     + ufwAppProfiles:
@@ -744,9 +744,9 @@ origin/main: menu/firewall_profiles_add_bad_port_after_all_answers.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: Invalid port format '8080'. Must include protocol (e.g., '80/tcp')
-new path: firewall.Read, then the save refused before it asks
+new path: the Firewall screen, typed 2, 1, Api, Internal API, Internal service, 8080, 0, 0, 0, 0: refused at Ports
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
-  refused: UFW_BAD_PROFILE, before asking
+  refused: at the field: Ports
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -758,8 +758,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: refused: Invalid port format '8080'. Must include protocol (e.g., '80/tcp') | UFW_BAD_PROFILE, before asking
-       defect 11; decision 3 (a); §6's words: refused after four answers, dropping them; the plan's code now (Add's form refuses at the field: unit (c))
+differ refusal: refused: Invalid port format '8080'. Must include protocol (e.g., '80/tcp') | at the field: Ports
+       defect 11; decision 3 (a); §6's words: refused after four answers, dropping them; now Add's form refuses the port at its field, nothing planned
 v0.3.2: not compared: §4.4 records v0.3.2's configure alone
 
 == add-slash on Debian 13
@@ -769,9 +769,9 @@ origin/main: menu/firewall_profiles_add_port_check_is_a_slash.golden ()
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   write ./hardn.yml (mode not recorded), in place
-new path: firewall.Read, then the save refused before it asks
+new path: the Firewall screen, typed 2, 1, Api, Internal API, Internal service, not-a-port/nothing, 0, 0, 0, 0: refused at Ports
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
-  refused: UFW_BAD_PROFILE, before asking
+  refused: at the field: Ports
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -784,8 +784,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: none | UFW_BAD_PROFILE, before asking
-       defect 11; §6's words: saved: its check was a slash; now refused, 1 to 65535 with a protocol
+differ refusal: none | at the field: Ports
+       defect 11; §6's words: saved: its check was a slash; now Add's form refuses it at its field: 1 to 65535 with a protocol
 differ hardn.yml: ./hardn.yml, in the working directory | not saved
        defect 11; defect 12: saved with a port that is none; now refused, nothing saved
 v0.3.2: not compared: §4.4 records v0.3.2's configure alone
@@ -796,9 +796,9 @@ origin/main: menu/firewall_profiles_add_empty_name.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: Profile name cannot be empty
-new path: firewall.Read, then the save refused before it asks
+new path: the Firewall screen, typed 2, 1, , 0: refused at Profile name
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
-  refused: UFW_BAD_PROFILE, before asking
+  refused: at the field: Profile name
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -810,8 +810,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: refused: Profile name cannot be empty | UFW_BAD_PROFILE, before asking
-       decision 3 (a): refused in its words; the plan's code now (Add's form refuses at the field: unit (c))
+differ refusal: refused: Profile name cannot be empty | at the field: Profile name
+       decision 3 (a): refused in its words; now Add's form refuses it at its field, nothing planned
 v0.3.2: not compared: §4.4 records v0.3.2's configure alone
 
 == add-no-ports on Debian 13
@@ -820,9 +820,9 @@ origin/main: menu/firewall_profiles_add_empty_ports.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: Ports cannot be empty
-new path: firewall.Read, then the save refused before it asks
+new path: the Firewall screen, typed 2, 1, Api, Internal API, Internal service, , 0, 0, 0, 0: refused at Ports
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
-  refused: UFW_BAD_PROFILE, before asking
+  refused: at the field: Ports
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -834,8 +834,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: refused: Ports cannot be empty | UFW_BAD_PROFILE, before asking
-       decision 3 (a): refused in its words; the plan's code now (Add's form refuses at the field: unit (c))
+differ refusal: refused: Ports cannot be empty | at the field: Ports
+       decision 3 (a): refused in its words; now Add's form refuses it at its field, nothing planned
 v0.3.2: not compared: §4.4 records v0.3.2's configure alone
 
 == add-case on Debian 13
@@ -844,9 +844,9 @@ origin/main: menu/firewall_profiles_add_duplicate_name.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 2 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: A profile with this name already exists
-new path: firewall.Read, then the save refused before it asks
+new path: the Firewall screen, typed 2, 1, webserver, 0: refused at Profile name
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
-  refused: UFW_BAD_PROFILE, before asking
+  refused: at the field: Profile name
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -858,8 +858,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: refused: A profile with this name already exists | UFW_BAD_PROFILE, before asking
-       decision 3 (a): refused in its words; the plan's code now (Add's form refuses at the field: unit (c))
+differ refusal: refused: A profile with this name already exists | at the field: Profile name
+       decision 3 (a): refused in its words; now Add's form refuses it at its field, nothing planned
 v0.3.2: not compared: §4.4 records v0.3.2's configure alone
 
 == remove on Debian 13
@@ -869,7 +869,7 @@ origin/main: menu/firewall_profiles_remove_yes.golden ()
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   write ./hardn.yml (mode not recorded), in place
-new path: firewall.Read, then the save, y
+new path: the Firewall screen, typed 2, 2, 1, y
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/hardn/hardn.yml 0600, atomic
     -   - name: WebServer
@@ -908,7 +908,7 @@ host: ufw inactive, two profiles (forced: the fixture's start, with sshd as the 
 origin/main: menu/firewall_profiles_remove_no.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 2 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
-new path: firewall.Read, then the save, n
+new path: the Firewall screen, typed 2, 2, 1, n
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  refusal: none
 agree  files: none
@@ -930,7 +930,7 @@ origin/main: menu/firewall_profiles_apply_stub.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 2 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: stub: isn't yet implemented
-new path: firewall.Read, then Apply refused before it asks
+new path: the Firewall screen, typed 2, 3: refused before it asks
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   refused: UFW_INACTIVE, before asking
 agree  files: none
@@ -953,7 +953,7 @@ host: ufw inactive, under plan only (forced: the fixture's start, with sshd as t
 origin/main: menu/firewall_configure_dry_run.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok
-new path: firewall.Read, then Enable under plan only
+new path: the Firewall screen under plan only, typed 1
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  refusal: none
 agree  files: none
@@ -976,7 +976,7 @@ host: ufw inactive, under plan only (forced: the fixture's start, with sshd as t
 origin/main: menu/firewall_item1_inactive_dry_run.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
-new path: firewall.Read, then Enable under plan only
+new path: the Firewall screen under plan only, typed 1
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  refusal: none
 agree  files: none
@@ -999,7 +999,7 @@ host: ufw not installed, under plan only (forced: the fixture's start, with sshd
 origin/main: menu/firewall_item1_not_installed_dry_run.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
-new path: firewall.Read, then Install under plan only
+new path: the Firewall screen under plan only, typed 1
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
 agree  refusal: none
 agree  files: none
@@ -1022,7 +1022,7 @@ host: ufw active, under plan only (forced: the fixture's start, with sshd as the
 origin/main: menu/firewall_item1_active_yes_dry_run.golden ()
   start: Debian 13; ufw active, no rules; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
-new path: firewall.Read, then Disable under plan only
+new path: the Firewall screen under plan only, typed 3
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  refusal: none
 agree  files: none
@@ -1046,7 +1046,7 @@ host: ufw inactive, two profiles, under plan only (forced: the fixture's start, 
 origin/main: menu/firewall_profiles_apply_dry_run.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 2 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
-new path: firewall.Read, then Apply refused before it asks
+new path: the Firewall screen under plan only, typed 2, 3: refused before it asks
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   refused: UFW_INACTIVE, before asking
 agree  files: none
@@ -1072,7 +1072,7 @@ origin/main: menu/firewall_profiles_add_plan_only_refused.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: Not available in plan only.
-new path: firewall.Read, then the save under plan only
+new path: the Firewall screen under plan only, typed 2, 1, Api, Internal API, Internal service, 8080/tcp,8443/tcp
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  files: none
 agree  directories: none
@@ -1097,7 +1097,7 @@ origin/main: menu/firewall_profiles_remove_plan_only_refused.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 2 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: Not available in plan only.
-new path: firewall.Read, then the save under plan only
+new path: the Firewall screen under plan only, typed 2, 2, 1
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  files: none
 agree  directories: none
@@ -1367,7 +1367,7 @@ origin/main: ops/configure_secure_firewall_profiles/debian.golden (V9, V18)
   run ufw allow from any to any app ExampleHTTPS
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
-new path: firewall.Read, then Enable, the hostname typed; then hardn confirm, from a console; then Apply, y
+new path: the Firewall screen, typed 1, host-01: the hostname typed; then hardn confirm, from a console; then the Firewall screen, typed 2, 3, y
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/systemd/system/hardn-boot.service 0644, atomic
     | # hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
@@ -1453,7 +1453,7 @@ origin/main: ops/configure_secure_firewall_profiles/ubuntu.golden (V9, V18)
   run ufw allow from any to any app ExampleHTTPS
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
-new path: firewall.Read, then Enable, the hostname typed; then hardn confirm, from a console; then Apply, y
+new path: the Firewall screen, typed 1, host-01: the hostname typed; then hardn confirm, from a console; then the Firewall screen, typed 2, 3, y
   probes: sshd -T -f /etc/ssh/sshd_config; systemctl show -p Listen ssh.socket; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/systemd/system/hardn-boot.service 0644, atomic
     | # hardn's boot unit (P-34 (c); docs/safety/revert-boot.md). hardn installs
@@ -1538,7 +1538,7 @@ origin/main: ops/configure_secure_firewall_profiles/alpine.golden (V9, V18)
   run ufw allow from any to any app ExampleHTTPS
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
-new path: firewall.Read, then Enable, the hostname typed; then hardn confirm, from a console; then Apply, y
+new path: the Firewall screen, typed 1, host-01: the hostname typed; then hardn confirm, from a console; then the Firewall screen, typed 2, 3, y
   probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose
   write /etc/init.d/hardn-boot 0755, atomic
     | #!/sbin/openrc-run
@@ -1611,9 +1611,9 @@ host: ufw inactive, a profile, sshd on 2230: Enable, then Apply (forced: the fix
 origin/main: ops/configure_secure_firewall_profiles/proxmox.golden (V9, V10)
   start: os=debian version=13 codename=trixie proxmox=true; cfg.SshPort 2230; 1 profiles
   refused: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW
-new path: firewall.Read, then no item leads to Enable: the control's plan refuses
+new path: the Firewall screen, typed 1: no such item
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; systemctl is-active pve-firewall.service
-  refused: UFW_NOT_APPLICABLE, no item: the control's plan
+  refused: no item: the key refused
 agree  files: none
 agree  directories: none
 agree  commands: none
@@ -1625,8 +1625,8 @@ agree  SSH rule added: none
 agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
-differ refusal: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW | UFW_NOT_APPLICABLE, no item: the control's plan
-       V10; decision 7; control-firewall.md: code UFW_NOT_APPLICABLE; engineering call, not adopted by the maintainer: on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now no item leads here, and the control's plan refuses
+differ refusal: failed: UFW is not used on Proxmox VE hosts: pve-firewall manages the packet filter, so hardn neither configures nor enables UFW | no item: the key refused
+       V10; decision 7: on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now the screen is read-only: key 1 is refused, nothing planned
 v0.3.2: no ufw disable, no reset, existing rules kept; ufw allow <port>/tcp comment SSH, yes | ufw enable; rc-update add ufw default, rc-service ufw start on Alpine; no status check; the profile file backed up, written 0644, an allow per profile; Proxmox VE as Debian, no gating (V10)
 
 == w-stock on Alpine 3.23

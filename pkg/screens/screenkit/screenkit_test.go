@@ -12,6 +12,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
@@ -342,6 +343,42 @@ func TestSay(t *testing.T) {
 	s.Prompter.Out = failing{}
 	if err := s.Say(msgs)(); err == nil || !strings.HasPrefix(err.Error(), "kit screen: write: ") || !errors.Is(err, errBroken) {
 		t.Errorf("a failed write: %v", err)
+	}
+}
+
+// TestHostname: the phrase is the kernel's name, its short form the first
+// label; what can't be read or asked is an error, which CantConfirm says as a
+// warning, nothing asked.
+func TestHostname(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct{ file, phrase, short, why string }{
+		{"web-01\n", "web-01", "", ""},
+		{"web-01.example.net\n", "web-01.example.net", "web-01", ""},
+		{"\n", "", "", "/proc/sys/kernel/hostname is empty"},
+		{"web,01\n", "", "", `the prompt can't ask for "web,01"`},
+		{"<absent>", "", "", "absent"},
+	} {
+		h := hostfake.New(host.Options{})
+		if tt.file != "<absent>" {
+			h.AddFile(header.HostnameFile, []byte(tt.file), 0o444, 0, 0)
+		}
+		phrase, short, err := screenkit.Hostname(ctx, h)
+		if phrase != tt.phrase || short != tt.short || (err == nil) != (tt.why == "") {
+			t.Errorf("%q: %q, %q, %v", tt.file, phrase, short, err)
+		}
+		if tt.why == "" {
+			continue
+		}
+		var out bytes.Buffer
+		env := term.Resolve(term.Options{}, term.Facts{Width: 120})
+		s := screenkit.Session{Prompter: nav.Prompter{Ctx: component.NewCtx(env), Out: &out}}
+		if cerr := s.CantConfirm(err); cerr != nil {
+			t.Fatal(cerr)
+		}
+		said := strings.Join(strings.Fields(strings.ReplaceAll(out.String(), "\n# ", " ")), " ")
+		if tt.file != "<absent>" && !strings.Contains(said, "Can't confirm with the hostname: "+tt.why+".") {
+			t.Errorf("%q: said %q", tt.file, said)
+		}
 	}
 }
 
