@@ -294,3 +294,89 @@ func TestSSHHeights(t *testing.T) {
 		}
 	}
 }
+
+// TestSSHGuards holds the guards the hosts above leave untested: an admin
+// under AllowGroups, outside an AllowUsers CIDR, or with only restricted
+// keys, not shown able; on
+// Proxmox VE, root key-only refused where root has no key; Key-only login
+// refused for a session sshd's log lacks, for a Match block letting
+// passwords in, and where no admin could log in by key; and the session's
+// line found by its address as well as its port.
+func TestSSHGuards(t *testing.T) {
+	ctx := context.Background()
+	sudo := map[string]string{"SSH_CONNECTION": applyConn, "SUDO_USER": "george"}
+	read := func(t *testing.T, h *fakeHost, env map[string]string) sshReading {
+		t.Helper()
+		r, err := readSSH(ctx, h.sys(), env)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return r
+	}
+	georgeOf := func(r sshReading, h *fakeHost, keyOnly bool) sshAdmin {
+		for _, a := range r.sshLoginPaths(ctx, h.sys(), keyOnly) {
+			if a.name == "george" {
+				return a
+			}
+		}
+		return sshAdmin{}
+	}
+	t.Run("AllowGroups", func(t *testing.T) {
+		h := sshDebian13().sshFile(sshd.DropInDir+"/10-site.conf", "AllowGroups sudo\n", 0o644)
+		if a := georgeOf(read(t, h, sudo), h, true); a.key || a.why != "AllowGroups and DenyGroups aren't read" {
+			t.Errorf("george: %+v, want not able, groups not read", a)
+		}
+	})
+	t.Run("AllowUsers with a CIDR", func(t *testing.T) {
+		for cidr, able := range map[string]bool{"192.0.2.0/24": true, "198.51.100.0/24": false} {
+			h := sshDebian13().sshFile(sshd.DropInDir+"/10-site.conf", "AllowUsers george@"+cidr+"\n", 0o644)
+			if a := georgeOf(read(t, h, sudo), h, true); a.key != able {
+				t.Errorf("AllowUsers george@%s, the session from 192.0.2.10: %+v, want able %v", cidr, a, able)
+			}
+		}
+	})
+	t.Run("restricted keys", func(t *testing.T) {
+		h := sshDebian13()
+		h.f.AddFile("/home/george/.ssh/authorized_keys", []byte(`command="/bin/true" `+synthKey(1, "george@laptop-1")+"\n"), 0o600, 1000, 1000)
+		if a := georgeOf(read(t, h, sudo), h, true); a.key {
+			t.Errorf("george with a command= key alone: %+v, want not able", a)
+		}
+	})
+	t.Run("Proxmox VE, root without a key", func(t *testing.T) {
+		h := usersOn(pve9Platform, false).rootLike("*").onConsole()
+		_ = h.f.Remove(ctx, "/root/.ssh/authorized_keys")
+		if w := read(t, h, sshConsoleEnv).rootRefusal(ctx, h.sys()); !strings.HasPrefix(w, "Root would lose SSH login") {
+			t.Errorf("root key-only with no root key: %q, want a refusal", w)
+		}
+	})
+	t.Run("Key-only, no line in sshd's log", func(t *testing.T) {
+		h := sshPasswordLogin()
+		h.ssh.log = ""
+		if w := read(t, h, sudo).passwordRefusal(ctx, h.sys()); w != sshWordsNoSession {
+			t.Errorf("%q, want %q", w, sshWordsNoSession)
+		}
+	})
+	t.Run("Key-only, a Match block letting passwords in", func(t *testing.T) {
+		h := sshPasswordLogin().sshFile(sshd.DropInDir+"/20-site.conf", "Match Address 198.51.100.0/24\n    PasswordAuthentication yes\n", 0o644)
+		if w := read(t, h, sudo).passwordRefusal(ctx, h.sys()); !strings.HasPrefix(w, "Match Address 198.51.100.0/24, in 20-site.conf") {
+			t.Errorf("%q, want the Match block's refusal", w)
+		}
+	})
+	t.Run("Key-only, no admin able by key", func(t *testing.T) {
+		h := usersOn(debian13Platform, true, george(debian13Platform)).rootLike("*")
+		h.sshFile(sshd.MainConfig, debianMain, 0o644)
+		h.f.AddFile("/home/george/.ssh/authorized_keys", []byte(rsaKey(1024, 0x41, "george@laptop-1")+"\n"), 0o600, 1000, 1000)
+		h.sshFile(sshd.DropInDir+"/10-rsa.conf", "RequiredRSASize 2048\n", 0o644)
+		h.sshFile(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication yes\n", 0o600).onConsole()
+		if w := read(t, h, sshConsoleEnv).passwordRefusal(ctx, h.sys()); !strings.HasPrefix(w, "No admin could log in over SSH afterwards: george's RSA key is 1024 bits") {
+			t.Errorf("%q, want no admin able", w)
+		}
+	})
+	t.Run("the session's line by address and port", func(t *testing.T) {
+		h := sshDebian13()
+		h.ssh.log += "2026-10-20T11:59:00+00:00 " + hostName + " sshd-session[3901]: Accepted password for alice from 198.51.100.7 port " + sshSessionPort + " ssh2\n"
+		if r := read(t, h, sudo); r.login.user != "george" || r.login.method != "publickey" {
+			t.Errorf("login %+v, want george by publickey: another address's line on the same port taken", r.login)
+		}
+	})
+}
