@@ -39,19 +39,3 @@ func (m *SSHManager) ConfigureSSH(
 	// Call domain service
 	return m.sshService.ConfigureSSH(config)
 }
-
-// SecureSSH applies recommended security settings to SSH
-func (m *SSHManager) SecureSSH(port int, allowedUsers []string) error {
-	// Create SSH config with secure defaults
-	config := model.SSHConfig{
-		Port:            port,
-		ListenAddresses: []string{"0.0.0.0"},
-		PermitRootLogin: true,
-		AllowedUsers:    allowedUsers,
-		AuthMethods:     []string{"publickey"},
-		KeyPaths:        []string{".ssh/authorized_keys"},
-	}
-
-	// Apply the configuration
-	return m.sshService.ConfigureSSH(config)
-}

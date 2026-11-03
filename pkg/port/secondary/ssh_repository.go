@@ -7,7 +7,4 @@ import "github.com/abbott/hardn/pkg/domain/model"
 type SSHRepository interface {
 	// SaveSSHConfig persists the SSH configuration
 	SaveSSHConfig(config model.SSHConfig) error
-
-	// GetSSHConfig retrieves the current SSH configuration
-	GetSSHConfig() (*model.SSHConfig, error)
 }

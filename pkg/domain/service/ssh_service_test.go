@@ -19,21 +19,6 @@ func (m *MockSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 	return args.Error(0)
 }
 
-func (m *MockSSHRepository) GetSSHConfig() (*model.SSHConfig, error) {
-	args := m.Called()
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-
-	// Safely perform type assertion
-	config, ok := args.Get(0).(*model.SSHConfig)
-	if !ok {
-		return nil, fmt.Errorf("invalid type assertion, expected *model.SSHConfig")
-	}
-
-	return config, args.Error(1)
-}
-
 func TestSSHServiceImpl_ConfigureSSH(t *testing.T) {
 	// Setup
 	mockRepo := new(MockSSHRepository)
@@ -94,62 +79,6 @@ func TestSSHServiceImpl_ConfigureSSH_Error(t *testing.T) {
 
 	// Assert
 	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestSSHServiceImpl_GetCurrentConfig(t *testing.T) {
-	// Setup
-	mockRepo := new(MockSSHRepository)
-	osInfo := model.OSInfo{
-		Type:     "debian",
-		Version:  "11",
-		Codename: "bullseye",
-	}
-	service := NewSSHServiceImpl(mockRepo, osInfo)
-
-	// Test data
-	expectedConfig := &model.SSHConfig{
-		Port:            2222,
-		ListenAddresses: []string{"0.0.0.0"},
-		PermitRootLogin: false,
-		AllowedUsers:    []string{"user1", "user2"},
-		KeyPaths:        []string{".ssh/authorized_keys"},
-		AuthMethods:     []string{"publickey"},
-	}
-
-	// Setup expectations
-	mockRepo.On("GetSSHConfig").Return(expectedConfig, nil)
-
-	// Execute
-	config, err := service.GetCurrentConfig()
-
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, expectedConfig, config)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestSSHServiceImpl_GetCurrentConfig_Error(t *testing.T) {
-	// Setup
-	mockRepo := new(MockSSHRepository)
-	osInfo := model.OSInfo{
-		Type:     "debian",
-		Version:  "11",
-		Codename: "bullseye",
-	}
-	service := NewSSHServiceImpl(mockRepo, osInfo)
-
-	// Setup expectations
-	expectedErr := fmt.Errorf("failed to get config")
-	mockRepo.On("GetSSHConfig").Return(nil, expectedErr)
-
-	// Execute
-	config, err := service.GetCurrentConfig()
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, config)
 	assert.Equal(t, expectedErr, err)
 	mockRepo.AssertExpectations(t)
 }
