@@ -45,12 +45,11 @@ const (
 
 // usrUser is one account on the fixture host.
 type usrUser struct {
-	name     string
-	uid      int
-	sudo     bool   // in the sudo (wheel on Alpine) group
-	sudoers  string // /etc/sudoers.d/<name>, "" for none
-	keys     []string
-	noSshDir bool
+	name    string
+	uid     int
+	sudo    bool   // in the sudo (wheel on Alpine) group
+	sudoers string // /etc/sudoers.d/<name>, "" for none
+	keys    []string
 }
 
 // usrCase is one run of the screen.
@@ -510,13 +509,17 @@ func (r usrRootFS) ReadFile(name string) ([]byte, error) { return os.ReadFile(r.
 // WriteFile writes as root would: a file root cannot write by its mode
 // (sudoers.d's 0440) is written all the same, its mode kept, as
 // os.WriteFile keeps the mode of a file that exists.
-func (r usrRootFS) WriteFile(name string, data []byte, perm fs.FileMode) error {
+func (r usrRootFS) WriteFile(name string, data []byte, perm fs.FileMode) (err error) {
 	path := r.at(name)
-	if info, err := os.Stat(path); err == nil && info.Mode().Perm()&0o200 == 0 {
-		if err := os.Chmod(path, info.Mode().Perm()|0o200); err != nil {
-			return err
+	if info, serr := os.Stat(path); serr == nil && info.Mode().Perm()&0o200 == 0 {
+		if cerr := os.Chmod(path, info.Mode().Perm()|0o200); cerr != nil {
+			return cerr
 		}
-		defer os.Chmod(path, info.Mode().Perm())
+		defer func() {
+			if cerr := os.Chmod(path, info.Mode().Perm()); cerr != nil && err == nil {
+				err = cerr
+			}
+		}()
 	}
 	return os.WriteFile(path, data, perm)
 }
