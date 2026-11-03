@@ -78,15 +78,15 @@ const (
 type FirewallFirst uint8
 
 const (
-	FirewallNoFirst     FirewallFirst = iota // no item 1
-	FirewallInstall                          // no ufw: Install
-	FirewallEnable                           // ufw not running: Enable, or its refusal
-	FirewallSetDeny                          // running, not deny: Let SSH through, deny by default
-	FirewallLetSSH                           // running: Add its rules, other rules staying
-	FirewallLetSSHBoot                       // running: Add its rules, start at boot
-	FirewallStartBoot                        // running, let through: start at boot
-	FirewallRepair                           // running, and Enable refuses: selecting it says why
-	FirewallDisableFirst                     // active and set: Disable
+	FirewallNoFirst      FirewallFirst = iota // no item 1
+	FirewallInstall                           // no ufw: Install
+	FirewallEnable                            // ufw not running: Enable, or its refusal
+	FirewallSetDeny                           // running, not deny: Let SSH through, deny by default
+	FirewallLetSSH                            // running: Add its rules, other rules staying
+	FirewallLetSSHBoot                        // running: Add its rules, start at boot
+	FirewallStartBoot                         // running, let through: start at boot
+	FirewallRepair                            // running, and Enable refuses: selecting it says why
+	FirewallDisableFirst                      // active and set: Disable
 )
 
 // firewallWords are an item 1's words and its flow's.
