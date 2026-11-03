@@ -161,6 +161,23 @@ func TestSSHRefusals(t *testing.T) {
 	}
 }
 
+// TestSSHPortInUse: a port another program has bound is refused at plan
+// time by the real check (reload.ErrInUse), in the screen's words.
+func TestSSHPortInUse(t *testing.T) {
+	ctx := context.Background()
+	h := sshDebian13()
+	h.bound = append(h.bound, "0.0.0.0:8080")
+	sh, _ := findSSHHost("debian13")
+	r, err := readSSH(ctx, h.sys(), sh.env)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e := &sshRunner{h: h}
+	if words := e.preplan(ctx, r, sshSet(ssh.Port{}, steps.SSH{Port: 8080})); !strings.Contains(words, "in use") {
+		t.Errorf("port 8080 in use: %q, want a refusal", words)
+	}
+}
+
 // TestSSHAdminPaths holds sshLoginPaths, sshd's own answer for each admin:
 // george by key on debian13; alice left out by AllowUsers; george locked
 // without PAM; on match-allows, alice in by password through the Match
