@@ -103,6 +103,21 @@ func TestFirewallItemOnPVE(t *testing.T) {
 	}
 }
 
+// TestUsersItem: the main menu's 1 runs the User Management screen
+// cmd/hardn sets (SetUsers), as TestDNSItem's 3 runs the DNS screen, and
+// maps what it returns the same way (refactor plan slice 5, unit (d)); no
+// change the screen makes saves hardn.yml, so the main menu's
+// configuration is as it was.
+func TestUsersItem(t *testing.T) {
+	testScreenItem(t, screenItem{
+		key: "1", name: "USERS", set: (*MainMenu).SetUsers,
+		edit: func(*config.Config) {},
+		edited: func(c *config.Config) bool {
+			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.Username == config.DefaultConfig().Username
+		},
+	})
+}
+
 // TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
 // sets, and map what they return as TestDNSItem's 3 does (refactor plan slice 1, unit
 // (d)); neither saves a setting.

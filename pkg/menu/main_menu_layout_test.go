@@ -40,10 +40,10 @@ const invalid = "  (x) Invalid option. Please try again."
 // them (openScreen), until the test ends: each is named by the screen of
 // originScreens it is, the same type built from the same values, the
 // test failing on any other, then its name recorded in the list returned
-// and printed, as a screen prints over the main menu. The DNS, Firewall,
-// Backup, Environment, System Details and Logs items' screens, m's, do the
-// same as "dns", "firewall", "backup", "environment", "systemDetails" and
-// "logs".
+// and printed, as a screen prints over the main menu. The User
+// Management, DNS, Firewall, Backup, Environment, System Details and Logs
+// items' screens, m's, do the same as "users", "dns", "firewall",
+// "backup", "environment", "systemDetails" and "logs".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
 	was := openScreen
@@ -62,6 +62,7 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 		}
 		t.Errorf("an item built %#v, none of origin/main's screens", s)
 	}
+	m.SetUsers(func() error { record("users"); return nil })
 	m.SetDNS(func() error { record("dns"); return nil })
 	m.SetFirewall(func() error { record("firewall"); return nil }, nil)
 	m.SetBackup(func() error { record("backup"); return nil })
@@ -78,12 +79,13 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 // removed with its item, 5's, the Backup menu, which slice 3's unit (d)
 // replaced, 8's, the Environment menu, which slice 9's unit (d) replaced,
 // 9's and 10's, which slice 1's unit (d) replaced, and 4's, the Firewall
-// menu, which slice 4's unit (d) replaced. The DNS, Firewall, Backup,
-// Environment, System Details and Logs items' screens are m's (SetDNS,
-// SetFirewall, SetBackup, SetEnvironment, SetSystemDetails, SetLogs).
+// menu, which slice 4's unit (d) replaced, and 1's, the User Management
+// menu, which slice 5's unit (d) replaced. The User Management, DNS,
+// Firewall, Backup, Environment, System Details and Logs items' screens
+// are m's (SetUsers, SetDNS, SetFirewall, SetBackup, SetEnvironment,
+// SetSystemDetails, SetLogs).
 func originScreens(m *MainMenu) map[string]legacyScreen {
 	return map[string]legacyScreen{
-		"users":    NewUserMenu(m.menuManager, m.config, m.osInfo),
 		"sshLogin": NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
 		"runAll":   handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
 	}
@@ -143,8 +145,9 @@ func (r interrupted) Read(p []byte) (int, error) {
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 5 and 7
 // to 10 open exactly the screen origin/main's handleMenuChoice opened for
 // them, of the same constructor with the same arguments (recordScreens),
-// but 3, 4, 5, 8, 9 and 10, which open the DNS, Firewall, Backup,
-// Environment, System Details and Logs screens cmd/hardn sets, and the main menu is drawn again when it returns; 6,
+// but 1, 3, 4, 5, 8, 9 and 10, which open the User Management, DNS,
+// Firewall, Backup, Environment, System Details and Logs screens cmd/hardn
+// sets, and the main menu is drawn again when it returns; 6,
 // whose item, Dry-Run, slice 2b's unit (d) removed, its key left unused
 // (decision 1),
 // is refused as any key no item has, opening nothing; 0 (Exit) and q, in
@@ -214,7 +217,7 @@ func TestMainMenuKeys(t *testing.T) {
 			}
 			clears := strings.Count(out, clearScreen)
 			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			for _, hooked := range []string{"dns", "firewall", "backup", "environment", "systemDetails", "logs"} {
+			for _, hooked := range []string{"users", "dns", "firewall", "backup", "environment", "systemDetails", "logs"} {
 				if slices.Contains(tc.opened, hooked) {
 					want++ // the items cmd/hardn sets open their screens on a cleared screen, as every legacy screen does
 				}
