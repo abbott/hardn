@@ -190,6 +190,9 @@ func TestKeyRefusals(t *testing.T) {
 			"USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first."},
 		{"the last key, counted across files", keyed(sshdKeys, strayHomes), users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)},
 			"USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first."},
+		{"the last key, a line sshd refuses not counted", keyed(sshdKeys, map[string]home{"george": {uid: 1000, files: map[string][]string{".ssh/authorized_keys": {key1, "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5 george@old"}}}}),
+			users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)},
+			"USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first."},
 		{"also in authorized_keys2", keyed(sshdKeys, elsewhere), users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)},
 			"USERS_KEY_ELSEWHERE", "george's key is also in /home/george/.ssh/authorized_keys2, which sshd reads too. Remove it there, then try again."},
 		{"a key the user has", keyed(sshdKeys, elsewhere), users.Admin{Action: users.ActionAddKey, User: "george", Key: key2, Getenv: env(sudoGeorge)},
@@ -442,22 +445,36 @@ func TestCreate(t *testing.T) {
 
 // TestCreateKeys: Create with several keys, hardn.yml's sshKeys as -c
 // passes them: one change adding every key, in order, each 0600 and the
-// user's; the same key twice added once; one key keeps its words. A bad
-// second key refuses the plan, nothing run (TestCreateRefusals has its
-// words).
+// user's; the same key twice added once; one key keeps its words; a key
+// another file sshd reads holds already (AuthorizedKeysFile also
+// /etc/ssh/keys/%u, carol's holding key4) left out, the change adding the
+// rest. A bad second key refuses the plan, nothing run (TestCreateRefusals
+// has its words).
 func TestCreateKeys(t *testing.T) {
 	ctx := context.Background()
 	for _, tc := range []struct {
 		name    string
 		keys    []string
+		held    string // /etc/ssh/keys/carol's key, which sshd also reads; "" for none
 		file    string
 		summary string
 	}{
-		{"two keys", []string{key4, key3}, key4 + "\n" + key3 + "\n", "Add carol's keys"},
-		{"one key twice", []string{key4, testKey(4, "carol@phone")}, key4 + "\n", "Add carol's key"},
+		{"two keys", []string{key4, key3}, "", key4 + "\n" + key3 + "\n", "Add carol's keys"},
+		{"one key twice", []string{key4, testKey(4, "carol@phone")}, "", key4 + "\n", "Add carol's key"},
+		{"one held in another file sshd reads", []string{key4, key3}, key4, key3 + "\n", "Add carol's key"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			e, p, _, h := planOn(t, keyed(sshdKeys, both()), users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol", Admin: true, Keys: tc.keys}})
+			s := keyed(sshdKeys, both())
+			if tc.held != "" {
+				s = keyed(sshdPAM+"authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2 /etc/ssh/keys/%u\nstrictmodes yes\n", both())
+				seed := s.seed
+				s.seed = func(h *hostfake.System) {
+					seed(h)
+					h.AddDir("/etc/ssh/keys", 0o755, 0, 0)
+					h.AddFile("/etc/ssh/keys/carol", []byte(tc.held+"\n"), 0o644, 0, 0)
+				}
+			}
+			e, p, _, h := planOn(t, s, users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol", Admin: true, Keys: tc.keys}})
 			var keys []engine.Change
 			for _, c := range p.Changes {
 				if c.ID == users.ChangeKeys {
