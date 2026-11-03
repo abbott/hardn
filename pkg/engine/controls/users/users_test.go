@@ -211,6 +211,8 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 			return hostfake.Response{Err: s.runErr}
 		case slices.Equal(argv, []string{"visudo", "-c"}) && s.reject != sudoers.MainConfig:
 			return hostfake.Response{Stdout: sudoers.MainConfig + ": parsed OK\n"}
+		case len(argv) == 3 && argv[0] == "visudo" && argv[1] == "-cf" && s.reject != sudoers.MainConfig: // a plan's copy (sudoers.Apply)
+			return hostfake.Response{Stdout: argv[2] + ": parsed OK\n"}
 		case len(argv) == 3 && argv[0] == "doas" && argv[1] == "-C" && argv[2] != s.reject:
 			return hostfake.Response{}
 		}

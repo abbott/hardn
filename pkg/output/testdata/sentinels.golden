@@ -177,3 +177,15 @@ ufw.ErrNotInstalled UFW_NOT_INSTALLED
 ufw.ErrProxmoxUnknown UFW_PROXMOX_UNKNOWN
 ufw.ErrStateUnknown UFW_STATE_UNKNOWN
 ufw.ErrVerify UFW_VERIFY_FAILED
+users.ErrElevationNotRead USERS_ELEVATION_NOT_READ
+users.ErrGrantEdited USERS_GRANT_EDITED
+users.ErrGroupGrant USERS_GROUP_GRANT
+users.ErrLastAdmin USERS_LAST_ADMIN
+users.ErrNoPasswordToAsk USERS_NO_PASSWORD_TO_ASK
+users.ErrNoTool USERS_NO_TOOL
+users.ErrNotAdmin USERS_NOT_ADMIN
+users.ErrNotHardns USERS_GRANT_NOT_HARDNS
+users.ErrNotListed USERS_NOT_LISTED
+users.ErrSessionUser USERS_SESSION_USER
+users.ErrStillAdmin USERS_STILL_ADMIN
+users.ErrStillUnknown USERS_STILL_UNKNOWN

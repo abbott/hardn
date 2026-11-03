@@ -294,6 +294,21 @@ var errorCodes = []Entry{
 	is("PVE_PLAN_MISMATCH", pve.ErrPlanMismatch),
 	is("PVE_FIREWALL_UNKNOWN", pve.ErrStateUnknown),
 
+	// The User control's refusals (refactor plan slice 5, unit (b)): before
+	// sudoers' errors they wrap (no tool, rules rejected, a file edited).
+	is("USERS_ELEVATION_NOT_READ", users.ErrElevationNotRead),
+	is("USERS_NO_TOOL", users.ErrNoTool),
+	is("USERS_NOT_LISTED", users.ErrNotListed),
+	is("USERS_GRANT_EDITED", users.ErrGrantEdited),
+	is("USERS_NOT_ADMIN", users.ErrNotAdmin).what("a password choice for a user who is not an admin"),
+	is("USERS_GROUP_GRANT", users.ErrGroupGrant),
+	is("USERS_GRANT_NOT_HARDNS", users.ErrNotHardns),
+	is("USERS_STILL_UNKNOWN", users.ErrStillUnknown),
+	is("USERS_STILL_ADMIN", users.ErrStillAdmin),
+	is("USERS_SESSION_USER", users.ErrSessionUser),
+	is("USERS_LAST_ADMIN", users.ErrLastAdmin),
+	is("USERS_NO_PASSWORD_TO_ASK", users.ErrNoPasswordToAsk),
+
 	// sudo, sudo-rs and doas (pkg/host/sudoers): a rejection by its stage.
 	typed("SUDOERS_INVALID_BEFORE", "the installed elevation configuration does not check, before anything is written", sudoersRejected(sudoers.StageBefore)),
 	typed("SUDOERS_INVALID_AFTER", "the elevation configuration does not check with the plan installed (put back)", sudoersRejected(sudoers.StageAfter)),
