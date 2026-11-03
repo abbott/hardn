@@ -36,7 +36,7 @@ type rule struct {
 
 // tool is one elevation tool as the host has it.
 type tool struct {
-	name  string     // "sudo" (sudo or sudo-rs) or "doas"
+	name  string // "sudo" (sudo or sudo-rs) or "doas"
 	kind  sudoers.Tool
 	state detect.Tri // Yes: installed, its rules read; No: it makes no one root (why); Unknown: err says why
 	rules []rule
