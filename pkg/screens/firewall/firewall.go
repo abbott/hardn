@@ -6,7 +6,7 @@
 // plan/apply engine in pkg/ui's canonical flow: the review, y/N, or the hostname
 // typed for a lockout-risk plan, the apply, then the screen drawn again under the
 // result from a fresh reading. On Proxmox VE it is read only: no ufw call, and
-// hardn.yml not used. Run is the one entry point, which cmd/hardn's main menu
+// no item offered, so hardn.yml plays no part. Run is the one entry point, which cmd/hardn's main menu
 // item 4 is to call (unit (d)); docs/engine/screen-firewall.md has its API and
 // what it decided.
 //
@@ -27,7 +27,6 @@ import (
 	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
-	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
@@ -54,8 +53,8 @@ type Options struct {
 	// Config is hardn.yml as loaded, whose application profiles the screen shows
 	// and Add and Remove save. A change plans a copy; once it has applied and
 	// hardn.yml holds the bytes it saved, Config adopts the copy, so that the
-	// next save is not refused as CONFIG_CHANGED. On Proxmox VE it is not read.
-	// Required.
+	// next save is not refused as CONFIG_CHANGED. On Proxmox VE no item is
+	// offered, so it plays no part. Required.
 	Config *config.Config
 	// NewEngine returns the engine a change plans and applies with, built as the
 	// caller builds it (engine.New over System with its options: its backups, its
@@ -125,14 +124,11 @@ type reading struct {
 }
 
 // read reads the host as the control reads it (firewall.Read, writing nothing,
-// running only reads) and the Firewall row. On Proxmox VE, or where that is not
-// established, hardn.yml is not used.
+// running only reads) and the Firewall row. The row is Check's own reading, a
+// second ufw status, kept so that it is the main menu's row to the letter.
 func (r *runner) read(ctx context.Context) reading {
-	sys, f, cfg := r.o.System, r.o.Facts, r.o.Config
-	if onPVE, err := pve.Applies(f.Proxmox); onPVE || err != nil {
-		cfg = nil
-	}
-	h := reading{Reading: firewallctl.Read(ctx, sys, f, cfg, r.o.Session)}
+	sys, f := r.o.System, r.o.Facts
+	h := reading{Reading: firewallctl.Read(ctx, sys, f, r.o.Config, r.o.Session)}
 	status := statusRow(ctx, sys, f)
 	if h.OnPVE {
 		h.pve = pveView(h.Reading, status)

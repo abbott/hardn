@@ -85,12 +85,14 @@ func (r *runner) plain(ctx context.Context, action firewallctl.Action, c screen.
 	}
 }
 
-// change runs ch through the flow (screenkit.Session.Change), asking question,
-// from the form's answers, y/N, or by the hostname typed for a lockout-risk plan. Where the plan read
-// before asking is lockout-risk, is to be applied, and the hostname can't be read,
-// it says that and asks nothing; plan only confirms nothing, so it needs no
-// hostname. A plan that became lockout-risk since the reading says the same in
-// place of the question.
+// change runs ch through the flow (screenkit.Session.Change). The question's
+// words are the draw's, from the form's answers. Only the confirmation follows
+// the plan made at the key: y/N, or the hostname typed where that plan is
+// lockout-risk (flow decides from it), and a hostname that can't be read then
+// says so in place of the question (nav.ErrPhrase, as CantConfirm). With
+// lockout, the reading's plan being lockout-risk, a live change whose hostname
+// can't be read says so before asking anything; plan only confirms nothing, so
+// it needs no hostname.
 func (r *runner) change(ctx context.Context, lockout bool, question func() string, ch screenkit.Change) error {
 	if lockout && !r.o.DryRun {
 		if _, _, err := screenkit.Hostname(ctx, r.o.System); err != nil {
@@ -142,14 +144,16 @@ func (r *runner) drawProfiles(ctx context.Context) nav.Screen {
 }
 
 // apply is Apply: its plan's refusal, the control's, said before asking, as
-// Reading does not hold it; else its change.
+// Reading does not hold it; else its change. Its plan is plain
+// (steps.PlanUFWApps), so no hostname is checked before asking; one that turned
+// lockout-risk would be confirmed as change confirms any plan.
 func (r *runner) apply(ctx context.Context, view screen.FirewallProfiles) error {
 	in := engine.Input{Facts: r.o.Facts, Config: r.o.Config, Session: r.o.Session}
-	plan, err := firewallctl.Incoming{Action: firewallctl.ActionApplyProfiles}.Plan(ctx, r.o.System, in)
-	if err != nil {
+	apply := firewallctl.Incoming{Action: firewallctl.ActionApplyProfiles}
+	if _, err := apply.Plan(ctx, r.o.System, in); err != nil {
 		return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(err)))()
 	}
-	return r.plain(ctx, firewallctl.ActionApplyProfiles, view.ApplyChange(), risky(plan))()
+	return r.plain(ctx, firewallctl.ActionApplyProfiles, view.ApplyChange(), false)()
 }
 
 // add is Add: origin/main's four questions, each refused at its field by the
