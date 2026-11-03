@@ -7,7 +7,9 @@
 // flow does not draw (output.AfterFlow), what the change did given to Ran,
 // and hardn.yml adopted as the change saved it (Adopt). An item that cannot
 // run says why before it asks anything (Session.Say), in a refusal's words
-// (RefusalWords; NotLoaded with no hardn.yml read).
+// (RefusalWords; NotLoaded with no hardn.yml read). A lockout-risk change is
+// confirmed by typing the host's name (Hostname, TypeTheHostname), or says
+// why it cannot be (Session.CantConfirm).
 //
 // What a screen reads of its host, its items, its words and its view-model
 // stay in its own package, pkg/screens/<area>. Like those, this package
@@ -27,6 +29,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/output"
@@ -35,6 +38,19 @@ import (
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/theme"
+)
+
+// The typed confirmation's words (screen-environment.md §5): its label, the
+// flow's (P-25 (d)), proposed there; cantConfirm and cantAsk, decided
+// 2026-10-30.
+const (
+	// TypeTheHostname is a lockout-risk change's flow.Confirm.Label.
+	TypeTheHostname = "Type the hostname"
+	// cantConfirm says why a lockout-risk change cannot be confirmed with
+	// the hostname: it cannot be read (the error as it is), it is empty,
+	// or the prompt cannot ask for it (cantAsk).
+	cantConfirm = "Can't confirm with the hostname: %s"
+	cantAsk     = "the prompt can't ask for %q"
 )
 
 // Session is one run of a screen: what its caller gave it (pkg/screens/dns's
@@ -82,6 +98,12 @@ func (s Session) Write(text string) error {
 // is (Apart), and goes back to the screen.
 func (s Session) Say(msgs component.Messages) func() error {
 	return func() error { return s.Write(Apart(s.Prompter.Ctx, msgs)) }
+}
+
+// CantConfirm says, as a warning, that a lockout-risk change cannot be
+// confirmed with the hostname, and why (Hostname's error); nothing is asked.
+func (s Session) CantConfirm(err error) error {
+	return s.Say(Warnings(FullStop(fmt.Sprintf(cantConfirm, err))))()
 }
 
 // Apart is msgs rendered for c and set apart as nav.Prompter.Run sets an
@@ -263,6 +285,32 @@ func RefusalWords(err error) string {
 	}
 	first, n := utf8.DecodeRuneInString(rf.Fix)
 	return FullStop(rf.Why) + " " + FullStop(string(unicode.ToUpper(first))+rf.Fix[n:])
+}
+
+// Hostname is the phrase a lockout-risk change is confirmed by typing
+// (flow.Confirm.Phrase): the host's name as the kernel has it
+// (header.HostnameFile), as hostname(1) prints it and the main menu's header
+// shows it; and its first label where the name has more, asked in its place
+// where the name does not show whole beside the label (flow.Confirm.Short;
+// P-27 (e), proposed). An error where the name cannot be read, as it is; where
+// it is empty; or where it is no phrase nav can ask for (nav.CheckPhrase), in
+// the user's words (cantAsk), nav's own being a developer's.
+func Hostname(ctx context.Context, sys host.System) (phrase, short string, err error) {
+	data, err := sys.ReadFile(ctx, header.HostnameFile)
+	if err != nil {
+		return "", "", err
+	}
+	phrase = strings.TrimSpace(string(data))
+	switch err := nav.CheckPhrase(phrase); {
+	case phrase == "":
+		return "", "", fmt.Errorf("%s is empty", header.HostnameFile)
+	case err != nil:
+		return "", "", fmt.Errorf(cantAsk, phrase)
+	}
+	if first, _, ok := strings.Cut(phrase, "."); ok && nav.CheckPhrase(first) == nil {
+		short = first
+	}
+	return phrase, short, nil
 }
 
 // FullStop is s ending with one full stop.
