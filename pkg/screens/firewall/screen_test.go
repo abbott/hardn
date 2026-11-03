@@ -353,11 +353,11 @@ func TestDisable(t *testing.T) {
 // place, the configuration adopting it, the profiles' screen drawn again with it.
 func TestAdd(t *testing.T) {
 	h, cfg := screenHost(t, "profiles")
-	p := play(h, h, cfg, false, "2", "1", "all", "webserver", "Web", "", "Web Server", "", "A web server", "99999/tcp", "80/tcp|443/tcp", "80", "8080/tcp, 8443/tcp", "y", "0", "0")
+	p := play(h, h, cfg, false, "2", "1", "-web", "all", "webserver", "Web", "", "Web Server", "", "A web server", "99999/tcp", "80/tcp|443/tcp", "80", "8080/tcp, 8443/tcp", "y", "0", "0")
 	if p.err != nil || p.unread != 0 || len(p.runs) != 1 || p.runs[0].Err != nil {
 		t.Fatalf("Run = %v, %d unread, runs %+v:\n%s", p.err, p.unread, p.runs, p.out)
 	}
-	if w := inOrder(p.out, "Manage UFW Application Profiles #", "Add Profile #", "Profile name", "ufw can't use that name.", "A profile with this name already exists.",
+	if w := inOrder(p.out, "Manage UFW Application Profiles #", "Add Profile #", "Profile name", "Start it with a letter or digit", "It keeps all and numbers for itself.", "A profile with this name already exists.",
 		"Give the profile a title.", "Give the profile a description.", "Give each port, 1 to 65535", "Give each port", "Give each port",
 		"Web 8080/tcp, 8443/tcp", "Add Web? [y/N", "Manage UFW Application Profiles #", "Web 8080/tcp, 8443/tcp Not applied"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)

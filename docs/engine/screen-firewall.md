@@ -51,7 +51,7 @@ firewall.Run(ctx, firewall.Options{
 The decided words (§6) are used as decided. These are new to §6 and to control-firewall.md's proposed list:
 
 - From the adopted mocks, not in §6: "Save a profile in hardn.yml", "Take one out of hardn.yml", "Let their ports through ufw"; the review's "Package"; "Profile name", "Such as WebServer.", "Title", "Description", "Ports", "Such as 80/tcp,443/tcp.", "Remove which profile?", "A profile with this name already exists."; the rows "Listeners", "Finding".
-- New: "ufw can't use that name. Use letters, digits, dots, dashes and underscores." The mock's second sentence follows a new first one, as the name check is now ufw's.
+- New: "ufw can't use that name. Start it with a letter or digit, then use letters, digits, spaces, dots, dashes, underscores or +." and "ufw can't use that name. It keeps all and numbers for itself.", where the mock said "Use letters, digits, dots, dashes and underscores.": the name check is now ufw's, which takes spaces and `+`.
 - Decision 7's row: key "ufw", "Left on", note "Run ufw disable"; "Not read" where ufw.conf can't be read.
 
 ## Against the mocks

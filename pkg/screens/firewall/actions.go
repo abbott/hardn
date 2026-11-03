@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"unicode"
+	"unicode/utf8"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
@@ -31,7 +33,8 @@ const (
 	portsAbout  = "Such as 80/tcp,443/tcp."
 	removeTitle = "Remove which profile?"
 
-	nameRefused  = "ufw can't use that name. Use letters, digits, dots, dashes and underscores."
+	nameRefused  = "ufw can't use that name. Start it with a letter or digit, then use letters, digits, spaces, dots, dashes, underscores or +."
+	nameReserved = "ufw can't use that name. It keeps all and numbers for itself."
 	nameHeld     = "A profile with this name already exists."
 	titleRefused = "Give the profile a title."
 	aboutRefused = "Give the profile a description."
@@ -172,6 +175,8 @@ func (r *runner) add(ctx context.Context, h reading) error {
 	fields := []form.Field{
 		&form.Text{Title: nameTitle, Description: nameAbout, Value: &name, Validate: func(s string) error {
 			switch {
+			case !profileOK(s, "x", "x", "1/tcp") && nameChars(s):
+				return nav.Refuse(nameReserved)
 			case !profileOK(s, "x", "x", "1/tcp"):
 				return nav.Refuse(nameRefused)
 			case slices.ContainsFunc(h.Profiles, func(p config.UfwAppProfile) bool { return strings.EqualFold(p.Name, s) }):
@@ -194,6 +199,20 @@ func (r *runner) add(ctx context.Context, h reading) error {
 			return []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionSaveProfiles}}
 		},
 	})
+}
+
+// nameChars reports whether s has only the characters ufw takes in a profile's
+// name, a letter or digit first; it picks the words of a name refused, so that one
+// ufw still refuses is one it keeps for itself ("all", a number). ufw.ValidProfile
+// refuses it.
+func nameChars(s string) bool {
+	for i, c := range s {
+		alnum := c < utf8.RuneSelf && (unicode.IsLetter(c) || unicode.IsDigit(c))
+		if !alnum && (i == 0 || !strings.ContainsRune(" _-.+", c)) {
+			return false
+		}
+	}
+	return s != ""
 }
 
 // profileOK reports whether ufw's check takes the profile of these answers, its
