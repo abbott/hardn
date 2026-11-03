@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"io/fs"
 	"os"
@@ -57,6 +59,41 @@ const usrTestSSHD = "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\np
 	"authorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\n" +
 	"revokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\n"
 
+// usrTestUID is the uid, and the gid, useradd gives the user it creates.
+const usrTestUID = 1001
+
+// usrTestKey is a synthetic ED25519 public key, its 32 bytes seed, as
+// pkg/engine/controls/users' tests make them: no one's.
+func usrTestKey(seed byte, comment string) string {
+	blob := binary.BigEndian.AppendUint32(nil, 11)
+	blob = append(blob, "ssh-ed25519"...)
+	blob = binary.BigEndian.AppendUint32(blob, 32)
+	for range 32 {
+		blob = append(blob, seed)
+	}
+	return "ssh-ed25519 " + base64.StdEncoding.EncodeToString(blob) + " " + comment
+}
+
+// withKeys rewrites h's hardn.yml with username alice and sshKeys keys,
+// and returns it as hardn reads it.
+func withKeys(t *testing.T, h *usrTestHost, keys ...string) *config.Config {
+	t.Helper()
+	yml := "username: alice\nsshKeys:"
+	if len(keys) == 0 {
+		yml += " []"
+	}
+	yml += "\n"
+	for _, k := range keys {
+		yml += "  - " + strconv.Quote(k) + "\n"
+	}
+	h.AddFile(dnsTestYML, []byte(yml), 0o644, 0, 0)
+	cfg, err := config.Read(context.Background(), h, dnsTestYML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return cfg
+}
+
 // newUsersHost returns the host, and hardn.yml as hardn reads it there
 // (newDNSHost's: username alice, Create's default).
 func newUsersHost(t *testing.T) (*usrTestHost, *config.Config) {
@@ -98,6 +135,9 @@ func newUsersHost(t *testing.T) (*usrTestHost, *config.Config) {
 			return h.useradd(argv)
 		case argv[0] == "userdel":
 			return hostfake.Response{}
+		case argv[0] == "install": // install -d -m 700 -o NAME -g NAME DIR: ~/.ssh, useradd's user's
+			h.AddDir(argv[len(argv)-1], 0o700, usrTestUID, usrTestUID)
+			return hostfake.Response{}
 		}
 		return dns(argv, in)
 	}
@@ -126,7 +166,7 @@ func (h *usrTestHost) useradd(argv []string) hostfake.Response {
 			mkHome = true
 		}
 	}
-	uid := 1001
+	uid := usrTestUID
 	add := func(file, line string, mode fs.FileMode, gid int) {
 		data, _ := h.ReadFile(context.Background(), file)
 		h.AddFile(file, append(data, line+"\n"...), mode, 0, gid)
@@ -340,6 +380,54 @@ func TestCreateUserFlag(t *testing.T) {
 	}
 }
 
+// TestCreateUserKeys: -c adds every key in hardn.yml's sshKeys to the user
+// it creates (the maintainer, 2026-11-03: "(a) Add sshKeys"), in one
+// change, the file 0600 and the user's, and no USERS_NO_KEY; -n -c shows
+// them, nothing run or written, 3. A key that is not one, or an empty
+// entry, is the control's refusal, naming which, before anything is
+// written: no useradd, 1.
+func TestCreateUserKeys(t *testing.T) {
+	k1, k2 := usrTestKey(5, "carol@laptop"), usrTestKey(6, "carol@phone")
+	for _, tc := range []struct {
+		name string
+		args []string
+		keys []string
+		code int // the exit status; 0: hardn did not exit
+		said []string
+	}{
+		{"-c -u carol", []string{"-c", "-u", "carol"}, []string{k1, k2}, 0, []string{"Create user carol", "Let carol use sudo", "Add carol's keys", "Operation Successful"}},
+		{"-n -c -u carol", []string{"-n", "-c", "-u", "carol"}, []string{k1, k2}, 3, []string{"Create user carol", "Add carol's keys", "carol@laptop", "carol@phone", "No actual changes were made to your system."}},
+		{"a bad second key", []string{"-c", "-u", "carol"}, []string{k1, "ssh-rsa AAAA carol@old"}, 1, []string{"Key 2 isn't an OpenSSH public key", "AUTHKEYS_NOT_KEY"}},
+		{"an empty entry", []string{"-c", "-u", "carol"}, []string{k1, ""}, 1, []string{"Key 2 isn't an OpenSSH public key", "AUTHKEYS_NOT_KEY"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, _ := newUsersHost(t)
+			cfg := withKeys(t, h, tc.keys...)
+			r, s := runC(t, h, cfg, nil, tc.args...)
+			report := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
+			}
+			if w := inOrder(report, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, report)
+			}
+			if strings.Contains(report, "USERS_NO_KEY") {
+				t.Errorf("USERS_NO_KEY with keys:\n%s", report)
+			}
+			if tc.code != 0 {
+				if got := h.writes(); len(got) > 0 || len(h.commands("useradd")) > 0 {
+					t.Errorf("wrote %q, ran %q", got, h.commands("useradd"))
+				}
+				return
+			}
+			k, _ := h.Entry("/home/carol/.ssh/authorized_keys")
+			if want := k1 + "\n" + k2 + "\n"; string(k.Data) != want || k.Mode.Perm() != 0o600 || k.UID != usrTestUID || k.GID != usrTestUID {
+				t.Errorf("keys %q %v %d:%d, want %q 0600 %d:%d", k.Data, k.Mode, k.UID, k.GID, want, usrTestUID, usrTestUID)
+			}
+		})
+	}
+}
+
 // TestCreateUserPlanOnlyFromFile: hardn.yml's dryRun: true makes -c the
 // plan alone, as -n does: nothing run or written, 3; --dry-run=false over
 // it applies as live, 0.
@@ -390,29 +478,36 @@ func TestCreateUserNoName(t *testing.T) {
 }
 
 // TestCreateUserDisableRoot: -c with -d is refused on stderr, exit status
-// 2, before either runs, where -c's user gets no key, as it never does
-// today: no user created, nothing written, sshd's configuration untouched
+// 2, before either runs, where -c's user gets no key, hardn.yml's sshKeys
+// empty: no user created, nothing written, sshd's configuration untouched
 // (the legacy provider, -d's, never reached); under -n too. -d alone runs
-// as it did.
+// as it did; -c -d with sshKeys runs both, -c's user created with its key.
 func TestCreateUserDisableRoot(t *testing.T) {
+	key := usrTestKey(5, "carol@laptop")
 	for _, tc := range []struct {
 		name    string
 		args    []string
 		refused string // the refusal's words; "" for none
+		keys    []string
 	}{
 		{"-c -d -u carol", []string{"-c", "-d", "-u", "carol"},
-			"hardn -c -d would leave no SSH login: carol has no key, and -d turns off root's. Give carol a key first."},
+			"hardn -c -d would leave no SSH login: carol has no key, and -d turns off root's. Give carol a key first.", nil},
 		{"-c -d: hardn.yml's username", []string{"-c", "-d"},
-			"hardn -c -d would leave no SSH login: alice has no key, and -d turns off root's. Give alice a key first."},
-		{"-n -c -d -u carol", []string{"-n", "-c", "-d", "-u", "carol"}, "-d/--disable-root"},
-		{"-d alone", []string{"-d"}, ""},
+			"hardn -c -d would leave no SSH login: alice has no key, and -d turns off root's. Give alice a key first.", nil},
+		{"-n -c -d -u carol", []string{"-n", "-c", "-d", "-u", "carol"}, "-d/--disable-root", nil},
+		{"-d alone", []string{"-d"}, "", nil},
+		{"-c -d -u carol, sshKeys", []string{"-c", "-d", "-u", "carol"}, "", []string{key}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			h, cfg := newUsersHost(t)
+			h, _ := newUsersHost(t)
+			cfg := withKeys(t, h, tc.keys...)
 			r, s := runC(t, h, cfg, nil, tc.args...)
 			if tc.refused == "" {
 				if r.ended && r.code == hardncmd.ExitUsage || len(r.calls) == 0 {
 					t.Errorf("-d refused or not run: ended %v with %d, %d legacy calls; stderr:\n%s", r.ended, r.code, len(r.calls), r.stderr)
+				}
+				if c := slices.Contains(tc.args, "-c"); c != (len(h.commands("useradd")) == 1) || c != (h.content("/home/carol/.ssh/authorized_keys") == key+"\n") {
+					t.Errorf("-c ran %q, keys %q", h.commands("useradd"), h.content("/home/carol/.ssh/authorized_keys"))
 				}
 				return
 			}
