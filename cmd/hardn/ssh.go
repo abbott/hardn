@@ -30,46 +30,62 @@ import (
 )
 
 // disallowRoot is -d: the SSH Login control's Root with Want "no",
-// Disallow root login (PermitRootLogin no), hardn's environment (os.Getenv)
-// giving the session user, SUDO_USER or DOAS_USER, planned and applied as
+// Disallow root login (PermitRootLogin no), planned and applied as
 // runControls runs a flag's controls, its report output.Human's on stdout.
-// The control refuses before anything is written, in the decided words,
-// what the screen's Disallow refuses (gallery-ssh.md §5, decisions 2 and 3
-// (a)): sshd's settings not read, hardn's old files not yet moved, an
-// Include not first, root's own SSH session, a session sshd's log has no
-// line for, a Match block that lets root in more, no admin able to log in
-// and become root afterwards. Its plan is lockout-risk, so it is confirmed
-// as the screen confirms it, by the hostname typed, on a terminal, the
-// revert timer then armed; off a terminal it is refused, nothing armed
-// (disallowRootConfirm). Root login already off is nothing to change. On
-// Proxmox VE the control plans root key-only (prohibit-password), which
-// the cluster's nodes need, where the screen offers Root key-only; root
-// key-only already there is nothing to change for -d too
-// (disallowRootControl), a flag being idempotent. Under -n, or hardn.yml's
-// dryRun: true, the plan alone, no question, nothing written. hardn.yml's
-// SSH settings are not read (loadWarnings says so of those set). It
-// returns the exit status: 0 applied or nothing to change, 3 a plan with
-// changes to make (-n) or declined (0, q), 1 refused or failed.
+// hardn's environment (os.Getenv) feeds users.Read's Invoker, which the
+// SSH Login control does not weigh: the session's login is sshd's log's
+// (sshchange.Reading.Login). The control refuses before anything is
+// written, in the decided words, what the screen's Disallow refuses
+// (gallery-ssh.md §5, decisions 2 and 3 (a)): sshd's settings not read,
+// hardn's old files not yet moved, an Include not first, root's own SSH
+// session, a session sshd's log has no line for, a Match block that lets
+// root in more, no admin able to log in and become root afterwards. Its
+// plan is lockout-risk, so it is confirmed as the screen confirms it, by
+// the hostname typed, on a terminal, the revert timer then armed; off a
+// terminal it is refused, nothing armed (disallowRootConfirm). -d never
+// loosens root login: root login already off (sshd -T's PermitRootLogin
+// no) is nothing to change, on Proxmox VE as elsewhere, though there the
+// control would plan root key-only (prohibit-password), which the
+// screen's Root key-only item offers; root key-only already there is
+// nothing to change for -d too (disallowRootControl), a flag being
+// idempotent. Under -n, or hardn.yml's dryRun: true, the plan alone, no
+// question, nothing written. hardn.yml's SSH settings are not read
+// (loadWarnings says so of those set). It returns the exit status: 0
+// applied or nothing to change, 3 a plan with changes to make (-n) or
+// declined (0, q), 1 refused or failed.
 func disallowRoot(c *config.Config) int {
 	root := disallowRootControl{sshchange.Root{Want: "no", Getenv: os.Getenv}}
 	return runControls(c, []engine.Control{root}, nil, &disallowRootConfirm)
 }
 
 // disallowRootControl is -d's control: the SSH Login control's Root, but
-// for its refusal on Proxmox VE where root is key-only already
-// (sshchange.ErrPVEKeyOnly, SSH_PVE_ROOT_KEY_ONLY: the screen's item then
-// read-only), which -d plans as nothing to change, as it does root login
-// already off elsewhere.
+// never loosening root login: on Proxmox VE, where the control plans root
+// key-only (prohibit-password), root login already off (sshd -T's
+// PermitRootLogin no, the reading the control makes) is nothing to
+// change, as it is elsewhere; and the control's refusal where root is
+// key-only already (sshchange.ErrPVEKeyOnly, SSH_PVE_ROOT_KEY_ONLY: the
+// screen's item then read-only) is nothing to change too.
 type disallowRootControl struct{ sshchange.Root }
 
-// Plan is Root's, with Proxmox VE's root key-only already planned as
-// nothing to change.
+// Plan is Root's, with Proxmox VE's root key-only already, and a plan
+// there that would open root's login from no, planned as nothing to
+// change.
 func (c disallowRootControl) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	cs, err := c.Root.Plan(ctx, sys, in)
 	if errors.Is(err, sshchange.ErrPVEKeyOnly) {
 		return nil, nil
 	}
-	return cs, err
+	if err != nil || len(cs) == 0 {
+		return cs, err
+	}
+	r, err := sshchange.Read(ctx, sys, in.Facts, in.Config, in.Session, c.Getenv)
+	if err != nil {
+		return nil, err
+	}
+	if r.PVE && r.RootValue() == "no" { // Root key-only would loosen it: the screen's item
+		return nil, nil
+	}
+	return cs, nil
 }
 
 // disallowRootConfirm is -d's confirmation of its lockout-risk plan: the
@@ -106,10 +122,10 @@ func withSSHScreen[M sshMenu](m M, c *config.Config) M {
 // until the user goes back (nil) or quits (nav.ErrQuit), or the input ends
 // (prompt.ErrAborted), as runUsersScreen runs the User Management screen:
 // on the host hardn builds, with its run log in hardn's log, the facts
-// detected once per visit, hardn's environment (os.Getenv), from which the
-// control takes the session user, SUDO_USER or DOAS_USER (without it every
-// run would read as a root login, and Disallow root login would refuse as
-// at one), through the one line reader every prompt shares and stdout's
+// detected once per visit, hardn's environment (os.Getenv), which feeds
+// users.Read's Invoker, which the SSH Login control does not weigh (the
+// session's login is sshd's log's, sshchange.Reading.Login), through the
+// one line reader every prompt shares and stdout's
 // render environment; each change on an engine with engineOptions,
 // assembled for this visit from c as it is now, and the session the
 // screen reads (its line in sshd's log, or the console) the one those
