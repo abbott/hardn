@@ -79,7 +79,7 @@ func TestSSHHosts(t *testing.T) {
 		"password-session": {"root key-only", "password auth on", "default (22)", "Key only", "On", "22"},
 		"root-session":     {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
 		"legacy-v032":      {"root disallowed", "key-only auth", "socket and sshd differ", "Disallowed", "Off", "22, 2230"},
-		"legacy-main":      {"root disallowed", "password auth on", "default (22)", "Disallowed", "Off", "22"}, // by AuthenticationMethods
+		"legacy-main":      {"root disallowed", "key-only auth", "default (22)", "Disallowed", "Off", "22"}, // by AuthenticationMethods
 		"include-other":    {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
 		"match-allows":     {"match block allows root", "match block allows passwords", "default (22)", "Key only", "Off", "22"},
 		"allow-users":      {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},

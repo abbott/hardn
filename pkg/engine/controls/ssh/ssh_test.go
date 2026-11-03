@@ -948,6 +948,80 @@ func TestAuth(t *testing.T) {
 	}
 }
 
+// TestAuthMethods: AuthenticationMethods (check-ssh.md §10). A password
+// path is a list that password authentication, or keyboard-interactive
+// where sshd uses PAM, meets alone; "any" leaves the rows as before.
+// Debian's stock files leave PasswordAuthentication at its default, yes,
+// with UsePAM yes and keyboard-interactive off.
+func TestAuthMethods(t *testing.T) {
+	const (
+		pwYes, pwNo   = "sshd -T: passwordauthentication yes", "sshd -T: passwordauthentication no"
+		kbdNo, kbdYes = "sshd -T: kbdinteractiveauthentication no", "sshd -T: kbdinteractiveauthentication yes"
+		keyYes        = "sshd -T: pubkeyauthentication yes"
+	)
+	for _, c := range []struct {
+		name string
+		r    row
+		ev   []string
+	}{
+		{"any, passwords on", row{site: site{plat: debian13(), drops: drops("10-site.conf", "AuthenticationMethods any\n")},
+			state: engine.NotConfigured, want: "password auth on"}, []string{pwYes, kbdNo, keyYes}},
+		{"publickey alone, passwords on", row{site: site{plat: debian13(), drops: drops("10-site.conf", "AuthenticationMethods publickey\nPasswordAuthentication yes\n")},
+			state: engine.Configured, want: "key-only auth"}, []string{pwYes, kbdNo, keyYes, "sshd -T: authenticationmethods publickey"}},
+		{"origin/main's hardn.conf, cloud-init's yes read first", row{site: site{plat: ubuntu2604(), drops: drops("00-hardn.conf",
+			"PermitRootLogin no\nAuthenticationMethods publickey\n", "50-cloud-init.conf", "PasswordAuthentication yes\n")}, // 50- is read after 00-hardn.conf
+			state: engine.Configured, want: "key-only auth"}, []string{pwYes, kbdNo, keyYes, "sshd -T: authenticationmethods publickey"}},
+		{"a key and a password", row{site: site{plat: debian13(), drops: drops("10-site.conf", "AuthenticationMethods publickey,password\n")},
+			state: engine.Configured, want: "key and password"}, []string{pwYes, kbdNo, keyYes, "sshd -T: authenticationmethods publickey,password"}},
+		{"a key and a password, or a key alone (the VMs' form)", row{site: site{plat: debian13(), drops: drops("10-site.conf", "AuthenticationMethods publickey,password publickey\n")},
+			state: engine.Configured, want: "key-only auth"}, []string{pwYes, kbdNo, keyYes, "sshd -T: authenticationmethods publickey,password publickey"}},
+		{"password alone", row{site: site{plat: debian13(), drops: drops("10-site.conf", "AuthenticationMethods publickey password\n")},
+			state: engine.NotConfigured, want: "password auth on"}, []string{pwYes, kbdNo, keyYes, "sshd -T: authenticationmethods publickey password"}},
+		{"password alone, passwords off", row{site: site{plat: debian13(), drops: drops("10-site.conf", "AuthenticationMethods password publickey\nPasswordAuthentication no\n")},
+			state: engine.Configured, want: "key-only auth"}, []string{pwNo, kbdNo, keyYes, "sshd -T: authenticationmethods password publickey"}},
+		{"keyboard-interactive alone, with PAM", row{site: site{plat: ubuntu2604(), drops: drops("10-site.conf",
+			"AuthenticationMethods keyboard-interactive:pam publickey\nPasswordAuthentication no\nKbdInteractiveAuthentication yes\n")},
+			state: engine.NotConfigured, want: "kbd-interactive on"},
+			[]string{pwNo, kbdYes, keyYes, "sshd -T: authenticationmethods keyboard-interactive:pam publickey", "sshd -T: usepam yes"}},
+		{"keyboard-interactive alone, without PAM", row{site: site{plat: debian13(), drops: drops("10-site.conf",
+			"AuthenticationMethods keyboard-interactive\nPasswordAuthentication no\nKbdInteractiveAuthentication yes\nUsePAM no\n")},
+			state: engine.Configured, want: "key-only auth"},
+			[]string{pwNo, kbdYes, keyYes, "sshd -T: authenticationmethods keyboard-interactive", "sshd -T: usepam no", "keyboard-interactive: no password prompt without PAM"}},
+		{"a key then keyboard-interactive, with PAM", row{site: site{plat: ubuntu2604(), drops: drops("10-site.conf",
+			"AuthenticationMethods publickey,keyboard-interactive\nPasswordAuthentication no\nKbdInteractiveAuthentication yes\n")},
+			state: engine.Configured, want: "key and password"},
+			[]string{pwNo, kbdYes, keyYes, "sshd -T: authenticationmethods publickey,keyboard-interactive"}},
+		{"a Match block's AuthenticationMethods lets passwords in", row{site: site{plat: debian13(), drops: drops("10-site.conf",
+			"AuthenticationMethods publickey\nMatch Address 192.0.2.0/24\n\tAuthenticationMethods password\n")},
+			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
+			[]string{pwYes, kbdNo, keyYes, "sshd -T: authenticationmethods publickey",
+				"/etc/ssh/sshd_config.d/10-site.conf:3: AuthenticationMethods password (Match Address 192.0.2.0/24)"}},
+		{"a Match block's AuthenticationMethods, passwords off for it", row{site: site{plat: debian13(), drops: drops("10-site.conf",
+			"AuthenticationMethods publickey\nMatch Address 192.0.2.0/24\n\tAuthenticationMethods password\n\tPasswordAuthentication no\n")},
+			state: engine.Configured, want: "key-only auth"}, []string{pwYes, kbdNo, keyYes, "sshd -T: authenticationmethods publickey"}},
+		{"a Match block turns passwords on, the global lists a key", row{site: site{plat: debian13(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nAuthenticationMethods publickey\nMatch User alice\n\tPasswordAuthentication yes\n")},
+			state: engine.Configured, want: "key-only auth"}, []string{pwNo, kbdNo, keyYes, "sshd -T: authenticationmethods publickey"}},
+		{"a Match block turns passwords on and lists password alone", row{site: site{plat: debian13(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nAuthenticationMethods publickey\nMatch User alice\n\tPasswordAuthentication yes\n\tAuthenticationMethods any\n")},
+			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
+			[]string{pwNo, kbdNo, keyYes, "sshd -T: authenticationmethods publickey",
+				"/etc/ssh/sshd_config.d/10-site.conf:4: PasswordAuthentication yes (Match User alice)"}},
+		{"a Match block's keyboard-interactive, with PAM", row{site: site{plat: ubuntu2604(), drops: drops("10-site.conf",
+			"PasswordAuthentication no\nKbdInteractiveAuthentication yes\nAuthenticationMethods publickey\nMatch User alice\n\tAuthenticationMethods keyboard-interactive\n")},
+			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore}},
+			[]string{pwNo, kbdYes, keyYes, "sshd -T: authenticationmethods publickey", "sshd -T: usepam yes",
+				"/etc/ssh/sshd_config.d/10-site.conf:5: AuthenticationMethods keyboard-interactive (Match User alice)"}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			c.r.ctl = auth
+			if st := run(t, c.r); !slices.Equal(st.Evidence, c.ev) {
+				t.Errorf("evidence %q, want %q", st.Evidence, c.ev)
+			}
+		})
+	}
+}
+
 // TestAuthPAM: which sshd the check reads on Alpine, and the evidence that
 // says why keyboard-interactive counts or not (check-ssh.md §2.11). The
 // Alpine 3.23.6 VM of 2026-10-21 ran /usr/sbin/sshd, built without PAM,
