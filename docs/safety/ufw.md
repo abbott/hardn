@@ -138,6 +138,7 @@ type FindingKind uint8 // FindingNotAllowed "ssh-not-allowed", FindingRestricted
 // FindingExcepted "ssh-allowed-except", FindingAtStart "ssh-not-allowed-at-start", FindingWidened "ssh-new-port-wider"
 type Finding struct { Kind FindingKind; Coverage Coverage; Incoming Policy }
 func Check(st State, needs []Need) ([]Coverage, []Finding)
+func OnlyFrom(st State, port uint16) []string // slice 6 (b): active ufw lets port/tcp in from these sources alone (rules' Src, in order); nil from anywhere, no rule, or inactive
 
 type Desired struct { Enable bool; Incoming, Outgoing Policy; NoSaveWhileInactive bool }
 type Input struct { Proxmox detect.Proxmox; Listeners sshd.Listeners; Add, Keep []uint16; State State; Desired Desired }
