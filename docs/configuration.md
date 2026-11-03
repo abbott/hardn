@@ -137,10 +137,10 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 
 `dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
 
-- **Some menu areas are refused.** User Management, and adding or removing a Firewall profile, say "Not available in plan only." Start without plan only to use them.
-- **Backup and Environment open.** Each of their changes stops at its plan.
+- **User Management is refused.** It says "Not available in plan only." Start without plan only to use it.
+- **Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
 - **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
-- **Operation flags are refused** under plan only, as with `-n`: `hardn -r`, `-c`, `-d` and `-w` exit with status 2 and change nothing. `-g`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
+- **Operation flags are refused** under plan only, as with `-n`: `hardn -r`, `-c` and `-d` exit with status 2 and change nothing. `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
@@ -200,7 +200,11 @@ disableRoot: false                  # Disable root SSH access
 
 ### Firewall Configuration with UFW Application Profiles
 
-Hardn uses UFW application profiles to configure the firewall. These profiles are written to `/etc/ufw/applications.d/hardn` and provide a flexible way to define firewall rules.
+The main menu's Firewall (4) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing.
+
+- **Enabling asks you to type the hostname**, since a wrong rule could lock you out. It lets SSH through, denies incoming by default, starts ufw and starts it at boot. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
+- **`hardn -w` enables it the same way.** On a terminal it asks you to type the hostname. Off one, a change that could lock you out is refused: run `hardn -w` from a terminal. With `-n` it shows the plan.
+- **Application Profiles (2)** adds a profile to hardn.yml, removes one, and applies them: Apply writes `/etc/ufw/applications.d/hardn` and lets their ports through ufw.
 
 ```yaml
 ufwAppProfiles:
@@ -217,7 +221,10 @@ Each profile has these fields:
 - `description`: Description of the service
 - `ports`: List of ports in the format "port/protocol" (e.g., "30443/tcp")
 
-The default incoming policy is always set to "deny" and the default outgoing policy to "allow" for security.
+- **In ufw's file the ports are joined by `|`**, as ufw requires: `ports=80/tcp|443/tcp`. Keep one port per entry in hardn.yml.
+- **Removing a profile leaves its rule in ufw.** It is taken out of hardn.yml only. Delete it with `ufw delete`.
+
+The default incoming policy is always set to "deny" and the default outgoing policy to "allow". `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 ## Configuration Recommendations
 <!-- 
@@ -240,7 +247,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    dryRun: true      # plan only at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-g`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml

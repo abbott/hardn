@@ -7,6 +7,7 @@
 > **Amended by `next/s3-hangup`** (the maintainer, 2026-10-28: "Yes, end on hangup"): after a hangup during a DNS or Backup screen's apply, hardn ends once the apply has returned, the change rolled back, or finished, rather than at its next prompt (§2.6, which says when not). `-g` is unchanged by it. Then (the maintainer, 2026-10-28: "Yes, catch it"): the engine's hold catches a hangup during the rollback rather than ignoring it, the commands the rollback runs in sessions of their own (`host.OwnSessions`), so the screens end hardn after a hangup during the rollback, or after it before the apply's stop, too (§2.6, decision 17); and `-g`, after a signal that reached its apply or its report without interrupting the apply, ends hardn once reported, the flags after it not run: with the failure's status, 1, after `SIGTERM` or a hangup during the rollback of a failure, and with 130 for a change applied, a signal after the apply's last step or while the report is written (§2.5, decision 18). *Run on Debian 13 and Ubuntu 26.04 on 2026-10-28 ([screen-backup.md](screen-backup.md) §4.2, the hangup rerun): the screens' end after a hangup during a save, during a DNS change's own undo and during its rollback under the hold; not under sudo-rs where a step runs on after the session drops (§11).* Then (the maintainer, 2026-10-28, to that: "Yes, fix it"): hardn stops writing to its terminal once a hangup is caught, so that a pty nothing reads any more cannot hang it mid-apply (§2.6, decision 19). *Rerun on Ubuntu 26.04 at `4a0079e` the same day: hardn ended once rolled back where a step ran on after the drop (§2.6, "Run on the VMs"); on Debian 13 the next day, as at `440a7b0`.*
 > **Amended by `next/s9-replace`** (slice 9, Environment, unit (d); [screen-environment.md](screen-environment.md) §7): the main menu's 8 runs the Environment screen through a fourth hook, `MainMenu.SetEnvironment`, set by `withEnvironmentScreen` on the same line of `main.go` (202), with the facts detected per visit and hardn's environment (§2.9); `-e` and `setup-sudo-env` plan and apply the Environment control through `runControls`, which takes a flag's own refusal of a plan, and refuse a lockout-risk plan naming main menu 8; under `-n` they show the plan (§2.10). `engineOptions`, `newEngine`, the seams and `-g` are unchanged (`-g` passes no refusal).
 > **Amended by `next/s1-replace`** (slice 1, System Details + Logs, unit (d); [screen-system-details.md](screen-system-details.md) §7): the main menu's 9 and 10 run their screens through `MainMenu.SetSystemDetails` and `SetLogs`, set by `withReaderScreens` in `cmd/hardn/readers.go`; §2.11 says what `hardn system-details` and `-p` became.
+> **Amended by `next/s4-replace`** (slice 4, Firewall, unit (d); [screen-firewall.md](screen-firewall.md), "Built in `next/s4-replace`"): the main menu's 4 runs the Firewall screen through `MainMenu.SetFirewall`, set by `withFirewallScreen` in `withHooks`, "View pve-firewall" on Proxmox VE (§2.12); `-w` plans and applies the Firewall control's Enable through `runControls`, which gains `confirm`: on a terminal the hostname typed, off one a lockout-risk plan refused; `-n -w` shows the plan (§2.13). `engineOptions`, `newEngine`, the seams, `-g` and `-e` are unchanged.
 
 ## 1. Why
 
@@ -114,6 +115,22 @@ Both paths register `signal.NotifyContext` for SIGINT, SIGTERM and SIGHUP (`engi
 - **Either way:** `Printed.Stderr(tool)` on stderr, `tool` the elevation command, "" as root. Exit status `Printed.ExitCode()`, 1 for a failed write. After other flags the status combines with `-g`'s and `-e`'s by `runStatus`, once they have all run.
 - **`main()`:** its lines go to stderr, so `> file` and `--output json` hold the report alone (`TestStartUpLeavesStdoutAlone`). A bad command line is cobra's, on stderr with the usage, exit 2, for every command (`TestUsageErrors`).
 
+### 2.12 The main menu's 4 (`runFirewallScreen`, `cmd/hardn/firewall.go`; slice 4, unit (d), `next/s4-replace`)
+
+- **How `pkg/menu` reaches it:** `MainMenu.SetFirewall(run func() error, onPVE func() bool)`, set by `withFirewallScreen` inside `withHooks`; `main.go` unchanged. It shares `showScreen`; with no screen set the item panics ("menu: the Firewall item has no screen (SetFirewall)", internal).
+- **Its description:** "View pve-firewall" where `onPVE` says Proxmox VE (detect's Proxmox VE installed, `engineDetect` read once, as the main menu is first drawn; decision 7, decided), "Configure UFW rules" elsewhere, as before.
+- **What it runs:** `pkg/screens/firewall.Run` with `engineInput()` and `stdoutEnv()`; `engineHost()`; `Facts` per visit; `Session`, the one `engineOptions` assembled at the visit holds, so that the screen and the engine never disagree on the port Enable keeps; `Config`, the main menu's; `NewEngine` over those options; `ApplyContext` `screenApplyContext`; `DryRun` as the item is chosen; `LogPath` the legacy log; `Now` `revertNow`; `Ran` nil.
+- **What it returns:** as §2.9 (`TestFirewallItem`). **Under plan only** 4 opens, every item stopping at its plan, Add and Remove too: their refusal is lifted.
+
+### 2.13 `-w` (`configureFirewall`, `cmd/hardn/firewall.go`; `typedConfirm`, `cmd/hardn/typed.go`; slice 4, unit (d))
+
+- **What it runs:** `firewallctl.Incoming{Action: ActionEnable}` through `runControls(c, controls, refuse, confirm)`, its new `confirm *typedConfirm` (`question`, `offTerminal`; unexported, so slice 6's `-d` passes its own value). `-g` and `-e` pass nil.
+- **On a terminal** (stdin and stdout both), live: `runTyped`, the canonical flow on `output.FlowEngine`: the plan, "Enable the firewall?" (decided) above "Type the hostname" (`screenkit.Hostname`'s phrase and short form), never y/N, even for a plain plan; the apply, the revert timer armed; then `output.AfterFlow`, the countdown and "sudo hardn confirm". A wrong phrase is asked again. A hostname that can't be read is said in place of the question, after the plan, nothing asked (`CantConfirm`).
+- **Off a terminal:** a lockout-risk plan is refused, `PLAN_REFUSED`, the plan shown, nothing armed, nothing run: "Enabling the firewall here risks a lockout (PLAN_REFUSED)", "To go on: run hardn -w from a terminal, which asks you to confirm." (proposed, on `-e`'s decided pattern). A plain plan applies as any flag's.
+- **Exit statuses:** 0 applied or nothing to change; 3 declined (0 or q); 1 refused, failed, or the hostname unreadable; 130 at the end of the input or interrupted; Ctrl-C at the prompt ends hardn by SIGINT. Signals and statuses follow `runControls` (`endControls`, factored out of it); `-w`'s status combines with `-g`'s, `-p`'s and `-e`'s by `runStatus`. On Proxmox VE: `UFW_NOT_APPLICABLE`, 1.
+- **`-n -w`** and hardn.yml's `dryRun: true`: the plan alone, no question, 3 with changes to make, on a terminal or off (parity-firewall.md §6, adopted 2026-11-02). `-w` left `operationFlags`, so the plan-only refusals no longer name it.
+- **Gone:** `-w`'s legacy completion line, and its call of `FirewallManager.ConfigureSecureFirewall`. `main.go` keeps its lines to 462: `:253` a comment where `firewallManager` was; `-w`'s block keeps 8 lines. `FirewallManager` and the UFW repository stay for Run All and `-r` (`security_manager.go:58`).
+
 ## 3. Facts relied on
 
 | Fact | Source | Used for |
@@ -198,6 +215,11 @@ No new words in the report or the screens: `-g`'s report is `output.Human`'s, th
 | Main menu 8's description (`next/s9-replace`) | "Keep HARDN_CONFIG", where origin/main's said "Configure environment variable" | **decided** (gallery-environment.md decision 7 (a), P-07 (c)) |
 | `-e` and `setup-sudo-env`, a lockout-risk plan (`next/s9-replace`) | "Keeping HARDN_CONFIG here risks a lockout (PLAN_REFUSED)", then "To go on: keep it from main menu 8, Environment, which asks you to confirm." | **decided** (the maintainer, 2026-10-30; §2.10); the code the registry's `PLAN_REFUSED` |
 | `-e` and `setup-sudo-env`, before (`next/s9-replace`) | "[SUCCESS] Sudo environment configured to preserve HARDN_CONFIG", "[ERROR] Failed to configure sudoers: …" | origin/main's; gone, the report in their place |
+| The Firewall item with no screen set (`next/s4-replace`) | a panic, "menu: the Firewall item has no screen (SetFirewall)" | internal, as DNS's |
+| Main menu 4's description on Proxmox VE (`next/s4-replace`) | "View pve-firewall" | **decided** (gallery-firewall.md decision 7) |
+| `-w` on a terminal (`next/s4-replace`) | "Enable the firewall?", then "Type the hostname" | **decided** (gallery-firewall.md §6); the second the flow's |
+| `-w` off a terminal, a lockout-risk plan (`next/s4-replace`) | "Enabling the firewall here risks a lockout (PLAN_REFUSED)", then "To go on: run hardn -w from a terminal, which asks you to confirm." | **proposed** (§2.13), on `-e`'s decided pattern |
+| docs/configuration.md, docs/releases/unreleased.md (`next/s4-replace`) | "Changed: Firewall"; `-w` moved from the refused flags to `-g`'s line; the profiles section; the two policy keys "not used" | **proposed** |
 | docs/configuration.md, docs/releases/unreleased.md (`next/s9-replace`) | "Using with sudo or doas"; "Changed: Environment"; `-e` and `setup-sudo-env` moved from the refused flags to `-g`'s line | **proposed** |
 | docs/configuration.md, docs/releases/unreleased.md (`next/s3-replace`) | the Backup screen's section and notes; plan only's "**Backup opens.** Each of its changes stops at its plan."; from the review's fixes, "With backups on," before what Backup and Verify used to write, "**Backups off still keeps what a rollback needs.** Each change still copies the files it changes to the backup path" (", and says so." in the notes), and the notes' "**Check `backupPath` in older files.** While it holds such a path, changes from the DNS and Backup screens and `-g` are refused. Change it with Backup's item 2." | **proposed**; no word of the screen changed (screen-backup.md §5, §11) |
 
@@ -234,6 +256,12 @@ func runStatus(dns, env int) int                                         // -e's
 func withHooks[M hookedMenu](m M, c *config.Config, version string) M    // hooks.go (review): the three items' hooks and withStatus, as main.go:202 sets them
 var environmentGetenv = os.Getenv                                        // seam: hardn's environment, the screen's and -e's
 // next/s9-replace: runControls(c *config.Config, controls []engine.Control, refuse func(*engine.Plan) error) int; configureDNS passes nil
+func withFirewallScreen[M firewallMenu](m M, c *config.Config) M // next/s4-replace; firewallMenu: SetFirewall
+func runFirewallScreen(ctx context.Context, c *config.Config) error // the Firewall item, next/s4-replace
+func configureFirewall(c *config.Config) int                        // -w: runControls(c, Incoming{ActionEnable}, nil, &enableFirewall)
+func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int // typed.go: a flag's plan confirmed by the hostname typed
+func endControls(run output.Run, actx context.Context, hungUp func() bool) int // runControls' and runTyped's exit status and signal handling
+// next/s4-replace: runControls(c, controls, refuse func(*engine.Plan) error, confirm *typedConfirm) int; -g and -e pass nil
 
 package hangup // pkg/host/hangup, new (4a0079e); the standard library alone (depguard's host-stdlib rule)
 type Terminal struct{ /* unexported */ }
@@ -253,6 +281,7 @@ package menu // pkg/menu, added
 func (m *MainMenu) SetDNS(run func() error) // the DNS item panics without it
 func (m *MainMenu) SetBackup(run func() error) // the Backup item, next/s3-replace; panics without it
 func (m *MainMenu) SetEnvironment(run func() error) // the Environment item, next/s9-replace; panics without it
+func (m *MainMenu) SetFirewall(run func() error, onPVE func() bool) // the Firewall item, next/s4-replace; panics without run
 
 package dns // pkg/screens/dns, added to Options
 ApplyContext func(ctx context.Context) (context.Context, context.CancelFunc) // each change's apply's context and its stop; nil: Run's
@@ -270,6 +299,7 @@ No new flag, environment variable, configuration key, error code or module. `pkg
 - **`main.go`'s lines:** the characterization goldens cite them to 462 (§3). Keep them (as here), or regenerate those goldens deliberately in a commit of their own, each changed line explained.
 - **The legacy goldens `TestParity` reads:** freeze them before their sources change, as [parity-dns.md](parity-dns.md) §7 and §8 say. *Backup's (`next/s3-replace`) add `TestLegacyRecord` in the screen's package, each frozen file's SHA-256, as slice 2b's `pkg/menu` record has it ([parity-backup.md](parity-backup.md) §8).*
 - *Since `next/s9-replace`:* a flag whose plan may be lockout-risk passes `runControls` a refusal (`refuse`), as `-e` does, so that a flag that does not ask never arms the revert timer; `SetEnvironment` is a third setter beside `SetDNS` and `SetBackup` (decision 22).
+- *Since `next/s4-replace`:* a flag that should ask for a lockout-risk plan passes `runControls` a `typedConfirm` of its own (`question`, `offTerminal`), as `-w` does: the hostname typed on a terminal, refused off one. Slice 6's `-d` is next.
 - *Since `next/s3-replace`, what they have:* `withBackupScreen`/`runBackupScreen` as the model of a screen's hook (`backup.go`, 62 lines); `engineOptions` assembled per visit, which a screen that changes the backup settings needs; `showScreen` in `pkg/menu`; a lifted plan-only refusal (`nav.Option.Refusal` removed from the item) for when User Management (slice 5) and Firewall's profiles (slice 4) go on the flow.
 
 ## 8. Decisions of this unit
