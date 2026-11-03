@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/base64"
 	"encoding/binary"
 	"fmt"
@@ -41,7 +40,7 @@ type simUser struct {
 }
 
 // userSim is what the fake host answers for the accounts: the commands the
-// mock's stand-in plans run, and visudo -c rejecting the files (rejects).
+// control's plans run, and visudo -c rejecting the files (rejects).
 type userSim struct {
 	rejects bool
 	// home is a new home's mode: login.defs' HOME_MODE, 0700 (Debian 13) or
@@ -101,11 +100,11 @@ func (u *userSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		}
 		_ = h.f.RemoveAll(ctx, "/home/"+name)
 		return hostfake.Response{}, true
-	case "install": // install(1) -d -m 700 -o NAME -g NAME DIR
+	case "install": // install(1) -d -m 700 -o USER -g GROUP DIR, the user by name or uid (Create's, Add SSH key's), its group taken as its own
 		if len(argv) == 9 && argv[1] == "-d" {
 			db, _ := accounts.Read(ctx, h.f)
 			for _, x := range db.Users {
-				if x.Name == argv[5] {
+				if x.Name == argv[5] || strconv.Itoa(x.UID) == argv[5] {
 					m, _ := strconv.ParseUint(argv[3], 8, 32)
 					h.f.AddDir(argv[8], fsMode(int(m)), x.UID, x.GID)
 					return hostfake.Response{}, true
@@ -152,12 +151,6 @@ func synthKey(seed byte, comment string) string {
 		blob = append(blob, seed)
 	}
 	return "ssh-ed25519 " + base64.StdEncoding.EncodeToString(blob) + " " + comment
-}
-
-// fingerprint is OpenSSH's SHA256 fingerprint of a key's blob (ssh-keygen -l).
-func fingerprint(blob []byte) string {
-	sum := sha256.Sum256(blob)
-	return "SHA256:" + base64.RawStdEncoding.EncodeToString(sum[:])
 }
 
 // usersOn is a users host: statusOn's for platform p, its accounts root and

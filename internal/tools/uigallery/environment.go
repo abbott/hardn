@@ -95,8 +95,8 @@ func envHosts() []envHost {
 			note: wheel + "hardn has no rule for alice, so item 1 refuses before asking."},
 		{name: "alpine324-setenv", label: "Alpine, setenv on wheel", about: "The refusal followed", host: named(wheelSetenv), env: doasKept,
 			note: setup + "alice did what item 1's refusal says: 20-wheel.conf says permit persist setenv { HARDN_CONFIG } :wheel, and doas kept /home/alice/hardn.yml. hardn has no rule for alice, so the screen says Not kept by hardn and item 1 refuses again, as its refusal said."},
-		{name: "doas-overridden", label: "doas, overridden", about: "hardn's rule, wheel.conf after", host: named(doasOverridden), env: doasAlice,
-			note: cloud + "hardn's rule for alice keeps HARDN_CONFIG, but wheel.conf's wins, so doas dropped it. Stopping rewrites a rule that asks for alice's password."},
+		{name: "doas-overridden", label: "doas, overridden", about: "hardn's rule, zz-local.conf after", host: named(doasOverridden), env: doasAlice,
+			note: cloud + "A local /etc/doas.d/zz-local.conf says permit nopass :wheel too. hardn's rule for alice keeps HARDN_CONFIG, but zz-local.conf's wins, so doas dropped it. Stopping rewrites a rule that asks for alice's password."},
 		{name: "pve9", label: "Proxmox VE 9", about: "no sudo", host: named(func() *fakeHost { return simulate(pve9Platform) }), env: rootLogin,
 			note: hostFQDN + " is a Proxmox VE 9 node: no sudo, no doas. root logged in."},
 		{name: "kept", label: "Kept", about: "hardn-env-alice there", host: named(keptHost), env: keptAlice,
@@ -159,7 +159,7 @@ func wheelSetenv() *fakeHost {
 
 // alpineCloud is Alpine 3.23's cloud image as the maintainer's VM: only
 // wheel.conf, "permit nopass :wheel" (docs/safety/vmtest.md:562, :570),
-// which ships in the image (:580) and sorts after hardn-<stem>.conf.
+// which ships in the image (:580) and sorts before zz-hardn-<stem>.conf.
 func alpineCloud() *fakeHost {
 	return withDoasFiles(simulate(alpine323CloudPlatform), "wheel.conf", "permit nopass :wheel\n")
 }
@@ -199,9 +199,13 @@ func grantHost() *fakeHost {
 // doasOverridden is the cloud image with hardn's rule for alice keeping
 // HARDN_CONFIG, a rule that asks alice's password, persist, as Alpine's own
 // 20-wheel.conf (sudoers.md §3): nothing in hardn writes a first rule
-// for a user today (decision 1 (a)); a later unit may.
+// for a user today (decision 1 (a)); a later unit may. A local
+// zz-local.conf, "permit nopass :wheel", sorts after hardn's
+// zz-hardn-alice.conf (slice 5, unit (b)), so doas's last match is its.
 func doasOverridden() *fakeHost {
-	return withHardnFiles(alpineCloud(), sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword, Env: []string{hardnConfig}})
+	h := withHardnFiles(alpineCloud(), sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword, Env: []string{hardnConfig}})
+	h.f.AddFile(sudoers.DoasDir+"/zz-local.conf", []byte("permit nopass :wheel\n"), 0o640, 0, 0)
+	return h
 }
 
 // legacyLines are origin/main's /etc/sudoers.d/<user> once both of its

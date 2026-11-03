@@ -7,13 +7,10 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Admin.Check, users.ReadElevation, sudoers.Read,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPolicyOf, Invoker, ssh.ReadPAM), each grant the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudoers.PlanFor on the real plan/apply engine. Creating a user␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the keys are the gallery's stand-ins, unit (b)'s to build.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from the real control on a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Read), each refusal the control's and each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Admin's plan on the real plan/apply engine. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george, uid␛[m$
@@ -56,14 +53,12 @@ $
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mWithout a key carol can't log in: there's no password.␛[m$
-$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mDisabled␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mWithout a key carol can't log in: there's no password␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCreate user carol␛[m$
       ␛[38;2;129;134;156m/etc/passwd␛[m$
@@ -128,13 +123,10 @@ $
 $
 # Note$
 # Play mode, mocks: the User Management screen proposed for$
-# slice 5, drawn from what real code reads of a simulated host$
-# (users.Admin.Check, users.ReadElevation, sudoers.Read,$
-# PolicyOf, Invoker, ssh.ReadPAM), each grant the real$
-# sudoers.PlanFor on the real plan/apply engine. Creating a user$
-# and the keys are the gallery's stand-ins, unit (b)'s to build.$
-# Nothing on this machine changes: every command and file is the$
-# fake's.$
+# slice 5, drawn from the real control on a simulated host$
+# (users.Read), each refusal the control's and each change$
+# users.Admin's plan on the real plan/apply engine. Nothing on$
+# this machine changes: every command and file is the fake's.$
 $
 # Info: users/debian13$
 # web-01.example.net runs Debian 13. As the VM: george, uid$
@@ -177,14 +169,12 @@ $
 $
    3. Add SSH key? [y/N, 0 or q]: n$
 $
-# Warning$
-# Without a key carol can't log in: there's no password.$
-$
 # User Configuration -------------------------------------------$
 $
    -  Sudo                 Disabled$
   [ ] SSH Keys             None$
    -  Password             None$
+   -  Without a key carol can't log in: there's no password$
 $
    -  Create user carol$
       /etc/passwd$
@@ -249,13 +239,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from what real code reads of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (users.Admin.Check, users.ReadElevation,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudoers.Read, PolicyOf, Invoker, ssh.ReadPAM), each grant␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real sudoers.PlanFor on the real plan/apply engine.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mCreating a user and the keys are the gallery's stand-ins,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from the real control on a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Read), each refusal the control's and each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Admin's plan on the real plan/apply engine. Nothing␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george, uid␛[m$
@@ -310,9 +298,6 @@ $
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
-␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mWithout a key carol can't log in: there's no password.␛[m$
-$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSudo␛[m$
@@ -321,6 +306,7 @@ $
       ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
       ␛[38;2;129;134;156mNone␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mWithout a key carol can't log in: there's no password␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCreate user carol␛[m$
       ␛[38;2;129;134;156m/etc/passwd␛[m$
