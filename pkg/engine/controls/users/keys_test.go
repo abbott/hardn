@@ -170,6 +170,7 @@ func TestKeyRefusals(t *testing.T) {
 	elsewhere := map[string]home{"george": {uid: 1000, files: map[string][]string{".ssh/authorized_keys": {key1, key2}, ".ssh/authorized_keys2": {key1}}}}
 	oneKey := map[string]home{"george": {uid: 1000, files: map[string][]string{".ssh/authorized_keys": {key1}}}}
 	add := users.Admin{Action: users.ActionAddKey, User: "george", Key: key4, Getenv: env(sudoGeorge)}
+	otherFile := map[string]home{"george": {uid: 1000, files: map[string][]string{".ssh/authorized_keys": {key2}, ".ssh/authorized_keys2": {key1}}}}
 	for _, tc := range []struct {
 		name        string
 		site        site
@@ -191,6 +192,12 @@ func TestKeyRefusals(t *testing.T) {
 			"USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first."},
 		{"also in authorized_keys2", keyed(sshdKeys, elsewhere), users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)},
 			"USERS_KEY_ELSEWHERE", "george's key is also in /home/george/.ssh/authorized_keys2, which sshd reads too. Remove it there, then try again."},
+		{"a key the user has", keyed(sshdKeys, elsewhere), users.Admin{Action: users.ActionAddKey, User: "george", Key: key2, Getenv: env(sudoGeorge)},
+			"USERS_KEY_THERE", "george already has this key."},
+		{"a key the user has in authorized_keys2", keyed(sshdKeys, otherFile), users.Admin{Action: users.ActionAddKey, User: "george", Key: key1, Getenv: env(sudoGeorge)},
+			"USERS_KEY_THERE", "george already has this key."},
+		{"a key gone since the draw", keyed(sshdKeys, elsewhere), users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key4), Getenv: env(sudoGeorge)},
+			"USERS_KEY_GONE", "That key isn't in /home/george/.ssh/authorized_keys any more. Nothing changed."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, p, _, _ := planOn(t, tc.site, tc.a)
@@ -304,9 +311,8 @@ func TestAddKey(t *testing.T) {
 	if _, ok := h.Entry("/home/alice/.ssh"); ok {
 		t.Error("rolled back: /home/alice/.ssh still there")
 	}
-	if _, p, _, _ := planOn(t, keyed(sshdKeys, both()), users.Admin{Action: users.ActionAddKey, User: "george", Key: key2}); p.Err() != nil || !p.Empty() {
-		t.Errorf("there already: %v, %d changes", p.Err(), len(p.Changes))
-	}
+	_, p, _, _ = planOn(t, keyed(sshdKeys, both()), users.Admin{Action: users.ActionAddKey, User: "george", Key: key2})
+	refused(t, p, "USERS_KEY_THERE", "george already has this key.")
 }
 
 // TestLockedFinding: george's "!" where sshd doesn't use PAM: adding a key

@@ -2,6 +2,7 @@ package users
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"path"
@@ -67,22 +68,39 @@ func ParseKey(s string) (authkeys.Key, error) {
 	return k, nil
 }
 
+// CheckKey is the key Add takes for the user named user, refused at its
+// field: not a key (ParseKey), or one a file sshd reads for the user holds
+// already (authkeys.Key.Same, every file counted). A user r does not list
+// is ParseKey's alone; Refusal says it first.
+func (r Reading) CheckKey(user, s string) (authkeys.Key, error) {
+	k, err := ParseKey(s)
+	if err != nil {
+		return authkeys.Key{}, err
+	}
+	if u, ok := r.user(user); ok && slices.ContainsFunc(u.Keys, k.Same) {
+		return authkeys.Key{}, refuse(codeKeyThere, ErrKeyThere, nil, user+" already has this key", "")
+	}
+	return k, nil
+}
+
 // planKey plans Add or Remove SSH key for a.User, after Refusal's: Add
-// refuses a key that is not one (ParseKey) and plans nothing for one sshd
-// reads already (authkeys.PlanAdd); a Locked user's plan has a finding, as
-// sshd refuses its key login. Remove refuses a key that is also in another
-// file sshd reads, which removing it here would leave working; it is a
-// lockout risk where keyRisk says.
+// refuses a key that is not one, or one the user has (CheckKey); a Locked
+// user's plan has a finding, as sshd refuses its key login. Remove refuses
+// a key that is also in another file sshd reads, which removing it here
+// would leave working, and one no longer in the file hardn writes
+// (USERS_KEY_GONE: it left after the screen was drawn); it is a lockout
+// risk where keyRisk says.
 func (r Reading) planKey(ctx context.Context, sys host.System, a Admin) ([]engine.Change, error) {
 	if err := r.Refusal(ctx, sys, a); err != nil {
 		return nil, err
 	}
 	u, _ := r.user(a.User)
 	if a.Action == ActionAddKey {
-		k, err := ParseKey(a.Key)
+		k, err := r.CheckKey(u.Name, a.Key)
 		if err != nil {
 			return nil, err
 		}
+		// A key sshd reads already is an empty plan: added since Read.
 		p, err := authkeys.PlanAdd(ctx, sys, u.User, r.KeyEntries, k)
 		if err != nil || p.Empty() {
 			return nil, err
@@ -101,6 +119,9 @@ func (r Reading) planKey(ctx context.Context, sys host.System, a Admin) ([]engin
 		}
 	}
 	p, err := authkeys.PlanRemove(ctx, sys, u.User, r.KeyEntries, a.Fingerprint)
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil, refuse(codeKeyGone, ErrKeyGone, err, fmt.Sprintf("That key isn't in %s any more. Nothing changed", planned), "")
+	}
 	if err != nil {
 		return nil, err
 	}

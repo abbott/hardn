@@ -186,6 +186,8 @@ users.ErrGroupGrant USERS_GROUP_GRANT
 users.ErrHomeThere USERS_HOME_THERE
 users.ErrKeyElsewhere USERS_KEY_ELSEWHERE
 users.ErrKeyFilesNotRead USERS_KEY_FILES_NOT_READ
+users.ErrKeyGone USERS_KEY_GONE
+users.ErrKeyThere USERS_KEY_THERE
 users.ErrLastAdmin USERS_LAST_ADMIN
 users.ErrLastKey USERS_LAST_KEY
 users.ErrNameForm USERS_NAME_FORM
