@@ -22,8 +22,8 @@ func TestProxmoxGateThroughSeams(t *testing.T) {
 		"hardn -r": func(e *opEnv) error {
 			return e.factory.CreateMenuManager().HardenSystem(hardeningConfigFromCLI(e.cfg))
 		},
-		"hardn -d": func(e *opEnv) error { return e.factory.CreateSSHManager().DisableRootSSH() },
-		// (-c left the map in slice 5, unit (d): it no longer configures sshd; HardenSystem covers ConfigureSSH under "hardn -r")
+		// (-c left the map in slice 5, unit (d): it no longer configures sshd; HardenSystem covers ConfigureSSH under "hardn -r";
+		// -d left it in slice 6, unit (d): it runs the SSH Login control, whose Proxmox VE rule pkg/engine/controls/sshchange's tests check)
 		"hardn -w": func(e *opEnv) error {
 			return e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, nil, []model.FirewallProfile{})
 		},
