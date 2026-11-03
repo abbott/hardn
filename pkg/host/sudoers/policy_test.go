@@ -185,7 +185,7 @@ func TestPolicyOfEdited(t *testing.T) {
 	const (
 		grant = "/etc/sudoers.d/hardn-grant-alice"
 		env   = "/etc/sudoers.d/hardn-env-alice"
-		rule  = "/etc/doas.d/hardn-alice.conf"
+		rule  = "/etc/doas.d/zz-hardn-alice.conf"
 		hdr   = sudoers.Header
 	)
 	for _, tc := range []struct {

@@ -253,3 +253,19 @@ func words(err error) string {
 	}
 	return err.Error()
 }
+
+// ReadKeyFiles is sshd -T's AuthorizedKeysFile, read as ReadPAM reads sshd
+// (sshd.Effective's: unexpanded, "none" kept, Match blocks not read): the
+// files sshd takes a user's keys from, for the User Management screen
+// (slice 5, unit (b)). An error where sshd -T is not read, or printed no
+// authorizedkeysfile line.
+func ReadKeyFiles(ctx context.Context, sys host.System, f detect.Facts) ([]string, error) {
+	r, err := readEffective(ctx, sys, f)
+	switch {
+	case err != nil:
+		return nil, err
+	case len(r.eff.AuthorizedKeysFile) == 0:
+		return nil, errors.New("sshd -T printed no authorizedkeysfile")
+	}
+	return r.eff.AuthorizedKeysFile, nil
+}

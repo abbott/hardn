@@ -29,7 +29,8 @@ import (
 // gallery's Environment hosts are drawn (gallery-environment.md §3.1) and
 // the Environment control's tests have them: Debian 13 (sudo), Ubuntu
 // 26.04 (sudo-rs), Alpine 3.24 after setup-alpine (doas, 20-wheel.conf),
-// Alpine 3.23's cloud image (doas, wheel.conf, read after hardn's rule),
+// Alpine 3.23's cloud image (doas, wheel.conf, read before hardn's rule,
+// and a local zz-local.conf, read after it),
 // Proxmox VE 9 (neither tool). visudo and doas -C pass every file but
 // where a host says otherwise: the tests' model, not the tools. Synthetic
 // values only: web-01, alice. now, lookup and debianMain are
@@ -52,7 +53,7 @@ const (
 	editedEnv = sudoers.Header + "Defaults:alice env_keep += \"HARDN_CONFIG\"\nalice ALL=(ALL) NOPASSWD: ALL\n"
 	envFile   = sudoers.DropInDir + "/hardn-env-alice"
 	grantFile = sudoers.DropInDir + "/hardn-grant-alice"
-	ruleFile  = sudoers.DoasDir + "/hardn-alice.conf"
+	ruleFile  = sudoers.DoasDir + "/zz-hardn-alice.conf"
 )
 
 // The environments hardn runs in: alice's sudo or doas, HARDN_CONFIG
@@ -72,7 +73,7 @@ const (
 	hostUbuntu     = "ubuntu2604"       // sudo-rs, alice, not kept
 	hostAlpine     = "alpine324"        // doas through 20-wheel.conf; no rule of hardn's: refused
 	hostSetenv     = "alpine324-setenv" // the same, setenv on 20-wheel.conf, doas kept the variable: refused again
-	hostOverridden = "doas-overridden"  // the cloud image, hardn's password rule for alice keeping it; wheel.conf after
+	hostOverridden = "doas-overridden"  // the cloud image, hardn's password rule for alice keeping it; zz-local.conf after
 	hostPVE        = "pve9"             // neither tool; a root login
 	hostKept       = "kept"             // hardn-env-alice there; sudo kept the variable
 	hostRootLogin  = "root-login"       // Debian 13, a root login
@@ -114,6 +115,7 @@ func newHost(t *testing.T, name string) *testHost {
 		h.doas("3.24", "20-wheel.conf", "permit persist setenv { HARDN_CONFIG } :wheel\n")
 	case hostOverridden:
 		h.doas("3.23", "wheel.conf", "permit nopass :wheel\n")
+		h.AddFile(sudoers.DoasDir+"/zz-local.conf", []byte("permit nopass :wheel\n"), 0o640, 0, 0)
 	case hostPVE:
 		h.facts = platform(detect.DistroProxmox, "9", detect.Systemd)
 		h.facts.Elevation = detect.Elevation{Sudo: detect.Tool{Present: detect.No}, Doas: detect.Tool{Present: detect.No}}

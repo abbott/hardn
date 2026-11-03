@@ -33,6 +33,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
+	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
@@ -211,6 +212,28 @@ var sentinels = map[string]error{
 	"ufw.ErrVerify":                  ufw.ErrVerify,
 	"engine.ErrNotMigrated":          engine.ErrNotMigrated,
 	"environment.ErrNoUser":          environment.ErrNoUser,
+	"users.ErrElevationNotRead":      users.ErrElevationNotRead,
+	"users.ErrNoTool":                users.ErrNoTool,
+	"users.ErrNotListed":             users.ErrNotListed,
+	"users.ErrGrantEdited":           users.ErrGrantEdited,
+	"users.ErrNotAdmin":              users.ErrNotAdmin,
+	"users.ErrGroupGrant":            users.ErrGroupGrant,
+	"users.ErrNotHardns":             users.ErrNotHardns,
+	"users.ErrStillUnknown":          users.ErrStillUnknown,
+	"users.ErrStillAdmin":            users.ErrStillAdmin,
+	"users.ErrSessionUser":           users.ErrSessionUser,
+	"users.ErrLastAdmin":             users.ErrLastAdmin,
+	"users.ErrNoPasswordToAsk":       users.ErrNoPasswordToAsk,
+	"users.ErrKeyFilesNotRead":       users.ErrKeyFilesNotRead,
+	"users.ErrLastKey":               users.ErrLastKey,
+	"users.ErrKeyElsewhere":          users.ErrKeyElsewhere,
+	"users.ErrNameForm":              users.ErrNameForm,
+	"users.ErrNameTaken":             users.ErrNameTaken,
+	"users.ErrHomeThere":             users.ErrHomeThere,
+	"users.ErrNewPassword":           users.ErrNewPassword,
+	"authkeys.ErrNotPlanned":         authkeys.ErrNotPlanned,
+	"authkeys.ErrStrictModes":        authkeys.ErrStrictModes,
+	"authkeys.ErrNotKey":             authkeys.ErrNotKey,
 	"firewall.ErrBootUnknown":        firewall.ErrBootUnknown,
 	"firewall.ErrBootBlocked":        firewall.ErrBootBlocked,
 	"steps.ErrSessionPort":           steps.ErrSessionPort,
@@ -599,6 +622,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, header.CodeRebootRequired, header.CodeNewerKernel, header.CodeModulesMissing, header.CodeKernelReplaced) // next/p4-header
 	want = append(want, risk.CodeUptimeNoUpdates)                                                                                // next/p4-risk
 	want = append(want, users.CodeLocked)                                                                                        // next/p4-locked
+	want = append(want, users.CodeNoKey)                                                                                         // next/s5-control
 	want = append(want, output.CodeDetailsUnreadable)                                                                            // next/s1-readers
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),

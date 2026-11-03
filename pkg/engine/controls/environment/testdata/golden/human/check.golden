@@ -14,8 +14,8 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may also let alice use sudo␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LATER_FILE, /etc/doas.d/wheel.conf)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/doas.d/zz-local.conf may override hardn's rule␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LATER_FILE, /etc/doas.d/zz-local.conf)␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -30,8 +30,8 @@ $
 # Warning$
 # /etc/sudoers.d/alice may also let alice use sudo$
 # (SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)$
-# /etc/doas.d/wheel.conf may override hardn's rule$
-# (SUDOERS_LATER_FILE, /etc/doas.d/wheel.conf)$
+# /etc/doas.d/zz-local.conf may override hardn's rule$
+# (SUDOERS_LATER_FILE, /etc/doas.d/zz-local.conf)$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -53,6 +53,6 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/alice may also let alice use sudo␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LEGACY_FILE, /etc/sudoers.d/alice)␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LATER_FILE, /etc/doas.d/wheel.conf)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/doas.d/zz-local.conf may override hardn's rule␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(SUDOERS_LATER_FILE, /etc/doas.d/zz-local.conf)␛[m$
 $

@@ -33,6 +33,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
+	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
@@ -294,6 +295,32 @@ var errorCodes = []Entry{
 	is("PVE_PLAN_MISMATCH", pve.ErrPlanMismatch),
 	is("PVE_FIREWALL_UNKNOWN", pve.ErrStateUnknown),
 
+	// The User control's refusals (refactor plan slice 5, unit (b)): before
+	// sudoers' errors they wrap (no tool, rules rejected, a file edited).
+	is("USERS_ELEVATION_NOT_READ", users.ErrElevationNotRead),
+	is("USERS_NO_TOOL", users.ErrNoTool),
+	is("USERS_NOT_LISTED", users.ErrNotListed),
+	is("USERS_GRANT_EDITED", users.ErrGrantEdited),
+	is("USERS_NOT_ADMIN", users.ErrNotAdmin).what("a password choice for a user who is not an admin"),
+	is("USERS_GROUP_GRANT", users.ErrGroupGrant),
+	is("USERS_GRANT_NOT_HARDNS", users.ErrNotHardns),
+	is("USERS_STILL_UNKNOWN", users.ErrStillUnknown),
+	is("USERS_STILL_ADMIN", users.ErrStillAdmin),
+	is("USERS_SESSION_USER", users.ErrSessionUser),
+	is("USERS_LAST_ADMIN", users.ErrLastAdmin),
+	is("USERS_NO_PASSWORD_TO_ASK", users.ErrNoPasswordToAsk),
+	is("USERS_KEY_FILES_NOT_READ", users.ErrKeyFilesNotRead),
+	is("USERS_LAST_KEY", users.ErrLastKey),
+	is("USERS_KEY_ELSEWHERE", users.ErrKeyElsewhere),
+	is("USERS_NAME_FORM", users.ErrNameForm),
+	is("USERS_NAME_TAKEN", users.ErrNameTaken),
+	is("USERS_HOME_THERE", users.ErrHomeThere),
+	is("USERS_NEW_PASSWORD", users.ErrNewPassword),
+	// A user's SSH keys (pkg/host/authkeys, slice 5, unit (b)).
+	is("AUTHKEYS_NOT_PLANNED", authkeys.ErrNotPlanned),
+	is("AUTHKEYS_STRICT_MODES", authkeys.ErrStrictModes),
+	is("AUTHKEYS_NOT_KEY", authkeys.ErrNotKey),
+
 	// sudo, sudo-rs and doas (pkg/host/sudoers): a rejection by its stage.
 	typed("SUDOERS_INVALID_BEFORE", "the installed elevation configuration does not check, before anything is written", sudoersRejected(sudoers.StageBefore)),
 	typed("SUDOERS_INVALID_AFTER", "the elevation configuration does not check with the plan installed (put back)", sudoersRejected(sudoers.StageAfter)),
@@ -476,6 +503,8 @@ var findingCodes = []Entry{
 	finding(risk.CodeUptimeNoUpdates, "the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own)"),
 	// The users control's, for locked accounts (next/p4-locked).
 	finding(users.CodeLocked, "a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it"),
+	// The users control's plan for a new user with no key (slice 5, unit (b)).
+	finding(users.CodeNoKey, "a new user is planned with no key and no password, so it cannot log in"),
 	// The System Details form's own (slice 1, next/s1-readers).
 	finding(CodeDetailsUnreadable, "a section of the System Details report, or a fact of it, was not read: source says what; the rest was read"),
 }

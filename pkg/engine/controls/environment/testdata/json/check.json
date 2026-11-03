@@ -77,7 +77,7 @@
       "detail": "Not kept by hardn",
       "evidence": [
         "DOAS_USER: alice",
-        "/etc/doas.d/hardn-alice.conf: absent"
+        "/etc/doas.d/zz-hardn-alice.conf: absent"
       ]
     },
     {
@@ -87,7 +87,7 @@
       "detail": "Kept by hardn",
       "evidence": [
         "DOAS_USER: alice",
-        "/etc/doas.d/hardn-alice.conf: keeps HARDN_CONFIG"
+        "/etc/doas.d/zz-hardn-alice.conf: keeps HARDN_CONFIG"
       ]
     },
     {
@@ -119,8 +119,8 @@
     },
     {
       "code": "SUDOERS_LATER_FILE",
-      "detail": "/etc/doas.d/wheel.conf may override hardn's rule",
-      "source": "/etc/doas.d/wheel.conf",
+      "detail": "/etc/doas.d/zz-local.conf may override hardn's rule",
+      "source": "/etc/doas.d/zz-local.conf",
       "control": "environment.keep",
       "change": ""
     }

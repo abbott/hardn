@@ -211,6 +211,8 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 			return hostfake.Response{Err: s.runErr}
 		case slices.Equal(argv, []string{"visudo", "-c"}) && s.reject != sudoers.MainConfig:
 			return hostfake.Response{Stdout: sudoers.MainConfig + ": parsed OK\n"}
+		case len(argv) == 3 && argv[0] == "visudo" && argv[1] == "-cf" && s.reject != sudoers.MainConfig: // a plan's copy (sudoers.Apply)
+			return hostfake.Response{Stdout: argv[2] + ": parsed OK\n"}
 		case len(argv) == 3 && argv[0] == "doas" && argv[1] == "-C" && argv[2] != s.reject:
 			return hostfake.Response{}
 		}
@@ -243,6 +245,13 @@ func (f faulty) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
 		fi = setuid{fi}
 	}
 	return fi, err
+}
+
+func (f faulty) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if err := f.fail["write "+name]; err != nil {
+		return &fs.PathError{Op: "write", Path: name, Err: err}
+	}
+	return f.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
 }
 
 // setuid is a file's information with its setuid bit set.
@@ -961,7 +970,8 @@ func TestElevation(t *testing.T) {
 	t.Run("a rule, in no group", func(t *testing.T) {
 		e, db := read(t, site{plat: debian13(), users: []string{alice, george},
 			files: map[string]string{cloudInit: "alice ALL=(ALL) NOPASSWD:ALL\n"}})
-		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.Yes}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
+		cloud := users.Rule{Kind: users.RuleFile, File: cloudInit, Line: 1, Text: "alice ALL=(ALL) NOPASSWD:ALL"}
+		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.Yes, Rule: cloud, NoPassword: true}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
 			t.Errorf("alice: %v, want %v", got, want)
 		}
 		if got, want := e.GrantsOf(db, byName(t, db, "george")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
@@ -973,8 +983,21 @@ func TestElevation(t *testing.T) {
 	})
 	t.Run("doas, by group", func(t *testing.T) {
 		e, db := read(t, site{plat: alpine324(), users: []string{alice}, members: map[string]string{"wheel": "alice"}})
-		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.Yes}}; !slices.Equal(got, want) {
+		wheel := users.Rule{Kind: users.RuleGroup, File: sudoers.DoasDir + "/20-wheel.conf", Line: 1, Group: "wheel", Text: "permit persist :wheel"}
+		if got, want := e.GrantsOf(db, byName(t, db, "alice")), []users.Grant{{Tool: "sudo", Grants: detect.No}, {Tool: "doas", Grants: detect.Yes, Rule: wheel}}; !slices.Equal(got, want) {
 			t.Errorf("alice: %v, want %v", got, want)
+		}
+	})
+	t.Run("hardn's own, a group's, without a password", func(t *testing.T) {
+		grant := written(t, debian13(), sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword})
+		e, db := read(t, site{plat: debian13(), users: []string{alice, george}, members: map[string]string{"sudo": "alice,george"}, files: grant})
+		hardn := users.Rule{Kind: users.RuleHardn, File: grantDir + "hardn-grant-alice", Line: 2, Text: "alice ALL=(ALL) NOPASSWD: ALL"}
+		if got := e.GrantsOf(db, byName(t, db, "alice"))[0]; got != (users.Grant{Tool: "sudo", Grants: detect.Yes, Rule: hardn, NoPassword: true}) {
+			t.Errorf("alice: %+v", got)
+		}
+		group := users.Rule{Kind: users.RuleGroup, File: sudoers.MainConfig, Line: 22, Group: "sudo", Text: "%sudo ALL=(ALL:ALL) ALL"}
+		if got := e.GrantsOf(db, byName(t, db, "george"))[0]; got != (users.Grant{Tool: "sudo", Grants: detect.Yes, Rule: group}) {
+			t.Errorf("george: %+v", got)
 		}
 	})
 	t.Run("rules not read", func(t *testing.T) {

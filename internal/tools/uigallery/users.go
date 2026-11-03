@@ -2,29 +2,21 @@ package main
 
 import (
 	"context"
-	"encoding/base64"
-	"encoding/binary"
-	"errors"
 	"fmt"
 	"io/fs"
-	"path"
-	"regexp"
 	"slices"
-	"strconv"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/risk"
-	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
-	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
@@ -37,17 +29,16 @@ import (
 
 // The User Management mock (refactor plan slice 5, unit (a), next/s5-gallery;
 // docs/engine/gallery-users.md): a proposal, on Figma's layouts (01-USER,
-// USER-MANAGE_USER-*, USER-SSH_KEYS, USER-CREATE_USER), drawn from what real
-// code reads of a simulated host (usershost.go): the User row from
-// users.Admin.Check through the main menu's mapping, each user's elevation
-// from users.ReadElevation and the check's evidence, hardn's own grant from
-// sudoers.Read and PolicyOf, the session user from sudoers.Invoker, sshd's
-// PAM from ssh.ReadPAM. Each change runs the real engine: a grant through
-// sudoers.PlanFor and steps.Sudoers; creating a user and the keys are the
-// gallery's stand-ins (usrCreate, usrKeysChange), unit (b)'s to build, their
-// commands shadow's useradd and userdel and coreutils' install. "uigallery
-// users" lists the mocks; "play users" is the menu of the hosts, "play
-// users/<host>" one; the main menu's 1 leads to debian13's.
+// USER-MANAGE_USER-*, USER-SSH_KEYS, USER-CREATE_USER), drawn from the real
+// control on a simulated host (usershost.go): what it draws is users.Read's
+// (the User row through the main menu's mapping), each refusal the
+// control's (users.Reading's Refusal, CheckName, CheckNew, KeysRefusal,
+// ParseKey) in its words (screenkit.RefusalWords), and each change
+// users.Admin's plan on the real engine (since next/s5-control, unit (b)).
+// What stays here until unit (c) builds the screen: the rows, the layout,
+// the forms and their reviews, and the words the control does not say.
+// "uigallery users" lists the mocks; "play users" is the menu of the hosts,
+// "play users/<host>" one; the main menu's 1 leads to debian13's.
 
 // usrPrefix names the mock's hosts: "users" and "users/<host>".
 const usrPrefix = "users"
@@ -59,8 +50,9 @@ const usrMainHost = usrPrefix + "/debian13"
 // menu's 1.
 var usrLinks = map[string]string{mainMenuMock + "/1": usrMainHost}
 
-// The screen's words (gallery-users.md §6, proposed). Figma's where it has
-// them.
+// The screen's words (gallery-users.md §6, decided 2026-11-03). Figma's
+// where it has them. The refusals' are the control's; the usrWords* here
+// pin them in the tests (TestUsersWords).
 const (
 	usrTitle        = "User Management"
 	usrManageTitle  = "Manage User"
@@ -106,6 +98,8 @@ const (
 	// password: a cost, as the main menu's "No password to become root"
 	// is (decision 3), not a failure.
 	usrNoPassToAsk = "No password to ask for"
+	// usrEmpty is the Password row for an empty field (proposed, unit (b)).
+	usrEmpty = "Empty"
 )
 
 // usrHost is one simulated host the mock runs on.
@@ -175,80 +169,55 @@ func findUsrHost(name string) (usrHost, bool) {
 	return all[i], true
 }
 
-// usrKey is one line of a user's authorized_keys.
-type usrKey struct {
-	kind, fp, comment, line string
-}
-
-// usrKeyKinds are the key types OpenSSH 9 and 10 take in authorized_keys
-// (sshd(8), AUTHORIZED_KEYS FILE FORMAT), DSA gone.
-var usrKeyKinds = []string{"ssh-ed25519", "ssh-rsa", "ecdsa-sha2-nistp256", "ecdsa-sha2-nistp384", "ecdsa-sha2-nistp521",
-	"sk-ssh-ed25519@openssh.com", "sk-ecdsa-sha2-nistp256@openssh.com"}
-
-// parseKey is a stand-in, unit (b)'s: one OpenSSH public key, its type
-// known, its base64 a blob whose first string names the same type, as
-// ssh-keygen -l reads one; with options, where a line has them, read past.
-func parseKey(line string, options bool) (usrKey, error) {
-	f := strings.Fields(line)
-	if options && len(f) > 1 && !slices.Contains(usrKeyKinds, f[0]) {
-		f = f[1:]
-	}
-	if len(f) < 2 || !slices.Contains(usrKeyKinds, f[0]) {
-		return usrKey{}, errors.New("not a key")
-	}
-	blob, err := base64.StdEncoding.DecodeString(f[1])
-	if err != nil || len(blob) < 4 {
-		return usrKey{}, errors.New("not a key")
-	}
-	n := binary.BigEndian.Uint32(blob)
-	if uint64(n)+4 > uint64(len(blob)) || string(blob[4:4+n]) != f[0] {
-		return usrKey{}, errors.New("not a key")
-	}
-	return usrKey{kind: f[0], fp: fingerprint(blob), comment: strings.Join(f[2:], " "), line: strings.TrimSpace(line)}, nil
-}
-
-// usrPassword is a password field's state, from its first character.
+// usrPassword is a password's state as the rows draw it.
 type usrPassword uint8
 
 const (
 	pwNotRead usrPassword = iota
 	pwSet                 // a hash
 	pwNone                // "*", or "!" where sshd uses PAM
-	pwLocked              // "!" where sshd doesn't use PAM: key login refused
+	pwLocked              // "!" where sshd's PAM is not established as on: key login refused
+	pwEmpty               // an empty field
 )
 
-// usrUser is one user as the screen reads it.
-type usrUser struct {
-	accounts.User
-	admin  detect.Tri
-	tool   string // the tool that grants it
-	by     string // the rule that decides: "hardn", a file's name, "group sudo"
-	nopass bool
-	pw     usrPassword
-	keys   []usrKey
-	keyDir bool // ~/.ssh exists
-	policy sudoers.Policy
-	polErr error
+// usrPW is u's password as the rows draw it.
+func usrPW(u usersctl.User) usrPassword {
+	switch {
+	case u.Locked:
+		return pwLocked
+	case u.Password == accounts.PasswordSet:
+		return pwSet
+	case u.Password == accounts.PasswordNone:
+		return pwNone
+	case u.Password == accounts.PasswordEmpty:
+		return pwEmpty
+	}
+	return pwNotRead
 }
 
-// usrReading is the host as the screen reads it.
+// usrBy is the rule that makes a user an admin as the Granted by row says
+// it: "hardn", "group sudo", or the file.
+func usrBy(r usersctl.Rule) string {
+	switch r.Kind {
+	case usersctl.RuleHardn:
+		return "hardn"
+	case usersctl.RuleGroup:
+		return "group " + r.Group
+	case usersctl.RuleFile:
+		return r.File
+	}
+	return ""
+}
+
+// usrReading is the host as the screen reads it: the control's reading
+// (users.Read), the User row as the main menu maps it, and hardn.yml.
 type usrReading struct {
-	f       detect.Facts
-	status  component.StatusList
-	choice  sudoers.Choice
-	notRead []usersctl.NotRead
-	pam     detect.Tri
-	invoker string
-	users   []usrUser
-	cfg     *config.Config
-	// keyFiles are sshd's AuthorizedKeysFile (readKeyFiles); keyErr why
-	// they are not read.
-	keyFiles []string
-	keyErr   error
+	usersctl.Reading
+	f      detect.Facts
+	status component.StatusList
+	cfg    *config.Config
+	env    map[string]string
 }
-
-// usrUIDMax is login.defs' UID_MAX as the VMs have it, not read (a stand-in).
-const usrUIDMax = 60000
 
 // readUsers reads the host as the screen does, writing nothing.
 func readUsers(ctx context.Context, sys host.System, env map[string]string) (usrReading, error) {
@@ -256,214 +225,41 @@ func readUsers(ctx context.Context, sys host.System, env map[string]string) (usr
 	if err != nil {
 		return usrReading{}, err
 	}
-	r := usrReading{f: f, choice: sudoers.Choose(f, sudoers.ToolUnknown)}
-	c := usersctl.Admin{}
-	st, cerr := c.Check(ctx, sys, f)
-	view := output.StatusViewOf([]engine.Report{{Control: c.ID(), Title: c.Title(), Status: st, Err: cerr}}, risk.Level{}).Status
-	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != c.Title() })
-	r.status = view
+	r := usrReading{f: f, env: env}
 	if r.cfg, err = statusConfig(ctx, sys); err != nil {
 		return usrReading{}, err
 	}
-	db, err := accounts.Read(ctx, sys)
-	if err != nil {
-		return r, err
-	}
-	elev := usersctl.ReadElevation(ctx, sys, f)
-	r.notRead = elev.NotRead()
-	if p, err := ssh.ReadPAM(ctx, sys, f); err == nil {
-		r.pam = p.Uses
-	}
-	if t := r.choice.Tool; t == sudoers.ToolSudo || t == sudoers.ToolDoas {
-		r.invoker, _ = sudoers.Invoker(t, func(k string) string { return env[k] })
-	}
-	pws := readPasswords(ctx, sys)
-	r.keyFiles, r.keyErr = readKeyFiles(ctx, sys)
-	var names []string
-	seen := map[string]bool{}
-	for _, u := range db.Users {
-		if seen[u.Name] || u.UID < usersctl.MinUID || u.UID > usrUIDMax {
-			continue
-		}
-		seen[u.Name] = true
-		uu := usrUser{User: u, admin: detect.No}
-		for _, g := range elev.GrantsOf(db, u) {
-			if g.Grants == detect.Yes || (g.Grants == detect.Unknown && uu.admin == detect.No) {
-				uu.admin, uu.tool = g.Grants, g.Tool
-			}
-		}
-		var text string
-		uu.by, text = usrDecidedBy(st.Evidence, u.Name)
-		uu.nopass = slices.ContainsFunc(st.Findings, func(fd engine.Finding) bool {
-			return fd.Code == usersctl.CodeNoPassword && strings.HasPrefix(fd.Detail, u.Name+": ")
-		}) || usrNoPass(text)
-		switch p := pws[u.Name]; {
-		case p == "":
-		case p[0] == '$':
-			uu.pw = pwSet
-		case p[0] == '!' && r.pam == detect.No:
-			uu.pw = pwLocked
-		default:
-			uu.pw = pwNone
-		}
-		uu.keys, uu.keyDir = readKeys(ctx, sys, r.keyFiles, u)
-		r.users = append(r.users, uu)
-		if sudoers.CheckUser(r.choice.Tool, u.Name) == nil {
-			names = append(names, u.Name)
-		}
-	}
-	if t := r.choice.Tool; (t == sudoers.ToolSudo || t == sudoers.ToolDoas) && len(r.notRead) == 0 {
-		sst, err := sudoers.Read(ctx, sys, r.choice, names)
-		for i := range r.users {
-			if err != nil {
-				r.users[i].polErr = err
-				continue
-			}
-			r.users[i].policy, r.users[i].polErr = sudoers.PolicyOf(sst, r.users[i].Name)
-		}
-	}
-	return r, nil
+	r.Reading, err = usersctl.Read(ctx, sys, f, r.getenv)
+	c := usersctl.Admin{}
+	view := output.StatusViewOf([]engine.Report{{Control: c.ID(), Title: c.Title(), Status: r.Status, Err: r.StatusErr}}, risk.Level{}).Status
+	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != c.Title() })
+	r.status = view
+	return r, err
 }
 
-// readPasswords is a stand-in, unit (b)'s: each name's password field's
-// first character in /etc/shadow, which accounts.ReadShadow reads but its
-// Lock does not tell apart ("*" and a hash are both NotLocked).
-func readPasswords(ctx context.Context, sys host.System) map[string]string {
-	out := map[string]string{}
-	data, err := sys.ReadFile(ctx, accounts.ShadowFile)
-	if err != nil {
-		return out
-	}
-	for _, l := range strings.Split(string(data), "\n") {
-		if f := strings.SplitN(l, ":", 3); len(f) == 3 && f[1] != "" {
-			if _, ok := out[f[0]]; !ok {
-				out[f[0]] = f[1][:1]
-			}
-		}
-	}
-	return out
-}
+// getenv is hardn's environment on the host: env's.
+func (r usrReading) getenv(k string) string { return r.env[k] }
 
-// usrKeyFile is the file the mock plans keys in, which sshd must read.
-const usrKeyFile = ".ssh/authorized_keys"
-
-// readKeyFiles is a stand-in, unit (b)'s: AuthorizedKeysFile as sshd -T
-// prints it (authorizedkeysfile), which sshd.ReadEffective does not expose
-// (gallery-users.md §7); Match blocks are not read.
-func readKeyFiles(ctx context.Context, sys host.System) ([]string, error) {
-	res, err := sys.Run(ctx, sshd.DefaultBinary, "-T", "-f", sshd.MainConfig)
-	if err != nil {
-		return nil, fmt.Errorf("sshd -T: %w", err)
-	}
-	for _, l := range strings.Split(string(res.Stdout), "\n") {
-		if v, ok := strings.CutPrefix(l, "authorizedkeysfile "); ok {
-			return strings.Fields(v), nil
-		}
-	}
-	return nil, errors.New("sshd -T printed no authorizedkeysfile")
-}
-
-// keyPath is AuthorizedKeysFile's entry f for u: %h, %u and %% expanded,
-// relative to the home (sshd_config(5) TOKENS).
-func keyPath(f string, u accounts.User) string {
-	f = strings.NewReplacer("%%", "%", "%h", u.Home, "%u", u.Name).Replace(f)
-	if !strings.HasPrefix(f, "/") {
-		f = path.Join(u.Home, f)
-	}
-	return f
-}
-
-// readKeys reads the keys in the files sshd reads for u, and whether
-// ~/.ssh exists.
-func readKeys(ctx context.Context, sys host.System, files []string, u accounts.User) ([]usrKey, bool) {
-	var keys []usrKey
-	for _, name := range files {
-		if name == "none" {
-			continue
-		}
-		data, err := sys.ReadFile(ctx, keyPath(name, u))
-		if err != nil {
-			continue
-		}
-		for _, l := range strings.Split(string(data), "\n") {
-			if k, err := parseKey(l, true); err == nil {
-				keys = append(keys, k)
-			}
-		}
-	}
-	_, err := sys.Stat(ctx, path.Join(u.Home, ".ssh"))
-	return keys, err == nil
-}
-
-// usrNoPass is whether a rule's text has NOPASSWD (sudo) or nopass (doas).
-func usrNoPass(text string) bool {
-	return strings.Contains(text, "NOPASSWD") || slices.Contains(strings.Fields(text), "nopass")
-}
-
-// usrDecidedBy is a stand-in, unit (b)'s: the rule that makes name an
-// admin, from the check's evidence ("sudo: george by FILE:LINE: TEXT"), as
-// users.Grant says neither the rule nor the password: "hardn", "group
-// sudo" or the file; and the rule's text, whose NOPASSWD or nopass says
-// the password where the check, which leaves out a locked account, has no
-// finding.
-func usrDecidedBy(evidence []string, name string) (by, text string) {
-	tool, at, text, ok := usrEvidence(evidence, name, " by ")
-	if !ok {
-		return "", ""
-	}
-	file, _ := splitAt(at)
-	for _, w := range strings.Fields(text) {
-		if g, ok := strings.CutPrefix(w, "%"); ok && tool == "sudo" {
-			return "group " + g, text
-		}
-		if g, ok := strings.CutPrefix(w, ":"); ok && tool == "doas" {
-			return "group " + g, text
-		}
-	}
-	if strings.HasPrefix(path.Base(file), "hardn-") {
-		return "hardn", text
-	}
-	return file, text
-}
-
-// usrEvidence is name's first evidence line of the form "TOOL: NAME<how>
-// FILE:LINE: TEXT", how " by " (the rule decides) or " may be decided by "
-// (a rule not read).
-func usrEvidence(evidence []string, name, how string) (tool, at, text string, ok bool) {
-	for _, ev := range evidence {
-		tool, rest, found := strings.Cut(ev, ": ")
-		if !found || !strings.HasPrefix(rest, name+how) {
-			continue
-		}
-		at, text, _ = strings.Cut(strings.TrimPrefix(rest, name+how), ": ")
-		return tool, at, text, true
-	}
-	return "", "", "", false
-}
-
-// splitAt is FILE:LINE's file and line.
-func splitAt(at string) (string, int) {
-	if i := strings.LastIndexByte(at, ':'); i > 0 {
-		if n, err := strconv.Atoi(at[i+1:]); err == nil {
-			return at[:i], n
-		}
-	}
-	return at, 0
+// admin is the control planning a for u's user, with the host's
+// environment.
+func (r usrReading) admin(a usersctl.Admin) usersctl.Admin {
+	a.Getenv = r.getenv
+	return a
 }
 
 // user is the user named name.
-func (r usrReading) user(name string) (usrUser, bool) {
-	i := slices.IndexFunc(r.users, func(u usrUser) bool { return u.Name == name })
+func (r usrReading) user(name string) (usersctl.User, bool) {
+	i := slices.IndexFunc(r.Users, func(u usersctl.User) bool { return u.Name == name })
 	if i < 0 {
-		return usrUser{}, false
+		return usersctl.User{}, false
 	}
-	return r.users[i], true
+	return r.Users[i], true
 }
 
 // toolWord is the tool the screen names: doas where Choose picks it, else
 // sudo.
 func (r usrReading) toolWord() string {
-	if r.choice.Tool == sudoers.ToolDoas {
+	if r.Choice.Tool == sudoers.ToolDoas {
 		return "doas"
 	}
 	return "sudo"
@@ -471,36 +267,38 @@ func (r usrReading) toolWord() string {
 
 // rows are u's rows: Figma's Sudo (doas on Alpine) and SSH Keys, then who
 // grants it and its password.
-func (r usrReading) rows(u usrUser) []component.KeyValue {
+func (r usrReading) rows(u usersctl.User) []component.KeyValue {
 	tool := component.KeyValue{Key: r.toolKey(), Value: "Disabled", State: component.ValueNone}
-	switch u.admin {
+	switch u.Admin {
 	case detect.Yes:
 		tool.Value, tool.State = "Enabled", component.ValueOK
-		if u.nopass {
-			tool = nopassRow(tool.Key, u.pw)
+		if u.NoPassword {
+			tool = nopassRow(tool.Key, usrPW(u))
 		}
 	case detect.Unknown:
 		tool.Value, tool.State = "Can't read", component.ValueUnknown
 	}
 	rows := []component.KeyValue{tool}
-	if u.admin == detect.Yes && u.by != "" {
-		rows = append(rows, component.KeyValue{Key: usrKeyBy, Value: u.by})
+	if by := usrBy(u.Decided); u.Admin == detect.Yes && by != "" {
+		rows = append(rows, component.KeyValue{Key: usrKeyBy, Value: by})
 	}
 	keys := component.KeyValue{Key: usrKeyKeys, Value: "None", State: component.ValueWarn}
-	switch n := len(u.keys); {
+	switch n := len(u.Keys); {
 	case n == 1:
 		keys = component.KeyValue{Key: usrKeyKeys, Value: "1 key"}
 	case n > 1:
 		keys = component.KeyValue{Key: usrKeyKeys, Value: fmt.Sprintf("%d keys", n)}
 	}
 	pw := component.KeyValue{Key: usrKeyPassword, Value: "Can't read", State: component.ValueUnknown}
-	switch u.pw {
+	switch usrPW(u) {
 	case pwSet:
 		pw = component.KeyValue{Key: usrKeyPassword, Value: "Set"}
 	case pwNone:
 		pw = component.KeyValue{Key: usrKeyPassword, Value: "None"}
 	case pwLocked:
 		pw = component.KeyValue{Key: usrKeyPassword, Value: "Locked,", State: component.ValueBad, Note: "key login refused"}
+	case pwEmpty:
+		pw = component.KeyValue{Key: usrKeyPassword, Value: usrEmpty, State: component.ValueBad}
 	}
 	return append(rows, keys, pw)
 }
@@ -529,7 +327,7 @@ var usrExit = component.MenuItem{Key: "0", Label: "Return"}
 // mainMenu is 01-USER: the User row, a section per user, Manage and Create.
 func (r usrReading) mainMenu() screen.SubMenu {
 	var sections []screen.Section
-	for _, u := range r.users {
+	for _, u := range r.Users {
 		sections = append(sections, screen.Section{Header: component.SectionHeader{Title: u.Name}, Rows: component.BulletList{Items: r.rows(u)}})
 	}
 	if len(sections) == 0 {
@@ -537,7 +335,7 @@ func (r usrReading) mainMenu() screen.SubMenu {
 	}
 	// Manage User only where there is a user to manage; Create keeps 2.
 	var items []component.MenuItem
-	if len(r.users) > 0 {
+	if len(r.Users) > 0 {
 		items = append(items, component.MenuItem{Key: "1", Label: "Manage User", Description: "Configure " + r.toolWord() + ", SSH keys"})
 	}
 	items = append(items, component.MenuItem{Key: "2", Label: "Create User", Description: "Configure a new user"})
@@ -548,7 +346,7 @@ func (r usrReading) mainMenu() screen.SubMenu {
 // selectMenu is USER-MANAGE_USER-SELECT_USER.
 func (r usrReading) selectMenu() screen.SubMenu {
 	var items []component.MenuItem
-	for i, u := range r.users {
+	for i, u := range r.Users {
 		items = append(items, component.MenuItem{Key: fmt.Sprint(i + 1), Label: u.Name})
 	}
 	return screen.SubMenu{Title: component.TitleBar{Title: usrManageTitle, Parents: []string{usrTitle}}, Heading: "Select a user",
@@ -557,15 +355,15 @@ func (r usrReading) selectMenu() screen.SubMenu {
 
 // manageMenu is USER-MANAGE_USER-MANAGEMENT for u: its rows; admin rights,
 // with them the password, then the keys, each named by its result.
-func (r usrReading) manageMenu(u usrUser) screen.SubMenu {
+func (r usrReading) manageMenu(u usersctl.User) screen.SubMenu {
 	grant := component.MenuItem{Key: "1", Label: usrGrantLabel, Description: "Let " + u.Name + " become root"}
-	if u.admin == detect.Yes {
+	if u.Admin == detect.Yes {
 		grant = component.MenuItem{Key: "1", Label: usrRemoveLabel, Description: "Take them away"}
 	}
 	items := []component.MenuItem{grant}
-	if u.admin == detect.Yes {
+	if u.Admin == detect.Yes {
 		pw := component.MenuItem{Key: "2", Label: usrRequireLabel, Description: "For admin rights"}
-		if !u.nopass {
+		if !u.NoPassword {
 			pw = component.MenuItem{Key: "2", Label: usrStopLabel, Description: "For admin rights"}
 		}
 		items = append(items, pw)
@@ -579,16 +377,16 @@ func (r usrReading) manageMenu(u usrUser) screen.SubMenu {
 
 // keysMenu is USER-SSH_KEYS for u: its keys by fingerprint; Add, and with
 // any, Remove.
-func (r usrReading) keysMenu(u usrUser) screen.SubMenu {
+func (r usrReading) keysMenu(u usersctl.User) screen.SubMenu {
 	var rows []component.KeyValue
-	for _, k := range u.keys {
-		rows = append(rows, component.KeyValue{Key: k.fp, Value: k.comment})
+	for _, k := range u.Keys {
+		rows = append(rows, component.KeyValue{Key: k.Fingerprint, Value: k.Comment})
 	}
 	if len(rows) == 0 {
 		rows = []component.KeyValue{{Key: "No SSH keys", State: component.ValueWarn}}
 	}
 	items := []component.MenuItem{{Key: "1", Label: usrAddKeyLabel}}
-	if len(u.keys) > 0 {
+	if len(u.Keys) > 0 {
 		items = append(items, component.MenuItem{Key: "2", Label: usrDelKeyLabel})
 	}
 	return screen.SubMenu{Title: component.TitleBar{Title: usrManageTitle, Parents: []string{usrTitle}},
@@ -597,461 +395,27 @@ func (r usrReading) keysMenu(u usrUser) screen.SubMenu {
 		Heading:  usrHeading, Menu: component.Menu{Items: items, Exit: usrExit}, Prompt: usrPrompt}
 }
 
-// toolRefusal is why no grant can be planned on the host, before anything
-// is asked: no tool (sudoers.ErrNoTool), its rules not read
-// (users.Elevation.NotRead); "" when one can.
-func (r usrReading) toolRefusal() string {
-	if len(r.notRead) > 0 {
-		nr := r.notRead[0]
-		check := "visudo -c"
-		if nr.Tool == "doas" {
-			check = "doas -C"
-		}
-		why := "its files don't check."
-		if nr.Err != nil && !errors.Is(nr.Err, sudoers.ErrRejected) {
-			why = screenkit.FullStop(nr.Err.Error())
-		}
-		return fmt.Sprintf(usrWordsNotRead, nr.Tool, why, check)
-	}
-	switch {
-	case errors.Is(r.choice.Err, sudoers.ErrNoTool):
-		return usrWordsNoTool
-	case r.choice.Err != nil:
-		return screenkit.FullStop(r.choice.Err.Error())
-	}
-	return ""
+// refusal is the control's refusal of a before asking anything
+// (users.Reading.Refusal), in its words; "" for none.
+func (r usrReading) refusal(ctx context.Context, sys host.System, a usersctl.Admin) string {
+	return usrWords(r.Refusal(ctx, sys, r.admin(a)))
 }
 
-// removeRefusal is why Remove admin rights refuses for u, before asking:
-// the tool's; the grant not hardn's; the rules that grant it once hardn's
-// is gone, or what of them is not read (still, stillAdmin's); the session
-// user's own; with the session user not known, the last admin's.
-func (r usrReading) removeRefusal(u usrUser, still usrStill) string {
-	switch {
-	case r.toolRefusal() != "":
-		return r.toolRefusal()
-	case errors.Is(u.polErr, sudoers.ErrEdited):
-		n, _ := sudoers.FileNames(r.choice.Tool, u.Name)
-		return fmt.Sprintf(usrWordsEdited, n.Grant)
-	case u.polErr != nil:
-		return screenkit.FullStop(u.polErr.Error())
-	case u.policy.Grant == sudoers.GrantNone && strings.HasPrefix(u.by, "group "):
-		g := strings.TrimPrefix(u.by, "group ")
-		return fmt.Sprintf(usrWordsGroup, u.Name, g, u.Name, u.Name, g)
-	case u.policy.Grant == sudoers.GrantNone:
-		return fmt.Sprintf(usrWordsNotHardn, u.Name, r.byWords(u.by))
-	case still.unknown != "":
-		return fmt.Sprintf(usrWordsStillUnknown, u.Name, still.unknown)
-	case len(still.by) > 0:
-		var words []string
-		for _, by := range still.by {
-			words = append(words, r.byWords(by))
-		}
-		all := words[len(words)-1]
-		if len(words) > 1 {
-			all = strings.Join(words[:len(words)-1], ", ") + " and " + all
-		}
-		return fmt.Sprintf(usrWordsStill, u.Name, all)
-	case u.Name == r.invoker:
-		return fmt.Sprintf(usrWordsSession, u.Name, r.toolWord())
-	case r.invoker == "" && !slices.ContainsFunc(r.users, func(x usrUser) bool { return x.Name != u.Name && x.admin == detect.Yes }):
-		return fmt.Sprintf(usrWordsLastAdmin, u.Name)
+// usrWords is err in the screen's words (screenkit.RefusalWords), "" for
+// nil.
+func usrWords(err error) string {
+	if err == nil {
+		return ""
 	}
-	return ""
+	return screenkit.RefusalWords(err)
 }
 
-// byWords is a rule's source as a sentence names it.
-func (r usrReading) byWords(by string) string {
-	switch {
-	case strings.HasPrefix(by, "group "):
-		return "the " + strings.TrimPrefix(by, "group ") + " group"
-	case by == "":
-		return "a rule hardn can't read"
-	}
-	return by
-}
-
-// passwordRefusal is why Require a password refuses for u: the tool's;
-// no password to ask.
-func (r usrReading) passwordRefusal(u usrUser) string {
-	switch {
-	case r.toolRefusal() != "":
-		return r.toolRefusal()
-	case u.nopass && u.pw != pwSet:
-		return fmt.Sprintf(usrWordsNoPassword, u.Name, r.toolWord(), u.Name)
-	}
-	return ""
-}
-
-// keyRefusal is why Remove SSH key refuses for u before asking: sshd's
-// key files; the session user's last key.
-func (r usrReading) keyRefusal(u usrUser) string {
-	if words := r.keyFilesRefusal(); words != "" {
-		return words
-	}
-	if len(u.keys) == 1 && u.Name == r.invoker {
-		return fmt.Sprintf(usrWordsLastKey, u.Name, u.Name)
-	}
-	return ""
-}
-
-// keyFilesRefusal is why no key can be planned, before asking: sshd's
-// AuthorizedKeysFile not read, or without the file the mock plans.
-func (r usrReading) keyFilesRefusal() string {
-	switch {
-	case r.keyErr != nil:
-		return fmt.Sprintf(usrWordsKeyFilesRead, screenkit.FullStop(r.keyErr.Error()))
-	case !slices.Contains(r.keyFiles, usrKeyFile) && !slices.Contains(r.keyFiles, "%h/"+usrKeyFile):
-		return fmt.Sprintf(usrWordsKeyFiles, strings.Join(r.keyFiles, " "))
-	}
-	return ""
-}
-
-// addKeyRefusal is why Add SSH key refuses for u before asking: sshd's key
-// files; a home or ~/.ssh StrictModes rejects (sshd_config(5)
-// StrictModes): not u's own (root's, for the home) or writable by group or
-// others.
-func (r usrReading) addKeyRefusal(ctx context.Context, sys host.System, u usrUser) string {
-	if words := r.keyFilesRefusal(); words != "" {
-		return words
-	}
-	for _, d := range []string{u.Home, path.Join(u.Home, ".ssh")} {
-		fi, err := sys.Stat(ctx, d)
-		if errors.Is(err, fs.ErrNotExist) && d != u.Home {
-			continue
-		}
-		var why string
-		uid, _, ok := host.Owner(fi)
-		switch {
-		case errors.Is(err, fs.ErrNotExist):
-			why = d + " isn't there"
-		case err != nil || !ok:
-			why = d + " can't be read"
-		case uid != u.UID && (uid != 0 || d != u.Home):
-			why = fmt.Sprintf("%s is uid %d's, not %s's", d, uid, u.Name)
-		case fi.Mode().Perm()&0o020 != 0:
-			why = fmt.Sprintf("%s is writable by its group (%04o)", d, fi.Mode().Perm())
-		case fi.Mode().Perm()&0o002 != 0:
-			why = fmt.Sprintf("%s is writable by anyone (%04o)", d, fi.Mode().Perm())
-		default:
-			continue
-		}
-		return fmt.Sprintf(usrWordsStrict, u.Name, why)
-	}
-	return ""
-}
-
-// keyRisk is whether removing one of u's keys is a lockout risk: the
-// session user's (sshd's log, which says which key it logged in with, is
-// not read), anyone's with the session user not known, or anyone's last
-// key, with no password to log in by.
-func (r usrReading) keyRisk(u usrUser) bool {
-	return r.invoker == "" || u.Name == r.invoker || len(u.keys) == 1
-}
-
-// hiddenSys is sys with files and lines hidden: the host as a plan that
-// removes them leaves it, for the reader. A stand-in, unit (b)'s.
-type hiddenSys struct {
-	host.System
-	files []string
-	lines map[string][]int // a file's lines read as blank
-}
-
-func (h hiddenSys) hidden(name string) bool { return slices.Contains(h.files, name) }
-
-// blank is data with name's hidden lines blank, their numbers kept.
-func (h hiddenSys) blank(name string, data []byte) []byte {
-	if len(h.lines[name]) == 0 {
-		return data
-	}
-	ls := strings.Split(string(data), "\n")
-	for _, n := range h.lines[name] {
-		if n >= 1 && n <= len(ls) {
-			ls[n-1] = ""
-		}
-	}
-	return []byte(strings.Join(ls, "\n"))
-}
-
-func (h hiddenSys) ReadFile(ctx context.Context, name string) ([]byte, error) {
-	if h.hidden(name) {
-		return nil, fs.ErrNotExist
-	}
-	data, err := h.System.ReadFile(ctx, name)
-	return h.blank(name, data), err
-}
-
-func (h hiddenSys) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
-	if h.hidden(name) {
-		return nil, nil, fs.ErrNotExist
-	}
-	data, fi, err := h.System.ReadFileNoFollow(ctx, name)
-	return h.blank(name, data), fi, err
-}
-
-func (h hiddenSys) ScanLines(ctx context.Context, name string, yield func(host.Line) bool) (fs.FileInfo, error) {
-	if h.hidden(name) {
-		return nil, fs.ErrNotExist
-	}
-	n := 0
-	return h.System.ScanLines(ctx, name, func(l host.Line) bool {
-		n++
-		if slices.Contains(h.lines[name], n) {
-			l = host.Line{}
-		}
-		return yield(l)
-	})
-}
-
-func (h hiddenSys) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
-	if h.hidden(name) {
-		return nil, fs.ErrNotExist
-	}
-	return h.System.Stat(ctx, name)
-}
-
-func (h hiddenSys) Lstat(ctx context.Context, name string) (fs.FileInfo, error) {
-	if h.hidden(name) {
-		return nil, fs.ErrNotExist
-	}
-	return h.System.Lstat(ctx, name)
-}
-
-func (h hiddenSys) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error) {
-	es, err := h.System.ReadDir(ctx, name)
-	return slices.DeleteFunc(es, func(e fs.DirEntry) bool { return h.hidden(path.Join(name, e.Name())) }), err
-}
-
-// usrStill is what would still make a user an admin once hardn's grant is
-// gone: every rule still granting, as usrDecidedBy names them; or what is
-// not read, where that is not known.
-type usrStill struct {
-	by      []string
-	unknown string
-}
-
-// stillAdmin reads, with the real reader, what still makes u an admin once
-// hardn's grant is gone: hardn's file hidden, then each rule found in turn
-// (a file, or a group's line), until none grants. A rule that asks a
-// password u does not have is not counted: it cannot be used.
-func stillAdmin(ctx context.Context, sys host.System, r usrReading, u usrUser) usrStill {
-	n, err := sudoers.FileNames(r.choice.Tool, u.Name)
-	if err != nil {
-		return usrStill{unknown: r.toolWord() + "'s rules"}
-	}
-	hs := hiddenSys{System: sys, files: []string{n.Grant}, lines: map[string][]int{}}
-	var out usrStill
-	for range 32 {
-		db, err := accounts.Read(ctx, hs)
-		if err != nil {
-			return usrStill{unknown: "the accounts"}
-		}
-		i := slices.IndexFunc(db.Users, func(x accounts.User) bool { return x.Name == u.Name })
-		if i < 0 {
-			return out
-		}
-		decided := detect.No
-		for _, g := range usersctl.ReadElevation(ctx, hs, r.f).GrantsOf(db, db.Users[i]) {
-			if g.Grants == detect.Yes || (g.Grants == detect.Unknown && decided == detect.No) {
-				decided = g.Grants
-			}
-		}
-		if decided == detect.No {
-			return out
-		}
-		st, _ := usersctl.Admin{}.Check(ctx, hs, r.f)
-		_, at, text, ok := usrEvidence(st.Evidence, u.Name, " by ")
-		if decided == detect.Unknown || !ok {
-			if _, at, _, ok := usrEvidence(st.Evidence, u.Name, " may be decided by "); ok {
-				return usrStill{unknown: at}
-			}
-			return usrStill{unknown: r.toolWord() + "'s rules"}
-		}
-		by, _ := usrDecidedBy(st.Evidence, u.Name)
-		if usrNoPass(text) || u.pw == pwSet {
-			out.by = append(out.by, by)
-		}
-		file, line := splitAt(at)
-		if strings.HasPrefix(by, "group ") {
-			hs.lines[file] = append(hs.lines[file], line)
-		} else {
-			hs.files = append(hs.files, file)
-		}
-	}
-	return usrStill{unknown: r.toolWord() + "'s rules"}
-}
-
-// usrNameForm is useradd's default NAME_REGEX on Debian (^[a-z][-a-z0-9_]*\$?$),
-// with shadow's leading "_" (is_valid_user_name), at most 32 bytes.
-var usrNameForm = regexp.MustCompile(`^[a-z_][-a-z0-9_]*\$?$`)
-
-// checkName refuses a name useradd would, or one the host has.
-func (r usrReading) checkName(db accounts.DB, name string) error {
-	switch {
-	case len(name) > 32 || !usrNameForm.MatchString(name) || sudoers.CheckUser(sudoers.ToolDoas, name) != nil:
-		return nav.Refuse(usrWordsName)
-	case slices.ContainsFunc(db.Users, func(u accounts.User) bool { return u.Name == name }),
-		slices.ContainsFunc(db.Groups, func(g accounts.Group) bool { return g.Name == name }):
-		return nav.Refuse(fmt.Sprintf(usrWordsTaken, name))
-	}
-	return nil
-}
-
-// usrControl is the gallery-local control, unit (b)'s: users.Admin's id,
-// title and check, its Plan the change's.
-type usrControl struct {
-	usersctl.Admin
-	plan func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error)
-}
-
-// Plan plans the change, reading the host where the engine plans.
-func (c usrControl) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-	return c.plan(ctx, sys, in)
-}
-
-// The change ids.
-const (
-	usrIDGrant  = "users.admin/grant"
-	usrIDCreate = "users.admin/create"
-	usrIDKeys   = "users.admin/keys"
-)
-
-// grantChange is user's grant set to g through the real planner: the
-// files Read, hardn's Policy read back and its variables carried, PlanFor
-// and steps.Sudoers (sudoers.md §6, slice 5). nil when nothing changes.
-func grantChange(ctx context.Context, sys host.System, f detect.Facts, user string, g sudoers.Grant, summary string, after ...string) (*engine.Change, error) {
-	choice := sudoers.Choose(f, sudoers.ToolUnknown)
-	if choice.Err != nil {
-		return nil, choice.Err
-	}
-	st, err := sudoers.Read(ctx, sys, choice, []string{user})
-	if err != nil {
-		return nil, err
-	}
-	pol, err := sudoers.PolicyOf(st, user)
-	if err != nil {
-		return nil, err
-	}
-	pol.Grant = g
-	p, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
-	if err != nil || len(p.Changes) == 0 {
-		return nil, err
-	}
-	c, err := steps.Sudoers(usrIDGrant, p, summary)
-	if err != nil {
-		return nil, err
-	}
-	c.After = after
-	if choice.Tool == sudoers.ToolDoas {
-		c.Findings = wheelFindings(ctx, sys, user, c.Findings)
-	}
-	return &c, nil
-}
-
-// usrWheelConf is the Alpine VM's wheel rule, permit nopass :wheel.
-const usrWheelConf = sudoers.DoasDir + "/wheel.conf"
-
-// wheelFindings are a doas plan's findings with wheel.conf's said as it
-// is (decision 2): doas reads /etc/doas.d in name order and the last match
-// wins, so wheel.conf, after hardn-<stem>.conf, overrides hardn's rule for
-// a member of wheel, and matches no one else. PlanFor says "may override"
-// for every user.
-func wheelFindings(ctx context.Context, sys host.System, user string, fds []engine.Finding) []engine.Finding {
-	db, _ := accounts.Read(ctx, sys)
-	i := slices.IndexFunc(db.Users, func(u accounts.User) bool { return u.Name == user })
-	wheel := i >= 0 && db.Member(db.Users[i], "wheel")
-	var out []engine.Finding
-	for _, fd := range fds {
-		if fd.Source == usrWheelConf {
-			if !wheel {
-				continue
-			}
-			fd.Detail = usrWheelConf + " overrides hardn's rule: " + user + " is in wheel, and doas's last match wins"
-		}
-		out = append(out, fd)
-	}
-	return out
-}
-
-// usrCommand is a stand-in change, unit (b)'s, that runs argv, undone by
-// undo.
-func usrCommand(id, summary, target string, stage engine.Stage, argv, undo []string) engine.Change {
-	return engine.Change{ID: id, Summary: summary, Title: summary, Target: target, Commands: []string{host.FormatArgv(argv)}, Stage: stage, Resources: []string{"accounts"},
-		Rollback: engine.Undo{Steps: []revert.Step{{Op: revert.OpRun, Argv: undo, Why: "accounts"}}},
-		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			_, err := sys.Run(ctx, argv[0], argv[1:]...)
-			return engine.Ran{Detail: host.FormatArgv(argv)}, err
-		}}
-}
-
-// usrCreate is the stand-in that creates name: useradd with its home
-// stated and created, the release's shell and, where sshd's PAM is not
-// established as on (pam), the password field "*" in place of useradd's
-// "!", which sshd without PAM refuses a key login to (decision 3).
-func usrCreate(f detect.Facts, pam detect.Tri, name string) engine.Change {
-	shell := "/bin/bash"
-	if f.Platform.Distro == detect.DistroAlpine {
-		shell = "/bin/ash"
-	}
-	argv := []string{"useradd", "--home-dir", "/home/" + name, "--create-home", "--shell", shell}
-	if pam != detect.Yes {
-		argv = append(argv, "--password", "*")
-	}
-	c := usrCommand(usrIDCreate, "Create user "+name, accounts.PasswdFile, engine.StageAccounts, append(argv, name), []string{"userdel", "--remove", name})
-	c.StateBefore, c.StateAfter = "absent", "no password, key login"
-	return c
-}
-
-// usrKeysChange is the stand-in that writes name's authorized_keys as
-// lines, 0600 and the user's own, creating ~/.ssh 0700 first where it is
-// not there; risky marks it a lockout risk. home is the user's.
-func usrKeysChange(name, home string, before *string, lines []string, mkdir, risky bool, summary string, after ...string) engine.Change {
-	dir := path.Join(home, ".ssh")
-	file := path.Join(home, usrKeyFile)
-	data := strings.Join(lines, "\n")
-	if data != "" {
-		data += "\n"
-	}
-	mk := []string{"install", "-d", "-m", "700", "-o", name, "-g", name, dir}
-	c := engine.Change{ID: usrIDKeys, Summary: summary, Target: file, Stage: engine.StageFiles, Resources: []string{"accounts"}, After: after,
-		Diff: engine.FileDiff(file, before, &data)}
-	if before != nil {
-		c.Backups = []string{file}
-	}
-	if mkdir {
-		c.Commands = []string{host.FormatArgv(mk)}
-		c.Rollback = engine.Undo{Steps: []revert.Step{{Op: revert.OpRemoveDir, Path: dir, Why: "accounts"}}}
-	}
-	if risky {
-		c.Risk = engine.RiskLockout
-	}
-	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-		if mkdir {
-			if _, err := sys.Run(ctx, mk[0], mk[1:]...); err != nil {
-				return engine.Ran{}, err
-			}
-		}
-		users, err := accounts.ReadPasswd(ctx, sys)
-		if err != nil {
-			return engine.Ran{}, err
-		}
-		i := slices.IndexFunc(users, func(u accounts.User) bool { return u.Name == name })
-		if i < 0 {
-			return engine.Ran{}, fmt.Errorf("no user %s: %w", name, fs.ErrNotExist)
-		}
-		return engine.Ran{Detail: file}, sys.WriteFileAtomic(ctx, file, []byte(data), 0o600, users[i].UID, users[i].GID)
-	}
-	return c
-}
-
-// keyFile is u's authorized_keys as it is, nil when it is not there.
-func keyFile(ctx context.Context, sys host.System, home string) *string {
-	data, err := sys.ReadFile(ctx, path.Join(home, usrKeyFile))
-	if err != nil {
+// usrRefuse is a form's refusal of err, nil for none.
+func usrRefuse(err error) error {
+	if err == nil {
 		return nil
 	}
-	s := string(data)
-	return &s
+	return nav.Refuse(screenkit.RefusalWords(err))
 }
 
 // usrRunner plays the mock on one host.
@@ -1131,7 +495,7 @@ func (e *usrRunner) drawSelect(ctx context.Context) nav.Screen {
 	}
 	vm := r.selectMenu()
 	actions := map[string]func() error{}
-	for i, u := range r.users {
+	for i, u := range r.Users {
 		name := u.Name
 		actions[fmt.Sprint(i+1)] = func() error { return e.s.p.Run(func() nav.Screen { return e.drawManage(ctx, name) }) }
 	}
@@ -1183,145 +547,111 @@ func usrConfirm(question string) func(flow.Plan) flow.Confirm {
 	}
 }
 
-// change runs one change through the flow: its review, its plan, the
-// question.
-func (e *usrRunner) change(ctx context.Context, r usrReading, title, question string, review flow.Review, plan func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error)) error {
+// change runs one change through the flow: its review, the control's plan
+// of a, the question.
+func (e *usrRunner) change(ctx context.Context, r usrReading, title, question string, review flow.Review, a usersctl.Admin) error {
 	return e.kit(r).Change(ctx, screenkit.Change{
-		Step: screen.WorkflowStep{Title: component.TitleBar{Title: title, Parents: []string{usrTitle}}},
-		Flow: flow.Flow{Review: func() flow.Review { return review }, Confirm: usrConfirm(question)},
-		Controls: func(*config.Config) []engine.Control {
-			return []engine.Control{usrControl{plan: plan}}
-		},
+		Step:     screen.WorkflowStep{Title: component.TitleBar{Title: title, Parents: []string{usrTitle}}},
+		Flow:     flow.Flow{Review: func() flow.Review { return review }, Confirm: usrConfirm(question)},
+		Controls: func(*config.Config) []engine.Control { return []engine.Control{r.admin(a)} },
 	})
 }
 
-// one is a plan of the change c builds, none when it is nil.
-func one(c func(ctx context.Context, sys host.System, in engine.Input) (*engine.Change, error)) func(context.Context, host.System, engine.Input) ([]engine.Change, error) {
-	return func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-		ch, err := c(ctx, sys, in)
-		if err != nil || ch == nil {
-			return nil, err
-		}
-		return []engine.Change{*ch}, nil
-	}
-}
-
 // admin is Grant or Remove admin rights for u.
-func (e *usrRunner) admin(ctx context.Context, r usrReading, u usrUser) error {
-	if u.admin == detect.Yes {
-		if words := r.removeRefusal(u, stillAdmin(ctx, e.h.sys(), r, u)); words != "" {
+func (e *usrRunner) admin(ctx context.Context, r usrReading, u usersctl.User) error {
+	if u.Admin == detect.Yes {
+		a := usersctl.Admin{Action: usersctl.ActionRemove, User: u.Name}
+		if words := r.refusal(ctx, e.h.sys(), a); words != "" {
 			return e.refuse(r, words)
 		}
 		return e.change(ctx, r, usrRemoveLabel, "Remove "+u.Name+"'s admin rights?",
-			flow.Review{Title: "User Configuration", Items: []component.KeyValue{{Key: r.toolKey(), Value: "Disabled"}}},
-			one(func(ctx context.Context, sys host.System, in engine.Input) (*engine.Change, error) {
-				return grantChange(ctx, sys, in.Facts, u.Name, sudoers.GrantNone, "Remove "+u.Name+"'s "+r.toolWord())
-			}))
+			flow.Review{Title: "User Configuration", Items: []component.KeyValue{{Key: r.toolKey(), Value: "Disabled"}}}, a)
 	}
-	if words := r.toolRefusal(); words != "" {
+	a := usersctl.Admin{Action: usersctl.ActionGrant, User: u.Name}
+	if words := r.refusal(ctx, e.h.sys(), a); words != "" {
 		return e.refuse(r, words)
 	}
-	g, row := sudoers.GrantNoPassword, nopassRow(r.toolKey(), u.pw)
-	if u.pw == pwSet {
-		g, row = sudoers.GrantPassword, component.KeyValue{Key: r.toolKey(), Value: "Enabled", State: component.ValueOK}
+	row := nopassRow(r.toolKey(), usrPW(u))
+	if usrPW(u) == pwSet {
+		row = component.KeyValue{Key: r.toolKey(), Value: "Enabled", State: component.ValueOK}
 	}
-	return e.change(ctx, r, usrGrantLabel, "Grant "+u.Name+" admin rights?",
-		flow.Review{Title: "User Configuration", Items: []component.KeyValue{row}},
-		one(func(ctx context.Context, sys host.System, in engine.Input) (*engine.Change, error) {
-			return grantChange(ctx, sys, in.Facts, u.Name, g, "Let "+u.Name+" use "+r.toolWord())
-		}))
+	return e.change(ctx, r, usrGrantLabel, "Grant "+u.Name+" admin rights?", flow.Review{Title: "User Configuration", Items: []component.KeyValue{row}}, a)
 }
 
-// password is Require or Stop requiring a password for u's elevation:
-// hardn's own grant, written to win over the rules before it.
-func (e *usrRunner) password(ctx context.Context, r usrReading, u usrUser) error {
-	if u.admin != detect.Yes {
+// password is Ask or Don't ask the password for u's admin rights: hardn's
+// own grant, written to win over the rules before it.
+func (e *usrRunner) password(ctx context.Context, r usrReading, u usersctl.User) error {
+	if u.Admin != detect.Yes {
 		return nil
 	}
-	if u.nopass {
-		if words := r.passwordRefusal(u); words != "" {
-			return e.refuse(r, words)
-		}
-		return e.change(ctx, r, usrRequireLabel, "Ask "+u.Name+"'s password for admin rights?",
-			flow.Review{Title: "User Configuration", Items: []component.KeyValue{{Key: r.toolKey(), Value: "Enabled", State: component.ValueOK}}},
-			one(func(ctx context.Context, sys host.System, in engine.Input) (*engine.Change, error) {
-				return grantChange(ctx, sys, in.Facts, u.Name, sudoers.GrantPassword, "Ask "+u.Name+"'s password")
-			}))
+	a := usersctl.Admin{Action: usersctl.ActionNoPassword, User: u.Name}
+	label, question, row := usrStopLabel, "Stop asking "+u.Name+"'s password for admin rights?", nopassRow(r.toolKey(), usrPW(u))
+	if u.NoPassword {
+		a.Action = usersctl.ActionAskPassword
+		label, question, row = usrRequireLabel, "Ask "+u.Name+"'s password for admin rights?", component.KeyValue{Key: r.toolKey(), Value: "Enabled", State: component.ValueOK}
 	}
-	if words := r.toolRefusal(); words != "" {
+	if words := r.refusal(ctx, e.h.sys(), a); words != "" {
 		return e.refuse(r, words)
 	}
-	return e.change(ctx, r, usrStopLabel, "Stop asking "+u.Name+"'s password for admin rights?",
-		flow.Review{Title: "User Configuration", Items: []component.KeyValue{nopassRow(r.toolKey(), u.pw)}},
-		one(func(ctx context.Context, sys host.System, in engine.Input) (*engine.Change, error) {
-			return grantChange(ctx, sys, in.Facts, u.Name, sudoers.GrantNoPassword, "Stop asking "+u.Name+"'s password")
-		}))
+	return e.change(ctx, r, label, question, flow.Review{Title: "User Configuration", Items: []component.KeyValue{row}}, a)
 }
 
-// keyField is the form's key question, validated.
-func keyField(value *string, have []usrKey, name string, skip func() bool) *form.Text {
+// keyField is the form's key question, validated by the control
+// (users.ParseKey); a key u has already warns.
+func keyField(value *string, have []authkeys.Key, name string, skip func() bool) *form.Text {
 	return &form.Text{Title: "Paste SSH public key", Value: value, Skip: skip, Validate: func(s string) error {
-		k, err := parseKey(s, false)
+		k, err := usersctl.ParseKey(s)
 		if err != nil {
-			return nav.Refuse(usrWordsKey)
+			return usrRefuse(err)
 		}
-		if slices.ContainsFunc(have, func(h usrKey) bool { return h.fp == k.fp }) {
+		if slices.ContainsFunc(have, k.Same) {
 			return nav.Warn(fmt.Sprintf(usrWordsDupKey, name))
 		}
 		return nil
 	}}
 }
 
-// addKey is Add SSH key: one key, then the plan.
-func (e *usrRunner) addKey(ctx context.Context, r usrReading, u usrUser) error {
-	if words := r.addKeyRefusal(ctx, e.h.sys(), u); words != "" {
+// addKey is Add SSH key: one key, then the control's plan.
+func (e *usrRunner) addKey(ctx context.Context, r usrReading, u usersctl.User) error {
+	if words := r.refusal(ctx, e.h.sys(), usersctl.Admin{Action: usersctl.ActionAddKey, User: u.Name}); words != "" {
 		return e.refuse(r, words)
 	}
 	var line string
-	review := flow.Review{Title: usrKeysSection, Items: []component.KeyValue{{Key: usrKeyKeys, Value: fmt.Sprintf("%d keys", len(u.keys)+1)}}}
-	if len(u.keys) == 0 {
+	review := flow.Review{Title: usrKeysSection, Items: []component.KeyValue{{Key: usrKeyKeys, Value: fmt.Sprintf("%d keys", len(u.Keys)+1)}}}
+	if len(u.Keys) == 0 {
 		review.Items[0].Value = "1 key"
 	}
-	if u.pw == pwLocked {
+	if u.Locked {
 		review.Notice = &flow.Notice{Callout: component.Callout{Kind: component.MessageWarn, Body: []string{fmt.Sprintf(usrWordsLocked, u.Name)}}}
 	}
 	return e.kit(r).Change(ctx, screenkit.Change{
 		Step: screen.WorkflowStep{Title: component.TitleBar{Title: usrAddKeyLabel, Parents: []string{usrTitle}}},
 		Flow: flow.Flow{
-			Form:    form.Form{Fields: []form.Field{keyField(&line, u.keys, u.Name, nil)}},
+			Form:    form.Form{Fields: []form.Field{keyField(&line, u.Keys, u.Name, nil)}},
 			Review:  func() flow.Review { return review },
 			Confirm: usrConfirm("Add the key for " + u.Name + "?"),
 		},
 		Controls: func(*config.Config) []engine.Control {
-			return []engine.Control{usrControl{plan: func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-				before := keyFile(ctx, sys, u.Home)
-				var lines []string
-				if before != nil {
-					lines = strings.Split(strings.TrimSuffix(*before, "\n"), "\n")
-				}
-				k, _ := parseKey(line, false)
-				_, dirErr := sys.Stat(ctx, path.Join(u.Home, ".ssh"))
-				return []engine.Change{usrKeysChange(u.Name, u.Home, before, append(lines, k.line), dirErr != nil, false, "Add a key for "+u.Name)}, nil
-			}}}
+			return []engine.Control{r.admin(usersctl.Admin{Action: usersctl.ActionAddKey, User: u.Name, Key: line})}
 		},
 	})
 }
 
-// removeKey is Remove SSH key: which, by fingerprint, then the plan, the
-// line really removed; a lockout risk where keyRisk says.
-func (e *usrRunner) removeKey(ctx context.Context, r usrReading, u usrUser) error {
-	if len(u.keys) == 0 {
+// removeKey is Remove SSH key: which, by fingerprint, then the control's
+// plan, a lockout risk where it says.
+func (e *usrRunner) removeKey(ctx context.Context, r usrReading, u usersctl.User) error {
+	if len(u.Keys) == 0 {
 		return nil
 	}
-	if words := r.keyRefusal(u); words != "" {
+	if words := r.refusal(ctx, e.h.sys(), usersctl.Admin{Action: usersctl.ActionRemoveKey, User: u.Name}); words != "" {
 		return e.refuse(r, words)
 	}
 	gone := 0
-	opts := make([]form.Option[int], len(u.keys))
-	for i, k := range u.keys {
-		opts[i] = form.Option[int]{Label: k.fp + " " + k.comment, Value: i}
+	opts := make([]form.Option[int], len(u.Keys))
+	for i, k := range u.Keys {
+		opts[i] = form.Option[int]{Label: k.Fingerprint + " " + k.Comment, Value: i}
 	}
-	n := len(u.keys) - 1
+	n := len(u.Keys) - 1
 	review := flow.Review{Title: usrKeysSection, Items: []component.KeyValue{{Key: usrKeyKeys, Value: fmt.Sprintf("%d keys", n)}}}
 	switch n {
 	case 0:
@@ -1337,52 +667,33 @@ func (e *usrRunner) removeKey(ctx context.Context, r usrReading, u usrUser) erro
 			Confirm: usrConfirm("Remove the key from " + u.Name + "?"),
 		},
 		Controls: func(*config.Config) []engine.Control {
-			return []engine.Control{usrControl{plan: func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-				before := keyFile(ctx, sys, u.Home)
-				if before == nil {
-					return nil, nil // not in the file the mock plans (keyFilesRefusal)
-				}
-				var keep []string
-				for _, l := range strings.Split(strings.TrimSuffix(*before, "\n"), "\n") {
-					if k, err := parseKey(l, true); err == nil && k.fp == u.keys[gone].fp {
-						continue
-					}
-					keep = append(keep, l)
-				}
-				return []engine.Change{usrKeysChange(u.Name, u.Home, before, keep, false, r.keyRisk(u), "Remove a key from "+u.Name)}, nil
-			}}}
+			return []engine.Control{r.admin(usersctl.Admin{Action: usersctl.ActionRemoveKey, User: u.Name, Fingerprint: u.Keys[gone].Fingerprint})}
 		},
 	})
 }
 
 // create is Create User: Figma's questions, the password one in Figma's
-// polarity (P-11), refused at yes (decision 3); one plan for the account,
-// the grant and the key.
+// polarity (P-11), refused at yes (decision 3), each answer checked by the
+// control (CheckName, ToolRefusal, CheckNew, KeysRefusal, ParseKey); one
+// plan for the account, the grant and the key, the control's.
 func (e *usrRunner) create(ctx context.Context, r usrReading) error {
-	db, err := accounts.Read(ctx, e.h.system())
-	if err != nil {
-		return e.refuse(r, screenkit.FullStop(err.Error()))
-	}
+	sys := e.h.sys()
 	var name, key string
 	var admin, password, addKey bool
-	tool := r.toolWord()
 	fields := []form.Field{
-		&form.Text{Title: "Username", Value: &name, Validate: func(s string) error { return r.checkName(db, s) }},
+		&form.Text{Title: "Username", Value: &name, Validate: func(s string) error { return usrRefuse(r.CheckName(ctx, sys, s)) }},
 		&form.YesNo{Title: "Grant admin rights?", Value: &admin, Validate: func(yes bool) error {
-			if words := r.toolRefusal(); yes && words != "" {
-				return nav.Refuse(words)
+			if yes {
+				return usrRefuse(r.ToolRefusal())
 			}
 			return nil
 		}},
 		&form.YesNo{Title: "Require password for admin rights?", Value: &password, Skip: func() bool { return !admin }, Validate: func(yes bool) error {
-			if yes {
-				return nav.Refuse(fmt.Sprintf(usrWordsNewNoPW, tool))
-			}
-			return nil
+			return usrRefuse(r.CheckNew(ctx, sys, usersctl.New{Name: name, Admin: admin, Password: yes}))
 		}},
 		&form.YesNo{Title: "Add SSH key?", Value: &addKey, Validate: func(yes bool) error {
-			if words := r.keyFilesRefusal(); yes && words != "" {
-				return nav.Refuse(words)
+			if yes {
+				return usrRefuse(r.KeysRefusal())
 			}
 			return nil
 		}},
@@ -1399,36 +710,38 @@ func (e *usrRunner) create(ctx context.Context, r usrReading) error {
 				}
 				keyRow := component.KeyValue{Key: usrKeyKeys, Value: "None", State: component.ValueWarn}
 				rv := flow.Review{Title: "User Configuration", Items: []component.KeyValue{sudoRow, keyRow, {Key: usrKeyPassword, Value: "None"}}}
-				if addKey {
+				if addKey { // with none, the plan says the user can't log in (users.CodeNoKey)
 					rv.Items[1] = component.KeyValue{Key: usrKeyKeys, Value: "1 key"}
-				} else {
-					rv.Notice = &flow.Notice{Callout: component.Callout{Kind: component.MessageWarn, Body: []string{fmt.Sprintf(usrWordsNoKeyNotice, name)}}}
 				}
 				return rv
 			},
 			Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: fmt.Sprintf("Create user '%s'?", name)} },
 		},
 		Controls: func(*config.Config) []engine.Control {
-			return []engine.Control{usrControl{plan: func(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-				out := []engine.Change{usrCreate(in.Facts, r.pam, name)}
-				if admin {
-					g, err := grantChange(ctx, sys, in.Facts, name, sudoers.GrantNoPassword, "Let "+name+" use "+tool, usrIDCreate)
-					if err != nil {
-						return nil, err
-					}
-					if g != nil {
-						out = append(out, *g)
-					}
-				}
-				if addKey {
-					k, _ := parseKey(key, false)
-					out = append(out, usrKeysChange(name, "/home/"+name, nil, []string{k.line}, true, false, "Add "+name+"'s key", usrIDCreate))
-				}
-				return out, nil
-			}}}
+			n := usersctl.New{Name: name, Admin: admin}
+			if addKey {
+				n.Key = key
+			}
+			return []engine.Control{r.admin(usersctl.Admin{Action: usersctl.ActionCreate, New: n})}
 		},
 	})
 }
+
+// usrSys is the host as the engine reaches it in the mock: engineSys, with
+// the tools' setuid bit as the checks read it (statusSys), since the
+// control's plan reads the host as Read does.
+type usrSys struct {
+	engineSys
+	setuid []string
+}
+
+// Stat is the fake's, with the setuid bit on the tools.
+func (s usrSys) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
+	return statusSys{System: s.engineSys.System, setuid: s.setuid}.Stat(ctx, name)
+}
+
+// system is the host as the mock's engine reaches it.
+func (e *usrRunner) system() usrSys { return usrSys{engineSys: e.h.system(), setuid: e.h.sys().setuid} }
 
 // kit is the mock's screenkit.Session: the gallery's engine over the host,
 // its backups the defaults, the gallery's hold, its apply recorded for the
@@ -1441,7 +754,7 @@ func (e *usrRunner) kit(r usrReading) screenkit.Session {
 		cfg = &config.Config{}
 	}
 	return screenkit.Session{
-		Name: "users mock", Prompter: s.p, System: h.system(), Config: cfg,
+		Name: "users mock", Prompter: s.p, System: e.system(), Config: cfg,
 		DryRun: s.sequence == "dry-run", LogPath: output.LegacyLogPath, Now: clock,
 		NewEngine: func(progress func(engine.Event)) *engine.Engine {
 			rc := &recorder{host: h, f: h.f, title: e.title}
@@ -1450,7 +763,7 @@ func (e *usrRunner) kit(r usrReading) screenkit.Session {
 			s.engineRuns = append(s.engineRuns, rc)
 			s.mu.Unlock()
 			rc.begin()
-			return engine.New(h.system(), engine.Options{
+			return engine.New(e.system(), engine.Options{
 				Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
 				Session:  applySession,
 				Backups:  backup.Settings{Path: backup.DefaultPath, Enabled: true},
@@ -1533,27 +846,20 @@ func usrRefusals() []usrRefusal {
 	}
 }
 
-// refusalOf is rf's words on its host, "" for none.
+// usrItemActions are the refusals' items as the control's actions.
+var usrItemActions = map[string]usersctl.Action{"grant": usersctl.ActionGrant, "remove": usersctl.ActionRemove, "require": usersctl.ActionAskPassword,
+	"remove-key": usersctl.ActionRemoveKey, "add-key": usersctl.ActionAddKey}
+
+// refusalOf is rf's words on its host, the control's, "" for none.
 func refusalOf(ctx context.Context, rf usrRefusal) (string, error) {
 	r, h, err := usrReadNamed(ctx, rf.host)
 	if err != nil {
 		return "", err
 	}
-	u, ok := r.user(rf.user)
-	if !ok {
+	if _, ok := r.user(rf.user); !ok {
 		return "", fmt.Errorf("%s: no user %s", rf.host, rf.user)
 	}
-	switch rf.item {
-	case "remove":
-		return r.removeRefusal(u, stillAdmin(ctx, h.sys(), r, u)), nil
-	case "require":
-		return r.passwordRefusal(u), nil
-	case "remove-key":
-		return r.keyRefusal(u), nil
-	case "add-key":
-		return r.addKeyRefusal(ctx, h.sys(), u), nil
-	}
-	return r.toolRefusal(), nil
+	return r.refusal(ctx, h.sys(), usersctl.Admin{Action: usrItemActions[rf.item], User: rf.user}), nil
 }
 
 // usrRefusalsMock draws each refusal under a header naming it.
@@ -1597,6 +903,6 @@ func usrStart(args []string) (string, bool, error) {
 }
 
 // usrNote is play's note for the mock.
-const usrNote = "Play mode, mocks: the User Management screen proposed for slice 5, drawn from what real code reads of a simulated host " +
-	"(users.Admin.Check, users.ReadElevation, sudoers.Read, PolicyOf, Invoker, ssh.ReadPAM), each grant the real sudoers.PlanFor on the real plan/apply engine. " +
-	"Creating a user and the keys are the gallery's stand-ins, unit (b)'s to build. Nothing on this machine changes: every command and file is the fake's."
+const usrNote = "Play mode, mocks: the User Management screen proposed for slice 5, drawn from the real control on a simulated host " +
+	"(users.Read), each refusal the control's and each change users.Admin's plan on the real plan/apply engine. " +
+	"Nothing on this machine changes: every command and file is the fake's."

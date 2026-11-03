@@ -7,13 +7,10 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Admin.Check, users.ReadElevation, sudoers.Read,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPolicyOf, Invoker, ssh.ReadPAM), each grant the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudoers.PlanFor on the real plan/apply engine. Creating a user␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the keys are the gallery's stand-ins, unit (b)'s to build.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from the real control on a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Read), each refusal the control's and each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Admin's plan on the real plan/apply engine. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/alpine-no-rule␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23. george is in no doas␛[m$
@@ -75,7 +72,7 @@ $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mdoas␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLet george use doas␛[m$
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-george.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-george.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
       ␛[38;2;112;212;127m+permit nopass george␛[m$
@@ -145,7 +142,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Let george use doas␛[m$
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-george.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-george.conf␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -153,13 +150,10 @@ $
 $
 # Note$
 # Play mode, mocks: the User Management screen proposed for$
-# slice 5, drawn from what real code reads of a simulated host$
-# (users.Admin.Check, users.ReadElevation, sudoers.Read,$
-# PolicyOf, Invoker, ssh.ReadPAM), each grant the real$
-# sudoers.PlanFor on the real plan/apply engine. Creating a user$
-# and the keys are the gallery's stand-ins, unit (b)'s to build.$
-# Nothing on this machine changes: every command and file is the$
-# fake's.$
+# slice 5, drawn from the real control on a simulated host$
+# (users.Read), each refusal the control's and each change$
+# users.Admin's plan on the real plan/apply engine. Nothing on$
+# this machine changes: every command and file is the fake's.$
 $
 # Info: users/alpine-no-rule$
 # web-01.example.net runs Alpine 3.23. george is in no doas$
@@ -221,7 +215,7 @@ $
   [ ] doas                 Enabled, No password to ask for$
 $
    -  Let george use doas$
-      /etc/doas.d/hardn-george.conf$
+      /etc/doas.d/zz-hardn-george.conf$
       @@ -0,0 +1,2 @@$
       +# Managed by hardn$
       +permit nopass george$
@@ -291,7 +285,7 @@ $
 # own journal, run directory and backups left out.$
 $
    -  Applied: Let george use doas$
-      /etc/doas.d/hardn-george.conf$
+      /etc/doas.d/zz-hardn-george.conf$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -299,13 +293,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from what real code reads of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (users.Admin.Check, users.ReadElevation,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudoers.Read, PolicyOf, Invoker, ssh.ReadPAM), each grant␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real sudoers.PlanFor on the real plan/apply engine.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mCreating a user and the keys are the gallery's stand-ins,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from the real control on a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Read), each refusal the control's and each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Admin's plan on the real plan/apply engine. Nothing␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/alpine-no-rule␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23. george is in no doas␛[m$
@@ -379,7 +371,7 @@ $
       ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLet george use doas␛[m$
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-george.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-george.conf␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
       ␛[38;2;112;212;127m+permit nopass george␛[m$
@@ -464,5 +456,5 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Let george use doas␛[m$
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-george.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-george.conf␛[m$
 $
