@@ -28,9 +28,10 @@ const (
 	FlagInstallAll       = "-a/--install-all"
 	FlagConfigureSources = "-s/--configure-sources"
 
-	// CommandSetupSudoEnv is the subcommand that does what -e does. -g, -e
-	// and setup-sudo-env are named here, though -n no longer refuses them:
-	// their dry run is their control's plan (cmd/hardn's operationFlags).
+	// CommandSetupSudoEnv is the subcommand that does what -e does. -g, -w,
+	// -e and setup-sudo-env are named here, though -n no longer refuses
+	// them: their dry run is their control's plan (cmd/hardn's
+	// operationFlags; -w since slice 4, unit (d)).
 	CommandSetupSudoEnv = "setup-sudo-env"
 )
 
@@ -38,11 +39,12 @@ const (
 //
 // With it true, hardn -n combined with an operation flag runs the operation
 // for real: cmd/hardn/main.go only sets cfg.DryRun, and no layer below the
-// menus reads it, so -r, -c, -d and -w apply every command and file write
+// menus reads it, so -r, -c and -d apply every command and file write
 // they would apply without -n (V1; Phase 0 side-effects §1, harness A1).
-// -g, -e and setup-sudo-env are not refused, whatever it says: their dry
-// run is their control's plan (refactor plan slices 2 and 9, unit (d)). That path is the unchanged flag dispatch in
-// cmd/hardn/main.go, which runs when RefuseDryRunOperations returns nil.
+// -g, -w, -e and setup-sudo-env are not refused, whatever it says: their
+// dry run is their control's plan (refactor plan slices 2, 4 and 9, unit
+// (d)). That path is the unchanged flag dispatch in cmd/hardn/main.go,
+// which runs when RefuseDryRunOperations returns nil.
 //
 // With it false, -n keeps its documented meaning, preview only: an operation
 // flag under -n is a usage error, refused before the root check, the config

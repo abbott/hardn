@@ -39,65 +39,6 @@ func (r *UFWFirewallRepository) IsUFWInstalled() bool {
 	return err == nil
 }
 
-// retrieve the current status of the firewall
-func (r *UFWFirewallRepository) GetFirewallStatus() (bool, bool, bool, []string, error) {
-	// Check if UFW is installed
-	_, err := r.commander.Execute("which", "ufw")
-	isInstalled := (err == nil)
-
-	// Default values if not installed
-	isEnabled := false
-	isConfigured := false
-	var rules []string
-
-	if isInstalled {
-		// Check if UFW is enabled
-		statusOutput, err := r.commander.Execute("ufw", "status")
-		if err == nil {
-			statusText := string(statusOutput)
-			isEnabled = strings.Contains(statusText, "Status: active")
-
-			// Extract rules (skip header lines)
-			lines := strings.Split(statusText, "\n")
-			ruleSection := false
-			for _, line := range lines {
-				line = strings.TrimSpace(line)
-
-				// Skip empty lines
-				if line == "" {
-					continue
-				}
-
-				// Skip header lines
-				if strings.Contains(line, "Status:") ||
-					strings.Contains(line, "Logging:") ||
-					strings.Contains(line, "Default:") ||
-					strings.Contains(line, "New profiles:") ||
-					strings.Contains(line, "To             Action      From") {
-					continue
-				}
-
-				// Check if we've reached the rule section
-				if strings.Contains(line, "--") {
-					ruleSection = true
-					continue
-				}
-
-				// Add rule lines
-				if ruleSection && line != "" {
-					rules = append(rules, line)
-				}
-			}
-
-			// Check if we have default policies configured
-			isConfigured = strings.Contains(statusText, "deny (incoming)") &&
-				strings.Contains(statusText, "allow (outgoing)")
-		}
-	}
-
-	return isInstalled, isEnabled, isConfigured, rules, nil
-}
-
 // SaveFirewallConfig applies the specified firewall configuration. On
 // Proxmox VE it is refused before any ufw command (proxmoxTreatedAsDebian).
 func (r *UFWFirewallRepository) SaveFirewallConfig(config model.FirewallConfig) error {

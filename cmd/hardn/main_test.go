@@ -269,9 +269,11 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 
 // operationRuns are the CLI operations that -n refuses, each with the
 // arguments that run it and the name the refusal gives it: every one but
-// -g, whose dry run is the DNS control's plan (TestConfigureDNSFlag), and
-// -e and setup-sudo-env, whose dry run is the Environment control's
-// (TestKeepEnvironmentFlag; refactor plan slice 9, unit (d)).
+// -g, whose dry run is the DNS control's plan (TestConfigureDNSFlag), -e
+// and setup-sudo-env, whose dry run is the Environment control's
+// (TestKeepEnvironmentFlag; refactor plan slice 9, unit (d)), and -w,
+// whose dry run is the Firewall control's (TestConfigureFirewallFlag;
+// slice 4, unit (d)).
 var operationRuns = []struct {
 	args []string
 	name string
@@ -279,7 +281,6 @@ var operationRuns = []struct {
 	{[]string{"-r"}, hardncmd.FlagRunAll},
 	{[]string{"-c", "-u", "alice"}, hardncmd.FlagCreateUser},
 	{[]string{"-d"}, hardncmd.FlagDisableRoot},
-	{[]string{"-w"}, hardncmd.FlagConfigureUFW},
 }
 
 // TestDryRunRefusesOperations checks V1's gate: -n with any operation is
@@ -309,19 +310,19 @@ func TestDryRunRefusesOperations(t *testing.T) {
 		}
 	}
 	t.Run("several operations are all named", func(t *testing.T) {
-		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-w", "-g", "-e")
+		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-r", "-w", "-g", "-e")
 		if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 || len(r.reached) != 0 {
 			t.Fatalf("ended %v with %d, reached %v, calls %v", r.ended, r.code, r.reached, r.calls)
 		}
-		want := "can't be combined with " + hardncmd.FlagDisableRoot + " and " + hardncmd.FlagConfigureUFW + ", which apply them."
+		want := "can't be combined with " + hardncmd.FlagRunAll + " and " + hardncmd.FlagDisableRoot + ", which apply them."
 		if !strings.Contains(r.stderr, want) {
 			t.Errorf("stderr lacks %q:\n%s", want, r.stderr)
 		}
 		if strings.Contains(r.stderr, "print-logs") {
 			t.Errorf("-p only reads, but the refusal names it:\n%s", r.stderr)
 		}
-		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) || strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) {
-			t.Errorf("-n -g and -n -e show the plan, but the refusal names -g or -e:\n%s", r.stderr)
+		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) || strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) || strings.Contains(r.stderr, hardncmd.FlagConfigureUFW) {
+			t.Errorf("-n -g, -n -e and -n -w show the plan, but the refusal names -g, -e or -w:\n%s", r.stderr)
 		}
 	})
 }

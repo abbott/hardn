@@ -17,9 +17,10 @@ import (
 	"github.com/abbott/hardn/internal/parity"
 )
 
-// The reader of this slice's goldens (Slice.Reader): the menu layout
-// (TestLegacyMenuFirewall, TestLegacyMenuDryRun's firewall_configure_dry_run)
-// and the ops layout (TestOperationGoldens), whose failed runs the harness's
+// The reader of this slice's goldens (Slice.Reader), frozen under legacyDir: the
+// menu layout (TestLegacyMenuFirewall, TestLegacyMenuDryRun's
+// firewall_configure_dry_run, both retired in unit (d)) and the ops layout
+// (TestOperationGoldens), whose failed runs the harness's
 // own ops reader does not compare. What it does not know fails: a header line,
 // a section, a fixture's line, a call, a command, a trailer line, a section left
 // out. A header line it knows by its prefix and does not read, but Start; the
@@ -320,7 +321,7 @@ func (r *run) afterwards(list string) error {
 
 // begin takes the start the golden's header says, whether ufw is installed:
 // firewall_configure_dry_run's NOTE says it in words of its own
-// (menu_dryrun_test.go's case).
+// (TestLegacyMenuDryRun's case, retired in unit (d)).
 func (r *run) begin(out *parity.LegacyRead, data []byte) (bool, error) {
 	if out.Start == "" {
 		if !bytes.Contains(data, []byte("# NOTE: Debian 13, SSH port 2230; ufw installed and inactive")) {

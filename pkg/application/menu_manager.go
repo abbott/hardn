@@ -12,7 +12,6 @@ import (
 type MenuManager struct {
 	userManager     *UserManager
 	sshManager      *SSHManager
-	firewallManager *FirewallManager
 	dnsManager      *DNSManager
 	packageManager  *PackageManager
 	securityManager *SecurityManager
@@ -25,7 +24,6 @@ type MenuManager struct {
 func NewMenuManager(
 	userManager *UserManager,
 	sshManager *SSHManager,
-	firewallManager *FirewallManager,
 	dnsManager *DNSManager,
 	packageManager *PackageManager,
 	securityManager *SecurityManager,
@@ -34,7 +32,6 @@ func NewMenuManager(
 	return &MenuManager{
 		userManager:     userManager,
 		sshManager:      sshManager,
-		firewallManager: firewallManager,
 		dnsManager:      dnsManager,
 		packageManager:  packageManager,
 		securityManager: securityManager,
@@ -91,11 +88,6 @@ func (m *MenuManager) HardenSystem(config *model.HardeningConfig) error {
 	return m.securityManager.HardenSystem(config)
 }
 
-// configure the firewall with secure settings
-func (m *MenuManager) ConfigureSecureFirewall(sshPort int, allowedPorts []int, profiles []model.FirewallProfile) error {
-	return m.firewallManager.ConfigureSecureFirewall(sshPort, allowedPorts, profiles)
-}
-
 // install Linux packages based on the specified type
 func (m *MenuManager) InstallLinuxPackages(packages []string, packageType string) error {
 	return m.packageManager.InstallLinuxPackages(packages, packageType)
@@ -114,11 +106,6 @@ func (m *MenuManager) UpdatePackageSources() error {
 // update Proxmox-specific package sources
 func (m *MenuManager) UpdateProxmoxSources() error {
 	return m.packageManager.UpdateProxmoxSources()
-}
-
-// retrieve the current status of the firewall
-func (m *MenuManager) GetFirewallStatus() (bool, bool, bool, []string, error) {
-	return m.firewallManager.GetFirewallStatus()
 }
 
 // retrieve host information

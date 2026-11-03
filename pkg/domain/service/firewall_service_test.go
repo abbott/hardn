@@ -10,14 +10,6 @@ import (
 
 // MockFirewallRepository implements FirewallRepository interface for testing
 type MockFirewallRepository struct {
-	// Status information
-	Installed       bool
-	Enabled         bool
-	Configured      bool
-	Rules           []string
-	StatusError     error
-	StatusCallCount int
-
 	// Configuration information
 	SavedConfig         model.FirewallConfig
 	SaveConfigError     error
@@ -47,11 +39,6 @@ type MockFirewallRepository struct {
 
 	DisableError     error
 	DisableCallCount int
-}
-
-func (m *MockFirewallRepository) GetFirewallStatus() (bool, bool, bool, []string, error) {
-	m.StatusCallCount++
-	return m.Installed, m.Enabled, m.Configured, m.Rules, m.StatusError
 }
 
 func (m *MockFirewallRepository) SaveFirewallConfig(config model.FirewallConfig) error {
@@ -109,93 +96,6 @@ func TestNewFirewallServiceImpl(t *testing.T) {
 
 	if !reflect.DeepEqual(service.osInfo, osInfo) {
 		t.Error("OSInfo not properly set")
-	}
-}
-
-func TestFirewallServiceImpl_GetFirewallStatus(t *testing.T) {
-	tests := []struct {
-		name        string
-		installed   bool
-		enabled     bool
-		configured  bool
-		rules       []string
-		statusError error
-		expectError bool
-	}{
-		{
-			name:        "successful status retrieval",
-			installed:   true,
-			enabled:     true,
-			configured:  true,
-			rules:       []string{"22/tcp ALLOW", "80/tcp DENY"},
-			statusError: nil,
-			expectError: false,
-		},
-		{
-			name:        "firewall not installed",
-			installed:   false,
-			enabled:     false,
-			configured:  false,
-			rules:       []string{},
-			statusError: nil,
-			expectError: false,
-		},
-		{
-			name:        "repository error",
-			installed:   false,
-			enabled:     false,
-			configured:  false,
-			rules:       []string{},
-			statusError: errors.New("mock status error"),
-			expectError: true,
-		},
-	}
-
-	for _, tc := range tests {
-		t.Run(tc.name, func(t *testing.T) {
-			// Setup
-			repo := &MockFirewallRepository{
-				Installed:   tc.installed,
-				Enabled:     tc.enabled,
-				Configured:  tc.configured,
-				Rules:       tc.rules,
-				StatusError: tc.statusError,
-			}
-
-			osInfo := model.OSInfo{Type: "debian", Version: "11"}
-			service := NewFirewallServiceImpl(repo, osInfo)
-
-			// Execute
-			installed, enabled, configured, rules, err := service.GetFirewallStatus()
-
-			// Verify
-			if tc.expectError && err == nil {
-				t.Error("Expected error but got nil")
-			}
-			if !tc.expectError && err != nil {
-				t.Errorf("Expected no error but got: %v", err)
-			}
-
-			if repo.StatusCallCount != 1 {
-				t.Errorf("Expected GetFirewallStatus to be called once, got %d", repo.StatusCallCount)
-			}
-
-			if installed != tc.installed {
-				t.Errorf("Incorrect installed status. Got %v, expected %v", installed, tc.installed)
-			}
-
-			if enabled != tc.enabled {
-				t.Errorf("Incorrect enabled status. Got %v, expected %v", enabled, tc.enabled)
-			}
-
-			if configured != tc.configured {
-				t.Errorf("Incorrect configured status. Got %v, expected %v", configured, tc.configured)
-			}
-
-			if !reflect.DeepEqual(rules, tc.rules) {
-				t.Errorf("Incorrect rules. Got %v, expected %v", rules, tc.rules)
-			}
-		})
 	}
 }
 

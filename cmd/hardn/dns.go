@@ -31,7 +31,7 @@ import (
 // only reports, a container, an empty list, a fact not established, ...)
 // is reported with its code and how to go on, and not applied.
 func configureDNS(c *config.Config) int {
-	return runControls(c, dnsctl.Controls(c), nil)
+	return runControls(c, dnsctl.Controls(c), nil, nil)
 }
 
 // runControls runs an operation flag's controls on the plan/apply engine:
@@ -57,10 +57,32 @@ func configureDNS(c *config.Config) int {
 // on a terminal nothing reads (sudo-rs's, once the session has dropped);
 // a hangup it alone catches, before engineSignals' registration, ends
 // hardn as one that reached the apply does.
+// confirm, when not nil, is the flag's confirmation of a lockout-risk plan
+// (typedConfirm, typed.go: -w's). A plain plan is applied as any flag's,
+// unasked, on a terminal or off. Live on a terminal, a lockout-risk plan,
+// planned here first and not refused, goes to the canonical flow instead
+// (runTyped), which plans again and confirms by the hostname typed; live
+// off a terminal it is refused, after refuse. Under plan only confirm
+// plays no part.
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
-// or nothing to change, 3 for a dry run with changes to make, 1 for a
-// refusal or a failure.
-func runControls(c *config.Config, controls []engine.Control, refuse func(*engine.Plan) error) int {
+// or nothing to change, 3 for a dry run with changes to make (or, with
+// confirm, a plan declined), 1 for a refusal or a failure.
+func runControls(c *config.Config, controls []engine.Control, refuse func(*engine.Plan) error, confirm *typedConfirm) int {
+	live := confirm != nil && !c.DryRun
+	typed := live && onTerminal()
+	if live && !typed {
+		if refuse == nil {
+			refuse = confirm.refuse
+		} else {
+			own := refuse
+			refuse = func(p *engine.Plan) error {
+				if err := own(p); err != nil {
+					return err
+				}
+				return confirm.refuse(p)
+			}
+		}
+	}
 	ctx := context.Background()
 	sys := engineHost()
 	e := engine.New(sys, engineOptions(ctx, sys, c))
@@ -71,6 +93,9 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 	run.Plan, run.Err = e.Plan(ctx, controls, c)
 	if refuse != nil && run.Err == nil && run.Plan != nil {
 		run.Err = refuse(run.Plan)
+	}
+	if typed && run.Err == nil && run.Plan != nil && run.Plan.Err() == nil && run.Plan.Risk == engine.RiskLockout {
+		return runTyped(c, controls, *confirm)
 	}
 	actx := ctx // a signal's, around the apply and its report alone
 	hungUp := func() bool { return false }
@@ -87,6 +112,14 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 	if err := output.Emit(output.Streams{Stdout: engineStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
 		logging.LogError("%v", err)
 	}
+	return endControls(run, actx, hungUp)
+}
+
+// endControls is the exit status of a flag's run, output.ExitCode's, and
+// ends hardn at once when it was interrupted, or when a signal reached its
+// apply's registration, actx done, or a hangup's watch (hungUp): with 130
+// for a change applied, the flags after it not run (runControls).
+func endControls(run output.Run, actx context.Context, hungUp func() bool) int {
 	code := output.ExitCode(run)
 	signalled := actx.Err() != nil || hungUp()
 	if signalled && code == output.ExitOK {

@@ -136,9 +136,9 @@ func TestReads(t *testing.T) {
 // reader did and pkg/config's questions do. In each case one read takes
 // every line into the Reader's buffer, as a paste arrives. A menu choice
 // and a pause, which follow long steps, still discard it on a terminal,
-// and not with scripted input. The firewall screen's four profile
-// questions take their answers so; the fourth, a port with no protocol,
-// stops the screen before it saves the configuration.
+// and not with scripted input. (The Firewall menu's four profile
+// questions took their answers so until refactor plan slice 4's unit (d)
+// deleted it.)
 func TestPastedAnswers(t *testing.T) {
 	for _, tty := range []bool{true, false} {
 		t.Run(fmt.Sprintf("ReadInput keeps them, terminal %v", tty), func(t *testing.T) {
@@ -171,22 +171,6 @@ func TestPastedAnswers(t *testing.T) {
 			})
 		}
 	}
-	t.Run("the firewall profile's questions", func(t *testing.T) {
-		useReader(t, prompt.New(strings.NewReader("Example\nExample Service\nAn example\n8080\n"), true))
-		cfg := config.DefaultConfig()
-		out, code, ended := session(t, func() { NewFirewallMenu(nil, cfg, nil).addAppProfile() })
-		if ended {
-			t.Fatalf("ended hardn with %d:\n%s", code, out)
-		}
-		for _, w := range []string{"Enter profile name", "Enter profile title", "Enter profile description", "Enter ports", "Invalid port format '8080'"} {
-			if !strings.Contains(out, w) {
-				t.Errorf("output lacks %q:\n%s", w, out)
-			}
-		}
-		if len(cfg.UfwAppProfiles) != 0 {
-			t.Errorf("profiles = %v, want none added", cfg.UfwAppProfiles)
-		}
-	})
 }
 
 // TestEnterRequired checks that no read returns before Enter: origin/main
@@ -263,15 +247,16 @@ func TestAbort(t *testing.T) {
 	})
 }
 
-// profilesInPlanOnly is the Firewall menu's application profiles screen
-// under plan only, on hardn's defaults, which has no profile: its add
-// refused with a pause, as a choice it does not take is; nothing is read
-// from or run on this host, nothing saved. (The Environment screen served
-// here until refactor plan slice 9's unit (d) deleted it.)
-func profilesInPlanOnly() func() {
+// runAllInPlanOnly is the Run All screen under plan only, on hardn's
+// defaults: a choice it does not take refused with a pause, the screen
+// drawn again; nothing is read from or run on this host, nothing saved.
+// (The Environment screen served here until refactor plan slice 9's unit
+// (d) deleted it, then the Firewall menu's application profiles until
+// slice 4's unit (d) deleted that.)
+func runAllInPlanOnly() func() {
 	cfg := config.DefaultConfig()
 	cfg.DryRun = true
-	return NewFirewallMenu(nil, cfg, nil).manageAppProfiles
+	return NewRunAllMenu(nil, cfg, nil).Show
 }
 
 // TestScreens drives legacy screens with scripted stdin: each pause waits
@@ -294,9 +279,9 @@ func TestScreens(t *testing.T) {
 			pauses: 0,
 		},
 		{
-			name: "firewall profiles: a refusal, an invalid choice, q", script: "1\n\nx\n\nq\n",
-			run:    func(*testing.T) { profilesInPlanOnly()() },
-			want:   []string{"Manage UFW Application Profiles", "Not available in plan only.", pause, "Invalid option. Please try again.", pause},
+			name: "run all: the removed 2, an invalid choice, q", script: "2\n\nx\n\nq\n",
+			run:    func(*testing.T) { runAllInPlanOnly()() },
+			want:   []string{"Run All Hardening Steps", "Invalid option. Please try again.", pause, "Invalid option. Please try again.", pause},
 			pauses: 2,
 		},
 	}
@@ -329,12 +314,12 @@ func TestScreens(t *testing.T) {
 	}
 	t.Run("the end of the input at a pause ends hardn there", func(t *testing.T) {
 		scripted(t, "x\n")
-		show := profilesInPlanOnly()
+		show := runAllInPlanOnly()
 		out, code, ended := session(t, show)
 		if !ended || code != prompt.ExitInterrupted {
 			t.Fatalf("ended %v with %d, want exit status %d", ended, code, prompt.ExitInterrupted)
 		}
-		if !strings.HasSuffix(out, pause+"\n") || strings.Count(out, "Manage UFW Application Profiles") != 1 {
+		if !strings.HasSuffix(out, pause+"\n") || strings.Count(out, "Run All Hardening Steps") != 1 {
 			t.Errorf("want the invalid choice's pause last, and the screen not drawn again:\n%s", out)
 		}
 	})

@@ -49,7 +49,7 @@ var environmentGetenv = os.Getenv
 // (refuseLockoutRisk). It returns the exit status: 0 applied or nothing
 // to change, 3 a plan with changes to make, 1 refused or failed.
 func keepEnvironment(c *config.Config) int {
-	return runControls(c, envctl.Controls(environmentGetenv), refuseLockoutRisk)
+	return runControls(c, envctl.Controls(environmentGetenv), refuseLockoutRisk, nil)
 }
 
 // runStatus is hardn's exit status once -e has run after -g in one

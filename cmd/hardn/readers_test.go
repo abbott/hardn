@@ -238,6 +238,52 @@ func TestLogFileWarning(t *testing.T) {
 	}
 }
 
+// TestUfwPolicyWarning: where hardn.yml loads, a warning for each ufw policy
+// the file sets, in decision 8's words (slice 4), the file still accepted:
+// none where it leaves the key out, or writes "" as origin/main's SaveConfig
+// does, and none for ufwAllowedPorts, which waits for slice 8.
+func TestUfwPolicyWarning(t *testing.T) {
+	const incoming, outgoing = "hardn.yml's ufwDefaultIncomingPolicy isn't used", "hardn.yml's ufwDefaultOutgoingPolicy isn't used"
+	for _, tc := range []struct {
+		name, yml string
+		inWarned  bool
+		outWarned bool
+	}{
+		{"neither named", "username: alice\n", false, false},
+		{"both empty, as SaveConfig writes", "username: alice\nufwDefaultIncomingPolicy: \"\"\nufwDefaultOutgoingPolicy: \"\"\n", false, false},
+		{"incoming", "username: alice\nufwDefaultIncomingPolicy: deny\n", true, false},
+		{"outgoing", "username: alice\nufwDefaultOutgoingPolicy: allow\n", false, true},
+		{"both", "username: alice\nufwDefaultIncomingPolicy: deny\nufwDefaultOutgoingPolicy: allow\n", true, true},
+		{"ufwAllowedPorts", "username: alice\nufwAllowedPorts: [22]\n", false, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			const path = "/etc/hardn/hardn.yml"
+			loaded := false
+			r := runHardnWith(t, asRoot, func() {
+				loadConfig = func(string) (*config.Config, error) {
+					f := hostfake.New(host.Options{})
+					f.AddFile(path, []byte(tc.yml), 0o644, 0, 0)
+					c, err := config.Read(context.Background(), f, path)
+					loaded = err == nil
+					return c, err
+				}
+			}, "-d")
+			if !loaded {
+				t.Fatalf("hardn.yml did not load; stderr:\n%s", r.stderr)
+			}
+			if got := strings.Contains(r.stderr, incoming); got != tc.inWarned {
+				t.Errorf("incoming warned %v, want %v; stderr:\n%s", got, tc.inWarned, r.stderr)
+			}
+			if got := strings.Contains(r.stderr, outgoing); got != tc.outWarned {
+				t.Errorf("outgoing warned %v, want %v; stderr:\n%s", got, tc.outWarned, r.stderr)
+			}
+			if !strings.Contains(r.stdout, "Script completed") {
+				t.Errorf("-d did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
+			}
+		})
+	}
+}
+
 // TestWarningsFollowDetectOS: detectOS clears the terminal (utils.PrintHeader), so what
 // loading hardn.yml warns of is said after it, or no one reads it (run: the VMs).
 func TestWarningsFollowDetectOS(t *testing.T) {

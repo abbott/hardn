@@ -8,14 +8,14 @@
 
 - **`dryRun` in hardn.yml is now read.** It was ignored: `hardn` ran live whatever the file said. `dryRun: true` now starts `hardn` in plan only, as `-n` does: changes are shown, not applied.
 - **`-n` and `dryRun` both mean plan only.** A flag given wins: `-n` turns it on, `--dry-run=false` turns it off, whatever the file says.
-- **Operation flags are refused under plan only**, from `-n` or from the file: `-r`, `-c`, `-d` and `-w` exit with status 2 and change nothing. `-g`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
+- **Operation flags are refused under plan only**, from `-n` or from the file: `-r`, `-c` and `-d` exit with status 2 and change nothing. `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
 - **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -g`, or `-e` or `setup-sudo-env` through sudo, now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
 - **The menu no longer saves the mode.** Its saves write `dryRun` as the file had it.
 - **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
 - **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only.
 - **Run All no longer turns dry run on or off.** Its option 2 is removed: Run All runs in the mode `hardn` started in.
-- **Under plan only, some menu areas are refused.** User Management, and adding or removing a Firewall profile, say "Not available in plan only." They used to apply their changes even under `-n`.
-- **Under plan only, Backup and Environment open.** Each of their changes stops at its plan, and they write nothing.
+- **Under plan only, User Management is refused.** It says "Not available in plan only." It used to apply its changes even under `-n`.
+- **Under plan only, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too, and they write nothing.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
@@ -54,6 +54,20 @@ See [docs/configuration.md](../configuration.md), "`enableBackups` and `backupPa
 - **No notice under sudo.** At each start hardn no longer runs your login shell through `su -` to look for `HARDN_CONFIG`. Environment (8) says whether it is kept.
 
 See [docs/configuration.md](../configuration.md), "Using with sudo or doas".
+
+## Changed: Firewall
+
+- **Main menu 4 shows what ufw does**: whether it is installed and running, its incoming policy, whether it starts at boot, whether SSH gets through, its rules and your application profiles. Opening it changes nothing.
+- **Install works.** It installs ufw with apt or apk. It used to say it wasn't yet implemented.
+- **Enabling asks you to type the hostname**, and rolls back unless you run `sudo hardn confirm` from a new session. It lets SSH through, denies incoming by default, and starts ufw now and at boot. It used to disable and reset ufw first.
+- **Disable works**, after showing the change. It used to say it wasn't yet implemented.
+- **Profiles are applied.** Application Profiles adds a profile to hardn.yml, removes one, and applies them to ufw. Ports are written to ufw's file joined by `|`, which ufw accepts; they used to be joined by commas. Removing a profile leaves its rule in ufw.
+- **On Proxmox VE, 4 reads "View pve-firewall"** and only shows pve-firewall. It changes nothing there.
+- **`hardn -w` enables the firewall the same way.** On a terminal, a change that could lock you out asks you to type the hostname. Off a terminal it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out is applied without asking. With `-n` it shows the plan and exits 3; it used to be refused.
+- **Run All and `-r` still configure ufw the old way** until their slice: they disable and reset it, then set both default policies.
+- **`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used.** Where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
+
+See [docs/configuration.md](../configuration.md), "Firewall Configuration with UFW Application Profiles".
 
 ## Changed: the main menu
 

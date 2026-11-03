@@ -66,7 +66,7 @@ How each existing compact test keeps running: `TestCompact`, `TestStatusBlocks`,
 | 1 | User Management (`NewUserMenu`); since unit (d), refused under plan only |
 | 2 | SSH Login (`NewDisableRootMenu`) |
 | 3 | DNS, the DNS screen (`SetDNS`), from a cleared screen |
-| 4 | Firewall (`NewFirewallMenu`) |
+| 4 | Firewall (`NewFirewallMenu`); *since `next/s4-replace`, the Firewall screen (`SetFirewall`), from a cleared screen, under plan only too, its description "View pve-firewall" on Proxmox VE* |
 | 5 | Backup, the Backup screen (`SetBackup`), from a cleared screen; *since `next/s3-replace`, under plan only too* |
 | 6 | Dry-Run (`NewDryRunHandler`), until unit (d); since, refused as a key no item has |
 | 7 | Run All (`NewRunAllHandler`), its option 2 until unit (d), which removed it |

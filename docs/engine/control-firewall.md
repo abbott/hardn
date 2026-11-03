@@ -1,6 +1,6 @@
 # The Firewall control (`pkg/engine/controls/firewall`)
 
-> **Unit:** refactor plan slice 4, unit (b), `next/s4-control`. **Status:** built and tested on macOS against `hostfake` and the gallery's model; nothing ran on a VM or through the binary, and nothing is wired into `pkg/menu` or `cmd/hardn`.
+> **Unit:** refactor plan slice 4, unit (b), `next/s4-control`. **Status:** built and tested on macOS against `hostfake` and the gallery's model; nothing ran on a VM or through the binary, and nothing is wired into `pkg/menu` or `cmd/hardn`. *Since `next/s4-replace`, main menu 4's screen and `-w` call it, and decision 8's warnings are built ([cmd-engine.md](cmd-engine.md) §2.12, §2.13; [screen-firewall.md](screen-firewall.md)).*
 
 `Incoming` is the main menu's Firewall row ([check-firewall.md](check-firewall.md)) and every change the Firewall screen makes. It installs ufw, enables or disables it, saves and applies application profiles, and refuses before anything changes. On Proxmox VE, or where that is not established, every action refuses before any ufw call. The gallery (`go run ./internal/tools/uigallery firewall`, [gallery-firewall.md](gallery-firewall.md)) now runs on it.
 

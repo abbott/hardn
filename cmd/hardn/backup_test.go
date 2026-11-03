@@ -123,12 +123,16 @@ func TestBackupScreen(t *testing.T) {
 // hookSet records the DNS, Backup and Environment items' hooks as
 // withDNSScreen, withBackupScreen and withEnvironmentScreen set them.
 type hookSet struct {
-	dns, backup, environment, systemDetails, logs func() error
+	dns, backup, environment, firewall, systemDetails, logs func() error
+	firewallPVE                                             func() bool
 }
 
-func (h *hookSet) SetDNS(run func() error)           { h.dns = run }
-func (h *hookSet) SetBackup(run func() error)        { h.backup = run }
-func (h *hookSet) SetEnvironment(run func() error)   { h.environment = run }
+func (h *hookSet) SetDNS(run func() error)         { h.dns = run }
+func (h *hookSet) SetBackup(run func() error)      { h.backup = run }
+func (h *hookSet) SetEnvironment(run func() error) { h.environment = run }
+func (h *hookSet) SetFirewall(run func() error, onPVE func() bool) {
+	h.firewall, h.firewallPVE = run, onPVE
+}
 func (h *hookSet) SetSystemDetails(run func() error) { h.systemDetails = run }
 func (h *hookSet) SetLogs(run func() error)          { h.logs = run }
 
