@@ -1,7 +1,7 @@
 # User Management mock (slice 5, unit (a))
 
 Unit (a) of slice 5, `next/s5-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`users.go`, `usershost.go`).
-Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM: not `useradd --password '*'` (on the fake only), `install -d -o`, sudo-rs's reading of `hardn-grant-*`, nor `gpasswd -d`'s effect. That sshd without PAM refuses a key to a `!` account is [I], from the brief.
+Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM: not `useradd --password '*'` (on the fake only), `install -d -o`, sudo-rs's reading of `hardn-grant-*`, nor `gpasswd -d`'s effect. That sshd without PAM refuses a key to a `!` account is [I], from the brief. The eight decisions of §5 are adopted (the maintainer, 2026-11-03), with the Made here calls as stated and the words of §6.
 
 ## 1. What to run
 
@@ -131,6 +131,17 @@ Every screen is as many lines at 80x24 and 80x40, Unicode and ASCII: full sectio
 ## 5. Decisions for the maintainer
 
 Drawn: every recommendation below. Not mocked: deleting a user, setting a password, group membership changes, `authorized_keys2`, root's keys on Proxmox VE.
+
+**Adopted (the maintainer, 2026-11-03):** "Adopt all, start (b)." Every recommended answer below is adopted, and every Made here call as stated. What follows from them:
+
+- No Delete User (1).
+- Grants are hardn's own files; Remove takes away hardn's file alone and refuses, before asking, wherever another rule grants or would still grant (2 (a)). Unit (b) renames hardn's doas file so it sorts after `wheel.conf` (2 (a) (i)), in `pkg/host/sudoers` and [sudoers.md](../safety/sudoers.md) §2; nothing released has written the old name.
+- Users are created key-only, `useradd --password '*'` where sshd's PAM is not established as on; "Ask for password" and Create's "Require password for admin rights?" refuse for a user with none; a no-password grant on such an account is a cost, not a failure (3 (a)).
+- The lockout rules as drawn (4); the typed hostname with confirm-or-revert where §5 4 says, so [P-10](../refactor/proposals.md#p-10) is decided for User Management.
+- origin/main's `/etc/sudoers.d/<user>` is left in place and named (5 (a)).
+- `-c` and `-u` move to the new control, applied as `-g` is (6 (a)); built in unit (d).
+- hardn.yml's `username`, `sudoNoPassword` and `sshKeys` are Create's defaults alone; a value set and unused warns once (7 (a)).
+- [P-11](../refactor/proposals.md#p-11) Figma's polarity, default no, in §6's words; [P-13](../refactor/proposals.md#p-13) (a); [P-29](../refactor/proposals.md#p-29) (b); §6's words are decided (8).
 
 1. **Scope: which changes the screen offers.** *Gates every decision below.* The mock offers create a user, grant and remove admin rights, ask or don't ask a password for them, add and remove keys. origin/main has no Delete User. (a) *Recommended:* those six, no delete: each is a file or a command hardn can journal and roll back; `userdel --remove` destroys a home directory, which no rollback restores. (b) Add Delete User, a refusal for the session user and a typed confirmation, with the home kept (`userdel` without `--remove`).
 2. **How a grant is written, and what Remove does to one hardn didn't write.** *Gates 4, 5.* (a) *Recommended, drawn:* hardn's own drop-in per [sudoers.md](../safety/sudoers.md) §2 (`hardn-grant-<stem>`, `/etc/doas.d/hardn-<stem>.conf`); Remove removes hardn's file alone, and where cloud-init's file, origin/main's, or the sudo or wheel group grants it, refuses before asking, naming it (for a group, `gpasswd -d <user> <group>`); where other rules would still grant once hardn's file is gone, it refuses too, naming every one, read by the real reader with hardn's file and each rule found hidden in turn (a rule asking a password the user lacks is not counted; one the reader can't read refuses, naming it), so elevation is never reported removed while a rule still grants it.
