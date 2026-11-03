@@ -6,9 +6,6 @@ import "github.com/abbott/hardn/pkg/domain/model"
 // FirewallService defines operations for firewall configuration
 type FirewallService interface {
 
-	// GetFirewallStatus retrieves the current status of the firewall
-	GetFirewallStatus() (isInstalled bool, isEnabled bool, isConfigured bool, rules []string, err error)
-
 	// ConfigureFirewall applies the firewall configuration
 	ConfigureFirewall(config model.FirewallConfig) error
 
@@ -47,7 +44,6 @@ func NewFirewallServiceImpl(repository FirewallRepository, osInfo model.OSInfo) 
 
 // FirewallRepository defines the repository operations needed by FirewallService
 type FirewallRepository interface {
-	GetFirewallStatus() (bool, bool, bool, []string, error)
 	SaveFirewallConfig(config model.FirewallConfig) error
 	GetFirewallConfig() (*model.FirewallConfig, error)
 	AddRule(rule model.FirewallRule) error
@@ -55,11 +51,6 @@ type FirewallRepository interface {
 	AddProfile(profile model.FirewallProfile) error
 	EnableFirewall() error
 	DisableFirewall() error
-}
-
-// GetFirewallStatus retrieves the current status of the firewall
-func (s *FirewallServiceImpl) GetFirewallStatus() (bool, bool, bool, []string, error) {
-	return s.repository.GetFirewallStatus()
 }
 
 // Implementation of FirewallService methods

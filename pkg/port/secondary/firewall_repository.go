@@ -6,9 +6,6 @@ import "github.com/abbott/hardn/pkg/domain/model"
 // FirewallRepository defines the interface for firewall configuration operations
 type FirewallRepository interface {
 
-	// GetFirewallStatus retrieves the current status of the firewall
-	GetFirewallStatus() (isInstalled bool, isEnabled bool, isConfigured bool, rules []string, err error)
-
 	// SaveFirewallConfig persists the firewall configuration
 	SaveFirewallConfig(config model.FirewallConfig) error
 

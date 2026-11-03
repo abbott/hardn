@@ -40,11 +40,9 @@ var planOnlySources = []struct {
 // menu's User Management (1) is refused under the prompt, "Not available
 // in plan only.", as a key no item has is refused: no screen built or
 // opened, so nothing it writes is written, the main menu not read or
-// drawn again, its hint unchanged; and in Firewall's profiles, adding and
-// removing one are refused in that screen's words for a choice it does
-// not take, before anything is asked or ./hardn.yml saved, the list
-// unchanged. Live, all three run as before: the screens open, and a
-// profile added or removed is saved. Firewall (4), Backup (5) and
+// drawn again, its hint unchanged. Live, it opens as before. (The
+// Firewall menu's profile add and remove, refused here too, went with
+// that menu in slice 4's unit (d).) Firewall (4), Backup (5) and
 // Environment (8) open under plan only as live (slice 4, unit (d); slice
 // 3, unit (d), decision 10; slice 9, unit (d): their screens stop each
 // change at its plan), each given the configuration in plan only as the
@@ -101,55 +99,4 @@ func TestPlanOnlyRefusals(t *testing.T) {
 			t.Errorf("want the refusal under the prompt with ⨳:\n%s", out)
 		}
 	})
-
-	profile := config.UfwAppProfile{Name: "web", Title: "Web", Description: "Web server", Ports: []string{"80/tcp"}}
-	for _, src := range planOnlySources {
-		for _, tc := range []struct {
-			action, script string
-			saved          []config.UfwAppProfile // live: the profiles saved
-			done           string                 // live: the screen's result
-		}{
-			{"add", "1\nmail\nMail\nMail server\n25/tcp\n", []config.UfwAppProfile{profile, {Name: "mail", Title: "Mail", Description: "Mail server", Ports: []string{"25/tcp"}}},
-				"Application profile 'mail' added successfully"},
-			{"remove", "2\n1\ny\n", []config.UfwAppProfile{}, "Application profile 'web' removed successfully"},
-		} {
-			t.Run("firewall profiles, "+tc.action+", "+src.name, func(t *testing.T) {
-				t.Chdir(t.TempDir())
-				cfg := src.start(t)
-				cfg.UfwAppProfiles = []config.UfwAppProfile{profile}
-				script := tc.script + "0\nnext\n"
-				if src.planOnly {
-					script = tc.script[:2] + "\n0\nnext\n" // the choice, then Enter at the pause
-				}
-				scripted(t, script)
-				out, code, ended := session(t, NewFirewallMenu(nil, cfg, nil).manageAppProfiles)
-				if ended {
-					t.Fatalf("ended hardn with %d:\n%s", code, out)
-				}
-				plain := style.StripAnsi(out)
-				_, err := os.Stat("hardn.yml")
-				if src.planOnly {
-					if !strings.Contains(plain, "\n"+style.SymCrossMark+" Not available in plan only.\n\n"+style.SymRightCarrot+" Press Enter to continue...") ||
-						strings.Contains(plain, "Enter profile") || err == nil || !slices.EqualFunc(cfg.UfwAppProfiles, []config.UfwAppProfile{profile}, profilesEqual) {
-						t.Errorf("want the refusal and the pause, nothing asked, the list %+v unchanged and ./hardn.yml unsaved (%v):\n%s", cfg.UfwAppProfiles, err, plain)
-					}
-				} else {
-					saved, rerr := os.ReadFile("hardn.yml")
-					if strings.Contains(plain, "Not available") || !strings.Contains(plain, tc.done) || rerr != nil ||
-						!slices.EqualFunc(cfg.UfwAppProfiles, tc.saved, profilesEqual) || !strings.Contains(string(saved), "ufwAppProfiles:") {
-						t.Errorf("want %q, the list %+v and ./hardn.yml saved (%v):\n%s\n%s", tc.done, cfg.UfwAppProfiles, rerr, plain, saved)
-					}
-				}
-				var next string
-				if _, _, ended := session(t, func() { next = ReadInput() }); ended || next != "next" {
-					t.Errorf("the line after the screen's = %q (ended %v): the screen read too few or too many lines", next, ended)
-				}
-			})
-		}
-	}
-}
-
-// profilesEqual reports whether a and b are the same profile.
-func profilesEqual(a, b config.UfwAppProfile) bool {
-	return a.Name == b.Name && a.Title == b.Title && a.Description == b.Description && slices.Equal(a.Ports, b.Ports)
 }

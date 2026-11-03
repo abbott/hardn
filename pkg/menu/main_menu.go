@@ -82,10 +82,11 @@ const (
 // notInPlanOnly refuses, under plan only, a legacy screen that changes the
 // host or saves ./hardn.yml whatever the mode (refactor plan slice 2b,
 // unit (d), decision 6, adopted 2026-10-23): the main menu's User
-// Management, before its screen, and Firewall's profile add and remove,
-// until their slices put them on the flow. Backup's was lifted when its
-// screen went on the flow (slice 3, unit (d), decision 10): under plan
-// only it opens, and each change stops at its plan.
+// Management, before its screen, until its slice puts it on the flow.
+// Backup's was lifted when its screen went on the flow (slice 3, unit
+// (d), decision 10), and Firewall's profile add and remove went with the
+// Firewall menu (slice 4, unit (d)): under plan only those screens open,
+// and each change stops at its plan.
 const notInPlanOnly = "Not available in plan only."
 
 // errAgain ends a pass of the main menu once an item's screen has
@@ -768,11 +769,9 @@ func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open: origin/main's screens,
 // but the items whose screens are the hooks cmd/hardn sets (SetDNS,
-// SetBackup, SetEnvironment, SetFirewall, SetSystemDetails, SetLogs). Its
-// firewall entry, opened by no item since slice 4's unit (d), goes with
-// firewall_menu.go.
+// SetBackup, SetEnvironment, SetFirewall, SetSystemDetails, SetLogs).
 type screens struct {
-	users, sshLogin, firewall, runAll func(m *MainMenu) legacyScreen
+	users, sshLogin, runAll func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
@@ -781,7 +780,6 @@ type screens struct {
 var legacyScreens = screens{
 	users:    func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
 	sshLogin: func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
-	firewall: func(m *MainMenu) legacyScreen { return NewFirewallMenu(m.menuManager, m.config, m.osInfo) },
 	runAll:   func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 }
 

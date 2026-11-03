@@ -57,7 +57,6 @@ func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.Main
 	menuManager := application.NewMenuManager(
 		userManager,
 		sshManager,
-		firewallManager,
 		dnsManager,
 		packageManager,
 		securityManager,
