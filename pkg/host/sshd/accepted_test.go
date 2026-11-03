@@ -11,7 +11,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
-var journal = []string{"journalctl", "-q", "--no-pager", "-o", "short-iso", "-u", "ssh", "-u", "sshd"}
+var journal = []string{"journalctl", "-q", "--no-pager", "-b", "-o", "short-iso", "-u", "ssh", "-u", "sshd"}
 
 // The forms of the VMs' Accepted lines (01-inspect-b-*.log): journalctl
 // -o short-iso on Debian 13 and Ubuntu 26.04; busybox syslogd -t's
@@ -45,12 +45,12 @@ func TestReadAcceptedJournal(t *testing.T) {
 		{"by password", "192.0.2.10 54804 192.0.2.1 22", sshd.Accepted{User: "alice", Method: "password"}},
 		{"IPv6", "2001:db8::5 2230 2001:db8::1 2230", sshd.Accepted{User: "alice", Method: "keyboard-interactive/pam"}},
 	} {
-		a, err := sshd.ReadAccepted(ctx, h, false, tc.conn)
+		a, err := sshd.ReadAccepted(ctx, h, false, tc.conn, nil)
 		if err != nil || a != tc.want {
 			t.Errorf("%s: ReadAccepted = %+v, %v; want %+v", tc.name, a, err, tc.want)
 		}
 	}
-	if _, err := sshd.ReadAccepted(ctx, h, false, "192.0.2.12 54806 192.0.2.1 22"); !errors.Is(err, sshd.ErrNotLogged) {
+	if _, err := sshd.ReadAccepted(ctx, h, false, "192.0.2.12 54806 192.0.2.1 22", nil); !errors.Is(err, sshd.ErrNotLogged) {
 		t.Errorf("no line: %v, want ErrNotLogged", err)
 	}
 	checkReadOnly(t, h)
@@ -66,26 +66,69 @@ func TestReadAcceptedMessages(t *testing.T) {
 	h.AddFile("/var/log/messages", []byte(messages), 0o640, 0, 10)
 	h.AddFile("/var/log/messages.0", []byte(rotated), 0o640, 0, 10)
 	ctx := context.Background()
-	a, err := sshd.ReadAccepted(ctx, h, true, "198.51.100.7 54806 192.0.2.1 22")
+	a, err := sshd.ReadAccepted(ctx, h, true, "198.51.100.7 54806 192.0.2.1 22", nil)
 	if err != nil || a.User != "george" || a.KeyType != "ED25519" {
 		t.Errorf("messages: %+v, %v", a, err)
 	}
-	if a, err = sshd.ReadAccepted(ctx, h, true, "192.0.2.10 54804 192.0.2.1 22"); err != nil || a != (sshd.Accepted{User: "alice", Method: "password"}) {
+	if a, err = sshd.ReadAccepted(ctx, h, true, "192.0.2.10 54804 192.0.2.1 22", nil); err != nil || a != (sshd.Accepted{User: "alice", Method: "password"}) {
 		t.Errorf("messages.0: %+v, %v", a, err)
 	}
-	if _, err = sshd.ReadAccepted(ctx, h, true, "192.0.2.10 1 192.0.2.1 22"); !errors.Is(err, sshd.ErrNotLogged) {
+	if _, err = sshd.ReadAccepted(ctx, h, true, "192.0.2.10 1 192.0.2.1 22", nil); !errors.Is(err, sshd.ErrNotLogged) {
 		t.Errorf("no line: %v, want ErrNotLogged", err)
 	}
 	if len(h.Runs()) != 0 {
 		t.Errorf("ran %q", h.Runs())
 	}
 	checkReadOnly(t, h)
-	if _, err = sshd.ReadAccepted(ctx, hostfake.New(host.Options{}), true, "192.0.2.10 54804 192.0.2.1 22"); !errors.Is(err, sshd.ErrNotLogged) {
+	if _, err = sshd.ReadAccepted(ctx, hostfake.New(host.Options{}), true, "192.0.2.10 54804 192.0.2.1 22", nil); !errors.Is(err, sshd.ErrNotLogged) {
 		t.Errorf("no log at all: %v, want ErrNotLogged", err)
 	}
 	for _, conn := range []string{"", "192.0.2.10 54804", "web-01 54804 192.0.2.1 22", "192.0.2.10 0 192.0.2.1 22", "192.0.2.10 70000 192.0.2.1 22"} {
-		if _, err := sshd.ReadAccepted(ctx, h, false, conn); !errors.Is(err, fs.ErrInvalid) {
+		if _, err := sshd.ReadAccepted(ctx, h, false, conn, nil); !errors.Is(err, fs.ErrInvalid) {
 			t.Errorf("conn %q: %v, want fs.ErrInvalid", conn, err)
 		}
+	}
+}
+
+// TestReadAcceptedPIDs: with the session's sshd pids known, only a line
+// they logged is the session's, an earlier connection's line from the
+// same address and port not taken; with none known, the last line from
+// the address and port, an IPv4-mapped conn read as its IPv4 address.
+func TestReadAcceptedPIDs(t *testing.T) {
+	const (
+		conn  = "192.0.2.10 54804 192.0.2.1 22"
+		stale = "2026-11-03T20:00:00+00:00 web-01 sshd-session[2990]: Accepted password for alice from 192.0.2.10 port 54804 ssh2\n"
+		own   = "2026-11-03T21:10:40+00:00 web-01 sshd-session[3101]: Accepted publickey for george from 192.0.2.10 port 54804 ssh2: ED25519 SHA256:AAAAgeorgeAAAAsyntheticAAAAAAAAAAAAAAAAAAA\n"
+		later = "2026-11-03T21:12:00+00:00 web-01 sshd-session[3200]: Accepted password for alice from 192.0.2.10 port 54804 ssh2\n"
+	)
+	george := sshd.Accepted{User: "george", Method: "publickey", KeyType: "ED25519", Fingerprint: "SHA256:AAAAgeorgeAAAAsyntheticAAAAAAAAAAAAAAAAAAA"}
+	alice := sshd.Accepted{User: "alice", Method: "password"}
+	ctx := context.Background()
+	for _, tc := range []struct {
+		name, log, conn string
+		pids            []int
+		want            sshd.Accepted
+		err             error
+	}{
+		{"the session's own line missing, a stale one from another pid", stale, conn, []int{3102, 3101}, sshd.Accepted{}, sshd.ErrNotLogged},
+		{"the session's pid beside a later stale line", own + later, conn, []int{3102, 3101}, george, nil},
+		{"no pids: password then publickey, the last wins", stale + own, conn, nil, george, nil},
+		{"no pids: the last line", own + later, conn, nil, alice, nil},
+		{"an IPv4-mapped conn", own, "::ffff:192.0.2.10 54804 ::ffff:192.0.2.1 22", nil, george, nil},
+	} {
+		h := hostfake.New(host.Options{})
+		h.Respond(hostfake.Response{Stdout: tc.log}, journal[0], journal[1:]...)
+		a, err := sshd.ReadAccepted(ctx, h, false, tc.conn, tc.pids)
+		if a != tc.want || !errors.Is(err, tc.err) || tc.err == nil && err != nil {
+			t.Errorf("%s: ReadAccepted = %+v, %v; want %+v, %v", tc.name, a, err, tc.want, tc.err)
+		}
+	}
+	h := hostfake.New(host.Options{})
+	h.AddFile("/var/log/messages", []byte("Nov  3 21:11:02 web-01 auth.info sshd-session[3120]: Accepted publickey for george from 198.51.100.7 port 54806 ssh2: ED25519 SHA256:x\n"), 0o640, 0, 10)
+	if a, err := sshd.ReadAccepted(ctx, h, true, "198.51.100.7 54806 192.0.2.1 22", []int{3120}); err != nil || a.User != "george" {
+		t.Errorf("messages by pid: %+v, %v", a, err)
+	}
+	if _, err := sshd.ReadAccepted(ctx, h, true, "198.51.100.7 54806 192.0.2.1 22", []int{3121}); !errors.Is(err, sshd.ErrNotLogged) {
+		t.Errorf("messages, another pid: %v, want ErrNotLogged", err)
 	}
 }

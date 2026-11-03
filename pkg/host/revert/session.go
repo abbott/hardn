@@ -313,6 +313,27 @@ func parseStat(data []byte) (procStat, error) {
 	return st, nil
 }
 
+// LogPIDs are the pids of the session's sshd processes that log its login
+// (sshd.ReadAccepted): SSHD's, and its parent's where that is an sshd
+// process too, the "sshd-session: <user> [priv]" process that logs
+// "Accepted ..." under privilege separation (vm-runs/s6/01-inspect-b-*.log).
+// Nil where SSHD is not known, or /proc no longer shows it (its start
+// differs: the pid reused).
+func (s Session) LogPIDs(ctx context.Context, sys host.System) []int {
+	if !s.SSHD.known() {
+		return nil
+	}
+	st, err := readStat(ctx, sys, ProcDir+"/"+strconv.Itoa(s.SSHD.PID))
+	if err != nil || st.start != s.SSHD.Start {
+		return nil
+	}
+	pids := []int{s.SSHD.PID}
+	if p, err := readStat(ctx, sys, ProcDir+"/"+strconv.Itoa(st.ppid)); err == nil && st.ppid > 1 && slices.Contains(sshdNames, p.comm) {
+		pids = append(pids, st.ppid)
+	}
+	return pids
+}
+
 // readStat reads and parses dir/stat, dir being /proc/<pid> or /proc/self.
 func readStat(ctx context.Context, sys host.System, dir string) (procStat, error) {
 	data, err := sys.ReadFile(ctx, dir+"/stat")

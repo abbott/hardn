@@ -526,7 +526,7 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 	case "sshd":
 		return v.sshd(argv)
 	case "journalctl":
-		if cmd == "journalctl -q --no-pager -o short-iso -u ssh -u sshd" {
+		if cmd == "journalctl -q --no-pager -b -o short-iso -u ssh -u sshd" {
 			return hostfake.Response{Stdout: v.log}
 		}
 	case "ss":
