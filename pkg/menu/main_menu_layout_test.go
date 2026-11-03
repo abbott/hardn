@@ -41,9 +41,9 @@ const invalid = "  (x) Invalid option. Please try again."
 // originScreens it is, the same type built from the same values, the
 // test failing on any other, then its name recorded in the list returned
 // and printed, as a screen prints over the main menu. The User
-// Management, DNS, Firewall, Backup, Environment, System Details and Logs
-// items' screens, m's, do the same as "users", "dns", "firewall",
-// "backup", "environment", "systemDetails" and "logs".
+// Management, SSH Login, DNS, Firewall, Backup, Environment, System
+// Details and Logs items' screens, m's, do the same as "users", "ssh",
+// "dns", "firewall", "backup", "environment", "systemDetails" and "logs".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
 	was := openScreen
@@ -63,6 +63,7 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 		t.Errorf("an item built %#v, none of origin/main's screens", s)
 	}
 	m.SetUsers(func() error { record("users"); return nil })
+	m.SetSSH(func() error { record("ssh"); return nil })
 	m.SetDNS(func() error { record("dns"); return nil })
 	m.SetFirewall(func() error { record("firewall"); return nil }, nil)
 	m.SetBackup(func() error { record("backup"); return nil })
@@ -79,15 +80,15 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 // removed with its item, 5's, the Backup menu, which slice 3's unit (d)
 // replaced, 8's, the Environment menu, which slice 9's unit (d) replaced,
 // 9's and 10's, which slice 1's unit (d) replaced, and 4's, the Firewall
-// menu, which slice 4's unit (d) replaced, and 1's, the User Management
-// menu, which slice 5's unit (d) replaced. The User Management, DNS,
+// menu, which slice 4's unit (d) replaced, 1's, the User Management
+// menu, which slice 5's unit (d) replaced, and 2's, the SSH Login menu,
+// which slice 6's unit (d) replaced. The User Management, SSH Login, DNS,
 // Firewall, Backup, Environment, System Details and Logs items' screens
-// are m's (SetUsers, SetDNS, SetFirewall, SetBackup, SetEnvironment,
-// SetSystemDetails, SetLogs).
+// are m's (SetUsers, SetSSH, SetDNS, SetFirewall, SetBackup,
+// SetEnvironment, SetSystemDetails, SetLogs).
 func originScreens(m *MainMenu) map[string]legacyScreen {
 	return map[string]legacyScreen{
-		"sshLogin": NewDisableRootMenu(m.menuManager, m.config, m.osInfo),
-		"runAll":   handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
+		"runAll": handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
 	}
 }
 
@@ -145,9 +146,9 @@ func (r interrupted) Read(p []byte) (int, error) {
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 5 and 7
 // to 10 open exactly the screen origin/main's handleMenuChoice opened for
 // them, of the same constructor with the same arguments (recordScreens),
-// but 1, 3, 4, 5, 8, 9 and 10, which open the User Management, DNS,
-// Firewall, Backup, Environment, System Details and Logs screens cmd/hardn
-// sets, and the main menu is drawn again when it returns; 6,
+// but 1, 2, 3, 4, 5, 8, 9 and 10, which open the User Management, SSH
+// Login, DNS, Firewall, Backup, Environment, System Details and Logs
+// screens cmd/hardn sets, and the main menu is drawn again when it returns; 6,
 // whose item, Dry-Run, slice 2b's unit (d) removed, its key left unused
 // (decision 1),
 // is refused as any key no item has, opening nothing; 0 (Exit) and q, in
@@ -167,7 +168,7 @@ func TestMainMenuKeys(t *testing.T) {
 		code    int      // the exit status hardn ended with; 0: the main menu returned
 	}{
 		{"1 opens User Management", []string{"1", "q"}, false, []string{"users"}, 0, 0},
-		{"2 opens SSH Login", []string{"2", "q"}, false, []string{"sshLogin"}, 0, 0},
+		{"2 opens SSH Login", []string{"2", "q"}, false, []string{"ssh"}, 0, 0},
 		{"3 opens DNS", []string{"3", "q"}, false, []string{"dns"}, 0, 0},
 		{"4 opens Firewall", []string{"4", "q"}, false, []string{"firewall"}, 0, 0},
 		{"5 opens Backup", []string{"5", "q"}, false, []string{"backup"}, 0, 0},
@@ -177,9 +178,9 @@ func TestMainMenuKeys(t *testing.T) {
 		{"9 opens System Details", []string{"9", "q"}, false, []string{"systemDetails"}, 0, 0},
 		{"10 opens Logs", []string{"10", "q"}, false, []string{"logs"}, 0, 0},
 		{"every item in turn", []string{"1", "2", "3", "4", "5", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "sshLogin", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 0, 0},
+			[]string{"users", "ssh", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 0, 0},
 		{"every key in turn, 6 refused", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "sshLogin", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 1, 0},
+			[]string{"users", "ssh", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 1, 0},
 		{"0 exits", []string{"0"}, false, nil, 0, 0},
 		{"q quits", []string{"q"}, false, nil, 0, 0},
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
@@ -217,7 +218,7 @@ func TestMainMenuKeys(t *testing.T) {
 			}
 			clears := strings.Count(out, clearScreen)
 			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			for _, hooked := range []string{"users", "dns", "firewall", "backup", "environment", "systemDetails", "logs"} {
+			for _, hooked := range []string{"users", "ssh", "dns", "firewall", "backup", "environment", "systemDetails", "logs"} {
 				if slices.Contains(tc.opened, hooked) {
 					want++ // the items cmd/hardn sets open their screens on a cleared screen, as every legacy screen does
 				}
@@ -266,11 +267,11 @@ func TestMainMenuInvalid(t *testing.T) {
 // the screen not cleared (brief 1C); the drawing is the first's.
 func TestMainMenuAgain(t *testing.T) {
 	passes := 0
-	m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "2", "q") // a legacy screen: 4's clears since slice 4's unit (d)
+	m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "7", "q") // a legacy screen: 2's clears since slice 6's unit (d)
 	recordScreens(t, m)
 	out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
 	body := strings.TrimSuffix(strings.TrimPrefix(out, clearScreen), clearScreen)
-	first, second, ok := strings.Cut(body, " \nSSHLOGIN SCREEN\n\n")
+	first, second, ok := strings.Cut(body, " \nRUNALL SCREEN\n\n")
 	if ended || passes != 2 || !ok || first+" \n" != second || strings.Contains(body, clearScreen) {
 		t.Errorf("ended %v, read %d times; want the main menu, the screen, a blank line and the main menu again, uncleared:\n%q", ended, passes, out)
 	}

@@ -35,9 +35,10 @@ var planOnlySources = []struct {
 }
 
 // TestPlanOnly: under plan only, from -n or hardn.yml, the main menu's
-// User Management (1), Firewall (4), Backup (5) and Environment (8) open as
-// live (slice 5, unit (d), which lifts item 1's "Not available in plan
-// only." as its screen goes on the flow; slice 4, unit (d); slice 3, unit
+// User Management (1), SSH Login (2), Firewall (4), Backup (5) and
+// Environment (8) open as live (slice 6, unit (d); slice 5, unit (d),
+// which lifts item 1's "Not available in plan only." as its screen goes
+// on the flow; slice 4, unit (d); slice 3, unit
 // (d), decision 10; slice 9, unit (d): their screens stop each change at
 // its plan), each given the configuration in plan only as the item is
 // chosen; no line refused, ./hardn.yml not written.
@@ -46,12 +47,13 @@ func TestPlanOnly(t *testing.T) {
 		t.Run("main menu, "+src.name, func(t *testing.T) {
 			t.Chdir(t.TempDir())
 			passes := 0
-			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "4", "5", "8", "q")
+			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "2", "4", "5", "8", "q")
 			m.config = src.start(t)
 			opened := recordScreens(t, m)
 			inPlanOnly := map[string]bool{}
 			for name, set := range map[string]func(func() error){
 				"users":       m.SetUsers,
+				"ssh":         m.SetSSH,
 				"firewall":    func(run func() error) { m.SetFirewall(run, nil) },
 				"backup":      m.SetBackup,
 				"environment": m.SetEnvironment,
@@ -63,9 +65,9 @@ func TestPlanOnly(t *testing.T) {
 				})
 			}
 			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
-			want := []string{"users", "firewall", "backup", "environment"}
-			if ended || !slices.Equal(*opened, want) || strings.Contains(out, "(x) ") || passes != 5 {
-				t.Errorf("ended %v, opened %q, read %d times; want %q, none refused, read 5 times:\n%s", ended, *opened, passes, want, out)
+			want := []string{"users", "ssh", "firewall", "backup", "environment"}
+			if ended || !slices.Equal(*opened, want) || strings.Contains(out, "(x) ") || passes != 6 {
+				t.Errorf("ended %v, opened %q, read %d times; want %q, none refused, read 6 times:\n%s", ended, *opened, passes, want, out)
 			}
 			for _, name := range want {
 				if inPlanOnly[name] != src.planOnly {
