@@ -7,9 +7,9 @@
 Main menu 2 as the maintainer adopted its mocks on 2026-11-03 ([gallery-ssh.md](gallery-ssh.md) §3 and §5, "Adopt all, start (b)", §6's words), drawn from `sshchange.Read` and the SSH Login, SSH Auth and SSH Port rows (each check through `output.StatusViewOf` and `risk.Assess`, as the gallery mapped them; no engine), writing nothing, under plan only too. Never from hardn.yml.
 
 - **The screen:** the three rows; SSH Configuration (Root SSH Login, Password Login, SSH Port, Allowed Users, Match Block, Old Settings, Logged in as, each value's deciding file its note). Items by their result (P-12): 1 Disallow root login, Allow root key-only where root login is disallowed, Root key-only on Proxmox VE; 2 Key-only login, or Password login on where passwords don't log in; 3 Change SSH port; 4 Move old settings, only with hardn's old files. Every description "Can't read" where sshd -T is not read.
-- **Refusals** are the control's or the engine's, said before asking: each item is planned by the engine first (`NewEngine`, the gallery's `preplan`), its first refusal said in `screenkit.RefusalWords`, a change waiting for hardn confirm in §6's words. Change SSH port plans the port sshd has, before its field, so that every refusal of any port (Proxmox VE, ufw's source, old files, sshd not read, an Include not first) is said before the field.
+- **Refusals** are the control's or the engine's, said before asking: each item is planned by the engine first (`NewEngine`, the gallery's `preplan`), its first refusal said in `screenkit.RefusalWords`, a change waiting for hardn confirm in §6's words. Change SSH port reads the host again when chosen and plans the port sshd has, before its field, so that every refusal of any port (Proxmox VE, ufw's source, old files, sshd not read, an Include not first) is said before the field.
 - **Each change** is the control's plan (`sshchange.Root`, `Auth`, `Port`, `Migrate`) through `screenkit.Session.Change`, planned again by the engine from a fresh reading: a change whose reading moved since the draw plans nothing or is refused, never applied to the old picture. The review, the plan's findings, the hostname typed (every SSH change is lockout-risk), confirm or revert as the engine arms it. A live change whose hostname can't be read says so before asking; plan only needs none.
-- **The port form:** "New SSH port", refused at the field outside 1 to 65535 and, as a warning, on a port sshd listens on; its default hardn.yml's `sshPort` where set and sshd does not listen on it (decision 9 (a)), said in its description; a nil `Config` has none.
+- **The port form:** "New SSH port", refused at the field outside 1 to 65535; then the port typed is planned by the engine (`sshchange.Port{To: n}`, as `preplan`), its refusal said at the field in `planWords` (in use, a change pending, ufw's source, Proxmox VE, old files, not read), so "Pick another" returns to the field; an empty plan, a port sshd has, is the warning "sshd listens on <port> already." Its default hardn.yml's `sshPort` where set and sshd does not listen on it (decision 9 (a)), said in its description; a nil `Config` has none. The ports and the default are from item 3's own reading, not the draw's. The change then plans again, fresh, under the run lock.
 - **A reading that fails** is a row (Can't read) and every item's refusal, in the control's words: never an empty screen.
 - **0** returns (nil), **q** quits (`nav.ErrQuit`), the end of the input and Ctrl-C abort (`prompt.ErrAborted`), from the screen, each question and the form. After a change applies, the screen is drawn again from a fresh reading.
 
@@ -23,7 +23,7 @@ ssh.Run(ctx, ssh.Options{
 })
 ```
 
-Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wrapping `fs.ErrInvalid`, nothing written. `NewEngine` is called once per item chosen (the plan before asking) and once per change; drawing calls it never. No change saves hardn.yml. `pkg/ui/screen/ssh.go` draws only: `SSH`, `SSHRoot`, `SSHChange` and its makers, the item keys, the section's keys and the port form's words; `rows.go` maps the control's reading to the rows.
+Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wrapping `fs.ErrInvalid`, nothing written. `NewEngine` is called once per item chosen (the plan before asking), once per port the port field checks, and once per change; drawing calls it never. No change saves hardn.yml. `pkg/ui/screen/ssh.go` draws only: `SSH`, `SSHRoot`, `SSHChange` and its makers, the item keys, the section's keys and the port form's words; `rows.go` maps the control's reading to the rows.
 
 ## For unit (d)
 
@@ -38,6 +38,9 @@ Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wr
 - Items are planned by the engine, not the control alone, before asking: the pending change is the engine's refusal (`revert.ErrPending`), which a control's `Plan` never makes.
 - The rows' assessment is `risk.Assess` over the three reports with a zero header: an Unknown row's "Counted as not configured" as the main menu draws it; the header's factors belong to other rows.
 - The port's review holds the ports sshd listens on now, as `steps.PlanSSH` holds them (`reload.HoldPorts`): the mock's "22 held until confirmed" was 22 on every host.
+- The pending refusal of a port comes at its field, not before it: the engine reads its journal only for a plan with changes, and the port sshd has plans none. On the confirm-window host the port is so refused at the field, where it was refused after it, at the change's plan.
+- The facts are detected once per run by the caller, and the engine detects the same host: a host does not become Proxmox VE during a session, and the plan shows the real change.
+- The three rows are the main menu's, from the checks, as User Management's User row is: a read apart from the section's, so the two may differ for a moment if sshd changes between them.
 - Item 3's change is typed whatever the port: no plan before its field can say its risk, and `PlanSSH` makes every port change lockout-risk.
 - A failed reading's rows are the three Can't read rows, as the gallery drew them.
 
