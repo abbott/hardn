@@ -87,7 +87,8 @@ func streamEnv(f *os.File) term.Env {
 // once, right after the configuration loads; it is the one warning of
 // them (pkg/output's documents carry them as findings, and its Emit does
 // not warn again). A logFile naming another path than the one hardn writes
-// is one too (decision 6 (a); gallery-system-details.md §6's words).
+// is one too (decision 6 (a); gallery-system-details.md §6's words), and
+// so is either ufw policy the file sets (slice 4, decision 8).
 func warnDeprecations(c *config.Config) {
 	if w := loadWarnings(c); w != "" {
 		_, _ = io.WriteString(stderrEnv().Writer(stderr), w)
@@ -101,11 +102,29 @@ func loadWarnings(c *config.Config) string {
 	if p := logview.Elsewhere(c.LogFile); p != "" {
 		retired = append(retired, fmt.Sprintf(logFileNotUsed, p))
 	}
+	if c.UfwDefaultIncomingPolicy != "" {
+		retired = append(retired, ufwIncomingNotUsed)
+	}
+	if c.UfwDefaultOutgoingPolicy != "" {
+		retired = append(retired, ufwOutgoingNotUsed)
+	}
 	return deprecationWarnings(stderrEnv(), c.Path(), c.Deprecations(), retired...)
 }
 
 // logFileNotUsed is decision 6 (a)'s warning, and the Logs screen's row.
 const logFileNotUsed = "hardn.yml's logFile, %s, isn't used"
+
+// ufwIncomingNotUsed and ufwOutgoingNotUsed are refactor plan slice 4's
+// decision 8 (gallery-firewall.md §5, adopted 2026-11-01): nothing reads
+// the two policies, so a file that sets one is told so, and still loads.
+// Only a value warns: the defaults leave both "" (config.DefaultConfig),
+// and origin/main's SaveConfig writes them as "" into every file it saves,
+// so "" is hardn's, not the file's. ufwAllowedPorts, which Run All reads,
+// waits for slice 8.
+const (
+	ufwIncomingNotUsed = "hardn.yml's ufwDefaultIncomingPolicy isn't used"
+	ufwOutgoingNotUsed = "hardn.yml's ufwDefaultOutgoingPolicy isn't used"
+)
 
 // deprecationWarnings renders deps as one Warning callout, a line for each
 // after the file path it was read from (component.Messages: a run of
