@@ -312,6 +312,8 @@ var errorCodes = []Entry{
 	is("USERS_KEY_FILES_NOT_READ", users.ErrKeyFilesNotRead),
 	is("USERS_LAST_KEY", users.ErrLastKey),
 	is("USERS_KEY_ELSEWHERE", users.ErrKeyElsewhere),
+	is("USERS_KEY_THERE", users.ErrKeyThere),
+	is("USERS_KEY_GONE", users.ErrKeyGone),
 	is("USERS_NAME_FORM", users.ErrNameForm),
 	is("USERS_NAME_TAKEN", users.ErrNameTaken),
 	is("USERS_HOME_THERE", users.ErrHomeThere),

@@ -77,6 +77,10 @@ var (
 	ErrLastKey = errors.New("the key is the session user's last")
 	// ErrKeyElsewhere: the key is also in another file sshd reads.
 	ErrKeyElsewhere = errors.New("the key is also in another file sshd reads")
+	// ErrKeyThere: the key Add takes is in a file sshd reads for the user already.
+	ErrKeyThere = errors.New("the user has the key already")
+	// ErrKeyGone: the key Remove picked is no longer in the file hardn writes.
+	ErrKeyGone = errors.New("the key is no longer in the file hardn writes")
 	// ErrNameForm: a new user's name useradd would refuse.
 	ErrNameForm = errors.New("not a user name hardn creates")
 	// ErrNameTaken: a user or group of the new user's name is there.
@@ -108,6 +112,8 @@ const (
 	codeNotKey           = "AUTHKEYS_NOT_KEY"
 	codeLastKey          = "USERS_LAST_KEY"
 	codeKeyElsewhere     = "USERS_KEY_ELSEWHERE"
+	codeKeyThere         = "USERS_KEY_THERE"
+	codeKeyGone          = "USERS_KEY_GONE"
 	codeNameForm         = "USERS_NAME_FORM"
 	codeNameTaken        = "USERS_NAME_TAKEN"
 	codeHomeThere        = "USERS_HOME_THERE"
@@ -163,10 +169,7 @@ func (a Admin) Plan(ctx context.Context, sys host.System, in engine.Input) ([]en
 		if u.Policy.Grant != sudoers.GrantNone {
 			return nil, nil
 		}
-		g := sudoers.GrantNoPassword
-		if u.Password == accounts.PasswordSet {
-			g = sudoers.GrantPassword
-		}
+		g := u.NewGrant()
 		// A grant added to a user who is not an admin takes no way to root
 		// away; to one who is (cloud-init's NOPASSWD rule), a GrantPassword
 		// file can ask a password where none was asked: the planner's risk
@@ -194,6 +197,16 @@ func (a Admin) Plan(ctx context.Context, sys host.System, in engine.Input) ([]en
 		return nil, err
 	}
 	return []engine.Change{*c}, nil
+}
+
+// NewGrant is the grant Grant admin rights plans for u: the password asked
+// where u has a usable one (GrantPassword), none where not
+// (GrantNoPassword). The screen's review says it from this alone.
+func (u User) NewGrant() sudoers.Grant {
+	if u.Password == accounts.PasswordSet {
+		return sudoers.GrantPassword
+	}
+	return sudoers.GrantNoPassword
 }
 
 // Refusal is why Plan refuses a for a.User before anything is asked of it

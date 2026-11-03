@@ -290,6 +290,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `USERS_KEY_FILES_NOT_READ` | 1 | the files sshd takes keys from are not read, so no key is planned |
 | `USERS_LAST_KEY` | 1 | the key is the session user's last |
 | `USERS_KEY_ELSEWHERE` | 1 | the key is also in another file sshd reads |
+| `USERS_KEY_THERE` | 1 | the user has the key already |
+| `USERS_KEY_GONE` | 1 | the key is no longer in the file hardn writes |
 | `USERS_NAME_FORM` | 1 | not a user name hardn creates |
 | `USERS_NAME_TAKEN` | 1 | a user or group of that name is there |
 | `USERS_HOME_THERE` | 1 | the new user's home is there already |
