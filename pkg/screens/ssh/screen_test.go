@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"io/fs"
 	"regexp"
 	"slices"
@@ -213,14 +214,15 @@ func TestItems(t *testing.T) {
 	}
 }
 
-// TestPortForm: the port refused at its field outside 1 to 65535 and on a
-// port sshd has, in the mock's words; its default hardn.yml's sshPort,
-// said, where sshd does not listen on it; none from a sshPort sshd has, or
-// with no hardn.yml.
+// TestPortForm: the port refused at its field outside 1 to 65535, "-1"
+// and "-22" among them, and on a port sshd has (its plan empty), in the
+// mock's words, nothing planned; its default hardn.yml's sshPort, said,
+// where sshd does not listen on it, its plan to that port; none from a
+// sshPort sshd has, or with no hardn.yml.
 func TestPortForm(t *testing.T) {
 	h := ready(t, "debian13")
-	p := play(h, true, "3", "x", "70000", "22", "0", "0")
-	if p.err != nil || strings.Count(flat(p.out), wordsPortRange) != 2 || !shows(p.out, wordsPortHave) || shows(p.out, planned) || p.unread != 0 {
+	p := play(h, true, "3", "x", "70000", "-1", "-22", "22", "0", "0")
+	if p.err != nil || strings.Count(flat(p.out), wordsPortRange) != 4 || !shows(p.out, wordsPortHave) || shows(p.out, planned) || p.unread != 0 {
 		t.Errorf("refused at the field: Run = %v:\n%s", p.err, p.out)
 	}
 	for _, tt := range []struct {
@@ -234,20 +236,58 @@ func TestPortForm(t *testing.T) {
 				o.Config = loadYML(t, h, tt.yml)
 			}
 		}, "3", "", "0", "0")
-		if got := shows(p.out, "Default: 2230"); got != tt.def || tt.def && !shows(p.out, planned) || !tt.def && !shows(p.out, wordsPortRange) {
-			t.Errorf("hardn.yml %q: default shown %v, want %v:\n%s", tt.yml, got, tt.def, p.out)
+		if got := shows(p.out, "Default: 2230"); got != tt.def || tt.def && (!shows(p.out, planned) || !shows(p.out, tt.want)) || !tt.def && !shows(p.out, wordsPortRange) {
+			t.Errorf("hardn.yml %q: default shown %v, want %v, plan to %q:\n%s", tt.yml, got, tt.def, tt.want, p.out)
 		}
 	}
 }
 
+// onFirstRead is a Reader that calls f before its first Read: after the
+// screen is drawn, before its first line is typed.
+type onFirstRead struct {
+	io.Reader
+	f func()
+}
+
+func (r *onFirstRead) Read(b []byte) (int, error) {
+	if r.f != nil {
+		r.f()
+		r.f = nil
+	}
+	return r.Reader.Read(b)
+}
+
+// TestPortReadAgain: item 3 reads the host again when chosen: sshd given
+// 2230 beside 22 by hand after the draw, hardn.yml's sshPort 2230 is no
+// default, and the field refuses 2230 as sshd's.
+func TestPortReadAgain(t *testing.T) {
+	h := ready(t, "debian13")
+	cfg := loadYML(t, h, "sshPort: 2230\n")
+	var out bytes.Buffer
+	env := term.Resolve(term.Options{}, term.Facts{Width: 120})
+	ty := uitest.NewTypist(&out, "3", "", "2230", "0", "0")
+	in := &onFirstRead{Reader: ty, f: func() { h.sshFile(sshd.HardnDropIn, "Port 22\nPort 2230\n", 0o644) }}
+	p := playWith(h, true, func(o *sshscreen.Options) {
+		o.Config = cfg
+		o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(in, false), Out: env.Writer(&out)}
+	})
+	got := out.String()
+	if p.err != nil || !shows(got, "Now 22") || shows(got, "Default: 2230") || !shows(got, wordsPortRange) || !shows(got, "sshd listens on 2230 already.") ||
+		shows(got, planned) || ty.Unread() != 0 {
+		t.Errorf("sshd moved after the draw: Run = %v:\n%s", p.err, got)
+	}
+}
+
 // TestPortInUse: a port another program has bound is refused by the
-// engine's plan, after the field, and nothing is asked.
+// engine's plan at the field, in the in-use words, and nothing is asked or
+// applied.
 func TestPortInUse(t *testing.T) {
 	h := ready(t, "debian13")
 	h.bound = append(h.bound, "0.0.0.0:8080")
 	n := len(h.Calls())
-	p := play(h, false, "3", "8080", "0")
-	if p.err != nil || asked(p.out) || shows(p.out, applied) || len(writes(h, n)) > 0 {
+	p := play(h, false, "3", "8080", "0", "0")
+	field := p.out[strings.Index(p.out, "New SSH port"):]
+	if p.err != nil || p.unread != 0 || !shows(field, "A port the change adds is in use. Pick another.") || asked(p.out) || shows(p.out, applied) || len(writes(h, n)) > 0 {
 		t.Errorf("port 8080 in use: Run = %v, wrote %v:\n%s", p.err, writes(h, n), p.out)
 	}
 }
@@ -282,6 +322,32 @@ func TestHostname(t *testing.T) {
 		if p := play(h, true, lines...); p.err != nil || shows(p.out, cantConfirm) || !shows(p.out, planned) {
 			t.Errorf("%q, plan only: Run = %v:\n%s", lines, p.err, p.out)
 		}
+	}
+}
+
+// hostnameOnce is h whose hostname reads once and then fails.
+type hostnameOnce struct {
+	*sshHost
+	reads int
+}
+
+func (h *hostnameOnce) ReadFile(ctx context.Context, name string) ([]byte, error) {
+	if name == header.HostnameFile {
+		if h.reads++; h.reads > 1 {
+			return nil, fs.ErrPermission
+		}
+	}
+	return h.sshHost.ReadFile(ctx, name)
+}
+
+// TestHostnameLost: a hostname read before asking that then fails says so
+// in place of the question, and nothing is applied.
+func TestHostnameLost(t *testing.T) {
+	h := ready(t, "debian13")
+	n := len(h.Calls())
+	p := playWith(h, false, func(o *sshscreen.Options) { o.System = &hostnameOnce{sshHost: h} }, "1", "0")
+	if p.err != nil || !shows(p.out, cantConfirm) || asked(p.out) || shows(p.out, applied) || len(p.runs) > 0 && p.runs[0].Err == nil || len(writes(h, n)) > 0 {
+		t.Errorf("hostname lost: Run = %v, runs %+v, wrote %v:\n%s", p.err, p.runs, writes(h, n), p.out)
 	}
 }
 
