@@ -13,6 +13,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/hostfake"
@@ -382,5 +383,78 @@ func TestCreate(t *testing.T) {
 	if p.Err() != nil || len(p.Changes) != 1 || len(p.Changes[0].Findings) != 1 || p.Changes[0].Findings[0].Code != users.CodeNoKey ||
 		p.Changes[0].Findings[0].Detail != "Without a key carol can't log in: there's no password" {
 		t.Errorf("no key: %v, %+v", p.Err(), p.Changes)
+	}
+}
+
+// ran reports whether h ran a command named name.
+func ran(h *hostfake.System, name string) bool {
+	return slices.ContainsFunc(h.Calls(), func(c hostfake.Call) bool { return c.Op == "run" && len(c.Argv) > 0 && c.Argv[0] == name })
+}
+
+// armed is a System that calls fire once, on the engine's first journal
+// write: after Apply's own plan, before the first change runs.
+type armed struct {
+	host.System
+	fire func()
+}
+
+func (a *armed) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
+	if a.fire != nil && strings.HasPrefix(name, "/var/lib/hardn/") {
+		a.fire()
+		a.fire = nil
+	}
+	return a.System.WriteFileAtomic(ctx, name, data, perm, uid, gid)
+}
+
+// TestCreateUndo: Create's undo, userdel --remove, runs only for what
+// useradd made. The name taken, or /home/carol made, after the engine's
+// plan at apply and before the change runs: Create refuses, running
+// neither useradd nor userdel; useradd failing: no userdel; a later step
+// failing: userdel --remove.
+func TestCreateUndo(t *testing.T) {
+	ctx := context.Background()
+	n := users.New{Name: "carol", Admin: true, Key: key4}
+	for _, tc := range []struct {
+		name    string
+		between func(h *hostfake.System)
+		fail    map[string]error
+		code    string
+		useradd bool
+		userdel bool
+	}{
+		{"the name taken", func(h *hostfake.System) {
+			e, _ := h.Entry("/etc/group")
+			h.AddFile("/etc/group", append(e.Data, "carol:x:1003:\n"...), e.Mode.Perm(), e.UID, e.GID)
+		}, nil, "USERS_NAME_TAKEN", false, false},
+		{"the home made", func(h *hostfake.System) { h.AddDir("/home/carol", 0o755, 0, 0) }, nil, "USERS_HOME_THERE", false, false},
+		{"useradd failing", func(h *hostfake.System) {
+			inner := h.Handler
+			h.Handler = func(argv []string, stdin []byte) hostfake.Response {
+				if argv[0] == "useradd" {
+					return hostfake.Response{Stderr: "useradd: cannot lock /etc/passwd\n", ExitCode: 1}
+				}
+				return inner(argv, stdin)
+			}
+		}, nil, "", true, false},
+		{"the key's write failing", func(*hostfake.System) {}, map[string]error{"write /home/carol/.ssh/authorized_keys": fs.ErrPermission}, "", true, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s := keyed(sshdKeys, both())
+			s.fail = tc.fail
+			sys, h := live(t, s)
+			simAccounts(h)
+			e := engineOn(&armed{System: sys, fire: func() { tc.between(h) }}, s.plat.facts)
+			p, err := e.Plan(ctx, []engine.Control{users.Admin{Action: users.ActionCreate, New: n}}, nil)
+			if err != nil || p.Err() != nil {
+				t.Fatal(err, p.Err())
+			}
+			_, err = e.Apply(ctx, p)
+			if !errors.Is(err, engine.ErrRolledBack) || (tc.code != "" && output.CodeOf(err) != tc.code) {
+				t.Fatalf("apply: %v, want %s", err, tc.code)
+			}
+			if ran(h, "useradd") != tc.useradd || ran(h, "userdel") != tc.userdel {
+				t.Errorf("useradd ran %v, userdel ran %v; want %v, %v", ran(h, "useradd"), ran(h, "userdel"), tc.useradd, tc.userdel)
+			}
+		})
 	}
 }
