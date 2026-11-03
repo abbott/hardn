@@ -48,18 +48,29 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 1$
 $
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george, uid␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1000, no password (!), in sudo and adm, two keys, NOPASSWD by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcloud-init's 90-cloud-init-users; alice, uid 1001, a password,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min sudo, no key. hardn runs through george's sudo.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mNon-root␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUID ≥ 1000␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
-$
-  ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m7 keys␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUID:GID␛[m              ␛[38;2;129;134;156m1000:1000␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDirectory␛[m            ␛[38;2;129;134;156m/home/george␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malice␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mgroup sudo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mSet␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -85,72 +96,55 @@ $
 $
   ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSudo Method␛[m          ␛[38;2;129;134;156mToggle password requirement␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mManage SSH keys␛[m      ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m  ␛[38;2;129;134;156mTake sudo away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m     ␛[38;2;129;134;156mFor sudo␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
-$
-  ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
-$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m          ␛[38;2;112;212;127mPassword required␛[m$
-$
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
-$
-      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
-      ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$
-      ␛[38;2;231;70;105m-george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
-      ␛[38;2;112;212;127m+george ALL=(ALL:ALL) ALL␛[m$
-      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
-      ␛[38;2;129;134;156m$ visudo -c␛[m$
-$
-  ␛[38;2;192;196;216mRequire password for sudo?␛[m$
-$
-  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
-$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m  ␛[38;2;112;212;127mDone␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m        ␛[38;2;112;212;127mDone␛[m$
-$
-␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/90-cloud-init-users,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwhich hardn didn't write, so hardn can't remove it. Change it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthere.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSudo Method␛[m          ␛[38;2;129;134;156mToggle password requirement␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mManage SSH keys␛[m      ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m  ␛[38;2;129;134;156mTake sudo away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m     ␛[38;2;129;134;156mFor sudo␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m q$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m bos-san-l01$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m q$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: user-manage-sudo-confirmation, typed␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or restore,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the commands it would run.␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Require george's password for sudo␛[m$
-      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
-      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Check the sudo configuration␛[m$
-      ␛[38;2;129;134;156m$ visudo -c␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -199,18 +193,29 @@ $
 $
   > Enter selection [0-5, 7-10 or q]: 1$
 $
+# Info: users/debian13$
+# web-01.example.net runs Debian 13. As the VM: george, uid$
+# 1000, no password (!), in sudo and adm, two keys, NOPASSWD by$
+# cloud-init's 90-cloud-init-users; alice, uid 1001, a password,$
+# in sudo, no key. hardn runs through george's sudo.$
+$
 # User Management ##############################################$
 $
-  [+] Non-root             Configured UID >= 1000$
+  [+] User                 Configured non-root, sudo$
 $
-# User Configuration -------------------------------------------$
-$
-  [george]$
+# george -------------------------------------------------------$
 $
   [ ] Sudo                 Enabled, No password$
-   -  SSH Keys             7 keys$
-   -  UID:GID              1000:1000$
-   -  Directory            /home/george$
+   -  Granted by           /etc/sudoers.d/90-cloud-init-users$
+   -  SSH Keys             2 keys$
+   -  Password             None$
+$
+# alice --------------------------------------------------------$
+$
+  [+] Sudo                 Enabled$
+   -  Granted by           group sudo$
+  [ ] SSH Keys             None$
+   -  Password             Set$
 $
   Select an option$
 $
@@ -236,72 +241,55 @@ $
 $
   Managing: [george]$
 $
+# User Configuration -------------------------------------------$
+$
+  [ ] Sudo                 Enabled, No password$
+   -  Granted by           /etc/sudoers.d/90-cloud-init-users$
+   -  SSH Keys             2 keys$
+   -  Password             None$
+$
   Select an option$
 $
-   1) Sudo Method          Toggle password requirement$
-   2) Manage SSH keys      Add or remove SSH keys$
+   1) Remove admin rights  Take sudo away$
+   2) Ask for password     For sudo$
+   3) SSH Keys             Add or remove SSH keys$
 $
    0) Return$
 $
-  > Enter your choice [0-2 or q]: 1$
-$
-# Manage User ##################################################$
-$
-  Managing sudo method for: [george]$
+  > Enter your choice [0-3 or q]: 1$
 $
 # Warning$
-# A user password is required for sudo usage.$
-$
-# User Configuration -------------------------------------------$
-$
-  [+] Sudo Method          Password required$
-$
-  [ ] Lockout risk$
-      Require george's password for sudo$
-$
-      /etc/sudoers.d/hardn-george$
-      @@ -1 +1 @@$
-      -george ALL=(ALL:ALL) NOPASSWD: ALL$
-      +george ALL=(ALL:ALL) ALL$
-      $ visudo -cf /etc/sudoers.d/hardn-george$
-$
-   -  Check the sudo configuration$
-      $ visudo -c$
-$
-  Require password for sudo?$
-$
-  Type the hostname [bos-san-l01, 0 or q]: bos-san-l01$
-$
-  [+] Require george's password for sudo  Done$
-  [+] Check the sudo configuration        Done$
-$
-# Operation Successful$
+# george is an admin through /etc/sudoers.d/90-cloud-init-users,$
+# which hardn didn't write, so hardn can't remove it. Change it$
+# there.$
 $
 # Manage User ##################################################$
 $
   Managing: [george]$
 $
+# User Configuration -------------------------------------------$
+$
+  [ ] Sudo                 Enabled, No password$
+   -  Granted by           /etc/sudoers.d/90-cloud-init-users$
+   -  SSH Keys             2 keys$
+   -  Password             None$
+$
   Select an option$
 $
-   1) Sudo Method          Toggle password requirement$
-   2) Manage SSH keys      Add or remove SSH keys$
+   1) Remove admin rights  Take sudo away$
+   2) Ask for password     For sudo$
+   3) SSH Keys             Add or remove SSH keys$
 $
    0) Return$
 $
-  > Enter your choice [0-2 or q]: q$
+  > Enter your choice [0-3 or q]: bos-san-l01$
+  (x) Invalid option. Please try again.$
+  > Enter your choice [0-3 or q]: q$
 $
 # simulated system ---------------------------------------------$
 $
-# Info: user-manage-sudo-confirmation, typed$
-# Recorded, not done: the file each step would write or restore,$
-# and the commands it would run.$
-$
-   -  Applied: Require george's password for sudo$
-      /etc/sudoers.d/hardn-george$
-      $ visudo -cf /etc/sudoers.d/hardn-george$
-$
-   -  Applied: Check the sudo configuration$
-      $ visudo -c$
+# Note$
+# Nothing was applied.$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -371,23 +359,39 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 1$
 $
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george, uid␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m1000, no password (!), in sudo and adm, two keys, NOPASSWD␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mby cloud-init's 90-cloud-init-users; alice, uid 1001, a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword, in sudo, no key. hardn runs through george's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mNon-root␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUID ≥ 1000␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
-$
-  ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
       ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
-      ␛[38;2;129;134;156m7 keys␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUID:GID␛[m$
-      ␛[38;2;129;134;156m1000:1000␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDirectory␛[m$
-      ␛[38;2;129;134;156m/home/george␛[m$
+      ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malice␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;112;212;127mEnabled␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156mgroup sudo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mSet␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -415,77 +419,67 @@ $
 $
   ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSudo Method␛[m$
-      ␛[38;2;129;134;156mToggle password requirement␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mManage SSH keys␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m$
+      ␛[38;2;129;134;156mTake sudo away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m$
+      ␛[38;2;129;134;156mFor sudo␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m$
       ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
-$
-  ␛[38;2;129;134;156mManaging sudo method for:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA user password is required for sudo usage.␛[m$
-$
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
-$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSudo Method␛[m$
-      ␛[38;2;112;212;127mPassword required␛[m$
-$
-   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
-      ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
-$
-      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
-      ␛[38;2;86;91;107m@@ -1 +1 @@␛[m$
-      ␛[38;2;231;70;105m-george ALL=(ALL:ALL) NOPASSWD: ALL␛[m$
-      ␛[38;2;112;212;127m+george ALL=(ALL:ALL) ALL␛[m$
-      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
-      ␛[38;2;129;134;156m$ visudo -c␛[m$
-$
-  ␛[38;2;192;196;216mRequire password for sudo?␛[m$
-$
-  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[bos-san-l01, 0 or q]:␛[m bos-san-l01$
-$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRequire george's password for sudo␛[m$
-      ␛[38;2;112;212;127mDone␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mCheck the sudo configuration␛[m$
-      ␛[38;2;112;212;127mDone␛[m$
-$
-␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/90-cloud-init-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156musers, which hardn didn't write, so hardn can't remove it.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mChange it there.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[38;2;129;134;156mManaging:␛[m ␛[1;38;2;223;223;223;48;2;12;42;192m george ␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mSudo Method␛[m$
-      ␛[38;2;129;134;156mToggle password requirement␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mManage SSH keys␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mRemove admin rights␛[m$
+      ␛[38;2;129;134;156mTake sudo away␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mAsk for password␛[m$
+      ␛[38;2;129;134;156mFor sudo␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mSSH Keys␛[m$
       ␛[38;2;129;134;156mAdd or remove SSH keys␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m q$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m bos-san-l01$
+   ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mInvalid option. Please try again.␛[m$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m q$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: user-manage-sudo-confirmation, typed␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded, not done: the file each step would write or␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrestore, and the commands it would run.␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Require george's password for sudo␛[m$
-      ␛[38;2;129;134;156m/etc/sudoers.d/hardn-george␛[m$
-      ␛[38;2;129;134;156m$ visudo -cf /etc/sudoers.d/hardn-george␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Check the sudo configuration␛[m$
-      ␛[38;2;129;134;156m$ visudo -c␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $
