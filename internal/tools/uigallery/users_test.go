@@ -13,10 +13,12 @@ import (
 	"github.com/charmbracelet/colorprofile"
 	"github.com/charmbracelet/x/ansi"
 
+	"github.com/abbott/hardn/pkg/engine"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -158,10 +160,10 @@ func TestUsersHosts(t *testing.T) {
 		}
 		db, _ := accounts.Read(ctx, sys)
 		elev := usersctl.ReadElevation(ctx, sys, f)
-		if len(r.users) != len(wants[uh.name]) {
-			t.Errorf("%s: %d users, want %d", uh.name, len(r.users), len(wants[uh.name]))
+		if len(r.Users) != len(wants[uh.name]) {
+			t.Errorf("%s: %d users, want %d", uh.name, len(r.Users), len(wants[uh.name]))
 		}
-		for _, u := range r.users {
+		for _, u := range r.Users {
 			w, ok := wants[uh.name][u.Name]
 			if !ok {
 				t.Errorf("%s: user %s not wanted", uh.name, u.Name)
@@ -173,9 +175,9 @@ func TestUsersHosts(t *testing.T) {
 					real = g.Grants
 				}
 			}
-			if u.admin != real || u.admin != w.admin || u.by != w.by || u.nopass != w.nopass || u.pw != w.pw || len(u.keys) != w.keys || u.policy.Grant != w.hardn {
+			if by := usrBy(u.Decided); u.Admin != real || u.Admin != w.admin || by != w.by || u.NoPassword != w.nopass || usrPW(u) != w.pw || len(u.Keys) != w.keys || u.Policy.Grant != w.hardn {
 				t.Errorf("%s, %s: admin %v (the reader's %v), by %q, nopass %v, pw %v, %d keys, hardn %v; want %+v",
-					uh.name, u.Name, u.admin, real, u.by, u.nopass, u.pw, len(u.keys), u.policy.Grant, w)
+					uh.name, u.Name, u.Admin, real, by, u.NoPassword, usrPW(u), len(u.Keys), u.Policy.Grant, w)
 			}
 		}
 		if got := h.unanswered(); len(got) > 0 {
@@ -196,7 +198,7 @@ func TestUsersRefusals(t *testing.T) {
 		}
 		r, _ := readUsrHost(t, rf.host)
 		i := 0
-		for j, u := range r.users {
+		for j, u := range r.Users {
 			if u.Name == rf.user {
 				i = j + 1
 			}
@@ -224,44 +226,46 @@ func TestUsersRefusals(t *testing.T) {
 }
 
 // TestUsersStillGranted: where hardn's grant and other rules make a user
-// an admin, Remove refuses, naming every rule still granting, read with
-// each found one hidden in turn; a rule asking a password the user lacks
-// is not counted; a rule the reader marks Unknown refuses, naming it.
+// an admin, Remove refuses, naming every rule still granting
+// (users.StillAdmin); a rule asking a password the user lacks is not
+// counted; a rule the reader marks Unknown refuses, naming it.
 func TestUsersStillGranted(t *testing.T) {
 	ctx := context.Background()
-	still := func(h *fakeHost, name string) (usrReading, usrUser, usrStill) {
+	still := func(h *fakeHost, name string) (string, usersctl.Still) {
 		t.Helper()
 		r, err := readUsers(ctx, h.sys(), map[string]string{"SUDO_USER": "george"})
 		if err != nil {
 			t.Fatal(err)
 		}
-		u, _ := r.user(name)
-		if u.policy.Grant == sudoers.GrantNone {
+		if u, _ := r.user(name); u.Policy.Grant == sudoers.GrantNone {
 			t.Fatalf("%s: no grant of hardn's", name)
 		}
-		return r, u, stillAdmin(ctx, h.sys(), r, u)
+		return r.refusal(ctx, h.sys(), usersctl.Admin{Action: usersctl.ActionRemove, User: name}), usersctl.StillAdmin(ctx, h.sys(), r.Reading, name)
+	}
+	names := func(st usersctl.Still) []string {
+		var out []string
+		for _, by := range st.By {
+			out = append(out, usrBy(by))
+		}
+		return out
 	}
 
 	h := usrDebian13().hardnGrant("alice", sudoers.GrantPassword)
 	h.f.AddFile(sudoers.DropInDir+"/50-alice", []byte("alice ALL=(ALL) NOPASSWD: ALL\n"), 0o440, 0, 0)
-	r, u, st := still(h, "alice")
-	words := r.removeRefusal(u, st)
-	if !slices.Equal(st.by, []string{sudoers.DropInDir + "/50-alice", "group sudo"}) || !strings.Contains(words, "/etc/sudoers.d/50-alice and the sudo group") {
+	words, st := still(h, "alice")
+	if !slices.Equal(names(st), []string{sudoers.DropInDir + "/50-alice", "group sudo"}) || words != fmt.Sprintf(usrWordsStill, "alice", "/etc/sudoers.d/50-alice and the sudo group") {
 		t.Errorf("alice: still %+v, refusal %q", st, words)
 	}
 
 	h = usrDebian13().hardnGrant("george", sudoers.GrantNoPassword)
 	_ = h.f.Remove(ctx, sudoers.DropInDir+"/90-cloud-init-users")
-	r, u, st = still(h, "george")
-	if words := r.removeRefusal(u, st); len(st.by) > 0 || st.unknown != "" || words != fmt.Sprintf(usrWordsSession, "george", "sudo") {
+	if words, st := still(h, "george"); len(st.By) > 0 || st.Unknown != "" || words != fmt.Sprintf(usrWordsSession, "george", "sudo") {
 		t.Errorf("george, in sudo with no password: still %+v, refusal %q", st, words)
 	}
 
 	h = usrSecondAdmin()
 	h.f.AddFile(sudoers.DropInDir+"/50-alice", []byte("alice web-01=(ALL) ALL\n"), 0o440, 0, 0)
-	r, u, st = still(h, "alice")
-	words = r.removeRefusal(u, st)
-	if st.unknown != sudoers.DropInDir+"/50-alice:1" || !strings.Contains(words, "can't read /etc/sudoers.d/50-alice:1") {
+	if words, st := still(h, "alice"); st.Unknown != sudoers.DropInDir+"/50-alice:1" || words != fmt.Sprintf(usrWordsStillUnknown, "alice", "/etc/sudoers.d/50-alice:1") {
 		t.Errorf("alice, a rule not read: still %+v, refusal %q", st, words)
 	}
 }
@@ -294,49 +298,47 @@ func TestUsersRows(t *testing.T) {
 	}
 }
 
-// TestUsersWheelFinding: a doas plan says wheel.conf overrides hardn's
-// rule for a member of wheel, and says nothing of it for anyone else.
-func TestUsersWheelFinding(t *testing.T) {
+// TestUsersDoasFile: a doas grant is hardn's zz-hardn-<stem>.conf, which
+// sorts after wheel.conf (decision 2 (a) (i)), so the plan has no finding
+// of a file that overrides it.
+func TestUsersDoasFile(t *testing.T) {
 	ctx := context.Background()
-	for _, tc := range []struct {
-		host string
-		g    sudoers.Grant
-		want bool
-	}{{"alpine323", sudoers.GrantPassword, true}, {"alpine-no-rule", sudoers.GrantNoPassword, false}} {
-		_, h := readUsrHost(t, tc.host)
-		f, _ := detect.Detect(ctx, h.sys())
-		c, err := grantChange(ctx, h.sys(), f, "george", tc.g, "test")
-		if err != nil || c == nil {
-			t.Fatalf("%s: %v, %v", tc.host, c, err)
+	for _, host := range []string{"alpine323", "alpine-no-rule"} {
+		r, h := readUsrHost(t, host)
+		cs, err := r.admin(usersctl.Admin{Action: usersctl.ActionGrant, User: "alpine"}).Plan(ctx, h.sys(), engine.Input{Facts: r.f})
+		if host == "alpine-no-rule" {
+			cs, err = r.admin(usersctl.Admin{Action: usersctl.ActionGrant, User: "george"}).Plan(ctx, h.sys(), engine.Input{Facts: r.f})
 		}
-		var got []string
-		for _, fd := range c.Findings {
-			if fd.Source == usrWheelConf {
-				got = append(got, fd.Detail)
+		if err != nil || len(cs) != 1 || !strings.HasPrefix(cs[0].Target, sudoers.DoasDir+"/zz-hardn-") {
+			t.Fatalf("%s: %v, %+v", host, err, cs)
+		}
+		for _, fd := range cs[0].Findings {
+			if strings.HasSuffix(fd.Source, "wheel.conf") {
+				t.Errorf("%s: %+v", host, fd)
 			}
-		}
-		if ok := len(got) == 1 && strings.Contains(got[0], "overrides hardn's rule"); ok != tc.want || !tc.want && len(got) > 0 {
-			t.Errorf("%s: wheel.conf's findings %q", tc.host, got)
 		}
 	}
 }
 
 // TestUsersKeyFiles: keys are counted only in the files sshd -T says it
 // reads; with ~/.ssh/authorized_keys not among them every key change and
-// Create's key refuse before asking.
+// Create's key refuse before asking; with sshd -T not read, too.
 func TestUsersKeyFiles(t *testing.T) {
+	ctx := context.Background()
 	r, _ := readUsrHost(t, "alpine-stray")
-	if !slices.Equal(r.keyFiles, []string{".ssh/authorized_keys"}) || r.keyFilesRefusal() != "" {
-		t.Errorf("alpine-stray: key files %q, %q", r.keyFiles, r.keyFilesRefusal())
+	if !slices.Equal(r.KeyEntries, []string{".ssh/authorized_keys"}) || r.KeysRefusal() != nil {
+		t.Errorf("alpine-stray: key files %q, %v", r.KeyEntries, r.KeysRefusal())
 	}
 	uh := usrHostNamed(t, "debian13")
 	h := uh.host()
 	h.f.AddFile("/etc/ssh/sshd_config.d/50-keys.conf", []byte("AuthorizedKeysFile /etc/ssh/keys/%u\n"), 0o644, 0, 0)
-	r, err := readUsers(context.Background(), h.sys(), uh.env)
+	r, err := readUsers(ctx, h.sys(), uh.env)
 	u, _ := r.user("george")
-	words := r.keyFilesRefusal()
-	if err != nil || words == "" || len(u.keys) != 0 || r.keyRefusal(u) != words || r.addKeyRefusal(context.Background(), h.sys(), u) != words {
-		t.Errorf("AuthorizedKeysFile /etc/ssh/keys/%%u: %q, %d keys, %v", words, len(u.keys), err)
+	words := usrWords(r.KeysRefusal())
+	if err != nil || words != fmt.Sprintf(usrWordsKeyFiles, "/etc/ssh/keys/%u") || len(u.Keys) != 0 ||
+		r.refusal(ctx, h.sys(), usersctl.Admin{Action: usersctl.ActionRemoveKey, User: "george"}) != words ||
+		r.refusal(ctx, h.sys(), usersctl.Admin{Action: usersctl.ActionAddKey, User: "george"}) != words {
+		t.Errorf("AuthorizedKeysFile /etc/ssh/keys/%%u: %q, %d keys, %v", words, len(u.Keys), err)
 	}
 	n := len(h.f.Calls())
 	_, out, _ := playUsr(t, uh, h, false, "2", "carol", "n", "y", "n", "n", "0")
@@ -345,6 +347,13 @@ func TestUsersKeyFiles(t *testing.T) {
 	}
 	if cmds, files := changed(h.f.Calls()[n:]); len(cmds) > 0 || len(files) > 0 {
 		t.Errorf("Create declined changed %q, %q", cmds, files)
+	}
+
+	h = usrHostNamed(t, "debian13").host()
+	_ = h.f.Remove(ctx, "/etc/ssh/sshd_config")
+	r, _ = readUsers(ctx, h.sys(), uh.env)
+	if r.KeyErr == nil || usrWords(r.KeysRefusal()) != fmt.Sprintf(usrWordsKeyFilesRead, screenkit.FullStop(r.KeyErr.Error())) {
+		t.Errorf("sshd -T not read: %v, %q", r.KeyErr, usrWords(r.KeysRefusal()))
 	}
 }
 
@@ -390,7 +399,7 @@ func TestUsersRemoveKey(t *testing.T) {
 	u, _ := r.user("george")
 	playUsr(t, uh, h, false, "1", "1", "3", "2", "1", hostName, "0", "0", "0", "0")
 	data, err := h.f.ReadFile(context.Background(), "/home/george/.ssh/authorized_keys")
-	if err != nil || strings.Contains(string(data), u.keys[0].line) || !strings.Contains(string(data), u.keys[1].line) {
+	if err != nil || strings.Contains(string(data), u.Keys[0].Line) || !strings.Contains(string(data), u.Keys[1].Line) {
 		t.Errorf("authorized_keys after removing the first key: %q, %v", data, err)
 	}
 	fi, _ := h.f.Stat(context.Background(), "/home/george/.ssh/authorized_keys")
@@ -427,7 +436,7 @@ func TestUsersCreatePassword(t *testing.T) {
 		}
 		r, _ := readUsers(ctx, h.sys(), uh.env)
 		u, ok := r.user("carol")
-		if !ok || u.admin != detect.Yes || u.by != "hardn" || u.pw == pwLocked || len(u.keys) != 1 {
+		if !ok || u.Admin != detect.Yes || usrBy(u.Decided) != "hardn" || usrPW(u) == pwLocked || len(u.Keys) != 1 {
 			t.Errorf("%s: carol read back %+v", host, u)
 		}
 	}
@@ -460,7 +469,7 @@ func TestUsersCreateNoAdmin(t *testing.T) {
 		}
 	}
 	r, _ := readUsers(context.Background(), h.sys(), uh.env)
-	if u, ok := r.user("carol"); !ok || u.admin != detect.No || u.policy.Grant != sudoers.GrantNone {
+	if u, ok := r.user("carol"); !ok || u.Admin != detect.No || u.Policy.Grant != sudoers.GrantNone {
 		t.Errorf("carol read back %+v", u)
 	}
 }
@@ -504,33 +513,81 @@ func TestUsersPlanOnlyWritesNothing(t *testing.T) {
 	}
 }
 
-// TestUsersKeys: the key check takes one OpenSSH public key and refuses
-// anything else; the fingerprint is ssh-keygen's form.
+// TestUsersKeys: the key check, the control's, takes one OpenSSH public key
+// and refuses anything else in the decided words; the fingerprint is
+// ssh-keygen's form.
 func TestUsersKeys(t *testing.T) {
-	k, err := parseKey(usrTestKey, false)
-	if err != nil || !strings.HasPrefix(k.fp, "SHA256:") || len(k.fp) != 50 || k.comment != "carol@laptop" {
+	k, err := usersctl.ParseKey(usrTestKey)
+	if err != nil || !strings.HasPrefix(k.Fingerprint, "SHA256:") || len(k.Fingerprint) != 50 || k.Comment != "carol@laptop" {
 		t.Errorf("%q: %+v, %v", usrTestKey, k, err)
 	}
 	for _, bad := range []string{"", "ssh-ed25519", "ssh-ed25519 !!!", "ssh-rsa " + strings.Fields(usrTestKey)[1], "ssh-dss AAAAB3NzaC1kc3M=", `from="192.0.2.1" ` + usrTestKey} {
-		if _, err := parseKey(bad, false); err == nil {
-			t.Errorf("%q taken", bad)
+		if _, err := usersctl.ParseKey(bad); usrWords(err) != usrWordsKey {
+			t.Errorf("%q: %v", bad, err)
 		}
-	}
-	if _, err := parseKey(`from="192.0.2.1" `+usrTestKey, true); err != nil {
-		t.Errorf("a line with options not read: %v", err)
 	}
 }
 
 // TestUsersNames: the names useradd refuses, refused; a name the host has,
-// refused.
+// refused, in the decided words.
 func TestUsersNames(t *testing.T) {
+	ctx := context.Background()
 	r, h := readUsrHost(t, "debian13")
-	db, _ := accounts.Read(context.Background(), h.sys())
 	for name, ok := range map[string]bool{"carol": true, "_svc": true, "web-01": true, "Carol": false, "1carol": false, "car ol": false,
 		"george": false, "sudo": false, strings.Repeat("a", 33): false, "permit": false, "": false} {
-		if got := r.checkName(db, name) == nil; got != ok {
+		if got := r.CheckName(ctx, h.sys(), name) == nil; got != ok {
 			t.Errorf("%q: taken %v, want %v", name, got, ok)
 		}
+	}
+	if w := usrWords(r.CheckName(ctx, h.sys(), "Carol")); w != usrWordsName {
+		t.Errorf("Carol: %q", w)
+	}
+	if w := usrWords(r.CheckName(ctx, h.sys(), "george")); w != fmt.Sprintf(usrWordsTaken, "george") {
+		t.Errorf("george: %q", w)
+	}
+	if w := usrWords(r.CheckNew(ctx, h.sys(), usersctl.New{Name: "carol", Admin: true, Password: true})); w != fmt.Sprintf(usrWordsNewNoPW, "sudo") {
+		t.Errorf("a password: %q", w)
+	}
+}
+
+// TestUsersWords: each refusal of usrRefusals, and hardn's file edited,
+// in the decided words (gallery-users.md §6).
+func TestUsersWords(t *testing.T) {
+	ctx := context.Background()
+	cloud := sudoers.DropInDir + "/90-cloud-init-users"
+	notRead := fmt.Sprintf(usrWordsNotRead, "sudo", "its files don't check.", "visudo -c")
+	want := map[usrRefusal]string{
+		{"remove", "hardn", "george"}:            fmt.Sprintf(usrWordsSession, "george", "sudo"),
+		{"remove", "debian13", "george"}:         fmt.Sprintf(usrWordsNotHardn, "george", cloud),
+		{"remove", "debian13", "alice"}:          fmt.Sprintf(usrWordsGroup, "alice", "sudo", "alice", "alice", "sudo"),
+		{"remove", "legacy", "george"}:           fmt.Sprintf(usrWordsNotHardn, "george", sudoers.DropInDir+"/george"),
+		{"remove", "alpine323", "george"}:        fmt.Sprintf(usrWordsGroup, "george", "wheel", "george", "george", "wheel"),
+		{"remove", "not-read", "george"}:         notRead,
+		{"require", "debian13", "george"}:        fmt.Sprintf(usrWordsNoPassword, "george", "sudo", "george"),
+		{"require", "alpine323", "george"}:       fmt.Sprintf(usrWordsNoPassword, "george", "doas", "george"),
+		{"remove-key", "one-key", "george"}:      fmt.Sprintf(usrWordsLastKey, "george", "george"),
+		{"grant", "no-sudo", "george"}:           usrWordsNoTool,
+		{"grant", "not-read", "alice"}:           notRead,
+		{"remove", "root-login", "george"}:       fmt.Sprintf(usrWordsLastAdmin, "george"),
+		{"remove-key", "alpine-stray", "george"}: fmt.Sprintf(usrWordsLastKey, "george", "george"),
+		{"add-key", "group-home", "alice"}:       fmt.Sprintf(usrWordsStrict, "alice", "/home/alice is writable by its group (0775)"),
+	}
+	for _, rf := range usrRefusals() {
+		if got, err := refusalOf(ctx, rf); err != nil || got != want[rf] {
+			t.Errorf("%v: %q, %v\nwant %q", rf, got, err, want[rf])
+		}
+	}
+	r, h := readUsrHost(t, "debian13")
+	cs, err := r.admin(usersctl.Admin{Action: usersctl.ActionCreate, New: usersctl.New{Name: "carol"}}).Plan(ctx, h.sys(), engine.Input{Facts: r.f})
+	if err != nil || len(cs) != 1 || len(cs[0].Findings) != 1 || cs[0].Findings[0].Detail+"." != fmt.Sprintf(usrWordsNoKeyNotice, "carol") {
+		t.Errorf("no key: %+v, %v", cs, err)
+	}
+	h = usrHardn()
+	n, _ := sudoers.FileNames(sudoers.ToolSudo, "george")
+	h.f.AddFile(n.Grant, []byte(sudoers.Header+"george ALL=(ALL) ALL # mine\n"), 0o440, 0, 0)
+	r, err = readUsers(ctx, h.sys(), map[string]string{"SUDO_USER": "george"})
+	if got := r.refusal(ctx, h.sys(), usersctl.Admin{Action: usersctl.ActionRemove, User: "george"}); err != nil || got != fmt.Sprintf(usrWordsEdited, n.Grant) {
+		t.Errorf("edited: %q, %v", got, err)
 	}
 }
 
