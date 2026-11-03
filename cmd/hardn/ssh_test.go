@@ -21,6 +21,8 @@ import (
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
 // The SSH Login hosts of the SSH Login item's and -d's tests: the User
@@ -313,5 +315,198 @@ func TestSSHHook(t *testing.T) {
 	}
 	if got := h.sshdWrites(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("wrote %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
+	}
+}
+
+// dLockoutWords are -d's refusal off a terminal (proposed, refactor plan
+// slice 6, unit (d)), as output.Human says it.
+const dLockoutWords = "Turning root login off here risks a lockout (PLAN_REFUSED)"
+
+// runD runs hardn with args as root (runG) on the SSH Login host h with
+// cfg, the session george's over SSH and hardn's environment george's
+// sudo; stdout's render environment env when set (onTTY: on a terminal),
+// the user typing lines; setup, when set, run once the seams are in place.
+func runD(t *testing.T, h *sshTestHost, cfg *config.Config, env func() term.Env, lines []string, setup func(*dnsSeams), args ...string) (result, *dnsSeams) {
+	t.Helper()
+	return runG(t, h.dnsHost, cfg, func(s *dnsSeams) {
+		engineHost = func() host.System { return h }
+		revertGetenv = fwSession
+		t.Setenv("SUDO_USER", "george")
+		in := prompt.New(uitest.NewTypist(&s.out, lines...), false)
+		engineInput = func() *prompt.Reader { return in }
+		if env != nil {
+			stdoutEnv = env
+		}
+		if setup != nil {
+			setup(s)
+		}
+	}, args...)
+}
+
+// TestDisallowRootFlag: -d plans and applies the SSH Login control's
+// Disallow root login through the engine (refactor plan slice 6, unit
+// (d); gallery-ssh.md §5, decision 8 (a), adopted): on a terminal the
+// plan, "Disallow root login?" above the hostname typed, never y/N, the
+// apply, PermitRootLogin no written and the revert timer armed, then the
+// countdown and sudo hardn confirm, exit status 0; 0 and q declining,
+// nothing written, 3; the hostname unreadable said in place of the
+// question, nothing asked or written, 1. Off a terminal the plan is
+// refused, PLAN_REFUSED, nothing written or armed, 1. -n the plan alone,
+// no question, nothing written, 3, on a terminal or off. The control's
+// refusals, said before anything is asked: no admin able to log in
+// afterwards (george's key gone), SSH_NO_ADMIN_LOGIN, 1, nothing written.
+// Root login already off: nothing to change, 0, nothing asked. Proxmox VE
+// with root key-only already: the control's SSH_PVE_ROOT_KEY_ONLY read as
+// nothing to change, 0. Nothing goes through the legacy provider; the
+// signals are registered for an apply alone, an empty plan's too, as
+// runControls applies any flag's; hardn.yml is never saved.
+func TestDisallowRootFlag(t *testing.T) {
+	for _, tc := range []struct {
+		name, host  string
+		tty, dryRun bool
+		lines       []string
+		code        int      // the exit status; 0: hardn did not exit
+		said        []string // in order
+		unsaid      []string
+		applied     bool // PermitRootLogin no written, the timer armed
+	}{
+		{name: "on a terminal", host: "debian13", tty: true, lines: []string{"web-01"}, applied: true,
+			said: []string{"Lockout risk", "Disallow root login?", "Type the hostname [web-01, 0 or q]", "Done", "Operation Successful", "sudo hardn confirm"}},
+		{name: "0 declines", host: "debian13", tty: true, lines: []string{"0"}, code: 3, said: []string{"Type the hostname", "Operation Cancelled"}},
+		{name: "q declines", host: "debian13", tty: true, lines: []string{"q"}, code: 3, said: []string{"Type the hostname"}},
+		{name: "the hostname unreadable", host: "no-hostname", tty: true, code: 1,
+			said: []string{"Lockout risk", "Can't confirm with the hostname"}, unsaid: []string{"Type the hostname"}},
+		{name: "off a terminal", host: "debian13", code: 1,
+			said:   []string{"Lockout risk", "No actual changes were made to your system.", dLockoutWords, "To go on: run hardn -d from a terminal, which asks you to confirm."},
+			unsaid: []string{"Type the hostname"}},
+		{name: "-n on a terminal", host: "debian13", tty: true, dryRun: true, code: 3,
+			said: []string{"Lockout risk", "No actual changes were made to your system."}, unsaid: []string{"Type the hostname", dLockoutWords}},
+		{name: "-n off a terminal", host: "debian13", dryRun: true, code: 3,
+			said: []string{"Lockout risk", "No actual changes were made to your system."}, unsaid: []string{dLockoutWords}},
+		{name: "no admin able", host: "no-key", tty: true, code: 1,
+			said: []string{"No admin could log in over SSH afterwards", "SSH_NO_ADMIN_LOGIN"}, unsaid: []string{"Type the hostname"}},
+		{name: "no admin able, -n", host: "no-key", dryRun: true, code: 1, said: []string{"SSH_NO_ADMIN_LOGIN"}},
+		{name: "already disallowed", host: "disallowed", tty: true, said: []string{"Nothing needs changing."}, unsaid: []string{"Type the hostname"}},
+		{name: "already disallowed off a terminal", host: "disallowed", said: []string{"Nothing needs changing."}, unsaid: []string{dLockoutWords}},
+		{name: "Proxmox VE, root key-only already", host: "pve9", tty: true,
+			said: []string{"Nothing needs changing."}, unsaid: []string{"SSH_PVE_ROOT_KEY_ONLY", "Type the hostname"}},
+	} {
+		args := []string{"-d"}
+		if tc.dryRun {
+			args = []string{"-n", "-d"}
+		}
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newSSHHost(t, tc.host)
+			yml, was := h.content(dnsTestYML), h.rootLogin()
+			var env func() term.Env
+			if tc.tty {
+				env = onTTY
+			}
+			r, s := runD(t, h, cfg, env, tc.lines, nil, args...)
+			out := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stdout, r.stderr)
+			}
+			if w := inOrder(out, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, out)
+			}
+			for _, w := range append([]string{"y/N", "[SUCCESS]", "[ERROR]", "Script completed", "Root SSH access disabled"}, tc.unsaid...) {
+				if strings.Contains(out+r.stdout, w) {
+					t.Errorf("printed %q:\n%s%s", w, out, r.stdout)
+				}
+			}
+			if got := h.rootLogin(); tc.applied && got != "no" || !tc.applied && (got != was || len(h.sshdWrites()) > 0) {
+				t.Errorf("PermitRootLogin %s (was %s), wrote %q; want applied %t", got, was, h.sshdWrites(), tc.applied)
+			}
+			if h.armed() != tc.applied {
+				t.Errorf("the revert timer armed %t, want %t", h.armed(), tc.applied)
+			}
+			if len(r.calls) != 0 {
+				t.Errorf("-d went through the legacy provider: %v", r.calls)
+			}
+			if want := map[bool]int{true: 1}[tc.applied || !tc.dryRun && tc.code == 0]; s.applies != want || s.live != 0 {
+				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
+			}
+			if got := h.content(dnsTestYML); got != yml {
+				t.Errorf("hardn.yml saved:\n%s", got)
+			}
+		})
+	}
+}
+
+// TestDisallowRootPlanOnlyFromFile: hardn.yml's dryRun: true makes -d the
+// plan alone, as -n does, on a terminal too: no question, nothing written
+// or armed, 3; --dry-run=false over it asks and applies as live.
+func TestDisallowRootPlanOnlyFromFile(t *testing.T) {
+	for _, tc := range []struct {
+		args  []string
+		lines []string
+		code  int
+	}{
+		{[]string{"-d"}, nil, 3},
+		{[]string{"--dry-run=false", "-d"}, []string{"web-01"}, 0},
+	} {
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			h, _ := newSSHHost(t, "debian13")
+			h.AddFile(dnsTestYML, []byte("username: alice\ndryRun: true\n"), 0o644, 0, 0)
+			cfg, err := config.Read(context.Background(), h, dnsTestYML)
+			if err != nil {
+				t.Fatal(err)
+			}
+			r, s := runD(t, h, cfg, onTTY, tc.lines, func(*dnsSeams) {
+				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
+			}, tc.args...)
+			out := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
+			}
+			live := tc.code == 0
+			if strings.Contains(out, "Type the hostname") != live || strings.Contains(out, "No actual changes were made to your system.") == live {
+				t.Errorf("asked %t, want %t; report:\n%s", !live, live, out)
+			}
+			if h.armed() != live || (h.rootLogin() == "no") != live {
+				t.Errorf("armed %t, PermitRootLogin %s; want applied %t", h.armed(), h.rootLogin(), live)
+			}
+		})
+	}
+}
+
+// TestDisallowRootFlagWithOthers: -d's exit status combines with the
+// flags' after it as -c's does (runStatus), each run in Run's order:
+// under -n -d's plan (3), then -w's refusal on a host without ufw
+// (UFW_NOT_INSTALLED), 1; -d with nothing to change, then -w's refusal,
+// 1; -d refused (no admin able), then -g applied, the refusal hardn's
+// exit status once -g has run; under -n both plans, 3.
+func TestDisallowRootFlagWithOthers(t *testing.T) {
+	for _, tc := range []struct {
+		name, host string
+		args       []string
+		code       int
+		said       []string
+		dns        bool // -g's file written
+	}{
+		{"-n: -d's plan, then -w refused", "debian13", []string{"-n", "-d", "-w"}, 1, []string{"Lockout risk", "Disallow root login", "UFW_NOT_INSTALLED"}, false},
+		{"-d nothing to change, then -w refused", "disallowed", []string{"-d", "-w"}, 1, []string{"Nothing needs changing.", "UFW_NOT_INSTALLED"}, false},
+		{"-d refused, then -g", "no-key", []string{"-d", "-g"}, 1, []string{"SSH_NO_ADMIN_LOGIN", "Set the nameservers  Done"}, true},
+		{"-n: -d's plan, then -g's", "debian13", []string{"-n", "-d", "-g"}, 3, []string{"Lockout risk", "+nameserver 192.0.2.53"}, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newSSHHost(t, tc.host)
+			conf, was := h.content("/etc/resolv.conf"), h.rootLogin()
+			r, s := runD(t, h, cfg, nil, nil, nil, tc.args...)
+			out := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
+			}
+			if w := inOrder(out, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, out)
+			}
+			if got := h.content("/etc/resolv.conf") != conf; got != tc.dns {
+				t.Errorf("-g's file written %t, want %t", got, tc.dns)
+			}
+			if h.rootLogin() != was || h.armed() || len(h.sshdWrites()) > 0 {
+				t.Errorf("PermitRootLogin %s (was %s), armed %t, wrote %q", h.rootLogin(), was, h.armed(), h.sshdWrites())
+			}
+		})
 	}
 }

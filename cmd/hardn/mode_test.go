@@ -204,7 +204,7 @@ func TestPlanOnlyRefusedAsLoaded(t *testing.T) {
 	r := runHardnWith(t, asRoot, func() {
 		y.setup(t)()
 		fileDryRun = func(string) (string, bool, error) { return y.path, false, nil }
-	}, y.args("-d")...)
+	}, y.args("-r")...)
 	if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 {
 		t.Fatalf("ended %v with %d, calls %v; stderr:\n%s", r.ended, r.code, r.calls, r.stderr)
 	}
@@ -228,7 +228,7 @@ func TestConfigureDNSFlagPlanOnlyFromFile(t *testing.T) {
 	}{
 		{"-g", []string{"-g"}, 3},
 		{"--dry-run=false -g", []string{"--dry-run=false", "-g"}, 0},
-		{"-g -d", []string{"-g", "-d"}, hardncmd.ExitUsage},
+		{"-g -r", []string{"-g", "-r"}, hardncmd.ExitUsage},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, _ := newDNSHost(t, "debian13", dnsTestList)
@@ -255,7 +255,7 @@ func TestConfigureDNSFlagPlanOnlyFromFile(t *testing.T) {
 					t.Errorf("not applied; report:\n%s", s.out.String())
 				}
 			default:
-				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagDisableRoot) ||
+				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagRunAll) ||
 					strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) {
 					t.Errorf("wrote %q after %v; stderr:\n%s", written, r.reached, r.stderr)
 				}
