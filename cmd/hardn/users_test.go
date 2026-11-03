@@ -435,11 +435,7 @@ func TestCreateUserRefused(t *testing.T) {
 	was := createRefuse
 	t.Cleanup(func() { createRefuse = was })
 	r, s := runC(t, h, cfg, func(*dnsSeams) {
-		createRefuse = func(p *engine.Plan) error {
-			lockout := *p
-			lockout.Risk = engine.RiskLockout
-			return refuseCreateLockoutRisk(&lockout)
-		}
+		createRefuse = func(*engine.Plan) error { return refuseCreateLockoutRisk(&engine.Plan{Risk: engine.RiskLockout}) }
 	}, "-c", "-u", "carol")
 	report := style.StripAnsi(s.out.String())
 	if !r.ended || r.code != 1 {
