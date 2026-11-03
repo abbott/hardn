@@ -50,9 +50,9 @@ type Options struct {
 	// users.Read takes the session user (SUDO_USER, DOAS_USER), and each
 	// change's plan too. Required.
 	Getenv func(string) string
-	// Config is hardn.yml as loaded, whose username, sudoNoPassword and
-	// sshKeys are Create's defaults alone, never the user the rows are about
-	// (decision 7). Nil has none. No change saves it.
+	// Config is hardn.yml as loaded, whose username and sshKeys are
+	// Create's defaults alone (sudoNoPassword is not used), never the user
+	// the rows are about (decision 7). Nil has none. No change saves it.
 	Config *config.Config
 	// NewEngine returns the engine a change plans and applies with, built as
 	// the caller builds it (engine.New over System with its options: its

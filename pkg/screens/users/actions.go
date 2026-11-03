@@ -8,8 +8,8 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
-	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/form"
@@ -114,38 +114,36 @@ func (r *runner) control(a usersctl.Admin) usersctl.Admin {
 	return a
 }
 
-// admin is item 1: Grant admin rights for a user who is not an admin,
-// Remove for one who is.
+// admin is item 1: Grant admin rights for a user who is not an admin, its
+// review's row the grant the control plans (User.NewGrant); Remove for one
+// who is.
 func (r *runner) admin(ctx context.Context, h reading, u usersctl.User) func() error {
 	if u.Admin == detect.Yes {
-		return r.grant(ctx, h, usersctl.ActionRemove, u, screen.UsersRemoveChange(u.Name, disabledRow(h.Reading)))
+		return r.grant(ctx, usersctl.ActionRemove, u, screen.UsersRemoveChange(u.Name, disabledRow(h.Reading)))
 	}
-	row := nopassRow(h.Reading, noPasswordToAsk(u))
-	if !u.Locked && u.Password == accounts.PasswordSet {
-		row = enabledRow(h.Reading)
+	row := enabledRow(h.Reading)
+	if u.NewGrant() == sudoers.GrantNoPassword {
+		row = nopassRow(h.Reading, noPasswordToAsk(u))
 	}
-	return r.grant(ctx, h, usersctl.ActionGrant, u, screen.UsersGrantChange(u.Name, row))
+	return r.grant(ctx, usersctl.ActionGrant, u, screen.UsersGrantChange(u.Name, row))
 }
 
 // password is item 2, for an admin: Ask for password where its rights ask
 // none, else Don't ask password.
 func (r *runner) password(ctx context.Context, h reading, u usersctl.User) func() error {
 	if u.NoPassword {
-		return r.grant(ctx, h, usersctl.ActionAskPassword, u, screen.UsersAskChange(u.Name, enabledRow(h.Reading)))
+		return r.grant(ctx, usersctl.ActionAskPassword, u, screen.UsersAskChange(u.Name, enabledRow(h.Reading)))
 	}
-	return r.grant(ctx, h, usersctl.ActionNoPassword, u, screen.UsersStopAskingChange(u.Name, nopassRow(h.Reading, noPasswordToAsk(u))))
+	return r.grant(ctx, usersctl.ActionNoPassword, u, screen.UsersStopAskingChange(u.Name, nopassRow(h.Reading, noPasswordToAsk(u))))
 }
 
-// grant returns the action of an admin rights change for u: the control's
-// refusal said before asking (Reading.Refusal), or its plan's, planned
-// first from a fresh reading, which also says whether it is lockout-risk;
-// then the change, its words c's.
-func (r *runner) grant(ctx context.Context, h reading, action usersctl.Action, u usersctl.User, c screen.UsersChange) func() error {
+// grant returns the action of an admin rights change for u: its plan,
+// planned first from a fresh reading, its refusal (Reading.Refusal's, the
+// plan's first) said before asking, which also says whether it is
+// lockout-risk; then the change, its words c's.
+func (r *runner) grant(ctx context.Context, action usersctl.Action, u usersctl.User, c screen.UsersChange) func() error {
 	a := r.control(usersctl.Admin{Action: action, User: u.Name})
 	return func() error {
-		if err := h.Refusal(ctx, r.o.System, a); err != nil {
-			return r.refuse(err)()
-		}
 		cs, err := a.Plan(ctx, r.o.System, engine.Input{Facts: r.o.Facts})
 		if err != nil {
 			return r.refuse(err)()
@@ -189,36 +187,50 @@ func (r *runner) change(ctx context.Context, lockout bool, question func() strin
 }
 
 // keyField is a pasted key's question, refused at the field by the
-// control's check (users.ParseKey).
-func keyField(value *string, def, about string, skip func() bool) *form.Text {
+// control's check: check, users.ParseKey or, for a user's, its CheckKey.
+func keyField(value *string, def, about string, skip func() bool, check func(string) error) *form.Text {
 	return &form.Text{Title: screen.UsersKeyField, Description: about, Default: def, Value: value, Skip: skip, Validate: func(s string) error {
-		_, err := usersctl.ParseKey(s)
-		return refusal(err)
+		return refusal(check(s))
 	}}
 }
 
+// parseKey is the key check of a new user, who has no key yet.
+func parseKey(s string) error {
+	_, err := usersctl.ParseKey(s)
+	return err
+}
+
 // refusal is a form's refusal of err at its field, in the control's words;
-// nil for none.
+// nil for none. A key the user has already is a warning, as the mock drew
+// it.
 func refusal(err error) error {
-	if err == nil {
+	switch {
+	case err == nil:
 		return nil
+	case errors.Is(err, usersctl.ErrKeyThere):
+		return nav.Warn(screenkit.RefusalWords(err))
 	}
 	return nav.Refuse(screenkit.RefusalWords(err))
 }
 
 // addKey is Add SSH key: the control's refusal before asking; one key,
-// refused at its field; then the control's plan. A locked user's plan says
+// refused at its field (CheckKey: not a key, or one the user has, so the
+// review never counts a key not added); then the control's plan. A locked user's plan says
 // sshd refuses its keys (the control's finding).
 func (r *runner) addKey(ctx context.Context, h reading, u usersctl.User) error {
 	if err := h.Refusal(ctx, r.o.System, r.control(usersctl.Admin{Action: usersctl.ActionAddKey, User: u.Name})); err != nil {
 		return r.refuse(err)()
 	}
 	var line string
+	have := func(s string) error {
+		_, err := h.CheckKey(u.Name, s)
+		return err
+	}
 	c := screen.UsersAddKeyChange(u.Name, len(u.Keys))
 	return r.change(ctx, false, func() string { return c.Question }, screenkit.Change{
 		Step: c.Step,
 		Flow: flow.Flow{
-			Form:   form.Form{Fields: []form.Field{keyField(&line, "", "", nil)}},
+			Form:   form.Form{Fields: []form.Field{keyField(&line, "", "", nil, have)}},
 			Review: func() flow.Review { return c.Review },
 		},
 		Controls: func(*config.Config) []engine.Control {
@@ -228,8 +240,10 @@ func (r *runner) addKey(ctx context.Context, h reading, u usersctl.User) error {
 }
 
 // removeKey is Remove SSH key: the control's refusal before asking (the
-// session user's last key among them); which, by fingerprint, each refused
-// at the Select by its plan's refusal; then the control's plan of that
+// session user's last key among them), and a key drawn that has left the
+// file since (USERS_KEY_GONE), after which the keys are drawn again from a
+// fresh reading; which, by fingerprint, each refused at the Select by its
+// plan's refusal, planned again at the pick; then the control's plan of that
 // fingerprint from a fresh reading. Where removing any key is lockout-risk,
 // a live change whose hostname can't be read says so before asking.
 func (r *runner) removeKey(ctx context.Context, h reading, u usersctl.User) error {
@@ -239,18 +253,25 @@ func (r *runner) removeKey(ctx context.Context, h reading, u usersctl.User) erro
 	if len(u.Keys) == 0 {
 		return nil // not reached: Remove SSH key is offered only with a key
 	}
+	plan := func(i int) ([]engine.Change, error) {
+		return r.control(usersctl.Admin{Action: usersctl.ActionRemoveKey, User: u.Name, Fingerprint: u.Keys[i].Fingerprint}).Plan(ctx, r.o.System, engine.Input{Facts: r.o.Facts})
+	}
 	lockout := false
-	planned := make([]error, len(u.Keys))
 	opts := make([]form.Option[int], len(u.Keys))
 	for i, k := range u.Keys {
 		opts[i] = form.Option[int]{Label: k.Fingerprint + " " + k.Comment, Value: i}
-		var cs []engine.Change
-		cs, planned[i] = r.control(usersctl.Admin{Action: usersctl.ActionRemoveKey, User: u.Name, Fingerprint: k.Fingerprint}).Plan(ctx, r.o.System, engine.Input{Facts: r.o.Facts})
+		cs, err := plan(i)
+		if errors.Is(err, usersctl.ErrKeyGone) {
+			return r.refuse(err)() // the keys drawn are stale: said, then drawn again
+		}
 		lockout = lockout || risky(cs)
 	}
 	gone := 0
 	c := screen.UsersRemoveKeyChange(u.Name, len(u.Keys))
-	pick := &form.Select[int]{Title: screen.UsersWhichKeyField, Options: opts, Value: &gone, Validate: func(i int) error { return refusal(planned[i]) }}
+	pick := &form.Select[int]{Title: screen.UsersWhichKeyField, Options: opts, Value: &gone, Validate: func(i int) error {
+		_, err := plan(i)
+		return refusal(err)
+	}}
 	return r.change(ctx, lockout, func() string { return c.Question }, screenkit.Change{
 		Step: c.Step,
 		Flow: flow.Flow{
@@ -267,14 +288,16 @@ func (r *runner) removeKey(ctx context.Context, h reading, u usersctl.User) erro
 // polarity (P-11), asked only after yes to admin rights and refused at yes
 // (decision 3), each answer refused at its field by the control
 // (CheckName, ToolRefusal, CheckNew, KeysRefusal, ParseKey); the defaults
-// hardn.yml's username, sudoNoPassword and first of sshKeys alone (decision
-// 7); one plan for the account, the grant and the key, the control's.
+// hardn.yml's username and first of sshKeys alone (decision 7), "Grant
+// admin rights?" no as the mocks drew it: sudoNoPassword is about a
+// password for admin rights, and a new user has none to ask (decision 3),
+// so the form never uses it; one plan for the account, the grant and the key, the control's.
 func (r *runner) create(ctx context.Context, h reading) error {
 	sys := r.o.System
 	var name, key, nameDef, nameAbout, keyDef, keyAbout string
-	var admin, password, addKey, adminDef bool
+	var admin, password, addKey bool
 	if cfg := r.o.Config; cfg != nil {
-		nameDef, adminDef = cfg.Username, cfg.SudoNoPassword
+		nameDef = cfg.Username
 		if nameDef != "" {
 			nameAbout = fmt.Sprintf(nameDefault, nameDef)
 		}
@@ -284,7 +307,7 @@ func (r *runner) create(ctx context.Context, h reading) error {
 	}
 	fields := []form.Field{
 		&form.Text{Title: screen.UsersNameField, Description: nameAbout, Default: nameDef, Value: &name, Validate: func(s string) error { return refusal(h.CheckName(ctx, sys, s)) }},
-		&form.YesNo{Title: screen.UsersAdminField, Default: adminDef, Value: &admin, Validate: func(yes bool) error {
+		&form.YesNo{Title: screen.UsersAdminField, Value: &admin, Validate: func(yes bool) error {
 			if yes {
 				return refusal(h.ToolRefusal())
 			}
@@ -299,7 +322,7 @@ func (r *runner) create(ctx context.Context, h reading) error {
 			}
 			return nil
 		}},
-		keyField(&key, keyDef, keyAbout, func() bool { return !addKey }),
+		keyField(&key, keyDef, keyAbout, func() bool { return !addKey }, parseKey),
 	}
 	tool := disabledRow(h.Reading)
 	return r.change(ctx, false, func() string { return screen.UsersCreateQuestion(name) }, screenkit.Change{

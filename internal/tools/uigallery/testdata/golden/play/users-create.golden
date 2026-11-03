@@ -54,7 +54,7 @@ $
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mgeorge already exists.␛[m$
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mA new user has no password, so sudo couldn't ask for one.␛[m$
@@ -190,7 +190,7 @@ $
   (x) george already exists.$
    1. Username [0 or q]: carol$
 $
-   2. Grant admin rights? [Y/n, 0 or q]: y$
+   2. Grant admin rights? [y/N, 0 or q]: y$
 $
    3. Require password for admin rights? [y/N, 0 or q]: y$
   (x) A new user has no password, so sudo couldn't ask for one.$
@@ -339,7 +339,7 @@ $
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mgeorge already exists.␛[m$
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105mA new user has no password, so sudo couldn't ask for␛[m$
@@ -496,7 +496,7 @@ $
   ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mgeorge already exists.␛[m$
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
   ␛[38;2;231;70;105m(x)␛[m ␛[38;2;231;70;105mA new user has no password, so sudo couldn't ask for one.␛[m$
