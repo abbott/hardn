@@ -4,20 +4,25 @@ import (
 	"context"
 	"errors"
 	"io/fs"
+	"os"
 	"slices"
 	"strconv"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -425,5 +430,97 @@ func TestRefuseCreateLockoutRisk(t *testing.T) {
 	}
 	if err := refuseCreateLockoutRisk(&engine.Plan{Risk: engine.RiskPlain}); err != nil {
 		t.Errorf("a plain plan refused: %v", err)
+	}
+}
+
+// TestUsersScreenSignals: Ctrl-C, SIGTERM and a hangup, each sent to this
+// test process as useradd runs in Create of carol on the User Management
+// screen, as the kernel delivers it, cancel that apply: the change is
+// undone under the engine's own hold, userdel --remove carol run and
+// hardn's grant for carol never written, the report saying the apply was
+// cancelled and Create rolled back, naming hardn's log; the user then
+// goes back (nil). After the hangup hardn ends (endHangup, recorded here),
+// once, as the apply returns; never after the others.
+func TestUsersScreenSignals(t *testing.T) {
+	grant := sudoers.DropInDir + "/hardn-grant-carol"
+	for _, sig := range []syscall.Signal{syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP} {
+		t.Run(sig.String(), func(t *testing.T) {
+			signals := engineSignals // the real one: useDNSHost replaces it
+			h, cfg := newUsersHost(t)
+			s := useUsersHost(t, h, "2", "carol", "y", "n", "n", "y", "0")
+			engineHold = func() func() { s.held++; return hold.Signals(nil) } // the engine's own, counted
+			var applying context.Context
+			stopped := 0
+			engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
+				s.applies++
+				c, stop := signals(ctx)
+				applying = c
+				return c, func() { stopped++; stop() }
+			}
+			type end struct {
+				stopped, held int
+				grant         string
+			}
+			var ended []end
+			endHangup = func() { ended = append(ended, end{stopped, s.held, h.content(grant)}) }
+			answer := h.Handler
+			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				r := answer(argv, in)
+				if argv[0] != "useradd" {
+					return r
+				}
+				if err := syscall.Kill(os.Getpid(), sig); err != nil {
+					t.Error(err)
+				}
+				select {
+				case <-applying.Done():
+				case <-time.After(5 * time.Second):
+					t.Errorf("%v did not cancel the apply", sig)
+				}
+				return r // useradd itself succeeds
+			}
+			if err := runUsersScreen(context.Background(), cfg); err != nil {
+				t.Fatalf("runUsersScreen = %v; screen:\n%s", err, s.out.String())
+			}
+			out := style.StripAnsi(s.out.String())
+			if s.applies != 1 || s.held != 1 || h.content(grant) != "<absent>" || !slices.Equal(h.commands("userdel"), []string{"userdel --remove carol"}) {
+				t.Errorf("%d applies, %d holds, ran %q; %s:\n%s\nscreen:\n%s", s.applies, s.held, h.commands("useradd", "userdel"), grant, h.content(grant), out)
+			}
+			if sig == syscall.SIGHUP {
+				if want := (end{1, 1, "<absent>"}); len(ended) != 1 || ended[0] != want {
+					t.Errorf("hardn ended %+v, want %+v", ended, want)
+				}
+				return
+			}
+			if len(ended) != 0 {
+				t.Errorf("%v ended hardn (%d)", sig, len(ended))
+			}
+			if w := inOrder(out, "(CANCELLED)", "Create user carol    Rolled back", "Check the log file at "+output.LegacyLogPath); w != "" {
+				t.Errorf("the report does not say the change was cancelled, naming %s:\n%s", output.LegacyLogPath, out)
+			}
+		})
+	}
+}
+
+// TestUsersScreenSessionUser: the screen reads hardn's environment for the
+// session user (os.Getenv): with george's sudo (SUDO_USER=george), george
+// an admin through hardn's grant alone, Remove admin rights on george is
+// refused before asking in the session-user words, not the root login's
+// (hardn can't tell who you're logged in as), nothing run or written.
+func TestUsersScreenSessionUser(t *testing.T) {
+	h, cfg := newUsersHost(t)
+	h.AddFile(accounts.GroupFile, []byte("root:x:0:\nsudo:x:27:\ngeorge:x:1000:\n"), 0o644, 0, 0)
+	h.AddFile(sudoers.DropInDir+"/90-cloud-init-users", []byte("# Created by cloud-init v. 25.1\n"), 0o440, 0, 0)
+	h.AddFile(sudoers.DropInDir+"/hardn-grant-george", []byte(sudoers.Header+"george ALL=(ALL) NOPASSWD: ALL\n"), 0o440, 0, 0)
+	s := useUsersHost(t, h, "1", "1", "1", "0", "0", "0")
+	if err := runUsersScreen(context.Background(), cfg); err != nil {
+		t.Fatalf("runUsersScreen = %v; screen:\n%s", err, s.out.String())
+	}
+	out := strings.Join(strings.Fields(strings.ReplaceAll(style.StripAnsi(s.out.String()), "#", "")), " ") // the warning's lines joined
+	if !strings.Contains(out, "You're running hardn through george's sudo. Removing it would leave no way to become root") || strings.Contains(out, "hardn can't tell who you're logged in as") {
+		t.Errorf("the screen does not say the session-user refusal:\n%s", out)
+	}
+	if got := h.writes(); len(got) > 0 || s.applies != 0 || strings.Contains(out, "y/N") {
+		t.Errorf("wrote %q, %d applies; screen:\n%s", got, s.applies, out)
 	}
 }
