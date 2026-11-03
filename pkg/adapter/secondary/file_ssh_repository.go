@@ -141,16 +141,9 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 // pair, which hardn -c passed until refactor plan slice 5, unit (d) put -c
 // on the User control (no sshd configured), would lose
 // ~/.ssh_<user>/authorized_keys again (V24). No origin/main caller passed
-// more than one path (-c and SecureSSH passed one; HardenSystem's
+// more than one path (-c passed one; HardenSystem's
 // SshKeyPaths is never set), and no caller passes more than one now, so
 // the files are the same either way (gate 4, V24).
 //
 // With it false, every path goes on one AuthorizedKeysFile line.
 const authorizedKeysFileLinePerPath = false
-
-// GetSSHConfig reads the current SSH configuration
-func (r *FileSSHRepository) GetSSHConfig() (*model.SSHConfig, error) {
-	// Implementation to parse SSH config file and return configuration
-	// ... (implementation details omitted for brevity)
-	return &model.SSHConfig{Port: 22}, nil
-}
