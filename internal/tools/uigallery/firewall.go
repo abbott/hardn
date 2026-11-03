@@ -820,7 +820,7 @@ func (e *fwRunner) addProfile(ctx context.Context, r fwReading) error {
 			switch {
 			case !fwNameForm.MatchString(s):
 				return nav.Refuse("Use letters, digits, dots, dashes and underscores.")
-			case slices.ContainsFunc(r.Profiles, func(p config.UfwAppProfile) bool { return p.Name == s }):
+			case slices.ContainsFunc(r.Profiles, func(p config.UfwAppProfile) bool { return strings.EqualFold(p.Name, s) }):
 				return nav.Warn("A profile with this name already exists.")
 			}
 			return nil

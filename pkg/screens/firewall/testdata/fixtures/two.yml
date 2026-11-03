@@ -1,0 +1,14 @@
+username: alice
+sshPort: 2230
+ufwAppProfiles:
+  - name: WebServer
+    title: Web Server
+    description: Public web
+    ports:
+      - 80/tcp
+      - 443/tcp
+  - name: Metrics
+    title: Metrics
+    description: Node exporter
+    ports:
+      - 9100/tcp

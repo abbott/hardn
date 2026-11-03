@@ -1,0 +1,8 @@
+username: alice
+sshPort: 2230
+ufwAppProfiles:
+  - name: ExampleHTTPS
+    title: Example web server (HTTPS)
+    description: Example HTTPS port
+    ports:
+      - 8443/tcp
