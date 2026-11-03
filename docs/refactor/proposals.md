@@ -253,6 +253,7 @@
 ### P-11: Polarity of the sudo-password question
 
 - **Status:** proposed
+- **Slice 5 mock:** [gallery-users.md](../engine/gallery-users.md) §5 decision 8 proposes Figma's polarity, refused at yes for a new user with no password.
 - **Source:** plan §5.4.
 - **Problem:** Figma `USER-CREATE_USER` asks "Require sudo password?". The code asks "Allow sudo without password?" [V]. The polarity is opposite, so the same `y` means opposite things.
 - **Proposal:** use one wording everywhere. Recommended [I]: the Figma direction, "Require a password for sudo? [Y/n]", with the safer answer as the default.
@@ -281,6 +282,7 @@
 ### P-13: "Sudo Method" row; "Users" vs "User"
 
 - **Status:** proposed
+- **Slice 5 mock:** [gallery-users.md](../engine/gallery-users.md) §5 decision 8 proposes (a), drawn.
 - **Source:** plan §5.6.
 - **Problem:** origin/main's main menu labels the row "Users" and adds a "Sudo Method" row. Figma shows "User" and no Sudo Method row [V].
 - **Proposal:**
@@ -661,6 +663,7 @@
 ### P-29: Figma's words or origin/main's: the menu prompt and the User Management sub-menu
 
 - **Status:** proposed (each part is decided separately)
+- **Slice 5 mock:** [gallery-users.md](../engine/gallery-users.md) §5 decision 8 proposes (b) Figma's words, drawn.
 - **Source:** `next/p1d-slice`, whose fixtures fill the layouts after Figma's frames while origin/main is the baseline for wording (refactor plan, decision 6). Related: [P-07](#p-07), [P-13](#p-13), [P-25](#p-25).
 - **Problem:**
   - **(a) The menu prompt.** Every Figma menu frame, the brief's main-menu transcription and v0.3.2 ask "Enter your choice"; origin/main asks "Enter selection" on every menu since 607eafa (2025-03-22), `style.Menu`'s default prompt (pkg/style style.go:668), which the main menu never changes ([interaction.md](phase0/interaction.md) §8.2). The design system took Figma's words in `next/p1b-menu` and `next/p1c-form` (the `PromptLine` and `nav` examples, and `form.Select`'s prompt, the `choice` constant in `pkg/ui/form/field.go`) with no proposal behind them; on the main menu, the first screen users see, they would replace origin/main's words.
