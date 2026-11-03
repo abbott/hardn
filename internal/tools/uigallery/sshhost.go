@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sshd"
@@ -38,6 +39,10 @@ func (s *sshSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{}, false
 	}
 	switch path.Base(argv[0]) {
+	case "ss": // the Alpine VM has no ss, busybox's netstat alone (00-inspect-alpine323.log)
+		if h.openRC {
+			return hostfake.Response{Err: host.ErrNotFound, ExitCode: -1}, true
+		}
 	case "journalctl": // journalctl -u ssh: sshd's lines, as the Debian and Ubuntu VMs showed them
 		if slices.Contains(argv, "-u") && !h.openRC {
 			return hostfake.Response{Stdout: s.log}, true
