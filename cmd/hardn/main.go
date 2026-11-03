@@ -125,13 +125,6 @@ var rootCmd = &cobra.Command{
 	Short: "Linux hardening tool",
 	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// -c with -d: refused outright, whatever hardn.yml holds, before
-		// anything runs (refactor plan slice 5, unit (d); the maintainer,
-		// 2026-11-03): -d turns off root's SSH login, and a key -c adds is
-		// not proof that its user can log in (hardncmd.RefuseCreateDisableRoot).
-		if refuse(hardncmd.RefuseCreateDisableRoot(createUser, disableRootSSH)) {
-			return
-		}
 		// -n only previews: refuse operation flags before anything runs (V1).
 		if refuseDryRunOperations(operationFlags()) {
 			return
@@ -403,9 +396,10 @@ var rootCmd = &cobra.Command{
 
 		// Disallow root login: the SSH Login control's Root through the
 		// engine, the hostname typed on a terminal, refused off one (ssh.go).
-		// After -c, so that its proof sees the user -c created. Its status is
-		// hardn's as -c's is, composed by runStatus, once the flags after it
-		// have run.
+		// After -c, so that its proof, whether an admin could still log in,
+		// sees the user -c created: -c -d is no longer refused (slice 6,
+		// decision 8 (a)), its guard -d's own. Its status is hardn's as -c's
+		// is, composed by runStatus, once the flags after it have run.
 		if disableRootSSH {
 			status = runStatus(status, disallowRoot(cfg))
 		}
