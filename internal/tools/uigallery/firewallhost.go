@@ -15,10 +15,10 @@ import (
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
-// The Firewall mocks' hosts (firewall.go; slice 4, unit (a)). fakeHost.ufw
+// The Firewall screen's hosts (firewall.go; slice 4, since unit (a)). fakeHost.ufw
 // answers ufw's status with a deny policy and port rules from anywhere, and
 // its enable and a port's allow: enough for the engine's scenarios. The
-// mocks need more of ufw 0.36.2, so ufwSim answers ufw's commands on these
+// screen needs more of ufw 0.36.2, so ufwSim answers ufw's commands on these
 // hosts in its place, adding to the fake and changing none of it: another
 // default policy, a rule from some sources (status rows as
 // pkg/host/ufw's parser and its tests' model shape them; ufw.md §3),
@@ -440,35 +440,6 @@ func fwMoved() *fakeHost {
 	return h
 }
 
-// fwPVEStopped is the DROP node with pve-firewall stopped: what it loaded
-// before is not read.
-func fwPVEStopped() *fakeHost {
-	h := fwPVEDrop()
-	run := h.f.Handler
-	h.f.Handler = func(argv []string, in []byte) hostfake.Response {
-		if strings.Join(argv, " ") == "systemctl is-active "+pve.FirewallUnit {
-			return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}
-		}
-		return run(argv, in)
-	}
-	return h
-}
-
-// fwPVEMoved is the DROP node with sshd on 2230.
-func fwPVEMoved() *fakeHost {
-	h := fwPVEDrop()
-	h.bound, h.configured = []string{"0.0.0.0:2230", "[::]:2230"}, []string{"0.0.0.0:2230", "[::]:2230"}
-	h.f.AddFile(sshd.HardnDropIn, []byte("Port 2230\n"), 0o644, 0, 0)
-	return h
-}
-
-// fwPVEBlacklist is the DROP node with the blacklist IP set written.
-func fwPVEBlacklist() *fakeHost {
-	h := pveNode()
-	h.f.AddFile(pve.ClusterFW, []byte("[OPTIONS]\nenable: 1\npolicy_in: DROP\n\n[IPSET management]\n192.0.2.0/24\n\n[IPSET blacklist]\n198.51.100.7\n"), 0o640, 0, 33)
-	return h
-}
-
 // fwPVEUFW is a disabled-pve-firewall node where origin/main enabled ufw (V10):
 // ufw answers as active, and the screen, which makes no ufw call, cannot say so.
 func fwPVEUFW() *fakeHost {
@@ -477,7 +448,7 @@ func fwPVEUFW() *fakeHost {
 	return simulateUFW(h, ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "allow", port: "22"}}})
 }
 
-// The refusals' hosts, which the menu of hosts leaves out (refusalsMock).
+// The refusals' hosts, which the menu of hosts leaves out (fwRefusalHosts).
 
 // fwNoSS is Debian 13 with ufw inactive and no ss to read the bound sockets
 // with: not found, as on a stock Alpine (alpine323-vm.log).

@@ -33,7 +33,7 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // kept among the mocks as Figma's record (figmaRecords), and its 8 to the
 // real Environment screen (envLinks, environment.go), its 9 to the real System
 // Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
-// (logsLinks, logs.go), and its 4 to the Firewall mocks (fwLinks, firewall.go). An item with no
+// (logsLinks, logs.go), and its 4 to the real Firewall screen (fwLinks, firewall.go). An item with no
 // link, and no refusal (screen.Mock.Refusals), says that the gallery has
 // no screen for it.
 var links = map[string]string{
@@ -147,13 +147,13 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Firewall mocks fail where their host does")
+			return usage("-fail is for the fixture plans of the screen mocks; the Firewall screen fails where its host does")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Firewall mocks play normal or dry-run", *sequence)
+			return usage("-sequence %s: the Firewall screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
-			return s.play("play "+name, []string{fwNote}, s.openFW(name), stderr)
+			return s.play("play "+name, []string{engineNote}, s.openFW(name), stderr)
 		})
 	}
 	if name, ok, err := sdStart(fs.Args()); ok || err != nil {
