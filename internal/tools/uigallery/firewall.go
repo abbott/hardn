@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"net/netip"
 	"regexp"
@@ -19,9 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/pve"
-	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
-	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
@@ -32,32 +29,17 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// The Firewall mocks (refactor plan slice 4, unit (a), next/s4-gallery): a
-// proposal of the Firewall screen, main menu 4, for the maintainer's review,
-// nothing of it wired into hardn. It starts from origin/main's screen
+// The Firewall mocks (refactor plan slice 4, unit (a), next/s4-gallery; on the
+// real control since unit (b), next/s4-control): the Firewall screen, main menu
+// 4, nothing of it wired into hardn. It starts from origin/main's screen
 // (pkg/menu/firewall_menu.go) on the design system's sub-menu layout, with no
-// new component. It is drawn from what real code reads of a simulated host
-// (firewallhost.go): the Firewall row as firewall.Incoming.Check makes it,
-// ufw's state (ufw.Read, ufw.Evaluate), pve-firewall's (pve.ReadFirewall),
-// the SSH listeners (sshd.ReadEffective, reload.ReadBound), never hardn.yml's
-// sshPort. Enable is steps.PlanUFWEnable on the real engine, a lockout-risk
-// change, through the canonical flow (screenkit.Session.Change).
+// new component. Everything it reads and changes is real code on a simulated
+// host (firewallhost.go): firewall.Read's Reading, and each change
+// firewall.Incoming's plan on the real engine, through the canonical flow
+// (screenkit.Session.Change). Refusals are the control's words.
 //
-// What real code lacks is the gallery's, each a stand-in for unit (b)'s work,
-// labelled so here and in the page (docs/engine/gallery-firewall.md §7):
-//
-//   - fwControl: firewall.Incoming's Plan is still engine.ErrNotMigrated.
-//   - fwSockets: the SSH listener reading of pkg/engine/controls/firewall's
-//     sockets.go, which is unexported; a third copy, written again.
-//   - fwEnable's refusals with ss missing or failing, and with sshd's
-//     configuration not in effect: PlanUFWEnable reads no bound socket.
-//   - fwUnit: whether ufw's service starts at boot, which the Firewall row
-//     does not read.
-//   - fwCommand's plans: Install (apt-get, apk), Disable (ufw disable), ufw's
-//     service at boot (rc-update, systemctl enable) and the profiles' Apply,
-//     written from each tool's own commands, for want of a real plan.
-//   - The profiles' Add and Remove: steps.PlanSave, on a control of the
-//     gallery's.
+// What remains here is the screen, unit (c)'s to move: its words, rows and
+// layout, and the profiles' form with its checks.
 //
 // "firewall" lists the mocks with no input; "play firewall" is the menu of the
 // hosts and "play firewall/<host>" the screen on one.
@@ -131,22 +113,6 @@ const (
 
 	fwDisableWarning = "This stops the firewall and leaves every port open."
 	fwRemoveNotice   = "This takes the profile out of hardn.yml. A rule already in ufw stays."
-	fwInstallInstead = "To install ufw, run: %s"
-
-	// The refusals, said before asking anything, from the real errors.
-	fwNoSSWords       = "hardn can't tell which ports SSH uses: ss isn't installed. Install iproute2, then try again."
-	fwSSFailedWords   = "hardn can't tell which ports SSH uses: ss failed. Check that it runs, then try again."
-	fwNotInEffect     = "sshd isn't listening where its config says, so hardn can't tell which ports SSH uses. Reload sshd or restart ssh.socket, then try again."
-	fwNoListeners     = "hardn can't tell which ports SSH uses."
-	fwStateWords      = "hardn can't read ufw's state. Check ufw status verbose, then try again."
-	fwNotRunningWords = "ufw is set to start at boot but isn't running. Check that its rules let SSH through, then run ufw enable."
-	fwNotBootWords    = "ufw is running but isn't set to start at boot. Run ufw enable."
-	fwBlocksWords     = "A saved ufw rule would block SSH on port %d, for some addresses or all. Remove it with ufw delete, then try again."
-	fwIPv6Words       = "ufw's IPv6 is off in /etc/default/ufw, so it would refuse SSH on port %d. Set IPV6=yes, then try again."
-	fwRefusedWords    = "ufw refuses SSH on %s, and hardn doesn't change a rule it finds. Fix it with ufw allow or ufw delete, then try again."
-	fwBootUnread      = "hardn can't tell if ufw starts at boot. Check its service, then try again."
-	fwProxmoxWords    = "hardn can't tell if this host runs Proxmox VE, where it leaves the firewall alone."
-	fwApplyInactive   = "ufw isn't running, so hardn saves no rule for it. Enable the firewall, then apply."
 )
 
 // The profiles' form: origin/main's fields (firewall_menu.go:addAppProfile),
@@ -175,17 +141,6 @@ func fwPortOK(s string) bool {
 	}
 	return from >= 1 && to <= 65535
 }
-
-// fwProfileFile is the file the profiles are written to, as origin/main writes
-// it (ops/configure_secure_firewall_profiles/*.golden) and
-// docs/configuration.md documents.
-const fwProfileFile = "/etc/ufw/applications.d/hardn"
-
-// fwProfileSetting is hardn.yml's key.
-const fwProfileSetting = "ufwAppProfiles"
-
-// The change ids: fwID is firewall.Incoming's.
-const fwID = "firewall.incoming"
 
 // fwHost is one simulated host the Firewall mocks run on.
 type fwHost struct {
@@ -233,8 +188,10 @@ func fwHosts() []fwHost {
 			note: deb + "ufw active, with deny 22/tcp: hardn doesn't change a rule it finds, so it has nothing to plan and refuses, saying what to do."},
 		{name: "alpine324", label: "Alpine 3.24", about: "No ufw", host: func() *fakeHost { return fwNoUFW(alpine324Platform) },
 			note: alp + "ufw is not installed (community repository, ufw.md §3)."},
+		{name: "alpine-stock", label: "Alpine 3.23, stock", about: "No ufw, no ss, no index", host: fwAlpineStock,
+			note: hostFQDN + " runs Alpine 3.23 as a stock VM does (alpine323-vm.log): no ufw, no ss, apk's index empty, so Install refuses."},
 		{name: "alpine-runlevel", label: "Alpine, no runlevel", about: "Active, gone after a reboot", host: fwAlpineActive,
-			note: alp + "ufw active, deny incoming, allowing 22, ENABLED=yes, in no runlevel, so it does not come back after a reboot (ufw.md §6, [I]). v0.3.2 ran rc-update add ufw default. The Firewall row cannot see this (check-firewall.md §6): the At boot row can."},
+			note: alp + "ufw active, deny incoming, allowing 22, ENABLED=yes, in no runlevel, so it does not come back after a reboot (ufw.md §6, [I]). v0.3.2 ran rc-update add ufw default. The Firewall row says off after restart."},
 		{name: "unit-off", label: "Service off", about: "Active, gone after a reboot", host: fwWith(ufwSim{incoming: "deny", active: true, enabled: true, unitOff: true, rules: []simRule{{action: "allow", port: "22"}}}),
 			note: deb + "ufw active, deny incoming, allowing 22, ENABLED=yes, ufw.service disabled. Whether that stops ufw at boot on Debian is [unverified] (ufw.md)."},
 		{name: "pve9", label: "Proxmox VE 9", about: "pve-firewall disabled", host: pveNode,
@@ -280,119 +237,14 @@ func fwSession(h *fakeHost) revert.Session {
 	return s
 }
 
-// fwSockets is the SSH listeners as firewall's sockets.go reads them, a
-// stand-in for that reading exported (unit (b)): the configured set, sshd -T's
-// with ssh.socket's, and the sockets ss shows bound. Established when the
-// configured set is known and every listener of it is bound.
-type fwSockets struct {
-	conf    sshd.Listeners
-	read    bool
-	bound   []reload.Bound
-	unbound []sshd.Listener
-	noSS    bool
-	ssErr   bool   // ss ran and failed
-	why     string // why they are not established; "" when they are
-}
-
-// readFWSockets reads them, as readSockets does.
-func readFWSockets(ctx context.Context, sys host.System, f detect.Facts) fwSockets {
-	var s fwSockets
-	var bin string
-	if f.Init.Kind == detect.OpenRC {
-		b, err := reload.OpenRCFlavour(ctx, sys)
-		if err != nil {
-			s.why = "can't tell ssh ports"
-			return s
-		}
-		bin = b
-	}
-	eff, _, err := sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: bin})
-	if err != nil {
-		s.why = "can't tell ssh ports"
-		return s
-	}
-	s.conf, s.read = eff.Listeners, true
-	bound, _, err := reload.ReadBound(ctx, sys)
-	switch {
-	case errors.Is(err, host.ErrNotFound):
-		s.noSS, s.why = true, "ss not installed"
-	case err != nil:
-		s.ssErr, s.why = true, "can't tell ssh ports"
-	default:
-		s.bound, s.unbound = bound, reload.Unbound(s.conf.All, bound)
-		switch {
-		case !s.conf.Known || len(s.conf.All) == 0:
-			s.why = "can't tell ssh ports"
-		case len(s.unbound) > 0:
-			s.why = "ssh config not in effect"
-		}
-	}
-	return s
-}
-
-// ports are the ports sshd's sockets may be on: the configured ones and 22.
-func (s fwSockets) ports() []uint16 {
-	ps := s.conf.Ports()
-	if !slices.Contains(ps, 22) {
-		ps = append(ps, 22)
-	}
-	return ps
-}
-
-// noneBound: sshd's configuration is not in effect and nothing is bound on any
-// port it may be on, so what accepts SSH is not read: ss -Htln says no socket's
-// program, so another port's cannot be taken for sshd's.
-func (s fwSockets) noneBound() bool {
-	return len(s.unbound) > 0 && !slices.ContainsFunc(s.bound, func(b reload.Bound) bool { return slices.Contains(s.ports(), b.Port) })
-}
-
-// listeners are what the firewall must let through, as sockets.listeners has
-// them: the configured set, and, while not established, or for a socket on 22
-// no configured listener is on, the bound sockets on ports.
-func (s fwSockets) listeners() (sshd.Listeners, bool) {
-	if !s.read {
-		return sshd.Listeners{}, false
-	}
-	ls := sshd.Listeners{SSHD: slices.Clone(s.conf.SSHD), Socket: slices.Clone(s.conf.Socket), All: slices.Clone(s.conf.All)}
-	for _, b := range s.bound {
-		stray := s.why == "" && b.Port == 22 && !slices.Contains(s.conf.Ports(), 22)
-		if !slices.Contains(s.ports(), b.Port) || s.why == "" && !stray {
-			continue
-		}
-		l := sshd.Listener{Addr: b.Addr, Port: b.Port}
-		if b.Dual {
-			ls.Socket = append(ls.Socket, l)
-		} else {
-			ls.SSHD = append(ls.SSHD, l)
-		}
-		ls.All = append(ls.All, l)
-	}
-	return ls, true
-}
-
-// fwReading is one reading of a host, as the screen draws it. It changes
-// nothing.
+// fwReading is one reading of a host, as the screen draws it: firewall.Read's,
+// with the Firewall row, as the main menu draws it, and what the screen's
+// changes plan with. It changes nothing.
 type fwReading struct {
-	status component.StatusList // the Firewall row, as the main menu draws it
+	firewall.Reading
+	status component.StatusList
 	facts  detect.Facts
-	// proxmox is why it is not established that the host does not run
-	// Proxmox VE; onPVE, that it does.
-	proxmox error
-	onPVE   bool
-	pf      pve.Firewall
-	st      ufw.State
-	stErr   error
-	sk      fwSockets
-	cfg     *config.Config
-	// unit is whether ufw's service starts at boot: its runlevel on OpenRC,
-	// ufw.service on systemd; Unknown where that is not read.
-	unit detect.Tri
-	// plan is what Enable plans, planErr its refusal; read only where item
-	// 1 is Enable.
-	plan    []engine.Change
-	planErr error
-	// noInstall draws decision 1's alternative: no Install item.
-	noInstall bool
+	cfg    *config.Config
 }
 
 // readFW reads what the screen draws of sys, as the engine detects it.
@@ -410,105 +262,13 @@ func (s *session) readFW(ctx context.Context, sys host.System, session revert.Se
 	}
 	view := output.StatusViewOf(reports, risk.Level{}).Status
 	r.status.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != firewall.Incoming.Title(firewall.Incoming{}) })
-	if r.onPVE, r.proxmox = pve.Applies(r.facts.Proxmox); r.proxmox != nil {
-		return r, nil
-	}
-	r.sk = readFWSockets(ctx, sys, r.facts)
-	if r.onPVE {
-		r.pf, err = pve.ReadFirewall(ctx, sys, r.facts.Proxmox)
-		return r, err
-	}
-	if r.cfg, err = statusConfig(ctx, sys); err != nil {
-		return r, err
-	}
-	r.st, r.stErr = ufw.Read(ctx, sys, r.facts.Proxmox)
-	if r.st.Installed {
-		r.unit = fwUnit(ctx, sys, r.facts)
-	}
-	if r.first() == fwDoEnable {
-		r.plan, r.planErr = fwEnable(ctx, sys, r.facts, session)
-		if r.planErr == nil && len(r.plan) == 0 {
-			r.planErr = errFWNothing
+	if onPVE, perr := pve.Applies(r.facts.Proxmox); !onPVE && perr == nil {
+		if r.cfg, err = statusConfig(ctx, sys); err != nil {
+			return r, err
 		}
 	}
-	return r, nil
-}
-
-// fwUnit is whether ufw's service starts at boot, a stand-in the row does not
-// read (check-firewall.md §6): an enabled-runtime unit does not, by
-// SystemctlIsEnabled's note.
-func fwUnit(ctx context.Context, sys host.System, f detect.Facts) detect.Tri {
-	switch f.Init.Kind {
-	case detect.OpenRC:
-		_, in, _ := detect.ServiceRunlevels(ctx, sys, "ufw")
-		return in
-	case detect.Systemd:
-		state, err := detect.SystemctlIsEnabled(ctx, sys, "ufw.service")
-		switch {
-		case err != nil:
-			return detect.Unknown
-		case state == "enabled":
-			return detect.Yes
-		case state == "disabled", state == "enabled-runtime", state == "masked":
-			return detect.No
-		}
-	}
-	return detect.Unknown
-}
-
-// fwAction is what a change does.
-type fwAction uint8
-
-const (
-	fwDoNone fwAction = iota
-	fwDoInstall
-	fwDoEnable
-	fwDoDisable
-	fwDoSave  // the profiles, saved in hardn.yml
-	fwDoApply // the profiles, written for ufw and let through
-)
-
-// first is what item 1 does: Install with no ufw; Disable once ufw is active
-// and set (it refuses what no rule accepts, lets every SSH listener, known to
-// be what accepts SSH, through, and starts at the next boot); Enable otherwise.
-// None on Proxmox VE.
-func (r fwReading) first() fwAction {
-	switch {
-	case r.onPVE:
-		return fwDoNone
-	case r.proxmox == nil && r.stErr == nil && !r.st.Installed:
-		if r.noInstall {
-			return fwDoNone
-		}
-		return fwDoInstall
-	case r.set():
-		return fwDoDisable
-	}
-	return fwDoEnable
-}
-
-// set: ufw is active and set.
-func (r fwReading) set() bool {
-	s := r.st.Status
-	if r.proxmox != nil || r.stErr != nil || !s.Known || len(s.Bad) > 0 || !s.Active || !r.st.Enabled || r.unit != detect.Yes || r.sk.why != "" ||
-		s.Incoming != ufw.PolicyDeny && s.Incoming != ufw.PolicyReject {
-		return false
-	}
-	return !slices.ContainsFunc(r.coverage(), func(c ufw.Coverage) bool { return c.Verdict == ufw.Blocked || c.Verdict == ufw.Denied })
-}
-
-// coverage is ufw's verdict on each SSH listener: while active under what ufw
-// shows, else under what its saved rules do once it starts.
-func (r fwReading) coverage() []ufw.Coverage {
-	ls, ok := r.sk.listeners()
-	if !ok {
-		return nil
-	}
-	needs := ufw.Needs(ls, nil, nil)
-	if r.st.Status.Active {
-		return ufw.Evaluate(r.st.Status.Rules, ufw.Firewall{Active: true, IPv6: r.st.IPv6, NoKernelIPv6: r.st.NoKernelIPv6, Incoming: r.st.Status.Incoming}, needs)
-	}
-	return ufw.Evaluate(r.st.Rules, ufw.Firewall{Active: true, IPv6: r.st.IPv6, NoKernelIPv6: r.st.NoKernelIPv6, Incoming: r.st.Incoming}, needs)
+	r.Reading = firewall.Read(ctx, sys, r.facts, r.cfg, session)
+	return r, r.PVEErr
 }
 
 // fwVerdict is a verdict's row while ufw is active.
@@ -536,25 +296,25 @@ func fwVerdict(v ufw.Verdict) (string, component.ValueState) {
 // would refuse. A listener configured and not bound, or bound and not
 // configured, says so beside it.
 func (r fwReading) sshRows() []component.KeyValue {
-	if !r.sk.read {
+	if !r.Sockets.Read {
 		return []component.KeyValue{{Key: "Listeners", State: component.ValueUnknown}}
 	}
-	active := r.st.Status.Known && r.st.Status.Active
+	active := r.State.Status.Known && r.State.Status.Active
 	var unbound, configured []string
-	for _, l := range r.sk.unbound {
+	for _, l := range r.Sockets.Unbound {
 		unbound = append(unbound, l.String())
 	}
-	for _, l := range r.sk.conf.All {
+	for _, l := range r.Sockets.Conf.All {
 		configured = append(configured, l.String())
 	}
 	var rows []component.KeyValue
-	for _, c := range r.coverage() {
+	for _, c := range r.Coverage() {
 		key := strings.TrimPrefix(c.Need.Why, "listener ")
 		row := component.KeyValue{Key: key}
 		switch {
 		case active:
 			row.Value, row.State = fwVerdict(c.Verdict)
-		case r.st.Installed && r.st.Enabled && r.st.Known() && !c.Verdict.OK():
+		case r.State.Installed && r.State.Enabled && r.State.Known() && !c.Verdict.OK():
 			row.Value, row.State = "Refused at start", component.ValueBad
 		default:
 			row.Value = "Not filtered"
@@ -572,11 +332,11 @@ func (r fwReading) sshRows() []component.KeyValue {
 		rows = append(rows, row)
 	}
 	switch {
-	case r.sk.noSS:
+	case r.Sockets.NoSS:
 		rows = append(rows, component.KeyValue{Key: fwKeyBound, Value: "ss not installed", State: component.ValueWarn})
-	case r.sk.ssErr:
+	case r.Sockets.SSFailed:
 		rows = append(rows, component.KeyValue{Key: fwKeyBound, Value: "ss failed", State: component.ValueWarn})
-	case r.sk.noneBound():
+	case r.Sockets.NoneBound():
 		rows = append(rows, component.KeyValue{Key: fwKeyBound, Value: "None on SSH's ports", State: component.ValueWarn})
 	}
 	return rows
@@ -584,18 +344,14 @@ func (r fwReading) sshRows() []component.KeyValue {
 
 // ufwRows are the section ufw's rows.
 func (r fwReading) ufwRows() []component.KeyValue {
-	if r.stErr != nil {
+	if r.StateErr != nil {
 		return []component.KeyValue{{Key: fwKeyInstalled, State: component.ValueUnknown}}
 	}
-	if !r.st.Installed {
-		rows := []component.KeyValue{{Key: fwKeyInstalled, Value: "No", State: component.ValueWarn}}
-		if r.noInstall {
-			rows = append(rows, component.KeyValue{Key: fmt.Sprintf(fwInstallInstead, host.FormatArgv(fwInstallArgv(r.facts))), State: component.ValueNone})
-		}
-		return rows
+	if !r.State.Installed {
+		return []component.KeyValue{{Key: fwKeyInstalled, Value: "No", State: component.ValueWarn}}
 	}
 	rows := []component.KeyValue{{Key: fwKeyInstalled, Value: "Yes", State: component.ValueOK}}
-	s := r.st.Status
+	s := r.State.Status
 	status := component.KeyValue{Key: fwKeyStatus, Value: "Inactive", State: component.ValueWarn}
 	switch {
 	case !s.Known || len(s.Bad) > 0:
@@ -603,7 +359,7 @@ func (r fwReading) ufwRows() []component.KeyValue {
 	case s.Active:
 		status = component.KeyValue{Key: fwKeyStatus, Value: "Active", State: component.ValueOK}
 	}
-	in := r.st.Incoming
+	in := r.State.Incoming
 	if s.Active {
 		in = s.Incoming
 	}
@@ -621,17 +377,21 @@ func (r fwReading) ufwRows() []component.KeyValue {
 	}
 	boot := component.KeyValue{Key: fwKeyBoot, Value: "Yes", State: component.ValueOK}
 	switch {
-	case !r.st.Enabled:
+	case !r.State.Enabled:
 		boot.Value, boot.State = "No", component.ValueWarn
-	case r.unit == detect.Unknown:
+	case r.Boot == detect.Unknown:
 		boot = component.KeyValue{Key: fwKeyBoot, State: component.ValueUnknown}
-	case r.unit == detect.No && r.facts.Init.Kind == detect.OpenRC:
+	case r.Boot == detect.No && r.facts.Init.Kind == detect.OpenRC:
 		boot.Value, boot.State = "In no runlevel", component.ValueWarn
-	case r.unit == detect.No:
+	case ufw.BootMasked(r.BootUnit):
+		boot.Value, boot.State = "Service masked", component.ValueWarn
+	case r.BootUnit == "not-found":
+		boot.Value, boot.State = "No service", component.ValueWarn
+	case r.Boot == detect.No:
 		boot.Value, boot.State = "Service disabled", component.ValueWarn
 	}
 	rows = append(rows, status, policy, boot)
-	if !r.st.IPv6 && !r.st.NoKernelIPv6 {
+	if !r.State.IPv6 && !r.State.NoKernelIPv6 {
 		rows = append(rows, component.KeyValue{Key: fwKeyIPv6, Value: "Off", State: component.ValueWarn})
 	}
 	return rows
@@ -643,9 +403,9 @@ func (r fwReading) ufwRows() []component.KeyValue {
 // marks nothing good, ufw filtering nothing. None is a muted item (P-30 (b), as
 // DNS decided).
 func (r fwReading) ruleRows() []component.KeyValue {
-	rules, note := r.st.Rules, "Saved"
-	if r.st.Status.Active {
-		rules, note = r.st.Status.Rules, ""
+	rules, note := r.State.Rules, "Saved"
+	if r.State.Status.Active {
+		rules, note = r.State.Status.Rules, ""
 	}
 	if len(rules) == 0 {
 		return []component.KeyValue{{Key: fwNoRules, State: component.ValueNone}}
@@ -699,21 +459,16 @@ func fwRuleKey(r ufw.Rule) string {
 	return to
 }
 
-// applied reports whether ufw's saved rules hold application name's rule.
-func (r fwReading) applied(name string) bool {
-	return slices.ContainsFunc(r.st.Rules, func(rl ufw.Rule) bool { return rl.App == name })
-}
-
 // profileRows are the profiles' rows: each one's name and ports, and whether
 // it is in ufw. None is a muted item.
 func (r fwReading) profileRows() []component.KeyValue {
-	if len(r.cfg.UfwAppProfiles) == 0 {
+	if len(r.Profiles) == 0 {
 		return []component.KeyValue{{Key: fwNoProfiles, State: component.ValueNone}}
 	}
 	var rows []component.KeyValue
-	for _, p := range r.cfg.UfwAppProfiles {
+	for _, p := range r.Profiles {
 		row := component.KeyValue{Key: p.Name, Value: strings.Join(p.Ports, ", "), Note: "Not applied", State: component.ValueWarn}
-		if r.applied(p.Name) {
+		if r.Applied(p.Name) {
 			row.Note, row.State = "Applied", component.ValueOK
 		}
 		rows = append(rows, row)
@@ -731,44 +486,38 @@ var fwExit = component.MenuItem{Key: "0", Label: "Return"}
 
 // subMenu is the screen of r, on the sub-menu layout, with no new component.
 func (r fwReading) subMenu() screen.SubMenu {
-	if r.onPVE {
+	if r.OnPVE {
 		return r.pveMenu()
 	}
 	vm := screen.SubMenu{Title: component.TitleBar{Title: fwTitle}, Status: r.status, Heading: fwHeading, Prompt: fwPrompt,
 		Menu: component.Menu{Exit: fwExit}}
-	if r.proxmox != nil {
+	if r.Proxmox != nil {
 		vm.Menu.Items = []component.MenuItem{{Key: "1", Label: fwEnableLabel, Description: fwEnableAbout}}
 		return vm
 	}
 	vm.Sections = []screen.Section{fwSection(fwSectionUFW, r.ufwRows()), fwSection(fwSectionSSH, r.sshRows())}
-	if r.st.Installed {
+	if r.State.Installed {
 		vm.Sections = append(vm.Sections, fwSection(fwSectionRules, r.ruleRows()))
 	}
-	if r.st.Installed && len(r.cfg.UfwAppProfiles) > 0 {
+	if r.State.Installed && len(r.Profiles) > 0 {
 		vm.Sections = append(vm.Sections, fwSection(fwSectionProfiles, r.profileRows()))
 	}
-	switch r.first() {
-	case fwDoInstall:
+	switch r.First {
+	case firewall.ItemInstall:
 		vm.Menu.Items = []component.MenuItem{{Key: "1", Label: fwInstallLabel, Description: fwInstallAbout}}
-	case fwDoEnable:
+	case firewall.ItemEnable:
 		w := r.enableWords()
 		vm.Menu.Items = []component.MenuItem{{Key: "1", Label: w.label, Description: w.about, Risk: r.risky()}}
-	case fwDoDisable:
+	case firewall.ItemDisable:
 		vm.Menu.Items = []component.MenuItem{{Key: "1", Label: fwDisableLabel, Description: fwDisableAbout}}
 	}
-	if r.st.Installed {
+	if r.State.Installed {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: "2", Label: fwProfilesLabel, Description: fwProfilesAbout})
 	}
-	if r.disableBeside() {
+	if r.DisableBeside {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: "3", Label: fwDisableLabel, Description: fwDisableAbout})
 	}
 	return vm
-}
-
-// disableBeside: ufw is active, not set, so item 1 is not Disable, which then
-// has an item of its own, as on origin/main: an active ufw always has a way off.
-func (r fwReading) disableBeside() bool {
-	return r.first() == fwDoEnable && r.st.Status.Known && r.st.Status.Active
 }
 
 // fwItemWords are item 1's words and its flow's, for what its plan does.
@@ -778,25 +527,17 @@ type fwItemWords struct{ label, about, title, question string }
 // while it is not running, and on an active ufw the steps it plans, so the words
 // hold wherever they are drawn.
 func (r fwReading) enableWords() fwItemWords {
-	if !r.st.Status.Active {
+	if !r.State.Status.Active {
 		return fwItemWords{fwEnableLabel, fwEnableAbout, "Enable Firewall", "Enable the firewall?"}
 	}
-	var allow, deny, boot bool
-	for _, c := range r.plan {
-		for _, cmd := range c.Commands {
-			allow = allow || strings.HasPrefix(cmd, "ufw allow ")
-			deny = deny || strings.HasPrefix(cmd, "ufw default ")
-		}
-		boot = boot || c.ID == fwBootID
-	}
-	switch {
-	case r.planErr != nil:
+	switch d := r.Does; {
+	case r.PlanErr != nil:
 		return fwItemWords{fwRepairLabel, fwRepairAbout, "", ""}
-	case deny:
+	case d.SetsDeny:
 		return fwItemWords{fwDenyLabel, fwDenyAbout, "Set Deny Policy", "Set the deny policy?"}
-	case allow && boot:
+	case d.Allows && d.Boot:
 		return fwItemWords{fwAllowLabel, fwAllowBootText, "Let SSH Through", "Let SSH through?"}
-	case allow:
+	case d.Allows:
 		return fwItemWords{fwAllowLabel, fwAllowAbout, "Let SSH Through", "Let SSH through?"}
 	}
 	return fwItemWords{fwBootLabel, fwBootAbout, "Start at Boot", "Start ufw at boot?"}
@@ -804,7 +545,7 @@ func (r fwReading) enableWords() fwItemWords {
 
 // risky is whether Enable's plan is lockout-risk.
 func (r fwReading) risky() bool {
-	return r.planErr == nil && slices.ContainsFunc(r.plan, func(c engine.Change) bool { return c.Risk == engine.RiskLockout })
+	return r.PlanErr == nil && slices.ContainsFunc(r.Plan, func(c engine.Change) bool { return c.Risk == engine.RiskLockout })
 }
 
 // pveMenu is the screen on Proxmox VE, read only (brief 2.5): the Firewall
@@ -813,14 +554,14 @@ func (r fwReading) risky() bool {
 // origin/main's title says UFW, which is false here: hence its own.
 func (r fwReading) pveMenu() screen.SubMenu {
 	enabled := component.KeyValue{Key: fwKeyEnabled, State: component.ValueUnknown}
-	switch r.pf.Enabled {
+	switch r.PVE.Enabled {
 	case detect.Yes:
 		enabled.Value, enabled.State = "Yes", component.ValueOK
 	case detect.No:
 		enabled.Value, enabled.State = "No", component.ValueWarn
 	}
 	policy := component.KeyValue{Key: fwKeyPolicy, State: component.ValueUnknown}
-	switch r.pf.PolicyIn {
+	switch r.PVE.PolicyIn {
 	case "DROP":
 		policy.Value, policy.State = "Drop", component.ValueOK
 	case "REJECT":
@@ -829,23 +570,23 @@ func (r fwReading) pveMenu() screen.SubMenu {
 		policy.Value, policy.State = "Accept", component.ValueWarn
 	}
 	service := component.KeyValue{Key: fwKeyService, State: component.ValueUnknown}
-	switch r.pf.Service.IsActive() {
+	switch r.PVE.Service.IsActive() {
 	case detect.Yes:
 		service.Value, service.State = "Running", component.ValueOK
 	case detect.No:
 		service.Value, service.State = "Stopped", component.ValueWarn
 	}
-	ssh, web := fwReach(fwKeySSH, r.pf.SSH), fwReach(fwKeyWeb, r.pf.Web)
+	ssh, web := fwReach(fwKeySSH, r.PVE.SSH), fwReach(fwKeyWeb, r.PVE.Web)
 	// Disabled or stopped it filters nothing that is read: not a state to mark
 	// good, whatever its files say.
-	if r.pf.Enabled != detect.Yes || service.State != component.ValueOK {
+	if r.PVE.Enabled != detect.Yes || service.State != component.ValueOK {
 		for _, kv := range []*component.KeyValue{&enabled, &policy, &ssh, &web} {
 			if kv.State == component.ValueOK {
 				kv.State = component.ValuePlain
 			}
 		}
 	}
-	if ls, ok := r.sk.listeners(); ok {
+	if ls, ok := r.Sockets.Listeners(); ok {
 		var others []string
 		for _, p := range ls.Ports() {
 			if p != pve.SSHPort {
@@ -860,7 +601,7 @@ func (r fwReading) pveMenu() screen.SubMenu {
 		}
 	}
 	rows := []component.KeyValue{service, enabled, policy, ssh, web}
-	for _, f := range r.pf.Findings {
+	for _, f := range r.PVE.Findings {
 		rows = append(rows, fwPVEFinding(f))
 	}
 	rows = append(rows, component.KeyValue{Key: fwNoChange, State: component.ValueNone})
@@ -896,236 +637,23 @@ func fwPVEFinding(f pve.Finding) component.KeyValue {
 	return row
 }
 
-// refusal is what item 1 says before asking, nil when it asks; from the real
-// errors, in plain words.
+// refusal is what item 1 says before asking, nil when it asks: the control's
+// words.
 func (r fwReading) refusal() component.Messages {
-	var words string
-	var be *ufw.BlockError
-	switch {
-	case r.proxmox != nil:
-		words = fwProxmoxWords
-	case r.first() != fwDoEnable || r.planErr == nil:
+	if r.PlanErr == nil {
 		return nil
-	case errors.Is(r.planErr, errFWNothing):
-		words = r.nothingWords()
-	case errors.As(r.planErr, &be):
-		words = fmt.Sprintf(fwBlocksWords, be.Coverage[0].Need.Port)
-		if i := slices.IndexFunc(be.Coverage, r.ipv6Off); i >= 0 {
-			words = fmt.Sprintf(fwIPv6Words, be.Coverage[i].Need.Port)
-		}
-	case errors.Is(r.planErr, errFWNoSS):
-		words = fwNoSSWords
-	case errors.Is(r.planErr, errFWSSFailed):
-		words = fwSSFailedWords
-	case errors.Is(r.planErr, errFWNotInEffect):
-		words = fwNotInEffect
-	case errors.Is(r.planErr, ufw.ErrListenersUnknown):
-		words = fwNoListeners
-	case errors.Is(r.planErr, ufw.ErrStateUnknown):
-		words = fwStateWords
-	case errors.Is(r.planErr, ufw.ErrEnabledMismatch) && !r.st.Status.Active:
-		words = fwNotRunningWords
-	case errors.Is(r.planErr, ufw.ErrEnabledMismatch):
-		words = fwNotBootWords
-	default:
-		words = screenkit.RefusalWords(r.planErr)
 	}
-	return screenkit.Warnings(words)
+	return screenkit.Warnings(screenkit.RefusalWords(r.PlanErr))
 }
 
-// ipv6Off: ufw refuses c because IPv6 is off in its file, not by any rule.
-func (r fwReading) ipv6Off(c ufw.Coverage) bool {
-	return c.Need.Family == ufw.IPv6 && !r.st.IPv6 && !r.st.NoKernelIPv6
-}
-
-// nothingWords says why an Enable with nothing to plan is refused: IPv6 off in
-// ufw, a listener ufw refuses by a rule hardn leaves alone (ufw.PlanFor does not
-// change a rule it finds), or ufw's service not read.
-func (r fwReading) nothingWords() string {
-	cs := r.coverage()
-	i := slices.IndexFunc(cs, func(c ufw.Coverage) bool { return c.Verdict == ufw.Blocked || c.Verdict == ufw.Denied })
-	switch {
-	case i >= 0 && r.ipv6Off(cs[i]):
-		return fmt.Sprintf(fwIPv6Words, cs[i].Need.Port)
-	case i >= 0:
-		return fmt.Sprintf(fwRefusedWords, strings.TrimPrefix(cs[i].Need.Why, "listener "))
-	case r.unit == detect.Unknown:
-		return fwBootUnread
+// applyRefusal is what Apply says before asking, nil when it asks: the
+// control's words for its plan's refusal.
+func (r fwReading) applyRefusal(ctx context.Context, sys host.System) component.Messages {
+	in := engine.Input{Facts: r.facts, Config: r.cfg}
+	if _, err := (firewall.Incoming{Action: firewall.ActionApplyProfiles}).Plan(ctx, sys, in); err != nil {
+		return screenkit.Warnings(screenkit.RefusalWords(err))
 	}
-	return screenkit.RefusalWords(r.planErr)
-}
-
-// Gallery-local refusals: steps.PlanUFWEnable reads sshd -T alone (§7's
-// finding), so it plans over a bound set it never saw; nothing to plan, on a
-// host whose row says otherwise, is said as a refusal, not as "Nothing needs
-// changing".
-var (
-	errFWNoSS        = fmt.Errorf("ss not installed: %w", ufw.ErrListenersUnknown)
-	errFWSSFailed    = fmt.Errorf("ss failed: %w", ufw.ErrListenersUnknown)
-	errFWNotInEffect = fmt.Errorf("sshd's configuration not in effect: %w", ufw.ErrListenersUnknown)
-	errFWNothing     = errors.New("nothing hardn can change")
-	errFWInactive    = errors.New("ufw is not running: its rules would only be saved")
-)
-
-// fwBootID is the change that adds ufw's service to the boot services.
-const fwBootID = fwID + "/boot"
-
-// fwEnable is what Enable plans: steps.PlanUFWEnable, the real plan; refused
-// first where the bound sockets are not read, or sshd's configuration is not
-// in effect, so what accepts SSH is not established, which that plan does not
-// read (the stand-ins; decision 2); and with ufw's service not starting at
-// boot, the stand-in's command after it: rc-update, which v0.3.2 ran, or
-// systemctl enable.
-func fwEnable(ctx context.Context, sys host.System, f detect.Facts, session revert.Session) ([]engine.Change, error) {
-	switch sk := readFWSockets(ctx, sys, f); {
-	case sk.noSS:
-		return nil, errFWNoSS
-	case sk.ssErr:
-		return nil, errFWSSFailed
-	case len(sk.unbound) > 0:
-		return nil, errFWNotInEffect
-	}
-	changes, err := steps.PlanUFWEnable(ctx, sys, engine.Input{Facts: f, Session: session}, fwID)
-	if err != nil {
-		return nil, err
-	}
-	if fwUnit(ctx, sys, f) == detect.No {
-		argv, undo := []string{"systemctl", "enable", "ufw.service"}, []string{"systemctl", "disable", "ufw.service"}
-		if f.Init.Kind == detect.OpenRC {
-			argv, undo = []string{"rc-update", "add", "ufw", "default"}, []string{"rc-update", "del", "ufw", "default"}
-		}
-		c := fwCommand(fwBootID, "Start ufw at boot", engine.StageFirewall, argv, undo)
-		for _, b := range changes {
-			c.After = append(c.After, b.ID)
-		}
-		changes = append(changes, c)
-	}
-	return changes, nil
-}
-
-// fwInstallArgv is the command that installs ufw there, and fwRemoveArgv its
-// undo: apk's on Alpine, apt-get's elsewhere (Debian and Ubuntu; never asked
-// on Proxmox VE). A stand-in: pkg/host/alpine has apk's, nothing has apt's
-// (decision 1).
-func fwInstallArgv(f detect.Facts) []string {
-	if f.Platform.Distro == detect.DistroAlpine {
-		return []string{"apk", "add", "ufw"}
-	}
-	return []string{"apt-get", "install", "-y", "ufw"}
-}
-
-func fwRemoveArgv(f detect.Facts) []string {
-	if f.Platform.Distro == detect.DistroAlpine {
-		return []string{"apk", "del", "ufw"}
-	}
-	return []string{"apt-get", "remove", "-y", "ufw"}
-}
-
-// fwCommand is a stand-in's change: one command and its undo, plain.
-func fwCommand(id, title string, stage engine.Stage, argv, undo []string) engine.Change {
-	return engine.Change{ID: id, Summary: title, Title: title, Target: "ufw", Commands: []string{host.FormatArgv(argv)}, Stage: stage, Resources: []string{"ufw"},
-		Rollback: engine.Undo{Steps: []revert.Step{{Op: revert.OpRun, Argv: undo, Why: "firewall"}}},
-		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			_, err := sys.Run(ctx, argv[0], argv[1:]...)
-			return engine.Ran{Detail: host.FormatArgv(argv)}, err
-		}}
-}
-
-// fwControl is the gallery-local control, unit (b)'s: firewall.Incoming's id,
-// title and check, its Plan what action does.
-type fwControl struct {
-	firewall.Incoming
-	action fwAction
-}
-
-// Plan plans the action, reading the host where the engine plans.
-func (c fwControl) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-	switch c.action {
-	case fwDoInstall:
-		if err := ufw.Applies(in.Facts.Proxmox); err != nil {
-			return nil, err
-		}
-		ch := fwCommand(fwID+"/install", "Install ufw", engine.StagePackages, fwInstallArgv(in.Facts), fwRemoveArgv(in.Facts))
-		ch.StateBefore, ch.StateAfter = "not installed", "installed, inactive"
-		return []engine.Change{ch}, nil
-	case fwDoEnable:
-		return fwEnable(ctx, sys, in.Facts, in.Session)
-	case fwDoDisable:
-		ch := fwCommand(fwID+"/disable", "Disable ufw", engine.StageFirewall, []string{"ufw", "disable"}, []string{"ufw", "--force", "enable"})
-		ch.StateBefore, ch.StateAfter = "active", "inactive"
-		return []engine.Change{ch}, nil
-	case fwDoSave:
-		return steps.PlanSave(ctx, sys, fwID+"/profiles", in.Config, []string{fwProfileSetting})
-	case fwDoApply:
-		return fwApply(ctx, sys, in)
-	}
-	return nil, nil
-}
-
-// fwProfileBytes is hardn's profile file for profiles, as origin/main writes
-// it (ops/configure_secure_firewall_profiles/*.golden), ports joined as
-// ufw-framework(8) has them.
-func fwProfileBytes(profiles []config.UfwAppProfile) string {
-	var b strings.Builder
-	for _, p := range profiles {
-		fmt.Fprintf(&b, "[%s]\ntitle=%s\ndescription=%s\nports=%s\n\n", p.Name, p.Title, p.Description, strings.Join(p.Ports, "|"))
-	}
-	return b.String()
-}
-
-// fwApply is the profiles' Apply, a stand-in: hardn's profile file written,
-// with a diff and a backup, then origin/main's command for each profile not in
-// ufw yet. Nothing to do plans nothing. Refused while ufw is not running: it
-// would save rules on a firewall left off (decision 5).
-func fwApply(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-	if len(in.Config.UfwAppProfiles) == 0 {
-		return nil, nil
-	}
-	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
-	if err != nil {
-		return nil, err
-	}
-	if !st.Status.Active {
-		return nil, errFWInactive
-	}
-	want := fwProfileBytes(in.Config.UfwAppProfiles)
-	var before *string
-	if data, err := sys.ReadFile(ctx, fwProfileFile); err == nil {
-		was := string(data)
-		before = &was
-	}
-	var argvs [][]string
-	for _, p := range in.Config.UfwAppProfiles {
-		if !slices.ContainsFunc(st.Rules, func(r ufw.Rule) bool { return r.App == p.Name }) {
-			argvs = append(argvs, []string{"ufw", "allow", "from", "any", "to", "any", "app", p.Name})
-		}
-	}
-	if before != nil && *before == want && len(argvs) == 0 {
-		return nil, nil
-	}
-	ch := engine.Change{ID: fwID + "/apply", Summary: "Apply the application profiles", Title: "Apply the application profiles", Target: fwProfileFile,
-		Diff: engine.FileDiff(fwProfileFile, before, &want), Stage: engine.StageFirewall, Backups: []string{fwProfileFile}, Resources: []string{"ufw"}}
-	var undo []revert.Step
-	for _, a := range argvs {
-		ch.Commands = append(ch.Commands, host.FormatArgv(a))
-		undo = append(undo, revert.Step{Op: revert.OpRun, Argv: append([]string{"ufw", "delete", "allow", "from", "any", "to", "any", "app"}, a[len(a)-1]), Why: "firewall"})
-	}
-	ch.Rollback = engine.Undo{Steps: undo}
-	ch.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-		if err := sys.MkdirAll(ctx, "/etc/ufw/applications.d", 0o755); err != nil {
-			return engine.Ran{}, err
-		}
-		if err := sys.WriteFileAtomic(ctx, fwProfileFile, []byte(want), 0o644, 0, 0); err != nil {
-			return engine.Ran{}, err
-		}
-		for _, a := range argvs {
-			if _, err := sys.Run(ctx, a[0], a[1:]...); err != nil {
-				return engine.Ran{}, err
-			}
-		}
-		return engine.Ran{Detail: "applied"}, nil
-	}
-	return []engine.Change{ch}, nil
+	return nil
 }
 
 // fwRunner is one run of the Firewall screen on a simulated host.
@@ -1197,14 +725,14 @@ func (e *fwRunner) draw(ctx context.Context) nav.Screen {
 
 // first is item 1 through the flow.
 func (e *fwRunner) first(ctx context.Context, r fwReading) error {
-	switch r.first() {
-	case fwDoInstall:
-		return e.change(ctx, r, fwDoInstall, "Install UFW", "Install ufw?", flow.Review{Title: fwSectionUFW,
+	switch r.First {
+	case firewall.ItemInstall:
+		return e.change(ctx, r, firewall.ActionInstall, "Install UFW", "Install ufw?", flow.Review{Title: fwSectionUFW,
 			Items: []component.KeyValue{{Key: "Package", Value: "ufw"}, {Key: fwKeyStatus, Value: "Inactive"}}})
-	case fwDoEnable:
+	case firewall.ItemEnable:
 		w := r.enableWords()
-		return e.change(ctx, r, fwDoEnable, w.title, w.question, flow.Review{Title: fwSectionUFW, Items: r.enableReview()})
-	case fwDoDisable:
+		return e.change(ctx, r, firewall.ActionEnable, w.title, w.question, flow.Review{Title: fwSectionUFW, Items: r.enableReview()})
+	case firewall.ItemDisable:
 		return e.disable(ctx, r)
 	}
 	return nil
@@ -1212,34 +740,29 @@ func (e *fwRunner) first(ctx context.Context, r fwReading) error {
 
 // disable is Disable through the flow, from item 1 or its own item.
 func (e *fwRunner) disable(ctx context.Context, r fwReading) error {
-	return e.change(ctx, r, fwDoDisable, "Disable Firewall", "Disable the firewall?", flow.Review{
+	return e.change(ctx, r, firewall.ActionDisable, "Disable Firewall", "Disable the firewall?", flow.Review{
 		Notice: &flow.Notice{Callout: component.Callout{Kind: component.MessageWarn, Body: []string{fwDisableWarning}}},
 		Title:  fwSectionUFW, Items: []component.KeyValue{{Key: fwKeyStatus, Value: "Inactive", State: component.ValueWarn}}})
 }
 
 // enableReview is ufw as Enable's plan leaves it: active, its policy, and at
-// boot, unless ufw's service was not read.
+// boot. Its service not read, Enable refuses before this.
 func (r fwReading) enableReview() []component.KeyValue {
 	policy := "Deny"
-	if !slices.ContainsFunc(r.plan, func(c engine.Change) bool {
-		return slices.ContainsFunc(c.Commands, func(cmd string) bool { return strings.HasPrefix(cmd, "ufw default ") })
-	}) && r.st.Status.Incoming == ufw.PolicyReject {
+	if !r.Does.SetsDeny && r.State.Status.Incoming == ufw.PolicyReject {
 		policy = "Reject"
 	}
-	boot := component.KeyValue{Key: fwKeyBoot, Value: "Yes", State: component.ValueOK}
-	if r.unit == detect.Unknown {
-		boot = component.KeyValue{Key: fwKeyBoot, State: component.ValueUnknown}
-	}
-	return []component.KeyValue{{Key: fwKeyStatus, Value: "Active", State: component.ValueOK}, {Key: fwKeyPolicy, Value: policy, State: component.ValueOK}, boot}
+	return []component.KeyValue{{Key: fwKeyStatus, Value: "Active", State: component.ValueOK}, {Key: fwKeyPolicy, Value: policy, State: component.ValueOK},
+		{Key: fwKeyBoot, Value: "Yes", State: component.ValueOK}}
 }
 
 // change runs one plain change of action through the flow.
-func (e *fwRunner) change(ctx context.Context, r fwReading, action fwAction, title, question string, review flow.Review) error {
+func (e *fwRunner) change(ctx context.Context, r fwReading, action firewall.Action, title, question string, review flow.Review) error {
 	return e.kit(r).Change(ctx, screenkit.Change{
 		Step: screen.WorkflowStep{Title: component.TitleBar{Title: title}},
 		Flow: flow.Flow{Review: func() flow.Review { return review }, Confirm: fwConfirm(question)},
 		Controls: func(*config.Config) []engine.Control {
-			return []engine.Control{fwControl{action: action}}
+			return []engine.Control{firewall.Incoming{Action: action}}
 		},
 	})
 }
@@ -1266,10 +789,10 @@ func (e *fwRunner) drawProfiles(ctx context.Context) nav.Screen {
 	}
 	vm := r.profilesMenu()
 	apply := func() error {
-		return e.change(ctx, r, fwDoApply, "Apply Profiles", "Apply the profiles?", flow.Review{Title: fwSectionProfiles, Items: r.profileRows()})
-	}
-	if !r.st.Status.Active {
-		apply = e.kit(r).Say(screenkit.Warnings(fwApplyInactive))
+		if msgs := r.applyRefusal(ctx, e.h.system()); msgs != nil {
+			return e.kit(r).Say(msgs)()
+		}
+		return e.change(ctx, r, firewall.ActionApplyProfiles, "Apply Profiles", "Apply the profiles?", flow.Review{Title: fwSectionProfiles, Items: r.profileRows()})
 	}
 	return vm.Screen(e.s.p.Ctx, fwBind(vm, map[string]func() error{
 		"1": func() error { return e.addProfile(ctx, r) },
@@ -1282,7 +805,7 @@ func (e *fwRunner) drawProfiles(ctx context.Context) nav.Screen {
 func (r fwReading) profilesMenu() screen.SubMenu {
 	vm := screen.SubMenu{Title: component.TitleBar{Title: fwProfilesTitle}, Sections: []screen.Section{fwSection(fwSectionProfiles, r.profileRows())},
 		Heading: fwHeading, Prompt: fwPrompt, Menu: component.Menu{Exit: fwExit, Items: []component.MenuItem{{Key: "1", Label: fwAddLabel, Description: fwAddAbout}}}}
-	if len(r.cfg.UfwAppProfiles) > 0 {
+	if len(r.Profiles) > 0 {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: "2", Label: fwRemoveLabel, Description: fwRemoveAbout},
 			component.MenuItem{Key: "3", Label: fwApplyLabel, Description: fwApplyAbout})
 	}
@@ -1297,7 +820,7 @@ func (e *fwRunner) addProfile(ctx context.Context, r fwReading) error {
 			switch {
 			case !fwNameForm.MatchString(s):
 				return nav.Refuse("Use letters, digits, dots, dashes and underscores.")
-			case slices.ContainsFunc(r.cfg.UfwAppProfiles, func(p config.UfwAppProfile) bool { return p.Name == s }):
+			case slices.ContainsFunc(r.Profiles, func(p config.UfwAppProfile) bool { return p.Name == s }):
 				return nav.Warn("A profile with this name already exists.")
 			}
 			return nil
@@ -1324,7 +847,7 @@ func (e *fwRunner) addProfile(ctx context.Context, r fwReading) error {
 		},
 		Controls: func(edited *config.Config) []engine.Control {
 			edited.UfwAppProfiles = append(slices.Clone(edited.UfwAppProfiles), config.UfwAppProfile{Name: name, Title: title, Description: about, Ports: fwPorts(ports)})
-			return []engine.Control{fwControl{action: fwDoSave}}
+			return []engine.Control{firewall.Incoming{Action: firewall.ActionSaveProfiles}}
 		},
 	})
 }
@@ -1352,8 +875,8 @@ func fwPorts(s string) []string {
 // stays, as on origin/main, and the review says so.
 func (e *fwRunner) removeProfile(ctx context.Context, r fwReading) error {
 	gone := 0
-	opts := make([]form.Option[int], len(r.cfg.UfwAppProfiles))
-	for i, p := range r.cfg.UfwAppProfiles {
+	opts := make([]form.Option[int], len(r.Profiles))
+	for i, p := range r.Profiles {
 		opts[i] = form.Option[int]{Label: p.Name, Value: i}
 	}
 	return e.kit(r).Change(ctx, screenkit.Change{
@@ -1364,12 +887,12 @@ func (e *fwRunner) removeProfile(ctx context.Context, r fwReading) error {
 				return flow.Review{Notice: &flow.Notice{Callout: component.Callout{Kind: component.MessageWarn, Body: []string{fwRemoveNotice}}}}
 			},
 			Confirm: func(p flow.Plan) flow.Confirm {
-				return flow.Confirm{Question: "Remove " + r.cfg.UfwAppProfiles[gone].Name + "?"}
+				return flow.Confirm{Question: "Remove " + r.Profiles[gone].Name + "?"}
 			},
 		},
 		Controls: func(edited *config.Config) []engine.Control {
 			edited.UfwAppProfiles = slices.Delete(slices.Clone(edited.UfwAppProfiles), gone, gone+1)
-			return []engine.Control{fwControl{action: fwDoSave}}
+			return []engine.Control{firewall.Incoming{Action: firewall.ActionSaveProfiles}}
 		},
 	})
 }
@@ -1435,10 +958,9 @@ func fwOnHost(name string, view func(fwReading, component.Ctx) string) func(cont
 }
 
 // fwMocks are the listing's mocks, in order: the screen on each host; the
-// profiles' sub-screen, with two and with none; decision 1's alternative; the
-// refusals; the Proxmox VE states the hosts leave out; and what PlanUFWEnable
-// does on the unreloaded edit, with an SSH session and from a console, against
-// decision 2's alternative.
+// profiles' sub-screen, with two and with none; the refusals; the Proxmox VE
+// states the hosts leave out; and what PlanUFWEnable does on the unreloaded
+// edit, with an SSH session and from a console.
 func fwMocks() []listMock {
 	var mocks []listMock
 	for _, fh := range fwHosts() {
@@ -1450,16 +972,11 @@ func fwMocks() []listMock {
 			draw: fwOnHost("profiles", func(r fwReading, c component.Ctx) string { return r.profilesMenu().Render(c) })},
 		listMock{name: "profiles-none", note: "Application Profiles on a host whose hardn.yml has none: Add alone.",
 			draw: fwOnHost("active22", func(r fwReading, c component.Ctx) string { return r.profilesMenu().Render(c) })},
-		listMock{name: "no-install", note: "Decision 1's alternative, not recommended: no Install item on the debian13 host; the screen says what to run.",
-			draw: fwOnHost("debian13", func(r fwReading, c component.Ctx) string {
-				r.noInstall = true
-				return r.subMenu().Render(c)
-			})},
-		listMock{name: "refusals", note: "The refusals before asking, each from the real error or a stand-in's: no ss, ss failing, sshd's configuration not in effect, ufw's state not read, ENABLED and the chains disagreeing, a saved blocklist, a saved deny, IPv6 off in ufw, a one-family allowlist, an active deny, Proxmox VE not established; then Apply on an inactive ufw.",
+		listMock{name: "refusals", note: "The refusals before asking, each the control's: Install finding no package or changing others, no ss, ss failing, sshd's configuration not in effect, ufw's state not read, ENABLED and the chains disagreeing, a saved blocklist, a saved deny, IPv6 off in ufw, a one-family allowlist, an active deny, Proxmox VE not established; then Apply on an inactive ufw.",
 			draw: fwRefusalsMock},
 		listMock{name: "pve-states", note: "Proxmox VE's screen where it says less than the two hosts: pve-firewall stopped, sshd on another port, a blacklist, and a node where origin/main left ufw active, which nothing here shows (decision 7).",
 			draw: fwPVEStatesMock},
-		listMock{name: "stale-listener", note: "The edit-2230 host: Port 2230 configured, not reloaded, sshd accepting on 22. The screen refuses (decision 2 (a)). What the real steps.PlanUFWEnable plans without that refusal, with an SSH session on 22, and from a console, no session; and decision 2 (b), a plan over the row's listeners.",
+		listMock{name: "stale-listener", note: "The edit-2230 host: Port 2230 configured, not reloaded, sshd accepting on 22. The screen refuses (decision 2 (a)). What the real steps.PlanUFWEnable plans without that refusal, with an SSH session on 22, and from a console, no session.",
 			draw: fwStaleMock},
 	)
 }
@@ -1478,6 +995,9 @@ func fwRefusalHosts() []struct {
 		name string
 		host func() *fakeHost
 	}{
+		{"apt finds no ufw", fwNoUFWSim(debian13Platform, fwAPTNotFound)},
+		{"apk finds no ufw", fwAlpineStock},
+		{"other packages change", fwNoUFWSim(debian13Platform, fwAPTRemoves)},
 		{"no ss", fwNoSS},
 		{"ss failing", fwSSFailing},
 		{"sshd's configuration not in effect", fwEdit},
@@ -1509,7 +1029,12 @@ func fwRefusalsMock(ctx context.Context, c component.Ctx) (string, error) {
 		}
 		out = append(out, header(c, "item 1, "+rh.name), msgs.Render(c))
 	}
-	out = append(out, header(c, "Apply, ufw inactive"), screenkit.Warnings(fwApplyInactive).Render(c))
+	h := fwProfilesInactive()
+	r, err := (&session{}).readFW(ctx, h.system(), fwSession(h))
+	if err != nil {
+		return "", err
+	}
+	out = append(out, header(c, "Apply, ufw inactive"), r.applyRefusal(ctx, h.system()).Render(c))
 	return apart(out...), nil
 }
 
@@ -1544,8 +1069,7 @@ func fwPVEStatesMock(ctx context.Context, c component.Ctx) (string, error) {
 }
 
 // fwStaleMock draws the real plan on the edit-2230 host, with and without a
-// session, and the port sshd accepts on against it; then decision 2 (b), a plan
-// over the listeners the row reads.
+// session, and the port sshd accepts on against it.
 func fwStaleMock(ctx context.Context, c component.Ctx) (string, error) {
 	var out []string
 	for _, v := range []struct {
@@ -1557,7 +1081,7 @@ func fwStaleMock(ctx context.Context, c component.Ctx) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		changes, err := steps.PlanUFWEnable(ctx, h.system(), engine.Input{Facts: f, Session: v.session}, fwID)
+		changes, err := steps.PlanUFWEnable(ctx, h.system(), engine.Input{Facts: f, Session: v.session}, firewall.ID)
 		if err != nil {
 			return "", err
 		}
@@ -1575,18 +1099,6 @@ func fwStaleMock(ctx context.Context, c component.Ctx) (string, error) {
 		}
 		out = append(out, component.SectionHeader{Title: v.title}.Render(c), component.BulletList{Items: append(rows, verdict)}.Render(c))
 	}
-	h := fwEdit()
-	f, err := detect.Detect(ctx, h.system())
-	if err != nil {
-		return "", err
-	}
-	ls, _ := readFWSockets(ctx, h.system(), f).listeners()
-	var rows []component.KeyValue
-	for _, p := range ls.Ports() {
-		rows = append(rows, component.KeyValue{Key: fmt.Sprintf("ufw allow %d/tcp", p)})
-	}
-	rows = append(rows, component.KeyValue{Key: "ufw --force enable"}, component.KeyValue{Key: "Port 22, sshd now", Value: "Let through", State: component.ValueOK})
-	out = append(out, component.SectionHeader{Title: "Decision 2 (b), not the real plan"}.Render(c), component.BulletList{Items: rows}.Render(c))
 	return apart(out...), nil
 }
 
@@ -1617,6 +1129,6 @@ func fwStart(args []string) (string, bool, error) {
 
 // fwNote is play's note for the Firewall mocks.
 const fwNote = "Play mode, mocks: the Firewall screen proposed for slice 4, drawn from what real code reads of a simulated host " +
-	"(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall, sshd.ReadEffective, reload.ReadBound), Enable the real steps.PlanUFWEnable on the real plan/apply engine. " +
-	"Install, Disable, the runlevel and the profiles' plans are the gallery's stand-ins, unit (b)'s to build. Nothing on this machine changes: every command and file is the fake's, " +
+	"(firewall.Incoming.Check, firewall.Read), on the real plan/apply engine. " +
+	"Install, Disable, the runlevel and the profiles' plans are firewall.Incoming's. Nothing on this machine changes: every command and file is the fake's, " +
 	"and its record is shown when play ends."

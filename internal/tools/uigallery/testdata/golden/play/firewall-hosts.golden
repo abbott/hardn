@@ -8,11 +8,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice 4,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine. Install,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDisable, the runlevel and the profiles' plans are the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, firewall.Read), on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Install, Disable, the runlevel and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprofiles' plans are firewall.Incoming's. Nothing on this␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and its␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord is shown when play ends.␛[m$
 $
@@ -33,15 +31,16 @@ $
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mBound elsewhere␛[m      ␛[38;2;129;134;156mConfigured 22, sshd on 2230␛[m$
   ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDenied␛[m               ␛[38;2;129;134;156mufw denies 22␛[m$
   ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m          ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m          ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine 3.23, stock␛[m   ␛[38;2;129;134;156mNo ufw, no ss, no index␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mService off␛[m          ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 3$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 3$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/active22␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, default deny␛[m$
@@ -94,15 +93,16 @@ $
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mBound elsewhere␛[m      ␛[38;2;129;134;156mConfigured 22, sshd on 2230␛[m$
   ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mDenied␛[m               ␛[38;2;129;134;156mufw denies 22␛[m$
   ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m          ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m          ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine 3.23, stock␛[m   ␛[38;2;129;134;156mNo ufw, no ss, no index␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m  ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mService off␛[m          ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mpve-firewall disabled␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m   ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mTwo profiles␛[m         ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -116,11 +116,9 @@ $
 # Note$
 # Play mode, mocks: the Firewall screen proposed for slice 4,$
 # drawn from what real code reads of a simulated host$
-# (firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,$
-# sshd.ReadEffective, reload.ReadBound), Enable the real$
-# steps.PlanUFWEnable on the real plan/apply engine. Install,$
-# Disable, the runlevel and the profiles' plans are the$
-# gallery's stand-ins, unit (b)'s to build. Nothing on this$
+# (firewall.Incoming.Check, firewall.Read), on the real$
+# plan/apply engine. Install, Disable, the runlevel and the$
+# profiles' plans are firewall.Incoming's. Nothing on this$
 # machine changes: every command and file is the fake's, and its$
 # record is shown when play ends.$
 $
@@ -141,15 +139,16 @@ $
   11) Bound elsewhere      Configured 22, sshd on 2230$
   12) Denied               ufw denies 22$
   13) Alpine 3.24          No ufw$
-  14) Alpine, no runlevel  Active, gone after a reboot$
-  15) Service off          Active, gone after a reboot$
-  16) Proxmox VE 9         pve-firewall disabled$
-  17) Proxmox VE 9, drop   pve-firewall on, DROP$
-  18) Two profiles         hardn.yml has two$
+  14) Alpine 3.23, stock   No ufw, no ss, no index$
+  15) Alpine, no runlevel  Active, gone after a reboot$
+  16) Service off          Active, gone after a reboot$
+  17) Proxmox VE 9         pve-firewall disabled$
+  18) Proxmox VE 9, drop   pve-firewall on, DROP$
+  19) Two profiles         hardn.yml has two$
 $
    0) Return$
 $
-  > Enter your choice [0-18 or q]: 3$
+  > Enter your choice [0-19 or q]: 3$
 $
 # Info: firewall/active22$
 # web-01.example.net runs Debian 13. ufw active, default deny$
@@ -202,15 +201,16 @@ $
   11) Bound elsewhere      Configured 22, sshd on 2230$
   12) Denied               ufw denies 22$
   13) Alpine 3.24          No ufw$
-  14) Alpine, no runlevel  Active, gone after a reboot$
-  15) Service off          Active, gone after a reboot$
-  16) Proxmox VE 9         pve-firewall disabled$
-  17) Proxmox VE 9, drop   pve-firewall on, DROP$
-  18) Two profiles         hardn.yml has two$
+  14) Alpine 3.23, stock   No ufw, no ss, no index$
+  15) Alpine, no runlevel  Active, gone after a reboot$
+  16) Service off          Active, gone after a reboot$
+  17) Proxmox VE 9         pve-firewall disabled$
+  18) Proxmox VE 9, drop   pve-firewall on, DROP$
+  19) Two profiles         hardn.yml has two$
 $
    0) Return$
 $
-  > Enter your choice [0-18 or q]: 0$
+  > Enter your choice [0-19 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -224,13 +224,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m4, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInstall, Disable, the runlevel and the profiles' plans are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins, unit (b)'s to build. Nothing on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, firewall.Read), on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Install, Disable, the runlevel and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprofiles' plans are firewall.Incoming's. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits record is shown when play ends.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -262,20 +260,22 @@ $
       ␛[38;2;129;134;156mufw denies 22␛[m$
   ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m$
       ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine 3.23, stock␛[m$
+      ␛[38;2;129;134;156mNo ufw, no ss, no index␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
       ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mService off␛[m$
       ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
       ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
       ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 3$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 3$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/active22␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, default␛[m$
@@ -352,20 +352,22 @@ $
       ␛[38;2;129;134;156mufw denies 22␛[m$
   ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mAlpine 3.24␛[m$
       ␛[38;2;129;134;156mNo ufw␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mAlpine 3.23, stock␛[m$
+      ␛[38;2;129;134;156mNo ufw, no ss, no index␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mAlpine, no runlevel␛[m$
       ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mService off␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mService off␛[m$
       ␛[38;2;129;134;156mActive, gone after a reboot␛[m$
-  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mpve-firewall disabled␛[m$
-  ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mProxmox VE 9, drop␛[m$
       ␛[38;2;129;134;156mpve-firewall on, DROP␛[m$
-  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mTwo profiles␛[m$
       ␛[38;2;129;134;156mhardn.yml has two␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-18 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

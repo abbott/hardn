@@ -69,10 +69,10 @@ func checkPVE(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 // blocked: pve-firewall's rules for that port, which may accept it, are
 // not read (pve.md §6).
 func pveSSH(ctx context.Context, sys host.System, f detect.Facts, fw pve.Firewall, out engine.Status) (engine.Status, error) {
-	sk := readSockets(ctx, sys, f)
+	sk := ReadSockets(ctx, sys, f)
 	out.Evidence = append(out.Evidence, sk.ev...)
 	var other []uint16
-	if ls, ok := sk.listeners(); ok {
+	if ls, ok := sk.Listeners(); ok {
 		for _, l := range ls.All {
 			if l.Port != pve.SSHPort && !slices.Contains(other, l.Port) {
 				other = append(other, l.Port)
@@ -85,7 +85,7 @@ func pveSSH(ctx context.Context, sys host.System, f detect.Facts, fw pve.Firewal
 		x := steps.PVEFinding(pve.Finding{Kind: pve.FindingPortNot22,
 			Detail: fmt.Sprintf("ssh on %s: pve-firewall's management rule accepts 22 only", portList(other))})
 		x.Source = "ss -Htln"
-		if !slices.ContainsFunc(other, func(p uint16) bool { return !slices.Contains(sk.conf.Ports(), p) }) {
+		if !slices.ContainsFunc(other, func(p uint16) bool { return !slices.Contains(sk.Conf.Ports(), p) }) {
 			x.Source = "sshd -T"
 		}
 		out.Findings = append(out.Findings, x)
@@ -94,8 +94,8 @@ func pveSSH(ctx context.Context, sys host.System, f detect.Facts, fw pve.Firewal
 			out.Detail = "ssh ports may be blocked"
 		}
 		return out, nil
-	case !sk.established():
-		out.State, out.Detail = engine.Unknown, sk.why
+	case !sk.Established():
+		out.State, out.Detail = engine.Unknown, sk.Why
 		return out, sk.err
 	case len(fw.Management) == 0:
 		out.Findings = append(out.Findings, engine.Finding{Code: CodeLocalOnly, Source: pve.ClusterFW,

@@ -355,3 +355,65 @@ func Read(ctx context.Context, sys host.System, pve detect.Proxmox) (State, erro
 	}
 	return st, nil
 }
+
+// ReadEnabled reads ENABLED from ConfFile alone: Yes for ENABLED=yes, No
+// otherwise, and No where the file is not there (ufw not installed). It runs
+// no ufw and takes no Proxmox fact, so that a Proxmox VE node can say ufw was
+// left on there with no ufw call (decision 7's warning row, brief 2.5). Any
+// other failure to read is Unknown, with the error.
+func ReadEnabled(ctx context.Context, sys host.System) (detect.Tri, error) {
+	data, err := sys.ReadFile(ctx, ConfFile)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return detect.No, nil
+	case err != nil:
+		return detect.Unknown, fmt.Errorf("ufw: %w", err)
+	}
+	if readDefaults(data)["enabled"] == "yes" {
+		return detect.Yes, nil
+	}
+	return detect.No, nil
+}
+
+// ReadBoot reads whether ufw's service starts at boot: on OpenRC, whether it
+// is in a runlevel; on systemd, ufw.service's is-enabled, where "enabled" is
+// Yes and "disabled", "masked", "masked-runtime", "linked", "linked-runtime",
+// "not-found" (detect's table's No) and "enabled-runtime" (gone at the next
+// boot, detect.SystemctlIsEnabled's note) are No. Unknown where that is not
+// read, and for a state that says nothing of it, such as "static".
+//
+// ENABLED is not this: ufw's Python has no systemctl call, and ufw.service
+// runs ufw-init with WantedBy=multi-user.target, so nothing else starts it at
+// boot (read in ufw 0.36.2 on Debian 13 and Ubuntu 26.04, not run:
+// docs/safety/ufw.md §3).
+func ReadBoot(ctx context.Context, sys host.System, f detect.Facts) detect.Tri {
+	tri, _ := ReadBootUnit(ctx, sys, f)
+	return tri
+}
+
+// ReadBootUnit is ReadBoot, and on systemd the state is-enabled printed, "" where
+// none was read: masked (BootMasked) and "not-found" are states "systemctl
+// enable" cannot change, the first as systemctl refuses to enable a masked unit
+// [I: from memory of systemd, no VM has shown it].
+func ReadBootUnit(ctx context.Context, sys host.System, f detect.Facts) (detect.Tri, string) {
+	switch f.Init.Kind {
+	case detect.OpenRC:
+		_, in, _ := detect.ServiceRunlevels(ctx, sys, "ufw")
+		return in, ""
+	case detect.Systemd:
+		state, err := detect.SystemctlIsEnabled(ctx, sys, "ufw.service")
+		switch {
+		case err != nil:
+			return detect.Unknown, ""
+		case state == "enabled":
+			return detect.Yes, state
+		case state == "disabled", state == "enabled-runtime", state == "linked", state == "linked-runtime", state == "not-found", BootMasked(state):
+			return detect.No, state
+		}
+		return detect.Unknown, state
+	}
+	return detect.Unknown, ""
+}
+
+// BootMasked: is-enabled's state is masked, until the next boot or for good.
+func BootMasked(state string) bool { return state == "masked" || state == "masked-runtime" }

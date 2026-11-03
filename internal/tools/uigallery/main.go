@@ -191,9 +191,9 @@
 // proposed Firewall screen on fifteen simulated hosts, read by real code
 // (firewall.Incoming.Check, ufw.Read, pve.ReadFirewall), the profiles'
 // sub-screen, the refusals and the unreloaded edit's plan. "play firewall" is
-// the menu of the hosts and "play firewall/<host>" the screen on one, Enable
-// on the real engine (steps.PlanUFWEnable), with the gallery's stand-ins for
-// what unit (b) builds; the main menu's 4 leads to it on Debian 13. -sequence
+// the menu of the hosts and "play firewall/<host>" the screen on one, every
+// change on the real engine (firewall.Read, firewall.Incoming); the main menu's
+// 4 leads to it on Debian 13. -sequence
 // dry-run stops each change at its plan, as plan only would; -fail is refused
 // there. Its flags are -list, -theme, -profile, -ascii, -override, and -width
 // and -height sized as play's.

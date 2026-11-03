@@ -554,6 +554,19 @@ func TestEngineRollsBack(t *testing.T) {
 	}
 }
 
+// TestFirewallChangeRisk: the ufw change of an SSH port's plan is lockout-risk by
+// itself, whatever else the plan holds.
+func TestFirewallChangeRisk(t *testing.T) {
+	p, _, err := newVM(t).viaEngine(context.Background(), debian13, port2230())
+	if err != nil {
+		t.Fatal(err)
+	}
+	i := slices.IndexFunc(p.Changes, func(c engine.Change) bool { return c.ID == "ssh/firewall" })
+	if i < 0 || p.Changes[i].Risk != engine.RiskLockout {
+		t.Errorf("changes %+v", p.Changes)
+	}
+}
+
 // TestEngineMigrate: the R8 migration through the engine, on Debian and on
 // Ubuntu's ssh.socket. The engine backs up Plan.Sources and journals them
 // before migrate.Apply, which takes those backups (Options.Taken): the run

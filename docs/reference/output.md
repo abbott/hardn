@@ -241,6 +241,12 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `RELOAD_RESTORED_LISTENERS` | 1 | the restored ssh.socket drop-ins do not give the socket the listeners it had |
 | `RELOAD_NOT_IN_EFFECT` | 1 | the configured listeners are not the ones in effect |
 | `RELOAD_OPENRC_CONFD` | 1 | conf.d sets the sshd binary, configuration file or arguments |
+| `FIREWALL_SS_NOT_INSTALLED` | 1 | ss is not installed, so which ports SSH uses is not established and the firewall is not enabled |
+| `FIREWALL_SS_FAILED` | 1 | ss failed, so which ports SSH uses is not established and the firewall is not enabled |
+| `FIREWALL_SSH_NOT_IN_EFFECT` | 1 | a listener sshd is configured for is not bound, so the firewall is not enabled |
+| `FIREWALL_SSH_REFUSED` | 1 | ufw refuses an SSH listener, and hardn changes no rule it finds |
+| `FIREWALL_BOOT_UNKNOWN` | 1 | whether ufw starts at boot is not established |
+| `FIREWALL_BOOT_BLOCKED` | 1 | ufw's service is masked or missing |
 | `UFW_ROLLBACK_FAILED` | 1 | an undo of ufw's rules failed; those after it did not run |
 | `UFW_NOT_APPLICABLE` | 1 | ufw is not used on Proxmox VE: pve-firewall manages its packet filter |
 | `UFW_PROXMOX_UNKNOWN` | 1 | ufw: whether the host runs Proxmox VE (no ufw there) is not established |
@@ -250,6 +256,12 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UFW_WOULD_BLOCK` | 1 | the change would block an SSH listener |
 | `UFW_VERIFY_FAILED` | 1 | ufw status does not show the planned state |
 | `UFW_ENABLED_MISMATCH` | 1 | ufw's ENABLED setting and its loaded chains disagree |
+| `UFW_INACTIVE` | 1 | ufw is not running: its rules would only be saved |
+| `UFW_BAD_PROFILE` | 1 | the application profile is not one ufw reads |
+| `PACKAGE_NO_TOOL` | 1 | hardn can't install packages on this system |
+| `PACKAGE_NOT_IN_REPOS` | 1 | package not found in the repositories |
+| `PACKAGE_OTHER_CHANGES` | 1 | installing it would change other packages |
+| `PACKAGE_VERIFY_FAILED` | 1 | package not installed after the install |
 | `PVE_NOT_APPLICABLE` | 1 | not a Proxmox VE host |
 | `PVE_UNKNOWN` | 1 | whether the host runs Proxmox VE is not established, so its rules cannot be applied |
 | `PVE_PORT_CHANGE_REFUSED` | 1 | the SSH port stays 22 on Proxmox VE: cluster SSH and pve-firewall's management rule use port 22 |
@@ -386,6 +398,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `SSH_PORT_22_BOUND` | a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program ([check-ssh.md](../engine/check-ssh.md)) |
 | `FIREWALL_SSH_BLOCKED` | an active firewall refuses new connections to an SSH listener: lockout risk, scored critical ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_SSH_UNCHECKED` | the SSH listeners are not established, so whether the firewall lets them through is not either ([check-firewall.md](../engine/check-firewall.md)) |
+| `FIREWALL_BOOT_UNCHECKED` | whether an active ufw starts at the next boot is not read, so the row is not Configured ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_PVE_LOCAL_ONLY` | on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only ([check-firewall.md](../engine/check-firewall.md)) |
 | `USERS_NOPASSWD` | a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass) ([check-users.md](../engine/check-users.md)) |
 | `USERS_RULE_NOT_READ` | an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root ([check-users.md](../engine/check-users.md)) |

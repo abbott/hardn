@@ -19,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/ufw"
@@ -27,7 +28,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// The Firewall mocks (firewall.go, firewallhost.go; slice 4, unit (a)).
+// The Firewall mocks on the real control (firewall.go, firewallhost.go; slice 4).
 // Nothing here runs a command or writes a file outside the fake.
 
 // TestFirewallGolden pins each listing mock on the core set and under
@@ -46,6 +47,7 @@ func TestPlayFirewallGolden(t *testing.T) {
 	}{
 		{"firewall-install", []string{"firewall/debian13"}, []string{"1", "y", "0"}, append(uitest.Core(), asciiColour)},
 		{"firewall-install-alpine", []string{"firewall/alpine324"}, []string{"1", "y", "0"}, nil},
+		{"firewall-alpine-stock", []string{"firewall/alpine-stock"}, []string{"1", "0"}, nil},
 		{"firewall-enable", []string{"firewall/ubuntu2604"}, []string{"1", hostName, "0"}, append(uitest.Core(), asciiColour)},
 		{"firewall-disable", []string{"firewall/active22"}, []string{"1", "y", "0"}, nil},
 		{"firewall-allow-policy", []string{"firewall/allow-policy"}, []string{"1", hostName, "0"}, nil},
@@ -138,28 +140,29 @@ func TestFirewallHosts(t *testing.T) {
 		host    string
 		state   component.StatusState
 		detail  string
-		first   fwAction
+		first   firewall.Item
 		refused error // errors.Is the plan's; ErrBlocks through BlockError
 		risky   bool
 	}{
-		{host: "debian13", state: component.StatusNotConfigured, detail: "ufw not installed", first: fwDoInstall},
-		{host: "ubuntu2604", state: component.StatusNotConfigured, detail: "inactive", first: fwDoEnable, risky: true},
-		{host: "active22", state: component.StatusConfigured, detail: "deny policy", first: fwDoDisable},
-		{host: "hardened", state: component.StatusConfigured, detail: "deny policy", first: fwDoDisable},
-		{host: "allow-policy", state: component.StatusPartial, detail: firewall.DetailAllowPolicy, first: fwDoEnable, risky: true},
-		{host: "lockout", state: component.StatusPartial, detail: "ssh blocked", first: fwDoEnable, risky: true},
-		{host: "lockout-at-start", state: component.StatusNotConfigured, detail: "enabled, not running", first: fwDoEnable, refused: ufw.ErrEnabledMismatch},
-		{host: "allowlist", state: component.StatusPartial, detail: "ssh allowlist", first: fwDoDisable},
-		{host: "blocklist", state: component.StatusNotConfigured, detail: "inactive", first: fwDoEnable, refused: ufw.ErrBlocks},
-		{host: "edit-2230", state: component.StatusNotConfigured, detail: "inactive", first: fwDoEnable, refused: errFWNotInEffect},
-		{host: "moved-2230", state: component.StatusUnknown, detail: "ssh config not in effect", first: fwDoEnable, refused: errFWNotInEffect},
-		{host: "denied", state: component.StatusPartial, detail: "ssh blocked", first: fwDoEnable, refused: errFWNothing},
-		{host: "alpine324", state: component.StatusNotConfigured, detail: "ufw not installed", first: fwDoInstall},
-		{host: "alpine-runlevel", state: component.StatusConfigured, detail: "deny policy", first: fwDoEnable},
-		{host: "unit-off", state: component.StatusConfigured, detail: "deny policy", first: fwDoEnable},
-		{host: "pve9", state: component.StatusNotConfigured, detail: "disabled", first: fwDoNone},
-		{host: "pve9-drop", state: component.StatusConfigured, detail: "drop policy", first: fwDoNone},
-		{host: "profiles", state: component.StatusConfigured, detail: "deny policy", first: fwDoDisable},
+		{host: "debian13", state: component.StatusNotConfigured, detail: "ufw not installed", first: firewall.ItemInstall},
+		{host: "ubuntu2604", state: component.StatusNotConfigured, detail: "inactive", first: firewall.ItemEnable, risky: true},
+		{host: "active22", state: component.StatusConfigured, detail: "deny policy", first: firewall.ItemDisable},
+		{host: "hardened", state: component.StatusConfigured, detail: "deny policy", first: firewall.ItemDisable},
+		{host: "allow-policy", state: component.StatusPartial, detail: firewall.DetailAllowPolicy, first: firewall.ItemEnable, risky: true},
+		{host: "lockout", state: component.StatusPartial, detail: "ssh blocked", first: firewall.ItemEnable, risky: true},
+		{host: "lockout-at-start", state: component.StatusNotConfigured, detail: "enabled, not running", first: firewall.ItemEnable, refused: ufw.ErrEnabledMismatch},
+		{host: "allowlist", state: component.StatusPartial, detail: "ssh allowlist", first: firewall.ItemDisable},
+		{host: "blocklist", state: component.StatusNotConfigured, detail: "inactive", first: firewall.ItemEnable, refused: ufw.ErrBlocks},
+		{host: "edit-2230", state: component.StatusNotConfigured, detail: "inactive", first: firewall.ItemEnable, refused: firewall.ErrNotInEffect},
+		{host: "moved-2230", state: component.StatusUnknown, detail: "ssh config not in effect", first: firewall.ItemEnable, refused: firewall.ErrNotInEffect},
+		{host: "denied", state: component.StatusPartial, detail: "ssh blocked", first: firewall.ItemEnable, refused: firewall.ErrRefused},
+		{host: "alpine324", state: component.StatusNotConfigured, detail: "ufw not installed", first: firewall.ItemInstall},
+		{host: "alpine-stock", state: component.StatusNotConfigured, detail: "ufw not installed", first: firewall.ItemInstall, refused: packages.ErrNotInRepos},
+		{host: "alpine-runlevel", state: component.StatusPartial, detail: "off after restart", first: firewall.ItemEnable},
+		{host: "unit-off", state: component.StatusPartial, detail: "off after restart", first: firewall.ItemEnable},
+		{host: "pve9", state: component.StatusNotConfigured, detail: "disabled", first: firewall.ItemNone},
+		{host: "pve9-drop", state: component.StatusConfigured, detail: "drop policy", first: firewall.ItemNone},
+		{host: "profiles", state: component.StatusConfigured, detail: "deny policy", first: firewall.ItemDisable},
 	}
 	if len(tests) != len(fwHosts()) {
 		t.Fatalf("%d hosts tested, %d hosts", len(tests), len(fwHosts()))
@@ -179,11 +182,11 @@ func TestFirewallHosts(t *testing.T) {
 		}) {
 			t.Errorf("%s: the main menu's rows %+v", tt.host, got)
 		}
-		if got := r.first(); got != tt.first {
+		if got := r.First; got != tt.first {
 			t.Errorf("%s: item 1 %v, want %v", tt.host, got, tt.first)
 		}
-		if (r.refusal() != nil) != (tt.refused != nil) || tt.refused != nil && !errors.Is(r.planErr, tt.refused) {
-			t.Errorf("%s: refused %v, plan's error %v, want %v", tt.host, r.refusal() != nil, r.planErr, tt.refused)
+		if (r.refusal() != nil) != (tt.refused != nil) || tt.refused != nil && !errors.Is(r.PlanErr, tt.refused) {
+			t.Errorf("%s: refused %v, plan's error %v, want %v", tt.host, r.refusal() != nil, r.PlanErr, tt.refused)
 		}
 		if r.risky() != tt.risky {
 			t.Errorf("%s: lockout risk %v", tt.host, r.risky())
@@ -257,7 +260,7 @@ func fwCommands(changes []engine.Change) []string {
 
 // fwPlan plans action on h on the real engine, as the screen's changes are
 // planned, with h's session.
-func fwPlan(t *testing.T, h *fakeHost, action fwAction) (*engine.Engine, *engine.Plan) {
+func fwPlan(t *testing.T, h *fakeHost, action firewall.Action) (*engine.Engine, *engine.Plan) {
 	t.Helper()
 	e := engine.New(h.system(), engine.Options{Revert: revert.Options{Now: clock, Hardn: galleryHardn}, Session: fwSession(h),
 		Backups: backup.Settings{Path: backup.DefaultPath, Enabled: true}, Hold: (&session{}).hold, PID: applyPID})
@@ -265,11 +268,22 @@ func fwPlan(t *testing.T, h *fakeHost, action fwAction) (*engine.Engine, *engine
 	if err != nil {
 		t.Fatal(err)
 	}
-	p, err := e.Plan(context.Background(), []engine.Control{fwControl{action: action}}, cfg)
+	p, err := e.Plan(context.Background(), []engine.Control{firewall.Incoming{Action: action}}, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
 	return e, p
+}
+
+// TestFirewallBootRow: At boot says a masked or missing service as what it is,
+// not as one that is only disabled.
+func TestFirewallBootRow(t *testing.T) {
+	for unit, want := range map[string]string{"disabled": "Service disabled", "linked": "Service disabled", "masked": "Service masked", "masked-runtime": "Service masked", "not-found": "No service"} {
+		r := fwReading{Reading: firewall.Reading{Boot: detect.No, BootUnit: unit, State: ufw.State{Installed: true, Enabled: true}}}
+		if i := slices.IndexFunc(r.ufwRows(), func(k component.KeyValue) bool { return k.Key == fwKeyBoot }); i < 0 || r.ufwRows()[i].Value != want {
+			t.Errorf("%s: %+v", unit, r.ufwRows())
+		}
+	}
 }
 
 // TestFirewallPlans holds each plan's commands: Enable's are the real plan's;
@@ -279,19 +293,19 @@ func fwPlan(t *testing.T, h *fakeHost, action fwAction) (*engine.Engine, *engine
 func TestFirewallPlans(t *testing.T) {
 	want := []struct {
 		host   string
-		action fwAction
+		action firewall.Action
 		cmds   []string
 		risk   engine.RiskClass
 	}{
-		{"debian13", fwDoInstall, []string{"apt-get install -y ufw"}, engine.RiskPlain},
-		{"alpine324", fwDoInstall, []string{"apk add ufw"}, engine.RiskPlain},
-		{"ubuntu2604", fwDoEnable, []string{"ufw allow 22/tcp", "ufw --force enable"}, engine.RiskLockout},
-		{"allow-policy", fwDoEnable, []string{"ufw allow 22/tcp", "ufw default deny incoming"}, engine.RiskLockout},
-		{"lockout", fwDoEnable, []string{"ufw allow 2230/tcp"}, engine.RiskLockout},
-		{"alpine-runlevel", fwDoEnable, []string{"rc-update add ufw default"}, engine.RiskPlain},
-		{"unit-off", fwDoEnable, []string{"systemctl enable ufw.service"}, engine.RiskPlain},
-		{"active22", fwDoDisable, []string{"ufw disable"}, engine.RiskPlain},
-		{"profiles", fwDoApply, []string{"ufw allow from any to any app LabHTTPS", "ufw allow from any to any app LabDNS"}, engine.RiskPlain},
+		{"debian13", firewall.ActionInstall, []string{"apt-get install -y ufw"}, engine.RiskPackageInstall},
+		{"alpine324", firewall.ActionInstall, []string{"apk add ufw"}, engine.RiskPackageInstall},
+		{"ubuntu2604", firewall.ActionEnable, []string{"ufw allow 22/tcp", "ufw --force enable"}, engine.RiskLockout},
+		{"allow-policy", firewall.ActionEnable, []string{"ufw allow 22/tcp", "ufw default deny incoming"}, engine.RiskLockout},
+		{"lockout", firewall.ActionEnable, []string{"ufw allow 2230/tcp"}, engine.RiskLockout},
+		{"alpine-runlevel", firewall.ActionEnable, []string{"rc-update add ufw default"}, engine.RiskPlain},
+		{"unit-off", firewall.ActionEnable, []string{"systemctl enable ufw.service"}, engine.RiskPlain},
+		{"active22", firewall.ActionDisable, []string{"ufw disable"}, engine.RiskPlain},
+		{"profiles", firewall.ActionApplyProfiles, []string{"ufw allow from any to any app LabHTTPS", "ufw allow from any to any app LabDNS"}, engine.RiskPlain},
 	}
 	for _, tt := range want {
 		h := fwHostNamed(t, tt.host).host()
@@ -303,16 +317,16 @@ func TestFirewallPlans(t *testing.T) {
 	// Every plan the screen can make, on every host: ufw disable in Disable's
 	// alone, ufw reset in none.
 	for _, fh := range fwHosts() {
-		for _, action := range []fwAction{fwDoInstall, fwDoEnable, fwDoApply} {
+		for _, action := range []firewall.Action{firewall.ActionInstall, firewall.ActionEnable, firewall.ActionApplyProfiles} {
 			r, _ := readFWHost(t, fh.name)
-			if r.onPVE {
+			if r.OnPVE {
 				continue // TestFirewallProxmoxNoUFW
 			}
 			h := fh.host()
 			e := engine.New(h.system(), engine.Options{Revert: revert.Options{Now: clock, Hardn: galleryHardn}, Session: fwSession(h),
 				Backups: backup.Settings{Path: backup.DefaultPath, Enabled: true}, Hold: (&session{}).hold, PID: applyPID})
 			cfg, _ := statusConfig(context.Background(), h.system())
-			p, err := e.Plan(context.Background(), []engine.Control{fwControl{action: action}}, cfg)
+			p, err := e.Plan(context.Background(), []engine.Control{firewall.Incoming{Action: action}}, cfg)
 			if err != nil {
 				continue // refused
 			}
@@ -325,13 +339,13 @@ func TestFirewallPlans(t *testing.T) {
 	}
 }
 
-// TestFirewallApplies applies each stand-in through the engine on the model
+// TestFirewallApplies applies each real plan through the engine on the model
 // and reads the host again: Install leaves ufw inactive, Enable active with
 // the listener let through, Disable inactive with its rules kept, the runlevel
 // added; Add and Remove save hardn.yml alone; Apply writes the profile file
 // and its rules.
 func TestFirewallApplies(t *testing.T) {
-	apply := func(name string, action fwAction) *fakeHost {
+	apply := func(name string, action firewall.Action) *fakeHost {
 		t.Helper()
 		h := fwHostNamed(t, name).host()
 		e, p := fwPlan(t, h, action)
@@ -351,31 +365,31 @@ func TestFirewallApplies(t *testing.T) {
 		}
 		return r
 	}
-	if r := read(apply("debian13", fwDoInstall)); !r.st.Installed || r.st.Status.Active || r.first() != fwDoEnable {
-		t.Errorf("install: %+v, item 1 %v", r.st.Status, r.first())
+	if r := read(apply("debian13", firewall.ActionInstall)); !r.State.Installed || r.State.Status.Active || r.First != firewall.ItemEnable {
+		t.Errorf("install: %+v, item 1 %v", r.State.Status, r.First)
 	}
-	if r := read(apply("ubuntu2604", fwDoEnable)); !r.st.Status.Active || r.first() != fwDoDisable || r.status.Rows[0].Detail != "deny policy" {
-		t.Errorf("enable: %+v, %q", r.st.Status, r.status.Rows[0].Detail)
+	if r := read(apply("ubuntu2604", firewall.ActionEnable)); !r.State.Status.Active || r.First != firewall.ItemDisable || r.status.Rows[0].Detail != "deny policy" {
+		t.Errorf("enable: %+v, %q", r.State.Status, r.status.Rows[0].Detail)
 	}
-	if r := read(apply("lockout", fwDoEnable)); r.first() != fwDoDisable || r.sshRows()[0].Value != "Allowed" {
+	if r := read(apply("lockout", firewall.ActionEnable)); r.First != firewall.ItemDisable || r.sshRows()[0].Value != "Allowed" {
 		t.Errorf("lockout: %+v", r.sshRows())
 	}
-	if r := read(apply("active22", fwDoDisable)); r.st.Status.Active || r.st.Enabled || len(r.st.Rules) != 2 || r.first() != fwDoEnable {
-		t.Errorf("disable: active %v, enabled %v, rules %d", r.st.Status.Active, r.st.Enabled, len(r.st.Rules))
+	if r := read(apply("active22", firewall.ActionDisable)); r.State.Status.Active || r.State.Enabled || len(r.State.Rules) != 2 || r.First != firewall.ItemEnable {
+		t.Errorf("disable: active %v, enabled %v, rules %d", r.State.Status.Active, r.State.Enabled, len(r.State.Rules))
 	}
 	for _, name := range []string{"alpine-runlevel", "unit-off"} {
-		if r := read(apply(name, fwDoEnable)); r.unit != detect.Yes || r.first() != fwDoDisable {
-			t.Errorf("%s: %v, item 1 %v", name, r.unit, r.first())
+		if r := read(apply(name, firewall.ActionEnable)); r.Boot != detect.Yes || r.First != firewall.ItemDisable {
+			t.Errorf("%s: %v, item 1 %v", name, r.Boot, r.First)
 		}
 	}
-	h := apply("profiles", fwDoApply)
-	if !strings.Contains(h.content(fwProfileFile), "[LabHTTPS]\ntitle=Lab Web Server (HTTPS)\n") {
-		t.Errorf("apply: %q", h.content(fwProfileFile))
+	h := apply("profiles", firewall.ActionApplyProfiles)
+	if !strings.Contains(h.content(ufw.ProfileFile), "[LabHTTPS]\ntitle=Lab Web Server (HTTPS)\n") {
+		t.Errorf("apply: %q", h.content(ufw.ProfileFile))
 	}
-	if r := read(h); !r.applied("LabHTTPS") || !r.applied("LabDNS") || r.profileRows()[0].Note != "Applied" {
+	if r := read(h); !r.Applied("LabHTTPS") || !r.Applied("LabDNS") || r.profileRows()[0].Note != "Applied" {
 		t.Errorf("apply: %+v", r.profileRows())
 	}
-	if _, p := fwPlan(t, h, fwDoApply); p.Err() != nil || len(p.Changes) != 0 {
+	if _, p := fwPlan(t, h, firewall.ActionApplyProfiles); p.Err() != nil || len(p.Changes) != 0 {
 		t.Errorf("apply again: %v, %d changes", p.Err(), len(p.Changes))
 	}
 }
@@ -424,7 +438,8 @@ func TestFirewallProfilesSave(t *testing.T) {
 }
 
 // TestFirewallProxmoxNoUFW: on Proxmox VE, however it is played, no ufw call
-// of any kind, no read under /etc/ufw, no item but Return.
+// of any kind, no read under /etc/ufw but ufw.conf (decision 7), no item but
+// Return.
 func TestFirewallProxmoxNoUFW(t *testing.T) {
 	for _, name := range []string{"pve9", "pve9-drop"} {
 		for _, dry := range []bool{false, true} {
@@ -436,7 +451,7 @@ func TestFirewallProxmoxNoUFW(t *testing.T) {
 				t.Fatalf("%s: exit %d:\n%s", name, code, out)
 			}
 			for _, c := range h.f.Calls()[n:] {
-				if c.Op == "run" && path.Base(c.Argv[0]) == "ufw" || strings.HasPrefix(c.Path, "/etc/ufw") || strings.HasPrefix(c.Path, "/etc/default/ufw") {
+				if c.Op == "run" && path.Base(c.Argv[0]) == "ufw" || strings.HasPrefix(c.Path, "/etc/ufw") && c.Path != ufw.ConfFile || strings.HasPrefix(c.Path, "/etc/default/ufw") {
 					t.Errorf("%s: a ufw call: %s", name, c)
 				}
 				if c.Op == "run" && (path.Base(c.Argv[0]) == "apt-get" || path.Base(c.Argv[0]) == "pve-firewall") {
@@ -455,8 +470,8 @@ func TestFirewallProxmoxNoUFW(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !errors.Is(r.proxmox, pve.ErrProxmoxUnknown) || r.refusal() == nil {
-		t.Errorf("not established: %v, refusal %v", r.proxmox, r.refusal())
+	if !errors.Is(r.Proxmox, pve.ErrProxmoxUnknown) || r.refusal() == nil {
+		t.Errorf("not established: %v, refusal %v", r.Proxmox, r.refusal())
 	}
 	for _, c := range h.f.Calls()[n:] {
 		if c.Op == "run" && path.Base(c.Argv[0]) == "ufw" {
@@ -490,19 +505,18 @@ func TestFirewallRefusals(t *testing.T) {
 		}
 		return got
 	}
-	if got := r(fwNoSS()); !errors.Is(got.planErr, ufw.ErrListenersUnknown) || !got.sk.noSS {
-		t.Errorf("no ss: %v", got.planErr)
+	if got := r(fwNoSS()); !errors.Is(got.PlanErr, ufw.ErrListenersUnknown) || !got.Sockets.NoSS {
+		t.Errorf("no ss: %v", got.PlanErr)
 	}
-	if got := r(fwGarbled()); !errors.Is(got.planErr, ufw.ErrStateUnknown) {
-		t.Errorf("garbled: %v", got.planErr)
+	if got := r(fwGarbled()); !errors.Is(got.PlanErr, ufw.ErrStateUnknown) {
+		t.Errorf("garbled: %v", got.PlanErr)
 	}
-	if got := r(fwSavedDeny()); !errors.Is(got.planErr, ufw.ErrBlocks) {
-		t.Errorf("saved deny: %v", got.planErr)
+	if got := r(fwSavedDeny()); !errors.Is(got.PlanErr, ufw.ErrBlocks) {
+		t.Errorf("saved deny: %v", got.PlanErr)
 	}
 }
 
-// TestFirewallStaleListener pins the finding for unit (b), not what the screen
-// does (it refuses, decision 2): on an edit to 2230 not reloaded, sshd still on
+// TestFirewallStaleListener pins why the screen refuses (decision 2): on an edit to 2230 not reloaded, sshd still on
 // 22, the real PlanUFWEnable reads sshd -T alone. With an SSH session on 22 it
 // keeps 22 as the session's port; from a console it does not, so the listener
 // that accepts connections now is refused once ufw starts, where the Firewall
@@ -515,7 +529,7 @@ func TestFirewallStaleListener(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		changes, err := steps.PlanUFWEnable(ctx, h.system(), engine.Input{Facts: f, Session: s}, fwID)
+		changes, err := steps.PlanUFWEnable(ctx, h.system(), engine.Input{Facts: f, Session: s}, firewall.ID)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -533,13 +547,14 @@ func TestFirewallStaleListener(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ls, ok := readFWSockets(ctx, h.system(), f).listeners()
+	ls, ok := firewall.ReadSockets(ctx, h.system(), f).Listeners()
 	if !ok || !slices.Contains(ls.Ports(), 22) || !slices.Contains(ls.Ports(), 2230) {
 		t.Errorf("the row's listeners: %v", ls.Ports())
 	}
 	// The screen plans none of that, with a session or from a console.
 	for _, s := range []revert.Session{applySession, {}} {
-		if _, err := fwEnable(ctx, h.system(), f, s); !errors.Is(err, errFWNotInEffect) {
+		in := engine.Input{Facts: f, Session: s}
+		if _, err := (firewall.Incoming{Action: firewall.ActionEnable}).Plan(ctx, h.system(), in); !errors.Is(err, firewall.ErrNotInEffect) {
 			t.Errorf("session %+v: %v", s, err)
 		}
 	}
@@ -564,8 +579,8 @@ func fwRefusalText(r fwReading) string {
 // every state, and the SSH section says so; Disable is still there when active.
 func TestFirewallBoundUnread(t *testing.T) {
 	r := fwRead(t, fwSSFailing())
-	if !errors.Is(r.planErr, errFWSSFailed) || !strings.Contains(fwRefusalText(r), "ss failed") {
-		t.Errorf("inactive: %v", r.planErr)
+	if !errors.Is(r.PlanErr, firewall.ErrSSFailed) || !strings.Contains(fwRefusalText(r), "ss failed") {
+		t.Errorf("inactive: %v", r.PlanErr)
 	}
 	if got := rowOf(r.sshRows(), fwKeyBound); got.Value != "ss failed" || got.State != component.ValueWarn {
 		t.Errorf("row %+v", got)
@@ -579,8 +594,8 @@ func TestFirewallBoundUnread(t *testing.T) {
 		return run(argv, in)
 	}
 	r = fwRead(t, h)
-	if r.first() != fwDoEnable || !errors.Is(r.planErr, errFWSSFailed) || !r.disableBeside() {
-		t.Errorf("active: item 1 %v, %v", r.first(), r.planErr)
+	if r.First != firewall.ItemEnable || !errors.Is(r.PlanErr, firewall.ErrSSFailed) || !r.DisableBeside {
+		t.Errorf("active: item 1 %v, %v", r.First, r.PlanErr)
 	}
 	if rowOf(r.sshRows(), fwKeyBound).Value != "ss failed" {
 		t.Errorf("active: %+v", r.sshRows())
@@ -599,35 +614,32 @@ func TestFirewallBoundElsewhere(t *testing.T) {
 	if got := rowOf(rows, fwKeyBound); got.Value != "None on SSH's ports" {
 		t.Errorf("bound: %+v", rows)
 	}
-	if !strings.Contains(fwRefusalText(r), "isn't listening where its config says") || !r.disableBeside() {
+	if !strings.Contains(fwRefusalText(r), "isn't listening where its config says") || !r.DisableBeside {
 		t.Errorf("refusal %q", fwRefusalText(r))
 	}
-	if r = fwRead(t, fwMovedInactive()); !errors.Is(r.planErr, errFWNotInEffect) {
-		t.Errorf("inactive: %v", r.planErr)
+	if r = fwRead(t, fwMovedInactive()); !errors.Is(r.PlanErr, firewall.ErrNotInEffect) {
+		t.Errorf("inactive: %v", r.PlanErr)
 	}
 }
 
 // TestFirewallApplyInactive: Apply saves no rule on an inactive ufw; the
 // sub-screen says so before asking, and the plan refuses.
 func TestFirewallApplyInactive(t *testing.T) {
-	inactive := func() *fakeHost {
-		h := statusOn(debian13Platform).withHardnYML(fwProfileYML)
-		return simulateUFW(h, ufwSim{incoming: "deny"})
-	}
+	inactive := fwProfilesInactive
 	h := inactive()
 	e := engine.New(h.system(), engine.Options{Session: fwSession(h)})
 	cfg, err := statusConfig(context.Background(), h.system())
 	if err != nil {
 		t.Fatal(err)
 	}
-	if p, err := e.Plan(context.Background(), []engine.Control{fwControl{action: fwDoApply}}, cfg); err != nil || !errors.Is(p.Err(), errFWInactive) {
+	if p, err := e.Plan(context.Background(), []engine.Control{firewall.Incoming{Action: firewall.ActionApplyProfiles}}, cfg); err != nil || !errors.Is(p.Err(), ufw.ErrInactive) {
 		t.Errorf("plan: %v, %v", err, p.Err())
 	}
 	fh := fwHost{name: "apply-inactive", host: inactive}
 	h = inactive()
 	n := len(h.f.Calls())
 	s, out, code := playFW(t, fh, h, false, "2", "3", "0", "0")
-	if code != exitOK || !strings.Contains(flatText(out), fwApplyInactive) || len(s.engineRuns) != 0 {
+	if code != exitOK || !strings.Contains(flatText(out), "ufw isn't running, so hardn saves no rule for it. Enable the firewall, then apply.") || len(s.engineRuns) != 0 {
 		t.Errorf("exit %d, %d engines:\n%s", code, len(s.engineRuns), out)
 	}
 	if cmds, files := changed(h.f.Calls()[n:]); len(cmds) > 0 || len(files) > 0 {
@@ -651,8 +663,8 @@ func TestFirewallNothingRefused(t *testing.T) {
 		tt.sim.incoming, tt.sim.active, tt.sim.enabled = "deny", true, true
 		h := fwWith(tt.sim)()
 		r := fwRead(t, h)
-		if !errors.Is(r.planErr, errFWNothing) || !strings.Contains(fwRefusalText(r), tt.want) || r.enableWords().label != fwRepairLabel {
-			t.Errorf("%s: %v, %q, %q", tt.name, r.planErr, fwRefusalText(r), r.enableWords().label)
+		if !errors.Is(r.PlanErr, firewall.ErrRefused) || !strings.Contains(fwRefusalText(r), tt.want) || r.enableWords().label != fwRepairLabel {
+			t.Errorf("%s: %v, %q, %q", tt.name, r.PlanErr, fwRefusalText(r), r.enableWords().label)
 		}
 		_, out, code := playFW(t, fwHost{name: "nothing", host: fwWith(tt.sim)}, h, false, "1", "0")
 		if code != exitOK || strings.Contains(flatText(out), "Nothing needs changing") {
@@ -666,8 +678,8 @@ func TestFirewallIPv6Off(t *testing.T) {
 	h := statusOn(ubuntu2604Platform).withHardnYML(fwYML)
 	h.ufwAsShipped()
 	r := fwRead(t, simulateUFW(h, ufwSim{incoming: "deny", noIPv6: true}))
-	if !errors.Is(r.planErr, ufw.ErrBlocks) {
-		t.Fatalf("plan: %v", r.planErr)
+	if !errors.Is(r.PlanErr, ufw.ErrBlocks) {
+		t.Fatalf("plan: %v", r.PlanErr)
 	}
 	text := fwRefusalText(r)
 	if !strings.Contains(text, "IPv6 is off") || strings.Contains(text, "ufw delete") {
@@ -721,8 +733,8 @@ func TestFirewallAtBoot(t *testing.T) {
 	if got := rowOf(r.ufwRows(), fwKeyBoot); got.Value != "Service disabled" || got.State != component.ValueWarn {
 		t.Errorf("off: %+v", got)
 	}
-	if r.first() != fwDoEnable || r.enableWords().label != fwBootLabel {
-		t.Errorf("off: item 1 %v, %q", r.first(), r.enableWords().label)
+	if r.First != firewall.ItemEnable || r.enableWords().label != fwBootLabel {
+		t.Errorf("off: item 1 %v, %q", r.First, r.enableWords().label)
 	}
 	unread := func(base func() *fakeHost, hit string) fwReading {
 		h := base()
@@ -739,11 +751,11 @@ func TestFirewallAtBoot(t *testing.T) {
 	if got := rowOf(r.ufwRows(), fwKeyBoot); got.State != component.ValueUnknown || got.Value != "" {
 		t.Errorf("unread: %+v", got)
 	}
-	if r.set() || !strings.Contains(fwRefusalText(r), "can't tell if ufw starts at boot") {
-		t.Errorf("unread: set %v, %q", r.set(), fwRefusalText(r))
+	if (r.First == firewall.ItemDisable) || !strings.Contains(fwRefusalText(r), "can't tell if ufw starts at boot") {
+		t.Errorf("unread: set %v, %q", (r.First == firewall.ItemDisable), fwRefusalText(r))
 	}
-	if rev := rowOf(r.enableReview(), fwKeyBoot); rev.State != component.ValueUnknown {
-		t.Errorf("review: %+v", rev)
+	if len(r.Plan) != 0 {
+		t.Errorf("unread: planned %+v", r.Plan)
 	}
 }
 
@@ -752,7 +764,7 @@ func TestFirewallAtBoot(t *testing.T) {
 func TestFirewallModel(t *testing.T) {
 	h := statusOn(debian13Platform).withHardnYML(fwYML + "ufwAppProfiles:\n  - name: Web\n    title: Web\n    description: Web\n    ports:\n      - \"80/tcp\"\n      - \"443/tcp\"\n      - \"53/udp\"\n")
 	simulateUFW(h, ufwSim{incoming: "deny", active: true, enabled: true})
-	e, p := fwPlan(t, h, fwDoApply)
+	e, p := fwPlan(t, h, firewall.ActionApplyProfiles)
 	if p.Err() != nil {
 		t.Fatal(p.Err())
 	}
@@ -816,7 +828,7 @@ func TestFirewallDisableBeside(t *testing.T) {
 		for _, it := range r.subMenu().Menu.Items {
 			items = append(items, it.Key+" "+it.Label)
 		}
-		active := r.st.Status.Known && r.st.Status.Active
+		active := r.State.Status.Known && r.State.Status.Active
 		hasOff := slices.Contains(items, "1 "+fwDisableLabel) || slices.Contains(items, "3 "+fwDisableLabel)
 		if hasOff != active {
 			t.Errorf("%s: active %v, items %q", fh.name, active, items)
@@ -827,7 +839,7 @@ func TestFirewallDisableBeside(t *testing.T) {
 	if _, out, code := playFW(t, fh, h, false, "3", "y", "0"); code != exitOK || !strings.Contains(flatText(out), fwDisableWarning) {
 		t.Errorf("exit %d:\n%s", code, out)
 	}
-	if r := fwRead(t, h); r.st.Status.Active {
+	if r := fwRead(t, h); r.State.Status.Active {
 		t.Errorf("still active")
 	}
 }
@@ -847,7 +859,7 @@ func TestFirewallInactiveMarks(t *testing.T) {
 	}
 }
 
-// TestFirewallDeniedPlansNothing is another finding for unit (b): a deny rule
+// TestFirewallDeniedPlansNothing: a deny rule
 // on SSH's port under an active ufw is "ssh blocked", and the real plan is
 // empty: ufw.PlanFor does not change a rule it finds. The screen refuses.
 func TestFirewallDeniedPlansNothing(t *testing.T) {
@@ -856,10 +868,10 @@ func TestFirewallDeniedPlansNothing(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if r.status.Rows[0].Detail != "ssh blocked" || r.first() != fwDoEnable || !errors.Is(r.planErr, errFWNothing) || len(r.plan) != 0 {
-		t.Errorf("row %q, item 1 %v, plan %d changes, %v", r.status.Rows[0].Detail, r.first(), len(r.plan), r.planErr)
+	if r.status.Rows[0].Detail != "ssh blocked" || r.First != firewall.ItemEnable || !errors.Is(r.PlanErr, firewall.ErrRefused) || len(r.Plan) != 0 {
+		t.Errorf("row %q, item 1 %v, plan %d changes, %v", r.status.Rows[0].Detail, r.First, len(r.Plan), r.PlanErr)
 	}
-	changes, err := steps.PlanUFWEnable(context.Background(), h.system(), engine.Input{Facts: r.facts, Session: fwSession(h)}, fwID)
+	changes, err := steps.PlanUFWEnable(context.Background(), h.system(), engine.Input{Facts: r.facts, Session: fwSession(h)}, firewall.ID)
 	if err != nil || len(changes) != 0 {
 		t.Errorf("the real plan: %d changes, %v", len(changes), err)
 	}
@@ -879,11 +891,11 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 		r, _ := readFWHost(t, fh.name)
 		var lines []string
 		switch {
-		case r.onPVE:
+		case r.OnPVE:
 			lines = []string{"0"}
-		case !r.st.Installed:
+		case !r.State.Installed:
 			lines = []string{"1", "0"}
-		case r.first() == fwDoEnable && r.refusal() != nil:
+		case r.First == firewall.ItemEnable && r.refusal() != nil:
 			lines = []string{"1", "0"}
 		default:
 			lines = []string{"1", "0"}
@@ -892,7 +904,7 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 		if code != exitOK {
 			t.Errorf("%s: exit %d:\n%s", fh.name, code, out)
 		}
-		if !r.onPVE && r.refusal() == nil && !stops(out) {
+		if !r.OnPVE && r.refusal() == nil && !stops(out) {
 			t.Errorf("%s: plan only did not stop at the plan:\n%s", fh.name, out)
 		}
 		if cmds, files := changed(h.f.Calls()[n:]); len(cmds) > 0 || len(files) > 0 {
@@ -922,7 +934,7 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 // the prompt on its last. Those over 24 rows are the page's §4.
 func TestFirewallHeights(t *testing.T) {
 	want := map[string]int{"debian13": 20, "ubuntu2604": 29, "active22": 29, "hardened": 29, "allow-policy": 30, "lockout": 31,
-		"lockout-at-start": 29, "allowlist": 31, "blocklist": 33, "edit-2230": 30, "moved-2230": 31, "denied": 30, "alpine324": 20, "alpine-runlevel": 30,
+		"lockout-at-start": 29, "allowlist": 31, "blocklist": 33, "edit-2230": 30, "moved-2230": 31, "denied": 30, "alpine324": 20, "alpine-stock": 21, "alpine-runlevel": 30,
 		"unit-off": 30, "pve9": 17, "pve9-drop": 17, "profiles": 34, "sub-profiles": 16}
 	draws := map[string]func(component.Ctx) string{}
 	for _, fh := range fwHosts() {
@@ -970,5 +982,44 @@ func TestFirewallUsage(t *testing.T) {
 	}
 	if fwLinks[mainMenuMock+"/4"] != fwMainHost {
 		t.Errorf("the main menu's 4 leads to %q", fwLinks[mainMenuMock+"/4"])
+	}
+}
+
+// TestFirewallInstallRefused: Install's refusals, the control's, said before
+// asking, on the host's own tool; alpine-stock's words are the VM's case.
+func TestFirewallInstallRefused(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		host  func() *fakeHost
+		words string
+		want  error
+	}{
+		{"alpine-stock", fwAlpineStock, "hardn can't find ufw in apk's package lists. Check the network and the community repository, run apk update, then try again.", packages.ErrNotInRepos},
+		{"apt", fwNoUFWSim(debian13Platform, fwAPTNotFound), "hardn can't find ufw in apt's package lists. Run apt-get update, then try again.", packages.ErrNotInRepos},
+		{"a removal", fwNoUFWSim(debian13Platform, fwAPTRemoves), "Installing ufw would also change other packages: nftables. Install it by hand, then try again.", packages.ErrOtherPackages},
+	} {
+		h := tt.host()
+		r := fwRead(t, h)
+		if r.First != firewall.ItemInstall || !errors.Is(r.PlanErr, tt.want) || !strings.Contains(fwRefusalText(r), tt.words) {
+			t.Errorf("%s: item 1 %v, %v, %q", tt.name, r.First, r.PlanErr, fwRefusalText(r))
+		}
+		n := len(h.f.Calls())
+		s, out, code := playFW(t, fwHost{name: "refused", host: tt.host}, h, false, "1", "0")
+		if code != exitOK || len(s.engineRuns) != 0 || !strings.Contains(flatText(out), tt.words) {
+			t.Errorf("%s: exit %d, %d engines:\n%s", tt.name, code, len(s.engineRuns), out)
+		}
+		if cmds, files := changed(h.f.Calls()[n:]); len(cmds) > 0 || len(files) > 0 {
+			t.Errorf("%s: changed %q, %q", tt.name, cmds, files)
+		}
+	}
+	// Decision 1: Install brings ufw alone. Where ss is missing, Enable then refuses.
+	sim := fwAPKInstalls
+	h := fwWithoutSS(simulateUFW(statusOn(alpine323Platform).withHardnYML(fwYML), ufwSim{incoming: "deny", sim: &sim}))
+	e, p := fwPlan(t, h, firewall.ActionInstall)
+	if _, err := e.Apply(context.Background(), p); err != nil || p.Err() != nil {
+		t.Fatalf("%v, %v", err, p.Err())
+	}
+	if r := fwRead(t, h); !r.Sockets.NoSS || !errors.Is(r.PlanErr, firewall.ErrNoSS) {
+		t.Errorf("after the install: %+v, %v", r.Sockets, r.PlanErr)
 	}
 }

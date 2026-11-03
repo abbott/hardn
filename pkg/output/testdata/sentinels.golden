@@ -56,6 +56,12 @@ engine.ErrUnjournalled CHANGE_UNJOURNALLED
 engine.ErrUnsupported PLATFORM_UNSUPPORTED
 engine.ErrWindow CONFIRM_WINDOW_CLOSING
 environment.ErrNoUser ENVIRONMENT_NO_USER
+firewall.ErrBootBlocked FIREWALL_BOOT_BLOCKED
+firewall.ErrBootUnknown FIREWALL_BOOT_UNKNOWN
+firewall.ErrNoSS FIREWALL_SS_NOT_INSTALLED
+firewall.ErrNotInEffect FIREWALL_SSH_NOT_IN_EFFECT
+firewall.ErrRefused FIREWALL_SSH_REFUSED
+firewall.ErrSSFailed FIREWALL_SS_FAILED
 fs.ErrNotExist FILE_NOT_FOUND
 fs.ErrPermission PERMISSION_DENIED
 host.ErrHardLink HARD_LINK_REFUSED
@@ -75,6 +81,10 @@ migrate.ErrNotEstablished SSH_MIGRATE_NOT_ESTABLISHED
 output.ErrAuditDir AUDIT_DIR_UNSAFE
 output.ErrConfirmationRequired CONFIRMATION_REQUIRED
 output.ErrUsage USAGE
+packages.ErrNoTool PACKAGE_NO_TOOL
+packages.ErrNotInRepos PACKAGE_NOT_IN_REPOS
+packages.ErrOtherPackages PACKAGE_OTHER_CHANGES
+packages.ErrVerify PACKAGE_VERIFY_FAILED
 plans.ErrPlan PLAN_INVALID
 prompt.ErrAborted CANCELLED
 pve.ErrBadKey PVE_BAD_KEY
@@ -143,6 +153,7 @@ steps.ErrNoWriteStrategy SSHD_NO_WRITE_STRATEGY
 steps.ErrNotInEffect SSHD_CHANGE_NOT_IN_EFFECT
 steps.ErrProxmoxRoot PVE_ROOT_LOGIN_NOT_KEPT
 steps.ErrSessionNotKept SSH_CLEANUP_SESSION_NOT_KEPT
+steps.ErrSessionPort UFW_LISTENERS_UNKNOWN
 sudoers.ErrAmbiguous SUDOERS_TOOL_AMBIGUOUS
 sudoers.ErrChanged SUDOERS_CHANGED
 sudoers.ErrEdited SUDOERS_FILE_EDITED
@@ -156,8 +167,10 @@ sudoers.ErrUnsafeRunDir UNSAFE_DIRECTORY
 sudoers.ErrUnsupported SUDOERS_DOAS_UNSUPPORTED
 sudoers.ErrUserName SUDOERS_USER_NAME
 sudoers.ErrVarName SUDOERS_VAR_NAME
+ufw.ErrBadProfile UFW_BAD_PROFILE
 ufw.ErrBlocks UFW_WOULD_BLOCK
 ufw.ErrEnabledMismatch UFW_ENABLED_MISMATCH
+ufw.ErrInactive UFW_INACTIVE
 ufw.ErrListenersUnknown UFW_LISTENERS_UNKNOWN
 ufw.ErrNotApplicable UFW_NOT_APPLICABLE
 ufw.ErrNotInstalled UFW_NOT_INSTALLED

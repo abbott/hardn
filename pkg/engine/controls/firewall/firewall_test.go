@@ -90,6 +90,10 @@ type fw struct {
 	garbage   bool               // the status has a line ufw does not print
 	fail      *hostfake.Response // ufw status verbose's answer
 	noDefault bool               // no /etc/default/ufw
+	// boot is whether ufw's service starts at boot: systemctl is-enabled's
+	// answer, or on OpenRC a runlevel unless "disabled"; "" is enabled, "fail"
+	// a read that fails.
+	boot string
 }
 
 // rows are rule rows of ufw status verbose: To, the action and direction,
@@ -103,8 +107,11 @@ func rows(cells ...string) string {
 }
 
 // rule is a saved rule: action on port/tcp from anywhere, in both IP
-// versions, or from src, in IPv4 only.
-type rule struct{ action, port, src string }
+// versions, or from src or to dst, in IPv4 only.
+type rule struct {
+	action, port, src, dst string
+	app                    string // the application's name, a rule ufw allow app adds
+}
 
 func allow(ports ...string) []rule {
 	var rs []rule
@@ -146,11 +153,22 @@ func (u fw) status() string {
 		if from == "" {
 			from = "Anywhere"
 		}
-		fmt.Fprintf(&b, "%-26s %-12s%-26s\n", r.port+"/tcp", strings.ToUpper(r.action)+" IN", from)
+		to := r.port + "/tcp"
+		if r.dst != "" {
+			to = r.dst + " " + to
+		}
+		if r.app != "" {
+			to += " (" + r.app + ")"
+		}
+		fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, strings.ToUpper(r.action)+" IN", from)
 	}
 	for _, r := range u.rules {
-		if r.src == "" && u.v6() {
-			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", r.port+"/tcp (v6)", strings.ToUpper(r.action)+" IN", "Anywhere (v6)")
+		if r.src == "" && r.dst == "" && u.v6() {
+			to := r.port + "/tcp (v6)"
+			if r.app != "" {
+				to = r.port + "/tcp (" + r.app + " (v6))"
+			}
+			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, strings.ToUpper(r.action)+" IN", "Anywhere (v6)")
 		}
 	}
 	return b.String()
@@ -173,14 +191,21 @@ func (u fw) files(h *hostfake.System) {
 		var b strings.Builder
 		b.WriteString("*filter\n### RULES ###\n")
 		for _, r := range u.rules {
-			src := r.src
+			src, dst := r.src, r.dst
 			switch {
-			case src != "" && f.any == "::/0":
+			case (src != "" || dst != "") && f.any == "::/0":
 				continue
 			case src == "":
 				src = f.any
 			}
-			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.action, r.port, f.any, src)
+			if dst == "" {
+				dst = f.any
+			}
+			if r.app != "" {
+				fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s %s - in\n", r.action, r.port, f.any, src, r.app)
+				continue
+			}
+			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.action, r.port, dst, src)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		h.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
@@ -279,6 +304,9 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	}
 	if !s.ufw.missing {
 		s.ufw.files(h)
+		if s.plat.facts.Init.Kind == detect.OpenRC && s.ufw.boot != "disabled" {
+			h.AddFile(detect.OpenRCRunlevels+"/default/ufw", nil, 0o644, 0, 0)
+		}
 	}
 	unit := s.pve.unit
 	if unit == "" {
@@ -308,6 +336,14 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 				fmt.Fprintf(&b, "Listen=%s (Stream)\n", l)
 			}
 			return hostfake.Response{Stdout: b.String()}
+		case cmd == "systemctl is-enabled ufw.service" && s.ufw.boot == "fail":
+			return hostfake.Response{Err: errors.New("host: run systemctl: connection to the bus refused")}
+		case cmd == "systemctl is-enabled ufw.service":
+			state := s.ufw.boot
+			if state == "" {
+				return hostfake.Response{Stdout: "enabled\n"}
+			}
+			return hostfake.Response{Stdout: state + "\n", ExitCode: 1}
 		case cmd == "ss -Htln" && s.plat.noSS:
 			return hostfake.Response{Err: fmt.Errorf("host: run ss: %w", host.ErrNotFound)}
 		case cmd == "ss -Htln" && s.ssErr != nil:
@@ -393,7 +429,7 @@ func readOnly(t *testing.T, h *hostfake.System, p platform) {
 			}
 		case "run":
 			switch cmd := strings.Join(c.Argv, " "); {
-			case cmd == "ufw status verbose" && !onPVE, strings.HasPrefix(cmd, p.bin+" -T -f "+sshd.MainConfig),
+			case cmd == "ufw status verbose" && !onPVE, cmd == "systemctl is-enabled ufw.service" && !onPVE, strings.HasPrefix(cmd, p.bin+" -T -f "+sshd.MainConfig),
 				cmd == "systemctl show -p Listen ssh.socket", cmd == "ss -Htln",
 				cmd == "systemctl is-active "+pve.FirewallUnit, cmd == "systemctl is-active "+pve.NFTablesUnit:
 			default:
@@ -449,9 +485,9 @@ func TestUFW(t *testing.T) {
 		{name: "default deny, 2230 allowed", site: site{plat: d, ports: []uint16{2230}, ufw: allow2230}, state: engine.Configured, want: "deny policy"},
 		{name: "default reject, 22 allowed", site: site{plat: d, ufw: with(allow22, func(u *fw) { u.incoming = "reject" })}, state: engine.Configured, want: "reject policy"},
 		{name: "22 rate-limited", site: site{plat: d, ufw: fw{active: true, rules: []rule{{action: "limit", port: "22"}}}}, state: engine.Configured, want: "deny policy"},
-		{name: "22 from 192.0.2.0/24 only, no kernel IPv6", site: site{plat: d, ufw: fw{active: true, noKernel6: true, rules: []rule{{"allow", "22", "192.0.2.0/24"}}}},
+		{name: "22 from 192.0.2.0/24 only, no kernel IPv6", site: site{plat: d, ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}},
 			state: engine.Partial, want: "ssh allowlist", codes: []string{restricted}},
-		{name: "22 from everywhere but 192.0.2.0/24", site: site{plat: d, ufw: fw{active: true, rules: []rule{{"deny", "22", "192.0.2.0/24"}, {action: "allow", port: "22"}}}},
+		{name: "22 from everywhere but 192.0.2.0/24", site: site{plat: d, ufw: fw{active: true, rules: []rule{{action: "deny", port: "22", src: "192.0.2.0/24"}, {action: "allow", port: "22"}}}},
 			state: engine.Partial, want: "ssh blocklist", codes: []string{excepted}},
 		{name: "22 on lo only", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp on lo", "ALLOW IN", "Anywhere", "22/tcp (v6) on lo", "ALLOW IN", "Anywhere (v6)")}},
 			state: engine.Partial, want: "ssh blocked", codes: []string{restricted, restricted, blockedF}},
@@ -513,7 +549,7 @@ func TestSSHListeners(t *testing.T) {
 		{name: "22 still bound after the move to 2230, both allowed", site: site{plat: d, ports: moved, bound: append([]string{"[::]:2230", "0.0.0.0:2230"}, stale22...), ufw: fw{active: true, rules: allow("22", "2230")}},
 			state: engine.Configured, want: "deny policy"},
 		{name: "22 still bound after the move to 2230, 22 from 192.0.2.0/24 only", site: site{plat: d, ports: moved, bound: append([]string{"[::]:2230", "0.0.0.0:2230"}, stale22...),
-			ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "allow", port: "2230"}, {"allow", "22", "192.0.2.0/24"}}}},
+			ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "allow", port: "2230"}, {action: "allow", port: "22", src: "192.0.2.0/24"}}}},
 			state: engine.Unknown, want: "can't tell if 22 is ssh", codes: []string{restricted, "SSH_PORT_22_BOUND"}},
 		{name: "ssh.service not running", site: site{plat: d, bound: []string{}, ufw: allow22, facts: func(f *detect.Facts) { f.SSH.Service.Active = "inactive" }},
 			state: engine.Unknown, want: "can't tell ssh ports", codes: []string{notInEffect}},
@@ -728,9 +764,67 @@ func TestEngineCheck(t *testing.T) {
 	}
 }
 
-// TestCheckOnly: Plan is ErrNotMigrated, and a plan with the control is
-// refused with it (CONTROL_NOT_MIGRATED), changing nothing.
-func TestCheckOnly(t *testing.T) {
+// TestCheckBoot: an active ufw whose service does not start at boot is "off
+// after restart", as ENABLED=no is, with evidence naming the unit or runlevel,
+// over Configured and the lesser findings; a listener refused, an allow policy
+// and a rule that opens every port stay as they are. Not read, Unknown in place
+// of Configured, with its finding, and no other line changes.
+func TestCheckBoot(t *testing.T) {
+	alpine := alpine324()
+	alpine.noSS = false
+	const unit, runlevel = "systemctl is-enabled ufw.service: not enabled", "OpenRC: ufw in no runlevel"
+	for _, tc := range []struct {
+		name     string
+		site     site
+		state    engine.State
+		detail   string
+		evidence string
+	}{
+		{"disabled", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "disabled" })}, engine.Partial, "off after restart", unit},
+		{"masked", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "masked" })}, engine.Partial, "off after restart", unit},
+		{"enabled-runtime", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "enabled-runtime" })}, engine.Partial, "off after restart", unit},
+		{"in no runlevel", site{plat: alpine, ufw: with(allow22, func(u *fw) { u.boot = "disabled" })}, engine.Partial, "off after restart", runlevel},
+		{"over an allowlist", site{plat: debian13(), ufw: fw{active: true, noKernel6: true, boot: "disabled", rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}}, engine.Partial, "off after restart", unit},
+		{"a listener refused stays", site{plat: debian13(), ufw: fw{active: true, boot: "disabled"}}, engine.Partial, "ssh blocked", unit},
+		{"an allow policy stays", site{plat: debian13(), ufw: fw{active: true, incoming: "allow", boot: "disabled", rules: allow("22")}}, engine.Partial, firewall.DetailAllowPolicy, unit},
+		{"enabled", site{plat: debian13(), ufw: allow22}, engine.Configured, "deny policy", ""},
+		{"in a runlevel", site{plat: alpine, ufw: allow22}, engine.Configured, "deny policy", ""},
+		{"linked", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "linked" })}, engine.Partial, "off after restart", unit},
+		{"not-found", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "not-found" })}, engine.Partial, "off after restart", unit},
+		{"not read: the bus", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "fail" })}, engine.Unknown, "can't tell boot state", ""},
+		{"not read: static", site{plat: debian13(), ufw: with(allow22, func(u *fw) { u.boot = "static" })}, engine.Unknown, "can't tell boot state", ""},
+		{"not read, an allowlist stays", site{plat: debian13(), ufw: fw{active: true, noKernel6: true, boot: "fail", rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}}, engine.Partial, "ssh allowlist", ""},
+		{"inactive: not asked", site{plat: debian13(), ufw: fw{boot: "fail"}}, engine.NotConfigured, "inactive", ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, facts := tc.site.build(t)
+			st, err := firewall.Incoming{}.Check(context.Background(), h, facts)
+			if err != nil || st.State != tc.state || st.Detail != tc.detail {
+				t.Errorf("%s %q, %v", st.State, st.Detail, err)
+			}
+			if has := slices.Contains(st.Evidence, tc.evidence); has != (tc.evidence != "") {
+				t.Errorf("evidence %q", st.Evidence)
+			}
+			finding := slices.ContainsFunc(st.Findings, func(f engine.Finding) bool { return f.Code == firewall.CodeBootUnchecked })
+			if finding != strings.HasPrefix(tc.name, "not read") {
+				t.Errorf("findings %+v", st.Findings)
+			}
+			if tc.name == "inactive: not asked" {
+				for _, r := range h.Runs() {
+					if strings.Contains(strings.Join(r, " "), "is-enabled") {
+						t.Errorf("ran %q", r)
+					}
+				}
+			}
+		})
+	}
+}
+
+// TestActionNone: the status list's control plans nothing: Plan is
+// ErrNotMigrated, and a plan with the control is refused with it
+// (CONTROL_NOT_MIGRATED), changing nothing, so that nothing that plans over
+// firewall.Controls() starts planning a lockout change.
+func TestActionNone(t *testing.T) {
 	h, facts := site{plat: debian13(), ufw: allow22}.build(t)
 	cs, err := firewall.Incoming{}.Plan(context.Background(), h, engine.Input{Facts: facts})
 	if !errors.Is(err, engine.ErrNotMigrated) || cs != nil {

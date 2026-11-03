@@ -107,7 +107,7 @@ The slice's defects (§2), and where each is answered:
 Drawn: the screen on every host, each change through the canonical flow, decision 1's and 2's alternatives. **Not mocked:** 2(c); 3(b), 3(c); 6(b), 6(c); 7(b), 7(c) and 7's ufw row; main menu 4's "View pve-firewall" (7(a); that menu's 4 leads to `firewall/debian13`, whatever the host); 8(a)'s warning; 9(b); a failed install or stand-in apply, a rollback of a stand-in, the confirmation from a new session, `hardn -w`.
 
 **1. A host with no ufw (P-16, the slice's open question). GATES the items, unit (b)'s scope, and a package primitive.** A stock Debian 13 and Alpine have no ufw, so the Firewall row says "ufw not installed" and hardn has no way to change that. On origin/main "Install UFW" is a stub that says it isn't implemented.
-- (a) **Recommended:** restore the install through the plan: `apt-get install -y ufw` or `apk add ufw`, plain risk, never on Proxmox VE. Otherwise the row can never reach Configured from hardn. It needs a package primitive, which slice 7 may share: `pkg/host/alpine` has apk's, nothing has apt's. On Alpine it costs more than is drawn: `apk add ufw` needs the community repository [I], unchecked by the plan; a stock Alpine is said to ship no `ss` ([unverified], reload.md §3), so Enable would refuse until `iproute2` is there, which Install may have to bring. The `alpine324` fake has `ss`, so `play firewall-install-alpine` draws the path without that refusal.
+- (a) **Recommended:** restore the install through the plan: `apt-get install -y ufw` or `apk add ufw`, plain risk, never on Proxmox VE. Otherwise the row can never reach Configured from hardn. It needs a package primitive, which slice 7 may share: `pkg/host/alpine` has apk's, nothing has apt's. On Alpine it costs more than is drawn: `apk add ufw` needs the community repository [I], unchecked by the plan; a stock Alpine has no `ss` and no `iproute2` (alpine323-vm.log, 2026-11-02), so Enable refuses until `iproute2` is there; Install does not bring it, as adopted. The `alpine324` fake has `ss`, so `play firewall-install-alpine` draws the path without that refusal.
 - (b) No install: item 1 goes and the ufw section says what to run (mock `no-install`). Smaller, but the first thing a stock host needs is left to the user.
 
 **2. Enable while sshd's configuration is not in effect. GATES unit (b)'s Enable plan, and whether `pkg/` adds a read of `ss` to it.** The lockout this slice exists to prevent. The real `PlanUFWEnable` reads `sshd -T` alone: on `edit-2230`, from a console, it allows 2230 and starts ufw, refusing the 22 sshd accepts on (mock `stale-listener`). On `moved-2230` it is the other way round, and `ss -Htln` names no program, so the mock cannot tell 2230 is sshd's and draws no row for it.
@@ -147,7 +147,7 @@ Drawn: the screen on every host, each change through the canonical flow, decisio
 
 **Made here**, say if you would rather otherwise:
 - Outgoing policy left alone, not set to allow: `PlanUFWEnable` passes none, and origin/main's `ufw default allow outgoing` restates ufw's default.
-- A service that does not start at boot is a step of Enable, a unit (b) item: `rc-update add ufw default` on Alpine, as `ufw enable` adds no runlevel; `systemctl enable ufw.service` on systemd. Whether a disabled `ufw.service` stops ufw at boot is [unverified].
+- A service that does not start at boot is a step of Enable, a unit (b) item: `rc-update add ufw default` on Alpine, as `ufw enable` adds no runlevel; `systemctl enable ufw.service` on systemd. `ufw enable` does not touch `ufw.service`, which starts `ufw-init` and is `WantedBy=multi-user.target` (deb13-vm.log, ubuntu26-vm.log, 2026-11-02), so a disabled unit does not start it at boot; no VM has rebooted to show that.
 - "Active and set" counts an allowlist and an active blocklist, every listener let through, so item 1 is Disable there. Where a rule or IPV6=no still refuses a listener, nothing can be planned and item 1 refuses, saying what to do.
 - With ufw inactive the status prints no rule, so Rules reads its files and says "Saved"; each IP version's rule keeps its row, as ufw prints it. Nothing is marked good while ufw filters nothing: policy and saved allows read plain. Under plan only, Add and Remove stop at their plan, where origin/main refuses them (`docs/configuration.md:140` then changes).
 
@@ -170,6 +170,8 @@ Decided with decision 10 (2026-11-01). Each is new unless marked origin/main's. 
 
 ## 7. For unit (b)
 
+> **Since `next/s4-control`:** the stand-ins below are gone. The gallery runs on `firewall.Read` and `firewall.Incoming` ([control-firewall.md](control-firewall.md)); `no-install` and `stale-listener`'s last section went with them. The screen's words, rows and layout stay in the gallery until unit (c).
+
 | Stand-in, labelled in `firewall.go` | What it must become |
 |---|---|
 | `fwControl`, wrapping `firewall.Incoming`; `fwSockets`, a third copy of `sockets.go`'s reading | `Incoming.Plan`, replacing `engine.ErrNotMigrated`; that reading exported, shared with the row |
@@ -180,7 +182,7 @@ Findings:
 - **`PlanUFWEnable` can let a stale listener be refused**, and reads no `ss`: decision 2. Pinned as it stands by `TestFirewallStaleListener`; without `ss` the row says Unknown while the plan goes ahead.
 - **Nothing to plan under a row that says refused.** `deny 22/tcp`, an allowlist of one family, or IPV6=no gives "ssh blocked", and `ufw.PlanFor` plans nothing: "Nothing needs changing" on the real flow. The mock refuses first, naming the cause (`TestFirewallNothingRefused`).
 - **The row says "deny policy" on a host that may lose ufw at reboot** (`alpine-runlevel`, `unit-off`): `Incoming.Check` reads neither (check-firewall.md §6). `detect.ServiceRunlevels` and `SystemctlIsEnabled` are there; the At boot row reads them.
-- **Profiles:** origin/main joins a profile's ports by a comma (`ufw_firewall_repository.go:255`), which ufw-framework(8)'s `|` form does not read [I], read, not run. Remove leaves a rule behind, whose profile leaves the file at the next Apply; whether ufw minds is not established. Enable's own undo is `ufw disable`, in the journal (`ufw.PlanFor`, §3.17's exception), never among a plan's commands.
+- **Profiles:** origin/main joins a profile's ports by a comma (`ufw_firewall_repository.go:255`), which ufw-framework(8)'s `|` form does not read [I], read, not run. Remove leaves a rule behind, whose profile leaves the file at the next Apply that still has a profile: with none left, Apply plans nothing and the file keeps it ([control-firewall.md](control-firewall.md)); whether ufw minds is not established. Enable's own undo is `ufw disable`, in the journal (`ufw.PlanFor`, §3.17's exception), never among a plan's commands.
 
 ## 8. Not run
 

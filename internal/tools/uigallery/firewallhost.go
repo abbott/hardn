@@ -25,7 +25,7 @@ import (
 // "ufw default" and "ufw disable" (ufw(8); the words are ufw's own,
 // frontend.py), an application's rule (ufw-framework(8)), and the packages
 // that bring ufw (apt-get, apk add, ufw.md §3 for Alpine's community
-// package). Synthetic values only: 192.0.2.0/24, 198.51.100.0/24,
+// package; the simulations below). Synthetic values only: 192.0.2.0/24, 198.51.100.0/24,
 // 2001:db8::/32, alice, port 2230.
 
 // simRule is one saved rule of ufwSim: action on port/tcp, from anywhere
@@ -50,6 +50,37 @@ type ufwSim struct {
 	noIPv6   bool   // IPV6=no in /etc/default/ufw
 	unitOff  bool   // ufw.service disabled, on systemd
 	rules    []simRule
+	// sim answers the package tool's simulation, where it is not the usual one
+	// (fwAPTInstalls, fwAPKInstalls).
+	sim *hostfake.Response
+}
+
+// The package tools' simulations. No VM has simulated a new ufw: fwAPTInstalls
+// is apt's form for another package (deb13-vm-2.log's nftables), its one package
+// [I]; fwAPKInstalls is apk's as pkg/host/alpine's tests have it, [I]: the Alpine
+// VM has no DNS. fwAPTNotFound is deb13-vm.log's for a package with no such
+// name, fwAPTRemoves deb13-vm-2.log's Remv line, in ufw's place, and fwAPKNoIndex
+// alpine323-vm.log's, as a stock Alpine says it.
+var (
+	fwAPTInstalls = hostfake.Response{Stdout: "Reading package lists...\nBuilding dependency tree...\nReading state information...\nThe following NEW packages will be installed:\n  ufw\n" +
+		"0 upgraded, 1 newly installed, 0 to remove and 1 not upgraded.\nInst ufw (0.36.2-9 Debian:13.7/stable [all])\nConf ufw (0.36.2-9 Debian:13.7/stable [all])\n"}
+	fwAPKInstalls = hostfake.Response{Stdout: "(1/1) Installing ufw (0.36.2-r0)\nOK: 9 MiB in 26 packages\n"}
+	fwAPTNotFound = hostfake.Response{Stdout: "Reading package lists...\nBuilding dependency tree...\nReading state information...\n", Stderr: "E: Unable to locate package ufw\n", ExitCode: 100}
+	fwAPTRemoves  = hostfake.Response{Stdout: "Remv nftables [1.1.3-1]\nInst ufw (0.36.2-9 Debian:13.7/stable [all])\nConf ufw (0.36.2-9 Debian:13.7/stable [all])\n"}
+	fwAPKNoIndex  = hostfake.Response{Stderr: "WARNING: opening from cache https://dl-cdn.alpinelinux.org/alpine/v3.23/main/x86_64/APKINDEX.tar.gz: No such file or directory\n" +
+		"WARNING: opening from cache https://dl-cdn.alpinelinux.org/alpine/v3.23/community/x86_64/APKINDEX.tar.gz: No such file or directory\n" +
+		"ERROR: unable to select packages:\n  ufw (no such package):\n    required by: world[ufw]\n", ExitCode: 1}
+)
+
+// simulation is the package tool's simulation on this host.
+func (s *ufwSim) simulation() hostfake.Response {
+	switch {
+	case s.sim != nil:
+		return *s.sim
+	case s.h.openRC:
+		return fwAPKInstalls
+	}
+	return fwAPTInstalls
 }
 
 // simulateUFW has sim answer ufw's commands on h, the rest left to h, and
@@ -179,6 +210,16 @@ func (s *ufwSim) run(argv []string, in []byte) hostfake.Response {
 		}
 	case base == "ufw":
 		return hostfake.Response{Err: host.ErrNotFound, ExitCode: -1}
+	case base == "dpkg-query" && argv[len(argv)-1] == "ufw" && !s.h.openRC && s.h.noUFW: // deb13-vm.log's forms
+		return hostfake.Response{Stderr: "dpkg-query: no packages found matching ufw\n", ExitCode: 1}
+	case base == "dpkg-query" && argv[len(argv)-1] == "ufw" && !s.h.openRC:
+		return hostfake.Response{Stdout: "install ok installed\t0.36.2-9\n"}
+	case cmd == "apk info -e ufw" && s.h.openRC && s.h.noUFW: // alpine323-vm.log
+		return hostfake.Response{ExitCode: 1}
+	case cmd == "apk info -e ufw" && s.h.openRC: // alpine323-vm-2.log's form, for python3
+		return hostfake.Response{Stdout: "ufw\n"}
+	case cmd == "apt-get install -s -y ufw" && !s.h.openRC, cmd == "apk add --simulate ufw" && s.h.openRC:
+		return s.simulation()
 	case cmd == "apt-get install -y ufw" && !s.h.openRC, cmd == "apk add ufw" && s.h.openRC:
 		s.install()
 		return hostfake.Response{Stdout: "ufw installed\n"}
@@ -281,7 +322,7 @@ func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 // profile of several ("80,443/tcp (Web)", from memory of such a host, not run;
 // ufw-framework(8) has the file's form). None for no such application.
 func (s *ufwSim) profileRules(app string) []simRule {
-	data, err := s.h.f.ReadFile(context.Background(), fwProfileFile)
+	data, err := s.h.f.ReadFile(context.Background(), ufw.ProfileFile)
 	if err != nil {
 		return nil
 	}
@@ -327,6 +368,26 @@ func fwDebian() *fakeHost { return ufwOn(statusOn(debian13Platform).withHardnYML
 func fwNoUFW(p platform) *fakeHost {
 	p.noUFW = true
 	return ufwOn(statusOn(p).withHardnYML(fwYML))
+}
+
+// fwNoUFWSim is p with ufw not installed, its package tool simulating as sim
+// says.
+func fwNoUFWSim(p platform, sim hostfake.Response) func() *fakeHost {
+	return func() *fakeHost {
+		p.noUFW = true
+		return simulateUFW(statusOn(p).withHardnYML(fwYML), ufwSim{incoming: "deny", sim: &sim})
+	}
+}
+
+// fwAlpineStock is the Alpine 3.23 VM's shape (alpine323-vm.log): no ufw, no ss
+// and apk's index empty.
+func fwAlpineStock() *fakeHost {
+	return fwWithoutSS(fwNoUFWSim(alpine323Platform, fwAPKNoIndex)())
+}
+
+// fwProfilesInactive is Debian 13 with two profiles in hardn.yml, ufw inactive.
+func fwProfilesInactive() *fakeHost {
+	return simulateUFW(statusOn(debian13Platform).withHardnYML(fwProfileYML), ufwSim{incoming: "deny"})
 }
 
 // fwUbuntu is Ubuntu 26.04 as shipped: ssh.socket, ufw inactive.
@@ -419,10 +480,11 @@ func fwPVEUFW() *fakeHost {
 // The refusals' hosts, which the menu of hosts leaves out (refusalsMock).
 
 // fwNoSS is Debian 13 with ufw inactive and no ss to read the bound sockets
-// with: not found, as on a stock Alpine, said to ship none (reload.md §3,
-// [unverified]).
-func fwNoSS() *fakeHost {
-	h := fwUbuntu()
+// with: not found, as on a stock Alpine (alpine323-vm.log).
+func fwNoSS() *fakeHost { return fwWithoutSS(fwUbuntu()) }
+
+// fwWithoutSS is h with no ss.
+func fwWithoutSS(h *fakeHost) *fakeHost {
 	run := h.f.Handler
 	h.f.Handler = func(argv []string, in []byte) hostfake.Response {
 		if path.Base(argv[0]) == "ss" {

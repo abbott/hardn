@@ -24,13 +24,16 @@ var codeUFWUnknown = steps.FindingCode("UFW", ufw.FindingUnknown.String())
 // SSH listeners decide (ufw.Check over ufw.Needs). An SSH listener ufw
 // refuses, or lets through from loopback only, is Partial with
 // CodeSSHBlocked, whatever else is not established; an allow policy, a
-// rule that opens every port, or ENABLED=no (ufw not started at the next
-// boot) is Partial. Under deny or reject, every listener let through from
+// rule that opens every port, or ufw not started at the next boot (ENABLED=no,
+// or ufw.ReadBoot No: its service in no runlevel, or ufw.service not enabled)
+// is Partial. Under deny or reject, every listener let through from
 // everywhere (rate-limited included) is Configured, and from some sources
 // only, or from all but some, Partial: whether the user's own address is
 // let through is not established (ufw.Verdict.OK). Unknown while the
 // listeners are not established, while ufw refuses a socket on 22 that no
-// configured listener names, and for an incoming policy ufw does not set.
+// configured listener names, for an incoming policy ufw does not set, and in
+// place of Configured while whether ufw starts at boot is not read
+// (CodeBootUnchecked).
 func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	st, err := ufw.Read(ctx, sys, f.Proxmox)
 	switch {
@@ -57,11 +60,11 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.State, out.Detail = engine.Unknown, "can't read"
 		return out, nil
 	}
-	sk := readSockets(ctx, sys, f)
+	sk := ReadSockets(ctx, sys, f)
 	out.Evidence = append(out.Evidence, sk.ev...)
 	var refused, stray []netip.AddrPort // refused (loopback only included); a stray socket not let through from everywhere
 	var unread, some, except bool       // a verdict not read; let through from some sources only; from all but some
-	if ls, ok := sk.listeners(); ok {
+	if ls, ok := sk.Listeners(); ok {
 		cs, fs := ufw.Check(st, ufw.Needs(ls, nil, nil))
 		if active {
 			out.Evidence = append(out.Evidence, coverage(cs)...)
@@ -69,12 +72,12 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.Findings = ufwFindings(fs)
 		for _, x := range fs {
 			n, k := x.Coverage.Need, x.Kind
-			if k == ufw.FindingRestricted && loopbackOnly(st, n) {
+			if k == ufw.FindingRestricted && loopbackOnly(st.Status.Rules, ufw.Firewall{Active: active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Status.Incoming}, n) {
 				k = ufw.FindingNotAllowed
 			}
 			a := netip.AddrPortFrom(n.Addr, n.Port)
 			switch {
-			case (k == ufw.FindingNotAllowed || k == ufw.FindingRestricted || k == ufw.FindingExcepted) && sk.stray(n.Port):
+			case (k == ufw.FindingNotAllowed || k == ufw.FindingRestricted || k == ufw.FindingExcepted) && sk.Stray(n.Port):
 				stray = append(stray, a)
 			case k == ufw.FindingNotAllowed && !slices.Contains(refused, a):
 				refused = append(refused, a)
@@ -95,10 +98,20 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.Findings = append(out.Findings, sk.bound22())
 	}
 	open, allPorts := allOpen(st.Status.Rules)
+	noBoot, bootUnread := false, false
+	if active {
+		boot := ufw.ReadBoot(ctx, sys, f)
+		switch noBoot, bootUnread = boot == detect.No, boot == detect.Unknown; {
+		case noBoot:
+			out.Evidence = append(out.Evidence, bootEvidence(f))
+		case bootUnread:
+			out.Findings = append(out.Findings, engine.Finding{Code: CodeBootUnchecked, Detail: "whether ufw starts at boot not read", Source: bootSource(f)})
+		}
+	}
 	switch {
 	case !active: // ENABLED=yes: ufw.Check said what its saved rules refuse at start
 		out.State, out.Detail = engine.NotConfigured, "enabled, not running"
-		if sk.established() && !st.Known() {
+		if sk.Established() && !st.Known() {
 			out.Evidence, out.Findings = append(out.Evidence, savedEvidence(st)...), append(out.Findings, savedUnread(st))
 		}
 	case len(refused) > 0:
@@ -109,10 +122,10 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 	case allPorts:
 		out.Evidence = append(out.Evidence, "ufw: every port allowed by "+open)
 		out.State, out.Detail = engine.Partial, DetailAllPorts
-	case !st.Enabled:
+	case !st.Enabled || noBoot:
 		out.State, out.Detail = engine.Partial, "off after restart"
-	case !sk.established():
-		out.State, out.Detail = engine.Unknown, sk.why
+	case !sk.Established():
+		out.State, out.Detail = engine.Unknown, sk.Why
 		return out, sk.err
 	case unread:
 		out.State, out.Detail = engine.Unknown, "can't read"
@@ -126,25 +139,44 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 	case except:
 		out.State, out.Detail = engine.Partial, "ssh blocklist"
 		return out, nil
+	case bootUnread:
+		out.State, out.Detail = engine.Unknown, "can't tell boot state"
+		return out, nil
 	default: // deny or reject
 		out.State, out.Detail = engine.Configured, string(st.Status.Incoming)+" policy"
 		return out, nil
 	}
-	if !sk.established() {
+	if !sk.Established() {
 		out = sk.unchecked(out)
 	}
 	return out, nil
 }
 
-// loopbackOnly reports whether ufw lets n through from loopback only, so
-// that no remote session reaches it: its verdict is Restricted, and with
-// the allow and limit rules that admit loopback alone (in on lo, from or
+// bootEvidence says what ufw.ReadBoot read when it read No: the runlevel or
+// the unit.
+func bootEvidence(f detect.Facts) string {
+	if f.Init.Kind == detect.OpenRC {
+		return "OpenRC: ufw in no runlevel"
+	}
+	return "systemctl is-enabled ufw.service: not enabled"
+}
+
+// bootSource is what whether ufw starts at boot is read from.
+func bootSource(f detect.Facts) string {
+	if f.Init.Kind == detect.OpenRC {
+		return "OpenRC runlevels"
+	}
+	return "systemctl is-enabled ufw.service"
+}
+
+// loopbackOnly reports whether rules under fw let n through from loopback
+// only, so that no remote session reaches it: its verdict is Restricted, and
+// with the allow and limit rules that admit loopback alone (in on lo, from or
 // to a loopback address) left out, ufw.Evaluate blocks or denies it.
-func loopbackOnly(st ufw.State, n ufw.Need) bool {
-	rules := slices.DeleteFunc(slices.Clone(st.Status.Rules), func(r ufw.Rule) bool {
+func loopbackOnly(rules []ufw.Rule, fw ufw.Firewall, n ufw.Need) bool {
+	rules = slices.DeleteFunc(slices.Clone(rules), func(r ufw.Rule) bool {
 		return (r.Action == "allow" || r.Action == "limit") && (r.Iface == "lo" || loopback(r.Src) || loopback(r.Dst))
 	})
-	fw := ufw.Firewall{Active: st.Status.Active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Status.Incoming}
 	v := ufw.Evaluate(rules, fw, []ufw.Need{n})[0].Verdict
 	return v == ufw.Blocked || v == ufw.Denied
 }

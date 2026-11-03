@@ -88,7 +88,7 @@ func sshdT(args []string) bool {
 // Auto Updates check's (apt's timers and their services), Proxmox VE's
 // firewall's (pve.ReadFirewall) and the DNS check's (systemd-resolved).
 var units = map[string][]string{
-	"is-enabled": {"ssh.socket", "ssh.service", "apparmor.service",
+	"is-enabled": {"ssh.socket", "ssh.service", "ufw.service", "apparmor.service",
 		"apt-daily-upgrade.timer", "apt-daily-upgrade.service", "apt-daily.timer", "apt-daily.service"},
 	"is-active": {"ssh.socket", "ssh.service", "apt-daily-upgrade.timer", "apt-daily.timer",
 		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service"},

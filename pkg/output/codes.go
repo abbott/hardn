@@ -36,6 +36,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -248,6 +249,16 @@ var errorCodes = []Entry{
 	is("RELOAD_NOT_IN_EFFECT", reload.ErrNotInEffect),
 	is("RELOAD_OPENRC_CONFD", reload.ErrConfd),
 
+	// The Firewall control's refusals (refactor plan slice 4, unit (b)): the
+	// first three wrap ufw's ErrListenersUnknown, of which they are the more
+	// specific cases.
+	is("FIREWALL_SS_NOT_INSTALLED", firewall.ErrNoSS).what("ss is not installed, so which ports SSH uses is not established and the firewall is not enabled"),
+	is("FIREWALL_SS_FAILED", firewall.ErrSSFailed).what("ss failed, so which ports SSH uses is not established and the firewall is not enabled"),
+	is("FIREWALL_SSH_NOT_IN_EFFECT", firewall.ErrNotInEffect).what("a listener sshd is configured for is not bound, so the firewall is not enabled"),
+	is("FIREWALL_SSH_REFUSED", firewall.ErrRefused),
+	is("FIREWALL_BOOT_UNKNOWN", firewall.ErrBootUnknown),
+	is("FIREWALL_BOOT_BLOCKED", firewall.ErrBootBlocked),
+
 	// ufw (pkg/host/ufw).
 	typed("UFW_ROLLBACK_FAILED", "an undo of ufw's rules failed; those after it did not run",
 		as(func(*ufw.RollbackError) bool { return true })),
@@ -259,6 +270,14 @@ var errorCodes = []Entry{
 	is("UFW_WOULD_BLOCK", ufw.ErrBlocks),
 	is("UFW_VERIFY_FAILED", ufw.ErrVerify),
 	is("UFW_ENABLED_MISMATCH", ufw.ErrEnabledMismatch),
+	is("UFW_INACTIVE", ufw.ErrInactive),
+	is("UFW_BAD_PROFILE", ufw.ErrBadProfile),
+
+	// Packages (pkg/host/packages): an OtherPackagesError is its sentinel's.
+	is("PACKAGE_NO_TOOL", packages.ErrNoTool),
+	is("PACKAGE_NOT_IN_REPOS", packages.ErrNotInRepos),
+	is("PACKAGE_OTHER_CHANGES", packages.ErrOtherPackages),
+	is("PACKAGE_VERIFY_FAILED", packages.ErrVerify),
 
 	// Proxmox VE (pkg/host/pve).
 	is("PVE_NOT_APPLICABLE", pve.ErrNotApplicable),
@@ -434,6 +453,7 @@ var findingCodes = []Entry{
 	// The firewall control's own (next/p4-check-firewall).
 	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener: lockout risk, scored critical"),
 	finding(firewall.CodeSSHUnchecked, "the SSH listeners are not established, so whether the firewall lets them through is not either"),
+	finding(firewall.CodeBootUnchecked, "whether an active ufw starts at the next boot is not read, so the row is not Configured"),
 	finding(firewall.CodeLocalOnly, "on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only"),
 	// The users control's own (next/p4-check-users).
 	finding(users.CodeNoPassword, "a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass)"),

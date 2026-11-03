@@ -121,6 +121,14 @@
 		},
 		{
 			"argv": [
+				"systemctl",
+				"is-enabled",
+				"ufw.service"
+			],
+			"stdout": "enabled\n"
+		},
+		{
+			"argv": [
 				"sshd",
 				"-T",
 				"-f",

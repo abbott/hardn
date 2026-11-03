@@ -9,8 +9,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The edit-2230 host: Port 2230 configured, not reloaded,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd accepting on 22. The screen refuses (decision 2 (a)).␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWhat the real steps.PlanUFWEnable plans without that refusal,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith an SSH session on 22, and from a console, no session; and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdecision 2 (b), a plan over the row's listeners.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith an SSH session on 22, and from a console, no session.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mWith an SSH session on 22␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
 $
@@ -25,13 +24,6 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw --force enable␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mPort 22, sshd now␛[m    ␛[38;2;231;70;105mRefused␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDecision 2 (b), not the real plan␛[m ␛[38;2;48;52;64m────────────────────────────␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw allow 22/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw allow 2230/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw --force enable␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mPort 22, sshd now␛[m    ␛[38;2;112;212;127mLet through␛[m$
-$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -41,8 +33,7 @@ $
 # Mock: The edit-2230 host: Port 2230 configured, not reloaded,$
 # sshd accepting on 22. The screen refuses (decision 2 (a)).$
 # What the real steps.PlanUFWEnable plans without that refusal,$
-# with an SSH session on 22, and from a console, no session; and$
-# decision 2 (b), a plan over the row's listeners.$
+# with an SSH session on 22, and from a console, no session.$
 $
 # With an SSH session on 22 ------------------------------------$
 $
@@ -57,13 +48,6 @@ $
    -  ufw --force enable$
   [ ] Port 22, sshd now    Refused$
 $
-# Decision 2 (b), not the real plan ----------------------------$
-$
-   -  ufw allow 22/tcp$
-   -  ufw allow 2230/tcp$
-   -  ufw --force enable$
-  [+] Port 22, sshd now    Let through$
-$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -74,8 +58,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreloaded, sshd accepting on 22. The screen refuses␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 2 (a)). What the real steps.PlanUFWEnable plans␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwithout that refusal, with an SSH session on 22, and from␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma console, no session; and decision 2 (b), a plan over the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow's listeners.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma console, no session.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mWith an SSH session on 22␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
 $
@@ -92,14 +75,6 @@ $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mPort 22, sshd now␛[m$
       ␛[38;2;231;70;105mRefused␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDecision 2 (b), not the real plan␛[m ␛[38;2;48;52;64m────────────────────────␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw allow 22/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw allow 2230/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw --force enable␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mPort 22, sshd now␛[m$
-      ␛[38;2;112;212;127mLet through␛[m$
-$
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
@@ -109,8 +84,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The edit-2230 host: Port 2230 configured, not reloaded,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd accepting on 22. The screen refuses (decision 2 (a)).␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mWhat the real steps.PlanUFWEnable plans without that refusal,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith an SSH session on 22, and from a console, no session; and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdecision 2 (b), a plan over the row's listeners.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith an SSH session on 22, and from a console, no session.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mWith an SSH session on 22␛[m ␛[38;2;48;52;64m------------------------------------␛[m$
 $
@@ -124,12 +98,5 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw allow 2230/tcp␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw --force enable␛[m$
   ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mPort 22, sshd now␛[m    ␛[38;2;231;70;105mRefused␛[m$
-$
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDecision 2 (b), not the real plan␛[m ␛[38;2;48;52;64m----------------------------␛[m$
-$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw allow 22/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw allow 2230/tcp␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mufw --force enable␛[m$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mPort 22, sshd now␛[m    ␛[38;2;112;212;127mLet through␛[m$
 $
 $
