@@ -764,8 +764,9 @@ func (m *MainMenu) mode() component.ModeIndicator {
 	return mode
 }
 
-// legacyScreen is one of origin/main's screens as a main-menu item opens
-// it: a menu's Show, or a handler's (handled). It returns when the user
+// legacyScreen is one of origin/main's screens left, SSH Login's or Run
+// All's, as a main-menu item opens it: a menu's Show, or a handler's
+// (handled). It returns when the user
 // leaves it, or ends hardn itself at the end of the input or on Ctrl-C
 // (endHardn).
 type legacyScreen interface{ Show() }
@@ -777,10 +778,11 @@ type handled struct{ handler interface{ Handle() } }
 // Show runs the handler.
 func (h handled) Show() { h.handler.Handle() }
 
-// screens build what the main menu's items open: origin/main's screens,
-// but the items whose screens are the hooks cmd/hardn sets (SetUsers,
-// SetDNS, SetBackup, SetEnvironment, SetFirewall, SetSystemDetails,
-// SetLogs).
+// screens build what the main menu's items open that are still
+// origin/main's screens: SSH Login (2) and Run All (7). Every other item's
+// screen is a hook cmd/hardn sets (SetUsers, SetDNS, SetBackup,
+// SetEnvironment, SetFirewall, SetSystemDetails, SetLogs); the legacy User
+// Management went with slice 5's unit (d), deleted, not frozen.
 type screens struct {
 	sshLogin, runAll func(m *MainMenu) legacyScreen
 }
@@ -804,7 +806,7 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // (refactor plan slice 9, decision 7 (a), P-07 (c)), and item 4's on
 // Proxmox VE, "View pve-firewall" (slice 4, decision 7); item 1's
 // parenthesis its aside; each bound to the screen it opened (legacyScreens,
-// and the User Management, DNS, Firewall, Backup, Environment, System
+// SSH Login's and Run All's, and the User Management, DNS, Firewall, Backup, Environment, System
 // Details and Logs screens, showUsers, showDNS, showFirewall, showBackup,
 // showEnvironment, showSystemDetails and showLogs); its Exit item "0)
 // Exit", "q to quit" (DEV-030). Item 6,

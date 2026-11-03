@@ -113,6 +113,44 @@ func TestRunAllConfirmation(t *testing.T) {
 	}
 }
 
+// TestRunAllWithoutUsername: with no username, Run All asks nothing before
+// its screen (refactor plan slice 5, unit (d)): live, it says "Continuing
+// without user creation", origin/main's "n" answer's words, and opens the
+// screen; under plan only it says nothing, as origin/main did. Its offer,
+// "Would you like to set a username now?", which opened the legacy User
+// Management, is gone with it.
+func TestRunAllWithoutUsername(t *testing.T) {
+	for _, dryRun := range []bool{false, true} {
+		t.Run(map[bool]string{false: "live", true: "plan only"}[dryRun], func(t *testing.T) {
+			t.Chdir(t.TempDir())
+			m, fs, mc := newRunAllMenu(t, dryRun)
+			m.config.Username = ""
+			h := NewRunAllHandler(m.menuManager, m.config, m.osInfo)
+			scripted(t, "0\nnext\n")
+			out, code, ended := session(t, h.Handle)
+			if ended {
+				t.Fatalf("ended hardn with %d:\n%s", code, out)
+			}
+			if strings.Contains(out, "set a username") {
+				t.Errorf("Run All offered to set a username:\n%s", out)
+			}
+			if got := strings.Contains(out, "Continuing without user creation"); got != !dryRun {
+				t.Errorf("said it continues without user creation: %v, want %v:\n%s", got, !dryRun, out)
+			}
+			if !strings.Contains(out, "Return to main menu") {
+				t.Errorf("the Run All screen was not shown:\n%s", out)
+			}
+			if len(fs.Files) > 0 || len(mc.ExecutedCommands) > 0 {
+				t.Errorf("applied: files %d, commands %v", len(fs.Files), mc.ExecutedCommands)
+			}
+			var next string
+			if _, _, ended := session(t, func() { next = ReadInput() }); ended || next != "next" {
+				t.Errorf("the line after the screen's = %q (ended %v): Run All read too few or too many lines", next, ended)
+			}
+		})
+	}
+}
+
 // TestRunAllInTheSessionsMode: Run All's option 2, which turned dry run
 // on or off, ran, and saved ./hardn.yml, is removed (refactor plan slice
 // 2b, unit (d), decision 7): live and under plan only, from -n or from
