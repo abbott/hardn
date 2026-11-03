@@ -73,6 +73,8 @@ var sshTestDefaults = []struct{ k, v string }{
 //     afterwards: refused, SSH_NO_ADMIN_LOGIN;
 //   - pve9: Proxmox VE 9, root key-only already: refused,
 //     SSH_PVE_ROOT_KEY_ONLY, which -d reads as nothing to change;
+//   - pve9-disallowed: pve9 with PermitRootLogin no in hardn's drop-in:
+//     the control would plan root key-only, which -d never plans;
 //   - no-hostname: debian13 with no kernel hostname to read.
 func newSSHHost(t *testing.T, name string) (*sshTestHost, *config.Config) {
 	t.Helper()
@@ -99,7 +101,10 @@ func newSSHHost(t *testing.T, name string) (*sshTestHost, *config.Config) {
 		if err := h.Remove(context.Background(), "/home/george/.ssh/authorized_keys"); err != nil {
 			t.Fatal(err)
 		}
-	case "pve9":
+	case "pve9", "pve9-disallowed":
+		if name == "pve9-disallowed" {
+			h.AddFile(sshd.HardnDropIn, []byte("PermitRootLogin no\n"), 0o644, 0, 0)
+		}
 		h.facts.Platform = detect.Platform{Distro: detect.DistroProxmox, Version: "9", Support: detect.Supported}
 		h.facts.Proxmox = detect.Proxmox{Installed: detect.Yes, Version: "9.0.10", ClusterFS: detect.Yes, EtcPVE: detect.Yes}
 	case "no-hostname":
@@ -357,7 +362,8 @@ func runD(t *testing.T, h *sshTestHost, cfg *config.Config, env func() term.Env,
 // afterwards (george's key gone), SSH_NO_ADMIN_LOGIN, 1, nothing written.
 // Root login already off: nothing to change, 0, nothing asked. Proxmox VE
 // with root key-only already: the control's SSH_PVE_ROOT_KEY_ONLY read as
-// nothing to change, 0. Nothing goes through the legacy provider; the
+// nothing to change, 0; with root login off, nothing to change, 0, -d
+// never loosening it (root key-only is the screen's item). Nothing goes through the legacy provider; the
 // signals are registered for an apply alone, an empty plan's too, as
 // runControls applies any flag's; hardn.yml is never saved.
 func TestDisallowRootFlag(t *testing.T) {
@@ -390,6 +396,8 @@ func TestDisallowRootFlag(t *testing.T) {
 		{name: "already disallowed off a terminal", host: "disallowed", said: []string{"Nothing needs changing."}, unsaid: []string{dLockoutWords}},
 		{name: "Proxmox VE, root key-only already", host: "pve9", tty: true,
 			said: []string{"Nothing needs changing."}, unsaid: []string{"SSH_PVE_ROOT_KEY_ONLY", "Type the hostname"}},
+		{name: "Proxmox VE, root login off", host: "pve9-disallowed", tty: true,
+			said: []string{"Nothing needs changing."}, unsaid: []string{"prohibit-password", "Type the hostname"}},
 	} {
 		args := []string{"-d"}
 		if tc.dryRun {
