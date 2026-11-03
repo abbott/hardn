@@ -11,14 +11,6 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the SSH Login screen proposed for slice 6,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host (the SSH␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchecks, sshd.ReadEffective, migrate.Find, users.Read,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrevert.ReadSession), each change the real steps.PlanSSH or␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlanMigration on the real plan/apply engine. The lockout␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchecks before asking are the real SSH Login control's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(sshchange). Nothing on this machine changes: every command␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/not-read␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04 (OpenSSH 10.2p1,␛[m$
@@ -152,14 +144,6 @@ $
 # recording host.System, whose commands a model of the host$
 # answers. Nothing on this machine changes: every command and$
 # file is the fake's, and its record is shown when play ends.$
-# Play mode, mocks: the SSH Login screen proposed for slice 6,$
-# drawn from what real code reads of a simulated host (the SSH$
-# checks, sshd.ReadEffective, migrate.Find, users.Read,$
-# revert.ReadSession), each change the real steps.PlanSSH or$
-# PlanMigration on the real plan/apply engine. The lockout$
-# checks before asking are the real SSH Login control's$
-# (sshchange). Nothing on this machine changes: every command$
-# and file is the fake's.$
 $
 # Info: ssh/not-read$
 # web-01.example.net runs Ubuntu 26.04 (OpenSSH 10.2p1,$
@@ -294,14 +278,6 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the SSH Login screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m6, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(the SSH checks, sshd.ReadEffective, migrate.Find,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Read, revert.ReadSession), each change the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanSSH or PlanMigration on the real plan/apply␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine. The lockout checks before asking are the real SSH␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLogin control's (sshchange). Nothing on this machine␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/not-read␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04 (OpenSSH 10.2p1,␛[m$

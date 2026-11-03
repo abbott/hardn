@@ -12,7 +12,7 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host | ssh | ssh/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
 //	go run ./internal/tools/uigallery system-details [flags] [form | all]...
@@ -200,6 +200,14 @@
 // refused there. The listing of its mock, "users", of refactor plan slice 5,
 // unit (a) (docs/engine/gallery-users.md), was removed when the real screen
 // replaced it (next/s5-screen): git keeps it (users.go, next/s5-control).
+//
+// "play ssh" is the menu of the SSH Login screen's hosts and "play
+// ssh/<host>" the real screen on one (pkg/screens/ssh, ssh.go), every change
+// on the real engine; the main menu's 2 leads to it on Debian 13. -sequence
+// dry-run stops each change at its plan, as plan only would; -fail is
+// refused there. The listing of its mock, "ssh", of refactor plan slice 6,
+// unit (a) (docs/engine/gallery-ssh.md), was removed when the real screen
+// replaced it (next/s6-screen): git keeps it (ssh.go, next/s6-control).
 //
 // The Dry-Run mode, "dryrun" and "play dryrun", the mocks of refactor
 // plan slice 2b (docs/engine/gallery-dryrun.md), was removed with the
@@ -610,9 +618,6 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == logsPrefix {
 		return logsListing.run(args[1:], size, stdout, stderr)
 	}
-	if len(args) > 0 && args[0] == sshPrefix {
-		return sshListing.run(args[1:], size, stdout, stderr)
-	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -623,7 +628,6 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(sdUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(logsUsage, "usage: "))
-		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(sshUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")
