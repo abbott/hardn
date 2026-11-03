@@ -98,10 +98,11 @@ type account struct {
 	keys []string
 }
 
-// ufwRule is an allow rule of ufw's for a TCP port, from src ("" anywhere).
+// ufwRule is an allow rule of ufw's for a TCP port, from src ("" anywhere),
+// on iface ("" any).
 type ufwRule struct {
-	port uint16
-	src  string
+	port       uint16
+	src, iface string
 }
 
 // vm is a fake host: sshd a model over its files, on 22 through
@@ -491,7 +492,11 @@ func (v *vm) ufwStatus() string {
 				}
 				from = r.src
 			}
-			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", fmt.Sprintf("%d/tcp%s", r.port, sfx), "ALLOW IN", from)
+			to := fmt.Sprintf("%d/tcp%s", r.port, sfx)
+			if r.iface != "" {
+				to = fmt.Sprintf("%d/tcp on %s%s", r.port, r.iface, sfx)
+			}
+			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, "ALLOW IN", from)
 		}
 	}
 	return b.String()
@@ -511,7 +516,11 @@ func (v *vm) saveRules() {
 				}
 				src = r.src
 			}
-			fmt.Fprintf(&b, "\n### tuple ### allow tcp %d %s any %s in\n-A ufw-user-input -p tcp --dport %d -j ACCEPT\n", r.port, f.any, src, r.port)
+			dir := "in"
+			if r.iface != "" {
+				dir += "_" + r.iface
+			}
+			fmt.Fprintf(&b, "\n### tuple ### allow tcp %d %s any %s %s\n-A ufw-user-input -p tcp --dport %d -j ACCEPT\n", r.port, f.any, src, dir, r.port)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		v.f.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
