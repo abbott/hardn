@@ -340,18 +340,33 @@ func TestCreateRefusals(t *testing.T) {
 func TestCreate(t *testing.T) {
 	ctx := context.Background()
 	n := users.New{Name: "carol", Admin: true, Key: key4}
-	for sshd, star := range map[string]bool{sshdKeys: false, sshdKeysNoPAM: true} {
-		_, p, _, _ := planOn(t, keyed(sshd, both()), users.Admin{Action: users.ActionCreate, New: n})
+	for _, tc := range []struct {
+		name, sshd string
+		n          users.New
+		star       bool
+	}{
+		{"UsePAM yes", sshdKeys, n, false},
+		{"UsePAM no", sshdKeysNoPAM, n, true},
+		// sshd's PAM not established: sshd -T not read (no key, as no
+		// key is planned then), or no usepam line (a build without PAM).
+		{"sshd -T not read", "", users.New{Name: "carol", Admin: true}, true},
+		{"no usepam line", sshdBase + sshdRest + keyFiles, n, true},
+	} {
+		_, p, _, _ := planOn(t, keyed(tc.sshd, both()), users.Admin{Action: users.ActionCreate, New: tc.n})
 		var ids []string
 		for _, c := range p.Changes {
 			ids = append(ids, c.ID)
 		}
-		if p.Err() != nil || p.Risk != engine.RiskPlain || !slices.Equal(ids[len(ids)-3:], []string{users.ChangeCreate, users.ChangeGrant, users.ChangeKeys}) {
-			t.Fatalf("%v, risk %v, %q", p.Err(), p.Risk, ids)
+		want := []string{users.ChangeCreate, users.ChangeGrant, users.ChangeKeys}
+		if tc.n.Key == "" {
+			want = want[:2]
 		}
-		cmd := p.Changes[len(ids)-3].Commands[0]
-		if want := "useradd --home-dir /home/carol --create-home --shell /bin/bash"; !strings.HasPrefix(cmd, want) || strings.Contains(cmd, "--password") != star {
-			t.Errorf("UsePAM no %v: %s", star, cmd)
+		if p.Err() != nil || p.Risk != engine.RiskPlain || len(ids) < len(want) || !slices.Equal(ids[len(ids)-len(want):], want) {
+			t.Fatalf("%s: %v, risk %v, %q", tc.name, p.Err(), p.Risk, ids)
+		}
+		cmd := p.Changes[len(ids)-len(want)].Commands[0]
+		if pre := "useradd --home-dir /home/carol --create-home --shell /bin/bash"; !strings.HasPrefix(cmd, pre) || strings.Contains(cmd, `--password "*"`) != tc.star {
+			t.Errorf("%s: %s", tc.name, cmd)
 		}
 	}
 	e, p, _, h := planOn(t, keyed(sshdKeys, both()), users.Admin{Action: users.ActionCreate, New: n})
