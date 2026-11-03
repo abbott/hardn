@@ -18,10 +18,10 @@ type hooksSet struct {
 func (h *hooksSet) SetWarnedAtLoad(warned bool) { h.warned = warned }
 
 // TestWithHooks: withHooks, as main builds the main menu, sets every hook
-// of it, the DNS, Backup, Environment, System Details and Logs items' and the status's and
-// terminal's, and returns the menu it was given. What each hook runs is
+// of it, the DNS, Firewall, Backup, Environment, System Details and Logs items' (the
+// Firewall item's description's too) and the status's and terminal's, and returns the menu it was given. What each hook runs is
 // its own tests' (TestBackupThenDNS, TestBackupThenEnvironment,
-// TestWithStatus); that main.go:217 calls withHooks is held by reading,
+// TestFirewallHook, TestWithStatus); that main.go:217 calls withHooks is held by reading,
 // and by the VM checks that choose 3, 5 and 8 (screen-environment.md §4).
 func TestWithHooks(t *testing.T) {
 	set := &hooksSet{}
@@ -29,7 +29,8 @@ func TestWithHooks(t *testing.T) {
 		t.Errorf("withHooks returned %p, want the menu given, %p", got, set)
 	}
 	for name, ok := range map[string]bool{
-		"DNS": set.dns != nil, "Backup": set.backup != nil, "Environment": set.environment != nil,
+		"DNS": set.dns != nil, "Firewall": set.firewall != nil, "the Firewall item's description": set.firewallPVE != nil,
+		"Backup": set.backup != nil, "Environment": set.environment != nil,
 		"System Details": set.systemDetails != nil, "Logs": set.logs != nil,
 		"the status": set.read != nil, "the terminal": set.env != nil,
 	} {

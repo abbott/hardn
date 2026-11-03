@@ -50,6 +50,11 @@ type MainMenu struct {
 	// environment runs the Environment item (SetEnvironment).
 	environment func() error
 
+	// firewall runs the Firewall item, and firewallPVE says whether the host
+	// is Proxmox VE, where the item reads as pve-firewall's (SetFirewall).
+	firewall    func() error
+	firewallPVE func() bool
+
 	// systemDetails runs the System Details item (SetSystemDetails).
 	systemDetails func() error
 
@@ -171,6 +176,35 @@ func (m *MainMenu) showEnvironment() error {
 	return showScreen(m.environment, "menu: the Environment item has no screen (SetEnvironment)")
 }
 
+// SetFirewall sets what the Firewall item (4) runs: the Firewall screen
+// (pkg/screens/firewall) on the plan/apply engine, which cmd/hardn
+// assembles, as SetEnvironment sets Environment's (refactor plan slice 4,
+// unit (d)), and onPVE, asked as the main menu is drawn, which reports
+// whether the host is Proxmox VE, where the item reads "View pve-firewall"
+// (gallery-firewall.md §5, decision 7, adopted 2026-11-01); nil is never.
+// It returns as SetDNS's does. The screen adopts hardn.yml as each change
+// saved it into the configuration this menu was given. A main menu whose
+// Firewall item is chosen without one set panics: cmd/hardn sets it on the
+// one main menu it builds.
+func (m *MainMenu) SetFirewall(run func() error, onPVE func() bool) {
+	m.firewall, m.firewallPVE = run, onPVE
+}
+
+// showFirewall is the Firewall item's action: the Firewall screen
+// (showScreen).
+func (m *MainMenu) showFirewall() error {
+	return showScreen(m.firewall, "menu: the Firewall item has no screen (SetFirewall)")
+}
+
+// firewallDescription is the Firewall item's description: origin/main's,
+// or on Proxmox VE what the screen does there (decision 7).
+func (m *MainMenu) firewallDescription() string {
+	if m.firewallPVE != nil && m.firewallPVE() {
+		return "View pve-firewall"
+	}
+	return "Configure UFW rules"
+}
+
 // SetSystemDetails sets what the System Details item (9) runs: the screen
 // (pkg/screens/systemdetails), which cmd/hardn assembles, as SetEnvironment
 // sets Environment's (refactor plan slice 1, unit (d)). It reads and
@@ -194,7 +228,7 @@ func (m *MainMenu) showLogs() error {
 }
 
 // showScreen runs an item's screen that cmd/hardn sets (SetDNS, SetBackup,
-// SetEnvironment, SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
+// SetEnvironment, SetFirewall, SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
 // from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
@@ -734,7 +768,9 @@ func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open: origin/main's screens,
 // but the items whose screens are the hooks cmd/hardn sets (SetDNS,
-// SetBackup, SetEnvironment, SetSystemDetails, SetLogs).
+// SetBackup, SetEnvironment, SetFirewall, SetSystemDetails, SetLogs). Its
+// firewall entry, opened by no item since slice 4's unit (d), goes with
+// firewall_menu.go.
 type screens struct {
 	users, sshLogin, firewall, runAll func(m *MainMenu) legacyScreen
 }
@@ -757,10 +793,12 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // mainMenu is the main menu's items, origin/main's unchanged in content,
 // labels, keys and descriptions, but item 8's description, "Keep
 // HARDN_CONFIG" where origin/main's said "Configure environment variable"
-// (refactor plan slice 9, decision 7 (a), P-07 (c)); item 1's parenthesis
-// its aside; each bound to the screen it opened (legacyScreens, and the
-// DNS, Backup, Environment, System Details and Logs screens, showDNS,
-// showBackup, showEnvironment, showSystemDetails and showLogs); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
+// (refactor plan slice 9, decision 7 (a), P-07 (c)), and item 4's on
+// Proxmox VE, "View pve-firewall" (slice 4, decision 7); item 1's
+// parenthesis its aside; each bound to the screen it opened (legacyScreens,
+// and the DNS, Firewall, Backup, Environment, System Details and Logs
+// screens, showDNS, showFirewall, showBackup, showEnvironment,
+// showSystemDetails and showLogs); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
 // Dry-Run, is removed and its key left unused (slice 2b, unit (d);
 // decision 1): 6 is refused as any key no item has, 7 to 10 keep their
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
@@ -769,10 +807,10 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // set it, User Management (1), which changes the host and saves
 // ./hardn.yml whatever the mode, is refused under the prompt before its
 // screen is built, "Not available in plan only.", as a key no item has is
-// refused (decision 6); live, it opens as before. Backup (5) and
-// Environment (8) open either way: their screens stop each change at its
-// plan under plan only (slice 3, decision 10; slice 9,
-// gallery-environment.md §5, Made here).
+// refused (decision 6); live, it opens as before. Firewall (4), Backup (5)
+// and Environment (8) open either way: their screens stop each change at
+// its plan under plan only (slice 4, screen-firewall.md; slice 3, decision
+// 10; slice 9, gallery-environment.md §5, Made here).
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
 	open := func(build func(*MainMenu) legacyScreen) func() error {
@@ -795,7 +833,7 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"}, Action: open(s.users), Refusal: planOnly},
 			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: open(s.sshLogin)},
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
-			{Item: item("4", "Firewall", "Configure UFW rules"), Action: open(s.firewall)},
+			{Item: item("4", "Firewall", m.firewallDescription()), Action: m.showFirewall},
 			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
 			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: m.showEnvironment},

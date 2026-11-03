@@ -44,19 +44,25 @@ var planOnlySources = []struct {
 // removing one are refused in that screen's words for a choice it does
 // not take, before anything is asked or ./hardn.yml saved, the list
 // unchanged. Live, all three run as before: the screens open, and a
-// profile added or removed is saved. Backup (5) and Environment (8) open
-// under plan only as live (slice 3, unit (d), decision 10; slice 9, unit
-// (d): their screens stop each change at its plan), each given the
-// configuration in plan only as the item is chosen.
+// profile added or removed is saved. Firewall (4), Backup (5) and
+// Environment (8) open under plan only as live (slice 4, unit (d); slice
+// 3, unit (d), decision 10; slice 9, unit (d): their screens stop each
+// change at its plan), each given the configuration in plan only as the
+// item is chosen.
 func TestPlanOnlyRefusals(t *testing.T) {
 	for _, src := range planOnlySources {
 		t.Run("main menu, "+src.name, func(t *testing.T) {
 			t.Chdir(t.TempDir())
 			passes := 0
-			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "5", "8", "q")
+			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "4", "5", "8", "q")
 			m.config = src.start(t)
 			opened := recordScreens(t, m)
-			backupInPlanOnly, envInPlanOnly := false, false
+			fwInPlanOnly, backupInPlanOnly, envInPlanOnly := false, false, false
+			m.SetFirewall(func() error {
+				fwInPlanOnly = m.config.DryRun
+				*opened = append(*opened, "firewall")
+				return nil
+			}, nil)
 			m.SetBackup(func() error {
 				backupInPlanOnly = m.config.DryRun
 				*opened = append(*opened, "backup")
@@ -69,15 +75,15 @@ func TestPlanOnlyRefusals(t *testing.T) {
 			})
 			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
 			const asked = "  > Enter selection [0-5, 7-10 or q]: \n"
-			refused, want, reads := strings.Count(out, "  (x) Not available in plan only.\n"+asked), []string{"backup", "environment"}, 3
+			refused, want, reads := strings.Count(out, "  (x) Not available in plan only.\n"+asked), []string{"firewall", "backup", "environment"}, 4
 			if !src.planOnly {
-				want, reads = []string{"users", "backup", "environment"}, 4
+				want, reads = []string{"users", "firewall", "backup", "environment"}, 5
 			}
 			if ended || !slices.Equal(*opened, want) || refused != map[bool]int{true: 1}[src.planOnly] || passes != reads {
 				t.Errorf("ended %v, opened %q, %d refused, read %d times; want %q, read %d times:\n%s", ended, *opened, refused, passes, want, reads, out)
 			}
-			if backupInPlanOnly != src.planOnly || envInPlanOnly != src.planOnly {
-				t.Errorf("the Backup and Environment screens ran with the configuration's DryRun %t and %t, want %t", backupInPlanOnly, envInPlanOnly, src.planOnly)
+			if fwInPlanOnly != src.planOnly || backupInPlanOnly != src.planOnly || envInPlanOnly != src.planOnly {
+				t.Errorf("the Firewall, Backup and Environment screens ran with the configuration's DryRun %t, %t and %t, want %t", fwInPlanOnly, backupInPlanOnly, envInPlanOnly, src.planOnly)
 			}
 			if _, err := os.Stat("hardn.yml"); err == nil {
 				t.Error("./hardn.yml was written")

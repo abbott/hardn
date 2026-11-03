@@ -57,6 +57,52 @@ func TestEnvironmentItem(t *testing.T) {
 	})
 }
 
+// TestFirewallItem: the main menu's 4 runs the Firewall screen cmd/hardn
+// sets (SetFirewall), as TestDNSItem's 3 runs the DNS screen, and maps what
+// it returns the same way (refactor plan slice 4, unit (d)); the main menu
+// holds the application profiles as the screen left them.
+func TestFirewallItem(t *testing.T) {
+	testScreenItem(t, screenItem{
+		key: "4", name: "FIREWALL", set: func(m *MainMenu, run func() error) { m.SetFirewall(run, nil) },
+		edit: func(c *config.Config) {
+			c.UfwAppProfiles = append(c.UfwAppProfiles, config.UfwAppProfile{Name: "WebServer", Title: "Web", Description: "Web", Ports: []string{"80/tcp"}})
+		},
+		edited: func(c *config.Config) bool {
+			return len(c.UfwAppProfiles) == 1 && c.UfwAppProfiles[0].Name == "WebServer"
+		},
+	})
+}
+
+// TestFirewallItemOnPVE: the main menu's 4 reads "View pve-firewall" where
+// cmd/hardn says the host is Proxmox VE (SetFirewall's onPVE; decision 7,
+// adopted 2026-11-01), and origin/main's "Configure UFW rules" where it
+// says not, or says nothing; its key, label and action are the same.
+func TestFirewallItemOnPVE(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		onPVE func() bool
+		want  string
+	}{
+		{"Proxmox VE", func() bool { return true }, "View pve-firewall"},
+		{"another host", func() bool { return false }, "Configure UFW rules"},
+		{"not said", nil, "Configure UFW rules"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := &MainMenu{config: config.DefaultConfig()}
+			m.SetFirewall(func() error { return nil }, tc.onPVE)
+			for _, o := range m.mainMenu().Options {
+				if o.Item.Key == "4" {
+					if o.Item.Label != "Firewall" || o.Item.Description != tc.want {
+						t.Errorf("item 4 is %q, %q; want Firewall, %q", o.Item.Label, o.Item.Description, tc.want)
+					}
+					return
+				}
+			}
+			t.Error("no item 4")
+		})
+	}
+}
+
 // TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
 // sets, and map what they return as TestDNSItem's 3 does (refactor plan slice 1, unit
 // (d)); neither saves a setting.
