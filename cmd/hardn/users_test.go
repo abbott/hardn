@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/hold"
@@ -383,6 +384,43 @@ func TestCreateUserNoName(t *testing.T) {
 			}, args...)
 			if !r.ended || r.code != 1 || !strings.Contains(r.stdout+r.stderr, "Please specify a username with -u flag or in the configuration file.") {
 				t.Errorf("ended %v with %d; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.stdout, r.stderr)
+			}
+		})
+	}
+}
+
+// TestCreateUserDisableRoot: -c with -d is refused on stderr, exit status
+// 2, before either runs, where -c's user gets no key, as it never does
+// today: no user created, nothing written, sshd's configuration untouched
+// (the legacy provider, -d's, never reached); under -n too. -d alone runs
+// as it did.
+func TestCreateUserDisableRoot(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		args    []string
+		refused string // the refusal's words; "" for none
+	}{
+		{"-c -d -u carol", []string{"-c", "-d", "-u", "carol"},
+			"hardn -c -d would leave no SSH login: carol has no key, and -d turns off root's. Give carol a key first."},
+		{"-c -d: hardn.yml's username", []string{"-c", "-d"},
+			"hardn -c -d would leave no SSH login: alice has no key, and -d turns off root's. Give alice a key first."},
+		{"-n -c -d -u carol", []string{"-n", "-c", "-d", "-u", "carol"}, "-d/--disable-root"},
+		{"-d alone", []string{"-d"}, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newUsersHost(t)
+			r, s := runC(t, h, cfg, nil, tc.args...)
+			if tc.refused == "" {
+				if r.ended && r.code == hardncmd.ExitUsage || len(r.calls) == 0 {
+					t.Errorf("-d refused or not run: ended %v with %d, %d legacy calls; stderr:\n%s", r.ended, r.code, len(r.calls), r.stderr)
+				}
+				return
+			}
+			if !r.ended || r.code != hardncmd.ExitUsage || !strings.Contains(r.stderr, tc.refused) {
+				t.Fatalf("ended %v with %d, want %d saying %q; stderr:\n%s", r.ended, r.code, hardncmd.ExitUsage, tc.refused, r.stderr)
+			}
+			if got := h.writes(); len(got) > 0 || len(h.commands("useradd")) > 0 || len(r.calls) != 0 || s.applies != 0 {
+				t.Errorf("wrote %q, ran %q, %d legacy calls %v, %d applies", got, h.commands("useradd"), len(r.calls), r.calls, s.applies)
 			}
 		})
 	}
