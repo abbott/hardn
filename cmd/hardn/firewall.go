@@ -35,7 +35,9 @@ import (
 // Enable's is wherever it starts ufw or sets the deny policy, is confirmed
 // as main menu 4 confirms it, by the hostname typed, on a terminal, the
 // revert timer then armed as the engine arms it; off a terminal it is
-// refused, nothing armed (enableFirewall). On Proxmox VE the control
+// refused, nothing armed (enableFirewall). A plain plan ("Start ufw at
+// boot" alone, ufw already running) is applied unasked, on a terminal or
+// off, as any flag's. On Proxmox VE the control
 // refuses (UFW_NOT_APPLICABLE). Under -n, or hardn.yml's dryRun: true,
 // the plan alone, no question, nothing written. It returns the exit
 // status: 0 applied or nothing to change, 3 a plan with changes to make

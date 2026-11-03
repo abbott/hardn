@@ -23,18 +23,19 @@ import (
 )
 
 // A typedConfirm is how runControls confirms a flag's plan where it may be
-// lockout-risk. On a terminal, stdin and stdout both, and not under plan
-// only, the plan goes through pkg/ui's canonical flow as a screen's change
-// does: the plan, then question above the hostname typed
+// lockout-risk. A plain plan is applied as runControls applies any flag's,
+// unasked, on a terminal or off. A lockout-risk plan, as runControls plans
+// it, on a terminal, stdin and stdout both, and not under plan only, goes
+// through pkg/ui's canonical flow as a screen's change does (runTyped):
+// planned again, then the plan, then question above the hostname typed
 // (screenkit.Hostname's phrase, and its short form where the name does not
-// show whole), never y/N, whatever the plan's risk; 0 and q decline; the
-// apply, the revert timer armed as the engine arms it for a lockout-risk
-// plan; then what the flow does not draw (output.AfterFlow: the
-// countdown, and sudo hardn confirm). A hostname that can't be read is said
-// in place of the question, nothing asked (Session.CantConfirm). Off a
-// terminal a lockout-risk plan is refused with offTerminal, shown with the
-// plan and not applied, nothing armed; a plain plan is applied as
-// runControls applies any flag's. Under plan only nothing is asked or
+// show whole), never y/N; 0 and q decline; the apply, the revert timer
+// armed as the engine arms it for a lockout-risk plan; then what the flow
+// does not draw (output.AfterFlow: the countdown, and sudo hardn
+// confirm). A hostname that can't be read is said in place of the
+// question, nothing asked (Session.CantConfirm). Off a terminal a
+// lockout-risk plan is refused with offTerminal, shown with the plan and
+// not applied, nothing armed. Under plan only nothing is asked or
 // refused: the plan alone.
 type typedConfirm struct {
 	question    string
@@ -59,7 +60,9 @@ func (q typedConfirm) refuse(p *engine.Plan) error {
 
 // typedEngine is the flow's engine for a typedConfirm: output.FlowEngine,
 // each plan confirmed by the hostname typed (flow.RiskLockout), and its
-// apply under the context apply makes, whose stop is the caller's.
+// apply under the context apply makes, whose stop is the caller's. The
+// flow plans again after runControls has: a plan that turned plain
+// between the two still asks for the hostname.
 type typedEngine struct {
 	*output.FlowEngine
 	apply func(ctx context.Context) context.Context
@@ -84,7 +87,8 @@ func (e typedEngine) Apply(ctx context.Context, report flow.Report) error {
 // prompt, as at every prompt (prompt.Reraise); a seam for the tests.
 var typedReraise = prompt.Reraise
 
-// runTyped is runControls on a terminal with q: controls planned over c
+// runTyped is runControls on a terminal with q, for a plan runControls
+// found lockout-risk: controls planned again over c
 // with engineOptions, then the flow (typedConfirm), on the one line reader
 // every prompt shares and stdout's render environment. The apply and what
 // is written after it run under engineSignals and a hangup's watch,

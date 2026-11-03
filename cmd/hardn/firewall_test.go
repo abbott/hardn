@@ -50,6 +50,9 @@ type fwTestHost struct {
 //     enabled: Enable's plan is lockout-risk;
 //   - enabled: ufw running, deny by default, 22 let through: nothing to
 //     change;
+//   - boot-off: ufw running, deny by default, 22 let through, its service
+//     not started at boot: Enable's plan is plain, "Start ufw at boot"
+//     alone;
 //   - pve9: Proxmox VE 9, where the control refuses (UFW_NOT_APPLICABLE);
 //   - no-hostname: debian13 with no kernel hostname to read.
 func newFWHost(t *testing.T, name string) *fwTestHost {
@@ -78,6 +81,8 @@ func newFWHost(t *testing.T, name string) *fwTestHost {
 	case "debian13":
 	case "enabled":
 		h.active, h.allowed = true, []string{"22"}
+	case "boot-off":
+		h.active, h.allowed, h.unit = true, []string{"22"}, "disabled"
 	case "pve9":
 		h.facts.Platform = detect.Platform{Distro: detect.DistroProxmox, Version: "9", Support: detect.Supported}
 		h.facts.Proxmox = detect.Proxmox{Installed: detect.Yes, Version: "9.0.10", ClusterFS: detect.Yes, EtcPVE: detect.Yes}
@@ -163,6 +168,9 @@ func (h *fwTestHost) answer(argv []string, _ []byte) hostfake.Response {
 	case cmd == "ufw disable":
 		h.active = false
 		return hostfake.Response{Stdout: "Firewall stopped and disabled on system startup\n"}
+	case cmd == "systemctl enable ufw.service":
+		h.unit = "enabled"
+		return hostfake.Response{}
 	case cmd == "systemctl is-enabled ufw.service":
 		return hostfake.Response{Stdout: h.unit + "\n", ExitCode: map[bool]int{true: 0, false: 1}[h.unit == "enabled"]}
 	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "ufw":
@@ -215,8 +223,12 @@ func fwSession(k string) string {
 
 // onTTY is stdout's render environment on a terminal, stdin one too, 80
 // columns, no colour.
-func onTTY() term.Env {
-	return term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Environ: []string{"TERM=xterm", "NO_COLOR=1"}})
+func onTTY() term.Env { return ttyEnv(true, true) }
+
+// ttyEnv is stdout's render environment, stdout a terminal when out and
+// stdin one when in, 80 columns, no colour.
+func ttyEnv(out, in bool) term.Env {
+	return term.Resolve(term.Options{}, term.Facts{StdoutTTY: out, StdinTTY: in, Width: 80, Environ: []string{"TERM=xterm", "NO_COLOR=1"}})
 }
 
 // useFWHost points the seams at h as useDNSHost does, the session
@@ -235,7 +247,10 @@ func useFWHost(t *testing.T, h *fwTestHost, lines ...string) *dnsSeams {
 // sudo hardn confirm said after; under plan only it stops at the plan,
 // nothing run or armed; 0 goes back (nil), q quits (nav.ErrQuit), the end
 // of the input aborts (prompt.ErrAborted). The signals are registered for
-// the apply alone, and never while a prompt waits.
+// the apply alone, and never while a prompt waits. The screen plans with
+// the engine's session: one over SSH whose port can't be read refuses
+// Enable on the screen, said before anything is asked or run, where no
+// session at all would plan it, the refusal then the engine's alone.
 func TestFirewallScreen(t *testing.T) {
 	for _, tc := range []struct {
 		name    string
@@ -244,17 +259,26 @@ func TestFirewallScreen(t *testing.T) {
 		want    error
 		applied bool
 		said    []string
+		getenv  func(string) string // the session's environment, when not alice's
+		unsaid  []string
 	}{
 		{"enable, then return", false, []string{"1", "web-01", "0"}, nil, true,
-			[]string{"Enable the firewall?", "Type the hostname", "Operation Successful", "sudo hardn confirm"}},
-		{"enable under plan only", true, []string{"1", "0"}, nil, false, []string{"No actual changes were made to your system."}},
-		{"enable declined", false, []string{"1", "0", "0"}, nil, false, []string{"Operation Cancelled"}},
-		{"quit", false, []string{"q"}, nav.ErrQuit, false, nil},
-		{"the end of the input", false, nil, prompt.ErrAborted, false, nil},
+			[]string{"Enable the firewall?", "Type the hostname", "Operation Successful", "sudo hardn confirm"}, nil, nil},
+		{"enable under plan only", true, []string{"1", "0"}, nil, false, []string{"No actual changes were made to your system."}, nil, nil},
+		{"enable declined", false, []string{"1", "0", "0"}, nil, false, []string{"Operation Cancelled"}, nil, nil},
+		{"quit", false, []string{"q"}, nav.ErrQuit, false, nil, nil, nil},
+		{"the end of the input", false, nil, prompt.ErrAborted, false, nil, nil, nil},
+		{"the session's port unreadable", false, []string{"1", "0"}, nil, false,
+			[]string{"Warning", "hardn can't tell which port this session uses"},
+			func(k string) string { return map[string]string{"SSH_CONNECTION": "192.0.2.10 50022 192.0.2.20"}[k] },
+			[]string{"Lockout risk", "Type the hostname", "Operation Failed"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := newFWHost(t, "debian13")
 			s := useFWHost(t, h, tc.lines...)
+			if tc.getenv != nil {
+				revertGetenv = tc.getenv
+			}
 			cfg := config.DefaultConfig()
 			cfg.DryRun = tc.dryRun
 			err := runFirewallScreen(context.Background(), cfg)
@@ -264,6 +288,11 @@ func TestFirewallScreen(t *testing.T) {
 			out := style.StripAnsi(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
+			}
+			for _, w := range tc.unsaid {
+				if strings.Contains(out, w) {
+					t.Errorf("the screen says %q:\n%s", w, out)
+				}
 			}
 			if got := h.changed(); tc.applied != slices.Contains(got, "ufw --force enable") || !tc.applied && len(got) > 0 {
 				t.Errorf("ufw changed by %q, want applied %t", got, tc.applied)
@@ -312,17 +341,17 @@ func TestFirewallHook(t *testing.T) {
 const fwLockoutWords = "Enabling the firewall here risks a lockout (PLAN_REFUSED)"
 
 // runW runs hardn with args as root (runG) on the Firewall host h, its
-// configuration hardn's defaults, the session alice's; on a terminal when
-// tty, the user typing lines; setup, when set, run once the seams are in
-// place.
-func runW(t *testing.T, h *fwTestHost, tty bool, lines []string, setup func(*dnsSeams), args ...string) (result, *dnsSeams) {
+// configuration hardn's defaults, the session alice's; stdout's render
+// environment env when set (onTTY: on a terminal), the user typing lines;
+// setup, when set, run once the seams are in place.
+func runW(t *testing.T, h *fwTestHost, env func() term.Env, lines []string, setup func(*dnsSeams), args ...string) (result, *dnsSeams) {
 	t.Helper()
 	return runG(t, h.dnsHost, config.DefaultConfig(), func(s *dnsSeams) {
 		revertGetenv = fwSession
 		in := prompt.New(uitest.NewTypist(&s.out, lines...), false)
 		engineInput = func() *prompt.Reader { return in }
-		if tty {
-			stdoutEnv = onTTY
+		if env != nil {
+			stdoutEnv = env
 		}
 		if setup != nil {
 			setup(s)
@@ -338,20 +367,26 @@ func runW(t *testing.T, h *fwTestHost, tty bool, lines []string, setup func(*dns
 // status 0; a wrong phrase asked again; 0 and q declining, nothing run,
 // 3; the hostname unreadable said in place of the question, nothing
 // asked or run, 1; the end of the input 130. Off a terminal the plan is
-// refused, PLAN_REFUSED, nothing run or armed, 1. -n the plan alone, no
+// refused, PLAN_REFUSED, nothing run or armed, 1, and so it is where
+// stdout alone, or stdin alone, is a terminal. A plain plan ("Start ufw at
+// boot" alone) is applied unasked, nothing armed, 0, on a terminal or off.
+// -n the plan alone, no
 // question, nothing run, 3, on a terminal or off. Proxmox VE refused
 // (UFW_NOT_APPLICABLE), 1. A host already as asked: nothing to change, 0,
 // nothing asked. Nothing goes through the legacy provider, and the
-// signals are registered for an apply alone.
+// signals are registered for an apply alone, an empty plan's too, as
+// runControls applies any flag's.
 func TestConfigureFirewallFlag(t *testing.T) {
 	for _, tc := range []struct {
 		name, host  string
 		tty, dryRun bool
+		env         func() term.Env // stdout's render environment, when not tty's
 		lines       []string
 		code        int      // the exit status; 0: hardn did not exit
 		said        []string // in order
 		unsaid      []string
-		applied     bool
+		applied     bool // Enable's lockout-risk plan applied: ufw started, the timer armed
+		plain       bool // the plain plan applied: ufw's service started at boot, nothing armed
 	}{
 		{name: "on a terminal", host: "debian13", tty: true, lines: []string{"web-01"}, applied: true,
 			said: []string{"Lockout risk", "Enable the firewall?", "Type the hostname [web-01, 0 or q]", "Done", "Operation Successful", "sudo hardn confirm"}},
@@ -364,6 +399,14 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			said: []string{"Lockout risk", "Can't confirm with the hostname"}, unsaid: []string{"Type the hostname"}},
 		{name: "off a terminal", host: "debian13", code: 1,
 			said: []string{"Lockout risk", "No actual changes were made to your system.", fwLockoutWords, "To go on: run hardn -w from a terminal, which asks you to confirm."}},
+		{name: "stdout a terminal, stdin not", host: "debian13", env: func() term.Env { return ttyEnv(true, false) }, code: 1,
+			said: []string{"Lockout risk", fwLockoutWords}, unsaid: []string{"Type the hostname"}},
+		{name: "stdin a terminal, stdout not", host: "debian13", env: func() term.Env { return ttyEnv(false, true) }, code: 1,
+			said: []string{"Lockout risk", fwLockoutWords}, unsaid: []string{"Type the hostname"}},
+		{name: "a plain plan on a terminal", host: "boot-off", tty: true, plain: true,
+			said: []string{"Start ufw at boot"}, unsaid: []string{"Lockout risk", "Type the hostname", "Enable the firewall?"}},
+		{name: "a plain plan off a terminal", host: "boot-off", plain: true,
+			said: []string{"Start ufw at boot"}, unsaid: []string{"Lockout risk", "Type the hostname", fwLockoutWords}},
 		{name: "-n on a terminal", host: "debian13", tty: true, dryRun: true, code: 3, said: []string{"Lockout risk", "No actual changes were made to your system."}},
 		{name: "-n off a terminal", host: "debian13", dryRun: true, code: 3, said: []string{"Lockout risk", "No actual changes were made to your system."}},
 		{name: "Proxmox VE", host: "pve9", tty: true, code: 1, said: []string{"UFW_NOT_APPLICABLE"}},
@@ -376,7 +419,11 @@ func TestConfigureFirewallFlag(t *testing.T) {
 		}
 		t.Run(tc.name, func(t *testing.T) {
 			h := newFWHost(t, tc.host)
-			r, s := runW(t, h, tc.tty, tc.lines, nil, args...)
+			env := tc.env
+			if tc.tty {
+				env = onTTY
+			}
+			r, s := runW(t, h, env, tc.lines, nil, args...)
 			out := style.StripAnsi(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stdout, r.stderr)
@@ -395,10 +442,13 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			if h.armed() != tc.applied {
 				t.Errorf("the revert timer armed %t, want %t", h.armed(), tc.applied)
 			}
+			if tc.host == "boot-off" && (h.unit == "enabled") != tc.plain {
+				t.Errorf("ufw's service at boot %q, want the plain plan applied %t", h.unit, tc.plain)
+			}
 			if len(r.calls) != 0 {
 				t.Errorf("-w went through the legacy provider: %v", r.calls)
 			}
-			if want := map[bool]int{true: 1}[tc.applied]; s.applies != want || s.live != 0 {
+			if want := map[bool]int{true: 1}[tc.applied || !tc.dryRun && tc.code == 0]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
 			}
 		})
@@ -412,7 +462,7 @@ func TestConfigureFirewallFlag(t *testing.T) {
 func TestConfigureFirewallFlagInterrupted(t *testing.T) {
 	h := newFWHost(t, "debian13")
 	var cancel context.CancelFunc
-	r, s := runW(t, h, true, []string{"web-01"}, func(s *dnsSeams) {
+	r, s := runW(t, h, onTTY, []string{"web-01"}, func(s *dnsSeams) {
 		engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
 			s.applies++
 			c, cc := context.WithCancel(ctx)

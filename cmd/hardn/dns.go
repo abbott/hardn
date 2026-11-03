@@ -58,18 +58,19 @@ func configureDNS(c *config.Config) int {
 // a hangup it alone catches, before engineSignals' registration, ends
 // hardn as one that reached the apply does.
 // confirm, when not nil, is the flag's confirmation of a lockout-risk plan
-// (typedConfirm, typed.go: -w's): live on a terminal the controls run
-// through the canonical flow instead (runTyped), confirmed by the hostname
-// typed; live off a terminal a lockout-risk plan is refused, after refuse;
-// under plan only it plays no part.
+// (typedConfirm, typed.go: -w's). A plain plan is applied as any flag's,
+// unasked, on a terminal or off. Live on a terminal, a lockout-risk plan,
+// planned here first and not refused, goes to the canonical flow instead
+// (runTyped), which plans again and confirms by the hostname typed; live
+// off a terminal it is refused, after refuse. Under plan only confirm
+// plays no part.
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
 // or nothing to change, 3 for a dry run with changes to make (or, with
 // confirm, a plan declined), 1 for a refusal or a failure.
 func runControls(c *config.Config, controls []engine.Control, refuse func(*engine.Plan) error, confirm *typedConfirm) int {
-	if confirm != nil && !c.DryRun {
-		if onTerminal() {
-			return runTyped(c, controls, *confirm)
-		}
+	live := confirm != nil && !c.DryRun
+	typed := live && onTerminal()
+	if live && !typed {
 		if refuse == nil {
 			refuse = confirm.refuse
 		} else {
@@ -92,6 +93,9 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 	run.Plan, run.Err = e.Plan(ctx, controls, c)
 	if refuse != nil && run.Err == nil && run.Plan != nil {
 		run.Err = refuse(run.Plan)
+	}
+	if typed && run.Err == nil && run.Plan != nil && run.Plan.Err() == nil && run.Plan.Risk == engine.RiskLockout {
+		return runTyped(c, controls, *confirm)
 	}
 	actx := ctx // a signal's, around the apply and its report alone
 	hungUp := func() bool { return false }
