@@ -64,7 +64,8 @@ type Reading struct {
 	UsersErr error
 	// Session is the applying session (revert.ReadSession's in hardn,
 	// engine.Input.Session in Plan). Login is its line in sshd's log
-	// (sshd.ReadAccepted); LoginErr why it is not found. A console session
+	// (sshd.ReadAccepted, logged by its sshd processes where /proc shows
+	// them: Session.LogPIDs); LoginErr why it is not found. A console session
 	// (Session.Remote false) reads no log.
 	Session  revert.Session
 	Login    sshd.Accepted
@@ -109,7 +110,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	r.Found, r.FoundErr = migrate.Find(ctx, sys, migrate.FindRequest{ConfigFile: file})
 	r.Users, r.UsersErr = users.Read(ctx, sys, f, getenv)
 	if sess.Remote {
-		r.Login, r.LoginErr = sshd.ReadAccepted(ctx, sys, f.Init.Kind == detect.OpenRC, sess.Conn)
+		r.Login, r.LoginErr = sshd.ReadAccepted(ctx, sys, f.Init.Kind == detect.OpenRC, sess.Conn, sess.LogPIDs(ctx, sys))
 	}
 	r.PVE, _ = pve.Applies(f.Proxmox)
 	r.readRoot(ctx, sys)

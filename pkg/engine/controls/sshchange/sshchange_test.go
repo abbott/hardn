@@ -3,6 +3,7 @@ package sshchange_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"strings"
 	"testing"
@@ -80,7 +81,7 @@ func TestRead(t *testing.T) {
 	want := []string{
 		"sshd -T -f /etc/ssh/sshd_config",
 		"visudo -c",
-		"journalctl -q --no-pager -o short-iso -u ssh -u sshd",
+		"journalctl -q --no-pager -b -o short-iso -u ssh -u sshd",
 		"ufw status verbose",
 	}
 	if !slices.Equal(cmds, want) {
@@ -205,6 +206,27 @@ func TestGuards(t *testing.T) {
 		v.log += "2026-11-03T11:59:00+00:00 web-01 sshd-session[3901]: Accepted password for alice from 198.51.100.7 port " + sessionPort + " ssh2\n"
 		if r := read(t, v, sudoGeorge); r.Login.User != "george" || !r.ByKey() {
 			t.Errorf("login %+v, want george by publickey: another address's line on the same port taken", r.Login)
+		}
+	})
+	t.Run("the session's line by its sshd pids", func(t *testing.T) {
+		// george's session: its sshd-session 3910 under the [priv] 3900
+		// that logs (01-inspect-b-*.log), under the listener 700.
+		v := debianVM(t)
+		proc := func(pid int, comm string, ppid int, start uint64) {
+			v.f.AddFile(fmt.Sprintf("/proc/%d/stat", pid), fmt.Appendf(nil, "%d (%s) S %d %d %d 0 -1 4194560 0 0 0 0 0 0 0 0 20 0 1 0 %d 0 0\n", pid, comm, ppid, pid, pid, start), 0o444, 0, 0)
+		}
+		proc(700, "sshd", 1, 1200)
+		proc(3900, "sshd-session", 700, 390000)
+		proc(3910, "sshd-session", 3900, 391000)
+		v.session.SSHD = revert.ProcStart{PID: 3910, Start: 391000}
+		stale := "2026-11-03T11:59:30+00:00 web-01 sshd-session[3999]: Accepted password for alice from 192.0.2.10 port " + sessionPort + " ssh2\n"
+		v.log += stale
+		if r := read(t, v, sudoGeorge); r.Login.User != "george" || !r.ByKey() || r.LoginErr != nil {
+			t.Errorf("login %+v, %v; want george's, the [priv] pid's, not the later stale line's", r.Login, r.LoginErr)
+		}
+		v.log = stale
+		if r := read(t, v, sudoGeorge); r.Login.User != "" || !errors.Is(r.LoginErr, sshd.ErrNotLogged) {
+			t.Errorf("own line missing: %+v, %v; want ErrNotLogged", r.Login, r.LoginErr)
 		}
 	})
 }
