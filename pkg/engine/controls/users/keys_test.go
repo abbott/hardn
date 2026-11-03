@@ -190,6 +190,9 @@ func TestKeyRefusals(t *testing.T) {
 			"USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first."},
 		{"the last key, counted across files", keyed(sshdKeys, strayHomes), users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)},
 			"USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first."},
+		{"the last key, a line sshd refuses not counted", keyed(sshdKeys, map[string]home{"george": {uid: 1000, files: map[string][]string{".ssh/authorized_keys": {key1, "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5 george@old"}}}}),
+			users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)},
+			"USERS_LAST_KEY", "This is george's last key, and you're logged in as george. Add another key first."},
 		{"also in authorized_keys2", keyed(sshdKeys, elsewhere), users.Admin{Action: users.ActionRemoveKey, User: "george", Fingerprint: fpOf(t, key1), Getenv: env(sudoGeorge)},
 			"USERS_KEY_ELSEWHERE", "george's key is also in /home/george/.ssh/authorized_keys2, which sshd reads too. Remove it there, then try again."},
 		{"a key the user has", keyed(sshdKeys, elsewhere), users.Admin{Action: users.ActionAddKey, User: "george", Key: key2, Getenv: env(sudoGeorge)},
@@ -349,7 +352,9 @@ func TestCreateRefusals(t *testing.T) {
 		{"its home there", there, users.New{Name: "carol"}, "USERS_HOME_THERE", "/home/carol is already there, and undoing Create would delete it. Choose another name."},
 		{"a password", keyed(sshdKeys, nil), users.New{Name: "carol", Admin: true, Password: true}, "USERS_NEW_PASSWORD", "A new user has no password, so sudo couldn't ask for one."},
 		{"admin, no tool", site{plat: pve9(), users: []string{georgeLine}}, users.New{Name: "carol", Admin: true}, "USERS_NO_TOOL", "sudo isn't installed, so hardn can't grant admin rights. Install sudo, then try again."},
-		{"not a key", keyed(sshdKeys, nil), users.New{Name: "carol", Key: "ssh-rsa AAAA"}, "AUTHKEYS_NOT_KEY", "Paste one OpenSSH public key, such as ssh-ed25519 AAAA… name."},
+		{"not a key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
+		{"a bad second key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{key4, "ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 2 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
+		{"an empty key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"", key4}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			_, p, sys, _ := planOn(t, tc.site, users.Admin{Action: users.ActionCreate, New: tc.n})
@@ -376,7 +381,7 @@ func TestCreateRefusals(t *testing.T) {
 // notice.
 func TestCreate(t *testing.T) {
 	ctx := context.Background()
-	n := users.New{Name: "carol", Admin: true, Key: key4}
+	n := users.New{Name: "carol", Admin: true, Keys: []string{key4}}
 	for _, tc := range []struct {
 		name, sshd string
 		n          users.New
@@ -395,7 +400,7 @@ func TestCreate(t *testing.T) {
 			ids = append(ids, c.ID)
 		}
 		want := []string{users.ChangeCreate, users.ChangeGrant, users.ChangeKeys}
-		if tc.n.Key == "" {
+		if len(tc.n.Keys) == 0 {
 			want = want[:2]
 		}
 		if p.Err() != nil || p.Risk != engine.RiskPlain || len(ids) < len(want) || !slices.Equal(ids[len(ids)-len(want):], want) {
@@ -438,6 +443,66 @@ func TestCreate(t *testing.T) {
 	}
 }
 
+// TestCreateKeys: Create with several keys, hardn.yml's sshKeys as -c
+// passes them: one change adding every key, in order, each 0600 and the
+// user's; the same key twice added once; one key keeps its words; a key
+// another file sshd reads holds already (AuthorizedKeysFile also
+// /etc/ssh/keys/%u, carol's holding key4) left out, the change adding the
+// rest. A bad second key refuses the plan, nothing run (TestCreateRefusals
+// has its words).
+func TestCreateKeys(t *testing.T) {
+	ctx := context.Background()
+	for _, tc := range []struct {
+		name    string
+		keys    []string
+		held    string // /etc/ssh/keys/carol's key, which sshd also reads; "" for none
+		file    string
+		summary string
+	}{
+		{"two keys", []string{key4, key3}, "", key4 + "\n" + key3 + "\n", "Add carol's keys"},
+		{"one key twice", []string{key4, testKey(4, "carol@phone")}, "", key4 + "\n", "Add carol's key"},
+		{"one held in another file sshd reads", []string{key4, key3}, key4, key3 + "\n", "Add carol's key"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s := keyed(sshdKeys, both())
+			if tc.held != "" {
+				s = keyed(sshdPAM+"authorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2 /etc/ssh/keys/%u\nstrictmodes yes\n", both())
+				seed := s.seed
+				s.seed = func(h *hostfake.System) {
+					seed(h)
+					h.AddDir("/etc/ssh/keys", 0o755, 0, 0)
+					h.AddFile("/etc/ssh/keys/carol", []byte(tc.held+"\n"), 0o644, 0, 0)
+				}
+			}
+			e, p, _, h := planOn(t, s, users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol", Admin: true, Keys: tc.keys}})
+			var keys []engine.Change
+			for _, c := range p.Changes {
+				if c.ID == users.ChangeKeys {
+					keys = append(keys, c)
+				}
+				if len(c.Findings) > 0 {
+					t.Errorf("%s: findings %+v", c.ID, c.Findings)
+				}
+			}
+			if p.Err() != nil || len(keys) != 1 || keys[0].Summary != tc.summary {
+				t.Fatalf("%v: key changes %+v, want one, %q", p.Err(), keys, tc.summary)
+			}
+			simAccounts(h)
+			if _, err := e.Apply(ctx, p); err != nil {
+				t.Fatal(err)
+			}
+			k, _ := h.Entry("/home/carol/.ssh/authorized_keys")
+			if string(k.Data) != tc.file || k.Mode.Perm() != 0o600 || k.UID != 1002 || k.GID != 1002 {
+				t.Errorf("keys %q %v %d:%d, want %q 0600 1002:1002", k.Data, k.Mode, k.UID, k.GID, tc.file)
+			}
+		})
+	}
+	_, p, _, h := planOn(t, keyed(sshdKeys, both()), users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol", Admin: true, Keys: []string{key4, "ssh-rsa AAAA"}}})
+	if p.Err() == nil || ran(h, "useradd") || ran(h, "install") {
+		t.Errorf("a bad second key: %v, useradd ran %v", p.Err(), ran(h, "useradd"))
+	}
+}
+
 // ran reports whether h ran a command named name.
 func ran(h *hostfake.System, name string) bool {
 	return slices.ContainsFunc(h.Calls(), func(c hostfake.Call) bool { return c.Op == "run" && len(c.Argv) > 0 && c.Argv[0] == name })
@@ -465,7 +530,7 @@ func (a *armed) WriteFileAtomic(ctx context.Context, name string, data []byte, p
 // failing: userdel --remove.
 func TestCreateUndo(t *testing.T) {
 	ctx := context.Background()
-	n := users.New{Name: "carol", Admin: true, Key: key4}
+	n := users.New{Name: "carol", Admin: true, Keys: []string{key4}}
 	for _, tc := range []struct {
 		name    string
 		between func(h *hostfake.System)

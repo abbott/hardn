@@ -7,9 +7,7 @@ import "github.com/abbott/hardn/pkg/domain/model"
 type UserService interface {
 	CreateUser(user model.User) error
 	GetUser(username string) (*model.User, error)
-	AddSSHKey(username, publicKey string) error
 	ConfigureSudo(username string, noPassword bool) error
-	GetExtendedUserInfo(username string) (*model.User, error)
 }
 
 // UserServiceImpl implements UserService
@@ -28,12 +26,9 @@ func NewUserServiceImpl(repository UserRepository) *UserServiceImpl {
 type UserRepository interface {
 	CreateUser(user model.User) error
 	GetUser(username string) (*model.User, error)
-	AddSSHKey(username, publicKey string) error
 	ConfigureSudo(username string, noPassword bool) error
-	GetExtendedUserInfo(username string) (*model.User, error)
 
 	// Methods moved from host_info_service.go
-	GetNonSystemUsers() ([]model.User, error)
 	GetNonSystemGroups() ([]string, error)
 }
 
@@ -46,14 +41,6 @@ func (s *UserServiceImpl) GetUser(username string) (*model.User, error) {
 	return s.repository.GetUser(username)
 }
 
-func (s *UserServiceImpl) AddSSHKey(username, publicKey string) error {
-	return s.repository.AddSSHKey(username, publicKey)
-}
-
 func (s *UserServiceImpl) ConfigureSudo(username string, noPassword bool) error {
 	return s.repository.ConfigureSudo(username, noPassword)
-}
-
-func (s *UserServiceImpl) GetExtendedUserInfo(username string) (*model.User, error) {
-	return s.repository.GetExtendedUserInfo(username)
 }

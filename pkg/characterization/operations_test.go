@@ -237,11 +237,9 @@ type fixedItem struct {
 
 // Gate constants, as the FIXED lines name them.
 const (
-	gateStub      = "stubDisableRoot"
-	gateRunAll    = "runAllWithoutConfirmation"
-	gateKeysFile  = "authorizedKeysSSHUOnly"
-	gateKeysFiles = "authorizedKeysSSHUOnly and authorizedKeysFileLinePerPath"
-	gatePVE       = "proxmoxTreatedAsDebian"
+	gateStub   = "stubDisableRoot"
+	gateRunAll = "runAllWithoutConfirmation"
+	gatePVE    = "proxmoxTreatedAsDebian"
 )
 
 // gateCheck is how a golden shows one P0.8 fix: the FIXED item when the
@@ -372,23 +370,14 @@ func (o observed) sftpKept() bool {
 	return len(o.ssh) > 0 && !slices.ContainsFunc(o.ssh, func(w sshWrite) bool { return !w.sftp })
 }
 
-// firstKeysFile is the files of the first AuthorizedKeysFile line of the
-// last sshd config write: the only one sshd reads.
-func (o observed) firstKeysFile() []string {
-	if len(o.ssh) == 0 || len(o.ssh[len(o.ssh)-1].authorizedKeysFile) == 0 {
-		return nil
-	}
-	return strings.Fields(o.ssh[len(o.ssh)-1].authorizedKeysFile[0])
-}
-
 // Short texts for the V-list (Phase 0 side-effect inventory, V1-V27), for
 // the V-numbers a case cites. V20's, cited by setup_sudo_preservation
 // alone, went with that case (slice 9, unit (d)); its frozen goldens keep
-// it (pkg/screens/environment/testdata/legacy/ops).
+// it (pkg/screens/environment/testdata/legacy/ops). V5's, cited by
+// create_user_c_path alone, went with that case (slice 5, unit (d)).
 var vText = map[string]string{
 	"V1":  "CLI -n/--dry-run is ignored below the menu layer: the cfg.DryRun=true section repeats every command and write",
 	"V4":  "disable-root rebuilds the SSH config from a stub (Port 22, no ListenAddress/AllowUsers, key-only) instead of editing PermitRootLogin",
-	"V5":  "-c writes a single 'AuthorizedKeysFile .ssh_%u' while keys are written to ~/.ssh/authorized_keys",
 	"V6":  "password auth disabled and AuthenticationMethods publickey set in the same step that adds keys; nothing proves a key works",
 	"V7":  "no sshd -t before the restart and no sshd -T after; restart instead of reload",
 	"V8":  "the SSH port changes (sshd restart) before any firewall rule allows the new port",
@@ -454,8 +443,6 @@ var fixedText = map[string]string{
 	"V12:disable-root": "disable-root no longer writes a Port line, so there is no port change for ssh.socket to miss (ssh.socket handling itself is Phase 2)",
 	"V15:disable-root": "Alpine: /etc/ssh/sshd_config is edited in place, so Subsystem sftp, Include and comments survive",
 	"V24:disable-root": "disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept",
-	"V5":               "-c writes v0.3.2's 'AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys', so sshd reads the ~/.ssh/authorized_keys that -c writes keys to",
-	"V24:c-path":       "keys a v0.3.2 install kept in ~/.ssh_<user>/authorized_keys keep working: the same AuthorizedKeysFile line lists that file too",
 	"V9:proxmox":       "on Proxmox no ufw command runs at all, so there is no default deny, disable or reset",
 	"V10":              "on Proxmox, configuring or enabling UFW is refused with an error before any ufw command runs (pve-firewall manages the packet filter; brief §2)",
 	"V11:proxmox":      "on Proxmox, PermitRootLogin prohibit-password (key-only) is written where origin/main wrote no (brief §2)",
@@ -614,40 +601,14 @@ func opScenarios() []opScenario {
 				return g
 			},
 		},
-		{
-			name:     "create_user_c_path",
-			op:       "UserManager.CreateUser, then SSHManager.ConfigureSSH with AuthorizedKeysFile from cfg.SshKeyPath (pkg/cmd CreateUserAuthorizedKeysFiles)",
-			entry:    "hardn -c -u alice (cmd/hardn/main.go:365-383); ConfigureSSH runs even when CreateUser fails",
-			cli:      []cliRun{{"-c -u alice", []string{hardncmd.FlagCreateUser}, refusedInRoot}},
-			pveCheck: true,
-			setup:    func(e *opEnv) { e.newUser() },
-			run: func(e *opEnv) []callResult {
-				cfg := e.cfg
-				errUser := e.factory.CreateUserManager().CreateUser(cfg.Username, true, cfg.SudoNoPassword, cfg.SshKeys)
-				errSSH := e.factory.CreateSSHManager().ConfigureSSH(cfg.SshPort, []string{cfg.SshListenAddress}, cfg.PermitRootLogin, cfg.SshAllowedUsers, hardncmd.CreateUserAuthorizedKeysFiles(cfg.SshKeyPath))
-				return []callResult{{"UserManager.CreateUser", errUser}, {"SSHManager.ConfigureSSH", errSSH}}
-			},
-			defects: func(c osCell, o observed) []string {
-				d := []string{"V6", "V7", "V8", "V18", "V27"}
-				d = append(d, proxmoxAllowUsersDefect(c, o)...)
-				d = append(d, sshWriteDefects(c)...)
-				d = append(d, newUserDefects(c)...)
-				return d
-			},
-			gates: func(c osCell) []gateCheck {
-				g := []gateCheck{
-					// sshd reads only the first AuthorizedKeysFile line.
-					{fixedItem{"V5", gateKeysFile}, []string{"V5"}, func(o observed) bool {
-						f := o.firstKeysFile()
-						return len(f) > 0 && f[0] == ".ssh/authorized_keys"
-					}},
-					{fixedItem{"V24:c-path", gateKeysFiles}, []string{"V24"}, func(o observed) bool {
-						return slices.Contains(o.firstKeysFile(), ".ssh_%u/authorized_keys")
-					}},
-				}
-				return append(g, proxmoxRootLoginGate(c)...)
-			},
-		},
+		// create_user_c_path, origin/main's hardn -c (UserManager.CreateUser,
+		// then SSHManager.ConfigureSSH with pkg/cmd's
+		// CreateUserAuthorizedKeysFiles), is retired (refactor plan slice 5,
+		// unit (d), next/s5-replace): -c is the User control's Create, which
+		// configures no sshd, so nothing reaches that pair now. Its four
+		// goldens are deleted, not frozen (the maintainer, 2026-11-03: hard
+		// cutover), and with them the V5 and V24:c-path lines that case alone
+		// cited.
 		{
 			name: "configure_secure_firewall",
 			op:   "FirewallManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, no profiles)",
@@ -679,10 +640,14 @@ func opScenarios() []opScenario {
 		// unchanged to pkg/screens/firewall/testdata/legacy/ops, Firewall's
 		// parity record (docs/engine/parity-firewall.md §8).
 		{
-			name:  "configure_sudo",
-			op:    "UserManager.CreateUser for an existing user -> OSUserRepository.ConfigureSudo, then AddSSHKey",
-			entry: "hardn -c -u alice when alice exists (cmd/hardn/main.go:366); also every user-menu sudo toggle and key change (pkg/menu/user_options.go)",
-			cli:   []cliRun{{"-c -u alice", []string{hardncmd.FlagCreateUser}, refusedInRoot}},
+			name: "configure_sudo",
+			op:   "UserManager.CreateUser for an existing user -> OSUserRepository.ConfigureSudo, then AddSSHKey",
+			// What still reaches it once slice 5's unit (d) puts hardn -c and
+			// the User Management screen on the User control: the user step of
+			// SecurityManager.HardenSystem, which hardn -r and Run All's live run
+			// call for an existing username, until slice 8.
+			entry: "hardn -r (cmd/hardn/main.go:286) and Run All's live run (pkg/menu/run_all_menu.go:228) when alice exists, through SecurityManager.HardenSystem's user step (pkg/application/security_manager.go:34); hardn -c and the User Management screen move to the User control in slice 5 unit (d)",
+			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			notes: []string{"Seed: /etc/sudoers.d/alice holds the env_keep line that setup-sudo-env writes, and alice's authorized_keys already holds the fixture key."},
 			setup: func(e *opEnv) {
 				e.fs.Directories["/etc/sudoers.d"] = true

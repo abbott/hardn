@@ -19,12 +19,12 @@ import (
 
 // New is the user Create makes: Name; Admin, hardn's grant for it, asking
 // no password; Password, a password asked for admin rights, which a new
-// user does not have (refused, decision 3 (a)); Key, a pasted public key,
-// "" for none.
+// user does not have (refused, decision 3 (a)); Keys, its public keys,
+// each a pasted key or one of hardn.yml's sshKeys, none for no key.
 type New struct {
 	Name            string
 	Admin, Password bool
-	Key             string
+	Keys            []string
 }
 
 // CodeNoKey: Create plans a user with no key, who has no password either,
@@ -68,8 +68,8 @@ func (r Reading) CheckName(ctx context.Context, sys host.System, name string) er
 }
 
 // CheckNew is why Plan refuses Create of n, in its order: CheckName's;
-// Password (decision 3 (a)); with Admin, ToolRefusal's; with a Key,
-// KeysRefusal's and ParseKey's. nil where Create may go on. Create without
+// Password (decision 3 (a)); with Admin, ToolRefusal's; with Keys,
+// KeysRefusal's and newKeys'. nil where Create may go on. Create without
 // admin rights works with no tool, as on Proxmox VE.
 func (r Reading) CheckNew(ctx context.Context, sys host.System, n New) error {
 	if err := r.CheckName(ctx, sys, n.Name); err != nil {
@@ -83,15 +83,34 @@ func (r Reading) CheckNew(ctx context.Context, sys host.System, n New) error {
 			return err
 		}
 	}
-	if n.Key != "" {
+	if len(n.Keys) > 0 {
 		if err := r.KeysRefusal(); err != nil {
 			return err
 		}
-		if _, err := ParseKey(n.Key); err != nil {
+		if _, err := newKeys(n); err != nil {
 			return err
 		}
 	}
 	return nil
+}
+
+// newKeys are n's Keys parsed, in order, the same key (authkeys.Key.Same)
+// once. One that is not a key is refused naming which, by its place in Keys
+// from 1, one key or several (proposed words): -c's come from hardn.yml's
+// sshKeys, where "Paste" does not fit, and the screen refuses a pasted one
+// at its field (ParseKey) before CheckNew sees it.
+func newKeys(n New) ([]authkeys.Key, error) {
+	var ks []authkeys.Key
+	for i, s := range n.Keys {
+		k, err := authkeys.ParsePublic(s)
+		if err != nil {
+			return nil, refuse(codeNotKey, err, nil, fmt.Sprintf("Key %d isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name", i+1), "")
+		}
+		if !slices.ContainsFunc(ks, k.Same) {
+			ks = append(ks, k)
+		}
+	}
+	return ks, nil
 }
 
 // planCreate plans Create of n, after CheckNew's refusals, as one plan
@@ -100,10 +119,12 @@ func (r Reading) CheckNew(ctx context.Context, sys host.System, n New) error {
 // in place of useradd's "!", which sshd without PAM refuses a key login to
 // (decision 3 (a); [I] not run on a VM), undone by userdel --remove; then,
 // with Admin, hardn's grant asking no password, as Grant plans it; then,
-// with a Key, the key in ~/.ssh/authorized_keys (authkeys.PlanAdd), ~/.ssh
-// made by install with the user's name, its own group (USERGROUPS_ENAB yes
-// on all three VMs, s5/00-inspect logs; CheckName refuses a group of the
-// name already there). With no key, a finding: the user cannot log in.
+// with Keys, every key in ~/.ssh/authorized_keys, one change (each
+// authkeys.PlanAdd's line appended after the keys planned before it, a key
+// a file sshd reads holds already left out), ~/.ssh made by install with
+// the user's name, its own group (USERGROUPS_ENAB yes on all three VMs,
+// s5/00-inspect logs; CheckName refuses a group of the name already
+// there). With no key, a finding: the user cannot log in.
 func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engine.Change, error) {
 	if err := r.CheckNew(ctx, sys, n); err != nil {
 		return nil, err
@@ -136,7 +157,7 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 			}
 			return engine.Ran{Detail: host.FormatArgv(argv)}, nil
 		}}
-	if n.Key == "" {
+	if len(n.Keys) == 0 {
 		add.Findings = []engine.Finding{{Code: CodeNoKey, Detail: "Without a key " + n.Name + " can't log in: there's no password"}}
 	}
 	out := []engine.Change{add}
@@ -150,16 +171,34 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 			out = append(out, *g)
 		}
 	}
-	if n.Key != "" {
-		k, _ := ParseKey(n.Key) // CheckNew parsed it
+	if len(n.Keys) > 0 {
+		ks, _ := newKeys(n) // CheckNew parsed them
 		u := accounts.User{Name: n.Name, Home: home, Shell: shell}
-		p, err := authkeys.PlanAdd(ctx, sys, u, r.KeyEntries, k)
-		if err != nil {
-			return nil, err
+		var p authkeys.Plan
+		added := 0
+		for _, k := range ks {
+			q, err := authkeys.PlanAdd(ctx, sys, u, r.KeyEntries, k)
+			switch {
+			case err != nil:
+				return nil, err
+			case q.Empty(): // a file sshd reads holds it
+				continue
+			case p.Empty():
+				p = q
+			default:
+				p.After += k.Line + "\n"
+			}
+			added++
 		}
-		c := keysChange(n.Name, p, []string{"install", "-d", "-m", "700", "-o", n.Name, "-g", n.Name, home + "/.ssh"}, "Add "+n.Name+"'s key")
-		c.After = []string{ChangeCreate}
-		out = append(out, c)
+		if !p.Empty() {
+			summary := "Add " + n.Name + "'s key"
+			if added > 1 {
+				summary += "s" // proposed words
+			}
+			c := keysChange(n.Name, p, []string{"install", "-d", "-m", "700", "-o", n.Name, "-g", n.Name, home + "/.ssh"}, summary)
+			c.After = []string{ChangeCreate}
+			out = append(out, c)
+		}
 	}
 	return out, nil
 }

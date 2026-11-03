@@ -58,12 +58,15 @@ func (r Reading) keyRefusal(ctx context.Context, sys host.System, action Action,
 	return nil
 }
 
+// pasteOneKey is the decided words for a pasted text that is not a key.
+const pasteOneKey = "Paste one OpenSSH public key, such as ssh-ed25519 AAAA… name"
+
 // ParseKey is a pasted public key (authkeys.ParsePublic), refused in the
 // decided words where it is not one.
 func ParseKey(s string) (authkeys.Key, error) {
 	k, err := authkeys.ParsePublic(s)
 	if err != nil {
-		return authkeys.Key{}, refuse(codeNotKey, err, nil, "Paste one OpenSSH public key, such as ssh-ed25519 AAAA… name", "")
+		return authkeys.Key{}, refuse(codeNotKey, err, nil, pasteOneKey, "")
 	}
 	return k, nil
 }

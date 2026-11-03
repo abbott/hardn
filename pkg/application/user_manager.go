@@ -29,13 +29,3 @@ func (m *UserManager) CreateUser(username string, hasSudo bool, sudoNoPassword b
 
 	return m.userService.CreateUser(user)
 }
-
-// add an SSH key to an existing user
-func (m *UserManager) AddSSHKey(username string, publicKey string) error {
-	return m.userService.AddSSHKey(username, publicKey)
-}
-
-// GetExtendedUserInfo retrieves comprehensive information about a user
-func (m *UserManager) GetExtendedUserInfo(username string) (*model.User, error) {
-	return m.userService.GetExtendedUserInfo(username)
-}

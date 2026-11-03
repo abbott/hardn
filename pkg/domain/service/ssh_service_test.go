@@ -39,11 +39,6 @@ func (m *MockSSHRepository) DisableRootSSH() error {
 	return args.Error(0)
 }
 
-func (m *MockSSHRepository) AddAuthorizedKey(username string, publicKey string) error {
-	args := m.Called(username, publicKey)
-	return args.Error(0)
-}
-
 func TestSSHServiceImpl_ConfigureSSH(t *testing.T) {
 	// Setup
 	mockRepo := new(MockSSHRepository)
@@ -145,58 +140,6 @@ func TestSSHServiceImpl_DisableRootSSH_Error(t *testing.T) {
 
 	// Execute
 	err := service.DisableRootSSH()
-
-	// Assert
-	assert.Error(t, err)
-	assert.Equal(t, expectedErr, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestSSHServiceImpl_AddAuthorizedKey(t *testing.T) {
-	// Setup
-	mockRepo := new(MockSSHRepository)
-	osInfo := model.OSInfo{
-		Type:     "debian",
-		Version:  "11",
-		Codename: "bullseye",
-	}
-	service := NewSSHServiceImpl(mockRepo, osInfo)
-
-	// Test data
-	username := "testuser"
-	publicKey := "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... testuser@example.com"
-
-	// Setup expectations
-	mockRepo.On("AddAuthorizedKey", username, publicKey).Return(nil)
-
-	// Execute
-	err := service.AddAuthorizedKey(username, publicKey)
-
-	// Assert
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestSSHServiceImpl_AddAuthorizedKey_Error(t *testing.T) {
-	// Setup
-	mockRepo := new(MockSSHRepository)
-	osInfo := model.OSInfo{
-		Type:     "debian",
-		Version:  "11",
-		Codename: "bullseye",
-	}
-	service := NewSSHServiceImpl(mockRepo, osInfo)
-
-	// Test data
-	username := "testuser"
-	publicKey := "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... testuser@example.com"
-
-	// Setup expectations
-	expectedErr := fmt.Errorf("failed to add authorized key")
-	mockRepo.On("AddAuthorizedKey", username, publicKey).Return(expectedErr)
-
-	// Execute
-	err := service.AddAuthorizedKey(username, publicKey)
 
 	// Assert
 	assert.Error(t, err)

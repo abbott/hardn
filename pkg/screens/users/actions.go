@@ -340,7 +340,7 @@ func (r *runner) create(ctx context.Context, h reading) error {
 		Controls: func(*config.Config) []engine.Control {
 			n := usersctl.New{Name: name, Admin: admin}
 			if addKey {
-				n.Key = key
+				n.Keys = []string{key}
 			}
 			return []engine.Control{r.control(usersctl.Admin{Action: usersctl.ActionCreate, New: n})}
 		},

@@ -284,6 +284,50 @@ func TestUfwPolicyWarning(t *testing.T) {
 	}
 }
 
+// TestSudoNoPasswordWarning: where hardn.yml loads, sudoNoPassword: false
+// warns once, in slice 5's decision 7 (a) words, the file still accepted;
+// true, set or left out (the default), never warns, and neither do
+// username and sshKeys, Create's defaults.
+func TestSudoNoPasswordWarning(t *testing.T) {
+	const words = "hardn.yml's sudoNoPassword: false isn't used by User Management or -c"
+	for _, tc := range []struct {
+		name, yml string
+		warned    bool
+	}{
+		{"left out", "username: alice\n", false},
+		{"true", "username: alice\nsudoNoPassword: true\n", false},
+		{"false", "username: alice\nsudoNoPassword: false\n", true},
+		{"username and sshKeys", "username: deploy\nsshKeys:\n  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB deploy@ci\n", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			const path = "/etc/hardn/hardn.yml"
+			loaded := false
+			r := runHardnWith(t, asRoot, func() {
+				loadConfig = func(string) (*config.Config, error) {
+					f := hostfake.New(host.Options{})
+					f.AddFile(path, []byte(tc.yml), 0o644, 0, 0)
+					c, err := config.Read(context.Background(), f, path)
+					loaded = err == nil
+					return c, err
+				}
+			}, "-d")
+			if !loaded {
+				t.Fatalf("hardn.yml did not load; stderr:\n%s", r.stderr)
+			}
+			flat := strings.ReplaceAll(r.stderr, "\n# ", " ") // the callout wraps its lines
+			if n := strings.Count(flat, words); n != map[bool]int{true: 1}[tc.warned] {
+				t.Errorf("warned %d times, want warned %v; stderr:\n%s", n, tc.warned, r.stderr)
+			}
+			if !strings.Contains(r.stdout, "Script completed") {
+				t.Errorf("-d did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
+			}
+		})
+	}
+	if w := loadWarnings(config.DefaultConfig()); strings.Contains(w, "sudoNoPassword") {
+		t.Errorf("hardn's defaults warn:\n%s", w)
+	}
+}
+
 // TestWarningsFollowDetectOS: detectOS clears the terminal (utils.PrintHeader), so what
 // loading hardn.yml warns of is said after it, or no one reads it (run: the VMs).
 func TestWarningsFollowDetectOS(t *testing.T) {

@@ -41,11 +41,6 @@ func (m *HostInfoManager) GetHostname() (string, string, error) {
 	return m.hostInfoService.GetHostname()
 }
 
-// GetNonSystemUsers retrieves non-system users on the system
-func (m *HostInfoManager) GetNonSystemUsers() ([]model.User, error) {
-	return m.hostInfoService.GetNonSystemUsers()
-}
-
 // GetNonSystemGroups retrieves non-system groups on the system
 func (m *HostInfoManager) GetNonSystemGroups() ([]string, error) {
 	return m.hostInfoService.GetNonSystemGroups()
