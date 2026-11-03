@@ -25,6 +25,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/header"
@@ -145,6 +146,19 @@ var errorCodes = []Entry{
 		func(err error) bool {
 			return errors.Is(err, steps.ErrNoRunDir) || envKind(sshd.EnvPrivsepDir)(err)
 		}),
+	// The SSH Login screen's refusals (refactor plan slice 6, unit (b)):
+	// before sshd's errors the not-read refusal wraps.
+	is("SSH_SETTINGS_NOT_READ", sshchange.ErrNotRead),
+	is("SSH_SESSION_NOT_LOGGED", sshchange.ErrNoSession),
+	is("SSH_ROOT_SESSION", sshchange.ErrRootSession),
+	is("SSH_NO_ADMIN_LOGIN", sshchange.ErrNoAdmin),
+	is("SSH_PASSWORD_SESSION", sshchange.ErrPasswordSession),
+	is("SSH_ADMIN_PASSWORD_ONLY", sshchange.ErrPasswordOnly),
+	is("SSH_MATCH_LETS_MORE", sshchange.ErrMatchMore),
+	is("SSH_PVE_ROOT_KEY_ONLY", sshchange.ErrPVEKeyOnly),
+	is("SSH_PVE_ROOT_PASSWORD_SESSION", sshchange.ErrPVEPasswordSession),
+	is("SSH_PVE_NO_ROOT_KEY", sshchange.ErrPVENoRootKey),
+	is("SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted),
 	is("SSHD_NO_WRITE_STRATEGY", steps.ErrNoWriteStrategy),
 	is("SSH_MIGRATE_FIRST", steps.ErrMigrateFirst),
 	is("SSH_PORT_NO_NEW_LISTENER", steps.ErrNoNewListener),
@@ -227,6 +241,7 @@ var errorCodes = []Entry{
 	is("SSHD_INCLUDE_UNSUPPORTED", sshd.ErrUnsupportedInclude),
 	is("SSHD_DROPIN_NOT_INCLUDED", sshd.ErrNotIncluded),
 	is("SSHD_CONFIG_NOT_REGULAR", sshd.ErrNotRegular).what("an sshd configuration file is not a regular file"),
+	is("SSHD_LOGIN_NOT_LOGGED", sshd.ErrNotLogged),
 	is("SSH_MIGRATE_INCLUDE_OTHER", migrate.ErrIncludeOther),
 	is("SSH_MIGRATE_NOT_ESTABLISHED", migrate.ErrNotEstablished),
 	is("SSH_MIGRATE_FEWER_LOGIN_PATHS", migrate.ErrFewerLoginPaths),
