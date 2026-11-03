@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"regexp"
 	"slices"
@@ -22,6 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
@@ -49,6 +51,9 @@ const (
 	wordsKeyFilesRead = "hardn can't read which files sshd takes keys from: %s"
 	wordsStrict       = "sshd would ignore a key for %s: %s. With StrictModes it takes keys only where the home and ~/.ssh are the user's own and no one else can write to them."
 	wordsLastKey      = "This is %s's last key, and you're logged in as %s. Add another key first."
+	wordsDupKey       = "%s already has this key."
+	wordsKeyGone      = "That key isn't in %s any more. Nothing changed."
+	wordsElsewhere    = "%s's key is also in %s, which sshd reads too. Remove it there, then try again."
 	wordsNotRead      = "hardn can't read %s's rules: %s Check them with %s, then try again."
 	wordsNoTool       = "sudo isn't installed, so hardn can't grant admin rights. Install sudo, then try again."
 	wordsName         = "Use lower-case letters, digits, - and _, starting with a letter or _, up to 32."
@@ -408,6 +413,25 @@ func TestRemoveKey(t *testing.T) {
 	}
 }
 
+// TestRemoveKeyElsewhere: a key also in authorized_keys2, which sshd reads
+// too, is refused at "Remove which key?" in the control's words
+// (USERS_KEY_ELSEWHERE), asked again; no engine, nothing written.
+func TestRemoveKeyElsewhere(t *testing.T) {
+	h := newHost(t, "debian13")
+	two := "/home/george/.ssh/authorized_keys2"
+	h.AddFile(two, []byte(synthKey(1, "george@laptop-1")+"\n"), 0o600, 1000, 1000)
+	n := len(h.Calls())
+	p := play(h, false, "1", "1", "3", "2", "1", "q")
+	words := fmt.Sprintf(wordsElsewhere, "george", two)
+	if !errors.Is(p.err, nav.ErrQuit) || !shows(p.out, words) || !strings.Contains(p.out, screen.UsersWhichKeyField) ||
+		strings.Count(p.out, "Enter your choice [1-2, 0 or q]") != 2 || p.engines != 0 || asked(p.out) {
+		t.Errorf("Run = %v, %d engines:\n%s", p.err, p.engines, p.out)
+	}
+	if w := writes(h, n); len(w) > 0 {
+		t.Errorf("wrote %v", w)
+	}
+}
+
 // TestAddKey: Add SSH key writes the key, y/N; a key that is not one is
 // refused at its field in the control's words, asked again; a locked user's
 // plan says sshd refuses its keys, the control's finding.
@@ -417,6 +441,16 @@ func TestAddKey(t *testing.T) {
 	data, err := h.ReadFile(context.Background(), "/home/alice/.ssh/authorized_keys")
 	if p.err != nil || err != nil || strings.TrimSpace(string(data)) != carolKey || !shows(p.out, "Paste one OpenSSH public key, such as ssh-ed25519") {
 		t.Errorf("Run = %v, %q, %v:\n%s", p.err, data, err, p.out)
+	}
+	// A key george has: warned at the field, asked again; refusing a new
+	// one there too, the review never counts it, and nothing is planned.
+	h = newHost(t, "debian13")
+	george, _ := userOf(t, readHost(t, h), "george")
+	n := len(h.Calls())
+	p = play(h, false, "1", "1", "3", "1", george.Keys[0].Line, "q")
+	if !errors.Is(p.err, nav.ErrQuit) || !shows(p.out, fmt.Sprintf(wordsDupKey, "george")) || strings.Count(p.out, screen.UsersKeyField) != 2 ||
+		p.engines != 0 || asked(p.out) || len(writes(h, n)) > 0 {
+		t.Errorf("a key george has: Run = %v, %d engines:\n%s", p.err, p.engines, p.out)
 	}
 	h = newHost(t, "alpine-locked")
 	if p := play(h, true, "1", "3", "3", "1", carolKey, "0", "0", "0", "0"); !shows(p.out, fmt.Sprintf(wordsLocked, "alice")) || !shows(p.out, planned) {
@@ -504,15 +538,16 @@ func TestCreateForm(t *testing.T) {
 	}
 }
 
-// TestCreateDefaults: Create's defaults are hardn.yml's username,
-// sudoNoPassword and first key, never a user the rows are about (decision
-// 7), each an empty line's answer; with no hardn.yml, none: an empty name
-// is refused.
+// TestCreateDefaults: Create's defaults are hardn.yml's username and first
+// key, never a user the rows are about (decision 7), each an empty line's
+// answer; "Grant admin rights?" is no, sudoNoPassword set or not: a new user
+// has no password to ask (decision 3). With no hardn.yml, none: an empty
+// name is refused.
 func TestCreateDefaults(t *testing.T) {
 	h := newHost(t, "yml-missing")
 	cfg := loadYML(t, h, usrYML)
-	p := playWith(h, true, func(o *usrscreen.Options) { o.Config = cfg }, "2", "", "", "n", "", "", "0")
-	if p.err != nil || !shows(p.out, "Default: deploy") || !shows(p.out, "Grant admin rights? [Y/n") || !shows(p.out, "Add SSH key? [Y/n") ||
+	p := playWith(h, true, func(o *usrscreen.Options) { o.Config = cfg }, "2", "", "", "", "", "0")
+	if p.err != nil || !shows(p.out, "Default: deploy") || !shows(p.out, "Grant admin rights? [y/N") || shows(p.out, "Require password") || !shows(p.out, "Add SSH key? [Y/n") ||
 		!shows(p.out, "Default: hardn.yml's key") || !shows(p.out, "useradd --home-dir /home/deploy") || !shows(p.out, "Add deploy's key") || !shows(p.out, planned) {
 		t.Errorf("hardn.yml's defaults: Run = %v:\n%s", p.err, p.out)
 	}
@@ -617,8 +652,8 @@ func TestHostname(t *testing.T) {
 
 // TestMoved: a change whose reading moved since the draw is planned from a
 // fresh reading: alice's grant gone before the plan, Remove plans nothing;
-// george's key gone, Remove SSH key refuses, the control's words; nothing
-// is applied to the old picture.
+// george's key gone, Remove SSH key refuses (USERS_KEY_GONE), the control's
+// words, never FILE_NOT_FOUND; nothing is applied to the old picture.
 func TestMoved(t *testing.T) {
 	h := newHost(t, "second-admin")
 	n, _ := sudoers.FileNames(sudoers.ToolSudo, "alice")
@@ -642,9 +677,47 @@ func TestMoved(t *testing.T) {
 		}
 	}, "1", "1", "3", "2", "1", "0", "0", "0", "0")
 	data, _ := h.ReadFile(context.Background(), keys)
-	if p.err != nil || shows(p.out, applied) || string(data) != synthKey(2, "george@laptop-2")+"\n" || !shows(p.out, "is not in "+keys) {
-		t.Errorf("key gone: Run = %v, %q:\n%s", p.err, data, p.out)
+	// Gone between the pick and the engine's plan: the flow's report of a
+	// refused plan, in the refusal's words and code.
+	gone := fmt.Sprintf(wordsKeyGone, keys)
+	if p.err != nil || shows(p.out, applied) || string(data) != synthKey(2, "george@laptop-2")+"\n" ||
+		!shows(p.out, strings.TrimSuffix(gone, ".")+" (USERS_KEY_GONE)") ||
+		shows(p.out, "FILE_NOT_FOUND") || shows(p.out, "is not in") {
+		t.Errorf("key gone at the plan: Run = %v, %q:\n%s", p.err, data, p.out)
 	}
+	// The key leaves after the keys are drawn, before Remove SSH key: said
+	// as a refusal before asking, then the keys drawn again from a fresh
+	// reading, without it.
+	h = newHost(t, "debian13")
+	n0 := len(h.Calls())
+	p = playWith(h, false, func(o *usrscreen.Options) {
+		o.Prompter.In = prompt.New(&hooked{r: uitest.NewTypist(io.Discard, "1", "1", "3", "2", "0", "0", "0", "0"), at: 3, fn: func() {
+			h.AddFile(keys, []byte(synthKey(2, "george@laptop-2")+"\n"), 0o600, 1000, 1000)
+		}}, false)
+	})
+	_, after, _ := strings.Cut(flat(p.out), flat(gone))
+	if p.err != nil || !shows(p.out, gone) || asked(p.out) || p.engines != 0 || strings.Contains(p.out, screen.UsersWhichKeyField) ||
+		!strings.Contains(after, "george@laptop-2") || strings.Contains(after, "george@laptop-1") || len(writes(h, n0)) > 0 {
+		t.Errorf("key gone after the draw: Run = %v, %d engines, wrote %v:\n%s", p.err, p.engines, writes(h, n0), p.out)
+	}
+}
+
+// hooked is r, calling fn once before the line at index at is read: the
+// host changed while the screen waits for that line.
+type hooked struct {
+	r     io.Reader
+	at, n int
+	fn    func()
+}
+
+func (h *hooked) Read(b []byte) (int, error) {
+	if h.n == h.at && h.fn != nil {
+		h.fn()
+		h.fn = nil
+	}
+	n, err := h.r.Read(b)
+	h.n += bytes.Count(b[:n], []byte("\n"))
+	return n, err
 }
 
 // TestHeights: each host's screen at 80x24 and 80x40, in Unicode and ASCII,

@@ -49,7 +49,7 @@ $
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
@@ -157,7 +157,7 @@ $
 $
    1. Username [0 or q]: carol$
 $
-   2. Grant admin rights? [Y/n, 0 or q]: y$
+   2. Grant admin rights? [y/N, 0 or q]: y$
 $
    3. Require password for admin rights? [y/N, 0 or q]: n$
 $
@@ -278,7 +278,7 @@ $
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $

@@ -36,10 +36,10 @@ $
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105msudo isn't installed, so hardn can't grant admin rights.␛[m$
       ␛[38;2;231;70;105mInstall sudo, then try again.␛[m$
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
@@ -128,10 +128,10 @@ $
 $
    1. Username [0 or q]: carol$
 $
-   2. Grant admin rights? [Y/n, 0 or q]: y$
+   2. Grant admin rights? [y/N, 0 or q]: y$
   (x) sudo isn't installed, so hardn can't grant admin rights.$
       Install sudo, then try again.$
-   2. Grant admin rights? [Y/n, 0 or q]: n$
+   2. Grant admin rights? [y/N, 0 or q]: n$
 $
    3. Add SSH key? [y/N, 0 or q]: n$
 $
@@ -223,10 +223,10 @@ $
 $
    ␛[38;2;192;196;216m1.␛[m ␛[38;2;192;196;216mUsername␛[m ␛[38;2;192;196;216m[0 or q]:␛[m carol$
 $
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m y$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
    ␛[38;2;231;70;105m⨳␛[m  ␛[38;2;231;70;105msudo isn't installed, so hardn can't grant admin␛[m$
       ␛[38;2;231;70;105mrights. Install sudo, then try again.␛[m$
-   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
    ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
