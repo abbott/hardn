@@ -650,7 +650,8 @@ var stateDirs = []string{revert.DefaultDir, "/run/hardn", backup.DefaultPath}
 // given a link and values they set the link's), visudo's and doas -C's checks, the
 // boot unit's checks (systemd-analyze verify, sh -n) on its copy, and
 // detect's questions (sudo --version, dpkg-query), and the package tools'
-// simulations and reads (apt-get install -s, apk add --simulate, apk info).
+// simulations and reads (apt-get install -s, apk add --simulate, apk info),
+// and sshd's log as sshd.ReadAccepted reads it (journalctl -u).
 func reads(argv []string) bool {
 	switch path.Base(argv[0]) {
 	case "sshd", "ss", "systemd-analyze", "visudo", "dpkg-query":
@@ -661,6 +662,8 @@ func reads(argv []string) bool {
 		return len(argv) == 2 && argv[1] == "--version"
 	case "doas":
 		return len(argv) == 3 && argv[1] == "-C"
+	case "journalctl":
+		return slices.Contains(argv, "-u")
 	case "systemctl":
 		return slices.Contains([]string{"is-active", "is-enabled", "show", "list-timers"}, argv[1])
 	case "sh":
