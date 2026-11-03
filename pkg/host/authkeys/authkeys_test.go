@@ -118,7 +118,7 @@ func blobOfLine(t *testing.T, line string) []byte {
 // TestParseBlob: the whole blob is read in its type's wire form, with no
 // x/crypto. A well-formed key of each type OpenSSH 9 and 10 take parses;
 // one cut short, one with bytes after it, ed25519's header alone, a
-// 768-bit RSA modulus, a wrong curve or point are ErrNotKey, saying why
+// 768-bit or 16392-bit RSA modulus, a wrong curve or point are ErrNotKey, saying why
 // after the existing words. Synthetic keys, built here, no one's.
 func TestParseBlob(t *testing.T) {
 	e := []byte{1, 0, 1}
@@ -127,6 +127,7 @@ func TestParseBlob(t *testing.T) {
 		"ssh-ed25519":                        edKey,
 		"ssh-rsa":                            rsaKey,
 		"ssh-rsa, 1024 bits":                 lineOf("ssh-rsa", blobOf("ssh-rsa", e, rsa1024)),
+		"ssh-rsa, 16384 bits":                lineOf("ssh-rsa", blobOf("ssh-rsa", e, filled(0, 0xc5, 2049))),
 		"ecdsa-sha2-nistp256":                ecKey,
 		"ecdsa-sha2-nistp384":                lineOf("ecdsa-sha2-nistp384", blobOf("ecdsa-sha2-nistp384", []byte("nistp384"), filled(4, 7, 97))),
 		"ecdsa-sha2-nistp521":                lineOf("ecdsa-sha2-nistp521", blobOf("ecdsa-sha2-nistp521", []byte("nistp521"), filled(4, 7, 133))),
@@ -162,6 +163,7 @@ func TestParseBlob(t *testing.T) {
 		{"an ed25519 key of 31 bytes", lineOf("ssh-ed25519", blobOf("ssh-ed25519", filled(1, 1, 31))), "its key is 31 bytes, not 32"},
 		{"RSA, 768 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, filled(0, 0xc5, 97))), "its modulus is 768 bits, under 1024"},
 		{"RSA, 1023 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, append([]byte{0x7f}, rsa1024[2:]...))), "its modulus is 1023 bits, under 1024"},
+		{"RSA, 16392 bits", lineOf("ssh-rsa", blobOf("ssh-rsa", e, filled(0, 0xc5, 2050))), "its modulus is 16392 bits, over 16384"},
 		{"RSA, a negative modulus", lineOf("ssh-rsa", blobOf("ssh-rsa", e, rsa1024[1:])), "its modulus isn't positive"},
 		{"RSA, a zero exponent", lineOf("ssh-rsa", blobOf("ssh-rsa", nil, rsa1024)), "its exponent isn't positive"},
 		{"ECDSA, another curve", lineOf("ecdsa-sha2-nistp256", blobOf("ecdsa-sha2-nistp256", []byte("nistp384"), filled(4, 7, 65))), `its curve is "nistp384", not nistp256`},
