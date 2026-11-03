@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -43,6 +44,8 @@ type sshTestHost struct {
 
 	smu        sync.Mutex
 	log        string   // journalctl -u ssh -u sshd's lines
+	tFailAt    int      // the sshd -t call that first refuses, and those after; 0: none
+	tCalls     int      // sshd -t's calls
 	unexpected []string // the commands the model does not answer
 }
 
@@ -143,6 +146,9 @@ func (h *sshTestHost) answer(argv []string) (hostfake.Response, bool) {
 	cmd := strings.Join(argv, " ")
 	switch {
 	case path.Base(argv[0]) == "sshd" && slices.Contains(argv, "-t"):
+		if h.tCalls++; h.tFailAt > 0 && h.tCalls >= h.tFailAt {
+			return hostfake.Response{Stderr: "/etc/ssh/sshd_config.d/00-hardn.conf line 1: Bad configuration option: x\n", ExitCode: 255}, true
+		}
 		return hostfake.Response{}, true
 	case path.Base(argv[0]) == "sshd" && slices.Contains(argv, "-T"):
 		conf := sshd.MainConfig
@@ -247,10 +253,13 @@ func useSSHHost(t *testing.T, h *sshTestHost, lines ...string) *dnsSeams {
 // session the engine's (george's over SSH, sshd's log read for it) and
 // hardn's environment read for the session user (os.Getenv: george,
 // through sudo): Disallow root login typed and applied writes
-// PermitRootLogin no and arms the revert timer, the countdown and sudo
-// hardn confirm said after; under plan only it stops at its plan, nothing
-// written or armed; 0 goes back (nil), q quits (nav.ErrQuit), the end of
-// the input aborts (prompt.ErrAborted). The signals are registered for the
+// PermitRootLogin no and arms the revert timer, the countdown counted
+// from revertNow and sudo hardn confirm said after; an apply failing
+// (sshd -t refusing) names hardn's log, nothing kept or armed; under plan
+// only it stops at its plan, nothing written or armed; Change SSH port's
+// field defaults to hardn.yml's sshPort (Config), 0 backing out; 0 goes
+// back (nil), q quits (nav.ErrQuit), the end of the input aborts
+// (prompt.ErrAborted). The signals are registered for the
 // apply alone, and never while a prompt waits. No change saves hardn.yml.
 func TestSSHScreen(t *testing.T) {
 	for _, tc := range []struct {
@@ -260,16 +269,22 @@ func TestSSHScreen(t *testing.T) {
 		want    error
 		applied bool
 		said    []string
+		tFailAt int // sshd -t's call that first refuses: 3, the apply's (the screen's plan, the run lock's, the apply's)
 	}{
-		{"back", false, []string{"0"}, nil, false, []string{"SSH Login", "george"}},
+		{"back", false, []string{"0"}, nil, false, []string{"SSH Login", "george"}, 0},
 		{"Disallow root login", false, []string{"1", "web-01", "0"}, nil, true,
-			[]string{"Disallow root login?", "Type the hostname", "Operation Successful", "sudo hardn confirm", "Allow root key-only"}},
-		{"Disallow under plan only", true, []string{"1", "0"}, nil, false, []string{"No actual changes were made to your system."}},
-		{"quit", false, []string{"q"}, nav.ErrQuit, false, nil},
-		{"the end of the input", false, nil, prompt.ErrAborted, false, nil},
+			[]string{"Disallow root login?", "Type the hostname", "Operation Successful", "This change reverts automatically in 3:00",
+				"sudo hardn confirm", "12:03:00 UTC", "Allow root key-only"}, 0},
+		{"Disallow failing", false, []string{"1", "web-01", "0"}, nil, false,
+			[]string{"Disallow root login?", "Type the hostname", "Check the log file at " + output.LegacyLogPath}, 3},
+		{"Disallow under plan only", true, []string{"1", "0"}, nil, false, []string{"No actual changes were made to your system."}, 0},
+		{"the port's default", false, []string{"3", "0", "0"}, nil, false, []string{"New SSH port", "Default: 2230"}, 0},
+		{"quit", false, []string{"q"}, nav.ErrQuit, false, nil, 0},
+		{"the end of the input", false, nil, prompt.ErrAborted, false, nil, 0},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, cfg := newSSHHost(t, "debian13")
+			h.tFailAt = tc.tFailAt
 			yml := h.content(dnsTestYML)
 			s := useSSHHost(t, h, tc.lines...)
 			cfg.DryRun = tc.dryRun
@@ -284,7 +299,7 @@ func TestSSHScreen(t *testing.T) {
 			if got := h.rootLogin(); (got == "no") != tc.applied || h.armed() != tc.applied || !tc.applied && len(h.sshdWrites()) > 0 {
 				t.Errorf("PermitRootLogin %s, armed %t, wrote %q; want applied %t", got, h.armed(), h.sshdWrites(), tc.applied)
 			}
-			if want := map[bool]int{true: 1}[tc.applied]; s.applies != want || s.live != 0 || s.atPrompt != 0 {
+			if want := map[bool]int{true: 1}[tc.applied || tc.tFailAt > 0]; s.applies != want || s.live != 0 || s.atPrompt != 0 {
 				t.Errorf("signals registered %d times (want %d), %d left, %d prompts read under them", s.applies, want, s.live, s.atPrompt)
 			}
 			if got := h.content(dnsTestYML); got != yml {
