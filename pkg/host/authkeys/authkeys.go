@@ -135,13 +135,14 @@ func parse(l string) (Key, error) {
 }
 
 // Path is AuthorizedKeysFile's entry for u: %h, %u and %% expanded
-// (sshd_config(5) TOKENS), relative to the home.
+// (sshd_config(5) TOKENS), relative to the home, cleaned (path.Clean), so
+// %h/.ssh/authorized_keys with a home "/home/x/" is the planned path.
 func Path(entry string, u accounts.User) string {
 	p := strings.NewReplacer("%%", "%", "%h", u.Home, "%u", u.Name).Replace(entry)
 	if !strings.HasPrefix(p, "/") {
 		p = path.Join(u.Home, p)
 	}
-	return p
+	return path.Clean(p)
 }
 
 // File is one file sshd reads for a user.
@@ -316,7 +317,9 @@ func PlanRemove(ctx context.Context, sys host.System, u accounts.User, entries [
 }
 
 // read is Read's files for u and the planned one among them, or an error:
-// ErrNotPlanned, or the first file that can't be read.
+// ErrNotPlanned, also where no file read is the planned one (Plannable's
+// entry expanding elsewhere, as with no home), or the first file that
+// can't be read.
 func read(ctx context.Context, sys host.System, u accounts.User, entries []string) ([]File, File, error) {
 	if !Plannable(entries) {
 		return nil, File{}, fmt.Errorf("%w (AuthorizedKeysFile %s)", ErrNotPlanned, strings.Join(entries, " "))
@@ -331,6 +334,9 @@ func read(ctx context.Context, sys host.System, u accounts.User, entries []strin
 		if f.Path == want {
 			planned = f
 		}
+	}
+	if planned.Path == "" {
+		return nil, File{}, fmt.Errorf("%w (AuthorizedKeysFile %s reads no %s)", ErrNotPlanned, strings.Join(entries, " "), want)
 	}
 	return files, planned, nil
 }

@@ -288,3 +288,34 @@ func TestPlansOnlyRead(t *testing.T) {
 		t.Errorf("~/.ssh made: %v", fi.Mode())
 	}
 }
+
+// TestTrailingSlashHome: a home "/home/george/" plans the same path both
+// ways, .ssh/authorized_keys and %h/.ssh/authorized_keys; where no file
+// read is the planned one (%h with no home: "/.ssh/authorized_keys"),
+// both plans are ErrNotPlanned, never an empty plan.
+func TestTrailingSlashHome(t *testing.T) {
+	slash := george
+	slash.Home = "/home/george/"
+	for _, entries := range [][]string{alpine, {"%h/.ssh/authorized_keys"}} {
+		if got := authkeys.Path(entries[0], slash); got != keysFile {
+			t.Errorf("Path(%q) = %q", entries[0], got)
+		}
+		p, err := authkeys.PlanAdd(ctx, keyHost(true, map[string]string{keysFile: rsaKey + "\n"}), slash, entries, key(t, edKey))
+		if err != nil || p.Path != keysFile || p.After != rsaKey+"\n"+edKey+"\n" {
+			t.Errorf("%q: PlanAdd = %+v, %v", entries, p, err)
+		}
+		p, err = authkeys.PlanRemove(ctx, keyHost(true, map[string]string{keysFile: rsaKey + "\n" + edKey + "\n"}), slash, entries, edFP)
+		if err != nil || p.Path != keysFile || p.After != rsaKey+"\n" {
+			t.Errorf("%q: PlanRemove = %+v, %v", entries, p, err)
+		}
+	}
+	none := george
+	none.Home = ""
+	h := keyHost(true, map[string]string{"/.ssh/authorized_keys": rsaKey + "\n"})
+	if p, err := authkeys.PlanAdd(ctx, h, none, []string{"%h/.ssh/authorized_keys"}, key(t, edKey)); !errors.Is(err, authkeys.ErrNotPlanned) {
+		t.Errorf("no home: PlanAdd = %+v, %v", p, err)
+	}
+	if p, err := authkeys.PlanRemove(ctx, h, none, []string{"%h/.ssh/authorized_keys"}, rsaFP); !errors.Is(err, authkeys.ErrNotPlanned) {
+		t.Errorf("no home: PlanRemove = %+v, %v", p, err)
+	}
+}
