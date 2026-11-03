@@ -165,7 +165,7 @@ func TestPlanOnlyWritesNothing(t *testing.T) {
 // TestDoasLockout: on the cloud image, where hardn's rule for alice asks
 // alice's password and keeps HARDN_CONFIG, stopping is a lockout-risk
 // plan on the engine (the rule rewritten without setenv: sudoers.RiskLockout),
-// hardn's boot unit planned before it, the plan's finding of wheel.conf
+// hardn's boot unit planned before it, the plan's finding of zz-local.conf
 // on the change; with a nopass rule, keeping is plain. Units (c) and (d)
 // read p.Risk: the screen confirms by the hostname typed, and -e and
 // setup-sudo-env refuse it (gallery-environment.md §5, Made here).
@@ -176,7 +176,7 @@ func TestDoasLockout(t *testing.T) {
 		p.Changes[1].ID != environment.ChangeStop {
 		t.Fatalf("stopping: %v, risk %v, %+v", p.Err(), p.Risk, p.Changes)
 	}
-	if fs := p.Changes[1].Findings; len(fs) != 1 || fs[0].Detail != "/etc/doas.d/wheel.conf may override hardn's rule" {
+	if fs := p.Changes[1].Findings; len(fs) != 1 || fs[0].Detail != "/etc/doas.d/zz-local.conf may override hardn's rule" {
 		t.Errorf("findings %+v", fs)
 	}
 	h = newHost(t, alpine324).with(t, grant(sudoers.GrantNoPassword))

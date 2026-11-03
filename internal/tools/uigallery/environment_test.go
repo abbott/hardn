@@ -124,7 +124,7 @@ func TestEnvironmentScreenHosts(t *testing.T) {
 		{host: "ubuntu2604", tool: sudoers.ToolSudo, user: "alice", row: "Under sudo Not kept by hardn"},
 		{host: "alpine324", tool: sudoers.ToolDoas, user: "alice", refused: true, row: "Under doas Not kept by hardn"},
 		{host: "alpine324-setenv", tool: sudoers.ToolDoas, user: "alice", refused: true, row: "Under doas Not kept by hardn"},
-		{host: "doas-overridden", tool: sudoers.ToolDoas, user: "alice", kept: true, later: []string{"/etc/doas.d/wheel.conf"}, risk: true, row: "Under doas Kept by hardn"},
+		{host: "doas-overridden", tool: sudoers.ToolDoas, user: "alice", kept: true, later: []string{"/etc/doas.d/zz-local.conf"}, risk: true, row: "Under doas Kept by hardn"},
 		{host: "pve9", tool: sudoers.ToolNone, refused: true, row: "Under sudo Not Applicable"},
 		{host: "kept", tool: sudoers.ToolSudo, user: "alice", kept: true, row: "Under sudo Kept by hardn"},
 		{host: "root-login", tool: sudoers.ToolSudo, refused: true, row: "User Not run with sudo"},
@@ -201,7 +201,7 @@ func TestPlayEnvironment(t *testing.T) {
 			[]string{"Stop keeping HARDN_CONFIG under doas?", "Type the hostname [web-01, 0 or q]: web-01", "Operation Successful", "doas hardn confirm",
 				"Takes effect at the next doas hardn.", "Under doas Not kept by hardn"},
 			[]string{"write-atomic /etc/init.d/hardn-boot", "rc-update add hardn-boot default", `/bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\"" /usr/local/bin/hardn 180 ` +
-				galleryNow.Format("20060102T150405Z") + "-", "write-atomic /etc/doas.d/hardn-alice.conf"}},
+				galleryNow.Format("20060102T150405Z") + "-", "write-atomic /etc/doas.d/zz-hardn-alice.conf"}},
 		{"refused", "alpine324", false, []string{"1", "0"}, []string{"Warning hardn has no doas rule for alice", "Under doas stays Not kept by hardn."}, nil},
 		{"plan only", "debian13", true, []string{"1", "0"}, []string{"Keep HARDN_CONFIG", "No actual changes were made to your system.", "Under sudo Not kept by hardn"}, nil},
 	} {

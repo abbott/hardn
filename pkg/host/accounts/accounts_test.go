@@ -26,9 +26,9 @@ const (
 func TestParse(t *testing.T) {
 	us, err := accounts.ParsePasswd([]byte(passwd))
 	want := []accounts.User{
-		{Name: "root", UID: 0, GID: 0, Home: "/root", Shell: "/bin/bash", Line: 1, PasswdLock: accounts.NotLocked},
-		{Name: "alice", UID: 1000, GID: 1000, Home: "/home/alice", Shell: "/bin/bash", Line: 4, PasswdLock: accounts.NotLocked},
-		{Name: "bob", UID: 1001, GID: 27, Home: "/home/bob", Shell: "", Line: 5, PasswdLock: accounts.NotLocked},
+		{Name: "root", UID: 0, GID: 0, Home: "/root", Shell: "/bin/bash", Line: 1, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone},
+		{Name: "alice", UID: 1000, GID: 1000, Home: "/home/alice", Shell: "/bin/bash", Line: 4, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone},
+		{Name: "bob", UID: 1001, GID: 27, Home: "/home/bob", Shell: "", Line: 5, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone},
 	}
 	if err != nil || !reflect.DeepEqual(us, want) {
 		t.Errorf("ParsePasswd: %+v, %v", us, err)
@@ -134,12 +134,12 @@ const (
 func TestShadow(t *testing.T) {
 	s, err := accounts.ParseShadow([]byte(shadow))
 	want := accounts.Shadow{
-		"root":   {Lock: accounts.Locked, Line: 1},
-		"alice":  {Lock: accounts.NotLocked, Line: 4}, // the first line; the second, "!", is not getspnam's
-		"bob":    {Lock: accounts.Locked, Line: 5},
-		"daemon": {Lock: accounts.NotLocked, Line: 6},
-		"sshd":   {Lock: accounts.Locked, Line: 7},
-		"nobody": {Lock: accounts.Empty, Line: 8},
+		"root":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Line: 1},
+		"alice":  {Lock: accounts.NotLocked, Password: accounts.PasswordSet, Line: 4}, // the first line; the second, "!", is not getspnam's
+		"bob":    {Lock: accounts.Locked, Password: accounts.PasswordNone, Line: 5},
+		"daemon": {Lock: accounts.NotLocked, Password: accounts.PasswordNone, Line: 6},
+		"sshd":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Line: 7},
+		"nobody": {Lock: accounts.Empty, Password: accounts.PasswordEmpty, Line: 8},
 	}
 	if err != nil || !reflect.DeepEqual(s, want) {
 		t.Fatalf("ParseShadow: %#v, %v", s, err)
@@ -149,8 +149,8 @@ func TestShadow(t *testing.T) {
 		lock     accounts.Lock
 		at, text string
 	}{
-		{accounts.User{Name: "bob", Line: 3, PasswdLock: accounts.NotLocked}, accounts.Locked, "/etc/shadow:5", "locked (!)"},
-		{accounts.User{Name: "george", Line: 9, PasswdLock: accounts.NotLocked}, accounts.NotLocked, "/etc/passwd:9", "not locked"},
+		{accounts.User{Name: "bob", Line: 3, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone}, accounts.Locked, "/etc/shadow:5", "locked (!)"},
+		{accounts.User{Name: "george", Line: 9, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone}, accounts.NotLocked, "/etc/passwd:9", "not locked"},
 		{accounts.User{Name: "george", Line: 9, PasswdLock: accounts.Locked}, accounts.Locked, "/etc/passwd:9", "locked (!)"},
 		{accounts.User{Name: "nobody", Line: 4}, accounts.Empty, "/etc/shadow:8", "empty, not locked"},
 	} {
@@ -194,6 +194,55 @@ func TestShadow(t *testing.T) {
 	}
 }
 
+// TestPassword: the password state beside the lock (slice 5, unit (b)),
+// in the forms the VMs' /etc/shadow has (s5/00-inspect-*.log, 2026-11-03,
+// first character and length only): the login user's "!" of length 1 on
+// Debian 13 and Ubuntu 26.04, "*" on Alpine 3.23, a yescrypt hash ("$",
+// 73 long) for the second user, "!" of length 2 for root on Alpine and
+// system accounts; and an empty field, a "!" before a hash, a field no
+// hash is. With no line in /etc/shadow, /etc/passwd's field, where "x"
+// is none.
+func TestPassword(t *testing.T) {
+	yescrypt := "$y$j9T$" + strings.Repeat("Ab3", 22) // 73 characters, synthetic
+	for _, c := range []struct {
+		field string
+		want  accounts.Password
+		text  string
+	}{
+		{"!", accounts.PasswordNone, "none"},
+		{"*", accounts.PasswordNone, "none"},
+		{"!!", accounts.PasswordNone, "none"},
+		{"!" + yescrypt, accounts.PasswordNone, "none"},
+		{yescrypt, accounts.PasswordSet, "set"},
+		{hashAlice, accounts.PasswordSet, "set"},
+		{"", accounts.PasswordEmpty, "empty"},
+		{"$6$a b", accounts.PasswordNone, "none"},
+		{"$6$a;b", accounts.PasswordNone, "none"},
+	} {
+		s, err := accounts.ParseShadow([]byte("george:" + c.field + ":20745:0:99999:7:::\n"))
+		if err != nil {
+			t.Fatalf("%q: %v", c.field, err)
+		}
+		if p := s.PasswordOf(accounts.User{Name: "george"}); p != c.want || p.String() != c.text {
+			t.Errorf("%q: %v, want %v", c.field, p, c.want)
+		}
+		if l := s["george"].Lock; l != accounts.Locked && c.field != "" && c.field[0] == '!' {
+			t.Errorf("%q: lock %v, unchanged by the password", c.field, l)
+		}
+	}
+	us, err := accounts.ParsePasswd([]byte("george:x:1000:1000::/home/george:/bin/bash\nalice:" + hashAlice + ":1001:1001::/home/alice:/bin/bash\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	empty := accounts.Shadow{}
+	if p, q := empty.PasswordOf(us[0]), empty.PasswordOf(us[1]); p != accounts.PasswordNone || q != accounts.PasswordSet {
+		t.Errorf("passwd's fields: %v %v", p, q)
+	}
+	if accounts.PasswordNotRead.String() != "not read" {
+		t.Error(accounts.PasswordNotRead.String())
+	}
+}
+
 // TestShadowPrivacy: no run of four characters of a password hash (the
 // field after its "!") leaves the reader, in what it returns, in its
 // errors, or in the evidence a lock gives.
@@ -213,6 +262,8 @@ func TestShadowPrivacy(t *testing.T) {
 	for _, u := range []string{"alice", "bob"} {
 		l, at := s.LockOf(accounts.User{Name: u})
 		leaks("LockOf", fmt.Sprintf("%#v %v %s", l, l, at))
+		p := s.PasswordOf(accounts.User{Name: u})
+		leaks("PasswordOf", fmt.Sprintf("%#v %v", p, p))
 	}
 	h := hostfake.New(host.Options{})
 	h.AddFile(accounts.ShadowFile, []byte(shadow), 0o640, 0, 42)

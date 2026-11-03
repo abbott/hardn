@@ -73,11 +73,56 @@ func lockOf(field string) Lock {
 	return NotLocked
 }
 
-// ShadowEntry is one name's first line of ShadowFile: its lock state, and
-// the line, from 1.
+// Password is what an account's password field says of a password a tool
+// that asks one (sudo, doas, through PAM or the field itself) could check:
+// one set, none, or an empty field. It is read from the field alone, never
+// kept (slice 5, unit (b); gallery-users.md §7 item 3): Lock folds "*" and
+// a hash into NotLocked, which sshd's lock reads alike, and a grant that
+// asks a password does not.
+type Password uint8
+
+// The password states. The zero value is not read.
+const (
+	PasswordNotRead Password = iota
+	PasswordSet              // a usable hash: not empty, not starting "!" or "*", no character crypt(5) never writes
+	PasswordNone             // "*", "!", "!" before a hash, or any other field no password matches
+	PasswordEmpty            // "": no password at all, which login and su may take as none asked [I]
+)
+
+// String is the password as the evidence says it.
+func (p Password) String() string {
+	switch p {
+	case PasswordSet:
+		return "set"
+	case PasswordNone:
+		return "none"
+	case PasswordEmpty:
+		return "empty"
+	}
+	return "not read"
+}
+
+// passwordOf is the password state of a field. A field that is not empty
+// and starts with neither "!" nor "*" is a hash, unless it holds a
+// character crypt(5) says no hash holds (white space, ';', '!', '*', a
+// backslash; ':' ends the field) [I: libxcrypt's crypt(5), not read
+// here]: no password hashes to such a field.
+func passwordOf(field string) Password {
+	switch {
+	case field == "":
+		return PasswordEmpty
+	case field[0] == '!' || field[0] == '*', strings.ContainsAny(field, " \t;\\!*"):
+		return PasswordNone
+	}
+	return PasswordSet
+}
+
+// ShadowEntry is one name's first line of ShadowFile: its lock state, its
+// password state, and the line, from 1.
 type ShadowEntry struct {
-	Lock Lock
-	Line int
+	Lock     Lock
+	Password Password
+	Line     int
 }
 
 // Shadow is ShadowFile as read: each name's first line, as getspnam finds
@@ -103,7 +148,7 @@ func ReadShadow(ctx context.Context, sys host.System) (Shadow, error) {
 
 // ParseShadow parses ShadowFile's content: name:password:lastchg:min:max:
 // warn:inactive:expire:reserved, nine fields (shadow(5)). Of each line it
-// keeps the name and its lock state. A line that musl's getspnam would
+// keeps the name, its lock state and its password state. A line that musl's getspnam would
 // pass over, or for which it would find no entry, is ErrMalformed, whose
 // message names the line, never its content (src/passwd/getspnam_r.c):
 // another number of fields, a numeric field neither empty nor decimal
@@ -118,7 +163,7 @@ func ParseShadow(data []byte) (Shadow, error) {
 			return ErrMalformed
 		}
 		if _, ok := s[f[0]]; !ok {
-			s[f[0]] = ShadowEntry{Lock: lockOf(f[1]), Line: n}
+			s[f[0]] = ShadowEntry{Lock: lockOf(f[1]), Password: passwordOf(f[1]), Line: n}
 		}
 		return nil
 	})
@@ -143,4 +188,14 @@ func (s Shadow) LockOf(u User) (Lock, string) {
 		return e.Lock, ShadowFile + ":" + strconv.Itoa(e.Line)
 	}
 	return u.PasswdLock, PasswdFile + ":" + strconv.Itoa(u.Line)
+}
+
+// PasswordOf is u's password state as a tool that asks one reads it: u's
+// line in ShadowFile, else, with none, its PasswdFile field (pam_unix and
+// doas's shadow read take the shadow entry where there is one [I]).
+func (s Shadow) PasswordOf(u User) Password {
+	if e, ok := s[u.Name]; ok {
+		return e.Password
+	}
+	return u.PasswdPassword
 }

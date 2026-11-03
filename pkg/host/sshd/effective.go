@@ -220,6 +220,21 @@ type Effective struct {
 	// sshd is built without PAM (Alpine's /usr/sbin/sshd).
 	BuiltWithoutPAM bool
 
+	// StrictModes is sshd's StrictModes, yes or no: with yes, sshd ignores
+	// a user's authorized_keys where the home or ~/.ssh is writable by
+	// others. sshd_config(5) does not allow it in a Match block. No line, or
+	// a value hardn does not know, is Unknown with no finding: the outputs
+	// recorded before slice 5 do not print it.
+	StrictModes Setting
+	// AuthorizedKeysFile is sshd -T's authorizedkeysfile fields as printed
+	// (one line, servconf.c dump_cfg_strarray_oneline): %h, %u and %% not
+	// expanded, a path without a leading / relative to the home, "none"
+	// kept. Debian 13 and Ubuntu 26.04 print ".ssh/authorized_keys
+	// .ssh/authorized_keys2", Alpine 3.23 ".ssh/authorized_keys". Nil: no
+	// line. Match blocks are not read: a block setting it for a user is not
+	// seen here.
+	AuthorizedKeysFile []string
+
 	// Port is sshd's Port set. Where it listens is Listeners: a
 	// ListenAddress with a port of its own listens on a port not in Port.
 	Port                                                      Set
@@ -247,6 +262,7 @@ var (
 		"kbdinteractiveauthentication": {"yes", "no"},
 		"pubkeyauthentication":         {"yes", "no"},
 		"usepam":                       {"yes", "no"}, // read by readUsePAM
+		"strictmodes":                  {"yes", "no"}, // read in Evaluate, with no finding
 	}
 	settingKeys = []string{"permitrootlogin", "passwordauthentication", "kbdinteractiveauthentication", "pubkeyauthentication"}
 	setKeys     = []string{"port", "allowusers", "allowgroups", "denyusers", "denygroups", "acceptenv"}
@@ -314,6 +330,10 @@ func Evaluate(in EffectiveInputs) (Effective, []Finding) {
 	}
 	for _, k := range setKeys {
 		*e.set(k) = readSet(kw, k)
+	}
+	e.StrictModes, _ = readSetting(kw, "strictmodes")
+	for _, v := range kw["authorizedkeysfile"] {
+		e.AuthorizedKeysFile = append(e.AuthorizedKeysFile, strings.Fields(v)...)
 	}
 	if len(e.Port.Values) == 0 || slices.ContainsFunc(e.Port.Values, func(v string) bool { return portOf(v) == 0 }) {
 		e.Port = Set{}

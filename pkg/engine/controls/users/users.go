@@ -1,7 +1,14 @@
 // Package users holds the users area's control (refactor plan Phase 4,
-// next/p4-check-users): Figma's User row ("non-root, sudo"). In v0.4 it is
-// check-only: Check reads the host, and Plan returns engine.ErrNotMigrated
-// (engine.CheckOnly) until slice 5 migrates it.
+// next/p4-check-users): Figma's User row ("non-root, sudo"), and the admin
+// rights, users and keys the User Management screen changes (slice 5,
+// next/s5-control). It no longer only checks: Controls() is Admin with
+// ActionNone, whose Plan is engine.ErrNotMigrated, so that nothing that
+// plans over the status list plans a lockout change; a screen plans Admin
+// with its Action (plan.go: Grant, Remove, Ask for password, Don't ask
+// password; keys.go: Add and Remove SSH key; create.go: Create User), each
+// refused before anything is written, in the decided words of
+// gallery-users.md §6. Read gives the screen what it draws, and StillAdmin
+// what would still grant once hardn's grant is gone (still.go).
 //
 // Configured is a user account other than root (uid MinUID or more) with a
 // login shell, whom an installed elevation tool, setuid root, lets run
@@ -80,15 +87,30 @@ const (
 // origin/main's own rule (pkg/adapter/secondary GetNonSystemUsers).
 const MinUID = 1000
 
-// Controls are the users controls in Figma's order: User.
+// ID is the control's ID.
+const ID = "users.admin"
+
+// Controls are the users controls in Figma's order: User, with ActionNone,
+// which plans nothing.
 func Controls() []engine.Control { return []engine.Control{Admin{}} }
 
 // Admin is Figma's User row: an account other than root to log in with
-// and become root from.
-type Admin struct{ engine.CheckOnly }
+// and become root from. Action is what Plan does, for User; Key is the
+// pasted key Add takes, Fingerprint the key Remove takes away (as
+// ssh-keygen -l prints it), New the user Create makes; Getenv looks up
+// hardn's environment for the session user (os.Getenv in hardn, a map in
+// the tests and the gallery). Check reads none of them.
+type Admin struct {
+	Action      Action
+	User        string
+	Key         string
+	Fingerprint string
+	New         New
+	Getenv      func(string) string
+}
 
 // ID is "users.admin".
-func (Admin) ID() string { return "users.admin" }
+func (Admin) ID() string { return ID }
 
 // Title is Figma's row label.
 func (Admin) Title() string { return "User" }

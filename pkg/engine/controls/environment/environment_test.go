@@ -100,7 +100,7 @@ func TestRead(t *testing.T) {
 			env: doasAlice, tool: sudoers.ToolDoas, user: "alice", value2: "Not kept by hardn"},
 		{name: "doas, overridden", host: func(t *testing.T) *testHost {
 			return newHost(t, alpineCloud).with(t, grant(sudoers.GrantPassword, "HARDN_CONFIG"))
-		}, env: doasAlice, tool: sudoers.ToolDoas, user: "alice", kept: true, value2: "Kept by hardn", later: []string{"/etc/doas.d/wheel.conf"}, risk: true},
+		}, env: doasAlice, tool: sudoers.ToolDoas, user: "alice", kept: true, value2: "Kept by hardn", later: []string{"/etc/doas.d/zz-local.conf"}, risk: true},
 		{name: "pve9", host: func(t *testing.T) *testHost { return newHost(t, pve9) }, env: rootLogin, tool: sudoers.ToolNone, code: "SUDOERS_NO_TOOL"},
 		{name: "root login", host: func(t *testing.T) *testHost { return newHost(t, debian13) }, env: rootLogin, tool: sudoers.ToolSudo,
 			code: "ENVIRONMENT_NO_USER"},
@@ -349,13 +349,13 @@ func TestCheck(t *testing.T) {
 			[]string{"SUDO_USER: alice", "/etc/sudoers.d/hardn-env-alice: absent", "/etc/sudoers.d/alice: does not keep HARDN_CONFIG"},
 			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may also let alice use sudo"}, nil},
 		{"alpine324", func(t *testing.T) *testHost { return newHost(t, alpine324) }, doasAlice, engine.NotConfigured, "Not kept by hardn",
-			[]string{"DOAS_USER: alice", "/etc/doas.d/hardn-alice.conf: absent"}, nil, nil},
+			[]string{"DOAS_USER: alice", "/etc/doas.d/zz-hardn-alice.conf: absent"}, nil, nil},
 		{"doas, hardn's rule", func(t *testing.T) *testHost { return newHost(t, alpine324).with(t, grant(sudoers.GrantPassword)) }, doasAlice,
-			engine.NotConfigured, "Not kept by hardn", []string{"DOAS_USER: alice", "/etc/doas.d/hardn-alice.conf: keeps nothing"}, nil, nil},
+			engine.NotConfigured, "Not kept by hardn", []string{"DOAS_USER: alice", "/etc/doas.d/zz-hardn-alice.conf: keeps nothing"}, nil, nil},
 		{"doas, overridden", func(t *testing.T) *testHost {
 			return newHost(t, alpineCloud).with(t, grant(sudoers.GrantPassword, "HARDN_CONFIG"))
-		}, doasAlice, engine.Configured, "Kept by hardn", []string{"DOAS_USER: alice", "/etc/doas.d/hardn-alice.conf: keeps HARDN_CONFIG"},
-			[]string{"SUDOERS_LATER_FILE /etc/doas.d/wheel.conf: /etc/doas.d/wheel.conf may override hardn's rule"}, nil},
+		}, doasAlice, engine.Configured, "Kept by hardn", []string{"DOAS_USER: alice", "/etc/doas.d/zz-hardn-alice.conf: keeps HARDN_CONFIG"},
+			[]string{"SUDOERS_LATER_FILE /etc/doas.d/zz-local.conf: /etc/doas.d/zz-local.conf may override hardn's rule"}, nil},
 		{"pve9", func(t *testing.T) *testHost { return newHost(t, pve9) }, rootLogin, engine.NotApplicable, "sudo isn't installed here",
 			[]string{"sudoers: no elevation tool is installed"}, nil, nil},
 		{"root login", func(t *testing.T) *testHost { return newHost(t, debian13) }, rootLogin, engine.NotApplicable, "Not run with sudo",
@@ -466,13 +466,13 @@ func TestPlan(t *testing.T) {
 			"/etc/sudoers.d/hardn-env-alice", env("HARDN_CONFIG"), engine.RiskPlain,
 			[]string{"SUDOERS_LEGACY_FILE /etc/sudoers.d/alice: /etc/sudoers.d/alice may also let alice use sudo"}},
 		{"keep, doas, hardn's password rule", func(t *testing.T) *testHost { return newHost(t, alpine324).with(t, grant(sudoers.GrantPassword)) },
-			doasAlice, false, "/etc/doas.d/hardn-alice.conf", sudoers.Header + "permit persist setenv { HARDN_CONFIG } alice\n", engine.RiskLockout, nil},
+			doasAlice, false, "/etc/doas.d/zz-hardn-alice.conf", sudoers.Header + "permit persist setenv { HARDN_CONFIG } alice\n", engine.RiskLockout, nil},
 		{"keep, doas, hardn's nopass rule", func(t *testing.T) *testHost { return newHost(t, alpine324).with(t, grant(sudoers.GrantNoPassword)) },
-			doasAlice, false, "/etc/doas.d/hardn-alice.conf", sudoers.Header + "permit nopass setenv { HARDN_CONFIG } alice\n", engine.RiskPlain, nil},
+			doasAlice, false, "/etc/doas.d/zz-hardn-alice.conf", sudoers.Header + "permit nopass setenv { HARDN_CONFIG } alice\n", engine.RiskPlain, nil},
 		{"stop, doas, overridden", func(t *testing.T) *testHost {
 			return newHost(t, alpineCloud).with(t, grant(sudoers.GrantPassword, "HARDN_CONFIG"))
-		}, doasAlice, true, "/etc/doas.d/hardn-alice.conf", sudoers.Header + "permit persist alice\n", engine.RiskLockout,
-			[]string{"SUDOERS_LATER_FILE /etc/doas.d/wheel.conf: /etc/doas.d/wheel.conf may override hardn's rule"}},
+		}, doasAlice, true, "/etc/doas.d/zz-hardn-alice.conf", sudoers.Header + "permit persist alice\n", engine.RiskLockout,
+			[]string{"SUDOERS_LATER_FILE /etc/doas.d/zz-local.conf: /etc/doas.d/zz-local.conf may override hardn's rule"}},
 		{"stop, alpine324: nothing", func(t *testing.T) *testHost { return newHost(t, alpine324) }, doasAlice, true, "", "", engine.RiskPlain, nil},
 	} {
 		t.Run(tt.name, func(t *testing.T) {

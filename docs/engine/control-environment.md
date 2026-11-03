@@ -76,7 +76,7 @@ As the screen's state row, the review and `Check`'s detail say them (`Words`, `R
 | no user ran hardn through the tool | Not Applicable | `Not run with sudo`, `Not run with doas` | the User row |
 | the tool or a file not read, a file of hardn's edited | Unknown, with the error | none | Unknown |
 
-The evidence (**decided**, 2026-10-29): `SUDO_USER: alice` (`unset`, `root`), or `DOAS_USER`; `/etc/sudoers.d/hardn-env-alice: keeps HARDN_CONFIG EDITOR` or `: absent`, on doas `/etc/doas.d/hardn-alice.conf: keeps HARDN_CONFIG`, `: keeps nothing` or `: absent`; `/etc/sudoers.d/alice: keeps HARDN_CONFIG` or `: does not keep HARDN_CONFIG`; with no tool, `Choose`'s error.
+The evidence (**decided**, 2026-10-29): `SUDO_USER: alice` (`unset`, `root`), or `DOAS_USER`; `/etc/sudoers.d/hardn-env-alice: keeps HARDN_CONFIG EDITOR` or `: absent`, on doas `/etc/doas.d/zz-hardn-alice.conf: keeps HARDN_CONFIG`, `: keeps nothing` or `: absent`; `/etc/sudoers.d/alice: keeps HARDN_CONFIG` or `: does not keep HARDN_CONFIG`; with no tool, `Choose`'s error.
 
 ## 6. The refusals
 

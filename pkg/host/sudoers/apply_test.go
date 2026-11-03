@@ -377,13 +377,13 @@ func TestApplyDoas(t *testing.T) {
 	}
 	want := []string{
 		"doas -C /etc/doas.conf", "doas -C /etc/doas.d/20-wheel.conf",
-		"doas -C " + work + "/hardn-alice.conf",
-		"doas -C /etc/doas.conf", "doas -C /etc/doas.d/20-wheel.conf", "doas -C /etc/doas.d/hardn-alice.conf",
+		"doas -C " + work + "/zz-hardn-alice.conf",
+		"doas -C /etc/doas.conf", "doas -C /etc/doas.d/20-wheel.conf", "doas -C /etc/doas.d/zz-hardn-alice.conf",
 	}
 	if got := runs(h); !slices.Equal(got, want) {
 		t.Errorf("runs = %q\nwant   %q", got, want)
 	}
-	checkFile(t, h, "/etc/doas.d/hardn-alice.conf", "# Managed by hardn\npermit persist setenv { HARDN_CONFIG } alice\n", 0o640)
+	checkFile(t, h, "/etc/doas.d/zz-hardn-alice.conf", "# Managed by hardn\npermit persist setenv { HARDN_CONFIG } alice\n", 0o640)
 	checkFile(t, h, sudoers.DoasDir+"/20-wheel.conf", wheel, 0o644)
 	for _, w := range writes(h) {
 		if strings.Contains(w, "20-wheel") || strings.Contains(w, sudoers.DoasConfig) {
@@ -412,7 +412,7 @@ func TestApplyDoasPerms(t *testing.T) {
 			if !errors.As(err, &ce) || !errors.Is(err, sudoers.ErrPerms) || !errors.Is(err, sudoers.ErrRejected) || ce.Stage != sudoers.StageBefore || ce.Path != tc.path {
 				t.Fatalf("Apply = %v", err)
 			}
-			checkAbsent(t, h, sudoers.DoasDir+"/hardn-alice.conf")
+			checkAbsent(t, h, sudoers.DoasDir+"/zz-hardn-alice.conf")
 		})
 	}
 }
@@ -477,7 +477,7 @@ func TestApplyRemove(t *testing.T) {
 // under /etc changed: of the distribution's file before; of the candidate;
 // of the installed file after, which is then removed again.
 func TestApplyDoasRejected(t *testing.T) {
-	conf := sudoers.DoasDir + "/hardn-alice.conf"
+	conf := sudoers.DoasDir + "/zz-hardn-alice.conf"
 	wheelConf := sudoers.DoasDir + "/20-wheel.conf"
 	for _, tc := range []struct {
 		name  string

@@ -16,9 +16,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas, as␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe maintainer's VM; alice is in wheel, and the image's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice ran␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. hardn's rule for alice keeps HARDN_CONFIG, but␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf's wins, so doas dropped it. Stopping rewrites a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrule that asks for alice's password.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoas hardn. A local /etc/doas.d/zz-local.conf says permit␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnopass :wheel too. hardn's rule for alice keeps HARDN_CONFIG,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbut zz-local.conf's wins, so doas dropped it. Stopping␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrewrites a rule that asks for alice's password.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -26,7 +27,7 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mKept␛[m ␛[38;2;219;184;83mby hardn␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/zz-local.conf may override hardn's rule␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m                ␛[38;2;129;134;156mNot set␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
@@ -45,7 +46,7 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m           ␛[38;2;129;134;156mNot kept␛[m ␛[38;2;219;184;83mby hardn␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/zz-local.conf may override hardn's rule␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
@@ -87,7 +88,7 @@ $
    ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mStop keeping HARDN_CONFIG␛[m$
 $
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-alice.conf␛[m$
       ␛[38;2;86;91;107m@@ -1,2 +1,2 @@␛[m$
       ␛[38;2;129;134;156m # Managed by hardn␛[m$
       ␛[38;2;231;70;105m-permit persist setenv { HARDN_CONFIG } alice␛[m$
@@ -112,7 +113,7 @@ $
   ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run doas hardn␛[m$
   ␛[38;2;129;134;156mrollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
-  ␛[38;2;129;134;156mBackup of /etc/doas.d/hardn-alice.conf kept in␛[m$
+  ␛[38;2;129;134;156mBackup of /etc/doas.d/zz-hardn-alice.conf kept in␛[m$
   ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
 $
   ␛[38;2;129;134;156mTakes effect at the next doas hardn.␛[m$
@@ -151,7 +152,7 @@ $
       ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop keeping HARDN_CONFIG␛[m$
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-alice.conf␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -168,9 +169,10 @@ $
 # web-01.example.net runs Alpine 3.23's cloud image, doas, as$
 # the maintainer's VM; alice is in wheel, and the image's$
 # /etc/doas.d/wheel.conf says permit nopass :wheel. alice ran$
-# doas hardn. hardn's rule for alice keeps HARDN_CONFIG, but$
-# wheel.conf's wins, so doas dropped it. Stopping rewrites a$
-# rule that asks for alice's password.$
+# doas hardn. A local /etc/doas.d/zz-local.conf says permit$
+# nopass :wheel too. hardn's rule for alice keeps HARDN_CONFIG,$
+# but zz-local.conf's wins, so doas dropped it. Stopping$
+# rewrites a rule that asks for alice's password.$
 $
 # Environment Variable Settings ################################$
 $
@@ -178,7 +180,7 @@ $
 $
    -  User                 alice$
   [ ] Under doas           Kept by hardn$
-   -  /etc/doas.d/wheel.conf may override hardn's rule$
+   -  /etc/doas.d/zz-local.conf may override hardn's rule$
    -  Value                Not set$
 $
   Select an option$
@@ -197,7 +199,7 @@ $
 $
    -  User                 alice$
   [ ] Under doas           Not kept by hardn$
-   -  /etc/doas.d/wheel.conf may override hardn's rule$
+   -  /etc/doas.d/zz-local.conf may override hardn's rule$
 $
    -  Install hardn's boot unit$
       /etc/init.d/hardn-boot$
@@ -239,7 +241,7 @@ $
   [ ] Lockout risk$
       Stop keeping HARDN_CONFIG$
 $
-      /etc/doas.d/hardn-alice.conf$
+      /etc/doas.d/zz-hardn-alice.conf$
       @@ -1,2 +1,2 @@$
        # Managed by hardn$
       -permit persist setenv { HARDN_CONFIG } alice$
@@ -264,7 +266,7 @@ $
   back at about 12:03:00 UTC. To undo it now, run doas hardn$
   rollback 20261020T120000Z-xxxxxxxx.$
 $
-  Backup of /etc/doas.d/hardn-alice.conf kept in$
+  Backup of /etc/doas.d/zz-hardn-alice.conf kept in$
   /var/backups/hardn/20261020T120000Z-xxxxxxxx$
 $
   Takes effect at the next doas hardn.$
@@ -303,7 +305,7 @@ $
       | /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx$
 $
    -  Applied: Stop keeping HARDN_CONFIG$
-      /etc/doas.d/hardn-alice.conf$
+      /etc/doas.d/zz-hardn-alice.conf$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -321,9 +323,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23's cloud image, doas,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas the maintainer's VM; alice is in wheel, and the image's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/wheel.conf says permit nopass :wheel. alice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran doas hardn. hardn's rule for alice keeps HARDN_CONFIG,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbut wheel.conf's wins, so doas dropped it. Stopping␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrewrites a rule that asks for alice's password.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran doas hardn. A local /etc/doas.d/zz-local.conf says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpermit nopass :wheel too. hardn's rule for alice keeps␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG, but zz-local.conf's wins, so doas dropped␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit. Stopping rewrites a rule that asks for alice's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -333,7 +337,7 @@ $
       ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
       ␛[38;2;129;134;156mKept␛[m ␛[38;2;219;184;83mby hardn␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/zz-local.conf may override hardn's rule␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mValue␛[m$
       ␛[38;2;129;134;156mNot set␛[m$
 $
@@ -357,7 +361,7 @@ $
       ␛[38;2;129;134;156malice␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUnder doas␛[m$
       ␛[38;2;129;134;156mNot kept␛[m ␛[38;2;219;184;83mby hardn␛[m$
-   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/wheel.conf may override hardn's rule␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83m/etc/doas.d/zz-local.conf may override hardn's rule␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
@@ -401,7 +405,7 @@ $
    ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
       ␛[38;2;192;196;216mStop keeping HARDN_CONFIG␛[m$
 $
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-alice.conf␛[m$
       ␛[38;2;86;91;107m@@ -1,2 +1,2 @@␛[m$
       ␛[38;2;129;134;156m # Managed by hardn␛[m$
       ␛[38;2;231;70;105m-permit persist setenv { HARDN_CONFIG } alice␛[m$
@@ -428,7 +432,7 @@ $
   ␛[38;2;129;134;156mrolled back at about 12:03:00 UTC. To undo it now, run␛[m$
   ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
-  ␛[38;2;129;134;156mBackup of /etc/doas.d/hardn-alice.conf kept in␛[m$
+  ␛[38;2;129;134;156mBackup of /etc/doas.d/zz-hardn-alice.conf kept in␛[m$
   ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
 $
   ␛[38;2;129;134;156mTakes effect at the next doas hardn.␛[m$
@@ -472,5 +476,5 @@ $
       ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop keeping HARDN_CONFIG␛[m$
-      ␛[38;2;129;134;156m/etc/doas.d/hardn-alice.conf␛[m$
+      ␛[38;2;129;134;156m/etc/doas.d/zz-hardn-alice.conf␛[m$
 $
