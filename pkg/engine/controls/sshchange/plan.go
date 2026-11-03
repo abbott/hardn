@@ -221,9 +221,10 @@ func (r Reading) rootRefusal(ctx context.Context, sys host.System) error {
 
 // passwordRefusal is why Key-only login refuses (gallery-ssh.md §5
 // decision 4): the common refusals; where passwords log in, the session
-// (its line, then a password session), a Match block letting passwords in,
-// and off Proxmox VE (where root by key, which pve.PlanSSH keeps, is the
-// way in) an admin with a password and no key, then an admin able by key.
+// (its line, then a password session), a Match block letting passwords in;
+// on Proxmox VE (where root by key, which pve.PlanSSH keeps, is the way
+// in) root able by key (RootPath), elsewhere an admin with a password and
+// no key, then an admin able by key.
 func (r Reading) passwordRefusal(ctx context.Context, sys host.System) error {
 	if err := r.common(false); err != nil {
 		return err
@@ -240,7 +241,10 @@ func (r Reading) passwordRefusal(ctx context.Context, sys host.System) error {
 	if err := r.matchMore("passwordauthentication", "no"); err != nil {
 		return err
 	}
-	if r.PVE {
+	if r.PVE { // root by key is the way in kept, as rootRefusal weighs it
+		if a := r.RootPath(ctx, sys); !a.Key {
+			return refuse(codePVENoRootKey, ErrPVENoRootKey, nil, fmt.Sprintf(wordsPVENoKey, a.Why))
+		}
 		return nil
 	}
 	admins := r.LoginPaths(ctx, sys, true)
