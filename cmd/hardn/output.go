@@ -88,7 +88,8 @@ func streamEnv(f *os.File) term.Env {
 // them (pkg/output's documents carry them as findings, and its Emit does
 // not warn again). A logFile naming another path than the one hardn writes
 // is one too (decision 6 (a); gallery-system-details.md §6's words), and
-// so is either ufw policy the file sets (slice 4, decision 8).
+// so is either ufw policy the file sets (slice 4, decision 8), and
+// sudoNoPassword: false (slice 5, decision 7 (a)).
 func warnDeprecations(c *config.Config) {
 	if w := loadWarnings(c); w != "" {
 		_, _ = io.WriteString(stderrEnv().Writer(stderr), w)
@@ -108,6 +109,9 @@ func loadWarnings(c *config.Config) string {
 	if c.UfwDefaultOutgoingPolicy != "" {
 		retired = append(retired, ufwOutgoingNotUsed)
 	}
+	if !c.SudoNoPassword {
+		retired = append(retired, sudoNoPasswordNotUsed)
+	}
 	return deprecationWarnings(stderrEnv(), c.Path(), c.Deprecations(), retired...)
 }
 
@@ -125,6 +129,20 @@ const (
 	ufwIncomingNotUsed = "hardn.yml's ufwDefaultIncomingPolicy isn't used"
 	ufwOutgoingNotUsed = "hardn.yml's ufwDefaultOutgoingPolicy isn't used"
 )
+
+// sudoNoPasswordNotUsed is refactor plan slice 5's decision 7 (a)
+// (gallery-users.md §5, adopted 2026-11-03; proposed words, unit (d)):
+// hardn.yml's username, sudoNoPassword and sshKeys are Create's defaults
+// alone, and nothing on the User control reads sudoNoPassword: a new user
+// has no password to ask (decision 3 (a)), so Create's grant, the screen's
+// and -c's, asks none whatever it says. Only false warns: the defaults have
+// true (config.DefaultConfig), which is what Create does, so true, set or
+// not, is hardn's, not a value unused. username and sshKeys never warn:
+// the screen's Create offers both, and -c takes username (its missing key
+// is its plan's own finding, USERS_NO_KEY). Run All (-r, main menu 7)
+// still reads sudoNoPassword, through origin/main's UserManager, until
+// slice 8.
+const sudoNoPasswordNotUsed = "hardn.yml's sudoNoPassword: false isn't used by User Management or -c"
 
 // deprecationWarnings renders deps as one Warning callout, a line for each
 // after the file path it was read from (component.Messages: a run of
