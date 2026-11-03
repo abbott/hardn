@@ -82,11 +82,14 @@ type Reading struct {
 	// ListenPort is v0.3.x's listen.conf's port for ssh.socket, "" where
 	// there is none.
 	ListenPort string
-	// OnlyFrom22 are the sources an active ufw lets port 22 in from where
-	// it lets it in from some alone, an interface rule's "<src> on
-	// <iface>" (ufw.OnlyFrom), nil where ufw is not installed, not read,
-	// or lets 22 in from anywhere on any interface.
-	OnlyFrom22 []string
+	// OnlyFromPort is the first port sshd listens on now (22 where its
+	// listeners are not read) that an active ufw lets in from some
+	// sources alone, and OnlyFrom those sources, an interface rule's
+	// "<src> on <iface>" (ufw.OnlyFrom): a new port would be open to
+	// anyone (P-33 (2)). Zero and nil where ufw is not installed, not
+	// read, or lets each such port in from anywhere on any interface.
+	OnlyFromPort uint16
+	OnlyFrom     []string
 }
 
 // Read reads the host as the screen draws it, writing nothing: sshd -T
@@ -124,7 +127,16 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	}
 	if !r.PVE {
 		if st, err := ufw.Read(ctx, sys, f.Proxmox); err == nil && st.Installed {
-			r.OnlyFrom22 = ufw.OnlyFrom(st, 22)
+			ports := r.Effective.Listeners.Ports()
+			if len(ports) == 0 {
+				ports = []uint16{22}
+			}
+			for _, p := range ports {
+				if srcs := ufw.OnlyFrom(st, p); len(srcs) > 0 {
+					r.OnlyFromPort, r.OnlyFrom = p, srcs
+					break
+				}
+			}
 		}
 	}
 	return r, ctx.Err()

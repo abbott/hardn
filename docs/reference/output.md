@@ -165,7 +165,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSH_PVE_ROOT_KEY_ONLY` | 1 | root stays key-only on Proxmox VE |
 | `SSH_PVE_ROOT_PASSWORD_SESSION` | 1 | the session is root's own SSH login, by password |
 | `SSH_PVE_NO_ROOT_KEY` | 1 | root could not log in by key afterwards |
-| `SSH_PORT_SOURCE_RESTRICTED` | 1 | ufw lets port 22 in from some sources alone |
+| `SSH_PORT_SOURCE_RESTRICTED` | 1 | ufw lets the SSH port in from some sources alone |
 | `SSHD_NO_WRITE_STRATEGY` | 1 | no write strategy for this sshd_config |
 | `SSH_MIGRATE_FIRST` | 1 | legacy hardn SSH files: migrate them first |
 | `SSH_PORT_NO_NEW_LISTENER` | 1 | the port change adds no listener |
