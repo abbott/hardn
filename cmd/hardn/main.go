@@ -125,6 +125,13 @@ var rootCmd = &cobra.Command{
 	Short: "Linux hardening tool",
 	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// -c with -d: refused outright, whatever hardn.yml holds, before
+		// anything runs (refactor plan slice 5, unit (d); the maintainer,
+		// 2026-11-03): -d turns off root's SSH login, and a key -c adds is
+		// not proof that its user can log in (hardncmd.RefuseCreateDisableRoot).
+		if refuse(hardncmd.RefuseCreateDisableRoot(createUser, disableRootSSH)) {
+			return
+		}
 		// -n only previews: refuse operation flags before anything runs (V1).
 		if refuseDryRunOperations(operationFlags()) {
 			return
@@ -195,28 +202,6 @@ var rootCmd = &cobra.Command{
 		if (createUser || runAll) && cfg.Username == "" {
 			logging.LogError("Please specify a username with -u flag or in the configuration file.")
 			exit(1)
-		}
-
-		// -c with -d: -d turns off root's SSH login, and -c's user, with no
-		// key (hardn.yml's sshKeys empty) and no password, can't log in, so
-		// together they would leave no SSH login. Refused here, the name
-		// known, before either runs, as -n's refusals are (refactor plan
-		// slice 5, unit (d)). With keys, refused too where sshd's
-		// AllowUsers, AllowGroups, DenyUsers or DenyGroups is set, or sshd
-		// can't be read: -d leaves them, and a key does not show they let
-		// -c's user in (the lockout review, 2026-11-03). Otherwise the two
-		// run, -c first (below).
-		if createUser {
-			n := createNew(cfg)
-			if refuse(hardncmd.RefuseCreateDisableRoot(createUser, disableRootSSH, n.Name, n.Keys)) {
-				return
-			}
-			if disableRootSSH {
-				lists, err := sshdAccessLists(context.Background())
-				if refuse(hardncmd.RefuseCreateDisableRootAccess(n.Name, lists, err)) {
-					return
-				}
-			}
 		}
 
 		// Detect OS
@@ -334,17 +319,13 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		// Disable root SSH access: here alone; with -c, after it (below).
-		disableRoot := func() {
+		// Disable root SSH access
+		if disableRootSSH {
 			if err := sshManager.DisableRootSSH(); err != nil {
 				logging.LogError("Failed to disable root SSH access: %v", err)
 			} else {
 				logging.LogSuccess("%s", hardncmd.DisableRootDone(serviceFactory.IsProxmoxHost()))
 			}
-		}
-		rootRan := disableRootSSH && !createUser
-		if rootRan {
-			disableRoot()
 		}
 
 		// Install Linux packages
@@ -429,20 +410,6 @@ var rootCmd = &cobra.Command{
 			status = createAdmin(cfg)
 		}
 
-		// -c with -d: -d after -c, and only once -c has created its user
-		// (status 0), so that a refusal or a failed apply (a bad key, the
-		// name taken, no sudo, its home there, a rollback) never leaves
-		// root's SSH login off with no user to log in as. Otherwise -d is
-		// not run, stderr says so, and hardn's exit status is -c's (the
-		// lockout review, 2026-11-03).
-		if createUser && disableRootSSH {
-			if rootRan = status == 0; rootRan {
-				disableRoot()
-			} else {
-				fmt.Fprintln(stderr, hardncmd.DisableRootNotRun(cfg.Username))
-			}
-		}
-
 		// Configure firewall: the Firewall control through the engine, the hostname
 		// typed on a terminal, refused off one (firewall.go). Its status is hardn's
 		// as -g's is, composed by runStatus, once the flags after it have run.
@@ -478,7 +445,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Output completion message for the legacy operations other than the all-in-one run
-		if rootRan || installLinux || installPython || installAll || updateSources {
+		if disableRootSSH || installLinux || installPython || installAll || updateSources {
 			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},

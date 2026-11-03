@@ -17,7 +17,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	sshctl "github.com/abbott/hardn/pkg/engine/controls/ssh"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/menu"
@@ -52,24 +51,9 @@ func createAdmin(c *config.Config) int {
 
 // createNew is the user -c creates on c: c.Username, an admin, with
 // c.SshKeys as loaded, every one (the maintainer, 2026-11-03: "(a) Add
-// sshKeys"), an empty entry refused by the control as not a key; main
-// refuses -c with -d where it has none (hardncmd.RefuseCreateDisableRoot).
+// sshKeys"), an empty entry refused by the control as not a key.
 func createNew(c *config.Config) usersctl.New {
 	return usersctl.New{Name: c.Username, Admin: true, Keys: c.SshKeys}
-}
-
-// sshdAccessLists is which of sshd's AllowUsers, AllowGroups, DenyUsers
-// and DenyGroups its configuration sets (sshctl.ReadAccessLists), on the
-// host the engine reads, its facts detected as -c's are: main refuses -c
-// with -d where any is set, or where they can't be read
-// (hardncmd.RefuseCreateDisableRootAccess), before anything runs.
-func sshdAccessLists(ctx context.Context) ([]string, error) {
-	sys := engineHost()
-	facts, err := engineDetect(ctx, sys)
-	if err != nil {
-		return nil, err
-	}
-	return sshctl.ReadAccessLists(ctx, sys, facts)
 }
 
 // createRefuse is -c's refusal of a plan, refuseCreateLockoutRisk; a seam,

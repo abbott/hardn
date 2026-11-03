@@ -309,8 +309,10 @@ func TestDryRunRefusesOperations(t *testing.T) {
 			})
 		}
 	}
+	// -c is left out: with -d, its own refusal comes first
+	// (TestCreateUserDisableRoot).
 	t.Run("several operations are all named", func(t *testing.T) {
-		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c")
+		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-r", "-w", "-g", "-e")
 		if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 || len(r.reached) != 0 {
 			t.Fatalf("ended %v with %d, reached %v, calls %v", r.ended, r.code, r.reached, r.calls)
 		}
