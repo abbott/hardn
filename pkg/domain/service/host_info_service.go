@@ -21,9 +21,6 @@ type HostInfoService interface {
 	// GetHostname retrieves the system hostname and domain
 	GetHostname() (string, string, error)
 
-	// GetNonSystemUsers retrieves non-system users on the system
-	GetNonSystemUsers() ([]model.User, error)
-
 	// GetNonSystemGroups retrieves non-system groups on the system
 	GetNonSystemGroups() ([]string, error)
 
@@ -74,11 +71,6 @@ func (s *HostInfoServiceImpl) GetDNSServers() ([]string, error) {
 // GetHostname retrieves the system hostname and domain
 func (s *HostInfoServiceImpl) GetHostname() (string, string, error) {
 	return s.hostInfoRepo.GetHostname()
-}
-
-// GetNonSystemUsers retrieves non-system users on the system
-func (s *HostInfoServiceImpl) GetNonSystemUsers() ([]model.User, error) {
-	return s.userRepo.GetNonSystemUsers()
 }
 
 // GetNonSystemGroups retrieves non-system groups on the system

@@ -34,11 +34,6 @@ func (m *MockUserRepository) GetUser(username string) (*model.User, error) {
 	return user, args.Error(1)
 }
 
-func (m *MockUserRepository) AddSSHKey(username, publicKey string) error {
-	args := m.Called(username, publicKey)
-	return args.Error(0)
-}
-
 func (m *MockUserRepository) ConfigureSudo(username string, noPassword bool) error {
 	args := m.Called(username, noPassword)
 	return args.Error(0)
@@ -47,21 +42,6 @@ func (m *MockUserRepository) ConfigureSudo(username string, noPassword bool) err
 func (m *MockUserRepository) UserExists(username string) (bool, error) {
 	args := m.Called(username)
 	return args.Bool(0), args.Error(1)
-}
-
-func (m *MockUserRepository) GetNonSystemUsers() ([]model.User, error) {
-	args := m.Called()
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-
-	// Safely perform type assertion
-	users, ok := args.Get(0).([]model.User)
-	if !ok {
-		return nil, fmt.Errorf("invalid type assertion, expected []model.User")
-	}
-
-	return users, args.Error(1)
 }
 
 func (m *MockUserRepository) GetNonSystemGroups() ([]string, error) {
@@ -77,21 +57,6 @@ func (m *MockUserRepository) GetNonSystemGroups() ([]string, error) {
 	}
 
 	return groups, args.Error(1)
-}
-
-func (m *MockUserRepository) GetExtendedUserInfo(username string) (*model.User, error) {
-	args := m.Called(username)
-	if args.Get(0) == nil {
-		return nil, args.Error(1)
-	}
-
-	// Safely perform type assertion
-	user, ok := args.Get(0).(*model.User)
-	if !ok {
-		return nil, fmt.Errorf("invalid type assertion, expected *model.User")
-	}
-
-	return user, args.Error(1)
 }
 
 func TestUserServiceImpl_CreateUser(t *testing.T) {
@@ -188,48 +153,6 @@ func TestUserServiceImpl_GetUser_Error(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Nil(t, user)
-	assert.Equal(t, expectedErr, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUserServiceImpl_AddSSHKey(t *testing.T) {
-	// Setup
-	mockRepo := new(MockUserRepository)
-	service := NewUserServiceImpl(mockRepo)
-
-	// Test data
-	username := "testuser"
-	publicKey := "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... testuser@example.com"
-
-	// Setup expectations
-	mockRepo.On("AddSSHKey", username, publicKey).Return(nil)
-
-	// Execute
-	err := service.AddSSHKey(username, publicKey)
-
-	// Assert
-	assert.NoError(t, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUserServiceImpl_AddSSHKey_Error(t *testing.T) {
-	// Setup
-	mockRepo := new(MockUserRepository)
-	service := NewUserServiceImpl(mockRepo)
-
-	// Test data
-	username := "testuser"
-	publicKey := "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... testuser@example.com"
-
-	// Setup expectations
-	expectedErr := fmt.Errorf("failed to add SSH key")
-	mockRepo.On("AddSSHKey", username, publicKey).Return(expectedErr)
-
-	// Execute
-	err := service.AddSSHKey(username, publicKey)
-
-	// Assert
-	assert.Error(t, err)
 	assert.Equal(t, expectedErr, err)
 	mockRepo.AssertExpectations(t)
 }
@@ -382,57 +305,5 @@ func TestUserServiceImpl_UserWithExistingUsername(t *testing.T) {
 	// Assert
 	assert.Error(t, err)
 	assert.Equal(t, existsErr, err)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUserServiceImpl_GetExtendedUserInfo(t *testing.T) {
-	// Setup
-	mockRepo := new(MockUserRepository)
-	service := NewUserServiceImpl(mockRepo)
-
-	// Test data
-	username := "testuser"
-	expectedUser := &model.User{
-		Username:       username,
-		HasSudo:        true,
-		SshKeys:        []string{"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... testuser@example.com"},
-		SudoNoPassword: true,
-		UID:            "1000",
-		GID:            "1000",
-		HomeDirectory:  "/home/testuser",
-		LastLogin:      "Mon Mar 18 10:30:45 2025",
-	}
-
-	// Setup expectations
-	mockRepo.On("GetExtendedUserInfo", username).Return(expectedUser, nil)
-
-	// Execute
-	user, err := service.GetExtendedUserInfo(username)
-
-	// Assert
-	assert.NoError(t, err)
-	assert.Equal(t, expectedUser, user)
-	mockRepo.AssertExpectations(t)
-}
-
-func TestUserServiceImpl_GetExtendedUserInfo_Error(t *testing.T) {
-	// Setup
-	mockRepo := new(MockUserRepository)
-	service := NewUserServiceImpl(mockRepo)
-
-	// Test data
-	username := "nonexistentuser"
-
-	// Setup expectations
-	expectedErr := fmt.Errorf("user not found")
-	mockRepo.On("GetExtendedUserInfo", username).Return(nil, expectedErr)
-
-	// Execute
-	user, err := service.GetExtendedUserInfo(username)
-
-	// Assert
-	assert.Error(t, err)
-	assert.Nil(t, user)
-	assert.Equal(t, expectedErr, err)
 	mockRepo.AssertExpectations(t)
 }

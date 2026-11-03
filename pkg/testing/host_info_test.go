@@ -126,13 +126,6 @@ MemAvailable:   10768516 kB
 	assert.Equal(t, "5.10.0-testkernel", hostInfo.KernelInfo)
 	assert.Equal(t, time.Duration(12345.67*float64(time.Second)), hostInfo.Uptime)
 
-	// Test GetNonSystemUsers
-	users, err := hostInfoManager.GetNonSystemUsers()
-	assert.NoError(t, err)
-	assert.Len(t, users, 1)
-	assert.Equal(t, "testuser", users[0].Username)
-	assert.True(t, users[0].HasSudo)
-
 	// Test GetDNSServers
 	dnsServers, err := hostInfoManager.GetDNSServers()
 	assert.NoError(t, err)

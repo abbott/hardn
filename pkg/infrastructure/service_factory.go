@@ -200,7 +200,6 @@ func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
 		userManager, sshManager, firewallManager, dnsManager)
 
 	menuManager := application.NewMenuManager(
-		userManager,
 		sshManager,
 		dnsManager,
 		packageManager,
