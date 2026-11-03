@@ -46,7 +46,7 @@ The User control is Figma's User row and every change the User Management screen
 - "george's key is also in /home/george/.ssh/authorized_keys2, which sshd reads too. Remove it there, then try again."
 - "/home/carol is already there, and undoing Create would delete it. Choose another name."
 - The Password row for an empty field: "Empty" (bad).
-- Create with several keys: "Add carol's keys"; a bad one of several, "Key 2 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name." (one key keeps §6's "Paste one OpenSSH public key, …").
+- Create with several keys: "Add carol's keys". A bad key in `New.Keys` is numbered, one key or several: "Key 2 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name." (`CheckNew`); the screen's pasted key keeps §6's "Paste one OpenSSH public key, …", refused at its field first.
 - The mock's, kept: "Create user carol", "Add carol's key", "Add a key for alice", "Remove a key from alice"; Create's states "absent", "no password, key login". The two findings are §6's words without the full stop.
 
 ## 6. Facts, and what is not run
