@@ -9,10 +9,8 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/controls/ssh"
-	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/host/sshd"
-	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
@@ -123,8 +121,10 @@ func TestSSHHosts(t *testing.T) {
 }
 
 // TestSSHRefusals: every lockout path and refusal of sshRefusals refuses
-// before asking, and the items each host offers without one plan only
-// changes of lockout risk.
+// before asking, through the engine's plan of the item's control. The
+// refusals' logic, words and codes are sshchange's tests'
+// (pkg/engine/controls/sshchange); kept here, the one plan they lack: the
+// port on ssh.socket, of lockout risk alone.
 func TestSSHRefusals(t *testing.T) {
 	ctx := context.Background()
 	for _, rf := range sshRefusals() {
@@ -133,32 +133,18 @@ func TestSSHRefusals(t *testing.T) {
 			t.Errorf("%v: %q, %v; want a refusal", rf, words, err)
 		}
 	}
-	for _, tt := range []struct {
-		host string
-		c    engine.Control
-	}{
-		{"debian13", sshSet(ssh.Login{}, steps.SSH{Set: []migrate.Directive{directive("PermitRootLogin", "no")}})},
-		{"hardened", sshSet(ssh.Login{}, steps.SSH{Set: []migrate.Directive{directive("PermitRootLogin", "prohibit-password")}})},
-		{"hardened", sshSet(ssh.Auth{}, steps.SSH{Set: []migrate.Directive{directive("PasswordAuthentication", "yes")}})},
-		{"pve9", sshSet(ssh.Auth{}, steps.SSH{Set: []migrate.Directive{directive("PasswordAuthentication", "no")}})},
-		{"debian13", sshSet(ssh.Port{}, steps.SSH{Port: 2230})},
-		{"ubuntu2604", sshSet(ssh.Port{}, steps.SSH{Port: 2230})},
-		{"legacy-main", sshMigration("")},
-		{"allow-users", sshSet(ssh.Login{}, steps.SSH{Set: []migrate.Directive{directive("PermitRootLogin", "no")}})},
-	} {
-		r, h, err := sshReadNamed(ctx, tt.host)
-		if err != nil {
-			t.Fatal(err)
-		}
-		p, err := sshEngine(h, r.sess.Conn, nil).Plan(ctx, []engine.Control{tt.c}, r.cfg)
-		if err != nil || len(p.Refused) > 0 || len(p.Changes) == 0 {
-			t.Errorf("%s, %s: %v, refused %v", tt.host, tt.c.ID(), err, p.Refused)
-			continue
-		}
-		for _, c := range p.Changes {
-			if c.Risk != engine.RiskLockout && !strings.HasPrefix(c.ID, "engine.") && !strings.Contains(c.ID, "boot") {
-				t.Errorf("%s, %s: change %s of risk %v, want lockout", tt.host, tt.c.ID(), c.ID, c.Risk)
-			}
+	r, h, err := sshReadNamed(ctx, "ubuntu2604")
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := sshchange.Port{To: 2230}
+	p, err := sshEngine(h, r.session(), nil).Plan(ctx, []engine.Control{c}, r.cfg)
+	if err != nil || len(p.Refused) > 0 || len(p.Changes) == 0 {
+		t.Fatalf("ubuntu2604, %s: %v, refused %v", c.ID(), err, p.Refused)
+	}
+	for _, ch := range p.Changes {
+		if ch.Risk != engine.RiskLockout && !strings.HasPrefix(ch.ID, "engine.") && !strings.Contains(ch.ID, "boot") {
+			t.Errorf("ubuntu2604, %s: change %s of risk %v, want lockout", c.ID(), ch.ID, ch.Risk)
 		}
 	}
 }
@@ -175,57 +161,8 @@ func TestSSHPortInUse(t *testing.T) {
 		t.Fatal(err)
 	}
 	e := &sshRunner{h: h}
-	if words := e.preplan(ctx, r, sshSet(ssh.Port{}, steps.SSH{Port: 8080})); !strings.Contains(words, "in use") {
+	if words := e.preplan(ctx, r, sshchange.Port{To: 8080}); !strings.Contains(words, "in use") {
 		t.Errorf("port 8080 in use: %q, want a refusal", words)
-	}
-}
-
-// TestSSHAdminPaths holds sshLoginPaths, sshd's own answer for each admin:
-// george by key on debian13; alice left out by AllowUsers; george locked
-// without PAM; on match-allows, alice in by password through the Match
-// block while passwords stay on; and each other way an admin is not able:
-// AllowUsers' host, DenyUsers, PubkeyAuthentication, AuthenticationMethods,
-// StrictModes, a key file sshd doesn't read, the key's type and size, and
-// becoming root.
-func TestSSHAdminPaths(t *testing.T) {
-	ctx := context.Background()
-	for _, tt := range []struct {
-		host    string
-		keyOnly bool
-		want    string
-	}{
-		{"debian13", true, "george key|alice: alice has no key sshd reads"},
-		{"allow-users", true, "george key|alice: alice isn't in AllowUsers"},
-		{"nopam-locked", true, "george: george's account is locked (!) and sshd has no PAM"},
-		{"match-allows", false, "george key|alice: alice has no key sshd reads, password"},
-		{"allow-users-host", true, "george: AllowUsers lets george in from 198.51.100.7 alone|alice: alice isn't in AllowUsers"},
-		{"deny-users", true, "george: george is in DenyUsers|alice: alice has no key sshd reads"},
-		{"pubkey-off", true, "george: PubkeyAuthentication is off|alice: PubkeyAuthentication is off"},
-		{"methods-password", false, "george: AuthenticationMethods publickey,password asks more than george has|alice: alice has no key sshd reads"},
-		{"strict-home", true, "george: StrictModes ignores george's keys|alice: alice has no key sshd reads"},
-		{"key-elsewhere", true, "george: george has no key sshd reads|alice: alice has no key sshd reads"},
-		{"algorithms-rsa", true, "george: sshd doesn't accept george's key type (ssh-ed25519)|alice: alice has no key sshd reads"},
-		{"rsa-small", true, "george: george's RSA key is 1024 bits, under RequiredRSASize 2048|alice: alice has no key sshd reads"},
-		{"admin-no-sudo", true, "george: george can't become root: sudo asks a password george hasn't got"},
-	} {
-		r, h, err := sshReadNamed(ctx, tt.host)
-		if err != nil {
-			t.Fatal(err)
-		}
-		var got []string
-		for _, a := range r.sshLoginPaths(ctx, h.sys(), tt.keyOnly) {
-			s := a.name + " key"
-			if !a.key {
-				s = a.name + ": " + a.why
-			}
-			if a.pwd {
-				s += ", password"
-			}
-			got = append(got, s)
-		}
-		if strings.Join(got, "|") != tt.want {
-			t.Errorf("%s: %q, want %q", tt.host, strings.Join(got, "|"), tt.want)
-		}
 	}
 }
 
@@ -293,90 +230,4 @@ func TestSSHHeights(t *testing.T) {
 			t.Errorf("%s: lines %v, want the same at 24 and 40 rows", sh.name, n)
 		}
 	}
-}
-
-// TestSSHGuards holds the guards the hosts above leave untested: an admin
-// under AllowGroups, outside an AllowUsers CIDR, or with only restricted
-// keys, not shown able; on
-// Proxmox VE, root key-only refused where root has no key; Key-only login
-// refused for a session sshd's log lacks, for a Match block letting
-// passwords in, and where no admin could log in by key; and the session's
-// line found by its address as well as its port.
-func TestSSHGuards(t *testing.T) {
-	ctx := context.Background()
-	sudo := map[string]string{"SSH_CONNECTION": applyConn, "SUDO_USER": "george"}
-	read := func(t *testing.T, h *fakeHost, env map[string]string) sshReading {
-		t.Helper()
-		r, err := readSSH(ctx, h.sys(), env)
-		if err != nil {
-			t.Fatal(err)
-		}
-		return r
-	}
-	georgeOf := func(r sshReading, h *fakeHost, keyOnly bool) sshAdmin {
-		for _, a := range r.sshLoginPaths(ctx, h.sys(), keyOnly) {
-			if a.name == "george" {
-				return a
-			}
-		}
-		return sshAdmin{}
-	}
-	t.Run("AllowGroups", func(t *testing.T) {
-		h := sshDebian13().sshFile(sshd.DropInDir+"/10-site.conf", "AllowGroups sudo\n", 0o644)
-		if a := georgeOf(read(t, h, sudo), h, true); a.key || a.why != "AllowGroups and DenyGroups aren't read" {
-			t.Errorf("george: %+v, want not able, groups not read", a)
-		}
-	})
-	t.Run("AllowUsers with a CIDR", func(t *testing.T) {
-		for cidr, able := range map[string]bool{"192.0.2.0/24": true, "198.51.100.0/24": false} {
-			h := sshDebian13().sshFile(sshd.DropInDir+"/10-site.conf", "AllowUsers george@"+cidr+"\n", 0o644)
-			if a := georgeOf(read(t, h, sudo), h, true); a.key != able {
-				t.Errorf("AllowUsers george@%s, the session from 192.0.2.10: %+v, want able %v", cidr, a, able)
-			}
-		}
-	})
-	t.Run("restricted keys", func(t *testing.T) {
-		h := sshDebian13()
-		h.f.AddFile("/home/george/.ssh/authorized_keys", []byte(`command="/bin/true" `+synthKey(1, "george@laptop-1")+"\n"), 0o600, 1000, 1000)
-		if a := georgeOf(read(t, h, sudo), h, true); a.key {
-			t.Errorf("george with a command= key alone: %+v, want not able", a)
-		}
-	})
-	t.Run("Proxmox VE, root without a key", func(t *testing.T) {
-		h := usersOn(pve9Platform, false).rootLike("*").onConsole()
-		_ = h.f.Remove(ctx, "/root/.ssh/authorized_keys")
-		if w := read(t, h, sshConsoleEnv).rootRefusal(ctx, h.sys()); !strings.HasPrefix(w, "Root would lose SSH login") {
-			t.Errorf("root key-only with no root key: %q, want a refusal", w)
-		}
-	})
-	t.Run("Key-only, no line in sshd's log", func(t *testing.T) {
-		h := sshPasswordLogin()
-		h.ssh.log = ""
-		if w := read(t, h, sudo).passwordRefusal(ctx, h.sys()); w != sshWordsNoSession {
-			t.Errorf("%q, want %q", w, sshWordsNoSession)
-		}
-	})
-	t.Run("Key-only, a Match block letting passwords in", func(t *testing.T) {
-		h := sshPasswordLogin().sshFile(sshd.DropInDir+"/20-site.conf", "Match Address 198.51.100.0/24\n    PasswordAuthentication yes\n", 0o644)
-		if w := read(t, h, sudo).passwordRefusal(ctx, h.sys()); !strings.HasPrefix(w, "Match Address 198.51.100.0/24, in 20-site.conf") {
-			t.Errorf("%q, want the Match block's refusal", w)
-		}
-	})
-	t.Run("Key-only, no admin able by key", func(t *testing.T) {
-		h := usersOn(debian13Platform, true, george(debian13Platform)).rootLike("*")
-		h.sshFile(sshd.MainConfig, debianMain, 0o644)
-		h.f.AddFile("/home/george/.ssh/authorized_keys", []byte(rsaKey(1024, 0x41, "george@laptop-1")+"\n"), 0o600, 1000, 1000)
-		h.sshFile(sshd.DropInDir+"/10-rsa.conf", "RequiredRSASize 2048\n", 0o644)
-		h.sshFile(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication yes\n", 0o600).onConsole()
-		if w := read(t, h, sshConsoleEnv).passwordRefusal(ctx, h.sys()); !strings.HasPrefix(w, "No admin could log in over SSH afterwards: george's RSA key is 1024 bits") {
-			t.Errorf("%q, want no admin able", w)
-		}
-	})
-	t.Run("the session's line by address and port", func(t *testing.T) {
-		h := sshDebian13()
-		h.ssh.log += "2026-10-20T11:59:00+00:00 " + hostName + " sshd-session[3901]: Accepted password for alice from 198.51.100.7 port " + sshSessionPort + " ssh2\n"
-		if r := read(t, h, sudo); r.login.user != "george" || r.login.method != "publickey" {
-			t.Errorf("login %+v, want george by publickey: another address's line on the same port taken", r.login)
-		}
-	})
 }
