@@ -29,7 +29,7 @@ Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wr
 ## Built in `next/s5-replace` (unit (d))
 
 - **Main menu 1** runs `Run` (`MainMenu.SetUsers`, `cmd/hardn/users.go`), with `os.Getenv` and the loaded hardn.yml; under plan only too, every change stopping at its plan.
-- **`-c [-u <name>]`** plans Create with admin rights, no password and no key, applied without a question as `-g` is (decision 6 (a)); `-n` or `dryRun: true` shows the plan; refusals exit 1. It no longer configures sshd (slice 6's).
+- **`-c [-u <name>]`** plans Create with admin rights, no password and every key in hardn.yml's `sshKeys` (the maintainer, 2026-11-03: "(a) Add sshKeys", in place of decision 6 (a)'s no key), applied without a question as `-g` is (decision 6 (a)); `-n` or `dryRun: true` shows the plan; refusals exit 1. It no longer configures sshd (slice 6's). The screen's Create still takes one key, `sshKeys`' first its default.
 - **hardn.yml:** `username` and `sshKeys` are Create's defaults alone and never warn; `sudoNoPassword: false` warns once (decision 7 (a)). Run All still reads it until slice 8.
 - **Deleted** (hard cutover, the maintainer, 2026-11-03): the legacy User Management screen, what only it called (`UserManager.CreateUser` stays for `-r` and Run All), Run All's offer to set a username, and the `pkg/characterization` record (`menu_users_test.go`, 42 goldens; `create_user_c_path`). `configure_sudo` stays, reached by `-r`.
 - **Not a bisect point for main menu 1:** `0162f1b0` built alone panics when item 1 is chosen, as nothing calls `SetUsers` until `8d0e8c74`.
