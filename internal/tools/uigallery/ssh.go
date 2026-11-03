@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/binary"
 	"errors"
 	"fmt"
+	"math/bits"
+	"net/netip"
 	"path"
 	"slices"
 	"strconv"
@@ -127,9 +131,9 @@ func sshHosts() []sshHost {
 		{name: "root-session", label: "Root's session", about: "No SUDO_USER", host: sshRootSession, env: root,
 			note: deb + "debian13, but hardn runs from root's own SSH login, by key: no SUDO_USER."},
 		{name: "legacy-v032", label: "hardn v0.3.2", about: "manage.conf, listen.conf", host: sshLegacyV032, env: sudo,
-			note: ubu + "Hardened by v0.3.2: its manage.conf, and listen.conf for 2230 written with no daemon-reload, so ssh.socket still listens on 22."},
-		{name: "legacy-main", label: "origin/main's file", about: "hardn.conf beaten", host: sshLegacyMain, env: sudo,
-			note: deb + "origin/main's hardn.conf (PermitRootLogin no, PasswordAuthentication no), beaten for passwords by 50-cloud-init.conf, which sshd reads first."},
+			note: ubu + "Hardened by v0.3.2: its manage.conf (AuthorizedKeysFile .ssh/authorized_keys .ssh_%u/authorized_keys, george's keys in ~/.ssh_george), and listen.conf for 2230 written with no daemon-reload, so ssh.socket still listens on 22."},
+		{name: "legacy-main", label: "origin/main's file", about: "hardn.conf, passwords off", host: sshLegacyMain, env: sudo,
+			note: deb + "origin/main's hardn.conf (PermitRootLogin no, AuthenticationMethods publickey, AuthorizedKeysFile .ssh/authorized_keys). 50-cloud-init.conf, read first, sets PasswordAuthentication yes, but AuthenticationMethods publickey keeps passwords out."},
 		{name: "include-other", label: "Include not first", about: "Port 22 above it", host: sshIncludeOther, env: sudo,
 			note: deb + "sshd_config has Port 22 above the stock Include (P-38)."},
 		{name: "match-allows", label: "Match block", about: "Root, passwords from 192.0.2.0/24", host: sshMatchAllows, env: sudo,
@@ -144,14 +148,61 @@ func sshHosts() []sshHost {
 			note: deb + "debian13 after Change SSH port to 2230, applied a minute ago: 22 and 2230 held, hardn confirm pending."},
 		{name: "not-read", label: "sshd not read", about: "Before the first connection", host: sshNotRead, env: sudo,
 			note: ubu + "ubuntu2604 before its first connection: no /run/sshd, so sshd -T fails."},
-		{name: "nopam-locked", label: "Alpine, admin locked", about: "george \"!\", no PAM", host: sshNoPAMLocked, env: doas,
-			note: alp + "alpine323, but george's account is \"!\" and george is the only admin: sshd without PAM refuses george's key [I: not run]."},
+		{name: "nopam-locked", label: "Alpine, admin locked", about: "george \"!\", no PAM", host: sshNoPAMLocked, env: sshConsoleEnv,
+			note: alp + "alpine323, but george's account is \"!\" and george is the only admin: sshd without PAM refuses george's key [I: not run], so he has no SSH login. hardn runs as root on the console."},
+		{name: "rsa-small", label: "RSA key too short", about: "1024 bits, 2048 asked", host: sshRSASmall, env: sshConsoleEnv,
+			note: deb + "debian13, but george's only key is RSA 1024 bits and 10-rsa.conf sets RequiredRSASize 2048, so sshd refuses it. hardn runs as root on the console."},
+		{name: "admin-no-sudo", label: "Admin without sudo", about: "sudo asks a password", host: sshAdminNoSudo, env: sshConsoleEnv,
+			note: deb + "george alone, by key; his only grant is %sudo, which asks a password, and his account is \"!\". hardn runs as root on the console."},
 	}
 }
 
-// findSSHHost returns the host named name, after sshPrefix.
+// sshConsoleEnv is the environment of hardn run as root on the console: no
+// SSH_CONNECTION, no SUDO_USER or DOAS_USER.
+var sshConsoleEnv = map[string]string{}
+
+// sshVariants are hosts the tests and the refusals mock read that the
+// menu does not list: debian13 and pve9 with one thing changed.
+func sshVariants() []sshHost {
+	sudo := map[string]string{"SSH_CONNECTION": applyConn, "SUDO_USER": "george"}
+	deb := func(name, note, conf string) sshHost {
+		return sshHost{name: name, note: note, env: sudo, host: func() *fakeHost {
+			return sshDebian13().sshFile(sshd.DropInDir+"/10-site.conf", conf, 0o644)
+		}}
+	}
+	return []sshHost{
+		deb("allow-users-host", "AllowUsers george@198.51.100.7; the session is from 192.0.2.10.", "AllowUsers george@198.51.100.7\n"),
+		deb("deny-users", "DenyUsers george.", "DenyUsers george\n"),
+		deb("pubkey-off", "PubkeyAuthentication no.", "PubkeyAuthentication no\n"),
+		deb("methods-password", "AuthenticationMethods publickey,password, passwords on; george has no password.", "AuthenticationMethods publickey,password\nPasswordAuthentication yes\n"),
+		deb("algorithms-rsa", "PubkeyAcceptedAlgorithms without ssh-ed25519.", "PubkeyAcceptedAlgorithms rsa-sha2-512,rsa-sha2-256\n"),
+		{name: "strict-home", note: "george's home group-writable (0775).", env: sudo, host: func() *fakeHost {
+			h := sshDebian13()
+			h.f.AddDir("/home/george", 0o775, 1000, 1000)
+			return h
+		}},
+		{name: "key-elsewhere", note: "AuthorizedKeysFile .ssh/authorized_keys; george's keys in authorized_keys2.", env: sudo, host: func() *fakeHost {
+			h := sshDebian13().sshFile(sshd.DropInDir+"/10-site.conf", "AuthorizedKeysFile .ssh/authorized_keys\n", 0o644)
+			data, _ := h.f.ReadFile(context.Background(), "/home/george/.ssh/authorized_keys")
+			_ = h.f.Remove(context.Background(), "/home/george/.ssh/authorized_keys")
+			h.f.AddFile("/home/george/.ssh/authorized_keys2", data, 0o600, 1000, 1000)
+			return h
+		}},
+		{name: "no-accepted", note: "sshd's log has no line for the session.", env: sudo, host: func() *fakeHost {
+			h := sshDebian13()
+			h.ssh.log = ""
+			return h
+		}},
+		{name: "pve9-password", note: "pve9, root logged in by password.", env: map[string]string{"SSH_CONNECTION": applyConn}, host: func() *fakeHost {
+			return usersOn(pve9Platform, false).rootLike(syntheticHash).withLog("password", "root", 0)
+		}},
+	}
+}
+
+// findSSHHost returns the host named name, after sshPrefix: the menu's,
+// then the variants.
 func findSSHHost(name string) (sshHost, bool) {
-	all := sshHosts()
+	all := slices.Concat(sshHosts(), sshVariants())
 	i := slices.IndexFunc(all, func(h sshHost) bool { return h.name == name })
 	if i < 0 {
 		return sshHost{}, false
@@ -209,9 +260,10 @@ type sshLogin struct {
 // sshAdmin is one admin and whether sshd lets them in from the session's
 // address after the change (sshLoginPaths).
 type sshAdmin struct {
-	name     string
-	key, pwd bool   // by key; by password, where passwords stay on
-	why      string // why not by key, in a sentence's middle
+	name string
+	key  bool   // by key alone
+	pwd  bool   // not by key alone, but with a password, where passwords stay on
+	why  string // why not by key, in a sentence's middle
 }
 
 // sshReading is the host as the screen reads it.
@@ -227,6 +279,14 @@ type sshReading struct {
 	login  sshLogin
 	cfg    *config.Config
 	pve    bool
+	// root is root's account and password state; rootLocked: sshd has no
+	// PAM and every uid-0 account's field starts with "!" (check-ssh.md
+	// §9), so no account logs in as root.
+	root       accounts.User
+	rootPW     accounts.Password
+	rootLocked bool
+	// listenPort is v0.3.x's listen.conf's port, "" where there is none.
+	listenPort string
 }
 
 // readSSH reads the host as the screen does, writing nothing.
@@ -263,8 +323,51 @@ func readSSH(ctx context.Context, sys host.System, env map[string]string) (sshRe
 	r.sess, _ = revert.ReadSession(ctx, sys, func(k string) string { return env[k] }, applyPID)
 	r.login = sshSessionLogin(ctx, sys, r.f, r.sess)
 	r.pve, _ = pve.Applies(r.f.Proxmox)
+	r.readRoot(ctx, sys)
+	if data, err := sys.ReadFile(ctx, migrate.ListenConf); err == nil {
+		for _, l := range strings.Split(string(data), "\n") {
+			if v, ok := strings.CutPrefix(strings.TrimSpace(l), "ListenStream="); ok && v != "" {
+				r.listenPort = v
+			}
+		}
+	}
 	return r, nil
 }
+
+// readRoot reads root's account, its password state, and whether every
+// uid-0 account is locked where sshd has no PAM: the first line of each
+// name in /etc/passwd, as check-ssh.md §9 reads them.
+func (r *sshReading) readRoot(ctx context.Context, sys host.System) {
+	db, err := accounts.Read(ctx, sys)
+	if err != nil {
+		return
+	}
+	sh, shErr := accounts.ReadShadow(ctx, sys)
+	seen, locked, any0 := map[string]bool{}, true, false
+	for _, u := range db.Users {
+		if seen[u.Name] {
+			continue
+		}
+		seen[u.Name] = true
+		if u.Name == "root" {
+			r.root = u
+			if shErr == nil {
+				r.rootPW = sh.PasswordOf(u)
+			}
+		}
+		if u.UID == 0 {
+			any0 = true
+			if l, _ := sh.LockOf(u); shErr != nil || l != accounts.Locked {
+				locked = false
+			}
+		}
+	}
+	r.rootLocked = r.effErr == nil && r.eff.UsePAM.Value != "yes" && any0 && locked
+}
+
+// console reports whether hardn runs from a console, not over SSH: closing
+// an SSH login path cannot close the way in.
+func (r sshReading) console() bool { return !r.sess.Remote }
 
 // sshSessionLogin is a stand-in, unit (b)'s: the session's login as sshd
 // logs it ("Accepted <method> for <user> from <addr> port <port> ssh2"),
@@ -332,77 +435,260 @@ func sshdSays(ctx context.Context, sys host.System, f detect.Facts, user, addr s
 }
 
 // sshLoginPaths is a stand-in, unit (b)'s: each admin besides root, and
-// whether sshd lets them in from the session's address once passwords are
-// off (keyOnly) or as they are: sshd's own answer for them (sshdSays:
-// AllowUsers, DenyUsers, PubkeyAuthentication, AuthenticationMethods,
-// AuthorizedKeysFile, PasswordAuthentication after Match), a key in the
-// files that answer names (authkeys.Read, a restricted key not counted),
-// StrictModes (authkeys.CheckStrict), and the account's lock where sshd has
-// no PAM (users.User.Locked). AllowGroups and DenyGroups are not read: an
-// admin under either is not shown able.
+// whether they could log in from the session's address once passwords are
+// off (keyOnly) or as they are, and then become root (sshLoginPath): an
+// admin who cannot do both is not shown able.
 func (r sshReading) sshLoginPaths(ctx context.Context, sys host.System, keyOnly bool) []sshAdmin {
-	addr := "192.0.2.10"
-	if c := strings.Fields(r.sess.Conn); len(c) == 4 {
-		addr = c[0]
-	}
 	var out []sshAdmin
 	for _, u := range r.users.Users {
 		if u.Admin != detect.Yes || u.UID == 0 {
 			continue
 		}
-		a := sshAdmin{name: u.Name}
-		kw, err := sshdSays(ctx, sys, r.f, u.Name, addr)
-		one := func(k string) string {
-			if v := kw[k]; len(v) > 0 {
-				return v[0]
+		a := r.sshLoginPath(ctx, sys, u.User, u.Password, u.Locked, keyOnly)
+		if (a.key || a.pwd) && !u.NoPassword && u.Password != accounts.PasswordSet {
+			tool := u.Tool
+			if tool == "" {
+				tool = "sudo"
 			}
-			return ""
-		}
-		var files []authkeys.File
-		if err == nil {
-			files = authkeys.Read(ctx, sys, strings.Fields(one("authorizedkeysfile")), u.User)
-		}
-		keys := slices.DeleteFunc(authkeys.Keys(files), func(k authkeys.Key) bool { return k.Restricted() })
-		allowed := func(list []string, deny bool) bool {
-			if len(list) == 0 {
-				return !deny
-			}
-			for _, p := range strings.Fields(strings.Join(list, " ")) {
-				p, _, _ = strings.Cut(p, "@")
-				if ok, _ := path.Match(p, u.Name); ok {
-					return true
-				}
-			}
-			return false
-		}
-		switch {
-		case err != nil:
-			a.why = "sshd's answer for " + u.Name + " not read"
-		case allowed(kw["denyusers"], true):
-			a.why = u.Name + " is in DenyUsers"
-		case !allowed(kw["allowusers"], false):
-			a.why = u.Name + " isn't in AllowUsers"
-		case len(kw["allowgroups"]) > 0 || len(kw["denygroups"]) > 0:
-			a.why = "AllowGroups and DenyGroups aren't read"
-		case u.Locked:
-			a.why = u.Name + "'s account is locked (!) and sshd has no PAM"
-		default:
-			if one("pubkeyauthentication") != "yes" {
-				a.why = "PubkeyAuthentication is off"
-			} else if m := one("authenticationmethods"); m != "any" && !slices.Contains(strings.Fields(m), "publickey") {
-				a.why = "AuthenticationMethods " + m + " asks more than a key"
-			} else if len(keys) == 0 {
-				a.why = u.Name + " has no key sshd reads"
-			} else if serr := authkeys.CheckStrict(ctx, sys, u.User); serr != nil {
-				a.why = "StrictModes ignores " + u.Name + "'s keys"
-			} else {
-				a.key = true
-			}
-			a.pwd = !keyOnly && one("passwordauthentication") == "yes" && u.Password == accounts.PasswordSet
+			a.key, a.pwd = false, false
+			a.why = u.Name + " can't become root: " + tool + " asks a password " + u.Name + " hasn't got"
 		}
 		out = append(out, a)
 	}
 	return out
+}
+
+// sshAddr is the session's address, 192.0.2.10 where it is not read.
+func (r sshReading) sshAddr() string {
+	if c := strings.Fields(r.sess.Conn); len(c) == 4 {
+		return c[0]
+	}
+	return "192.0.2.10"
+}
+
+// sshLoginPath is a stand-in, unit (b)'s: whether sshd lets u in from the
+// session's address by key alone, or else with a password where passwords
+// stay on (not keyOnly). It reads sshd's own answer for u (sshdSays, Match
+// blocks applied by sshd), then matches AllowUsers and DenyUsers itself
+// against the address (sshListed); AllowGroups and DenyGroups are not read,
+// so a user under either is not shown able. The methods: publickey is a key
+// in the files AuthorizedKeysFile names (authkeys.Read, a restricted key not
+// counted) whose type PubkeyAcceptedAlgorithms accepts and, for RSA, whose
+// modulus is at least RequiredRSASize bits, StrictModes passed
+// (authkeys.CheckStrict), PubkeyAuthentication yes; password is
+// PasswordAuthentication yes and a password set; keyboard-interactive is
+// KbdInteractiveAuthentication yes, PAM in use and a password set. One of
+// AuthenticationMethods' lists must be made of those alone (sshMethodsMet).
+// The account's lock counts where sshd has no PAM (locked).
+func (r sshReading) sshLoginPath(ctx context.Context, sys host.System, u accounts.User, pw accounts.Password, locked, keyOnly bool) sshAdmin {
+	a := sshAdmin{name: u.Name}
+	addr := r.sshAddr()
+	kw, err := sshdSays(ctx, sys, r.f, u.Name, addr)
+	one := func(k string) string { return strings.Join(kw[k], " ") }
+	if err != nil {
+		a.why = "sshd's answer for " + u.Name + " not read"
+		return a
+	}
+	if ok, _, _ := sshListed(kw["denyusers"], u.Name, addr); ok {
+		a.why = u.Name + " is in DenyUsers"
+		return a
+	}
+	if allow := kw["allowusers"]; len(allow) > 0 {
+		if ok, host, named := sshListed(allow, u.Name, addr); !ok {
+			switch {
+			case named:
+				a.why = "AllowUsers names " + u.Name + "@" + host + ", a host name hardn doesn't match"
+			case host != "":
+				a.why = "AllowUsers lets " + u.Name + " in from " + host + " alone"
+			default:
+				a.why = u.Name + " isn't in AllowUsers"
+			}
+			return a
+		}
+	}
+	switch {
+	case len(kw["allowgroups"]) > 0 || len(kw["denygroups"]) > 0:
+		a.why = "AllowGroups and DenyGroups aren't read"
+		return a
+	case locked:
+		a.why = u.Name + "'s account is locked (!) and sshd has no PAM"
+		return a
+	}
+	files := authkeys.Read(ctx, sys, strings.Fields(one("authorizedkeysfile")), u)
+	keys := slices.DeleteFunc(authkeys.Keys(files), func(k authkeys.Key) bool { return k.Restricted() })
+	algos := strings.Split(one("pubkeyacceptedalgorithms"), ",")
+	minRSA := authkeys.MinRSABits
+	if n, err := strconv.Atoi(one("requiredrsasize")); err == nil {
+		minRSA = n
+	}
+	var typed, sized []authkeys.Key
+	for _, k := range keys {
+		if !sshTypeAccepted(k.Type, algos, len(kw["pubkeyacceptedalgorithms"]) > 0) {
+			continue
+		}
+		typed = append(typed, k)
+		if k.Type != "ssh-rsa" || sshRSABits(k.Blob) >= minRSA {
+			sized = append(sized, k)
+		}
+	}
+	var keyWhy string
+	switch {
+	case one("pubkeyauthentication") != "yes":
+		keyWhy = "PubkeyAuthentication is off"
+	case len(keys) == 0:
+		keyWhy = u.Name + " has no key sshd reads"
+	case len(typed) == 0:
+		var ts []string
+		for _, k := range keys {
+			ts = append(ts, k.Type)
+		}
+		keyWhy = "sshd doesn't accept " + u.Name + "'s key type (" + strings.Join(slices.Compact(ts), ", ") + ")"
+	case len(sized) == 0:
+		keyWhy = fmt.Sprintf("%s's RSA key is %d bits, under RequiredRSASize %d", u.Name, sshRSABits(typed[0].Blob), minRSA)
+	case authkeys.CheckStrict(ctx, sys, u) != nil:
+		keyWhy = "StrictModes ignores " + u.Name + "'s keys"
+	}
+	pam := one("usepam") == "yes"
+	have := map[string]bool{
+		"publickey":            keyWhy == "",
+		"password":             one("passwordauthentication") == "yes" && pw == accounts.PasswordSet,
+		"keyboard-interactive": one("kbdinteractiveauthentication") == "yes" && pam && pw == accounts.PasswordSet,
+	}
+	am := one("authenticationmethods")
+	a.key = sshMethodsMet(am, map[string]bool{"publickey": have["publickey"]})
+	a.pwd = !a.key && !keyOnly && sshMethodsMet(am, have)
+	switch {
+	case a.key:
+	case keyWhy != "":
+		a.why = keyWhy
+	default:
+		a.why = "AuthenticationMethods " + am + " asks more than " + u.Name + " has"
+	}
+	return a
+}
+
+// sshMethodsMet reports whether one of AuthenticationMethods' lists (am as
+// sshd -T prints it: lists apart by spaces, each a comma-separated chain, a
+// method's ":submethod" ignored; "any", or none, any single method) is made
+// only of methods have holds true.
+func sshMethodsMet(am string, have map[string]bool) bool {
+	lists := strings.Fields(am)
+	if len(lists) == 0 {
+		lists = []string{"any"}
+	}
+	for _, l := range lists {
+		if l == "any" {
+			for _, ok := range have {
+				if ok {
+					return true
+				}
+			}
+			continue
+		}
+		all := true
+		for _, m := range strings.Split(l, ",") {
+			m, _, _ = strings.Cut(m, ":")
+			all = all && have[m]
+		}
+		if all {
+			return true
+		}
+	}
+	return false
+}
+
+// sshTypeAccepted reports whether PubkeyAcceptedAlgorithms (algos, read
+// where printed) accepts a key of type t: ssh-ed25519, ecdsa-sha2-nistp*
+// and sk-* by their own name, ssh-rsa by any of ssh-rsa, rsa-sha2-256 and
+// rsa-sha2-512.
+func sshTypeAccepted(t string, algos []string, read bool) bool {
+	if !read {
+		return true
+	}
+	if t == "ssh-rsa" {
+		return slices.ContainsFunc([]string{"ssh-rsa", "rsa-sha2-256", "rsa-sha2-512"}, func(a string) bool { return slices.Contains(algos, a) })
+	}
+	return slices.Contains(algos, t)
+}
+
+// sshRSABits is a stand-in: an ssh-rsa blob's modulus length in bits,
+// parsed here as authkeys does not expose it (string type, mpint e, mpint
+// n; RFC 4253 §6.6); 0 where it does not parse.
+func sshRSABits(b64 string) int {
+	blob, err := base64.StdEncoding.DecodeString(b64)
+	if err != nil {
+		return 0
+	}
+	var n []byte
+	for range 3 {
+		if len(blob) < 4 || int(binary.BigEndian.Uint32(blob)) > len(blob)-4 {
+			return 0
+		}
+		l := int(binary.BigEndian.Uint32(blob))
+		n, blob = blob[4:4+l], blob[4+l:]
+	}
+	for len(n) > 0 && n[0] == 0 {
+		n = n[1:]
+	}
+	if len(n) == 0 {
+		return 0
+	}
+	return (len(n)-1)*8 + bits.Len8(n[0])
+}
+
+// sshListed matches name, connecting from addr, against AllowUsers' or
+// DenyUsers' patterns (USER or USER@HOST, sshd's match_pattern, * and ?):
+// HOST an address, a CIDR, or a pattern on the address. A HOST that is a
+// host name never matches: the client's name is not read. It returns
+// whether one matches, and, where none does but USER did, the first such
+// HOST and whether it is a host name.
+func sshListed(list []string, name, addr string) (ok bool, host string, named bool) {
+	for _, p := range strings.Fields(strings.Join(list, " ")) {
+		up, hp, at := strings.Cut(p, "@")
+		if !sshPattern(name, up) {
+			continue
+		}
+		if !at {
+			return true, "", false
+		}
+		isAddr := strings.Trim(hp, "0123456789.:*?/") == ""
+		if pr, err := netip.ParsePrefix(hp); err == nil {
+			if a, err := netip.ParseAddr(addr); err == nil && pr.Contains(a) {
+				return true, "", false
+			}
+		} else if isAddr && sshPattern(addr, hp) {
+			return true, "", false
+		}
+		if host == "" {
+			host, named = hp, !isAddr
+		}
+	}
+	return false, host, named
+}
+
+// sshPattern is sshd's match_pattern: * any run, ? any one character.
+func sshPattern(s, p string) bool {
+	for len(p) > 0 {
+		switch p[0] {
+		case '*':
+			for i := len(s); i >= 0; i-- {
+				if sshPattern(s[i:], p[1:]) {
+					return true
+				}
+			}
+			return false
+		case '?':
+			if len(s) == 0 {
+				return false
+			}
+		default:
+			if len(s) == 0 || s[0] != p[0] {
+				return false
+			}
+		}
+		s, p = s[1:], p[1:]
+	}
+	return len(s) == 0
 }
 
 // decided is the file whose line sshd reads first for keyword k, outside
@@ -453,8 +739,20 @@ func (r sshReading) rootValue() string {
 // passwordsOn reports whether a password logs in: PasswordAuthentication,
 // or keyboard-interactive where sshd uses PAM.
 func (r sshReading) passwordsOn() bool {
-	return r.eff.PasswordAuthentication.Value == "yes" ||
-		(r.eff.KbdInteractiveAuthentication.Value == "yes" && r.eff.UsePAM.Value == "yes")
+	return sshMethodsMet(r.methods(), r.passwordMethods())
+}
+
+// methods is AuthenticationMethods as sshd -T prints it.
+func (r sshReading) methods() string {
+	return strings.Join(r.eff.Keywords["authenticationmethods"], " ")
+}
+
+// passwordMethods are the password methods sshd offers: password where
+// PasswordAuthentication is yes, keyboard-interactive where it is yes and
+// sshd uses PAM.
+func (r sshReading) passwordMethods() map[string]bool {
+	return map[string]bool{"password": r.eff.PasswordAuthentication.Value == "yes",
+		"keyboard-interactive": r.eff.KbdInteractiveAuthentication.Value == "yes" && r.eff.UsePAM.Value == "yes"}
 }
 
 // rows are the SSH Configuration section: what sshd runs with, from sshd
@@ -466,23 +764,30 @@ func (r sshReading) rows() []component.KeyValue {
 			{Key: sshRowPort, Value: "Can't read", State: component.ValueUnknown}}
 	}
 	var rows []component.KeyValue
-	switch v := r.rootValue(); v {
-	case "no":
+	switch v := r.rootValue(); {
+	case v != "no" && r.rootLocked:
+		rows = append(rows, component.KeyValue{Key: sshRowRoot, Value: "Locked", Note: "root's account, no PAM"})
+	case v == "no":
 		rows = append(rows, component.KeyValue{Key: sshRowRoot, Value: "Disallowed", Note: r.byNote("permitrootlogin")})
-	case "yes":
+	case v == "yes":
 		rows = append(rows, component.KeyValue{Key: sshRowRoot, Value: "Allowed", State: component.ValueBad, Note: r.byNote("permitrootlogin")})
-	case "forced-commands-only":
+	case v == "forced-commands-only":
 		rows = append(rows, component.KeyValue{Key: sshRowRoot, Value: "Commands only", Note: r.byNote("permitrootlogin")})
 	default:
 		rows = append(rows, component.KeyValue{Key: sshRowRoot, Value: "Key only", Note: r.byNote("permitrootlogin")})
 	}
+	pm := r.passwordMethods()
 	switch {
-	case r.eff.PasswordAuthentication.Value == "yes":
-		rows = append(rows, component.KeyValue{Key: sshRowPass, Value: "On", State: component.ValueWarn, Note: r.byNote("passwordauthentication")})
-	case r.passwordsOn():
-		rows = append(rows, component.KeyValue{Key: sshRowPass, Value: "On, keyboard-interactive", State: component.ValueWarn, Note: r.byNote("kbdinteractiveauthentication")})
-	default:
+	case !r.passwordsOn() && sshMethodsMet("any", pm): // offered, but no list is met by them alone
+		// "in <file>" does not fit the row at 80 columns: the file is the
+		// Old Settings row's, or 00-hardn.conf.
+		rows = append(rows, component.KeyValue{Key: sshRowPass, Value: "Off", Note: "by AuthenticationMethods"})
+	case !r.passwordsOn():
 		rows = append(rows, component.KeyValue{Key: sshRowPass, Value: "Off", Note: r.byNote("passwordauthentication")})
+	case sshMethodsMet(r.methods(), map[string]bool{"password": pm["password"]}) || !pm["keyboard-interactive"]:
+		rows = append(rows, component.KeyValue{Key: sshRowPass, Value: "On", State: component.ValueWarn, Note: r.byNote("passwordauthentication")})
+	default:
+		rows = append(rows, component.KeyValue{Key: sshRowPass, Value: "On, keyboard-interactive", State: component.ValueWarn, Note: r.byNote("kbdinteractiveauthentication")})
 	}
 	var ports []string
 	for _, p := range r.eff.Listeners.Ports() {
@@ -501,7 +806,11 @@ func (r sshReading) rows() []component.KeyValue {
 	} else {
 		rows = append(rows, component.KeyValue{Key: sshRowUsers, Value: "Anyone"})
 	}
-	if ms := slices.Concat(r.matchMore("permitrootlogin", r.rootValue()), r.matchMore("passwordauthentication", r.eff.PasswordAuthentication.Value)); len(ms) > 0 {
+	ms := slices.Concat(r.matchMore("permitrootlogin", r.rootValue()), r.matchMore("passwordauthentication", r.eff.PasswordAuthentication.Value))
+	if r.eff.UsePAM.Value == "yes" {
+		ms = append(ms, r.matchMore("kbdinteractiveauthentication", r.eff.KbdInteractiveAuthentication.Value)...)
+	}
+	if len(ms) > 0 {
 		rows = append(rows, component.KeyValue{Key: sshRowMatch, Value: "Lets more in", State: component.ValueWarn,
 			Note: path.Base(ms[0].File)})
 	}
@@ -545,6 +854,11 @@ func (r sshReading) items() []component.MenuItem {
 	if len(r.files.Artifacts) > 0 {
 		items = append(items, component.MenuItem{Key: "4", Label: sshMigrate, Description: sshMigrateDesc})
 	}
+	if r.effErr != nil { // sshd -T unread: each item's result not known
+		for i := range items {
+			items[i].Description = "Can't read"
+		}
+	}
 	return items
 }
 
@@ -583,6 +897,9 @@ const (
 	sshWordsPassNoKey   = "%s would lose SSH login: %s a password and no key. Add a key in User Management first."
 	sshWordsMatch       = "%s, in %s, lets more in for some connections, and hardn's setting wouldn't change that. Change it there first."
 	sshWordsPVEKeyOnly  = "Root stays key-only on Proxmox VE: the cluster's nodes log in to each other as root by key."
+	sshWordsPVEByPass   = "You logged in as root with a password. Making root key-only would close the way you came in. Log in as root with a key first."
+	sshWordsPVENoKey    = "Root would lose SSH login: %s. Add a key for root first."
+	sshWordsListenConf  = "hardn v0.3.x's listen.conf (port %s for ssh.socket) never took effect: ssh.socket listens on %s. Moving it now couldn't be undone. Let %s through the firewall, run systemctl daemon-reload and systemctl restart ssh.socket, check a new connection to %s works, then try again."
 	sshWordsPVEPort     = "The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it."
 	sshWordsRestricted  = "ufw lets port 22 in from %s alone. A new port would be open to anyone. Move that rule to the new port by hand first."
 	sshWordsMigrate     = "hardn's old SSH files are still here (%s). Move them into 00-hardn.conf first: item 4."
@@ -617,6 +934,14 @@ func (r sshReading) planWords(err error) string {
 		words = sshWordsPending
 	case errors.Is(err, reload.ErrInUse):
 		words = "A port the change adds is in use. Pick another."
+	case errors.Is(err, steps.ErrListenConfNotInEffect):
+		var ps []string
+		for _, l := range r.eff.Listeners.Socket {
+			ps = append(ps, strconv.Itoa(int(l.Port)))
+		}
+		slices.Sort(ps)
+		p := r.listenPort
+		words = fmt.Sprintf(sshWordsListenConf, p, strings.Join(slices.Compact(ps), " and "), p, p)
 	default:
 		words = screenkit.RefusalWords(err)
 	}
@@ -671,6 +996,7 @@ func (r sshReading) rootRefusal(ctx context.Context, sys host.System) string {
 		return sshWordsPVEKeyOnly
 	case r.rootValue() == "no": // Allow root key-only opens a way in: no check of the admins
 		return ""
+	case r.console(): // from a console: no SSH session to keep, the admins' paths alone
 	case r.login.user == "":
 		return sshWordsNoSession
 	case r.rootOwn() && !r.pve:
@@ -679,7 +1005,13 @@ func (r sshReading) rootRefusal(ctx context.Context, sys host.System) string {
 	if ms := r.matchMore("permitrootlogin", "no"); len(ms) > 0 {
 		return fmt.Sprintf(sshWordsMatch, strings.TrimSpace(ms[0].Match.Text), path.Base(ms[0].File))
 	}
-	if r.pve {
+	if r.pve { // root key-only: root's own key is the way in kept
+		if r.rootOwn() && !r.byKey() {
+			return sshWordsPVEByPass
+		}
+		if a := r.sshLoginPath(ctx, sys, r.root, r.rootPW, r.rootLocked, true); !a.key {
+			return fmt.Sprintf(sshWordsPVENoKey, a.why)
+		}
 		return ""
 	}
 	return noAdmin(r.sshLoginPaths(ctx, sys, !r.passwordsOn()), !r.passwordsOn())
@@ -695,6 +1027,7 @@ func (r sshReading) passwordRefusal(ctx context.Context, sys host.System) string
 		return ""
 	}
 	switch {
+	case r.console():
 	case r.login.user == "":
 		return sshWordsNoSession
 	case !r.byKey():
@@ -1044,6 +1377,10 @@ func sshRefusals() []sshRefusal {
 	return []sshRefusal{
 		{"root", "root-session"},       // root's own SSH login
 		{"root", "nopam-locked"},       // no admin able: "!" without PAM
+		{"root", "rsa-small"},          // no admin able: an RSA key under RequiredRSASize
+		{"root", "admin-no-sudo"},      // no admin able: sudo asks a password george hasn't got
+		{"root", "allow-users-host"},   // no admin able: AllowUsers george@198.51.100.7
+		{"root", "no-accepted"},        // the session not known: no Accepted line
 		{"root", "match-allows"},       // a Match block lets root in
 		{"root", "not-read"},           // sshd -T fails
 		{"root", "legacy-main"},        // origin/main's hardn.conf
@@ -1051,6 +1388,7 @@ func sshRefusals() []sshRefusal {
 		{"root", "confirm-window"},     // a change pending
 		{"password", "password-login"}, // alice: a password, no key
 		{"password", "password-session"},
+		{"root", "pve9-password"}, // root's own login by password
 		{"port", "pve9"},
 		{"port", "ufw-restricted"},
 		{"port", "legacy-v032"},

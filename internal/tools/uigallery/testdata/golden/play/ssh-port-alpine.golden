@@ -34,7 +34,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mLocked␛[m ␛[38;2;129;134;156mroot's account, no PAM␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
@@ -146,7 +146,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mLocked␛[m ␛[38;2;129;134;156mroot's account, no PAM␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
@@ -216,7 +216,7 @@ $
 $
 # SSH Configuration --------------------------------------------$
 $
-   -  Root SSH Login       Key only sshd's default$
+   -  Root SSH Login       Locked root's account, no PAM$
    -  Password Login       Off by 50-cloud-init.conf$
    -  SSH Port             22$
    -  Allowed Users        Anyone$
@@ -328,7 +328,7 @@ $
 $
 # SSH Configuration --------------------------------------------$
 $
-   -  Root SSH Login       Key only sshd's default$
+   -  Root SSH Login       Locked root's account, no PAM$
    -  Password Login       Off by 50-cloud-init.conf$
    -  SSH Port             22, 2230$
    -  Allowed Users        Anyone$
@@ -403,7 +403,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
-      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+      ␛[38;2;129;134;156mLocked␛[m ␛[38;2;129;134;156mroot's account, no PAM␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
@@ -533,7 +533,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
-      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+      ␛[38;2;129;134;156mLocked␛[m ␛[38;2;129;134;156mroot's account, no PAM␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
