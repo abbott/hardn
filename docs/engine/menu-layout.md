@@ -64,7 +64,7 @@ How each existing compact test keeps running: `TestCompact`, `TestStatusBlocks`,
 | Key | Opens (unchanged) |
 |---|---|
 | 1 | User Management (`NewUserMenu`); since unit (d), refused under plan only; *since `next/s5-replace`, the User Management screen (`SetUsers`), from a cleared screen, under plan only too; `NewUserMenu` deleted* |
-| 2 | SSH Login (`NewDisableRootMenu`) |
+| 2 | SSH Login (`NewDisableRootMenu`); *since `next/s6-replace`, the SSH Login screen (`SetSSH`), from a cleared screen, under plan only too; `NewDisableRootMenu` deleted* |
 | 3 | DNS, the DNS screen (`SetDNS`), from a cleared screen |
 | 4 | Firewall (`NewFirewallMenu`); *since `next/s4-replace`, the Firewall screen (`SetFirewall`), from a cleared screen, under plan only too, its description "View pve-firewall" on Proxmox VE* |
 | 5 | Backup, the Backup screen (`SetBackup`), from a cleared screen; *since `next/s3-replace`, under plan only too* |
