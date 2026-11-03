@@ -299,6 +299,27 @@ func TestRemove(t *testing.T) {
 	}
 }
 
+// TestLastAdmin: with the session not known (a root login), another admin
+// counts only where it can become root: bob, in group sudo, whose rule
+// asks a password, with the field "!" cannot, so removing alice's grant
+// (NOPASSWD, hardn's) refuses as the last admin's; with a hash, it plans.
+func TestLastAdmin(t *testing.T) {
+	alice := written(t, debian13(), sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword})
+	for field, code := range map[string]string{"!": "USERS_LAST_ADMIN", hashSet: ""} {
+		s := debian13Login(alice)
+		s.users = []string{aliceLine, "bob:x:1002:1002::/home/bob:/bin/bash"}
+		s.members = map[string]string{"sudo": "bob"}
+		s.locks = map[string]string{"alice": hashSet, "bob": field}
+		_, p, _, _ := planOn(t, s, users.Admin{Action: users.ActionRemove, User: "alice", Getenv: env(rootLogin)})
+		if got := codeOf(p.Err()); got != code {
+			t.Errorf("bob's field %q: %q, want %q", field, got, code)
+		}
+		if code == "" && (p.Risk != engine.RiskLockout || p.Changes[len(p.Changes)-1].ID != users.ChangeGrant) {
+			t.Errorf("bob's hash: risk %v, %+v", p.Risk, p.Changes)
+		}
+	}
+}
+
 // TestStillAdmin: what still grants once hardn's grant is gone, read by the
 // real reader: cloud-init's file, the sudo group, the wheel group on doas
 // (nopass on the Alpine VM's wheel.conf), and both in turn; a rule asking
