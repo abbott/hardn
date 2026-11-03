@@ -1,0 +1,437 @@
+# Golden file of TestPlaySSHGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay ssh/legacy-v032␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the SSH Login screen proposed for slice 6,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host (the SSH␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchecks, sshd.ReadEffective, migrate.Find, users.Read,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrevert.ReadSession), each change the real steps.PlanSSH or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlanMigration on the real plan/apply engine. The lockout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchecks before asking are the gallery's stand-ins, unit (b)'s␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto build. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/legacy-v032␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04 (OpenSSH 10.2p1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket). Hardened by v0.3.2: its manage.conf, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlisten.conf for 2230 written with no daemon-reload, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+                           ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m  ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf). Move them into 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+                           ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m  ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 4$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe rolled back: the rollback's daemon-reload would move␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket to port 2230 alone, off the port this host is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreached on (P-39). First make sure the firewall lets port 2230␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthrough: ssh.socket then listens on port 2230 alone. Then let␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf take effect while this session stays open: run␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl daemon-reload` and `systemctl restart ssh.socket`␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(established SSH sessions survive the restart), check that a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnew SSH connection to port 2230 works, and run hardn again. A␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreboot also lets it take effect, but ends this session: reboot␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156monly with console access, in case port 2230 is not reachable.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+                           ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m  ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play ssh/legacy-v032 -----------------------------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+# Play mode, mocks: the SSH Login screen proposed for slice 6,$
+# drawn from what real code reads of a simulated host (the SSH$
+# checks, sshd.ReadEffective, migrate.Find, users.Read,$
+# revert.ReadSession), each change the real steps.PlanSSH or$
+# PlanMigration on the real plan/apply engine. The lockout$
+# checks before asking are the gallery's stand-ins, unit (b)'s$
+# to build. Nothing on this machine changes: every command and$
+# file is the fake's.$
+$
+# Info: ssh/legacy-v032$
+# web-01.example.net runs Ubuntu 26.04 (OpenSSH 10.2p1,$
+# ssh.socket). Hardened by v0.3.2: its manage.conf, and$
+# listen.conf for 2230 written with no daemon-reload, so$
+# ssh.socket still listens on 22.$
+$
+# SSH Login ####################################################$
+$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [?] SSH Port             Unknown socket and sshd differ$
+                           - Counted as not configured$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Disallowed by manage.conf$
+   -  Password Login       Off by 60-cloudimg-settings.conf$
+   -  SSH Port             22, 2230 ssh.socket$
+   -  Allowed Users        george by manage.conf$
+  [ ] Old Settings         manage.conf, listen.conf$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Allow root key-only  Root logs in by key alone$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22 and 2230$
+   4) Move old settings    Into 00-hardn.conf$
+$
+   0) Return$
+$
+  > Enter your choice [0-4 or q]: 1$
+$
+# Warning$
+# hardn's old SSH files are still here (manage.conf,$
+# listen.conf). Move them into 00-hardn.conf first: item 4.$
+$
+# SSH Login ####################################################$
+$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [?] SSH Port             Unknown socket and sshd differ$
+                           - Counted as not configured$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Disallowed by manage.conf$
+   -  Password Login       Off by 60-cloudimg-settings.conf$
+   -  SSH Port             22, 2230 ssh.socket$
+   -  Allowed Users        george by manage.conf$
+  [ ] Old Settings         manage.conf, listen.conf$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Allow root key-only  Root logs in by key alone$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22 and 2230$
+   4) Move old settings    Into 00-hardn.conf$
+$
+   0) Return$
+$
+  > Enter your choice [0-4 or q]: 4$
+$
+# Warning$
+# /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
+# sets ssh.socket to port 2230, but it never took effect:$
+# ssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-$
+# reload since it was written, D9). Migrating it now could not$
+# be rolled back: the rollback's daemon-reload would move$
+# ssh.socket to port 2230 alone, off the port this host is$
+# reached on (P-39). First make sure the firewall lets port 2230$
+# through: ssh.socket then listens on port 2230 alone. Then let$
+# listen.conf take effect while this session stays open: run$
+# `systemctl daemon-reload` and `systemctl restart ssh.socket`$
+# (established SSH sessions survive the restart), check that a$
+# new SSH connection to port 2230 works, and run hardn again. A$
+# reboot also lets it take effect, but ends this session: reboot$
+# only with console access, in case port 2230 is not reachable.$
+$
+# SSH Login ####################################################$
+$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [?] SSH Port             Unknown socket and sshd differ$
+                           - Counted as not configured$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Disallowed by manage.conf$
+   -  Password Login       Off by 60-cloudimg-settings.conf$
+   -  SSH Port             22, 2230 ssh.socket$
+   -  Allowed Users        george by manage.conf$
+  [ ] Old Settings         manage.conf, listen.conf$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Allow root key-only  Root logs in by key alone$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22 and 2230$
+   4) Move old settings    Into 00-hardn.conf$
+$
+   0) Return$
+$
+  > Enter your choice [0-4 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay ssh/legacy-v032␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the SSH Login screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m6, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(the SSH checks, sshd.ReadEffective, migrate.Find,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Read, revert.ReadSession), each change the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanSSH or PlanMigration on the real plan/apply␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine. The lockout checks before asking are the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/legacy-v032␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04 (OpenSSH 10.2p1,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket). Hardened by v0.3.2: its manage.conf, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlisten.conf for 2230 written with no daemon-reload, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+      ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m$
+      ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m$
+      ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
+      ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf). Move them into 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+      ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m$
+      ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m$
+      ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
+      ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 4$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mv0.3.x) sets ssh.socket to port 2230, but it never took␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meffect: ssh.socket is configured for [[::]:22 0.0.0.0:22]␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(no daemon-reload since it was written, D9). Migrating it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnow could not be rolled back: the rollback's daemon-reload␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould move ssh.socket to port 2230 alone, off the port␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis host is reached on (P-39). First make sure the␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirewall lets port 2230 through: ssh.socket then listens␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mon port 2230 alone. Then let listen.conf take effect while␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis session stays open: run `systemctl daemon-reload` and␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl restart ssh.socket` (established SSH sessions␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msurvive the restart), check that a new SSH connection to␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mport 2230 works, and run hardn again. A reboot also lets␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mit take effect, but ends this session: reboot only with␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconsole access, in case port 2230 is not reachable.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+      ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m$
+      ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m$
+      ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
+      ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
