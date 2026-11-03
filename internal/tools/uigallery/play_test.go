@@ -199,7 +199,7 @@ func TestPlaySize(t *testing.T) {
 // was applied. b goes nowhere: the main menu refuses it, as any line it
 // does not take, and reads the next.
 func TestPlayEnds(t *testing.T) {
-	// The main menu's 1 leads to the User Management mock on debian13
+	// The main menu's 1 leads to the User Management screen on debian13
 	// (users.go): Manage User, alice, Don't ask password, a y/N plan.
 	sudo := []string{"1", "1", "2", "2"}
 	tests := []struct {
@@ -770,7 +770,8 @@ func TestPlayTouchesNothing(t *testing.T) {
 		"pkg/screens/backup", "pkg/engine/controls/backup", "pkg/host/backup",
 		"pkg/screens/environment", "pkg/engine/controls/environment", "pkg/host/sudoers",
 		"pkg/screens/systemdetails", "pkg/screens/logs", "pkg/engine/details", "pkg/engine/logview",
-		"pkg/screens/firewall", "pkg/engine/controls/firewall", "pkg/host/ufw", "pkg/host/pve"} {
+		"pkg/screens/firewall", "pkg/engine/controls/firewall", "pkg/host/ufw", "pkg/host/pve",
+		"pkg/screens/users"} {
 		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
 			t.Errorf("%s, which play links, was not checked", p)
 		}
