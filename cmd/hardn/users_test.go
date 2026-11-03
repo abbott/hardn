@@ -480,10 +480,9 @@ func TestCreateUserNoName(t *testing.T) {
 // TestCreateUserDisableRoot: -c with -d is refused on stderr, exit status
 // 2, before anything runs, whatever hardn.yml holds (the maintainer,
 // 2026-11-03): with sshKeys, with none, under -n, and under hardn.yml's
-// dryRun: true, no user created, nothing written, the legacy provider,
-// -d's, never reached. -c alone and -d alone run as they did: -c creates
-// carol with her key, -d alone writes hardn.conf, restarts sshd and says
-// the legacy operations completed.
+// dryRun: true, no user created, nothing written, the legacy provider
+// never reached. -c alone runs as it did, creating carol with her key; -d
+// alone is TestDisallowRootFlag's.
 func TestCreateUserDisableRoot(t *testing.T) {
 	key := usrTestKey(5, "carol@laptop")
 	const refused = "hardn -c -d: -d turns off root's SSH login before hardn can tell the new user can log in. Run -c, check the user can log in, then run -d."
@@ -494,14 +493,12 @@ func TestCreateUserDisableRoot(t *testing.T) {
 		dryRun bool // hardn.yml's dryRun: true
 		code   int  // the exit status; 0: hardn did not exit
 		made   bool // -c created carol
-		root   bool // -d ran
 	}{
 		{name: "-c -d, sshKeys", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, code: hardncmd.ExitUsage},
 		{name: "-c -d, no key", args: []string{"-c", "-d", "-u", "carol"}, code: hardncmd.ExitUsage},
 		{name: "-n -c -d", args: []string{"-n", "-c", "-d", "-u", "carol"}, keys: []string{key}, code: hardncmd.ExitUsage},
 		{name: "-c -d, dryRun: true", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, dryRun: true, code: hardncmd.ExitUsage},
 		{name: "-c alone", args: []string{"-c", "-u", "carol"}, keys: []string{key}, made: true},
-		{name: "-d alone", args: []string{"-d"}, root: true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, _ := newUsersHost(t)
@@ -521,10 +518,8 @@ func TestCreateUserDisableRoot(t *testing.T) {
 			if made := h.content("/home/carol/.ssh/authorized_keys") == key+"\n"; made != tc.made {
 				t.Errorf("-c created carol %t, want %t: ran %q", made, tc.made, h.commands("useradd"))
 			}
-			const conf = "/etc/ssh/sshd_config.d/hardn.conf"
-			wrote, restarted := slices.Contains(r.calls, "write "+conf), slices.Contains(r.calls, "exec systemctl restart ssh")
-			if wrote != tc.root || restarted != tc.root || strings.Contains(r.stdout, "Script completed selected hardening operations.") != tc.root {
-				t.Errorf("-d ran: %s written %t, sshd restarted %t, want %t; legacy calls %q; stdout:\n%s", conf, wrote, restarted, tc.root, r.calls, r.stdout)
+			if len(r.calls) != 0 {
+				t.Errorf("legacy calls %q", r.calls)
 			}
 			if tc.code == hardncmd.ExitUsage {
 				if got := h.writes(); len(got) > 0 || len(h.commands("useradd")) > 0 || len(r.calls) != 0 || s.applies != 0 || report != "" {

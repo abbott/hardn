@@ -647,7 +647,7 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 		{[]string{"setup-sudo-env"}, 3},
 		{[]string{"--dry-run=false", "-e"}, 0},
 		{[]string{"--dry-run=false", "setup-sudo-env"}, 0},
-		{[]string{"-e", "-d"}, hardncmd.ExitUsage},
+		{[]string{"-e", "-r"}, hardncmd.ExitUsage},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			h := newEnvHost(t, "debian13")
@@ -673,7 +673,7 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 					t.Errorf("not applied; report:\n%s", s.out.String())
 				}
 			default:
-				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagDisableRoot) ||
+				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagRunAll) ||
 					strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) {
 					t.Errorf("wrote %q after %v; stderr:\n%s", written, r.reached, r.stderr)
 				}

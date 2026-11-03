@@ -178,34 +178,41 @@ func TestPrintLogPositions(t *testing.T) {
 			t.Errorf("stdout:\n%s", s.out.String())
 		}
 	})
-	t.Run("after -d", func(t *testing.T) {
+	// After -g, on a host whose resolv.conf is as hardn.yml lists it (newDNSHost's
+	// configured), so that -g writes nothing: its report on stdout first. (-g, not
+	// -d, since -d left the provider for the engine: no legacy flag runs before
+	// -p now.)
+	afterG := func(t *testing.T, sys host.System, s *readerSeams) result {
+		t.Helper()
+		h, cfg := newDNSHost(t, "configured", dnsTestList)
+		cfg.LogFile = "/srv/log/hardn.log"
+		r, _ := runG(t, h, cfg, func(*dnsSeams) { useReaderHost(t, sys, s) }, "-g", "-p")
+		if w := h.writes(); len(w) > 0 {
+			t.Errorf("-g wrote %q", w)
+		}
+		return r
+	}
+	t.Run("after -g", func(t *testing.T) {
 		s := &readerSeams{terminal: true}
-		var loaded bool
-		r := runHardnWith(t, asRoot, func() {
-			useReaderHost(t, logHost(readerLog), s)
-			loadConfig = func(p string) (*config.Config, error) { loaded = true; return elsewhere(p) }
-		}, "-d", "-p")
-		if !loaded || r.ended {
-			t.Fatalf("loaded %v, ended %v with %d; stderr:\n%s", loaded, r.ended, r.code, r.stderr)
+		r := afterG(t, logHost(readerLog), s)
+		if r.ended {
+			t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 		}
-		if !strings.Contains(s.out.String(), row) {
-			t.Errorf("no row %q:\n%s", row, s.out.String())
-		}
-		if !strings.Contains(r.stdout, "Script completed") {
-			t.Errorf("the other operation's lines left stdout:\n%s", r.stdout)
+		if w := inOrder(s.out.String(), "Nothing needs changing.", row); w != "" {
+			t.Errorf("stdout lacks %q, -g's report then the row:\n%s", w, s.out.String())
 		}
 	})
-	t.Run("after -d, refused", func(t *testing.T) {
+	t.Run("after -g, refused", func(t *testing.T) {
 		s := &readerSeams{}
-		r := runReader(t, asRoot, refusingRead{logHost(readerLog)}, s, "-d", "-p")
+		r := afterG(t, refusingRead{logHost(readerLog)}, s)
 		if !r.ended || r.code != 1 {
 			t.Fatalf("ended %v with %d, want 1; stderr:\n%s", r.ended, r.code, r.stderr)
 		}
 		if !strings.Contains(r.stderr, "can't read") || strings.Contains(r.stderr, "Run it with") {
 			t.Errorf("as root stderr %q", r.stderr)
 		}
-		if !strings.Contains(r.stdout, "Script completed") {
-			t.Errorf("the operation after it did not finish:\n%s", r.stdout)
+		if !strings.Contains(s.out.String(), "Nothing needs changing.") {
+			t.Errorf("the operation before it did not finish:\n%s", s.out.String())
 		}
 	})
 }
@@ -229,7 +236,7 @@ func TestLogFileWarning(t *testing.T) {
 					c.Username, c.LogFile = "alice", tc.logFile
 					return c, nil
 				}
-			}, "-d")
+			}, "-r")
 			const words = "hardn.yml's logFile, /srv/log/hardn.log, isn't used"
 			if got := strings.Contains(r.stderr, words); got != tc.warned {
 				t.Errorf("warned %v, want %v; stderr:\n%s", got, tc.warned, r.stderr)
@@ -267,7 +274,7 @@ func TestUfwPolicyWarning(t *testing.T) {
 					loaded = err == nil
 					return c, err
 				}
-			}, "-d")
+			}, "-r")
 			if !loaded {
 				t.Fatalf("hardn.yml did not load; stderr:\n%s", r.stderr)
 			}
@@ -277,8 +284,8 @@ func TestUfwPolicyWarning(t *testing.T) {
 			if got := strings.Contains(r.stderr, outgoing); got != tc.outWarned {
 				t.Errorf("outgoing warned %v, want %v; stderr:\n%s", got, tc.outWarned, r.stderr)
 			}
-			if !strings.Contains(r.stdout, "Script completed") {
-				t.Errorf("-d did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
+			if r.ended || !strings.Contains(r.stdout, "System hardening completed successfully!") {
+				t.Errorf("-r did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
 			}
 		})
 	}
@@ -310,7 +317,7 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 					loaded = err == nil
 					return c, err
 				}
-			}, "-d")
+			}, "-r")
 			if !loaded {
 				t.Fatalf("hardn.yml did not load; stderr:\n%s", r.stderr)
 			}
@@ -318,8 +325,8 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 			if n := strings.Count(flat, words); n != map[bool]int{true: 1}[tc.warned] {
 				t.Errorf("warned %d times, want warned %v; stderr:\n%s", n, tc.warned, r.stderr)
 			}
-			if !strings.Contains(r.stdout, "Script completed") {
-				t.Errorf("-d did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
+			if r.ended || !strings.Contains(r.stdout, "System hardening completed successfully!") {
+				t.Errorf("-r did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
 			}
 		})
 	}
@@ -343,7 +350,7 @@ func TestWarningsFollowDetectOS(t *testing.T) {
 			_, _ = io.WriteString(stderr, cleared+"\n")
 			return detected()
 		}
-	}, "-d")
+	}, "-r")
 	at, said := strings.Index(r.stderr, cleared), strings.Index(r.stderr, words)
 	if at < 0 || said < at {
 		t.Errorf("the warning at %d, the clear at %d; stderr:\n%s", said, at, r.stderr)

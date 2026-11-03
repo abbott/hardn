@@ -19,14 +19,14 @@ func TestRefuseDryRunOperations(t *testing.T) {
 		ops    []string
 		want   string // "" for no refusal
 	}{
-		{"no -n", false, []string{FlagDisableRoot}, ""},
+		{"no -n", false, []string{FlagRunAll}, ""},
 		{"-n alone", true, nil, ""},
-		{"one", true, []string{FlagDisableRoot},
-			"hardn: -n/--dry-run only previews changes, so it can't be combined with -d/--disable-root, which applies them. Nothing was changed."},
-		{"two", true, []string{FlagRunAll, FlagDisableRoot},
-			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all and -d/--disable-root, which apply them. Nothing was changed."},
-		{"three", true, []string{FlagRunAll, FlagConfigureUFW, FlagDisableRoot},
-			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all, -w/--configure-ufw and -d/--disable-root, which apply them. Nothing was changed."},
+		{"one", true, []string{FlagRunAll},
+			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all, which applies them. Nothing was changed."},
+		{"two", true, []string{FlagRunAll, FlagInstallAll},
+			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all and -a/--install-all, which apply them. Nothing was changed."},
+		{"three", true, []string{FlagRunAll, FlagInstallLinux, FlagInstallAll},
+			"hardn: -n/--dry-run only previews changes, so it can't be combined with -r/--run-all, -l/--install-linux and -a/--install-all, which apply them. Nothing was changed."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			err := RefuseDryRunOperations(tc.dryRun, tc.ops)
@@ -51,12 +51,12 @@ func TestRefuseConfigDryRunOperations(t *testing.T) {
 		ops    []string
 		want   string // "" for no refusal
 	}{
-		{"file false", false, []string{FlagDisableRoot}, ""},
+		{"file false", false, []string{FlagRunAll}, ""},
 		{"file true alone", true, nil, ""},
-		{"one", true, []string{FlagDisableRoot},
-			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -d/--disable-root can't run. Nothing was changed. To apply, add --dry-run=false."},
-		{"two", true, []string{FlagRunAll, FlagDisableRoot},
-			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -r/--run-all and -d/--disable-root can't run. Nothing was changed. To apply, add --dry-run=false."},
+		{"one", true, []string{FlagRunAll},
+			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -r/--run-all can't run. Nothing was changed. To apply, add --dry-run=false."},
+		{"two", true, []string{FlagRunAll, FlagInstallAll},
+			"hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -r/--run-all and -a/--install-all can't run. Nothing was changed. To apply, add --dry-run=false."},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			err := RefuseConfigDryRunOperations(tc.dryRun, path, tc.ops)
@@ -74,8 +74,8 @@ func TestRefuseConfigDryRunOperations(t *testing.T) {
 // status 2), their words unchanged by it.
 func TestRefusalCodes(t *testing.T) {
 	for _, err := range []error{
-		RefuseDryRunOperations(true, []string{FlagDisableRoot}),
-		RefuseConfigDryRunOperations(true, "/etc/hardn/hardn.yml", []string{FlagDisableRoot}),
+		RefuseDryRunOperations(true, []string{FlagRunAll}),
+		RefuseConfigDryRunOperations(true, "/etc/hardn/hardn.yml", []string{FlagRunAll}),
 	} {
 		if code := output.CodeOf(err); code != "USAGE" || output.ExitCode(output.Run{Err: err}) != ExitUsage || strings.Contains(err.Error(), "usage") {
 			t.Errorf("%v: code %s", err, code)

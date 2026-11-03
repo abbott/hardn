@@ -879,11 +879,11 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 			})
 		}
 	}
-	t.Run("-n -g -d", func(t *testing.T) {
+	t.Run("-n -g -r", func(t *testing.T) {
 		h, cfg := newDNSHost(t, "debian13", dnsTestList)
 		before := len(h.Calls())
-		r, _ := runG(t, h, cfg, nil, "-n", "-g", "-d")
-		want := "can't be combined with " + hardncmd.FlagDisableRoot + ", which applies them."
+		r, _ := runG(t, h, cfg, nil, "-n", "-g", "-r")
+		want := "can't be combined with " + hardncmd.FlagRunAll + ", which applies them."
 		if !r.ended || r.code != hardncmd.ExitUsage || len(r.reached) != 0 || !strings.Contains(r.stderr, want) || len(h.Calls()) != before {
 			t.Errorf("ended %v with %d after %v, host calls %d; stderr:\n%s", r.ended, r.code, r.reached, len(h.Calls())-before, r.stderr)
 		}
