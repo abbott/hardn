@@ -1,6 +1,6 @@
 # The User Management screen on the User control (`pkg/screens/users`, `screen.Users`)
 
-> **Unit:** refactor plan slice 5, unit (c), `next/s5-screen`, from `9ac4bfa0`. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake (the gallery's users hosts, its `userSim` copied), the control's plans on the real engine. No real terminal, no hardn binary, no VM. Nothing is wired into `cmd/hardn` or `pkg/menu` (unit (d)); the gallery still draws its own copy (the next stage).
+> **Unit:** refactor plan slice 5, unit (c), `next/s5-screen`, from `9ac4bfa0`. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake (the gallery's users hosts, its `userSim` copied), the control's plans on the real engine. No real terminal, no hardn binary, no VM. *Wired in `next/s5-replace` (unit (d)): main menu 1 runs `Run`, and `-c` plans the control's Create ([cmd-engine.md](cmd-engine.md) §2.14, §2.15); the gallery's `play users` runs `Run` too.*
 
 ## What it does
 
@@ -26,13 +26,12 @@ users.Run(ctx, users.Options{
 
 Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wrapping `fs.ErrInvalid`, nothing written. No change saves hardn.yml. `pkg/ui/screen/users.go` draws only: `Users`, `UsersSelect`, `UsersManage`, `UsersKeys`, `UsersChange` and its makers, `UsersKeysRow`, the item keys and the form's titles; `rows.go` maps the control's types to its rows.
 
-## For unit (d)
+## Built in `next/s5-replace` (unit (d))
 
-- Main menu 1 calls `Run`, with `os.Getenv` and the loaded hardn.yml.
-- `-c` and `-u` move to the control, applied as `-g` is (decision 6 (a)): `-u <name>` plans Create with admin rights and no key, under the same refusals.
-- hardn.yml's `username`, `sudoNoPassword` and `sshKeys` set and unused: one warning (decision 7 (a)). `sudoNoPassword` is never used by the form, so `sudoNoPassword: false` warns once: a new user has no password to ask (decision 3), and its grant asks none.
-- The legacy User Management screen and its `pkg/characterization` record are deleted, not frozen (the maintainer, 2026-11-03: hard cutover).
-- The gallery's stage: `internal/tools/uigallery/users.go`'s rows, menus, forms and runner retire; its listing and play call `Run` on its hosts; its `users_test.go` checks that moved here go.
+- **Main menu 1** runs `Run` (`MainMenu.SetUsers`, `cmd/hardn/users.go`), with `os.Getenv` and the loaded hardn.yml; under plan only too, every change stopping at its plan.
+- **`-c [-u <name>]`** plans Create with admin rights, no password and no key, applied without a question as `-g` is (decision 6 (a)); `-n` or `dryRun: true` shows the plan; refusals exit 1. It no longer configures sshd (slice 6's).
+- **hardn.yml:** `username` and `sshKeys` are Create's defaults alone and never warn; `sudoNoPassword: false` warns once (decision 7 (a)). Run All still reads it until slice 8.
+- **Deleted** (hard cutover, the maintainer, 2026-11-03): the legacy User Management screen, what only it called (`UserManager.CreateUser` stays for `-r` and Run All), Run All's offer to set a username, and the `pkg/characterization` record (`menu_users_test.go`, 42 goldens; `create_user_c_path`). `configure_sudo` stays, reached by `-r`.
 
 ## Decisions
 
@@ -48,6 +47,7 @@ Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wr
 
 - Create's defaults: "Default: <username>" and "Default: hardn.yml's key".
 - `USERS_KEY_GONE`: "That key isn't in <file> any more. Nothing changed." (`USERS_KEY_THERE`'s are the mock's `usrWordsDupKey`, decided.)
+- Unit (d)'s: "hardn.yml's sudoNoPassword: false isn't used by User Management or -c"; `-c`'s refusal of a lockout-risk plan, "Creating this user here risks a lockout", "create it from main menu 1, User Management, which asks you to confirm" (on `-e`'s pattern).
 - The mock's questions and titles, kept, are not in §6: "Grant <user> admin rights?", "Remove <user>'s admin rights?", "Ask <user>'s password for admin rights?", "Stop asking <user>'s password for admin rights?", "Add the key for <user>?", "Remove the key from <user>?", "Create user '<user>'?".
 
 ## Not run

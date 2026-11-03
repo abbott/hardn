@@ -1,7 +1,7 @@
 # User Management on the engine: the User control (`pkg/engine/controls/users`)
 
 > **Unit:** refactor plan slice 5 (User Management), unit (b), `next/s5-control`, from `ebf87b11`. It builds on unit (a) ([gallery-users.md](gallery-users.md)), whose eight decisions and Made here calls the maintainer adopted on 2026-11-03 ("Adopt all, start (b)").
-> **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine. Nothing has run on Linux or as root (§6). Nothing is wired into `cmd/hardn` or the main menu; `pkg/menu` and `pkg/characterization` goldens are unchanged. Words: gallery-users.md §6's, used exactly; the rest proposed (§5).
+> **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine. Nothing has run on Linux or as root (§6). Nothing is wired into `cmd/hardn` or the main menu; `pkg/menu` and `pkg/characterization` goldens are unchanged. Words: gallery-users.md §6's, used exactly; the rest proposed (§5). *Since `next/s5-replace` (unit (d)), main menu 1's screen and `-c` call it ([cmd-engine.md](cmd-engine.md) §2.14, §2.15).*
 
 The User control is Figma's User row and every change the User Management screen makes: admin rights, a user's SSH keys, a new user. `Read` gives the screen what it draws; `Plan` refuses before anything is written, in the decided words, or plans the change on the real engine.
 
@@ -21,8 +21,8 @@ The User control is Figma's User row and every change the User Management screen
 
 ## 3. For units (c) and (d)
 
-- **(c), the screen:** it draws only from `Reading`, refuses through `Refusal`, `CheckName`, `CheckNew`, `KeysRefusal` and `ParseKey` before it asks, and plans `Admin` through `screenkit`. Main menu 1 opens it. The gallery's rows, forms and words (`internal/tools/uigallery/users.go`) move into it.
-- **(d), the command line:** `-c` and `-u` on this control, applied as `-g` is (decision 6 (a)): `-u <name>` plans Create with admin rights and no key, under the same refusals. hardn.yml's `username`, `sudoNoPassword` and `sshKeys` are Create's defaults alone, never the user the rows are about; a value set and unused warns once (decision 7 (a)).
+- **(c), the screen:** it draws only from `Reading`, refuses through `Refusal`, `CheckName`, `CheckNew`, `KeysRefusal` and `ParseKey` before it asks, and plans `Admin` through `screenkit`. Main menu 1 opens it. The gallery's rows, forms and words (`internal/tools/uigallery/users.go`) move into it. *Done in `next/s5-screen` ([screen-users.md](screen-users.md)).*
+- **(d), the command line:** `-c` and `-u` on this control, applied as `-g` is (decision 6 (a)): `-u <name>` plans Create with admin rights and no key, under the same refusals. hardn.yml's `username`, `sudoNoPassword` and `sshKeys` are Create's defaults alone, never the user the rows are about; a value set and unused warns once (decision 7 (a)). *Done in `next/s5-replace`: `-c` plans Create, `-n` its plan; `sudoNoPassword: false` alone warns.*
 
 ## 4. Engineering calls
 
