@@ -70,11 +70,11 @@ func TestConfigLoadGoldens(t *testing.T) {
 			}
 
 			explicit := path
-			how := "explicit path (hardn -f <file>, cmd/hardn/main.go:151)"
+			how := "explicit path (hardn -f <file>, cmd/hardn/main.go, Run's loadConfig)"
 			if tc.viaEnv {
 				explicit = ""
 				t.Setenv("HARDN_CONFIG", path)
-				how = "HARDN_CONFIG=<file>, no -f (cmd/hardn/main.go:151)"
+				how = "HARDN_CONFIG=<file>, no -f (cmd/hardn/main.go, Run's loadConfig)"
 			}
 
 			cfg, loadErr := config.LoadConfig(explicit)

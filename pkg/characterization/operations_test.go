@@ -74,7 +74,8 @@ type opEnv struct {
 }
 
 // fixtureConfig is config.DefaultConfig() with synthetic overrides, then the
-// dry-run flag applied the way main.go:158 applies -n.
+// dry-run flag applied the way cmd/hardn/main.go's Run applies -n
+// (cfg.ResolveDryRun).
 func fixtureConfig(dryRun bool) *config.Config {
 	cfg := config.DefaultConfig()
 	cfg.Username = fixtureUser
@@ -170,7 +171,8 @@ func (e *opEnv) setDNSStrategy(strategy string) {
 	e.fixtureNotes = append(e.fixtureNotes, "DNS probe results forced to select the "+strategy+" strategy, whatever this distro ships")
 }
 
-// hardeningConfigFromCLI mirrors cmd/hardn/main.go:234-250 (hardn -r).
+// hardeningConfigFromCLI mirrors cmd/hardn/main.go's Run, its runAll
+// branch (hardn -r).
 func hardeningConfigFromCLI(cfg *config.Config) *model.HardeningConfig {
 	return &model.HardeningConfig{
 		CreateUser:         cfg.Username != "",
@@ -226,7 +228,7 @@ type cliRun struct {
 }
 
 // Where cmd/hardn/main.go calls pkg/cmd's RefuseDryRunOperations.
-const refusedInRoot = "cmd/hardn/main.go:123, before the root check"
+const refusedInRoot = "cmd/hardn/main.go, the top of Run (refuseDryRunOperations), before the root check"
 
 // fixedItem is a V-list (or A-) item a P0.8 hazard gate fixed: its id (a
 // key of fixedText) and the unexported constant(s) that gate the fix.
@@ -464,7 +466,7 @@ func dryRunNote(refused bool) string {
 	if refused {
 		reach = " (which now reaches only the menus)"
 	}
-	return "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n" + reach + ". No layer below pkg/menu reads it."
+	return "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go's Run does for -n" + reach + ". No layer below pkg/menu reads it."
 }
 
 // gatedHeader is a golden's first line when it holds FIXED lines naming
@@ -484,10 +486,10 @@ func opScenarios() []opScenario {
 		{
 			name:  "harden_system",
 			op:    "MenuManager.HardenSystem -> SecurityManager.HardenSystem (user, SSH, UFW, DNS)",
-			entry: "hardn -r (cmd/hardn/main.go:230-260); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:226-268), in live mode only after a typed 'yes' (run_all_menu.go:155)",
+			entry: "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:226-268), in live mode only after a typed 'yes' (run_all_menu.go:155)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			notes: []string{
-				"HardeningConfig is built as cmd/hardn/main.go:234-250 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile.",
+				"HardeningConfig is built as cmd/hardn/main.go's Run builds it in its runAll branch; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile.",
 			},
 			pveCheck: true,
 			gateNotes: func(c osCell, shown map[string]bool) []string {
@@ -546,7 +548,7 @@ func opScenarios() []opScenario {
 			// of SecurityManager.HardenSystem, which hardn -r and Run All's
 			// live run call, until slice 8. Its goldens as they were, -w's,
 			// are frozen in pkg/screens/firewall/testdata/legacy/ops.
-			entry: "hardn -r (cmd/hardn/main.go:284) and Run All's live run (pkg/menu/run_all_menu.go:228), through SecurityManager.HardenSystem's firewall step (pkg/application/security_manager.go:58); hardn -w and the Firewall screen move to the Firewall control in slice 4 unit (d)",
+			entry: "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem) and Run All's live run (pkg/menu/run_all_menu.go:228), through SecurityManager.HardenSystem's firewall step (pkg/application/security_manager.go:58); hardn -w and the Firewall screen move to the Firewall control in slice 4 unit (d)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			run: func(e *opEnv) []callResult {
 				err := e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, []model.FirewallProfile{})
@@ -575,7 +577,7 @@ func opScenarios() []opScenario {
 			// the User Management screen on the User control: the user step of
 			// SecurityManager.HardenSystem, which hardn -r and Run All's live run
 			// call for an existing username, until slice 8.
-			entry: "hardn -r (cmd/hardn/main.go:286) and Run All's live run (pkg/menu/run_all_menu.go:228) when alice exists, through SecurityManager.HardenSystem's user step (pkg/application/security_manager.go:34); hardn -c and the User Management screen move to the User control in slice 5 unit (d)",
+			entry: "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem) and Run All's live run (pkg/menu/run_all_menu.go:228) when alice exists, through SecurityManager.HardenSystem's user step (pkg/application/security_manager.go:34); hardn -c and the User Management screen move to the User control in slice 5 unit (d)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			notes: []string{"Seed: /etc/sudoers.d/alice holds the env_keep line that setup-sudo-env writes, and alice's authorized_keys already holds the fixture key."},
 			setup: func(e *opEnv) {
@@ -631,7 +633,7 @@ func opScenarios() []opScenario {
 // run call, until slice 8 (dnsReach, then the scenario's condition, then
 // dnsMoved).
 const (
-	dnsReach = "hardn -r (cmd/hardn/main.go:254) and Run All's live run (pkg/menu/run_all_menu.go:268), through SecurityManager.HardenSystem's DNS step (pkg/application/security_manager.go:68-75)"
+	dnsReach = "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem) and Run All's live run (pkg/menu/run_all_menu.go:268), through SecurityManager.HardenSystem's DNS step (pkg/application/security_manager.go:68-75)"
 	dnsMoved = "; hardn -g and the DNS screen use the DNS control since slice 2 unit (d)"
 )
 
