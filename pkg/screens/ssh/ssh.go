@@ -65,8 +65,8 @@ type Options struct {
 	// the caller builds it (engine.New over System with its options: its
 	// backups, its session, hardn's path for the revert timer), progress as
 	// its Options.Progress: one per item chosen, whose plan before asking
-	// says a refusal first, and one per change, made when the change is
-	// planned. Drawing makes none. Required.
+	// says a refusal first, one per port the port field checks, and one per
+	// change, made when the change is planned. Drawing makes none. Required.
 	NewEngine func(progress func(engine.Event)) *engine.Engine
 	// ApplyContext, when set, returns the context a change's apply runs
 	// under, made from the screen's, and its stop, called once the apply has
@@ -99,8 +99,9 @@ type Options struct {
 // engine first, from a fresh reading, and its refusal (the control's, or
 // the engine's, such as a change waiting for hardn confirm) said before
 // anything is asked; Change SSH port plans the port sshd has for it, before
-// its field. Then the change: the port's form, refused at its field outside
-// 1 to 65535 or on a port sshd has; the review; the plan, planned again from
+// its field, from a reading of its own. Then the change: the port's form,
+// refused at its field outside 1 to 65535, as the engine refuses the port's
+// plan, or on a port sshd has (an empty plan); the review; the plan, planned again from
 // a fresh reading; the hostname typed, as every SSH change is lockout-risk;
 // the apply. 0 changes nothing, and a dry run stops at the plan. A live
 // change whose hostname can't be read says so before asking. Run returns an

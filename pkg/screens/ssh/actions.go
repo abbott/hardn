@@ -65,20 +65,21 @@ func (r *runner) refuse(words string) error {
 
 // preplan plans c on the engine from a fresh reading of the host, writing
 // nothing outside the engine's run directory, which it removes, and returns
-// its first refusal in the screen's words, "" for none, and whether the plan
-// is lockout-risk. The control's refusals and the engine's (a change waiting
-// for hardn confirm among them) are said before asking.
-func (r *runner) preplan(ctx context.Context, c engine.Control) (string, bool, error) {
+// its first refusal in the screen's words, "" for none, and the plan, nil
+// where the engine refused to plan. The control's refusals and the
+// engine's (a change waiting for hardn confirm among them) are said before
+// asking.
+func (r *runner) preplan(ctx context.Context, c engine.Control) (string, *engine.Plan, error) {
 	p, err := r.o.NewEngine(func(engine.Event) {}).Plan(ctx, []engine.Control{c}, r.cfg)
 	switch {
 	case err != nil && ctx.Err() != nil:
-		return "", false, err
+		return "", nil, err
 	case err != nil:
-		return planWords(err), false, nil
+		return planWords(err), nil, nil
 	case len(p.Refused) > 0:
-		return planWords(p.Refused[0]), false, nil
+		return planWords(p.Refused[0]), p, nil
 	}
-	return "", p.Risk == engine.RiskLockout, nil
+	return "", p, nil
 }
 
 // change runs c through the flow (screenkit.Session.Change), as Firewall's
@@ -91,14 +92,14 @@ func (r *runner) preplan(ctx context.Context, c engine.Control) (string, bool, e
 // confirms nothing, so it needs no hostname.
 func (r *runner) change(ctx context.Context, lockout bool, c screen.SSHChange, fields []form.Field, control func() engine.Control) error {
 	if len(fields) == 0 {
-		words, risky, err := r.preplan(ctx, control())
+		words, p, err := r.preplan(ctx, control())
 		switch {
 		case err != nil:
 			return err
 		case words != "":
 			return r.refuse(words)
 		}
-		lockout = risky
+		lockout = p.Risk == engine.RiskLockout
 	}
 	if lockout && !r.o.DryRun {
 		if _, _, err := screenkit.Hostname(ctx, r.o.System); err != nil {
@@ -154,13 +155,21 @@ func (r *runner) password(ctx context.Context, h reading) error {
 	})
 }
 
-// port is item 3: refused before its field as sshchange.Port refuses any
-// port (planned for the port sshd has, which plans nothing else), then the
-// new port, refused at its field outside 1 to 65535 or where sshd listens
-// on it already, its default hardn.yml's sshPort where sshd does not
-// (decision 9 (a)); then its plan from a fresh reading, the ports sshd has
-// held until confirmed, of lockout risk.
-func (r *runner) port(ctx context.Context, h reading) error {
+// port is item 3, from a fresh reading of the host, not the draw's:
+// refused before its field as sshchange.Port refuses any port (planned for
+// the port sshd has, which plans nothing else), then the new port, refused
+// at its field outside 1 to 65535 and as the engine refuses its plan
+// (planWords: a port in use, a change waiting for hardn confirm, the
+// control's), where sshd listens on it already an empty plan; its default
+// hardn.yml's sshPort where sshd does not listen on it (decision 9 (a));
+// then its plan from a fresh reading, the ports sshd has held until
+// confirmed, of lockout risk.
+func (r *runner) port(ctx context.Context, _ reading) error {
+	rd, err := sshchange.Read(ctx, r.o.System, r.o.Facts, r.o.Config, r.o.Session, r.o.Getenv)
+	if err != nil {
+		return err
+	}
+	h := reading{Reading: rd}
 	have := h.Effective.Listeners.Ports()
 	now := uint16(22)
 	if len(have) > 0 {
@@ -179,10 +188,16 @@ func (r *runner) port(ctx context.Context, h reading) error {
 	}
 	field := &form.Text{Title: screen.SSHPortField, Description: about, Default: def, Value: &value, Validate: func(s string) error {
 		n, err := strconv.Atoi(strings.TrimSpace(s))
-		switch {
-		case err != nil || n < 1 || n > 65535:
+		if err != nil || n < 1 || n > 65535 {
 			return nav.Refuse(screen.SSHPortOutOfRange)
-		case slices.Contains(have, uint16(n)):
+		}
+		words, p, err := r.preplan(ctx, sshchange.Port{To: uint16(n)})
+		switch {
+		case err != nil:
+			return err
+		case words != "":
+			return nav.Refuse(words)
+		case len(p.Changes) == 0:
 			return nav.Warn(screen.SSHPortHave(uint16(n)))
 		}
 		return nil
