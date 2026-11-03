@@ -651,8 +651,13 @@ func opScenarios() []opScenario {
 		{
 			name:  "configure_secure_firewall",
 			op:    "FirewallManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, no profiles)",
-			entry: "hardn -w (cmd/hardn/main.go:386-392)",
-			cli:   []cliRun{{"-w", []string{hardncmd.FlagConfigureUFW}, refusedInRoot}},
+			// What still reaches it once slice 4's unit (d) puts hardn -w and
+			// the Firewall screen on the Firewall control: the firewall step
+			// of SecurityManager.HardenSystem, which hardn -r and Run All's
+			// live run call, until slice 8. Its goldens as they were, -w's,
+			// are frozen in pkg/screens/firewall/testdata/legacy/ops.
+			entry: "hardn -r (cmd/hardn/main.go:284) and Run All's live run (pkg/menu/run_all_menu.go:228), through SecurityManager.HardenSystem's firewall step (pkg/application/security_manager.go:58); hardn -w and the Firewall screen move to the Firewall control in slice 4 unit (d)",
+			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			run: func(e *opEnv) []callResult {
 				err := e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, []model.FirewallProfile{})
 				return []callResult{{"FirewallManager.ConfigureSecureFirewall", err}}
