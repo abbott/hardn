@@ -20,7 +20,8 @@ import (
 // the gallery's Environment mocks draw them (gallery-environment.md
 // §3.1): Debian 13 (sudo), Ubuntu 26.04 (sudo-rs), Alpine 3.24 after
 // setup-alpine (doas, 20-wheel.conf), Alpine 3.23's cloud image (doas,
-// wheel.conf, which sorts after hardn's rule), Proxmox VE 9 (neither
+// wheel.conf, which sorts before hardn's rule, and a local zz-local.conf,
+// which sorts after it), Proxmox VE 9 (neither
 // tool). visudo and doas -C pass every file: the tests' model, not the
 // tools. Synthetic values only: web-01.example.net, alice, bob.
 
@@ -104,6 +105,9 @@ func newHost(t *testing.T, name string) *testHost {
 			file, rule, version = "wheel.conf", "permit nopass :wheel\n", "3.23"
 		}
 		h.AddFile(sudoers.DoasDir+"/"+file, []byte(rule), 0o640, 0, 0)
+		if name == alpineCloud {
+			h.AddFile(sudoers.DoasDir+"/zz-local.conf", []byte(rule), 0o640, 0, 0)
+		}
 		h.facts = platform(detect.DistroAlpine, version, detect.OpenRC)
 		h.facts.Elevation = detect.Elevation{Sudo: none, Doas: doas}
 	case pve9:

@@ -149,11 +149,11 @@ func TestFileNames(t *testing.T) {
 	for _, tc := range []struct {
 		user, grant, env, doas string
 	}{
-		{"alice", "hardn-grant-alice", "hardn-env-alice", "hardn-alice.conf"},
-		{"alice.smith", "hardn-grant-alice_2esmith", "hardn-env-alice_2esmith", "hardn-alice_2esmith.conf"},
-		{"bob_smith", "hardn-grant-bob__smith", "hardn-env-bob__smith", "hardn-bob__smith.conf"},
-		{"bob$", "hardn-grant-bob_24", "hardn-env-bob_24", "hardn-bob_24.conf"},
-		{"env-alice", "hardn-grant-env-alice", "hardn-env-env-alice", "hardn-env-alice.conf"},
+		{"alice", "hardn-grant-alice", "hardn-env-alice", "zz-hardn-alice.conf"},
+		{"alice.smith", "hardn-grant-alice_2esmith", "hardn-env-alice_2esmith", "zz-hardn-alice_2esmith.conf"},
+		{"bob_smith", "hardn-grant-bob__smith", "hardn-env-bob__smith", "zz-hardn-bob__smith.conf"},
+		{"bob$", "hardn-grant-bob_24", "hardn-env-bob_24", "zz-hardn-bob_24.conf"},
+		{"env-alice", "hardn-grant-env-alice", "hardn-env-env-alice", "zz-hardn-env-alice.conf"},
 	} {
 		s, err := sudoers.FileNames(sudoers.ToolSudo, tc.user)
 		if err != nil {

@@ -61,11 +61,11 @@
       "id": "environment.keep/stop",
       "control": "environment.keep",
       "summary": "Stop keeping HARDN_CONFIG",
-      "target": "/etc/doas.d/hardn-alice.conf",
+      "target": "/etc/doas.d/zz-hardn-alice.conf",
       "risk": "lockout",
       "stage": "accounts",
       "after": [],
-      "diff": "--- /etc/doas.d/hardn-alice.conf\n+++ /etc/doas.d/hardn-alice.conf\n@@ -1,2 +1,2 @@\n # Managed by hardn\n-permit persist setenv { HARDN_CONFIG } alice\n+permit persist alice\n",
+      "diff": "--- /etc/doas.d/zz-hardn-alice.conf\n+++ /etc/doas.d/zz-hardn-alice.conf\n@@ -1,2 +1,2 @@\n # Managed by hardn\n-permit persist setenv { HARDN_CONFIG } alice\n+permit persist alice\n",
       "stateBefore": "",
       "stateAfter": "",
       "commands": [],
@@ -78,8 +78,8 @@
   "findings": [
     {
       "code": "SUDOERS_LATER_FILE",
-      "detail": "/etc/doas.d/wheel.conf may override hardn's rule",
-      "source": "/etc/doas.d/wheel.conf",
+      "detail": "/etc/doas.d/zz-local.conf may override hardn's rule",
+      "source": "/etc/doas.d/zz-local.conf",
       "control": "environment.keep",
       "change": "environment.keep/stop"
     }

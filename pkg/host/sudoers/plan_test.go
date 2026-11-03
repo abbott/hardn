@@ -48,11 +48,11 @@ func TestPlanContent(t *testing.T) {
 			map[string]string{"/etc/sudoers.d/hardn-grant-alice": "# Managed by hardn\nalice ALL=(ALL) ALL\n"},
 			[]sudoers.Risk{sudoers.RiskLockout}, []string{"visudo -cf /etc/sudoers.d/hardn-grant-alice"}},
 		{"doas password, env", doasChoice, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword, Env: keep},
-			map[string]string{"/etc/doas.d/hardn-alice.conf": "# Managed by hardn\npermit persist setenv { HARDN_CONFIG } alice\n"},
-			[]sudoers.Risk{sudoers.RiskLockout}, []string{"doas -C /etc/doas.d/hardn-alice.conf"}},
+			map[string]string{"/etc/doas.d/zz-hardn-alice.conf": "# Managed by hardn\npermit persist setenv { HARDN_CONFIG } alice\n"},
+			[]sudoers.Risk{sudoers.RiskLockout}, []string{"doas -C /etc/doas.d/zz-hardn-alice.conf"}},
 		{"doas no password", doasChoice, sudoers.Policy{User: "alice", Grant: sudoers.GrantNoPassword},
-			map[string]string{"/etc/doas.d/hardn-alice.conf": "# Managed by hardn\npermit nopass alice\n"},
-			[]sudoers.Risk{sudoers.RiskNone}, []string{"doas -C /etc/doas.d/hardn-alice.conf"}},
+			map[string]string{"/etc/doas.d/zz-hardn-alice.conf": "# Managed by hardn\npermit nopass alice\n"},
+			[]sudoers.Risk{sudoers.RiskNone}, []string{"doas -C /etc/doas.d/zz-hardn-alice.conf"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := sudoHost(t)
@@ -129,7 +129,8 @@ func findings(p sudoers.Plan) []string {
 // legacy file's grant still applies, and also applies with any policy
 // that grants nothing; a legacy file read after hardn's rule may override it. The
 // legacy file's detail is in the user's words (next/s9-control). doas's
-// later files are its *.conf names, hardn's own decoded as on sudo.
+// later files are its *.conf names, hardn's own decoded as on sudo; Alpine's
+// wheel.conf, and a file at the older hardn- name, sort before hardn's.
 func TestPlanFindingsPolicies(t *testing.T) {
 	const laterAlice = " read after hardn's rule for alice: a rule there that matches wins (the last match wins)"
 	for _, tc := range []struct {
@@ -159,11 +160,13 @@ func TestPlanFindingsPolicies(t *testing.T) {
 		{"legacy file read after hardn's, no grant", sudoChoice, []string{"svc-alice"}, sudoers.Policy{User: "svc-alice", Env: keep}, []string{
 			"sudoers-legacy-file /etc/sudoers.d/svc-alice /etc/sudoers.d/svc-alice may override hardn's rule and also let svc-alice use sudo",
 		}},
-		{"doas", doasChoice, []string{"10-local.conf", "hardn-bob.conf", "hardn-x_zz.conf", "zz-local.conf", "zz-local"}, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword}, []string{
-			"sudoers-later-file /etc/doas.d/hardn-x_zz.conf" + laterAlice,
+		{"doas", doasChoice, []string{"10-local.conf", "hardn-bob.conf", "zz-hardn-bob.conf", "zz-hardn-x_zz.conf", "zz-local.conf", "zz-local"}, sudoers.Policy{User: "alice", Grant: sudoers.GrantPassword}, []string{
+			"sudoers-later-file /etc/doas.d/zz-hardn-x_zz.conf" + laterAlice,
 			"sudoers-later-file /etc/doas.d/zz-local.conf" + laterAlice,
 		}},
 		{"doas removal", doasChoice, []string{"zz-local.conf"}, sudoers.Policy{User: "alice"}, nil},
+		{"doas: wheel.conf is read before hardn's", doasChoice, []string{"hardn-george.conf", "wheel.conf", "zz-hardn-george.conf"},
+			sudoers.Policy{User: "george", Grant: sudoers.GrantPassword}, nil},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, dir := sudoHost(t), sudoers.DropInDir
@@ -258,9 +261,9 @@ func TestPlanRemove(t *testing.T) {
 		t.Fatalf("changes = %+v", p.Changes)
 	}
 	d := doasHost(t)
-	d.AddFile(sudoers.DoasDir+"/hardn-alice.conf", []byte("permit persist alice\n"), 0o640, 0, 0)
+	d.AddFile(sudoers.DoasDir+"/zz-hardn-alice.conf", []byte("permit persist alice\n"), 0o640, 0, 0)
 	_, p = plan(t, d, doasChoice, sudoers.Policy{User: "alice"}, sudoers.Policy{User: "wheel"})
-	if len(p.Changes) != 1 || p.Changes[0].Path != "/etc/doas.d/hardn-alice.conf" || !p.Changes[0].Remove || p.Changes[0].Risk != sudoers.RiskLockout {
+	if len(p.Changes) != 1 || p.Changes[0].Path != "/etc/doas.d/zz-hardn-alice.conf" || !p.Changes[0].Remove || p.Changes[0].Risk != sudoers.RiskLockout {
 		t.Fatalf("doas changes = %+v", p.Changes)
 	}
 }

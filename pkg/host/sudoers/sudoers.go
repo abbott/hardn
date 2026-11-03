@@ -51,14 +51,20 @@ const (
 	WorkDir = "sudoers-validate"
 )
 
-// Name prefixes: every file hardn manages starts with "hardn-", which sorts
-// after the digit-led and upper-case names distributions and cloud-init use
-// (90-cloud-init-users, README, 20-wheel.conf), so its rules come later and
-// win (the last matching rule wins).
+// Name prefixes: every sudo file hardn manages starts with "hardn-", which
+// sorts after the digit-led and upper-case names distributions and
+// cloud-init use (90-cloud-init-users, README), so its rules come later and
+// win (the last matching rule wins). doas reads /etc/doas.conf, then
+// /etc/doas.d/*.conf (doas.conf's own comment on Alpine 3.23), and the last
+// match wins there too (doas -C on piped rules, run on Alpine 3.23); Alpine
+// ships /etc/doas.d/wheel.conf, after "hardn-", so hardn's doas file is
+// "zz-hardn-", read after it and deciding for a wheel member. The order
+// within doas.d is taken as byte order [I: Alpine's patch not read].
+// Nothing released wrote the older doas name, so it is not recognised.
 const (
 	grantPrefix = "hardn-grant-"
 	envPrefix   = "hardn-env-"
-	doasPrefix  = "hardn-"
+	doasPrefix  = "zz-hardn-"
 	doasSuffix  = ".conf"
 )
 
