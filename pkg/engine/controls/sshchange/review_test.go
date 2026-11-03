@@ -58,8 +58,8 @@ func TestKeyOnlyDirectives(t *testing.T) {
 func TestRefusalOrder(t *testing.T) {
 	toor := account{name: "toor", uid: 0, pw: "!", keys: []string{key(4, "toor@laptop-4")}}
 	for _, tt := range []struct {
-		name string
-		host func(*testing.T) *vm
+		name        string
+		host        func(*testing.T) *vm
 		c           engine.Control
 		code, words string
 	}{
@@ -186,4 +186,3 @@ func TestRSASizes(t *testing.T) {
 		})
 	}
 }
-
