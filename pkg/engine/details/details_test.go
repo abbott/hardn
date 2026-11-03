@@ -255,7 +255,8 @@ func TestRead(t *testing.T) {
 	if tool, tri := r.Users.List[0].Admin(); tool != "sudo" || tri != detect.Yes {
 		t.Errorf("alice's admin = %q %v", tool, tri)
 	}
-	if got, want := r.Users.List[0].Grants, []users.Grant{{Tool: "sudo", Grants: detect.Yes}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
+	sudo := users.Rule{Kind: users.RuleGroup, File: "/etc/sudoers", Line: 2, Group: "sudo", Text: "%sudo ALL=(ALL:ALL) ALL"}
+	if got, want := r.Users.List[0].Grants, []users.Grant{{Tool: "sudo", Grants: detect.Yes, Rule: sudo}, {Tool: "doas", Grants: detect.No}}; !slices.Equal(got, want) {
 		t.Errorf("alice's grants = %v", got)
 	}
 	wantCPU := details.CPU{Model: "QEMU Virtual CPU version 2.5+", CPUs: 2, Sockets: 1, Load: [3]string{"0.12", "0.08", "0.03"}}
