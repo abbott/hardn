@@ -250,7 +250,7 @@ var rootCmd = &cobra.Command{
 
 		// Get required managers
 		sshManager := serviceFactory.CreateSSHManager()
-		firewallManager := serviceFactory.CreateFirewallManager()
+		// (-w needs no manager: it plans and applies the Firewall control, firewall.go)
 		// (-g needs no manager: it plans and applies the DNS control, dns.go)
 		packageManager := serviceFactory.CreatePackageManager()
 		userManager := serviceFactory.CreateUserManager()
@@ -413,25 +413,25 @@ var rootCmd = &cobra.Command{
 			}
 		}
 
-		// Configure firewall
+		// Configure firewall: the Firewall control through the engine, the hostname
+		// typed on a terminal, refused off one (firewall.go). Its status is hardn's
+		// as -g's is, the two composed by runStatus, once the flags after it have run.
+		firewallStatus := 0
 		if configureUfw {
-			if err := firewallManager.ConfigureSecureFirewall(cfg.SshPort, []int{}, []model.FirewallProfile{}); err != nil {
-				logging.LogError("Failed to configure firewall: %v", err)
-			} else {
-				logging.LogSuccess("Firewall configured successfully")
-			}
+			firewallStatus = configureFirewall(cfg)
 		}
+		// (-w no longer goes through FirewallManager, which Run All and -r keep)
 
 		// Configure DNS: the DNS control through the engine, with no question (dns.go).
 		// A refusal or a failure is hardn's exit status, once the flags after it have run (V25).
-		status := 0 // -g's and -p's, what -e's yields to (runStatus)
+		status := firewallStatus // -w's, -g's and -p's, what -e's yields to (runStatus)
 		defer func() {
 			if status != 0 {
 				exit(status)
 			}
 		}()
 		if configureDns {
-			status = configureDNS(cfg)
+			status = runStatus(status, configureDNS(cfg))
 		}
 
 		// Print the log, after the others: their lines stay on stdout (with no other
@@ -451,7 +451,7 @@ var rootCmd = &cobra.Command{
 
 		// Output completion message for the legacy operations other than the all-in-one run
 		if createUser || disableRootSSH || installLinux || installPython ||
-			installAll || configureUfw || updateSources {
+			installAll || updateSources {
 			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},
@@ -510,11 +510,12 @@ var (
 )
 
 // operationFlags names the operation flags set on the command line that
-// -n refuses: the flags that change the host (pkg/cmd lists them), but -g
-// and -e, whose dry runs are the DNS and Environment controls' plans,
-// shown with nothing written (refactor plan slice 2, unit (d); the
-// maintainer, 2026-10-23; slice 9, unit (d), gallery-environment.md §5,
-// Made here, adopted 2026-10-29).
+// -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
+// -e and -w, whose dry runs are the DNS, Environment and Firewall
+// controls' plans, shown with nothing written (refactor plan slice 2,
+// unit (d); the maintainer, 2026-10-23; slice 9, unit (d),
+// gallery-environment.md §5, Made here, adopted 2026-10-29; slice 4, unit
+// (d), parity-firewall.md §6, adopted 2026-11-02).
 func operationFlags() []string {
 	var names []string
 	for _, f := range []struct {
@@ -524,7 +525,6 @@ func operationFlags() []string {
 		{runAll, hardncmd.FlagRunAll},
 		{createUser, hardncmd.FlagCreateUser},
 		{disableRootSSH, hardncmd.FlagDisableRoot},
-		{configureUfw, hardncmd.FlagConfigureUFW},
 		{installLinux, hardncmd.FlagInstallLinux},
 		{installPython, hardncmd.FlagInstallPython},
 		{installAll, hardncmd.FlagInstallAll},

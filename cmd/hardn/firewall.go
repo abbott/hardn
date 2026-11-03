@@ -5,13 +5,21 @@ package main
 // gated): the main menu's Firewall item runs the Firewall screen
 // (pkg/screens/firewall), which pkg/menu reaches through the hook set
 // here, as it reaches the Environment screen (environment.go), so that
-// pkg/menu builds no engine. The engine's options are engine.go's.
+// pkg/menu builds no engine; and -w plans and applies the Firewall
+// control's Enable through runControls, a lockout-risk plan confirmed by
+// the hostname typed on a terminal and refused off one
+// (gallery-firewall.md §5, decision 4, adopted 2026-11-01). The engine's
+// options are engine.go's.
 
 import (
 	"context"
+	"fmt"
 	"sync"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
+	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
@@ -19,6 +27,37 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
+
+// configureFirewall is -w: the Firewall control's Enable (let SSH through,
+// deny by default, start ufw, start it at boot) planned and applied as
+// runControls runs a flag's controls, its report output.Human's on stdout
+// off a terminal, the canonical flow's on one. A lockout-risk plan, which
+// Enable's is wherever it starts ufw or sets the deny policy, is confirmed
+// as main menu 4 confirms it, by the hostname typed, on a terminal, the
+// revert timer then armed as the engine arms it; off a terminal it is
+// refused, nothing armed (enableFirewall). On Proxmox VE the control
+// refuses (UFW_NOT_APPLICABLE). Under -n, or hardn.yml's dryRun: true,
+// the plan alone, no question, nothing written. It returns the exit
+// status: 0 applied or nothing to change, 3 a plan with changes to make
+// (-n) or declined (0, q), 1 refused or failed.
+func configureFirewall(c *config.Config) int {
+	return runControls(c, []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionEnable}}, nil, &enableFirewall)
+}
+
+// enableFirewall is -w's confirmation of a lockout-risk plan: the
+// question its screen's Enable asks (gallery-firewall.md §6, decided), and
+// the refusal off a terminal (proposed words, refactor plan slice 4, unit
+// (d), on -e's decided pattern): its code the registry's PLAN_REFUSED
+// (engine.ErrRefused, a refusal with no code of its own), exit status 1.
+var enableFirewall = typedConfirm{
+	question: "Enable the firewall?",
+	offTerminal: &steps.Refusal{
+		Code: "PLAN_REFUSED",
+		Why:  "Enabling the firewall here risks a lockout",
+		Fix:  "run hardn -w from a terminal, which asks you to confirm",
+		Err:  fmt.Errorf("%w: a lockout-risk plan, which -w confirms on a terminal alone", engine.ErrRefused),
+	},
+}
 
 // firewallMenu is what withFirewallScreen sets the Firewall item of:
 // pkg/menu's main menu, and the tests' record of what was set.
