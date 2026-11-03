@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -479,46 +480,138 @@ func TestCreateUserNoName(t *testing.T) {
 
 // TestCreateUserDisableRoot: -c with -d is refused on stderr, exit status
 // 2, before either runs, where -c's user gets no key, hardn.yml's sshKeys
-// empty: no user created, nothing written, sshd's configuration untouched
-// (the legacy provider, -d's, never reached); under -n too. -d alone runs
-// as it did; -c -d with sshKeys runs both, -c's user created with its key.
+// empty, or sshd's AllowUsers, AllowGroups, DenyUsers or DenyGroups is set
+// (globally, or in a Match block), or sshd -T can't be read: no user
+// created, nothing written, sshd's configuration untouched (the legacy
+// provider, -d's, never reached); under -n too. -d alone runs as it did.
+// -c -d with sshKeys runs -c first, then -d (hardn.conf written, sshd
+// restarted, after useradd); where -c does not create its user (a key
+// that is not one, empty or cut short, the name taken, no sudo, a later
+// step failing and Create rolled back), -d is not run, stderr says so,
+// and hardn's exit status is -c's.
 func TestCreateUserDisableRoot(t *testing.T) {
 	key := usrTestKey(5, "carol@laptop")
+	noSudo := func(h *usrTestHost) {
+		h.facts.Elevation = detect.Elevation{Sudo: detect.Tool{Present: detect.No}, Doas: detect.Tool{Present: detect.No}}
+		_ = h.Remove(context.Background(), "/usr/bin/sudo")
+	}
+	failKeyDir := func(h *usrTestHost) { // install -d of ~/.ssh, after useradd and the grant
+		inner := h.Handler
+		h.Handler = func(argv []string, in []byte) hostfake.Response {
+			if argv[0] == "install" {
+				return hostfake.Response{Stderr: "install: cannot create directory\n", ExitCode: 1}
+			}
+			return inner(argv, in)
+		}
+	}
+	notRun := func(name string) string { return hardncmd.DisableRootNotRun(name) }
+	listed := func(k string) string {
+		return "hardn -c -d: sshd's " + k + " decides who can log in, and hardn can't tell whether carol can. Run -c, check carol can log in, then run -d."
+	}
 	for _, tc := range []struct {
-		name    string
-		args    []string
-		refused string // the refusal's words; "" for none
-		keys    []string
+		name  string
+		args  []string
+		keys  []string
+		sshdT string             // added to sshd -T's output; "fail" for sshd -T failing
+		setup func(*usrTestHost) // nil for none
+		code  int                // the exit status; 0: hardn did not exit
+		said  string             // on stderr; "" for nothing of -c -d's
+		made  bool               // -c created carol
+		root  bool               // -d ran
+		why   string             // in -c's report, where it refused or failed
 	}{
-		{"-c -d -u carol", []string{"-c", "-d", "-u", "carol"},
-			"hardn -c -d would leave no SSH login: carol has no key, and -d turns off root's. Give carol a key first.", nil},
-		{"-c -d: hardn.yml's username", []string{"-c", "-d"},
-			"hardn -c -d would leave no SSH login: alice has no key, and -d turns off root's. Give alice a key first.", nil},
-		{"-n -c -d -u carol", []string{"-n", "-c", "-d", "-u", "carol"}, "-d/--disable-root", nil},
-		{"-d alone", []string{"-d"}, "", nil},
-		{"-c -d -u carol, sshKeys", []string{"-c", "-d", "-u", "carol"}, "", []string{key}},
+		{name: "-c -d -u carol", args: []string{"-c", "-d", "-u", "carol"}, code: hardncmd.ExitUsage,
+			said: "hardn -c -d would leave no SSH login: carol has no key, and -d turns off root's. Give carol a key first."},
+		{name: "-c -d: hardn.yml's username", args: []string{"-c", "-d"}, code: hardncmd.ExitUsage,
+			said: "hardn -c -d would leave no SSH login: alice has no key, and -d turns off root's. Give alice a key first."},
+		{name: "-n -c -d -u carol", args: []string{"-n", "-c", "-d", "-u", "carol"}, code: hardncmd.ExitUsage, said: "-d/--disable-root"},
+		{name: "-d alone", args: []string{"-d"}, root: true},
+		{name: "-c -d -u carol, sshKeys", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, made: true, root: true},
+		{name: "AllowUsers", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, sshdT: "allowusers george\n", code: hardncmd.ExitUsage, said: listed("AllowUsers")},
+		{name: "AllowGroups", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, sshdT: "allowgroups sudo\n", code: hardncmd.ExitUsage, said: listed("AllowGroups")},
+		{name: "DenyUsers", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, sshdT: "denyusers alice\n", code: hardncmd.ExitUsage, said: listed("DenyUsers")},
+		{name: "DenyGroups", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, sshdT: "denygroups nogroup\n", code: hardncmd.ExitUsage, said: listed("DenyGroups")},
+		{name: "AllowUsers in a Match block", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, code: hardncmd.ExitUsage, said: listed("AllowUsers"),
+			setup: func(h *usrTestHost) {
+				h.AddFile(sshd.DropInDir+"/50-match.conf", []byte("Match Address 192.0.2.0/24\n    AllowUsers george\n"), 0o644, 0, 0)
+			}},
+		{name: "sshd -T not read", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, sshdT: "fail", code: hardncmd.ExitUsage,
+			said: "hardn -c -d: hardn can't read sshd's configuration (sshd -T), so it can't tell whether carol can log in. Run -c, check carol can log in, then run -d."},
+		{name: "an empty key", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{""}, code: 1, said: notRun("carol"), why: "Key 1 isn't an OpenSSH public key"},
+		{name: "a bad key", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{"ssh-rsa AAAA carol@old"}, code: 1, said: notRun("carol"), why: "AUTHKEYS_NOT_KEY"},
+		{name: "a key cut short", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5 carol@laptop"}, code: 1, said: notRun("carol"), why: "AUTHKEYS_NOT_KEY"},
+		{name: "the name taken", args: []string{"-c", "-d", "-u", "george"}, keys: []string{key}, code: 1, said: notRun("george"), why: "USERS_NAME_TAKEN"},
+		{name: "no sudo", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, setup: noSudo, code: 1, said: notRun("carol"), why: "USERS_NO_TOOL"},
+		{name: "~/.ssh not made, rolled back", args: []string{"-c", "-d", "-u", "carol"}, keys: []string{key}, setup: failKeyDir, code: 1, said: notRun("carol"), why: "Rolled back"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, _ := newUsersHost(t)
 			cfg := withKeys(t, h, tc.keys...)
-			r, s := runC(t, h, cfg, nil, tc.args...)
-			if tc.refused == "" {
-				if r.ended && r.code == hardncmd.ExitUsage || len(r.calls) == 0 {
-					t.Errorf("-d refused or not run: ended %v with %d, %d legacy calls; stderr:\n%s", r.ended, r.code, len(r.calls), r.stderr)
-				}
-				if c := slices.Contains(tc.args, "-c"); c != (len(h.commands("useradd")) == 1) || c != (h.content("/home/carol/.ssh/authorized_keys") == key+"\n") {
-					t.Errorf("-c ran %q, keys %q", h.commands("useradd"), h.content("/home/carol/.ssh/authorized_keys"))
-				}
-				return
+			if tc.setup != nil {
+				tc.setup(h)
 			}
-			if !r.ended || r.code != hardncmd.ExitUsage || !strings.Contains(r.stderr, tc.refused) {
-				t.Fatalf("ended %v with %d, want %d saying %q; stderr:\n%s", r.ended, r.code, hardncmd.ExitUsage, tc.refused, r.stderr)
+			var order []string // useradd, and -d's commands through the legacy provider, as run
+			answer := h.Handler
+			h.Handler = func(argv []string, in []byte) hostfake.Response {
+				switch {
+				case argv[0] == "useradd":
+					order = append(order, "useradd")
+				case (argv[0] == "sshd" || argv[0] == "/usr/sbin/sshd") && slices.Contains(argv, "-T") && tc.sshdT == "fail":
+					return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\n", ExitCode: 1}
+				case (argv[0] == "sshd" || argv[0] == "/usr/sbin/sshd") && slices.Contains(argv, "-T"):
+					r := answer(argv, in)
+					r.Stdout += tc.sshdT
+					return r
+				}
+				return answer(argv, in)
 			}
-			if got := h.writes(); len(got) > 0 || len(h.commands("useradd")) > 0 || len(r.calls) != 0 || s.applies != 0 {
-				t.Errorf("wrote %q, ran %q, %d legacy calls %v, %d applies", got, h.commands("useradd"), len(r.calls), r.calls, s.applies)
+			r, s := runC(t, h, cfg, func(*dnsSeams) {
+				provider.Commander = orderedCommander{provider.Commander, &order}
+			}, tc.args...)
+			report := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
+			}
+			if tc.said != "" && !strings.Contains(r.stderr, tc.said) || tc.said == "" && strings.Contains(r.stderr, "-d not run") {
+				t.Errorf("stderr:\n%s\nwant %q", r.stderr, tc.said)
+			}
+			if !strings.Contains(report, tc.why) {
+				t.Errorf("-c's report lacks %q:\n%s", tc.why, report)
+			}
+			if made := h.content("/home/carol/.ssh/authorized_keys") == key+"\n"; made != tc.made {
+				t.Errorf("-c created carol %t, want %t: ran %q", made, tc.made, h.commands("useradd", "userdel"))
+			}
+			const conf = "/etc/ssh/sshd_config.d/hardn.conf"
+			wrote, restarted := slices.Contains(r.calls, "write "+conf), slices.Contains(r.calls, "exec systemctl restart ssh")
+			if wrote != tc.root || restarted != tc.root {
+				t.Errorf("-d ran: %s written %t, sshd restarted %t, want %t; legacy calls %q", conf, wrote, restarted, tc.root, r.calls)
+			}
+			if i, j := slices.Index(order, "useradd"), slices.Index(order, "exec systemctl restart ssh"); tc.made && tc.root && (i < 0 || j < i) {
+				t.Errorf("ran %q, want -c's useradd, then -d's restart", order)
+			}
+			if tc.code == hardncmd.ExitUsage {
+				if got := h.writes(); len(got) > 0 || len(h.commands("useradd")) > 0 || len(r.calls) != 0 || s.applies != 0 {
+					t.Errorf("wrote %q, ran %q, %d legacy calls %v, %d applies", got, h.commands("useradd"), len(r.calls), r.calls, s.applies)
+				}
+			}
+			if tc.code == 1 && strings.Contains(r.stdout, "Script completed") {
+				t.Errorf("-d not run, yet said:\n%s", r.stdout)
 			}
 		})
 	}
+}
+
+// orderedCommander is the legacy provider's Commander, each command it
+// runs added to order as run, so that a test can see it after the
+// engine's.
+type orderedCommander struct {
+	interfaces.Commander
+	order *[]string
+}
+
+func (c orderedCommander) Execute(command string, args ...string) ([]byte, error) {
+	*c.order = append(*c.order, "exec "+strings.Join(append([]string{command}, args...), " "))
+	return c.Commander.Execute(command, args...)
 }
 
 // TestCreateUserFlagWithOthers: -c's exit status combines with -g's as
