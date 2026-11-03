@@ -602,6 +602,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == logsPrefix {
 		return logsListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == usrPrefix { // the User Management mocks (users.go)
+		return usrListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {

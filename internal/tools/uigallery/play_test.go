@@ -199,7 +199,9 @@ func TestPlaySize(t *testing.T) {
 // was applied. b goes nowhere: the main menu refuses it, as any line it
 // does not take, and reads the next.
 func TestPlayEnds(t *testing.T) {
-	sudo := []string{"1", "1", "1", "1"}
+	// The main menu's 1 leads to the User Management mock on debian13
+	// (users.go): Manage User, alice, Don't ask password, a y/N plan.
+	sudo := []string{"1", "1", "2", "2"}
 	tests := []struct {
 		name    string
 		args    []string
