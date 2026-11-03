@@ -124,6 +124,11 @@ type vm struct {
 	// noPAM: sshd -T prints no usepam line, as a build without PAM;
 	// noRSASize no requiredrsasize line, as OpenSSH before 9.1.
 	noPAM, noRSASize bool
+	// sshdFail is sshd -T's stderr where it fails another way than
+	// /run/sshd missing (exit 255); noFollowErr fails ReadFileNoFollow of
+	// a path, as an unreadable legacy file.
+	sshdFail    string
+	noFollowErr map[string]error
 }
 
 // key is a synthetic ssh-ed25519 key line, every byte of its key seed.
@@ -560,6 +565,9 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 // the Match blocks it matches; sshd.c's fatal() where /run/sshd is not
 // there (reload.md §2.4).
 func (v *vm) sshd(argv []string) hostfake.Response {
+	if v.sshdFail != "" {
+		return hostfake.Response{Stderr: v.sshdFail, ExitCode: 255}
+	}
 	if _, ok := v.f.Entry("/run/sshd"); !ok {
 		return hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255}
 	}
@@ -651,10 +659,20 @@ func (v *vm) ufw(argv []string) hostfake.Response {
 }
 
 // sys is the fake with sudo setuid root, which hostfake has no bit for.
-func (v *vm) sys() host.System { return setuidSys{v.f} }
+func (v *vm) sys() host.System { return setuidSys{v.f, v} }
 
-// setuidSys shows sudo's setuid bit.
-type setuidSys struct{ *hostfake.System }
+// setuidSys shows sudo's setuid bit, and fails v's noFollowErr reads.
+type setuidSys struct {
+	*hostfake.System
+	v *vm
+}
+
+func (s setuidSys) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	if err := s.v.noFollowErr[name]; err != nil {
+		return nil, nil, err
+	}
+	return s.System.ReadFileNoFollow(ctx, name)
+}
 
 func (s setuidSys) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
 	fi, err := s.System.Stat(ctx, name)
