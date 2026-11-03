@@ -328,8 +328,8 @@ func TestRestricted(t *testing.T) {
 	for opts, want := range map[string]bool{
 		"": false,
 		"agent-forwarding,no-agent-forwarding,port-forwarding,no-port-forwarding,X11-forwarding,no-X11-forwarding": false,
-		"user-rc,no-user-rc,pty,no-touch-required,verify-required":                                                false,
-		`environment="A=1,2",permitopen="192.0.2.10:22",permitlisten="localhost:8080"`:                            false,
+		"user-rc,no-user-rc,pty,no-touch-required,verify-required":                                                 false,
+		`environment="A=1,2",permitopen="192.0.2.10:22",permitlisten="localhost:8080"`:                             false,
 		"NO-PTY":                      true,
 		"no-pty":                      true,
 		`command="/bin/false"`:        true,
