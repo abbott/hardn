@@ -9,7 +9,9 @@
 // string the same type, then the whole blob read in that type's wire form
 // (checkBlob), so a blob sshd would refuse is not a key. Whether the key
 // material is a point on its curve, or an RSA modulus a product of primes,
-// is not checked.
+// is not checked. A host's RequiredRSASize raised above MinRSABits is not
+// read: an RSA key under it, which that sshd refuses, is still listed and
+// counted.
 //
 // docs/safety/authkeys.md describes what it reads and plans, and what is
 // written but not yet run on a Linux host.
@@ -187,6 +189,11 @@ func parse(l string) (Key, error) {
 // it (sshd_config(5)): sshd refuses a shorter RSA key.
 const MinRSABits = 1024
 
+// MaxRSABits is the longest RSA modulus OpenSSH reads
+// (sshkey_check_rsa_length, OPENSSL_RSA_MAX_MODULUS_BITS): sshd refuses a
+// longer one.
+const MaxRSABits = 16384
+
 // points are the ECDSA curves' names (RFC 5656 §6.1, §10.1) and the length
 // of each one's uncompressed point, 0x04 then x and y (SEC 1 §2.3.3).
 var points = map[string]int{"nistp256": 65, "nistp384": 97, "nistp521": 133}
@@ -197,7 +204,7 @@ var points = map[string]int{"nistp256": 65, "nistp384": 97, "nistp521": 133}
 //
 //	ssh-ed25519                        string key, 32 bytes (RFC 8709 §4)
 //	ssh-rsa                            mpint e, mpint n (RFC 4253 §6.6): both
-//	                                   positive, n at least MinRSABits
+//	                                   positive, n MinRSABits to MaxRSABits
 //	ecdsa-sha2-<curve>                 string curve, the type's; string Q,
 //	                                   uncompressed (RFC 5656 §3.1)
 //	sk-ssh-ed25519@openssh.com         ed25519's, then string application
@@ -221,6 +228,8 @@ func checkBlob(typ string, blob []byte) string {
 			why = "its modulus isn't positive"
 		case bitLen(n) < MinRSABits:
 			why = fmt.Sprintf("its modulus is %d bits, under %d", bitLen(n), MinRSABits)
+		case bitLen(n) > MaxRSABits:
+			why = fmt.Sprintf("its modulus is %d bits, over %d", bitLen(n), MaxRSABits)
 		}
 	default: // ecdsa-sha2-<curve>
 		curve := strings.TrimPrefix(base, "ecdsa-sha2-")
