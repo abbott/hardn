@@ -6,11 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay users/pve9␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from the real control on a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Read), each refusal the control's and each change␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Admin's plan on the real plan/apply engine. Nothing on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: root alone, by key␛[m$
@@ -98,11 +98,11 @@ $
 # play users/pve9 ----------------------------------------------$
 $
 # Note$
-# Play mode, mocks: the User Management screen proposed for$
-# slice 5, drawn from the real control on a simulated host$
-# (users.Read), each refusal the control's and each change$
-# users.Admin's plan on the real plan/apply engine. Nothing on$
-# this machine changes: every command and file is the fake's.$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
 $
 # Info: users/pve9$
 # web-01.example.net is a Proxmox VE 9 node: root alone, by key$
@@ -190,12 +190,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay users/pve9␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the User Management screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 5, drawn from the real control on a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(users.Read), each refusal the control's and each change␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Admin's plan on the real plan/apply engine. Nothing␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes: every command and file is the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: users/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: root alone, by␛[m$

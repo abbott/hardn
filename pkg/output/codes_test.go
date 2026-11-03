@@ -227,6 +227,8 @@ var sentinels = map[string]error{
 	"users.ErrKeyFilesNotRead":       users.ErrKeyFilesNotRead,
 	"users.ErrLastKey":               users.ErrLastKey,
 	"users.ErrKeyElsewhere":          users.ErrKeyElsewhere,
+	"users.ErrKeyThere":              users.ErrKeyThere,
+	"users.ErrKeyGone":               users.ErrKeyGone,
 	"users.ErrNameForm":              users.ErrNameForm,
 	"users.ErrNameTaken":             users.ErrNameTaken,
 	"users.ErrHomeThere":             users.ErrHomeThere,
