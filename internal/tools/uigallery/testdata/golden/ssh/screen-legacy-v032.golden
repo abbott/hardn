@@ -7,7 +7,9 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Ubuntu 26.04 (OpenSSH␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(AuthorizedKeysFile .ssh/authorized_keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh_%u/authorized_keys, george's keys in ~/.ssh_george), and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlisten.conf for 2230 written with no daemon-reload, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
 $
@@ -45,7 +47,9 @@ $
 $
 # Note$
 # Mock: SSH Login. web-01.example.net runs Ubuntu 26.04 (OpenSSH$
-# 10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf, and$
+# 10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf$
+# (AuthorizedKeysFile .ssh/authorized_keys$
+# .ssh_%u/authorized_keys, george's keys in ~/.ssh_george), and$
 # listen.conf for 2230 written with no daemon-reload, so$
 # ssh.socket still listens on 22.$
 $
@@ -84,8 +88,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Ubuntu 26.04␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenSSH 10.2p1, ssh.socket). Hardened by v0.3.2: its␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmanage.conf, and listen.conf for 2230 written with no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdaemon-reload, so ssh.socket still listens on 22.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmanage.conf (AuthorizedKeysFile .ssh/authorized_keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh_%u/authorized_keys, george's keys in ~/.ssh_george),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand listen.conf for 2230 written with no daemon-reload, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -134,7 +140,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Ubuntu 26.04 (OpenSSH␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(AuthorizedKeysFile .ssh/authorized_keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh_%u/authorized_keys, george's keys in ~/.ssh_george), and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlisten.conf for 2230 written with no daemon-reload, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
 $

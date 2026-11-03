@@ -73,13 +73,13 @@ func TestSSHHosts(t *testing.T) {
 	wants := map[string]want{
 		"debian13":         {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
 		"ubuntu2604":       {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"alpine323":        {"root locked", "key-only auth", "default (22)", "Key only", "Off", "22"},
+		"alpine323":        {"root locked", "key-only auth", "default (22)", "Locked", "Off", "22"},
 		"hardened":         {"root disallowed", "key-only auth", "non-default (2230)", "Disallowed", "Off", "2230"},
 		"password-login":   {"root key-only", "password auth on", "default (22)", "Key only", "On", "22"},
 		"password-session": {"root key-only", "password auth on", "default (22)", "Key only", "On", "22"},
 		"root-session":     {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
 		"legacy-v032":      {"root disallowed", "key-only auth", "socket and sshd differ", "Disallowed", "Off", "22, 2230"},
-		"legacy-main":      {"root disallowed", "password auth on", "default (22)", "Disallowed", "On", "22"},
+		"legacy-main":      {"root disallowed", "password auth on", "default (22)", "Disallowed", "Off", "22"}, // by AuthenticationMethods
 		"include-other":    {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
 		"match-allows":     {"match block allows root", "match block allows passwords", "default (22)", "Key only", "Off", "22"},
 		"allow-users":      {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
@@ -87,7 +87,9 @@ func TestSSHHosts(t *testing.T) {
 		"ufw-restricted":   {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
 		"confirm-window":   {"root key-only", "key-only auth", "22 and 2230", "Key only", "Off", "22, 2230"},
 		"not-read":         {"can't read", "can't read", "can't read", "Can't read", "Can't read", "Can't read"},
-		"nopam-locked":     {"root locked", "key-only auth", "default (22)", "Key only", "Off", "22"},
+		"nopam-locked":     {"root locked", "key-only auth", "default (22)", "Locked", "Off", "22"},
+		"rsa-small":        {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
+		"admin-no-sudo":    {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
 	}
 	if len(wants) != len(sshHosts()) {
 		t.Fatalf("%d hosts, %d wanted", len(sshHosts()), len(wants))
@@ -181,7 +183,10 @@ func TestSSHPortInUse(t *testing.T) {
 // TestSSHAdminPaths holds sshLoginPaths, sshd's own answer for each admin:
 // george by key on debian13; alice left out by AllowUsers; george locked
 // without PAM; on match-allows, alice in by password through the Match
-// block while passwords stay on.
+// block while passwords stay on; and each other way an admin is not able:
+// AllowUsers' host, DenyUsers, PubkeyAuthentication, AuthenticationMethods,
+// StrictModes, a key file sshd doesn't read, the key's type and size, and
+// becoming root.
 func TestSSHAdminPaths(t *testing.T) {
 	ctx := context.Background()
 	for _, tt := range []struct {
@@ -193,6 +198,15 @@ func TestSSHAdminPaths(t *testing.T) {
 		{"allow-users", true, "george key|alice: alice isn't in AllowUsers"},
 		{"nopam-locked", true, "george: george's account is locked (!) and sshd has no PAM"},
 		{"match-allows", false, "george key|alice: alice has no key sshd reads, password"},
+		{"allow-users-host", true, "george: AllowUsers lets george in from 198.51.100.7 alone|alice: alice isn't in AllowUsers"},
+		{"deny-users", true, "george: george is in DenyUsers|alice: alice has no key sshd reads"},
+		{"pubkey-off", true, "george: PubkeyAuthentication is off|alice: PubkeyAuthentication is off"},
+		{"methods-password", false, "george: AuthenticationMethods publickey,password asks more than george has|alice: alice has no key sshd reads"},
+		{"strict-home", true, "george: StrictModes ignores george's keys|alice: alice has no key sshd reads"},
+		{"key-elsewhere", true, "george: george has no key sshd reads|alice: alice has no key sshd reads"},
+		{"algorithms-rsa", true, "george: sshd doesn't accept george's key type (ssh-ed25519)|alice: alice has no key sshd reads"},
+		{"rsa-small", true, "george: george's RSA key is 1024 bits, under RequiredRSASize 2048|alice: alice has no key sshd reads"},
+		{"admin-no-sudo", true, "george: george can't become root: sudo asks a password george hasn't got"},
 	} {
 		r, h, err := sshReadNamed(ctx, tt.host)
 		if err != nil {

@@ -4,14 +4,17 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
 	"fmt"
 	"net/netip"
 	"path"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
@@ -57,8 +60,18 @@ func (s *sshSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		}
 		if i := slices.Index(argv, "-C"); i >= 0 && i+1 < len(argv) && slices.Contains(argv, "-T") {
 			main, drops := h.files(argv[slices.Index(argv, "-f")+1])
-			out, _ := h.sshdT(matched(main, drops, argv[i+1]), drops)
-			return hostfake.Response{Stdout: out}, true
+			m := matched(main, drops, argv[i+1])
+			out, _ := h.sshdT(m, drops)
+			// requiredrsasize, which the model does not print: the first
+			// value, OpenSSH 9.1's default 1024 where none is set.
+			size := strconv.Itoa(authkeys.MinRSABits)
+			for _, l := range sshd.ReadOrder(m, drops) {
+				if l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0 {
+					size = l.Args[0]
+					break
+				}
+			}
+			return hostfake.Response{Stdout: out + "requiredrsasize " + size + "\n"}, true
 		}
 	}
 	return hostfake.Response{}, false
@@ -189,6 +202,38 @@ func (h *fakeHost) withLog(method, user string, seed byte) *fakeHost {
 	return h
 }
 
+// onConsole makes hardn's session root's on the console, not over SSH:
+// hardn's process under login(1) on tty1, no SSH_CONNECTION in either's
+// environment, and sshd's log without a line for it.
+func (h *fakeHost) onConsole() *fakeHost {
+	const loginPID = 4990
+	h.f.AddFile(fmt.Sprintf("/proc/%d/stat", applyPID), statLine(applyPID, "hardn", loginPID, 4<<8|1, applyStart), 0o444, 0, 0)
+	h.process(loginPID, "login", 1, 1500)
+	for _, pid := range []int{applyPID, loginPID} {
+		h.f.AddFile(fmt.Sprintf("/proc/%d/environ", pid), []byte("HOME=/root\x00TERM=linux\x00"), 0o400, 0, 0)
+	}
+	h.ssh = &sshSim{}
+	if h.openRC {
+		h.f.AddFile("/var/log/messages", nil, 0o640, 0, 0)
+	}
+	return h
+}
+
+// rsaKey is a synthetic ssh-rsa public key line whose modulus is bits
+// long, every byte seed's but the first.
+func rsaKey(bits int, seed byte, comment string) string {
+	blob := binary.BigEndian.AppendUint32(nil, 7)
+	blob = append(blob, "ssh-rsa"...)
+	blob = binary.BigEndian.AppendUint32(blob, 3)
+	blob = append(blob, 1, 0, 1)
+	blob = binary.BigEndian.AppendUint32(blob, uint32(bits/8+1))
+	blob = append(blob, 0, 0x80|seed)
+	for range bits/8 - 1 {
+		blob = append(blob, seed)
+	}
+	return "ssh-rsa " + base64.StdEncoding.EncodeToString(blob) + " " + comment
+}
+
 // rootLike gives root the shadow field pw and, as on the three VMs, the
 // login user's first key (seed 1) as its one key.
 func (h *fakeHost) rootLike(pw string) *fakeHost {
@@ -275,14 +320,22 @@ func sshPasswordSession() *fakeHost {
 // sshRootSession is Debian 13, hardn run from root's own SSH login.
 func sshRootSession() *fakeHost { return sshDebian13().withLog("publickey", "root", 1) }
 
-// sshLegacyV032 is Ubuntu 26.04 hardened by v0.3.2: its manage.conf, and
-// listen.conf for 2230 written with no daemon-reload, as d9Host.
+// sshLegacyV032 is Ubuntu 26.04 hardened by v0.3.2: its manage.conf, with
+// v0.3.2's AuthorizedKeysFile line (v032-reference.md §4.2, V5) and
+// george's keys where v0.3.2 put them, and listen.conf for 2230 written
+// with no daemon-reload, as d9Host. george's key login is one sshd reads.
 func sshLegacyV032() *fakeHost {
 	h := sshUbuntu()
 	h.f.AddFile(migrate.ManageConf, []byte("### Reference\n### https://cryptsus.com/blog/how-to-secure-your-ssh-server-with-public-key-elliptic-curve-ed25519-crypto.html\n"+
 		"Protocol 2\nStrictModes yes\n\nListenAddress 0.0.0.0:2230\n\nAuthenticationMethods publickey\nPubkeyAuthentication yes\n\nPermitRootLogin no\nAllowUsers george\n\n"+
-		"PasswordAuthentication no\nPermitEmptyPasswords no\n"), 0o644, 0, 0)
+		"PasswordAuthentication no\nPermitEmptyPasswords no\n\nAuthorizedKeysFile    .ssh/authorized_keys    .ssh_%u/authorized_keys\n"), 0o644, 0, 0)
 	h.f.AddFile(migrate.ListenConf, []byte("[Socket]\nListenStream=\nListenStream=2230\n"), 0o644, 0, 0)
+	// v0.3.2's keys: the user's ~/.ssh_<user>/authorized_keys (v032-reference.md §4.1).
+	ctx := context.Background()
+	data, _ := h.f.ReadFile(ctx, "/home/george/.ssh/authorized_keys")
+	_ = h.f.Remove(ctx, "/home/george/.ssh/authorized_keys")
+	h.f.AddDir("/home/george/.ssh_george", 0o700, 1000, 1000)
+	h.f.AddFile("/home/george/.ssh_george/authorized_keys", data, 0o600, 1000, 1000)
 	h.allowed = []uint16{22, 2230}
 	h.saveRules()
 	h.configured = []string{"[::]:22", "0.0.0.0:22"}
@@ -291,7 +344,9 @@ func sshLegacyV032() *fakeHost {
 }
 
 // legacyMainConf is origin/main's hardn.conf as SaveSSHConfig writes it
-// for Disable root SSH access (DisableRootSSH: the stub's Port 22).
+// for Disable root SSH access (DisableRootSSH: the stub's Port 22, no key
+// path, so one "AuthorizedKeysFile .ssh/authorized_keys"), where that
+// build's AddAuthorizedKey put george's keys (side-effects.md D7).
 const legacyMainConf = "# SSH configuration managed by Hardn\n\nProtocol 2\nStrictModes yes\n\nPort 22\n\n" +
 	"AuthenticationMethods publickey\nPubkeyAuthentication yes\n\nPermitRootLogin no\n\n" +
 	"PasswordAuthentication no\nPermitEmptyPasswords no\n\nAuthorizedKeysFile .ssh/authorized_keys\n"
@@ -347,7 +402,8 @@ func sshNotRead() *fakeHost {
 }
 
 // sshNoPAMLocked is Alpine with george's account "!" and george the only
-// admin: alpine is out of wheel.
+// admin: alpine is out of wheel. george cannot have logged in by key, so
+// hardn runs as root on the console.
 func sshNoPAMLocked() *fakeHost {
 	p := alpine323CloudPlatform
 	g := george(p)
@@ -357,5 +413,23 @@ func sshNoPAMLocked() *fakeHost {
 	h.f.AddFile(accounts.ShadowFile, []byte(strings.Replace(string(data), "george:*:", "george:!:", 1)), 0o640, 0, 42)
 	data, _ = h.f.ReadFile(context.Background(), "/etc/group")
 	h.f.AddFile("/etc/group", []byte(strings.Replace(string(data), "wheel:x:10:root,alpine,george", "wheel:x:10:root,george", 1)), 0o644, 0, 0)
-	return h
+	return h.onConsole()
+}
+
+// sshRSASmall is Debian 13 with george's only key RSA 1024 bits and
+// RequiredRSASize 2048 in a drop-in: sshd refuses the key, so hardn runs
+// as root on the console.
+func sshRSASmall() *fakeHost {
+	h := sshDebian13()
+	h.f.AddFile("/home/george/.ssh/authorized_keys", []byte(rsaKey(1024, 0x41, "george@laptop-1")+"\n"), 0o600, 1000, 1000)
+	return h.sshFile(sshd.DropInDir+"/10-rsa.conf", "RequiredRSASize 2048\n", 0o644).onConsole()
+}
+
+// sshAdminNoSudo is Debian 13 with george alone, by key, his only grant
+// %sudo, which asks a password his "!" account hasn't got; hardn runs as
+// root on the console.
+func sshAdminNoSudo() *fakeHost {
+	h := usersOn(debian13Platform, false, george(debian13Platform)).rootLike("*")
+	h.sshFile(sshd.MainConfig, debianMain, 0o644)
+	return h.withHardnYML(sshYML).onConsole()
 }

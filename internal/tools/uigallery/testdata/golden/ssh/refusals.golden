@@ -22,6 +22,32 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's account is␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlocked (!) and sshd has no PAM. Fix that first.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, rsa-small␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's RSA key is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m1024 bits, under RequiredRSASize 2048; alice has no key sshd␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreads. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, admin-no-sudo␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george can't become␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mroot: sudo asks a password george hasn't got. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, allow-users-host␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: AllowUsers lets␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge in from 198.51.100.7 alone; alice isn't in AllowUsers.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, no-accepted␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't tell how you logged in: sshd's log has no line for␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis connection. Nothing that closes a way in can change.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, match-allows␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -66,6 +92,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in with a password. Turning passwords off would␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mclose the way you came in. Log in with a key first.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, pve9-password␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in as root with a password. Making root key-only␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould close the way you came in. Log in as root with a key␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirst.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -88,20 +121,11 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mmigrate, legacy-v032␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe rolled back: the rollback's daemon-reload would move␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket to port 2230 alone, off the port this host is␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreached on (P-39). First make sure the firewall lets port 2230␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthrough: ssh.socket then listens on port 2230 alone. Then let␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf take effect while this session stays open: run␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl daemon-reload` and `systemctl restart ssh.socket`␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(established SSH sessions survive the restart), check that a␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnew SSH connection to port 2230 works, and run hardn again. A␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreboot also lets it take effect, but ends this session: reboot␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156monly with console access, in case port 2230 is not reachable.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn v0.3.x's listen.conf (port 2230 for ssh.socket) never␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtook effect: ssh.socket listens on 22. Moving it now couldn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe undone. Let 2230 through the firewall, run systemctl␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdaemon-reload and systemctl restart ssh.socket, check a new␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconnection to 2230 works, then try again.␛[m$
 $
 $
 
@@ -124,6 +148,32 @@ $
 # Warning$
 # No admin could log in over SSH afterwards: george's account is$
 # locked (!) and sshd has no PAM. Fix that first.$
+$
+# root, rsa-small ----------------------------------------------$
+$
+# Warning$
+# No admin could log in over SSH afterwards: george's RSA key is$
+# 1024 bits, under RequiredRSASize 2048; alice has no key sshd$
+# reads. Fix that first.$
+$
+# root, admin-no-sudo ------------------------------------------$
+$
+# Warning$
+# No admin could log in over SSH afterwards: george can't become$
+# root: sudo asks a password george hasn't got. Fix that first.$
+$
+# root, allow-users-host ---------------------------------------$
+$
+# Warning$
+# No admin could log in over SSH afterwards: AllowUsers lets$
+# george in from 198.51.100.7 alone; alice isn't in AllowUsers.$
+# Fix that first.$
+$
+# root, no-accepted --------------------------------------------$
+$
+# Warning$
+# hardn can't tell how you logged in: sshd's log has no line for$
+# this connection. Nothing that closes a way in can change.$
 $
 # root, match-allows -------------------------------------------$
 $
@@ -169,6 +219,13 @@ $
 # You logged in with a password. Turning passwords off would$
 # close the way you came in. Log in with a key first.$
 $
+# root, pve9-password ------------------------------------------$
+$
+# Warning$
+# You logged in as root with a password. Making root key-only$
+# would close the way you came in. Log in as root with a key$
+# first.$
+$
 # port, pve9 ---------------------------------------------------$
 $
 # Warning$
@@ -191,20 +248,11 @@ $
 # migrate, legacy-v032 -----------------------------------------$
 $
 # Warning$
-# /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
-# sets ssh.socket to port 2230, but it never took effect:$
-# ssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-$
-# reload since it was written, D9). Migrating it now could not$
-# be rolled back: the rollback's daemon-reload would move$
-# ssh.socket to port 2230 alone, off the port this host is$
-# reached on (P-39). First make sure the firewall lets port 2230$
-# through: ssh.socket then listens on port 2230 alone. Then let$
-# listen.conf take effect while this session stays open: run$
-# `systemctl daemon-reload` and `systemctl restart ssh.socket`$
-# (established SSH sessions survive the restart), check that a$
-# new SSH connection to port 2230 works, and run hardn again. A$
-# reboot also lets it take effect, but ends this session: reboot$
-# only with console access, in case port 2230 is not reachable.$
+# hardn v0.3.x's listen.conf (port 2230 for ssh.socket) never$
+# took effect: ssh.socket listens on 22. Moving it now couldn't$
+# be undone. Let 2230 through the firewall, run systemctl$
+# daemon-reload and systemctl restart ssh.socket, check a new$
+# connection to 2230 works, then try again.$
 $
 $
 
@@ -227,6 +275,34 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156maccount is locked (!) and sshd has no PAM. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, rsa-small␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's RSA␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mkey is 1024 bits, under RequiredRSASize 2048; alice has no␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mkey sshd reads. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, admin-no-sudo␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george can't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbecome root: sudo asks a password george hasn't got. Fix␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthat first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, allow-users-host␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: AllowUsers lets␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge in from 198.51.100.7 alone; alice isn't in␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAllowUsers. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, no-accepted␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't tell how you logged in: sshd's log has no line␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfor this connection. Nothing that closes a way in can␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchange.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, match-allows␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
 $
@@ -273,6 +349,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in with a password. Turning passwords off would␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mclose the way you came in. Log in with a key first.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, pve9-password␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in as root with a password. Making root key-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156monly would close the way you came in. Log in as root with␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156ma key first.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -295,21 +378,11 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mmigrate, legacy-v032␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mv0.3.x) sets ssh.socket to port 2230, but it never took␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meffect: ssh.socket is configured for [[::]:22 0.0.0.0:22]␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(no daemon-reload since it was written, D9). Migrating it␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnow could not be rolled back: the rollback's daemon-reload␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould move ssh.socket to port 2230 alone, off the port␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis host is reached on (P-39). First make sure the␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirewall lets port 2230 through: ssh.socket then listens␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mon port 2230 alone. Then let listen.conf take effect while␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis session stays open: run `systemctl daemon-reload` and␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl restart ssh.socket` (established SSH sessions␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msurvive the restart), check that a new SSH connection to␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mport 2230 works, and run hardn again. A reboot also lets␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mit take effect, but ends this session: reboot only with␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconsole access, in case port 2230 is not reachable.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn v0.3.x's listen.conf (port 2230 for ssh.socket)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnever took effect: ssh.socket listens on 22. Moving it now␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mcouldn't be undone. Let 2230 through the firewall, run␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msystemctl daemon-reload and systemctl restart ssh.socket,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mcheck a new connection to 2230 works, then try again.␛[m$
 $
 $
 
@@ -332,6 +405,32 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's account is␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlocked (!) and sshd has no PAM. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, rsa-small␛[m ␛[38;2;48;52;64m----------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's RSA key is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m1024 bits, under RequiredRSASize 2048; alice has no key sshd␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreads. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, admin-no-sudo␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george can't become␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mroot: sudo asks a password george hasn't got. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, allow-users-host␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: AllowUsers lets␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge in from 198.51.100.7 alone; alice isn't in AllowUsers.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFix that first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, no-accepted␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't tell how you logged in: sshd's log has no line for␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis connection. Nothing that closes a way in can change.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, match-allows␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
 $
@@ -377,6 +476,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in with a password. Turning passwords off would␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mclose the way you came in. Log in with a key first.␛[m$
 $
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, pve9-password␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in as root with a password. Making root key-only␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould close the way you came in. Log in as root with a key␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirst.␛[m$
+$
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mport, pve9␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -399,19 +505,10 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mmigrate, legacy-v032␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe rolled back: the rollback's daemon-reload would move␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket to port 2230 alone, off the port this host is␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreached on (P-39). First make sure the firewall lets port 2230␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthrough: ssh.socket then listens on port 2230 alone. Then let␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf take effect while this session stays open: run␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl daemon-reload` and `systemctl restart ssh.socket`␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(established SSH sessions survive the restart), check that a␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnew SSH connection to port 2230 works, and run hardn again. A␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreboot also lets it take effect, but ends this session: reboot␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156monly with console access, in case port 2230 is not reachable.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn v0.3.x's listen.conf (port 2230 for ssh.socket) never␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtook effect: ssh.socket listens on 22. Moving it now couldn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe undone. Let 2230 through the firewall, run systemctl␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdaemon-reload and systemctl restart ssh.socket, check a new␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconnection to 2230 works, then try again.␛[m$
 $
 $

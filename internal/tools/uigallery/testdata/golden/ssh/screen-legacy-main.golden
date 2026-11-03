@@ -8,8 +8,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Debian 13 (OpenSSH␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.0p2). origin/main's hardn.conf (PermitRootLogin no,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPasswordAuthentication no), beaten for passwords by 50-cloud-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minit.conf, which sshd reads first.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuthenticationMethods publickey, AuthorizedKeysFile␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh/authorized_keys). 50-cloud-init.conf, read first, sets␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPasswordAuthentication yes, but AuthenticationMethods␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpublickey keeps passwords out.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -20,7 +22,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby hardn.conf␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOn␛[m ␛[38;2;219;184;83mby 50-cloud-init.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby AuthenticationMethods␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mhardn.conf␛[m$
@@ -29,7 +31,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m  ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mKey-only login␛[m       ␛[38;2;129;134;156mTurn password login off␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
 $
@@ -45,8 +47,10 @@ $
 # Note$
 # Mock: SSH Login. web-01.example.net runs Debian 13 (OpenSSH$
 # 10.0p2). origin/main's hardn.conf (PermitRootLogin no,$
-# PasswordAuthentication no), beaten for passwords by 50-cloud-$
-# init.conf, which sshd reads first.$
+# AuthenticationMethods publickey, AuthorizedKeysFile$
+# .ssh/authorized_keys). 50-cloud-init.conf, read first, sets$
+# PasswordAuthentication yes, but AuthenticationMethods$
+# publickey keeps passwords out.$
 $
 # SSH Login ####################################################$
 $
@@ -57,7 +61,7 @@ $
 # SSH Configuration --------------------------------------------$
 $
    -  Root SSH Login       Disallowed by hardn.conf$
-  [ ] Password Login       On by 50-cloud-init.conf$
+   -  Password Login       Off by AuthenticationMethods$
    -  SSH Port             22$
    -  Allowed Users        Anyone$
   [ ] Old Settings         hardn.conf$
@@ -66,7 +70,7 @@ $
   Select an option$
 $
    1) Allow root key-only  Root logs in by key alone$
-   2) Key-only login       Turn password login off$
+   2) Password login on    Let passwords log in again$
    3) Change SSH port      Now 22$
    4) Move old settings    Into 00-hardn.conf$
 $
@@ -82,9 +86,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Debian 13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenSSH 10.0p2). origin/main's hardn.conf␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(PermitRootLogin no, PasswordAuthentication no), beaten␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor passwords by 50-cloud-init.conf, which sshd reads␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirst.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(PermitRootLogin no, AuthenticationMethods publickey,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuthorizedKeysFile .ssh/authorized_keys). 50-cloud-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minit.conf, read first, sets PasswordAuthentication yes,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbut AuthenticationMethods publickey keeps passwords out.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -99,8 +104,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby hardn.conf␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
-      ␛[38;2;129;134;156mOn␛[m ␛[38;2;219;184;83mby 50-cloud-init.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby AuthenticationMethods␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
@@ -114,8 +119,8 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m$
       ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mKey-only login␛[m$
-      ␛[38;2;129;134;156mTurn password login off␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
       ␛[38;2;129;134;156mNow 22␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
@@ -133,8 +138,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Debian 13 (OpenSSH␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.0p2). origin/main's hardn.conf (PermitRootLogin no,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPasswordAuthentication no), beaten for passwords by 50-cloud-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minit.conf, which sshd reads first.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuthenticationMethods publickey, AuthorizedKeysFile␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh/authorized_keys). 50-cloud-init.conf, read first, sets␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPasswordAuthentication yes, but AuthenticationMethods␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpublickey keeps passwords out.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m####################################################␛[m$
 $
@@ -145,7 +152,7 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby hardn.conf␛[m$
-  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOn␛[m ␛[38;2;219;184;83mby 50-cloud-init.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby AuthenticationMethods␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
   ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mhardn.conf␛[m$
@@ -154,7 +161,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m  ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mKey-only login␛[m       ␛[38;2;129;134;156mTurn password login off␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
 $

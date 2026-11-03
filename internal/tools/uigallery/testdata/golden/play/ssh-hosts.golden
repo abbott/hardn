@@ -32,7 +32,7 @@ $
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPassword session␛[m     ␛[38;2;129;134;156malice by password␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRoot's session␛[m       ␛[38;2;129;134;156mNo SUDO_USER␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mhardn v0.3.2␛[m         ␛[38;2;129;134;156mmanage.conf, listen.conf␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216morigin/main's file␛[m   ␛[38;2;129;134;156mhardn.conf beaten␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216morigin/main's file␛[m   ␛[38;2;129;134;156mhardn.conf, passwords off␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mInclude not first␛[m    ␛[38;2;129;134;156mPort 22 above it␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mMatch block␛[m          ␛[38;2;129;134;156mRoot, passwords from 192.0.2.0/24␛[m$
   ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAllowUsers␛[m           ␛[38;2;129;134;156mgeorge alone␛[m$
@@ -41,10 +41,12 @@ $
   ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mConfirm pending␛[m      ␛[38;2;129;134;156m22 and 2230 held␛[m$
   ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216msshd not read␛[m        ␛[38;2;129;134;156mBefore the first connection␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mAlpine, admin locked␛[m ␛[38;2;129;134;156mgeorge "!", no PAM␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mRSA key too short␛[m    ␛[38;2;129;134;156m1024 bits, 2048 asked␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAdmin without sudo␛[m   ␛[38;2;129;134;156msudo asks a password␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 4$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 4$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/hardened␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2). 00-␛[m$
@@ -88,7 +90,7 @@ $
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPassword session␛[m     ␛[38;2;129;134;156malice by password␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRoot's session␛[m       ␛[38;2;129;134;156mNo SUDO_USER␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mhardn v0.3.2␛[m         ␛[38;2;129;134;156mmanage.conf, listen.conf␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216morigin/main's file␛[m   ␛[38;2;129;134;156mhardn.conf beaten␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216morigin/main's file␛[m   ␛[38;2;129;134;156mhardn.conf, passwords off␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mInclude not first␛[m    ␛[38;2;129;134;156mPort 22 above it␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mMatch block␛[m          ␛[38;2;129;134;156mRoot, passwords from 192.0.2.0/24␛[m$
   ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mAllowUsers␛[m           ␛[38;2;129;134;156mgeorge alone␛[m$
@@ -97,10 +99,12 @@ $
   ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mConfirm pending␛[m      ␛[38;2;129;134;156m22 and 2230 held␛[m$
   ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216msshd not read␛[m        ␛[38;2;129;134;156mBefore the first connection␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mAlpine, admin locked␛[m ␛[38;2;129;134;156mgeorge "!", no PAM␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mRSA key too short␛[m    ␛[38;2;129;134;156m1024 bits, 2048 asked␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAdmin without sudo␛[m   ␛[38;2;129;134;156msudo asks a password␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -138,7 +142,7 @@ $
    6) Password session     alice by password$
    7) Root's session       No SUDO_USER$
    8) hardn v0.3.2         manage.conf, listen.conf$
-   9) origin/main's file   hardn.conf beaten$
+   9) origin/main's file   hardn.conf, passwords off$
   10) Include not first    Port 22 above it$
   11) Match block          Root, passwords from 192.0.2.0/24$
   12) AllowUsers           george alone$
@@ -147,10 +151,12 @@ $
   15) Confirm pending      22 and 2230 held$
   16) sshd not read        Before the first connection$
   17) Alpine, admin locked george "!", no PAM$
+  18) RSA key too short    1024 bits, 2048 asked$
+  19) Admin without sudo   sudo asks a password$
 $
    0) Return$
 $
-  > Enter your choice [0-17 or q]: 4$
+  > Enter your choice [0-19 or q]: 4$
 $
 # Info: ssh/hardened$
 # web-01.example.net runs Debian 13 (OpenSSH 10.0p2). 00-$
@@ -194,7 +200,7 @@ $
    6) Password session     alice by password$
    7) Root's session       No SUDO_USER$
    8) hardn v0.3.2         manage.conf, listen.conf$
-   9) origin/main's file   hardn.conf beaten$
+   9) origin/main's file   hardn.conf, passwords off$
   10) Include not first    Port 22 above it$
   11) Match block          Root, passwords from 192.0.2.0/24$
   12) AllowUsers           george alone$
@@ -203,10 +209,12 @@ $
   15) Confirm pending      22 and 2230 held$
   16) sshd not read        Before the first connection$
   17) Alpine, admin locked george "!", no PAM$
+  18) RSA key too short    1024 bits, 2048 asked$
+  19) Admin without sudo   sudo asks a password$
 $
    0) Return$
 $
-  > Enter your choice [0-17 or q]: 0$
+  > Enter your choice [0-19 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -254,7 +262,7 @@ $
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mhardn v0.3.2␛[m$
       ␛[38;2;129;134;156mmanage.conf, listen.conf␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216morigin/main's file␛[m$
-      ␛[38;2;129;134;156mhardn.conf beaten␛[m$
+      ␛[38;2;129;134;156mhardn.conf, passwords off␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mInclude not first␛[m$
       ␛[38;2;129;134;156mPort 22 above it␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mMatch block␛[m$
@@ -271,10 +279,14 @@ $
       ␛[38;2;129;134;156mBefore the first connection␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mAlpine, admin locked␛[m$
       ␛[38;2;129;134;156mgeorge "!", no PAM␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mRSA key too short␛[m$
+      ␛[38;2;129;134;156m1024 bits, 2048 asked␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAdmin without sudo␛[m$
+      ␛[38;2;129;134;156msudo asks a password␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 4$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 4$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/hardened␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2). 00-␛[m$
@@ -338,7 +350,7 @@ $
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mhardn v0.3.2␛[m$
       ␛[38;2;129;134;156mmanage.conf, listen.conf␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216morigin/main's file␛[m$
-      ␛[38;2;129;134;156mhardn.conf beaten␛[m$
+      ␛[38;2;129;134;156mhardn.conf, passwords off␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mInclude not first␛[m$
       ␛[38;2;129;134;156mPort 22 above it␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mMatch block␛[m$
@@ -355,10 +367,14 @@ $
       ␛[38;2;129;134;156mBefore the first connection␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mAlpine, admin locked␛[m$
       ␛[38;2;129;134;156mgeorge "!", no PAM␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mRSA key too short␛[m$
+      ␛[38;2;129;134;156m1024 bits, 2048 asked␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAdmin without sudo␛[m$
+      ␛[38;2;129;134;156msudo asks a password␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

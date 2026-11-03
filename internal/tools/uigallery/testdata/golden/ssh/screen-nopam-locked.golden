@@ -9,7 +9,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Alpine 3.23 (OpenSSH␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, OpenRC, sshd without PAM). alpine323, but george's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156maccount is "!" and george is the only admin: sshd without PAM␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses george's key [I: not run].␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses george's key [I: not run], so he has no SSH login.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn runs as root on the console.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -19,11 +20,11 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mLocked␛[m ␛[38;2;129;134;156mroot's account, no PAM␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mNot known␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -44,7 +45,8 @@ $
 # Mock: SSH Login. web-01.example.net runs Alpine 3.23 (OpenSSH$
 # 10.2p1, OpenRC, sshd without PAM). alpine323, but george's$
 # account is "!" and george is the only admin: sshd without PAM$
-# refuses george's key [I: not run].$
+# refuses george's key [I: not run], so he has no SSH login.$
+# hardn runs as root on the console.$
 $
 # SSH Login ####################################################$
 $
@@ -54,11 +56,11 @@ $
 $
 # SSH Configuration --------------------------------------------$
 $
-   -  Root SSH Login       Key only sshd's default$
+   -  Root SSH Login       Locked root's account, no PAM$
    -  Password Login       Off by 50-cloud-init.conf$
    -  SSH Port             22$
    -  Allowed Users        Anyone$
-   -  Logged in as         george, by key$
+  [?] Logged in as         Not known$
 $
   Select an option$
 $
@@ -79,7 +81,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Alpine 3.23␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenSSH 10.2p1, OpenRC, sshd without PAM). alpine323, but␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgeorge's account is "!" and george is the only admin: sshd␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwithout PAM refuses george's key [I: not run].␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwithout PAM refuses george's key [I: not run], so he has␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno SSH login. hardn runs as root on the console.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -93,15 +96,15 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
-      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+      ␛[38;2;129;134;156mLocked␛[m ␛[38;2;129;134;156mroot's account, no PAM␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
-      ␛[38;2;129;134;156mgeorge, by key␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mNot known␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -125,7 +128,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Alpine 3.23 (OpenSSH␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, OpenRC, sshd without PAM). alpine323, but george's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156maccount is "!" and george is the only admin: sshd without PAM␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses george's key [I: not run].␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses george's key [I: not run], so he has no SSH login.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn runs as root on the console.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m####################################################␛[m$
 $
@@ -135,11 +139,11 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mLocked␛[m ␛[38;2;129;134;156mroot's account, no PAM␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mNot known␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
