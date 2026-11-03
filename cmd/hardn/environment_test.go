@@ -531,7 +531,7 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 			t.Run(strings.Join(args, " ")+", "+tc.name, func(t *testing.T) {
 				h := newEnvHost(t, tc.host)
 				before := map[string]string{}
-				for _, f := range []string{envTestFile, sudoers.DoasDir + "/hardn-alice.conf"} {
+				for _, f := range []string{envTestFile, func() string { n, _ := sudoers.FileNames(sudoers.ToolDoas, "alice"); return n.Grant }()} {
 					before[f] = h.content(f)
 				}
 				r, s := runE(t, h, nil, args...)
