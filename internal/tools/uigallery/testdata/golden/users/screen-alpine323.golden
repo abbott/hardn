@@ -1,0 +1,170 @@
+# Golden file of TestUsersGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156musers screen-alpine323␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: User Management. web-01.example.net runs Alpine 3.23. As␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe VM: doas with wheel.conf's permit nopass :wheel; george,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muid 1001, and alpine, uid 1000, in wheel, "*", /bin/ash;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcloud-init's sudoers file written where no sudo reads it; sshd␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwithout PAM.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, doas␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malpine␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mdoas␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mgroup wheel␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mdoas␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mgroup wheel␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m          ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m          ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# users screen-alpine323 ---------------------------------------$
+$
+# Note$
+# Mock: User Management. web-01.example.net runs Alpine 3.23. As$
+# the VM: doas with wheel.conf's permit nopass :wheel; george,$
+# uid 1001, and alpine, uid 1000, in wheel, "*", /bin/ash;$
+# cloud-init's sudoers file written where no sudo reads it; sshd$
+# without PAM.$
+$
+# User Management ##############################################$
+$
+  [+] User                 Configured non-root, doas$
+$
+# alpine -------------------------------------------------------$
+$
+  [ ] doas                 Enabled, No password$
+   -  Granted by           group wheel$
+  [ ] SSH Keys             None$
+   -  Password             None$
+$
+# george -------------------------------------------------------$
+$
+  [ ] doas                 Enabled, No password$
+   -  Granted by           group wheel$
+   -  SSH Keys             2 keys$
+   -  Password             None$
+$
+  Select an option$
+$
+   1) Manage User          Configure sudo, SSH keys$
+   2) Create User          Configure a new user$
+$
+   0) Return$
+$
+  > Enter your choice [0-2 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156musers screen-alpine323␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: User Management. web-01.example.net runs Alpine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m3.23. As the VM: doas with wheel.conf's permit nopass␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m:wheel; george, uid 1001, and alpine, uid 1000, in wheel,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"*", /bin/ash; cloud-init's sudoers file written where no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo reads it; sshd without PAM.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, doas␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156malpine␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mdoas␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156mgroup wheel␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mdoas␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m$
+      ␛[38;2;129;134;156mgroup wheel␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
+      ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m$
+      ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m$
+      ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156musers screen-alpine323␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: User Management. web-01.example.net runs Alpine 3.23. As␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe VM: doas with wheel.conf's permit nopass :wheel; george,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156muid 1001, and alpine, uid 1000, in wheel, "*", /bin/ash;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcloud-init's sudoers file written where no sudo reads it; sshd␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwithout PAM.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUser Management␛[m ␛[38;2;43;47;59m##############################################␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, doas␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156malpine␛[m ␛[38;2;48;52;64m-------------------------------------------------------␛[m$
+$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mdoas␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mgroup wheel␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;48;52;64m-------------------------------------------------------␛[m$
+$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mdoas␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;231;70;105mNo password␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mGranted by␛[m           ␛[38;2;129;134;156mgroup wheel␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;129;134;156m2 keys␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m          ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m          ␛[38;2;129;134;156mConfigure a new user␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+$
+$

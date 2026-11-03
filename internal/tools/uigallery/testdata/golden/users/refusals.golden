@@ -1,0 +1,311 @@
+# Golden file of TestUsersGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156musers refusals␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real reading:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe item, the host, the user.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, hardn, george␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou're running hardn through george's sudo. Removing it would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mleave no way to become root. Grant another user first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, debian13, george␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/90-cloud-init-users,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwhich hardn didn't write, so hardn can't remove it. Change it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthere.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, debian13, alice␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malice is an admin through the sudo group, which hardn leaves␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malone. Take alice out of it with gpasswd -d alice sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, legacy, george␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/george, which hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdidn't write, so hardn can't remove it. Change it there.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, alpine323, george␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through the wheel group, which hardn leaves␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malone. Take george out of it with gpasswd -d george wheel.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, not-read, george␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check. Check␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem with visudo -c, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrequire, debian13, george␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge has no password, so sudo couldn't ask for one. Set one␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwith passwd george, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrequire, alpine323, george␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge has no password, so doas couldn't ask for one. Set one␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwith passwd george, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove-key, one-key, george␛[m ␛[38;2;48;52;64m──────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis is george's last key, and you're logged in as george. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156manother key first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgrant, no-sudo, george␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed, so hardn can't grant admin rights.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstall sudo, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgrant, not-read, alice␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check. Check␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem with visudo -c, then try again.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# users refusals -----------------------------------------------$
+$
+# Note$
+# Mock: The refusals before asking, each from the real reading:$
+# the item, the host, the user.$
+$
+# remove, hardn, george ----------------------------------------$
+$
+# Warning$
+# You're running hardn through george's sudo. Removing it would$
+# leave no way to become root. Grant another user first.$
+$
+# remove, debian13, george -------------------------------------$
+$
+# Warning$
+# george is an admin through /etc/sudoers.d/90-cloud-init-users,$
+# which hardn didn't write, so hardn can't remove it. Change it$
+# there.$
+$
+# remove, debian13, alice --------------------------------------$
+$
+# Warning$
+# alice is an admin through the sudo group, which hardn leaves$
+# alone. Take alice out of it with gpasswd -d alice sudo.$
+$
+# remove, legacy, george ---------------------------------------$
+$
+# Warning$
+# george is an admin through /etc/sudoers.d/george, which hardn$
+# didn't write, so hardn can't remove it. Change it there.$
+$
+# remove, alpine323, george ------------------------------------$
+$
+# Warning$
+# george is an admin through the wheel group, which hardn leaves$
+# alone. Take george out of it with gpasswd -d george wheel.$
+$
+# remove, not-read, george -------------------------------------$
+$
+# Warning$
+# hardn can't read sudo's rules: its files don't check. Check$
+# them with visudo -c, then try again.$
+$
+# require, debian13, george ------------------------------------$
+$
+# Warning$
+# george has no password, so sudo couldn't ask for one. Set one$
+# with passwd george, then try again.$
+$
+# require, alpine323, george -----------------------------------$
+$
+# Warning$
+# george has no password, so doas couldn't ask for one. Set one$
+# with passwd george, then try again.$
+$
+# remove-key, one-key, george ----------------------------------$
+$
+# Warning$
+# This is george's last key, and you're logged in as george. Add$
+# another key first.$
+$
+# grant, no-sudo, george ---------------------------------------$
+$
+# Warning$
+# sudo isn't installed, so hardn can't grant admin rights.$
+# Install sudo, then try again.$
+$
+# grant, not-read, alice ---------------------------------------$
+$
+# Warning$
+# hardn can't read sudo's rules: its files don't check. Check$
+# them with visudo -c, then try again.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156musers refusals␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreading: the item, the host, the user.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, hardn, george␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou're running hardn through george's sudo. Removing it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould leave no way to become root. Grant another user␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirst.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, debian13, george␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/90-cloud-init-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156musers, which hardn didn't write, so hardn can't remove it.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mChange it there.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, debian13, alice␛[m ␛[38;2;48;52;64m──────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malice is an admin through the sudo group, which hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mleaves alone. Take alice out of it with gpasswd -d alice␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, legacy, george␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/george, which␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn didn't write, so hardn can't remove it. Change it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthere.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, alpine323, george␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through the wheel group, which hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mleaves alone. Take george out of it with gpasswd -d george␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwheel.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove, not-read, george␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mCheck them with visudo -c, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrequire, debian13, george␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge has no password, so sudo couldn't ask for one. Set␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mone with passwd george, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrequire, alpine323, george␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge has no password, so doas couldn't ask for one. Set␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mone with passwd george, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mremove-key, one-key, george␛[m ␛[38;2;48;52;64m──────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis is george's last key, and you're logged in as george.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd another key first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgrant, no-sudo, george␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed, so hardn can't grant admin rights.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstall sudo, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mgrant, not-read, alice␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mCheck them with visudo -c, then try again.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156musers refusals␛[m ␛[38;2;48;52;64m-----------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real reading:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe item, the host, the user.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove, hardn, george␛[m ␛[38;2;48;52;64m----------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou're running hardn through george's sudo. Removing it would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mleave no way to become root. Grant another user first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove, debian13, george␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/90-cloud-init-users,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwhich hardn didn't write, so hardn can't remove it. Change it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthere.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove, debian13, alice␛[m ␛[38;2;48;52;64m--------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malice is an admin through the sudo group, which hardn leaves␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malone. Take alice out of it with gpasswd -d alice sudo.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove, legacy, george␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/george, which hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdidn't write, so hardn can't remove it. Change it there.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove, alpine323, george␛[m ␛[38;2;48;52;64m------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through the wheel group, which hardn leaves␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malone. Take george out of it with gpasswd -d george wheel.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove, not-read, george␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check. Check␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem with visudo -c, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mrequire, debian13, george␛[m ␛[38;2;48;52;64m------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge has no password, so sudo couldn't ask for one. Set one␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwith passwd george, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mrequire, alpine323, george␛[m ␛[38;2;48;52;64m-----------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge has no password, so doas couldn't ask for one. Set one␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwith passwd george, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mremove-key, one-key, george␛[m ␛[38;2;48;52;64m----------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis is george's last key, and you're logged in as george. Add␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156manother key first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mgrant, no-sudo, george␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msudo isn't installed, so hardn can't grant admin rights.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstall sudo, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mgrant, not-read, alice␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn can't read sudo's rules: its files don't check. Check␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem with visudo -c, then try again.␛[m$
+$
+$
