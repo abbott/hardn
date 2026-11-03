@@ -34,7 +34,7 @@ sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # SSH config file location
 # User Configuration
 #################################################
 sudoNoPassword: true              # Whether to allow sudo without password
-sshKeys:                          # SSH public keys to add for created users
+sshKeys:                          # -c adds them all; User Management offers the first
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
   # Add more keys as needed
 

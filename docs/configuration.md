@@ -165,14 +165,14 @@ The main menu's Backup (5) shows and changes these two settings.
 ```yaml
 username: "george"                  # Create's default name; -c's user
 sudoNoPassword: true                # not used by User Management or -c
-sshKeys:                            # Create's default key
+sshKeys:                            # -c adds them all; Create's default is the first
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
 ```
 
 The main menu's User Management (1) shows the users, their admin rights and SSH keys, and changes them.
 
 - **In User Management, `username` and `sshKeys` are only Create's defaults:** they never choose which user a change is about, and no change saves them.
-- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password and no key: add a key from User Management. With `-n` it shows the plan. A name already taken is refused, exit status 1. `-c` with `-d` is refused, exit status 2: it would leave no SSH login.
+- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. With `sshKeys` empty the user has no key, and `-c` with `-d` is refused, exit status 2: it would leave no SSH login.
 - **`-c` no longer changes sshd_config.**
 - **`sudoNoPassword` isn't used by User Management or `-c`.** A new user has no password, so their admin rights never ask one. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it, until their slice.
 
