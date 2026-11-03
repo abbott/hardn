@@ -126,7 +126,7 @@ Decided (2026-11-03, decision 10): title "SSH Login"; rows "Root SSH Login" (Dis
 Stand-ins, each labelled in `ssh.go`:
 
 1. `sshControl2`: the SSH controls with a `Plan`; unit (b) migrates Login, Auth and Port off `engine.CheckOnly`.
-2. `sshLoginPaths`, `sshLoginPath`, `sshdSays`: per admin, sshd's answer, `AllowUsers`/`DenyUsers` against the address (`sshListed`, `sshPattern`), `AuthenticationMethods` (`sshMethodsMet`), key types and RSA size (`sshTypeAccepted`, `sshRSABits`, as `authkeys` exposes no modulus length), becoming root (users.Read's grant and password); root's own key on Proxmox VE; into `pkg/engine/controls/ssh`, with AllowGroups read.
+2. `sshLoginPaths`, `sshLoginPath`, `sshdSays`: per admin, sshd's answer, `AllowUsers`/`DenyUsers` against the address (`sshListed`, `sshPattern`), `AuthenticationMethods` (`sshMethodsMet`), key types and RSA size (`sshTypeAccepted`, `sshRSABits`, as `authkeys` exposes no modulus length), becoming root (users.Read's grant and password); root's own key on Proxmox VE; gone into `pkg/engine/controls/sshchange` (`LoginPaths`, `RootPath`, `loginPath`), AllowGroups and DenyGroups not read, an admin under either not shown able, as decision 2 and Made here say.
 3. `sshSessionLogin`: sshd's log for the session's connection; journalctl and `/var/log/messages` as the VMs log.
 4. `restricted22`: ufw's source for 22, from `ufw.Read` in place of the status text.
 5. The fake (`sshSim`): Match blocks for `-C` (User, Address, Host; Group not matched), `requiredrsasize` for `-C`, sshd's log, `/run/sshd` missing, no `ss` on Alpine; a console session (`onConsole`: hardn under login(1)).
