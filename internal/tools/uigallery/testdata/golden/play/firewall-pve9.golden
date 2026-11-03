@@ -1,0 +1,135 @@
+# Golden file of TestPlayFirewallGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay firewall/pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice 4,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine. Install,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDisable, the runlevel and the profiles' plans are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node, no ufw. pve-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirewall running and disabled, as installed.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdisabled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpve-firewall␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mService␛[m              ␛[38;2;112;212;127mRunning␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mEnabled␛[m              ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;129;134;156mDrop␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH (22)␛[m             ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWeb UI (8006)␛[m        ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn reads pve-firewall and doesn't change it: a wrong␛[m$
+      ␛[38;2;129;134;156mrule can cut off the web UI and the cluster.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play firewall/pve9 -------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Firewall screen proposed for slice 4,$
+# drawn from what real code reads of a simulated host$
+# (firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,$
+# sshd.ReadEffective, reload.ReadBound), Enable the real$
+# steps.PlanUFWEnable on the real plan/apply engine. Install,$
+# Disable, the runlevel and the profiles' plans are the$
+# gallery's stand-ins, unit (b)'s to build. Nothing on this$
+# machine changes: every command and file is the fake's, and its$
+# record is shown when play ends.$
+$
+# Info: firewall/pve9$
+# web-01.example.net is a Proxmox VE 9 node, no ufw. pve-$
+# firewall running and disabled, as installed.$
+$
+# Firewall Configuration #######################################$
+$
+  [ ] Firewall             Not Configured disabled$
+$
+# pve-firewall -------------------------------------------------$
+$
+  [+] Service              Running$
+  [ ] Enabled              No$
+   -  Incoming policy      Drop$
+   -  SSH (22)             Not filtered$
+   -  Web UI (8006)        Not filtered$
+   -  hardn reads pve-firewall and doesn't change it: a wrong$
+      rule can cut off the web UI and the cluster.$
+$
+   0) Return$
+$
+  > Enter selection [0 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay firewall/pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m4, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInstall, Disable, the runlevel and the profiles' plans are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/pve9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node, no ufw. pve-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirewall running and disabled, as installed.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdisabled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpve-firewall␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mService␛[m$
+      ␛[38;2;112;212;127mRunning␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mEnabled␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;129;134;156mDrop␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH (22)␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWeb UI (8006)␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn reads pve-firewall and doesn't change it: a␛[m$
+      ␛[38;2;129;134;156mwrong rule can cut off the web UI and the cluster.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

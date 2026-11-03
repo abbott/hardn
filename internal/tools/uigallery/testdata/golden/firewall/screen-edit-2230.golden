@@ -1,0 +1,186 @@
+# Golden file of TestFirewallGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mfirewall screen-edit-2230␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net runs Debian 13.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPort 2230 in hardn's drop-in, sshd not reloaded, so still on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22, ufw inactive. What accepts SSH is not what is configured,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso Enable refuses (decision 2; mock stale-listener has what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan does).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;219;184;83mInactive␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;129;134;156mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m[::]:2230␛[m            ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot bound␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m0.0.0.0:2230␛[m         ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot bound␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m[::]:22␛[m              ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot configured␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m           ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo firewall rules configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# firewall screen-edit-2230 ------------------------------------$
+$
+# Note$
+# Mock: The Firewall screen. web-01.example.net runs Debian 13.$
+# Port 2230 in hardn's drop-in, sshd not reloaded, so still on$
+# 22, ufw inactive. What accepts SSH is not what is configured,$
+# so Enable refuses (decision 2; mock stale-listener has what$
+# the real plan does).$
+$
+# UFW Firewall Configuration ###################################$
+$
+  [ ] Firewall             Not Configured inactive$
+$
+# ufw ----------------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [ ] Status               Inactive$
+   -  Incoming policy      Deny$
+  [ ] At boot              No$
+$
+# SSH ----------------------------------------------------------$
+$
+  [ ] [::]:2230            Not filtered Not bound$
+  [ ] 0.0.0.0:2230         Not filtered Not bound$
+  [ ] [::]:22              Not filtered Not configured$
+  [ ] 0.0.0.0:22           Not filtered Not configured$
+$
+# Rules --------------------------------------------------------$
+$
+   -  No firewall rules configured$
+$
+  Select an option$
+$
+   1) Enable firewall      Let SSH through, then start ufw$
+   2) Application Profiles Add, remove, apply$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mfirewall screen-edit-2230␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net runs Debian␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13. Port 2230 in hardn's drop-in, sshd not reloaded, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstill on 22, ufw inactive. What accepts SSH is not what is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigured, so Enable refuses (decision 2; mock stale-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlistener has what the real plan does).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;219;184;83mInactive␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;129;134;156mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m[::]:2230␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot bound␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m0.0.0.0:2230␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot bound␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m[::]:22␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot configured␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo firewall rules configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m$
+      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
+      ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mfirewall screen-edit-2230␛[m ␛[38;2;48;52;64m------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The Firewall screen. web-01.example.net runs Debian 13.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPort 2230 in hardn's drop-in, sshd not reloaded, so still on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22, ufw inactive. What accepts SSH is not what is configured,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso Enable refuses (decision 2; mock stale-listener has what␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan does).␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m###################################␛[m$
+$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m----------------------------------------------------------␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;219;184;83mInactive␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;129;134;156mDeny␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m----------------------------------------------------------␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216m[::]:2230␛[m            ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot bound␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216m0.0.0.0:2230␛[m         ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot bound␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216m[::]:22␛[m              ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot configured␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216m0.0.0.0:22␛[m           ␛[38;2;129;134;156mNot filtered␛[m ␛[38;2;219;184;83mNot configured␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m--------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo firewall rules configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m$
+$
+$

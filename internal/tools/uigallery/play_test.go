@@ -84,7 +84,7 @@ func TestPlayGolden(t *testing.T) {
 		lines []string
 		code  int
 	}{
-		{"user-management", nil, []string{"4", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
+		{"user-management", nil, []string{"7", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
 		{"user-management-typed", []string{"-sequence", "typed"}, []string{"1", "1", "1", "1", "bos-san-l01", "q"}, exitOK},
 		{"ssh-toggle", nil, []string{"2", "1", "BOS-SAN-L01", "bos-san-l01", "q"}, exitOK},
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},

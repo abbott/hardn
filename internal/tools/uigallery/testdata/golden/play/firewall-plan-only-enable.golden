@@ -1,0 +1,452 @@
+# Golden file of TestPlayFirewallGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay firewall/ubuntu2604␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice 4,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine. Install,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDisable, the runlevel and the profiles' plans are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's, and its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04 as shipped: ufw installed␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand inactive, ENABLED=no, no rule, sshd socket-activated on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[::]:22 (vmtest.md §4.9).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;219;184;83mInactive␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;129;134;156mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m[::]:22␛[m              ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m           ␛[38;2;129;134;156mNot filtered␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo firewall rules configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable Firewall␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;112;212;127mYes␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m$
+$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;231;70;105m-inactive␛[m$
+      ␛[38;2;112;212;127m+active␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw --force enable␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;219;184;83mInactive␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m      ␛[38;2;129;134;156mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m[::]:22␛[m              ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m           ␛[38;2;129;134;156mNot filtered␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo firewall rules configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play firewall/ubuntu2604 -------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Firewall screen proposed for slice 4,$
+# drawn from what real code reads of a simulated host$
+# (firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,$
+# sshd.ReadEffective, reload.ReadBound), Enable the real$
+# steps.PlanUFWEnable on the real plan/apply engine. Install,$
+# Disable, the runlevel and the profiles' plans are the$
+# gallery's stand-ins, unit (b)'s to build. Nothing on this$
+# machine changes: every command and file is the fake's, and its$
+# record is shown when play ends.$
+$
+# Info: firewall/ubuntu2604$
+# web-01.example.net runs Ubuntu 26.04 as shipped: ufw installed$
+# and inactive, ENABLED=no, no rule, sshd socket-activated on$
+# [::]:22 (vmtest.md §4.9).$
+$
+# UFW Firewall Configuration ###################################$
+$
+  [ ] Firewall             Not Configured inactive$
+$
+# ufw ----------------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [ ] Status               Inactive$
+   -  Incoming policy      Deny$
+  [ ] At boot              No$
+$
+# SSH ----------------------------------------------------------$
+$
+   -  [::]:22              Not filtered$
+   -  0.0.0.0:22           Not filtered$
+$
+# Rules --------------------------------------------------------$
+$
+   -  No firewall rules configured$
+$
+  Select an option$
+$
+   1) Enable firewall      Let SSH through, then start ufw$
+                           [ ] Lockout risk$
+   2) Application Profiles Add, remove, apply$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 1$
+$
+# Enable Firewall ##############################################$
+$
+# ufw ----------------------------------------------------------$
+$
+  [+] Status               Active$
+  [+] Incoming policy      Deny$
+  [+] At boot              Yes$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      ufw: allow 22/tcp; enable$
+$
+      ufw$
+      -inactive$
+      +active$
+      $ ufw allow 22/tcp$
+      $ ufw --force enable$
+$
+  No actual changes were made to your system.$
+$
+# UFW Firewall Configuration ###################################$
+$
+  [ ] Firewall             Not Configured inactive$
+$
+# ufw ----------------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [ ] Status               Inactive$
+   -  Incoming policy      Deny$
+  [ ] At boot              No$
+$
+# SSH ----------------------------------------------------------$
+$
+   -  [::]:22              Not filtered$
+   -  0.0.0.0:22           Not filtered$
+$
+# Rules --------------------------------------------------------$
+$
+   -  No firewall rules configured$
+$
+  Select an option$
+$
+   1) Enable firewall      Let SSH through, then start ufw$
+                           [ ] Lockout risk$
+   2) Application Profiles Add, remove, apply$
+$
+   0) Return$
+$
+  > Enter selection [0-2 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay firewall/ubuntu2604␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Firewall screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m4, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(firewall.Incoming.Check, ufw.Read, pve.ReadFirewall,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshd.ReadEffective, reload.ReadBound), Enable the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanUFWEnable on the real plan/apply engine.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInstall, Disable, the runlevel and the profiles' plans are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins, unit (b)'s to build. Nothing on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthis machine changes: every command and file is the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfake's, and its record is shown when play ends.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/ubuntu2604␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04 as shipped: ufw␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled and inactive, ENABLED=no, no rule, sshd socket-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mactivated on [::]:22 (vmtest.md §4.9).␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;219;184;83mInactive␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;129;134;156mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m[::]:22␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo firewall rules configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m$
+      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
+      ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable Firewall␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;112;212;127mActive␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;112;212;127mDeny␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m$
+$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;231;70;105m-inactive␛[m$
+      ␛[38;2;112;212;127m+active␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw --force enable␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mufw␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;219;184;83mInactive␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIncoming policy␛[m$
+      ␛[38;2;129;134;156mDeny␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m[::]:22␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m0.0.0.0:22␛[m$
+      ␛[38;2;129;134;156mNot filtered␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo firewall rules configured␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m$
+      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
+      ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
