@@ -649,8 +649,8 @@ func opScenarios() []opScenario {
 			},
 		},
 		{
-			name:  "configure_secure_firewall",
-			op:    "FirewallManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, no profiles)",
+			name: "configure_secure_firewall",
+			op:   "FirewallManager.ConfigureSecureFirewall(cfg.SshPort, no extra ports, no profiles)",
 			// What still reaches it once slice 4's unit (d) puts hardn -w and
 			// the Firewall screen on the Firewall control: the firewall step
 			// of SecurityManager.HardenSystem, which hardn -r and Run All's
