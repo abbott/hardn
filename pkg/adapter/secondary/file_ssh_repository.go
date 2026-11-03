@@ -139,12 +139,12 @@ func (r *FileSSHRepository) SaveSSHConfig(config model.SSHConfig) error {
 // With it true, SaveSSHConfig writes one "AuthorizedKeysFile <path>" line
 // per key path, as origin/main did. sshd uses the first AuthorizedKeysFile
 // it reads (sshd_config(5)), so of two paths only the first counts: v0.3.2's
-// pair that hardn -c now passes (pkg/cmd authorizedKeysSSHUOnly) would lose
+// pair, which hardn -c passed until refactor plan slice 5, unit (d) put -c
+// on the User control (no sshd configured), would lose
 // ~/.ssh_<user>/authorized_keys again (V24). No origin/main caller passed
-// more than one path (-c and SecureSSH pass one; HardenSystem's SshKeyPaths
-// is never set), so origin/main's files are the same either way: flip it
-// with authorizedKeysSSHUOnly to restore origin/main's code as well as its
-// output (gate 4, V5 and V24).
+// more than one path (-c and SecureSSH passed one; HardenSystem's
+// SshKeyPaths is never set), and no caller passes more than one now, so
+// the files are the same either way (gate 4, V24).
 //
 // With it false, every path goes on one AuthorizedKeysFile line.
 const authorizedKeysFileLinePerPath = false
@@ -279,66 +279,4 @@ func (r *FileSSHRepository) disableRootSSHFromStub() error {
 
 	// Save the modified configuration
 	return r.SaveSSHConfig(*config)
-}
-
-// add an SSH public key to a user's authorized_keys
-func (r *FileSSHRepository) AddAuthorizedKey(username string, publicKey string) error {
-	var homeDir string
-	var sshDir string
-	var authKeysFile string
-
-	// Determine paths based on user
-	if username == "root" {
-		homeDir = "/root"
-	} else {
-		homeDir = fmt.Sprintf("/home/%s", username)
-	}
-
-	sshDir = filepath.Join(homeDir, ".ssh")
-	authKeysFile = filepath.Join(sshDir, "authorized_keys")
-
-	// Create .ssh directory if it doesn't exist
-	if err := r.fs.MkdirAll(sshDir, 0700); err != nil {
-		return fmt.Errorf("failed to create SSH directory for user %s: %w", username, err)
-	}
-
-	// Check if authorized_keys file exists
-	fileInfo, err := r.fs.Stat(authKeysFile)
-	var content string
-
-	if err == nil && fileInfo != nil {
-		// File exists, read content and append
-		data, err := r.fs.ReadFile(authKeysFile)
-		if err != nil {
-			return fmt.Errorf("failed to read authorized_keys file: %w", err)
-		}
-
-		content = string(data)
-		// Check if key already exists
-		if strings.Contains(content, publicKey) {
-			return nil // Key already exists
-		}
-
-		// Ensure file ends with newline
-		if !strings.HasSuffix(content, "\n") {
-			content += "\n"
-		}
-		content += publicKey + "\n"
-	} else {
-		// File doesn't exist, create new
-		content = publicKey + "\n"
-	}
-
-	// Write the file
-	if err := r.fs.WriteFile(authKeysFile, []byte(content), 0600); err != nil {
-		return fmt.Errorf("failed to write authorized_keys file: %w", err)
-	}
-
-	// Set correct ownership
-	chownCmd := fmt.Sprintf("chown -R %s:%s %s", username, username, sshDir)
-	if _, err := r.commander.Execute("sh", "-c", chownCmd); err != nil {
-		return fmt.Errorf("failed to set ownership on SSH directory: %w", err)
-	}
-
-	return nil
 }

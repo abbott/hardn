@@ -49,7 +49,7 @@ func newRunAllMenuOn(t *testing.T, dryRun, pve bool) (*RunAllMenu, *interfaces.M
 	firewall := application.NewFirewallManager(service.NewFirewallServiceImpl(secondary.NewUFWFirewallRepository(fs, mc, host), osInfo))
 	dns := application.NewDNSManager(service.NewDNSServiceImpl(secondary.NewFileDNSRepository(fs, mc, "debian"), osInfo))
 	security := application.NewSecurityManager(users, ssh, firewall, dns)
-	mm := application.NewMenuManager(users, ssh, dns, nil, security, nil)
+	mm := application.NewMenuManager(ssh, dns, nil, security, nil)
 	mm.SetProxmoxCheck(host.IsProxmox)
 
 	cfg := config.DefaultConfig()
@@ -108,6 +108,43 @@ func TestRunAllConfirmation(t *testing.T) {
 			var next string
 			if _, _, ended := session(t, func() { next = ReadInput() }); ended || next != "next" {
 				t.Errorf("the line after the screen's = %q (ended %v): the screen read too few or too many lines", next, ended)
+			}
+		})
+	}
+}
+
+// TestRunAllWithoutUsername: with no username, Run All asks and says
+// nothing before its screen, live and under plan only (refactor plan slice
+// 5, unit (d)): it opens the screen, whose Username row says "Not set".
+// Its offer, "Would you like to set a username now?", which opened the
+// legacy User Management, is gone with it.
+func TestRunAllWithoutUsername(t *testing.T) {
+	for _, dryRun := range []bool{false, true} {
+		t.Run(map[bool]string{false: "live", true: "plan only"}[dryRun], func(t *testing.T) {
+			t.Chdir(t.TempDir())
+			m, fs, mc := newRunAllMenu(t, dryRun)
+			m.config.Username = ""
+			h := NewRunAllHandler(m.menuManager, m.config, m.osInfo)
+			scripted(t, "0\nnext\n")
+			out, code, ended := session(t, h.Handle)
+			if ended {
+				t.Fatalf("ended hardn with %d:\n%s", code, out)
+			}
+			if strings.Contains(out, "set a username") {
+				t.Errorf("Run All offered to set a username:\n%s", out)
+			}
+			if strings.Contains(out, "Continuing without user creation") {
+				t.Errorf("said it continues without user creation, a line the screen clears at once:\n%s", out)
+			}
+			if !strings.Contains(out, "Not set") || !strings.Contains(out, "Return to main menu") {
+				t.Errorf("the Run All screen was not shown:\n%s", out)
+			}
+			if len(fs.Files) > 0 || len(mc.ExecutedCommands) > 0 {
+				t.Errorf("applied: files %d, commands %v", len(fs.Files), mc.ExecutedCommands)
+			}
+			var next string
+			if _, _, ended := session(t, func() { next = ReadInput() }); ended || next != "next" {
+				t.Errorf("the line after the screen's = %q (ended %v): Run All read too few or too many lines", next, ended)
 			}
 		})
 	}

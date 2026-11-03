@@ -60,8 +60,3 @@ func (m *SSHManager) SecureSSH(port int, allowedUsers []string) error {
 func (m *SSHManager) DisableRootSSH() error {
 	return m.sshService.DisableRootSSH()
 }
-
-// add an SSH public key for a user
-func (m *SSHManager) AddSSHKey(username string, publicKey string) error {
-	return m.sshService.AddAuthorizedKey(username, publicKey)
-}

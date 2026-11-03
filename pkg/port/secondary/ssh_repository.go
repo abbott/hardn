@@ -13,7 +13,4 @@ type SSHRepository interface {
 
 	// DisableRootSSH disables SSH access for the root user
 	DisableRootSSH() error
-
-	// add an SSH public key to a user's authorized_keys
-	AddAuthorizedKey(username string, publicKey string) error
 }

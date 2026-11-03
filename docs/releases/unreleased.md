@@ -8,14 +8,13 @@
 
 - **`dryRun` in hardn.yml is now read.** It was ignored: `hardn` ran live whatever the file said. `dryRun: true` now starts `hardn` in plan only, as `-n` does: changes are shown, not applied.
 - **`-n` and `dryRun` both mean plan only.** A flag given wins: `-n` turns it on, `--dry-run=false` turns it off, whatever the file says.
-- **Operation flags are refused under plan only**, from `-n` or from the file: `-r`, `-c` and `-d` exit with status 2 and change nothing. `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
-- **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -g`, or `-e` or `setup-sudo-env` through sudo, now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
+- **Operation flags are refused under plan only**, from `-n` or from the file: `-r` and `-d` exit with status 2 and change nothing. `-c`, `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
+- **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -c` or `-g`, or `-e` or `setup-sudo-env` through sudo, now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
 - **The menu no longer saves the mode.** Its saves write `dryRun` as the file had it.
 - **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
 - **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only.
 - **Run All no longer turns dry run on or off.** Its option 2 is removed: Run All runs in the mode `hardn` started in.
-- **Under plan only, User Management is refused.** It says "Not available in plan only." It used to apply its changes even under `-n`.
-- **Under plan only, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too, and they write nothing.
+- **Under plan only, User Management, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too, and they write nothing. User Management used to apply its changes even under `-n`.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
@@ -68,6 +67,18 @@ See [docs/configuration.md](../configuration.md), "Using with sudo or doas".
 - **`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used.** Where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 See [docs/configuration.md](../configuration.md), "Firewall Configuration with UFW Application Profiles".
+
+## Changed: User Management
+
+- **Main menu 1 is rebuilt.** It shows each user's admin rights, how they were granted, their SSH keys and their password state. Opening it changes nothing.
+- **Each change is shown first.** Grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key, create a user. A change that could lock you out asks you to type the hostname, and rolls back unless you run `sudo hardn confirm` from a new session.
+- **Some changes are refused before anything is asked**, such as removing the admin rights you are using, or your last key.
+- **`hardn -c` creates the user without asking**, with admin rights, no password, and every key in hardn.yml's `sshKeys`. With `-n` it shows the plan and exits 3; it used to be refused. A name already taken, or a key that isn't one, is refused, exit status 1. `-c` with `-d` is refused, exit status 2: run `-c`, check the user can log in, then run `-d`.
+- **`-c` no longer changes sshd_config.**
+- **`sudoNoPassword: false` warns.** User Management and `-c` don't use it: a new user has no password to ask. hardn warns "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it.
+- **Run All no longer offers to set a username.** With none, it goes on without creating a user.
+
+See [docs/configuration.md](../configuration.md), "`username`, `sudoNoPassword` and `sshKeys`: User Management".
 
 ## Changed: the main menu
 

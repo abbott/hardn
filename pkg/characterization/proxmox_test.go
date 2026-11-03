@@ -23,9 +23,7 @@ func TestProxmoxGateThroughSeams(t *testing.T) {
 			return e.factory.CreateMenuManager().HardenSystem(hardeningConfigFromCLI(e.cfg))
 		},
 		"hardn -d": func(e *opEnv) error { return e.factory.CreateSSHManager().DisableRootSSH() },
-		"hardn -c": func(e *opEnv) error {
-			return e.factory.CreateSSHManager().ConfigureSSH(e.cfg.SshPort, []string{e.cfg.SshListenAddress}, false, e.cfg.SshAllowedUsers, nil)
-		},
+		// (-c left the map in slice 5, unit (d): it no longer configures sshd; HardenSystem covers ConfigureSSH under "hardn -r")
 		"hardn -w": func(e *opEnv) error {
 			return e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, nil, []model.FirewallProfile{})
 		},

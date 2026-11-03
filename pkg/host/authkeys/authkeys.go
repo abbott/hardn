@@ -6,7 +6,12 @@
 //
 // A key is parsed as sshd(8)'s AUTHORIZED_KEYS FILE FORMAT gives it, with
 // no x/crypto: the type one OpenSSH 9 and 10 take, the base64 blob's first
-// string the same type. The blob's key material is not checked.
+// string the same type, then the whole blob read in that type's wire form
+// (checkBlob), so a blob sshd would refuse is not a key. Whether the key
+// material is a point on its curve, or an RSA modulus a product of primes,
+// is not checked. A host's RequiredRSASize raised above MinRSABits is not
+// read: an RSA key under it, which that sshd refuses, is still listed and
+// counted.
 //
 // docs/safety/authkeys.md describes what it reads and plans, and what is
 // written but not yet run on a Linux host.
@@ -20,6 +25,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"math/bits"
 	"path"
 	"slices"
 	"strconv"
@@ -105,7 +111,9 @@ func (k Key) Restricted() bool {
 
 // ParseLine parses one authorized_keys line: options before the type are
 // read past, commas and spaces inside double quotes (a \" there kept)
-// among them. Blank and # lines are ErrNotKey.
+// among them. Blank and # lines are ErrNotKey, and so is a line whose blob
+// sshd would refuse (checkBlob): Read leaves it out, so it is neither
+// listed nor counted as a way to log in.
 func ParseLine(line string) (Key, error) {
 	l := strings.TrimSpace(line)
 	if l == "" || strings.HasPrefix(l, "#") {
@@ -141,7 +149,7 @@ func ParseLine(line string) (Key, error) {
 }
 
 // ParsePublic parses a pasted key: one line with no options, a type
-// OpenSSH 9 and 10 take, the blob's first string the same type; surrounding space and a
+// OpenSSH 9 and 10 take, the blob a whole key of that type (checkBlob); surrounding space and a
 // CR are trimmed.
 func ParsePublic(s string) (Key, error) {
 	l := strings.TrimSpace(s)
@@ -169,9 +177,119 @@ func parse(l string) (Key, error) {
 	if n := binary.BigEndian.Uint32(blob); uint64(n)+4 > uint64(len(blob)) || string(blob[4:4+n]) != f[0] {
 		return Key{}, fmt.Errorf("%w: its blob is not a %s key", ErrNotKey, f[0])
 	}
+	if why := checkBlob(f[0], blob); why != "" {
+		return Key{}, fmt.Errorf("%w: its blob is not a %s key: %s", ErrNotKey, f[0], why)
+	}
 	comment := strings.TrimSpace(l[strings.Index(l, f[1])+len(f[1]):])
 	sum := sha256.Sum256(blob)
 	return Key{Type: f[0], Blob: f[1], Comment: comment, Fingerprint: "SHA256:" + base64.RawStdEncoding.EncodeToString(sum[:])}, nil
+}
+
+// MinRSABits is sshd's RequiredRSASize as OpenSSH 9.1 and later default
+// it (sshd_config(5)): sshd refuses a shorter RSA key.
+const MinRSABits = 1024
+
+// MaxRSABits is the longest RSA modulus OpenSSH reads
+// (sshkey_check_rsa_length, OPENSSL_RSA_MAX_MODULUS_BITS): sshd refuses a
+// longer one.
+const MaxRSABits = 16384
+
+// points are the ECDSA curves' names (RFC 5656 §6.1, §10.1) and the length
+// of each one's uncompressed point, 0x04 then x and y (SEC 1 §2.3.3).
+var points = map[string]int{"nistp256": 65, "nistp384": 97, "nistp521": 133}
+
+// checkBlob is why blob, whose first string is typ (parse), is not a whole
+// key of typ as sshd reads it, or "": the fields after the type, each an
+// SSH string (RFC 4251 §5), and nothing after them.
+//
+//	ssh-ed25519                        string key, 32 bytes (RFC 8709 §4)
+//	ssh-rsa                            mpint e, mpint n (RFC 4253 §6.6): both
+//	                                   positive, n MinRSABits to MaxRSABits
+//	ecdsa-sha2-<curve>                 string curve, the type's; string Q,
+//	                                   uncompressed (RFC 5656 §3.1)
+//	sk-ssh-ed25519@openssh.com         ed25519's, then string application
+//	sk-ecdsa-sha2-nistp256@openssh.com nistp256's, then string application
+//	                                   (OpenSSH PROTOCOL.u2f)
+func checkBlob(typ string, blob []byte) string {
+	w := wire{b: blob}
+	w.next() // the type
+	var why string
+	switch base := strings.TrimSuffix(strings.TrimPrefix(typ, "sk-"), "@openssh.com"); base {
+	case "ssh-ed25519":
+		if k := w.next(); len(k) != 32 {
+			why = fmt.Sprintf("its key is %d bytes, not 32", len(k))
+		}
+	case "ssh-rsa":
+		e, n := w.next(), w.next()
+		switch {
+		case !positive(e):
+			why = "its exponent isn't positive"
+		case !positive(n):
+			why = "its modulus isn't positive"
+		case bitLen(n) < MinRSABits:
+			why = fmt.Sprintf("its modulus is %d bits, under %d", bitLen(n), MinRSABits)
+		case bitLen(n) > MaxRSABits:
+			why = fmt.Sprintf("its modulus is %d bits, over %d", bitLen(n), MaxRSABits)
+		}
+	default: // ecdsa-sha2-<curve>
+		curve := strings.TrimPrefix(base, "ecdsa-sha2-")
+		c, q := w.next(), w.next()
+		switch {
+		case string(c) != curve:
+			why = fmt.Sprintf("its curve is %q, not %s", c, curve)
+		case len(q) != points[curve] || q[0] != 4:
+			why = "its point isn't an uncompressed " + curve + " point"
+		}
+	}
+	if strings.HasPrefix(typ, "sk-") {
+		w.next() // the application, "ssh:" for a FIDO key
+	}
+	switch {
+	case w.short:
+		return "it ends early"
+	case why != "":
+		return why
+	case len(w.b) > 0:
+		return "bytes follow the key"
+	}
+	return ""
+}
+
+// wire reads a blob's SSH strings (RFC 4251 §5) in order; short is set,
+// and every read after it is empty, once one runs past the end.
+type wire struct {
+	b     []byte
+	short bool
+}
+
+// next is the next string, or nil once short.
+func (w *wire) next() []byte {
+	if w.short || len(w.b) < 4 || uint64(binary.BigEndian.Uint32(w.b)) > uint64(len(w.b)-4) {
+		w.short, w.b = true, nil
+		return nil
+	}
+	n := binary.BigEndian.Uint32(w.b)
+	s := w.b[4 : 4+n]
+	w.b = w.b[4+n:]
+	return s
+}
+
+// positive reports whether mpint m (RFC 4251 §5: two's complement, big
+// endian) is above zero.
+func positive(m []byte) bool {
+	return len(m) > 0 && m[0]&0x80 == 0 && bitLen(m) > 0
+}
+
+// bitLen is the bit length of non-negative mpint m, leading zeros not
+// counted.
+func bitLen(m []byte) int {
+	for len(m) > 0 && m[0] == 0 {
+		m = m[1:]
+	}
+	if len(m) == 0 {
+		return 0
+	}
+	return (len(m)-1)*8 + bits.Len8(m[0])
 }
 
 // Path is AuthorizedKeysFile's entry for u: %h, %u and %% expanded

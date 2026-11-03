@@ -41,6 +41,9 @@ type MainMenu struct {
 	securityUpdateAvailable bool
 	securityUpdateDetails   string
 
+	// users runs the User Management item (SetUsers).
+	users func() error
+
 	// dns runs the DNS item (SetDNS).
 	dns func() error
 
@@ -78,16 +81,6 @@ const (
 	mainHeading = "Select an option"
 	mainPrompt  = "Enter selection"
 )
-
-// notInPlanOnly refuses, under plan only, a legacy screen that changes the
-// host or saves ./hardn.yml whatever the mode (refactor plan slice 2b,
-// unit (d), decision 6, adopted 2026-10-23): the main menu's User
-// Management, before its screen, until its slice puts it on the flow.
-// Backup's was lifted when its screen went on the flow (slice 3, unit
-// (d), decision 10), and Firewall's profile add and remove went with the
-// Firewall menu (slice 4, unit (d)): under plan only those screens open,
-// and each change stops at its plan.
-const notInPlanOnly = "Not available in plan only."
 
 // errAgain ends a pass of the main menu once an item's screen has
 // returned, so that the next pass reads the status again and draws the
@@ -129,6 +122,23 @@ func NewMainMenu(
 		osInfo:         osInfo,
 		versionService: versionService,
 	}
+}
+
+// SetUsers sets what the User Management item (1) runs: the User
+// Management screen (pkg/screens/users) on the plan/apply engine, which
+// cmd/hardn assembles, as SetFirewall sets Firewall's (refactor plan slice
+// 5, unit (d); the legacy User Management deleted, not frozen: the
+// maintainer, 2026-11-03, hard cutover). It returns as SetDNS's does. No
+// change the screen makes saves hardn.yml: the configuration this menu was
+// given is Create's defaults alone (gallery-users.md §5, decision 7 (a)).
+// A main menu whose User Management item is chosen without one set panics:
+// cmd/hardn sets it on the one main menu it builds.
+func (m *MainMenu) SetUsers(run func() error) { m.users = run }
+
+// showUsers is the User Management item's action: the User Management
+// screen (showScreen).
+func (m *MainMenu) showUsers() error {
+	return showScreen(m.users, "menu: the User Management item has no screen (SetUsers)")
 }
 
 // SetDNS sets what the DNS item (3) runs: the DNS screen
@@ -228,8 +238,8 @@ func (m *MainMenu) showLogs() error {
 	return showScreen(m.logs, "menu: the Logs item has no screen (SetLogs)")
 }
 
-// showScreen runs an item's screen that cmd/hardn sets (SetDNS, SetBackup,
-// SetEnvironment, SetFirewall, SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
+// showScreen runs an item's screen that cmd/hardn sets (SetUsers, SetDNS,
+// SetBackup, SetEnvironment, SetFirewall, SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
 // from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
@@ -754,8 +764,9 @@ func (m *MainMenu) mode() component.ModeIndicator {
 	return mode
 }
 
-// legacyScreen is one of origin/main's screens as a main-menu item opens
-// it: a menu's Show, or a handler's (handled). It returns when the user
+// legacyScreen is one of origin/main's screens left, SSH Login's or Run
+// All's, as a main-menu item opens it: a menu's Show, or a handler's
+// (handled). It returns when the user
 // leaves it, or ends hardn itself at the end of the input or on Ctrl-C
 // (endHardn).
 type legacyScreen interface{ Show() }
@@ -767,18 +778,19 @@ type handled struct{ handler interface{ Handle() } }
 // Show runs the handler.
 func (h handled) Show() { h.handler.Handle() }
 
-// screens build what the main menu's items open: origin/main's screens,
-// but the items whose screens are the hooks cmd/hardn sets (SetDNS,
-// SetBackup, SetEnvironment, SetFirewall, SetSystemDetails, SetLogs).
+// screens build what the main menu's items open that are still
+// origin/main's screens: SSH Login (2) and Run All (7). Every other item's
+// screen is a hook cmd/hardn sets (SetUsers, SetDNS, SetBackup,
+// SetEnvironment, SetFirewall, SetSystemDetails, SetLogs); the legacy User
+// Management went with slice 5's unit (d), deleted, not frozen.
 type screens struct {
-	users, sshLogin, runAll func(m *MainMenu) legacyScreen
+	sshLogin, runAll func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
 // handleMenuChoice built it, the same constructor with the same
 // arguments.
 var legacyScreens = screens{
-	users:    func(m *MainMenu) legacyScreen { return NewUserMenu(m.menuManager, m.config, m.osInfo) },
 	sshLogin: func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
 	runAll:   func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 }
@@ -794,20 +806,19 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // (refactor plan slice 9, decision 7 (a), P-07 (c)), and item 4's on
 // Proxmox VE, "View pve-firewall" (slice 4, decision 7); item 1's
 // parenthesis its aside; each bound to the screen it opened (legacyScreens,
-// and the DNS, Firewall, Backup, Environment, System Details and Logs
-// screens, showDNS, showFirewall, showBackup, showEnvironment,
-// showSystemDetails and showLogs); its Exit item "0) Exit", "q to quit" (DEV-030). Item 6,
+// SSH Login's and Run All's, and the User Management, DNS, Firewall, Backup, Environment, System
+// Details and Logs screens, showUsers, showDNS, showFirewall, showBackup,
+// showEnvironment, showSystemDetails and showLogs); its Exit item "0)
+// Exit", "q to quit" (DEV-030). Item 6,
 // Dry-Run, is removed and its key left unused (slice 2b, unit (d);
 // decision 1): 6 is refused as any key no item has, 7 to 10 keep their
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
 // Each screen is built as its item is chosen, as origin/main built it,
-// and ends the pass when it returns (errAgain). Under plan only, whatever
-// set it, User Management (1), which changes the host and saves
-// ./hardn.yml whatever the mode, is refused under the prompt before its
-// screen is built, "Not available in plan only.", as a key no item has is
-// refused (decision 6); live, it opens as before. Firewall (4), Backup (5)
-// and Environment (8) open either way: their screens stop each change at
-// its plan under plan only (slice 4, screen-firewall.md; slice 3, decision
+// and ends the pass when it returns (errAgain). User Management (1),
+// Firewall (4), Backup (5) and Environment (8) open under plan only as
+// live: their screens stop each change at its plan (slice 5, unit (d),
+// which lifts slice 2b's "Not available in plan only." from item 1 as its
+// screen goes on the flow; slice 4, screen-firewall.md; slice 3, decision
 // 10; slice 9, gallery-environment.md §5, Made here).
 func (m *MainMenu) mainMenu() nav.Menu {
 	s := legacyScreens
@@ -817,18 +828,12 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			return errAgain
 		}
 	}
-	planOnly := func() string {
-		if m.config.DryRun {
-			return notInPlanOnly
-		}
-		return ""
-	}
 	item := func(key, label, description string) component.MenuItem {
 		return component.MenuItem{Key: key, Label: label, Description: description}
 	}
 	return nav.Menu{
 		Options: []nav.Option{
-			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"}, Action: open(s.users), Refusal: planOnly},
+			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"}, Action: m.showUsers},
 			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: open(s.sshLogin)},
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
 			{Item: item("4", "Firewall", m.firewallDescription()), Action: m.showFirewall},

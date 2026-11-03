@@ -2,7 +2,6 @@
 package application
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/abbott/hardn/pkg/domain/model"
@@ -10,7 +9,6 @@ import (
 
 // MenuManager orchestrates menu-related operations
 type MenuManager struct {
-	userManager     *UserManager
 	sshManager      *SSHManager
 	dnsManager      *DNSManager
 	packageManager  *PackageManager
@@ -22,7 +20,6 @@ type MenuManager struct {
 
 // In the struct definition:
 func NewMenuManager(
-	userManager *UserManager,
 	sshManager *SSHManager,
 	dnsManager *DNSManager,
 	packageManager *PackageManager,
@@ -30,36 +27,12 @@ func NewMenuManager(
 	hostInfoManager *HostInfoManager,
 ) *MenuManager {
 	return &MenuManager{
-		userManager:     userManager,
 		sshManager:      sshManager,
 		dnsManager:      dnsManager,
 		packageManager:  packageManager,
 		securityManager: securityManager,
 		hostInfoManager: hostInfoManager,
 	}
-}
-
-// create a user with the specified settings
-func (m *MenuManager) CreateUser(username string, hasSudo bool, sudoNoPassword bool, sshKeys []string) error {
-	// Create the user
-	err := m.userManager.CreateUser(username, hasSudo, sudoNoPassword, sshKeys)
-	if err != nil {
-		return err
-	}
-
-	// If SSH keys are provided, ensure they're added
-	for _, key := range sshKeys {
-		if err := m.sshManager.AddSSHKey(username, key); err != nil {
-			return fmt.Errorf("error adding SSH key: %w", err)
-		}
-	}
-
-	return nil
-}
-
-// add an SSH key for the specified user
-func (m *MenuManager) AddSSHKey(username, publicKey string) error {
-	return m.sshManager.AddSSHKey(username, publicKey)
 }
 
 // disable SSH access for the root user
@@ -128,11 +101,6 @@ func (m *MenuManager) GetHostname() (string, string, error) {
 	return m.hostInfoManager.GetHostname()
 }
 
-// retrieve non-system users
-func (m *MenuManager) GetNonSystemUsers() ([]model.User, error) {
-	return m.hostInfoManager.GetNonSystemUsers()
-}
-
 // retrieve non-system groups
 func (m *MenuManager) GetNonSystemGroups() ([]string, error) {
 	return m.hostInfoManager.GetNonSystemGroups()
@@ -141,11 +109,6 @@ func (m *MenuManager) GetNonSystemGroups() ([]string, error) {
 // GetUptime returns the host's uptime
 func (m *MenuManager) GetUptime() (time.Duration, error) {
 	return m.hostInfoManager.GetUptime()
-}
-
-// GetExtendedUserInfo retrieves comprehensive information about a user
-func (m *MenuManager) GetExtendedUserInfo(username string) (*model.User, error) {
-	return m.userManager.GetExtendedUserInfo(username)
 }
 
 // format the uptime in a human-readable format
