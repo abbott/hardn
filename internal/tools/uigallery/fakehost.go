@@ -103,6 +103,9 @@ type fakeHost struct {
 	// users answers the User Management mock's commands (usershost.go);
 	// nil on every other host.
 	users *userSim
+	// ssh answers the SSH Login mock's commands (sshhost.go); nil on every
+	// other host.
+	ssh *sshSim
 }
 
 // platform is what a simulated host's release ships, as detect reads it.
@@ -549,6 +552,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		return hostfake.Response{Err: host.ErrNotFound, ExitCode: -1}
 	}
 	if r, ok := h.users.answer(h, argv); ok {
+		return r
+	}
+	if r, ok := h.ssh.answer(h, argv); ok {
 		return r
 	}
 	switch path.Base(argv[0]) {
