@@ -167,8 +167,12 @@ func (a Admin) Plan(ctx context.Context, sys host.System, in engine.Input) ([]en
 		if u.Password == accounts.PasswordSet {
 			g = sudoers.GrantPassword
 		}
-		if c, err = grantChange(ctx, sys, r, u.Name, g, "Let "+u.Name+" use "+tool); c != nil {
-			c.Risk = engine.RiskPlain // a grant added takes no way to root away
+		// A grant added to a user who is not an admin takes no way to root
+		// away; to one who is (cloud-init's NOPASSWD rule), a GrantPassword
+		// file can ask a password where none was asked: the planner's risk
+		// (decision 4).
+		if c, err = grantChange(ctx, sys, r, u.Name, g, "Let "+u.Name+" use "+tool); c != nil && u.Admin == detect.No {
+			c.Risk = engine.RiskPlain
 		}
 	case ActionRemove:
 		if u.Policy.Grant == sudoers.GrantNone {

@@ -320,6 +320,22 @@ func TestLastAdmin(t *testing.T) {
 	}
 }
 
+// TestGrantRisk: Grant keeps the planner's risk for a user who is an admin
+// already: alice, a hash, granted by a NOPASSWD file, gets hardn's file
+// asking her password, which sudo now asks where it asked none: a lockout
+// risk. bob, not an admin, plain.
+func TestGrantRisk(t *testing.T) {
+	for user, want := range map[string]engine.RiskClass{"alice": engine.RiskLockout, "bob": engine.RiskPlain} {
+		s := debian13Login(map[string]string{grantDir + "50-site": "alice ALL=(ALL) NOPASSWD:ALL\n"})
+		s.users = []string{aliceLine, "bob:x:1002:1002::/home/bob:/bin/bash"}
+		s.locks = map[string]string{"alice": hashSet, "bob": hashSet}
+		_, p, _, _ := planOn(t, s, users.Admin{Action: users.ActionGrant, User: user, Getenv: env(rootLogin)})
+		if p.Err() != nil || p.Risk != want || p.Changes[len(p.Changes)-1].Summary != "Let "+user+" use sudo" {
+			t.Errorf("%s: %v, risk %v, want %v", user, p.Err(), p.Risk, want)
+		}
+	}
+}
+
 // TestStillAdmin: what still grants once hardn's grant is gone, read by the
 // real reader: cloud-init's file, the sudo group, the wheel group on doas
 // (nopass on the Alpine VM's wheel.conf), and both in turn; a rule asking
