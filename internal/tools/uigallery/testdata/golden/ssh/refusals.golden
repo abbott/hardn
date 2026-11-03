@@ -1,0 +1,417 @@
+# Golden file of TestSSHGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mssh refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real reading:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe item, the host.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, root-session␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou're logged in as root over SSH. Turning root login off␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould close the way you came in. Log in as an admin and run␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn through sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, nopam-locked␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's account is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlocked (!) and sshd has no PAM. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, match-allows␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mMatch Address 192.0.2.0/24, in 20-site.conf, lets more in for␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msome connections, and hardn's setting wouldn't change that.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mChange it there first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, not-read␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one SSH␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconnection, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, legacy-main␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (hardn.conf). Move them␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minto 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, include-other␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msshd_config doesn't start with "Include␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/*.conf", so hardn's settings wouldn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe read first. Put that line first, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, confirm-window␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA change is waiting for hardn confirm. Confirm it from a new␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconnection, or let it roll back, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpassword, password-login␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malice would lose SSH login: alice has a password and no key.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd a key in User Management first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpassword, password-session␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in with a password. Turning passwords off would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mclose the way you came in. Log in with a key first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThe SSH port stays 22 on Proxmox VE: the cluster and pve-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirewall use it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, ufw-restricted␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mufw lets port 22 in from 192.0.2.0/24 alone. A new port would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe open to anyone. Move that rule to the new port by hand␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirst.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, legacy-v032␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf). Move them into 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mmigrate, legacy-v032␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe rolled back: the rollback's daemon-reload would move␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket to port 2230 alone, off the port this host is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreached on (P-39). First make sure the firewall lets port 2230␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthrough: ssh.socket then listens on port 2230 alone. Then let␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf take effect while this session stays open: run␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl daemon-reload` and `systemctl restart ssh.socket`␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(established SSH sessions survive the restart), check that a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnew SSH connection to port 2230 works, and run hardn again. A␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreboot also lets it take effect, but ends this session: reboot␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156monly with console access, in case port 2230 is not reachable.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# ssh refusals -------------------------------------------------$
+$
+# Note$
+# Mock: The refusals before asking, each from the real reading:$
+# the item, the host.$
+$
+# root, root-session -------------------------------------------$
+$
+# Warning$
+# You're logged in as root over SSH. Turning root login off$
+# would close the way you came in. Log in as an admin and run$
+# hardn through sudo.$
+$
+# root, nopam-locked -------------------------------------------$
+$
+# Warning$
+# No admin could log in over SSH afterwards: george's account is$
+# locked (!) and sshd has no PAM. Fix that first.$
+$
+# root, match-allows -------------------------------------------$
+$
+# Warning$
+# Match Address 192.0.2.0/24, in 20-site.conf, lets more in for$
+# some connections, and hardn's setting wouldn't change that.$
+# Change it there first.$
+$
+# root, not-read -----------------------------------------------$
+$
+# Warning$
+# /run/sshd isn't there yet, so sshd -T can't run. Open one SSH$
+# connection, then try again.$
+$
+# root, legacy-main --------------------------------------------$
+$
+# Warning$
+# hardn's old SSH files are still here (hardn.conf). Move them$
+# into 00-hardn.conf first: item 4.$
+$
+# root, include-other ------------------------------------------$
+$
+# Warning$
+# sshd_config doesn't start with "Include$
+# /etc/ssh/sshd_config.d/*.conf", so hardn's settings wouldn't$
+# be read first. Put that line first, then try again.$
+$
+# root, confirm-window -----------------------------------------$
+$
+# Warning$
+# A change is waiting for hardn confirm. Confirm it from a new$
+# connection, or let it roll back, then try again.$
+$
+# password, password-login -------------------------------------$
+$
+# Warning$
+# alice would lose SSH login: alice has a password and no key.$
+# Add a key in User Management first.$
+$
+# password, password-session -----------------------------------$
+$
+# Warning$
+# You logged in with a password. Turning passwords off would$
+# close the way you came in. Log in with a key first.$
+$
+# port, pve9 ---------------------------------------------------$
+$
+# Warning$
+# The SSH port stays 22 on Proxmox VE: the cluster and pve-$
+# firewall use it.$
+$
+# port, ufw-restricted -----------------------------------------$
+$
+# Warning$
+# ufw lets port 22 in from 192.0.2.0/24 alone. A new port would$
+# be open to anyone. Move that rule to the new port by hand$
+# first.$
+$
+# port, legacy-v032 --------------------------------------------$
+$
+# Warning$
+# hardn's old SSH files are still here (manage.conf,$
+# listen.conf). Move them into 00-hardn.conf first: item 4.$
+$
+# migrate, legacy-v032 -----------------------------------------$
+$
+# Warning$
+# /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
+# sets ssh.socket to port 2230, but it never took effect:$
+# ssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-$
+# reload since it was written, D9). Migrating it now could not$
+# be rolled back: the rollback's daemon-reload would move$
+# ssh.socket to port 2230 alone, off the port this host is$
+# reached on (P-39). First make sure the firewall lets port 2230$
+# through: ssh.socket then listens on port 2230 alone. Then let$
+# listen.conf take effect while this session stays open: run$
+# `systemctl daemon-reload` and `systemctl restart ssh.socket`$
+# (established SSH sessions survive the restart), check that a$
+# new SSH connection to port 2230 works, and run hardn again. A$
+# reboot also lets it take effect, but ends this session: reboot$
+# only with console access, in case port 2230 is not reachable.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mssh refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreading: the item, the host.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, root-session␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou're logged in as root over SSH. Turning root login off␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould close the way you came in. Log in as an admin and␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mrun hardn through sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, nopam-locked␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156maccount is locked (!) and sshd has no PAM. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, match-allows␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mMatch Address 192.0.2.0/24, in 20-site.conf, lets more in␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfor some connections, and hardn's setting wouldn't change␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthat. Change it there first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, not-read␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH connection, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, legacy-main␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (hardn.conf). Move␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem into 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, include-other␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msshd_config doesn't start with "Include␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/*.conf", so hardn's settings␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwouldn't be read first. Put that line first, then try␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mroot, confirm-window␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA change is waiting for hardn confirm. Confirm it from a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnew connection, or let it roll back, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpassword, password-login␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malice would lose SSH login: alice has a password and no␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mkey. Add a key in User Management first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mpassword, password-session␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in with a password. Turning passwords off would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mclose the way you came in. Log in with a key first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, pve9␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThe SSH port stays 22 on Proxmox VE: the cluster and pve-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirewall use it.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, ufw-restricted␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mufw lets port 22 in from 192.0.2.0/24 alone. A new port␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould be open to anyone. Move that rule to the new port by␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhand first.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mport, legacy-v032␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf). Move them into 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mmigrate, legacy-v032␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mv0.3.x) sets ssh.socket to port 2230, but it never took␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156meffect: ssh.socket is configured for [[::]:22 0.0.0.0:22]␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(no daemon-reload since it was written, D9). Migrating it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnow could not be rolled back: the rollback's daemon-reload␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould move ssh.socket to port 2230 alone, off the port␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis host is reached on (P-39). First make sure the␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirewall lets port 2230 through: ssh.socket then listens␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mon port 2230 alone. Then let listen.conf take effect while␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthis session stays open: run `systemctl daemon-reload` and␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl restart ssh.socket` (established SSH sessions␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msurvive the restart), check that a new SSH connection to␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mport 2230 works, and run hardn again. A reboot also lets␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mit take effect, but ends this session: reboot only with␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconsole access, in case port 2230 is not reachable.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mssh refusals␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real reading:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe item, the host.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, root-session␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou're logged in as root over SSH. Turning root login off␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwould close the way you came in. Log in as an admin and run␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn through sudo.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, nopam-locked␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNo admin could log in over SSH afterwards: george's account is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlocked (!) and sshd has no PAM. Fix that first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, match-allows␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mMatch Address 192.0.2.0/24, in 20-site.conf, lets more in for␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msome connections, and hardn's setting wouldn't change that.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mChange it there first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, not-read␛[m ␛[38;2;48;52;64m-----------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one SSH␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconnection, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, legacy-main␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (hardn.conf). Move them␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minto 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, include-other␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msshd_config doesn't start with "Include␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/*.conf", so hardn's settings wouldn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe read first. Put that line first, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mroot, confirm-window␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA change is waiting for hardn confirm. Confirm it from a new␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconnection, or let it roll back, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpassword, password-login␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156malice would lose SSH login: alice has a password and no key.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdd a key in User Management first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mpassword, password-session␛[m ␛[38;2;48;52;64m-----------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mYou logged in with a password. Turning passwords off would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mclose the way you came in. Log in with a key first.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mport, pve9␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThe SSH port stays 22 on Proxmox VE: the cluster and pve-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirewall use it.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mport, ufw-restricted␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mufw lets port 22 in from 192.0.2.0/24 alone. A new port would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe open to anyone. Move that rule to the new port by hand␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfirst.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mport, legacy-v032␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf). Move them into 00-hardn.conf first: item 4.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mmigrate, legacy-v032␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe rolled back: the rollback's daemon-reload would move␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket to port 2230 alone, off the port this host is␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreached on (P-39). First make sure the firewall lets port 2230␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthrough: ssh.socket then listens on port 2230 alone. Then let␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf take effect while this session stays open: run␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m`systemctl daemon-reload` and `systemctl restart ssh.socket`␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m(established SSH sessions survive the restart), check that a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnew SSH connection to port 2230 works, and run hardn again. A␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mreboot also lets it take effect, but ends this session: reboot␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156monly with console access, in case port 2230 is not reachable.␛[m$
+$
+$
