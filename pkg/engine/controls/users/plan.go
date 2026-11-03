@@ -270,7 +270,8 @@ func (r Reading) ToolRefusal() error {
 // rule makes u an admin (a group's, with gpasswd -d's words; a file's);
 // another rule would still grant once hardn's is gone, or what of them is
 // not read (StillAdmin); the session user's own; with the session user not
-// known, the last admin's. nil with nothing to remove too.
+// known, the last admin's, another user counted only where it can become
+// root (canRoot). nil with nothing to remove too.
 func (r Reading) removeRefusal(ctx context.Context, sys host.System, u User) error {
 	if u.Policy.Grant == sudoers.GrantNone {
 		by := u.Decided
@@ -301,10 +302,18 @@ func (r Reading) removeRefusal(ctx context.Context, sys host.System, u User) err
 		return refuse(codeStillAdmin, ErrStillAdmin, nil, fmt.Sprintf("%s would stay an admin through %s, which hardn didn't write", u.Name, all), "change it there, then try again")
 	case u.Name == r.Invoker:
 		return refuse(codeSessionUser, ErrSessionUser, nil, fmt.Sprintf("You're running hardn through %s's %s. Removing it would leave no way to become root", u.Name, r.toolWord()), "grant another user first")
-	case r.Invoker == "" && !slices.ContainsFunc(r.Users, func(x User) bool { return x.Name != u.Name && x.Admin == detect.Yes }):
+	case r.Invoker == "" && !slices.ContainsFunc(r.Users, func(x User) bool { return x.Name != u.Name && x.canRoot() }):
 		return refuse(codeLastAdmin, ErrLastAdmin, nil, fmt.Sprintf("hardn can't tell who you're logged in as, and %s is the last admin", u.Name), "grant another user first")
 	}
 	return nil
+}
+
+// canRoot reports whether u can become root as another admin: an admin
+// (Admin Yes) whose deciding rule asks no password, or asks one u has set,
+// the rule StillAdmin counts by. An admin through a rule asking a password
+// u does not have ("!", "*") cannot use it.
+func (u User) canRoot() bool {
+	return u.Admin == detect.Yes && (u.NoPassword || u.Password == accounts.PasswordSet)
 }
 
 // byWords is a rule's source as a sentence names it: a group's, a file, or
