@@ -681,3 +681,36 @@ func TestFindingCodes(t *testing.T) {
 		t.Errorf("the zero kind is %q", s)
 	}
 }
+
+// TestEvaluateKeyFiles: StrictModes and AuthorizedKeysFile as the VMs
+// printed them on 2026-11-03 (Debian 13 and Ubuntu 26.04 with
+// authorized_keys2, Alpine 3.23 without), "none" kept, %h not expanded; no
+// line is Unknown and nil, with no finding.
+func TestEvaluateKeyFiles(t *testing.T) {
+	for _, tc := range []struct {
+		name, lines string
+		strict      sshd.Setting
+		files       []string
+	}{
+		{"Debian 13, Ubuntu 26.04", "strictmodes yes\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\n",
+			sshd.Setting{Value: "yes", Known: true}, []string{".ssh/authorized_keys", ".ssh/authorized_keys2"}},
+		{"Alpine 3.23", "strictmodes yes\nauthorizedkeysfile .ssh/authorized_keys\n",
+			sshd.Setting{Value: "yes", Known: true}, []string{".ssh/authorized_keys"}},
+		{"off, none and %h", "StrictModes No\nauthorizedkeysfile none %h/.ssh/keys /etc/ssh/keys/%u\n",
+			sshd.Setting{Value: "no", Known: true}, []string{"none", "%h/.ssh/keys", "/etc/ssh/keys/%u"}},
+		{"not printed", "", sshd.Setting{}, nil},
+		{"a value hardn does not know", "strictmodes maybe\n", sshd.Setting{}, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			e, found := sshd.Evaluate(sshd.EffectiveInputs{Effective: []byte(base + tc.lines), SSH: serviceUp})
+			if e.StrictModes != tc.strict || !slices.Equal(e.AuthorizedKeysFile, tc.files) {
+				t.Errorf("StrictModes %+v, AuthorizedKeysFile %q", e.StrictModes, e.AuthorizedKeysFile)
+			}
+			for _, f := range found {
+				if f.Kind == sshd.FindingUnknown {
+					t.Errorf("finding %+v", f)
+				}
+			}
+		})
+	}
+}
