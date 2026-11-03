@@ -6,6 +6,7 @@ import (
 	"errors"
 	"io/fs"
 	"regexp"
+	"slices"
 	"strings"
 	"testing"
 
@@ -149,8 +150,23 @@ func TestRows(t *testing.T) {
 			t.Errorf("%s: At boot %q, want %q", unit, got, want)
 		}
 	}
+	// hardened's SSH section is its two listeners alone, [::] first.
+	h, cfg := screenHost(t, "hardened")
+	out := play(h, h, cfg, false, "0").out
+	var ssh []string
+	if _, after, ok := strings.Cut(out, "\n# SSH "); ok {
+		after, _, _ = strings.Cut(after, "\n# ")
+		for _, l := range strings.Split(after, "\n")[1:] {
+			if f := strings.Fields(l); len(f) > 0 {
+				ssh = append(ssh, strings.Join(f, " "))
+			}
+		}
+	}
+	if want := []string{"[+] [::]:2230 Allowed", "[+] 0.0.0.0:2230 Allowed"}; !slices.Equal(ssh, want) {
+		t.Errorf("hardened: SSH section %q, want %q:\n%s", ssh, want, out)
+	}
 	// pve9 draws no ufw row: ufw.conf is not there.
-	h, cfg := screenHost(t, "pve9")
+	h, cfg = screenHost(t, "pve9")
 	if p := play(h, h, cfg, false, "0"); rowOf(p.out, "ufw") != "" || !strings.Contains(flat(p.out), noChange) {
 		t.Errorf("pve9:\n%s", p.out)
 	}
@@ -283,6 +299,36 @@ func TestHostname(t *testing.T) {
 	}
 }
 
+// TestHostnameAtTheQuestion: a plan read as plain that is lockout-risk by the
+// key, the hostname gone meanwhile, says so in place of the question: unit-off's
+// item 1 is read as Start at boot alone, and ufw stops before the change's
+// engine plans, so the engine's plan is typed. Nothing is applied.
+func TestHostnameAtTheQuestion(t *testing.T) {
+	h, cfg := screenHost(t, "unit-off")
+	var n int
+	p := playWith(h, h, cfg, false, func(o *fwscreen.Options) {
+		build := o.NewEngine
+		o.NewEngine = func(progress func(engine.Event)) *engine.Engine {
+			h.active = false
+			h.syncFiles()
+			if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
+				t.Fatal(err)
+			}
+			n = len(h.Calls())
+			return build(progress)
+		}
+	}, "1", "0")
+	if p.err != nil || p.engines != 1 || !strings.Contains(flat(p.out), cantConfirm) || strings.Contains(p.out, "[y/N") || len(p.runs) != 1 || h.active {
+		t.Errorf("Run = %v, %d engines, %d runs, active %t:\n%s", p.err, p.engines, len(p.runs), h.active, p.out)
+	}
+	if w := inOrder(p.out, "Start at Boot #", cantConfirm, "UFW Firewall Configuration #"); w != "" {
+		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
+	}
+	if w := writes(h, n); len(w) > 0 {
+		t.Errorf("wrote %v", w)
+	}
+}
+
 // TestDisable: Disable, from item 1 or beside a repair, plain y/N under its
 // warning; ufw stopped, its rules kept; n changes nothing.
 func TestDisable(t *testing.T) {
@@ -322,7 +368,8 @@ func TestAdd(t *testing.T) {
 }
 
 // TestRemove: Remove's Select, a number no profile has refused there; the review's
-// notice; the save; the configuration adopting it. Back with 0 changes nothing.
+// notice; the save of the one picked, first or second; the configuration adopting
+// it. Back with 0 changes nothing.
 func TestRemove(t *testing.T) {
 	h, cfg := screenHost(t, "profiles")
 	p := play(h, h, cfg, false, "2", "2", "9", "1", "y", "0", "0")
@@ -334,6 +381,14 @@ func TestRemove(t *testing.T) {
 	}
 	if len(cfg.UfwAppProfiles) != 1 || cfg.UfwAppProfiles[0].Name != "Metrics" || strings.Contains(content(h), "WebServer") {
 		t.Errorf("adopted %+v; hardn.yml:\n%s", cfg.UfwAppProfiles, content(h))
+	}
+	h, cfg = screenHost(t, "profiles")
+	p = play(h, h, cfg, false, "2", "2", "2", "y", "0", "0")
+	if p.err != nil || p.unread != 0 || len(p.runs) != 1 || p.runs[0].Err != nil || !strings.Contains(p.out, "Remove Metrics? [y/N") {
+		t.Fatalf("second: Run = %v, %d unread:\n%s", p.err, p.unread, p.out)
+	}
+	if len(cfg.UfwAppProfiles) != 1 || cfg.UfwAppProfiles[0].Name != "WebServer" || !strings.Contains(content(h), "WebServer") || strings.Contains(content(h), "Metrics") {
+		t.Errorf("second: adopted %+v; hardn.yml:\n%s", cfg.UfwAppProfiles, content(h))
 	}
 	h, cfg = screenHost(t, "profiles")
 	n := len(h.Calls())
@@ -524,7 +579,8 @@ func TestNavigation(t *testing.T) {
 		{"ubuntu2604", []string{"1", "q"}, nav.ErrQuit}, {"profiles", []string{"2", "q"}, nav.ErrQuit}, {"profiles", []string{"2", "1", "q"}, nav.ErrQuit},
 		{"profiles", []string{"2", "2", "q"}, nav.ErrQuit}, {"pve9", []string{"q"}, nav.ErrQuit},
 		{"debian13", nil, prompt.ErrAborted}, {"debian13", []string{"1"}, prompt.ErrAborted}, {"ubuntu2604", []string{"1"}, prompt.ErrAborted},
-		{"profiles", []string{"2"}, prompt.ErrAborted}, {"profiles", []string{"2", "1"}, prompt.ErrAborted}, {"pve9", nil, prompt.ErrAborted},
+		{"profiles", []string{"2"}, prompt.ErrAborted}, {"profiles", []string{"2", "1"}, prompt.ErrAborted}, {"profiles", []string{"2", "2"}, prompt.ErrAborted},
+		{"pve9", nil, prompt.ErrAborted},
 		{"debian13", []string{"9", "2", "0"}, nil}, {"active22", []string{"3", "2", "2", "3", "0", "0"}, nil}, {"profiles", []string{"2", "1", "0", "0", "0"}, nil},
 	} {
 		h, cfg := screenHost(t, tt.host)

@@ -20,8 +20,8 @@ import (
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
-// TestInterrupt: Ctrl-C at the screen, at a question, at the typed hostname, at
-// the profiles' screen and at Add's form aborts (prompt.ErrInterrupted, wrapping
+// TestInterrupt: Ctrl-C at the screen, at a y/N question, at the typed
+// hostname, at the profiles' screen, at Add's form and at Remove's Select aborts (prompt.ErrInterrupted, wrapping
 // prompt.ErrAborted), writing nothing, as the end of the input does
 // (TestNavigation). The input is a pipe, a file as os.Stdin is; once the prompt
 // is shown, SIGINT is sent to the test itself every 10 ms, as Ctrl-C sends it,
@@ -35,7 +35,8 @@ func TestInterrupt(t *testing.T) {
 		host, lines, at string
 	}{
 		{"debian13", "", "Enter selection"}, {"debian13", "1\n", "Install ufw?"}, {"ubuntu2604", "1\n", "Type the hostname"},
-		{"profiles", "2\n", "Add profile"}, {"profiles", "2\n1\n", "Profile name"}, {"pve9", "", "Enter selection"},
+		{"profiles", "2\n", "Add profile"}, {"profiles", "2\n1\n", "Profile name"}, {"profiles", "2\n2\n", "Remove which profile?"},
+		{"active22", "1\n", "Disable the firewall?"}, {"pve9", "", "Enter selection"},
 	} {
 		h, cfg := screenHost(t, tt.host)
 		n := len(h.Calls())
