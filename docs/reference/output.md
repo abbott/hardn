@@ -287,6 +287,16 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `USERS_SESSION_USER` | 1 | the grant is the session user's own way to become root |
 | `USERS_LAST_ADMIN` | 1 | the session user is not known, and the user is the last admin |
 | `USERS_NO_PASSWORD_TO_ASK` | 1 | the user has no password the elevation tool could ask |
+| `USERS_KEY_FILES_NOT_READ` | 1 | the files sshd takes keys from are not read, so no key is planned |
+| `USERS_LAST_KEY` | 1 | the key is the session user's last |
+| `USERS_KEY_ELSEWHERE` | 1 | the key is also in another file sshd reads |
+| `USERS_NAME_FORM` | 1 | not a user name hardn creates |
+| `USERS_NAME_TAKEN` | 1 | a user or group of that name is there |
+| `USERS_HOME_THERE` | 1 | the new user's home is there already |
+| `USERS_NEW_PASSWORD` | 1 | a new user has no password to ask |
+| `AUTHKEYS_NOT_PLANNED` | 1 | authkeys: sshd does not read .ssh/authorized_keys (`authkeys.Err*`, [authkeys.md](../safety/authkeys.md)); new in `next/s5-control` |
+| `AUTHKEYS_STRICT_MODES` | 1 | sshd's StrictModes would ignore the keys |
+| `AUTHKEYS_NOT_KEY` | 1 | authkeys: not a key |
 | `SUDOERS_INVALID_BEFORE` | 1 | the installed elevation configuration does not check, before anything is written |
 | `SUDOERS_INVALID_AFTER` | 1 | the elevation configuration does not check with the plan installed (put back) |
 | `SUDOERS_INVALID_RESTORED` | 1 | the elevation configuration does not check after the old files were put back |
@@ -427,6 +437,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `REBOOT_KERNEL_REPLACED` | a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running ([header.md](../engine/header.md)) |
 | `UPTIME_NO_AUTO_UPDATES` | the host has been up 30 days or more and does not upgrade its packages by itself (on Proxmox VE, not Proxmox VE's own); the risk level's cross-check, with no `control` ([risk.md](../engine/risk.md)) |
 | `USERS_LOCKED` | a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it ([check-users.md](../engine/check-users.md)) |
+| `USERS_NO_KEY` | a new user is planned with no key and no password, so it cannot log in ([control-users.md](../engine/control-users.md)) |
 | `DETAILS_UNREADABLE` | a section of the System Details report, or a fact of it, was not read: `source` says what; the rest was read (§1.10) |
 
 The save's finding that hardn.yml's comments would be lost (CONFIG_COMMENTS_LOST, added by `next/s2-control`) is gone: the save now edits the settings that changed and keeps every comment but those of a list item it replaces or removes, which its diff shows, and the maintainer dropped the warning (2026-10-22). It was never merged or released, so no released code went ([config-edit.md](../engine/config-edit.md)).

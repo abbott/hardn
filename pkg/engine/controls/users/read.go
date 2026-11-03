@@ -2,10 +2,15 @@ package users
 
 import (
 	"context"
+	"errors"
+	"io/fs"
+	"path"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
@@ -18,7 +23,8 @@ const UIDMax = 60000
 
 // Reading is the host as the User Management screen draws it, as facts, no
 // words: the tool Choose picks, the tools whose rules are not read, the
-// session user, the User row (Check's), and each user.
+// session user, the User row (Check's), sshd's PAM and the files it takes
+// keys from, and each user.
 type Reading struct {
 	Choice  sudoers.Choice
 	NotRead []NotRead
@@ -29,6 +35,13 @@ type Reading struct {
 	// Status and StatusErr are Check's, the main menu's User row.
 	Status    engine.Status
 	StatusErr error
+	// PAM is whether sshd uses PAM (ssh.ReadPAM's Uses), Unknown where it
+	// is not read.
+	PAM detect.Tri
+	// KeyEntries are sshd's AuthorizedKeysFile (ssh.ReadKeyFiles); KeyErr
+	// why they are not read.
+	KeyEntries []string
+	KeyErr     error
 	// Users are the accounts of uid MinUID to UIDMax with a login shell (or
 	// one whose stat failed), the first line of each name, in
 	// /etc/passwd's order.
@@ -40,7 +53,8 @@ type Reading struct {
 // admin (Tool, the one that decides; Decided, its rule; NoPassword, without
 // a password: GrantsOf's), its password (accounts.Shadow.PasswordOf), and
 // hardn's own grant for it (sudoers.Read and PolicyOf; PolicyErr why not
-// read).
+// read), and its keys in the files sshd reads (authkeys.Read; Keys each
+// once, authkeys.Keys), with KeyEntries read.
 type User struct {
 	accounts.User
 	Admin      detect.Tri
@@ -50,18 +64,28 @@ type User struct {
 	Password   accounts.Password
 	Policy     sudoers.Policy
 	PolicyErr  error
+	Files      []authkeys.File
+	Keys       []authkeys.Key
+	KeyDir     bool // ~/.ssh is there (Lstat)
+	// Locked is its password locked ("!") where sshd's PAM is not
+	// established as on: sshd refuses its key login (ssh.LockedOut), [I]
+	// not run on a VM. lockAt is where the lock is read.
+	Locked bool
+	lockAt string
 }
 
 // Read reads what the screen draws, changing nothing: Check's row, the
 // accounts, the tools' rules (ReadElevation), /etc/shadow's password states,
 // hardn's files for each user, and the session user getenv names (os.Getenv
-// in hardn). An error where the accounts are not read.
+// in hardn), sshd's PAM and AuthorizedKeysFile (sshd -T) and each user's
+// keys. An error where the accounts are not read.
 func Read(ctx context.Context, sys host.System, f detect.Facts, getenv func(string) string) (Reading, error) {
-	return read(ctx, sys, f, getenv, true)
+	return read(ctx, sys, f, getenv, true, true)
 }
 
-// read is Read, with Check's row (status) or without, as Plan reads.
-func read(ctx context.Context, sys host.System, f detect.Facts, getenv func(string) string, status bool) (Reading, error) {
+// read is Read, with Check's row (status) or without, and with sshd and the
+// keys (keys) or without, as Plan reads for each action.
+func read(ctx context.Context, sys host.System, f detect.Facts, getenv func(string) string, status, keys bool) (Reading, error) {
 	if getenv == nil {
 		getenv = func(string) string { return "" }
 	}
@@ -81,6 +105,13 @@ func read(ctx context.Context, sys host.System, f detect.Facts, getenv func(stri
 		r.Invoker, _ = sudoers.Invoker(t, getenv) // a name hardn does not write is not known
 	}
 	sh, shErr := accounts.ReadShadow(ctx, sys)
+	r.PAM = detect.Unknown
+	if keys {
+		if p, err := ssh.ReadPAM(ctx, sys, f); err == nil {
+			r.PAM = p.Uses
+		}
+		r.KeyEntries, r.KeyErr = ssh.ReadKeyFiles(ctx, sys, f)
+	}
 	var names []string
 	seen := map[string]bool{}
 	for _, u := range db.Users {
@@ -100,6 +131,15 @@ func read(ctx context.Context, sys host.System, f detect.Facts, getenv func(stri
 		}
 		if shErr == nil {
 			uu.Password = sh.PasswordOf(u)
+			var lock accounts.Lock
+			lock, uu.lockAt = sh.LockOf(u)
+			uu.Locked = lock == accounts.Locked && r.PAM != detect.Yes
+		}
+		if keys && r.KeyErr == nil {
+			uu.Files = authkeys.Read(ctx, sys, r.KeyEntries, u)
+			uu.Keys = authkeys.Keys(uu.Files)
+			_, err := sys.Lstat(ctx, path.Join(u.Home, ".ssh"))
+			uu.KeyDir = !errors.Is(err, fs.ErrNotExist)
 		}
 		r.Users = append(r.Users, uu)
 		if sudoers.CheckUser(t, u.Name) == nil {

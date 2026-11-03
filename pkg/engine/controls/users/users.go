@@ -1,13 +1,14 @@
 // Package users holds the users area's control (refactor plan Phase 4,
 // next/p4-check-users): Figma's User row ("non-root, sudo"), and the admin
-// rights the User Management screen changes (slice 5, next/s5-control).
-// It no longer only checks: Controls() is Admin with ActionNone, whose Plan
-// is engine.ErrNotMigrated, so that nothing that plans over the status list
-// plans a lockout change; a screen plans Admin with its Action (plan.go:
-// Grant, Remove, Ask for password, Don't ask password, each refused before
-// anything is written, in the decided words of gallery-users.md §6). Read
-// gives the screen what it draws, and StillAdmin what would still grant
-// once hardn's grant is gone (still.go).
+// rights, users and keys the User Management screen changes (slice 5,
+// next/s5-control). It no longer only checks: Controls() is Admin with
+// ActionNone, whose Plan is engine.ErrNotMigrated, so that nothing that
+// plans over the status list plans a lockout change; a screen plans Admin
+// with its Action (plan.go: Grant, Remove, Ask for password, Don't ask
+// password; keys.go: Add and Remove SSH key; create.go: Create User), each
+// refused before anything is written, in the decided words of
+// gallery-users.md §6. Read gives the screen what it draws, and StillAdmin
+// what would still grant once hardn's grant is gone (still.go).
 //
 // Configured is a user account other than root (uid MinUID or more) with a
 // login shell, whom an installed elevation tool, setuid root, lets run
@@ -94,13 +95,18 @@ const ID = "users.admin"
 func Controls() []engine.Control { return []engine.Control{Admin{}} }
 
 // Admin is Figma's User row: an account other than root to log in with
-// and become root from. Action is what Plan does, for User; Getenv looks
-// up hardn's environment for the session user (os.Getenv in hardn, a map
-// in the tests and the gallery). Check reads neither.
+// and become root from. Action is what Plan does, for User; Key is the
+// pasted key Add takes, Fingerprint the key Remove takes away (as
+// ssh-keygen -l prints it), New the user Create makes; Getenv looks up
+// hardn's environment for the session user (os.Getenv in hardn, a map in
+// the tests and the gallery). Check reads none of them.
 type Admin struct {
-	Action Action
-	User   string
-	Getenv func(string) string
+	Action      Action
+	User        string
+	Key         string
+	Fingerprint string
+	New         New
+	Getenv      func(string) string
 }
 
 // ID is "users.admin".
