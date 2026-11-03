@@ -267,24 +267,6 @@ func Info(text string) string {
 	return Cyan + text + Reset
 }
 
-func HeaderLabel(text string) string {
-	// showLabel := false
-
-	// head := "User Management"
-	// label := "Create and manage users"
-
-	boldHead := Bolded(text)
-	dimHead := Dimmed(boldHead, Gray15)
-	// dimLabel := Dimmed(label, Gray15)
-
-	// if !showLabel {
-	// 	return dimHead
-	// }
-	return dimHead
-
-	// return fmt.Sprintf("%s %s", dimHead, dimLabel)
-}
-
 // Header creates a section header with bold blue text
 func Header(text string) string {
 	return "\n" + Bold + Blue + text + Reset + "\n" + Blue + strings.Repeat("-", len(text)) + Reset
@@ -440,10 +422,6 @@ func NewStatusFormatter(labels []string, buffer int) *StatusFormatter {
 	}
 	formatter.Initialize()
 	return formatter
-}
-
-func PressAnyKey() {
-	fmt.Printf("\n%s Press Enter to continue...", Dimmed(SymRightCarrot))
 }
 
 // Initialize calculates the maximum label length
@@ -689,11 +667,6 @@ func (m *Menu) SetExitOption(option MenuOption) {
 // SetPrompt sets a custom prompt
 func (m *Menu) SetPrompt(prompt string) {
 	m.prompt = prompt
-}
-
-// SetIndentation sets the indentation for menu options
-func (m *Menu) SetIndentation(spaces int) {
-	m.indentation = strings.Repeat(" ", spaces)
 }
 
 // GetValidRange returns the valid range of option numbers as a string
