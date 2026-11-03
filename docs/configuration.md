@@ -203,7 +203,7 @@ disableRoot: false                  # Disable root SSH access
 The main menu's Firewall (4) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing.
 
 - **Enabling asks you to type the hostname**, since a wrong rule could lock you out. It lets SSH through, denies incoming by default, starts ufw and starts it at boot. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
-- **`hardn -w` enables it the same way.** On a terminal it asks you to type the hostname. Off one, a change that could lock you out is refused: run `hardn -w` from a terminal. With `-n` it shows the plan.
+- **`hardn -w` enables it the same way.** On a terminal, a change that could lock you out asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out, such as starting ufw at boot when it already runs, is applied without asking, on a terminal or off. With `-n` it shows the plan. On Proxmox VE `-w` is refused, exit status 1.
 - **Application Profiles (2)** adds a profile to hardn.yml, removes one, and applies them: Apply writes `/etc/ufw/applications.d/hardn` and lets their ports through ufw.
 
 ```yaml
@@ -224,7 +224,7 @@ Each profile has these fields:
 - **In ufw's file the ports are joined by `|`**, as ufw requires: `ports=80/tcp|443/tcp`. Keep one port per entry in hardn.yml.
 - **Removing a profile leaves its rule in ufw.** It is taken out of hardn.yml only. Delete it with `ufw delete`.
 
-The default incoming policy is always set to "deny" and the default outgoing policy to "allow". `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
+Enabling, from main menu 4 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` still set incoming to "deny" and outgoing to "allow", the old way, until their slice. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 ## Configuration Recommendations
 <!-- 

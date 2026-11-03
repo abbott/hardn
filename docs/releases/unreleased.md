@@ -63,7 +63,8 @@ See [docs/configuration.md](../configuration.md), "Using with sudo or doas".
 - **Disable works**, after showing the change. It used to say it wasn't yet implemented.
 - **Profiles are applied.** Application Profiles adds a profile to hardn.yml, removes one, and applies them to ufw. Ports are written to ufw's file joined by `|`, which ufw accepts; they used to be joined by commas. Removing a profile leaves its rule in ufw.
 - **On Proxmox VE, 4 reads "View pve-firewall"** and only shows pve-firewall. It changes nothing there.
-- **`hardn -w` enables the firewall the same way.** On a terminal it asks you to type the hostname. Off a terminal, a change that could lock you out is refused, exit status 1: run `hardn -w` from a terminal. With `-n` it shows the plan and exits 3; it used to be refused.
+- **`hardn -w` enables the firewall the same way.** On a terminal, a change that could lock you out asks you to type the hostname. Off a terminal it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out is applied without asking. With `-n` it shows the plan and exits 3; it used to be refused.
+- **Run All and `-r` still configure ufw the old way** until their slice: they disable and reset it, then set both default policies.
 - **`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used.** Where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 See [docs/configuration.md](../configuration.md), "Firewall Configuration with UFW Application Profiles".

@@ -36,7 +36,7 @@ Unit (d), 2026-11-02; [cmd-engine.md](cmd-engine.md) §2.12 and §2.13 have the 
 
 - **The record frozen first** (1f10c1f0; [parity-firewall.md](parity-firewall.md) §8): `menu/firewall_*` (48), `menu/firewall_configure_dry_run` and `ops/configure_secure_firewall_profiles/*` (4) moved unchanged to `testdata/legacy/`, their tests retired with them (`TestLegacyMenuFirewall`, `TestLegacyMenuDryRun`, the profiles case of `TestOperationGoldens`); `ops/configure_secure_firewall/*` (4) copied, its case kept for `-r` and Run All (dd863653, its dry run now `-n -r`). `TestLegacyRecord` holds the 57 files' SHA-256. `parity.golden` byte for byte (run).
 - **`Run` from item 4** (5d981ac0): `SetFirewall`, set by `withFirewallScreen` in `withHooks`; `Session` the one `engineOptions` holds; the rest as Environment's. 4 reads "View pve-firewall" on Proxmox VE (decision 7), "Configure UFW rules" elsewhere. Under plan only it opens, Add and Remove no longer refused.
-- **`hardn -w`** (d4a5ac35; decision 4): Enable through `runControls` with a `typedConfirm`: on a terminal the plan, "Enable the firewall?", "Type the hostname", the timer armed, "sudo hardn confirm"; off one a lockout-risk plan refused, `PLAN_REFUSED`, nothing armed. `-n -w` and hardn.yml's `dryRun: true` show the plan, 3.
+- **`hardn -w`** (d4a5ac35; decision 4): Enable through `runControls` with a `typedConfirm`: on a terminal a lockout-risk plan, "Enable the firewall?", "Type the hostname", the timer armed, "sudo hardn confirm"; off one refused, `PLAN_REFUSED`, nothing armed. A plain plan ("Start ufw at boot" alone) applies unasked, on a terminal or off (e2f09daa). `-n -w` and hardn.yml's `dryRun: true` show the plan, 3.
 - **Deleted, each with its grep** ([parity-firewall.md](parity-firewall.md) §8): `pkg/menu/firewall_menu.go` and the legacy screens' firewall entry, `MenuManager.ConfigureSecureFirewall` and `GetFirewallStatus`. **Stays:** `FirewallManager.ConfigureSecureFirewall` and the UFW repository, which `security_manager.go:58` (Run All, `-r`) calls, until slice 8.
 - **Decision 8:** `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` warn on load where hardn.yml sets them ("hardn.yml's ufwDefaultIncomingPolicy isn't used"), the file still accepted.
 
@@ -53,10 +53,12 @@ As root through each VM's login user, from the Terminal panel, on Debian 13, Ubu
 7. **Apply** (2, 3): `/etc/ufw/applications.d/hardn` holds the ports joined by `|`; `ufw app list` lists WebServer; `ufw status` allows it.
 8. **Remove** (2, 2): hardn.yml without it; the rule ufw holds stays ("A rule already in ufw stays.").
 9. **Plan only** (`sudo hardn -n`, 4): every item, Add and Remove too, stops at its plan, no hostname asked; nothing written but the run directory.
-10. **`-w` on a terminal**: as check 3, exit 0 after confirm; 0 or q at the question exits 3, nothing changed; Ctrl-D exits 130.
+10. **`-w` on a terminal**: as check 3, exit 0 after confirm; 0 or q at the question exits 3, nothing changed; Ctrl-D exits 130; Ctrl-C at "Type the hostname" ends hardn by SIGINT, nothing applied.
 11. **`-w` off a terminal** (`sudo hardn -w < /dev/null`, or over `ssh host 'sudo hardn -w' | cat`): with ufw inactive, the plan, "Enabling the firewall here risks a lockout (PLAN_REFUSED)", "To go on: run hardn -w from a terminal, which asks you to confirm.", exit 1; no revert timer (`ps`), no boot unit, ufw as it was.
 12. **`-n -w`**, and hardn.yml's `dryRun: true` with `-w` alone: the plan, no question, exit 3, on a terminal and off; nothing written but the run directory.
-13. **The two keys**: hardn.yml with `ufwDefaultIncomingPolicy: allow` and `ufwDefaultOutgoingPolicy: deny`: at start "hardn.yml's ufwDefaultIncomingPolicy isn't used" and the same for ufwDefaultOutgoingPolicy; hardn goes on, the file accepted; Enable still sets deny incoming.
+13. **The two keys**: a file of your own, `/root/fw-keys.yml`, with `ufwDefaultIncomingPolicy: allow` and `ufwDefaultOutgoingPolicy: deny`, run as `sudo hardn -f /root/fw-keys.yml`: at start "hardn.yml's ufwDefaultIncomingPolicy isn't used" and the same for ufwDefaultOutgoingPolicy; hardn goes on, the file accepted; Enable still sets deny incoming.
+14. **A plain plan** (ufw active, not started at boot: `systemctl disable ufw`, or `rc-update del ufw` on Alpine): `sudo hardn -w < /dev/null` applies "Start ufw at boot", exit 0, no revert timer (`ps`, `systemctl list-timers`); the same on a terminal, no question.
+15. **`-w -g`**: `-g` runs after `-w`, and hardn's exit status is the worse of the two (`runStatus`: 1 over 3 over 0); with `-w` refused off a terminal and `-g` applied, 1.
 
 ## Decisions made here
 
