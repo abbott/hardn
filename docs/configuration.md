@@ -210,6 +210,14 @@ The main menu's SSH Login (2) shows root login, password login, the SSH port and
 - **`sshPort` is Change SSH port's default.** **`sshConfigFile` is read by Move old settings alone**, to find hardn's old file.
 - **`permitRootLogin`, `sshAllowedUsers`, `sshListenAddress` and `sshKeyPath` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used". `permitRootLogin: "prohibit-password"` is warned too, as `"yes"` is; it is no longer refused.
 
+#### `confirmTimeout`: the time to confirm
+
+```yaml
+confirmTimeout: "3m"                # seconds, such as 300, or a duration
+```
+
+A change that could lock you out rolls back unless `sudo hardn confirm` keeps it within this time. It is 3 minutes when unset; less than 60 seconds is refused. `--confirm-timeout` wins over it.
+
 ### Feature Toggles
 
 ```yaml
@@ -225,6 +233,7 @@ The main menu's Run All (7) and `hardn -r` plan these keys' changes as one plan:
 
 - **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
 - **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.
+- **`disableRoot`**, its old name, is read as `disableRootSSH`, with a warning that it is deprecated. Rename it.
 - **`enableUfwSshPolicy: true`:** enables the firewall.
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
