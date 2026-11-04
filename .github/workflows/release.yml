@@ -26,10 +26,12 @@ jobs:
           persist-credentials: false
       - id: ldflags
         run: |
-          echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)" >> "$GITHUB_OUTPUT"
-          echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-          echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-          echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)" >> "$GITHUB_OUTPUT"
+          {
+            echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)"
+            echo "commit=$GITHUB_SHA"
+            echo "version=${GITHUB_REF#refs/tags/v}"
+            echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)"
+          } >> "$GITHUB_OUTPUT"
 
   # Create the release
   release:
