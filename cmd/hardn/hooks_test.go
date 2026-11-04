@@ -31,7 +31,10 @@ func TestMenuOptions(t *testing.T) {
 	var status mainmenu.StatusOptions
 	var runAll runallscreen.Options
 	var updates updatesscreen.Options
-	menuStatus = func(_ context.Context, o mainmenu.StatusOptions) (screen.MainMenu, error) { status = o; return screen.MainMenu{}, nil }
+	menuStatus = func(_ context.Context, o mainmenu.StatusOptions) (screen.MainMenu, error) {
+		status = o
+		return screen.MainMenu{}, nil
+	}
 	runAllRun = func(_ context.Context, o runallscreen.Options) error { runAll = o; return nil }
 	updatesRun = func(_ context.Context, o updatesscreen.Options) error { updates = o; return nil }
 	const version = "0.4.0-synthetic"
