@@ -133,6 +133,7 @@ revert.ErrNotConfirmable NOT_CONFIRMABLE
 revert.ErrNothingPending NOTHING_PENDING
 revert.ErrOldConnection CONFIRM_OLD_CONNECTION
 revert.ErrPending CHANGE_PENDING
+revert.ErrRecord RECORD_INVALID
 revert.ErrRollingBack ROLLBACK_RUNNING
 revert.ErrSameSession CONFIRM_SAME_SESSION
 revert.ErrSessionUnknown SESSION_UNKNOWN

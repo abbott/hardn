@@ -206,6 +206,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `CHANGE_ID_INVALID` | 2 | not a change id |
 | `JOURNAL_INVALID` | 1 | the change journal is not valid |
 | `JOURNAL_UNSAFE` | 1 | the change journal, the run directory, or a directory above them, can be changed by a user other than root |
+| `RECORD_INVALID` | 1 | hardn's record of what it changed for a control is not valid |
 | `CHANGE_PENDING` | 1 | a change is already journalled |
 | `NOTHING_PENDING` | 1 | no change is waiting for confirmation |
 | `NOT_CONFIRMABLE` | 1 | the journalled change is not waiting for confirmation |
