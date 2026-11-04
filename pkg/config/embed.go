@@ -63,26 +63,27 @@ configureDns: false               # Configure DNS settings
 disableRootSSH: false             # Disable root SSH access
 `
 
-// EnsureExampleConfigExists checks if the example configuration file exists
-// and creates it if it doesn't. This function is called during initialization.
-func EnsureExampleConfigExists() error {
-	exampleConfigPath := "/etc/hardn/hardn.yml.example"
+// ExampleConfigPath is where hardn writes its example configuration.
+const ExampleConfigPath = "/etc/hardn/hardn.yml.example"
 
-	// Check if the example config file already exists
-	if _, err := os.Stat(exampleConfigPath); err == nil {
-		// File exists, no need to create it
+// EnsureExampleConfigExists writes the example configuration to
+// ExampleConfigPath where no file is there (EnsureExampleConfigAt).
+// cmd/hardn calls it once a command that writes hardn's log runs live,
+// after the flags are parsed (refactor plan, next/p3-startup), and the
+// first-run save after writing hardn.yml (CreateDefaultConfig).
+func EnsureExampleConfigExists() error { return EnsureExampleConfigAt(ExampleConfigPath) }
+
+// EnsureExampleConfigAt writes ExampleConfigContent to path, its directory
+// made 0755 where missing and the file 0644, unless a file is there.
+func EnsureExampleConfigAt(path string) error {
+	if _, err := os.Stat(path); err == nil {
 		return nil
 	}
-
-	// Create the directory if it doesn't exist
-	if err := os.MkdirAll(filepath.Dir(exampleConfigPath), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return fmt.Errorf("failed to create directory for example config: %w", err)
 	}
-
-	// Write the example config file
-	if err := os.WriteFile(exampleConfigPath, []byte(ExampleConfigContent), 0644); err != nil {
+	if err := os.WriteFile(path, []byte(ExampleConfigContent), 0644); err != nil {
 		return fmt.Errorf("failed to write example config file: %w", err)
 	}
-
 	return nil
 }

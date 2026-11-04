@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	xterm "github.com/charmbracelet/x/term"
 	"go.yaml.in/yaml/v3"
 
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -310,20 +311,43 @@ func GetDefaultConfigLocation() string {
 	return filepath.Join(configDir, "hardn.yml")
 }
 
-// ShouldCreateDefaultConfig determines if we should offer to create a default config
-func ShouldCreateDefaultConfig() bool {
-	// On a terminal, discard what was typed before the question shows
-	// (brief 1C). It can follow a long step: LoadConfig runs mid-session
-	// too (getConfigForSSHKeyPath in pkg/adapter/secondary, from the main
-	// menu's status and the user screens) and asks again while no file
-	// exists. The questions after it are asked back to back, so
-	// readAnswer keeps what is typed ahead of them.
-	_ = input().Flush() // a terminal that cannot be flushed keeps its typeahead
-	fmt.Println("No configuration file found. Would you like to create one? [Y/n]")
-	response := readAnswer()
-	response = strings.TrimSpace(strings.ToLower(response))
+// FirstRunQuestion is the first-run question, asked when no hardn.yml is
+// found (ShouldCreateDefaultConfig), on the prompt kit: Ask writes it with
+// one space after it, ending at its colon as every prompt does.
+const FirstRunQuestion = "No configuration file found. Would you like to create one? [Y/n]:"
 
-	return response == "" || response == "y" || response == "yes"
+// ShouldCreateDefaultConfig asks the first-run question, and reports
+// whether to create hardn.yml: Enter, y or yes. It is asked only when
+// stdin and stdout are both a terminal (terminals): without one hardn
+// never prompts (brief Phase 3), and the answer is no. The end of the
+// input (Ctrl-D, or the end of a pipe) is no as well, where origin/main
+// took it for the default, yes (refactor plan, next/p3-startup): either
+// way nothing is written and LoadConfig returns the defaults, as for a
+// declined question. Ctrl-C ends hardn by SIGINT (prompt.Reraise), as at
+// every prompt, so that a shell running hardn in a loop or a script stops,
+// and nothing is written.
+//
+// Ask discards what was typed before the question shows (brief 1C): it
+// can follow a long step, as LoadConfig runs mid-session too
+// (getConfigForSSHKeyPath in pkg/adapter/secondary) and asks again while
+// no file exists.
+func ShouldCreateDefaultConfig() bool {
+	if !terminals() {
+		return false
+	}
+	response, err := input().Ask(os.Stdout, FirstRunQuestion)
+	if errors.Is(err, prompt.ErrInterrupted) {
+		reraise()
+		exit(prompt.ExitInterrupted)
+	}
+	if err != nil {
+		return false // the end of the input, or a failed read or write
+	}
+	switch strings.TrimSpace(strings.ToLower(response)) {
+	case "", "y", "yes":
+		return true
+	}
+	return false
 }
 
 // CreateDefaultConfig creates a default configuration file at the specified path
@@ -380,9 +404,8 @@ func CreateDefaultConfig(path string, config *Config) error {
 	fmt.Printf("Created configuration file at %s\n", path)
 
 	// Ensure the example config exists and tell the user about it
-	examplePath := "/etc/hardn/hardn.yml.example"
 	if err := ensureExample(); err == nil {
-		fmt.Printf("A complete example configuration with all options is available at %s\n", examplePath)
+		fmt.Printf("A complete example configuration with all options is available at %s\n", ExampleConfigPath)
 	}
 
 	return nil
@@ -429,6 +452,9 @@ var (
 		fileInfo, _ := os.Stdin.Stat()
 		return (fileInfo.Mode() & os.ModeCharDevice) != 0
 	}
+	// terminals reports whether stdin and stdout are both a terminal,
+	// where alone the first-run question is asked. Tests replace it.
+	terminals = func() bool { return terminal(os.Stdin) && terminal(os.Stdout) }
 	// ensureExample is CreateDefaultConfig's EnsureExampleConfigExists,
 	// which writes /etc/hardn. Tests replace it.
 	ensureExample = EnsureExampleConfigExists
@@ -441,6 +467,22 @@ var (
 	// reraise ends hardn by SIGINT after Ctrl-C. Tests replace it.
 	reraise = prompt.Reraise
 )
+
+// terminal reports whether f's descriptor is a terminal. The descriptor
+// is taken with SyscallConn, which leaves the file as it is (File.Fd would
+// set it to blocking mode, which prompt's reads of os.Stdin must not
+// meet).
+func terminal(f *os.File) bool {
+	rc, err := f.SyscallConn()
+	if err != nil {
+		return false
+	}
+	var tty bool
+	if err := rc.Control(func(fd uintptr) { tty = xterm.IsTerminal(fd) }); err != nil {
+		return false
+	}
+	return tty
+}
 
 // readAnswer reads one answer line through input. As with the bufio
 // reader each prompt made before, the end of the input and a read error
