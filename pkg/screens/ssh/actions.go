@@ -29,11 +29,15 @@ const (
 )
 
 // planWords are a refusal of the engine's plan in the screen's words: a
-// change pending, a port in use; the control's refusals as they are
-// (screenkit.RefusalWords).
+// change waiting for hardn confirm (an applied lockout-risk change,
+// revert.State.Waiting), a port in use; any other change journalled (an
+// unfinished rollback, a change that did not finish) and the control's
+// refusals as they are (screenkit.RefusalWords), revert's naming its
+// hardn rollback.
 func planWords(err error) string {
+	var pe *revert.PendingError
 	switch {
-	case errors.Is(err, revert.ErrPending):
+	case errors.As(err, &pe) && pe.State.Waiting():
 		return wordsPending
 	case errors.Is(err, reload.ErrInUse):
 		return wordsInUse

@@ -19,8 +19,12 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/runall"
+	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 )
 
 var (
@@ -115,6 +119,9 @@ func held(t *testing.T, name string, h *runHost, r runall.Reading) {
 		if (rw.ID == ssh.Auth{}.ID() || rw.ID == envctl.ID) && (rw.Kind != runall.NothingAsked || rw.Words != runall.WordsNothing) {
 			t.Errorf("%s %s: %v %q, want nothing asked", name, rw.ID, rw.Kind, rw.Words)
 		}
+		if rw.Kind == runall.NotApplicable && (rw.Words == "" || rw.Words != rw.Report.Status.Detail) {
+			t.Errorf("%s %s: not applicable %q, its check's %q", name, rw.ID, rw.Words, rw.Report.Status.Detail)
+		}
 		a := runall.Asked(h.input(), rw.ID)
 		if a.Control == nil || rw.Kind == runall.NotApplicable || rw.Kind == runall.Pending {
 			continue
@@ -183,6 +190,8 @@ func TestAsked(t *testing.T) {
 		{"port", port, debian, nil, nil, "", 2230},
 		{"port 0", port, debian, func(c *config.Config) { c.SshPort = 0 }, nil, "", 0},
 		{"port out of range", port, debian, func(c *config.Config) { c.SshPort = 65536 }, nil, "", 0},
+		{"port 70000", port, debian, func(c *config.Config) { c.SshPort = 70000 }, nil, "", 0},
+		{"port -1", port, debian, func(c *config.Config) { c.SshPort = -1 }, nil, "", 0},
 		{"firewall", fwctl.ID, debian, nil, fwctl.Incoming{Action: fwctl.ActionEnable}, "Enable, SSH allowed", 0},
 		{"enableUfwSshPolicy false", fwctl.ID, debian, func(c *config.Config) { c.EnableUfwSshPolicy = false }, nil, "", 0},
 		{"dns", dnsctl.ID, debian, nil, dnsctl.Nameservers{}, "Set 2 nameservers", 0},
@@ -291,6 +300,92 @@ func TestAfterFirewall(t *testing.T) {
 	}
 }
 
+// TestCombinedRefused: the one plan's refusal, decision 5 (a)'s rule not
+// applied (root login off put back with the firewall): the engine refuses
+// the two together, and Apply all is refused with the plan's first
+// refusal, in its words, the plan kept. A guard for a conflict the rule
+// does not cover.
+func TestCombinedRefused(t *testing.T) {
+	ctx := context.Background()
+	h := newHost(t, "ufw-inactive")
+	in := h.input()
+	r := h.read(t, "ufw-inactive")
+	i := slices.IndexFunc(r.Rows, func(rw runall.Row) bool { return rw.ID == login })
+	r.Rows[i].Kind, r.Rows[i].Control, r.Plan = runall.Planned, runall.Asked(in, login).Control, nil
+	if err := runall.Combine(ctx, in, &r); err != nil {
+		t.Fatal(err)
+	}
+	if r.Plan == nil || len(r.Plan.Refused) == 0 || r.Err != r.Plan.Refused[0] || !errors.Is(r.Err, engine.ErrConflict) || r.Refusal != screenkit.RefusalWords(r.Err) {
+		t.Errorf("plan %v, err %v, refusal %q; want the plan kept, its first refusal (ErrConflict) in its words", r.Plan != nil, r.Err, r.Refusal)
+	}
+}
+
+// TestPortRow: the SSH Port row where sshd cannot be read (no
+// /run/sshd, so sshd -T fails) is Refused, the read's error its words;
+// and the read is given in.Session: with it, sshd's log of the session's
+// login is read (journalctl), without it not.
+func TestPortRow(t *testing.T) {
+	h := newHost(t, "port")
+	if err := h.Remove(context.Background(), "/run/sshd"); err != nil {
+		t.Fatal(err)
+	}
+	rw, _ := h.read(t, "port").Row(port)
+	if rw.Kind != runall.Refused || rw.Words != runall.WordsRefused || rw.Err == nil || rw.Refusal != screenkit.RefusalWords(rw.Err) {
+		t.Errorf("sshd not read: %v %q, refusal %q, err %v; want refused, the read's words", rw.Kind, rw.Words, rw.Refusal, rw.Err)
+	}
+
+	logs := func(sess revert.Session) int {
+		h := withYML(t, vm(debian13()).withLog("publickey", "george", 1), "sshPort: 2230\n")
+		in := h.input()
+		in.Session = sess
+		n := len(h.Calls())
+		r, err := runall.Read(context.Background(), in)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if rw, _ := r.Row(port); rw.Kind != runall.Elsewhere {
+			t.Errorf("port only: %v %q, want elsewhere", rw.Kind, rw.Words)
+		}
+		c := 0
+		for _, call := range h.Calls()[n:] {
+			if call.Op == "run" && call.Argv[0] == "journalctl" {
+				c++
+			}
+		}
+		return c
+	}
+	if with, without := logs(applySession), logs(revert.Session{}); with == 0 || without != 0 {
+		t.Errorf("sshd's log read %d times with the session, %d without; want some, none", with, without)
+	}
+}
+
+// TestAutoUpdatesAlpine: Auto Updates planned, on Alpine 3.23 with crond
+// installed and started and apk-cron not (the gallery's runall-alpine323):
+// apk-cron's install is in the one plan.
+func TestAutoUpdatesAlpine(t *testing.T) {
+	h := newHost(t, "alpine323")
+	h.cfg.EnableUnattendedUpgrades = true
+	h.AddFile(alpine.InitScript, []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
+	h.AddSymlink(alpine.RunlevelLink, alpine.InitScript)
+	r := h.read(t, "alpine323")
+	if rw, _ := r.Row(updates.ID); rw.Kind != runall.Planned || rw.Words != "Turn on" {
+		t.Errorf("auto updates: %v %q (%v), want planned, Turn on", rw.Kind, rw.Words, rw.Err)
+	}
+	held(t, "alpine323 with updates", h, r)
+}
+
+// noPasswd is a host whose /etc/passwd cannot be read: Read's System, the
+// engine's still the host, so Create plans (the name taken) and the users
+// read fails.
+type noPasswd struct{ host.System }
+
+func (n noPasswd) ReadFile(ctx context.Context, name string) ([]byte, error) {
+	if name == accounts.PasswdFile {
+		return nil, fs.ErrPermission
+	}
+	return n.System.ReadFile(ctx, name)
+}
+
 // stages are p's stages in order, each once, the boot unit's left out.
 func stages(p *engine.Plan) []engine.Stage {
 	var out []engine.Stage
@@ -367,6 +462,7 @@ func TestUserThere(t *testing.T) {
 		{"george-no-sudo", nil, "User Management's: not an admin", runall.Elsewhere},
 		{"debian13", []string{synthKey(9, "george@laptop-2")}, "User Management's: 1 key missing", runall.Elsewhere},
 		{"george-no-sudo", []string{synthKey(9, "george@laptop-2"), synthKey(8, "george@laptop-3")}, "User Management's: not an admin, 2 keys missing", runall.Elsewhere},
+		{"debian13", []string{"ssh-ed25519 not-a-key george@laptop-2"}, "User Management's: 1 key missing", runall.Elsewhere},
 	}
 	for _, tt := range tests {
 		h := newHost(t, tt.host)
@@ -375,6 +471,26 @@ func TestUserThere(t *testing.T) {
 		if rw.Kind != tt.kind || rw.Words != tt.want || rw.Control != nil {
 			t.Errorf("%s with %d more keys: %v %q; want %v %q", tt.host, len(tt.keys), rw.Kind, rw.Words, tt.kind, tt.want)
 		}
+	}
+
+	// sshd's name: taken, but no user the read lists (a system account).
+	h := newHost(t, "debian13")
+	h.cfg.Username = "sshd"
+	if rw, _ := h.read(t, "debian13").Row(users.ID); rw.Kind != runall.Elsewhere || rw.Words != "User Management's: name taken" {
+		t.Errorf("sshd: %v %q, want User Management's: name taken", rw.Kind, rw.Words)
+	}
+
+	// The users read failing: Refused, its error the row's why.
+	h = newHost(t, "debian13")
+	in := h.input()
+	in.System = noPasswd{h}
+	r, err := runall.Read(context.Background(), in)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rw, _ := r.Row(users.ID)
+	if rw.Kind != runall.Refused || rw.Words != runall.WordsRefused || !errors.Is(rw.Err, fs.ErrPermission) || rw.Refusal != screenkit.RefusalWords(rw.Err) {
+		t.Errorf("users not read: %v %q, refusal %q, err %v; want refused, the read's error", rw.Kind, rw.Words, rw.Refusal, rw.Err)
 	}
 }
 

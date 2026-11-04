@@ -51,6 +51,14 @@ func Elevate(e detect.Elevation) string {
 // hardn confirm` would fail there).
 func Hardn(e detect.Elevation) string { return State{Elevate: Elevate(e)}.hardn() }
 
+// Waiting reports whether s holds an applied lockout-risk change waiting
+// for hardn confirm, and no unfinished rollback: the one case a screen may
+// word as a change waiting for confirm; the others (*PendingError) name
+// their own hardn rollback.
+func (s State) Waiting() bool {
+	return s.RollingBack == nil && s.Pending != nil && s.Pending.Risk == RiskLockout && s.Pending.Applied != nil
+}
+
 // Busy reports whether a change is journalled: a new one is then refused.
 func (s State) Busy() bool { return s.Pending != nil || s.RollingBack != nil }
 

@@ -733,6 +733,9 @@ func (h *sshHost) answer(argv []string, _ []byte) hostfake.Response {
 			h.bound = slices.Clone(h.listening())
 			return hostfake.Response{}
 		}
+		if r, ok := h.updates(argv); ok {
+			return r
+		}
 	case "ufw":
 		if r, ok := h.ufw(argv); ok {
 			return r
@@ -843,6 +846,10 @@ func (h *sshHost) updates(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: "install ok installed\t2.12\n"}, true
 	case cmd == "apk info -e apk-cron":
 		return hostfake.Response{ExitCode: 1}, true
+	case cmd == "apk add --simulate apk-cron": // the Alpine VM's (updateshost.go)
+		return hostfake.Response{Stdout: "(1/1) Installing apk-cron (1.0-r3)\nOK: 9 MiB in 42 packages\n"}, true
+	case cmd == "rc-service crond status": // crond started, as on the Alpine VM
+		return hostfake.Response{Stdout: " * status: started\n"}, true
 	}
 	return hostfake.Response{}, false
 }
