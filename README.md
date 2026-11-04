@@ -1,350 +1,239 @@
 # Hardn
 
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](#verify-a-release) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](LICENSE)
 
-<!-- [![Build]((https://github.com/abbott/hardn/workflows/build/badge.svg)](https://github.com/abbott/hardn/actions)  -->
+A hardening tool for Debian, Ubuntu, Proxmox VE and Alpine Linux servers. It sets up an admin user, SSH login, ufw, DNS and automatic updates. It shows each change before making it and can roll back a change that might lock you out.
 
-A simple hardening tool for Linux.
+hardn covers a few basics. You still need to audit, update and monitor the host yourself. It is written for privately owned servers, homelabs and VMs.
 
-<p align="center">
-    <img src="https://github.com/user-attachments/assets/2d4dc4d9-0379-46ad-86ef-eeb2e33f264c" width="800" alt="Hardn CLI menu v0.3.2">
-</p>
+## What it does
 
-## 🚀 New v0.4.0 releasing in April 2025!
-<p align="center">
-    <img src="https://github.com/user-attachments/assets/10b06e6c-fffa-4423-82ff-c4073d013a05" width="800" alt="Hardn CLI menu v0.4.0">
-</p>
+`sudo hardn` opens the main menu. At the top it shows the state of users, SSH, the firewall, AppArmor and automatic updates, and a risk level. Next to the prompt it shows the mode: "Mode Live" or "Mode Plan only". Opening a screen changes nothing.
 
-## What is it?
+| Item | Shows | Changes |
+|---|---|---|
+| 1 User Management | users, their admin rights (sudo or doas), SSH keys, password state | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
+| 2 SSH Login | root login, password login, the port, allowed users, as sshd reads them | root login off or key-only, password login off or on, the SSH port, moves hardn's old sshd settings into `00-hardn.conf` |
+| 3 DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (yours, or Cloudflare, Google, Quad9); where NetworkManager, resolvconf or a container manages DNS, it only reports |
+| 4 Firewall | ufw's state, policy, rules, application profiles | installs ufw, enables it (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Proxmox VE: "View pve-firewall", read only |
+| 5 Backup | backups on or off, the backup path, past backup runs | turns backups on or off, changes the path (no restore yet) |
+| 6 Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu) or apk-cron and crond (Alpine); turns off only what hardn turned on. Read only on Proxmox VE |
+| 7 Run All | what hardn.yml would change | one plan for the user, root login, the firewall, DNS and automatic updates |
+| 8 Environment | whether `HARDN_CONFIG` is kept under sudo or doas | keeps it in `/etc/sudoers.d/hardn-env-<user>`; under doas, says what to add |
+| 9 System Details | OS, kernel, addresses, users, CPU, disk, memory, last logins | nothing |
+| 10 Logs | `/var/log/hardn.log` | nothing |
 
-A simple hardening tool that automates basic security configurations for Debian, Ubuntu, Proxmox, and Alpine Linux. The project is stable and in the **early stages of development**.
+AppArmor and Lynis are not set up: AppArmor's state is shown, nothing more.
 
-## ⚠️ Security Disclaimer
+**Every change goes through the same steps:**
 
-**The scope of current capabilities and support of Hardn is limited.** Regular security audits, updates, and monitoring are still required. `hardn` should be part of a broader security strategy, not a "set it and forget it" solution. While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, they are **<ins>not suitable for enterprise deployments</ins>**.
+1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [Safety](#safety)).
+2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, Run All) asks you to type the hostname.
+3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
+4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
-## 🎯 Target Audience
+**Plan only.** `-n` (or `dryRun: true` in hardn.yml) shows each plan and changes nothing. Screens stop at their plan. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
 
-Anyone managing a **privately owned** Linux server, container, or virtual machine
-- Homelab enthusiasts, Students, Hobbyists
+## Install
 
-If you are one of the following, **refrain from deploying this tool in the public or private sector**
-- System Administrator
-- DevOps Engineer
-- SecOps Architect or Analyst
-
-## ✨ Features
-
-| Feature                    | Description                                        |
-|----------------------------|----------------------------------------------------|
-| Tamper Protected Binary    | Releases are traceable to their source commit      |
-| Cryptographic Signature    | Binary signed in the public Rekor transparency log |
-| SSH Hardening              | Secure SSH configuration, key-based authentication |
-| User Management            | Create non-root users w/sudo access                |
-| Firewall Configuration     | UFW setup w/secure defaults                        |
-| DNS Configuration          | Secure DNS setup with specific resolvers           |
-| System Auditing            | Install Lynis for comprehensive analysis           |
-| Application Control        | Install AppArmor for application restrictions      |
-| Backup System              | Automatic backup of modified configuration files   |
-| Interactive Menu           | User-friendly interface for system hardening       |
-| Dry-Run Mode               | Preview changes without applying them              |
-| Multi-Distribution Support | Works with Debian, Ubuntu, Proxmox, and Alpine     |
-
-
-<!-- - **Tamper Protected Binary**: Releases are traceable to their source commit
-- **SSH Hardening**: Secure SSH configuration, key-based authentication
-- **User Management**: Create non-root users with sudo access
-- **Firewall Configuration**: UFW setup with sensible defaults
-- **DNS Configuration**: Secure DNS setup with specific resolvers
-- **System Auditing**: Install Lynis for comprehensive analysis
-- **Application Control**: Install AppArmor for application restrictions
-- **Backup System**: Automatic backup of modified configuration files
-- **Interactive Menu**: User-friendly interface for system hardening
-- **Dry-Run Mode**: Preview changes without applying them
-- **Multi-Distribution Support**: Works with Debian, Ubuntu, Proxmox, and Alpine -->
-
-## 📦 Installation
-
-You can easily install the latest release of `hardn` using the installation script. The script automatically detects your host operating system and architecture, downloads the correct binary, and installs it to `/usr/local/bin`.
-
-### Prerequisites
-
-- **curl:** Used to download the script and binary.
-- **sh/bash:** To execute the installation script.
-- **sudo:** Required for writing to `/usr/local/bin`.
-
-### Install via Script
-
-Run the following command in your terminal:
-
-```bash
-curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
+```sh
+curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
 ```
 
-<!-- *Note:* Replace `main` in the URL with the appropriate branch if necessary. -->
+Use `doas sh` where the host uses doas (Alpine). The script fetches the latest release's binary for this machine (`hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`). There is no armv7 build: don't use the script on armv7, where the current script picks the arm64 binary, which won't run there and installs it as `/usr/local/bin/hardn`. It also creates `/etc/hardn`. It doesn't run hardn. hardn writes `/etc/hardn/hardn.yml.example` itself the first time it runs live. On a terminal, hardn also offers to create `hardn.yml`.
 
-The script will:
+To update, run the same command again. To install by hand, download the binary from [Releases](https://github.com/abbott/hardn/releases), verify it (below), then run `sudo install -m 0755 hardn-linux-amd64 /usr/local/bin/hardn`.
 
-- Detect your operating system (e.g., Debian, Proxmox, Alpine Linux) and CPU architecture.
-- Query the GitHub releases API to find the latest asset matching your system (e.g., `hardn-linux-amd64` for 64-bit Linux, etc.).
-- Download the asset and install it to `/usr/local/bin` with executable permissions.
+hardn changes Linux hosts only. The darwin-amd64 build exists, but it hardens nothing on macOS.
 
-### Updating
+### Verify a release
 
-To update `hardn` to the latest release, simply re-run the installation command:
+Verification is a separate step, and recommended. From v0.4.0, each release has `SHA256SUMS`, an SPDX SBOM (`hardn-sbom.spdx.json`), and a GitHub artifact attestation for each binary. That attestation is SLSA Build Level 3 provenance: it was signed by the repository's build workflow, from the release's tag, on a GitHub-hosted runner.
 
-```bash
-curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
+[verify.sh](verify.sh) downloads a binary and `SHA256SUMS`, checks the SHA-256, and then checks the attestation. It needs curl, sha256sum or shasum, and [gh](https://cli.github.com) 2.68.0 or later, signed in (`gh auth login`):
+
+```sh
+curl -fsSLO https://raw.githubusercontent.com/abbott/hardn/v0.4.0/verify.sh
+sh verify.sh 0.4.0 linux-amd64      # leaves ./hardn-linux-amd64 only if both checks pass
 ```
 
-### Install Binary Manually
+To check a binary you already have, such as the one install.sh installed, use gh:
 
-1. Visit the [GitHub Releases](https://github.com/abbott/hardn/releases) page.
-2. Download the asset corresponding to your system (e.g., `hardn-linux-amd64`) (e.g., `
-curl -LO https://github.com/abbott/hardn/releases/latest/download/hardn-linux-amd64`).
-3. Move the downloaded binary to `/usr/local/bin` and set executable permissions:
+```sh
+gh attestation verify /usr/local/bin/hardn --repo abbott/hardn \
+  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.4.0 \
+  --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners
+```
 
-   ```bash
-   # Make executable and move to system path
-   chmod +x hardn-linux-amd64
-   sudo mv hardn-linux-amd64 /usr/local/bin/hardn
-   
-   # Test installation
-   sudo hardn -h # help
-   ```
+To check the SHA-256 alone, download `SHA256SUMS` from the same release, then run `grep ' hardn-linux-amd64$' SHA256SUMS | sha256sum -c -`.
 
-### Install From Source
+### Build from source
 
-```bash
-# Clone repository
+You need Go 1.26 or later ([install Go](https://go.dev/doc/install)), git and make. If your Go is older than 1.27.3, `go` fetches 1.27.3 by default, because releases are built with it (the `toolchain` line in go.mod).
+
+```sh
 git clone https://github.com/abbott/hardn.git
 cd hardn
-
-# Build
-make build
-
-# Example distribution (e.g. AMD64)
-GOOS=linux GOARCH=amd64 go build -o build/hardn cmd/hardn/main.go
-
-# Install
-sudo make install
+make build                      # build/hardn, for this machine
+make linux                      # build/hardn-linux-amd64 (also: make arm, make darwin)
+sudo cp build/hardn /usr/local/bin/hardn
 ```
 
-### Troubleshooting
+`make build` runs `go build ./cmd/hardn` with the release's flags. A bare `make` runs the project's checks, not a build ([docs/contributing.md](docs/contributing.md)).
 
-- **Permission Issues:** If you encounter permission errors when writing to `/usr/local/bin`, ensure you’re running the command with `sudo`.
-- **Missing curl:** If `curl` is not installed, use your package manager to install it (e.g., `sudo apt-get install curl` on Debian/Ubuntu).
+## Usage
 
+hardn needs root, except `-p` alone, `--version`, `--help` and `system-details`. Run it with `sudo hardn` or `doas hardn`.
 
-## 🚀 Usage
+| Flag | What it does |
+|---|---|
+| `-f, --config <path>` | Read this hardn.yml (otherwise `HARDN_CONFIG`, then the search path in [docs/configuration.md](docs/configuration.md)) |
+| `-u, --username <name>` | The user `-c` creates; also the default for Create and Run All |
+| `-c, --create-user` | Create the user with admin rights, no password, and every key in hardn.yml's `sshKeys` |
+| `-d, --disable-root` | Turn root's SSH login off (key-only on Proxmox VE). Refused unless another admin can still log in and become root |
+| `-w, --configure-ufw` | Enable ufw as Firewall does. Refused on Proxmox VE |
+| `-g, --configure-dns` | Set hardn.yml's nameservers |
+| `-e, --setup-sudo-env` | Keep `HARDN_CONFIG` under sudo or doas, as `setup-sudo-env` does |
+| `-r, --run-all` | Run All's plan from hardn.yml. Can't be combined with `-c`, `-d`, `-w`, `-g` or `-e` (exit 2) |
+| `-n, --dry-run` | Plan only: show the plan, change nothing |
+| `-p, --print-logs` | Print `/var/log/hardn.log`. On its own, it doesn't need root |
+| `-v, --version` | Print the version, commit and build date |
+| `--yes` | Off a terminal, apply a change that can't lock you out (see below) |
+| `--confirm-timeout <time>` | How long a lockout-risk change waits for `hardn confirm`: seconds (`300`) or a duration (`5m`). Default 3m, at least 1m |
+| `--color auto\|always\|never` | When to use colour. `auto` (the default) colours a terminal unless `NO_COLOR` is set or `TERM` is `dumb` |
+| `--ascii` | ASCII symbols only |
+| `--plain` | No colour, no animation, ASCII symbols |
+| `--theme dark\|light\|auto` | Colour theme. `auto` asks the terminal for its background. Default dark |
+| `--no-color` | Deprecated: use `--color=never`. It still works, with a warning |
+| `-h, --help` | Help for hardn or a command |
 
-### Interactive Mode
+With no operation flag, hardn opens the main menu. Operation flags can be combined, and run in the order `-c`, `-d`, `-w`, `-g`, `-p`, `-e`.
 
-Run `hardn` without arguments to use the interactive menu for selecting hardening operations:
+| Command | What it does |
+|---|---|
+| `hardn confirm` | Keep the change that is waiting for confirmation. Run it from a new SSH connection. At the console, it confirms with a warning. When run from a new SSH connection after a port change, it also closes the old port |
+| `hardn rollback <id>` | Undo that change now, or finish a rollback that stopped partway |
+| `hardn rollback --abandon <id>` | Give up a rollback that can never finish. The host stays as the rollback left it |
+| `hardn rollback --boot` | What hardn's boot unit runs. You don't run it yourself |
+| `hardn system-details` | Print the System Details report. `--output json` prints it as JSON. Save it with `> file` |
+| `hardn setup-sudo-env` | The same as `-e` |
 
-```bash
-sudo hardn
+**Off a terminal (scripts, cron).** hardn never asks a question there.
+
+- `-c`, `-g`, `-e` and `setup-sudo-env` apply a change only with `--yes`. So do `-w` and `-d`, and `-r` for a plan that can't lock you out. Without `--yes`, hardn shows the plan, changes nothing, and exits 2. A plan with nothing to change exits 0.
+- `--yes` never applies a change that could lock you out. Off a terminal, such a plan from `-w`, `-d` or `-r` is refused (exit 1). Run it from a terminal and type the hostname.
+- On a terminal, `-r` asks you to type the hostname whatever the plan, `--yes` or not. `-w` and `-d` ask for a change that could lock you out. `-c` and `-g` ask nothing. `-e` refuses a change that could lock you out: make it from main menu 8.
+
+```sh
+sudo hardn -n -r                # show Run All's plan
+sudo hardn -u alice -c          # create alice, an admin with hardn.yml's keys
+sudo hardn -c -d                # create the user, then turn root login off
+sudo hardn -g --yes             # from cron: set the nameservers
+sudo hardn system-details --output json > web-01.json
 ```
 
-### Command Line
+## Output
 
+**Exit statuses** (they won't change once released):
 
-| Function             | Flag                       | Description                           |
-|----------------------|----------------------------|---------------------------------------|
-| Config file (string) | `-f, --config-file string` | Specify configuration file path       |
-| Username (string)    | `-u, --username string`    | Specify username to create            |
-| User (create)        | `-c, --create-user`        | Create non-root user with sudo access |
-| Root SSH (disable)   | `-d, --disable-root`       | Disable SSH access for root user      |
-| DNS (configure)      | `-g, --configure-dns`      | Configure DNS settings                |
-| UFW (configure)      | `-w, --configure-ufw`      | Configure firewall with SSH rules     |
-| Run all (execute)    | `-r, --run-all`            | Apply hardn.yml's changes as one plan |
-| Dry run (mode)       | `-n, --dry-run`            | Preview changes without applying them |
-| Logs (print)         | `-p, --print-logs`         | View logs                             |
-| Version (print)      | `-v --version`             | View version                          |
-| Help (print)         | `-h, --help`               | View usage information                |
+| Status | Meaning |
+|---|---|
+| `0` | Done: nothing to change, or every change applied (including one waiting for `hardn confirm`) |
+| `1` | An error or a refusal (also: not root, a hardn.yml that doesn't load, `-c` with no username). Anything this run applied is rolled back; if that rollback can't finish, hardn says how to finish it |
+| `2` | A usage error (bad flags, or a bad `confirmTimeout` in hardn.yml), or changes that need `--yes` off a terminal |
+| `3` | A plan has changes to make (plan only), or you declined them |
+| `130` | Interrupted: Ctrl-C, SIGTERM or a hangup. An apply that was running is rolled back first |
 
+**JSON.** `hardn system-details --output json` prints one JSON document on stdout. [docs/reference/output.md](docs/reference/output.md) describes its fields and the stable error and finding codes.
 
-CLI Examples
+**Plain output and colour.** Output off a terminal is plain: no colour, no animation, ASCII symbols. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
 
-```bash
-# Apply hardn.yml's changes as one plan
-sudo hardn -r
+**Logs.**
 
-# Create a non-root user w/SSH access
-sudo hardn -u george -c
+- `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and plan only. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`. Not recorded yet: the confirmation itself and `hardn rollback`.
+- `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. Logs (10) and `-p` show it. Plan only doesn't write to it; it adds one line to the audit log and nothing else.
 
-# Configure firewall
-sudo hardn -w
+## Safety
 
-# Show that plan without applying it
-sudo hardn -n -r
+- **Refused before anything changes.** hardn won't make a change it can't show to be safe:
+  - **Root login.** Turning root's SSH login off is refused unless another admin can still log in and become root (by key, or by password while password login is on). It is also refused while you are logged in as root over SSH.
+  - **Password login.** Turning password login off is refused if you logged in with a password, if an admin has a password and no key, or if no admin could log in by key.
+  - **Firewall.** Enabling ufw first lets through every port sshd listens on. It is refused if hardn can't tell which ports those are, or if a rule already there would block SSH.
+  - **One change at a time.** While a change waits for confirmation, or a rollback hasn't finished, new changes are refused.
+  - The refusal says why and what to do.
+- **The revert timer.** A lockout-risk change runs under a systemd timer, or a process under OpenRC. It rolls the change back unless `hardn confirm` comes from a new connection in time. Where neither systemd nor OpenRC runs, such a change is refused. So is any lockout-risk change when a user other than root can change the hardn binary.
+- **Across a reboot.** Before the first such change, hardn installs a boot unit, `hardn-boot`. At boot, before sshd starts, it restarts the timer for the time left, or rolls the change back if the time ran out. It is removed at the first boot with nothing waiting.
+- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. Backup (5) lists the runs. Restoring a run by hand isn't built yet.
 
-# Show version information
-sudo hardn -v
-```
+More detail: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot.md](docs/safety/revert-boot.md) (the boot unit), [atomic.md](docs/safety/atomic.md) (writes and backups), [pve.md](docs/safety/pve.md) (Proxmox VE), and the index, [docs/safety](docs/safety/README.md).
 
-### Configuration File
+## hardn.yml
 
-On first run, `hardn` will offer to create a default configuration file if no existing config is found. The following YAML configuration file locations are searched in order:
+hardn reads `username`, `sshKeys`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `ufwAppProfiles`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
 
-1. Path specified with `--config` or `-f` flag
-2. Environment variable `HARDN_CONFIG` (if set)
-3. `/etc/hardn/hardn.yml` (system-wide configuration)
-4. `~/.config/hardn/hardn.yml` (XDG Base Directory specification)
-5. `~/.hardn.yml` (traditional dot-file in home directory)
-6. `./hardn.yml` (current working directory)
-
-You can specify a different configuration file with the `-f` flag or environment variable:
-
-```bash
-# Using command line flag
-sudo hardn -f /path/to/custom-config.yml
-
-# Using environment variable
-export HARDN_CONFIG=/path/to/custom-config.yml
-sudo hardn
-```
-
-Example configuration:
+Keys hardn no longer reads are still accepted. Where one is set to something other than its default, hardn warns, for example "hardn.yml's enableLynis isn't used". The username has no default.
 
 ```yaml
-# User Management
-username: "george"
-sudoNoPassword: true
+username: "alice"
 sshKeys:
-  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
-
-# Network & Security
-sshPort: 2208                       # Non-standard SSH port (security measure; Default: 22)
-nameservers:
-  - "1.1.1.1"
-  - "1.0.0.1"
-
-# Feature Toggles
-enableAppArmor: true
-enableLynis: true
-enableUnattendedUpgrades: true
+  - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... alice@example.net"
+nameservers: ["192.0.2.53", "192.0.2.54"]
 enableUfwSshPolicy: true
 configureDns: true
-disableRoot: true
+disableRootSSH: true
+confirmTimeout: "5m"
 ```
 
-For a complete list of configuration options, review:
-- The [example configuration](https://github.com/abbott/hardn/blob/main/hardn.yml.example) — also located at: `/etc/hardn/hardn.yml.example` after initializing the binary (e.g., `sudo hardn`).
-- The [Configuration Guide](docs/configuration.md)
+See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to keep `HARDN_CONFIG` under sudo. The example file is [hardn.yml.example](hardn.yml.example).
 
-## Release Chain Security
+## Supported versions
 
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/)
+| Distribution | Supported | Best effort | Out of scope |
+|---|---|---|---|
+| Debian | 13, 12 | | |
+| Ubuntu | 26.04, 24.04 | 22.04 | interim (non-LTS) releases |
+| Alpine | 3.24, 3.23 | 3.22 | 3.21 (vendor support ended 2026-11-01) |
+| Proxmox VE | 9 | | 8 (end of life since 2026-08-31) |
 
-`hardn` implements [SLSA](https://slsa.dev) Level 3 supply chain security for all releases. This provides the following security guarantees:
+- **Supported**: hardn changes it.
+- **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
+- **Out of scope**, and any version not in the table: hardn shows the screens and refuses every change.
+- **Any other distribution**: hardn doesn't start.
 
-### SLSA Level 3 Protection
+**Tested so far** on VMs during development: Debian 13, Ubuntu 26.04 and Alpine 3.23. The release's VM suite will add to this list. Proxmox VE 9 and the other supported versions haven't been run on a VM yet.
 
-All releases follow the Supply-chain Levels for Software Artifacts (SLSA) Level 3 requirements, providing:
+On Alpine, ufw and sudo come from the community repository. On Alpine 3.21 to 3.23, the vendor supports only the main repository.
 
-- **Tamper Protection**: Each binary is signed and includes a provenance attestation
-- **Build Integrity**: Builds are performed in GitHub's trusted environment
-- **Source Verification**: Binaries are traceable back to their source commit
-- **Reproducibility**: The build process is fully documented in the provenance
+### Proxmox VE
 
-### Sigstore Artifact Signing
+On a Proxmox VE node:
 
-In addition to SLSA provenance, all artifacts are signed using [Sigstore](https://www.sigstore.dev/):
+- Root's SSH login stays key-only, never off, because the nodes log in to each other as root by key. `-d` and Run All make root key-only.
+- SSH stays on port 22.
+- Root's keys are edited through the cluster's shared file, and a node's own key is never removed.
+- Root's password is never locked.
+- The firewall is only read (pve-firewall). ufw is never touched, and `-w` is refused.
+- Auto Updates only shows the state.
 
-- **Cryptographic Verification**: Each binary is signed with ephemeral keys
-- **Transparency Logs**: All signatures are recorded in the public Rekor transparency log
-- **Identity-based Trust**: Signatures are tied to GitHub's OIDC identity
-- **Keyless Verification**: No need to manage or distribute public keys
+The default cluster join (`pvecm add`, or the web UI) logs in to the other node's API with root's password, and needs no SSH password login. Two steps log in over SSH as root instead. hardn does neither, so do them by hand:
 
-### Verifying Releases
+- **`pvecm add <node> --use_ssh`** joins over SSH to the existing node. Where hardn runs on that node, root logs in there by key only. Add the joining node's root key (`/root/.ssh/id_rsa.pub`) to root's keys there first.
+- **`pvecm qdevice setup <address>`** logs in to the QDevice host as root over SSH, using root's password where the node's key isn't there yet. If hardn turned root login off on that host (`-d`, or Run All), allow it again there by hand for the setup.
 
-To verify a `hardn` release with both SLSA provenance and Sigstore signature:
+## Contributing and security
 
-1. Use our verification script:
-   ```bash
-   # Download and run verification script
-   curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/scripts/verify.sh > verify.sh
-   chmod +x verify.sh
-   ./verify.sh v0.3.2 linux-amd64
-   ```
+Read [docs/contributing.md](docs/contributing.md) before opening a pull request. Report bugs in the GitHub issue tracker, with your OS and version and the steps to reproduce. Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, not in a public issue. Changes since v0.3.2 are listed in [docs/releases/unreleased.md](docs/releases/unreleased.md).
 
-2. Or verify manually:
-   ```bash
-   # Install verification tools
-   go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.7.0
-   curl -sSL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o cosign
-   chmod +x cosign
-   sudo mv cosign /usr/local/bin/
-   
-   # Download the binary and verification files
-   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64
-   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64.intoto.jsonl
-   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64.sig
-   curl -LO https://github.com/abbott/hardn/releases/download/v0.3.2/hardn-linux-amd64.crt
-   
-   # Verify SLSA provenance
-   slsa-verifier verify-artifact \
-     --artifact-path hardn-linux-amd64 \
-     --provenance hardn-linux-amd64.intoto.jsonl \
-     --source-uri github.com/abbott/hardn \
-     --source-tag v0.3.2
-     
-   # Verify Sigstore signature
-   cosign verify-blob \
-     --certificate hardn-linux-amd64.crt \
-     --signature hardn-linux-amd64.sig \
-     --certificate-identity-regexp ".*github.com/workflows/.*" \
-     --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-     hardn-linux-amd64
-   ```
+## Origin
 
-3. Or using our `Makefile` targets:
-   ```bash
-   # Install tools
-   make install-verifier
-   make install-cosign
-   
-   # Verify both SLSA and Sigstore
-   make verify-release-full VERSION=0.3.2 OS=linux ARCH=amd64
-   ```
+After hardening Debian-based containers and VMs by hand for years, I wrote a local script to automate the essentials from a config file and command-line arguments. Within a year a CLI menu was bolted on, the code needed a rewrite to stay maintainable, so I moved it to Go and published it.
 
-A successful verification confirms the binary was built by GitHub Actions from the official `hardn` repository at the specified tag, has a valid signature tied to the GitHub workflow identity, and has not been tampered with since building.
+## Acknowledgments
 
-## 🤝 Contributing
+hardn is built with [Cobra](https://github.com/spf13/cobra) and [pflag](https://github.com/spf13/pflag) (command line), [Lip Gloss](https://github.com/charmbracelet/lipgloss), [colorprofile](https://github.com/charmbracelet/colorprofile), [x/ansi](https://github.com/charmbracelet/x) and x/term from Charm (terminal output), [go.yaml.in/yaml/v3](https://github.com/yaml/go-yaml) (hardn.yml), and Go's [x/sys](https://pkg.go.dev/golang.org/x/sys) and [x/text](https://pkg.go.dev/golang.org/x/text).
 
-Please review the [Contributing Guide](docs/contributing.md) prior to submitting a pull request.
+Thanks to the Linux security community for what they have shared over the years.
 
-## Issue Reporting
+## License
 
-- Use the GitHub issue tracker to report bugs
-- Provide detailed reproduction steps
-- Include your environment details (OS, Go version, etc.)
-- For security vulnerabilities, please email `641138+abbott@users.noreply.github.com` instead of creating a public issue.
-
-## 🗺️ Future Plans
-
-- [ ] Expanded multi-distribution and package management support (Arch, CentOS/RHEL, Fedora)
-- [ ] Enhanced system integrity dashboard
-- [ ] Containerized deployment
-- [ ] Centralized configuration and management for multiple servers
-- [ ] Extended auditing capabilities
-- [ ] Web interface for remote administration
-- [ ] Integration with compliance benchmarks (CIS, STIG)
-
-## 🧪 Origin
-
-After manually hardening Debian based containers and VMs for years, I wrote and maintained a local script to automate the essentials by way of a config and command line arguments. Within a year, a CLI menu was bolted on and the codebase needed to be refactored to ensure maintainability, so I landed on Go, and decided to publish the tool. Enjoy! 🥃
-
-## 📝 Acknowledgments
-
-This project builds upon:
-- [Cobra](https://github.com/spf13/cobra) for CLI functionality
-- [Viper](https://github.com/spf13/viper) for configuration management
-- [yaml.v3](https://github.com/go-yaml/yaml) for YAML parsing
-
-Special thanks to the **Linux security community** (experts & enthusiasts) for the wisdom and knowledge over the years.
-
-## 📄 License
-
-This project is licensed under the GNU AGPL v3 License - see the LICENSE file for details.
+GNU AGPL v3: see [LICENSE](LICENSE).
