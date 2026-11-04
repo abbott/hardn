@@ -24,9 +24,9 @@ type Support uint8
 
 const (
 	SupportUnknown Support = iota // the platform or its version is not established
-	Supported                     // supported and tested
+	Supported                     // supported: hardn changes it (which versions a VM run covered: the README's support table)
 	BestEffort                    // still supported by its vendor; no promises
-	OutOfScope                    // named out of scope: Ubuntu interim releases, Proxmox VE 8
+	OutOfScope                    // named out of scope: Ubuntu interim releases, Proxmox VE 8, Alpine 3.21
 	Unlisted                      // a platform or version the matrix does not name
 )
 
@@ -56,7 +56,10 @@ type Release struct {
 
 // matrix is brief §2's decision "support what each vendor still supports;
 // test the newest two releases of each" (2026-10-16). Ubuntu interim releases
-// are out of scope by rule, not by row (ubuntuInterim).
+// are out of scope by rule, not by row (ubuntuInterim). Alpine 3.21 is out
+// of scope since its vendor's support ended, as Proxmox VE 8 is (Phase 7
+// survey decision 5, adopted 2026-11-04). Supported says hardn changes a
+// release, not that a VM run covered it.
 var matrix = []Release{
 	{DistroDebian, "13", Supported, ""},
 	{DistroDebian, "12", Supported, ""},
@@ -67,7 +70,7 @@ var matrix = []Release{
 	{DistroProxmox, "9", Supported, ""},
 	{DistroUbuntu, "22.04", BestEffort, ""},
 	{DistroAlpine, "3.22", BestEffort, ""},
-	{DistroAlpine, "3.21", BestEffort, "vendor support ends 2026-11-01"},
+	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01"},
 	{DistroProxmox, "8", OutOfScope, "end of life since 2026-08-31"},
 }
 
