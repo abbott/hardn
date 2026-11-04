@@ -116,7 +116,7 @@ func runAllFlag(c *config.Config, version string) int {
 		return 1
 	}
 	o := engineOptions(ctx, sys, c)
-	r, err := planner.Read(ctx, planner.Input{System: sys, Facts: facts, Config: c, Session: o.Session,
+	r, err := runAllRead(ctx, planner.Input{System: sys, Facts: facts, Config: c, Session: o.Session,
 		Getenv: os.Getenv, Version: version, NewEngine: newEngine(sys, o)})
 	if err != nil {
 		logging.LogError("%v", err)
@@ -131,6 +131,10 @@ func runAllFlag(c *config.Config, version string) int {
 	}
 	return runControls(c, r.Controls(), nil, &runAllConfirm)
 }
+
+// runAllRead is -r's planner.Read, a seam for the tests, which record the
+// input runAllFlag gives it (hardn's version among it).
+var runAllRead = planner.Read
 
 // runAllSkipped follows a refused row's label on stderr: "<Row> skipped:
 // <the control's refusal>" (gallery-runall.md §6, the screen's words).
