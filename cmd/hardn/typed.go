@@ -107,22 +107,19 @@ func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 	p := nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)}
 	fe := &output.FlowEngine{Controls: controls, Config: c, LogPath: output.LegacyLogPath}
 	fe.Engine = newEngine(sys, engineOptions(ctx, sys, c))(fe.Progress)
-	actx := ctx // a signal's, around the apply and what follows it alone
-	hungUp := func() bool { return false }
-	var stops []func()
-	defer func() {
-		for i := len(stops) - 1; i >= 0; i-- {
-			stops[i]()
+	var windows []*applyWindow // around the apply and what follows it alone
+	settle := func() bool {
+		signalled := false
+		for i := len(windows) - 1; i >= 0; i-- {
+			signalled = windows[i].close() || signalled
 		}
-	}()
+		return signalled
+	}
+	defer settle()
 	apply := func(ctx context.Context) context.Context {
-		hup := watchHangup() // first: no hangup engineSignals catches goes unmarked
-		stops = append(stops, func() { hup.stop() })
-		hungUp = hup.seen
-		var stop context.CancelFunc
-		actx, stop = engineSignals(ctx)
-		stops = append(stops, stop)
-		return actx
+		w := openApplyWindow(ctx)
+		windows = append(windows, w)
+		return w.ctx
 	}
 	var phraseErr error
 	f := flow.Flow{
@@ -149,5 +146,5 @@ func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 	if err != nil && !errors.Is(err, nav.ErrQuit) && !errors.Is(err, nav.ErrBack) && !errors.Is(err, nav.ErrPhrase) && !errors.Is(err, prompt.ErrAborted) {
 		sayError("%v", err)
 	}
-	return endControls(run, actx, hungUp)
+	return endControls(run, settle)
 }

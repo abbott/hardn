@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"slices"
 	"strings"
 	"sync"
@@ -802,32 +803,8 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 		}
 	})
 	t.Run("a hangup during the rollback", func(t *testing.T) {
-		signals := engineSignals // the real one: useDNSHost replaces it
-		h, cfg := newDNSHost(t, "inert", dnsTestList)
-		ran := withSudo(h) // -e keeps HARDN_CONFIG for alice there
-		ended := 0
-		var applying context.Context
-		r, s := runG(t, h, cfg, func(s *dnsSeams) {
-			engineSignals = func(c context.Context) (context.Context, context.CancelFunc) {
-				s.applies++
-				ctx, stop := signals(c)
-				applying = ctx
-				return ctx, stop
-			}
-			engineHold = func() func() {
-				s.held++
-				release := hold.Signals(nil) // the engine's own
-				sendHangup(t)
-				return release
-			}
-			endHangup = func() { ended++ } // a screen's end of hardn, not -g's
-		}, "--yes", "-g", "-e")
-		report := s.out.String()
-		if !r.ended || r.code != 1 || ran() || ended != 0 || s.applies != 1 || s.held != 1 || applying.Err() == nil {
-			t.Errorf("ended %v with %d, -e ran %v, ended by a hangup %d times, %d applies, %d holds, the apply's context %v; report:\n%s", r.ended, r.code, ran(), ended, s.applies, s.held, applying.Err(), report)
-		}
-		if got := h.content(hostdns.DropIn); got != "<absent>" || !strings.Contains(report, "Rolled back") {
-			t.Errorf("the drop-in after the hangup:\n%s\nreport:\n%s", got, report)
+		if failed := signalInRollback(t, syscall.SIGHUP); failed != "" {
+			t.Error(failed)
 		}
 	})
 	for _, when := range []string{"after the apply's last step", "during the report"} {
@@ -884,6 +861,70 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 			t.Errorf("ended %v with %d after %v, host calls %d; stderr:\n%s", r.ended, r.code, r.reached, len(h.Calls())-before, r.stderr)
 		}
 	})
+}
+
+// signalInRollback runs -g -e on a host whose reload has no effect, sig
+// sent to this test process during the rollback, under the engine's own
+// hold (hold.Signals), which catches it; it returns what hardn did other
+// than end once reported, with the failure's status, 1, -e not run, its
+// apply's context cancelled (runControls), or "".
+func signalInRollback(t *testing.T, sig syscall.Signal) string {
+	t.Helper()
+	signals := engineSignals // the real one: useDNSHost replaces it
+	h, cfg := newDNSHost(t, "inert", dnsTestList)
+	ran := withSudo(h) // -e keeps HARDN_CONFIG for alice there
+	ended := 0
+	var applying context.Context
+	r, s := runG(t, h, cfg, func(s *dnsSeams) {
+		engineSignals = func(c context.Context) (context.Context, context.CancelFunc) {
+			s.applies++
+			ctx, stop := signals(c)
+			applying = ctx
+			return ctx, stop
+		}
+		engineHold = func() func() {
+			s.held++
+			release := hold.Signals(nil) // the engine's own
+			sendSignal(t, sig)
+			return release
+		}
+		endHangup = func() { ended++ } // a screen's end of hardn, not -g's
+	}, "--yes", "-g", "-e") // a script's run, off a terminal (§3.11, p7-surface)
+	report := s.out.String()
+	if !r.ended || r.code != 1 || ran() || ended != 0 || s.applies != 1 || s.held != 1 || applying.Err() == nil {
+		return fmt.Sprintf("%v during the rollback: ended %v with %d, -e ran %v, ended by a hangup %d times, %d applies, %d holds, the apply's context %v; report:\n%s", sig, r.ended, r.code, ran(), ended, s.applies, s.held, applying.Err(), report)
+	}
+	if got := h.content(hostdns.DropIn); got != "<absent>" || !strings.Contains(report, "Rolled back") {
+		return fmt.Sprintf("the drop-in after %v during the rollback:\n%s\nreport:\n%s", sig, got, report)
+	}
+	return ""
+}
+
+// TestConfigureDNSFlagSignalInRollbackEveryTime: a hangup or SIGTERM
+// during the rollback of -g's failure ends hardn once reported, -e not
+// run (signalInRollback), on every run, not on most: the signal is
+// relayed by os/signal before the hold's release returns, and hardn
+// decides whether it came only after it has waited for that relay to
+// reach it, not from what the goroutines os/signal relays it to have
+// recorded so far. Run 50 times on one CPU (GOMAXPROCS 1), where the
+// race showed most (21 runs in 200 ended -e run, before the fix).
+func TestConfigureDNSFlagSignalInRollbackEveryTime(t *testing.T) {
+	defer runtime.GOMAXPROCS(runtime.GOMAXPROCS(1))
+	for _, sig := range []syscall.Signal{syscall.SIGHUP, syscall.SIGTERM} {
+		t.Run(sig.String(), func(t *testing.T) {
+			fails, first := 0, ""
+			for range 50 {
+				if failed := signalInRollback(t, sig); failed != "" {
+					if fails++; first == "" {
+						first = failed
+					}
+				}
+			}
+			if fails > 0 {
+				t.Errorf("%d runs in 50 not ended by %v; the first:\n%s", fails, sig, first)
+			}
+		})
+	}
 }
 
 // unreadTerminal is hardn's terminal (hangup.Terminal, the seams'
