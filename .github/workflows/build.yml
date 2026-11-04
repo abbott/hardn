@@ -1,0 +1,125 @@
+name: Build
+
+# p7-provenance. The release build, as a reusable workflow that release.yml
+# calls: the three binaries and, for a tag, their SLSA build provenance.
+#
+# SLSA Build Level 3 (GitHub's "Using artifact attestations and reusable
+# workflows to achieve SLSA v1 Build Level 3"): the build and actions/attest
+# run in this reusable workflow, so the signing certificate names this file,
+# not the caller, as the signer. A release is verified with
+#   gh attestation verify <binary> --repo abbott/hardn \
+#     --signer-workflow abbott/hardn/.github/workflows/build.yml
+# release.yml does that to every binary before it publishes.
+#
+# Inputs are what release.yml's prepare job computed. attest is true only
+# for a tag push; a workflow_dispatch run builds and does not attest.
+#
+# The build steps are p7-release's, unchanged: go.mod's toolchain,
+# CGO_ENABLED=0, -trimpath, -tags=netgo, ldflags from the tagged commit. The
+# makefile's LDFLAGS targets and check-cross use the same values and flags.
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: main.Version (the tag without its v, or 0.0.0-dev)
+        required: true
+        type: string
+      commit:
+        description: main.GitCommit (the commit built)
+        required: true
+        type: string
+      build-date:
+        description: main.BuildDate (the commit's date, UTC)
+        required: true
+        type: string
+      attest:
+        description: Write SLSA build provenance for each binary (a tag push only)
+        required: true
+        type: boolean
+
+permissions: {}
+
+env:
+  GOWORK: "off"
+  GOFLAGS: -mod=readonly
+
+jobs:
+  build:
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    runs-on: ubuntu-latest
+    # GitHub's guide gives these three to both the caller's job and this one.
+    # id-token: the OIDC token for the Sigstore certificate; attestations:
+    # store the attestation.
+    permissions:
+      attestations: write
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: true
+      # The release targets (decision 6). The makefile's CHECK_CROSS_TARGETS
+      # names the same three.
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go from go.mod
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false  # No cache in a release (cache poisoning)
+
+      - name: Go is go.mod's toolchain line
+        run: |
+          set -eu
+          want_go=$(sed -n 's/^toolchain //p' go.mod)
+          got_go=$(GOTOOLCHAIN=local go env GOVERSION)
+          [ -n "$want_go" ] && [ "$got_go" = "$want_go" ] || {
+            echo "::error file=go.mod::setup-go installed $got_go, not go.mod's toolchain line ($want_go)"
+            exit 1
+          }
+
+      # The makefile's check-cross flags; its LDFLAGS set the same variables.
+      - name: Build
+        env:
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ inputs.version }}
+          COMMIT: ${{ inputs.commit }}
+          BUILD_DATE: ${{ inputs.build-date }}
+        run: |
+          set -euo pipefail
+          out="dist/hardn-${GOOS}-${GOARCH}"
+          go build -trimpath -tags=netgo \
+            -ldflags "-X main.Version=${VERSION} -X main.GitCommit=${COMMIT} -X main.BuildDate=${BUILD_DATE}" \
+            -o "$out" ./cmd/hardn
+          go version -m "$out"
+          sha256sum "$out"
+
+      # SLSA v1 build provenance (no sbom-path or predicate inputs), signed
+      # with a Sigstore certificate for this workflow and stored with
+      # GitHub's attestations API for the repository.
+      - name: Attest build provenance
+        if: inputs.attest
+        uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
+        with:
+          subject-path: dist/hardn-${{ matrix.goos }}-${{ matrix.goarch }}
+
+      - name: Upload the binary
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bin-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/hardn-${{ matrix.goos }}-${{ matrix.goarch }}
+          if-no-files-found: error
+          retention-days: 7
