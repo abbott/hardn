@@ -717,6 +717,38 @@ linters:
               desc: the report's reader returns data; the screen and pkg/output map it (docs/engine/readers-system-details.md §2)
             - pkg: github.com/abbott/hardn/pkg/output
               desc: the report's reader returns data; the screen and pkg/output map it (docs/engine/readers-system-details.md §2)
+        # next/s8-control (refactor plan slice 8, unit (b)): Run All's
+        # planner reads the host only through host.System, the controls and
+        # the engine, and renders nothing: the Run All screen and hardn -r
+        # draw its rows, so it takes neither pkg/output nor pkg/screens.
+        # (engine-through-host's glob covers the directory too; this block
+        # names the unit's own rule, as logview-through-host does.)
+        runall-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/engine/runall/**"
+            - "!$test"
+          allow:
+            - net/netip
+          deny:
+            - pkg: os
+              desc: Run All's planner reads only through host.System and the engine (docs/engine/control-runall.md)
+            - pkg: io/ioutil
+              desc: Run All's planner reads only through host.System (docs/engine/control-runall.md)
+            - pkg: golang.org/x/sys
+              desc: Run All's planner makes no system calls of its own (docs/engine/control-runall.md)
+            - pkg: syscall
+              desc: Run All's planner makes no system calls of its own (docs/engine/control-runall.md)
+            - pkg: net
+              desc: Run All's planner makes no network calls (docs/engine/control-runall.md)
+            - pkg: plugin
+              desc: Run All's planner loads no code (docs/engine/control-runall.md)
+            - pkg: github.com/abbott/hardn/pkg/ui
+              desc: Run All's planner returns rows; the screen and hardn -r draw them (docs/engine/control-runall.md)
+            - pkg: github.com/abbott/hardn/pkg/output
+              desc: Run All's planner returns rows; the screen and hardn -r draw them (docs/engine/control-runall.md)
+            - pkg: github.com/abbott/hardn/pkg/screens
+              desc: Run All's planner returns rows; the screen and hardn -r draw them (docs/engine/control-runall.md)
         # next/p4-vmcheck: internal/tools/p4status, the read-only driver of
         # Phase 4 on a host, reaches the host only through its guard over
         # host.System, which refuses every change and runs only the
