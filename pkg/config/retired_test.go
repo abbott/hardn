@@ -37,6 +37,9 @@ func TestRetired(t *testing.T) {
 			[]string{"dmzSubnet", "debianRepos", "alpineTestingRepo", "tz", "pythonUnbuffered"}},
 		{"base: &b [git]\nlinuxCorePackages: *b\n", []string{"linuxCorePackages"}},
 		{"tz: [UTC]\nuseUvPackageManager: maybe\n", []string{"useUvPackageManager", "tz"}},
+		{"sshKeyPath: .ssh_%u\nlogsconfig:\n  logfilepath: /var/log/hardn.log\n", nil},
+		{"logsconfig: {}\n", nil},
+		{"sshKeyPath: .ssh/authorized_keys\nlogsconfig:\n  logfilepath: /srv/log/hardn.log\n", []string{"sshKeyPath", "logsconfig"}},
 	} {
 		if keys := load(t, tt.yml).Retired(); !slices.Equal(keys, tt.want) {
 			t.Errorf("%q: Retired = %v, want %v", tt.yml, keys, tt.want)

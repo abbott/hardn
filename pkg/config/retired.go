@@ -14,6 +14,7 @@ const (
 	retiredList retiredKind = iota // a list: the default none
 	retiredFlag                    // a bool: the default false
 	retiredText                    // a string: the default retiredKey.text
+	retiredLogs                    // logsconfig: a mapping, the default logfilepath: retiredKey.text
 )
 
 // retiredKey is a hardn.yml key nothing in hardn reads, and Config has no
@@ -30,12 +31,15 @@ type retiredKey struct {
 // enableAppArmor and enableLynis (decision 4 (a)); and since the legacy
 // package, sources and localization code went (refactor plan, the unit
 // after slice 9), the DMZ subnet, the package lists, the repositories,
-// useUvPackageManager and the locale settings. Config has no field for
+// useUvPackageManager and the locale settings; and since next/legacy-rehome,
+// sshKeyPath, whose one reader was its own warning, and logsconfig,
+// origin/main's LogsConfig as its save wrote it. Config has no field for
 // them (docs/engine/legacy-left.md §2, step 8). A file that sets one
 // still loads, and is told so (Retired); a save edits only the keys it
 // changes (Save, Edit), so the file keeps it.
 var retired = []retiredKey{
 	{name: "sshAllowedUsers"}, {name: "sshListenAddress", kind: retiredText, text: "0.0.0.0"},
+	{name: "sshKeyPath", kind: retiredText, text: ".ssh_%u"},
 	{name: "ufwDefaultIncomingPolicy", kind: retiredText}, {name: "ufwDefaultOutgoingPolicy", kind: retiredText},
 	{name: "ufwAllowedPorts"}, {name: "enableAppArmor", kind: retiredFlag}, {name: "enableLynis", kind: retiredFlag},
 	{name: "dmzSubnet", kind: retiredText},
@@ -47,6 +51,7 @@ var retired = []retiredKey{
 	{name: "useUvPackageManager", kind: retiredFlag},
 	{name: "lang", kind: retiredText}, {name: "language", kind: retiredText}, {name: "lcAll", kind: retiredText},
 	{name: "tz", kind: retiredText}, {name: "pythonUnbuffered", kind: retiredText, text: "1"},
+	{name: "logsconfig", kind: retiredLogs, text: defaultLogFile},
 }
 
 // Retired returns the keys of retired that the file c was read from sets
@@ -92,6 +97,9 @@ func atDefault(name string, v *yaml.Node) bool {
 	case retiredFlag:
 		var b bool
 		return v.Kind == yaml.ScalarNode && v.Decode(&b) == nil && !b
+	case retiredLogs:
+		var m map[string]string
+		return v.Kind == yaml.MappingNode && v.Decode(&m) == nil && len(m) <= 1 && (len(m) == 0 || m["logfilepath"] == r.text)
 	default:
 		return v.Kind == yaml.ScalarNode && v.Value == r.text
 	}

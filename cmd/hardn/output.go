@@ -129,11 +129,11 @@ const keyNotUsed = "hardn.yml's %s isn't used"
 // notUsed are the keys of c that nothing in hardn reads and that hold a
 // value other than config.DefaultConfig's: permitRootLogin (as RootLogin
 // reads it, so that the bool of §3.17, which loadWarnings already says is
-// deprecated, warns here only where it is true) and sshKeyPath, then the
-// keys Config has no field for (config.Retired, read from the file's own
-// keys): sshAllowedUsers, sshListenAddress, the ufw policies,
-// ufwAllowedPorts, enableAppArmor, enableLynis and the keys the legacy
-// package, sources and localization code read. A value equal to the
+// deprecated, warns here only where it is true), then the keys Config has
+// no field for (config.Retired, read from the file's own keys):
+// sshAllowedUsers, sshListenAddress, sshKeyPath, the ufw policies,
+// ufwAllowedPorts, enableAppArmor, enableLynis, the keys the legacy
+// package, sources and localization code read, and logsconfig. A value equal to the
 // default never warns: origin/main's SaveConfig writes the defaults into
 // every file it saves, so it is hardn's, not the file's. disableRootSSH is read:
 // true, Run All turns root login off (decision 4 (a)), so it warns no more.
@@ -147,7 +147,6 @@ func notUsed(c *config.Config) []string {
 		set bool
 	}{
 		{"permitRootLogin", c.RootLogin() != d.RootLogin()},
-		{"sshKeyPath", c.SshKeyPath != d.SshKeyPath},
 	} {
 		if k.set {
 			keys = append(keys, k.key)

@@ -48,7 +48,6 @@ type Config struct {
 	// SSH Configuration
 	SshPort         int    `yaml:"sshPort"`
 	PermitRootLogin bool   `yaml:"permitRootLogin"`
-	SshKeyPath      string `yaml:"sshKeyPath"`
 	SshConfigFile   string `yaml:"sshConfigFile"`
 
 	// User Configuration
@@ -87,7 +86,6 @@ func DefaultConfig() *Config {
 		// SSH Configuration
 		SshPort:         22,
 		PermitRootLogin: false,
-		SshKeyPath:      ".ssh_%u",
 		SshConfigFile:   "/etc/ssh/sshd_config.d/hardn.conf",
 
 		// User Configuration
