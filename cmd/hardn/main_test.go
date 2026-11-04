@@ -124,8 +124,7 @@ const (
 
 func resetFlags() {
 	noColor, configFile, username, dryRun = false, "", "", false
-	createUser, disableRootSSH, installLinux, installPython, installAll = false, false, false, false, false
-	configureUfw, configureDns, runAll, updateSources, printLogs = false, false, false, false, false
+	createUser, disableRootSSH, configureUfw, configureDns, runAll, printLogs = false, false, false, false, false, false
 	showVersion, setupSudoEnv, debugUpdates, testUpdateAvailable, testSecurityUpdate = false, false, false, false, false
 	cfg = nil
 	// A flag given in one run stays given in pflag for the next (dryRunGiven).

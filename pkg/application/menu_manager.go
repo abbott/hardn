@@ -9,40 +9,12 @@ import (
 
 // MenuManager orchestrates menu-related operations
 type MenuManager struct {
-	packageManager  *PackageManager
 	hostInfoManager *HostInfoManager
 }
 
-// NewMenuManager returns a MenuManager over the package and host-info
-// managers.
-func NewMenuManager(
-	packageManager *PackageManager,
-	hostInfoManager *HostInfoManager,
-) *MenuManager {
-	return &MenuManager{
-		packageManager:  packageManager,
-		hostInfoManager: hostInfoManager,
-	}
-}
-
-// install Linux packages based on the specified type
-func (m *MenuManager) InstallLinuxPackages(packages []string, packageType string) error {
-	return m.packageManager.InstallLinuxPackages(packages, packageType)
-}
-
-// install Python packages
-func (m *MenuManager) InstallPythonPackages(systemPackages []string, pipPackages []string, useUv bool) error {
-	return m.packageManager.InstallPythonPackages(systemPackages, pipPackages, useUv)
-}
-
-// update package sources configuration
-func (m *MenuManager) UpdatePackageSources() error {
-	return m.packageManager.UpdatePackageSources()
-}
-
-// update Proxmox-specific package sources
-func (m *MenuManager) UpdateProxmoxSources() error {
-	return m.packageManager.UpdateProxmoxSources()
+// NewMenuManager returns a MenuManager over the host-info manager.
+func NewMenuManager(hostInfoManager *HostInfoManager) *MenuManager {
+	return &MenuManager{hostInfoManager: hostInfoManager}
 }
 
 // retrieve host information
