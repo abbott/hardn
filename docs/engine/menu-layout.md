@@ -69,7 +69,7 @@ How each existing compact test keeps running: `TestCompact`, `TestStatusBlocks`,
 | 4 | Firewall (`NewFirewallMenu`); *since `next/s4-replace`, the Firewall screen (`SetFirewall`), from a cleared screen, under plan only too, its description "View pve-firewall" on Proxmox VE* |
 | 5 | Backup, the Backup screen (`SetBackup`), from a cleared screen; *since `next/s3-replace`, under plan only too* |
 | 6 | Dry-Run (`NewDryRunHandler`), until unit (d); since, refused as a key no item has; *since `next/s7-replace`, Auto Updates, the Auto Updates screen, from a cleared screen, under plan only too* |
-| 7 | Run All (`NewRunAllHandler`), its option 2 until unit (d), which removed it |
+| 7 | Run All (`NewRunAllHandler`), its option 2 until unit (d), which removed it; *since `next/s8-replace`, the Run All screen (`SetRunAll`), from a cleared screen, under plan only too; the legacy screen deleted* |
 | 8 | Environment (`NewEnvironmentSettingsMenu`); *since `next/s9-replace`, the Environment screen (`SetEnvironment`), from a cleared screen, under plan only too, its description "Keep HARDN_CONFIG"* |
 | 9 | System Details (`NewSystemDetailsMenu`) |
 | 10 | Logs (`NewLogsMenu`) |

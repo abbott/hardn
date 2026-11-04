@@ -1,6 +1,6 @@
 # The Run All screen on the planner (`pkg/screens/runall`, `screen.RunAll`)
 
-> **Unit:** refactor plan slice 8, unit (c), `next/s8-screen`, from `346e2fb9`. **Status:** built and tested on macOS, in process: the screen through `Run` on its own fake (`host_test.go` and `hosts_test.go` copied from `pkg/engine/runall`'s tests, Create's accounts model from `pkg/screens/users`'), the planner's reads and the plans on the real engine. No real terminal, no hardn binary, no VM. Not yet wired: main menu 7 still runs the legacy Run All until unit (d).
+> **Unit:** refactor plan slice 8, unit (c), `next/s8-screen`, from `346e2fb9`. **Status:** built and tested on macOS, in process: the screen through `Run` on its own fake (`host_test.go` and `hosts_test.go` copied from `pkg/engine/runall`'s tests, Create's accounts model from `pkg/screens/users`'), the planner's reads and the plans on the real engine. No real terminal, no hardn binary, no VM. Not yet wired: main menu 7 still runs the legacy Run All until unit (d). *Since `next/s8-replace`: main menu 7 opens this screen, and `hardn -r` runs its plan ([cmd-engine.md](cmd-engine.md) §2.19).*
 
 ## What it does
 
