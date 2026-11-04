@@ -97,31 +97,27 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 	if typed && run.Err == nil && run.Plan != nil && run.Plan.Err() == nil && confirm.asks(run.Plan) {
 		return runTyped(c, controls, *confirm)
 	}
-	actx := ctx // a signal's, around the apply and its report alone
-	hungUp := func() bool { return false }
+	signalled := func() bool { return false } // around the apply and its report alone
 	if run.Mode == output.ModeApply && run.Err == nil && run.Plan.Err() == nil {
-		hup := watchHangup() // first: no hangup engineSignals catches goes unmarked
-		defer hup.stop()
-		hungUp = hup.seen
-		var stop context.CancelFunc
-		actx, stop = engineSignals(ctx)
-		defer stop()
-		res, err := e.Apply(actx, run.Plan)
+		w := openApplyWindow(ctx)
+		defer w.close()
+		signalled = w.close
+		res, err := e.Apply(w.ctx, run.Plan)
 		run.Result, run.Err = &res, err
 	}
 	if err := output.Emit(output.Streams{Stdout: engineStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
 		sayError("%v", err)
 	}
-	return endControls(run, actx, hungUp)
+	return endControls(run, signalled)
 }
 
 // endControls is the exit status of a flag's run, output.ExitCode's, and
 // ends hardn at once when it was interrupted, or when a signal reached its
-// apply's registration, actx done, or a hangup's watch (hungUp): with 130
+// apply's window, as settle reports it (an applyWindow's close): with 130
 // for a change applied, the flags after it not run (runControls).
-func endControls(run output.Run, actx context.Context, hungUp func() bool) int {
+func endControls(run output.Run, settle func() bool) int {
 	code := output.ExitCode(run)
-	signalled := actx.Err() != nil || hungUp()
+	signalled := settle()
 	if signalled && code == output.ExitOK {
 		code = output.ExitInterrupted // applied, but the flags after it are not run
 	}
