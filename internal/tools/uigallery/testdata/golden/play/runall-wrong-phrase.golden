@@ -10,9 +10,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each change␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's Plan, all of them in one plan on the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Which controls hardn.yml asks for, how a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped, and the hostname asked whatever the risk are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped, a change pending read before any plan, and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhostname asked whatever the risk are the gallery's stand-ins,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george (two␛[m$
@@ -25,16 +26,18 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -131,16 +134,18 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -165,9 +170,10 @@ $
 # each row's state from the control's real Check, each change$
 # the real control's Plan, all of them in one plan on the real$
 # plan/apply engine. Which controls hardn.yml asks for, how a$
-# row is skipped, and the hostname asked whatever the risk are$
-# the gallery's stand-ins, unit (b)'s to build. Nothing on this$
-# machine changes: every command and file is the fake's.$
+# row is skipped, a change pending read before any plan, and the$
+# hostname asked whatever the risk are the gallery's stand-ins,$
+# unit (b)'s to build. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # Info: runall/debian13$
 # web-01.example.net runs Debian 13. As the VM: george (two$
@@ -180,16 +186,18 @@ $
 $
 # Run All ######################################################$
 $
-  [+] User                 Configured Already as asked$
-  [+] Firewall             Configured Already as asked$
-  [ ] SSH Login            Partial Root login off$
-  [+] SSH Auth             Configured Nothing asked$
-  [ ] SSH Port             Not Configured Already as asked$
-  [+] AppArmor             Configured Status only$
-  [+] Auto Updates         Configured Already as asked$
-  [ ] DNS                  Not Configured Set 2 nameservers$
-  [+] Backups              Configured Used, not changed$
-  [ ] Environment          Not Configured Nothing asked$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Already as asked$
+   -  Firewall             Already as asked$
+   -  SSH Login            Root login off$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         Already as asked$
+   -  DNS                  Set 2 nameservers$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
 $
   Select an option$
 $
@@ -286,16 +294,18 @@ $
 $
 # Run All ######################################################$
 $
-  [+] User                 Configured Already as asked$
-  [+] Firewall             Configured Already as asked$
-  [ ] SSH Login            Partial Root login off$
-  [+] SSH Auth             Configured Nothing asked$
-  [ ] SSH Port             Not Configured Already as asked$
-  [+] AppArmor             Configured Status only$
-  [+] Auto Updates         Configured Already as asked$
-  [ ] DNS                  Not Configured Set 2 nameservers$
-  [+] Backups              Configured Used, not changed$
-  [ ] Environment          Not Configured Nothing asked$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Already as asked$
+   -  Firewall             Already as asked$
+   -  SSH Login            Root login off$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         Already as asked$
+   -  DNS                  Set 2 nameservers$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
 $
   Select an option$
 $
@@ -320,10 +330,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange the real control's Plan, all of them in one plan on␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan/apply engine. Which controls hardn.yml asks␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped, and the hostname asked whatever␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe risk are the gallery's stand-ins, unit (b)'s to build.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped, a change pending read before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156many plan, and the hostname asked whatever the risk are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george (two␛[m$
@@ -336,26 +346,28 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -457,26 +469,28 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $

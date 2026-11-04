@@ -10,9 +10,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each change␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's Plan, all of them in one plan on the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Which controls hardn.yml asks for, how a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped, and the hostname asked whatever the risk are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe gallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped, a change pending read before any plan, and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhostname asked whatever the risk are the gallery's stand-ins,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: root alone, by key,␛[m$
@@ -23,18 +24,18 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-                           ␛[38;2;219;184;83m- sudo isn't installed, so hardn can…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-                           ␛[38;2;219;184;83m- hardn reads pve-firewall and doesn…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRoot key-only␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mupdated by hand␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156msudo isn't installed, so ha…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mhardn reads pve-firewall an…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot key-only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mupdated by hand␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -153,23 +154,22 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-                           ␛[38;2;219;184;83m- sudo isn't installed, so hardn can…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-                           ␛[38;2;219;184;83m- hardn reads pve-firewall and doesn…␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mRefused␛[m$
-                           ␛[38;2;219;184;83m- Root stays key-only on Proxmox VE:…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mupdated by hand␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mupdated by hand␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mNothing to change␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mChange pending␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -212,9 +212,10 @@ $
 # each row's state from the control's real Check, each change$
 # the real control's Plan, all of them in one plan on the real$
 # plan/apply engine. Which controls hardn.yml asks for, how a$
-# row is skipped, and the hostname asked whatever the risk are$
-# the gallery's stand-ins, unit (b)'s to build. Nothing on this$
-# machine changes: every command and file is the fake's.$
+# row is skipped, a change pending read before any plan, and the$
+# hostname asked whatever the risk are the gallery's stand-ins,$
+# unit (b)'s to build. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # Info: runall/pve9$
 # web-01.example.net is a Proxmox VE 9 node: root alone, by key,$
@@ -225,18 +226,18 @@ $
 $
 # Run All ######################################################$
 $
-  [ ] User                 Not Configured Refused$
-                           - sudo isn't installed, so hardn c...$
-  [ ] Firewall             Not Configured Refused$
-                           - hardn reads pve-firewall and doe...$
-  [ ] SSH Login            Not Configured Root key-only$
-  [ ] SSH Auth             Not Configured Nothing asked$
-  [+] SSH Port             Configured Already as asked$
-  [+] AppArmor             Configured Status only$
-  [-] Auto Updates         Not Applicable updated by hand$
-  [ ] DNS                  Not Configured Set 2 nameservers$
-  [+] Backups              Configured Used, not changed$
-  [-] Environment          Not Applicable Nothing asked$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Refused: sudo isn't installed, so...$
+   -  Firewall             Refused: hardn reads pve-firewall...$
+   -  SSH Login            Root key-only$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         updated by hand$
+   -  DNS                  Set 2 nameservers$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
 $
   Select an option$
 $
@@ -355,23 +356,22 @@ $
 $
 # Run All ######################################################$
 $
-  [ ] User                 Not Configured Refused$
-                           - sudo isn't installed, so hardn c...$
-  [ ] Firewall             Not Configured Refused$
-                           - hardn reads pve-firewall and doe...$
-  [+] SSH Login            Configured Refused$
-                           - Root stays key-only on Proxmox V...$
-  [ ] SSH Auth             Not Configured Nothing asked$
-  [+] SSH Port             Configured Already as asked$
-  [+] AppArmor             Configured Status only$
-  [-] Auto Updates         Not Applicable updated by hand$
-  [+] DNS                  Configured Already as asked$
-  [+] Backups              Configured Used, not changed$
-  [-] Environment          Not Applicable Nothing asked$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Change pending$
+   -  Firewall             Change pending$
+   -  SSH Login            Change pending$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         updated by hand$
+   -  DNS                  Change pending$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
 $
   Select an option$
 $
-   1) Apply all            Nothing to change$
+   1) Apply all            Change pending$
 $
    0) Return$
 $
@@ -414,10 +414,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange the real control's Plan, all of them in one plan on␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan/apply engine. Which controls hardn.yml asks␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped, and the hostname asked whatever␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe risk are the gallery's stand-ins, unit (b)'s to build.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes: every command and file is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped, a change pending read before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156many plan, and the hostname asked whatever the risk are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node: root alone, by␛[m$
@@ -428,28 +428,28 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mUser␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-      ␛[38;2;219;184;83m- sudo isn't installed, so hardn can't grant admin ri…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-      ␛[38;2;219;184;83m- hardn reads pve-firewall and doesn't change it: a w…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRoot key-only␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
-      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mupdated by hand␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156msudo isn't installed, so hardn can't grant a…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mhardn reads pve-firewall and doesn't change…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRoot key-only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mupdated by hand␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
@@ -580,34 +580,33 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mUser␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-      ␛[38;2;219;184;83m- sudo isn't installed, so hardn can't grant admin ri…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mRefused␛[m$
-      ␛[38;2;219;184;83m- hardn reads pve-firewall and doesn't change it: a w…␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mRefused␛[m$
-      ␛[38;2;219;184;83m- Root stays key-only on Proxmox VE: the cluster's no…␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
-      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mupdated by hand␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDNS␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mupdated by hand␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
-      ␛[38;2;129;134;156mNothing to change␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
