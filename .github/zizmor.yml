@@ -5,4 +5,8 @@
 # No exceptions: every action and reusable workflow is hash-pinned (the
 # unpinned-uses default). p7-release removed the one exception, for the SLSA
 # Go builder's reusable workflow, with the builder.
+#
+# One inline suppression (p7-provenance): self-repository on release.yml's
+# call to ./.github/workflows/build.yml, because actionlint 1.7.12 rejects
+# the $/ form zizmor asks for. The reason is beside it.
 rules: {}
