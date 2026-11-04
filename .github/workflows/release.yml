@@ -296,9 +296,13 @@ jobs:
 
       # SLSA Build Level 3: each binary on the draft has build provenance
       # signed by build.yml (the reusable workflow, not this file) at this
-      # tag and commit, on a GitHub-hosted runner. build.yml, called with ./,
-      # is read from the same commit, so its digest is GITHUB_SHA too. A
-      # binary that fails leaves the release a draft.
+      # tag and commit, on a GitHub-hosted runner. The signer is the exact
+      # certificate identity: --signer-workflow is a prefix match before gh
+      # 2.102.0. The certificate's SAN is https://github.com/ + the OIDC
+      # token's job_workflow_ref, which names the called workflow; build.yml,
+      # called with ./, runs at this run's ref and commit, so the identity
+      # ends @GITHUB_REF and its digest is GITHUB_SHA. A binary that fails
+      # leaves the release a draft.
       - name: Verify each binary's provenance
         env:
           GH_TOKEN: ${{ github.token }}
@@ -311,7 +315,7 @@ jobs:
             case "$f" in hardn-*.spdx.json) continue ;; esac
             gh attestation verify "back/$f" \
               --repo abbott/hardn \
-              --signer-workflow abbott/hardn/.github/workflows/build.yml \
+              --cert-identity "https://github.com/abbott/hardn/.github/workflows/build.yml@$GITHUB_REF" \
               --source-ref "$GITHUB_REF" \
               --source-digest "$GITHUB_SHA" \
               --signer-digest "$GITHUB_SHA" \

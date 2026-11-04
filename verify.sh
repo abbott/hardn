@@ -10,7 +10,17 @@
 #   platform  linux-amd64, linux-arm64 or darwin-amd64
 #
 # Needs: curl; gh 2.68.0 or later, signed in (gh auth login: the attestations
-# are read through the GitHub API); sha256sum or shasum.
+# are read through the GitHub API); sha256sum or shasum. 2.68.0 is the first gh
+# with every flag used here (--source-ref; --repo, --cert-identity and
+# --deny-self-hosted-runners are older).
+#
+# The signer is checked by the exact certificate identity (--cert-identity),
+# not --signer-workflow, which before gh 2.102.0 is a prefix match. The build
+# runs in the reusable workflow build.yml, called with ./ from release.yml, so
+# the certificate names build.yml at the release's tag:
+#   https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v<x.y.z>
+# (Fulcio's SAN is https://github.com/ + the OIDC token's job_workflow_ref,
+# which names the called workflow; a ./ call runs it at the caller's ref.)
 #
 # Steps, each fatal: download hardn-<platform> and SHA256SUMS from the release
 # into a temporary directory; check the binary's SHA-256 against its one line
@@ -21,7 +31,7 @@
 set -eu
 
 REPO=abbott/hardn
-SIGNER_WORKFLOW=abbott/hardn/.github/workflows/build.yml
+SIGNER_WORKFLOW=https://github.com/abbott/hardn/.github/workflows/build.yml
 
 die() {
 	printf 'verify.sh: %s\n' "$*" >&2
@@ -62,8 +72,11 @@ dest=./$binary
 # Tools.
 command -v curl >/dev/null 2>&1 || die "needs curl"
 command -v gh >/dev/null 2>&1 || die "needs gh 2.68.0 or later (https://cli.github.com)"
-gh attestation verify --help 2>/dev/null | grep -q -- '--source-ref' ||
-	die "needs gh 2.68.0 or later (gh attestation verify --source-ref); found: $(gh --version 2>/dev/null | head -n 1)"
+help=$(gh attestation verify --help 2>/dev/null) || help=
+for flag in --repo --cert-identity --source-ref --deny-self-hosted-runners; do
+	printf '%s\n' "$help" | grep -q -- "$flag" ||
+		die "needs gh 2.68.0 or later (gh attestation verify $flag); found: $(gh --version 2>/dev/null | head -n 1)"
+done
 if command -v sha256sum >/dev/null 2>&1; then
 	sha256() { sha256sum "$1" | awk '{ print $1 }'; }
 elif command -v shasum >/dev/null 2>&1; then
@@ -97,15 +110,15 @@ esac
 [ "$got" = "$want" ] || die "$binary's SHA-256 is $got; SHA256SUMS says $want"
 printf 'SHA-256 matches SHA256SUMS: %s\n' "$got"
 
-# 3. Provenance: signed by build.yml in abbott/hardn, from the tag, on a
-# GitHub-hosted runner.
+# 3. Provenance: signed by build.yml in abbott/hardn at the tag (the exact
+# certificate identity), from the tag, on a GitHub-hosted runner.
 printf 'Verifying the provenance attestation ...\n'
 gh attestation verify "$tmp/$binary" \
 	--repo "$REPO" \
-	--signer-workflow "$SIGNER_WORKFLOW" \
+	--cert-identity "$SIGNER_WORKFLOW@refs/tags/$tag" \
 	--source-ref "refs/tags/$tag" \
 	--deny-self-hosted-runners ||
 	die "gh attestation verify failed for $binary at $tag"
 
 mv "$tmp/$binary" "$dest" || die "cannot move the verified binary to $dest"
-printf 'Verified: %s, %s, built by %s from %s at %s.\n' "$dest" "$tag" "$SIGNER_WORKFLOW" "$REPO" "refs/tags/$tag"
+printf 'Verified: %s, %s, built by %s from %s at %s.\n' "$dest" "$tag" "$SIGNER_WORKFLOW@refs/tags/$tag" "$REPO" "refs/tags/$tag"

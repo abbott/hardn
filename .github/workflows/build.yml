@@ -8,7 +8,8 @@ name: Build
 # run in this reusable workflow, so the signing certificate names this file,
 # not the caller, as the signer. A release is verified with
 #   gh attestation verify <binary> --repo abbott/hardn \
-#     --signer-workflow abbott/hardn/.github/workflows/build.yml
+#     --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v<x.y.z> \
+#     --source-ref refs/tags/v<x.y.z> --deny-self-hosted-runners
 # release.yml does that to every binary before it publishes.
 #
 # Inputs are what release.yml's prepare job computed. attest is true only
