@@ -3,7 +3,9 @@
 BINARY_NAME=hardn
 BUILD_DIR=build
 # The same ldflags as .github/workflows/release.yml's build: HEAD's full commit
-# and its commit date in UTC, not the clock, so a rebuild of a commit is
+# and its commit date in UTC, not the clock. build, linux, darwin and arm also
+# build as release.yml and check-cross do (GO_BUILD below: CGO_ENABLED=0,
+# -trimpath, -tags=netgo), so with go.mod's toolchain a rebuild of a commit is
 # byte-identical.
 BUILD_DATE=$(shell TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ HEAD 2>/dev/null || echo "unknown")
 GIT_COMMIT=$(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
@@ -37,7 +39,6 @@ archives:
 	cd $(BUILD_DIR) && \
 	tar -czvf $(BINARY_NAME)-$(VERSION)-linux-amd64.tar.gz $(BINARY_NAME)-linux-amd64 && \
 	tar -czvf $(BINARY_NAME)-$(VERSION)-darwin-amd64.tar.gz $(BINARY_NAME)-darwin-amd64 && \
-	tar -czvf $(BINARY_NAME)-$(VERSION)-linux-arm.tar.gz $(BINARY_NAME)-linux-arm && \
 	tar -czvf $(BINARY_NAME)-$(VERSION)-linux-arm64.tar.gz $(BINARY_NAME)-linux-arm64
 
 release-artifacts: cross-compile archives checksums
@@ -84,23 +85,25 @@ all: clean build
 
 # Default build flags (can be overridden from environment)
 GO_BUILD_FLAGS?=
+# release.yml's build and check-cross's flags.
+GO_BUILD=CGO_ENABLED=0 go build -trimpath -tags=netgo
 
 build:
 	mkdir -p $(BUILD_DIR)
-	go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/hardn
+	$(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/hardn
 
 linux:
 	mkdir -p $(BUILD_DIR)
-	GOOS=linux GOARCH=amd64 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/hardn
+	GOOS=linux GOARCH=amd64 $(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/hardn
 
 darwin:
 	mkdir -p $(BUILD_DIR)
-	GOOS=darwin GOARCH=amd64 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./cmd/hardn
+	GOOS=darwin GOARCH=amd64 $(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./cmd/hardn
 
+# linux/arm64 only: armv7 is not a release target (decision 6).
 arm:
 	mkdir -p $(BUILD_DIR)
-	GOOS=linux GOARCH=arm GOARM=7 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm ./cmd/hardn
-	GOOS=linux GOARCH=arm64 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./cmd/hardn
+	GOOS=linux GOARCH=arm64 $(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./cmd/hardn
 
 cross-compile: linux darwin arm
 
