@@ -4,7 +4,8 @@ import "github.com/abbott/hardn/pkg/host/detect"
 
 // CodeBestEffort is the finding of a plan made on a best-effort release
 // (detect.BestEffort: Ubuntu 22.04 and Alpine 3.22): one its vendor
-// still supports and hardn changes, but is not tested on. It is stable
+// still supports and hardn changes, with no promises (platform.go's
+// BestEffort). It is stable
 // once released; p3-output's registry holds it (P-41, decided by the
 // maintainer on 2026-10-19: such releases are changed, with this warning
 // in every plan; next/p3-confirm-cleanup).
@@ -32,7 +33,7 @@ func platformFindings(p detect.Platform) []Finding {
 	if name == "" {
 		name = string(p.Distro)
 	}
-	detail := name + " " + p.Version + " is a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it"
+	detail := name + " " + p.Version + " is a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it"
 	if p.Note != "" {
 		detail += " (" + p.Note + ")"
 	}

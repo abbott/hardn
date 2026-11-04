@@ -14,14 +14,15 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/best-effort-ubuntu2204␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 22.04, a best-effort release:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn changes it, but is not tested on it. sshd listens on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport 22, and ufw is active, allowing 22/tcp.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits vendor still supports it, and hardn changes it but makes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno promises for it. sshd listens on port 22, and ufw is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mactive, allowing 22/tcp.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan alone, for key-only login: it carries the release's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarning (P-41).␛[m$
 $
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mUbuntu 22.04 is a best-effort release: its vendor still␛[m$
-      ␛[38;2;219;184;83msupports it and hardn changes it, but hardn is not tested␛[m$
-      ␛[38;2;219;184;83mon it␛[m$
+      ␛[38;2;219;184;83msupports it, and hardn changes it but makes no promises␛[m$
+      ␛[38;2;219;184;83mfor it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -103,14 +104,15 @@ $
 $
 # Info: engine/best-effort-ubuntu2204$
 # web-01.example.net runs Ubuntu 22.04, a best-effort release:$
-# hardn changes it, but is not tested on it. sshd listens on$
-# port 22, and ufw is active, allowing 22/tcp.$
+# its vendor still supports it, and hardn changes it but makes$
+# no promises for it. sshd listens on port 22, and ufw is$
+# active, allowing 22/tcp.$
 # The plan alone, for key-only login: it carries the release's$
 # warning (P-41).$
 $
   [ ] Ubuntu 22.04 is a best-effort release: its vendor still$
-      supports it and hardn changes it, but hardn is not tested$
-      on it$
+      supports it, and hardn changes it but makes no promises$
+      for it$
 $
    -  Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$
@@ -193,14 +195,15 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/best-effort-ubuntu2204␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 22.04, a best-effort␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrelease: hardn changes it, but is not tested on it. sshd␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlistens on port 22, and ufw is active, allowing 22/tcp.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrelease: its vendor still supports it, and hardn changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit but makes no promises for it. sshd listens on port 22,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand ufw is active, allowing 22/tcp.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe plan alone, for key-only login: it carries the␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrelease's warning (P-41).␛[m$
 $
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mUbuntu 22.04 is a best-effort release: its vendor␛[m$
-      ␛[38;2;219;184;83mstill supports it and hardn changes it, but hardn is␛[m$
-      ␛[38;2;219;184;83mnot tested on it␛[m$
+      ␛[38;2;219;184;83mstill supports it, and hardn changes it but makes no␛[m$
+      ␛[38;2;219;184;83mpromises for it␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
