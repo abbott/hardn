@@ -1,8 +1,6 @@
 # Release notes: unreleased (after v0.3.2)
 
-> **What this is:** the hand-written notes for the next release, collected as each change lands; the release copies them above the commit list the release workflow writes (`.github/workflows/release.yml`, "Generate changelog", from `git log`). Started by refactor plan slice 2b, unit (b), `next/s2b-mode`, for P-03's deprecation note (decision 10, [gallery-dryrun.md](../engine/gallery-dryrun.md) §4). The repository kept no notes before: the workflow's changelog is the commit subjects alone, and plan Phase 7 (`next/p7-docs`) covers the README and contributing only. **Every line is proposed** ([dryrun-mode.md](../engine/dryrun-mode.md) §5).
->
-> **Ship slice 2b's units (b) to (d) together.** Unit (d) (`next/s2b-replace`, [dryrun-replace.md](../engine/dryrun-replace.md)) removed item 6 and Run All's option 2, and refuses under plan only the menu areas that still changed the host; without it, plan only from hardn.yml would reach the menus with `-n`'s gaps ([dryrun-mode.md](../engine/dryrun-mode.md) §2).
+> **What this is:** the hand-written notes for v0.4.0, collected as each change lands. At the release candidate, once the maintainer approves the words, this file becomes `docs/releases/v0.4.0.md`, and the release workflow takes that file, at the tagged commit, as the release's whole body; this note is cut then. Started by refactor plan slice 2b, unit (b), `next/s2b-mode`; the sections marked *drafted by p7-release* were added for the Phase 7 survey's decision 9 (b). **Every line is proposed** ([dryrun-mode.md](../engine/dryrun-mode.md) §5).
 
 ## Changed: dry run is "plan only", and `dryRun` is read
 
@@ -17,6 +15,36 @@
 - **Under plan only, User Management, SSH Login, Firewall, Backup, Auto Updates, Run All and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too, and they write nothing. User Management used to apply its changes even under `-n`.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
+
+## New: `hardn confirm`, `hardn rollback` and the revert timer
+
+*Drafted by p7-release.*
+
+- **A change that could lock you out rolls back by itself** unless it is confirmed within 3 minutes, such as SSH Login's changes and enabling the firewall. The screen shows when, and how to undo it now.
+- **`sudo hardn confirm` keeps it**, from a new SSH connection made from another machine, to the new port where the change added one. The session that made the change, one already open before it, and one through the host itself are refused. At the console it confirms, with a warning that this shows nothing about SSH.
+- **`sudo hardn rollback <id>` undoes it now**: it restores the files the change backed up and undoes its steps. Run again, it finishes a rollback that stopped. `sudo hardn rollback --abandon <id>` gives up a rollback that can never finish.
+- **One change at a time.** While a change waits for confirmation, or a rollback has not finished, the next change is refused, and says how to go on.
+- **A reboot doesn't lose the timer.** Before the first such change, hardn installs a boot unit, `hardn-boot` (`/etc/systemd/system/hardn-boot.service`, or `/etc/init.d/hardn-boot` on OpenRC). At boot it restarts the timer for what is left of the 3 minutes, or rolls the change back before sshd starts once they have passed. It is removed at the first boot with nothing waiting.
+- **The next run says what happened**: as root, each command says on stderr that a change is waiting for confirmation, or was rolled back because it was not confirmed.
+- **Where neither systemd nor OpenRC runs, such a change is refused**, as it is when the hardn binary, or a directory above it, can be changed by a user other than root.
+- **Both need root, and `-n` refuses them**, exit status 2. `hardn confirm` exits 1 when it does not confirm.
+
+## Changed: DNS
+
+*Drafted by p7-release.*
+
+- **Main menu 3 shows DNS**: what manages `/etc/resolv.conf`, the nameservers and search domains in use, and hardn.yml's nameservers. Opening it changes nothing.
+- **Each change is shown first, and asks y/N.** Configure DNS sets hardn.yml's nameservers. Add nameserver, Remove nameserver and the Cloudflare, Google and Quad9 presets change the list, set it, and save the list alone in the hardn.yml hardn loaded.
+- **The host's search domains are kept.** hardn no longer writes `domain lan` and `search lan`, and sets every nameserver listed, not only the first two.
+- **Nameservers are checked.** An address that isn't one, can't be used, or is listed twice is refused; `/etc/resolv.conf` takes three at most.
+- **On systemd-resolved, hardn writes its own file**, `/etc/systemd/resolved.conf.d/zz-hardn.conf`. When the reload has no effect, the change rolls back.
+- **Where another program manages DNS, hardn only reports it**: NetworkManager, resolvconf, a container, or a link to another program's file. A change there is refused, and says where to set the nameservers.
+- **No nameservers is refused.** Configure DNS with none says "Please add nameservers first.", and the last nameserver can't be removed.
+- **On Alpine, where udhcpc rewrites `/etc/resolv.conf`**, each change asks whether to stop it.
+- **`hardn -g` sets hardn.yml's nameservers the same way**, without asking. With `-n` it shows the plan and exits 3; it used to be refused.
+- **A DNS change is backed up, and rolled back if it fails.** It can't lock you out, so there is nothing to confirm.
+
+See [docs/configuration.md](../configuration.md), "What Run All reads".
 
 ## Changed: the Backup screen
 
@@ -154,3 +182,49 @@ See [docs/configuration.md](../configuration.md), "What Run All reads".
 - **23 hardn.yml keys warn where set**: `dmzSubnet`, the ten package lists, the five repository keys and `alpineTestingRepo`, `useUvPackageManager`, `lang`, `language`, `lcAll`, `tz` and `pythonUnbuffered`. Nothing reads them. Where one is set to other than its default, hardn warns, such as "hardn.yml's dmzSubnet isn't used". The file is still accepted.
 
 See [docs/configuration.md](../configuration.md), "Configuration Options".
+
+## Changed: `disableRoot` is `disableRootSSH`
+
+*Drafted by p7-release.*
+
+- **hardn.yml's `disableRoot` was renamed `disableRootSSH`.** The old key is ignored, without a warning: `disableRoot: true` no longer has Run All turn root login off. Rename it in older files.
+
+## Removed: the package flags and items
+
+*Drafted by p7-release.*
+
+- **`-l`, `-i`, `-a` and `-s` are removed**: `--install-linux`, `--install-python`, `--install-all` and `--configure-sources`. They installed hardn.yml's Linux and Python package lists, and rewrote `/etc/apt/sources.list` or `/etc/apk/repositories` from its repository keys. Each is now an unknown flag, exit status 2.
+- **The main menu's Linux Packages, Python Packages and Package Sources items are gone.**
+- **`-c` and `-r` no longer rewrite the package sources, and `-r` no longer installs packages.**
+
+## Removed: Lynis, and setting up AppArmor
+
+*Drafted by p7-release.*
+
+- **hardn no longer installs or runs Lynis.** Run All and `-r` did, with `enableLynis: true`.
+- **hardn no longer installs AppArmor or puts its profiles in enforce mode.** Run All and `-r` did, with `enableAppArmor: true`. The main menu's AppArmor row only shows its state, read from the kernel; hardn turns it neither on nor off.
+
+## Changed: colour and plain output
+
+*Drafted by p7-release.*
+
+- **Screens, plans and messages have a new look**, in colour on a colour terminal.
+- **Off a terminal, output is plain**: no colour or styling, no animation, and ASCII symbols. `HARDN_PLAIN=1` does the same on a terminal.
+- **`NO_COLOR` or `--no-color` turns colour off.**
+- **ASCII symbols** with `HARDN_ASCII=1`, `TERM=linux` or `TERM=dumb`, or a locale that isn't UTF-8.
+
+## Changed: building from source
+
+*Drafted by p7-release.*
+
+- **Building hardn needs Go 1.26 or later.** Release binaries are built with Go 1.27.3, which `go` fetches by default to build it (go.mod's `toolchain` line).
+
+## Changed: the release files
+
+*Drafted by p7-release.*
+
+- **Binaries for linux-amd64, linux-arm64 and darwin-amd64**, as before.
+- **`SHA256SUMS`, new**, lists each binary's SHA-256.
+- **An SBOM** in SPDX JSON, as before.
+- **No cosign signatures.** No release had `.sig` or `.crt` files, though the README said its binaries were signed; signing is dropped.
+- **Provenance is a GitHub attestation**, checked with `gh attestation verify`, in place of the `.intoto.jsonl` files. *(p7-provenance to finish.)*
