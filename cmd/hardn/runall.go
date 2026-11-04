@@ -5,13 +5,23 @@ package main
 // (pkg/screens/runall), which pkg/menu reaches through the hook set here,
 // as it reaches the SSH Login screen (ssh.go), so that pkg/menu builds no
 // engine (gallery-runall.md §5, decision 7 (a): the item's label and
-// description kept). The engine's options are engine.go's.
+// description kept); and -r plans with the same planner
+// (pkg/engine/runall) and applies its one plan through runControls, the
+// hostname typed on a terminal whatever the plan's risk, any plan with
+// changes refused off one (decision 8 (a)). The engine's options are
+// engine.go's.
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"os"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
+	planner "github.com/abbott/hardn/pkg/engine/runall"
+	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
@@ -78,4 +88,80 @@ func runRunAllScreen(ctx context.Context, c *config.Config, version string) erro
 		Now:          revertNow,
 		Version:      version,
 	})
+}
+
+// runAllFlag is -r: Run All's planner (planner.Read) on the host hardn
+// builds, as the Run All screen reads it, with engineOptions' session and
+// engines, hardn's environment (os.Getenv) and hardn's version, writing
+// nothing; each row it skips, refused, said on stderr, "<Row> skipped:
+// <the control's refusal>" (gallery-runall.md §6); then, where nothing
+// refuses Apply all, the planned rows' controls in one plan through
+// runControls, its report output.Human's on stdout: on a terminal (stdin
+// and stdout) the plan, "Apply this plan?" above the hostname typed
+// whatever the plan's risk, then the apply, the revert timer armed and
+// sudo hardn confirm said where the engine finds it lockout-risk, as -w
+// and -d (runAllConfirm); off a terminal any plan with changes refused,
+// PLAN_REFUSED, nothing run; under -n, or hardn.yml's dryRun: true, the
+// plan alone. A change pending, or the one plan's refusal, is said on
+// stderr in the planner's words and refuses -r, nothing planned. No plan
+// saves hardn.yml. It returns the exit status, runControls': 0 applied or
+// nothing to change, 3 a plan with changes to make (-n) or declined, 1
+// refused or failed; 1 too where the host can't be read.
+func runAllFlag(c *config.Config, version string) int {
+	ctx := context.Background()
+	sys := engineHost()
+	facts, err := engineDetect(ctx, sys)
+	if err != nil {
+		logging.LogError("%v", err)
+		return 1
+	}
+	o := engineOptions(ctx, sys, c)
+	r, err := planner.Read(ctx, planner.Input{System: sys, Facts: facts, Config: c, Session: o.Session,
+		Getenv: os.Getenv, Version: version, NewEngine: newEngine(sys, o)})
+	if err != nil {
+		logging.LogError("%v", err)
+		return 1
+	}
+	for _, rw := range r.Refused() {
+		fmt.Fprintln(stderr, rw.Title+runAllSkipped+rw.Refusal)
+	}
+	if r.Refusal != "" {
+		fmt.Fprintln(stderr, r.Refusal)
+		return 1
+	}
+	return runControls(c, r.Controls(), nil, &runAllConfirm)
+}
+
+// runAllSkipped follows a refused row's label on stderr: "<Row> skipped:
+// <the control's refusal>" (gallery-runall.md §6, the screen's words).
+const runAllSkipped = " skipped: "
+
+// runAllConfirm is -r's confirmation: the question the Run All screen asks
+// above the hostname typed (planner.Question, "Apply this plan?"), of any
+// plan with changes (always: decision 6 (a)), and the refusal off a
+// terminal in gallery-runall.md §6's words, its code the registry's
+// PLAN_REFUSED (engine.ErrRefused), exit status 1.
+var runAllConfirm = typedConfirm{
+	question: planner.Question,
+	always:   true,
+	offTerminal: &steps.Refusal{
+		Code: "PLAN_REFUSED",
+		Why:  "hardn -r asks you to type the hostname, and this isn't a terminal",
+		Fix:  "run hardn -r from a terminal",
+		Err:  fmt.Errorf("%w: a plan with changes, which -r confirms on a terminal alone", engine.ErrRefused),
+	},
+}
+
+// errRunAllAlone refuses -r with -c, -d, -w, -g or -e: -r runs alone
+// (gallery-runall.md §5, decision 8 (a); slice 9's defect 10, where -r -e
+// ran -r alone), a usage error, nothing run.
+var errRunAllAlone = errors.New("hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e.")
+
+// runAllAlone is errRunAllAlone where -r is given with -c, -d, -w, -g or
+// -e; nil otherwise.
+func runAllAlone() error {
+	if runAll && (createUser || disableRootSSH || configureUfw || configureDns || setupSudoEnv) {
+		return errRunAllAlone
+	}
+	return nil
 }

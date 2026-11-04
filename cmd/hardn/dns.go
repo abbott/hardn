@@ -58,7 +58,8 @@ func configureDNS(c *config.Config) int {
 // a hangup it alone catches, before engineSignals' registration, ends
 // hardn as one that reached the apply does.
 // confirm, when not nil, is the flag's confirmation of a lockout-risk plan
-// (typedConfirm, typed.go: -w's). A plain plan is applied as any flag's,
+// (typedConfirm, typed.go: -w's), or of any plan with changes where it
+// says always (-r's). A plain plan is otherwise applied as any flag's,
 // unasked, on a terminal or off. Live on a terminal, a lockout-risk plan,
 // planned here first and not refused, goes to the canonical flow instead
 // (runTyped), which plans again and confirms by the hostname typed; live
@@ -94,7 +95,7 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 	if refuse != nil && run.Err == nil && run.Plan != nil {
 		run.Err = refuse(run.Plan)
 	}
-	if typed && run.Err == nil && run.Plan != nil && run.Plan.Err() == nil && run.Plan.Risk == engine.RiskLockout {
+	if typed && run.Err == nil && run.Plan != nil && run.Plan.Err() == nil && confirm.asks(run.Plan) {
 		return runTyped(c, controls, *confirm)
 	}
 	actx := ctx // a signal's, around the apply and its report alone

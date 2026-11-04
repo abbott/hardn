@@ -12,12 +12,10 @@ import (
 
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/domain/model"
 	"github.com/abbott/hardn/pkg/infrastructure"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
 )
@@ -125,6 +123,12 @@ var rootCmd = &cobra.Command{
 	Short: "Linux hardening tool",
 	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
+		// -r runs alone: with -c, -d, -w, -g or -e a usage error before
+		// anything runs (runall.go; slice 9's defect 10).
+		if refuse(runAllAlone()) {
+			return
+		}
+
 		// -n only previews: refuse operation flags before anything runs (V1).
 		if refuseDryRunOperations(operationFlags()) {
 			return
@@ -186,13 +190,14 @@ var rootCmd = &cobra.Command{
 
 		// If username is provided, override config: -c's name, and the
 		// default of the User Management screen's Create and Run All's user
-		// (users.go)
+		// (users.go, runall.go)
 		if username != "" {
 			cfg.Username = username
 		}
 
 		// Check if we need to create a user and no username is provided
-		if (createUser || runAll) && cfg.Username == "" {
+		// (-r without one asks Run All for no user: runall.Asked)
+		if createUser && cfg.Username == "" {
 			logging.LogError("Please specify a username with -u flag or in the configuration file.")
 			exit(1)
 		}
@@ -248,6 +253,16 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
+		// Run All: the planner's one plan through the engine, the hostname
+		// typed on a terminal, any plan with changes refused off one
+		// (runall.go). It runs alone (runAllAlone).
+		if runAll {
+			if code := runAllFlag(cfg, Version); code != 0 {
+				exit(code)
+			}
+			return
+		}
+
 		// Process command line options using the new architecture
 
 		// Get required managers
@@ -256,41 +271,8 @@ var rootCmd = &cobra.Command{
 		// (-g needs no manager: it plans and applies the DNS control, dns.go)
 		packageManager := serviceFactory.CreatePackageManager()
 		// (-c needs no manager: it plans and applies the User control's Create, users.go)
-		menuManager := serviceFactory.CreateMenuManager()
+		// (-r needs no manager: it plans and applies Run All's planner's plan, runall.go)
 		// (-e needs no manager: it plans and applies the Environment control, environment.go)
-
-		// Handle a complete system hardening request
-		if runAll {
-			logging.LogInfo("Running complete system hardening...")
-
-			// Create a comprehensive hardening configuration
-			hardeningConfig := &model.HardeningConfig{
-				CreateUser:         cfg.Username != "",
-				Username:           cfg.Username,
-				SudoNoPassword:     cfg.SudoNoPassword,
-				SshKeys:            cfg.SshKeys,
-				SshPort:            cfg.SshPort,
-				SshListenAddresses: []string{cfg.SshListenAddress},
-				SshAllowedUsers:    cfg.SshAllowedUsers,
-				EnableFirewall:     cfg.EnableUfwSshPolicy,
-				AllowedPorts:       []int{},
-				FirewallProfiles:   []model.FirewallProfile{},
-				ConfigureDns:       cfg.ConfigureDns,
-				Nameservers:        cfg.Nameservers,
-				EnableAppArmor:     cfg.EnableAppArmor,
-				EnableLynis:        cfg.EnableLynis,
-				// EnableUnattendedUpgrades: cfg.EnableUnattendedUpgrades,
-			}
-
-			// Run all hardening steps
-			if err := menuManager.HardenSystem(hardeningConfig); err != nil {
-				logging.LogError("Failed to complete system hardening: %v", err)
-			} else {
-				logging.LogSuccess("System hardening completed successfully!")
-				fmt.Printf("Check the log file at %s for details.\n", output.LegacyLogPath)
-			}
-			return
-		}
 
 		// Handle individual operations based on flags
 
@@ -499,8 +481,10 @@ var (
 
 // operationFlags names the operation flags set on the command line that
 // -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
-// -e, -w, -c and -d, whose dry runs are the DNS, Environment, Firewall,
-// User and SSH Login controls' plans, shown with nothing written (refactor
+// -e, -w, -c, -d and -r, whose dry runs are the DNS, Environment, Firewall,
+// User and SSH Login controls' plans and Run All's, shown with nothing
+// written (slice 8, unit (d), gallery-runall.md §5, decision 8 (a), adopted
+// 2026-11-04; refactor
 // plan slice 2, unit (d); the maintainer, 2026-10-23; slice 9, unit (d),
 // gallery-environment.md §5, Made here, adopted 2026-10-29; slice 4, unit
 // (d), parity-firewall.md §6, adopted 2026-11-02; slice 5, unit (d),
@@ -512,7 +496,6 @@ func operationFlags() []string {
 		set  bool
 		name string
 	}{
-		{runAll, hardncmd.FlagRunAll},
 		{installLinux, hardncmd.FlagInstallLinux},
 		{installPython, hardncmd.FlagInstallPython},
 		{installAll, hardncmd.FlagInstallAll},
