@@ -25,10 +25,10 @@ import (
 // Logs items (withUsersScreen, withSSHScreen, withDNSScreen,
 // withFirewallScreen, withBackupScreen, withUpdatesScreen,
 // withRunAllScreen, withEnvironmentScreen, withReaderScreens), its status
-// and terminal (withStatus), whether c warned at load, for the main menu
-// to keep the warning, and the line reader every prompt shares and stdout.
+// and terminal (withStatus), whether c warned at load or --no-color was
+// given (warnNoColor), for the main menu to keep the warning, and the line reader every prompt shares and stdout.
 func menuOptions(c *config.Config, version string) mainmenu.Options {
-	m := mainmenu.Options{Config: c, Warned: loadWarnings(c) != "", Input: engineInput, Out: os.Stdout}
+	m := mainmenu.Options{Config: c, Warned: noColorGiven() || loadWarnings(c) != "", Input: engineInput, Out: os.Stdout}
 	m = withUpdatesScreen(withBackupScreen(withDNSScreen(withSSHScreen(withUsersScreen(m, c), c), c), c), c, version)
 	m = withRunAllScreen(m, c, version)
 	return withStatus(withReaderScreens(withEnvironmentScreen(withFirewallScreen(m, c), c), c), c, version)

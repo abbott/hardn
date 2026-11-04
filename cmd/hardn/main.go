@@ -34,6 +34,7 @@ var (
 	printLogs      bool
 	showVersion    bool
 	setupSudoEnv   bool
+	assumeYes      bool
 	cfg            *config.Config
 )
 
@@ -58,12 +59,9 @@ func start(logPath string) {
 }
 
 func init() {
-	// Set version for help output
-	rootCmd.Version = Version
-
-	// if rootCmd.Version != "" {
-	// 	sayInfo("Current version :::: : %s", rootCmd.Version)
-	// }
+	// rootCmd.Version is not set: cobra would then answer --version itself,
+	// with "hardn version <x>" alone, ahead of Run's build info (refactor
+	// plan §3.11: --version's build info restored).
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
 	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
@@ -79,7 +77,9 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
-	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
+	rootCmd.PersistentFlags().BoolVar(&assumeYes, "yes", false, "Apply a plan without a terminal to confirm it on; a lockout-risk plan still needs one")
+	addSurfaceFlags(rootCmd.PersistentFlags())
+	addTimeoutFlag(rootCmd.PersistentFlags())
 }
 
 // startMenu runs the main menu (runMenu), a seam for the tests, which
@@ -113,13 +113,21 @@ var rootCmd = &cobra.Command{
 		if refuse(runAllAlone()) {
 			return
 		}
+		// A bad --confirm-timeout: a usage error before anything runs
+		// (hardn.yml's confirmTimeout once it loads, below).
+		if refuseConfirmTimeout(nil) {
+			return
+		}
 
 		// Create version service
 		versionService := version.NewService(Version, BuildDate, GitCommit)
 
 		// Check if version flag is set and display version info
 		if showVersion {
-			versionService.PrintVersionInfo()
+			if err := versionService.PrintVersionInfo(engineStdout); err != nil {
+				sayError("%v", err)
+				exit(1)
+			}
 			return
 		}
 
@@ -166,6 +174,12 @@ var rootCmd = &cobra.Command{
 		// the dryRun of the file loaded, as loaded (§3.19; decision 2).
 		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
 
+		// hardn.yml's confirmTimeout, read as the engine reads it
+		// (engineOptions): a bad value a usage error before anything runs.
+		if refuseConfirmTimeout(cfg) {
+			return
+		}
+
 		// If username is provided, override config: -c's name, and the
 		// default of the User Management screen's Create and Run All's user
 		// (users.go, runall.go)
@@ -198,8 +212,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Run All: the planner's one plan through the engine, the hostname
-		// typed on a terminal, any plan with changes refused off one
-		// (runall.go). It runs alone (runAllAlone), -p aside: the log printed
+		// typed on a terminal; off one a lockout-risk plan refused, a plain
+		// one applied with --yes alone (runall.go). It runs alone (runAllAlone), -p aside: the log printed
 		// after -r's run, as after -c, -d, -w and -g, its status composed by
 		// runStatus.
 		if runAll {
@@ -298,6 +312,9 @@ Example:
 		}
 		warnDeprecations(cfg)
 		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
+		if refuseConfirmTimeout(cfg) {
+			return
+		}
 		if code := keepEnvironment(cfg); code != 0 {
 			exit(code)
 		}

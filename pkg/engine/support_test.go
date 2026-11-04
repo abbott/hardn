@@ -18,6 +18,11 @@ import (
 // carries the finding too: every plan made on one.
 func TestBestEffortFinding(t *testing.T) {
 	ctx := context.Background()
+	alpine321 := func() detect.Facts { // as detect classifies it (decision 5, adopted 2026-11-04)
+		f := debian13
+		f.Platform = detect.Classify(detect.OSRelease{ID: "alpine", VersionID: "3.21.5"}, detect.Proxmox{Installed: detect.No})
+		return f
+	}
 	platform := func(d detect.Distro, v string, s detect.Support, note string) detect.Facts {
 		f := debian13
 		f.Platform = detect.Platform{Distro: d, Version: v, Support: s, Note: note}
@@ -32,10 +37,12 @@ func TestBestEffortFinding(t *testing.T) {
 		{"Debian 13, supported", debian13, "", false},
 		{"Ubuntu 26.04, supported", platform(detect.DistroUbuntu, "26.04", detect.Supported, ""), "", false},
 		{"Ubuntu 22.04, best effort", platform(detect.DistroUbuntu, "22.04", detect.BestEffort, ""),
-			"Ubuntu 22.04 is a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it", false},
+			"Ubuntu 22.04 is a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it", false},
 		{"Alpine 3.22, best effort", platform(detect.DistroAlpine, "3.22", detect.BestEffort, ""), "Alpine 3.22 is a best-effort release", false},
-		{"Alpine 3.21, best effort, with its note", platform(detect.DistroAlpine, "3.21", detect.BestEffort, "vendor support ends 2026-11-01"),
-			"hardn is not tested on it (vendor support ends 2026-11-01)", false},
+		{"a best-effort release with a note", platform(detect.DistroAlpine, "3.22", detect.BestEffort, "an example note"),
+			"makes no promises for it (an example note)", false},
+		{"Alpine 3.21, out of scope, refused with its note", alpine321(),
+			"", true},
 		{"Ubuntu 25.10, out of scope", platform(detect.DistroUbuntu, "25.10", detect.OutOfScope, ""), "", true},
 		{"an unlisted platform", platform(detect.DistroOther, "", detect.Unlisted, ""), "", true},
 		{"a platform not established", platform(detect.DistroUnknown, "", detect.SupportUnknown, ""), "", true},
@@ -51,6 +58,9 @@ func TestBestEffortFinding(t *testing.T) {
 			if tc.refused {
 				if err := p.Err(); !errors.Is(err, ErrUnsupported) {
 					t.Fatalf("Plan.Err = %v, want ErrUnsupported: the gate is unchanged", err)
+				}
+				if n := tc.facts.Platform.Note; n != "" && !strings.Contains(p.Err().Error(), "is out of scope ("+n+")") {
+					t.Errorf("Plan.Err = %v, want the release's note, %q", p.Err(), n)
 				}
 				return
 			}

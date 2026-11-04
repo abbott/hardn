@@ -318,9 +318,9 @@ func TestCreateUserFlag(t *testing.T) {
 		said    []string
 		applied string // the user created; "" none
 	}{
-		{name: "-c -u carol", args: []string{"-c", "-u", "carol"}, applied: "carol",
+		{name: "-c -u carol", args: []string{"--yes", "-c", "-u", "carol"}, applied: "carol",
 			said: []string{"Create user carol", "Let carol use sudo", "Operation Successful", "Without a key carol can't log in", "USERS_NO_KEY"}},
-		{name: "-c: hardn.yml's username", args: []string{"-c"}, applied: "alice",
+		{name: "-c: hardn.yml's username", args: []string{"--yes", "-c"}, applied: "alice",
 			said: []string{"Create user alice", "Let alice use sudo", "Operation Successful"}},
 		{name: "-n -c -u carol", args: []string{"-n", "-c", "-u", "carol"}, code: 3,
 			said: []string{"Create user carol", "Let carol use sudo", "No actual changes were made to your system."}},
@@ -391,7 +391,7 @@ func TestCreateUserKeys(t *testing.T) {
 		code int // the exit status; 0: hardn did not exit
 		said []string
 	}{
-		{"-c -u carol", []string{"-c", "-u", "carol"}, []string{k1, k2}, 0, []string{"Create user carol", "Let carol use sudo", "Add carol's keys", "Operation Successful"}},
+		{"-c -u carol", []string{"--yes", "-c", "-u", "carol"}, []string{k1, k2}, 0, []string{"Create user carol", "Let carol use sudo", "Add carol's keys", "Operation Successful"}},
 		{"-n -c -u carol", []string{"-n", "-c", "-u", "carol"}, []string{k1, k2}, 3, []string{"Create user carol", "Add carol's keys", "carol@laptop", "carol@phone", "No actual changes were made to your system."}},
 		{"a bad second key", []string{"-c", "-u", "carol"}, []string{k1, "ssh-rsa AAAA carol@old"}, 1, []string{"Key 2 isn't an OpenSSH public key", "AUTHKEYS_NOT_KEY"}},
 		{"an empty entry", []string{"-c", "-u", "carol"}, []string{k1, ""}, 1, []string{"Key 2 isn't an OpenSSH public key", "AUTHKEYS_NOT_KEY"}},
@@ -433,7 +433,7 @@ func TestCreateUserPlanOnlyFromFile(t *testing.T) {
 		code int
 	}{
 		{[]string{"-c", "-u", "carol"}, 3},
-		{[]string{"--dry-run=false", "-c", "-u", "carol"}, 0},
+		{[]string{"--yes", "--dry-run=false", "-c", "-u", "carol"}, 0},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			h, _ := newUsersHost(t)
@@ -484,8 +484,8 @@ func TestCreateUserFlagWithOthers(t *testing.T) {
 		said []string
 		dns  bool // -g's file written
 	}{
-		{"-c refused, then -g", []string{"-c", "-u", "george", "-g"}, 1, []string{"USERS_NAME_TAKEN", "Set the nameservers  Done"}, true},
-		{"-c applied, then -g", []string{"-c", "-u", "carol", "-g"}, 0, []string{"Create user carol", "Set the nameservers  Done"}, true},
+		{"-c refused, then -g", []string{"--yes", "-c", "-u", "george", "-g"}, 1, []string{"USERS_NAME_TAKEN", "Set the nameservers  Done"}, true},
+		{"-c applied, then -g", []string{"--yes", "-c", "-u", "carol", "-g"}, 0, []string{"Create user carol", "Set the nameservers  Done"}, true},
 		{"-n: -c's plan, then -g's", []string{"-n", "-c", "-u", "carol", "-g"}, 3, []string{"Create user carol", "+nameserver 192.0.2.53"}, false},
 		{"-n: -c refused, then -g's plan", []string{"-n", "-c", "-u", "george", "-g"}, 1, []string{"USERS_NAME_TAKEN", "+nameserver 192.0.2.53"}, false},
 	} {

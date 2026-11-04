@@ -20,7 +20,7 @@ import (
 // confirmation: the gallery's best-effort-ubuntu2204 scenario); it changes
 // no exit status. A plan on a supported release shows none.
 func TestBestEffortRendered(t *testing.T) {
-	const detail = "Ubuntu 22.04 is a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it"
+	const detail = "Ubuntu 22.04 is a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it"
 	bestEffort := func() *engine.Plan {
 		p := portPlan()
 		p.Facts.Platform = detect.Platform{Distro: detect.DistroUbuntu, Version: "22.04", Support: detect.BestEffort}

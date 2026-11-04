@@ -505,7 +505,7 @@ func TestDisallowRootFlagWithOthers(t *testing.T) {
 	}{
 		{"-n: -d's plan, then -w refused", "debian13", []string{"-n", "-d", "-w"}, 1, []string{"Lockout risk", "Disallow root login", "UFW_NOT_INSTALLED"}, false},
 		{"-d nothing to change, then -w refused", "disallowed", []string{"-d", "-w"}, 1, []string{"Nothing needs changing.", "UFW_NOT_INSTALLED"}, false},
-		{"-d refused, then -g", "no-key", []string{"-d", "-g"}, 1, []string{"SSH_NO_ADMIN_LOGIN", "Set the nameservers  Done"}, true},
+		{"-d refused, then -g", "no-key", []string{"--yes", "-d", "-g"}, 1, []string{"SSH_NO_ADMIN_LOGIN", "Set the nameservers  Done"}, true},
 		{"-n: -d's plan, then -g's", "debian13", []string{"-n", "-d", "-g"}, 3, []string{"Lockout risk", "+nameserver 192.0.2.53"}, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -554,7 +554,7 @@ func TestCreateUserThenDisallowRoot(t *testing.T) {
 			said: []string{"Create user carol", "No actual changes were made to your system.", "Lockout risk", "Disallow root login", "No actual changes were made to your system."}},
 		{name: "-n -c -d, george's key gone", host: "no-key", args: []string{"-n", "-c", "-d", "-u", "carol"}, code: 1,
 			said: []string{"Create user carol", "SSH_NO_ADMIN_LOGIN"}},
-		{name: "-c -d off a terminal", host: "debian13", args: []string{"-c", "-d", "-u", "carol"}, code: 1, made: true,
+		{name: "-c -d off a terminal", host: "debian13", args: []string{"--yes", "-c", "-d", "-u", "carol"}, code: 1, made: true,
 			said: []string{"Create user carol", "Operation Successful", "Lockout risk", dLockoutWords}},
 		{name: "-c -d on a terminal, george's key gone", host: "no-key", args: []string{"-c", "-d", "-u", "carol"}, tty: true, lines: []string{"web-01"},
 			made: true, applied: true, said: []string{"Create user carol", "Disallow root login?", "Type the hostname", "Operation Successful", "sudo hardn confirm"}},

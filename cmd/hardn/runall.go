@@ -92,13 +92,15 @@ func runRunAllScreen(ctx context.Context, c *config.Config, version string) erro
 // and stdout) the plan, "Apply this plan?" above the hostname typed
 // whatever the plan's risk, then the apply, the revert timer armed and
 // sudo hardn confirm said where the engine finds it lockout-risk, as -w
-// and -d (runAllConfirm); off a terminal any plan with changes refused,
-// PLAN_REFUSED, nothing run; under -n, or hardn.yml's dryRun: true, the
-// plan alone. A change pending, or the one plan's refusal, is said on
-// stderr in the planner's words and refuses -r, nothing planned. No plan
-// saves hardn.yml. It returns the exit status, runControls': 0 applied or
-// nothing to change, 3 a plan with changes to make (-n) or declined, 1
-// refused or failed; 1 too where the host can't be read.
+// and -d (runAllConfirm); off a terminal a lockout-risk plan refused,
+// PLAN_REFUSED, nothing run, --yes or not, and a plain plan applied with
+// --yes, without it shown and not applied, CONFIRMATION_REQUIRED; under
+// -n, or hardn.yml's dryRun: true, the plan alone. A change pending, or
+// the one plan's refusal, is said on stderr in the planner's words and
+// refuses -r, nothing planned. No plan saves hardn.yml. It returns the
+// exit status, runControls': 0 applied or nothing to change, 3 a plan
+// with changes to make (-n) or declined, 2 a plain plan off a terminal
+// without --yes, 1 refused or failed; 1 too where the host can't be read.
 func runAllFlag(c *config.Config, version string) int {
 	ctx := context.Background()
 	sys := engineHost()
@@ -135,8 +137,8 @@ const runAllSkipped = " skipped: "
 // runAllConfirm is -r's confirmation: the question the Run All screen asks
 // above the hostname typed (planner.Question, "Apply this plan?"), of any
 // plan with changes (always: decision 6 (a)), and the refusal off a
-// terminal in gallery-runall.md §6's words, its code the registry's
-// PLAN_REFUSED (engine.ErrRefused), exit status 1.
+// terminal of a lockout-risk plan in gallery-runall.md §6's words, its
+// code the registry's PLAN_REFUSED (engine.ErrRefused), exit status 1.
 var runAllConfirm = typedConfirm{
 	question: planner.Question,
 	always:   true,
@@ -144,7 +146,7 @@ var runAllConfirm = typedConfirm{
 		Code: "PLAN_REFUSED",
 		Why:  "hardn -r asks you to type the hostname, and this isn't a terminal",
 		Fix:  "run hardn -r from a terminal",
-		Err:  fmt.Errorf("%w: a plan with changes, which -r confirms on a terminal alone", engine.ErrRefused),
+		Err:  fmt.Errorf("%w: a lockout-risk plan, which -r confirms on a terminal alone", engine.ErrRefused),
 	},
 }
 

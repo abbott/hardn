@@ -188,6 +188,9 @@ func endByHangup() {
 //     established. Its error goes to the log file.
 //   - Backups from hardn.yml (backupPath, enableBackups; §3.16: the
 //     engine's backups are taken whatever enableBackups says).
+//   - Timeout, the confirm window of a lockout-risk plan: --confirm-timeout,
+//     else hardn.yml's confirmTimeout, else 180 s, at least 60 s
+//     (confirmTimeout, engine.ConfirmTimeout).
 //   - PID, hardn's, for the run lock's holder line.
 //   - Detect and Hold the engine's own: detect.Detect, and hold.Signals
 //     over Log around an in-process rollback.
@@ -201,6 +204,12 @@ func engineOptions(ctx context.Context, sys host.System, c *config.Config) engin
 	}
 	if self, err := revertExecutable(); err == nil {
 		o.Revert.Hardn = self
+	}
+	// The confirm window, --confirm-timeout or hardn.yml's confirmTimeout
+	// (§3.14); the root command refused a bad one before anything ran
+	// (refuseConfirmTimeout), so an error here leaves the engine's default.
+	if d, err := confirmTimeout(c); err == nil {
+		o.Timeout = d
 	}
 	s, err := revert.ReadSession(ctx, sys, revertGetenv, revertPID())
 	if err != nil {

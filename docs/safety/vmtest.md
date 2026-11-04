@@ -414,7 +414,7 @@ On Alpine 3.24 (OpenRC), rows 1, 3 and 5 from its `p2-clean` (no ufw: no firewal
 
 **One-command confirm and the host's tool** ([revert.md](revert.md) §9.4, run 2026-10-30; `_support/hardn-audit-2026-10-16/vm-runs/s9-confirm/`, `run.sh`). Read as root on Debian 13 and Ubuntu 26.04 (`probe.sh`: the chain to `sshd-session`, who holds `SSH_CONNECTION`, its sockets). On Alpine 3.23, with a lockout-risk change waiting: `hardn` and `hardn confirm` not as root, a one-command confirm over the applying connection (refused as the same session), a second change (refused, `CHANGE_PENDING`), and a new connection's `ssh -p 22 <host> "doas hardn confirm"` (confirmed), every line saying `doas`. The refusal with `ssh -L` in use was not shown: the probe saw no second connection, so the kit skipped it.
 
-**P-41** shows on a best-effort image only (none is in §5 yet): on an Alpine 3.22 or Ubuntu 22.04 VM, row 1's clean-up report shows "… is a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (PLATFORM_BEST_EFFORT)"; on Debian 13 and Ubuntu 26.04 no such line.
+**P-41** shows on a best-effort image only (none is in §5 yet): on an Alpine 3.22 or Ubuntu 22.04 VM, row 1's clean-up report shows "… is a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it (PLATFORM_BEST_EFFORT)"; on Debian 13 and Ubuntu 26.04 no such line.
 
 ## 5. The images
 

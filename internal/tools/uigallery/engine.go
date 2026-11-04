@@ -299,7 +299,7 @@ func scenarios() []scenario {
 			host: inactiveUFW, controls: []engine.Control{sshControl(steps.SSH{Port: 2230, UFW: steps.UFWEnable})},
 			question: "Change the SSH port to 2230 and enable ufw?", confirm: true, answers: typed, ends: flow.Applied},
 		{name: "best-effort-ubuntu2204", label: "Best-effort release", about: "The plan's warning, Ubuntu 22.04 (P-41)",
-			note: []string{hostFQDN + " runs Ubuntu 22.04, a best-effort release: hardn changes it, but is not tested on it. " + stock, "The plan alone, for key-only login: it carries the release's warning (P-41)."},
+			note: []string{hostFQDN + " runs Ubuntu 22.04, a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it. " + stock, "The plan alone, for key-only login: it carries the release's warning (P-41)."},
 			host: ubuntu2204Host, controls: []engine.Control{keyOnly()},
 			question: "Allow SSH login by key only?", dryRun: true, ends: flow.Planned},
 	}, dnsScenarios()...)

@@ -2,6 +2,7 @@ package version
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 )
@@ -86,16 +87,21 @@ func (s *Service) CheckForUpdates(options *UpdateOptions) CheckResult {
 	return CheckForUpdates(s.CurrentVersion, options.Debug)
 }
 
-// PrintVersionInfo prints version information to stdout
-func (s *Service) PrintVersionInfo() {
-	fmt.Println("hardn - Linux hardening tool")
-	fmt.Printf("Version:    %s\n", s.CurrentVersion)
-	if s.BuildDate != "" {
-		fmt.Printf("Build Date: %s\n", s.BuildDate)
+// PrintVersionInfo writes hardn --version's lines to w: the version, the
+// build date and the commit, from the ldflags (main.Version,
+// main.BuildDate, main.GitCommit), as v0.3.2 printed them, each "unknown"
+// when the build did not set it (refactor plan §3.11, approved
+// 2026-11-04: the build info restored).
+func (s *Service) PrintVersionInfo(w io.Writer) error {
+	known := func(v string) string {
+		if v == "" {
+			return "unknown"
+		}
+		return v
 	}
-	if s.GitCommit != "" {
-		fmt.Printf("Git Commit: %s\n", s.GitCommit)
-	}
+	_, err := fmt.Fprintf(w, "hardn - Linux hardening tool\nVersion:    %s\nBuild Date: %s\nGit Commit: %s\n",
+		known(s.CurrentVersion), known(s.BuildDate), known(s.GitCommit))
+	return err
 }
 
 // GetCacheStatus returns information about the update cache
