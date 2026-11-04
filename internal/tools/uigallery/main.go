@@ -12,7 +12,7 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | runall | runall/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
 //	go run ./internal/tools/uigallery system-details [flags] [form | all]...
@@ -607,10 +607,9 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // errors on stderr, and returns the exit status. With "play" first it is
 // the playable mode (play), which reads the user's answers through the
 // line reader stdin returns and sizes itself with size; with "status",
-// "glyphs", "system-details", "logs" or "runall" first, the status listing
+// "glyphs", "system-details" or "logs" first, the status listing
 // (statusList), the glyphs mode (glyphs), the System Details listing
-// (sdListing), the Logs listing (logsListing) or the Run All listing
-// (raListing), which size themselves with
+// (sdListing) or the Logs listing (logsListing), which size themselves with
 // size too and read no input. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
@@ -628,9 +627,6 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == logsPrefix {
 		return logsListing.run(args[1:], size, stdout, stderr)
 	}
-	if len(args) > 0 && args[0] == raPrefix {
-		return raListing.run(args[1:], size, stdout, stderr)
-	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -641,7 +637,6 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...")
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(sdUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(logsUsage, "usage: "))
-		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(raUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

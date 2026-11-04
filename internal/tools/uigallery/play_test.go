@@ -773,7 +773,7 @@ func TestPlayTouchesNothing(t *testing.T) {
 		"pkg/screens/environment", "pkg/engine/controls/environment", "pkg/host/sudoers",
 		"pkg/screens/systemdetails", "pkg/screens/logs", "pkg/engine/details", "pkg/engine/logview",
 		"pkg/screens/firewall", "pkg/engine/controls/firewall", "pkg/host/ufw", "pkg/host/pve",
-		"pkg/screens/users", "pkg/screens/ssh", "pkg/screens/updates"} {
+		"pkg/screens/users", "pkg/screens/ssh", "pkg/screens/updates", "pkg/screens/runall", "pkg/engine/runall"} {
 		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
 			t.Errorf("%s, which play links, was not checked", p)
 		}

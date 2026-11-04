@@ -87,6 +87,11 @@ type run struct {
 // change runs one change on h with cfg, the user typing lines; set, when
 // not nil, changes the session first.
 func change(h *hostfake.System, cfg *config.Config, dryRun bool, set func(*screenkit.Session), lines ...string) run {
+	return changeWith(h, cfg, dryRun, set, nil, lines...)
+}
+
+// changeWith is change with the change itself edited by edit, when not nil.
+func changeWith(h *hostfake.System, cfg *config.Config, dryRun bool, set func(*screenkit.Session), edit func(*screenkit.Change), lines ...string) run {
 	var out bytes.Buffer
 	env := term.Resolve(term.Options{}, term.Facts{Width: 120})
 	ty := uitest.NewTypist(&out, lines...)
@@ -113,7 +118,7 @@ func change(h *hostfake.System, cfg *config.Config, dryRun bool, set func(*scree
 		set(&s)
 	}
 	var entry string
-	r.err = s.Change(context.Background(), screenkit.Change{
+	c := screenkit.Change{
 		Step: screen.WorkflowStep{Title: component.TitleBar{Title: "Add Nameserver"}},
 		Flow: flow.Flow{
 			Form:    form.Form{Fields: []form.Field{&form.Text{Title: "Enter nameserver IP address", Value: &entry}}},
@@ -125,7 +130,11 @@ func change(h *hostfake.System, cfg *config.Config, dryRun bool, set func(*scree
 			edited.Nameservers = append(slices.Clone(edited.Nameservers), entry)
 			return []engine.Control{saveControl{}}
 		},
-	})
+	}
+	if edit != nil {
+		edit(&c)
+	}
+	r.err = s.Change(context.Background(), c)
 	r.out, r.unread = out.String(), ty.Unread()
 	return r
 }
@@ -200,6 +209,51 @@ func TestChange(t *testing.T) {
 		})
 	}
 }
+
+// TestTyped: with Typed, a plain plan is confirmed by the hostname typed,
+// its Confirm given a typed plan, and applied with no timer, the engine's
+// rule; without, the same plan asks y/N.
+func TestTyped(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		typed bool
+		lines []string
+	}{
+		{"typed", true, []string{"192.0.2.54", "web-01"}},
+		{"y/N", false, []string{"192.0.2.54", "y"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newHost(t)
+			var given []bool
+			r := changeWith(h, cfg, false, nil, func(c *screenkit.Change) {
+				c.Typed = tc.typed
+				c.Flow.Confirm = func(p flow.Plan) flow.Confirm {
+					given = append(given, p.Typed())
+					cf := flow.Confirm{Question: "Add nameserver?"}
+					if p.Typed() {
+						cf.Label, cf.Phrase = screenkit.TypeTheHostname, "web-01"
+					}
+					return cf
+				}
+			}, tc.lines...)
+			if r.err != nil || r.unread != 0 || len(r.runs) != 1 || r.runs[0].Err != nil {
+				t.Fatalf("Change = %v, %d unread, runs %+v:\n%s", r.err, r.unread, r.runs, r.out)
+			}
+			if !slices.Equal(given, []bool{tc.typed}) || strings.Contains(r.out, screenkit.TypeTheHostname) != tc.typed {
+				t.Errorf("Confirm given typed %v, hostname asked %v; want %v:\n%s", given, strings.Contains(r.out, screenkit.TypeTheHostname), tc.typed, r.out)
+			}
+			if r.runs[0].Plan == nil || r.runs[0].Plan.Risk == engine.RiskLockout || strings.Contains(flatOut(r.out), "reverts automatically") {
+				t.Errorf("a plain plan armed the timer:\n%s", r.out)
+			}
+			if got := listOf(t, h); !slices.Equal(got, []string{"192.0.2.53", "192.0.2.54"}) {
+				t.Errorf("hardn.yml lists %q, want the change applied", got)
+			}
+		})
+	}
+}
+
+// flatOut is out with its white space as single spaces.
+func flatOut(out string) string { return strings.Join(strings.Fields(out), " ") }
 
 // TestApplyContext: an apply, and nothing else, runs under the context
 // ApplyContext makes, stopped once the apply has returned.
