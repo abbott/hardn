@@ -160,7 +160,8 @@ const keyNotUsed = "hardn.yml's %s isn't used"
 // reads it, so that the bool of §3.17, which loadWarnings already says is
 // deprecated, warns here only where it is true), sshAllowedUsers,
 // sshListenAddress, sshKeyPath, ufwAllowedPorts, enableAppArmor and
-// enableLynis. A value equal to the default never warns: origin/main's
+// enableLynis, then the keys the legacy package, sources and localization
+// code read (config.Retired: the unit after slice 9). A value equal to the default never warns: origin/main's
 // SaveConfig writes the defaults into every file it saves, as for the ufw
 // policies, so it is hardn's, not the file's. disableRootSSH is read:
 // true, Run All turns root login off (decision 4 (a)), so it warns no more.
@@ -185,7 +186,7 @@ func notUsed(c *config.Config) []string {
 			keys = append(keys, k.key)
 		}
 	}
-	return keys
+	return append(keys, c.Retired()...)
 }
 
 // deprecationWarnings renders deps as one Warning callout, a line for each
