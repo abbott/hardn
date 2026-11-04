@@ -1,7 +1,7 @@
 # Auto Updates mock (slice 7, unit (a))
 
-Unit (a) of slice 7, `next/s7-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`updates.go`, `updateshost.go`).
-Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM. The hosts' shapes are the VMs' read of 2026-11-03 (`vm-runs/s7/00-inspect-*.log`), their values synthetic.
+Unit (a) of slice 7, `next/s7-gallery`, adopted 2026-11-03; since unit (b), `next/s7-control`, it runs on the real control. The screen is still the gallery's (unit (c)); the mock is in `internal/tools/uigallery` (`updates.go`, `updateshost.go`).
+Status: tested on macOS in process (`go test ./internal/tools/uigallery/`) on the fake host; no hardn binary ran, nothing ran on a VM. The hosts' shapes are the VMs' read of 2026-11-03 (`vm-runs/s7/00-inspect-*.log`), their values synthetic.
 
 ## 1. What to run
 
@@ -17,7 +17,7 @@ The main menu in play now has item 6, "Auto Updates", between Backup and Run All
 
 ## 2. The mocks
 
-The row is the main menu's own: `Engine.Check` over `controls.Status`, `risk.Assess` and `output.StatusViewOf`, with the Auto Updates row kept. The section comes from what the host has: `apt-config dump`, `dpkg-query` and `systemctl` on apt hosts, `alpine.ReadUpdates` on Alpine; never hardn.yml. Each change runs on the real engine as a plain y/N (no lockout risk), rolled back on failure. Alpine's on is the real `alpine.PlanUpdates` through `steps.Alpine`, and the package install is the real `packages.PlanInstall`. The rest are stand-ins (§6): the rest of each direction, the record, and which file sets each value. The hosts marked "by hardn" are built by running the mock's own Enable on the engine.
+The row is the main menu's own: `Engine.Check` over `controls.Status`, `risk.Assess` and `output.StatusViewOf`, with the Auto Updates row kept. The section comes from what the host has: `apt-config dump`, `dpkg-query` and `systemctl` on apt hosts, `alpine.ReadUpdates` on Alpine; never hardn.yml. Each change runs on the real engine as a plain y/N (no lockout risk), rolled back on failure. Since unit (b) the section is `updates.Auto`'s `Read`, and each direction is `updates.Auto` with `AutoOn` or `AutoOff`, its review lines the control's `Notes` (§6). The hosts marked "by hardn" are built by running the real control's on on the engine.
 
 | Host | What it shows |
 |---|---|
@@ -38,7 +38,7 @@ The row is the main menu's own: `Engine.Check` over `controls.Status`, `risk.Ass
 | `pve9` | No package. The row is decision 7's, Not Applicable, a stand-in; the item is unavailable |
 | `not-read` | A syntax error in `apt.conf.d`: the row is Unknown; the item, "Can't read apt's settings", refuses |
 
-The listing adds `refusals`: thirteen, then two empty plans. Variants the menu does not list: `edited-alpine`, `enable-off`, `own-file` (hardn's file, no record: on by hardn), `masked`, `missing`, `no-origin`, `extra-packages` (the install also upgrades libc6), `no-record` (`by-hardn-debian` without its record), and `later-file`, whose read-back fails and rolls back (a transcript). 19 transcripts play the flows (`play/updates-*`). Here is `by-hardn-debian`, drawn:
+The listing adds `refusals`: twelve, then three plans with nothing to change (pve9's since `Applies` is false there). Variants the menu does not list: `edited-alpine`, `enable-off`, `own-file` (hardn's file, no record: on by hardn), `masked`, `missing`, `no-origin`, `extra-packages` (the install also upgrades libc6), `no-record` (`by-hardn-debian` without its record), and `later-file`, whose read-back fails and rolls back (a transcript). 19 transcripts play the flows (`play/updates-*`). Here is `by-hardn-debian`, drawn:
 
 ```
 # Auto Updates #################################################
@@ -133,15 +133,20 @@ Decided (2026-11-03, decision 10):
 
 ## 6. For unit (b)
 
-Stand-ins, each labelled in `updates.go`:
+Unit (b) replaced every stand-in (`next/s7-control`, 2026-11-03):
 
-1. `updControl2`, `updOn`, `updOff`: `updates.Auto` with a `Plan` in both directions, given by an engine `Input` field (decision 2); unit (b) moves it off `engine.CheckOnly`.
-2. `planAptOn`, `readBack`, `hasOrigins`: Debian's and Ubuntu's on (decision 3), with codes registered in `pkg/output`; its read-back with `APT_CONFIG` unset.
-3. `planOff`, `planAptOff`, `planAptPackageOff`, `planApkOff`, `otherJobs`, `offReadBack`, `stayOnWithout`: the inverses (decisions 5, 6, R2), the purge's simulation, the drift check by hash, off's read-back.
-4. The row's stand-ins: decision 7's Not Applicable on Proxmox VE, and decision 9's "changed since hardn" (`markChanged`).
-5. `updRecord`, `recordOn`, `readRecord`: the record through revert's helpers (`WriteFileAtomic`, `ReadFileNoFollow`, trust checks), decoded strictly.
-6. `aptSetBy`: which file sets each value. `apt-config` never says, so unit (b) parses apt.conf itself (blocks, `#clear`, `#include`), which the model's one-line files do not exercise.
-7. The fake (`updSim`): apt's files in the dump's own form, the postinst and ucf, purge's `rm -f`, apk's kept edited file, crond and its runlevel.
+1. `updControl2`, `updOn`, `updOff`: `updates.Auto{Action}`, `AutoOn` and `AutoOff` (`updAuto`, `updDirection`). The direction is the control's field, not an engine `Input` field.
+2. `planAptOn`, `readBack`, `hasOrigins`: the control's on (`pkg/engine/controls/updates/on.go`); its codes are registered in `pkg/output`.
+3. `planOff`, `planAptOff`, `planAptPackageOff`, `planApkOff`, `offReadBack`, `stayOnWithout`: the control's off (`off.go`) and `Reading.StayOn`. Off's review lines come from `Auto.Notes`. `otherJobs` is now `alpine.OtherJobs`.
+4. The row's stand-ins are gone. Proxmox VE's row is the check's own Not Applicable, because `Applies` is false there. Decision 9's line is the control's `UPDATES_CHANGED_SINCE_HARDN` finding (`markChanged` gone). `output.StatusViewOf` draws only risk factors under a row, so this screen draws that finding itself. The main menu's row does not show it.
+5. `updRecord`, `recordOn`, `readRecord`: `revert.ControlRecord`, `revert.ReadRecord` and the control's record change.
+6. `aptSetBy`: `aptconf.Read`, through `Reading.Apt`.
+7. The fake (`updSim`) stays. It was extended where the real code asked something it did not answer:
+   - `apt-config dump Dir`: the VMs' four Dir values, as in aptconf's tests, plus `Ignore-Files-Silently` patterns made from the fake's own suffix list.
+   - Origins in the packages' block form, which aptconf reads; it refuses the dump's `Name:: "value";` form.
+   - Root's crontab: `alpine.StockCrontab`, the VM's 283 bytes. The mock's copy lacked the first line and the trailing blank line.
+
+What the goldens show since unit (a): the notes' words; in play, the real reader's extra commands (`apt-config dump Dir`, aptconf's cross-check dump, `rc-service crond status`); and `later-file`'s failed read-back coded `UPDATES_NOT_IN_EFFECT`, not `DETECT_UNRECOGNISED`. The screens and refusal words are otherwise as adopted.
 
 Findings:
 - `packages.PlanInstall`'s undo is `apt-get remove`, which keeps `20auto-upgrades`, so a rolled-back install would leave the list refresh on. The mock backs those files up in the install change; unit (b) must do the same.
