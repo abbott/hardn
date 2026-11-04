@@ -2,65 +2,44 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/risk"
-	"github.com/abbott/hardn/pkg/engine/runall"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
-	"github.com/abbott/hardn/pkg/screens/screenkit"
+	rascreen "github.com/abbott/hardn/pkg/screens/runall"
 	"github.com/abbott/hardn/pkg/ui/component"
-	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// The Run All mock (refactor plan slice 8, unit (a), next/s8-gallery;
-// docs/engine/gallery-runall.md): a proposal, on the sub-menu layout, drawn
-// from what the real controls read of a simulated host: each row's state
-// from the control's own Check (Engine.Check, output.StatusViewOf), what
-// Run All would do from the control's own Plan, alone and then all
-// together in one plan on the real engine, typed and, at lockout risk,
-// confirmed or reverted. Which controls hardn.yml asks for, how a row is
-// skipped, the revert state read before any plan and the rows' words are
-// Run All's planner's (pkg/engine/runall, unit (b)); the hostname asked
-// whatever the risk is the gallery's stand-in (raTyped), unit (c)'s.
-// "uigallery runall" lists the
-// mocks; "play runall" is the menu of the hosts, "play runall/<host>" one;
-// the main menu's 7 leads to debian13's.
+// The Run All screen on the simulated hosts (refactor plan slice 8, unit
+// (c), next/s8-screen): hardn's Run All screen itself (pkg/screens/runall),
+// drawn from what Run All's planner (pkg/engine/runall) reads of each host,
+// Apply all on the real engine, on the hosts the Run All mock was drawn
+// for, which it replaces (docs/engine/screen-runall.md). The main menu's 7
+// leads to it on Debian 13; "play runall" is the menu of the hosts and
+// "play runall/<host>" one. The listing of the mock, "uigallery runall",
+// was retired with it: git keeps it (runall.go, next/s8-gallery), and
+// gallery-runall.md records what each showed.
 
-// raPrefix names the mock's hosts: "runall" and "runall/<host>".
+// raPrefix names the Run All screen's hosts in play: "runall" and "runall/<host>".
 const raPrefix = "runall"
 
 // raMainHost is the host the main menu's 7 leads to in play.
 const raMainHost = raPrefix + "/debian13"
 
-// raLinks lead from a menu mock's item to the Run All mock on a host: the
-// main menu's 7.
+// raLinks lead from a menu mock's item to the Run All screen on a host:
+// the main menu's 7.
 var raLinks = map[string]string{mainMenuMock + "/7": raMainHost}
 
-// The screen's words (gallery-runall.md §6), the rows' and the question
-// the planner's (runall.Title, runall.Words*, runall.Question).
-const (
-	raApply     = "Apply all"
-	raPrompt    = "Enter your choice"
-	raNoChange  = "Nothing to change"
-	raOneChange = "Plan, review, confirm"
-	raRows      = "Controls"
-)
-
-// raExit is the screen's Return item.
-var raExit = component.MenuItem{Key: "0", Label: "Return"}
-
-// raHost is one simulated host the mock runs on.
+// raHost is one simulated host the Run All screen runs on.
 type raHost struct {
 	name, label, about, note string
 	host                     func() *fakeHost
@@ -221,140 +200,6 @@ func raEnvOf(name string) map[string]string {
 	return raEnv
 }
 
-// raReading is a host read for Run All: the planner's Reading
-// (pkg/engine/runall), and what it was read with.
-type raReading struct {
-	runall.Reading
-	in runall.Input
-}
-
-// readRA reads h for Run All with the planner, as the screen draws it:
-// hardn.yml and the facts as the other mocks read them, the plans made on
-// the gallery's engine (raEngine).
-func readRA(ctx context.Context, h *fakeHost, env map[string]string) (raReading, error) {
-	cfg, err := statusConfig(ctx, h.sys())
-	if err != nil {
-		return raReading{}, err
-	}
-	facts, err := detect.Detect(ctx, h.sys())
-	if err != nil {
-		return raReading{}, err
-	}
-	sess := sshSession(env["SSH_CONNECTION"])
-	in := runall.Input{
-		System: h.system(), Facts: facts, Config: cfg, Session: sess,
-		Getenv: func(k string) string { return env[k] },
-		Revert: raRevert, Version: updVersion,
-		NewEngine: func(progress func(engine.Event)) *engine.Engine {
-			return raEngine(h, sess, cfg, progress, &updQuiet)
-		},
-	}
-	rd, err := runall.Read(ctx, in)
-	return raReading{Reading: rd, in: in}, err
-}
-
-// skipped is the refusals' words, each after its row's label, for the
-// warning shown before the plan.
-func (r raReading) skipped() []string {
-	var out []string
-	for _, rw := range r.Refused() {
-		out = append(out, r.label(rw.ID)+" skipped: "+rw.Refusal)
-	}
-	return out
-}
-
-// label is the row id's label, the main menu's (output.StatusViewOf).
-func (r raReading) label(id string) string {
-	for i, row := range r.status().Rows {
-		if i < len(r.Rows) && r.Rows[i].ID == id {
-			return row.Label
-		}
-	}
-	return id
-}
-
-// status is the rows as decision 10 (b) draws them, a listing variant:
-// each control's state as the main menu draws it (output.StatusViewOf,
-// with no risk factor), its detail what Run All does, a refusal's words
-// under it.
-func (r raReading) status() component.StatusList {
-	v := output.StatusViewOf(r.Reports, risk.Level{})
-	for i := range v.Status.Rows {
-		if i >= len(r.Rows) {
-			break
-		}
-		rw := r.Rows[i]
-		v.Status.Rows[i].Detail = rw.Words
-		v.Status.Rows[i].Lines = nil
-		if rw.Kind == runall.Refused {
-			v.Status.Rows[i].Lines = []component.StatusLine{{Text: rw.Refusal, Warn: true}}
-		}
-	}
-	return v.Status
-}
-
-// outcomes is the rows as decision 10 (a) draws them, drawn and played:
-// each control's label and Run All's outcome alone, a refusal's words
-// after "Refused:" cut to the row; the states are the main menu's.
-func (r raReading) outcomes() screen.Section {
-	var items []component.KeyValue
-	for i, row := range r.status().Rows {
-		rw := r.Rows[i]
-		kv := component.KeyValue{Key: row.Label, Value: rw.Words}
-		if rw.Kind == runall.Refused {
-			kv.Value, kv.Note = rw.Words+":", rw.Refusal
-		}
-		items = append(items, kv)
-	}
-	return screen.Section{Header: component.SectionHeader{Title: raRows}, Rows: component.BulletList{Items: items}}
-}
-
-// item is the screen's one item: Apply all, unavailable with nothing to
-// change, marked at lockout risk.
-func (r raReading) item() component.MenuItem {
-	it := component.MenuItem{Key: "1", Label: raApply, Description: raOneChange}
-	switch {
-	case len(r.Planned()) > 0:
-		it.Risk = r.Refusal == "" && r.Lockout()
-	case len(r.Refused()) == 0 && r.Refusal == "":
-		it.Description, it.Disabled = raNoChange, true
-	case r.Refusal != "":
-		it.Description = runall.WordsRefused
-		if r.Pending() {
-			it.Description = runall.WordsPending
-		}
-	default:
-		it.Description = raNoChange
-	}
-	return it
-}
-
-// screen is the Run All screen, its rows decision 10 (a)'s.
-func (r raReading) screen() screen.SubMenu {
-	return screen.SubMenu{
-		Title: component.TitleBar{Title: runall.Title}, Sections: []screen.Section{r.outcomes()}, Heading: "Select an option",
-		Menu: component.Menu{Items: []component.MenuItem{r.item()}, Exit: raExit}, Prompt: raPrompt,
-	}
-}
-
-// screenStates is the screen with decision 10 (b)'s rows: the state and
-// the outcome.
-func (r raReading) screenStates() screen.SubMenu {
-	vm := r.screen()
-	vm.Sections, vm.Status = nil, r.status()
-	return vm
-}
-
-// review is the flow's review: one line per control planned, in the
-// screen's order.
-func (r raReading) review() flow.Review {
-	var items []component.KeyValue
-	for _, rw := range r.Planned() {
-		items = append(items, component.KeyValue{Key: r.label(rw.ID), Value: rw.Words})
-	}
-	return flow.Review{Title: runall.Title, Items: items}
-}
-
 // raEngine is the engine over h: the applying session sess, the gallery's
 // clock and s's hold, the backups hardn.yml's (EnableBackups, BackupPath),
 // as cmd/hardn's engineOptions builds them.
@@ -373,35 +218,16 @@ func raEngine(h *fakeHost, sess revert.Session, cfg *config.Config, progress fun
 // before planning: the gallery's clock and hardn.
 var raRevert = revert.Options{Now: clock, Hardn: galleryHardn}
 
-// raTyped is a stand-in, unit (c)'s: the flow's engine for Run All, the
-// screen kit's Planning, each plan confirmed by the hostname typed
-// whatever its risk (decision 6), as cmd/hardn's typedEngine asks it.
-type raTyped struct{ *screenkit.Planning }
-
-// Plan plans as Planning does, and asks for the hostname.
-func (e raTyped) Plan(ctx context.Context) (flow.Plan, error) {
-	p, err := e.Planning.Plan(ctx)
-	p.Risk = flow.RiskLockout
-	return p, err
-}
-
-// raRunner runs the mock on one host.
-type raRunner struct {
-	s     *session
-	rh    raHost
-	h     *fakeHost
-	title string
-}
-
 // openRunAll returns the action that opens what name names: the hosts'
-// menu for raPrefix alone, the mock on one host for "runall/<host>".
+// menu for raPrefix alone, the screen on one host for "runall/<host>".
 func (s *session) openRunAll(name string) func() error {
 	if rh, ok := findRAHost(strings.TrimPrefix(name, raPrefix+"/")); ok && name != raPrefix {
 		return func() error { return s.raScreen(context.Background(), rh, rh.host()) }
 	}
 	return func() error {
-		vm := screen.SubMenu{Title: component.TitleBar{Title: "Run All hosts"}, Heading: "Select a host", Prompt: raPrompt, Menu: component.Menu{Exit: raExit}}
-		menu := nav.Menu{Exit: raExit}
+		exit := component.MenuItem{Key: "0", Label: "Return"}
+		vm := screen.SubMenu{Title: component.TitleBar{Title: "Run All hosts"}, Heading: "Select a host", Prompt: "Enter your choice", Menu: component.Menu{Exit: exit}}
+		menu := nav.Menu{Exit: exit}
 		for i, rh := range raHosts() {
 			it := component.MenuItem{Key: fmt.Sprint(i + 1), Label: rh.label, Description: rh.about}
 			vm.Menu.Items = append(vm.Menu.Items, it)
@@ -411,181 +237,52 @@ func (s *session) openRunAll(name string) func() error {
 	}
 }
 
-// raScreen runs the mock on h until the user goes back: its note, then
-// each round the host read again.
+// raScreen runs the Run All screen on h, rh's host, until the user goes
+// back from it: its note above it; the facts detect's; hardn.yml the
+// host's (statusConfig); hardn's environment and session the host's
+// (raEnvOf); the engine the gallery's over the host (raEngine) with the
+// session's hold, its apply recorded for the end of play: a change's
+// engine alone, kept once its flow has ended (Ran), not those each
+// reading of the host makes, which Ran never ends; the planner's journal
+// read on the gallery's clock (raRevert). A dry run when play plays the
+// dry-run sequence.
 func (s *session) raScreen(ctx context.Context, rh raHost, h *fakeHost) error {
-	e := &raRunner{s: s, rh: rh, h: h, title: raPrefix + "/" + rh.name}
-	if err := s.writeNote(e.title, rh.note); err != nil {
-		return err
-	}
-	return s.p.Run(func() nav.Screen { return e.draw(ctx) })
-}
-
-// draw is the screen, its item bound.
-func (e *raRunner) draw(ctx context.Context) nav.Screen {
-	r, err := readRA(ctx, e.h, raEnvOf(e.rh.name))
+	title := raPrefix + "/" + rh.name
+	facts, err := detect.Detect(ctx, h.sys())
 	if err != nil {
-		vm := screen.SubMenu{Title: component.TitleBar{Title: runall.Title}, Menu: component.Menu{Exit: raExit}, Prompt: raPrompt}
-		return vm.Screen(e.s.p.Ctx, nav.Menu{Exit: raExit})
+		return fmt.Errorf("%s: %w", title, err)
 	}
-	vm := r.screen()
-	menu := nav.Menu{Exit: raExit}
-	for _, it := range vm.Menu.Items {
-		menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return e.apply(ctx, r) }})
+	cfg, err := statusConfig(ctx, h.sys())
+	if err != nil {
+		return fmt.Errorf("%s: %w", title, err)
 	}
-	return vm.Screen(e.s.p.Ctx, menu)
-}
-
-// apply is item 1: every planned control in one plan, its review by
-// control, the hostname typed, the apply; refused before asking where a
-// change is pending or the plan refuses.
-func (e *raRunner) apply(ctx context.Context, r raReading) error {
-	kit := e.kit(r)
-	if r.Refusal != "" {
-		return kit.Say(screenkit.Warnings(r.Refusal))()
-	}
-	if skipped := r.skipped(); len(r.Planned()) == 0 {
-		return kit.Say(screenkit.Warnings(skipped...))()
-	} else if len(skipped) > 0 {
-		if err := kit.Write(screenkit.Apart(e.s.p.Ctx, screenkit.Warnings(skipped...))); err != nil {
-			return err
-		}
-	}
-	planned := r.Controls()
-	fe := &output.FlowEngine{DryRun: kit.DryRun, LogPath: kit.LogPath}
-	p := &screenkit.Planning{FlowEngine: fe, Build: func() {
-		if fe.Engine == nil {
-			fe.Engine = kit.NewEngine(fe.Progress)
-		}
-		fe.Controls, fe.Config = planned, r.Config
-	}}
-	step := screen.WorkflowStep{Title: component.TitleBar{Title: raApply, Parents: []string{runall.Title}}}
-	f := flow.Flow{
-		Review: r.review,
-		Confirm: func(flow.Plan) flow.Confirm {
-			return flow.Confirm{Question: runall.Question, Label: typeTheHostname, Phrase: hostName}
-		},
-		Engine: raTyped{p}, DryRun: kit.DryRun,
-	}
-	out, err := step.Run(ctx, e.s.p, f)
-	if !p.Planned() {
+	if err := s.writeNote(title, rh.note); err != nil {
 		return err
 	}
-	run := fe.Run(out, err)
-	if after := output.AfterFlow(e.s.p.Ctx.Env, run, clock()); after != "" {
-		if werr := kit.Write(after); err == nil {
-			err = werr
-		}
-	}
-	kit.Ran(run)
-	return err
-}
-
-// kit is the screen kit's session on the host, the engine's runs recorded
-// for the end of play.
-func (e *raRunner) kit(r raReading) screenkit.Session {
-	s, h := e.s, e.h
+	env := raEnvOf(rh.name)
+	sess := sshSession(env["SSH_CONNECTION"])
 	var rec *recorder
-	return screenkit.Session{
-		Name: "runall mock", Prompter: s.p, System: h.system(), Config: r.Config,
+	return rascreen.Run(ctx, rascreen.Options{
+		Prompter: s.p, System: h.system(), Facts: facts, Session: sess, Config: cfg,
+		Getenv: func(k string) string { return env[k] },
 		DryRun: s.sequence == "dry-run", LogPath: output.LegacyLogPath, Now: clock,
+		Version: updVersion, Revert: raRevert,
 		NewEngine: func(progress func(engine.Event)) *engine.Engine {
-			rc := &recorder{host: h, f: h.f, title: e.title}
-			rec = rc
-			s.mu.Lock()
-			s.engineRuns = append(s.engineRuns, rc)
-			s.mu.Unlock()
-			rc.begin()
-			return raEngine(h, r.in.Session, r.Config, func(ev engine.Event) { rc.event(ev); progress(ev) }, s)
+			r := &recorder{host: h, f: h.f, title: title}
+			rec = r
+			r.begin()
+			return raEngine(h, sess, cfg, func(ev engine.Event) { r.event(ev); progress(ev) }, s)
 		},
 		Ran: func(run output.Run) {
-			if rec == nil {
-				return
-			}
 			rec.end()
 			rec.setPlan(run.Plan)
 			rec.failedWith(run.Err)
+			s.mu.Lock()
+			s.engineRuns = append(s.engineRuns, rec)
+			s.mu.Unlock()
 		},
-	}
+	})
 }
-
-// raReadNamed reads the host named name, fresh.
-func raReadNamed(ctx context.Context, name string) (raReading, *fakeHost, error) {
-	rh, ok := findRAHost(name)
-	if !ok {
-		return raReading{}, nil, fmt.Errorf("no runall host %q", name)
-	}
-	h := rh.host()
-	r, err := readRA(ctx, h, raEnvOf(name))
-	return r, h, err
-}
-
-// raMocks are the listing's mocks: the screen on each host, then the rows
-// with their states, the main menu's placement and hardn -r's words.
-func raMocks() []listMock {
-	var mocks []listMock
-	for _, rh := range raHosts() {
-		mocks = append(mocks, listMock{name: "screen-" + rh.name, note: "Run All. " + rh.note,
-			draw: func(ctx context.Context, c component.Ctx) (string, error) {
-				r, _, err := raReadNamed(ctx, rh.name)
-				if err != nil {
-					return "", err
-				}
-				return r.screen().Render(c), nil
-			}})
-	}
-	return append(mocks,
-		listMock{name: "states", note: "Run All on debian13 with each row's state beside Run All's outcome: decision 10's alternative, drawn, not played.",
-			draw: func(ctx context.Context, c component.Ctx) (string, error) {
-				r, _, err := raReadNamed(ctx, "debian13")
-				if err != nil {
-					return "", err
-				}
-				return r.screenStates().Render(c), nil
-			}},
-		listMock{name: "main-menu", note: "The main menu with Run All moved to the last item, 10, the rest renumbered: decision 7's alternative, drawn, not played (play keeps 7).", draw: raMainMenu},
-		listMock{name: "flag", note: "hardn -r's words, proposed (decision 8): off a terminal, with another operation flag.", draw: raFlagWords},
-	)
-}
-
-// raMainMenu is the main menu's mock with Run All last, as 10, and the
-// items after it moved up: play's main menu (Auto Updates as 6) otherwise.
-func raMainMenu(_ context.Context, c component.Ctx) (string, error) {
-	vm := screen.MainMenuFixture()
-	i := slices.IndexFunc(vm.Menu.Items, func(it component.MenuItem) bool { return it.Key == "7" })
-	if i < 0 {
-		return "", errors.New("the main menu's mock has no item 7")
-	}
-	run := vm.Menu.Items[i]
-	items := slices.Insert(slices.Delete(slices.Clone(vm.Menu.Items), i, i+1), i, updMenuItem)
-	for j := i + 1; j < len(items); j++ {
-		items[j].Key = fmt.Sprint(j + 1)
-	}
-	run.Key = fmt.Sprint(len(items) + 1)
-	vm.Menu.Items = append(items, run)
-	return vm.Render(c), nil
-}
-
-// The words hardn -r would print (proposed, decision 8), on -w's pattern.
-const (
-	raFlagOff   = "hardn -r asks you to type the hostname, and this isn't a terminal (PLAN_REFUSED)"
-	raFlagOn    = "To go on: run hardn -r from a terminal."
-	raFlagOther = "hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e."
-)
-
-// raFlagWords draws hardn -r's refusals as callouts.
-func raFlagWords(_ context.Context, c component.Ctx) (string, error) {
-	return apart(
-		header(c, "hardn -r, off a terminal"), screenkit.Warnings(raFlagOff, raFlagOn).Render(c),
-		header(c, "hardn -r -e"), screenkit.Warnings(raFlagOther).Render(c),
-	), nil
-}
-
-// raUsage is the listing's usage line.
-const raUsage = "usage: go run ./internal/tools/uigallery runall [flags] [mock | all]..."
-
-// raListing is the Run All listing.
-var raListing = listing{prefix: raPrefix, usage: raUsage, label: "Mock:", mocks: raMocks}
 
 // raStart returns the hosts' menu, or the host, that args name, and
 // whether they name one; an error for a host that is not one.
@@ -604,9 +301,3 @@ func raStart(args []string) (string, bool, error) {
 	}
 	return args[0], true, nil
 }
-
-// raNote is play's note for the mock.
-const raNote = "Play mode, mocks: the Run All screen proposed for slice 8, each row's state from the control's real Check, " +
-	"each change the real control's Plan, all of them in one plan on the real plan/apply engine. " +
-	"Which controls hardn.yml asks for, how a row is skipped and a change pending read before any plan are Run All's planner's (pkg/engine/runall); the hostname asked whatever the risk is the gallery's stand-in, unit (c)'s to build. " +
-	"Nothing on this machine changes: every command and file is the fake's."
