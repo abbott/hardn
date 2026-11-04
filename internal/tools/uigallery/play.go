@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host | ssh | ssh/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -172,6 +172,22 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
 			return s.play("play "+name, []string{engineNote}, s.openSSH(name), stderr)
+		})
+	}
+	if name, ok, err := updStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the Auto Updates mock fails where its host does")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the Auto Updates mock plays normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{updNote}, s.openUpdates(name), stderr)
 		})
 	}
 	if name, ok, err := fwStart(fs.Args()); ok || err != nil {
@@ -547,6 +563,9 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := logsLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openLogs(to)
+		}
+		if m.Name == mainMenuMock && it.Key == "7" { // the Auto Updates mock's item, in play alone (decision 1)
+			out.Options = append(out.Options, nav.Option{Item: updMenuItem, Action: s.openUpdates(updMainHost)})
 		}
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
 	}
