@@ -20,11 +20,12 @@ See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
 *Drafted by p7-release.*
 
-- **A change that could lock you out rolls back by itself** unless it is confirmed within 3 minutes, such as SSH Login's changes and enabling the firewall. The screen shows when, and how to undo it now.
+- **A change that could lock you out rolls back by itself** unless it is confirmed in time, such as SSH Login's changes and enabling the firewall. The screen shows when, and how to undo it now.
 - **`sudo hardn confirm` keeps it**, from a new SSH connection made from another machine, to the new port where the change added one. The session that made the change, one already open before it, and one through the host itself are refused. At the console it confirms, with a warning that this shows nothing about SSH.
 - **`sudo hardn rollback <id>` undoes it now**: it restores the files the change backed up and undoes its steps. Run again, it finishes a rollback that stopped. `sudo hardn rollback --abandon <id>` gives up a rollback that can never finish.
+- **3 minutes, unless `--confirm-timeout` or hardn.yml's `confirmTimeout` says otherwise**: seconds, such as `300`, or a duration, such as `5m`. The flag wins over the file. Less than 60 seconds, or a value that isn't a time, is refused, exit status 2.
 - **One change at a time.** While a change waits for confirmation, or a rollback has not finished, the next change is refused, and says how to go on.
-- **A reboot doesn't lose the timer.** Before the first such change, hardn installs a boot unit, `hardn-boot` (`/etc/systemd/system/hardn-boot.service`, or `/etc/init.d/hardn-boot` on OpenRC). At boot it restarts the timer for what is left of the 3 minutes, or rolls the change back before sshd starts once they have passed. It is removed at the first boot with nothing waiting.
+- **A reboot doesn't lose the timer.** Before the first such change, hardn installs a boot unit, `hardn-boot` (`/etc/systemd/system/hardn-boot.service`, or `/etc/init.d/hardn-boot` on OpenRC). At boot it restarts the timer for the time left, or rolls the change back before sshd starts once it has run out. It is removed at the first boot with nothing waiting.
 - **The next run says what happened**: as root, each command says on stderr that a change is waiting for confirmation, or was rolled back because it was not confirmed.
 - **Where neither systemd nor OpenRC runs, such a change is refused**, as it is when the hardn binary, or a directory above it, can be changed by a user other than root.
 - **Both need root, and `-n` refuses them**, exit status 2. `hardn confirm` exits 1 when it does not confirm.
@@ -185,9 +186,9 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 ## Changed: `disableRoot` is `disableRootSSH`
 
-*Drafted by p7-release.*
+*Drafted by p7-release; corrected by p7-surface.*
 
-- **hardn.yml's `disableRoot` was renamed `disableRootSSH`.** The old key is ignored, without a warning: `disableRoot: true` no longer has Run All turn root login off. Rename it in older files.
+- **hardn.yml's `disableRoot` was renamed `disableRootSSH`.** The old key is still read, as `disableRootSSH`, with a warning that it is deprecated: `disableRoot: true` still has Run All turn root login off. Rename it in older files.
 
 ## Removed: the package flags and items
 
@@ -208,10 +209,37 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 *Drafted by p7-release.*
 
-- **Screens, plans and messages have a new look**, in colour on a colour terminal.
-- **Off a terminal, output is plain**: no colour or styling, no animation, and ASCII symbols. `HARDN_PLAIN=1` does the same on a terminal.
-- **`NO_COLOR` or `--no-color` turns colour off.**
-- **ASCII symbols** with `HARDN_ASCII=1`, `TERM=linux` or `TERM=dumb`, or a locale that isn't UTF-8.
+- **Screens, plans and messages have a new look**, in colour on a colour terminal, dark by default. `--theme=light` or `HARDN_THEME=light` is for a light terminal; `auto` follows the terminal's background.
+- **Off a terminal, output is plain**: no colour or styling, no animation, and ASCII symbols. `--plain` or `HARDN_PLAIN=1` does the same on a terminal.
+- **`--color=never` or `NO_COLOR` turns colour off.** `--color=always` keeps it on, off a terminal too; `--color=auto` is the default.
+- **`--no-color` is now `--color=never`**, with a warning that it is deprecated.
+- **ASCII symbols** with `--ascii` or `HARDN_ASCII=1`, `TERM=linux` or `TERM=dumb`, or a locale that isn't UTF-8.
+
+## New: `--yes`
+
+*Drafted by p7-surface.*
+
+- **Off a terminal, an operation flag applies a change only with `--yes`.** Without it, the plan is shown, nothing is applied, and hardn exits 2, saying to add `--yes`. A plan with nothing to change exits 0, so a scheduled run on a hardened host is 0.
+- **`--yes` never applies a change that could lock you out off a terminal.** Such a plan from `-w`, `-d` or `-r` is still refused there, exit status 1, `--yes` or not: run it from a terminal, where you type the hostname.
+- **On a terminal, operation flags work as before.** `--yes` only skips a question asked today, and only for a plan that can't lock you out.
+
+## Changed: `hardn --version`
+
+*Drafted by p7-surface.*
+
+- **`hardn --version` prints the version, the commit and the build date again.**
+
+## Changed: no default username
+
+*Drafted by p7-surface.*
+
+- **The example configuration no longer sets `username: "george"`**: neither `hardn.yml.example` nor the copy hardn writes to `/etc/hardn/hardn.yml.example`. Set the user `-c` and Run All create in your own hardn.yml.
+
+## Changed: supported versions
+
+*Drafted by p7-surface.*
+
+- **Alpine 3.21 is out of scope**: its vendor support ended 2026-11-01. hardn labels it so, as it does Proxmox VE 8.
 
 ## Changed: building from source
 
