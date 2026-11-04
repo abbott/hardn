@@ -524,7 +524,7 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 			{name: "-n, lockout risk", host: "doas-password", dryRun: true, code: 1,
 				said: []string{"Lockout risk", "No actual changes were made to your system.", lockoutWords}},
 		} {
-			args := append([]string{}, spelling...)
+			args := append([]string{"--yes"}, spelling...) // a script's run (§3.11): TestYesFlag runs it without
 			if tc.dryRun {
 				args = append([]string{"-n"}, args...)
 			}
@@ -643,8 +643,8 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 	}{
 		{[]string{"-e"}, 3},
 		{[]string{"setup-sudo-env"}, 3},
-		{[]string{"--dry-run=false", "-e"}, 0},
-		{[]string{"--dry-run=false", "setup-sudo-env"}, 0},
+		{[]string{"--yes", "--dry-run=false", "-e"}, 0},
+		{[]string{"--yes", "--dry-run=false", "setup-sudo-env"}, 0},
 		{[]string{"-e", "-r"}, output.ExitUsage},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {

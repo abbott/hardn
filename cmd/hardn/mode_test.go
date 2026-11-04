@@ -131,7 +131,7 @@ func TestConfigureDNSFlagPlanOnlyFromFile(t *testing.T) {
 		code int
 	}{
 		{"-g", []string{"-g"}, 3},
-		{"--dry-run=false -g", []string{"--dry-run=false", "-g"}, 0},
+		{"--dry-run=false -g", []string{"--yes", "--dry-run=false", "-g"}, 0},
 		{"-g -r", []string{"-g", "-r"}, output.ExitUsage},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

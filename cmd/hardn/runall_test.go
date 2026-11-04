@@ -241,9 +241,10 @@ const runAllDNSYML = "configureDns: true\nnameservers:\n  - 192.0.2.53\n  - 192.
 // never y/N, the apply, PermitRootLogin no and the nameservers written
 // and the revert timer armed, then sudo hardn confirm, 0; a plain plan
 // (the nameservers alone) asked the same, applied, nothing armed, 0; 0
-// and q declining, nothing written, 3. Off a terminal any plan with
-// changes refused, PLAN_REFUSED in §6's words, nothing written or armed,
-// 1, a plain one too. -n the plan alone, no question, nothing written, 3,
+// and q declining, nothing written, 3. Off a terminal a lockout-risk plan
+// refused, PLAN_REFUSED in §6's words, nothing written or armed, 1, with
+// --yes too; a plain one shown and not applied, CONFIRMATION_REQUIRED, 2,
+// and applied with --yes, unasked, on a terminal too. -n the plan alone, no question, nothing written, 3,
 // on a terminal or off; nothing asked (no username either), nothing to
 // change, 0, under -n too. -u names Run All's user (Create carol). Nothing
 // goes through the legacy provider; hardn.yml is never saved.
@@ -270,8 +271,20 @@ func TestRunAllFlag(t *testing.T) {
 			unsaid: []string{"Type the hostname"}},
 		{name: "a plain plan on a terminal", yml: runAllDNSYML, tty: true, lines: []string{"web-01"}, dns: true,
 			said: []string{"Apply this plan?", "Type the hostname", "Operation Successful"}, unsaid: []string{"Lockout risk", "sudo hardn confirm"}},
-		{name: "a plain plan off a terminal", yml: runAllDNSYML, code: 1,
-			said: []string{"No actual changes were made to your system.", rRefusalWords}, unsaid: []string{"Type the hostname"}},
+		{name: "a plain plan off a terminal", yml: runAllDNSYML, code: 2,
+			said:   []string{"No actual changes were made to your system.", confirmationWords, "CONFIRMATION_REQUIRED"},
+			unsaid: []string{"Type the hostname", rRefusalWords}},
+		{name: "a plain plan off a terminal, --yes", yml: runAllDNSYML, args: []string{"--yes"}, dns: true,
+			said: []string{"Operation Successful"}, unsaid: []string{"Type the hostname", rRefusalWords, "sudo hardn confirm"}},
+		{name: "a plain plan on a terminal, --yes", yml: runAllDNSYML, tty: true, args: []string{"--yes"}, dns: true,
+			said: []string{"Operation Successful"}, unsaid: []string{"Type the hostname", "Apply this plan?"}},
+		{name: "off a terminal, --yes", yml: runAllYML, args: []string{"--yes"}, code: 1, skipped: true,
+			said:   []string{"Lockout risk", "No actual changes were made to your system.", rRefusalWords},
+			unsaid: []string{"Type the hostname", "CONFIRMATION_REQUIRED"}},
+		{name: "on a terminal, --yes", yml: runAllYML, tty: true, args: []string{"--yes"}, lines: []string{"web-01"}, skipped: true, applied: true, armed: true, dns: true,
+			said: []string{"Lockout risk", "Apply this plan?", "Type the hostname", "Operation Successful", "sudo hardn confirm"}},
+		{name: "-n off a terminal, --yes", yml: runAllYML, args: []string{"--yes"}, dryRun: true, code: 3, skipped: true,
+			said: []string{"Lockout risk", "No actual changes were made to your system."}, unsaid: []string{rRefusalWords, "CONFIRMATION_REQUIRED"}},
 		{name: "-n on a terminal", yml: runAllYML, tty: true, dryRun: true, code: 3, skipped: true,
 			said: []string{"Lockout risk", "No actual changes were made to your system."}, unsaid: []string{"Type the hostname", rRefusalWords}},
 		{name: "-n off a terminal", yml: runAllYML, dryRun: true, code: 3, skipped: true,
