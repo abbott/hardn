@@ -7,9 +7,9 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Alpine 3.23␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenRC). logrotate's daily job under /etc/periodic, then␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's Enable. Disable removes apk-cron and keeps crond,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaying why.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenRC). crond running and at boot before hardn, logrotate's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdaily job, then hardn's Enable. Disable removes apk-cron and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeeps crond, saying why.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -39,9 +39,9 @@ $
 $
 # Note$
 # Mock: Auto Updates. web-01.example.net runs Alpine 3.23$
-# (OpenRC). logrotate's daily job under /etc/periodic, then$
-# hardn's Enable. Disable removes apk-cron and keeps crond,$
-# saying why.$
+# (OpenRC). crond running and at boot before hardn, logrotate's$
+# daily job, then hardn's Enable. Disable removes apk-cron and$
+# keeps crond, saying why.$
 $
 # Auto Updates #################################################$
 $
@@ -71,9 +71,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Alpine 3.23␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenRC). logrotate's daily job under /etc/periodic, then␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's Enable. Disable removes apk-cron and keeps crond,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaying why.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenRC). crond running and at boot before hardn,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogrotate's daily job, then hardn's Enable. Disable␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mremoves apk-cron and keeps crond, saying why.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -109,9 +109,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Alpine 3.23␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenRC). logrotate's daily job under /etc/periodic, then␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's Enable. Disable removes apk-cron and keeps crond,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaying why.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenRC). crond running and at boot before hardn, logrotate's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdaily job, then hardn's Enable. Disable removes apk-cron and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeeps crond, saying why.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
 $

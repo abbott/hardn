@@ -90,6 +90,11 @@ const (
 	updDescOutside = "Turned on outside hardn"
 	updDescPVE     = "Not on Proxmox VE"
 	updDescUnread  = "Can't read"
+	// What is in the way, where the item refuses when chosen (R1).
+	updDescAptUnread = "Can't read apt's settings"
+	updDescRecord    = "Can't read hardn's record"
+	updDescEnableOff = "Periodic jobs are off"
+	updDescNoOrigin  = "No origin allowed"
 )
 
 // What hardn writes: its own apt file, and the record (P-43 (4)).
@@ -161,21 +166,25 @@ func updHosts() []updHost {
 		{name: "lists-stale", label: "Lists not refreshed", about: "Partial", host: updListsStale,
 			note: deb + "20auto-upgrades turns upgrades on and the list refresh off. Enable writes Update-Package-Lists alone."},
 		{name: "timer-off", label: "Timer off", about: "Refused", host: updTimerOff,
-			note: deb + "apt-daily-upgrade.timer disabled and stopped by the administrator. Enable refuses: hardn leaves apt's timers alone."},
+			note: deb + "apt-daily-upgrade.timer disabled and stopped by the administrator. Enable is offered, saying so, and refuses: hardn leaves apt's timers alone."},
 		{name: "by-hardn-debian", label: "On by hardn, Debian", about: "A record", host: updByHardnDebian,
 			note: deb + "debian-installer after hardn's Enable: the package, hardn's file and the record. Disable deletes the file, then purges the package."},
 		{name: "by-hardn-alpine", label: "On by hardn, Alpine", about: "A record", host: updByHardnAlpine,
 			note: alp + "alpine323 after hardn's Enable: apk-cron, crond at boot and running, the record. Disable stops crond, takes it out of the runlevel and removes apk-cron."},
 		{name: "edited", label: "Edited since", about: "Refused, named", host: updEdited,
-			note: deb + "by-hardn-debian, then hardn's file edited by hand. Disable refuses, naming it."},
+			note: deb + "by-hardn-debian, then hardn's file edited by hand. The row says so (a stand-in, decision 9); Disable refuses, naming it."},
 		{name: "crond-shared", label: "crond shared", about: "crond kept", host: updCrondShared,
-			note: alp + "logrotate's daily job under /etc/periodic, then hardn's Enable. Disable removes apk-cron and keeps crond, saying why."},
+			note: alp + "crond running and at boot before hardn, logrotate's daily job, then hardn's Enable. Disable removes apk-cron and keeps crond, saying why."},
+		{name: "dormant-jobs", label: "Jobs, crond stopped", about: "Also starts", host: updDormantJobs,
+			note: alp + "alpine323 with logrotate's daily job, crond stopped. Enable starts crond and says it starts logrotate too; Disable stops it again."},
+		{name: "config-files", label: "Files left", about: "Removed earlier", host: updConfigFiles,
+			note: deb + "unattended-upgrades removed earlier, its edited 50unattended-upgrades left. Enable keeps it, saying so; Disable removes the package, not purges."},
 		{name: "legacy-alpine", label: "origin/main's script", about: "apk-upgrade", host: updLegacyAlpine,
 			note: alp + "origin/main's /etc/periodic/daily/apk-upgrade, which crond never ran. Enable also removes it (§3.20)."},
 		{name: "pve9", label: "Proxmox VE 9", about: "Not offered", host: updPVE,
-			note: deb + "A Proxmox VE 9 node, with no unattended-upgrades. The row is today's check's; the item is unavailable (decision 7)."},
+			note: deb + "A Proxmox VE 9 node, with no unattended-upgrades. The row is decision 7's, a stand-in over the check's; the item is unavailable."},
 		{name: "not-read", label: "Not read", about: "apt-config fails", host: updNotRead,
-			note: deb + "A file in apt.conf.d with a syntax error: apt-config dump fails, so the row is Unknown and both directions refuse."},
+			note: deb + "A file in apt.conf.d with a syntax error: apt-config dump fails, so the row is Unknown; the item is offered, saying so, and refuses."},
 	}
 }
 
@@ -196,6 +205,36 @@ func updVariants() []updHost {
 		{name: "own-file", note: "debian-off with hardn's file and no record: on by hardn all the same.", host: func() *fakeHost {
 			h := updDebianOff()
 			h.f.AddFile(hardnAptFile, hardnAptBytes(hardnLines), 0o644, 0, 0)
+			return h
+		}},
+		{name: "masked", note: "debian-off with apt-daily-upgrade.service masked.", host: func() *fakeHost {
+			h := updDebianOff()
+			h.status.units[upgradeJob] = unit{enabled: "masked"}
+			return h
+		}},
+		{name: "missing", note: "debian-off with apt-daily-upgrade.service not found.", host: func() *fakeHost {
+			h := updDebianOff()
+			h.status.units[upgradeJob] = unit{enabled: "not-found"}
+			return h
+		}},
+		{name: "no-origin", note: "debian-off with a 50unattended-upgrades that allows no origin.", host: func() *fakeHost {
+			h := updDebianOff()
+			h.f.AddFile(uuConfig, []byte("// No origins.\n"), 0o644, 0, 0)
+			return h
+		}},
+		{name: "extra-packages", note: "debian-installer, the install's simulation also upgrading libc6.", host: func() *fakeHost {
+			h := updInstaller()
+			h.upd.extra = []string{"Inst libc6 [2.41-11] (2.41-12 Debian:13.1/stable [arm64])"}
+			return h
+		}},
+		{name: "later-file", note: hostFQDN + " runs Debian 13. debian-off with 60site, read after hardn's file, setting Unattended-Upgrade \"0\". Enable's read-back fails, and the change is rolled back.", host: func() *fakeHost {
+			h := updDebianOff()
+			h.f.AddFile(aptConfDir+"/60site", []byte(keyUpgrade+" \"0\";\n"), 0o644, 0, 0)
+			return h
+		}},
+		{name: "no-record", note: "by-hardn-debian with the record gone: 20auto-upgrades keeps updates on without hardn's file.", host: func() *fakeHost {
+			h := updByHardnDebian()
+			_ = h.f.Remove(context.Background(), updRecordPath)
 			return h
 		}},
 	}
@@ -245,10 +284,25 @@ func updEdited() *fakeHost {
 	return h
 }
 
-func updCrondShared() *fakeHost {
-	h := updAlpine()
+// updLogrotate is h with logrotate's daily job.
+func updLogrotate(h *fakeHost) *fakeHost {
 	h.f.AddFile("/etc/periodic/daily/logrotate", []byte("#!/bin/sh\n/usr/sbin/logrotate /etc/logrotate.conf\n"), 0o755, 0, 0)
+	return h
+}
+
+func updCrondShared() *fakeHost {
+	h := updLogrotate(updAlpine())
+	h.upd.crond = true
+	h.f.AddSymlink(alpine.RunlevelLink, alpine.InitScript)
 	return updApplied(h)
+}
+
+func updDormantJobs() *fakeHost { return updLogrotate(updAlpine()) }
+
+func updConfigFiles() *fakeHost {
+	h := updApt(debian13Platform, "")
+	h.f.AddFile(uuConfig, []byte(uuOrigins(false)+"Unattended-Upgrade::Mail \"root\";\n"), 0o644, 0, 0)
+	return h
 }
 
 func updLegacyAlpine() *fakeHost {
@@ -320,6 +374,13 @@ type updReading struct {
 	recErr error
 	own    bool
 	pve    bool
+	// origins: 50unattended-upgrades allows one; changed: a file of
+	// hardn's changed since the record (decision 9); stayOn: with no
+	// record, the file that keeps updates on without hardn's (finding 10).
+	origins bool
+	changed string
+	stayOn  string
+	present []string // the package's files there while it is not installed
 }
 
 // readUpdates reads the host as the screen does, writing nothing.
@@ -351,11 +412,19 @@ func readUpdates(ctx context.Context, sys host.System) (updReading, error) {
 	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != (updates.Auto{}).Title() })
 	r.status = view
 	r.pve = r.f.Platform.Distro == detect.DistroProxmox
+	if r.pve && len(r.status.Rows) == 1 {
+		// A stand-in, unit (b)'s: decision 7 (a)'s row, the check's
+		// Applies false on Proxmox VE.
+		row := &r.status.Rows[0]
+		row.State, row.Word, row.Detail = component.StatusNotApplicable, "", "updated by hand"
+	}
 	r.rec, r.recErr = readRecord(ctx, sys)
 	if r.f.Platform.Distro == detect.DistroAlpine {
 		r.apk = true
 		r.u, r.uErr = alpine.ReadUpdates(ctx, sys, r.f)
 		r.others = otherJobs(ctx, sys)
+		r.changed = changedFile(ctx, sys, r.rec, alpine.Script)
+		r.markChanged()
 		return r, nil
 	}
 	r.values, r.aptErr = aptSetBy(ctx, sys)
@@ -371,7 +440,83 @@ func readUpdates(ctx context.Context, sys host.System) (updReading, error) {
 	if data, _, err := sys.ReadFileNoFollow(ctx, hardnAptFile); err == nil {
 		r.own = isHardnApt(data)
 	}
+	r.origins = hasOrigins(ctx, sys)
+	for _, p := range []string{autoUpgrades, uuConfig} {
+		if sum, err := fileHash(ctx, sys, p); err == nil && sum != "" && r.pkg == detect.No {
+			r.present = append(r.present, p)
+		}
+	}
+	r.changed = changedFile(ctx, sys, r.rec, hardnAptFile)
+	if r.rec == nil && r.recErr == nil && r.own {
+		r.stayOn = stayOnWithout(ctx, sys)
+	}
+	r.markChanged()
 	return r, nil
+}
+
+// markChanged is decision 9 (a)'s finding line under the row, a stand-in
+// (unit (b)'s, check-updates.md): a file hardn left changed since.
+func (r *updReading) markChanged() {
+	if r.changed != "" && len(r.status.Rows) == 1 {
+		r.status.Rows[0].Lines = append(r.status.Rows[0].Lines, component.StatusLine{Text: "changed since hardn", Warn: true})
+	}
+}
+
+// changedFile is name where the record holds its hash and the file no
+// longer matches it, "" otherwise.
+func changedFile(ctx context.Context, sys host.System, rec *updRecord, name string) string {
+	if rec == nil {
+		return ""
+	}
+	want, ok := rec.recordedHash(name)
+	if !ok {
+		return ""
+	}
+	if got, err := fileHash(ctx, sys, name); err != nil || got != want {
+		return name
+	}
+	return ""
+}
+
+// hasOrigins is whether apt's configuration allows unattended-upgrades an
+// origin (Origins-Pattern or Allowed-Origins), as the check reads it.
+func hasOrigins(ctx context.Context, sys host.System) bool {
+	res, err := sys.Run(ctx, "apt-config", "dump", "APT::Periodic", "Unattended-Upgrade::Origins-Pattern", "Unattended-Upgrade::Allowed-Origins")
+	if err != nil {
+		return false
+	}
+	for _, l := range strings.Split(string(res.Stdout), "\n") {
+		if strings.HasPrefix(strings.ToLower(l), "unattended-upgrade::") && strings.Contains(l, ":: ") {
+			return true
+		}
+	}
+	return false
+}
+
+// stayOnWithout is a stand-in, unit (b)'s: the file that turns upgrades
+// on in apt's configuration without hardn's file, "" where none does or
+// the package is not installed (finding 10).
+func stayOnWithout(ctx context.Context, sys host.System) string {
+	if t, err := detect.DpkgInstalled(ctx, sys, uuPackage); err != nil || t != detect.Yes {
+		return ""
+	}
+	es, err := aptConfEntries(ctx, sys)
+	if err != nil {
+		return ""
+	}
+	vals := map[string]aptSet{}
+	for _, e := range es {
+		if !e.item && e.file != hardnAptFile {
+			vals[strings.ToLower(e.name)] = aptSet{e.value, e.file}
+		}
+	}
+	if s, ok := vals[strings.ToLower(keyEnable)]; ok && strings.Trim(s.value, "0") == "" {
+		return ""
+	}
+	if s, ok := vals[strings.ToLower(keyUpgrade)]; ok && strings.Trim(s.value, "0") != "" {
+		return s.file
+	}
+	return ""
 }
 
 // aptSet is an APT::Periodic value and the file that sets it last.
@@ -400,8 +545,8 @@ func aptSetBy(ctx context.Context, sys host.System) (map[string]aptSet, error) {
 }
 
 // otherJobs are the executables under /etc/periodic/* other than
-// apk-cron's script and origin/main's, and root's crontab where it is not
-// the stock one: what else needs crond (decision 6).
+// apk-cron's script and origin/main's, and every crontab in /etc/crontabs
+// but root's stock one: what else crond runs (decision 6).
 func otherJobs(ctx context.Context, sys host.System) []string {
 	var out []string
 	for _, d := range []string{"15min", "hourly", "daily", "weekly", "monthly"} {
@@ -416,8 +561,12 @@ func otherJobs(ctx context.Context, sys host.System) []string {
 			}
 		}
 	}
-	if data, err := sys.ReadFile(ctx, crontabRoot); err == nil && string(data) != stockCrontab {
-		out = append(out, "root's crontab")
+	des, _ := sys.ReadDir(ctx, path.Dir(crontabRoot))
+	for _, de := range des {
+		p := path.Join(path.Dir(crontabRoot), de.Name())
+		if data, err := sys.ReadFile(ctx, p); err == nil && (p != crontabRoot || string(data) != stockCrontab) {
+			out = append(out, de.Name()+"'s crontab")
+		}
 	}
 	return out
 }
@@ -428,8 +577,9 @@ func (r updReading) on() bool {
 	return r.check.State == engine.Configured || r.check.State == engine.Partial
 }
 
-// byHardn is P-43 (1)'s "on by hardn": a record, or hardn's own file.
-func (r updReading) byHardn() bool { return r.rec != nil || r.own }
+// byHardn is P-43 (1)'s "on by hardn": a record, hardn's own file, or a
+// record hardn can't read (R1: Disable offered, refusing when chosen).
+func (r updReading) byHardn() bool { return r.rec != nil || r.own || r.recErr != nil }
 
 // unread is whether a fact either direction needs is not established.
 func (r updReading) unread() bool {
@@ -464,7 +614,9 @@ func (r updReading) timerRow(key, timer, job string) component.KeyValue {
 	switch active, enabled, svc := r.units[timer+" active"], r.units[timer+" enabled"], r.units[job+" enabled"]; {
 	case active == "" || enabled == "":
 		kv.Value, kv.State = "Can't read", component.ValueUnknown
-	case svc == "masked" || svc == "masked-runtime" || svc == "not-found":
+	case svc == "not-found":
+		kv.Value, kv.State, kv.Note = "Missing", component.ValueBad, job
+	case svc == "masked" || svc == "masked-runtime":
 		kv.Value, kv.State, kv.Note = "Masked", component.ValueBad, job
 	case active != "active":
 		kv.Value, kv.State = "Off", component.ValueBad
@@ -522,6 +674,9 @@ func (r updReading) aptRows() []component.KeyValue {
 		row := component.KeyValue{Key: kv.key, Value: v, Note: note}
 		if v == "Off" {
 			row.State = component.ValueBad
+		}
+		if set && r.changed != "" && s.file == r.changed {
+			row.Note, row.State = "changed since hardn", component.ValueWarn // the item names the file
 		}
 		rows = append(rows, row)
 	}
@@ -586,9 +741,10 @@ func (r updReading) apkRows() []component.KeyValue {
 var updExit = component.MenuItem{Key: "0", Label: "Return"}
 
 // item is the screen's one item, named by its result (P-12): Enable while
-// off, Disable while on by hardn, read-only while on but not by hardn or
-// on Proxmox VE (decision 7), every description "Can't read" where a fact
-// is not read.
+// off, Disable while on by hardn, unavailable (P-22) for a state of the
+// host itself: on but not by hardn, or Proxmox VE (decision 7). R1: a
+// state the user can fix keeps the item offered, its description saying
+// what is in the way (blocked), and choosing it refuses before asking.
 func (r updReading) item() component.MenuItem {
 	it := component.MenuItem{Key: "1", Label: updEnable, Description: updDescApt}
 	switch {
@@ -598,16 +754,58 @@ func (r updReading) item() component.MenuItem {
 		it.Description = updDescInstall
 	}
 	switch {
-	case r.unread():
-		it.Description = updDescUnread
 	case r.pve:
 		it.Description, it.Disabled = updDescPVE, true
 	case r.byHardn():
 		it.Label, it.Description = updDisable, updDescUndo
-	case r.check.State == engine.Configured:
+	case r.check.State == engine.Configured && !r.unread():
 		it.Label, it.Description, it.Disabled = updDisable, updDescOutside, true
 	}
+	if why := r.blocked(it.Label == updDisable); why != "" && !it.Disabled {
+		it.Description = why
+	}
 	return it
+}
+
+// blocked is what is in the way of the direction, in a few words, as the
+// planner refuses (planAptOn, planOff), "" for nothing.
+func (r updReading) blocked(off bool) string {
+	unread := updDescAptUnread
+	if r.apk {
+		unread = updDescUnread
+	}
+	switch {
+	case off && r.recErr != nil:
+		return updDescRecord
+	case r.unread():
+		return unread
+	case off && r.changed == alpine.Script:
+		return "apk-cron's script changed"
+	case off && r.changed != "":
+		return path.Base(r.changed) + " changed"
+	case off && r.stayOn != "":
+		return path.Base(r.stayOn) + " keeps updates on"
+	case off || r.apk:
+		return ""
+	}
+	if s, ok := r.values[strings.ToLower(keyEnable)]; ok && strings.Trim(s.value, "0") == "" {
+		return updDescEnableOff
+	}
+	for _, t := range []struct{ name, timer, job string }{{"Upgrade", upgradeTimer, upgradeJob}, {"Lists", listsTimer, listsJob}} {
+		switch r.units[t.job+" enabled"] {
+		case "masked", "masked-runtime":
+			return t.name + " job is masked"
+		case "not-found":
+			return t.name + " job is missing"
+		}
+		if r.units[t.timer+" active"] != "active" || r.units[t.timer+" enabled"] != "enabled" {
+			return t.name + " timer is off"
+		}
+	}
+	if r.pkg == detect.Yes && !r.origins {
+		return updDescNoOrigin
+	}
+	return ""
 }
 
 // screen is the Auto Updates screen: the row, the section, the item.
@@ -648,6 +846,13 @@ type updEntry struct {
 	Lines []string `json:"lines,omitempty"`
 	// ReadBack is the setting as the check read it after.
 	ReadBack string `json:"readBack"`
+	// What existed before (R2), read at Enable: each file the install
+	// brings, with its SHA-256 before ("" absent); on Alpine crond's state
+	// and runlevel, and the other jobs crond would run.
+	Before         []updFile `json:"before,omitempty"`
+	CrondBefore    string    `json:"crondBefore,omitempty"`
+	RunlevelBefore string    `json:"runlevelBefore,omitempty"`
+	JobsBefore     []string  `json:"jobsBefore,omitempty"`
 }
 
 // updFile is one file a step left, and its hash.
@@ -733,6 +938,8 @@ const (
 	codeUpdEnableOff = "UPDATES_PERIODIC_OFF"
 	codeUpdTimerOff  = "UPDATES_TIMER_OFF"
 	codeUpdMasked    = "UPDATES_JOB_MASKED"
+	codeUpdMissing   = "UPDATES_JOB_MISSING"
+	codeUpdStaysOn   = "UPDATES_STAY_ON"
 	codeUpdOrigins   = "UPDATES_NO_ORIGINS"
 	codeUpdPVE       = "UPDATES_PROXMOX"
 	codeUpdChanged   = "UPDATES_CHANGED_SINCE"
@@ -784,7 +991,10 @@ func planAptOn(ctx context.Context, sys host.System, in engine.Input) ([]engine.
 	}
 	for _, t := range []struct{ timer, job string }{{upgradeTimer, upgradeJob}, {listsTimer, listsJob}} {
 		svc, _ := detect.SystemctlIsEnabled(ctx, sys, t.job)
-		if svc == "masked" || svc == "masked-runtime" || svc == "not-found" {
+		if svc == "not-found" {
+			return nil, &steps.Refusal{Code: codeUpdMissing, Why: t.job + " is missing", Fix: "reinstall apt, then try again", Err: detect.ErrUnrecognised}
+		}
+		if svc == "masked" || svc == "masked-runtime" {
 			return nil, &steps.Refusal{Code: codeUpdMasked, Why: t.job + " is masked, and hardn leaves apt's timers to you", Fix: "run systemctl unmask " + t.job + ", then try again", Err: detect.ErrUnrecognised}
 		}
 		active, _ := detect.SystemctlIsActive(ctx, sys, t.timer)
@@ -794,7 +1004,7 @@ func planAptOn(ctx context.Context, sys host.System, in engine.Input) ([]engine.
 		}
 	}
 	var cs []engine.Change
-	var recSteps, adds []string
+	var entry updEntry
 	pkg, err := packages.Installed(ctx, sys, packages.Apt, uuPackage)
 	if err != nil {
 		return nil, err
@@ -804,7 +1014,14 @@ func planAptOn(ctx context.Context, sys host.System, in engine.Input) ([]engine.
 		if err != nil {
 			return nil, installWords(err)
 		}
-		adds = p.Adds
+		entry.Packages = p.Adds
+		for _, f := range []string{autoUpgrades, uuConfig} {
+			sum, err := fileHash(ctx, sys, f)
+			if err != nil {
+				return nil, err
+			}
+			entry.Before = append(entry.Before, updFile{Path: f, SHA256: sum, By: uuPackage})
+		}
 		after := "installed"
 		if also := slices.DeleteFunc(slices.Clone(p.Adds), func(n string) bool { return n == uuPackage }); len(also) > 0 {
 			after += ", with " + strings.Join(also, ", ")
@@ -824,8 +1041,8 @@ func planAptOn(ctx context.Context, sys host.System, in engine.Input) ([]engine.
 				}
 				return engine.Ran{Rollback: &u, Detail: "unattended-upgrades: installed"}, err
 			}})
-		recSteps = append(recSteps, "install")
-	} else if st, err := (updates.Auto{}).Check(ctx, sys, in.Facts); err == nil && st.Detail == updates.DetailNoOrigins {
+		entry.Steps = append(entry.Steps, "install")
+	} else if !hasOrigins(ctx, sys) {
 		return nil, &steps.Refusal{Code: codeUpdOrigins, Why: path.Base(uuConfig) + " allows no origin, so nothing would be upgraded", Fix: "add your distribution's origins there, then try again", Err: detect.ErrUnrecognised}
 	}
 	var keys []string
@@ -850,12 +1067,12 @@ func planAptOn(ctx context.Context, sys host.System, in engine.Input) ([]engine.
 				}
 				return engine.Ran{Detail: "apt: " + strings.Join(lines, ", ") + " in effect"}, readBack(ctx, sys, keys, "1")
 			}})
-		recSteps = append(recSteps, "file")
+		entry.Steps = append(entry.Steps, "file")
 	}
 	if len(cs) == 0 {
 		return nil, nil
 	}
-	return append(cs, recordOn(in.Facts, recSteps, adds, keys, cs)), nil
+	return append(cs, recordOn(in.Facts, entry, keys, cs)), nil
 }
 
 // changeIDs are the ids of cs.
@@ -919,17 +1136,19 @@ func planApkOn(ctx context.Context, sys host.System, in engine.Input) ([]engine.
 		return nil, err
 	}
 	c.Title, c.StateBefore, c.StateAfter = "Turn on daily upgrades", "apk-cron "+map[detect.Tri]string{detect.Yes: "installed", detect.No: "not installed"}[u.Package]+", crond "+u.Crond.String(), "apk-cron installed, crond started at boot"
-	var recSteps []string
+	entry := updEntry{CrondBefore: u.Crond.String(), RunlevelBefore: map[detect.Tri]string{detect.Yes: "yes", detect.No: "no"}[u.Runlevel], JobsBefore: otherJobs(ctx, sys)}
 	for _, ch := range p.Changes {
-		recSteps = append(recSteps, ch.Step.String())
+		entry.Steps = append(entry.Steps, ch.Step.String())
 	}
-	return []engine.Change{c, recordOn(in.Facts, recSteps, nil, nil, []engine.Change{c})}, nil
+	return []engine.Change{c, recordOn(in.Facts, entry, nil, []engine.Change{c})}, nil
 }
 
 // recordOn is the record's change: written last, after the read-back,
 // backed up and journalled as any write (P-43 (4)), so a rollback of the
-// apply puts the record back as it was, or removes it.
-func recordOn(f detect.Facts, recSteps, adds, keys []string, before []engine.Change) engine.Change {
+// apply puts the record back as it was, or removes it. planned is what
+// the plan read: the steps, the packages and what existed before (R2).
+func recordOn(f detect.Facts, planned updEntry, keys []string, before []engine.Change) engine.Change {
+	recSteps := planned.Steps
 	return engine.Change{ID: updates.ID + "/record", Summary: "Record what hardn changed in " + updRecordPath, Title: "Record hardn's changes", Target: updRecordPath,
 		Stage: engine.StageVerify, Resources: []string{updates.ID}, Backups: []string{updRecordPath}, After: changeIDs(before),
 		Apply: func(ctx context.Context, sys host.System, run engine.Run) (engine.Ran, error) {
@@ -937,8 +1156,9 @@ func recordOn(f detect.Facts, recSteps, adds, keys []string, before []engine.Cha
 			if err != nil {
 				return engine.Ran{}, err
 			}
-			e := updEntry{Direction: "on", Time: clock().Format("2006-01-02T15:04:05Z07:00"), Hardn: "v0.4.0", PlanID: run.ID,
-				Steps: recSteps, Packages: adds, ReadBack: st.State.String() + ": " + st.Detail}
+			e := planned
+			e.Direction, e.Time, e.Hardn, e.PlanID = "on", clock().Format("2006-01-02T15:04:05Z07:00"), "v0.4.0", run.ID
+			e.ReadBack = st.State.String() + ": " + st.Detail
 			for _, k := range keys {
 				e.Lines = append(e.Lines, k+" \"1\"")
 			}
@@ -978,6 +1198,28 @@ func recordOn(f detect.Facts, recSteps, adds, keys []string, before []engine.Cha
 		}}
 }
 
+// recordedBefore is the hash the record holds for name before hardn's
+// install, "" for absent, and whether it holds one.
+func (rec *updRecord) recordedBefore(name string) (string, bool) {
+	for _, e := range rec.Entries {
+		for _, f := range e.Before {
+			if f.Path == name {
+				return f.SHA256, true
+			}
+		}
+	}
+	return "", false
+}
+
+// jobsBefore are the other jobs crond would run at Enable, by the record.
+func (rec *updRecord) jobsBefore() []string {
+	var out []string
+	for _, e := range rec.Entries {
+		out = append(out, e.JobsBefore...)
+	}
+	return out
+}
+
 // recordedHash is the hash the record holds for name, and whether it holds
 // one.
 func (rec *updRecord) recordedHash(name string) (string, bool) {
@@ -1011,11 +1253,14 @@ func runChange(id, title, target string, argv, undo []string, risk engine.RiskCl
 // planOff is a stand-in, unit (b)'s: off, P-43 (2) and (3): the inverse of
 // each recorded step, last first, each run only while the host is as
 // hardn left it, a step changed since refusing, naming the file; with no
-// record, hardn's own file deleted while it holds hardn's bytes, and
-// nothing else. Debian: the file deleted and read back off, then the
-// package hardn installed purged while its files hold the recorded bytes,
-// else removed (decision 5). Alpine: crond stopped and out of the runlevel
-// only when hardn put it there and nothing else needs it (decision 6),
+// record, hardn's own file deleted while it holds hardn's bytes and no
+// other file keeps updates on without it, and nothing else. R2: off counts
+// only what the record says hardn did, decided against what it says
+// existed before. Debian: the file deleted, then the package hardn
+// installed purged while both its files were absent before and hold the
+// recorded bytes, else removed (decision 5); the last step reads the
+// setting back. Alpine: crond stopped and out of the runlevel where hardn
+// started it and added it and no job has appeared since (decision 6),
 // else kept and said; apk-cron removed behind apk del --simulate, refused
 // while its script differs from the record; origin/main's apk-upgrade
 // never written back. kept are what is left and why, for the review.
@@ -1024,12 +1269,12 @@ func planOff(ctx context.Context, sys host.System, in engine.Input) (cs []engine
 	if f.Platform.Distro == detect.DistroProxmox {
 		return nil, nil, &steps.Refusal{Code: codeUpdPVE, Why: "hardn doesn't change updates on Proxmox VE", Fix: "change them by hand", Err: detect.ErrUnrecognised}
 	}
-	if err := unreadRefusal(ctx, sys, f); err != nil {
-		return nil, nil, err
-	}
 	rec, err := readRecord(ctx, sys)
 	if err != nil {
 		return nil, nil, &steps.Refusal{Code: codeUpdRecord, Why: "hardn can't read its record of what it changed (" + updRecordPath + ")", Fix: "undo it by hand", Err: err}
+	}
+	if err := unreadRefusal(ctx, sys, f); err != nil {
+		return nil, nil, err
 	}
 	var stepsDone []string
 	if rec != nil {
@@ -1042,7 +1287,7 @@ func planOff(ctx context.Context, sys host.System, in engine.Input) (cs []engine
 		if err := planApkOff(ctx, sys, f, rec, stepsDone, add, &kept); err != nil {
 			return nil, nil, err
 		}
-	} else if err := planAptOff(ctx, sys, rec, stepsDone, add, &kept); err != nil {
+	} else if err := planAptOff(ctx, sys, f, rec, stepsDone, add, &kept); err != nil {
 		return nil, nil, err
 	}
 	if len(cs) == 0 && rec == nil {
@@ -1058,8 +1303,34 @@ func planOff(ctx context.Context, sys host.System, in engine.Input) (cs []engine
 	return cs, kept, nil
 }
 
+// offReadBack is off's read-back after its last step: the check, which
+// reads APT::Periodic; updates still on fail the change, rolled back.
+func offReadBack(ctx context.Context, sys host.System, f detect.Facts) error {
+	st, err := (updates.Auto{}).Check(ctx, sys, f)
+	if err != nil {
+		return err
+	}
+	if st.State == engine.Configured || st.State == engine.Partial {
+		return &steps.Refusal{Code: codeUpdReadBack, Why: "apt still reads updates as on after the change (" + st.Detail + ")", Fix: "find what turns them on, then try again", Err: detect.ErrUnrecognised}
+	}
+	return nil
+}
+
+// rollbackNotes are the review's lines on rolling back an off that
+// removes a package (finding 15): the reinstall is from the package
+// repositories, and on Debian it turns updates on through 20auto-upgrades
+// (debconf's default).
+func rollbackNotes(debian bool) []component.KeyValue {
+	out := []component.KeyValue{{Key: "Rollback", Value: "Reinstalls from the repositories"}}
+	if debian {
+		out = append(out, component.KeyValue{Key: "Rollback", Value: "Turns updates on", Note: "by 20auto-upgrades", State: component.ValueWarn})
+	}
+	return out
+}
+
 // planAptOff is Debian's and Ubuntu's off.
-func planAptOff(ctx context.Context, sys host.System, rec *updRecord, done []string, add func(engine.Change), kept *[]component.KeyValue) error {
+func planAptOff(ctx context.Context, sys host.System, f detect.Facts, rec *updRecord, done []string, add func(engine.Change), kept *[]component.KeyValue) error {
+	var mine []engine.Change
 	data, _, err := sys.ReadFileNoFollow(ctx, hardnAptFile)
 	switch {
 	case errors.Is(err, fs.ErrNotExist):
@@ -1074,8 +1345,13 @@ func planAptOff(ctx context.Context, sys host.System, rec *updRecord, done []str
 		if ok && want != hex.EncodeToString(sum[:]) || !ok && !isHardnApt(data) {
 			return changedSince(hardnAptFile, "wrote")
 		}
+		if rec == nil {
+			if file := stayOnWithout(ctx, sys); file != "" {
+				return &steps.Refusal{Code: codeUpdStaysOn, Why: "Updates stay on without hardn's file: " + path.Base(file) + " turns them on, and hardn has no record that it installed unattended-upgrades", Fix: "turn them off by hand", Err: detect.ErrUnrecognised}
+			}
+		}
 		before := string(data)
-		add(engine.Change{ID: updates.ID + "/file", Summary: "Turn off daily upgrades: delete " + hardnAptFile, Title: "Turn off daily upgrades", Target: hardnAptFile,
+		mine = append(mine, engine.Change{ID: updates.ID + "/file", Summary: "Turn off daily upgrades: delete " + hardnAptFile, Title: "Turn off daily upgrades", Target: hardnAptFile,
 			Diff: engine.FileDiff(hardnAptFile, &before, nil), Stage: engine.StageFiles, Resources: []string{updates.ID}, Backups: []string{hardnAptFile},
 			Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
 				if err := sys.Remove(ctx, hardnAptFile); err != nil {
@@ -1084,19 +1360,69 @@ func planAptOff(ctx context.Context, sys host.System, rec *updRecord, done []str
 				return engine.Ran{Detail: "apt: hardn's lines gone"}, nil
 			}})
 	}
-	if !slices.Contains(done, "install") {
+	if c, err := planAptPackageOff(ctx, sys, f, rec, done, kept); err != nil {
+		return err
+	} else if c != nil {
+		mine = append(mine, *c)
+	}
+	if len(mine) == 0 {
 		return nil
 	}
+	last := &mine[len(mine)-1]
+	apply := last.Apply
+	last.Apply = func(ctx context.Context, sys host.System, run engine.Run) (engine.Ran, error) {
+		ran, err := apply(ctx, sys, run)
+		if err != nil {
+			return ran, err
+		}
+		return ran, offReadBack(ctx, sys, f)
+	}
+	for _, c := range mine {
+		add(c)
+	}
+	return nil
+}
+
+// planAptPackageOff is the package hardn installed, at off (decision 5,
+// R2): purged only where 20auto-upgrades and 50unattended-upgrades were
+// both absent before hardn's install and still hold the bytes recorded
+// after it, checked again before the purge runs; otherwise removed, the
+// files kept and said. The dependencies the install added stay, said.
+func planAptPackageOff(ctx context.Context, sys host.System, f detect.Facts, rec *updRecord, done []string, kept *[]component.KeyValue) (*engine.Change, error) {
+	if !slices.Contains(done, "install") {
+		return nil, nil
+	}
 	if t, err := packages.Installed(ctx, sys, packages.Apt, uuPackage); err != nil || t != detect.Yes {
-		return err
+		return nil, err
 	}
 	purge := true
+	want := map[string]string{}
+	var files []component.KeyValue
 	for _, p := range []string{autoUpgrades, uuConfig} {
-		want, _ := rec.recordedHash(p)
-		if got, err := fileHash(ctx, sys, p); err != nil || got != want {
-			purge = false
-			*kept = append(*kept, component.KeyValue{Key: path.Base(p), Value: "Kept", State: component.ValueWarn, Note: "changed since"})
+		want[p], _ = rec.recordedHash(p)
+		was, _ := rec.recordedBefore(p)
+		got, err := fileHash(ctx, sys, p)
+		var why string
+		switch {
+		case err == nil && got == "": // nothing to keep, or to lose
+			want[p] = ""
+			continue
+		case err != nil:
+			why = "can't read it"
+		case was != "":
+			why = "there before hardn"
+		case got != want[p]:
+			why = "changed since hardn"
+		default:
+			why = "apt-get remove keeps it"
+			files = append(files, component.KeyValue{Key: path.Base(p), Value: "Kept", Note: why})
+			continue
 		}
+		purge = false
+		files = append(files, component.KeyValue{Key: path.Base(p), Value: "Kept", State: component.ValueWarn, Note: why})
+	}
+	if !purge {
+		*kept = append(*kept, files...)
 	}
 	verb := "purge"
 	if !purge {
@@ -1104,7 +1430,7 @@ func planAptOff(ctx context.Context, sys host.System, rec *updRecord, done []str
 	}
 	res, err := sys.Run(ctx, "apt-get", verb, "-s", "-y", uuPackage)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	var other []string
 	for _, l := range strings.Split(string(res.Stdout), "\n") {
@@ -1113,15 +1439,31 @@ func planAptOff(ctx context.Context, sys host.System, rec *updRecord, done []str
 		}
 	}
 	if len(other) > 0 {
-		return &steps.Refusal{Code: codeUpdPackages, Why: "Removing unattended-upgrades would also change other packages: " + strings.Join(other, ", "), Fix: "remove it by hand", Err: detect.ErrUnrecognised}
+		return nil, &steps.Refusal{Code: codeUpdPackages, Why: "Removing unattended-upgrades would also change other packages: " + strings.Join(other, ", "), Fix: "remove it by hand", Err: detect.ErrUnrecognised}
 	}
+	var deps []string
+	for _, e := range rec.Entries {
+		deps = append(deps, slices.DeleteFunc(slices.Clone(e.Packages), func(n string) bool { return n == uuPackage })...)
+	}
+	for _, d := range deps { // a row each: the review's rows are 64 cells
+		*kept = append(*kept, component.KeyValue{Key: d, Value: "Kept", Note: "apt autoremove removes it"})
+	}
+	*kept = append(*kept, rollbackNotes(f.Platform.Distro == detect.DistroDebian)...)
 	c := runChange(updates.ID+"/package", "Remove unattended-upgrades", uuPackage, []string{"apt-get", verb, "-y", uuPackage}, []string{"apt-get", "install", "-y", uuPackage}, engine.RiskPackageInstall, nil)
 	c.StateBefore, c.StateAfter = "installed", map[bool]string{true: "purged, with 20auto-upgrades", false: "removed, its files kept"}[purge]
 	if purge {
 		c.Backups = []string{autoUpgrades, uuConfig}
+		apply := c.Apply
+		c.Apply = func(ctx context.Context, sys host.System, run engine.Run) (engine.Ran, error) {
+			for _, p := range []string{autoUpgrades, uuConfig} {
+				if got, err := fileHash(ctx, sys, p); err != nil || got != want[p] {
+					return engine.Ran{}, errors.Join(err, changedSince(p, "installed"))
+				}
+			}
+			return apply(ctx, sys, run)
+		}
 	}
-	add(c)
-	return nil
+	return &c, nil
 }
 
 // planApkOff is Alpine's off.
@@ -1136,12 +1478,16 @@ func planApkOff(ctx context.Context, sys host.System, f detect.Facts, rec *updRe
 	if slices.Contains(done, alpine.StepRemoveLegacy.String()) {
 		*kept = append(*kept, component.KeyValue{Key: updRowLegacy, Value: "Stays removed", Note: path.Base(alpine.LegacyScript)})
 	}
-	others := otherJobs(ctx, sys)
+	before := rec.jobsBefore()
+	added := slices.DeleteFunc(otherJobs(ctx, sys), func(j string) bool { return slices.Contains(before, j) })
 	started := slices.Contains(done, alpine.StepStart.String()) || slices.Contains(done, alpine.StepRestart.String())
 	booted := slices.Contains(done, alpine.StepRunlevel.String())
-	if (started || booted) && len(others) > 0 {
-		*kept = append(*kept, component.KeyValue{Key: updRowCrond, Value: "Kept", Note: strings.Join(others, ", ") + " needs it"})
+	switch {
+	case (started || booted) && len(added) > 0:
+		*kept = append(*kept, component.KeyValue{Key: updRowCrond, Value: "Kept", Note: strings.Join(added, ", ") + " added since"})
 		started, booted = false, false
+	case !started && u.Crond == alpine.CrondStarted:
+		*kept = append(*kept, component.KeyValue{Key: updRowCrond, Value: "Kept", Note: "running before hardn"})
 	}
 	if started && u.Crond == alpine.CrondStarted {
 		add(runChange(updates.ID+"/crond-stop", "Stop crond", alpine.Service, []string{"rc-service", alpine.Service, "stop"}, []string{"rc-service", alpine.Service, "start"}, engine.RiskServiceRestart, nil))
@@ -1163,6 +1509,7 @@ func planApkOff(ctx context.Context, sys host.System, f detect.Facts, rec *updRe
 	if cs := alpine.Changes(res.Combined); len(cs) != 1 || !strings.HasPrefix(cs[0], "Purging "+alpine.Package+" (") {
 		return &steps.Refusal{Code: codeUpdPackages, Why: "Removing apk-cron would also change other packages: " + strings.Join(cs, ", "), Fix: "remove it by hand", Err: detect.ErrUnrecognised}
 	}
+	*kept = append(*kept, rollbackNotes(false)...)
 	add(runChange(updates.ID+"/apk", "Remove apk-cron", alpine.Package, []string{"apk", "del", alpine.Package}, []string{"apk", "add", alpine.Package}, engine.RiskPackageInstall, nil))
 	return nil
 }
@@ -1246,7 +1593,7 @@ func (e *updRunner) change(ctx context.Context, r updReading, off bool) error {
 		return e.kit(r).Say(screenkit.Warnings(words))()
 	}
 	c, title, question, value := updOn(), updEnable, "Turn automatic updates on?", "On"
-	items := []component.KeyValue{}
+	items := r.onNotes()
 	if off {
 		c, title, question, value = updOff(), updDisable, "Turn automatic updates off?", "Off"
 		_, items, _ = planOff(ctx, e.h.system(), engine.Input{Facts: r.f})
@@ -1259,6 +1606,22 @@ func (e *updRunner) change(ctx context.Context, r updReading, off bool) error {
 			return []engine.Control{c}
 		},
 	})
+}
+
+// onNotes are Enable's review lines beyond the change: on Alpine the
+// jobs a stopped crond also starts (decision 6); on apt, the package's
+// files there before its install, which it keeps (R2).
+func (r updReading) onNotes() []component.KeyValue {
+	var out []component.KeyValue
+	switch {
+	case r.apk && r.u.Crond != alpine.CrondStarted && len(r.others) > 0:
+		out = append(out, component.KeyValue{Key: "Also starts", Value: strings.Join(r.others, ", ")})
+	case !r.apk && r.pkg == detect.No:
+		for _, p := range r.present {
+			out = append(out, component.KeyValue{Key: path.Base(p), Value: "Kept", Note: "there before hardn"})
+		}
+	}
+	return out
 }
 
 // kit is the screen kit's session on the host, the engine's runs recorded
@@ -1328,14 +1691,20 @@ type updRefusal struct {
 func updRefusals() []updRefusal {
 	return []updRefusal{
 		{"timer-off", false},       // a timer off: hardn leaves the timers alone
+		{"masked", false},          // apt-daily-upgrade.service masked
+		{"missing", false},         // apt-daily-upgrade.service not found
 		{"enable-off", false},      // APT::Periodic::Enable "0"
+		{"no-origin", false},       // 50unattended-upgrades allows none
+		{"extra-packages", false},  // the install would change another package
 		{"not-read", false},        // apt-config fails
 		{"not-read", true},         // either direction
 		{"edited", true},           // hardn's file changed since
 		{"edited-alpine", true},    // apk's script changed since
+		{"no-record", true},        // 20auto-upgrades keeps updates on without hardn's file
 		{"pve9", false},            // decision 7
 		{"debian13", true},         // not hardn's
 		{"by-hardn-debian", false}, // on already: an empty plan, not a refusal
+		{"own-file", false},        // on by hardn with no record: an empty plan too
 	}
 }
 

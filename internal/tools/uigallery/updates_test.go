@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"slices"
 	"strings"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -38,6 +40,9 @@ func TestPlayUpdatesGolden(t *testing.T) {
 		{"updates-disable-debian", []string{"updates/by-hardn-debian"}, []string{"1", "y", "0"}, append(uitest.Core(), asciiColour)},
 		{"updates-disable-alpine", []string{"updates/by-hardn-alpine"}, []string{"1", "y", "0"}, nil},
 		{"updates-crond-shared", []string{"updates/crond-shared"}, []string{"1", "y", "0"}, nil},
+		{"updates-dormant-jobs", []string{"updates/dormant-jobs"}, []string{"1", "y", "1", "y", "0"}, nil},
+		{"updates-config-files", []string{"updates/config-files"}, []string{"1", "y", "1", "y", "0"}, nil},
+		{"updates-later-file", []string{"updates/later-file"}, []string{"1", "y", "0"}, nil},
 		{"updates-decline", []string{"updates/debian-off"}, []string{"1", "n", "0"}, nil},
 		{"updates-edited", []string{"updates/edited"}, []string{"1", "0"}, nil},
 		{"updates-timer-off", []string{"updates/timer-off"}, []string{"1", "0"}, nil},
@@ -69,6 +74,7 @@ func TestPlayUpdatesGolden(t *testing.T) {
 // answers.
 func TestUpdatesHosts(t *testing.T) {
 	type want struct{ detail, item string }
+	rows := map[string]string{"pve9": "updated by hand"} // decision 7's stand-in over the check's
 	const ro = "read-only"
 	wants := map[string]want{
 		"debian13":         {"unattended-upgrades", ro},
@@ -82,6 +88,8 @@ func TestUpdatesHosts(t *testing.T) {
 		"by-hardn-alpine":  {"apk-cron", updDisable},
 		"edited":           {"unattended-upgrades", updDisable},
 		"crond-shared":     {"apk-cron", updDisable},
+		"dormant-jobs":     {"no apk-cron", updEnable},
+		"config-files":     {"no unattended-upgrades", updEnable},
 		"legacy-alpine":    {"no apk-cron", updEnable},
 		"pve9":             {"no unattended-upgrades", ro},
 		"not-read":         {"can't read", updEnable},
@@ -97,7 +105,11 @@ func TestUpdatesHosts(t *testing.T) {
 			t.Fatalf("%s: %v", uh.name, err)
 		}
 		w := wants[uh.name]
-		if len(r.status.Rows) != 1 || r.status.Rows[0].Detail != w.detail || r.check.Detail != w.detail {
+		row, ok := rows[uh.name]
+		if !ok {
+			row = w.detail
+		}
+		if len(r.status.Rows) != 1 || r.status.Rows[0].Detail != row || r.check.Detail != w.detail {
 			t.Errorf("%s: rows %+v, check %q; want %q", uh.name, r.status.Rows, r.check.Detail, w.detail)
 		}
 		it := r.item()
@@ -120,7 +132,7 @@ func TestUpdatesRefusals(t *testing.T) {
 	ctx := context.Background()
 	for _, rf := range updRefusals() {
 		words, err := updRefusalWords(ctx, rf)
-		empty := rf.host == "by-hardn-debian"
+		empty := rf.host == "by-hardn-debian" || rf.host == "own-file"
 		if err != nil || (words == "") != empty {
 			t.Errorf("%v: %q, %v", rf, words, err)
 		}
@@ -171,8 +183,144 @@ func TestUpdatesOffChanged(t *testing.T) {
 		t.Fatal(err)
 	}
 	cs, kept, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
-	if err != nil || len(cs) != 3 || cs[1].Commands[0] != "apt-get remove -y "+uuPackage || len(kept) != 1 {
+	if err != nil || len(cs) != 3 || cs[1].Commands[0] != "apt-get remove -y "+uuPackage || !hasKept(kept, "20auto-upgrades", "changed since hardn") {
 		t.Errorf("20auto-upgrades changed: %v, kept %v, %v", changeIDs(cs), kept, err)
+	}
+}
+
+// hasKept is whether kept has the line key, note.
+func hasKept(kept []component.KeyValue, key, note string) bool {
+	for _, kv := range kept {
+		if kv.Key == key && kv.Note == note {
+			return true
+		}
+	}
+	return false
+}
+
+// TestUpdatesRefusalWords: each refusal says what is in the way and the
+// fix, and the item, still offered, says it in a few words (R1).
+func TestUpdatesRefusalWords(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		host      string
+		off       bool
+		words, it string
+	}{
+		{"timer-off", false, "apt-daily-upgrade.timer is off", "Upgrade timer is off"},
+		{"not-read", false, "apt can't read its settings", updDescAptUnread},
+		{"masked", false, "apt-daily-upgrade.service is masked", "Upgrade job is masked"},
+		{"missing", false, "apt-daily-upgrade.service is missing. Reinstall apt, then try again.", "Upgrade job is missing"},
+		{"no-origin", false, "allows no origin", updDescNoOrigin},
+		{"extra-packages", false, "would also change other packages: Inst libc6", updDescInstall},
+		{"enable-off", false, "turns apt's daily jobs off", updDescEnableOff},
+		{"edited", true, "changed since hardn wrote it", "52hardn-auto-upgrades changed"},
+		{"no-record", true, "Updates stay on without hardn's file: 20auto-upgrades turns them on, and hardn has no record that it installed unattended-upgrades. Turn them off by hand.", "20auto-upgrades keeps updates on"},
+	} {
+		r, h, err := updReadNamed(ctx, tt.host)
+		if err != nil {
+			t.Fatal(err)
+		}
+		words := (&updRunner{h: h}).refusalOf(ctx, r, tt.off)
+		if it := r.item(); !strings.Contains(words, tt.words) || it.Description != tt.it || it.Disabled {
+			t.Errorf("%s: %q, item %+v; want %q, %q", tt.host, words, it, tt.words, tt.it)
+		}
+	}
+}
+
+// TestUpdatesCorruptRecord: on Alpine, a record hardn can't read keeps
+// Disable offered, saying so, and refuses with the record's words (R1).
+func TestUpdatesCorruptRecord(t *testing.T) {
+	ctx := context.Background()
+	h := updByHardnAlpine()
+	h.f.AddFile(updRecordPath, []byte("{\"schemaVersion\": 1, \"entries\": [\n"), 0o600, 0, 0)
+	r, err := readUpdates(ctx, h.sys())
+	if err != nil {
+		t.Fatal(err)
+	}
+	screen := ansi.Strip(r.screen().Render(component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))))
+	if !strings.Contains(screen, updDisable+"\n      "+updDescRecord) || strings.Contains(screen, "Unavailable") {
+		t.Errorf("the item:\n%s", screen)
+	}
+	if words := (&updRunner{h: h}).refusalOf(ctx, r, true); !strings.Contains(words, "can't read its record") {
+		t.Errorf("off: %q", words)
+	}
+}
+
+// TestUpdatesCrondJobs: a job added since Enable keeps crond at off, said,
+// whether under /etc/periodic or another user's crontab; jobs there at
+// Enable do not (dormant-jobs).
+func TestUpdatesCrondJobs(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		name string
+		add  func(*fakeHost)
+		note string
+	}{
+		{"a periodic job", func(h *fakeHost) {
+			h.f.AddFile("/etc/periodic/hourly/backup", []byte("#!/bin/sh\n"), 0o755, 0, 0)
+		}, "backup added since"},
+		{"carol's crontab", func(h *fakeHost) {
+			h.f.AddFile("/etc/crontabs/carol", []byte("0 4 * * * /home/carol/sync\n"), 0o600, 0, 0)
+		}, "carol's crontab added since"},
+		{"none", func(*fakeHost) {}, ""},
+	} {
+		h := updApplied(updDormantJobs())
+		tt.add(h)
+		r, err := readUpdates(ctx, h.sys())
+		if err != nil {
+			t.Fatal(err)
+		}
+		cs, kept, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+		stops := slices.ContainsFunc(cs, func(c engine.Change) bool { return c.Title == "Stop crond" })
+		if err != nil || stops != (tt.note == "") || tt.note != "" && !hasKept(kept, updRowCrond, tt.note) {
+			t.Errorf("%s: %v, kept %v, %v", tt.name, changeIDs(cs), kept, err)
+		}
+	}
+}
+
+// TestUpdatesConfigFiles: the package's files there before hardn's
+// install are said at Enable and kept at Disable, which removes the
+// package in place of the purge (R2).
+func TestUpdatesConfigFiles(t *testing.T) {
+	ctx := context.Background()
+	r, h, err := updReadNamed(ctx, "config-files")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !hasKept(r.onNotes(), "50unattended-upgrades", "there before hardn") {
+		t.Errorf("Enable's notes %v", r.onNotes())
+	}
+	updApplied(h)
+	if r, err = readUpdates(ctx, h.sys()); err != nil {
+		t.Fatal(err)
+	}
+	cs, kept, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+	if err != nil || len(cs) < 2 || cs[1].Commands[0] != "apt-get remove -y "+uuPackage || !hasKept(kept, "50unattended-upgrades", "there before hardn") {
+		t.Errorf("off: %v, kept %v, %v", changeIDs(cs), kept, err)
+	}
+}
+
+// TestUpdatesPurgeRechecked: the purge checks both files' hashes again
+// when it runs, and fails before purging where either changed.
+func TestUpdatesPurgeRechecked(t *testing.T) {
+	ctx := context.Background()
+	h := updByHardnDebian()
+	r, err := readUpdates(ctx, h.sys())
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, _, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+	i := slices.IndexFunc(cs, func(c engine.Change) bool { return c.ID == updates.ID+"/package" })
+	if err != nil || i < 0 || cs[i].Commands[0] != "apt-get purge -y "+uuPackage {
+		t.Fatalf("off: %v, %v", changeIDs(cs), err)
+	}
+	h.f.AddFile(uuConfig, []byte(uuOrigins(false)+"// edited\n"), 0o644, 0, 0)
+	if _, err := cs[i].Apply(ctx, h.system(), engine.Run{}); err == nil || !strings.Contains(err.Error(), "changed since") {
+		t.Errorf("Apply: %v, want changed since", err)
+	}
+	if _, ok := h.status.packages[uuPackage]; !ok {
+		t.Error("purged")
 	}
 }
 

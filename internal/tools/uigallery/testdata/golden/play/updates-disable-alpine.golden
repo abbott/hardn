@@ -46,6 +46,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mOff␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m             ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStop crond␛[m$
       ␛[38;2;129;134;156mcrond␛[m$
@@ -163,6 +164,7 @@ $
 # Update Configuration -----------------------------------------$
 $
    -  Auto Updates         Off$
+   -  Rollback             Reinstalls from the repositories$
 $
    -  Stop crond$
       crond$
@@ -286,6 +288,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;129;134;156mOff␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m$
+      ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStop crond␛[m$
       ␛[38;2;129;134;156mcrond␛[m$
