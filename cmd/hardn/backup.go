@@ -36,8 +36,8 @@ func withBackupScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
 // save, decision 7 (a)); a dry run when c says so as the item is chosen.
 // The screen adopts hardn.yml as each change saved it into c, the
 // configuration the main menu, and the DNS screen, hold. No Facts: the
-// screen reads none. No audit record is written: the audit log's first
-// writer is next/p3-startup's (Options.Ran left nil). Each change's apply,
+// screen reads none. Each change's run is a record of the audit log
+// (Options.Ran, auditRan). Each change's apply,
 // and nothing else, runs under engineSignals, hardn ending after a hangup
 // (screenApplyContext; runDNSScreen says why).
 func runBackupScreen(ctx context.Context, c *config.Config) error {
@@ -52,5 +52,6 @@ func runBackupScreen(ctx context.Context, c *config.Config) error {
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 	})
 }

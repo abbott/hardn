@@ -69,6 +69,8 @@ func configureDNS(c *config.Config) int {
 // one is refused, after refuse, --yes or not, and -r's plain one applied
 // with --yes alone (gatePlan). Under plan only confirm and --yes play no
 // part.
+// Each run, its plan alone or refused included, is one record of the audit
+// log once reported (audit; runTyped's for the flow it hands on to).
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
 // or nothing to change, 3 for a dry run with changes to make (or, with
 // confirm, a plan declined), 1 for a refusal or a failure.
@@ -100,6 +102,7 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 	if err := output.Emit(output.Streams{Stdout: engineStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
 		sayError("%v", err)
 	}
+	audit(sys, c, run)
 	return endControls(run, signalled)
 }
 
@@ -186,8 +189,8 @@ func withDNSScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
 // engine with engineOptions, a dry run when c says so as the item is
 // chosen (the dry-run setting as the legacy menus read it). The screen
 // adopts hardn.yml as each change saved it into c (dnsscreen.Options), the
-// configuration the main menu holds. No audit record is written: the
-// audit log's first writer is next/p3-startup's (Options.Ran left nil).
+// configuration the main menu holds. Each change's run is a record of the
+// audit log (Options.Ran, auditRan).
 //
 // Each change's apply, and nothing else, runs under engineSignals
 // (dnsscreen.Options.ApplyContext, screenApplyContext; engine.md §2.14):
@@ -216,5 +219,6 @@ func runDNSScreen(ctx context.Context, c *config.Config) error {
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 	})
 }

@@ -282,7 +282,7 @@ func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 // the configuration the main menu holds adopts the list as saved; 0 goes
 // back (nil), q quits (nav.ErrQuit), the end of the input aborts
 // (prompt.ErrAborted); a dry run, as the configuration says when the item
-// is chosen, writes nothing. No audit record is written. The signals are
+// is chosen, writes nothing. The signals are
 // registered for the apply alone, and never while a prompt waits.
 func TestDNSScreen(t *testing.T) {
 	added := append(slices.Clone(dnsTestList), "192.0.2.55")
@@ -337,11 +337,6 @@ func TestDNSScreen(t *testing.T) {
 			}
 			if !cfg.LoadedFrom([]byte(h.content(dnsTestYML))) {
 				t.Error("the configuration does not record hardn.yml as saved, so the next save would be refused CONFIG_CHANGED")
-			}
-			for _, c := range got {
-				if strings.HasPrefix(c, "append ") {
-					t.Errorf("an audit record was written: %s", c)
-				}
 			}
 		})
 	}
