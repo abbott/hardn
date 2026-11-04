@@ -193,7 +193,7 @@ func TestRunAllScreenOptions(t *testing.T) {
 
 // TestRunAllHook: withRunAllScreen sets the Run All item's screen on the
 // configuration main gives it, plan only set after the hook stopping
-// Apply all at its plan.
+// Apply all at its plan; the screen's Options.Config is that pointer.
 func TestRunAllHook(t *testing.T) {
 	h, cfg := newRunAllHost(t, "debian13", runAllYML)
 	s := useSSHHost(t, h, "1", "0")
@@ -208,6 +208,17 @@ func TestRunAllHook(t *testing.T) {
 	}
 	if got := h.sshdWrites(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("wrote %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
+	}
+	// The item runs the screen on the main menu's own configuration, not a copy.
+	var got runallscreen.Options
+	was := runAllRun
+	t.Cleanup(func() { runAllRun = was })
+	runAllRun = func(_ context.Context, o runallscreen.Options) error { got = o; return nil }
+	if err := set.runAll(); err != nil {
+		t.Fatal(err)
+	}
+	if got.Config != cfg {
+		t.Errorf("the screen's configuration %p, the main menu's is %p", got.Config, cfg)
 	}
 }
 
@@ -405,5 +416,24 @@ func TestRunAllFlagPrintLogs(t *testing.T) {
 				t.Errorf("stdout lacks %q after the text before it, -r's report then the log:\n%s", w, out)
 			}
 		})
+	}
+}
+
+// TestRunAllFlagVersion: -r gives the planner hardn's version (Auto
+// Updates' record carries it), as the Run All screen is given it.
+func TestRunAllFlagVersion(t *testing.T) {
+	h, cfg := newRunAllHost(t, "debian13", "")
+	var got planner.Input
+	was := runAllRead
+	t.Cleanup(func() { runAllRead = was })
+	runAllRead = func(ctx context.Context, in planner.Input) (planner.Reading, error) { got = in; return was(ctx, in) }
+	wasVersion := Version
+	t.Cleanup(func() { Version = wasVersion })
+	Version = runAllTestVersion
+	if r, s := runD(t, h, cfg, nil, nil, nil, "-r"); r.ended {
+		t.Fatalf("ended with %d; stdout:\n%s\nstderr:\n%s", r.code, s.out.String(), r.stderr)
+	}
+	if got.Version != runAllTestVersion {
+		t.Errorf("the planner's version %q, want %q", got.Version, runAllTestVersion)
 	}
 }
