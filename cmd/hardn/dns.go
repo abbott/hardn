@@ -59,14 +59,15 @@ func configureDNS(c *config.Config) int {
 // hardn as one that reached the apply does.
 // confirm, when not nil, is the flag's confirmation of a lockout-risk plan
 // (typedConfirm, typed.go: -w's), or of any plan with changes where it
-// says always (-r's, unless --yes). A plain plan is otherwise applied as
-// any flag's, unasked, on a terminal, and off one (stdin not a terminal)
-// with --yes alone: without it, shown and not applied (gatePlan,
-// CONFIRMATION_REQUIRED, exit status 2). Live on a terminal, a
-// lockout-risk plan, planned here first and not refused, goes to the
+// says always (-r's). A plain plan is otherwise applied as any flag's,
+// unasked, on a terminal, and off one (stdin not a terminal) with --yes
+// alone: without it, shown and not applied (gatePlan,
+// CONFIRMATION_REQUIRED, exit status 2). Live on a terminal, a plan
+// confirm asks for, planned here first and not refused, goes to the
 // canonical flow instead (runTyped), which plans again and confirms by
-// the hostname typed; live off a terminal it is refused, after refuse,
-// --yes or not. Under plan only confirm and --yes play no part.
+// the hostname typed, --yes or not; live off a terminal it is refused,
+// after refuse, --yes or not. Under plan only confirm and --yes play no
+// part.
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
 // or nothing to change, 3 for a dry run with changes to make (or, with
 // confirm, a plan declined), 1 for a refusal or a failure.
@@ -107,25 +108,28 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 
 // gatePlan is what refuses a flag's plan p before its apply, in order:
 // the flag's own refusal (refuse: -e's of a lockout-risk plan, -c's), the
-// plan alone under plan only; then, live, for a plan with changes: a
-// lockout-risk plan of a flag that confirms one (confirm: -w, -d, -r) is
-// refused off a terminal (confirm.offTerminal, PLAN_REFUSED), --yes or not,
-// and goes to the hostname typed on one (typed, runControls); any other
+// plan alone under plan only; then, live, for a plan with changes: a plan
+// the flag confirms by the hostname typed (confirm.asks: a lockout-risk
+// plan of -w, -d or -r, and any plan of -r's) is refused off a terminal
+// (confirm.offTerminal, PLAN_REFUSED), --yes or not, and goes to the
+// hostname typed on one (typed, runControls), --yes or not; any other
 // plan with changes, without a terminal on stdin and without --yes, is
 // shown and not applied, ErrConfirmationRequired naming --yes (exit status
-// 2; output.Confirmation, refactor plan §3.11, approved 2026-11-04); and
-// last, a plan confirm would ask for (-r's, of any plan with changes)
-// where hardn can't ask (stdout not a terminal) and --yes was not given is
-// refused as before. A plan with nothing to change, or one the engine
-// refused, is not gated. --yes on a terminal skips -r's question for a
-// plan with no lockout risk (typedConfirm.asks) and changes nothing else.
+// 2; output.Confirmation, refactor plan §3.11, approved 2026-11-04). A
+// plan with nothing to change, or one the engine refused, is not gated
+// by --yes. -r keeps slice 8's adopted decisions (gallery-runall.md §5,
+// decisions 6 (a) and 8 (a)): --yes changes nothing for it.
 //
-// Were the maintainer to let --yes apply a lockout-risk plan off a
-// terminal, held by the revert timer as on one, the change is here: the
-// lockout-risk case would return nil when assumeYes, and runControls would
-// then apply it as any plan (the engine arms the timer for a lockout-risk
-// plan whatever confirmed it), with the countdown said after the report
-// (output.AfterFlow is drawn by runTyped alone today).
+// Two changes would land here, were the maintainer to make them. To let
+// --yes apply -r's plain plan off a terminal: the asks branch would fall
+// through to output.Confirmation where !typed, confirm.always, assumeYes
+// and p.Risk is not engine.RiskLockout (on a terminal -r would still ask).
+// To let --yes apply a lockout-risk plan off a terminal, held by the
+// revert timer as on one: the asks branch would return nil for it when
+// assumeYes, and runControls would then apply it as any plan (the engine
+// arms the timer for a lockout-risk plan whatever confirmed it), with the
+// countdown said after the report (output.AfterFlow is drawn by runTyped
+// alone today).
 func gatePlan(c *config.Config, p *engine.Plan, refuse func(*engine.Plan) error, confirm *typedConfirm, typed bool) error {
 	if refuse != nil {
 		if err := refuse(p); err != nil {
@@ -135,22 +139,17 @@ func gatePlan(c *config.Config, p *engine.Plan, refuse func(*engine.Plan) error,
 	if c.DryRun || p.Empty() {
 		return nil
 	}
-	if confirm != nil && p.Risk == engine.RiskLockout {
+	if confirm != nil && confirm.asks(p) {
 		if !typed {
-			return confirm.offTerminal // the lockout rule: --yes never stands for the hostname typed
+			return confirm.offTerminal // --yes never stands for the hostname typed
 		}
 		return nil
 	}
 	if p.Err() != nil {
 		return nil
 	}
-	if _, err := output.Confirmation(output.Interaction{InputTTY: stdoutEnv().InputTTY, Yes: assumeYes}); err != nil {
-		return err
-	}
-	if confirm != nil && !typed && confirm.asks(p) {
-		return confirm.offTerminal
-	}
-	return nil
+	_, err := output.Confirmation(output.Interaction{InputTTY: stdoutEnv().InputTTY, Yes: assumeYes})
+	return err
 }
 
 // endControls is the exit status of a flag's run, output.ExitCode's, and
