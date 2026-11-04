@@ -653,11 +653,16 @@ func TestPurgeConffiles(t *testing.T) {
 		name string
 		edit func(*model)
 		note updates.Note
+		plan bool // the plan's half alone: dpkg's list changes only with the package, which the re-plan under the run lock reads again
 	}{
 		{"logrotate edited", func(m *model) { m.file(logrotate, logrotateConf+"# rotate weekly\n") },
-			updates.Note{Key: "unattended-upgrades", Value: "Kept", Note: "changed since installed", Warn: true}},
+			updates.Note{Key: "unattended-upgrades", Value: "Kept", Note: "changed since installed", Warn: true}, false},
 		{"ucf side file", func(m *model) { m.file(autoUp+".ucf-dist", autoOn) },
-			updates.Note{Key: "20auto-upgrades.ucf-dist", Value: "Kept", Note: "changed since installed", Warn: true}},
+			updates.Note{Key: "20auto-upgrades.ucf-dist", Value: "Kept", Note: "changed since installed", Warn: true}, false},
+		{"50unattended-upgrades' ucf side file", func(m *model) { m.file(uuConf+".ucf-old", "// old\n") },
+			updates.Note{Key: "50unattended-upgrades.ucf-old", Value: "Kept", Note: "changed since installed", Warn: true}, false},
+		{"an obsolete conffile", func(m *model) { m.confTail = " obsolete" },
+			updates.Note{Key: "unattended-upgrades", Value: "Kept", Note: "changed since installed", Warn: true}, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := installer(t).applied(updates.AutoOn)
@@ -672,6 +677,9 @@ func TestPurgeConffiles(t *testing.T) {
 			}
 		})
 		t.Run(tc.name+", after the plan", func(t *testing.T) {
+			if tc.plan {
+				t.Skip("the plan's half alone")
+			}
 			m := installer(t).applied(updates.AutoOn)
 			c := changeOf(t, m, updates.AutoOff, updates.ChangePackage)
 			tc.edit(m)
@@ -760,6 +768,20 @@ func TestStayOnEnableEmpty(t *testing.T) {
 	m.file(confDir+"/99site", "APT::Periodic::Enable \"\";\n")
 	r, err := control(updates.AutoNone).Read(context.Background(), m.f, m.facts, nil)
 	if err != nil || r.StayOn != autoUp {
+		t.Errorf("stay on %q, %v", r.StayOn, err)
+	}
+}
+
+// TestStayOnEnableZero: with no record, another file's Enable "0" turns
+// apt's daily jobs off without hardn's file, so nothing keeps updates on.
+func TestStayOnEnableZero(t *testing.T) {
+	m := installer(t).applied(updates.AutoOn)
+	if err := m.f.Remove(context.Background(), recordPath); err != nil {
+		t.Fatal(err)
+	}
+	m.file(confDir+"/99site", "APT::Periodic::Enable \"0\";\n")
+	r, err := control(updates.AutoNone).Read(context.Background(), m.f, m.facts, nil)
+	if err != nil || r.StayOn != "" {
 		t.Errorf("stay on %q, %v", r.StayOn, err)
 	}
 }
