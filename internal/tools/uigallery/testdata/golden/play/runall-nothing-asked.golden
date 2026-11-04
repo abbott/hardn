@@ -6,15 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay runall/nothing-asked␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Run All screen proposed for slice 8,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each change␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's Plan, all of them in one plan on the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Which controls hardn.yml asks for, how a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped and a change pending read before any plan are␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRun All's planner's (pkg/engine/runall); the hostname asked␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhatever the risk is the gallery's stand-in, unit (c)'s to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. Nothing on this machine changes: every command and file␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/nothing-asked␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian13 with hardn.yml as␛[m$
@@ -55,15 +51,11 @@ $
 # play runall/nothing-asked ------------------------------------$
 $
 # Note$
-# Play mode, mocks: the Run All screen proposed for slice 8,$
-# each row's state from the control's real Check, each change$
-# the real control's Plan, all of them in one plan on the real$
-# plan/apply engine. Which controls hardn.yml asks for, how a$
-# row is skipped and a change pending read before any plan are$
-# Run All's planner's (pkg/engine/runall); the hostname asked$
-# whatever the risk is the gallery's stand-in, unit (c)'s to$
-# build. Nothing on this machine changes: every command and file$
-# is the fake's.$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
 $
 # Info: runall/nothing-asked$
 # web-01.example.net runs Debian 13. debian13 with hardn.yml as$
@@ -104,15 +96,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay runall/nothing-asked␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Run All screen proposed for slice 8,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange the real control's Plan, all of them in one plan on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan/apply engine. Which controls hardn.yml asks␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped and a change pending read before␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156many plan are Run All's planner's (pkg/engine/runall); the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhostname asked whatever the risk is the gallery's stand-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min, unit (c)'s to build. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/nothing-asked␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian13 with hardn.yml␛[m$

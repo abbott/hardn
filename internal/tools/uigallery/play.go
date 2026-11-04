@@ -245,13 +245,13 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Run All mock fails where its host does")
+			return usage("-fail is for the fixture plans of the screen mocks; the Run All screen fails where its host does")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Run All mock plays normal or dry-run", *sequence)
+			return usage("-sequence %s: the Run All screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
-			return s.play("play "+name, []string{raNote}, s.openRunAll(name), stderr)
+			return s.play("play "+name, []string{engineNote}, s.openRunAll(name), stderr)
 		})
 	}
 	status, isStatus, err := statusStart(fs.Args())
