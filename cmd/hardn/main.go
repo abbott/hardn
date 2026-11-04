@@ -58,12 +58,9 @@ func start(logPath string) {
 }
 
 func init() {
-	// Set version for help output
-	rootCmd.Version = Version
-
-	// if rootCmd.Version != "" {
-	// 	sayInfo("Current version :::: : %s", rootCmd.Version)
-	// }
+	// rootCmd.Version is not set: cobra would then answer --version itself,
+	// with "hardn version <x>" alone, ahead of Run's build info (refactor
+	// plan §3.11: --version's build info restored).
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
 	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
@@ -119,7 +116,10 @@ var rootCmd = &cobra.Command{
 
 		// Check if version flag is set and display version info
 		if showVersion {
-			versionService.PrintVersionInfo()
+			if err := versionService.PrintVersionInfo(engineStdout); err != nil {
+				sayError("%v", err)
+				exit(1)
+			}
 			return
 		}
 

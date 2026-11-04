@@ -49,3 +49,33 @@ func TestDisableRootWarning(t *testing.T) {
 		})
 	}
 }
+
+// TestVersionFlag: --version and -v print the version, the build date and
+// the commit the ldflags set (main.Version, main.BuildDate,
+// main.GitCommit), as v0.3.2 did, each "unknown" when the build left it
+// empty, on stdout, before the root check, exit status 0; cobra's own
+// "hardn version" line never.
+func TestVersionFlag(t *testing.T) {
+	for _, tc := range []struct {
+		name                  string
+		version, date, commit string
+		want                  string
+	}{
+		{"a release build", "0.4.0", "2026-11-04T12:00:00Z", "0123456789abcdef0123456789abcdef01234567",
+			"hardn - Linux hardening tool\nVersion:    0.4.0\nBuild Date: 2026-11-04T12:00:00Z\nGit Commit: 0123456789abcdef0123456789abcdef01234567\n"},
+		{"go build, no ldflags", "", "", "",
+			"hardn - Linux hardening tool\nVersion:    unknown\nBuild Date: unknown\nGit Commit: unknown\n"},
+	} {
+		for _, flag := range []string{"--version", "-v"} {
+			t.Run(tc.name+" "+flag, func(t *testing.T) {
+				was := [3]string{Version, BuildDate, GitCommit}
+				Version, BuildDate, GitCommit = tc.version, tc.date, tc.commit
+				t.Cleanup(func() { Version, BuildDate, GitCommit = was[0], was[1], was[2] })
+				r := runHardn(t, hostUnreachable, flag)
+				if r.ended || r.stdout != tc.want || r.stderr != "" || len(r.reached) != 0 {
+					t.Errorf("ended %v (%d), reached %v; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.reached, r.stdout, r.stderr)
+				}
+			})
+		}
+	}
+}
