@@ -8,13 +8,13 @@
 
 - **`dryRun` in hardn.yml is now read.** It was ignored: `hardn` ran live whatever the file said. `dryRun: true` now starts `hardn` in plan only, as `-n` does: changes are shown, not applied.
 - **`-n` and `dryRun` both mean plan only.** A flag given wins: `-n` turns it on, `--dry-run=false` turns it off, whatever the file says.
-- **Operation flags are refused under plan only**, from `-n` or from the file: `-r` exits with status 2 and changes nothing. `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
-- **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -c`, `-d` or `-g`, or `-e` or `setup-sudo-env` through sudo, now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
+- **Operation flags show their plan under plan only**, from `-n` or from the file: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` exit 3 when there are changes. Add `--dry-run=false` to apply. `hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`, to keep or undo a change already made.
+- **Check older files for `dryRun: true`.** An earlier `hardn` may have written one, and it now means plan only. The main menu's Dry-Run item (6) saved it to `./hardn.yml`, as did any menu save made under `-n`. A script or cron job that ran `hardn -r`, `-c`, `-d` or `-g`, or `-e` or `setup-sudo-env` through sudo, now shows the plan and exits 3. Set `dryRun: false`, or run with `--dry-run=false`.
 - **The menu no longer saves the mode.** Its saves write `dryRun` as the file had it.
 - **The main menu shows the mode.** Beside "Select an option" it says "Mode Live", or "Mode Plan only" and what set it: "(-n)" or "(hardn.yml)".
 - **The main menu's Dry-Run item (6) is removed.** 6 no longer selects anything. Start with `-n`, or set `dryRun: true`, for plan only.
 - **Run All no longer turns dry run on or off.** Its option 2 is removed: Run All runs in the mode `hardn` started in.
-- **Under plan only, User Management, SSH Login, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too, and they write nothing. User Management used to apply its changes even under `-n`.
+- **Under plan only, User Management, SSH Login, Firewall, Backup, Auto Updates, Run All and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too, and they write nothing. User Management used to apply its changes even under `-n`.
 
 See [docs/configuration.md](../configuration.md), "`dryRun`: plan only".
 
@@ -63,7 +63,7 @@ See [docs/configuration.md](../configuration.md), "Using with sudo or doas".
 - **Profiles are applied.** Application Profiles adds a profile to hardn.yml, removes one, and applies them to ufw. Ports are written to ufw's file joined by `|`, which ufw accepts; they used to be joined by commas. Removing a profile leaves its rule in ufw.
 - **On Proxmox VE, 4 reads "View pve-firewall"** and only shows pve-firewall. It changes nothing there.
 - **`hardn -w` enables the firewall the same way.** On a terminal, a change that could lock you out asks you to type the hostname. Off a terminal it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out is applied without asking. With `-n` it shows the plan and exits 3; it used to be refused.
-- **Run All and `-r` still configure ufw the old way** until their slice: they disable and reset it, then set both default policies.
+- **Run All and `-r` enable it the same way.** They no longer disable and reset it, or set both default policies.
 - **`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used.** Where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 See [docs/configuration.md](../configuration.md), "Firewall Configuration with UFW Application Profiles".
@@ -75,7 +75,7 @@ See [docs/configuration.md](../configuration.md), "Firewall Configuration with U
 - **Some changes are refused before anything is asked**, such as removing the admin rights you are using, or your last key.
 - **`hardn -c` creates the user without asking**, with admin rights, no password, and every key in hardn.yml's `sshKeys`. With `-n` it shows the plan and exits 3; it used to be refused. A name already taken, or a key that isn't one, is refused, exit status 1.
 - **`-c` no longer changes sshd_config.**
-- **`sudoNoPassword: false` warns.** User Management and `-c` don't use it: a new user has no password to ask. hardn warns "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it.
+- **`sudoNoPassword: false` warns.** User Management and `-c` don't use it: a new user has no password to ask. hardn warns "hardn.yml's sudoNoPassword: false isn't used". Run All and `-r` don't use it either.
 - **Run All no longer offers to set a username.** With none, it goes on without creating a user.
 
 See [docs/configuration.md](../configuration.md), "`username`, `sudoNoPassword` and `sshKeys`: User Management".
@@ -89,7 +89,7 @@ See [docs/configuration.md](../configuration.md), "`username`, `sudoNoPassword` 
 - **`-d` changes root login alone.** It no longer rewrites hardn's sshd file from a stub, which reset the port and the allowed users (builds of main since v0.3.2).
 - **With hardn's old sshd settings, `-d` and SSH Login's other changes are refused** until Move old settings (main menu 2) moves them.
 - **`hardn -c -d` works again.** It creates the user first, then turns root login off only if an admin, the new user among them, can still log in.
-- **hardn.yml's SSH settings warn where unused.** SSH Login and `-d` read sshd. `sshPort` is Change SSH port's default, and `sshConfigFile` is read to move hardn's old settings. Where `permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH` or `sshKeyPath` is set to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used by SSH Login or -d". Run All and `-r` still read `sshAllowedUsers` and `sshListenAddress`.
+- **hardn.yml's SSH settings warn where unused.** SSH Login and `-d` read sshd. `sshPort` is Change SSH port's default, and `sshConfigFile` is read to move hardn's old settings. Where `permitRootLogin`, `sshAllowedUsers`, `sshListenAddress` or `sshKeyPath` is set to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used". Run All and `-r` don't read them either; `disableRootSSH: true` is Run All's.
 
 See [docs/configuration.md](../configuration.md), "SSH Configuration".
 
@@ -103,6 +103,17 @@ See [docs/configuration.md](../configuration.md), "SSH Configuration".
 - **Turning updates off saves `enableUnattendedUpgrades: false`** where hardn.yml says true, so Run All doesn't turn them back on.
 
 See [docs/configuration.md](../configuration.md), "Feature Toggles".
+
+## Changed: Run All
+
+- **Main menu 7 is rebuilt.** It shows what Run All would change for each of User, SSH Login, Firewall, DNS and Auto Updates, as hardn.yml asks. Opening it changes nothing.
+- **One plan.** Apply all shows every change in one plan and asks you to type the hostname, whatever the plan. A change that could lock you out rolls back unless you run `sudo hardn confirm` from a new session.
+- **What it skips, and why.** A change that is refused, doesn't apply, or has nothing to change is skipped, and Run All says why. Root login is turned off only once you log in as the admin, not as root, and only after the firewall is enabled: run Run All again. It never changes the SSH port, AppArmor, Lynis or backups.
+- **`hardn -r` runs the same plan.** On a terminal it asks you to type the hostname. Off a terminal a plan with changes is refused, exit status 1: run `hardn -r` from a terminal. With `-n` it shows the plan and exits 3. `-r` with `-c`, `-d`, `-w`, `-g` or `-e` is refused, exit status 2.
+- **`enableUnattendedUpgrades: true` now turns updates on.** hardn's first-run question "Enable automatic security updates?" means Run All does so.
+- **`ufwAllowedPorts`, `enableAppArmor` and `enableLynis` warn.** Nothing reads them. Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's enableLynis isn't used".
+
+See [docs/configuration.md](../configuration.md), "What Run All reads".
 
 ## Changed: the main menu
 
