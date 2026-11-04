@@ -30,7 +30,6 @@
 !install.sh
 !wf-dev-mode.sh
 !wf-prepare-build.sh
-!wf-verify-slsa-setup.sh
 !bin-postinstall.sh
 !bin-verify-release.sh
 
