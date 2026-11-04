@@ -22,7 +22,8 @@ import (
 
 // configureDNS is -g: the DNS control over hardn.yml's own list
 // (dnsctl.Controls(c)) planned and applied as runControls runs a flag's
-// controls, without a question (the maintainer, 2026-10-23: "apply
+// controls, without a question (off a terminal, with --yes alone: refactor
+// plan §3.11, approved 2026-11-04) (the maintainer, 2026-10-23: "apply
 // without asking, -n -g shows the plan and writes nothing, and no udhcpc
 // flag (the warning only)"). The list is the file's, so hardn.yml is not
 // saved. udhcpc is not stopped (StopUDHCPC false): on Alpine the plan's
@@ -58,31 +59,20 @@ func configureDNS(c *config.Config) int {
 // hardn as one that reached the apply does.
 // confirm, when not nil, is the flag's confirmation of a lockout-risk plan
 // (typedConfirm, typed.go: -w's), or of any plan with changes where it
-// says always (-r's). A plain plan is otherwise applied as any flag's,
-// unasked, on a terminal or off. Live on a terminal, a lockout-risk plan,
-// planned here first and not refused, goes to the canonical flow instead
-// (runTyped), which plans again and confirms by the hostname typed; live
-// off a terminal it is refused, after refuse. Under plan only confirm
-// plays no part.
+// says always (-r's, unless --yes). A plain plan is otherwise applied as
+// any flag's, unasked, on a terminal, and off one (stdin not a terminal)
+// with --yes alone: without it, shown and not applied (gatePlan,
+// CONFIRMATION_REQUIRED, exit status 2). Live on a terminal, a
+// lockout-risk plan, planned here first and not refused, goes to the
+// canonical flow instead (runTyped), which plans again and confirms by
+// the hostname typed; live off a terminal it is refused, after refuse,
+// --yes or not. Under plan only confirm and --yes play no part.
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
 // or nothing to change, 3 for a dry run with changes to make (or, with
 // confirm, a plan declined), 1 for a refusal or a failure.
 func runControls(c *config.Config, controls []engine.Control, refuse func(*engine.Plan) error, confirm *typedConfirm) int {
 	live := confirm != nil && !c.DryRun
 	typed := live && onTerminal()
-	if live && !typed {
-		if refuse == nil {
-			refuse = confirm.refuse
-		} else {
-			own := refuse
-			refuse = func(p *engine.Plan) error {
-				if err := own(p); err != nil {
-					return err
-				}
-				return confirm.refuse(p)
-			}
-		}
-	}
 	ctx := context.Background()
 	sys := engineHost()
 	e := engine.New(sys, engineOptions(ctx, sys, c))
@@ -91,8 +81,8 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 		run.Mode = output.ModePlan
 	}
 	run.Plan, run.Err = e.Plan(ctx, controls, c)
-	if refuse != nil && run.Err == nil && run.Plan != nil {
-		run.Err = refuse(run.Plan)
+	if run.Err == nil && run.Plan != nil {
+		run.Err = gatePlan(c, run.Plan, refuse, confirm, typed)
 	}
 	if typed && run.Err == nil && run.Plan != nil && run.Plan.Err() == nil && confirm.asks(run.Plan) {
 		return runTyped(c, controls, *confirm)
@@ -113,6 +103,54 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 		sayError("%v", err)
 	}
 	return endControls(run, actx, hungUp)
+}
+
+// gatePlan is what refuses a flag's plan p before its apply, in order:
+// the flag's own refusal (refuse: -e's of a lockout-risk plan, -c's), the
+// plan alone under plan only; then, live, for a plan with changes: a
+// lockout-risk plan of a flag that confirms one (confirm: -w, -d, -r) is
+// refused off a terminal (confirm.offTerminal, PLAN_REFUSED), --yes or not,
+// and goes to the hostname typed on one (typed, runControls); any other
+// plan with changes, without a terminal on stdin and without --yes, is
+// shown and not applied, ErrConfirmationRequired naming --yes (exit status
+// 2; output.Confirmation, refactor plan §3.11, approved 2026-11-04); and
+// last, a plan confirm would ask for (-r's, of any plan with changes)
+// where hardn can't ask (stdout not a terminal) and --yes was not given is
+// refused as before. A plan with nothing to change, or one the engine
+// refused, is not gated. --yes on a terminal skips -r's question for a
+// plan with no lockout risk (typedConfirm.asks) and changes nothing else.
+//
+// Were the maintainer to let --yes apply a lockout-risk plan off a
+// terminal, held by the revert timer as on one, the change is here: the
+// lockout-risk case would return nil when assumeYes, and runControls would
+// then apply it as any plan (the engine arms the timer for a lockout-risk
+// plan whatever confirmed it), with the countdown said after the report
+// (output.AfterFlow is drawn by runTyped alone today).
+func gatePlan(c *config.Config, p *engine.Plan, refuse func(*engine.Plan) error, confirm *typedConfirm, typed bool) error {
+	if refuse != nil {
+		if err := refuse(p); err != nil {
+			return err
+		}
+	}
+	if c.DryRun || p.Empty() {
+		return nil
+	}
+	if confirm != nil && p.Risk == engine.RiskLockout {
+		if !typed {
+			return confirm.offTerminal // the lockout rule: --yes never stands for the hostname typed
+		}
+		return nil
+	}
+	if p.Err() != nil {
+		return nil
+	}
+	if _, err := output.Confirmation(output.Interaction{InputTTY: stdoutEnv().InputTTY, Yes: assumeYes}); err != nil {
+		return err
+	}
+	if confirm != nil && !typed && confirm.asks(p) {
+		return confirm.offTerminal
+	}
+	return nil
 }
 
 // endControls is the exit status of a flag's run, output.ExitCode's, and

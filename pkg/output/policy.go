@@ -41,8 +41,8 @@ type Interaction struct {
 	InputTTY bool
 	// JSON: the run writes the JSON document on stdout, for a script.
 	JSON bool
-	// Yes: the user said yes in advance (the --yes of refactor plan §3.11,
-	// not approved, so not a flag yet).
+	// Yes: the user said yes in advance (--yes, refactor plan §3.11,
+	// approved 2026-11-04).
 	Yes bool
 }
 
@@ -52,9 +52,10 @@ type Interaction struct {
 // document, read by a script, so a prompt there would be answered by no
 // one and would break the one document), a run without Yes is PlanOnly,
 // with ErrConfirmationRequired, naming --yes. Yes is Apply, with or
-// without a terminal. Otherwise Ask. It is a library function: nothing in
-// cmd/hardn calls it yet (§3.11 is not approved; docs/engine/output.md says
-// where it is wired).
+// without a terminal. Otherwise Ask. cmd/hardn's operation flags consult
+// it for a plan with changes and no lockout risk (runControls' gatePlan):
+// a lockout-risk plan is confirmed by the hostname typed on a terminal and
+// refused off one, Yes or not.
 //
 // It decides how changes are confirmed, so it applies to a plan with
 // changes: a plan with nothing to change asks nothing, applies nothing and

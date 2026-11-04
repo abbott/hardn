@@ -23,7 +23,7 @@ import (
 
 // A typedConfirm is how runControls confirms a flag's plan where it may be
 // lockout-risk. A plain plan is applied as runControls applies any flag's,
-// unasked, on a terminal or off. A lockout-risk plan, as runControls plans
+// unasked, on a terminal, or off one with --yes (gatePlan). A lockout-risk plan, as runControls plans
 // it, on a terminal, stdin and stdout both, and not under plan only, goes
 // through pkg/ui's canonical flow as a screen's change does (runTyped):
 // planned again, then the plan, then question above the hostname typed
@@ -34,11 +34,13 @@ import (
 // confirm). A hostname that can't be read is said in place of the
 // question, nothing asked (Session.CantConfirm). Off a terminal a
 // lockout-risk plan is refused with offTerminal, shown with the plan and
-// not applied, nothing armed. Under plan only nothing is asked or
-// refused: the plan alone. With always, any plan with changes is
-// confirmed so, a plain one too, and refused off a terminal (hardn -r:
-// gallery-runall.md §5, decisions 6 (a) and 8 (a)); a plan with nothing
-// to change is neither asked nor refused.
+// not applied, nothing armed, --yes or not (gatePlan). Under plan only
+// nothing is asked or refused: the plan alone. With always, any plan with
+// changes is confirmed so, a plain one too (hardn -r: gallery-runall.md
+// §5, decisions 6 (a) and 8 (a)), unless --yes was given; off a terminal
+// a plain one needs --yes as any flag's (CONFIRMATION_REQUIRED), and
+// where stdin is a terminal but stdout is not, it is refused with
+// offTerminal; a plan with nothing to change is neither asked nor refused.
 type typedConfirm struct {
 	question    string
 	offTerminal error
@@ -46,9 +48,11 @@ type typedConfirm struct {
 }
 
 // asks reports whether p, planned and not refused, is confirmed by the
-// hostname typed: lockout-risk, or with changes where always.
+// hostname typed: lockout-risk, or with changes where always, unless
+// --yes was given (assumeYes), which stands for the question of a plan
+// with no lockout risk alone (refactor plan §3.11).
 func (q typedConfirm) asks(p *engine.Plan) bool {
-	return p.Risk == engine.RiskLockout || q.always && !p.Empty()
+	return p.Risk == engine.RiskLockout || q.always && !assumeYes && !p.Empty()
 }
 
 // onTerminal reports whether hardn can ask: stdin and stdout are both a
@@ -56,15 +60,6 @@ func (q typedConfirm) asks(p *engine.Plan) bool {
 func onTerminal() bool {
 	env := stdoutEnv()
 	return env.TTY && env.InputTTY
-}
-
-// refuse refuses p off a terminal when it would be confirmed on one
-// (asks), as runControls' refuse.
-func (q typedConfirm) refuse(p *engine.Plan) error {
-	if q.asks(p) {
-		return q.offTerminal
-	}
-	return nil
 }
 
 // typedEngine is the flow's engine for a typedConfirm: output.FlowEngine,

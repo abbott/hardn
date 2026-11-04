@@ -537,7 +537,7 @@ func TestConfigureDNSFlag(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h, cfg := newDNSHost(t, tc.host, tc.list)
 			yml := h.content(dnsTestYML)
-			args := []string{"-g"}
+			args := []string{"--yes", "-g"} // a script's run, off a terminal (§3.11)
 			if tc.dryRun {
 				args = []string{"-n", "-g"}
 			}
@@ -604,7 +604,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 	t.Run("-g refused, then -e", func(t *testing.T) {
 		h, cfg := newDNSHost(t, "resolvconf", dnsTestList)
 		ran := withSudo(h) // -e keeps HARDN_CONFIG for alice there
-		r, s := runG(t, h, cfg, nil, "-g", "-e")
+		r, s := runG(t, h, cfg, nil, "--yes", "-g", "-e")
 		if report := s.out.String(); !r.ended || r.code != 1 || !ran() || !strings.Contains(report, "DNS_MANAGED") {
 			t.Errorf("ended %v with %d, -e ran %v; report:\n%s", r.ended, r.code, ran(), report)
 		}
@@ -612,7 +612,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 	t.Run("-g applied, then -e", func(t *testing.T) {
 		h, cfg := newDNSHost(t, "debian13", dnsTestList)
 		ran := withSudo(h) // -e keeps HARDN_CONFIG for alice there
-		r, s := runG(t, h, cfg, nil, "-g", "-e")
+		r, s := runG(t, h, cfg, nil, "--yes", "-g", "-e")
 		if report := s.out.String(); r.ended || !ran() || !strings.Contains(report, "Operation Successful") {
 			t.Errorf("ended %v with %d, -e ran %v; report:\n%s", r.ended, r.code, ran(), report)
 		}
@@ -675,7 +675,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 				}
 				return answer(argv, in)
 			}
-		}, "-g", "-e")
+		}, "--yes", "-g", "-e")
 		report := s.out.String()
 		if !r.ended || r.code != 130 || ran() {
 			t.Errorf("ended %v with %d, -e ran %v; report:\n%s", r.ended, r.code, ran(), report)
@@ -717,7 +717,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 				}
 				return answer(argv, in)
 			}
-		}, "-g", "-e")
+		}, "--yes", "-g", "-e")
 		report := s.out.String()
 		if !r.ended || r.code != 130 || ran() || ended != 0 || s.applies != 1 {
 			t.Errorf("ended %v with %d, -e ran %v, ended by a hangup %d times, %d applies; report:\n%s", r.ended, r.code, ran(), ended, s.applies, report)
@@ -751,7 +751,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 				}
 				return answer(argv, in)
 			}
-		}, "-g", "-e")
+		}, "--yes", "-g", "-e")
 		if !r.ended || r.code != 130 || ran() || s.applies != 1 || unread.marks() == 0 {
 			t.Errorf("ended %v with %d, -e ran %v, %d applies, the terminal marked gone %d times", r.ended, r.code, ran(), s.applies, unread.marks())
 		}
@@ -777,7 +777,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 				unread.hangUp()
 				return signals(c)
 			}
-		}, "-g", "-e")
+		}, "--yes", "-g", "-e")
 		if applied := h.content(hostdns.DropIn) != "<absent>"; !r.ended || r.code != 130 || ran() || unread.marks() == 0 || !applied {
 			t.Errorf("ended %v with %d, -e ran %v, the terminal marked gone %d times, applied %t", r.ended, r.code, ran(), unread.marks(), applied)
 		}
@@ -790,7 +790,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 		// returns from -g marks nothing (this test's probe keeps it alive).
 		signals := engineSignals // the real one: useDNSHost replaces it
 		h, cfg := newDNSHost(t, "ubuntu2604", dnsTestList)
-		r, s := runG(t, h, cfg, func(*dnsSeams) { engineSignals = signals }, "-g")
+		r, s := runG(t, h, cfg, func(*dnsSeams) { engineSignals = signals }, "--yes", "-g")
 		goneWas := terminalGone
 		defer func() { terminalGone = goneWas }()
 		var marks atomic.Int32
@@ -821,7 +821,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 				return release
 			}
 			endHangup = func() { ended++ } // a screen's end of hardn, not -g's
-		}, "-g", "-e")
+		}, "--yes", "-g", "-e")
 		report := s.out.String()
 		if !r.ended || r.code != 1 || ran() || ended != 0 || s.applies != 1 || s.held != 1 || applying.Err() == nil {
 			t.Errorf("ended %v with %d, -e ran %v, ended by a hangup %d times, %d applies, %d holds, the apply's context %v; report:\n%s", r.ended, r.code, ran(), ended, s.applies, s.held, applying.Err(), report)
@@ -864,7 +864,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 						engineHost = func() host.System { return lastStepHost{h, fire} }
 					}
 					endHangup = func() { ended++ } // a screen's end of hardn, not -g's
-				}, "-g", "-e")
+				}, "--yes", "-g", "-e")
 				report := s.out.String()
 				if fired != 1 || !r.ended || r.code != 130 || ran() || ended != 0 || s.applies != 1 {
 					t.Errorf("fired %d; ended %v with %d, -e ran %v, ended by a hangup %d times, %d applies; report:\n%s", fired, r.ended, r.code, ran(), ended, s.applies, report)

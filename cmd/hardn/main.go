@@ -34,6 +34,7 @@ var (
 	printLogs      bool
 	showVersion    bool
 	setupSudoEnv   bool
+	assumeYes      bool
 	cfg            *config.Config
 )
 
@@ -76,6 +77,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
+	rootCmd.PersistentFlags().BoolVar(&assumeYes, "yes", false, "Apply a plan without a terminal to confirm it on; a lockout-risk plan still needs one")
 	addSurfaceFlags(rootCmd.PersistentFlags())
 	addTimeoutFlag(rootCmd.PersistentFlags())
 }
