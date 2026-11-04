@@ -2,6 +2,8 @@ module github.com/abbott/hardn
 
 go 1.26.0
 
+toolchain go1.27.3
+
 require (
 	charm.land/lipgloss/v2 v2.0.6
 	github.com/charmbracelet/colorprofile v0.4.3
