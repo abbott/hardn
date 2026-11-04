@@ -144,6 +144,7 @@ func newBareHost(t *testing.T) *testHost {
 	t.Helper()
 	h := &testHost{System: hostfake.New(host.Options{}), exit: map[string]int{}}
 	h.AddFile(testHardn, []byte("ELF"), 0o755, 0, 0)
+	h.AddFile("/usr/bin/sudo", []byte("ELF"), 0o755, 0, 0) // the words say sudo hardn (with neither tool, hardn)
 	for _, d := range []string{"/var/lib", "/var/backups", "/run", "/etc/example", revert.SystemdUnitDir, revert.OpenRCInitDir} {
 		h.AddDir(d, 0o755, 0, 0)
 	}

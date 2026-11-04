@@ -266,13 +266,14 @@ func confirmOf(c engine.Confirm, f detect.Facts) *Confirm {
 	for _, l := range c.Via {
 		via = append(via, l.String())
 	}
-	elevate := elevation(f)
+	hardn := hardnAsRoot(f)
 	return &Confirm{Deadline: c.Deadline.UTC(), Approximate: c.Approximate, Via: via,
-		Command: elevate + " hardn confirm", Undo: elevate + " hardn rollback " + c.ID}
+		Command: hardn + " confirm", Undo: hardn + " rollback " + c.ID}
 }
 
-// elevation is the command that runs hardn as root on the host.
-func elevation(f detect.Facts) string { return f.Elevation.Command() }
+// hardnAsRoot is how to run hardn as root on the host: "sudo hardn",
+// "doas hardn", or "hardn" where neither is installed (revert.Hardn).
+func hardnAsRoot(f detect.Facts) string { return revert.Hardn(f.Elevation) }
 
 // rollbackOf is what rolling back the failed apply ae did, on a host with
 // facts f: the command that finishes an unfinished rollback is in the
@@ -298,7 +299,7 @@ func rollbackOf(ae *engine.ApplyError, f detect.Facts) *Rollback {
 		}
 	}
 	if errors.Is(ae.RollbackErr, revert.ErrIncomplete) {
-		rb.Command = elevation(f) + " hardn rollback " + ae.ID
+		rb.Command = hardnAsRoot(f) + " rollback " + ae.ID
 	}
 	return rb
 }
