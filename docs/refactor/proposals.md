@@ -31,7 +31,7 @@
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
 | [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-check-ssh`, `next/p4-check-firewall` |
 | [P-06](#p-06) | Make the risk score transparent | brief §7.6 | RiskSummary; Phase 4 | M | Low | proposed; the factors' place decided (2026-10-21): under their rows; implemented, `next/p4-risk-lines` |
-| [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed; (c) decided (2026-10-29): item 8 "Keep HARDN_CONFIG"; on Proxmox VE, item 4 "View pve-firewall" (2026-11-01) |
+| [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed; (c) decided (2026-10-29): item 8 "Keep HARDN_CONFIG"; on Proxmox VE, item 4 "View pve-firewall" (2026-11-01); (a) decided (2026-11-04): item 2 "Root login, passwords, port" |
 | [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | decided (2026-10-17); implemented, `next/p1d-divider` |
 | [P-09](#p-09) | Replace "Press any key to continue" | plan §5.2 | All screens; Phase 1C | M | Low | proposed |
 | [P-10](#p-10) | Typed confirmation + confirm-or-revert where Figma shows `(y/n)` | plan §5.3 | SSH, sudo; slices 5–6 | M | Low | proposed; User Management decided (2026-11-03): as slice 5's lockout rules draw; SSH decided (2026-11-03): every change typed, confirmed or reverted |
@@ -56,7 +56,7 @@
 | [P-29](#p-29) | Figma's words or origin/main's: the menu prompt and the User Management sub-menu | `next/p1d-slice` | Every menu; Phase 5 | S | Low | proposed; (b) decided (2026-11-03): Figma's words |
 | [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | decided for DNS (2026-10-22): (b); implemented for DNS, `next/s2-screen`; Firewall's proposed |
 | [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed; 05-BACKUP decided (2026-10-27); the USER frames decided (2026-11-03): slice 5's words; the 02-SSH frames decided (2026-11-03): slice 6's words |
-| [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
+| [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | withdrawn (2026-11-04): the legacy commands are deleted |
 | [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slices 4, 6 | S | Low | (1) and (3) decided (2026-11-01): (1) (b), (3) (a); (2) decided (2026-11-03): (a), refuse |
 | [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; implemented, `next/p3-revert-boot` |
 | [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | decided (2026-10-19): (a) `hardn rollback --abandon <id>`; implemented, `next/p3-rollback-abandon` |
@@ -184,7 +184,7 @@
 <a id="p-07"></a>
 ### P-07: Main-menu wording
 
-- **Status:** proposed (each part is decided separately); **on Proxmox VE, item 4's description decided** (maintainer, 2026-11-01, slice 4 decision 7, "Adopt all ten"): "View pve-firewall"; **(c) decided** (maintainer, 2026-10-29, slice 9 decision 7, "Adopt all seven slice 9 Environment recommendations in gallery-environment.md §5"): item 8's description "Keep HARDN_CONFIG", (c) without "under sudo", which is wrong on doas hosts. [gallery-environment.md](../engine/gallery-environment.md) §5.
+- **Status:** proposed (each part is decided separately); **on Proxmox VE, item 4's description decided** (maintainer, 2026-11-01, slice 4 decision 7, "Adopt all ten"): "View pve-firewall"; **(a) decided** (maintainer, 2026-11-04, [legacy-left.md](../engine/legacy-left.md) §3 decision 7, "Adopt all, start part 2"): item 2's description "Root login, passwords, port", the three things SSH Login changes; **(c) decided** (maintainer, 2026-10-29, slice 9 decision 7, "Adopt all seven slice 9 Environment recommendations in gallery-environment.md §5"): item 8's description "Keep HARDN_CONFIG", (c) without "under sudo", which is wrong on doas hosts. [gallery-environment.md](../engine/gallery-environment.md) §5.
 - **Source:** brief §7.7.
 - **Problem and proposal:**
   - **(a) Item 2:** "Toggle root SSH access" (Figma; origin/main says "Toggle SSH root access") doesn't say which way it switches, and on origin/main it can only disable [V]. Name the result instead; see [P-12](#p-12).
@@ -717,7 +717,7 @@
 <a id="p-32"></a>
 ### P-32: Run the legacy commands and file calls through `host.Real`
 
-- **Status:** proposed
+- **Status:** withdrawn (maintainer, 2026-11-04, [legacy-left.md](../engine/legacy-left.md) §3 decision 2, "Adopt all, start part 2"): the legacy commands it would route are deleted, so nothing is left to route; `legacyThroughHost` and its adapters go with `pkg/interfaces` (`next/legacy-rehome`).
 - **Source:** `next/p2-system`, which builds `host.System`, adapters from the legacy `interfaces.Commander`/`FileSystem` to it, and the gate `legacyThroughHost` in `pkg/interfaces/system_adapter.go`, shipped `false`. Review of that unit (2026-10-17): the change is a behaviour change with no §3 row or V-number, so it needs the maintainer (brief §3 principle 2; plan §1, review template item 2).
 - **Problem:** with the gate off, legacy production code (`OSCommander`, `OSFileSystem`) keeps calling os/exec and os directly, and only new code goes through `host.Real`: two execution paths until Phase 3 migrates each area. With it on, every legacy command changes, all **written, not run** (gate 5): resolved from `/usr/sbin:/usr/bin:/sbin:/bin` only; environment exactly `PATH` and `LC_ALL=C` (children lose `HOME`, `TERM`, `LANG`, `USER`, `SUDO_*`); working directory `/`; a different "command not found" text; stdout and stderr interleaved only approximately in the combined output; at most 10 s of waiting for pipes a daemon holds, then the pipes are closed under it; every command in the run log. The full list, with sources, is [docs/safety/system.md](../safety/system.md) §5.
 - **Proposal:**
