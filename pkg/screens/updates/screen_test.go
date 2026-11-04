@@ -12,6 +12,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	updatesctl "github.com/abbott/hardn/pkg/engine/controls/updates"
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	updscreen "github.com/abbott/hardn/pkg/screens/updates"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -317,22 +318,48 @@ func TestRunNeeds(t *testing.T) {
 	}
 }
 
-// TestCutShort: a reading cut short (the context done) never draws an
-// empty screen: the row and the section say Can't read.
+// TestCutShort: a reading cut short by the context's error never draws an
+// empty screen: the row Unknown, the section's Can't read, the item's Can't
+// read description. Cut before the reading, and in the middle of it, after
+// the check has read the host as off (cutAt).
 func TestCutShort(t *testing.T) {
-	m := newHost(t, "debian-off")
-	var out bytes.Buffer
-	env := term.Resolve(term.Options{}, term.Facts{Width: 120})
-	ctx, cancel := context.WithCancel(context.Background())
-	cancel()
-	err := updscreen.Run(ctx, updscreen.Options{
-		Prompter: nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, "0"), false), Out: env.Writer(&out)},
-		System:   m.f, Facts: m.facts, NewEngine: m.engine,
-	})
-	if err != nil || !strings.Contains(out.String(), "Unknown") || !strings.Contains(out.String(), "Upgrades             Can't read") ||
-		!strings.Contains(out.String(), enable+"\n      Can't read") {
-		t.Errorf("Run = %v:\n%s", err, out.String())
+	for _, mid := range []bool{false, true} {
+		m := newHost(t, "debian-off")
+		var out bytes.Buffer
+		env := term.Resolve(term.Options{}, term.Facts{Width: 120})
+		ctx, cancel := context.WithCancel(context.Background())
+		var sys host.System = m.f
+		if mid {
+			sys = cutAt{System: m.f, name: hardnFile, cancel: cancel}
+		} else {
+			cancel()
+		}
+		err := updscreen.Run(ctx, updscreen.Options{
+			Prompter: nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, "0"), false), Out: env.Writer(&out)},
+			System:   sys, Facts: m.facts, NewEngine: m.engine,
+		})
+		cancel()
+		row := strings.SplitN(out.String(), "\n", 4)[2] // the title bar, a gap, the row
+		if err != nil || !strings.Contains(row, "Unknown") || !strings.Contains(out.String(), "Upgrades             Can't read\n") ||
+			!strings.Contains(out.String(), enable+"\n      Can't read\n") {
+			t.Errorf("mid-read %v: Run = %v:\n%s", mid, err, out.String())
+		}
 	}
+}
+
+// cutAt is a host whose context is cancelled as name is read, without
+// following a link, as the control reads hardn's file after its check.
+type cutAt struct {
+	host.System
+	name   string
+	cancel context.CancelFunc
+}
+
+func (c cutAt) ReadFileNoFollow(ctx context.Context, name string) ([]byte, fs.FileInfo, error) {
+	if name == c.name {
+		c.cancel()
+	}
+	return c.System.ReadFileNoFollow(ctx, name)
 }
 
 // TestHeights (the gallery's, gallery-updates.md §3): every host's screen
