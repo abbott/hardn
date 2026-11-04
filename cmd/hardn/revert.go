@@ -187,7 +187,9 @@ func revertAsRoot(cmd string) string {
 }
 
 // revertPreflight refuses -n, which only previews, and a user other than
-// root, who cannot read the journal.
+// root, who cannot read the journal. Past both, hardn's log is opened
+// (openStartLog), which the command's steps are written to: nothing is
+// written before either refusal (refactor plan §3.23, next/p3-startup).
 func revertPreflight(name string) bool {
 	if dryRun {
 		sayError("-n only previews, and hardn %s changes the host: run it without -n", name)
@@ -199,6 +201,7 @@ func revertPreflight(name string) bool {
 		revertExit(1)
 		return false
 	}
+	openStartLog()
 	return true
 }
 
