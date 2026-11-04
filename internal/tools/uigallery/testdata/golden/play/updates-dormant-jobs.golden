@@ -1,0 +1,575 @@
+# Golden file of TestPlayUpdatesGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/dormant-jobs␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host (the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuto Updates check, apt-config, dpkg, systemctl,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as built,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe rest of each direction and the record the gallery's stand-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mins, unit (b)'s to build. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323 with␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlogrotate's daily job, crond stopped. Enable starts crond and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays it starts logrotate too; Disable stops it again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno apk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mapk-cron␛[m             ␛[38;2;231;70;105mNot installed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcrond␛[m                ␛[38;2;129;134;156mStopped␛[m ␛[38;2;231;70;105mnot at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOther Jobs␛[m           ␛[38;2;129;134;156mlogrotate␛[m ␛[38;2;129;134;156muse crond␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
+      ␛[38;2;129;134;156mDaily, by apk-cron␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable automatic updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mOn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAlso starts␛[m          ␛[38;2;129;134;156mlogrotate␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;231;70;105m-apk-cron not installed, crond stopped␛[m$
+      ␛[38;2;112;212;127m+apk-cron installed, crond started at boot␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
+      ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
+$
+  ␛[38;2;192;196;216mTurn automatic updates on?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mapk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mapk-cron␛[m             ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m1.0-r3␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDaily Script␛[m         ␛[38;2;129;134;156mIn place␛[m ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m                ␛[38;2;129;134;156mRunning␛[m ␛[38;2;129;134;156mstarts at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOther Jobs␛[m           ␛[38;2;129;134;156mlogrotate␛[m ␛[38;2;129;134;156muse crond␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m         ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-10-20␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
+      ␛[38;2;129;134;156mUndo hardn's changes␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDisable automatic updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mOff␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m             ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStop crond␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond stop␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStop crond at boot␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;129;134;156m$ rc-update del crond default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRemove apk-cron␛[m$
+      ␛[38;2;129;134;156mapk-cron␛[m$
+      ␛[38;2;129;134;156m$ apk del apk-cron␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDelete hardn's record␛[m$
+      ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
+$
+  ␛[38;2;192;196;216mTurn automatic updates off?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStop crond␛[m             ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStop crond at boot␛[m     ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRemove apk-cron␛[m        ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDelete hardn's record␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /var/lib/hardn/controls/updates.auto.json kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno apk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mapk-cron␛[m             ␛[38;2;231;70;105mNot installed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcrond␛[m                ␛[38;2;129;134;156mStopped␛[m ␛[38;2;231;70;105mnot at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOther Jobs␛[m           ␛[38;2;129;134;156mlogrotate␛[m ␛[38;2;129;134;156muse crond␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
+      ␛[38;2;129;134;156mDaily, by apk-cron␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Turn on daily upgrades␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Record hardn's changes␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk del --simulate apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk del --simulate apk-cron␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop crond␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond stop␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop crond at boot␛[m$
+      ␛[38;2;129;134;156m/etc/runlevels/default/crond␛[m$
+      ␛[38;2;129;134;156m$ rc-update del crond default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Remove apk-cron␛[m$
+      ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
+      ␛[38;2;129;134;156m$ apk del apk-cron␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play updates/dormant-jobs ------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Auto Updates screen proposed for slice$
+# 7, drawn from what real code reads of a simulated host (the$
+# Auto Updates check, apt-config, dpkg, systemctl,$
+# alpine.ReadUpdates), each change on the real plan/apply$
+# engine: alpine.PlanUpdates and packages.PlanInstall as built,$
+# the rest of each direction and the record the gallery's stand-$
+# ins, unit (b)'s to build. Nothing on this machine changes:$
+# every command and file is the fake's.$
+$
+# Info: updates/dormant-jobs$
+# web-01.example.net runs Alpine 3.23 (OpenRC). alpine323 with$
+# logrotate's daily job, crond stopped. Enable starts crond and$
+# says it starts logrotate too; Disable stops it again.$
+$
+# Auto Updates #################################################$
+$
+  [ ] Auto Updates         Not Configured no apk-cron$
+$
+# Update Configuration -----------------------------------------$
+$
+  [ ] apk-cron             Not installed$
+  [ ] crond                Stopped not at boot$
+   -  Other Jobs           logrotate use crond$
+$
+  Select an option$
+$
+   1) Enable automatic updates$
+      Daily, by apk-cron$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 1$
+$
+# Enable automatic updates #####################################$
+$
+# Update Configuration -----------------------------------------$
+$
+   -  Auto Updates         On$
+   -  Also starts          logrotate$
+$
+   -  Turn on daily upgrades$
+      crond$
+      -apk-cron not installed, crond stopped$
+      +apk-cron installed, crond started at boot$
+      $ apk add apk-cron$
+      $ rc-update add crond default$
+      $ rc-service crond start$
+$
+   -  Record hardn's changes$
+      /var/lib/hardn/controls/updates.auto.json$
+$
+  Turn automatic updates on? [y/N, 0 or q]: y$
+$
+  [+] Turn on daily upgrades  Done$
+  [+] Record hardn's changes  Done$
+$
+# Operation Successful$
+$
+# Auto Updates #################################################$
+$
+  [+] Auto Updates         Configured apk-cron$
+$
+# Update Configuration -----------------------------------------$
+$
+   -  apk-cron             Installed 1.0-r3$
+   -  Daily Script         In place /etc/periodic/daily/apk$
+   -  crond                Running starts at boot$
+   -  Other Jobs           logrotate use crond$
+   -  Turned on by         hardn record of 2026-10-20$
+$
+  Select an option$
+$
+   1) Disable automatic updates$
+      Undo hardn's changes$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 1$
+$
+# Disable automatic updates ####################################$
+$
+# Update Configuration -----------------------------------------$
+$
+   -  Auto Updates         Off$
+   -  Rollback             Reinstalls from the repositories$
+$
+   -  Stop crond$
+      crond$
+      $ rc-service crond stop$
+$
+   -  Stop crond at boot$
+      crond$
+      $ rc-update del crond default$
+$
+   -  Remove apk-cron$
+      apk-cron$
+      $ apk del apk-cron$
+$
+   -  Delete hardn's record$
+      /var/lib/hardn/controls/updates.auto.json$
+$
+  Turn automatic updates off? [y/N, 0 or q]: y$
+$
+  [+] Stop crond             Done$
+  [+] Stop crond at boot     Done$
+  [+] Remove apk-cron        Done$
+  [+] Delete hardn's record  Done$
+$
+# Operation Successful$
+$
+  Backup of /var/lib/hardn/controls/updates.auto.json kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
+$
+# Auto Updates #################################################$
+$
+  [ ] Auto Updates         Not Configured no apk-cron$
+$
+# Update Configuration -----------------------------------------$
+$
+  [ ] apk-cron             Not installed$
+  [ ] crond                Stopped not at boot$
+   -  Other Jobs           logrotate use crond$
+$
+  Select an option$
+$
+   1) Enable automatic updates$
+      Daily, by apk-cron$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: updates/dormant-jobs$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Before the first change$
+      $ rc-service crond status$
+      $ rc-service crond status$
+$
+   -  Applied: Turn on daily upgrades$
+      $ rc-service crond status$
+      $ apk add apk-cron$
+      $ rc-update add crond default$
+      $ rc-service crond start$
+      $ rc-service crond status$
+$
+   -  Applied: Record hardn's changes$
+      $ rc-service crond status$
+$
+# Info: updates/dormant-jobs$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Before the first change$
+      $ rc-service crond status$
+      $ rc-service crond status$
+      $ apk del --simulate apk-cron$
+      $ rc-service crond status$
+      $ rc-service crond status$
+      $ apk del --simulate apk-cron$
+$
+   -  Applied: Stop crond$
+      $ rc-service crond stop$
+$
+   -  Applied: Stop crond at boot$
+      /etc/runlevels/default/crond$
+      $ rc-update del crond default$
+$
+   -  Applied: Remove apk-cron$
+      /etc/periodic/daily/apk$
+      $ apk del apk-cron$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/dormant-jobs␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 7, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (the Auto Updates check, apt-config, dpkg, systemctl,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuilt, the rest of each direction and the record the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith logrotate's daily job, crond stopped. Enable starts␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcrond and says it starts logrotate too; Disable stops it␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno apk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mapk-cron␛[m$
+      ␛[38;2;231;70;105mNot installed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcrond␛[m$
+      ␛[38;2;129;134;156mStopped␛[m ␛[38;2;231;70;105mnot at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOther Jobs␛[m$
+      ␛[38;2;129;134;156mlogrotate␛[m ␛[38;2;129;134;156muse crond␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
+      ␛[38;2;129;134;156mDaily, by apk-cron␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable automatic updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mOn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAlso starts␛[m$
+      ␛[38;2;129;134;156mlogrotate␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;231;70;105m-apk-cron not installed, crond stopped␛[m$
+      ␛[38;2;112;212;127m+apk-cron installed, crond started at boot␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
+      ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
+$
+  ␛[38;2;192;196;216mTurn automatic updates on?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mapk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mapk-cron␛[m$
+      ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m1.0-r3␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDaily Script␛[m$
+      ␛[38;2;129;134;156mIn place␛[m ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m$
+      ␛[38;2;129;134;156mRunning␛[m ␛[38;2;129;134;156mstarts at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOther Jobs␛[m$
+      ␛[38;2;129;134;156mlogrotate␛[m ␛[38;2;129;134;156muse crond␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m$
+      ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-10-20␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
+      ␛[38;2;129;134;156mUndo hardn's changes␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDisable automatic updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mOff␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m$
+      ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStop crond␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond stop␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mStop crond at boot␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;129;134;156m$ rc-update del crond default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRemove apk-cron␛[m$
+      ␛[38;2;129;134;156mapk-cron␛[m$
+      ␛[38;2;129;134;156m$ apk del apk-cron␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDelete hardn's record␛[m$
+      ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
+$
+  ␛[38;2;192;196;216mTurn automatic updates off?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStop crond␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStop crond at boot␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRemove apk-cron␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDelete hardn's record␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /var/lib/hardn/controls/updates.auto.json kept␛[m$
+  ␛[38;2;129;134;156min␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno apk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mapk-cron␛[m$
+      ␛[38;2;231;70;105mNot installed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcrond␛[m$
+      ␛[38;2;129;134;156mStopped␛[m ␛[38;2;231;70;105mnot at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOther Jobs␛[m$
+      ␛[38;2;129;134;156mlogrotate␛[m ␛[38;2;129;134;156muse crond␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
+      ␛[38;2;129;134;156mDaily, by apk-cron␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Turn on daily upgrades␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Record hardn's changes␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk del --simulate apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk del --simulate apk-cron␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop crond␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond stop␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Stop crond at boot␛[m$
+      ␛[38;2;129;134;156m/etc/runlevels/default/crond␛[m$
+      ␛[38;2;129;134;156m$ rc-update del crond default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Remove apk-cron␛[m$
+      ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
+      ␛[38;2;129;134;156m$ apk del apk-cron␛[m$
+$

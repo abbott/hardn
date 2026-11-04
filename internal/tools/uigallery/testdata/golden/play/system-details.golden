@@ -37,6 +37,7 @@ $
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
@@ -44,7 +45,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 9$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
@@ -125,6 +126,7 @@ $
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
@@ -132,7 +134,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -175,6 +177,7 @@ $
    3) DNS                  Configure Nameservers$
    4) Firewall             Configure UFW rules$
    5) Backup               Configure Hardn backup settings$
+   6) Auto Updates         Configure automatic updates$
    7) Run All              Execute hardening operations$
    8) Environment          Keep HARDN_CONFIG$
    9) System Details       View system information$
@@ -182,7 +185,7 @@ $
 $
    0) Exit                 q to quit$
 $
-  > Enter selection [0-5, 7-10 or q]: 9$
+  > Enter selection [0-10 or q]: 9$
 $
 # Info: system-details/debian13$
 # web-01.example.net runs Debian 13, as the VM of 2026-10-21$
@@ -263,6 +266,7 @@ $
    3) DNS                  Configure Nameservers$
    4) Firewall             Configure UFW rules$
    5) Backup               Configure Hardn backup settings$
+   6) Auto Updates         Configure automatic updates$
    7) Run All              Execute hardening operations$
    8) Environment          Keep HARDN_CONFIG$
    9) System Details       View system information$
@@ -270,7 +274,7 @@ $
 $
    0) Exit                 q to quit$
 $
-  > Enter selection [0-5, 7-10 or q]: 0$
+  > Enter selection [0-10 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -329,6 +333,8 @@ $
       ␛[38;2;129;134;156mConfigure UFW rules␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
@@ -341,7 +347,7 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
       ␛[38;2;129;134;156mq to quit␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 9$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
@@ -453,6 +459,8 @@ $
       ␛[38;2;129;134;156mConfigure UFW rules␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
@@ -465,7 +473,7 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
       ␛[38;2;129;134;156mq to quit␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
