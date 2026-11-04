@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	xterm "github.com/charmbracelet/x/term"
 	"go.yaml.in/yaml/v3"
 
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -454,7 +453,7 @@ var (
 	}
 	// terminals reports whether stdin and stdout are both a terminal,
 	// where alone the first-run question is asked. Tests replace it.
-	terminals = func() bool { return terminal(os.Stdin) && terminal(os.Stdout) }
+	terminals = func() bool { return prompt.IsTerminal(os.Stdin) && prompt.IsTerminal(os.Stdout) }
 	// ensureExample is CreateDefaultConfig's EnsureExampleConfigExists,
 	// which writes /etc/hardn. Tests replace it.
 	ensureExample = EnsureExampleConfigExists
@@ -467,22 +466,6 @@ var (
 	// reraise ends hardn by SIGINT after Ctrl-C. Tests replace it.
 	reraise = prompt.Reraise
 )
-
-// terminal reports whether f's descriptor is a terminal. The descriptor
-// is taken with SyscallConn, which leaves the file as it is (File.Fd would
-// set it to blocking mode, which prompt's reads of os.Stdin must not
-// meet).
-func terminal(f *os.File) bool {
-	rc, err := f.SyscallConn()
-	if err != nil {
-		return false
-	}
-	var tty bool
-	if err := rc.Control(func(fd uintptr) { tty = xterm.IsTerminal(fd) }); err != nil {
-		return false
-	}
-	return tty
-}
 
 // readAnswer reads one answer line through input. As with the bufio
 // reader each prompt made before, the end of the input and a read error
