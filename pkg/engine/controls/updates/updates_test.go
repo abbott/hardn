@@ -624,8 +624,9 @@ func TestStock(t *testing.T) {
 		{"debian13", stockOn(debian13()), engine.NotConfigured, noPkg},
 		{"debian13 with unattended-upgrades", site{plat: debian13()}, engine.Configured, unattended},
 		{"ubuntu2604", site{plat: ubuntu2604()}, engine.Configured, unattended},
-		{"pve9", stockOn(pve9()), engine.NotConfigured, noPkg},
-		{"pve9 with unattended-upgrades", site{plat: pve9()}, engine.Configured, unattended},
+		// Not Applicable on Proxmox VE (slice 7 decision 7 (a)): Check is not called.
+		{"pve9", stockOn(pve9()), engine.NotApplicable, "updated by hand"},
+		{"pve9 with unattended-upgrades", site{plat: pve9()}, engine.NotApplicable, "updated by hand"},
 		{"alpine324", site{plat: alpine324(), apk: gone, script: absent}, engine.NotConfigured, noApkCron},
 		{"alpine324 with apk-cron", site{plat: alpine324()}, engine.Configured, apkCron},
 	} {
@@ -646,7 +647,7 @@ func TestStock(t *testing.T) {
 			if rep.Status.State != c.state || rep.Status.Detail != c.detail {
 				t.Errorf("%s %q, want %s %q", rep.Status.State, rep.Status.Detail, c.state, c.detail)
 			}
-			if len(rep.Status.Evidence) == 0 {
+			if len(rep.Status.Evidence) == 0 && c.state != engine.NotApplicable {
 				t.Error("no evidence")
 			}
 			readOnly(t, f)

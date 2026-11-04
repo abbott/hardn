@@ -257,6 +257,20 @@ var sentinels = map[string]error{
 	"sshchange.ErrPVEPasswordSession": sshchange.ErrPVEPasswordSession,
 	"sshchange.ErrPVENoRootKey":       sshchange.ErrPVENoRootKey,
 	"sshchange.ErrPortRestricted":     sshchange.ErrPortRestricted,
+	"updates.ErrNotRead":              updates.ErrNotRead,
+	"updates.ErrPeriodicOff":          updates.ErrPeriodicOff,
+	"updates.ErrTimerOff":             updates.ErrTimerOff,
+	"updates.ErrJobMasked":            updates.ErrJobMasked,
+	"updates.ErrJobMissing":           updates.ErrJobMissing,
+	"updates.ErrNoOrigins":            updates.ErrNoOrigins,
+	"updates.ErrProxmox":              updates.ErrProxmox,
+	"updates.ErrOtherPackages":        updates.ErrOtherPackages,
+	"updates.ErrNotInRepos":           updates.ErrNotInRepos,
+	"updates.ErrNotInEffect":          updates.ErrNotInEffect,
+	"updates.ErrRecordUnreadable":     updates.ErrRecordUnreadable,
+	"updates.ErrChangedSince":         updates.ErrChangedSince,
+	"updates.ErrNothingToUndo":        updates.ErrNothingToUndo,
+	"updates.ErrStaysOn":              updates.ErrStaysOn,
 }
 
 // otherSentinels are the sentinels of other packages that have codes of
@@ -634,7 +648,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, users.CodeNoPassword, users.CodeRuleNotRead, users.CodeUID0)                                            // next/p4-check-users
 	want = append(want, apparmor.CodeGlobalModeUnknown, apparmor.CodeBootUnknown)                                               // next/p4-check-apparmor
 	// next/p4-check-updates
-	want = append(want, updates.CodeAptValueUnknown, updates.CodeScheduleUnknown, updates.CodeProxmoxNotUpgraded, updates.CodeOriginsUnknown)
+	want = append(want, updates.CodeAptValueUnknown, updates.CodeScheduleUnknown, updates.CodeProxmoxNotUpgraded, updates.CodeOriginsUnknown, updates.CodeChangedSince)
 	want = append(want, header.CodeRebootRequired, header.CodeNewerKernel, header.CodeModulesMissing, header.CodeKernelReplaced) // next/p4-header
 	want = append(want, risk.CodeUptimeNoUpdates)                                                                                // next/p4-risk
 	want = append(want, users.CodeLocked)                                                                                        // next/p4-locked

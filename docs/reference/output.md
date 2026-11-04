@@ -173,6 +173,20 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSHD_FILE_CHANGED` | 1 | a file the SSH change writes is not as the plan read it |
 | `PVE_ROOT_LOGIN_NOT_KEPT` | 1 | the cluster's root SSH login by key would not be kept |
 | `SSH_CLEANUP_SESSION_NOT_KEPT` | 1 | the clean-up's session is not connected to a port it keeps (`hardn confirm`'s clean-up, P-40) |
+| `UPDATES_NOT_READ` | 1 | how updates run is not read, so no change is planned (the Auto Updates screen's refusals, `updates.Err*`; new in `next/s7-control`, [control-updates.md](../engine/control-updates.md)) |
+| `UPDATES_PERIODIC_OFF` | 1 | APT::Periodic::Enable turns apt's daily jobs off |
+| `UPDATES_TIMER_OFF` | 1 | an apt timer is off |
+| `UPDATES_JOB_MASKED` | 1 | an apt daily service is masked |
+| `UPDATES_JOB_MISSING` | 1 | an apt daily service is missing |
+| `UPDATES_NO_ORIGINS` | 1 | unattended-upgrades allows no origin |
+| `UPDATES_PROXMOX` | 1 | hardn does not change updates on Proxmox VE |
+| `UPDATES_OTHER_PACKAGES` | 1 | the package change would change other packages |
+| `UPDATES_NOT_IN_REPOS` | 1 | unattended-upgrades is not in apt's package lists |
+| `UPDATES_NOT_IN_EFFECT` | 1 | apt does not read the update setting as changed |
+| `UPDATES_RECORD_UNREADABLE` | 1 | hardn's record of the updates it turned on cannot be read |
+| `UPDATES_CHANGED_SINCE` | 1 | a file hardn left changed since |
+| `UPDATES_NOTHING_TO_UNDO` | 1 | hardn did not turn updates on |
+| `UPDATES_STAY_ON` | 1 | another file keeps updates on without hardn's |
 | `CONFIG_CHANGED` | 1 | hardn.yml changed since it was read: saving would undo what changed it (the save of hardn.yml, [control-dns.md](../engine/control-dns.md) §2.9; `config.Save`'s too since `next/s2-config-edit`, [config-edit.md](../engine/config-edit.md)) |
 | `CONFIRM_WINDOW_CLOSING` | 1 | the confirm window is closing |
 | `BOOT_UNIT_NOT_INSTALLED` | 1 | the boot unit was not installed, so nothing is armed |
@@ -446,6 +460,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `UPDATES_SCHEDULE_UNKNOWN` | whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_ORIGINS_UNKNOWN` | a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established ([check-updates.md](../engine/check-updates.md)) |
+| `UPDATES_CHANGED_SINCE_HARDN` | hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone: "changed since hardn" ([control-updates.md](../engine/control-updates.md)) |
 | `REBOOT_REQUIRED` | `/var/run/reboot-required` exists: a package asks for a reboot ([header.md](../engine/header.md)) |
 | `REBOOT_NEWER_KERNEL` | a kernel newer than the one running is installed in `/boot` ([header.md](../engine/header.md)) |
 | `REBOOT_MODULES_MISSING` | Alpine: the running kernel's own modules are not installed, while another kernel's are ([header.md](../engine/header.md)) |
