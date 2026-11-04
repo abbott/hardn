@@ -13,14 +13,17 @@
 #   3. The release: the latest release's tag from the GitHub API, or
 #      HARDN_VERSION (0.4.0 or v0.4.0). Its URLs are built from the tag and the
 #      exact asset name.
-#   4. The binary and SHA256SUMS, downloaded into a temporary directory. The
+#   4. The binary and SHA256SUMS, downloaded over HTTPS only (TLS 1.2 or
+#      later, redirects included) into a temporary directory. The
 #      binary's SHA-256 must match its one line in SHA256SUMS. Releases before
 #      v0.4.0 have no SHA256SUMS and are refused.
 #   5. The provenance attestation, checked as verify.sh does when gh 2.68.0 or
 #      later is on PATH and signed in; otherwise the script says it was not
 #      checked and prints the command that checks it.
-#   6. install -m 0755 to a temporary name in /usr/local/bin, then mv over
-#      /usr/local/bin/hardn; /etc/hardn created (0755) if missing. Nothing
+#   6. Refused if /usr/local/bin/hardn is a directory or a link to one.
+#      install -m 0755 to a temporary name in /usr/local/bin, its SHA-256
+#      checked again, then mv over /usr/local/bin/hardn; /etc/hardn created
+#      (0755) if missing. Nothing
 #      else is written, and hardn is not run.
 #
 # HARDN_INSTALL_ROOT (default empty) is prefixed to /usr/local/bin and
@@ -116,7 +119,7 @@ if [ -n "${HARDN_VERSION:-}" ]; then
 	check_version "$version" || die "HARDN_VERSION '$HARDN_VERSION' is not <major>.<minor>.<patch>"
 else
 	api=https://api.github.com/repos/$REPO/releases/latest
-	curl -fsSL -o "$tmp/latest.json" "$api" || die "cannot read the latest release from $api"
+	curl -fsSL --proto '=https' --tlsv1.2 -o "$tmp/latest.json" "$api" || die "cannot read the latest release from $api"
 	# One "tag_name" key: split the JSON at commas and braces, then match the
 	# whole key and value.
 	tags=$(awk '{ gsub(/[,{}]/, "\n"); print }' "$tmp/latest.json" |
@@ -136,13 +139,13 @@ printf 'Installing hardn %s: %s (%s %s)\n' "$tag" "$asset" "$os" "$arch"
 
 # 4. Download, and the SHA-256 against SHA256SUMS.
 status=0
-curl -fsSL -o "$tmp/SHA256SUMS" "$base/SHA256SUMS" || status=$?
+curl -fsSL --proto '=https' --tlsv1.2 -o "$tmp/SHA256SUMS" "$base/SHA256SUMS" || status=$?
 case $status in
 0) ;;
 22) die "no SHA256SUMS at $base/SHA256SUMS: either there is no release $tag, or it is older than v0.4.0 (v0.3.2 and earlier have no SHA256SUMS, and install.sh installs only a release it can check)" ;;
 *) die "cannot download $base/SHA256SUMS" ;;
 esac
-curl -fsSL -o "$tmp/$asset" "$base/$asset" || die "cannot download $base/$asset"
+curl -fsSL --proto '=https' --tlsv1.2 -o "$tmp/$asset" "$base/$asset" || die "cannot download $base/$asset"
 
 lines=$(awk -v f="$asset" '$2 == f || $2 == "*" f' "$tmp/SHA256SUMS" | wc -l | tr -d ' ')
 [ "$lines" = 1 ] || die "SHA256SUMS has $lines lines for $asset, not 1"
@@ -183,9 +186,17 @@ else
 fi
 
 # 6. Install: a temporary name beside the destination, then mv over it.
+# mv onto a directory, or a link to one, would put hardn inside it.
+[ ! -d "$dest" ] || die "$dest is a directory (or a link to one), not the hardn binary: move it aside, then run install.sh again"
 [ -d "$bindir" ] || mkdir -m 0755 "$bindir" || die "cannot create $bindir"
 staged=$bindir/.hardn.install.$$
 install -m 0755 "$tmp/$asset" "$staged" || die "cannot write $staged"
+# The bytes moved are the bytes checked.
+got=$(sha256 "$staged" | tr 'A-F' 'a-f')
+if [ "$got" != "$want" ]; then
+	rm -f "$staged"
+	die "$staged's SHA-256 is $got, not the $want checked: refused"
+fi
 mv -f "$staged" "$dest" || die "cannot move $staged to $dest"
 staged=
 installed=1

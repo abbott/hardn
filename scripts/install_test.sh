@@ -68,20 +68,29 @@ cat >"$stubs/id" <<'EOF'
 printf '%s\n' "$FAKE_UID"
 EOF
 
-# curl: -o <file> and a URL; logs each URL; serves the fake release; a
-# missing file is curl -f's HTTP error, exit 22.
+# curl: -o <file> and a URL; refuses a call without --proto =https and
+# --tlsv1.2; logs each URL; serves the fake release; a missing file is curl
+# -f's HTTP error, exit 22.
 cat >"$stubs/curl" <<EOF
 #!/bin/sh
 out=
 url=
+proto=
+tls=
 while [ \$# -gt 0 ]; do
 	case \$1 in
 	-o) out=\$2; shift ;;
+	--proto) proto=\$2; shift ;;
+	--tlsv1.2) tls=1 ;;
 	-*) ;;
 	*) url=\$1 ;;
 	esac
 	shift
 done
+if [ "\$proto" != =https ] || [ -z "\$tls" ]; then
+	printf 'curl stub: %s without --proto =https --tlsv1.2\n' "\$url" >&2
+	exit 2
+fi
 printf '%s\n' "\$url" >>"\$FAKE_LOG/curl.log"
 case \$url in
 https://api.github.com/repos/abbott/hardn/releases/latest) f=\$FAKE_REL/\${FAKE_LATEST:-latest}.json ;;
@@ -125,7 +134,9 @@ if ! command -v shasum >/dev/null 2>&1; then
 	printf '#!/bin/sh\n[ "$1" = -a ] && shift 2\nexec %s "$@"\n' "$sum_cmd" >"$work/sum-shasum/shasum"
 fi
 
-# install, mv and mkdir: refuse an absolute path outside $work.
+# install, mv and mkdir: refuse an absolute path outside $work; log their
+# arguments to $FAKE_LOG/<tool>.log. FAKE_INSTALL_CORRUPT=1 makes install
+# append a byte to what it wrote.
 for t in install mv mkdir; do
 	cat >"$stubs/$t" <<EOF
 #!/bin/sh
@@ -135,6 +146,13 @@ for a in "\$@"; do
 	/*) printf '%s: refused, outside the test directory: %s\n' "$t" "\$a" >&2; exit 99 ;;
 	esac
 done
+printf '%s\n' "\$*" >>"\$FAKE_LOG/$t.log"
+if [ "$t" = install ] && [ "\${FAKE_INSTALL_CORRUPT:-0}" = 1 ]; then
+	$(real "$t") "\$@" || exit
+	for last in "\$@"; do :; done
+	printf 'x' >>"\$last"
+	exit
+fi
 exec $(real "$t") "\$@"
 EOF
 done
@@ -297,6 +315,16 @@ expect_installed() {
 	want='. ./etc ./etc/hardn ./usr ./usr/local ./usr/local/bin ./usr/local/bin/hardn '
 	[ "$got" = "$want" ] || fail "files: $got"
 	expect_tmp_clean
+	expect_atomic
+}
+# install wrote a temporary name beside hardn, and mv moved it onto hardn.
+expect_atomic() {
+	b=$root/usr/local/bin
+	staged=$(sed -n "s|^-m 0755 $cdir/tmp/hardn-install\.[^/ ]*/[^ ]* \($b/\.hardn\.install\.[0-9][0-9]*\)\$|\1|p" "$cdir/log/install.log" 2>/dev/null)
+	[ -n "$staged" ] && [ "$(wc -l <"$cdir/log/install.log" | tr -d ' ')" = 1 ] ||
+		fail "install's arguments: $(cat "$cdir/log/install.log" 2>/dev/null), want one to $b/.hardn.install.<pid>"
+	[ "$(cat "$cdir/log/mv.log" 2>/dev/null)" = "-f $staged $b/hardn" ] ||
+		fail "mv's arguments: $(cat "$cdir/log/mv.log" 2>/dev/null), want -f $staged $b/hardn"
 }
 
 api=https://api.github.com/repos/abbott/hardn/releases/latest
@@ -480,6 +508,26 @@ $dl/v0.4.0/hardn-linux-amd64"
 	rmdir "$root/usr/local/bin"
 	run_install
 	expect_installed hardn-linux-amd64
+	new_case "/usr/local/bin/hardn is a directory"
+	mkdir "$root/usr/local/bin/hardn"
+	run_install
+	expect_nothing_installed
+	expect_err "$root/usr/local/bin/hardn is a directory (or a link to one)"
+	[ ! -e "$cdir/log/install.log" ] && [ ! -e "$cdir/log/mv.log" ] || fail "install or mv ran"
+	new_case "/usr/local/bin/hardn is a link to a directory"
+	mkdir "$cdir/elsewhere"
+	ln -s "$cdir/elsewhere" "$root/usr/local/bin/hardn"
+	run_install
+	expect_nothing_installed
+	expect_err "$root/usr/local/bin/hardn is a directory (or a link to one)"
+	[ ! -e "$cdir/log/install.log" ] && [ ! -e "$cdir/log/mv.log" ] || fail "install or mv ran"
+	[ -z "$(ls -A "$cdir/elsewhere")" ] || fail "written through the link: $(ls -A "$cdir/elsewhere")"
+	new_case "staged copy differs from the checked binary"
+	run_install FAKE_INSTALL_CORRUPT=1
+	expect_nothing_installed
+	expect_err "SHA-256 is"
+	expect_err "not the $(hash "$rel/v0.4.0/hardn-linux-amd64") checked: refused"
+	[ ! -e "$cdir/log/mv.log" ] || fail "mv ran: $(cat "$cdir/log/mv.log")"
 	new_case "HARDN_INSTALL_ROOT relative"
 	run_install HARDN_INSTALL_ROOT=relative
 	expect_status 1
