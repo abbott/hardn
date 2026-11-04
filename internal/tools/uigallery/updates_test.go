@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"testing"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -383,5 +385,46 @@ func TestUpdatesHeights(t *testing.T) {
 		if n[0] != n[1] || n[0] != n[2] || n[0] != n[3] {
 			t.Errorf("%s: lines %v, want the same at 24 and 40 rows", uh.name, n)
 		}
+	}
+}
+
+// TestUpdatesOffRefusals: off refuses on Proxmox VE, and where its
+// package simulation would change another package, apt's and apk's alike;
+// a file under /etc/periodic without its execute bit is no job of crond's.
+func TestUpdatesOffRefusals(t *testing.T) {
+	ctx := context.Background()
+	for _, tt := range []struct {
+		name string
+		host func() *fakeHost
+		code string
+	}{
+		{"Proxmox VE", updPVE, codeUpdPVE},
+		{"apt's purge", func() *fakeHost {
+			h := updByHardnDebian()
+			h.upd.offExtra = []string{"Remv python3-apt [3.0.0]"}
+			return h
+		}, codeUpdPackages},
+		{"apk del", func() *fakeHost {
+			h := updByHardnAlpine()
+			h.upd.offExtra = []string{"(2/2) Purging busybox-extras (1.37.0-r0)"}
+			return h
+		}, codeUpdPackages},
+	} {
+		h := tt.host()
+		r, err := readUpdates(ctx, h.sys())
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, _, err = planOff(ctx, h.system(), engine.Input{Facts: r.f})
+		var rf *steps.Refusal
+		if !errors.As(err, &rf) || rf.Code != tt.code {
+			t.Errorf("%s: %v, want %s", tt.name, err, tt.code)
+		}
+	}
+	h := updAlpine()
+	h.f.AddFile("/etc/periodic/daily/notes", []byte("x\n"), 0o644, 0, 0)
+	h.f.AddFile("/etc/periodic/weekly/backup", []byte("#!/bin/sh\n"), 0o755, 0, 0)
+	if jobs := otherJobs(ctx, h.sys()); !slices.Equal(jobs, []string{"backup"}) {
+		t.Errorf("jobs %v, want [backup]", jobs)
 	}
 }

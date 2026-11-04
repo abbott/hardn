@@ -79,6 +79,7 @@ type updSim struct {
 	debconfOff bool
 	deps       []string // what apt-get install -s lists with unattended-upgrades
 	extra      []string // the simulation's other lines: a removal or an upgrade
+	offExtra   []string // off's simulations' other lines (apt-get purge/remove -s, apk del --simulate)
 	apkCron    bool
 	crond      bool // rc-service crond status: started
 }
@@ -112,7 +113,7 @@ func (u *updSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		u.install(h)
 		return hostfake.Response{}, true
 	case cmd == "apt-get purge -s -y "+uuPackage:
-		return hostfake.Response{Stdout: "NOTE: This is only a simulation!\nPurg " + uuPackage + " [" + uuVersion + "]\n"}, true
+		return hostfake.Response{Stdout: "NOTE: This is only a simulation!\nPurg " + uuPackage + " [" + uuVersion + "]\n" + lines(u.offExtra)}, true
 	case cmd == "apt-get purge -y "+uuPackage: // the postrm: rm -f both files, edited or not
 		delete(h.status.packages, uuPackage)
 		_ = h.f.Remove(ctx, autoUpgrades)
@@ -120,7 +121,7 @@ func (u *updSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		u.debconfOff = false
 		return hostfake.Response{}, true
 	case cmd == "apt-get remove -s -y "+uuPackage:
-		return hostfake.Response{Stdout: "NOTE: This is only a simulation!\nRemv " + uuPackage + " [" + uuVersion + "]\n"}, true
+		return hostfake.Response{Stdout: "NOTE: This is only a simulation!\nRemv " + uuPackage + " [" + uuVersion + "]\n" + lines(u.offExtra)}, true
 	case cmd == "apt-get remove -y "+uuPackage: // ucf's and the conffile stay
 		delete(h.status.packages, uuPackage)
 		return hostfake.Response{}, true
@@ -136,7 +137,7 @@ func (u *updSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		h.f.AddFile(alpine.Script, []byte(apkScript), 0o755, 0, 0)
 		return hostfake.Response{Stdout: "(1/1) Installing " + alpine.Package + " (" + apkCronVer + ")\nOK: 9 MiB in 42 packages\n"}, true
 	case cmd == "apk del --simulate "+alpine.Package:
-		return hostfake.Response{Stdout: "(1/1) Purging " + alpine.Package + " (" + apkCronVer + ")\nOK: 9 MiB in 41 packages\n"}, true
+		return hostfake.Response{Stdout: "(1/1) Purging " + alpine.Package + " (" + apkCronVer + ")\n" + lines(u.offExtra) + "OK: 9 MiB in 41 packages\n"}, true
 	case cmd == "apk del "+alpine.Package: // an edited file under /etc stays (apk_db_purge_pkg)
 		u.apkCron = false
 		if data, err := h.f.ReadFile(ctx, alpine.Script); err == nil && string(data) == apkScript {
@@ -333,4 +334,13 @@ func updAlpine() *fakeHost {
 	h.f.AddFile(crontabRoot, []byte(stockCrontab), 0o600, 0, 0)
 	_ = h.f.Remove(context.Background(), alpine.RunlevelLink)
 	return h
+}
+
+// lines joins ls, each ended by a newline.
+func lines(ls []string) string {
+	var b strings.Builder
+	for _, l := range ls {
+		b.WriteString(l + "\n")
+	}
+	return b.String()
 }
