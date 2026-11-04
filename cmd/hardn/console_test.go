@@ -52,8 +52,8 @@ func flat(s string) string {
 // on a colour terminal, plain off one, and a line of hardn's log at its
 // kind's level; a run says each kind's title once over its lines.
 func TestSay(t *testing.T) {
-	envWas, stderrWas, logWas := stderrEnv, stderr, hardnLog
-	t.Cleanup(func() { stderrEnv, stderr, hardnLog = envWas, stderrWas, logWas })
+	envWas, stderrWas, logWas, onWas := stderrEnv, stderr, hardnLog, logOnStderr
+	t.Cleanup(func() { stderrEnv, stderr, hardnLog, logOnStderr = envWas, stderrWas, logWas, onWas })
 	path := filepath.Join(t.TempDir(), "hardn.log")
 	openLog(path)
 	var out bytes.Buffer
@@ -94,10 +94,11 @@ func TestSay(t *testing.T) {
 // TestOpenLog: the log is appended to, in a directory made where missing;
 // where the directory cannot be made or the file opened, as for a user
 // other than root, each is a warning on stderr in pkg/logging's words, and
-// the log writes nothing.
+// the log is stderr: a log-only line reaches it, and a console line is said
+// there once.
 func TestOpenLog(t *testing.T) {
-	envWas, stderrWas, logWas := stderrEnv, stderr, hardnLog
-	t.Cleanup(func() { stderrEnv, stderr, hardnLog = envWas, stderrWas, logWas })
+	envWas, stderrWas, logWas, onWas := stderrEnv, stderr, hardnLog, logOnStderr
+	t.Cleanup(func() { stderrEnv, stderr, hardnLog, logOnStderr = envWas, stderrWas, logWas, onWas })
 	var out bytes.Buffer
 	stderr, stderrEnv = &out, plainEnv
 
@@ -130,8 +131,21 @@ func TestOpenLog(t *testing.T) {
 			openLog(tc.path)
 			// Compared without white space: a path longer than the width is cut.
 			nospace := func(s string) string { return strings.Join(strings.Fields(s), "") }
-			if hardnLog != nil || !strings.HasPrefix(nospace(flat(out.String())), nospace(tc.want)) {
-				t.Errorf("log %v; stderr %q, want %q", hardnLog, flat(out.String()), tc.want)
+			if !logOnStderr || !strings.HasPrefix(nospace(flat(out.String())), nospace(tc.want)) {
+				t.Errorf("log on stderr %v; stderr %q, want %q", logOnStderr, flat(out.String()), tc.want)
+			}
+			out.Reset()
+			if _, err := (revertFileLog{}).Write([]byte("ran: systemctl reload ssh\n")); err != nil {
+				t.Fatal(err)
+			}
+			hardnLog.Printf("INFO", "hangup during the apply: hardn ends")
+			if s := out.String(); !strings.Contains(s, " INFO: ran: systemctl reload ssh\n") || !strings.Contains(s, " INFO: hangup during the apply: hardn ends\n") {
+				t.Errorf("log-only lines on stderr: %q", s)
+			}
+			out.Reset()
+			sayError("Failed to load configuration: %s", "no such file")
+			if s := out.String(); strings.Count(s, "Failed to load configuration") != 1 || strings.Contains(s, "ERROR:") {
+				t.Errorf("console line on stderr: %q", s)
 			}
 		})
 	}
