@@ -64,6 +64,15 @@ func TestOtherJobs(t *testing.T) {
 		{"a dotted name run-parts runs", func(h *hostfake.System) {
 			h.AddFile("/etc/periodic/hourly/sync.sh", script, 0o755, 0, 0)
 		}, []alpine.Job{{"/etc/periodic/hourly/sync.sh", "sync.sh"}}},
+		// busybox 1.37.0's invalid_name: a dot is allowed anywhere but first,
+		// a trailing one too; a byte outside ASCII letters, digits, '_', '-'
+		// and '.' is not.
+		{"dots either way, and a byte run-parts refuses", func(h *hostfake.System) {
+			h.AddFile("/etc/periodic/weekly/.sync.sh", script, 0o755, 0, 0)
+			h.AddFile("/etc/periodic/weekly/tidy.", script, 0o755, 0, 0)
+			h.AddFile("/etc/periodic/weekly/caf\xc3\xa9", script, 0o755, 0, 0)
+			h.AddFile("/etc/periodic/weekly/a+b", script, 0o755, 0, 0)
+		}, []alpine.Job{{"/etc/periodic/weekly/tidy.", "tidy."}}},
 		{"a link to an executable", func(h *hostfake.System) {
 			h.AddFile("/usr/local/bin/report", script, 0o755, 0, 0)
 			h.AddSymlink("/etc/periodic/monthly/report", "/usr/local/bin/report")
