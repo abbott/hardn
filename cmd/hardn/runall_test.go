@@ -15,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/output"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -185,7 +186,7 @@ func TestRunAllScreenOptions(t *testing.T) {
 			t.Errorf("the engine planned with the session %+v, the planner's is %+v", planned, got.Session)
 		}
 		if got.Config != cfg || got.Version != runAllTestVersion || got.DryRun != dryRun || got.Getenv == nil || got.ApplyContext == nil ||
-			got.System == nil || got.Prompter.In == nil || got.Prompter.Out == nil || got.LogPath == "" || got.Now == nil {
+			got.System == nil || got.Prompter.In == nil || got.Prompter.Out == nil || got.LogPath != output.LegacyLogPath || got.Now == nil {
 			t.Errorf("the screen's options: %+v", got)
 		}
 	}
