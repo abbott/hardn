@@ -376,3 +376,34 @@ func TestRunAllFlagAlone(t *testing.T) {
 		})
 	}
 }
+
+// TestRunAllFlagPrintLogs: -r -p is not a usage error: -p prints the log
+// after -r's run, as after -c, -d, -w and -g, hardn's exit status -r's
+// (runStatus): nothing to change, 0; -n with changes, 3.
+func TestRunAllFlagPrintLogs(t *testing.T) {
+	for _, tc := range []struct {
+		name, yml string
+		args      []string
+		code      int // 0: hardn did not exit
+		said      string
+	}{
+		{"nothing to change", "", []string{"-r", "-p"}, 0, "Nothing needs changing."},
+		{"-n with changes", runAllYML, []string{"-n", "-r", "-p"}, 3, "No actual changes were made to your system."},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newRunAllHost(t, "debian13", tc.yml)
+			r, s := runD(t, h, cfg, nil, nil, func(*dnsSeams) {
+				was := readerHost
+				t.Cleanup(func() { readerHost = was })
+				readerHost = func() host.System { return logHost(readerLog) }
+			}, tc.args...)
+			out := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; stdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
+			}
+			if w := inOrder(out, tc.said, readerLogLine); w != "" {
+				t.Errorf("stdout lacks %q after the text before it, -r's report then the log:\n%s", w, out)
+			}
+		})
+	}
+}
