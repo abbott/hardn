@@ -18,10 +18,10 @@
 //   - HARDN_P2DRIVE_DISPOSABLE=yes is in its environment;
 //   - it runs as root.
 //
-// It is never part of a release: every build target of the makefile, the
-// goreleaser configs and the workflows builds ./cmd/hardn alone, a main
-// package cannot be imported, and depguard's dev-tools rule keeps every
-// package outside internal/tools from importing one.
+// It is never part of a release: every build target of the makefile and
+// the workflows (release.yml's build job included) builds ./cmd/hardn
+// alone, a main package cannot be imported, and depguard's dev-tools rule
+// keeps every package outside internal/tools from importing one.
 //
 // Usage (docs/safety/vmtest.md gives the order and what each step proves):
 //
