@@ -65,8 +65,9 @@ func configureDNS(c *config.Config) int {
 // CONFIRMATION_REQUIRED, exit status 2). Live on a terminal, a plan
 // confirm asks for, planned here first and not refused, goes to the
 // canonical flow instead (runTyped), which plans again and confirms by
-// the hostname typed, --yes or not; live off a terminal it is refused,
-// after refuse, --yes or not. Under plan only confirm and --yes play no
+// the hostname typed, --yes or not; live off a terminal a lockout-risk
+// one is refused, after refuse, --yes or not, and -r's plain one applied
+// with --yes alone (gatePlan). Under plan only confirm and --yes play no
 // part.
 // It returns the exit status (output.ExitCode, Phase 3's): 0 for applied
 // or nothing to change, 3 for a dry run with changes to make (or, with
@@ -110,20 +111,21 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 // the flag's own refusal (refuse: -e's of a lockout-risk plan, -c's), the
 // plan alone under plan only; then, live, for a plan with changes: a plan
 // the flag confirms by the hostname typed (confirm.asks: a lockout-risk
-// plan of -w, -d or -r, and any plan of -r's) is refused off a terminal
-// (confirm.offTerminal, PLAN_REFUSED), --yes or not, and goes to the
-// hostname typed on one (typed, runControls), --yes or not; any other
-// plan with changes, without a terminal on stdin and without --yes, is
-// shown and not applied, ErrConfirmationRequired naming --yes (exit status
-// 2; output.Confirmation, refactor plan §3.11, approved 2026-11-04). A
-// plan with nothing to change, or one the engine refused, is not gated
-// by --yes. -r keeps slice 8's adopted decisions (gallery-runall.md §5,
-// decisions 6 (a) and 8 (a)): --yes changes nothing for it.
+// plan of -w, -d or -r, and any plan of -r's) goes to the hostname typed
+// on a terminal (typed, runControls), --yes or not; off one a
+// lockout-risk plan is refused (confirm.offTerminal, PLAN_REFUSED), --yes
+// or not, and -r's plain plan (confirm.always) is gated as any flag's
+// below, off a terminal whatever stdin is; any other plan with changes,
+// without a terminal on stdin and without --yes, is shown and not
+// applied, ErrConfirmationRequired naming --yes (exit status 2;
+// output.Confirmation, refactor plan §3.11, approved 2026-11-04). A plan
+// with nothing to change, or one the engine refused, is not gated by
+// --yes. -r keeps slice 8's decision 6 (a), the hostname typed on a
+// terminal; its decision 8 (a) is amended for plain plans (the
+// maintainer, 2026-11-04: "Adopt, sign off"): off a terminal --yes
+// applies them, as any flag's.
 //
-// Two changes would land here, were the maintainer to make them. To let
-// --yes apply -r's plain plan off a terminal: the asks branch would fall
-// through to output.Confirmation where !typed, confirm.always, assumeYes
-// and p.Risk is not engine.RiskLockout (on a terminal -r would still ask).
+// One change would land here, were the maintainer to make it.
 // To let --yes apply a lockout-risk plan off a terminal, held by the
 // revert timer as on one: the asks branch would return nil for it when
 // assumeYes, and runControls would then apply it as any plan (the engine
@@ -140,10 +142,15 @@ func gatePlan(c *config.Config, p *engine.Plan, refuse func(*engine.Plan) error,
 		return nil
 	}
 	if confirm != nil && confirm.asks(p) {
-		if !typed {
+		if typed {
+			return nil
+		}
+		if !confirm.always || p.Risk == engine.RiskLockout || p.Err() != nil {
 			return confirm.offTerminal // --yes never stands for the hostname typed
 		}
-		return nil
+		// -r's plain plan off a terminal: --yes, or CONFIRMATION_REQUIRED
+		_, err := output.Confirmation(output.Interaction{Yes: assumeYes})
+		return err
 	}
 	if p.Err() != nil {
 		return nil
