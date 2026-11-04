@@ -36,10 +36,20 @@ import (
 // question, nothing asked (Session.CantConfirm). Off a terminal a
 // lockout-risk plan is refused with offTerminal, shown with the plan and
 // not applied, nothing armed. Under plan only nothing is asked or
-// refused: the plan alone.
+// refused: the plan alone. With always, any plan with changes is
+// confirmed so, a plain one too, and refused off a terminal (hardn -r:
+// gallery-runall.md §5, decisions 6 (a) and 8 (a)); a plan with nothing
+// to change is neither asked nor refused.
 type typedConfirm struct {
 	question    string
 	offTerminal error
+	always      bool
+}
+
+// asks reports whether p, planned and not refused, is confirmed by the
+// hostname typed: lockout-risk, or with changes where always.
+func (q typedConfirm) asks(p *engine.Plan) bool {
+	return p.Risk == engine.RiskLockout || q.always && !p.Empty()
 }
 
 // onTerminal reports whether hardn can ask: stdin and stdout are both a
@@ -49,10 +59,10 @@ func onTerminal() bool {
 	return env.TTY && env.InputTTY
 }
 
-// refuse refuses p off a terminal when it is lockout-risk (engine.RiskLockout),
-// as runControls' refuse.
+// refuse refuses p off a terminal when it would be confirmed on one
+// (asks), as runControls' refuse.
 func (q typedConfirm) refuse(p *engine.Plan) error {
-	if p.Risk == engine.RiskLockout {
+	if q.asks(p) {
 		return q.offTerminal
 	}
 	return nil

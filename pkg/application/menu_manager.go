@@ -9,48 +9,20 @@ import (
 
 // MenuManager orchestrates menu-related operations
 type MenuManager struct {
-	dnsManager      *DNSManager
 	packageManager  *PackageManager
-	securityManager *SecurityManager
 	hostInfoManager *HostInfoManager
-	// proxmoxCheck is the host's Proxmox VE check (SetProxmoxCheck)
-	proxmoxCheck func() bool
 }
 
-// In the struct definition:
+// NewMenuManager returns a MenuManager over the package and host-info
+// managers.
 func NewMenuManager(
-	dnsManager *DNSManager,
 	packageManager *PackageManager,
-	securityManager *SecurityManager,
 	hostInfoManager *HostInfoManager,
 ) *MenuManager {
 	return &MenuManager{
-		dnsManager:      dnsManager,
 		packageManager:  packageManager,
-		securityManager: securityManager,
 		hostInfoManager: hostInfoManager,
 	}
-}
-
-// SetProxmoxCheck wires in the host's Proxmox VE check, the one the SSH
-// and firewall repositories decide by (infrastructure.ServiceFactory's
-// IsProxmoxHost).
-func (m *MenuManager) SetProxmoxCheck(check func() bool) {
-	m.proxmoxCheck = check
-}
-
-// IsProxmoxHost reports whether hardn applies its Proxmox VE rules on this
-// host: no UFW, and root login set to key-only (PermitRootLogin
-// prohibit-password) where it would be turned off. The screens use it to
-// say what those operations do there. It is false when no check was wired
-// in, and while pkg/adapter/secondary's proxmoxTreatedAsDebian is set.
-func (m *MenuManager) IsProxmoxHost() bool {
-	return m != nil && m.proxmoxCheck != nil && m.proxmoxCheck()
-}
-
-// apply comprehensive system hardening
-func (m *MenuManager) HardenSystem(config *model.HardeningConfig) error {
-	return m.securityManager.HardenSystem(config)
 }
 
 // install Linux packages based on the specified type

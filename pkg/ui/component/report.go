@@ -12,7 +12,7 @@ import (
 const DefaultTail = 10
 
 // checkLog is the sentence that points to the log, origin/main's after
-// Run All (pkg/menu run_all_menu.go:295), around the log's path.
+// Run All, around the log's path.
 const checkLog = "Check the log file at %s for details"
 
 // ErrorReport is the canonical flow's report of an apply that failed
