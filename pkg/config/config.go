@@ -200,8 +200,8 @@ func ConfigFileSearchPath(explicitPath string) []string {
 
 // defaultSearchPath is where hardn looks for its configuration when neither
 // -f nor HARDN_CONFIG names it, in order: system-wide, the two home files,
-// the working directory. FindConfigFile and FileDryRun (through
-// ConfigFileSearchPath) both walk it, so they find the same file.
+// the working directory. FindConfigFile and ConfigFileSearchPath both walk
+// it, so they find the same file.
 func defaultSearchPath() []string {
 	searchPaths := []string{
 		"/etc/hardn/hardn.yml", // System-wide config
