@@ -26,7 +26,6 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
-	"github.com/abbott/hardn/pkg/version"
 )
 
 // The main menu live (refactor plan slice 2, next/s2-menu-live): its
@@ -43,7 +42,7 @@ const clearScreen = "\033[H\033[2J"
 func liveMenu(t *testing.T, env term.Env, read func(ctx context.Context) (screen.MainMenu, error), lines ...string) *MainMenu {
 	t.Helper()
 	scripted(t, strings.Join(append(lines, ""), "\n"))
-	m := NewMainMenu(config.DefaultConfig(), version.NewService("0.4.0", "", ""))
+	m := NewMainMenu(config.DefaultConfig())
 	if read != nil {
 		m.SetStatus(read)
 	}
@@ -80,7 +79,7 @@ func TestLiveStatus(t *testing.T) {
 		}
 		return read(ctx)
 	}, "q")
-	out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+	out, _, ended := session(t, func() { m.ShowMainMenu() })
 	vm, _ := fixtureStatus(new(int))(context.Background())
 	vm.Heading, vm.Mode, vm.Prompt, vm.Menu = mainHeading, m.mode(), mainPrompt, m.mainMenu().View()
 	want := clearScreen + written(plainEnv(), vm.Render(component.NewCtx(plainEnv()))) + " \n" + clearScreen
@@ -118,7 +117,7 @@ func TestLiveStatusEnds(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := liveMenu(t, plainEnv(), func(context.Context) (screen.MainMenu, error) { return screen.MainMenu{}, tc.err }, "q")
-			out, code, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, code, ended := session(t, func() { m.ShowMainMenu() })
 			if !ended || code != tc.code || strings.Contains(out, "Select an option") {
 				t.Errorf("ended %v with %d, want %d; the screen:\n%q", ended, code, tc.code, out)
 			}
@@ -147,26 +146,12 @@ func TestLiveStatusEnds(t *testing.T) {
 						t.Error("the main menu drew with nothing to draw it with")
 					}
 				}()
-				m.ShowMainMenu("0.4.0", "", "")
+				m.ShowMainMenu()
 			})
 			if ended || out != clearScreen {
 				t.Errorf("ended %v, printed %q", ended, out)
 			}
 		})
-	}
-}
-
-// TestSecurityAlertLive: the security-update alert, which needs update
-// checks (off while pkg/version's updateCheckEnabled is false, V26), still
-// replaces the main menu as origin/main drew it, and ends the main menu
-// after Enter; the hook is not called.
-func TestSecurityAlertLive(t *testing.T) {
-	called := false
-	m := liveMenu(t, plainEnv(), func(context.Context) (screen.MainMenu, error) { called = true; return screen.MainMenu{}, nil }, "")
-	m.securityUpdateAvailable, m.securityUpdateDetails, m.latestVersion = true, "CVE-2023-1234 fixed", "0.4.1"
-	out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
-	if ended || called || !strings.Contains(out, "Update Binary") || !strings.Contains(out, "CVE-2023-1234 fixed") || strings.Contains(out, "Select an option") {
-		t.Errorf("ended %v, hook called %v; the screen:\n%q", ended, called, out)
 	}
 }
 
@@ -215,7 +200,7 @@ func TestLiveStatusOnHosts(t *testing.T) {
 			m := liveMenu(t, plainEnv(), func(ctx context.Context) (screen.MainMenu, error) {
 				return mainmenu.Status(ctx, mainmenu.Options{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 			}, "q")
-			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, _, ended := session(t, func() { m.ShowMainMenu() })
 			want := clearScreen + galleryStatus(t, name) + " \n" + clearScreen
 			if ended || out != want {
 				t.Errorf("ended %v; the main menu:\n%s\nwant the gallery's status:\n%s", ended, out, want)
@@ -265,7 +250,7 @@ func TestLiveMainMenuGolden(t *testing.T) {
 				m := liveMenu(t, env, func(ctx context.Context) (screen.MainMenu, error) {
 					return mainmenu.Status(ctx, mainmenu.Options{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 				}, "q")
-				out, _, _ := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+				out, _, _ := session(t, func() { m.ShowMainMenu() })
 				screen, _, _ := strings.Cut(strings.TrimPrefix(out, clearScreen), clearScreen)
 				var b strings.Builder
 				b.WriteString("# hardn's live main menu (refactor plan slice 2, next/s2-menu-live), on its layout (slice 2b, next/s2b-menu)\n")

@@ -221,7 +221,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 				item.edit(cfg) // the screen adopts hardn.yml as saved
 				return tc.err
 			})
-			out, code, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, code, ended := session(t, func() { m.ShowMainMenu() })
 			switch {
 			case tc.code != 0 && (!ended || code != tc.code):
 				t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
@@ -259,7 +259,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 					t.Errorf("item %s ran with no screen set", item.key)
 				}
 			}()
-			m.ShowMainMenu("0.4.0", "", "")
+			m.ShowMainMenu()
 		})
 		if ended {
 			t.Error("ended hardn; want the panic")

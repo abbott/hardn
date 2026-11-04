@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -15,25 +14,11 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/utils"
-	"github.com/abbott/hardn/pkg/version"
 )
 
 // MainMenu is the main menu of the application
 type MainMenu struct {
 	config *config.Config
-
-	// Version service for update checks
-	versionService *version.Service
-
-	// Update state fields
-	updateAvailable bool
-	latestVersion   string
-	updateURL       string
-	installURL      string
-
-	// Security update fields
-	securityUpdateAvailable bool
-	securityUpdateDetails   string
 
 	// users runs the User Management item (SetUsers).
 	users func() error
@@ -91,9 +76,9 @@ const (
 var errAgain = errors.New("menu: the main menu again")
 
 // NewMainMenu returns the main menu on config, the configuration every
-// screen reads, and versionService, hardn's version.
-func NewMainMenu(config *config.Config, versionService *version.Service) *MainMenu {
-	return &MainMenu{config: config, versionService: versionService}
+// screen reads.
+func NewMainMenu(config *config.Config) *MainMenu {
+	return &MainMenu{config: config}
 }
 
 // SetUsers sets what the User Management item (1) runs: the User
@@ -335,143 +320,6 @@ func (m *MainMenu) refreshConfig() {
 	// For now, we're using a shared config pointer, so changes are automatically visible
 }
 
-const (
-	testVersionNumber   = "0.3.3"
-	testSecurityMessage = "Critical security vulnerability fixed - CVE-2023-1234"
-)
-
-// Check for new version (no-op, no goroutine, while checks are disabled)
-func (m *MainMenu) CheckForUpdates() {
-	if m.versionService == nil || m.versionService.CurrentVersion == "" || !version.UpdateCheckEnabled() {
-		return
-	}
-
-	// Use Go outine to Avoid blocking display
-	go func() {
-		result := m.versionService.CheckForUpdates(&version.UpdateOptions{
-			Debug: os.Getenv("HARDN_DEBUG") != "",
-		})
-
-		if result.Error != nil {
-			return
-		}
-
-		m.applyUpdateResult(result)
-	}()
-}
-
-// Apply update check result
-func (m *MainMenu) applyUpdateResult(result version.CheckResult) {
-	if result.UpdateAvailable {
-		m.updateAvailable = true
-		m.latestVersion = result.LatestVersion
-		m.updateURL = result.ReleaseURL
-		m.installURL = result.InstallURL
-		m.securityUpdateAvailable = result.SecurityUpdateAvailable
-		m.securityUpdateDetails = result.SecurityUpdateDetails
-	}
-}
-
-// Update checks respecting environment variables
-func (m *MainMenu) CheckForUpdatesWithEnvVars() {
-	if m.versionService == nil {
-		return
-	}
-
-	// Check for environment variables that trigger test modes
-	if os.Getenv("HARDN_FORCE_UPDATE") != "" {
-		m.SetTestUpdateAvailable(testVersionNumber)
-	} else if os.Getenv("HARDN_FORCE_SECURITY") != "" {
-		m.SetTestSecurityUpdate(testSecurityMessage)
-	} else {
-		m.CheckForUpdates()
-	}
-}
-
-// SetTestUpdateAvailable sets test update information
-func (m *MainMenu) SetTestUpdateAvailable(testVersion string) {
-	if m.versionService == nil {
-		return
-	}
-
-	result := m.versionService.CheckForUpdates(&version.UpdateOptions{
-		ForceUpdate:   true,
-		ForcedVersion: testVersion,
-	})
-
-	m.applyUpdateResult(result)
-}
-
-// SetTestSecurityUpdate sets test security update information
-func (m *MainMenu) SetTestSecurityUpdate(details string) {
-	if m.versionService == nil {
-		return
-	}
-
-	// Use a shorter default message if none provided
-	if details == "" {
-		details = "CVE-2023-1234 fixed"
-	} else if len(details) > 80 {
-		// Truncate long security details to prevent layout issues
-		details = details[:77] + "..."
-	}
-
-	result := m.versionService.CheckForUpdates(&version.UpdateOptions{
-		ForceUpdate:         true,
-		ForcedVersion:       m.versionService.CurrentVersion + ".1",
-		ForceSecurityUpdate: true,
-		SecurityDetails:     details,
-	})
-
-	m.applyUpdateResult(result)
-}
-
-// displaySecurityUpdateAlert displays the security update alert
-// Preserves exact formatting and messaging for security updates
-func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) {
-	// Format hardn version header
-	hardnBold := style.Bold + "hardn" + style.Reset
-	hardnPad := " " + hardnBold + " "
-	hardnLabel := style.Colored(style.BgGray02, hardnPad)
-	currentVersion := "v" + m.versionService.CurrentVersion
-	currentVersionPad := " " + currentVersion + " "
-	currentVersionDim := style.Dimmed(currentVersionPad)
-	currentVersionBg := style.Colored(style.BgGray03, currentVersionDim)
-	hardnVersion := hardnLabel + currentVersionBg
-
-	// Format security related content
-	latestVersion := "v" + m.latestVersion
-	securityHeader := style.Colored(style.BgDarkRed, " Update Binary ")
-
-	// Display the alert - exact formatting preserved from original
-	fmt.Println(hardnVersion)
-	fmt.Println()
-	fmt.Println()
-
-	fmt.Println("  " + securityHeader)
-	fmt.Println()
-	fmt.Println("  " + m.securityUpdateDetails)
-
-	fmt.Printf("  %s\n", style.Colored(style.Royal, m.updateURL))
-	fmt.Println()
-
-	infoFormatter := style.NewStatusFormatter([]string{
-		"Build Date",
-		"Git Commit",
-	}, 2) // 2 spaces buffer
-
-	// Add "  " prefix to each line for consistent indentation
-	fmt.Println("    " + infoFormatter.FormatBullet("Version", latestVersion, "", "no-indent"))
-	fmt.Println("    " + infoFormatter.FormatBullet("Build Date", m.versionService.BuildDate, "", "no-indent"))
-	fmt.Println("    " + infoFormatter.FormatBullet("Git Commit", m.versionService.GitCommit, "", "no-indent"))
-	fmt.Println()
-	fmt.Println(style.Bolded("  Installer Script:"))
-	fmt.Println(style.Colored(style.Royal, "  "+m.installURL))
-	fmt.Println()
-	fmt.Println()
-	fmt.Print(style.Dimmed("Press Enter to exit... "))
-}
-
 // ShowMainMenu displays the main menu and handles user input. The main
 // menu is pkg/ui/screen's main-menu layout in its full form (refactor plan
 // slice 2b, next/s2b-menu; decision 5 as adopted): the status blocks
@@ -487,32 +335,13 @@ func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) 
 // Please try again.", and asked again, the screen above kept (nav.Ask).
 // 0 (Exit) and q clear the screen and return, as they did; the end of the
 // input exits 130 and Ctrl-C ends hardn by SIGINT (endHardn).
-func (m *MainMenu) ShowMainMenu(currentVersion, buildDate, gitCommit string) {
-	// Initialize version service if not already done
-	if m.versionService == nil && currentVersion != "" {
-		m.versionService = version.NewService(currentVersion, buildDate, gitCommit)
-	}
-
-	// Check for updates when the menu starts
-	m.CheckForUpdatesWithEnvVars()
-
+func (m *MainMenu) ShowMainMenu() {
 	if !m.warned {
 		utils.ClearScreen()
 	}
 	for {
 		// Refresh any configuration that might have been changed
 		m.refreshConfig()
-
-		// If a security update is available, the alert replaces the main
-		// menu: wait for Enter and exit, as origin/main did
-		if m.securityUpdateAvailable {
-			if m.versionService != nil && m.versionService.CurrentVersion != "" {
-				m.displaySecurityUpdateAlert(nil)
-			}
-			ReadKey()
-			utils.ClearScreen()
-			return
-		}
 
 		switch err := m.pass(context.Background()); {
 		case errors.Is(err, errAgain):
