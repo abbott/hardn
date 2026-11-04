@@ -10,7 +10,7 @@ import (
 )
 
 // dryRunDone is the footer of a plan shown in dry-run mode: origin/main's
-// words after a dry run (pkg/menu run_all_menu.go:288).
+// words after a dry run.
 const dryRunDone = "No actual changes were made to your system."
 
 // PlanChange is one change of a plan, as plain data: what brief Phase 3's

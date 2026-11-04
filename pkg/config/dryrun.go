@@ -1,7 +1,5 @@
 package config
 
-import "os"
-
 // The session's mode, "Plan only" or live (refactor plan §3.19, approved:
 // "dryRun precedence: explicit flag wins, otherwise config"; slice 2b,
 // decisions 1, 2 and 8, adopted 2026-10-23, docs/engine/gallery-dryrun.md
@@ -59,24 +57,4 @@ func (c *Config) DryRunSource() DryRunSource {
 		return DryRunDefault
 	}
 	return c.loaded.source
-}
-
-// FileDryRun is the dryRun of the hardn.yml LoadConfig reads for
-// explicitPath, and that file's absolute path, found and read as LoadConfig
-// finds and reads it (-f, else HARDN_CONFIG, else the search path), but
-// quietly: it logs nothing, asks nothing and creates nothing, so hardn can
-// read it before its root check (decision 9). "" and false when there is no
-// file; an error when the file does not load, which LoadConfig reports too.
-func FileDryRun(explicitPath string) (path string, dryRun bool, err error) {
-	for _, p := range ConfigFileSearchPath(explicitPath) {
-		if _, err := os.Stat(p); err != nil {
-			continue
-		}
-		c, err := readConfigFile(p)
-		if err != nil {
-			return "", false, err
-		}
-		return c.Path(), c.DryRun, nil
-	}
-	return "", false, nil
 }

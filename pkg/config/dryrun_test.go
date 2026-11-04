@@ -1,7 +1,6 @@
 package config
 
 import (
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -130,49 +129,6 @@ func TestSaveOfASettingKeepsDryRun(t *testing.T) {
 		}
 		if want := strings.Replace(in, "192.0.2.1", "192.0.2.53", 1); string(out) != want {
 			t.Errorf("Edit of nameservers on %q:\n%s\nwant\n%s", in, out, want)
-		}
-	}
-}
-
-// TestFileDryRun: the file LoadConfig reads for -f or HARDN_CONFIG, read
-// quietly, and its dryRun; none for a path that is not there; a file that
-// does not load is an error. The search path's other files are not read
-// here: they are this machine's.
-func TestFileDryRun(t *testing.T) {
-	t.Setenv("HARDN_CONFIG", "")
-	dir := t.TempDir()
-	write := func(name, data string) string {
-		p := filepath.Join(dir, name)
-		if err := os.WriteFile(p, []byte(data), 0o600); err != nil {
-			t.Fatal(err)
-		}
-		return p
-	}
-	on, off := write("on.yml", "dryRun: true\n"), write("off.yml", "username: alice\n")
-	bad := write("bad.yml", "dryRun: [\n")
-	rootLogin := write("pp.yml", "permitRootLogin: prohibit-password\ndryRun: true\n")
-	for _, tt := range []struct {
-		explicit, env string
-		path          string
-		want          bool
-		err           bool
-	}{
-		{explicit: on, path: on, want: true},
-		{explicit: off, path: off},
-		{env: on, path: on, want: true},
-		{explicit: off, env: on, path: off},
-		{explicit: filepath.Join(dir, "none.yml")},
-		{env: filepath.Join(dir, "none.yml")},
-		{explicit: bad, err: true},
-		{explicit: rootLogin, err: true},
-	} {
-		t.Setenv("HARDN_CONFIG", tt.env)
-		path, got, err := FileDryRun(tt.explicit)
-		if path != tt.path || got != tt.want || (err != nil) != tt.err {
-			t.Errorf("-f %q, HARDN_CONFIG %q: %q, %v, %v; want %q, %v, error %v", tt.explicit, tt.env, path, got, err, tt.path, tt.want, tt.err)
-		}
-		if tt.explicit == rootLogin && !errors.Is(err, ErrRootLoginNotApplied) {
-			t.Errorf("prohibit-password: %v, want the loader's error", err)
 		}
 	}
 }
