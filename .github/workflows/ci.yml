@@ -13,9 +13,12 @@ on:
 permissions: {}
 
 env:
-  # Use the Go that setup-go or the tarball step installs; never download
-  # another toolchain. GOWORK and GOFLAGS match the makefile's check targets.
-  GOTOOLCHAIN: local
+  # GOWORK and GOFLAGS match the makefile's check targets. GOTOOLCHAIN=local
+  # (use the Go that was installed; never download another) is not set here:
+  # setup-go reads go.mod's toolchain line only when GOTOOLCHAIN is not local
+  # (src/installer.ts, parseGoVersionFile), and would install the go line's
+  # Go instead. setup-go exports GOTOOLCHAIN=local for the steps after it;
+  # the Alpine install step does the same.
   GOWORK: "off"
   GOFLAGS: -mod=readonly
 
@@ -26,8 +29,8 @@ jobs:
     permissions:
       contents: read
     env:
-      # Keep in step with the makefile's CHECK_*_VERSION; the first step
-      # fails if they differ. Each SHA-256 is the linux-amd64 archive's, from
+      # Keep in step with the makefile's CHECK_*_VERSION; the version-compare
+      # step fails if they differ. Each SHA-256 is the linux-amd64 archive's, from
       # the release's checksums file or, for zizmor and shellcheck, which
       # publish none, GitHub's digest of the release asset.
       GOLANGCI_LINT_VERSION: 2.14.0
@@ -47,9 +50,22 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Compare tool versions with the makefile
+      - name: Set up Go from go.mod
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Compare tool versions with the makefile, and Go with go.mod
         run: |
           set -eu
+          # The Go setup-go installed must be go.mod's toolchain line.
+          want_go=$(sed -n 's/^toolchain //p' go.mod)
+          got_go=$(GOTOOLCHAIN=local go env GOVERSION)
+          [ -n "$want_go" ] && [ "$got_go" = "$want_go" ] || {
+            echo "::error file=go.mod::setup-go installed $got_go, not go.mod's toolchain line ($want_go)"
+            exit 1
+          }
           want() { # want <makefile variable> <version ci.yml installs>
             grep -qx "$1 ?= $2" makefile || {
               echo "::error file=makefile::$1 is not $2, the version ci.yml installs"
@@ -61,12 +77,6 @@ jobs:
           want CHECK_ZIZMOR_VERSION "$ZIZMOR_VERSION"
           want CHECK_ACTIONLINT_VERSION "$ACTIONLINT_VERSION"
           want CHECK_SHELLCHECK_VERSION "$SHELLCHECK_VERSION"
-
-      - name: Set up Go from go.mod
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache-dependency-path: go.sum
 
       - name: Install golangci-lint, govulncheck, zizmor, actionlint and shellcheck
         run: |
@@ -179,10 +189,17 @@ jobs:
           echo "$sum  $RUNNER_TEMP/$f" | sha256sum -c -
           tar -C /usr/local -xzf "$RUNNER_TEMP/$f"
           echo /usr/local/go/bin >> "$GITHUB_PATH"
+          echo GOTOOLCHAIN=local >> "$GITHUB_ENV"
 
       - name: go vet
         run: |
-          go version
+          set -eu
+          v=$(go env GOVERSION)
+          echo "$v, GOTOOLCHAIN=$(go env GOTOOLCHAIN)"
+          [ "$v" = "$(sed -n 's/^toolchain //p' go.mod)" ] || {
+            echo "::error file=go.mod::installed $v, not go.mod's toolchain line"
+            exit 1
+          }
           go vet ./...
 
       - name: go test
