@@ -102,6 +102,11 @@ func (u *updSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 			return hostfake.Response{Stderr: "E: " + err.Error() + "\n", ExitCode: 100}, true
 		}
 		return hostfake.Response{Stdout: out}, true
+	case cmd == "dpkg-query -W -f=${Conffiles}\\n "+uuPackage: // off's purge rule; the model ships no conffile
+		if _, ok := h.status.packages[uuPackage]; !ok {
+			return hostfake.Response{Stderr: "dpkg-query: no packages found matching " + uuPackage + "\n", ExitCode: 1}, true
+		}
+		return hostfake.Response{Stdout: "\n"}, true
 	case cmd == "apt-get install -s -y "+uuPackage:
 		var out strings.Builder
 		out.WriteString("NOTE: This is only a simulation!\n")

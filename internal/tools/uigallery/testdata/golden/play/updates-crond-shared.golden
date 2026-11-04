@@ -102,6 +102,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Remove apk-cron␛[m$
       ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
       ␛[38;2;129;134;156m$ apk del apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -204,6 +205,7 @@ $
    -  Applied: Remove apk-cron$
       /etc/periodic/daily/apk$
       $ apk del apk-cron$
+      $ rc-service crond status$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -323,4 +325,5 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Remove apk-cron␛[m$
       ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
       ␛[38;2;129;134;156m$ apk del apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
 $
