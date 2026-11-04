@@ -133,6 +133,19 @@ func TestSSHItem(t *testing.T) {
 	})
 }
 
+// TestUpdatesItem: the main menu's 6 runs the Auto Updates screen
+// cmd/hardn sets (SetUpdates), as TestDNSItem's 3 runs the DNS screen, and
+// maps what it returns the same way (refactor plan slice 7, unit (d));
+// the main menu holds enableUnattendedUpgrades as the screen's off saved
+// it.
+func TestUpdatesItem(t *testing.T) {
+	testScreenItem(t, screenItem{
+		key: "6", name: "UPDATES", set: (*MainMenu).SetUpdates,
+		edit:   func(c *config.Config) { c.EnableUnattendedUpgrades = false },
+		edited: func(c *config.Config) bool { return !c.EnableUnattendedUpgrades },
+	})
+}
+
 // TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
 // sets, and map what they return as TestDNSItem's 3 does (refactor plan slice 1, unit
 // (d)); neither saves a setting.
@@ -202,7 +215,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 			}
 			// The screen opens on a cleared screen, after the main menu's
 			// prompt and the key typed.
-			if !strings.Contains(out, "[0-5, 7-10 or q]: \n"+clearScreen+said+"\n") {
+			if !strings.Contains(out, "[0-10 or q]: \n"+clearScreen+said+"\n") {
 				t.Errorf("the screen does not open on a cleared screen:\n%q", out)
 			}
 			wantPasses := map[bool]int{false: 1, true: 2}[tc.again]

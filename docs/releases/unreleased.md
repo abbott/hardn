@@ -93,6 +93,17 @@ See [docs/configuration.md](../configuration.md), "`username`, `sudoNoPassword` 
 
 See [docs/configuration.md](../configuration.md), "SSH Configuration".
 
+## Changed: Auto Updates
+
+- **Main menu 6 is Auto Updates.** It shows whether the host updates itself, as apt or apk-cron and crond read it. Opening it changes nothing.
+- **Turn automatic updates on**, after showing the change. On Debian and Ubuntu it installs unattended-upgrades where missing and writes hardn's own apt file; on Alpine it installs apk-cron and starts crond.
+- **Turn them off where hardn turned them on.** hardn undoes only its own steps. Updates turned on outside hardn are left on.
+- **Never on Proxmox VE.** There, 6 only shows the state.
+- **hardn keeps a record** of what it turned on, under `/var/lib/hardn/controls/`.
+- **Turning updates off saves `enableUnattendedUpgrades: false`** where hardn.yml says true, so Run All doesn't turn them back on.
+
+See [docs/configuration.md](../configuration.md), "Feature Toggles".
+
 ## Changed: the main menu
 
 - **An invalid choice is answered under the prompt**, which asks again. The screen is no longer cleared, and there is no "Press Enter" to go on.
