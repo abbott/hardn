@@ -96,8 +96,8 @@ func TestPrintLogAlone(t *testing.T) {
 			if r.ended {
 				t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 			}
-			if len(r.reached) != 0 || r.peeks != 0 || len(r.calls) != 0 {
-				t.Errorf("reached %v, peeks %d, calls %v; want none", r.reached, r.peeks, r.calls)
+			if len(r.reached) != 0 || len(r.calls) != 0 {
+				t.Errorf("reached %v, calls %v; want none", r.reached, r.calls)
 			}
 			if got := s.out.String(); got != readerLog {
 				t.Errorf("stdout %q, want the log alone", got)

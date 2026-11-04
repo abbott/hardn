@@ -19,7 +19,7 @@ import (
 // root command, on a hardn.yml in the test's temporary directory.
 
 // hardnYML is a test's hardn.yml: none (""), or a file whose dryRun line is
-// dryRun, read through the real loader and the real config.FileDryRun at
+// dryRun, read through the real loader at
 // path, which args name with -f, so that no search reaches this machine's
 // files. Its other keys are asRoot's configuration, its log in the
 // temporary directory (-p reads it).
@@ -54,13 +54,12 @@ func (y hardnYML) args(args ...string) []string {
 	return append([]string{"-f", y.path}, args...)
 }
 
-// setup points runHardnWith's loader and fileDryRun at the file, each
-// failing the test if hardn asks it for another path; with no file, the
-// loader gives the defaults (no file found, none created) and fileDryRun
-// none.
+// setup points runHardnWith's loader at the file, failing the test if
+// hardn asks it for another path; with no file, the loader gives the
+// defaults (no file found, none created).
 func (y hardnYML) setup(t *testing.T) func() {
 	return func() {
-		load, peek := loadConfig, fileDryRun // runHardnWith's, which record the step
+		load := loadConfig // runHardnWith's, which records the step
 		loadConfig = func(p string) (*config.Config, error) {
 			if _, err := load(p); err != nil {
 				return nil, err
@@ -75,15 +74,6 @@ func (y hardnYML) setup(t *testing.T) func() {
 				t.Fatalf("loaded %q, not -f's %q", p, y.path)
 			}
 			return config.LoadConfigWithEnvPriority(p)
-		}
-		fileDryRun = func(p string) (string, bool, error) {
-			if _, _, err := peek(p); err != nil || y.path == "" {
-				return "", false, err
-			}
-			if p != y.path {
-				t.Fatalf("read dryRun from %q, not -f's %q", p, y.path)
-			}
-			return config.FileDryRun(p)
 		}
 	}
 }
@@ -127,9 +117,6 @@ func TestDryRunPrecedence(t *testing.T) {
 			if cfg.DryRun != tc.planOnly || cfg.DryRunSource() != tc.source {
 				t.Errorf("plan only %v, source %d; want %v, %d", cfg.DryRun, cfg.DryRunSource(), tc.planOnly, tc.source)
 			}
-			if r.peeks != 0 {
-				t.Errorf("hardn.yml read before the root check, with no operation flag")
-			}
 		})
 	}
 }
@@ -156,9 +143,7 @@ func TestConfigureDNSFlagPlanOnlyFromFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			yml := h.content(dnsTestYML)
-			r, s := runG(t, h, cfg, func(*dnsSeams) {
-				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
-			}, tc.args...)
+			r, s := runG(t, h, cfg, nil, tc.args...)
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, s.out.String(), r.stderr)
 			}

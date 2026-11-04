@@ -129,16 +129,6 @@ var rootCmd = &cobra.Command{
 			return
 		}
 
-		// -n only previews: refuse operation flags before anything runs (V1).
-		if refuseDryRunOperations(operationFlags()) {
-			return
-		}
-		// hardn.yml's dryRun: true only previews too, -n/--dry-run not given
-		// (decision 9).
-		if refuseConfigDryRunOperations(cmd, operationFlags()) {
-			return
-		}
-
 		// Create version service
 		versionService := version.NewService(Version, BuildDate, GitCommit)
 
@@ -179,14 +169,8 @@ var rootCmd = &cobra.Command{
 		}
 
 		// The session's mode: -n/--dry-run when given, true or false, else
-		// the dryRun of the file loaded, as loaded (§3.19; decision 2). The
-		// file is the one read above, so plan only from it is refused here
-		// too, should it say so now where it did not before the root check.
+		// the dryRun of the file loaded, as loaded (§3.19; decision 2).
 		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
-		if cfg.DryRunSource() == config.DryRunFile &&
-			refuse(hardncmd.RefuseConfigDryRunOperations(cfg.DryRun, cfg.Path(), operationFlags())) {
-			return
-		}
 
 		// If username is provided, override config: -c's name, and the
 		// default of the User Management screen's Create and Run All's user
@@ -472,67 +456,11 @@ var (
 	lookupCurrentUser             = osuser.Current
 	loadConfig                    = config.LoadConfig
 	loadExisting                  = config.LoadExisting
-	fileDryRun                    = config.FileDryRun
 	ensureExampleConfig           = config.EnsureExampleConfigExists
 	detectOS                      = osdetect.DetectOS
 	exit                          = os.Exit
 	stderr              io.Writer = termStderr
 )
-
-// operationFlags names the operation flags set on the command line that
-// -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
-// -e, -w, -c, -d and -r, whose dry runs are the DNS, Environment, Firewall,
-// User and SSH Login controls' plans and Run All's, shown with nothing
-// written (slice 8, unit (d), gallery-runall.md §5, decision 8 (a), adopted
-// 2026-11-04; refactor
-// plan slice 2, unit (d); the maintainer, 2026-10-23; slice 9, unit (d),
-// gallery-environment.md §5, Made here, adopted 2026-10-29; slice 4, unit
-// (d), parity-firewall.md §6, adopted 2026-11-02; slice 5, unit (d),
-// gallery-users.md §5, decision 6 (a), adopted 2026-11-03; slice 6, unit
-// (d), gallery-ssh.md §5, decision 8 (a), adopted 2026-11-03).
-func operationFlags() []string {
-	var names []string
-	for _, f := range []struct {
-		set  bool
-		name string
-	}{
-		{installLinux, hardncmd.FlagInstallLinux},
-		{installPython, hardncmd.FlagInstallPython},
-		{installAll, hardncmd.FlagInstallAll},
-		{updateSources, hardncmd.FlagConfigureSources},
-	} {
-		if f.set {
-			names = append(names, f.name)
-		}
-	}
-	return names
-}
-
-// refuseDryRunOperations reports whether -n was combined with the named
-// operations; if so it has printed why to stderr and ended hardn with exit
-// status 2 (pkg/cmd's dryRunFlagApplies gates this; V1).
-func refuseDryRunOperations(operations []string) bool {
-	return refuse(hardncmd.RefuseDryRunOperations(dryRun, operations))
-}
-
-// refuseConfigDryRunOperations reports whether hardn.yml's dryRun: true,
-// -n/--dry-run not given, was combined with the named operations; if so it
-// has printed why, naming the file and --dry-run=false, and ended hardn
-// with exit status 2, as for -n (refactor plan slice 2b, decision 9). It
-// reads the file the loader finds, quietly (config.FileDryRun), so the
-// refusal comes before the root check, as -n's does; a file that does not
-// load is the loader's to report. The root command refuses again on the
-// file as loaded (its Run).
-func refuseConfigDryRunOperations(cmd *cobra.Command, operations []string) bool {
-	if len(operations) == 0 || dryRunGiven(cmd) {
-		return false
-	}
-	path, on, err := fileDryRun(configFile)
-	if err != nil {
-		return false
-	}
-	return refuse(hardncmd.RefuseConfigDryRunOperations(on, path, operations))
-}
 
 // dryRunGiven reports whether -n/--dry-run was given on cmd's command line,
 // true or false: the flag given wins over hardn.yml (§3.19).

@@ -507,7 +507,6 @@ func TestConfigureFirewallPlanOnlyFromFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			r, s := runG(t, h.dnsHost, cfg, func(s *dnsSeams) {
-				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
 				revertGetenv = fwSession
 				in := prompt.New(uitest.NewTypist(&s.out, tc.lines...), false)
 				engineInput = func() *prompt.Reader { return in }

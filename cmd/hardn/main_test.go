@@ -101,7 +101,6 @@ type result struct {
 	ended   bool   // the run ended by exit
 	calls   []string
 	reached []string          // the host steps past the dry-run refusal that ran
-	peeks   int               // hardn.yml's dryRun read before the root check (fileDryRun)
 	files   map[string]string // the mock file system's files afterwards
 }
 
@@ -162,10 +161,9 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 		user     func() (*osuser.User, error)
 		load     func(string) (*config.Config, error)
 		existing func(string) (*config.Config, error)
-		peek     func(string) (string, bool, error)
 		detect   func() (*osdetect.OSInfo, error)
 		exit     func(int)
-	}{provider, lookupCurrentUser, loadConfig, loadExisting, fileDryRun, detectOS, exit}
+	}{provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit}
 	prevStderr, prevOutput, prevNoColor, prevStderrEnv := stderr, color.Output, color.NoColor, stderrEnv
 	prevEngineHost, prevEngineDetect, prevEngineStdout := engineHost, engineDetect, engineStdout
 	stderrEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
@@ -176,7 +174,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	engineDetect = func(context.Context, host.System) (detect.Facts, error) { return detect.Facts{}, nil }
 	engineStdout = io.Discard
 	t.Cleanup(func() {
-		provider, lookupCurrentUser, loadConfig, loadExisting, fileDryRun, detectOS, exit = prev.provider, prev.user, prev.load, prev.existing, prev.peek, prev.detect, prev.exit
+		provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit = prev.provider, prev.user, prev.load, prev.existing, prev.detect, prev.exit
 		stderr, color.Output, color.NoColor, stderrEnv = prevStderr, prevOutput, prevNoColor, prevStderrEnv
 		engineHost, engineDetect, engineStdout = prevEngineHost, prevEngineDetect, prevEngineStdout
 		resetFlags()
@@ -224,11 +222,6 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 		return nil, unreachable
 	}
 	loadExisting = loadConfig // setup-sudo-env's, the same configurations
-	// No hardn.yml says dryRun: true, as the configurations above do not.
-	fileDryRun = func(string) (string, bool, error) {
-		r.peeks++
-		return "", false, nil
-	}
 	detectOS = func() (*osdetect.OSInfo, error) {
 		r.reached = append(r.reached, "OS detection")
 		if mode != hostUnreachable {

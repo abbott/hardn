@@ -345,9 +345,7 @@ func TestRunAllFlagPlanOnlyFromFile(t *testing.T) {
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			h, cfg := newRunAllHost(t, "debian13", runAllYML+"dryRun: true\n")
-			r, s := runD(t, h, cfg, onTTY, tc.lines, func(*dnsSeams) {
-				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
-			}, tc.args...)
+			r, s := runD(t, h, cfg, onTTY, tc.lines, nil, tc.args...)
 			out := style.StripAnsi(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)

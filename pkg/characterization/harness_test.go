@@ -12,16 +12,8 @@
 // goldens: the adapters must not change what the seams record.
 //
 // The goldens are a baseline, not a specification: origin/main is the behaviour
-// baseline (maintainer decision 6), and lines tagged KNOWN-DEFECT name entries
-// of the Phase 0 V-list (side-effect inventory, V1-V27) that the refactor is
-// expected to fix. A fix flips its golden deliberately, in the same commit,
-// with the reason in the review description. A P0.8 hazard gate's fix turns
-// the item's KNOWN-DEFECT line into a FIXED line that names the unexported
-// constant gating it (flip the constant to restore the old behaviour), and
-// the body shows what runs now. Each FIXED line is printed only when the
-// body shows the fix (operations_test.go, gateCheck), so flipping a
-// constant and running -update turns its lines back with the body; the one
-// exception is A4, a menu fix this harness cannot see.
+// baseline (maintainer decision 6). The operations goldens (ops/) went in
+// refactor plan slice 8, unit (d), with the legacy layers they reached.
 //
 // Regenerate after an intended change:
 //
@@ -38,6 +30,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/interfaces"
@@ -45,9 +38,27 @@ import (
 
 var update = flag.Bool("update", false, "rewrite golden files under testdata/ instead of comparing")
 
-// baselineHeader is the first line of every golden in this package, and,
-// in an ops golden that holds FIXED lines, the start of it (gatedHeader).
+// baselineHeader is the first line of every golden in this package.
 const baselineHeader = "# origin/main behaviour (baseline per maintainer decision 6)"
+
+// fixtureConfig is config.DefaultConfig() with synthetic overrides, then
+// the dry-run flag applied.
+func fixtureConfig(dryRun bool) *config.Config {
+	cfg := config.DefaultConfig()
+	cfg.Username = "alice"
+	cfg.SshPort = 2230
+	// An ed25519-shaped public key line; the key body is not a real key.
+	cfg.SshKeys = []string{"ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLEKEYEXAMPLEKEYEXAMPLEKEYEXAMPLEKEY0 alice-example"}
+	cfg.Nameservers = []string{"192.0.2.53", "192.0.2.54"}
+	cfg.UfwAppProfiles = []config.UfwAppProfile{{
+		Name:        "ExampleHTTPS",
+		Title:       "Example web server (HTTPS)",
+		Description: "Example HTTPS port",
+		Ports:       []string{"8443/tcp"},
+	}}
+	cfg.DryRun = dryRun
+	return cfg
+}
 
 // trace is an ordered log of calls made through the file-system and command seams.
 type trace struct {
