@@ -445,9 +445,7 @@ func TestCreateUserPlanOnlyFromFile(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			r, s := runC(t, h, cfg, func(*dnsSeams) {
-				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
-			}, tc.args...)
+			r, s := runC(t, h, cfg, nil, tc.args...)
 			report := style.StripAnsi(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
