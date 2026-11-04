@@ -517,6 +517,32 @@ func TestRevertAbandonNoProgress(t *testing.T) {
 	}
 }
 
+// TestRevertNoticesNotLogged: the next-run notice, and the journal's
+// unreadable one, go to stderr only: every root run shows them, so two runs
+// write nothing to hardn's log.
+func TestRevertNoticesNotLogged(t *testing.T) {
+	s := newRevertSeams(t, 0)
+	logWas := hardnLog
+	t.Cleanup(func() { hardnLog = logWas })
+	var log bytes.Buffer
+	hardnLog = output.NewLog(&log)
+	showRevertNotices(rootCmd, nil)
+	showRevertNotices(rootCmd, nil)
+	if !strings.Contains(flat(s.stderr.String()), "Warning Change "+revertTestID) {
+		t.Errorf("no notice on stderr: %q", s.stderr.String())
+	}
+	s.stderr.Reset()
+	s.f.AddFile(revert.DefaultDir+"/"+revert.PendingName, []byte("not json"), 0o600, 0, 0)
+	showRevertNotices(rootCmd, nil)
+	showRevertNotices(rootCmd, nil)
+	if !strings.Contains(flat(s.stderr.String()), "hardn cannot read its change journal") {
+		t.Errorf("no unreadable notice on stderr: %q", s.stderr.String())
+	}
+	if log.Len() != 0 {
+		t.Errorf("the notices reached hardn's log: %q", log.String())
+	}
+}
+
 // The notice is shown to root only, on stderr; a subcommand clears the
 // timer's rollback notice once a person has seen it, the root command (the
 // legacy menu clears the screen) does not.
