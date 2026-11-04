@@ -30,7 +30,8 @@ name: Release
 #
 # Provenance (p7-provenance): SLSA Build Level 3. The build job calls the
 # reusable workflow build.yml, which builds the binaries and attests each
-# with actions/attest.
+# with actions/attest. Before publishing, the release job checks every
+# downloaded binary with gh attestation verify, signer build.yml at this tag.
 
 on:
   push:
@@ -220,6 +221,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Create, upload to and publish the release
+      attestations: read  # gh attestation verify reads the binaries' attestations
     env:
       GH_REPO: ${{ github.repository }}
     steps:
@@ -291,6 +293,32 @@ jobs:
             echo "::error::the draft's assets differ from this run's"
             exit 1
           }
+
+      # SLSA Build Level 3: each binary on the draft has build provenance
+      # signed by build.yml (the reusable workflow, not this file) at this
+      # tag and commit, on a GitHub-hosted runner. build.yml, called with ./,
+      # is read from the same commit, so its digest is GITHUB_SHA too. A
+      # binary that fails leaves the release a draft.
+      - name: Verify each binary's provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh version
+          read -ra assets <<< "$ASSETS"
+          n=0
+          for f in "${assets[@]}"; do
+            case "$f" in hardn-*.spdx.json) continue ;; esac
+            gh attestation verify "back/$f" \
+              --repo abbott/hardn \
+              --signer-workflow abbott/hardn/.github/workflows/build.yml \
+              --source-ref "$GITHUB_REF" \
+              --source-digest "$GITHUB_SHA" \
+              --signer-digest "$GITHUB_SHA" \
+              --deny-self-hosted-runners
+            n=$((n + 1))
+          done
+          [ "$n" -eq 3 ] || { echo "::error::verified $n binaries, not 3"; exit 1; }
 
       - name: Publish (latest unless an older version)
         env:
