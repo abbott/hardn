@@ -1,0 +1,338 @@
+# Golden file of TestPlayRunAllGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay runall␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Run All screen proposed for slice 8,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's Plan, all of them in one plan on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Which controls hardn.yml asks for, how a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped, a change pending read before any plan, and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhostname asked whatever the risk are the gallery's stand-ins,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m            ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m         ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFresh␛[m                ␛[38;2;129;134;156mNo admin yet␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mHardened␛[m             ␛[38;2;129;134;156mNothing to change␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPartly done␛[m          ␛[38;2;129;134;156mSome controls done␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mPort asked␛[m           ␛[38;2;129;134;156msshPort 2230␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mRoot key-only␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m        ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m    ␛[38;2;129;134;156mNothing asked␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m          ␛[38;2;129;134;156mAuto Updates refuses␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mConfirm pending␛[m      ␛[38;2;129;134;156mA change waits␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mufw inactive␛[m         ␛[38;2;129;134;156mFirewall and root login␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNew admin␛[m            ␛[38;2;129;134;156mcarol and root login␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mgeorge, no sudo␛[m      ␛[38;2;129;134;156mUser left to User Management␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 4$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/fresh␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Root alone, logged in by␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkey; no ufw, no unattended-upgrades. hardn.yml: george with a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkey, port 22, two nameservers, backups on, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. The design problem: george doesn't exist␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhen root login is planned.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate george, 1 key␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mufw isn't installed. Instal…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mYou're logged in as root ov…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m            ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m         ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFresh␛[m                ␛[38;2;129;134;156mNo admin yet␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mHardened␛[m             ␛[38;2;129;134;156mNothing to change␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPartly done␛[m          ␛[38;2;129;134;156mSome controls done␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mPort asked␛[m           ␛[38;2;129;134;156msshPort 2230␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mRoot key-only␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m        ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m    ␛[38;2;129;134;156mNothing asked␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m          ␛[38;2;129;134;156mAuto Updates refuses␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mConfirm pending␛[m      ␛[38;2;129;134;156mA change waits␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mufw inactive␛[m         ␛[38;2;129;134;156mFirewall and root login␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNew admin␛[m            ␛[38;2;129;134;156mcarol and root login␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mgeorge, no sudo␛[m      ␛[38;2;129;134;156mUser left to User Management␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play runall --------------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Run All screen proposed for slice 8,$
+# each row's state from the control's real Check, each change$
+# the real control's Plan, all of them in one plan on the real$
+# plan/apply engine. Which controls hardn.yml asks for, how a$
+# row is skipped, a change pending read before any plan, and the$
+# hostname asked whatever the risk are the gallery's stand-ins,$
+# unit (b)'s to build. Nothing on this machine changes: every$
+# command and file is the fake's.$
+$
+# Run All hosts ################################################$
+$
+  Select a host$
+$
+   1) Debian 13            The VM's shape$
+   2) Ubuntu 26.04         The VM's shape$
+   3) Alpine 3.23          The VM's shape$
+   4) Fresh                No admin yet$
+   5) Hardened             Nothing to change$
+   6) Partly done          Some controls done$
+   7) Port asked           sshPort 2230$
+   8) Proxmox VE 9         Root key-only$
+   9) LXC container        DNS, firewall N/A$
+  10) Default hardn.yml    Nothing asked$
+  11) One refuses          Auto Updates refuses$
+  12) Confirm pending      A change waits$
+  13) ufw inactive         Firewall and root login$
+  14) New admin            carol and root login$
+  15) george, no sudo      User left to User Management$
+$
+   0) Return$
+$
+  > Enter your choice [0-15 or q]: 4$
+$
+# Info: runall/fresh$
+# web-01.example.net runs Debian 13. Root alone, logged in by$
+# key; no ufw, no unattended-upgrades. hardn.yml: george with a$
+# key, port 22, two nameservers, backups on, and$
+# enableUnattendedUpgrades, enableUfwSshPolicy, configureDns and$
+# disableRootSSH true. The design problem: george doesn't exist$
+# when root login is planned.$
+$
+# Run All ######################################################$
+$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Create george, 1 key$
+   -  Firewall             Refused: ufw isn't installed. Inst...$
+   -  SSH Login            Refused: You're logged in as root...$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         Turn on$
+   -  DNS                  Set 2 nameservers$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
+$
+  Select an option$
+$
+   1) Apply all            Plan, review, confirm$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 0$
+$
+# Run All hosts ################################################$
+$
+  Select a host$
+$
+   1) Debian 13            The VM's shape$
+   2) Ubuntu 26.04         The VM's shape$
+   3) Alpine 3.23          The VM's shape$
+   4) Fresh                No admin yet$
+   5) Hardened             Nothing to change$
+   6) Partly done          Some controls done$
+   7) Port asked           sshPort 2230$
+   8) Proxmox VE 9         Root key-only$
+   9) LXC container        DNS, firewall N/A$
+  10) Default hardn.yml    Nothing asked$
+  11) One refuses          Auto Updates refuses$
+  12) Confirm pending      A change waits$
+  13) ufw inactive         Firewall and root login$
+  14) New admin            carol and root login$
+  15) george, no sudo      User left to User Management$
+$
+   0) Return$
+$
+  > Enter your choice [0-15 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay runall␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Run All screen proposed for slice 8,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange the real control's Plan, all of them in one plan on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan/apply engine. Which controls hardn.yml asks␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped, a change pending read before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156many plan, and the hostname asked whatever the risk are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFresh␛[m$
+      ␛[38;2;129;134;156mNo admin yet␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mHardened␛[m$
+      ␛[38;2;129;134;156mNothing to change␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPartly done␛[m$
+      ␛[38;2;129;134;156mSome controls done␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mPort asked␛[m$
+      ␛[38;2;129;134;156msshPort 2230␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mRoot key-only␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m$
+      ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m$
+      ␛[38;2;129;134;156mAuto Updates refuses␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mConfirm pending␛[m$
+      ␛[38;2;129;134;156mA change waits␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mufw inactive␛[m$
+      ␛[38;2;129;134;156mFirewall and root login␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNew admin␛[m$
+      ␛[38;2;129;134;156mcarol and root login␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mgeorge, no sudo␛[m$
+      ␛[38;2;129;134;156mUser left to User Management␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 4$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/fresh␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Root alone, logged in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mby key; no ufw, no unattended-upgrades. hardn.yml: george␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a key, port 22, two nameservers, backups on, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand disableRootSSH true. The design problem: george␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdoesn't exist when root login is planned.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mCreate george, 1 key␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mufw isn't installed. Install it, then try ag…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mYou're logged in as root over SSH. Turning r…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
+      ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFresh␛[m$
+      ␛[38;2;129;134;156mNo admin yet␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mHardened␛[m$
+      ␛[38;2;129;134;156mNothing to change␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPartly done␛[m$
+      ␛[38;2;129;134;156mSome controls done␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mPort asked␛[m$
+      ␛[38;2;129;134;156msshPort 2230␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mRoot key-only␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m$
+      ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m$
+      ␛[38;2;129;134;156mAuto Updates refuses␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mConfirm pending␛[m$
+      ␛[38;2;129;134;156mA change waits␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mufw inactive␛[m$
+      ␛[38;2;129;134;156mFirewall and root login␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNew admin␛[m$
+      ␛[38;2;129;134;156mcarol and root login␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mgeorge, no sudo␛[m$
+      ␛[38;2;129;134;156mUser left to User Management␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-15 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
