@@ -373,7 +373,8 @@ verify-release-full:
 #                           so it needs no change when vendor/ stops being
 #                           committed. Override: make check CHECK_GOFLAGS=...
 #
-# Tools come from PATH: go, golangci-lint, govulncheck, zizmor and actionlint.
+# Tools come from PATH: go, golangci-lint, govulncheck, zizmor, actionlint and
+# shellcheck (actionlint runs it on every run: script).
 # check-tools fails if one is missing and warns when a version differs from
 # the CHECK_*_VERSION values below. CI's check job (.github/workflows/ci.yml)
 # installs the same versions and fails if these values differ from its own.
@@ -384,6 +385,7 @@ CHECK_GOLANGCI_LINT_VERSION ?= 2.14.0
 CHECK_GOVULNCHECK_VERSION ?= v1.9.0
 CHECK_ZIZMOR_VERSION ?= 1.32.0
 CHECK_ACTIONLINT_VERSION ?= 1.7.12
+CHECK_SHELLCHECK_VERSION ?= 0.11.0
 # Release targets of .slsa-goreleaser/*.yml, built with that file's env and flags.
 CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
 # Targets check-cross also vets the whole module for, test files included
@@ -407,7 +409,7 @@ check check-%: export GOFLAGS = $(CHECK_GOFLAGS)
 
 # $(call check_need,<tool>,<step>): fail with a clear message if <tool> is not on PATH.
 check_need = command -v $(1) >/dev/null 2>&1 || { \
-	echo "$(2): '$(1)' not found on PATH. Install go, golangci-lint $(CHECK_GOLANGCI_LINT_VERSION), govulncheck $(CHECK_GOVULNCHECK_VERSION), zizmor $(CHECK_ZIZMOR_VERSION) and actionlint $(CHECK_ACTIONLINT_VERSION) (for example with mise) and retry." >&2; \
+	echo "$(2): '$(1)' not found on PATH. Install go, golangci-lint $(CHECK_GOLANGCI_LINT_VERSION), govulncheck $(CHECK_GOVULNCHECK_VERSION), zizmor $(CHECK_ZIZMOR_VERSION), actionlint $(CHECK_ACTIONLINT_VERSION) and shellcheck $(CHECK_SHELLCHECK_VERSION) (for example with mise) and retry." >&2; \
 	exit 1; }
 
 .PHONY: check check-tools $(CHECK_STEPS)
@@ -430,6 +432,7 @@ check-tools:
 	@$(call check_need,govulncheck,$@)
 	@$(call check_need,zizmor,$@)
 	@$(call check_need,actionlint,$@)
+	@$(call check_need,shellcheck,$@)
 	@go version
 	@v=$$(golangci-lint version --short 2>/dev/null); echo "golangci-lint $$v"; \
 	[ "$$v" = "$(CHECK_GOLANGCI_LINT_VERSION)" ] || \
@@ -444,6 +447,9 @@ check-tools:
 	@v=$$(actionlint --version 2>/dev/null | sed -n 1p); echo "actionlint $$v"; \
 	[ "$$v" = "$(CHECK_ACTIONLINT_VERSION)" ] || \
 		echo "$@: warning: expected actionlint $(CHECK_ACTIONLINT_VERSION)" >&2
+	@v=$$(shellcheck --version 2>/dev/null | sed -n 's/^version: //p'); echo "shellcheck $$v"; \
+	[ "$$v" = "$(CHECK_SHELLCHECK_VERSION)" ] || \
+		echo "$@: warning: expected shellcheck $(CHECK_SHELLCHECK_VERSION)" >&2
 	@echo "GOTOOLCHAIN=$$GOTOOLCHAIN GOWORK=$$GOWORK GOFLAGS=$$GOFLAGS"
 
 check-mod-verify:
@@ -497,12 +503,13 @@ check-cross:
 # the workflows in .github. zizmor reads .github/zizmor.yml and fails on any
 # finding; its online audits need a GitHub token and run in CI's zizmor
 # workflow instead (.github/workflows/zizmor.yml). actionlint also runs
-# shellcheck on each run: script when shellcheck is on PATH, as it is on
-# GitHub's ubuntu runners, and skips that check when it is not.
+# shellcheck on each run: script. It skips that check silently when
+# shellcheck is not on PATH, so this step requires shellcheck.
 check-actions:
 	@echo "==> $@"
 	@$(call check_need,zizmor,$@)
 	@$(call check_need,actionlint,$@)
+	@$(call check_need,shellcheck,$@)
 	zizmor --offline --no-progress .github
 	actionlint
 
