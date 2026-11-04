@@ -14,6 +14,7 @@ v0.4.0 rebuilds every screen of hardn on one flow: hardn reads the host, shows t
 - **Flags removed:** `-l`, `-i`, `-a` and `-s` (the package flags) are now unknown flags, exit status 2.
 - **hardn.yml keys:** `disableRoot` is now `disableRootSSH`; the old key still works, with a warning. `logFile` is retired: the log is always `/var/log/hardn.log`. The package lists, repository keys, `dmzSubnet`, the ufw policies, `ufwAllowedPorts`, `enableAppArmor`, `enableLynis`, `sshAllowedUsers`, `sshListenAddress`, `sshKeyPath` and a few more are no longer used: where one is set to other than its default, hardn warns, such as "hardn.yml's enableLynis isn't used". Every older file is still accepted. See "Changed: hardn.yml".
 - **No default username.** The example configuration and the first-run question no longer offer `george`. Set `username` in your hardn.yml, or pass `-u`, for `-c` and Run All to create a user.
+- **Alpine: install iproute2 before enabling the firewall.** Enabling it (`-w`, main menu 4, Run All) now needs `ss`; without it, it is refused (`FIREWALL_SS_NOT_INSTALLED`), exit status 1. See "Changed: Firewall".
 - **Alpine 3.21 is out of scope**: its vendor support ended 2026-11-01. hardn opens its screens there but refuses every change. See "Changed: supported versions".
 - **hardn no longer installs packages, Lynis or AppArmor.** What they installed stays installed.
 
@@ -140,6 +141,7 @@ See ["What Run All reads"](https://github.com/abbott/hardn/blob/v0.4.0/docs/conf
 - **On Proxmox VE, 4 reads "View pve-firewall"** and only shows pve-firewall. It changes nothing there, and `-w` is refused.
 - **`hardn -w` enables the firewall the same way.** On a terminal, a change that could lock you out asks you to type the hostname; off a terminal it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out is applied without asking on a terminal, and off one only with `--yes`. With `-n` it shows the plan and exits 3.
 - **Run All and `-r` enable it the same way.** They no longer set the outgoing policy.
+- **Enabling needs `ss`**, from iproute2, to read which ports SSH uses: from main menu 4, `-w`, Run All or `-r`. Stock Alpine lacks it: install iproute2 first, or enabling is refused (`FIREWALL_SS_NOT_INSTALLED`), exit status 1.
 - **`ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used.** Where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used".
 
 See ["Firewall Configuration with UFW Application Profiles"](https://github.com/abbott/hardn/blob/v0.4.0/docs/configuration.md).
