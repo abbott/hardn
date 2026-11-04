@@ -1,194 +1,96 @@
-# Contributing to Hardn
+# Contributing to hardn
 
-Thank you for your interest in contributing to Hardn! This document outlines the process for contributing to the project and provides guidance on development workflow, code standards, and the release process.
+How to build hardn, run its checks, update its goldens and cut a release. For a security problem, don't open an issue: see [SECURITY.md](../.github/SECURITY.md).
 
-## Table of Contents
+## Go and the tools
 
-- [Development Setup](#development-setup)
-- [Development Workflow](#development-workflow)
-- [Code Style](#code-style)
-- [Pull Request Process](#pull-request-process)
-- [Release Process](#release-process)
-- [Issue Reporting](#issue-reporting)
+- **Go 1.26 or later** (go.mod's `go 1.26.0`). Release binaries are built with **Go 1.27.3**, go.mod's `toolchain` line; with Go's default `GOTOOLCHAIN`, `go` fetches it for you. `make check` sets `GOTOOLCHAIN=local` and uses the Go on your `PATH`, so install 1.27.3 to check with the release's Go. CI's checks fail if their Go is not the `toolchain` line's.
+- **The check tools**, at the makefile's `CHECK_*_VERSION` values, which CI installs too:
 
-## Development Setup
+  | Tool | Version |
+  |---|---|
+  | golangci-lint | 2.14.0 |
+  | govulncheck | v1.9.0 |
+  | zizmor | 1.32.0 |
+  | actionlint | 1.7.12 |
+  | shellcheck | 0.11.0 |
 
-1. **Fork and clone the repository**
+  [mise](https://mise.jdx.dev) is one way to install them. `make check` warns when a version differs and stops when a tool is missing.
+- **No `replace` directive and no `vendor/`.** go.mod has no `replace`, and the repository commits no `vendor/`; the checks build with `-mod=readonly`. The makefile's older targets that add one or the other (`restore-dev`, `setup-dev`, `dev`, `dev-build`, `dev-test`, `dev-run`, `run`, `vendor`, `fix-vendor`) are not part of the workflow: don't use them.
+- **The `.gitignore` is an allow-list:** it ignores everything but the files it names (`*.go`, `*.md` under `docs/`, the scripts, ...). A new kind of file needs a line there before `git add` sees it.
 
-   ```bash
-   git clone https://github.com/abbott/hardn.git
-   cd hardn
-   ```
+## Building
 
-2. **Install dependencies**
-
-   ```bash
-   go mod download
-   ```
-
-3. **Verify the setup**
-
-   ```bash
-   make test
-   make build
-   ```
-
-4. **Ensure you're in development mode**
-
-   ```bash
-   make restore-dev
-   ```
-   
-   This adds a `replace` directive to your go.mod file that points to your local version of the code for development.
-
-## Development Workflow
-
-1. **Create a new branch for your feature or bugfix**
-
-   ```bash
-   git checkout -b feature/your-feature-name
-   # or
-   git checkout -b fix/your-bugfix-name
-   ```
-
-2. **Make your changes and write tests**
-
-3. **Run tests to ensure everything works**
-
-   ```bash
-   make test
-   ```
-
-4. **Build the project**
-
-   ```bash
-   make build
-   ```
-
-5. **Commit your changes with clear commit messages**
-
-   ```bash
-   git add .
-   git commit -m "type: description of your change"
-   ```
-
-   Commit message types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`, `build`
-
-## Code Style
-
-- Follow standard Go code style guidelines and idiomatic Go
-- Use `gofmt` or `goimports` to format your code
-- Write comprehensive comments and documentation
-- Aim for clear, readable, and maintainable code
-- Include tests for new functionality
-
-## Pull Request Process
-
-1. **Update your fork with the latest changes from the main repository**
-
-   ```bash
-   git remote add upstream https://github.com/abbott/hardn.git
-   git fetch upstream
-   git merge upstream/main
-   ```
-
-2. **Push your branch to your fork**
-
-   ```bash
-   git push origin your-branch-name
-   ```
-
-3. **Create a pull request**
-   - Go to the [Hardn repository](https://github.com/abbott/hardn)
-   - Click "New Pull Request"
-   - Choose your fork and the branch you created
-   - Fill in the PR template with details about your changes
-
-4. **Address review feedback**
-   - Make additional commits to address feedback
-   - Keep the PR focused on a single change
-
-5. **Your PR will be merged once approved**
-
-## Release Process
-
-Hardn follows semantic versioning (MAJOR.MINOR.PATCH) and uses a specific workflow to manage releases.
-
-### Development vs. Release Mode
-
-During development, we use a `replace` directive in `go.mod` to point to the local code:
-
-```
-replace github.com/abbott/hardn => ./
+```sh
+git clone https://github.com/abbott/hardn.git
+cd hardn
+make build          # build/hardn, from ./cmd/hardn
 ```
 
-For releases, this directive must be removed to ensure users get the correct version from the Go module proxy.
+`make build`, `make linux`, `make arm` and `make darwin` build with the release's flags (`CGO_ENABLED=0`, `-trimpath`, `-tags=netgo`, the version, commit and commit date in the ldflags), so with go.mod's toolchain a rebuild of a commit is byte-identical to the release's binary.
 
-### Local Release Preparation
+**Don't run hardn on your development machine.** Run live, it writes under `/etc` and `/var/log`, and it is made for Debian, Ubuntu and Alpine hosts. Try it on a disposable VM or container. Nothing in `make check` runs the binary.
 
-1. **Bump the version** (choose one based on the changes):
+## make check
 
-   ```bash
-   make bump-patch  # For bug fixes and minor changes
-   make bump-minor  # For new features
-   make bump-major  # For breaking changes
-   ```
+`make` with no target is `make check`. It runs ten steps in order. `check-tools` comes first and stops everything if a tool is missing; each of the other nine runs even when one before it failed, and a summary at the end lists each step as `ok` or `FAIL`. Any one step runs alone as `make <step>`.
 
-2. **Prepare for release** (removes the replace directive):
+| Step | What it does |
+|---|---|
+| `check-tools` | every tool is on `PATH`; warns when a version is not the makefile's; prints `GOTOOLCHAIN`, `GOWORK` and `GOFLAGS` |
+| `check-mod-verify` | `go mod verify`: the downloaded modules match go.sum |
+| `check-tidy` | `go mod tidy -diff`: go.mod and go.sum need no tidying |
+| `check-build` | `go build ./...`, its output discarded |
+| `check-vet` | `go vet ./...` |
+| `check-test` | `go test -count=1 ./...`, the goldens compared with the committed files |
+| `check-lint` | `golangci-lint run`, with the repository's settings and import rules |
+| `check-vuln` | `govulncheck ./...`: known vulnerabilities in code hardn calls |
+| `check-cross` | builds the three release targets (linux/amd64, linux/arm64, darwin/amd64) with the release's flags into a temporary directory, then vets the whole module, tests included, for linux/amd64 and linux/arm64, whose files a macOS host's steps don't compile |
+| `check-actions` | zizmor's offline audits and actionlint (which runs shellcheck on each `run:` script) over `.github` |
 
-   ```bash
-   make prepare-release
-   ```
+Every check target runs with `GOTOOLCHAIN=local`, `GOWORK=off` and `GOFLAGS=-mod=readonly`.
 
-3. **Create a release**:
+CI (`.github/workflows/ci.yml`) runs `make check` on each push to `main` and each pull request, and `go vet` and `go test` on Debian 13 and 12, Ubuntu 26.04 and 24.04, and Alpine 3.24 and 3.23 images. `.github/workflows/zizmor.yml` adds zizmor's online audits.
 
-   ```bash
-   make release
-   ```
+## Goldens
 
-   This will:
-   - Run tests
-   - Build for all target platforms
-   - Create archives
-   - Generate checksums
-   - Tag the release
-   - Push the tag
+Many tests compare their output with a committed golden file. After a change that alters the output on purpose, rewrite them and review the diff:
 
-4. **Return to development mode**:
+- **One package:** `go test ./<pkg>/ -update`, in a package whose tests define `-update`.
+- **Every screen and component golden:** `make golden-update`, which passes `-update` to each package whose tests use the golden harness (`pkg/ui/uitest`). Some of these also rewrite a marked part of a page under `docs/engine/` (the parity pages); review those diffs too.
 
-   ```bash
-   make restore-dev
-   ```
+Say why the goldens changed in the pull request. `make check` compares; it never rewrites.
 
-### Automated Releases via CI/CD
+## Test data and examples
 
-When a new tag is pushed, GitHub Actions will automatically:
-1. Remove the replace directive
-2. Build release artifacts
-3. Create a GitHub release
-4. Publish packages
+Use synthetic values only, in tests, goldens and docs: user names such as `george`, `alice` and `carol`; host names such as `web-01`; addresses from `192.0.2.0/24`; domains under `example.net`. Never a real host, address, user or key.
 
-### Creating Distribution Packages
+## Pull requests
 
-To create distribution packages:
+- Branch from `main`, and keep a pull request to one change.
+- `make check` passes before you open it.
+- Commit messages start with the package or area changed, or a type: `cmd/hardn: ...`, `pkg/config: ...`, `docs: ...`, `fix(cmd): ...`.
+- A change users will notice gets a line in `docs/releases/unreleased.md`.
 
-```bash
-# Create a Debian package
-make deb
+## Releases
 
-# Create an RPM package
-make rpm
-```
+hardn uses semantic versioning. A release is cut from a tag `v<major>.<minor>.<patch>`; a tag with a suffix (`v1.2.3-rc1`) is not released.
 
-Note: This requires the `fpm` tool to be installed.
+1. **Release notes.** `docs/releases/unreleased.md` becomes `docs/releases/v<x.y.z>.md`. The release's body is that file at the tagged commit; the release fails before building anything when it is missing or empty.
+2. **The version.** Set `VERSION` (and `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`) in the makefile, and commit.
+3. **The tag.** `make tag` makes the annotated tag `v$(VERSION)` locally and prints the command that pushes it, `git push origin refs/tags/v<x.y.z>`. `make release` runs `go test`, builds the three binaries with archives and `.sha256` files under `build/` for a local look, then makes the tag the same way. **Neither pushes anything.**
+4. **Pushing the tag** is the maintainer's step, and it starts `.github/workflows/release.yml`:
+   - checks the tag's form and the release notes;
+   - builds the three binaries in `.github/workflows/build.yml`, and attests each one's build provenance (SLSA Build Level 3, a GitHub artifact attestation);
+   - writes an SPDX SBOM and `SHA256SUMS`;
+   - creates the release as a draft, with the notes as its body, and uploads every file;
+   - downloads them back from the draft, checks them against `SHA256SUMS`, and verifies each binary's attestation;
+   - only then publishes it, as the latest release unless a newer version is already out.
 
-## Issue Reporting
+   A failure anywhere leaves at most a draft. A draft left by a failed run is deleted by hand before the run is retried.
 
-- Use the GitHub issue tracker to report bugs
-- Provide detailed reproduction steps
-- Include your environment details (OS, Go version, etc.)
-- For security vulnerabilities, please email `641138+abbott@users.noreply.github.com` instead of creating a public issue.
+The release files are `hardn-linux-amd64`, `hardn-linux-arm64`, `hardn-darwin-amd64`, `hardn-sbom.spdx.json` and `SHA256SUMS`. `verify.sh` (or `make verify-release PLATFORM=linux-amd64`) checks a binary against them; [SECURITY.md](../.github/SECURITY.md) says how.
 
----
+## Issues
 
-Thank you for contributing to Hardn! Your efforts help make this tool better for everyone.
+Report bugs in the [issue tracker](https://github.com/abbott/hardn/issues), with the steps that show the problem, the OS and its version, and `hardn --version`'s output.
