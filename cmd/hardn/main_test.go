@@ -15,7 +15,6 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
@@ -43,14 +42,12 @@ type result struct {
 // reached. hostUnreachable makes each fail, so a run that gets past the
 // refusal ends at the first (exit status 1). asRoot makes them succeed:
 // root, a fixture config for alice on port 2230, Debian 13 with
-// /etc/sudoers.d. asRootOnProxmox is asRoot on a Debian 13 host that
-// osdetect found to be Proxmox VE.
+// /etc/sudoers.d.
 type hostMode int
 
 const (
 	hostUnreachable hostMode = iota
 	asRoot
-	asRootOnProxmox
 	// asRootBoolRootLogin is asRoot with a configuration file, in the
 	// test's temporary directory, whose permitRootLogin is the deprecated
 	// bool (§3.17).
@@ -94,7 +91,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 		load     func(string) (*config.Config, error)
 		existing func(string) (*config.Config, error)
 		find     func(string) config.Found
-		detect   func() (*osdetect.OSInfo, error)
+		detect   func() error
 		exit     func(int)
 	}{lookupCurrentUser, loadConfig, loadExisting, findConfig, detectOS, exit}
 	prevStderr, prevStderrEnv := stderr, stderrEnv
@@ -147,12 +144,12 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	loadExisting = loadConfig // setup-sudo-env's, the same configurations
 	// The file the stubbed loads stand for, which hardn says it read.
 	findConfig = func(string) config.Found { return config.Found{Path: confPath, By: config.FoundSearch, Exists: true} }
-	detectOS = func() (*osdetect.OSInfo, error) {
+	detectOS = func() error {
 		r.reached = append(r.reached, "OS detection")
 		if mode != hostUnreachable {
-			return &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie", IsProxmox: mode == asRootOnProxmox}, nil
+			return nil // Debian 13
 		}
-		return nil, unreachable
+		return unreachable
 	}
 
 	if setup != nil {

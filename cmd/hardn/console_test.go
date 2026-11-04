@@ -20,6 +20,13 @@ func colourEnv() term.Env {
 	return term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 24, Environ: []string{"TERM=xterm-256color", "LANG=C.UTF-8"}})
 }
 
+// csi is a CSI escape sequence: an SGR colour, a cursor move or a clear.
+var csi = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
+
+// stripANSI is s without its CSI sequences, as the screens' text reads.
+// cmd/hardn may not import Charm's x/ansi (depguard's charm rule).
+func stripANSI(s string) string { return csi.ReplaceAllString(s, "") }
+
 // flat is console output s as one line of words: each callout's "# " bar
 // dropped, so that a Message reads "<its title> <its text>" (Warning,
 // Operation Failed, Operation Successful) and an info line its text alone,

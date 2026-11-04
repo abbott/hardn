@@ -10,7 +10,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/output"
 )
 
@@ -106,7 +105,7 @@ func TestDryRunPrecedence(t *testing.T) {
 			setup := y.setup(t)
 			r := runHardnWith(t, asRoot, func() {
 				setup()
-				detectOS = func() (*osdetect.OSInfo, error) { return nil, errors.New("test: past the mode") }
+				detectOS = func() error { return errors.New("test: past the mode") }
 			}, y.args(tc.flag...)...)
 			if !r.ended || r.code != 1 {
 				t.Fatalf("ended %v with %d, want status 1 at detectOS; stderr:\n%s", r.ended, r.code, r.stderr)

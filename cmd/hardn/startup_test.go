@@ -8,7 +8,6 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/osdetect"
 )
 
 // TestConfigLine: which hardn.yml was read is said once, on stderr, for
@@ -38,7 +37,7 @@ func TestConfigLine(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r := runHardnWith(t, asRoot, func() {
 				findConfig = func(string) config.Found { return tc.found }
-				detectOS = func() (*osdetect.OSInfo, error) { return nil, errors.New("test: the OS check") }
+				detectOS = func() error { return errors.New("test: the OS check") }
 			}, tc.args...)
 			got := strings.TrimSuffix(flat(r.stderr), "Operation Failed Failed to detect OS: test: the OS check")
 			if !r.ended || r.code != 1 || strings.TrimSpace(got) != tc.want || r.stdout != "" {
@@ -58,22 +57,20 @@ func TestConfigLine(t *testing.T) {
 }
 
 // TestHostOS: the OS check reads os-release through pkg/host/detect,
-// refuses none and an OS other than Debian, Ubuntu or Alpine as
-// osdetect.DetectOS refused them, and writes nothing: no clear, no ~ line,
+// refuses none and an OS other than Debian, Ubuntu or Alpine, and writes nothing: no clear, no ~ line,
 // no "detected" line (decision 4 (a)).
 func TestHostOS(t *testing.T) {
 	was := osHost
 	t.Cleanup(func() { osHost = was })
 	for _, tc := range []struct {
 		name, release string
-		want          *osdetect.OSInfo
 		err           string
 	}{
-		{"debian", "ID=debian\nVERSION_ID=\"13\"\nVERSION_CODENAME=trixie\n", &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"}, ""},
-		{"ubuntu", "ID=ubuntu\nVERSION_ID=\"24.04\"\nVERSION_CODENAME=noble\n", &osdetect.OSInfo{OsType: "ubuntu", OsVersion: "24.04", OsCodename: "noble"}, ""},
-		{"alpine", "ID=alpine\nVERSION_ID=3.22.1\n", &osdetect.OSInfo{OsType: "alpine", OsVersion: "3.22.1", OsCodename: "3.22.1"}, ""},
-		{"another OS", "ID=arch\n", nil, "unsupported OS type detected: arch"},
-		{"no os-release", "", nil, "cannot detect OS type: "},
+		{"debian", "ID=debian\nVERSION_ID=\"13\"\nVERSION_CODENAME=trixie\n", ""},
+		{"ubuntu", "ID=ubuntu\nVERSION_ID=\"24.04\"\nVERSION_CODENAME=noble\n", ""},
+		{"alpine", "ID=alpine\nVERSION_ID=3.22.1\n", ""},
+		{"another OS", "ID=arch\n", "unsupported OS type detected: arch"},
+		{"no os-release", "", "cannot detect OS type: "},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			f := hostfake.New(host.Options{})
@@ -81,14 +78,13 @@ func TestHostOS(t *testing.T) {
 				f.AddFile("/etc/os-release", []byte(tc.release), 0o644, 0, 0)
 			}
 			osHost = func() host.System { return f }
-			var got *osdetect.OSInfo
 			var err error
-			stdout, stderr := captureStreams(t, func() { got, err = hostOS() })
+			stdout, stderr := captureStreams(t, func() { err = hostOS() })
 			switch {
-			case tc.err == "" && (err != nil || *got != *tc.want):
-				t.Errorf("hostOS() = %+v, %v; want %+v", got, err, tc.want)
+			case tc.err == "" && err != nil:
+				t.Errorf("hostOS() = %v; want nil", err)
 			case tc.err != "" && (err == nil || !strings.HasPrefix(err.Error(), tc.err)):
-				t.Errorf("hostOS() = %+v, %v; want the error %q", got, err, tc.err)
+				t.Errorf("hostOS() = %v; want the error %q", err, tc.err)
 			}
 			if stdout != "" || stderr != "" {
 				t.Errorf("wrote stdout %q, stderr %q", stdout, stderr)

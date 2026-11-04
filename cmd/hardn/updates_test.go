@@ -15,7 +15,6 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -143,7 +142,7 @@ func TestUpdatesHook(t *testing.T) {
 	if err := set.Updates(); err != nil {
 		t.Fatalf("the Auto Updates item, Disable = %v; screen:\n%s", err, s.out.String())
 	}
-	out := style.StripAnsi(s.out.String())
+	out := stripANSI(s.out.String())
 	if first, _, _ := strings.Cut(out, "Enter your choice"); !strings.Contains(first, "apk-cron") || !strings.Contains(first, "crond") {
 		t.Errorf("the first screen does not draw Alpine's rows from the facts detected:\n%s", first)
 	}
@@ -197,7 +196,7 @@ func TestUpdatesScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("the Auto Updates item = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			if out := style.StripAnsi(s.out.String()); !strings.Contains(out, tc.said) {
+			if out := stripANSI(s.out.String()); !strings.Contains(out, tc.said) {
 				t.Errorf("the screen does not say %q:\n%s", tc.said, out)
 			}
 			if got := h.writes(); len(got) > 0 || h.apkCron || h.crond || s.applies != 0 {
@@ -222,7 +221,7 @@ func TestUpdatesHookFails(t *testing.T) {
 	if err := runUpdatesScreen(ctx, cfg, updatesTestVersion); err != nil {
 		t.Fatalf("runUpdatesScreen = %v; screen:\n%s", err, s.out.String())
 	}
-	out := style.StripAnsi(s.out.String())
+	out := stripANSI(s.out.String())
 	_, line, _ := strings.Cut(out, "Check the log file at ")
 	line, _, _ = strings.Cut(line, "\n")
 	if !strings.Contains(out, "# Operation Failed") || strings.TrimSpace(line) != output.LegacyLogPath+" for details" {

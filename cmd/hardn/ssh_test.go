@@ -20,7 +20,6 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -293,7 +292,7 @@ func TestSSHScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runSSHScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
 			}
@@ -427,7 +426,7 @@ func TestDisallowRootFlag(t *testing.T) {
 				env = onTTY
 			}
 			r, s := runD(t, h, cfg, env, tc.lines, nil, args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stdout, r.stderr)
 			}
@@ -475,7 +474,7 @@ func TestDisallowRootPlanOnlyFromFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			r, s := runD(t, h, cfg, onTTY, tc.lines, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -513,7 +512,7 @@ func TestDisallowRootFlagWithOthers(t *testing.T) {
 			h, cfg := newSSHHost(t, tc.host)
 			conf, was := h.content("/etc/resolv.conf"), h.rootLogin()
 			r, s := runD(t, h, cfg, nil, nil, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -569,7 +568,7 @@ func TestCreateUserThenDisallowRoot(t *testing.T) {
 				env = onTTY
 			}
 			r, s := runD(t, h, cfg, env, tc.lines, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
