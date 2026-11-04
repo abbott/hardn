@@ -1,0 +1,270 @@
+# Golden file of TestUpdatesGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer is off, and hardn leaves apt's timers␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mto you. Run systemctl enable --now apt-daily-upgrade.timer,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthen try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, enable-off␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAPT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mturns apt's daily jobs off. Remove that line, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, not-read␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/apt/apt.conf.d/99site:1: Extra junk at end of file. Fix␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthat, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, not-read␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/apt/apt.conf.d/99site:1: Extra junk at end of file. Fix␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthat, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, edited␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades changed␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msince hardn wrote it. Put it back as it was or undo the rest␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, edited-alpine␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/periodic/daily/apk changed since hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minstalled it. Put it back as it was or undo the rest by hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is updated with apt full-upgrade, and unattended-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrades wouldn't take its packages. Update it by hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, debian13␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing to undo: hardn did not turn this on. Turn it off by␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, by-hardn-debian␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# updates refusals ---------------------------------------------$
+$
+# Note$
+# Mock: The refusals before asking, each from the stand-in$
+# planner on the real reading: the direction, the host.$
+$
+# on, timer-off ------------------------------------------------$
+$
+# Warning$
+# apt-daily-upgrade.timer is off, and hardn leaves apt's timers$
+# to you. Run systemctl enable --now apt-daily-upgrade.timer,$
+# then try again.$
+$
+# on, enable-off -----------------------------------------------$
+$
+# Warning$
+# APT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,$
+# turns apt's daily jobs off. Remove that line, then try again.$
+$
+# on, not-read -------------------------------------------------$
+$
+# Warning$
+# apt can't read its settings: Syntax error$
+# /etc/apt/apt.conf.d/99site:1: Extra junk at end of file. Fix$
+# that, then try again.$
+$
+# off, not-read ------------------------------------------------$
+$
+# Warning$
+# apt can't read its settings: Syntax error$
+# /etc/apt/apt.conf.d/99site:1: Extra junk at end of file. Fix$
+# that, then try again.$
+$
+# off, edited --------------------------------------------------$
+$
+# Warning$
+# Not undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades changed$
+# since hardn wrote it. Put it back as it was or undo the rest$
+# by hand.$
+$
+# off, edited-alpine -------------------------------------------$
+$
+# Warning$
+# Not undone: /etc/periodic/daily/apk changed since hardn$
+# installed it. Put it back as it was or undo the rest by hand.$
+$
+# on, pve9 -----------------------------------------------------$
+$
+# Warning$
+# Proxmox VE is updated with apt full-upgrade, and unattended-$
+# upgrades wouldn't take its packages. Update it by hand.$
+$
+# off, debian13 ------------------------------------------------$
+$
+# Warning$
+# Nothing to undo: hardn did not turn this on. Turn it off by$
+# hand.$
+$
+# on, by-hardn-debian ------------------------------------------$
+$
+# Warning$
+# Nothing needs changing.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer is off, and hardn leaves apt's␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtimers to you. Run systemctl enable --now apt-daily-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrade.timer, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, enable-off␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAPT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mturns apt's daily jobs off. Remove that line, then try␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, not-read␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/apt/apt.conf.d/99site:1: Extra junk at end of file.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFix that, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, not-read␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/apt/apt.conf.d/99site:1: Extra junk at end of file.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFix that, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, edited␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchanged since hardn wrote it. Put it back as it was or␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mundo the rest by hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, edited-alpine␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/periodic/daily/apk changed since hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minstalled it. Put it back as it was or undo the rest by␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is updated with apt full-upgrade, and␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156munattended-upgrades wouldn't take its packages. Update it␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, debian13␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing to undo: hardn did not turn this on. Turn it off␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, by-hardn-debian␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer is off, and hardn leaves apt's timers␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mto you. Run systemctl enable --now apt-daily-upgrade.timer,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthen try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, enable-off␛[m ␛[38;2;48;52;64m-----------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAPT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mturns apt's daily jobs off. Remove that line, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, not-read␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/apt/apt.conf.d/99site:1: Extra junk at end of file. Fix␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthat, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156moff, not-read␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/apt/apt.conf.d/99site:1: Extra junk at end of file. Fix␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthat, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156moff, edited␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades changed␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msince hardn wrote it. Put it back as it was or undo the rest␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156moff, edited-alpine␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/periodic/daily/apk changed since hardn␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minstalled it. Put it back as it was or undo the rest by hand.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m-----------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is updated with apt full-upgrade, and unattended-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrades wouldn't take its packages. Update it by hand.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156moff, debian13␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing to undo: hardn did not turn this on. Turn it off by␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhand.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, by-hardn-debian␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+$
+$
