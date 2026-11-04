@@ -15,10 +15,9 @@ name: Release
 # --latest=false and /releases/latest is not checked; any other tag is
 # published with --latest and /releases/latest must then be that tag.
 #
-# On workflow_dispatch: the same build, SBOM and SHA256SUMS as one workflow
-# artifact, release-assets. No provenance and no release. (The build job
-# still holds id-token: write, as a job's permissions cannot depend on the
-# event; build.yml's attest input is false, so nothing is signed.)
+# A tag push is the only trigger: no workflow_dispatch, so no run that is
+# not a release holds id-token: write. ci.yml's check-cross does the
+# build-only runs.
 #
 # Reproducible: the ldflags come from the tagged commit (its date, not the
 # clock), with CGO_ENABLED=0, -trimpath, -tags=netgo and go.mod's toolchain,
@@ -37,7 +36,6 @@ on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions: {}
 
@@ -73,18 +71,17 @@ jobs:
         id: ldflags
         run: |
           set -euo pipefail
-          if [ "$GITHUB_REF_TYPE" = tag ]; then
-            # Checked before it reaches a file name or an ldflag.
-            # No pre-release suffix: a release is always a full version.
-            if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'; then
-              echo "::error::tag $GITHUB_REF_NAME is not v<major>.<minor>.<patch> (pre-release tags are not released). Nothing was built."
-              exit 1
-            fi
-            version=${GITHUB_REF_NAME#v}
-          else
-            # A build-only run from a branch: no release version.
-            version=0.0.0-dev
+          [ "$GITHUB_REF_TYPE" = tag ] || {
+            echo "::error::$GITHUB_REF is not a tag. Nothing was built."
+            exit 1
+          }
+          # Checked before it reaches a file name or an ldflag.
+          # No pre-release suffix: a release is always a full version.
+          if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "::error::tag $GITHUB_REF_NAME is not v<major>.<minor>.<patch> (pre-release tags are not released). Nothing was built."
+            exit 1
           fi
+          version=${GITHUB_REF_NAME#v}
           commit=$(git rev-parse HEAD)
           build_date=$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ HEAD)
           {
@@ -94,8 +91,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "version=$version commit=$commit build-date=$build_date"
 
-      - name: Release notes exist (tag push only)
-        if: github.event_name == 'push'
+      - name: Release notes exist
         run: |
           set -euo pipefail
           notes="docs/releases/${GITHUB_REF_NAME}.md"
@@ -124,8 +120,6 @@ jobs:
       version: ${{ needs.prepare.outputs.version }}
       commit: ${{ needs.prepare.outputs.commit }}
       build-date: ${{ needs.prepare.outputs.build-date }}
-      # Provenance for a tag push only; a workflow_dispatch run only builds.
-      attest: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
 
   sbom:
     name: SBOM
