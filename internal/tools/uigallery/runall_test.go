@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/engine"
+	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	fwctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
@@ -18,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -87,6 +89,9 @@ func TestPlayRunAllGolden(t *testing.T) {
 		{"runall-nothing-asked", []string{"runall/nothing-asked"}, []string{"0"}, nil},
 		{"runall-refused", []string{"runall/refused"}, []string{"1", hostName, "0"}, nil},
 		{"runall-pending", []string{"runall/pending"}, []string{"1", "0"}, nil},
+		{"runall-ufw-inactive", []string{"runall/ufw-inactive"}, []string{"1", "0"}, nil},
+		{"runall-new-admin", []string{"runall/new-admin"}, []string{"1", hostName, "0"}, raCells()},
+		{"runall-george-no-sudo", []string{"runall/george-no-sudo"}, []string{"1", hostName, "0"}, nil},
 		{"runall-wrong-phrase", []string{"runall/debian13"}, []string{"1", "WEB-01", "0", "0"}, nil},
 		{"runall-plan-only", []string{"-sequence", "dry-run", "runall/debian13"}, []string{"1", "0"}, raCells()},
 		{"runall-hosts", []string{"runall"}, []string{"4", "0", "0"}, nil},
@@ -124,18 +129,21 @@ type raWant struct {
 func TestRunAllHosts(t *testing.T) {
 	login := ssh.Login{}.ID()
 	want := map[string]raWant{
-		"debian13":      {planned: []string{login, dnsctl.ID}, lockout: true},
-		"ubuntu2604":    {planned: []string{login, dnsctl.ID}, lockout: true},
-		"alpine323":     {planned: []string{login, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID}, lockout: true},
-		"fresh":         {planned: []string{users.ID, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID, login}},
-		"hardened":      {},
-		"partial":       {planned: []string{login}, lockout: true},
-		"port":          {planned: []string{login, dnsctl.ID}, lockout: true},
-		"pve9":          {planned: []string{login, dnsctl.ID}, refused: []string{users.ID, fwctl.ID}, na: []string{updates.ID}, lockout: true},
-		"container":     {planned: []string{login}, na: []string{dnsctl.ID}, lockout: true},
-		"nothing-asked": {},
-		"refused":       {planned: []string{login, dnsctl.ID}, refused: []string{updates.ID}, lockout: true},
-		"pending":       {},
+		"debian13":       {planned: []string{login, dnsctl.ID}, lockout: true},
+		"ubuntu2604":     {planned: []string{login, dnsctl.ID}, lockout: true},
+		"alpine323":      {planned: []string{login, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID}, lockout: true},
+		"fresh":          {planned: []string{users.ID, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID, login}},
+		"hardened":       {},
+		"partial":        {planned: []string{login}, lockout: true},
+		"port":           {planned: []string{login, dnsctl.ID}, lockout: true},
+		"pve9":           {planned: []string{login, dnsctl.ID}, refused: []string{users.ID, fwctl.ID}, na: []string{updates.ID}, lockout: true},
+		"container":      {planned: []string{login}, na: []string{dnsctl.ID}, lockout: true},
+		"nothing-asked":  {},
+		"refused":        {planned: []string{login, dnsctl.ID}, refused: []string{updates.ID}, lockout: true},
+		"pending":        {},
+		"ufw-inactive":   {planned: []string{fwctl.ID, login}, lockout: true},
+		"new-admin":      {planned: []string{users.ID, login}, lockout: true},
+		"george-no-sudo": {planned: []string{dnsctl.ID}, refused: []string{login}},
 	}
 	ctx := context.Background()
 	for _, rh := range raHosts() {
@@ -189,7 +197,7 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 		if c == nil || rw.id == (ssh.Port{}).ID() || reps[0].Status.State == engine.NotApplicable || rw.does == raPending {
 			continue
 		}
-		p, err := raEngine(h, r.sess, nil, &updQuiet).Plan(ctx, []engine.Control{c}, r.cfg)
+		p, err := raEngine(h, r.sess, r.cfg, nil, &updQuiet).Plan(ctx, []engine.Control{c}, r.cfg)
 		if err == nil && len(p.Refused) > 0 {
 			err = p.Refused[0]
 		}
@@ -310,5 +318,123 @@ func TestRunAllUsage(t *testing.T) {
 		if code := run(args, noInput, offTerminal, &out, &errs); code != exitUsage || out.Len() != 0 || errs.Len() == 0 {
 			t.Errorf("%v: exit %d, stdout %q, stderr %q; want %d and a usage error", args, code, out.String(), errs.String(), exitUsage)
 		}
+	}
+}
+
+// TestRunAllUserThere: a user already there is as asked only as an admin
+// with the asked keys; george with keys and no sudo is left to User
+// Management, unchanged.
+func TestRunAllUserThere(t *testing.T) {
+	for name, want := range map[string]string{"debian13": raAsked, "george-no-sudo": raUserMgmt + "not an admin"} {
+		r, _, err := raReadNamed(context.Background(), name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		i := slices.IndexFunc(r.rows, func(rw raRow) bool { return rw.id == users.ID })
+		if got := r.rows[i]; got.does != want || got.planned {
+			t.Errorf("%s: User row %q, planned %v; want %q, not planned", name, got.does, got.planned, want)
+		}
+	}
+}
+
+// TestRunAllPendingAfterApply: after a lockout-risk Apply all, not yet
+// confirmed, the host read again plans nothing: every row asked of and
+// the item say "Change pending", as on pending, and choosing it says the
+// SSH Login screen's words.
+func TestRunAllPendingAfterApply(t *testing.T) {
+	ctx := context.Background()
+	r, h, err := raReadNamed(ctx, "debian13")
+	if err != nil || !r.lockout() {
+		t.Fatalf("debian13: %v, lockout %v", err, r.lockout())
+	}
+	if _, err := raEngine(h, r.sess, r.cfg, nil, &updQuiet).Apply(ctx, r.plan); err != nil {
+		t.Fatal(err)
+	}
+	again, err := readRA(ctx, h, raEnvOf("debian13"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !again.busy || len(again.planned()) > 0 || again.plan != nil || again.refusal != raPendingWords || again.item().Description != raPending {
+		t.Errorf("after the apply: busy %v, %d planned, plan %v, refusal %q, item %q; want Change pending", again.busy, len(again.planned()), again.plan != nil, again.refusal, again.item().Description)
+	}
+	for _, rw := range again.rows {
+		if c, _ := raAsk(rw.id, again.cfg, nil); c != nil && rw.id != (ssh.Port{}).ID() && rw.does != raPending {
+			t.Errorf("after the apply: %s %q, want %q", rw.id, rw.does, raPending)
+		}
+	}
+}
+
+// TestRunAllNoSave: no host's combined plan saves hardn.yml: neither DNS's
+// save nor a backup saver's change is in it (decision 5).
+func TestRunAllNoSave(t *testing.T) {
+	for _, rh := range raHosts() {
+		r, _, err := raReadNamed(context.Background(), rh.name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if r.plan == nil {
+			continue
+		}
+		for _, c := range r.plan.Changes {
+			if c.ID == dnsctl.ChangeSave || c.ID == backupctl.ChangeSave || c.Control == backupctl.ID {
+				t.Errorf("%s: the plan has %s", rh.name, c.ID)
+			}
+		}
+	}
+}
+
+// raStages are the plan's stages in order, each once, the boot unit's
+// left out.
+func raStages(p *engine.Plan) []engine.Stage {
+	var out []engine.Stage
+	for _, c := range p.Changes {
+		if c.Stage != engine.StageBoot && (len(out) == 0 || out[len(out)-1] != c.Stage) {
+			out = append(out, c.Stage)
+		}
+	}
+	return out
+}
+
+// TestRunAllCombined holds the two combined plans: on new-admin, Create
+// carol and root login off in one lockout-risk plan, accounts before files
+// before the reload, its undo, journalled, removing carol and putting root
+// login back, the timer said; on ufw-inactive, Enable and root login off,
+// firewall before files, refused whole by the engine as two controls
+// changing sshd and ufw (engine.ErrConflict).
+func TestRunAllCombined(t *testing.T) {
+	ctx := context.Background()
+	r, h, err := raReadNamed(ctx, "new-admin")
+	if err != nil || r.refusal != "" || !r.lockout() {
+		t.Fatalf("new-admin: %v, refusal %q, lockout %v", err, r.refusal, r.lockout())
+	}
+	want := []engine.Stage{engine.StageAccounts, engine.StageFiles, engine.StageReload, engine.StageVerify}
+	if got := raStages(r.plan); !slices.Equal(got, want) {
+		t.Errorf("new-admin: stages %v, want %v", got, want)
+	}
+	if _, err := raEngine(h, r.sess, r.cfg, nil, &updQuiet).Apply(ctx, r.plan); err != nil {
+		t.Fatal(err)
+	}
+	st, err := revert.ReadState(ctx, h.system(), raRevert)
+	if err != nil || st.Pending == nil {
+		t.Fatalf("new-admin: no journal: %v", err)
+	}
+	j := st.Pending
+	userdel := slices.ContainsFunc(j.Undo, func(s revert.Step) bool { return slices.Equal(s.Argv, []string{"userdel", "--remove", "carol"}) })
+	root := j.Backup != nil && slices.ContainsFunc(j.Reload, func(rl revert.Reload) bool { return slices.Contains(rl.Keywords, "PermitRootLogin") })
+	if !userdel || !root || j.Risk != revert.RiskLockout {
+		t.Errorf("new-admin: the undo removes carol %v, puts root login back %v, risk %v", userdel, root, j.Risk)
+	}
+	code, out, errs, unread := playGallery([]string{"1", hostName, "0"}, "-profile", "none", "runall/new-admin")
+	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(flatText(out), "This change reverts automatically in") {
+		t.Errorf("new-admin: exit %d, stderr %q, %d unread; want the timer said:\n%s", code, errs, unread, out)
+	}
+
+	r, _, err = raReadNamed(ctx, "ufw-inactive")
+	if err != nil || r.plan == nil || len(r.plan.Refused) == 0 || !errors.Is(r.plan.Refused[0], engine.ErrConflict) {
+		t.Fatalf("ufw-inactive: %v; want the plan refused as a conflict", err)
+	}
+	want = []engine.Stage{engine.StageFirewall, engine.StageFiles, engine.StageReload, engine.StageVerify}
+	if got := raStages(r.plan); !slices.Equal(got, want) || !r.lockout() || r.item().Risk {
+		t.Errorf("ufw-inactive: stages %v, lockout %v, item marked %v; want %v, lockout, unmarked", got, r.lockout(), r.item().Risk, want)
 	}
 }

@@ -1,0 +1,201 @@
+# Golden file of TestRunAllGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrunall states␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Run All on debian13 with each row's state beside Run␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAll's outcome: decision 10's alternative, drawn, not played.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# runall states ------------------------------------------------$
+$
+# Note$
+# Mock: Run All on debian13 with each row's state beside Run$
+# All's outcome: decision 10's alternative, drawn, not played.$
+$
+# Run All ######################################################$
+$
+  [+] User                 Configured Already as asked$
+  [+] Firewall             Configured Already as asked$
+  [ ] SSH Login            Partial Root login off$
+  [+] SSH Auth             Configured Nothing asked$
+  [ ] SSH Port             Not Configured Already as asked$
+  [+] AppArmor             Configured Status only$
+  [+] Auto Updates         Configured Already as asked$
+  [ ] DNS                  Not Configured Set 2 nameservers$
+  [+] Backups              Configured Used, not changed$
+  [ ] Environment          Not Configured Nothing asked$
+$
+  Select an option$
+$
+   1) Apply all            Plan, review, confirm$
+                           [ ] Lockout risk$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrunall states␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Run All on debian13 with each row's state beside Run␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAll's outcome: decision 10's alternative, drawn, not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplayed.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
+      ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mrunall states␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Run All on debian13 with each row's state beside Run␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAll's outcome: decision 10's alternative, drawn, not played.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m######################################################␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m[ ] Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-unicode-80-40: width 80, height 40, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrunall states␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Run All on debian13 with each row's state beside Run␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAll's outcome: decision 10's alternative, drawn, not played.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80-40: width 80, height 40, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mrunall states␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Run All on debian13 with each row's state beside Run␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAll's outcome: decision 10's alternative, drawn, not played.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m######################################################␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m[ ] Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$

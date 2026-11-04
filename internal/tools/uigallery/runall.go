@@ -21,10 +21,10 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
-	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -69,6 +69,8 @@ const (
 	raNoChange  = "Nothing to change"
 	raOneChange = "Plan, review, confirm"
 	raQuestion  = "Apply this plan?"
+	raUserMgmt  = "User Management's: "
+	raRows      = "Controls"
 	// raPendingWords are the SSH Login screen's (pkg/screens/ssh), where
 	// revert's own would name the change.
 	raPendingWords = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
@@ -92,8 +94,11 @@ var (
 
 // raYML is the hosts' hardn.yml: george with a key, port 22, two
 // nameservers, backups on, and every key Run All reads asking (decision 3).
-func raYML(port int) string {
-	return "username: george\nsshKeys:\n  - \"" + synthKey(1, "george@laptop-1") + "\"\n" +
+func raYML(port int) string { return raYMLFor("george", 1, port) }
+
+// raYMLFor is raYML asking for user, with the key of seed.
+func raYMLFor(user string, seed byte, port int) string {
+	return "username: " + user + "\nsshKeys:\n  - \"" + synthKey(seed, user+"@laptop-1") + "\"\n" +
 		fmt.Sprintf("sshPort: %d\n", port) +
 		"nameservers:\n  - \"" + dnsList[0] + "\"\n  - \"" + dnsList[1] + "\"\n" +
 		"enableBackups: true\nbackupPath: /var/backups/hardn\n" +
@@ -144,7 +149,13 @@ func raHosts() []raHost {
 		{name: "refused", label: "One refuses", about: "Auto Updates refuses", host: raRefusedHost,
 			note: deb + "debian13 with apt-daily-upgrade.timer disabled by the administrator: Auto Updates refuses; Run All plans the rest (decision 2)."},
 		{name: "pending", label: "Confirm pending", about: "A change waits", host: raPendingHost,
-			note: deb + "debian13 a minute after an SSH port change to 2230, not yet confirmed: every plan refuses until hardn confirm."},
+			note: deb + "debian13 a minute after an SSH port change to 2230, not yet confirmed: nothing is planned until hardn confirm."},
+		{name: "ufw-inactive", label: "ufw inactive", about: "Firewall and root login", host: raUFWInactive,
+			note: deb + "debian13 with ufw installed and inactive, no rule, and the nameservers set: Enable and root login off in one plan. " + yml},
+		{name: "new-admin", label: "New admin", about: "carol and root login", host: raNewAdmin,
+			note: deb + "debian13 with the nameservers set and hardn.yml asking carol with a key: Create carol and root login off in one plan, from george's session."},
+		{name: "george-no-sudo", label: "george, no sudo", about: "User left to User Management", host: raGeorgeNoSudo,
+			note: deb + "debian13 where george has keys and no sudo rule, alice the admin; hardn through su from george's session. " + yml},
 	}
 }
 
@@ -198,11 +209,30 @@ func raRefusedHost() *fakeHost {
 
 func raPendingHost() *fakeHost { return withApt(sshConfirmWindow(), autoOn).withHardnYML(raYML(22)) }
 
+func raUFWInactive() *fakeHost {
+	h := raDebian13()
+	h.ufwAsShipped()
+	return raResolved(h)
+}
+
+func raNewAdmin() *fakeHost {
+	return raResolved(withApt(sshDebian13(), autoOn).withHardnYML(raYMLFor("carol", 3, 22)))
+}
+
+func raGeorgeNoSudo() *fakeHost {
+	g := george(debian13Platform)
+	g.groups = []string{"adm"}
+	h := usersOn(debian13Platform, false, g, alice()).rootLike(syntheticHash)
+	h.sshFile(sshd.MainConfig, debianMain, 0o644)
+	return withApt(h.withLog("publickey", "george", 1), autoOn).withHardnYML(raYML(22))
+}
+
 // raEnvOf is hardn's environment on the host named name: root's own login
-// on fresh and Proxmox VE, george's on 2230 where sshd listens there.
+// on fresh and Proxmox VE, root's through su on george-no-sudo, george's
+// on 2230 where sshd listens there.
 func raEnvOf(name string) map[string]string {
 	switch name {
-	case "fresh", "pve9":
+	case "fresh", "pve9", "george-no-sudo":
 		return raRootEnv
 	case "hardened":
 		return map[string]string{"SSH_CONNECTION": confirmConn, "SUDO_USER": "george"}
@@ -232,6 +262,10 @@ type raReading struct {
 	rows    []raRow
 	plan    *engine.Plan
 	refusal string
+	// busy: a change waits for hardn confirm, or its rollback has not
+	// finished (revert.State.Busy), read once before any control is
+	// planned.
+	busy bool
 }
 
 // raIDs are the rows' controls, in the screen's order: the main menu's
@@ -323,6 +357,11 @@ func readRA(ctx context.Context, h *fakeHost, env map[string]string) (raReading,
 	if r.reports, err = e.Check(ctx, raChecked(cfg, getenv)); err != nil {
 		return raReading{}, err
 	}
+	st, err := revert.ReadState(ctx, h.system(), raRevert)
+	if err != nil {
+		return raReading{}, err
+	}
+	r.busy = st.Busy()
 	r.rows = r.pick(ctx, h, getenv)
 	for _, rw := range r.rows {
 		if rw.refusal != "" && rw.does == raPending {
@@ -336,7 +375,7 @@ func readRA(ctx context.Context, h *fakeHost, env map[string]string) (raReading,
 		}
 	}
 	if len(planned) > 0 && r.refusal == "" {
-		p, err := raEngine(h, r.sess, nil, &updQuiet).Plan(ctx, planned, cfg)
+		p, err := raEngine(h, r.sess, cfg, nil, &updQuiet).Plan(ctx, planned, cfg)
 		switch {
 		case err != nil:
 			r.refusal = screenkit.RefusalWords(err)
@@ -352,9 +391,12 @@ func readRA(ctx context.Context, h *fakeHost, env map[string]string) (raReading,
 // hardn.yml asks nothing of, or that Run All leaves alone, says so; a
 // control not applicable here, by its check, is skipped; the port is
 // already as asked where sshd listens on it, else left to SSH Login
-// (decision 3); else the control is planned alone, writing nothing: a
-// refusal skips it, its words under the row (decision 2), and a plan with
-// no change is already as asked.
+// (decision 3); where a change waits for hardn confirm (busy), every other
+// row asked of is "Change pending", none planned, whatever its control
+// would plan, with the SSH Login screen's words (a stand-in, unit (b)'s);
+// else the control is planned alone, writing nothing: a refusal skips it,
+// its words on the row (decision 2), and a plan with no change is already
+// as asked.
 func (r raReading) pick(ctx context.Context, h *fakeHost, getenv func(string) string) []raRow {
 	var rows []raRow
 	for _, id := range raIDs() {
@@ -370,11 +412,13 @@ func (r raReading) pick(ctx context.Context, h *fakeHost, getenv func(string) st
 			rw.does = rep.Status.Detail
 		case id == ssh.Port{}.ID():
 			rw.does, rw.refusal = r.port(ctx, h, getenv)
+		case r.busy:
+			rw.does, rw.refusal = raPending, raPendingWords
 		default:
 			if id == (ssh.Login{}).ID() && r.facts.Platform.Distro == detect.DistroProxmox {
 				words = "Root key-only"
 			}
-			rw.does, rw.refusal, rw.planned = r.alone(ctx, h, c, words)
+			rw.does, rw.refusal, rw.planned = r.alone(ctx, h, c, words, getenv)
 			if rw.planned {
 				rw.control = c
 			}
@@ -399,9 +443,10 @@ func (r raReading) port(ctx context.Context, h *fakeHost, getenv func(string) st
 }
 
 // alone plans c alone on h, writing nothing, and returns the row's words,
-// a refusal's words and whether Run All plans it.
-func (r raReading) alone(ctx context.Context, h *fakeHost, c engine.Control, words string) (string, string, bool) {
-	p, err := raEngine(h, r.sess, nil, &updQuiet).Plan(ctx, []engine.Control{c}, r.cfg)
+// a refusal's words and whether Run All plans it. A user already there is
+// as asked only where it is an admin with the asked keys (userThere).
+func (r raReading) alone(ctx context.Context, h *fakeHost, c engine.Control, words string, getenv func(string) string) (string, string, bool) {
+	p, err := raEngine(h, r.sess, r.cfg, nil, &updQuiet).Plan(ctx, []engine.Control{c}, r.cfg)
 	if err == nil && len(p.Refused) > 0 {
 		err = p.Refused[0]
 	}
@@ -409,13 +454,46 @@ func (r raReading) alone(ctx context.Context, h *fakeHost, c engine.Control, wor
 	case errors.Is(err, revert.ErrPending):
 		return raPending, raPendingWords, false
 	case errors.Is(err, users.ErrNameTaken):
-		return raAsked, "", false
+		return r.userThere(ctx, h, getenv), "", false
 	case err != nil:
 		return raRefused, screenkit.RefusalWords(err), false
 	case len(p.Changes) == 0:
 		return raAsked, "", false
 	}
 	return words, "", true
+}
+
+// userThere is the User row where hardn.yml's username is taken: already
+// as asked where the users read (users.Read) has it an admin with every
+// key hardn.yml asks for, else what is missing, left to User Management:
+// Run All does not change a user that is there.
+func (r raReading) userThere(ctx context.Context, h *fakeHost, getenv func(string) string) string {
+	rd, err := users.Read(ctx, h.system(), r.facts, getenv)
+	if err != nil {
+		return raUserMgmt + "not read"
+	}
+	i := slices.IndexFunc(rd.Users, func(u users.User) bool { return u.Name == r.cfg.Username })
+	if i < 0 {
+		return raUserMgmt + "name taken"
+	}
+	u := rd.Users[i]
+	var missing []string
+	if u.Admin != detect.Yes {
+		missing = append(missing, "not an admin")
+	}
+	n := 0
+	for _, s := range r.cfg.SshKeys {
+		if k, err := users.ParseKey(s); err != nil || !slices.ContainsFunc(u.Keys, k.Same) {
+			n++
+		}
+	}
+	if n > 0 {
+		missing = append(missing, raKeys(n)+" missing")
+	}
+	if len(missing) == 0 {
+		return raAsked
+	}
+	return raUserMgmt + strings.Join(missing, ", ")
 }
 
 // raReport is the report for control id.
@@ -452,15 +530,21 @@ func (r raReading) refused() []raRow {
 // skipped is the refusals' words, each after its row's label, for the
 // warning shown before the plan.
 func (r raReading) skipped() []string {
-	labels := map[string]string{}
-	for i, row := range r.status().Rows {
-		labels[r.rows[i].id] = row.Label
-	}
 	var out []string
 	for _, rw := range r.refused() {
-		out = append(out, labels[rw.id]+" skipped: "+rw.refusal)
+		out = append(out, r.label(rw.id)+" skipped: "+rw.refusal)
 	}
 	return out
+}
+
+// label is the row id's label, the main menu's (output.StatusViewOf).
+func (r raReading) label(id string) string {
+	for i, row := range r.status().Rows {
+		if i < len(r.rows) && r.rows[i].id == id {
+			return row.Label
+		}
+	}
+	return id
 }
 
 // pending is whether a change waits for hardn confirm.
@@ -471,9 +555,10 @@ func (r raReading) pending() bool {
 // lockout is whether the plan has lockout risk.
 func (r raReading) lockout() bool { return r.plan != nil && r.plan.Risk >= engine.RiskLockout }
 
-// status is the rows: each control's state as the main menu draws it
-// (output.StatusViewOf, with no risk factor), its detail what Run All
-// does, a refusal's words under it.
+// status is the rows as decision 10 (b) draws them, a listing variant:
+// each control's state as the main menu draws it (output.StatusViewOf,
+// with no risk factor), its detail what Run All does, a refusal's words
+// under it.
 func (r raReading) status() component.StatusList {
 	v := output.StatusViewOf(r.reports, risk.Level{})
 	ids := raIDs()
@@ -489,6 +574,22 @@ func (r raReading) status() component.StatusList {
 		}
 	}
 	return v.Status
+}
+
+// outcomes is the rows as decision 10 (a) draws them, drawn and played:
+// each control's label and Run All's outcome alone, a refusal's words
+// after "Refused:" cut to the row; the states are the main menu's.
+func (r raReading) outcomes() screen.Section {
+	var items []component.KeyValue
+	for i, row := range r.status().Rows {
+		rw := r.rows[i]
+		kv := component.KeyValue{Key: row.Label, Value: rw.does}
+		if rw.refusal != "" && rw.does != raPending {
+			kv.Value, kv.Note = rw.does+":", rw.refusal
+		}
+		items = append(items, kv)
+	}
+	return screen.Section{Header: component.SectionHeader{Title: raRows}, Rows: component.BulletList{Items: items}}
 }
 
 // item is the screen's one item: Apply all, unavailable with nothing to
@@ -511,22 +612,29 @@ func (r raReading) item() component.MenuItem {
 	return it
 }
 
-// screen is the Run All screen.
+// screen is the Run All screen, its rows decision 10 (a)'s.
 func (r raReading) screen() screen.SubMenu {
 	return screen.SubMenu{
-		Title: component.TitleBar{Title: raTitle}, Status: r.status(), Heading: "Select an option",
+		Title: component.TitleBar{Title: raTitle}, Sections: []screen.Section{r.outcomes()}, Heading: "Select an option",
 		Menu: component.Menu{Items: []component.MenuItem{r.item()}, Exit: raExit}, Prompt: raPrompt,
 	}
+}
+
+// screenStates is the screen with decision 10 (b)'s rows: the state and
+// the outcome.
+func (r raReading) screenStates() screen.SubMenu {
+	vm := r.screen()
+	vm.Sections, vm.Status = nil, r.status()
+	return vm
 }
 
 // review is the flow's review: one line per control planned, in the
 // screen's order.
 func (r raReading) review() flow.Review {
 	var items []component.KeyValue
-	v := r.screen().Status
-	for i, rw := range r.rows {
+	for _, rw := range r.rows {
 		if rw.planned {
-			items = append(items, component.KeyValue{Key: v.Rows[i].Label, Value: rw.does})
+			items = append(items, component.KeyValue{Key: r.label(rw.id), Value: rw.does})
 		}
 	}
 	return flow.Review{Title: raTitle, Items: items}
@@ -536,17 +644,22 @@ func (r raReading) review() flow.Review {
 func (raReading) question() string { return raQuestion }
 
 // raEngine is the engine over h: the applying session sess, the gallery's
-// clock and s's hold, the backups hardn.yml's defaults.
-func raEngine(h *fakeHost, sess revert.Session, progress func(engine.Event), s *session) *engine.Engine {
+// clock and s's hold, the backups hardn.yml's (EnableBackups, BackupPath),
+// as cmd/hardn's engineOptions builds them.
+func raEngine(h *fakeHost, sess revert.Session, cfg *config.Config, progress func(engine.Event), s *session) *engine.Engine {
 	return engine.New(h.system(), engine.Options{
-		Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
+		Revert:   raRevert,
 		Session:  sess,
-		Backups:  backup.Settings{Path: backup.DefaultPath, Enabled: true},
+		Backups:  cfg.BackupSettings(),
 		Hold:     s.hold,
 		PID:      applyPID,
 		Progress: progress,
 	})
 }
+
+// raRevert is the revert options of the engine and of the state read
+// before planning: the gallery's clock and hardn.
+var raRevert = revert.Options{Now: clock, Hardn: galleryHardn}
 
 // raTyped is a stand-in, unit (b)'s: the flow's engine for Run All, the
 // screen kit's Planning, each plan confirmed by the hostname typed
@@ -674,7 +787,7 @@ func (e *raRunner) kit(r raReading) screenkit.Session {
 			s.engineRuns = append(s.engineRuns, rc)
 			s.mu.Unlock()
 			rc.begin()
-			return raEngine(h, r.sess, func(ev engine.Event) { rc.event(ev); progress(ev) }, s)
+			return raEngine(h, r.sess, r.cfg, func(ev engine.Event) { rc.event(ev); progress(ev) }, s)
 		},
 		Ran: func(run output.Run) {
 			if rec == nil {
@@ -698,8 +811,8 @@ func raReadNamed(ctx context.Context, name string) (raReading, *fakeHost, error)
 	return r, h, err
 }
 
-// raMocks are the listing's mocks: the screen on each host, then the main
-// menu's placement and hardn -r's words.
+// raMocks are the listing's mocks: the screen on each host, then the rows
+// with their states, the main menu's placement and hardn -r's words.
 func raMocks() []listMock {
 	var mocks []listMock
 	for _, rh := range raHosts() {
@@ -713,6 +826,14 @@ func raMocks() []listMock {
 			}})
 	}
 	return append(mocks,
+		listMock{name: "states", note: "Run All on debian13 with each row's state beside Run All's outcome: decision 10's alternative, drawn, not played.",
+			draw: func(ctx context.Context, c component.Ctx) (string, error) {
+				r, _, err := raReadNamed(ctx, "debian13")
+				if err != nil {
+					return "", err
+				}
+				return r.screenStates().Render(c), nil
+			}},
 		listMock{name: "main-menu", note: "The main menu with Run All moved to the last item, 10, the rest renumbered: decision 7's alternative, drawn, not played (play keeps 7).", draw: raMainMenu},
 		listMock{name: "flag", note: "hardn -r's words, proposed (decision 8): off a terminal, with another operation flag.", draw: raFlagWords},
 	)
@@ -778,5 +899,5 @@ func raStart(args []string) (string, bool, error) {
 // raNote is play's note for the mock.
 const raNote = "Play mode, mocks: the Run All screen proposed for slice 8, each row's state from the control's real Check, " +
 	"each change the real control's Plan, all of them in one plan on the real plan/apply engine. " +
-	"Which controls hardn.yml asks for, how a row is skipped, and the hostname asked whatever the risk are the gallery's stand-ins, unit (b)'s to build. " +
+	"Which controls hardn.yml asks for, how a row is skipped, a change pending read before any plan, and the hostname asked whatever the risk are the gallery's stand-ins, unit (b)'s to build. " +
 	"Nothing on this machine changes: every command and file is the fake's."
