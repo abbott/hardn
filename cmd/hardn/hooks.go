@@ -12,7 +12,6 @@ package main
 import (
 	"context"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -54,7 +53,7 @@ func runMenu(ctx context.Context, o mainmenu.Options) {
 	}
 	code, aborted := prompt.ExitCode(err)
 	if !aborted {
-		fmt.Println(err)
+		sayError("%v", err)
 		code = 1
 	}
 	exit(code)

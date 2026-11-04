@@ -33,8 +33,8 @@ func childMenu() mainmenu.Options {
 
 // TestRunMenuEnds: runMenu ends hardn as the main menu's error says: Exit
 // or q ends nothing; the end of the input exits 130; Ctrl-C at the prompt
-// ends hardn by SIGINT (reraise); any other error is printed on stdout and
-// exits 1.
+// ends hardn by SIGINT (reraise); any other error is said on stderr, not
+// stdout, and exits 1.
 func TestRunMenuEnds(t *testing.T) {
 	failed := errors.New("main menu: status: broken")
 	for _, tc := range []struct {
@@ -51,8 +51,10 @@ func TestRunMenuEnds(t *testing.T) {
 		{name: "another error", err: failed, code: 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			exitWas, reraiseWas := exit, reraise
-			t.Cleanup(func() { exit, reraise = exitWas, reraiseWas })
+			exitWas, reraiseWas, stderrWas, envWas := exit, reraise, stderr, stderrEnv
+			t.Cleanup(func() { exit, reraise, stderr, stderrEnv = exitWas, reraiseWas, stderrWas, envWas })
+			var errOut bytes.Buffer
+			stderr, stderrEnv = &errOut, plainEnv
 			code, signalled := -1, false
 			exit = func(c int) { code = c }
 			reraise = func() { signalled = true }
@@ -68,8 +70,8 @@ func TestRunMenuEnds(t *testing.T) {
 			if signalled != tc.signal || (!tc.signal && code != tc.code) {
 				t.Errorf("exit %d, signalled %v; want %d, %v", code, signalled, tc.code, tc.signal)
 			}
-			if tc.code == 1 && !strings.Contains(said, failed.Error()) {
-				t.Errorf("the error is not printed: %q", said)
+			if tc.code == 1 && (!strings.Contains(flat(errOut.String()), "Operation Failed "+failed.Error()) || strings.Contains(said, failed.Error())) {
+				t.Errorf("stderr %q, stdout %q: want the error on stderr alone", errOut.String(), said)
 			}
 		})
 	}
