@@ -1,177 +1,354 @@
 name: Release
 
+# p7-release. The one workflow for a release (refactor plan, Phase 7).
+#
+# On a push of a v* tag: build the binaries, the SBOM and SHA256SUMS; create
+# the release as a draft, its body docs/releases/<tag>.md at the tagged
+# commit; upload every asset; download them back from the draft and check
+# them against SHA256SUMS; only then publish it. A failure anywhere leaves at
+# most a draft, never a published release without its assets (install.sh
+# takes /releases/latest).
+#
+# Tags are v<major>.<minor>.<patch> only: a pre-release tag (v1.2.3-rc1)
+# fails prepare, before anything is built. Which release becomes latest: a tag
+# older (sort -V) than the newest published v* release is published with
+# --latest=false and /releases/latest is not checked; any other tag is
+# published with --latest and /releases/latest must then be that tag.
+#
+# On workflow_dispatch: the same build, SBOM and SHA256SUMS as one workflow
+# artifact, release-assets. No release is created.
+#
+# Reproducible: the ldflags come from the tagged commit (its date, not the
+# clock), with CGO_ENABLED=0, -trimpath, -tags=netgo and go.mod's toolchain,
+# so a rebuild of a tag gives byte-identical binaries. The SBOM's two per-run
+# fields (creationInfo.created, the clock; documentNamespace, a random UUID)
+# are set from the tagged commit's date, the version and the commit, so its
+# bytes, and SHA256SUMS, are the same on a rebuild too. The makefile's LDFLAGS
+# targets and check-cross use the same values and flags. Provenance
+# (actions/attest) is added by p7-provenance.
+
 on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions: {}
 
+concurrency:
+  group: release-${{ github.ref }}
+  # Never cancel a run half-way through a release.
+  cancel-in-progress: false
+
+env:
+  GOWORK: "off"
+  GOFLAGS: -mod=readonly
+  # Every asset of a release, SHA256SUMS aside. install.sh's table names the
+  # binaries; the build matrix below must produce exactly these.
+  ASSETS: hardn-linux-amd64 hardn-linux-arm64 hardn-darwin-amd64 hardn-sbom.spdx.json
+
 jobs:
-  # Generate ldflags dynamically for both workflows
-  args:
+  prepare:
+    name: Version and release notes
     runs-on: ubuntu-latest
     permissions:
-      contents: read  # For checkout
+      contents: read
     outputs:
-      commit-date: ${{ steps.ldflags.outputs.commit-date }}
-      commit: ${{ steps.ldflags.outputs.commit }}
       version: ${{ steps.ldflags.outputs.version }}
-      tree-state: ${{ steps.ldflags.outputs.tree-state }}
+      commit: ${{ steps.ldflags.outputs.commit }}
+      build-date: ${{ steps.ldflags.outputs.build-date }}
     steps:
-      - id: checkout
+      - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
           persist-credentials: false
-      - id: ldflags
-        run: |
-          {
-            echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)"
-            echo "commit=$GITHUB_SHA"
-            echo "version=${GITHUB_REF#refs/tags/v}"
-            echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)"
-          } >> "$GITHUB_OUTPUT"
 
-  # Create the release
-  release:
-    needs: args
+      - name: Version, commit and date for the ldflags
+        id: ldflags
+        run: |
+          set -euo pipefail
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            # Checked before it reaches a file name or an ldflag.
+            # No pre-release suffix: a release is always a full version.
+            if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'; then
+              echo "::error::tag $GITHUB_REF_NAME is not v<major>.<minor>.<patch> (pre-release tags are not released). Nothing was built."
+              exit 1
+            fi
+            version=${GITHUB_REF_NAME#v}
+          else
+            # A build-only run from a branch: no release version.
+            version=0.0.0-dev
+          fi
+          commit=$(git rev-parse HEAD)
+          build_date=$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ HEAD)
+          {
+            echo "version=$version"
+            echo "commit=$commit"
+            echo "build-date=$build_date"
+          } >> "$GITHUB_OUTPUT"
+          echo "version=$version commit=$commit build-date=$build_date"
+
+      - name: Release notes exist (tag push only)
+        if: github.event_name == 'push'
+        run: |
+          set -euo pipefail
+          notes="docs/releases/${GITHUB_REF_NAME}.md"
+          if [ ! -s "$notes" ]; then
+            echo "::error::$notes is missing or empty at the tagged commit: the release body comes from it. Nothing was created."
+            exit 1
+          fi
+
+  build:
+    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    needs: prepare
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # For creating the release
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          fetch-depth: 0
-          persist-credentials: false
-
-      - name: Set up Go
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache: false  # No cache in release jobs (cache poisoning)
-
-      - name: Remove replace directive for release
-        run: |
-          if grep -q "replace github.com/abbott/hardn" go.mod; then
-            echo "Removing replace directive from go.mod..."
-            sed -i '/replace github.com\/abbott\/hardn/d' go.mod
-            go mod tidy
-          fi
-
-      - name: Sync vendor directory
-        run: |
-          echo "Syncing vendor directory with go.mod..."
-          go mod vendor
-          echo "Vendor directory synced successfully."
-
-      - name: Run tests
-        run: |
-          # First ensure vendor directory is synced
-          go mod vendor
-          # Then run tests with vendor mode
-          go test -mod=vendor ./...
-
-      - name: Generate changelog
-        id: changelog
-        run: |
-          # Collect commit messages since last tag
-          PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -z "$PREV_TAG" ]; then
-            git log --pretty=format:"* %s (%h)" > CHANGELOG.md
-          else
-            git log --pretty=format:"* %s (%h)" "$PREV_TAG..HEAD" > CHANGELOG.md
-          fi
-
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          # The SLSA build job may have created the release first: update it then
-          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
-            gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
-              --notes-file CHANGELOG.md --draft=false --prerelease=false
-          else
-            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
-              --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md --verify-tag
-          fi
-
-  # SLSA provenance generation with matrix builds
-  build:
-    needs: args
-    permissions:
-      id-token: write  # For signing the provenance
-      contents: write  # For uploading assets
-      actions: read    # For reading workflow path (the builder's provenance job)
+      contents: read
     strategy:
+      fail-fast: true
+      # The release targets (decision 6). The makefile's CHECK_CROSS_TARGETS
+      # names the same three.
       matrix:
         include:
-          - os: linux
-            arch: amd64
-          - os: linux
-            arch: arm64
-          - os: darwin
-            arch: amd64
-    # Referenced by its release tag, not a commit: the builder's README requires
-    # @vX.Y.Z (internal/builders/go/README.md@v2.1.0, "MUST be referenced by a tag").
-    uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
-    with:
-      go-version-file: go.mod
-      evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
-      config-file: .slsa-goreleaser/${{ matrix.os }}-${{ matrix.arch }}.yml
-      upload-assets: true
-
-  # Generate SBOM after the release and the binaries
-  sbom:
-    needs: [release, build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # For uploading to release
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
     steps:
-      - name: Checkout code
+      - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
-      - name: Generate SBOM
-        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
-        with:
-          format: spdx-json
-          output-file: hardn-sbom.spdx.json
-          upload-artifact: false  # Disable artifact upload
-
-      - name: Upload SBOM to release
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh release upload "$GITHUB_REF_NAME" hardn-sbom.spdx.json \
-            --repo "$GITHUB_REPOSITORY" --clobber
-
-  # Add this job to run tests with controlled environment variables
-  test:
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read  # For checkout
-    env:
-      # Set hostname for testing to ensure consistent test environment
-      HOSTNAME: testhost
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up Go
+      - name: Set up Go from go.mod
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod
-          cache: false  # No cache in release jobs (cache poisoning)
+          cache: false  # No cache in a release (cache poisoning)
 
-      - name: Run tests
-        run: go test -v ./...
+      - name: Go is go.mod's toolchain line
+        run: |
+          set -eu
+          want_go=$(sed -n 's/^toolchain //p' go.mod)
+          got_go=$(GOTOOLCHAIN=local go env GOVERSION)
+          [ -n "$want_go" ] && [ "$got_go" = "$want_go" ] || {
+            echo "::error file=go.mod::setup-go installed $got_go, not go.mod's toolchain line ($want_go)"
+            exit 1
+          }
+
+      # The makefile's check-cross flags; its LDFLAGS set the same variables.
+      - name: Build
         env:
-          # Explicitly set test hostname environment variable
-          HOSTNAME: testhost
-          # Ensure hostname is fixed for tests
-          TEST_HOSTNAME_OVERRIDE: testhost
+          CGO_ENABLED: "0"
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ needs.prepare.outputs.version }}
+          COMMIT: ${{ needs.prepare.outputs.commit }}
+          BUILD_DATE: ${{ needs.prepare.outputs.build-date }}
+        run: |
+          set -euo pipefail
+          out="dist/hardn-${GOOS}-${GOARCH}"
+          go build -trimpath -tags=netgo \
+            -ldflags "-X main.Version=${VERSION} -X main.GitCommit=${COMMIT} -X main.BuildDate=${BUILD_DATE}" \
+            -o "$out" ./cmd/hardn
+          go version -m "$out"
+          sha256sum "$out"
+
+      - name: Upload the binary
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bin-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/hardn-${{ matrix.goos }}-${{ matrix.goarch }}
+          if-no-files-found: error
+          retention-days: 7
+
+  sbom:
+    name: SBOM
+    needs: prepare
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Generate the SBOM
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
+        with:
+          path: .
+          format: spdx-json
+          output-file: hardn-sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false  # The release job uploads every asset
+
+      # syft writes the clock into creationInfo.created and a random UUID into
+      # documentNamespace. Both are set from the tagged commit, so a rebuild
+      # of a tag gives the same bytes.
+      - name: Make the SBOM reproducible
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          COMMIT: ${{ needs.prepare.outputs.commit }}
+          BUILD_DATE: ${{ needs.prepare.outputs.build-date }}
+        run: |
+          set -euo pipefail
+          f=hardn-sbom.spdx.json
+          jq -e '.creationInfo.created and .documentNamespace' "$f" > /dev/null || {
+            echo "::error::$f has no creationInfo.created or documentNamespace"
+            exit 1
+          }
+          jq --arg created "$BUILD_DATE" \
+            --arg ns "https://github.com/${GITHUB_REPOSITORY}/spdx/hardn-${VERSION}-${COMMIT}" \
+            '.creationInfo.created = $created | .documentNamespace = $ns' "$f" > "$f.tmp"
+          mv "$f.tmp" "$f"
+          jq '{created: .creationInfo.created, namespace: .documentNamespace}' "$f"
+
+      - name: Upload the SBOM
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: sbom
+          path: hardn-sbom.spdx.json
+          if-no-files-found: error
+          retention-days: 7
+
+  checksums:
+    name: SHA256SUMS
+    needs: [build, sbom]
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Download the binaries and the SBOM
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          # Every artifact of the run so far: the bin-* and sbom ones.
+          path: dist
+          merge-multiple: true
+
+      - name: Write SHA256SUMS
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          read -ra assets <<< "$ASSETS"
+          # Exactly the expected assets, no more and no fewer.
+          want=$(printf '%s\n' "${assets[@]}" | sort)
+          got=$(find . -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+          if [ "$want" != "$got" ]; then
+            printf 'Expected:\n%s\nFound:\n%s\n' "$want" "$got"
+            echo "::error::the downloaded files are not exactly ASSETS"
+            exit 1
+          fi
+          sha256sum "${assets[@]}" > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Upload the release assets
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-assets
+          path: dist/
+          if-no-files-found: error
+          retention-days: 30
+
+  release:
+    name: Release (draft, check, publish)
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: [prepare, checksums]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Create, upload to and publish the release
+    env:
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: Check out (for the release notes)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Download the release assets
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-assets
+          path: dist
+
+      - name: Check the assets against SHA256SUMS
+        working-directory: dist
+        run: |
+          set -euo pipefail
+          sha256sum --strict -c SHA256SUMS
+          want=$( (awk '{ print $2 }' SHA256SUMS; echo SHA256SUMS) | sort)
+          got=$(find . -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+          [ "$want" = "$got" ] || { echo "::error::dist holds files SHA256SUMS does not list"; exit 1; }
+
+      - name: No release exists for the tag yet
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # Drafts included: they are listed to a token with push access.
+          found=$(gh api --paginate "repos/$GH_REPO/releases" \
+            --jq '.[] | "\(.tag_name) id=\(.id) draft=\(.draft)"' |
+            awk -v t="$GITHUB_REF_NAME" '$1 == t')
+          if [ -n "$found" ]; then
+            echo "::error::a release for $GITHUB_REF_NAME already exists ($found). Delete it by hand (a draft left by a failed run), then rerun."
+            exit 1
+          fi
+
+      - name: Create the release as a draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          notes="docs/releases/${GITHUB_REF_NAME}.md"
+          [ -s "$notes" ] || { echo "::error::$notes is missing or empty"; exit 1; }
+          gh release create "$GITHUB_REF_NAME" --draft --verify-tag \
+            --title "$GITHUB_REF_NAME" --notes-file "$notes"
+
+      - name: Upload every asset to the draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release upload "$GITHUB_REF_NAME" dist/*
+
+      - name: Download the assets back from the draft and check them
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir back
+          gh release download "$GITHUB_REF_NAME" --dir back
+          # The SHA256SUMS on the draft is the one this run wrote.
+          cmp dist/SHA256SUMS back/SHA256SUMS
+          (cd back && sha256sum --strict -c SHA256SUMS)
+          want=$(find dist -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+          got=$(find back -mindepth 1 -maxdepth 1 -printf '%f\n' | sort)
+          [ "$want" = "$got" ] || {
+            printf 'Expected:\n%s\nOn the draft:\n%s\n' "$want" "$got"
+            echo "::error::the draft's assets differ from this run's"
+            exit 1
+          }
+
+      - name: Publish (latest unless an older version)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # The newest published, non-pre-release v* release. This tag's own
+          # release is still a draft, so it is not among them.
+          tags=$(gh api --paginate "repos/$GH_REPO/releases" \
+            --jq '.[] | select(.draft == false and .prerelease == false) | .tag_name')
+          newest=$(printf '%s\n' "$tags" | grep -Ex 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 || true)
+          if [ -n "$newest" ] &&
+            [ "$(printf '%s\n%s\n' "$newest" "$GITHUB_REF_NAME" | sort -V | tail -n 1)" = "$newest" ]; then
+            echo "$GITHUB_REF_NAME is older than $newest: published with --latest=false."
+            gh release edit "$GITHUB_REF_NAME" --draft=false --latest=false
+            exit 0
+          fi
+          gh release edit "$GITHUB_REF_NAME" --draft=false --latest
+          latest=$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)
+          [ "$latest" = "$GITHUB_REF_NAME" ] || {
+            echo "::error::published, but /releases/latest is $latest, not $GITHUB_REF_NAME"
+            exit 1
+          }

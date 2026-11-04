@@ -36,7 +36,6 @@
 
 !docs/**/*.md
 !.github/**/*.yml
-!.slsa-goreleaser/**/*.yml
 !.golangci.yml
 
 # Test fixtures and golden files (Phase 0.7, 1D, 6)
@@ -45,9 +44,6 @@
 
 # Design-system review screenshots (freeze PNGs) and README images
 !docs/**/*.png
-
-# SLSA
-!.slsa-goreleaser.yml
 
 # Allow directories (to enable more granular allow rules)
 !*/
