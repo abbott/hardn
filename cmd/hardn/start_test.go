@@ -9,6 +9,7 @@ import (
 	"os"
 	osuser "os/user"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -288,6 +289,62 @@ func TestStartWritesNothing(t *testing.T) {
 			}
 			if w := r.written(t); len(w) != 0 {
 				t.Errorf("wrote %v; stderr:\n%s", w, r.stderr)
+			}
+		})
+	}
+}
+
+// startYML is the hardn.yml the first-run offer writes under a start run's root.
+const startYML = "etc/hardn/hardn.yml"
+
+// offerAnsweredYes is runStartWith's setup for root with no hardn.yml found, the
+// first-run question on a terminal answered yes: loadConfig writes hardn.yml under
+// the run's root (start's log path less startLog), as the offer does; loadExisting,
+// which never offers, the defaults; the OS check's error osErr, nil for Debian 13.
+// asked records that the offer was made.
+func offerAnsweredYes(osErr error, asked *bool) func() {
+	return asRootStart(func() {
+		loadConfig = func(string) (*config.Config, error) {
+			*asked = true
+			p := filepath.Join(strings.TrimSuffix(startLogPath, startLog), startYML)
+			if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+				return nil, err
+			}
+			return config.DefaultConfig(), os.WriteFile(p, []byte("username: \"\"\n"), 0o600)
+		}
+		detectOS = func() error { return osErr }
+		startMenu = func(context.Context, mainmenu.Options) {}
+	})
+}
+
+// TestStartFirstRunOffer: the first-run question is asked after the OS check, so that
+// a host hardn refuses is never offered hardn.yml, and not under -n, which loads
+// hardn.yml where one is found, the defaults where none is (loadExisting), and so
+// writes nothing; a yes on a live run writes hardn.yml, asked for, even where a refusal
+// follows (-c with no user).
+func TestStartFirstRunOffer(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		osErr error
+		args  []string
+		asked bool
+		code  int // 0: not ended
+		wrote []string
+	}{
+		{"an unsupported OS", errors.New("test: Fedora isn't supported"), []string{"-g"}, false, 1, nil},
+		{"an unsupported OS, the main menu", errors.New("test: Fedora isn't supported"), nil, false, 1, nil},
+		{"-n, the main menu", nil, []string{"-n"}, false, 0, nil},
+		{"-n -c with no user", nil, []string{"-n", "-c"}, false, 1, nil},
+		{"live, -c with no user", nil, []string{"-c"}, true, 1, []string{"etc", "etc/hardn", startYML}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			asked := false
+			r := runStartWith(t, logHost(readerLog), offerAnsweredYes(tc.osErr, &asked), tc.args...)
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code || asked != tc.asked {
+				t.Errorf("ended %v with %d (want %d), offered %v (want %v); stderr:\n%s", r.ended, r.code, tc.code, asked, tc.asked, r.stderr)
+			}
+			if w := r.written(t); !slices.Equal(w, tc.wrote) {
+				t.Errorf("wrote %v, want %v; stderr:\n%s", w, tc.wrote, r.stderr)
 			}
 		})
 	}

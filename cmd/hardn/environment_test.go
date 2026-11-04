@@ -539,9 +539,9 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 				if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 					t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stdout, r.stderr)
 				}
-				want := []string{"root check", "config load", "OS detection"}
+				want := []string{"root check", "OS detection", "config load"}
 				if spelling[0] == "setup-sudo-env" {
-					want = want[:2] // it detects no OS: the engine does
+					want = []string{"root check", "config load"} // it detects no OS: the engine does
 				}
 				if strings.Join(r.reached, ",") != strings.Join(want, ",") {
 					t.Errorf("reached %v, want %v: after the root check and the configuration's load", r.reached, want)

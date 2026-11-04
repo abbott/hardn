@@ -463,6 +463,7 @@ func TestCreateUserNoName(t *testing.T) {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardnWith(t, asRoot, func() {
 				loadConfig = func(string) (*config.Config, error) { return config.DefaultConfig(), nil }
+				loadExisting = loadConfig // -n's
 			}, args...)
 			if !r.ended || r.code != 1 || !strings.HasSuffix(flat(r.stderr), "Operation Failed Please specify a username with -u flag or in the configuration file.") || r.stdout != "" {
 				t.Errorf("ended %v with %d; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.stdout, r.stderr)
