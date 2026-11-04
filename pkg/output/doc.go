@@ -33,8 +33,9 @@
 // Human, ExitCode) through it, the DNS screen's changes through FlowEngine,
 // and hardn system-details --output json (slice 1, unit (d): Build,
 // WriteJSON); nothing else: the rest of refactor plan §3.11 (--output json
-// on any other command, --yes) is not approved, and the audit log's first
-// writer comes with next/p3-startup. docs/reference/output.md is the public contract;
+// on any other command) is not approved. Since next/p3-startup it appends
+// each engine run, a flag's or a screen's change, to the audit log
+// (Append, NewRecord). docs/reference/output.md is the public contract;
 // docs/engine/output.md says what this package guarantees.
 //
 // It reaches the host only through host.System (depguard rule
