@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	envctl "github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
@@ -107,12 +108,14 @@ var errNotRoot = errors.New("not root")
 // exit status 1 for a failed lookup or a user other than root, in the
 // root command's words. It returns errNotRoot after exit, which the tests
 // replace.
-// rootHint says how to run hardn as root on this host.
+// rootHint says how to run hardn as root on this host (revert.Hardn): with
+// sudo, sudo -i to switch to root; with doas, or neither, su.
 func rootHint() string {
-	if revertElevate() == "doas" {
-		return "Run `doas hardn` or switch to root `su`"
+	su := "su"
+	if revertElevate() == "sudo" {
+		su = "sudo -i"
 	}
-	return "Run `sudo hardn` or switch to root `sudo -i`"
+	return "Run `" + revert.Hardn(revertElevation()) + "` or switch to root `" + su + "`"
 }
 
 func checkRoot() error {

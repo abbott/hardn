@@ -62,7 +62,7 @@ func (h Held) Report(o Outcome) Report {
 	case errors.Is(o.Err, engine.ErrPlanChanged) || errors.Is(o.Err, host.ErrLocked) || errors.Is(o.Err, revert.ErrPending):
 		return w.finish(Report{Left: []string{"Another hardn run changed the host, held its lock or left a change journalled (above), and may have dropped " +
 			w.ports() + ", which change " + h.Change.ID + " held during its confirm window: whether " + w.it(true) + " " + w.is() + " still open is not established."}},
-			"If `"+w.elevate()+" sshd -T` still shows "+w.ports()+", "+w.again()+".")
+			"If `"+w.root("sshd -T")+"` still shows "+w.ports()+", "+w.again()+".")
 	}
 	if why, elsewhere := stays(o.Err); why != "" {
 		r := Report{Left: []string{w.held() + " " + w.stays() + " open: " + why + "."}}
@@ -70,7 +70,7 @@ func (h Held) Report(o Outcome) Report {
 		case elsewhere && h.Carried:
 			return w.finish(r, "To drop "+w.it(false)+", from a new SSH connection to "+w.via()+", made from another machine, by hand: "+w.hand()+".")
 		case elsewhere:
-			return w.finish(r, "Run `"+w.elevate()+" hardn confirm` again from a new SSH connection to "+w.via()+", made from another machine.")
+			return w.finish(r, "Run `"+w.hardn()+" confirm` again from a new SSH connection to "+w.via()+", made from another machine.")
 		}
 		return r
 	}
@@ -112,11 +112,11 @@ func (w words) notRun() Report {
 	case h.Console:
 		return w.finish(Report{Left: []string{w.held() + " " + w.stays() + " open: hardn drops " + w.it(false) + " only from a new SSH connection to " + w.via() +
 			", made from another machine, and a console shows nothing about SSH."}},
-			"Run `"+w.elevate()+" hardn confirm` from one to drop "+w.it(false)+".")
+			"Run `"+w.hardn()+" confirm` from one to drop "+w.it(false)+".")
 	}
 	return w.finish(Report{Left: []string{fmt.Sprintf("%s %s open: %s %s in %s; this session cannot finish its clean-up: %v.",
 		w.held(), w.stays(), w.lines(), w.stays(), sshd.HardnDropIn, h.Refused)}},
-		"Run `"+w.elevate()+" hardn confirm` from a new SSH connection to "+w.via()+", made from another machine.")
+		"Run `"+w.hardn()+" confirm` from a new SSH connection to "+w.via()+", made from another machine.")
 }
 
 // done is the report of a clean-up applied: the ports dropped, and ufw's
@@ -132,7 +132,7 @@ func (w words) done() Report {
 	} else if kept := w.rules(false); kept != "" {
 		var cmds []string
 		for _, p := range w.notAdded() {
-			cmds = append(cmds, "`"+w.elevate()+" ufw delete allow "+strconv.Itoa(int(p))+"/tcp`")
+			cmds = append(cmds, "`"+w.root("ufw delete allow "+strconv.Itoa(int(p))+"/tcp")+"`")
 		}
 		it, removes := "it", "removes it"
 		if len(cmds) > 1 {
@@ -170,16 +170,16 @@ func (w words) again() string {
 	if w.h.Carried {
 		return "drop " + w.it(false) + " by hand, from a new SSH connection to " + w.via() + ", made from another machine (" + w.lost() + "): " + w.hand()
 	}
-	return "run `" + w.elevate() + " hardn confirm` again from a new SSH connection to " + w.via() + ", made from another machine; or by hand: " + w.hand()
+	return "run `" + w.hardn() + " confirm` again from a new SSH connection to " + w.via() + ", made from another machine; or by hand: " + w.hand()
 }
 
 // hand is the clean-up by hand: the Port lines deleted, the configuration
 // checked, the reload as sshd is started here, and ufw's rules that hardn
 // added deleted.
 func (w words) hand() string {
-	s := "delete " + w.lines() + " from " + sshd.HardnDropIn + ", check the configuration with `" + w.elevate() + " sshd -t`, then " + w.reload()
+	s := "delete " + w.lines() + " from " + sshd.HardnDropIn + ", check the configuration with `" + w.root("sshd -t") + "`, then " + w.reload()
 	for _, p := range w.added() {
-		s += ", and `" + w.elevate() + " ufw delete allow " + strconv.Itoa(int(p)) + "/tcp`"
+		s += ", and `" + w.root("ufw delete allow "+strconv.Itoa(int(p))+"/tcp") + "`"
 	}
 	return s
 }
@@ -316,23 +316,33 @@ func (w words) rules(added bool) string {
 	return "rules for " + strings.Join(specs, " and ")
 }
 
-// elevate is the host's elevation tool: doas where it is the one there
-// (Alpine), sudo otherwise, as pkg/output words its commands; sudo when
-// no plan established it (finish adds that doas takes its place where sudo
-// is not installed).
-func (w words) elevate() string { return w.f.Elevation.Command() }
+// hardn is how to run hardn as root here, as pkg/output words its
+// commands (revert.Hardn): "doas hardn" where doas is the tool there
+// (Alpine), "hardn" where neither sudo nor doas is installed (Proxmox VE as
+// installed), "sudo hardn" otherwise, and where no plan established the
+// tools (finish adds that doas takes sudo's place where it is not
+// installed).
+func (w words) hardn() string { return revert.Hardn(w.f.Elevation) }
+
+// root is cmd run as root here: after the host's elevation tool, as hardn,
+// or bare where neither sudo nor doas is installed (revert.Elevate).
+func (w words) root(cmd string) string {
+	if e := revert.Elevate(w.f.Elevation); e != revert.NoElevation {
+		return e + " " + cmd
+	}
+	return cmd
+}
 
 // reload is the reload that makes sshd read 00-hardn.conf again, by hand,
 // as reload.PlanFor plans it for how sshd is started (reload.md §2).
 func (w words) reload() string {
-	e := w.elevate()
 	switch w.f.SSH.Mode {
 	case detect.SSHService:
-		return "`" + e + " systemctl reload ssh.service`"
+		return "`" + w.root("systemctl reload ssh.service") + "`"
 	case detect.SSHSocket:
-		return "`" + e + " systemctl daemon-reload` and `" + e + " systemctl restart ssh.socket`"
+		return "`" + w.root("systemctl daemon-reload") + "` and `" + w.root("systemctl restart ssh.socket") + "`"
 	case detect.SSHOpenRC:
-		return "`" + e + " rc-service sshd reload`"
+		return "`" + w.root("rc-service sshd reload") + "`"
 	}
 	return "reload sshd as its init system does"
 }

@@ -110,13 +110,19 @@ func TestPrintLogAlone(t *testing.T) {
 }
 
 // TestPrintLogStates: each state's stdout, stderr and exit status, as a user and as
-// root: Printed.Stderr's lines with the tool or none; a failed write is a failure.
+// root: Printed.Stderr's lines with the tool or none (as root, or with neither sudo
+// nor doas); a failed write is a failure.
 func TestPrintLogStates(t *testing.T) {
 	const missing = "hardn: no log yet: " + logview.File
 	const denied = "hardn: can't read " + logview.File + ": permission denied"
 	doas := func() host.System {
 		h := hostfake.New(host.Options{})
 		h.AddFile("/usr/bin/doas", nil, 0o755, 0, 0)
+		return refusingRead{h}
+	}
+	sudo := func() host.System { // the words say sudo (with neither tool, no line)
+		h := logHost(readerLog)
+		h.AddFile("/usr/bin/sudo", nil, 0o755, 0, 0)
 		return refusingRead{h}
 	}
 	for _, tc := range []struct {
@@ -132,10 +138,11 @@ func TestPrintLogStates(t *testing.T) {
 		{name: "lines, a user", sys: logHost(readerLog), user: true, stdout: readerLog},
 		{name: "no log, a user", sys: logHost(""), user: true, stderr: missing + "\n"},
 		{name: "no log, a terminal", sys: logHost(""), user: true, terminal: true, stderr: missing + "\n"},
-		{name: "refused, a user", sys: refusingRead{logHost(readerLog)}, user: true, stderr: denied + "\nRun it with sudo.\n", code: 1},
+		{name: "refused, a user", sys: sudo(), user: true, stderr: denied + "\nRun it with sudo.\n", code: 1},
+		{name: "refused, a user, neither sudo nor doas", sys: refusingRead{logHost(readerLog)}, user: true, stderr: denied + "\n", code: 1},
 		{name: "refused, a user on doas", sys: doas(), user: true, stderr: denied + "\nRun it with doas.\n", code: 1},
 		{name: "refused, root", sys: refusingRead{logHost(readerLog)}, stderr: denied + "\n", code: 1},
-		{name: "refused, a terminal", sys: refusingRead{logHost(readerLog)}, user: true, terminal: true, stderr: denied + "\nRun it with sudo.\n", code: 1},
+		{name: "refused, a terminal", sys: sudo(), user: true, terminal: true, stderr: denied + "\nRun it with sudo.\n", code: 1},
 		{name: "a failed write", sys: logHost(readerLog), failing: true, stderr: "hardn: logs print: write: no space left on device\n", code: 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

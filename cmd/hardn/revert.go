@@ -162,9 +162,23 @@ func rollbackArgs(cmd *cobra.Command, args []string) error {
 	return cobra.ExactArgs(1)(cmd, args)
 }
 
-// revertElevate is the command that runs hardn as root on this host.
-func revertElevate() string {
-	return detect.FindElevation(context.Background(), revertHost()).Command()
+// revertElevation is this host's elevation tools.
+func revertElevation() detect.Elevation {
+	return detect.FindElevation(context.Background(), revertHost())
+}
+
+// revertElevate is the tool that runs a command as root on this host:
+// sudo, doas, or revert.NoElevation where neither is installed
+// (revert.Elevate).
+func revertElevate() string { return revert.Elevate(revertElevation()) }
+
+// revertAsRoot is cmd run as root on this host: after its tool, bare where
+// neither sudo nor doas is installed.
+func revertAsRoot(cmd string) string {
+	if e := revertElevate(); e != revert.NoElevation {
+		return e + " " + cmd
+	}
+	return cmd
 }
 
 // revertPreflight refuses -n, which only previews, and a user other than
@@ -176,7 +190,7 @@ func revertPreflight(name string) bool {
 		return false
 	}
 	if revertEUID() != 0 {
-		logging.LogError("hardn %s must be run as root: %s hardn %s", name, revertElevate(), name)
+		logging.LogError("hardn %s must be run as root: %s %s", name, revert.Hardn(revertElevation()), name)
 		revertExit(1)
 		return false
 	}
@@ -286,7 +300,7 @@ func runAbandon(id string) {
 		logging.LogWarning("  - %s", line)
 	}
 	if res.SSHUnchecked {
-		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `%s sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.", revertElevate())
+		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `%s` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.", revertAsRoot("sshd -t"))
 	}
 	logging.LogInfo("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.", res.Kept)
 }

@@ -698,7 +698,8 @@ func TestRevertColour(t *testing.T) {
 
 // TestHostsToolInCommandWords: on a doas host, hardn confirm's refusal to
 // another user and the root check say doas (found on the Alpine 3.23 VM,
-// 2026-10-30); elsewhere they say sudo.
+// 2026-10-30); with neither sudo nor doas (Proxmox VE as installed), hardn
+// alone; elsewhere they say sudo.
 func TestHostsToolInCommandWords(t *testing.T) {
 	s := newRevertSeams(t, 1000)
 	if got := rootHint(); got != "Run `sudo hardn` or switch to root `sudo -i`" {
@@ -717,9 +718,25 @@ func TestHostsToolInCommandWords(t *testing.T) {
 	if out := s.output(t, "confirm"); !strings.Contains(out, "hardn confirm must be run as root: doas hardn confirm") {
 		t.Errorf("doas:\n%s", out)
 	}
+	if err := s.f.Remove(context.Background(), "/usr/bin/doas"); err != nil {
+		t.Fatal(err)
+	}
+	if got := rootHint(); got != "Run `hardn` or switch to root `su`" {
+		t.Errorf("neither: rootHint = %q", got)
+	}
+	if out := s.output(t, "confirm"); !strings.Contains(out, "hardn confirm must be run as root: hardn confirm") || strings.Contains(out, "sudo") {
+		t.Errorf("neither:\n%s", out)
+	}
+	if got, want := revertAsRoot("sshd -t"), "sshd -t"; got != want {
+		t.Errorf("neither: revertAsRoot = %q, want %q", got, want)
+	}
+	s.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
 	s.f.AddFile("/usr/bin/sudo", []byte("ELF"), 0o755, 0, 0)
 	if got := revertElevate(); got != "sudo" {
 		t.Errorf("sudo and doas: %q", got)
+	}
+	if got := revertAsRoot("sshd -t"); got != "sudo sshd -t" {
+		t.Errorf("sudo and doas: revertAsRoot = %q", got)
 	}
 }
 
