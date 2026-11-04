@@ -129,7 +129,7 @@ func TestRunAllHosts(t *testing.T) {
 		"alpine323":     {planned: []string{login, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID}, lockout: true},
 		"fresh":         {planned: []string{users.ID, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID, login}},
 		"hardened":      {},
-		"partial":       {},
+		"partial":       {planned: []string{login}, lockout: true},
 		"port":          {planned: []string{login, dnsctl.ID}, lockout: true},
 		"pve9":          {planned: []string{login, dnsctl.ID}, refused: []string{users.ID, fwctl.ID}, na: []string{updates.ID}, lockout: true},
 		"container":     {planned: []string{login}, na: []string{dnsctl.ID}, lockout: true},

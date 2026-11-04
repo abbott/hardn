@@ -25,7 +25,6 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/revert"
-	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -133,7 +132,7 @@ func raHosts() []raHost {
 		{name: "hardened", label: "Hardened", about: "Nothing to change", host: raHardened,
 			note: deb + "Everything already as hardn.yml asks: root login off, ufw on, the nameservers set, updates on. sshPort 2230, as sshd has it."},
 		{name: "partial", label: "Partly done", about: "Some controls done", host: raPartial,
-			note: deb + "debian13 with the nameservers already set and root login already off. " + yml},
+			note: deb + "debian13 with the nameservers already set: root login off is the one change left. " + yml},
 		{name: "port", label: "Port asked", about: "sshPort 2230", host: raPort,
 			note: deb + "debian13 with sshPort: 2230. Run All leaves the port to SSH Login (decision 3)."},
 		{name: "pve9", label: "Proxmox VE 9", about: "Root key-only", host: raPVE,
@@ -177,11 +176,7 @@ func raHardened() *fakeHost {
 	return raResolved(withApt(sshHardened(), autoOn).withHardnYML(raYML(2230)))
 }
 
-func raPartial() *fakeHost {
-	h := withApt(sshDebian13(), autoOn).withHardnYML(raYML(22))
-	h.sshFile(sshd.HardnDropIn, "PermitRootLogin no\n", 0o644)
-	return raResolved(h.withLog("publickey", "george", 1))
-}
+func raPartial() *fakeHost { return raResolved(raDebian13()) }
 
 func raPort() *fakeHost { return withApt(sshDebian13(), autoOn).withHardnYML(raYML(2230)) }
 
@@ -743,8 +738,8 @@ func raMainMenu(_ context.Context, c component.Ctx) (string, error) {
 
 // The words hardn -r would print (proposed, decision 8), on -w's pattern.
 const (
-	raFlagOff   = "Running all of hardn.yml here risks a lockout (PLAN_REFUSED)"
-	raFlagOn    = "To go on: run hardn -r from a terminal, which asks you to confirm."
+	raFlagOff   = "hardn -r asks you to type the hostname, and this isn't a terminal (PLAN_REFUSED)"
+	raFlagOn    = "To go on: run hardn -r from a terminal."
 	raFlagOther = "hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e."
 )
 
