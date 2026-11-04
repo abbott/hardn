@@ -18,11 +18,13 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/engine/confirm"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/output"
 )
 
 // Synthetic values: web-01.example.net, 192.0.2.0/24, port 2230.
@@ -658,9 +660,10 @@ func (s *syncBuffer) String() string {
 }
 
 // TestRevertColour: hardn confirm and hardn rollback (<id>, --abandon,
-// --boot) write their lines on stderr (say), with colour codes on a colour
-// terminal alone (pkg/ui/term's detection of stderr): the VM runs found
-// escape codes in the journal (vmtest.md §4.9).
+// --boot) write their lines on stderr (say), which the journal takes as it
+// took stdout, with colour codes on a colour terminal alone (pkg/ui/term's
+// detection of stderr): the VM runs found escape codes in the journal
+// (vmtest.md §4.9). Each line is hardn's log's too, in its format.
 func TestRevertColour(t *testing.T) {
 	for _, args := range [][]string{{"confirm"}, {"rollback", revertTestID}, {"rollback", "--abandon", revertTestID}, {"rollback", "--boot"}} {
 		for _, colour := range []bool{false, true} {
@@ -671,9 +674,22 @@ func TestRevertColour(t *testing.T) {
 				}
 				var out bytes.Buffer
 				stderr = &out
+				logWas := hardnLog
+				defer func() { hardnLog = logWas }()
+				var log bytes.Buffer
+				hardnLog = output.NewLog(&log)
 				executeHardn(t, args...)
 				if out.Len() == 0 {
 					t.Fatal("nothing printed")
+				}
+				lines := strings.Split(strings.TrimSuffix(log.String(), "\n"), "\n")
+				for _, l := range lines {
+					if logview.ParseLine(l) == "" {
+						t.Errorf("log line %q has no level", l)
+					}
+				}
+				if last := lines[len(lines)-1]; !strings.Contains(flat(out.String()), last[strings.Index(last, ": ")+2:]) {
+					t.Errorf("the last log line %q is not on stderr:\n%s", last, out.String())
 				}
 				if has := strings.Contains(out.String(), "\x1b["); has != colour {
 					t.Errorf("escape codes %v, want %v:\n%q", has, colour, out.String())
