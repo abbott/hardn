@@ -102,6 +102,84 @@ func (w *hangupWatch) stop() bool {
 	return w.seen()
 }
 
+// A signalWatch records whether a signal of engineSignalSet came between
+// watchSignals and its stop, as of its stop: signal.Stop returns once
+// os/signal has relayed every signal it had taken from the runtime (Go
+// 1.27 os/signal, Stop: "wait for signal delivery to quiesce"), so that
+// one that came before, as one during the engine's hold, which the hold's
+// release has seen relayed, is in c when stop reads it. Neither the
+// context signal.NotifyContext cancels nor a hangupWatch's seen says so
+// that surely: each is set by a goroutine of its own, which may not have
+// run yet (the flake of 2026-11-04: TestConfigureDNSFlagWithOthers, a
+// hangup during the rollback, -e run after it). It has no goroutine; c
+// holds the first signal, which is enough.
+type signalWatch struct {
+	c    chan os.Signal
+	once sync.Once
+	came bool
+}
+
+// watchSignals starts a signalWatch.
+func watchSignals() *signalWatch {
+	w := &signalWatch{c: make(chan os.Signal, 1)}
+	signal.Notify(w.c, engineSignalSet...)
+	return w
+}
+
+// stop ends the watch and reports whether a signal came; a second stop
+// reports the same.
+func (w *signalWatch) stop() bool {
+	w.once.Do(func() {
+		signal.Stop(w.c)
+		select {
+		case <-w.c:
+			w.came = true
+		default:
+		}
+	})
+	return w.came
+}
+
+// An applyWindow is what a flag registers around its apply and its
+// report (runControls, runTyped): a hangup's watch first, so that no
+// hangup engineSignals catches goes unmarked, then engineSignals, whose
+// context the apply runs under (ctx), then a signalWatch, after it, so
+// that it catches no signal engineSignals' registration would not.
+type applyWindow struct {
+	ctx       context.Context
+	hup       *hangupWatch
+	caught    *signalWatch
+	stop      context.CancelFunc // engineSignals'
+	once      sync.Once
+	signalled bool
+}
+
+// openApplyWindow registers an applyWindow over ctx.
+func openApplyWindow(ctx context.Context) *applyWindow {
+	w := &applyWindow{hup: watchHangup()}
+	w.ctx, w.stop = engineSignals(ctx)
+	w.caught = watchSignals()
+	return w
+}
+
+// close stops engineSignals' registration, then the signalWatch, then the
+// hangup's watch, last, so that a hangup engineSignals caught is marked,
+// and reports whether a signal reached the window: its context done
+// before the stop (which cancels it), or a signal relayed to either
+// watch by their stop, which waits for os/signal's relay. It decides only
+// then, never from what a goroutine has recorded so far. A second close
+// reports the same.
+func (w *applyWindow) close() bool {
+	w.once.Do(func() {
+		cancelled := w.ctx.Err() != nil
+		w.stop()
+		caught := w.caught.stop()
+		hup := w.hup.stop()
+		w.signalled = cancelled || caught || hup
+	})
+	return w.signalled
+}
+
 // endHangup ends hardn after a hangup during a screen's apply
 // (screenApplyContext): endByHangup, a seam for the tests.
 var endHangup = endByHangup
