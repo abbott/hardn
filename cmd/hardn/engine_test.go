@@ -77,7 +77,10 @@ func TestEngineOptions(t *testing.T) {
 	if !samePointer(o.Detect, engineDetect) || !samePointer(o.Hold, engineHold) {
 		t.Error("Detect and Hold are not the seams'")
 	}
-	if o.Progress != nil || o.Timeout != 0 || o.Margin != 0 || o.JournalTimeout != 0 || o.Revert.Dir != "" || o.Revert.RunDir != "" {
+	if o.Timeout != revert.DefaultTimeout {
+		t.Errorf("Timeout = %v, want the default confirm window, %v (confirmTimeout)", o.Timeout, revert.DefaultTimeout)
+	}
+	if o.Progress != nil || o.Margin != 0 || o.JournalTimeout != 0 || o.Revert.Dir != "" || o.Revert.RunDir != "" {
 		t.Errorf("a field is set that is the engine's or the caller's: %+v", o)
 	}
 

@@ -77,6 +77,7 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
 	addSurfaceFlags(rootCmd.PersistentFlags())
+	addTimeoutFlag(rootCmd.PersistentFlags())
 }
 
 // startMenu runs the main menu (runMenu), a seam for the tests, which
@@ -108,6 +109,11 @@ var rootCmd = &cobra.Command{
 		// -r runs alone: with -c, -d, -w, -g or -e a usage error before
 		// anything runs (runall.go; slice 9's defect 10).
 		if refuse(runAllAlone()) {
+			return
+		}
+		// A bad --confirm-timeout: a usage error before anything runs
+		// (hardn.yml's confirmTimeout once it loads, below).
+		if refuseConfirmTimeout(nil) {
 			return
 		}
 
@@ -165,6 +171,12 @@ var rootCmd = &cobra.Command{
 		// The session's mode: -n/--dry-run when given, true or false, else
 		// the dryRun of the file loaded, as loaded (§3.19; decision 2).
 		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
+
+		// hardn.yml's confirmTimeout, read as the engine reads it
+		// (engineOptions): a bad value a usage error before anything runs.
+		if refuseConfirmTimeout(cfg) {
+			return
+		}
 
 		// If username is provided, override config: -c's name, and the
 		// default of the User Management screen's Create and Run All's user
@@ -298,6 +310,9 @@ Example:
 		}
 		warnDeprecations(cfg)
 		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
+		if refuseConfirmTimeout(cfg) {
+			return
+		}
 		if code := keepEnvironment(cfg); code != 0 {
 			exit(code)
 		}
