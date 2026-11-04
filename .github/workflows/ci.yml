@@ -1,99 +1,182 @@
 name: CI
 
+# p7-actions. Static checks only on the maintainer's machine (actionlint and
+# zizmor, make check-actions): this workflow runs on GitHub's runners.
+
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  # Use the Go that setup-go or the tarball step installs; never download
+  # another toolchain. GOWORK and GOFLAGS match the makefile's check targets.
+  GOTOOLCHAIN: local
+  GOWORK: "off"
+  GOFLAGS: -mod=readonly
 
 jobs:
-  build:
+  check:
+    name: make check
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    env:
+      # Keep in step with the makefile's CHECK_*_VERSION; the first step
+      # fails if they differ. Each SHA-256 is the linux-amd64 archive's, from
+      # the release's checksums file or, for zizmor, which publishes none,
+      # GitHub's digest of the release asset.
+      GOLANGCI_LINT_VERSION: 2.14.0
+      GOLANGCI_LINT_SHA256: ab90aeb7b066f92a33415b638a50fe5344bbb75a0d32ad30cc248d88f81032ab
+      GOVULNCHECK_VERSION: v1.9.0
+      ZIZMOR_VERSION: 1.32.0
+      ZIZMOR_SHA256: bb110cc765eca9cd7efb2e284a956be5974c60027b0970f16397d86208a9957b
+      ACTIONLINT_VERSION: 1.7.12
+      ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          fetch-depth: 0
-      
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: '1.21'
-          cache: true
-      
-      - name: Clean environment
+          persist-credentials: false
+
+      - name: Compare tool versions with the makefile
         run: |
-          # Remove any vendor directory to ensure clean build
-          rm -rf vendor
-          # Ensure go.mod is clean (without replace directives)
-          grep -v "replace github.com/abbott/hardn" go.mod > clean.go.mod || cat go.mod > clean.go.mod
-          mv clean.go.mod go.mod
-          go mod tidy
-      
-      - name: Build
-        run: go build -o build/hardn ./cmd/hardn
-        
-      - name: Test
-        run: go test ./...
-        
-      - name: Lint (non-blocking)
-        continue-on-error: true  # Make linting non-blocking
-        uses: golangci/golangci-lint-action@v3
+          set -eu
+          for pair in \
+            "CHECK_GOLANGCI_LINT_VERSION $GOLANGCI_LINT_VERSION" \
+            "CHECK_GOVULNCHECK_VERSION $GOVULNCHECK_VERSION" \
+            "CHECK_ZIZMOR_VERSION $ZIZMOR_VERSION" \
+            "CHECK_ACTIONLINT_VERSION $ACTIONLINT_VERSION"; do
+            set -- $pair
+            grep -qx "$1 ?= $2" makefile || {
+              echo "::error file=makefile::$1 is not $2, the version ci.yml installs"
+              exit 1
+            }
+          done
+
+      - name: Set up Go from go.mod
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          version: latest
-          # Use color format as command-line argument instead of config
-          args: "--color=always --out-format=colored-line-number"
-          
-  integration-test:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+
+      - name: Install golangci-lint, govulncheck, zizmor and actionlint
+        run: |
+          set -eu
+          bin="$RUNNER_TEMP/bin"
+          dl="$RUNNER_TEMP/dl"
+          mkdir -p "$bin" "$dl"
+          fetch() { # fetch <url> <sha256>: download into $dl and check the SHA-256
+            f="$dl/${1##*/}"
+            curl -fsSL --retry 3 -o "$f" "$1"
+            echo "$2  $f" | sha256sum -c -
+          }
+          fetch "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64.tar.gz" "$GOLANGCI_LINT_SHA256"
+          tar -xzf "$f" -C "$bin" --strip-components=1 "golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64/golangci-lint"
+          fetch "https://github.com/zizmorcore/zizmor/releases/download/v${ZIZMOR_VERSION}/zizmor-x86_64-unknown-linux-gnu.tar.gz" "$ZIZMOR_SHA256"
+          tar -xzf "$f" -C "$bin" zizmor
+          fetch "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" "$ACTIONLINT_SHA256"
+          tar -xzf "$f" -C "$bin" actionlint
+          # go install checks the module against go.sum's database (sum.golang.org).
+          GOBIN="$bin" go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}"
+          echo "$bin" >> "$GITHUB_PATH"
+
+      # On this Linux host the other steps compile the Linux files, so
+      # check-cross vets the darwin side instead of linux/amd64 (the
+      # makefile's CHECK_CROSS_VET_TARGETS assumes a darwin host).
+      - name: make check
+        run: make check CHECK_CROSS_VET_TARGETS="linux/arm64 darwin/amd64"
+
+  linux:
+    # go vet and go test on each supported distribution's image (decision 5).
+    name: go test (${{ matrix.name }})
     runs-on: ubuntu-latest
-    needs: build
+    permissions:
+      contents: read
     strategy:
-      matrix:
-        os:
-          - debian_bullseye
-          - ubuntu_focal
-          - alpine_latest
       fail-fast: false
+      matrix:
+        include:
+          - name: debian:13
+            image: debian:13@sha256:2dc419c6d7fe3dad0a2f9fd469c34cc90b0f9ba642d8fde837fe3d7d34a0e7f1
+            family: debian
+          - name: debian:12
+            image: debian:12@sha256:d74df7598108a173a621eda4d58a2adbf850b2d9a9d81bc2cca1a6c21174a880
+            family: debian
+          - name: ubuntu:26.04
+            image: ubuntu:26.04@sha256:6a06111c3b0a8600feadb270aec771dc239bf407b25625f93f44ab00e11f4d3c
+            family: debian
+          - name: ubuntu:24.04
+            image: ubuntu:24.04@sha256:fe81560990fae86dc4743202b2cb4d3df98d0bcf949173cecef15ce1127ef852
+            family: debian
+          - name: alpine:3.24
+            image: alpine:3.24@sha256:be2656061b536c1883c4034790e21d0a09c5aaaf51968b89368a3c0371ea2c9a
+            family: alpine
+          - name: alpine:3.23
+            image: alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63
+            family: alpine
     container:
-      image: ${{ matrix.os == 'debian_bullseye' && 'debian:bullseye' || matrix.os == 'ubuntu_focal' && 'ubuntu:focal' || 'alpine:latest' }}
+      image: ${{ matrix.image }}
+    defaults:
+      run:
+        shell: sh
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Setup environment
+      # The images ship no CA certificates (Debian, Ubuntu), which Go needs to
+      # download modules, and no curl or jq (Alpine), which the Go install
+      # below needs.
+      - name: Install packages (Debian, Ubuntu)
+        if: matrix.family == 'debian'
         run: |
-          # Set non-interactive mode for Debian/Ubuntu
-          if [ "${{ matrix.os }}" != "alpine_latest" ]; then
-            export DEBIAN_FRONTEND=noninteractive
-            # Pre-configure timezone to avoid interactive prompts
-            ln -fs /usr/share/zoneinfo/Etc/UTC /etc/localtime
-            apt-get update
-            apt-get install -y --no-install-recommends tzdata curl make git ca-certificates
-          else
-            apk add --no-cache curl make git ca-certificates
-          fi
-          
-          # Install Go 1.21 directly for all distributions
-          echo "Installing Go 1.21..."
-          curl -L https://go.dev/dl/go1.21.10.linux-amd64.tar.gz -o go.tar.gz
-          tar -C /usr/local -xzf go.tar.gz
-          export PATH=$PATH:/usr/local/go/bin
-          echo "PATH=$PATH:/usr/local/go/bin" >> $GITHUB_ENV
+          set -eu
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends ca-certificates
+
+      - name: Install packages (Alpine)
+        if: matrix.family == 'alpine'
+        run: apk add --no-cache ca-certificates curl jq
+
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go from go.mod (Debian, Ubuntu)
+        if: matrix.family == 'debian'
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      # setup-go does not support Alpine: the Go it installs is built for the
+      # hosted runner, and its maintainers closed actions/setup-go#263 (Go
+      # failing in an alpine container) as expected behaviour. go.dev's
+      # linux-amd64 binaries are statically linked, so they run on musl. The
+      # version is go.mod's, as setup-go reads it: the toolchain directive if
+      # there is one, otherwise the go directive.
+      - name: Install Go from go.dev (Alpine)
+        if: matrix.family == 'alpine'
+        run: |
+          set -eu
+          [ "$(uname -m)" = x86_64 ] || { echo "::error::expected an x86_64 runner, got $(uname -m)"; exit 1; }
+          v=$(sed -n 's/^toolchain go//p' go.mod)
+          [ -n "$v" ] || v=$(sed -n 's/^go //p' go.mod)
+          f="go${v}.linux-amd64.tar.gz"
+          sum=$(curl -fsSL --retry 3 'https://go.dev/dl/?mode=json&include=all' |
+            jq -r --arg f "$f" '.[].files[] | select(.filename == $f) | .sha256')
+          [ -n "$sum" ] || { echo "::error::go.dev/dl lists no SHA-256 for $f"; exit 1; }
+          curl -fsSL --retry 3 -o "$RUNNER_TEMP/$f" "https://go.dev/dl/$f"
+          echo "$sum  $RUNNER_TEMP/$f" | sha256sum -c -
+          tar -C /usr/local -xzf "$RUNNER_TEMP/$f"
+          echo /usr/local/go/bin >> "$GITHUB_PATH"
+
+      - name: go vet
+        run: |
           go version
-          
-      - name: Clean environment
-        run: |
-          # Remove any vendor directory
-          rm -rf vendor
-          # Ensure go.mod is clean
-          grep -v "replace github.com/abbott/hardn" go.mod > clean.go.mod || cat go.mod > clean.go.mod
-          mv clean.go.mod go.mod
-          go mod tidy
-          
-      - name: Build
-        run: go build -o build/hardn ./cmd/hardn
-        
-      - name: Basic functionality test
-        run: |
-          ./build/hardn --version
-          ./build/hardn --help
+          go vet ./...
+
+      - name: go test
+        run: go test -count=1 ./...
