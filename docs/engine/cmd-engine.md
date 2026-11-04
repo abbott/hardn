@@ -31,7 +31,7 @@
 | `PID` | `revertPID()` | the run lock's holder line |
 | `Detect`, `Hold` | the engine's own: `detect.Detect`; `nil`, which is `hold.Signals` over `Log` | through seams (`engineDetect`, `engineHold`) for the tests |
 | `Progress` | the caller's | a screen's flow, per change (`newEngine`); none for `-g` |
-| `Timeout`, `Margin`, `JournalTimeout`, `Revert.Dir`, `RunDir` | the engine's defaults | no flag or key changes them (§3.14's `--confirm-timeout` is a later slice's) |
+| `Timeout`, `Margin`, `JournalTimeout`, `Revert.Dir`, `RunDir` | the engine's defaults | no flag or key changes them (§3.14's `--confirm-timeout` is a later slice's). *Amended by `next/p7-surface`:* `Timeout` is `engine.ConfirmTimeout`, of `--confirm-timeout` and hardn.yml's `confirmTimeout`, the flag winning; 180 s when neither is set |
 
 `newEngine(sys, o)` is a screen's `NewEngine`: a copy of `o` with the flow's `Progress`, one engine per change.
 
@@ -368,8 +368,8 @@ No new flag, environment variable, configuration key, error code or module. `pkg
 
 ## 7. For the next slices' (d) units
 
-- **A flag:** `runControls(cfg, controls)`, as `configureDNS` calls it: the options, the plan, the apply without a question unless `-n` or a refusal, the report, the exit status, the signals around the apply. A flag that should ask first is not this function (§3.11's `--yes` is not approved).
-- **A screen:** call `engineOptions(ctx, sys, cfg)` with `engineHost()` and take `newEngine(sys, o)` as its `NewEngine`. A lockout-risk change needs `Hardn` and `Session`, which are there; `--confirm-timeout` (§3.14) would set `Timeout`.
+- **A flag:** `runControls(cfg, controls)`, as `configureDNS` calls it: the options, the plan, the apply without a question unless `-n` or a refusal, the report, the exit status, the signals around the apply. A flag that should ask first is not this function (§3.11's `--yes` is not approved). *Amended by `next/p7-surface`:* `--yes` is a flag; off a terminal a plan with changes applies only with it, and never a lockout-risk plan ([reference/output.md](../reference/output.md) §6).
+- **A screen:** call `engineOptions(ctx, sys, cfg)` with `engineHost()` and take `newEngine(sys, o)` as its `NewEngine`. A lockout-risk change needs `Hardn` and `Session`, which are there; `--confirm-timeout` (§3.14) would set `Timeout` (it does since `next/p7-surface`).
 - **Signals:** `engineSignals` around each apply alone, never a visit (§2.6): a flag has it from `runControls`; a screen takes it as its apply's context, as the DNS screen's `ApplyContext` (a screen on `output.FlowEngine` applies under it as `pkg/screens/dns`'s `planning.Apply` does).
 - **The menu item:** a hook as `SetDNS`. When a second item needs one, generalise it (a map of item to screen, or one `SetScreens`), rather than adding a setter per item. *Since `next/s3-replace`, Backup's is a second setter, `SetBackup`, the two items sharing `showScreen` (§8, decision 12); the next slices' items (Firewall, User Management) may generalise it then, three setters being where a map pays.*
 - **`-n` with the slice's flag:** decided per flag by the maintainer; to show the plan, take the flag out of `operationFlags`.
