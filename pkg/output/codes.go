@@ -213,6 +213,7 @@ var errorCodes = []Entry{
 	is("CHANGE_ID_INVALID", revert.ErrID).exit(ExitUsage),
 	is("JOURNAL_INVALID", revert.ErrJournal).what("the change journal is not valid"),
 	is("JOURNAL_UNSAFE", revert.ErrUnsafe).what("the change journal, the run directory, or a directory above them, can be changed by a user other than root"),
+	is("RECORD_INVALID", revert.ErrRecord).what("hardn's record of what it changed for a control is not valid"),
 	is("CHANGE_PENDING", revert.ErrPending),
 	is("NOTHING_PENDING", revert.ErrNothingPending),
 	is("NOT_CONFIRMABLE", revert.ErrNotConfirmable),

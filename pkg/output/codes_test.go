@@ -165,6 +165,7 @@ var sentinels = map[string]error{
 	"revert.ErrSameSession":           revert.ErrSameSession,
 	"revert.ErrSessionUnknown":        revert.ErrSessionUnknown,
 	"revert.ErrTimeout":               revert.ErrTimeout,
+	"revert.ErrRecord":                revert.ErrRecord,
 	"revert.ErrUnsafe":                revert.ErrUnsafe,
 	"revert.ErrWrongListener":         revert.ErrWrongListener,
 	"sshd.ErrConfig":                  sshd.ErrConfig,
