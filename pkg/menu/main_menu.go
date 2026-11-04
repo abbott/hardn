@@ -13,7 +13,6 @@ import (
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
-	"github.com/abbott/hardn/pkg/utils"
 )
 
 // MainMenu is the main menu of the application
@@ -95,7 +94,7 @@ func (m *MainMenu) SetUsers(run func() error) { m.users = run }
 // showUsers is the User Management item's action: the User Management
 // screen (showScreen).
 func (m *MainMenu) showUsers() error {
-	return showScreen(m.users, "menu: the User Management item has no screen (SetUsers)")
+	return m.showScreen(m.users, "menu: the User Management item has no screen (SetUsers)")
 }
 
 // SetSSH sets what the SSH Login item (2) runs: the SSH Login screen
@@ -112,7 +111,7 @@ func (m *MainMenu) SetSSH(run func() error) { m.ssh = run }
 // showSSH is the SSH Login item's action: the SSH Login screen
 // (showScreen).
 func (m *MainMenu) showSSH() error {
-	return showScreen(m.ssh, "menu: the SSH Login item has no screen (SetSSH)")
+	return m.showScreen(m.ssh, "menu: the SSH Login item has no screen (SetSSH)")
 }
 
 // SetDNS sets what the DNS item (3) runs: the DNS screen
@@ -128,7 +127,7 @@ func (m *MainMenu) SetDNS(run func() error) { m.dns = run }
 
 // showDNS is the DNS item's action: the DNS screen (showScreen).
 func (m *MainMenu) showDNS() error {
-	return showScreen(m.dns, "menu: the DNS item has no screen (SetDNS)")
+	return m.showScreen(m.dns, "menu: the DNS item has no screen (SetDNS)")
 }
 
 // SetBackup sets what the Backup item (5) runs: the Backup screen
@@ -143,7 +142,7 @@ func (m *MainMenu) SetBackup(run func() error) { m.backup = run }
 
 // showBackup is the Backup item's action: the Backup screen (showScreen).
 func (m *MainMenu) showBackup() error {
-	return showScreen(m.backup, "menu: the Backup item has no screen (SetBackup)")
+	return m.showScreen(m.backup, "menu: the Backup item has no screen (SetBackup)")
 }
 
 // SetUpdates sets what the Auto Updates item (6) runs: the Auto Updates
@@ -160,7 +159,7 @@ func (m *MainMenu) SetUpdates(run func() error) { m.updates = run }
 // showUpdates is the Auto Updates item's action: the Auto Updates screen
 // (showScreen).
 func (m *MainMenu) showUpdates() error {
-	return showScreen(m.updates, "menu: the Auto Updates item has no screen (SetUpdates)")
+	return m.showScreen(m.updates, "menu: the Auto Updates item has no screen (SetUpdates)")
 }
 
 // SetEnvironment sets what the Environment item (8) runs: the Environment
@@ -175,7 +174,7 @@ func (m *MainMenu) SetEnvironment(run func() error) { m.environment = run }
 // showEnvironment is the Environment item's action: the Environment screen
 // (showScreen).
 func (m *MainMenu) showEnvironment() error {
-	return showScreen(m.environment, "menu: the Environment item has no screen (SetEnvironment)")
+	return m.showScreen(m.environment, "menu: the Environment item has no screen (SetEnvironment)")
 }
 
 // SetFirewall sets what the Firewall item (4) runs: the Firewall screen
@@ -195,7 +194,7 @@ func (m *MainMenu) SetFirewall(run func() error, onPVE func() bool) {
 // showFirewall is the Firewall item's action: the Firewall screen
 // (showScreen).
 func (m *MainMenu) showFirewall() error {
-	return showScreen(m.firewall, "menu: the Firewall item has no screen (SetFirewall)")
+	return m.showScreen(m.firewall, "menu: the Firewall item has no screen (SetFirewall)")
 }
 
 // firewallDescription is the Firewall item's description: origin/main's,
@@ -217,7 +216,7 @@ func (m *MainMenu) SetSystemDetails(run func() error) { m.systemDetails = run }
 
 // showSystemDetails is the System Details item's action (showScreen).
 func (m *MainMenu) showSystemDetails() error {
-	return showScreen(m.systemDetails, "menu: the System Details item has no screen (SetSystemDetails)")
+	return m.showScreen(m.systemDetails, "menu: the System Details item has no screen (SetSystemDetails)")
 }
 
 // SetLogs sets what the Logs item (10) runs: the screen (pkg/screens/logs),
@@ -226,7 +225,7 @@ func (m *MainMenu) SetLogs(run func() error) { m.logs = run }
 
 // showLogs is the Logs item's action (showScreen).
 func (m *MainMenu) showLogs() error {
-	return showScreen(m.logs, "menu: the Logs item has no screen (SetLogs)")
+	return m.showScreen(m.logs, "menu: the Logs item has no screen (SetLogs)")
 }
 
 // SetRunAll sets what the Run All item (7) runs: the Run All screen
@@ -242,26 +241,35 @@ func (m *MainMenu) SetRunAll(run func() error) { m.runAll = run }
 // showRunAll is the Run All item's action: the Run All screen
 // (showScreen).
 func (m *MainMenu) showRunAll() error {
-	return showScreen(m.runAll, "menu: the Run All item has no screen (SetRunAll)")
+	return m.showScreen(m.runAll, "menu: the Run All item has no screen (SetRunAll)")
 }
 
 // showScreen runs an item's screen that cmd/hardn sets (SetUsers, SetSSH,
 // SetDNS, SetBackup, SetUpdates, SetRunAll, SetEnvironment, SetFirewall,
-// SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
+// SetSystemDetails, SetLogs) from a cleared screen on a terminal (clear), as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
 // from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
 // other error end hardn as at a legacy prompt (ShowMainMenu, endHardn).
-func showScreen(run func() error, unset string) error {
+func (m *MainMenu) showScreen(run func() error, unset string) error {
 	if run == nil {
 		panic(unset)
 	}
-	utils.ClearScreen()
+	m.clear()
 	err := run()
 	if err == nil || errors.Is(err, nav.ErrBack) {
 		return errAgain
 	}
 	return err
+}
+
+// clear clears the screen on the terminal as it is now (SetTerminal), and
+// writes nothing off a terminal (term.Env.Clear).
+func (m *MainMenu) clear() {
+	if m.terminal == nil {
+		panic("menu: the main menu has no terminal (SetTerminal)")
+	}
+	_ = m.terminal().Clear(os.Stdout)
 }
 
 // SetWarnedAtLoad says that loading hardn.yml warned on stderr, as cmd/hardn does
@@ -327,7 +335,7 @@ func (m *MainMenu) refreshConfig() {
 // items (mainMenu), and "Enter selection" with its hint generated from
 // them, asked through the one line reader every screen reads
 // (prompt.Stdin, the input seam). The screen is cleared once, as hardn
-// starts; each pass then reads the status again and draws the main menu
+// starts, on a terminal alone (clear; off one nothing clears); each pass then reads the status again and draws the main menu
 // on the terminal as it is then, under what the item before it printed,
 // not cleared (brief 1C), each item's screen clearing as it opens
 // (showScreen).
@@ -337,7 +345,7 @@ func (m *MainMenu) refreshConfig() {
 // input exits 130 and Ctrl-C ends hardn by SIGINT (endHardn).
 func (m *MainMenu) ShowMainMenu() {
 	if !m.warned {
-		utils.ClearScreen()
+		m.clear()
 	}
 	for {
 		// Refresh any configuration that might have been changed
@@ -346,7 +354,7 @@ func (m *MainMenu) ShowMainMenu() {
 		switch err := m.pass(context.Background()); {
 		case errors.Is(err, errAgain):
 		case err == nil, errors.Is(err, nav.ErrQuit):
-			utils.ClearScreen()
+			m.clear()
 			return
 		default:
 			endHardn(err)
