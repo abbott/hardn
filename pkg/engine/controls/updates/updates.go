@@ -1,7 +1,7 @@
 // Package updates holds the Auto Updates control (refactor plan Phase 4,
 // next/p4-check-updates): Figma's "Auto Updates" row. Check reads whether
-// the host upgrades its packages by itself, and Plan returns
-// engine.ErrNotMigrated (engine.CheckOnly) until slice 7.
+// the host upgrades its packages by itself; Plan turns that on or off
+// (slice 7).
 //
 // On Debian, Ubuntu and Proxmox VE that is apt's daily job running
 // unattended-upgrade, read as apt.systemd.daily decides it: the effective
@@ -9,8 +9,9 @@
 // dump, never the files alone), the unattended-upgrades package, and the
 // two systemd timers that run the job (apt-daily-upgrade.timer upgrades,
 // apt-daily.timer refreshes the package lists). On Alpine it is
-// apk-cron's daily script run by crond, read by alpine.ReadUpdates. The
-// line describes the host now: NotConfigured when no upgrade runs,
+// apk-cron's daily script run by crond, read by alpine.ReadUpdates. Its
+// Plan turns updates on or off, as Action asks (control.go; slice 7, unit
+// (b), docs/engine/control-updates.md). The line describes the host now: NotConfigured when no upgrade runs,
 // Partial when upgrades run but the lists are not refreshed or the job
 // stops at the next restart, Unknown, "can't read", when what decides is
 // not established, never a pass.
@@ -26,6 +27,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/revert"
 )
 
 // ID is the control's ID, stable once released.
@@ -48,6 +50,8 @@ const (
 	DetailScriptNotRun    = "daily script not run"   // NotConfigured: apk-cron's script missing or not executable
 	DetailCrondOff        = "crond not running"      // NotConfigured: no crond running
 	DetailCantRead        = "can't read"             // Unknown
+	DetailByHand          = "updated by hand"        // NotApplicable: Proxmox VE (decision 7)
+	DetailChangedSince    = "changed since hardn"    // CodeChangedSince's detail (decision 9)
 )
 
 // The finding codes of this package (pkg/output's registry holds them).
@@ -70,6 +74,11 @@ const (
 	// Debian or Ubuntu, whose apt job runs: whether its origins match the
 	// distribution's own archives is not established.
 	CodeOriginsUnknown = "UPDATES_ORIGINS_UNKNOWN"
+	// CodeChangedSince: hardn's record of turning updates on names a file
+	// the host no longer holds as recorded (hardn's apt file, apk-cron's
+	// script), or a package it installed that is not installed now
+	// (decision 9 (a)).
+	CodeChangedSince = "UPDATES_CHANGED_SINCE_HARDN"
 )
 
 // Controls is the Auto Updates row, the only one of its area.
@@ -78,7 +87,16 @@ func Controls() []engine.Control { return []engine.Control{Auto{}} }
 // Auto is Auto Updates: whether the host upgrades its packages by itself.
 // Configured is the upgrade job running now and after the next boot, with
 // apt's package lists refreshed (on Alpine, apk -U refreshes its own).
-type Auto struct{ engine.CheckOnly }
+// Action is what Plan does; its zero value plans nothing
+// (engine.ErrNotMigrated), so the status list's Auto{} is check-only.
+// Records are the record's directory and clock (revert.Options' Dir and
+// Now; the zero value is /var/lib/hardn and time.Now), and Version is
+// hardn's version, written in the record.
+type Auto struct {
+	Action  AutoAction
+	Records revert.Options
+	Version string
+}
 
 // ID returns ID.
 func (Auto) ID() string { return ID }
@@ -86,17 +104,35 @@ func (Auto) ID() string { return ID }
 // Title is Figma's row label.
 func (Auto) Title() string { return "Auto Updates" }
 
-// Applies is true on every host: a container upgrades its own packages
-// too, and a host whose update tool hardn does not read is Unknown, not
-// left out of the risk level.
-func (Auto) Applies(detect.Facts) (bool, string) { return true, "" }
+// Applies is true on every host but Proxmox VE (slice 7 decision 7 (a)):
+// Proxmox VE is updated by hand with apt full-upgrade, so its row is Not
+// Applicable, "updated by hand", and leaves the risk level. A container
+// upgrades its own packages too, and a host whose update tool hardn does
+// not read is Unknown, not left out of the risk level.
+func (Auto) Applies(f detect.Facts) (bool, string) {
+	if f.Platform.Distro == detect.DistroProxmox {
+		return false, DetailByHand
+	}
+	return true, ""
+}
 
 // Check reads apt's daily job on a host apt manages and apk-cron on
 // Alpine (check-updates.md §2). A read that fails is Unknown with the
 // error; a documented value it does not rank is Unknown with a finding
 // and no error; a state the facts read establish is reported whatever
-// else could not be read.
-func (Auto) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
+// else could not be read. Where hardn's record names a file the host no
+// longer holds as recorded, or a package it installed that is gone, the
+// line carries CodeChangedSince, "changed since hardn" (decision 9 (a)).
+func (c Auto) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
+	st, err := check(ctx, sys, f)
+	if why, ok := c.stale(ctx, sys, f); ok {
+		st.Findings = append(st.Findings, why)
+	}
+	return st, err
+}
+
+// check is the line, without the record's finding.
+func check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	switch d := f.Platform.Distro; {
 	case d == detect.DistroAlpine:
 		return checkApk(ctx, sys, f)

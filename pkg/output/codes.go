@@ -166,6 +166,22 @@ var errorCodes = []Entry{
 	is("SSHD_FILE_CHANGED", steps.ErrChanged).what("a file the SSH change writes is not as the plan read it"),
 	is("PVE_ROOT_LOGIN_NOT_KEPT", steps.ErrProxmoxRoot),
 	is("SSH_CLEANUP_SESSION_NOT_KEPT", steps.ErrSessionNotKept),
+	// The Auto Updates screen's refusals (refactor plan slice 7, unit (b)):
+	// before the readers' and packages' errors they wrap.
+	is("UPDATES_NOT_READ", updates.ErrNotRead),
+	is("UPDATES_PERIODIC_OFF", updates.ErrPeriodicOff),
+	is("UPDATES_TIMER_OFF", updates.ErrTimerOff),
+	is("UPDATES_JOB_MASKED", updates.ErrJobMasked),
+	is("UPDATES_JOB_MISSING", updates.ErrJobMissing),
+	is("UPDATES_NO_ORIGINS", updates.ErrNoOrigins),
+	is("UPDATES_PROXMOX", updates.ErrProxmox),
+	is("UPDATES_OTHER_PACKAGES", updates.ErrOtherPackages),
+	is("UPDATES_NOT_IN_REPOS", updates.ErrNotInRepos),
+	is("UPDATES_NOT_IN_EFFECT", updates.ErrNotInEffect),
+	is("UPDATES_RECORD_UNREADABLE", updates.ErrRecordUnreadable),
+	is("UPDATES_CHANGED_SINCE", updates.ErrChangedSince),
+	is("UPDATES_NOTHING_TO_UNDO", updates.ErrNothingToUndo),
+	is("UPDATES_STAY_ON", updates.ErrStaysOn),
 	// The save of hardn.yml (steps.PlanSave, next/s2-control).
 	is(steps.CodeConfigChanged, steps.ErrConfigChanged, config.ErrChanged).what("hardn.yml changed since it was read: saving would undo what changed it"),
 
@@ -213,6 +229,7 @@ var errorCodes = []Entry{
 	is("CHANGE_ID_INVALID", revert.ErrID).exit(ExitUsage),
 	is("JOURNAL_INVALID", revert.ErrJournal).what("the change journal is not valid"),
 	is("JOURNAL_UNSAFE", revert.ErrUnsafe).what("the change journal, the run directory, or a directory above them, can be changed by a user other than root"),
+	is("RECORD_INVALID", revert.ErrRecord).what("hardn's record of what it changed for a control is not valid"),
 	is("CHANGE_PENDING", revert.ErrPending),
 	is("NOTHING_PENDING", revert.ErrNothingPending),
 	is("NOT_CONFIRMABLE", revert.ErrNotConfirmable),
@@ -511,6 +528,7 @@ var findingCodes = []Entry{
 	finding(updates.CodeScheduleUnknown, "whether anything starts the daily update job is not established: an apt timer in a state that does not say or that could not be read, a host systemd did not boot, or an Alpine OpenRC did not boot"),
 	finding(updates.CodeProxmoxNotUpgraded, "Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded"),
 	finding(updates.CodeOriginsUnknown, "a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established"),
+	finding(updates.CodeChangedSince, "hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone"),
 	// The header probe's own (next/p4-header): why a reboot is pending.
 	finding(header.CodeRebootRequired, "/var/run/reboot-required exists: a package asks for a reboot"),
 	finding(header.CodeNewerKernel, "a kernel newer than the one running is installed in /boot"),
