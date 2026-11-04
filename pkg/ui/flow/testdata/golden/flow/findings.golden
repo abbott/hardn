@@ -29,7 +29,7 @@ $
 $
    -  Nameservers          1.1.1.1, 1.0.0.1$
    -  Search Domains       example.net$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
    -  eth0 keeps its search domain example.net$
 $
    -  Set the nameservers$

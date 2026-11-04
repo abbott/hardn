@@ -183,7 +183,7 @@ $
 $
    -  Nameservers          192.0.2.54$
    -  Search Domains       example.net$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Set the nameservers$
       /etc/resolv.conf$

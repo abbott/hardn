@@ -283,7 +283,7 @@ $
    -  SSH Login            Root login off$
    -  Auto Updates         Turn on$
    -  DNS                  Set 2 nameservers$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Install hardn's boot unit$
       /etc/init.d/hardn-boot$

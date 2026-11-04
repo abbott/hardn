@@ -265,7 +265,7 @@ $
 # SSH Configuration --------------------------------------------$
 $
    -  Old Settings         hardn.conf, into 00-hardn.conf$
-   -  "PasswordAuthentication no": no effect: sshd reads$
+  [ ] "PasswordAuthentication no": no effect: sshd reads$
       /etc/ssh/sshd_config.d/50-cloud-init.conf line 1 first$
 $
    -  Install hardn's boot unit$
