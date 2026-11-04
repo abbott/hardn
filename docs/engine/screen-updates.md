@@ -29,7 +29,7 @@ Required: the Prompter's In and Out, System, NewEngine. Without them `Run` retur
 ## For unit (d)
 
 - **Main menu 6** runs `Run`, labelled "Auto Updates", "Configure automatic updates" (decision 1). It passes the loaded hardn.yml, hardn's version and zero `Records`, under plan only too.
-- **Off** saves `enableUnattendedUpgrades: false` through the control's plan (`steps.PlanSave`) when the loaded hardn.yml says true. The screen adds no save of its own. With a nil `Config` there is nothing to save.
+- **Off** saves `enableUnattendedUpgrades: false` through the control's plan (`steps.PlanSave`) when the loaded hardn.yml says true. The screen sets it false in the copy the change plans with (`Controls(edited)`), and the control saves that copy as given, so `screenkit.Adopt` finds the bytes written and a later save in the same session is not refused as `CONFIG_CHANGED`. With a nil `Config` there is nothing to save.
 - **Delete or keep, and say which:** the dead `pkg/updates` (nothing imports it) and the interactive "Enable automatic security updates?" prompt (`autoUpdates`, `pkg/config/config.go:432-436`).
 - **Run All** belongs to slice 8. It plans `AutoOn` only, never `AutoOff` (decision 2).
 - **The gallery's second stage** moves `internal/tools/uigallery/updates.go` onto `Run`. It retires `updReading`'s `rows`, `item`, `screen`, the runner's `preplan`, `refusalOf`, `notes` and `change`, and `TestUpdatesHosts`, `TestUpdatesRefusalWords`, `TestUpdatesHeights` and `TestUpdatesPlanOnlyWritesNothing`, which are held here now.
@@ -37,7 +37,8 @@ Required: the Prompter's In and Out, System, NewEngine. Without them `Run` retur
 ## Decisions
 
 - The row is assessed over `header.Read`, not the zero header the SSH Login screen uses. With a zero header, a host that does not upgrade itself gains "Uptime unknown", which the main menu would not show.
-- The package's version is not drawn. The mock's "Installed 2.12" and apk-cron's "1.0-r3" were the gallery fake's constants, and `Reading` holds no version. §5's words have none.
+- The package's version stays dropped: the mock's "2.12" and "1.0-r3" were the gallery fake's constants, not read; §5's words are "Installed", "Not installed".
+- Each round still reads `header.Read` in full: `header` exports `ReadUptime`, but no reader of the reboot alone, which `risk.Assess` also uses.
 - The direction is the draw's (`Updates.Off`). The plan is the engine's, from a fresh reading, so a host that changed since the draw is refused or plans nothing.
 - `Notes` reads the host again when the item is chosen, after the plan before asking.
 
