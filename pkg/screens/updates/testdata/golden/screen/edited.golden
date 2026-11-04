@@ -1,0 +1,85 @@
+# Golden file of TestScreenGoldens, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- changed since hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m          ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m         ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-11-03␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
+      ␛[38;2;129;134;156m52hardn-auto-upgrades changed␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Auto Updates #################################################$
+$
+  [+] Auto Updates         Configured unattended-upgrades$
+                           - changed since hardn$
+$
+# Update Configuration -----------------------------------------$
+$
+   -  unattended-upgrades  Installed$
+  [ ] Upgrades             Daily changed since hardn$
+  [ ] Package Lists        Daily changed since hardn$
+   -  Upgrade Timer        On apt-daily-upgrade.timer$
+   -  Lists Timer          On apt-daily.timer$
+   -  Turned on by         hardn record of 2026-11-03$
+$
+  Select an option$
+$
+   1) Disable automatic updates$
+      52hardn-auto-upgrades changed$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 0$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+      ␛[38;2;219;184;83m- changed since hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m$
+      ␛[38;2;129;134;156mInstalled␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
+      ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mPackage Lists␛[m$
+      ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m$
+      ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m$
+      ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m$
+      ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-11-03␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
+      ␛[38;2;129;134;156m52hardn-auto-upgrades changed␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
