@@ -115,39 +115,45 @@ func TestMainMenuKeys(t *testing.T) {
 		{"the end of the input after a refusal", []string{"x"}, false, nil, 1, prompt.ExitInterrupted},
 		{"Ctrl-C at the prompt", []string{"x"}, true, nil, 1, int(sigint)},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			passes := 0
-			m := liveMenu(t, plainEnv(), fixtureStatus(&passes))
-			script := strings.Join(tc.lines, "\n")
-			if len(tc.lines) > 0 {
-				script += "\n"
-			}
-			useReader(t, prompt.New(strings.NewReader(script), false))
-			if tc.ctrlC {
-				useReader(t, prompt.New(interrupted{strings.NewReader(script)}, false))
-			}
-			opened := recordScreens(t, m)
-			out, code, ended := session(t, func() { m.ShowMainMenu() })
-			if ended != (tc.code != 0) || code != tc.code {
-				t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
-			}
-			if !slices.Equal(*opened, tc.opened) {
-				t.Errorf("opened %q, want %q", *opened, tc.opened)
-			}
-			if n := strings.Count(out, invalid+"\n"); n != tc.refused {
-				t.Errorf("%d lines refused, want %d:\n%s", n, tc.refused, out)
-			}
-			if passes != len(tc.opened)+1 || strings.Count(out, "hardn  v0.4.0") != passes {
-				t.Errorf("the main menu read %d times and drawn %d, want %d: once, then again after each screen", passes, strings.Count(out, "hardn  v0.4.0"), len(tc.opened)+1)
-			}
-			clears := strings.Count(out, clearScreen)
-			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			// every item's screen opens on a cleared screen (showScreen)
-			want += len(tc.opened)
-			if !strings.HasPrefix(out, clearScreen) || clears != want || strings.Contains(out, "Press Enter") {
-				t.Errorf("%d clears, want %d, the first as hardn starts; or a pause:\n%q", clears, want, out)
-			}
-		})
+		for _, env := range []term.Env{ttyEnv(), plainEnv()} {
+			t.Run(tc.name+map[bool]string{false: ", on a terminal", true: ", off one"}[env.Plain], func(t *testing.T) {
+				passes := 0
+				m := liveMenu(t, env, fixtureStatus(&passes))
+				script := strings.Join(tc.lines, "\n")
+				if len(tc.lines) > 0 {
+					script += "\n"
+				}
+				useReader(t, prompt.New(strings.NewReader(script), false))
+				if tc.ctrlC {
+					useReader(t, prompt.New(interrupted{strings.NewReader(script)}, false))
+				}
+				opened := recordScreens(t, m)
+				out, code, ended := session(t, func() { m.ShowMainMenu() })
+				if ended != (tc.code != 0) || code != tc.code {
+					t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
+				}
+				if !slices.Equal(*opened, tc.opened) {
+					t.Errorf("opened %q, want %q", *opened, tc.opened)
+				}
+				text := style.StripAnsi(out) // the bold a terminal keeps without colour aside
+				if n := strings.Count(text, invalid+"\n"); n != tc.refused {
+					t.Errorf("%d lines refused, want %d:\n%s", n, tc.refused, out)
+				}
+				if passes != len(tc.opened)+1 || strings.Count(text, "hardn  v0.4.0") != passes {
+					t.Errorf("the main menu read %d times and drawn %d, want %d: once, then again after each screen", passes, strings.Count(text, "hardn  v0.4.0"), len(tc.opened)+1)
+				}
+				clears := strings.Count(out, clearScreen)
+				want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
+				// every item's screen opens on a cleared screen (showScreen)
+				want += len(tc.opened)
+				if env.Plain {
+					want = 0 // off a terminal nothing clears
+				}
+				if !strings.HasPrefix(out, clearOn(env)) || clears != want || strings.Contains(out, "Press Enter") {
+					t.Errorf("%d clears, want %d, the first as hardn starts; or a pause:\n%q", clears, want, out)
+				}
+			})
+		}
 	}
 }
 
@@ -174,9 +180,11 @@ func TestMainMenuInvalid(t *testing.T) {
 			opened := recordScreens(t, m)
 			out, _, ended := session(t, func() { m.ShowMainMenu() })
 			ask := strings.Replace(prompt, ">", component.NewCtx(tc.env).Theme.Glyphs.Prompt, 1)
-			if ended || passes != 1 || len(*opened) != 0 || !strings.HasSuffix(out, clearScreen) ||
-				!strings.HasSuffix(style.StripAnsi(strings.TrimSuffix(out, clearScreen)), ask+"\n"+tc.line+"\n"+ask+"\n") ||
-				strings.Count(out, clearScreen) != 2 || strings.Contains(out, "Press Enter") {
+			clr := clearOn(tc.env) // on a terminal as it starts and as it returns; off one none
+			noClearOff(t, tc.env, out)
+			if ended || passes != 1 || len(*opened) != 0 || !strings.HasSuffix(out, clr) ||
+				!strings.HasSuffix(style.StripAnsi(strings.TrimSuffix(out, clr)), ask+"\n"+tc.line+"\n"+ask+"\n") ||
+				clr != "" && strings.Count(out, clr) != 2 || strings.Contains(out, "Press Enter") {
 				t.Errorf("ended %v, read %d times, opened %q; the screen:\n%q\nwant it to end %q", ended, passes, *opened, out, ask+"\n"+tc.line+"\n"+ask+"\n")
 			}
 		})
@@ -188,14 +196,18 @@ func TestMainMenuInvalid(t *testing.T) {
 // the screen not cleared after it (brief 1C); the drawing is the first's.
 // The screen itself opens on a cleared screen (showScreen).
 func TestMainMenuAgain(t *testing.T) {
-	passes := 0
-	m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "7", "q")
-	recordScreens(t, m)
-	out, _, ended := session(t, func() { m.ShowMainMenu() })
-	body := strings.TrimSuffix(strings.TrimPrefix(out, clearScreen), clearScreen)
-	first, second, ok := strings.Cut(body, " \n"+clearScreen+"RUNALL SCREEN\n\n")
-	if ended || passes != 2 || !ok || first+" \n" != second || strings.Contains(second, clearScreen) {
-		t.Errorf("ended %v, read %d times; want the main menu, the screen cleared, a blank line and the main menu again, uncleared:\n%q", ended, passes, out)
+	for _, env := range []term.Env{ttyEnv(), plainEnv()} {
+		passes := 0
+		m := liveMenu(t, env, fixtureStatus(&passes), "7", "q")
+		recordScreens(t, m)
+		out, _, ended := session(t, func() { m.ShowMainMenu() })
+		clr := clearOn(env)
+		noClearOff(t, env, out)
+		body := strings.TrimSuffix(strings.TrimPrefix(out, clr), clr)
+		first, second, ok := strings.Cut(body, " \n"+clr+"RUNALL SCREEN\n\n")
+		if ended || passes != 2 || !ok || first+" \n" != second || clr != "" && strings.Contains(second, clr) {
+			t.Errorf("ended %v, read %d times; want the main menu, the screen cleared on a terminal, a blank line and the main menu again, uncleared:\n%q", ended, passes, out)
+		}
 	}
 }
 
@@ -367,21 +379,26 @@ func TestMainMenuHeights(t *testing.T) {
 }
 
 // TestMainMenuKeepsLoadWarning: a warning at load stays above the first draw; without
-// one the screen is cleared first.
+// one the screen is cleared first, on a terminal; off one nothing clears.
 func TestMainMenuKeepsLoadWarning(t *testing.T) {
-	for _, warned := range []bool{false, true} {
-		env := plainEnv()
-		m := liveMenu(t, env, fixtureStatus(new(int)), "q")
-		m.SetWarnedAtLoad(warned)
-		out, _, ended := session(t, func() { m.ShowMainMenu() })
-		if ended {
-			t.Fatalf("ended hardn:\n%s", out)
-		}
-		if got := strings.HasPrefix(out, clearScreen); got == warned {
-			t.Errorf("warned %v: cleared first %v:\n%q", warned, got, out)
-		}
-		if strings.Count(out, clearScreen) != map[bool]int{false: 2, true: 1}[warned] {
-			t.Errorf("warned %v: %d clears, the one on leaving aside:\n%q", warned, strings.Count(out, clearScreen), out)
+	for _, env := range []term.Env{ttyEnv(), plainEnv()} {
+		for _, warned := range []bool{false, true} {
+			m := liveMenu(t, env, fixtureStatus(new(int)), "q")
+			m.SetWarnedAtLoad(warned)
+			out, _, ended := session(t, func() { m.ShowMainMenu() })
+			if ended {
+				t.Fatalf("ended hardn:\n%s", out)
+			}
+			noClearOff(t, env, out)
+			if env.Plain {
+				continue
+			}
+			if got := strings.HasPrefix(out, clearScreen); got == warned {
+				t.Errorf("warned %v: cleared first %v:\n%q", warned, got, out)
+			}
+			if strings.Count(out, clearScreen) != map[bool]int{false: 2, true: 1}[warned] {
+				t.Errorf("warned %v: %d clears, the one on leaving aside:\n%q", warned, strings.Count(out, clearScreen), out)
+			}
 		}
 	}
 }

@@ -34,8 +34,32 @@ import (
 // Nothing on this machine is read or run: the hook is a fake, or
 // pkg/screens/mainmenu over hostfake.
 
-// clearScreen is what utils.ClearScreen prints.
-const clearScreen = "\033[H\033[2J"
+// clearScreen is what a clear writes on a terminal (term.Env.Clear).
+const clearScreen = term.ClearSequence
+
+// ttyEnv is a terminal 80 columns wide, without colour (NO_COLOR): the
+// main menu clears on it.
+func ttyEnv() term.Env {
+	return term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80,
+		Environ: []string{"TERM=xterm-256color", "NO_COLOR=1"}})
+}
+
+// clearOn is what a clear writes on env: the clear on a terminal, nothing
+// off one.
+func clearOn(env term.Env) string {
+	if env.Plain {
+		return ""
+	}
+	return clearScreen
+}
+
+// noClearOff reports a clear written off a terminal, where none is.
+func noClearOff(t *testing.T, env term.Env, out string) {
+	t.Helper()
+	if env.Plain && strings.Contains(out, clearScreen) {
+		t.Errorf("cleared off a terminal:\n%q", out)
+	}
+}
 
 // liveMenu is a main menu as cmd/hardn builds it, its status read by read
 // and drawn on terminal env; the end of the input after lines.
@@ -82,7 +106,7 @@ func TestLiveStatus(t *testing.T) {
 	out, _, ended := session(t, func() { m.ShowMainMenu() })
 	vm, _ := fixtureStatus(new(int))(context.Background())
 	vm.Heading, vm.Mode, vm.Prompt, vm.Menu = mainHeading, m.mode(), mainPrompt, m.mainMenu().View()
-	want := clearScreen + written(plainEnv(), vm.Render(component.NewCtx(plainEnv()))) + " \n" + clearScreen
+	want := written(plainEnv(), vm.Render(component.NewCtx(plainEnv()))) + " \n" // off a terminal, no clear
 	if ended || out != want || n != 1 {
 		t.Errorf("ended %v, the hook called %d times; the screen:\n%q\nwant:\n%q", ended, n, out, want)
 	}
@@ -148,7 +172,7 @@ func TestLiveStatusEnds(t *testing.T) {
 				}()
 				m.ShowMainMenu()
 			})
-			if ended || out != clearScreen {
+			if ended || out != "" {
 				t.Errorf("ended %v, printed %q", ended, out)
 			}
 		})
@@ -201,7 +225,7 @@ func TestLiveStatusOnHosts(t *testing.T) {
 				return mainmenu.Status(ctx, mainmenu.Options{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 			}, "q")
 			out, _, ended := session(t, func() { m.ShowMainMenu() })
-			want := clearScreen + galleryStatus(t, name) + " \n" + clearScreen
+			want := galleryStatus(t, name) + " \n" // off a terminal, no clear
 			if ended || out != want {
 				t.Errorf("ended %v; the main menu:\n%s\nwant the gallery's status:\n%s", ended, out, want)
 			}

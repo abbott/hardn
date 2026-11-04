@@ -8,8 +8,10 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // TestDNSItem: the main menu's 3 runs the DNS screen cmd/hardn sets
@@ -208,48 +210,51 @@ func testScreenItem(t *testing.T, item screenItem) {
 		{name: "ctrl-c", err: prompt.ErrInterrupted, code: int(sigint)},
 		{name: "another error", err: failed, code: 1, said: failed.Error()},
 	} {
-		t.Run(tc.name, func(t *testing.T) {
-			cfg := config.DefaultConfig()
-			cfg.Nameservers = []string{"192.0.2.53"}
-			passes := 0
-			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), item.key, "q")
-			m.config = cfg
-			calls := 0
-			item.set(m, func() error {
-				calls++
-				fmt.Println(said)
-				item.edit(cfg) // the screen adopts hardn.yml as saved
-				return tc.err
+		for _, env := range []term.Env{ttyEnv(), plainEnv()} {
+			t.Run(tc.name+map[bool]string{false: ", on a terminal", true: ", off one"}[env.Plain], func(t *testing.T) {
+				cfg := config.DefaultConfig()
+				cfg.Nameservers = []string{"192.0.2.53"}
+				passes := 0
+				m := liveMenu(t, env, fixtureStatus(&passes), item.key, "q")
+				m.config = cfg
+				calls := 0
+				item.set(m, func() error {
+					calls++
+					fmt.Println(said)
+					item.edit(cfg) // the screen adopts hardn.yml as saved
+					return tc.err
+				})
+				out, code, ended := session(t, func() { m.ShowMainMenu() })
+				switch {
+				case tc.code != 0 && (!ended || code != tc.code):
+					t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
+				case tc.code == 0 && ended:
+					t.Fatalf("ended hardn with %d:\n%s", code, out)
+				}
+				// The screen opens on a cleared screen on a terminal, after the
+				// main menu's prompt and the key typed; off one nothing clears.
+				noClearOff(t, env, out)
+				if !strings.Contains(out, "[0-10 or q]: \n"+clearOn(env)+said+"\n") {
+					t.Errorf("the screen does not open on a cleared screen:\n%q", out)
+				}
+				wantPasses := map[bool]int{false: 1, true: 2}[tc.again]
+				if calls != 1 || passes != wantPasses {
+					t.Errorf("the screen ran %d times, the main menu drawn %d times; want 1 and %d", calls, passes, wantPasses)
+				}
+				if tc.again && !strings.Contains(style.StripAnsi(out), said+"\n\nhardn ") {
+					t.Errorf("the main menu is not drawn again under the screen, a blank line between:\n%q", out)
+				}
+				if tc.code == 0 && !strings.HasSuffix(out, clearOn(env)) {
+					t.Errorf("q does not end with a cleared screen:\n%q", out)
+				}
+				if tc.said != "" && !strings.Contains(out, tc.said) {
+					t.Errorf("printed %q, want %q", out, tc.said)
+				}
+				if !item.edited(m.config) {
+					t.Errorf("the main menu's configuration is not the screen's: %+v", m.config)
+				}
 			})
-			out, code, ended := session(t, func() { m.ShowMainMenu() })
-			switch {
-			case tc.code != 0 && (!ended || code != tc.code):
-				t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
-			case tc.code == 0 && ended:
-				t.Fatalf("ended hardn with %d:\n%s", code, out)
-			}
-			// The screen opens on a cleared screen, after the main menu's
-			// prompt and the key typed.
-			if !strings.Contains(out, "[0-10 or q]: \n"+clearScreen+said+"\n") {
-				t.Errorf("the screen does not open on a cleared screen:\n%q", out)
-			}
-			wantPasses := map[bool]int{false: 1, true: 2}[tc.again]
-			if calls != 1 || passes != wantPasses {
-				t.Errorf("the screen ran %d times, the main menu drawn %d times; want 1 and %d", calls, passes, wantPasses)
-			}
-			if tc.again && !strings.Contains(out, said+"\n\nhardn ") {
-				t.Errorf("the main menu is not drawn again under the screen, a blank line between:\n%q", out)
-			}
-			if tc.code == 0 && !strings.HasSuffix(out, clearScreen) {
-				t.Errorf("q does not end with a cleared screen:\n%q", out)
-			}
-			if tc.said != "" && !strings.Contains(out, tc.said) {
-				t.Errorf("printed %q, want %q", out, tc.said)
-			}
-			if !item.edited(m.config) {
-				t.Errorf("the main menu's configuration is not the screen's: %+v", m.config)
-			}
-		})
+		}
 	}
 	t.Run("no screen set", func(t *testing.T) {
 		m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), item.key)
