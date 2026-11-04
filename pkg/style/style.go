@@ -79,11 +79,6 @@ func Colored(color string, text string) string {
 	return color + text + Reset
 }
 
-// Error formats text in red with a cross mark prefix
-func Error(text string) string {
-	return Red + SymCrossMark + Reset + " " + text
-}
-
 func ColoredLabel(text string, color ...string) string {
 
 	labelColor := BgDarkBlue
