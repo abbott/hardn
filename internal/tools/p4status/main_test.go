@@ -304,7 +304,7 @@ func TestCheckError(t *testing.T) {
 
 // TestEvidence checks the evidence of Proxmox VE 9 against what the
 // fixture holds: detect's facts, each row, the header's facts and the
-// risk with its factor's cost and finding.
+// risk.
 func TestEvidence(t *testing.T) {
 	_, code, out, _ := runOn(t, "pve9")
 	if code != exitOK {
@@ -318,8 +318,9 @@ func TestEvidence(t *testing.T) {
 		"row ssh.login (SSH Login)":        {"  detail     root allowed\n", "  evidence   sshd -T: permitrootlogin yes\n"},
 		"header": {"  hostname   web-01\n", "  ipv4       default route yes, vmbr0, 192.0.2.20\n", "  primary    192.0.2.20\n",
 			"  uptime     41 days, 1 hour (", "  reboot     pending no; running 6.17.2-1-pve; own kernel\n"},
-		"risk": {"  band       critical, score 5.0, forced false\n", "  factor     Up 41 days, no updates (uptime, row updates.auto, cost 10)\n",
-			"  finding    UPTIME_NO_AUTO_UPDATES "},
+		// Auto Updates is Not Applicable on Proxmox VE (slice 7 decision 7
+		// (a)): it leaves the risk level, and the uptime has no factor.
+		"risk": {"  band       critical, score 18.8, forced false\n"},
 	} {
 		got := strings.Join(section(out, heading), "\n") + "\n"
 		for _, w := range want {
