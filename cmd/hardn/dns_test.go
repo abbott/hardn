@@ -542,8 +542,8 @@ func TestConfigureDNSFlag(t *testing.T) {
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
-			if want := []string{"root check", "config load", "OS detection"}; !slices.Equal(r.reached, want) {
-				t.Errorf("reached %v, want %v: -g runs after the root check and the configuration's load", r.reached, want)
+			if want := []string{"root check", "OS detection", "config load"}; !slices.Equal(r.reached, want) {
+				t.Errorf("reached %v, want %v: -g runs after the root check, the OS check and the configuration's load", r.reached, want)
 			}
 			rest := report
 			for _, w := range tc.said {

@@ -190,15 +190,32 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
+		// An OS other than Debian, Ubuntu or Alpine, or none os-release
+		// names, is refused (hostOS); nothing is said of one that is not.
+		// Before hardn.yml's load, whose first-run question may write one:
+		// a host hardn refuses is never offered it.
+		if err := detectOS(); err != nil {
+			sayError("Failed to detect OS: %v", err)
+			exit(1)
+		}
+
 		// Load configuration (-f, then HARDN_CONFIG, then the search path).
 		// Which hardn.yml is said once, on stderr, for the flags, and
 		// nothing before the main menu (decision 4 (a) of
-		// docs/engine/legacy-left.md, adopted 2026-11-04).
+		// docs/engine/legacy-left.md, adopted 2026-11-04). With -n, plan
+		// only, none found is the defaults, with no offer to create one
+		// (loadExisting, as setup-sudo-env's), so that -n writes nothing.
+		// A yes to the offer on a live run writes hardn.yml, asked for,
+		// whatever refusal follows it.
 		found := findConfig(configFile)
 		if !mainMenuRun() {
 			sayFound(found)
 		}
-		cfg, err = loadConfig(configFile)
+		load := loadConfig
+		if dryRun {
+			load = loadExisting
+		}
+		cfg, err = load(configFile)
 		if err != nil {
 			sayError("Failed to load configuration: %v", err)
 			exit(1)
@@ -231,15 +248,9 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
-		// An OS other than Debian, Ubuntu or Alpine, or none os-release
-		// names, is refused (hostOS); nothing is said of one that is not.
-		if err := detectOS(); err != nil {
-			sayError("Failed to detect OS: %v", err)
-			exit(1)
-		}
-
-		// Every refusal before the operation is past: the log opened and the
-		// example written, unless plan only.
+		// Every refusal before the operation is past (the OS's is ahead of
+		// the load): the log opened and the example written, unless plan
+		// only.
 		liveWrites(cfg)
 
 		warnDeprecations(cfg)
