@@ -31,3 +31,22 @@ func TestScreenGoldens(t *testing.T) {
 		})
 	}
 }
+
+// TestReviewGolden pins a review whose control notes carry Warn, on the
+// core set, in colour too: config-files, Enabled by hardn, then Disable,
+// declined. 50unattended-upgrades, kept as it was there before hardn, and
+// the rollback that turns updates on are warnings. The file is
+// testdata/golden/review/config-files-off.golden.
+func TestReviewGolden(t *testing.T) {
+	uitest.Golden(t, "review/config-files-off", uitest.Core(), func(env term.Env) string {
+		m := newHost(t, "config-files").applied()
+		var out bytes.Buffer
+		p := playWith(m, false, func(o *updscreen.Options) {
+			o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, "1", "n", "0"), false), Out: env.Writer(&out)}
+		})
+		if p.err != nil || !asked(out.String()) {
+			t.Errorf("Run = %v", p.err)
+		}
+		return out.String()
+	})
+}
