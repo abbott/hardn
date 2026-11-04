@@ -36,6 +36,11 @@ func play(m *model, dryRun bool, lines ...string) played {
 // playWith is play with the options set changes, when not nil. Each
 // engine is built as cmd/hardn builds it.
 func playWith(m *model, dryRun bool, set func(*updscreen.Options), lines ...string) played {
+	return playIn(context.Background(), m, dryRun, set, lines...)
+}
+
+// playIn is playWith under ctx.
+func playIn(ctx context.Context, m *model, dryRun bool, set func(*updscreen.Options), lines ...string) played {
 	var out bytes.Buffer
 	env := term.Resolve(term.Options{}, term.Facts{Width: 120})
 	ty := uitest.NewTypist(&out, lines...)
@@ -53,7 +58,7 @@ func playWith(m *model, dryRun bool, set func(*updscreen.Options), lines ...stri
 	if set != nil {
 		set(&o)
 	}
-	p.err = updscreen.Run(context.Background(), o)
+	p.err = updscreen.Run(ctx, o)
 	p.out, p.unread = out.String(), ty.Unread()
 	return p
 }
