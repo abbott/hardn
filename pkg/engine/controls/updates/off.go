@@ -12,6 +12,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -45,8 +46,9 @@ func runChange(id, title, target string, argv, undo []string, risk engine.RiskCl
 // changed since refusing, naming the file; with no record, hardn's own
 // file deleted while it holds hardn's bytes and no other file keeps
 // updates on without it, and nothing else. Off counts only what the record
-// says hardn did. Then enableUnattendedUpgrades saved false where the
-// loaded hardn.yml says true (steps.PlanSave), and the record deleted.
+// says hardn did. Then in.Config saved as given (steps.PlanSave) where its
+// enableUnattendedUpgrades is not the file's: the caller sets it false
+// where the loaded hardn.yml says true; and the record deleted.
 // notes are what stays and why, for the review.
 func (c Auto) planOff(ctx context.Context, sys host.System, in engine.Input, r Reading) (cs []engine.Change, notes []Note, err error) {
 	switch {
@@ -71,10 +73,8 @@ func (c Auto) planOff(ctx context.Context, sys host.System, in engine.Input, r R
 	if len(cs) == 0 && r.Record == nil {
 		return nil, nil, refuse(codeNothing, ErrNothingToUndo, nil, "Nothing to undo: hardn did not turn this on", "turn it off by hand")
 	}
-	if cfg := r.Config; cfg != nil && cfg.Path() != "" && cfg.EnableUnattendedUpgrades {
-		saved := *cfg
-		saved.EnableUnattendedUpgrades = false
-		save, err := steps.PlanSave(ctx, sys, ChangeSave, &saved, []string{Setting}, changeIDs(cs)...)
+	if cfg := r.Config; cfg != nil && cfg.Path() != "" && settingChanged(ctx, sys, cfg) {
+		save, err := steps.PlanSave(ctx, sys, ChangeSave, cfg, []string{Setting}, changeIDs(cs)...)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -92,6 +92,16 @@ func (c Auto) planOff(ctx context.Context, sys host.System, in engine.Input, r R
 			}})
 	}
 	return cs, notes, nil
+}
+
+// settingChanged reports whether cfg's enableUnattendedUpgrades is not the
+// one hardn.yml at its path gives, or whether the file cannot be read
+// there, so that steps.PlanSave says why it cannot be saved. cfg is saved
+// as given, so that the save's config.Save records the bytes it wrote in
+// it, as screenkit.Adopt reads them.
+func settingChanged(ctx context.Context, sys host.System, cfg *config.Config) bool {
+	loaded, err := config.Read(ctx, sys, cfg.Path())
+	return err != nil || loaded.EnableUnattendedUpgrades != cfg.EnableUnattendedUpgrades
 }
 
 // offReadBack is off's read-back after its last step: the check; updates

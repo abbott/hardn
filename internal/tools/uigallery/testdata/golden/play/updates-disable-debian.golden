@@ -6,13 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/by-hardn-debian␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(updates.Auto's Read: the check, aptconf, dpkg, systemctl,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates and OtherJobs, hardn's record), each change␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's (updates.Auto, on and off) on the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/by-hardn-debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian-installer after␛[m$
@@ -25,7 +23,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
@@ -149,13 +147,11 @@ $
 # play updates/by-hardn-debian ---------------------------------$
 $
 # Note$
-# Play mode, mocks: the Auto Updates screen proposed for slice$
-# 7, drawn from what real code reads of a simulated host$
-# (updates.Auto's Read: the check, aptconf, dpkg, systemctl,$
-# alpine.ReadUpdates and OtherJobs, hardn's record), each change$
-# the real control's (updates.Auto, on and off) on the real$
-# plan/apply engine. Nothing on this machine changes: every$
-# command and file is the fake's.$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
 $
 # Info: updates/by-hardn-debian$
 # web-01.example.net runs Debian 13. debian-installer after$
@@ -168,7 +164,7 @@ $
 $
 # Update Configuration -----------------------------------------$
 $
-   -  unattended-upgrades  Installed 2.12$
+   -  unattended-upgrades  Installed$
    -  Upgrades             Daily by 52hardn-auto-upgrades$
    -  Package Lists        Daily by 52hardn-auto-upgrades$
    -  Upgrade Timer        On apt-daily-upgrade.timer$
@@ -292,13 +288,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/by-hardn-debian␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 7, drawn from what real code reads of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (updates.Auto's Read: the check, aptconf, dpkg,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystemctl, alpine.ReadUpdates and OtherJobs, hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord), each change the real control's (updates.Auto, on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand off) on the real plan/apply engine. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/by-hardn-debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian-installer after␛[m$
@@ -313,7 +308,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m$
-      ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+      ␛[38;2;129;134;156mInstalled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
       ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m$
@@ -456,13 +451,11 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mplay updates/by-hardn-debian␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(updates.Auto's Read: the check, aptconf, dpkg, systemctl,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates and OtherJobs, hardn's record), each change␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's (updates.Auto, on and off) on the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/by-hardn-debian␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian-installer after␛[m$
@@ -475,7 +468,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
