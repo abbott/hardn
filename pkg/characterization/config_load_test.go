@@ -39,7 +39,7 @@ func configCases() []configCase {
 		{name: "type-error", fixture: "type-error.yml"},
 		{
 			name: "v032-disableroot", fixture: "v032-disableroot.yml",
-			defects: []string{"V24 — v0.3.2's disableRoot key is ignored without a warning (origin/main reads disableRootSSH), so DisableRootSSH stays false"},
+			fixed: []string{"V24 (refactor plan §3.11, next/p7-surface): v0.3.2's disableRoot key is read as disableRootSSH, with a deprecation warning naming disableRootSSH (config.Deprecation, said by cmd/hardn's warnDeprecations); origin/main ignored it without a warning, so DisableRootSSH stayed false."},
 		},
 	}
 }
