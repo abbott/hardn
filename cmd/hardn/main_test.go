@@ -58,9 +58,12 @@ func resetFlags() {
 	noColor, configFile, username, dryRun = false, "", "", false
 	createUser, disableRootSSH, configureUfw, configureDns, runAll, printLogs = false, false, false, false, false, false
 	showVersion, setupSudoEnv = false, false
+	colorMode, asciiOutput, plainOutput, themeMode = term.ColorUnset, false, false, term.ThemeUnset
+	themeAnswered = term.ThemeUnset
 	cfg = nil
 	// A flag given in one run stays given in pflag for the next (dryRunGiven).
-	for _, name := range []string{"dry-run", "print-logs", "create-user", "disable-root", "configure-dns", "configure-ufw", "run-all", "setup-sudo-env"} {
+	for _, name := range []string{"dry-run", "print-logs", "create-user", "disable-root", "configure-dns", "configure-ufw", "run-all", "setup-sudo-env",
+		"color", "ascii", "plain", "theme", "no-color"} {
 		rootCmd.PersistentFlags().Lookup(name).Changed = false
 	}
 	if c, _, err := rootCmd.Find([]string{"system-details"}); err == nil {
