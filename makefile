@@ -200,44 +200,21 @@ rpm: linux
 		exit 1; \
 	}
 
-# SLSA verification targets
-.PHONY: verify-release verify-local install-verifier
-
-# Install SLSA verifier
-install-verifier:
-	go install github.com/slsa-framework/slsa-verifier/v2/cli/slsa-verifier@v2.7.0
-
-# Verify a release using SLSA verifier
-# Usage: make verify-release VERSION=0.3.2 OS=linux ARCH=amd64
+# Verify a release binary with verify.sh: its SHA-256 against the release's
+# SHA256SUMS, then its SLSA Build Level 3 provenance (gh attestation verify,
+# signed by .github/workflows/build.yml from the tag v$(VERSION)). Releases
+# v0.4.0 and later. Needs curl, gh 2.68.0 or later (signed in), and sha256sum
+# or shasum. Leaves the verified binary as ./hardn-$(PLATFORM).
+# Usage: make verify-release PLATFORM=linux-amd64 [VERSION=0.4.0]
+#   PLATFORM  linux-amd64, linux-arm64 or darwin-amd64
+#   VERSION   defaults to this makefile's VERSION
+.PHONY: verify-release
 verify-release:
-	@if [ -z "$(VERSION)" ] || [ -z "$(OS)" ] || [ -z "$(ARCH)" ]; then \
-		echo "Error: Missing parameters"; \
-		echo "Usage: make verify-release VERSION=0.3.2 OS=linux ARCH=amd64"; \
-		exit 1; \
+	@if [ -z "$(PLATFORM)" ]; then \
+		echo "Usage: make verify-release PLATFORM=linux-amd64 [VERSION=$(VERSION)]" >&2; \
+		exit 2; \
 	fi
-	@echo "Verifying release v$(VERSION) for $(OS)/$(ARCH)..."
-	@slsa-verifier verify-artifact \
-		hardn-$(OS)-$(ARCH) \
-		--provenance hardn-$(OS)-$(ARCH).intoto.jsonl \
-		--source-uri github.com/abbott/hardn \
-		--source-tag v$(VERSION)
-	@echo "✅ Verification successful!"
-
-# Verify a local build using SLSA verifier
-# This requires the binary and provenance file to be in the current directory
-verify-local:
-	@echo "Verifying local build..."
-	@ls -la *.intoto.jsonl | head -1 | awk '{print $$9}' | xargs -I{} bash -c '\
-		binary=$$(echo {} | sed "s/.intoto.jsonl//"); \
-		tag=$$(git describe --tags --exact-match 2>/dev/null || echo "dev"); \
-		echo "Binary: $$binary, Tag: $$tag"; \
-		slsa-verifier verify-artifact \
-			--artifact-path $$binary \
-			--provenance {} \
-			--source-uri github.com/abbott/hardn \
-			$$([ "$$tag" != "dev" ] && echo "--source-tag $$tag" || echo "--source-branch $$(git branch --show-current)");\
-		if [ $$? -eq 0 ]; then echo "✅ Verification successful!"; else echo "❌ Verification failed!"; fi;\
-	'
+	sh ./verify.sh "$(VERSION)" "$(PLATFORM)"
 
 # Add a vendor target
 .PHONY: vendor
@@ -306,49 +283,6 @@ dev-run:
 		exit 1; \
 	fi
 	@bash scripts/wf-dev-mode.sh $(CMD)
-
-# Install Cosign
-.PHONY: install-cosign
-install-cosign:
-	@echo "Installing Cosign..."
-	@if [ "$$(uname)" = "Darwin" ]; then \
-		brew install cosign; \
-	else \
-		curl -sfL https://github.com/sigstore/cosign/releases/latest/download/cosign-$$(uname -s | tr '[:upper:]' '[:lower:]')-$$(uname -m) -o /tmp/cosign && \
-		chmod +x /tmp/cosign && \
-		sudo mv /tmp/cosign /usr/local/bin/cosign; \
-	fi
-	@echo "✅ Cosign installed successfully"
-
-# Verify artifact signature
-.PHONY: verify-signature
-verify-signature:
-	@if [ -z "$(VERSION)" ] || [ -z "$(OS)" ] || [ -z "$(ARCH)" ]; then \
-		echo "Error: Missing parameters"; \
-		echo "Usage: make verify-signature VERSION=0.3.2 OS=linux ARCH=amd64"; \
-		exit 1; \
-	fi
-	@echo "Verifying signature for hardn-$(OS)-$(ARCH) version v$(VERSION)..."
-	@cosign verify-blob \
-		--certificate hardn-$(OS)-$(ARCH).crt \
-		--signature hardn-$(OS)-$(ARCH).sig \
-		--certificate-identity-regexp ".*github.com/workflows/.*" \
-		--certificate-oidc-issuer https://token.actions.githubusercontent.com \
-		hardn-$(OS)-$(ARCH)
-	@echo "✅ Signature verification successful!"
-
-# Comprehensive verification of both SLSA provenance and Sigstore signature
-.PHONY: verify-release-full
-verify-release-full:
-	@if [ -z "$(VERSION)" ] || [ -z "$(OS)" ] || [ -z "$(ARCH)" ]; then \
-		echo "Error: Missing parameters"; \
-		echo "Usage: make verify-release-full VERSION=0.3.2 OS=linux ARCH=amd64"; \
-		exit 1; \
-	fi
-	@echo "Performing full verification (SLSA + Sigstore) for hardn-$(OS)-$(ARCH) version v$(VERSION)..."
-	@make verify-release VERSION=$(VERSION) OS=$(OS) ARCH=$(ARCH)
-	@make verify-signature VERSION=$(VERSION) OS=$(OS) ARCH=$(ARCH)
-	@echo "✅ Full verification successful!"
 
 # ---------------------------------------------------------------------------
 # Local check (refactor plan P0.4; brief Phase 6 "local check script")
