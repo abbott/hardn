@@ -200,13 +200,6 @@ func TestRefusals(t *testing.T) {
 			}
 		})
 	}
-	for _, name := range []string{"30web.list", "30web 2", ".30web", "30wéb"} {
-		t.Run("name "+name, func(t *testing.T) {
-			if _, err := read(t, map[string]string{"/etc/apt/apt.conf.d/" + name: ""}, ""); !errors.Is(err, detect.ErrUnrecognised) {
-				t.Errorf("err = %v, want ErrUnrecognised", err)
-			}
-		})
-	}
 	t.Run("directory", func(t *testing.T) {
 		sys := fake(t, nil, "")
 		sys.AddDir("/etc/apt/apt.conf.d/30web", 0o755, 0, 0)
@@ -230,6 +223,27 @@ func TestRefusals(t *testing.T) {
 			sys.Respond(hostfake.Response{Stdout: dump}, "apt-config", "dump", "Dir")
 			if _, err := aptconf.Read(context.Background(), sys, roots...); !errors.Is(err, detect.ErrUnrecognised) {
 				t.Errorf("err = %v, want ErrUnrecognised", err)
+			}
+		})
+	}
+}
+
+// TestSkippedNames: a name apt's GetListOfFilesInDir doesn't take is
+// skipped, its bytes never read: hidden first, then an extension other
+// than "conf", a byte apt refuses, a "." last. A name it takes is read.
+func TestSkippedNames(t *testing.T) {
+	for _, name := range []string{".30web", "20auto-upgrades.ucf-dist", "foo.txt", "30web.list", "30web 2", "30w\u00e9b", "30web.", "30web~"} {
+		t.Run(name, func(t *testing.T) {
+			c, err := read(t, map[string]string{"/etc/apt/apt.conf.d/" + name: "this is not read {"}, "")
+			if err != nil || len(c.Files()) != 0 {
+				t.Errorf("Files = %q, %v; want none read", c.Files(), err)
+			}
+		})
+	}
+	for _, name := range []string{"30web.conf", "30web:1", "30.web.conf"} {
+		t.Run(name, func(t *testing.T) {
+			if _, err := read(t, map[string]string{"/etc/apt/apt.conf.d/" + name: "this is read {"}, ""); !errors.Is(err, detect.ErrUnrecognised) {
+				t.Errorf("err = %v, want the parse's ErrUnrecognised", err)
 			}
 		})
 	}

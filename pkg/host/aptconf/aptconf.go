@@ -17,7 +17,6 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
-	"regexp"
 	"slices"
 	"strings"
 
@@ -82,11 +81,10 @@ func Read(ctx context.Context, sys host.System, roots ...string) (Config, error)
 		}
 		c.roots = append(c.roots, strings.ToLower(r))
 	}
-	ignore, err := checkDirs(ctx, sys)
-	if err != nil {
+	if err := checkDirs(ctx, sys); err != nil {
 		return Config{}, err
 	}
-	names, err := partsFiles(ctx, sys, ignore)
+	names, err := partsFiles(ctx, sys)
 	if err != nil {
 		return Config{}, err
 	}
@@ -274,50 +272,52 @@ func at(lines []string, i int) string {
 
 // checkDirs reads `apt-config dump Dir`: Dir, Dir::Etc, Dir::Etc::parts and
 // Dir::Etc::main must name PartsDir and MainFile (the VMs' values, a
-// trailing slash allowed on Dir::Etc), and Dir::Ignore-Files-Silently's
-// items are the names apt skips without a word (02-inspect-c-*.log).
-func checkDirs(ctx context.Context, sys host.System) ([]*regexp.Regexp, error) {
+// trailing slash allowed on Dir::Etc). Dir::Ignore-Files-Silently's items
+// only silence apt's notice of a file it skips (partsFiles), so they are
+// not kept (02-inspect-c-*.log).
+func checkDirs(ctx context.Context, sys host.System) error {
 	res, err := sys.Run(ctx, "apt-config", "dump", "Dir")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	values := map[string]string{}
-	var ignore []*regexp.Regexp
 	for _, line := range strings.Split(strings.TrimSuffix(string(res.Stdout), "\n"), "\n") {
 		name, rest, ok := strings.Cut(line, ` "`)
 		value, closed := strings.CutSuffix(rest, `";`)
 		if !ok || !closed || strings.ContainsAny(name, " \t\"") || strings.Contains(value, `"`) {
-			return nil, fmt.Errorf("apt-config dump Dir: line %q: %w", line, detect.ErrUnrecognised)
+			return fmt.Errorf("apt-config dump Dir: line %q: %w", line, detect.ErrUnrecognised)
 		}
 		name = strings.ToLower(name)
-		if name == "dir::ignore-files-silently::" {
-			re, err := regexp.Compile(value)
-			if err != nil {
-				return nil, fmt.Errorf("apt-config dump Dir: Dir::Ignore-Files-Silently %q: %w", value, detect.ErrUnrecognised)
-			}
-			ignore = append(ignore, re)
-			continue
+		if name != "dir::ignore-files-silently::" {
+			values[name] = value
 		}
-		values[name] = value
 	}
 	for name, want := range map[string][]string{
 		"dir": {"/"}, "dir::etc": {"etc/apt", "etc/apt/"},
 		"dir::etc::parts": {"apt.conf.d"}, "dir::etc::main": {"apt.conf"},
 	} {
 		if v, ok := values[name]; !ok || !slices.Contains(want, v) {
-			return nil, fmt.Errorf("apt-config dump Dir: %s is %q, not %q: %w", name, v, want[0], detect.ErrUnrecognised)
+			return fmt.Errorf("apt-config dump Dir: %s is %q, not %q: %w", name, v, want[0], detect.ErrUnrecognised)
 		}
 	}
-	return ignore, nil
+	return nil
 }
 
-// partsFiles is PartsDir's files in apt's order, byte order of their names.
-// A name Dir::Ignore-Files-Silently matches is skipped. Any other is read
-// where it is letters, digits, "_" and "-", with no extension or ".conf"
-// (apt's run-parts-like rule; a dot elsewhere before ".conf" allowed); a name
-// outside that, or an entry that is not a regular file through its
-// symlinks, is refused: what apt does with it is [unverified].
-func partsFiles(ctx context.Context, sys host.System, ignore []*regexp.Regexp) ([]string, error) {
+// partsFiles is PartsDir's files in apt's order, byte order of their names,
+// by apt's own rule (apt-pkg/contrib/fileutl.cc, GetListOfFilesInDir, as
+// ReadConfigDir calls it: extension "conf" or none; apt's main branch on
+// salsa.debian.org, read 2026-11-03; the same in apt 2.6.1 and 3.0.3
+// [unverified]). A name starting with "." is skipped first. A name apt
+// doesn't take is skipped too, read for nothing: an extension other than
+// "conf" (after the last "."), a byte other than an ASCII letter or digit,
+// "_", "-", ":" or ".", or a "." last. apt notices those unless
+// Dir::Ignore-Files-Silently matches the name, which changes only the
+// notice, so the patterns are not used here. Whether apt's isalpha takes a
+// byte outside ASCII in the host's locale is [unverified]: such a name is
+// skipped, and the cross-check against apt-config dump stays the guard.
+// An entry with a name apt takes that is not a regular file through its
+// symlinks is refused.
+func partsFiles(ctx context.Context, sys host.System) ([]string, error) {
 	entries, err := sys.ReadDir(ctx, PartsDir)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
@@ -332,13 +332,10 @@ func partsFiles(ctx context.Context, sys host.System, ignore []*regexp.Regexp) (
 	slices.Sort(names)
 	var files []string
 	for _, name := range names {
-		if slices.ContainsFunc(ignore, func(re *regexp.Regexp) bool { return re.MatchString(name) }) {
+		if !aptTakes(name) {
 			continue
 		}
 		p := path.Join(PartsDir, name)
-		if !validName(name) {
-			return nil, fmt.Errorf("%s: a name apt's rules here do not cover: %w", p, detect.ErrUnrecognised)
-		}
 		fi, err := sys.Stat(ctx, p)
 		if err != nil {
 			return nil, err
@@ -351,19 +348,25 @@ func partsFiles(ctx context.Context, sys host.System, ignore []*regexp.Regexp) (
 	return files, nil
 }
 
-func validName(name string) bool {
-	base, ext, dotted := cutLast(name, ".")
-	if dotted && ext != "conf" {
+// aptTakes is GetListOfFilesInDir's name rule with extensions "conf" and
+// none: not hidden, extension (flExtension: after the last ".", the whole
+// name where there is none) "conf" or none, every byte a letter, a digit,
+// "_", "-", ":" or ".", and not ending in ".".
+func aptTakes(name string) bool {
+	if name == "" || name[0] == '.' {
 		return false
 	}
-	return base != "" && strings.Trim(base, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-.") == "" && base[0] != '.'
-}
-
-func cutLast(s, sep string) (before, after string, found bool) {
-	if i := strings.LastIndex(s, sep); i >= 0 {
-		return s[:i], s[i+len(sep):], true
+	if i := strings.LastIndexByte(name, '.'); i >= 0 && name[i+1:] != "conf" && name[i+1:] != "" {
+		return false
 	}
-	return s, "", false
+	for i := 0; i < len(name); i++ {
+		switch c := name[i]; {
+		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '_', c == '-', c == ':', c == '.':
+		default:
+			return false
+		}
+	}
+	return name[len(name)-1] != '.'
 }
 
 // split is a name's tags: "::"-separated, none empty, none holding space,
