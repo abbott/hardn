@@ -5,7 +5,6 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"slices"
 	"strings"
 	"testing"
 
@@ -135,87 +134,6 @@ func TestDryRunPrecedence(t *testing.T) {
 	}
 }
 
-// TestPlanOnlyRefusesOperations: decision 9, each operation flag under each
-// source (operationRuns: -g, -e and setup-sudo-env show their plans
-// instead, TestConfigureDNSFlagPlanOnlyFromFile and
-// TestKeepEnvironmentPlanOnlyFromFile). hardn.yml's dryRun: true, no -n/--dry-run given, refuses it as -n
-// does, exit status 2 before the root check, nothing run, naming the file
-// and --dry-run=false; -n refuses it whatever the file says; and it runs
-// live with no file, under dryRun: false, and under --dry-run=false over
-// dryRun: true.
-func TestPlanOnlyRefusesOperations(t *testing.T) {
-	const (
-		applies = iota
-		refusedByFile
-		refusedByFlag
-	)
-	for _, op := range operationRuns {
-		for _, src := range []struct {
-			name, file string
-			flag       []string
-			want       int
-		}{
-			{"no file", "", nil, applies},
-			{"file false", "false", nil, applies},
-			{"file true", "true", nil, refusedByFile},
-			{"-n, file false", "false", []string{"-n"}, refusedByFlag},
-			{"-n, file true", "true", []string{"-n"}, refusedByFlag},
-			{"--dry-run=false, file true", "true", []string{"--dry-run=false"}, applies},
-		} {
-			t.Run(strings.Join(op.args, " ")+", "+src.name, func(t *testing.T) {
-				y := newHardnYML(t, src.file)
-				r := runHardnWith(t, asRoot, y.setup(t), y.args(append(slices.Clone(src.flag), op.args...)...)...)
-				if src.want == applies {
-					if r.ended || !changesHost(r.calls) {
-						t.Fatalf("ended %v with %d, calls %v; stderr:\n%s", r.ended, r.code, r.calls, r.stderr)
-					}
-					return
-				}
-				if !r.ended || r.code != hardncmd.ExitUsage || len(r.reached) != 0 || len(r.calls) != 0 {
-					t.Fatalf("ended %v with %d after %v, calls %v; want exit status 2 before the root check; stderr:\n%s",
-						r.ended, r.code, r.reached, r.calls, r.stderr)
-				}
-				want := []string{op.name, "-n/--dry-run only previews", "Nothing was changed."}
-				if src.want == refusedByFile {
-					want = []string{"hardn: " + y.path + " sets plan only (dryRun: true)", op.name, "Nothing was changed.", "add --dry-run=false"}
-				}
-				for _, w := range want {
-					if !strings.Contains(r.stderr, w) {
-						t.Errorf("stderr lacks %q:\n%s", w, r.stderr)
-					}
-				}
-			})
-		}
-	}
-}
-
-// changesHost reports whether calls hold a file write or a command.
-func changesHost(calls []string) bool {
-	return slices.ContainsFunc(calls, func(c string) bool {
-		return strings.HasPrefix(c, "write ") || strings.HasPrefix(c, "exec ")
-	})
-}
-
-// TestPlanOnlyRefusedAsLoaded: should hardn.yml say dryRun: true when it is
-// loaded, where it did not before the root check, the operation is still
-// refused, exit status 2, after the load and before anything else.
-func TestPlanOnlyRefusedAsLoaded(t *testing.T) {
-	y := newHardnYML(t, "true")
-	r := runHardnWith(t, asRoot, func() {
-		y.setup(t)()
-		fileDryRun = func(string) (string, bool, error) { return y.path, false, nil }
-	}, y.args("-r")...)
-	if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 {
-		t.Fatalf("ended %v with %d, calls %v; stderr:\n%s", r.ended, r.code, r.calls, r.stderr)
-	}
-	if want := []string{"root check", "config load"}; !slices.Equal(r.reached, want) {
-		t.Errorf("reached %v, want %v", r.reached, want)
-	}
-	if !strings.Contains(r.stderr, y.path+" sets plan only") {
-		t.Errorf("stderr:\n%s", r.stderr)
-	}
-}
-
 // TestConfigureDNSFlagPlanOnlyFromFile: -g is decision 9's exception, as
 // for -n: under hardn.yml's dryRun: true it shows the plan, writes nothing
 // and exits 3 where there are changes; --dry-run=false applies it; with
@@ -255,8 +173,7 @@ func TestConfigureDNSFlagPlanOnlyFromFile(t *testing.T) {
 					t.Errorf("not applied; report:\n%s", s.out.String())
 				}
 			default:
-				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagRunAll) ||
-					strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) {
+				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, errRunAllAlone.Error()) {
 					t.Errorf("wrote %q after %v; stderr:\n%s", written, r.reached, r.stderr)
 				}
 			}

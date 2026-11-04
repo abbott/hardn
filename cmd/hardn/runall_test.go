@@ -7,8 +7,10 @@ import (
 	"strings"
 	"testing"
 
+	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	planner "github.com/abbott/hardn/pkg/engine/runall"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
@@ -17,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // The Run All item's and -r's tests: the SSH Login host (newSSHHost:
@@ -53,6 +56,15 @@ func newRunAllHost(t *testing.T, name, yml string) (*sshTestHost, *config.Config
 		t.Fatal(err)
 	}
 	return h, cfg
+}
+
+// onDNSHost points the engine's seams at the DNS tests' Debian 13 host
+// (useDNSHost), for a test that runs -r past hardn.yml's load: Run All
+// reads it there, its rows skipped where the host has nothing to read.
+func onDNSHost(t *testing.T) {
+	t.Helper()
+	h, _ := newDNSHost(t, "debian13", nil)
+	useDNSHost(t, h)
 }
 
 // runAllUpdates answers Auto Updates' check on Debian: unattended-upgrades
@@ -196,5 +208,173 @@ func TestRunAllHook(t *testing.T) {
 	}
 	if got := h.sshdWrites(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("wrote %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
+	}
+}
+
+// rRefusalWords are -r's refusal off a terminal (gallery-runall.md §6), as
+// output.Human says it.
+const rRefusalWords = "hardn -r asks you to type the hostname, and this isn't a terminal (PLAN_REFUSED)"
+
+// rSkipped is what -r says on stderr of the firewall on the SSH Login
+// host, which has no ufw.
+const rSkipped = "Firewall skipped: "
+
+// runAllDNSYML asks Run All for the nameservers alone: a plain plan.
+const runAllDNSYML = "configureDns: true\nnameservers:\n  - 192.0.2.53\n  - 192.0.2.54\n"
+
+// TestRunAllFlag: -r plans with Run All's planner and applies its one
+// plan through the engine (refactor plan slice 8, unit (d);
+// gallery-runall.md §5, decision 8 (a), adopted): the firewall, refused
+// on a host without ufw, said skipped on stderr before anything else; on
+// a terminal the plan, "Apply this plan?" above the hostname typed,
+// never y/N, the apply, PermitRootLogin no and the nameservers written
+// and the revert timer armed, then sudo hardn confirm, 0; a plain plan
+// (the nameservers alone) asked the same, applied, nothing armed, 0; 0
+// and q declining, nothing written, 3. Off a terminal any plan with
+// changes refused, PLAN_REFUSED in §6's words, nothing written or armed,
+// 1, a plain one too. -n the plan alone, no question, nothing written, 3,
+// on a terminal or off; nothing asked (no username either), nothing to
+// change, 0, under -n too. -u names Run All's user (Create carol). Nothing
+// goes through the legacy provider; hardn.yml is never saved.
+func TestRunAllFlag(t *testing.T) {
+	for _, tc := range []struct {
+		name, yml   string
+		tty, dryRun bool
+		args        []string // after -r (and -n)
+		lines       []string
+		code        int      // the exit status; 0: hardn did not exit
+		said        []string // in order, on stdout
+		unsaid      []string
+		skipped     bool // the firewall said skipped on stderr
+		applied     bool // root login off and the nameservers written
+		armed       bool
+		dns         bool // the nameservers written
+	}{
+		{name: "on a terminal", yml: runAllYML, tty: true, lines: []string{"web-01"}, skipped: true, applied: true, armed: true, dns: true,
+			said: []string{"Lockout risk", "Apply this plan?", "Type the hostname [web-01, 0 or q]", "Operation Successful", "sudo hardn confirm"}},
+		{name: "0 declines", yml: runAllYML, tty: true, lines: []string{"0"}, code: 3, skipped: true, said: []string{"Type the hostname", "Operation Cancelled"}},
+		{name: "q declines", yml: runAllYML, tty: true, lines: []string{"q"}, code: 3, skipped: true, said: []string{"Type the hostname"}},
+		{name: "off a terminal", yml: runAllYML, code: 1, skipped: true,
+			said:   []string{"Lockout risk", "No actual changes were made to your system.", rRefusalWords, "To go on: run hardn -r from a terminal."},
+			unsaid: []string{"Type the hostname"}},
+		{name: "a plain plan on a terminal", yml: runAllDNSYML, tty: true, lines: []string{"web-01"}, dns: true,
+			said: []string{"Apply this plan?", "Type the hostname", "Operation Successful"}, unsaid: []string{"Lockout risk", "sudo hardn confirm"}},
+		{name: "a plain plan off a terminal", yml: runAllDNSYML, code: 1,
+			said: []string{"No actual changes were made to your system.", rRefusalWords}, unsaid: []string{"Type the hostname"}},
+		{name: "-n on a terminal", yml: runAllYML, tty: true, dryRun: true, code: 3, skipped: true,
+			said: []string{"Lockout risk", "No actual changes were made to your system."}, unsaid: []string{"Type the hostname", rRefusalWords}},
+		{name: "-n off a terminal", yml: runAllYML, dryRun: true, code: 3, skipped: true,
+			said: []string{"Lockout risk", "No actual changes were made to your system."}, unsaid: []string{rRefusalWords}},
+		{name: "nothing asked", yml: "", tty: true, said: []string{"Nothing needs changing."}, unsaid: []string{"Type the hostname"}},
+		{name: "nothing asked off a terminal", yml: "", said: []string{"Nothing needs changing."}, unsaid: []string{rRefusalWords}},
+		{name: "nothing asked, -n", yml: "", dryRun: true, said: []string{"Nothing needs changing."}},
+		{name: "-u names the user", yml: "sshKeys:\n  - \"" + usrTestKey(5, "carol@laptop") + "\"\n", dryRun: true, args: []string{"-u", "carol"}, code: 3,
+			said: []string{"Create user carol", "No actual changes were made to your system."}},
+	} {
+		args := append([]string{"-r"}, tc.args...)
+		if tc.dryRun {
+			args = append([]string{"-n"}, args...)
+		}
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newRunAllHost(t, "debian13", tc.yml)
+			yml, conf, was := h.content(dnsTestYML), h.content(hostdns.ResolvConf), h.rootLogin()
+			var env func() term.Env
+			if tc.tty {
+				env = onTTY
+			}
+			r, s := runD(t, h, cfg, env, tc.lines, nil, args...)
+			out := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
+			}
+			if w := inOrder(out, tc.said...); w != "" {
+				t.Errorf("the report lacks %q after the text before it:\n%s", w, out)
+			}
+			for _, w := range append([]string{"y/N", "[SUCCESS]", "[ERROR]", "System hardening", rSkipped}, tc.unsaid...) {
+				if strings.Contains(out+r.stdout, w) {
+					t.Errorf("printed %q on stdout:\n%s%s", w, out, r.stdout)
+				}
+			}
+			if strings.Contains(r.stderr, rSkipped+"ufw isn't installed") != tc.skipped {
+				t.Errorf("the firewall said skipped %t, want %t; stderr:\n%s", !tc.skipped, tc.skipped, r.stderr)
+			}
+			if got := h.rootLogin(); tc.applied != (got == "no") || !tc.applied && (got != was || len(h.sshdWrites()) > 0) {
+				t.Errorf("PermitRootLogin %s (was %s), wrote %q; want applied %t", got, was, h.sshdWrites(), tc.applied)
+			}
+			if dns := h.content(hostdns.ResolvConf) != conf; dns != tc.dns || h.armed() != tc.armed {
+				t.Errorf("the nameservers written %t (want %t), armed %t (want %t)", dns, tc.dns, h.armed(), tc.armed)
+			}
+			if len(r.calls) != 0 {
+				t.Errorf("-r went through the legacy provider: %v", r.calls)
+			}
+			if got := h.content(dnsTestYML); got != yml {
+				t.Errorf("hardn.yml saved:\n%s", got)
+			}
+		})
+	}
+}
+
+// TestRunAllFlagPending: -r after an applied lockout-risk plan not yet
+// confirmed says the change pending on stderr, in the planner's words,
+// and plans nothing, 1, under -n too.
+func TestRunAllFlagPending(t *testing.T) {
+	h, cfg := newRunAllHost(t, "debian13", runAllYML)
+	if r, s := runD(t, h, cfg, onTTY, []string{"web-01"}, nil, "-r"); r.ended || !h.armed() {
+		t.Fatalf("the first -r: ended %v with %d, armed %t; report:\n%s\nstderr:\n%s", r.ended, r.code, h.armed(), s.out.String(), r.stderr)
+	}
+	for _, args := range [][]string{{"-r"}, {"-n", "-r"}} {
+		before := len(h.writes())
+		r, s := runD(t, h, cfg, onTTY, []string{"web-01"}, nil, args...)
+		if !r.ended || r.code != 1 || !strings.Contains(r.stderr, planner.PendingWords) || strings.Contains(s.out.String(), "Type the hostname") || len(h.writes()) != before {
+			t.Errorf("%q: ended %v with %d, wrote %q; report:\n%s\nstderr:\n%s", args, r.ended, r.code, h.writes()[before:], s.out.String(), r.stderr)
+		}
+	}
+}
+
+// TestRunAllFlagPlanOnlyFromFile: hardn.yml's dryRun: true makes -r the
+// plan alone, as -n does, on a terminal too: no question, nothing written
+// or armed, 3; --dry-run=false over it asks and applies as live.
+func TestRunAllFlagPlanOnlyFromFile(t *testing.T) {
+	for _, tc := range []struct {
+		args  []string
+		lines []string
+		code  int
+	}{
+		{[]string{"-r"}, nil, 3},
+		{[]string{"--dry-run=false", "-r"}, []string{"web-01"}, 0},
+	} {
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			h, cfg := newRunAllHost(t, "debian13", runAllYML+"dryRun: true\n")
+			r, s := runD(t, h, cfg, onTTY, tc.lines, func(*dnsSeams) {
+				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
+			}, tc.args...)
+			out := style.StripAnsi(s.out.String())
+			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
+				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
+			}
+			live := tc.code == 0
+			if strings.Contains(out, "Type the hostname") != live || strings.Contains(out, "No actual changes were made to your system.") == live {
+				t.Errorf("asked %t, want %t; report:\n%s", !live, live, out)
+			}
+			if h.armed() != live || (h.rootLogin() == "no") != live {
+				t.Errorf("armed %t, PermitRootLogin %s; want applied %t", h.armed(), h.rootLogin(), live)
+			}
+		})
+	}
+}
+
+// TestRunAllFlagAlone: -r with -c, -d, -w, -g or -e, under -n too, is a
+// usage error in §6's words, 2, before the root check, nothing run
+// (slice 9's defect 10, where -r -e ran -r alone).
+func TestRunAllFlagAlone(t *testing.T) {
+	for _, args := range [][]string{{"-r", "-c"}, {"-r", "-d"}, {"-r", "-w"}, {"-r", "-g"}, {"-r", "-e"}, {"-e", "-r"},
+		{"-n", "-r", "-g"}, {"-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c"}} {
+		t.Run(strings.Join(args, " "), func(t *testing.T) {
+			r := runHardn(t, hostUnreachable, args...)
+			if !r.ended || r.code != hardncmd.ExitUsage || len(r.reached) != 0 || len(r.calls) != 0 ||
+				strings.TrimSpace(r.stderr) != "hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e." {
+				t.Errorf("ended %v with %d after %v, calls %v; stderr:\n%s", r.ended, r.code, r.reached, r.calls, r.stderr)
+			}
+		})
 	}
 }

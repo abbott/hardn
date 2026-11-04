@@ -673,8 +673,7 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 					t.Errorf("not applied; report:\n%s", s.out.String())
 				}
 			default:
-				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagRunAll) ||
-					strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) {
+				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, errRunAllAlone.Error()) {
 					t.Errorf("wrote %q after %v; stderr:\n%s", written, r.reached, r.stderr)
 				}
 			}
