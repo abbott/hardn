@@ -317,7 +317,8 @@ dev-run:
 #                           committed. Override: make check CHECK_GOFLAGS=...
 #
 # Tools come from PATH: go, golangci-lint, govulncheck, zizmor, actionlint and
-# shellcheck (actionlint runs it on every run: script).
+# shellcheck (actionlint runs it on every run: script; check-install runs it
+# on install.sh, verify.sh and scripts/install_test.sh).
 # check-tools fails if one is missing and warns when a version differs from
 # the CHECK_*_VERSION values below. CI's check job (.github/workflows/ci.yml)
 # installs the same versions and fails if these values differ from its own.
@@ -345,7 +346,7 @@ CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
 # (pkg/ui/prompt's *_other.go) are compiled by no target here.
 CHECK_CROSS_VET_TARGETS ?= linux/amd64 linux/arm64
 CHECK_STEPS = check-mod-verify check-tidy check-build check-vet check-test \
-	check-lint check-vuln check-cross check-actions
+	check-lint check-vuln check-cross check-actions check-install
 
 check check-%: export GOTOOLCHAIN = local
 check check-%: export GOWORK = off
@@ -456,6 +457,24 @@ check-actions:
 	@$(call check_need,shellcheck,$@)
 	zizmor --offline --no-progress .github
 	actionlint
+
+# check-install (p7-install) runs shellcheck and sh -n (dash -n too, where
+# dash is on PATH) over install.sh, verify.sh and scripts/install_test.sh,
+# then scripts/install_test.sh: install.sh against stubs and fake releases in
+# a temporary directory, under sh and dash (and busybox sh where it is on
+# PATH). It uses no network, writes nothing outside that directory and never
+# runs a hardn binary; it takes about 20 seconds on a Mac.
+INSTALL_SCRIPTS = install.sh verify.sh scripts/install_test.sh
+
+check-install:
+	@echo "==> $@"
+	@$(call check_need,shellcheck,$@)
+	shellcheck $(INSTALL_SCRIPTS)
+	@for f in $(INSTALL_SCRIPTS); do \
+		echo "sh -n $$f"; sh -n "$$f" || exit 1; \
+		if command -v dash >/dev/null 2>&1; then echo "dash -n $$f"; dash -n "$$f" || exit 1; fi; \
+	done
+	sh scripts/install_test.sh
 
 # golden-update (refactor plan P1A, next/p1a-golden) rewrites testdata/golden
 # from the current render in every package of the module whose tests use the

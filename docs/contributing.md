@@ -33,7 +33,7 @@ make build          # build/hardn, from ./cmd/hardn
 
 ## make check
 
-`make` with no target is `make check`. It runs ten steps in order. `check-tools` comes first and stops everything if a tool is missing; each of the other nine runs even when one before it failed, and a summary at the end lists each step as `ok` or `FAIL`. Any one step runs alone as `make <step>`.
+`make` with no target is `make check`. It runs eleven steps in order. `check-tools` comes first and stops everything if a tool is missing; each of the other ten runs even when one before it failed, and a summary at the end lists each step as `ok` or `FAIL`. Any one step runs alone as `make <step>`.
 
 | Step | What it does |
 |---|---|
@@ -47,6 +47,7 @@ make build          # build/hardn, from ./cmd/hardn
 | `check-vuln` | `govulncheck ./...`: known vulnerabilities in code hardn calls |
 | `check-cross` | builds the three release targets (linux/amd64, linux/arm64, darwin/amd64) with the release's flags into a temporary directory, then vets the whole module, tests included, for linux/amd64 and linux/arm64, whose files a macOS host's steps don't compile |
 | `check-actions` | zizmor's offline audits and actionlint (which runs shellcheck on each `run:` script) over `.github` |
+| `check-install` | shellcheck, `sh -n` and `dash -n` over install.sh, verify.sh and `scripts/install_test.sh`, then that test: install.sh against stubs and fake releases in a temporary directory, with no network |
 
 Every check target runs with `GOTOOLCHAIN=local`, `GOWORK=off` and `GOFLAGS=-mod=readonly`.
 

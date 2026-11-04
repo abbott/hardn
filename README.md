@@ -40,7 +40,13 @@ AppArmor and Lynis are not set up: AppArmor's state is shown, nothing more.
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
 ```
 
-Use `doas sh` where the host uses doas (Alpine). The script fetches the latest release's binary for this machine (`hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`). There is no armv7 build: don't use the script on armv7, where the current script picks the arm64 binary, which won't run there and installs it as `/usr/local/bin/hardn`. It also creates `/etc/hardn`. It doesn't run hardn. hardn writes `/etc/hardn/hardn.yml.example` itself the first time it runs live. On a terminal, hardn also offers to create `hardn.yml`.
+Use `doas sh` where the host uses doas (Alpine). The script fetches the latest release's binary for this machine (`hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`, which runs through Rosetta 2 on Apple silicon). There is no armv7 build, and the script refuses armv7. It checks the binary's SHA-256 against the release's `SHA256SUMS`, and the attestation (below) too when gh 2.68.0 or later is installed and signed in; otherwise it says the attestation was not checked and prints the command that checks it. If a check fails, it installs nothing. It then installs the binary as `/usr/local/bin/hardn` and creates `/etc/hardn`. It doesn't run hardn. hardn writes `/etc/hardn/hardn.yml.example` itself the first time it runs live. On a terminal, hardn also offers to create `hardn.yml`.
+
+To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have no `SHA256SUMS`, so the script refuses them):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo env HARDN_VERSION=0.4.0 sh
+```
 
 To update, run the same command again. To install by hand, download the binary from [Releases](https://github.com/abbott/hardn/releases), verify it (below), then run `sudo install -m 0755 hardn-linux-amd64 /usr/local/bin/hardn`.
 
