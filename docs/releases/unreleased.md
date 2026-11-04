@@ -227,4 +227,4 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 - **`SHA256SUMS`, new**, lists each binary's SHA-256.
 - **An SBOM** in SPDX JSON, as before.
 - **No cosign signatures.** No release had `.sig` or `.crt` files, though the README said its binaries were signed; signing is dropped.
-- **SLSA Build Level 3 provenance, as before, now a GitHub artifact attestation** for each binary, in place of v0.3.x's `.intoto.jsonl` files. Check a binary with `gh attestation verify hardn-linux-amd64 --repo abbott/hardn --signer-workflow abbott/hardn/.github/workflows/build.yml --source-ref refs/tags/v0.4.0` (gh 2.68.0 or later), or with `verify.sh`, which first checks it against `SHA256SUMS`.
+- **SLSA Build Level 3 provenance, as before, now a GitHub artifact attestation** for each binary, in place of v0.3.x's `.intoto.jsonl` files. Check a binary with `gh attestation verify hardn-linux-amd64 --repo abbott/hardn --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.4.0 --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners` (gh 2.68.0 or later), or with `verify.sh`, which first checks it against `SHA256SUMS`.
