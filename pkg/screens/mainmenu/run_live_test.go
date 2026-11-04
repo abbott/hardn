@@ -410,7 +410,14 @@ type setuidInfo struct{ fs.FileInfo }
 
 func (i setuidInfo) Mode() fs.FileMode { return i.FileInfo.Mode() | fs.ModeSetuid }
 
-var update = flag.Bool("update", false, "rewrite golden files under testdata/ instead of comparing")
+// updating reports whether the test runs with -update: pkg/ui/uitest's
+// flag, which this package's tests link (uitest.Interrupter), and which
+// make golden-update passes. A flag of its own here would panic as
+// redefined.
+func updating() bool {
+	f := flag.Lookup("update")
+	return f != nil && f.Value.String() == "true"
+}
 
 // visibleScreen escapes ESC and marks each line end with $.
 func visibleScreen(screen string) string {
@@ -433,7 +440,7 @@ func visibleScreen(screen string) string {
 func assertRenderGolden(t *testing.T, rel, got string) {
 	t.Helper()
 	path := filepath.Join("testdata", "golden", filepath.FromSlash(rel))
-	if *update {
+	if updating() {
 		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
 			t.Fatal(err)
 		}

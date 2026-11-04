@@ -7,10 +7,8 @@ import (
 	"context"
 	"errors"
 	"os"
-	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
 	"testing"
 	"time"
 
@@ -19,17 +17,16 @@ import (
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
 // TestInterrupt: Ctrl-C at the screen's prompt aborts (prompt.ErrInterrupted, wrapping
 // prompt.ErrAborted), writing nothing, as the end of the input does. The input is a
 // pipe, a file as os.Stdin is; once the prompt is shown, SIGINT is sent to the test
 // every 10 ms, as Ctrl-C sends it, until Run returns. One that lands outside a read
-// reaches guard instead of ending the test.
+// reaches the Interrupter's guard instead of ending the test.
 func TestInterrupt(t *testing.T) {
-	guard := make(chan os.Signal, 64)
-	signal.Notify(guard, os.Interrupt)
-	t.Cleanup(func() { signal.Stop(guard) })
+	sig := uitest.NewInterrupter(t)
 	h := hostNamed(t, "lines")
 	in, typed, err := os.Pipe()
 	if err != nil {
@@ -45,7 +42,7 @@ func TestInterrupt(t *testing.T) {
 			System:   h,
 		})
 	}()
-	got := interrupt(t, &out, "Enter selection", done)
+	got := interrupt(t, sig, &out, "Enter selection", done)
 	if !errors.Is(got, prompt.ErrInterrupted) || !errors.Is(got, prompt.ErrAborted) {
 		t.Errorf("Run = %v, want Ctrl-C's abort:\n%s", got, out.String())
 	}
@@ -55,7 +52,9 @@ func TestInterrupt(t *testing.T) {
 // interrupt waits until out shows at, for 10 seconds at most, then sends SIGINT to the
 // test every 10 ms until done, and returns what Run did; it fails the test when Run
 // has not returned 10 seconds later.
-func interrupt(t *testing.T, out *lockedBuffer, at string, done <-chan error) error {
+// Each SIGINT is delivered before the next is sent or interrupt returns
+// (uitest.Interrupter), so that none lands in a later case.
+func interrupt(t *testing.T, sig *uitest.Interrupter, out *lockedBuffer, at string, done <-chan error) error {
 	t.Helper()
 	shown := time.After(10 * time.Second)
 wait:
@@ -70,7 +69,7 @@ wait:
 	}
 	timeout := time.After(10 * time.Second)
 	for {
-		if err := syscall.Kill(os.Getpid(), syscall.SIGINT); err != nil {
+		if err := sig.Send(); err != nil {
 			t.Fatal(err)
 		}
 		select {
