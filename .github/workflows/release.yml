@@ -5,10 +5,14 @@ on:
     tags:
       - 'v*'
 
+permissions: {}
+
 jobs:
   # Generate ldflags dynamically for both workflows
   args:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # For checkout
     outputs:
       commit-date: ${{ steps.ldflags.outputs.commit-date }}
       commit: ${{ steps.ldflags.outputs.commit }}
@@ -16,40 +20,38 @@ jobs:
       tree-state: ${{ steps.ldflags.outputs.tree-state }}
     steps:
       - id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - id: ldflags
         run: |
-          echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)" >> "$GITHUB_OUTPUT"
-          echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-          echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-          echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)" >> "$GITHUB_OUTPUT"
+          {
+            echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)"
+            echo "commit=$GITHUB_SHA"
+            echo "version=${GITHUB_REF#refs/tags/v}"
+            echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)"
+          } >> "$GITHUB_OUTPUT"
 
-  # Create release and non-Go artifacts
+  # Create the release
   release:
     needs: args
     runs-on: ubuntu-latest
     permissions:
-      contents: write  # For creating releases and uploading assets
+      contents: write  # For creating the release
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-        
+          persist-credentials: false
+
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '1.21'
-        
-      - name: Install required tools
-        run: |
-          # Install fpm for package creation
-          sudo apt-get update
-          sudo apt-get install -y ruby ruby-dev build-essential
-          sudo gem install fpm
-        
+          go-version-file: go.mod
+          cache: false  # No cache in release jobs (cache poisoning)
+
       - name: Remove replace directive for release
         run: |
           if grep -q "replace github.com/abbott/hardn" go.mod; then
@@ -57,20 +59,20 @@ jobs:
             sed -i '/replace github.com\/abbott\/hardn/d' go.mod
             go mod tidy
           fi
-          
+
       - name: Sync vendor directory
         run: |
           echo "Syncing vendor directory with go.mod..."
           go mod vendor
           echo "Vendor directory synced successfully."
-          
+
       - name: Run tests
         run: |
           # First ensure vendor directory is synced
           go mod vendor
           # Then run tests with vendor mode
           go test -mod=vendor ./...
-        
+
       - name: Generate changelog
         id: changelog
         run: |
@@ -79,24 +81,29 @@ jobs:
           if [ -z "$PREV_TAG" ]; then
             git log --pretty=format:"* %s (%h)" > CHANGELOG.md
           else
-            git log --pretty=format:"* %s (%h)" $PREV_TAG..HEAD > CHANGELOG.md
+            git log --pretty=format:"* %s (%h)" "$PREV_TAG..HEAD" > CHANGELOG.md
           fi
-          
+
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
-        with:
-          # Initially create the release without packages
-          body_path: CHANGELOG.md
-          draft: false
-          prerelease: false
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The SLSA build job may have created the release first: update it then
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release edit "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --notes-file CHANGELOG.md --draft=false --prerelease=false
+          else
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --title "$GITHUB_REF_NAME" --notes-file CHANGELOG.md --verify-tag
+          fi
 
   # SLSA provenance generation with matrix builds
   build:
     needs: args
     permissions:
-      id-token: write  # For signing
+      id-token: write  # For signing the provenance
       contents: write  # For uploading assets
-      actions: read    # For reading workflow path
+      actions: read    # For reading workflow path (the builder's provenance job)
     strategy:
       matrix:
         include:
@@ -106,158 +113,61 @@ jobs:
             arch: arm64
           - os: darwin
             arch: amd64
+    # Referenced by its release tag, not a commit: the builder's README requires
+    # @vX.Y.Z (internal/builders/go/README.md@v2.1.0, "MUST be referenced by a tag").
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
     with:
-      go-version: '1.21'
+      go-version-file: go.mod
       evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
       config-file: .slsa-goreleaser/${{ matrix.os }}-${{ matrix.arch }}.yml
       upload-assets: true
-  # Add this job after the 'build' job
-  signing:
-    needs: [build]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write      # For uploading signatures to release
-      id-token: write      # For keyless signing with OIDC
-      actions: read        # For workflow access
-    steps:
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@v3.1.1
-        
-      - name: Download artifacts
-        uses: actions/download-artifact@v3
-        with:
-          path: artifacts
-          
-      - name: Prepare artifacts for signing
-        run: |
-          mkdir -p signing
-          # Copy all binary artifacts to the signing directory
-          find artifacts -type f -name "hardn-*" -not -name "*.intoto.jsonl" -exec cp {} signing/ \;
-          
-      - name: Sign artifacts with Cosign
-        run: |
-          for file in signing/*; do
-            if [ -f "$file" ]; then
-              echo "Signing $file..."
-              cosign sign-blob --yes \
-                --output-signature "${file}.sig" \
-                --output-certificate "${file}.crt" \
-                --rekor-url https://rekor.sigstore.dev \
-                "${file}"
-            fi
-          done
-        
-      - name: Upload signatures to release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            signing/*.sig
-            signing/*.crt
-  # Create packages after SLSA binaries are generated
-  packages:
-    needs: [build, release]
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write  # For uploading assets
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Set up Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: '1.21'
-          
-      - name: Remove replace directive for release
-        run: |
-          if grep -q "replace github.com/abbott/hardn" go.mod; then
-            echo "Removing replace directive from go.mod..."
-            sed -i '/replace github.com\/abbott\/hardn/d' go.mod
-            go mod tidy
-          fi
-          
-      - name: Sync vendor directory
-        run: |
-          echo "Syncing vendor directory with go.mod..."
-          go mod vendor
-          echo "Vendor directory synced successfully."
-        
-      - name: Install required tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ruby ruby-dev build-essential rpm libarchive-tools
-          sudo gem install fpm
-          
-      - name: Create DEB package
-        run: |
-          make deb GO_BUILD_FLAGS="-mod=vendor"
-          
-      - name: Create RPM package
-        run: |
-          # Create RPM package with verbose output
-          # Continue even if this step fails (don't fail the whole workflow)
-          make rpm GO_BUILD_FLAGS="-mod=vendor" || echo "RPM creation failed but continuing"
-          
-      - name: Upload DEB package to release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            build/*.deb
-            
-      - name: Check for RPM package
-        id: check_rpm
-        run: |
-          if ls build/*.rpm 1> /dev/null 2>&1; then
-            echo "rpm_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "rpm_exists=false" >> $GITHUB_OUTPUT
-          fi
-          
-      - name: Upload RPM package to release
-        if: steps.check_rpm.outputs.rpm_exists == 'true'
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            build/*.rpm
 
-  # Generate SBOM after all artifacts are created
+  # Generate SBOM after the release and the binaries
   sbom:
-    needs: [packages]
+    needs: [release, build]
     runs-on: ubuntu-latest
     permissions:
       contents: write  # For uploading to release
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-        
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0.15.8
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           format: spdx-json
           output-file: hardn-sbom.spdx.json
           upload-artifact: false  # Disable artifact upload
 
       - name: Upload SBOM to release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: hardn-sbom.spdx.json
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" hardn-sbom.spdx.json \
+            --repo "$GITHUB_REPOSITORY" --clobber
 
   # Add this job to run tests with controlled environment variables
   test:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # For checkout
     env:
       # Set hostname for testing to ensure consistent test environment
       HOSTNAME: testhost
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
-        
-      - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          go-version: '1.21'
-        
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false  # No cache in release jobs (cache poisoning)
+
       - name: Run tests
         run: go test -v ./...
         env:
