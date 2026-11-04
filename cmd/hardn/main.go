@@ -7,14 +7,12 @@ import (
 	"os"
 	osuser "os/user"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/infrastructure"
 	"github.com/abbott/hardn/pkg/interfaces"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
 )
@@ -99,14 +97,29 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&testSecurityUpdate, "test-security-update", false, version.UpdateFlagUsage("Test security update notification"))
 }
 
+// initializeColor turns pkg/style's colour, the legacy main menu's, off
+// for --no-color. Colour is no longer forced on: the console lines (say)
+// and the screens take it from pkg/ui/term's detection, which --no-color
+// reaches as --color=never (streamEnv).
 func initializeColor() {
-	if noColor {
-		color.NoColor = true
-		style.UseColors = false
-	} else {
-		color.NoColor = false
-		style.UseColors = true
+	style.UseColors = !noColor
+}
+
+// mainMenuRun reports whether the root command opens the main menu: no
+// operation flag given.
+func mainMenuRun() bool {
+	return !createUser && !disableRootSSH && !configureUfw && !configureDns &&
+		!runAll && !printLogs && !setupSudoEnv
+}
+
+// sayFound says which hardn.yml FindConfigFile found, once, on stderr:
+// an error when -f or HARDN_CONFIG names a file that is not there.
+func sayFound(f config.Found) {
+	if f.By != config.FoundNone && !f.Exists {
+		sayError("%s", f)
+		return
 	}
+	sayInfo("%s", f)
 }
 
 var rootCmd = &cobra.Command{
@@ -151,11 +164,21 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
-		// Load configuration (will check both command-line flag and environment variable)
+		// Load configuration (-f, then HARDN_CONFIG, then the search path).
+		// Which hardn.yml is said once, on stderr, for the flags, and
+		// nothing before the main menu (decision 4 (a) of
+		// docs/engine/legacy-left.md, adopted 2026-11-04).
+		found := findConfig(configFile)
+		if !mainMenuRun() {
+			sayFound(found)
+		}
 		cfg, err = loadConfig(configFile)
 		if err != nil {
 			sayError("Failed to load configuration: %v", err)
 			exit(1)
+		}
+		if !mainMenuRun() && !found.Exists && cfg.Path() == "" {
+			sayInfo("%s", config.NoneLoaded) // the offer to create one declined
 		}
 
 		// The session's mode: -n/--dry-run when given, true or false, else
@@ -176,15 +199,14 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
-		// Detect OS
+		// An OS other than Debian, Ubuntu or Alpine, or none os-release
+		// names, is refused (hostOS); nothing is said of one that is not.
 		osInfo, err := detectOS()
 		if err != nil {
 			sayError("Failed to detect OS: %v", err)
 			exit(1)
 		}
 
-		// After detectOS, which clears the terminal: said before it, these are gone
-		// before anyone can read them.
 		warnDeprecations(cfg)
 
 		// Create service factory
@@ -192,8 +214,7 @@ var rootCmd = &cobra.Command{
 		serviceFactory.SetConfig(cfg)
 
 		// If no specific flags provided, show the interactive menu
-		if !createUser && !disableRootSSH && !configureUfw && !configureDns &&
-			!runAll && !printLogs && !setupSudoEnv {
+		if mainMenuRun() {
 
 			// Create menu factory and main menu; its screens' items and its status: hooks.go
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
@@ -318,6 +339,7 @@ Example:
 		if checkRoot() != nil {
 			return
 		}
+		sayFound(findConfig(configFile))
 		var err error
 		if cfg, err = loadExisting(configFile); err != nil {
 			sayError("Failed to load configuration: %v", err)
@@ -343,7 +365,8 @@ var (
 	loadConfig                    = config.LoadConfig
 	loadExisting                  = config.LoadExisting
 	ensureExampleConfig           = config.EnsureExampleConfigExists
-	detectOS                      = osdetect.DetectOS
+	findConfig                    = config.FindConfigFile
+	detectOS                      = hostOS
 	exit                          = os.Exit
 	stderr              io.Writer = termStderr
 )
