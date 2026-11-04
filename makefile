@@ -386,7 +386,8 @@ CHECK_GOVULNCHECK_VERSION ?= v1.9.0
 CHECK_ZIZMOR_VERSION ?= 1.32.0
 CHECK_ACTIONLINT_VERSION ?= 1.7.12
 CHECK_SHELLCHECK_VERSION ?= 0.11.0
-# Release targets of .slsa-goreleaser/*.yml, built with that file's env and flags.
+# The release targets: .github/workflows/release.yml's build matrix, built
+# with its env and flags.
 CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
 # Targets check-cross also vets the whole module for, test files included
 # (go vet type-checks them), with the same env and tags (next/p1d-lint). The
@@ -504,12 +505,7 @@ check-cross:
 # finding; its online audits need a GitHub token and run in CI's zizmor
 # workflow instead (.github/workflows/zizmor.yml). actionlint also runs
 # shellcheck on each run: script. It skips that check silently when
-# shellcheck is not on PATH, so this step requires shellcheck. Last, it pins
-# the SLSA Go builder's ref: .github/zizmor.yml lets any ref of that reusable
-# workflow pass (ref-pin), a branch included, so every builder_go_slsa3.yml
-# reference in .github/workflows, comments aside, must be exactly
-# $(CHECK_SLSA_BUILDER_USES). p7-provenance removes the builder and this check.
-CHECK_SLSA_BUILDER_USES = slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
+# shellcheck is not on PATH, so this step requires shellcheck.
 check-actions:
 	@echo "==> $@"
 	@$(call check_need,zizmor,$@)
@@ -517,15 +513,6 @@ check-actions:
 	@$(call check_need,shellcheck,$@)
 	zizmor --offline --no-progress .github
 	actionlint
-	@bad=$$(grep -rnF 'builder_go_slsa3.yml' .github/workflows | \
-		grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' | \
-		grep -vE '^[^:]+:[0-9]+:[[:space:]]*(-[[:space:]]+)?uses:[[:space:]]*slsa-framework/slsa-github-generator/\.github/workflows/builder_go_slsa3\.yml@v2\.1\.0[[:space:]]*(#.*)?$$'); \
-	if [ -n "$$bad" ]; then \
-		echo "$$bad" >&2; \
-		echo "$@: the SLSA Go builder must be referenced as exactly $(CHECK_SLSA_BUILDER_USES): .github/zizmor.yml's ref-pin exception lets any ref pass, a branch included, until p7-provenance replaces the builder" >&2; \
-		exit 1; \
-	fi; \
-	echo "SLSA Go builder pinned at @v2.1.0"
 
 # golden-update (refactor plan P1A, next/p1a-golden) rewrites testdata/golden
 # from the current render in every package of the module whose tests use the
