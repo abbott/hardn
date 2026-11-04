@@ -1,7 +1,7 @@
 name: Build
 
 # p7-provenance. The release build, as a reusable workflow that release.yml
-# calls: the three binaries and, for a tag, their SLSA build provenance.
+# calls on a tag push: the three binaries and their SLSA build provenance.
 #
 # SLSA Build Level 3 (GitHub's "Using artifact attestations and reusable
 # workflows to achieve SLSA v1 Build Level 3"): the build and actions/attest
@@ -12,8 +12,9 @@ name: Build
 #     --source-ref refs/tags/v<x.y.z> --deny-self-hosted-runners
 # release.yml does that to every binary before it publishes.
 #
-# Inputs are what release.yml's prepare job computed. attest is true only
-# for a tag push; a workflow_dispatch run builds and does not attest.
+# Inputs are what release.yml's prepare job computed. Every run attests:
+# release.yml runs only on a tag push (no workflow_dispatch), and ci.yml's
+# check-cross does the build-only runs, without id-token.
 #
 # The build steps are p7-release's, unchanged: go.mod's toolchain,
 # CGO_ENABLED=0, -trimpath, -tags=netgo, ldflags from the tagged commit. The
@@ -23,7 +24,7 @@ on:
   workflow_call:
     inputs:
       version:
-        description: main.Version (the tag without its v, or 0.0.0-dev)
+        description: main.Version (the tag without its v)
         required: true
         type: string
       commit:
@@ -34,10 +35,6 @@ on:
         description: main.BuildDate (the commit's date, UTC)
         required: true
         type: string
-      attest:
-        description: Write SLSA build provenance for each binary (a tag push only)
-        required: true
-        type: boolean
 
 permissions: {}
 
@@ -112,7 +109,6 @@ jobs:
       # with a Sigstore certificate for this workflow and stored with
       # GitHub's attestations API for the repository.
       - name: Attest build provenance
-        if: inputs.attest
         uses: actions/attest@1e69f48acb82d1966a394da916b4c1698aa569d6 # v4.2.2
         with:
           subject-path: dist/hardn-${{ matrix.goos }}-${{ matrix.goarch }}
