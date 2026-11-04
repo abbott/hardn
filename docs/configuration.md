@@ -212,11 +212,15 @@ The main menu's SSH Login (2) shows root login, password login, the SSH port and
 ```yaml
 enableAppArmor: false               # Set up and enable AppArmor
 enableLynis: false                  # Install and run Lynis security audit
-enableUnattendedUpgrades: false     # Configure automatic security updates
+enableUnattendedUpgrades: false     # shown by Run All; not read by Auto Updates
 enableUfwSshPolicy: false           # Configure UFW with SSH rules
 configureDns: false                 # Configure DNS settings
 disableRootSSH: false               # shown by Run All; changes nothing
 ```
+
+**`enableUnattendedUpgrades` is Run All's.** Run All lists it and doesn't act on it yet; slice 8 makes it turn updates on. hardn's first-run setup still asks "Enable automatic security updates? [y/N]" and sets it.
+
+The main menu's Auto Updates (6) reads the host, never this key. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableUnattendedUpgrades: false` where hardn.yml says true, so Run All doesn't turn them back on.
 
 ### Firewall Configuration with UFW Application Profiles
 

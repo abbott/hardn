@@ -168,6 +168,12 @@ Both paths register `signal.NotifyContext` for SIGINT, SIGTERM and SIGHUP (`engi
 - **Gone:** `-d`'s `SSHManager.DisableRootSSH` call, `hardncmd.DisableRootDone`, and "Script completed selected hardening operations." after `-d`; then, with the legacy screen, the `DisableRootSSH` chain down to `FileSSHRepository`, and P0.8 gate 2 with it: `stubDisableRoot`, origin/main's stub rewrite, and the in-place edit that replaced it ([p0-hazards.md](../refactor/p0-hazards.md)).
 - **hardn.yml's SSH keys** (decision 9 (a)): `permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH` and `sshKeyPath` each warn once at load where not `config.DefaultConfig`'s value, "hardn.yml's <key> isn't used by SSH Login or -d" (`loadWarnings`, `sshNotUsed`; proposed). A default value never warns: origin/main's `SaveConfig` writes the defaults into every file. `permitRootLogin: false` says its §3.17 deprecation alone. `sshPort` and `sshConfigFile` are read and never warn. Run All and `-r` still read `sshAllowedUsers` and `sshListenAddress` until slice 8; Run All's feature list shows `disableRootSSH`; `pkg/security`'s legacy status reads `sshKeyPath`.
 
+### 2.18 The main menu's 6 (`runUpdatesScreen`, `cmd/hardn`; slice 7, unit (d), `next/s7-replace`)
+
+- **The item:** 6, "Auto Updates", "Configure automatic updates", where Dry-Run was until slice 2b's unit (d).
+- **What it runs:** `pkg/screens/updates.Run` ([screen-updates.md](screen-updates.md)) with the main menu's hardn.yml as `Config`, hardn's version, zero `Records`, `NewEngine` over `engineOptions`, as §2.16. Turning updates off saves `enableUnattendedUpgrades: false` in that file where it said true.
+- **What it returns:** as §2.9. **Under plan only** 6 opens, the change stopping at its plan.
+
 ## 3. Facts relied on
 
 | Fact | Source | Used for |
