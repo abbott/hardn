@@ -75,6 +75,7 @@ type model struct {
 	extra      []string // the install simulation's other lines
 	offExtra   []string // off's simulations' other lines (apt-get purge/remove -s, apk del --simulate)
 	notInRepos bool
+	confTail   string            // after the conffile's MD5 in dpkg-query's Conffiles, " obsolete" say
 	units      map[string]string // systemctl's state by "<verb> <unit>"
 	// Alpine
 	apkCron, crond bool
@@ -216,7 +217,7 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			return hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}
 		}
 		sum := md5.Sum([]byte(logrotateConf)) //nolint:gosec // dpkg's conffile hash
-		return hostfake.Response{Stdout: " " + logrotate + " " + hex.EncodeToString(sum[:]) + "\n\n"}
+		return hostfake.Response{Stdout: " " + logrotate + " " + hex.EncodeToString(sum[:]) + m.confTail + "\n\n"}
 	case cmd == "apt-get install -s -y "+uuName:
 		if m.notInRepos {
 			return hostfake.Response{Stdout: "Reading package lists...\n", Stderr: "E: Unable to locate package unattended-upgrades\n", ExitCode: 100}

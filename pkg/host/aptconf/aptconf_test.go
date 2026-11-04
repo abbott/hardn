@@ -232,7 +232,7 @@ func TestRefusals(t *testing.T) {
 // skipped, its bytes never read: hidden first, then an extension other
 // than "conf", a byte apt refuses, a "." last. A name it takes is read.
 func TestSkippedNames(t *testing.T) {
-	for _, name := range []string{".30web", "20auto-upgrades.ucf-dist", "foo.txt", "30web.list", "30web 2", "30w\u00e9b", "30web.", "30web~"} {
+	for _, name := range []string{".30web", ".30web.conf", "20auto-upgrades.ucf-dist", "foo.txt", "30web.list", "30web 2", "30w\u00e9b", "30web.", "30web~"} {
 		t.Run(name, func(t *testing.T) {
 			c, err := read(t, map[string]string{"/etc/apt/apt.conf.d/" + name: "this is not read {"}, "")
 			if err != nil || len(c.Files()) != 0 {
