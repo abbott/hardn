@@ -410,8 +410,6 @@ func (m *MainMenu) refreshConfig() {
 const (
 	repoURL             = "https://github.com/abbott/hardn"
 	testVersionNumber   = "0.3.3"
-	testReleaseURL      = "https://api.github.com/repos/abbott/hardn/releases/latest"
-	testInstallScript   = "curl -sSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
 	testSecurityMessage = "Critical security vulnerability fixed - CVE-2023-1234"
 )
 

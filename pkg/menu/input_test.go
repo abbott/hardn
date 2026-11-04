@@ -66,14 +66,12 @@ var reads = []struct {
 	name string
 	read func() string
 }{
-	{"ReadInput", ReadInput},
 	{"ReadKey", ReadKey},
-	{"ReadMenuInput", ReadMenuInput},
 }
 
-// TestReads checks what each legacy read returns for a line: trimmed of
-// spaces, and a menu choice in lower case. Without a terminal no echoed
-// Enter ended the prompt's line, so the read ends it.
+// TestReads checks what the legacy read returns for a line: trimmed of
+// spaces. Without a terminal no echoed Enter ended the prompt's line, so
+// the read ends it.
 func TestReads(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -81,15 +79,8 @@ func TestReads(t *testing.T) {
 		script string
 		want   string
 	}{
-		{"a text answer", ReadInput, "alice\n", "alice"},
-		{"spaces and CRLF trimmed", ReadInput, "  alice  \r\n", "alice"},
-		{"an empty answer", ReadInput, "\n", ""},
 		{"a key's line", ReadKey, "x\n", "x"},
 		{"Enter alone", ReadKey, "\n", ""},
-		{"a two-digit choice", ReadMenuInput, " 10 \n", "10"},
-		{"q quits on Enter", ReadMenuInput, "q\n", "q"},
-		{"Q reads as q", ReadMenuInput, "Q\n", "q"},
-		{"a last line with no Enter", ReadMenuInput, "0", "0"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -112,7 +103,7 @@ func TestReads(t *testing.T) {
 		// flushed; prompt's tests flush a pseudo-terminal's queue.
 		useReader(t, prompt.New(strings.NewReader("1\ntypeahead\n"), true))
 		var first string
-		out, code, ended := session(t, func() { first = ReadMenuInput(); ReadKey() })
+		out, code, ended := session(t, func() { first = ReadKey(); ReadKey() })
 		if first != "1" || !ended || code != prompt.ExitInterrupted {
 			t.Errorf("read %q, then ended %v with %d; want \"1\", then the typeahead dropped and exit status %d", first, ended, code, prompt.ExitInterrupted)
 		}
@@ -123,54 +114,11 @@ func TestReads(t *testing.T) {
 	t.Run("a line too long reads as empty", func(t *testing.T) {
 		scripted(t, strings.Repeat("1", prompt.MaxLine+1)+"\n2\n")
 		var first, second string
-		_, _, ended := session(t, func() { first, second = ReadMenuInput(), ReadMenuInput() })
+		_, _, ended := session(t, func() { first, second = ReadKey(), ReadKey() })
 		if ended || first != "" || second != "2" {
 			t.Errorf("reads = %q, %q (ended %v); want \"\", \"2\"", first, second, ended)
 		}
 	})
-}
-
-// TestPastedAnswers checks that answers pasted at once into back-to-back
-// free-text questions each reach their own, on a terminal Reader as with
-// scripted input: ReadInput keeps typeahead, as origin/main's one bufio
-// reader did and pkg/config's questions do. In each case one read takes
-// every line into the Reader's buffer, as a paste arrives. A menu choice
-// and a pause, which follow long steps, still discard it on a terminal,
-// and not with scripted input. (The Firewall menu's four profile
-// questions took their answers so until refactor plan slice 4's unit (d)
-// deleted it.)
-func TestPastedAnswers(t *testing.T) {
-	for _, tty := range []bool{true, false} {
-		t.Run(fmt.Sprintf("ReadInput keeps them, terminal %v", tty), func(t *testing.T) {
-			useReader(t, prompt.New(strings.NewReader("alice\nAlice Example\n2230\n"), tty))
-			var got []string
-			_, code, ended := session(t, func() {
-				for range 3 {
-					got = append(got, ReadInput())
-				}
-			})
-			if want := []string{"alice", "Alice Example", "2230"}; ended || strings.Join(got, "|") != strings.Join(want, "|") {
-				t.Errorf("reads = %q (ended %v, %d); want %q", got, ended, code, want)
-			}
-		})
-	}
-	for _, r := range reads[1:] {
-		for _, tty := range []bool{true, false} {
-			t.Run(fmt.Sprintf("%s after ReadInput, terminal %v", r.name, tty), func(t *testing.T) {
-				useReader(t, prompt.New(strings.NewReader("alice\n1\n"), tty))
-				var first, second string
-				_, code, ended := session(t, func() { first = ReadInput(); second = r.read() })
-				switch {
-				case first != "alice":
-					t.Errorf("ReadInput = %q, want alice", first)
-				case tty && (!ended || code != prompt.ExitInterrupted):
-					t.Errorf("%s = %q (ended %v, %d); want the typeahead dropped, then exit status %d", r.name, second, ended, code, prompt.ExitInterrupted)
-				case !tty && (ended || second != "1"):
-					t.Errorf("%s = %q (ended %v, %d); want the scripted line 1", r.name, second, ended, code)
-				}
-			})
-		}
-	}
 }
 
 // TestEnterRequired checks that no read returns before Enter: origin/main
@@ -181,7 +129,6 @@ func TestEnterRequired(t *testing.T) {
 		read func() string
 		key  string
 	}{
-		{"ReadMenuInput", ReadMenuInput, "q"},
 		{"ReadKey", ReadKey, "x"},
 	} {
 		t.Run(r.name, func(t *testing.T) {
@@ -237,7 +184,7 @@ func TestAbort(t *testing.T) {
 	}
 	t.Run("a read error", func(t *testing.T) {
 		useReader(t, prompt.New(iotest.ErrReader(errors.New("input/output error")), false))
-		out, code, ended := session(t, func() { ReadMenuInput() })
+		out, code, ended := session(t, func() { ReadKey() })
 		if !ended || code != 1 {
 			t.Errorf("ended %v with %d, want exit status 1", ended, code)
 		}
@@ -247,66 +194,17 @@ func TestAbort(t *testing.T) {
 	})
 }
 
-// TestScreens drives legacy screens with scripted stdin: each pause waits
-// for one line, says "Press Enter", and leaves the next line to the next
-// prompt. (The main menu's invalid choice paused too until slice 2b's unit
-// (c), which refuses it under the prompt: TestMainMenuKeys.)
-func TestScreens(t *testing.T) {
-	const pause = "Press Enter to continue..."
-	tests := []struct {
-		name   string
-		script string
-		run    func(t *testing.T)
-		want   []string // in the output, in order
-		pauses int
-	}{
-		{
-			name: "help", script: "\n",
-			run:    func(*testing.T) { NewHelpMenu().Show() },
-			want:   []string{"Command Line Usage:", "Press Enter to return to the main menu..."},
-			pauses: 0,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			scripted(t, tt.script+"next\n")
-			out, code, ended := session(t, func() { tt.run(t) })
-			if ended {
-				t.Fatalf("ended hardn with %d:\n%s", code, out)
-			}
-			rest := out
-			for _, w := range tt.want {
-				_, after, ok := strings.Cut(rest, w)
-				if !ok {
-					t.Fatalf("output lacks %q after the text before it:\n%s", w, out)
-				}
-				rest = after
-			}
-			if n := strings.Count(out, pause); n != tt.pauses {
-				t.Errorf("%d continue pauses, want %d", n, tt.pauses)
-			}
-			if strings.Contains(out, "any key") {
-				t.Errorf("output still says \"any key\":\n%s", out)
-			}
-			var next string
-			if _, _, ended := session(t, func() { next = ReadInput() }); ended || next != "next" {
-				t.Errorf("the line after the screen's = %q (ended %v): the screen read too few or too many lines", next, ended)
-			}
-		})
-	}
-}
-
 // TestSharedStdin runs this test binary as a child process whose stdin
 // is a pipe holding two answers, so that the first read takes both into
-// its buffer: the config prompt's, then a menu choice's. Both read
-// through prompt.Stdin, so the menu gets its line; origin/main's two
+// its buffer: the config prompt's, then a pause's. Both read through
+// prompt.Stdin, so the pause gets its line; origin/main's two
 // bufio readers lost it to the first (plan risk R17, side-effects D5).
 // The child then ends at the end of the input, by os.Exit with status
 // 130.
 func TestSharedStdin(t *testing.T) {
 	if os.Getenv("HARDN_MENU_CHILD") == "shared" {
 		create := config.ShouldCreateDefaultConfig()
-		choice := ReadMenuInput()
+		choice := ReadKey()
 		fmt.Printf("child: %v %q\n", create, choice)
 		ReadKey()
 		os.Exit(0)

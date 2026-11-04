@@ -216,7 +216,6 @@ sshKeys:
 
 # Network & Security
 sshPort: 2208                       # Non-standard SSH port (security measure; Default: 22)
-dmzSubnet: "192.168.4"
 nameservers:
   - "1.1.1.1"
   - "1.0.0.1"

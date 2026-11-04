@@ -34,13 +34,9 @@ var (
 	dryRun              bool
 	createUser          bool
 	disableRootSSH      bool
-	installLinux        bool
-	installPython       bool
-	installAll          bool
 	configureUfw        bool
 	configureDns        bool
 	runAll              bool
-	updateSources       bool
 	printLogs           bool
 	showVersion         bool
 	setupSudoEnv        bool
@@ -91,12 +87,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")
 	rootCmd.PersistentFlags().BoolVarP(&disableRootSSH, "disable-root", "d", false, "Disable root SSH access")
-	// rootCmd.PersistentFlags().BoolVarP(&installLinux, "install-linux", "l", false, "Install Linux packages")
-	// rootCmd.PersistentFlags().BoolVarP(&installPython, "install-python", "i", false, "Install Python packages")
-	// rootCmd.PersistentFlags().BoolVarP(&installAll, "install-all", "a", false, "Install all packages")
 	rootCmd.PersistentFlags().BoolVarP(&configureDns, "configure-dns", "g", false, "Configure DNS resolvers")
 	rootCmd.PersistentFlags().BoolVarP(&configureUfw, "configure-ufw", "w", false, "Configure UFW")
-	// rootCmd.PersistentFlags().BoolVarP(&updateSources, "configure-sources", "s", false, "Update package sources")
 	rootCmd.PersistentFlags().BoolVarP(&runAll, "run-all", "r", false, "Run all hardening steps")
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
@@ -202,9 +194,8 @@ var rootCmd = &cobra.Command{
 		serviceFactory.SetConfig(cfg)
 
 		// If no specific flags provided, show the interactive menu
-		if !createUser && !disableRootSSH && !installLinux && !installPython &&
-			!installAll && !configureUfw && !configureDns && !runAll &&
-			!updateSources && !printLogs && !setupSudoEnv {
+		if !createUser && !disableRootSSH && !configureUfw && !configureDns &&
+			!runAll && !printLogs && !setupSudoEnv {
 
 			// Create menu factory and main menu; its screens' items and its status: hooks.go
 			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
@@ -251,110 +242,6 @@ var rootCmd = &cobra.Command{
 				exit(code)
 			}
 			return
-		}
-
-		// Process command line options using the new architecture
-
-		// Get required managers
-		// (-d needs no manager: it plans and applies the SSH Login control's Root, ssh.go)
-		// (-w needs no manager: it plans and applies the Firewall control, firewall.go)
-		// (-g needs no manager: it plans and applies the DNS control, dns.go)
-		packageManager := serviceFactory.CreatePackageManager()
-		// (-c needs no manager: it plans and applies the User control's Create, users.go)
-		// (-r needs no manager: it plans and applies Run All's planner's plan, runall.go)
-		// (-e needs no manager: it plans and applies the Environment control, environment.go)
-
-		// Handle individual operations based on flags
-
-		// Update package sources
-		if updateSources {
-			if err := packageManager.UpdatePackageSources(); err != nil {
-				logging.LogError("Failed to update package sources: %v", err)
-			} else {
-				logging.LogSuccess("Package sources updated")
-			}
-
-			// Handle Proxmox-specific sources
-			if osInfo.OsType != "alpine" && osInfo.IsProxmox {
-				if err := packageManager.UpdateProxmoxSources(); err != nil {
-					logging.LogError("Failed to update Proxmox sources: %v", err)
-				} else {
-					logging.LogSuccess("Proxmox sources updated")
-				}
-			}
-		}
-
-		// Install Linux packages
-		if installLinux || installAll {
-			logging.LogInfo("Installing Linux packages...")
-
-			if installAll {
-				// Use the enhanced method that handles all package types appropriately
-				if err := packageManager.InstallAllLinuxPackages(); err != nil {
-					logging.LogError("Failed to install Linux packages: %v", err)
-				} else {
-					logging.LogSuccess("All Linux packages installed successfully")
-				}
-			} else {
-				// Just install core packages when specifically requested
-				if osInfo.OsType == "alpine" && len(cfg.AlpineCorePackages) > 0 {
-					if err := packageManager.InstallLinuxPackages(cfg.AlpineCorePackages, "core"); err != nil {
-						logging.LogError("Failed to install Alpine core packages: %v", err)
-					} else {
-						logging.LogSuccess("Alpine core packages installed successfully")
-					}
-				} else if len(cfg.LinuxCorePackages) > 0 {
-					if err := packageManager.InstallLinuxPackages(cfg.LinuxCorePackages, "core"); err != nil {
-						logging.LogError("Failed to install Linux core packages: %v", err)
-					} else {
-						logging.LogSuccess("Linux core packages installed successfully")
-					}
-				}
-			}
-		}
-
-		// Install Python packages
-		if installPython || installAll {
-			logging.LogInfo("Installing Python packages...")
-
-			if installAll {
-				// Use the enhanced method for all Python packages
-				if err := packageManager.InstallAllPythonPackages(cfg.UseUvPackageManager); err != nil {
-					logging.LogError("Failed to install Python packages: %v", err)
-				} else {
-					logging.LogSuccess("All Python packages installed successfully")
-				}
-			} else {
-				// Handle specific Python package installation
-				if osInfo.OsType == "alpine" && len(cfg.AlpinePythonPackages) > 0 {
-					if err := packageManager.InstallPythonPackages(
-						cfg.AlpinePythonPackages,
-						cfg.PythonPipPackages,
-						cfg.UseUvPackageManager,
-					); err != nil {
-						logging.LogError("Failed to install Alpine Python packages: %v", err)
-					} else {
-						logging.LogSuccess("Alpine Python packages installed successfully")
-					}
-				} else {
-					// For Debian/Ubuntu
-					pythonPackages := cfg.PythonPackages
-					// Add non-WSL packages if not in WSL
-					if os.Getenv("WSL") == "" && len(cfg.NonWslPythonPackages) > 0 {
-						pythonPackages = append(pythonPackages, cfg.NonWslPythonPackages...)
-					}
-
-					if err := packageManager.InstallPythonPackages(
-						pythonPackages,
-						cfg.PythonPipPackages,
-						cfg.UseUvPackageManager,
-					); err != nil {
-						logging.LogError("Failed to install Python packages: %v", err)
-					} else {
-						logging.LogSuccess("Python packages installed successfully")
-					}
-				}
-			}
 		}
 
 		// Create user: the User control's Create through the engine, with no
@@ -408,11 +295,6 @@ var rootCmd = &cobra.Command{
 		if setupSudoEnv {
 			status = runStatus(status, keepEnvironment(cfg))
 			return
-		}
-
-		// Output completion message for the legacy operations other than the all-in-one run
-		if installLinux || installPython || installAll || updateSources {
-			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},
 }

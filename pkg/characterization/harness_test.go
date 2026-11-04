@@ -23,7 +23,6 @@ package characterization
 import (
 	"flag"
 	"fmt"
-	"io/fs"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -72,27 +71,6 @@ type traceEntry struct {
 
 func (t *trace) add(format string, args ...any) {
 	t.entries = append(t.entries, traceEntry{text: fmt.Sprintf(format, args...)})
-}
-
-// addContent attaches file content to the most recent entry, one line per line.
-func (t *trace) addContent(data []byte) {
-	e := &t.entries[len(t.entries)-1]
-	if len(data) == 0 {
-		e.content = append(e.content, "(empty)")
-		return
-	}
-	s := string(data)
-	trailingNewline := strings.HasSuffix(s, "\n")
-	for _, line := range strings.Split(strings.TrimSuffix(s, "\n"), "\n") {
-		if line == "" {
-			e.content = append(e.content, "|")
-		} else {
-			e.content = append(e.content, "| "+line)
-		}
-	}
-	if !trailingNewline {
-		e.content = append(e.content, "\\ no newline at end of content")
-	}
 }
 
 func (t *trace) String() string {
@@ -171,19 +149,6 @@ func (f recordingFS) ReadFile(name string) ([]byte, error) {
 	return data, err
 }
 
-func (f recordingFS) WriteFile(name string, data []byte, perm fs.FileMode) error {
-	err := f.inner.WriteFile(name, data, perm)
-	f.log.add("write  %s mode=%s -> %s", name, mode(perm), errText(err))
-	f.log.addContent(data)
-	return err
-}
-
-func (f recordingFS) MkdirAll(path string, perm fs.FileMode) error {
-	err := f.inner.MkdirAll(path, perm)
-	f.log.add("mkdir  %s mode=%s -> %s", path, mode(perm), errText(err))
-	return err
-}
-
 func (f recordingFS) Stat(name string) (os.FileInfo, error) {
 	info, err := f.inner.Stat(name)
 	switch {
@@ -197,18 +162,6 @@ func (f recordingFS) Stat(name string) (os.FileInfo, error) {
 		f.log.add("stat   %s -> file", name)
 	}
 	return info, err
-}
-
-func (f recordingFS) Remove(name string) error {
-	err := f.inner.Remove(name)
-	f.log.add("remove %s -> %s", name, errText(err))
-	return err
-}
-
-func (f recordingFS) RemoveAll(path string) error {
-	err := f.inner.RemoveAll(path)
-	f.log.add("rmall  %s -> %s", path, errText(err))
-	return err
 }
 
 // recordingCommander wraps interfaces.MockCommander and logs every argv in order.
@@ -233,16 +186,6 @@ func (c *recordingCommander) Execute(command string, args ...string) ([]byte, er
 	return out, err
 }
 
-func (c *recordingCommander) ExecuteWithInput(input string, command string, args ...string) ([]byte, error) {
-	out, err := c.inner.ExecuteWithInput(input, command, args...)
-	argv := append([]string{command}, args...)
-	c.log.add("exec   %s stdin=%s -> %s", formatArgv(argv), strconv.Quote(input), errText(err))
-	if c.afterExec != nil {
-		c.afterExec(argv)
-	}
-	return out, err
-}
-
 // formatArgv renders argv with one space between elements; an element is
 // quoted (Go syntax) when it is empty or contains anything a shell would split
 // or interpret, so element boundaries stay unambiguous.
@@ -256,10 +199,6 @@ func formatArgv(argv []string) string {
 		}
 	}
 	return strings.Join(parts, " ")
-}
-
-func mode(perm fs.FileMode) string {
-	return fmt.Sprintf("%04o", uint32(perm.Perm()))
 }
 
 func errText(err error) string {

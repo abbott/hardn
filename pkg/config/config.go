@@ -461,7 +461,8 @@ func CreateDefaultConfig(path string, config *Config) error {
 }
 
 // SaveConfig saves configuration to the specified file: the whole
-// configuration, with dryRun as loaded, never the session's mode (slice 2b
+// configuration, but the retired keys at their defaults (retired.go), with
+// dryRun as loaded, never the session's mode (slice 2b
 // decision 8), so that -n, --dry-run=false and a toggle inside the session
 // are never saved; only an edit of the file sets it.
 func SaveConfig(config *Config, filePath string) error {
@@ -473,8 +474,13 @@ func SaveConfig(config *Config, filePath string) error {
 		saved.LogFile = ""
 	}
 
-	// Marshal YAML
-	data, err := yaml.Marshal(&saved)
+	// Marshal YAML, without the retired keys at their defaults (retired.go)
+	var n yaml.Node
+	if err := n.Encode(&saved); err != nil {
+		return fmt.Errorf("failed to marshal config to YAML: %w", err)
+	}
+	withoutRetired(&n, &saved)
+	data, err := yaml.Marshal(&n)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config to YAML: %w", err)
 	}

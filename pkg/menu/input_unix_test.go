@@ -115,7 +115,7 @@ func TestMainMenuInterrupt(t *testing.T) {
 }
 
 // TestInterruptChild runs this test binary as a child process that
-// waits at ReadInput on a pipe that never ends, with the production
+// waits at ReadKey on a pipe that never ends, with the production
 // input, exit and reraise, and sends it SIGINT, as Ctrl-C does: the
 // child must end the prompt's line and die of SIGINT, so that a shell
 // running hardn in a loop or a script stops, rather than exit with
@@ -127,7 +127,7 @@ func TestInterruptChild(t *testing.T) {
 	if os.Getenv("HARDN_MENU_CHILD") == "interrupt" {
 		signal.Notify(make(chan os.Signal, 64), os.Interrupt)
 		fmt.Println("ready")
-		ReadInput()
+		ReadKey()
 		os.Exit(0)
 	}
 	pr, pw, err := os.Pipe()

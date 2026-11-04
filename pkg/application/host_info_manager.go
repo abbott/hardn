@@ -26,31 +26,6 @@ func (m *HostInfoManager) GetHostInfo() (*model.HostInfo, error) {
 	return m.hostInfoService.GetHostInfo()
 }
 
-// GetIPAddresses retrieves the IP addresses of the system
-func (m *HostInfoManager) GetIPAddresses() ([]string, error) {
-	return m.hostInfoService.GetIPAddresses()
-}
-
-// GetDNSServers retrieves the configured DNS servers
-func (m *HostInfoManager) GetDNSServers() ([]string, error) {
-	return m.hostInfoService.GetDNSServers()
-}
-
-// GetHostname retrieves the system hostname and domain
-func (m *HostInfoManager) GetHostname() (string, string, error) {
-	return m.hostInfoService.GetHostname()
-}
-
-// GetNonSystemGroups retrieves non-system groups on the system
-func (m *HostInfoManager) GetNonSystemGroups() ([]string, error) {
-	return m.hostInfoService.GetNonSystemGroups()
-}
-
-// GetUptime retrieves the system uptime
-func (m *HostInfoManager) GetUptime() (time.Duration, error) {
-	return m.hostInfoService.GetUptime()
-}
-
 // FormatUptime formats the uptime in a human-readable format
 func (m *HostInfoManager) FormatUptime(uptime time.Duration) string {
 	days := int(uptime.Hours() / 24)

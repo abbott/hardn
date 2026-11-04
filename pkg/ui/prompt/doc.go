@@ -75,10 +75,7 @@
 // Flush discards what the user typed that nothing has read yet: the
 // terminal's input queue (TCFLSH with TCIFLUSH on Linux, TIOCFLUSH with
 // FREAD on macOS, nothing elsewhere) and the Reader's own buffer. Ask
-// flushes before it writes the prompt, and Answer before it reads; a
-// question asked straight after another, with no long step between, reads
-// with AnswerNext, which keeps typeahead, so that answers pasted at once
-// each reach their own. Piped and scripted input is never flushed: each
+// flushes before it writes the prompt, and Answer before it reads. Piped and scripted input is never flushed: each
 // line queued there is an answer.
 //
 // # Without a terminal
