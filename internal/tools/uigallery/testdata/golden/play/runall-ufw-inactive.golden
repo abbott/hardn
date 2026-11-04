@@ -10,10 +10,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each change␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's Plan, all of them in one plan on the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Which controls hardn.yml asks for, how a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped, a change pending read before any plan, and the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhostname asked whatever the risk are the gallery's stand-ins,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped and a change pending read before any plan are␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRun All's planner's (pkg/engine/runall); the hostname asked␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhatever the risk is the gallery's stand-in, unit (c)'s to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuild. Nothing on this machine changes: every command and file␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/ufw-inactive␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian13 with ufw installed␛[m$
@@ -28,7 +29,7 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mEnable, SSH allowed␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mAfter the firewall: run Run All again␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
@@ -40,35 +41,102 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mApply all␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRun All␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mEnable, SSH allowed␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m$
+$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;231;70;105m-inactive␛[m$
+      ␛[38;2;112;212;127m+active␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw --force enable␛[m$
+$
+  ␛[38;2;192;196;216mApply this plan?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m  ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mengine: controls "firewall.incoming" and "ssh.login" both plan␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mchanges of sshd and ufw, each from the host as it is now: plan␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem as one control's changes, or in two plans: two changes of␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthe plan act on the same thing.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
+  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mEnable, SSH allowed␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mChange pending␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -76,8 +144,26 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/ufw-inactive␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ systemd-run␛[m$
+      ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261020T120000Z-xxxxxxxx␛[m$
+      ␛[38;2;129;134;156m↪ "--description=hardn: roll back change␛[m$
+      ␛[38;2;129;134;156m↪ 20261020T120000Z-xxxxxxxx unless confirmed"␛[m$
+      ␛[38;2;129;134;156m↪ --on-active=180s --timer-property=AccuracySec=1s␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn rollback 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: ufw: allow 22/tcp; enable␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -88,10 +174,11 @@ $
 # each row's state from the control's real Check, each change$
 # the real control's Plan, all of them in one plan on the real$
 # plan/apply engine. Which controls hardn.yml asks for, how a$
-# row is skipped, a change pending read before any plan, and the$
-# hostname asked whatever the risk are the gallery's stand-ins,$
-# unit (b)'s to build. Nothing on this machine changes: every$
-# command and file is the fake's.$
+# row is skipped and a change pending read before any plan are$
+# Run All's planner's (pkg/engine/runall); the hostname asked$
+# whatever the risk is the gallery's stand-in, unit (c)'s to$
+# build. Nothing on this machine changes: every command and file$
+# is the fake's.$
 $
 # Info: runall/ufw-inactive$
 # web-01.example.net runs Debian 13. debian13 with ufw installed$
@@ -106,7 +193,7 @@ $
 $
    -  User                 Already as asked$
    -  Firewall             Enable, SSH allowed$
-   -  SSH Login            Root login off$
+   -  SSH Login            After the firewall: run Run All again$
    -  SSH Auth             Nothing asked$
    -  SSH Port             Already as asked$
    -  AppArmor             Status only$
@@ -118,35 +205,102 @@ $
   Select an option$
 $
    1) Apply all            Plan, review, confirm$
+                           [ ] Lockout risk$
 $
    0) Return$
 $
   > Enter your choice [0-1 or q]: 1$
 $
+# Apply all ####################################################$
+$
+# Run All ------------------------------------------------------$
+$
+   -  Firewall             Enable, SSH allowed$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      ufw: allow 22/tcp; enable$
+$
+      ufw$
+      -inactive$
+      +active$
+      $ ufw allow 22/tcp$
+      $ ufw --force enable$
+$
+  Apply this plan?$
+$
+  Type the hostname [web-01, 0 or q]: web-01$
+$
+  [+] Install hardn's boot unit  Done$
+  [+] ufw: allow 22/tcp; enable  Done$
+$
+# Operation Successful$
+$
 # Warning$
-# engine: controls "firewall.incoming" and "ssh.login" both plan$
-# changes of sshd and ufw, each from the host as it is now: plan$
-# them as one control's changes, or in two plans: two changes of$
-# the plan act on the same thing.$
+# This change reverts automatically in 3:01$
+# To keep it, open a new SSH session and run:$
+$
+      $ sudo hardn confirm$
+$
+  Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
+  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
+  20261020T120000Z-xxxxxxxx.$
 $
 # Run All ######################################################$
 $
 # Controls -----------------------------------------------------$
 $
-   -  User                 Already as asked$
-   -  Firewall             Enable, SSH allowed$
-   -  SSH Login            Root login off$
+   -  User                 Change pending$
+   -  Firewall             Change pending$
+   -  SSH Login            Change pending$
    -  SSH Auth             Nothing asked$
    -  SSH Port             Already as asked$
    -  AppArmor             Status only$
-   -  Auto Updates         Already as asked$
-   -  DNS                  Already as asked$
+   -  Auto Updates         Change pending$
+   -  DNS                  Change pending$
    -  Backups              Used, not changed$
    -  Environment          Nothing asked$
 $
   Select an option$
 $
-   1) Apply all            Plan, review, confirm$
+   1) Apply all            Change pending$
 $
    0) Return$
 $
@@ -154,8 +308,26 @@ $
 $
 # simulated system ---------------------------------------------$
 $
-# Note$
-# Nothing was applied.$
+# Info: runall/ufw-inactive$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Applied: Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+   -  Armed the revert timer$
+      $ systemd-run$
+      | --unit=hardn-revert-20261020T120000Z-xxxxxxxx$
+      | "--description=hardn: roll back change$
+      | 20261020T120000Z-xxxxxxxx unless confirmed"$
+      | --on-active=180s --timer-property=AccuracySec=1s$
+      | /usr/local/bin/hardn rollback 20261020T120000Z-xxxxxxxx$
+$
+   -  Applied: ufw: allow 22/tcp; enable$
+      $ ufw allow 22/tcp$
+      $ ufw --force enable$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -166,10 +338,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange the real control's Plan, all of them in one plan on␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan/apply engine. Which controls hardn.yml asks␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped, a change pending read before␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156many plan, and the hostname asked whatever the risk are the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped and a change pending read before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156many plan are Run All's planner's (pkg/engine/runall); the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhostname asked whatever the risk is the gallery's stand-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min, unit (c)'s to build. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/ufw-inactive␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian13 with ufw␛[m$
@@ -188,7 +361,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mEnable, SSH allowed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;129;134;156mRoot login off␛[m$
+      ␛[38;2;129;134;156mAfter the firewall: run Run All again␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
@@ -208,27 +381,99 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
       ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mApply all␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRun All␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mEnable, SSH allowed␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m$
+$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;231;70;105m-inactive␛[m$
+      ␛[38;2;112;212;127m+active␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw --force enable␛[m$
+$
+  ␛[38;2;192;196;216mApply this plan?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mufw: allow 22/tcp; enable␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mengine: controls "firewall.incoming" and "ssh.login" both␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mplan changes of sshd and ufw, each from the host as it is␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnow: plan them as one control's changes, or in two plans:␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtwo changes of the plan act on the same thing.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
+  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
-      ␛[38;2;129;134;156mAlready as asked␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;129;134;156mEnable, SSH allowed␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;129;134;156mRoot login off␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
@@ -236,9 +481,9 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
       ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
-      ␛[38;2;129;134;156mAlready as asked␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
-      ␛[38;2;129;134;156mAlready as asked␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
       ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
@@ -247,7 +492,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
-      ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -255,6 +500,25 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/ufw-inactive␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ systemd-run␛[m$
+      ␛[38;2;129;134;156m↪ --unit=hardn-revert-20261020T120000Z-xxxxxxxx␛[m$
+      ␛[38;2;129;134;156m↪ "--description=hardn: roll back change␛[m$
+      ␛[38;2;129;134;156m↪ 20261020T120000Z-xxxxxxxx unless confirmed"␛[m$
+      ␛[38;2;129;134;156m↪ --on-active=180s --timer-property=AccuracySec=1s␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn rollback␛[m$
+      ␛[38;2;129;134;156m↪ 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: ufw: allow 22/tcp; enable␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw --force enable␛[m$
 $
