@@ -447,7 +447,8 @@ func TestOffApt(t *testing.T) {
 }
 
 // TestOffSave: off saves enableUnattendedUpgrades false where the loaded
-// hardn.yml says true (decision 2), and only there.
+// hardn.yml says true (decision 2), and only there: the caller sets it
+// false in the configuration it plans with, which is saved as given.
 func TestOffSave(t *testing.T) {
 	for _, on := range []bool{true, false} {
 		m := debianOff(t).applied(updates.AutoOn)
@@ -457,6 +458,7 @@ func TestOffSave(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		cfg.EnableUnattendedUpgrades = false
 		got, err := m.apply(updates.AutoOff, cfg)
 		if err != nil {
 			t.Fatal(err)
@@ -465,6 +467,9 @@ func TestOffSave(t *testing.T) {
 		data, _ := content(t, m, hardnYML)
 		if saved != on || !strings.Contains(data, "enableUnattendedUpgrades: false") {
 			t.Errorf("hardn.yml true %v: changes %q, file %q", on, got, data)
+		}
+		if !cfg.LoadedFrom([]byte(data)) { // saved as given: it records the bytes written
+			t.Errorf("hardn.yml true %v: the configuration planned with does not record the file", on)
 		}
 	}
 }

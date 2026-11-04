@@ -28,13 +28,23 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, menu)
 }
 
-// preplan plans c on the engine from a fresh reading of the host, writing
-// nothing outside the engine's run directory, which it removes, and returns
-// its first refusal in the screen's words (screenkit.RefusalWords), ""
-// for none: the control's refusals and the engine's (a change waiting for
-// hardn confirm among them) are said before asking.
-func (r *runner) preplan(ctx context.Context, c engine.Control) (string, error) {
-	p, err := r.o.NewEngine(func(engine.Event) {}).Plan(ctx, []engine.Control{c}, r.cfg)
+// edit sets in cfg what action saves: enableUnattendedUpgrades false at
+// off, which the control saves where the loaded hardn.yml says true; on
+// saves nothing.
+func edit(action updatesctl.AutoAction, cfg *config.Config) {
+	if action == updatesctl.AutoOff {
+		cfg.EnableUnattendedUpgrades = false
+	}
+}
+
+// preplan plans c on the engine with cfg, from a fresh reading of the
+// host, writing nothing outside the engine's run directory, which it
+// removes, and returns its first refusal in the screen's words
+// (screenkit.RefusalWords), "" for none: the control's refusals and the
+// engine's (a change waiting for hardn confirm among them) are said before
+// asking.
+func (r *runner) preplan(ctx context.Context, c engine.Control, cfg *config.Config) (string, error) {
+	p, err := r.o.NewEngine(func(engine.Event) {}).Plan(ctx, []engine.Control{c}, cfg)
 	switch {
 	case err != nil && ctx.Err() != nil:
 		return "", err
@@ -49,20 +59,23 @@ func (r *runner) preplan(ctx context.Context, c engine.Control) (string, error) 
 // change runs the item, on or off as v draws it, through the flow
 // (screenkit.Session.Change), plain y/N: planned first (preplan) and
 // refused before asking; its review, the row as the change leaves it and
-// the control's notes; its plan from a fresh reading; the question.
+// the control's notes; its plan from a fresh reading; the question. Each
+// plans with a copy of hardn.yml edited as the change saves it (edit).
 func (r *runner) change(ctx context.Context, v screen.Updates) error {
 	action := updatesctl.AutoOn
 	if v.Off() {
 		action = updatesctl.AutoOff
 	}
 	c := r.control(action)
-	switch words, err := r.preplan(ctx, c); {
+	edited := *r.cfg // as screenkit.Session.Change edits its copy
+	edit(action, &edited)
+	switch words, err := r.preplan(ctx, c, &edited); {
 	case err != nil:
 		return err
 	case words != "":
 		return r.s.Say(screenkit.Warnings(words))()
 	}
-	ns, err := c.Notes(ctx, r.o.System, engine.Input{Facts: r.o.Facts, Config: r.cfg})
+	ns, err := c.Notes(ctx, r.o.System, engine.Input{Facts: r.o.Facts, Config: &edited})
 	if err != nil {
 		return err
 	}
@@ -70,7 +83,8 @@ func (r *runner) change(ctx context.Context, v screen.Updates) error {
 	return r.s.Change(ctx, screenkit.Change{
 		Step: ch.Step,
 		Flow: flow.Flow{Review: func() flow.Review { return ch.Review }, Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: ch.Question} }},
-		Controls: func(*config.Config) []engine.Control {
+		Controls: func(edited *config.Config) []engine.Control {
+			edit(action, edited) // saved as edited, so that Adopt finds the bytes written
 			return []engine.Control{c}
 		},
 	})
