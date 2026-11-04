@@ -136,6 +136,13 @@ type Change struct {
 	// the configuration the engine plans with, whose save the change's
 	// control plans. Required.
 	Controls func(edited *config.Config) []engine.Control
+	// Typed asks for the hostname typed whatever the plan's risk: the
+	// flow's plan is flow.RiskLockout (flow.Plan.Typed), so that its
+	// Confirm is given a typed plan, as cmd/hardn's typedEngine asks for
+	// it. Run All's (gallery-runall.md decision 6 (a)). Whether the apply
+	// is confirmed from a new connection or reverted stays the engine's,
+	// from the plan's own risk.
+	Typed bool
 }
 
 // Change runs c under its title bar in pkg/ui's canonical flow on the
@@ -164,6 +171,9 @@ func (s Session) Change(ctx context.Context, c Change) error {
 	}}
 	f := c.Flow
 	f.Engine, f.DryRun = p, s.DryRun
+	if c.Typed {
+		f.Engine = typed{p}
+	}
 	out, err := c.Step.Run(ctx, s.Prompter, f)
 	if !p.Planned() {
 		return err
@@ -223,6 +233,17 @@ func (p *Planning) Apply(ctx context.Context, report flow.Report) error {
 		defer stop()
 	}
 	return p.FlowEngine.Apply(ctx, report)
+}
+
+// typed is a Planning whose every plan is confirmed by a typed phrase
+// (Change.Typed).
+type typed struct{ *Planning }
+
+// Plan plans as Planning does, the plan's risk flow.RiskLockout.
+func (e typed) Plan(ctx context.Context) (flow.Plan, error) {
+	p, err := e.Planning.Plan(ctx)
+	p.Risk = flow.RiskLockout
+	return p, err
 }
 
 // Planned reports whether the flow asked for a plan: false when it ended
