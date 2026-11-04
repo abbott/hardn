@@ -21,8 +21,9 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 )
 
-// hardnLog is hardn's log file, LegacyLogPath, opened by start (openLog);
-// nil, writing nothing, until then. Where it could not be opened it is
+// hardnLog is hardn's log file, LegacyLogPath, opened (openLog) once a
+// command that writes it runs, after its flags are parsed (openStartLog);
+// nil, writing nothing, until then, and for the commands that do not. Where it could not be opened it is
 // stderr (logOnStderr), as pkg/logging's fallback was.
 var hardnLog *output.Log
 
