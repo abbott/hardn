@@ -31,12 +31,6 @@ func NewMenuFactory(
 	}
 }
 
-// CreateRunAllMenu creates a RunAllMenu with all dependencies wired up
-func (f *MenuFactory) CreateRunAllMenu() *menu.RunAllMenu {
-	menuManager := f.serviceFactory.CreateMenuManager()
-	return menu.NewRunAllMenu(menuManager, f.config, f.osInfo)
-}
-
 func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
 	return menu.NewHelpMenu()
 }

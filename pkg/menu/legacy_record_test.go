@@ -47,9 +47,6 @@ var legacyRecord = []struct {
 		"the same with style.UseColors off"},
 	{"main_menu/ubuntu-fresh.golden", "pkg/menu", "cc04c17", "837b5c63fb22d498662108d56bd1f713e2990cd2e9484885ef521d06b666be8a",
 		"the same on a fresh Ubuntu 24.04 host, live"},
-	{"run_all/option1-live-cancel.golden", "pkg/menu", "cc04c17", "f7c75cbf59e5f256c0652ed86b12c542f9775cb1779be62cc0d1b85f49be4b05",
-		"Run All, live, option 1 declined at its typed yes: its menu with option 2, \"Enable dry-run mode and run\", [0-2 or q]; " +
-			"two trunk edits: the typed yes (A4's gate, 5cb0fd6), and \"Press Enter\" where origin/main said \"Press any key\" (DEV-050)"},
 }
 
 // TestLegacyRecord holds the record: every file listed is under
