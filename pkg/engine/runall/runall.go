@@ -55,8 +55,11 @@ const (
 	// WordsAfterFirewall is root login off where the firewall is planned
 	// with it (decision 5 (a)).
 	WordsAfterFirewall = "After the firewall: run Run All again"
-	// PendingWords are a change pending's, in full: the SSH Login screen's
-	// (pkg/screens/ssh), where revert's own would name the change.
+	// PendingWords are a change waiting for hardn confirm's, in full: the
+	// SSH Login screen's (pkg/screens/ssh), where the journal holds an
+	// applied lockout-risk change (revert.State.Waiting). An unfinished
+	// rollback, or a change that did not finish, is revert's own words,
+	// with its hardn rollback.
 	PendingWords = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
 
 	userMgmt = "User Management's: "
@@ -84,7 +87,8 @@ const (
 	NotApplicable
 	// Refused: planned alone, it refuses; Refusal is why, in full.
 	Refused
-	// Pending: a change waits for hardn confirm; Refusal is PendingWords.
+	// Pending: a change is journalled; Refusal is PendingWords where it
+	// waits for hardn confirm, else revert's words (words).
 	Pending
 	// Elsewhere: another screen's: the port SSH Login's, a user there
 	// User Management's, with what is missing.
@@ -238,8 +242,8 @@ type Row struct {
 	// Words are the row's outcome: the change, or why none.
 	Words string
 	// Refusal is a Refused or Pending row's why, in full: the control's
-	// refusal (as the screens word one) or PendingWords. Err is the
-	// refusal itself.
+	// refusal (as the screens word one), the users read's error, or a
+	// change journalled's (words). Err is the refusal itself.
 	Refusal string
 	Err     error
 	// Control is a Planned row's control, as the plan has it.
@@ -260,8 +264,8 @@ type Reading struct {
 	// planned or a change is pending.
 	Plan *engine.Plan
 	// Refusal is what refuses Apply all before asking, in full: a change
-	// pending (PendingWords), or the one plan's refusal. Err is the
-	// refusal itself.
+	// journalled (words), or the one plan's refusal. Err is the refusal
+	// itself.
 	Refusal string
 	Err     error
 
@@ -345,20 +349,32 @@ func Read(ctx context.Context, in Input) (Reading, error) {
 			return r, nil
 		}
 	}
+	if err := r.combine(ctx, in); err != nil {
+		return Reading{}, err
+	}
+	return r, nil
+}
+
+// combine plans the Planned rows' controls in one plan, kept in r.Plan;
+// its first refusal refuses Apply all (r.Err, r.Refusal). Decision 5 (a)
+// leaves the engine nothing it refuses on the gallery's hosts; the refusal
+// stays, a guard for a conflict the rule does not cover. The error is the
+// engine's.
+func (r *Reading) combine(ctx context.Context, in Input) error {
 	planned := r.Controls()
 	if len(planned) == 0 {
-		return r, nil
+		return nil
 	}
 	p, err := newEngine(in).Plan(ctx, planned, in.Config)
 	if err != nil {
-		return Reading{}, fmt.Errorf("runall: %w", err)
+		return fmt.Errorf("runall: %w", err)
 	}
 	r.Plan = p
 	if len(p.Refused) > 0 {
 		r.Err = p.Refused[0]
 		r.Refusal = words(r.Err)
 	}
-	return r, nil
+	return nil
 }
 
 // newEngine is the caller's engine, its progress unused: Read never
@@ -397,18 +413,27 @@ func (r Reading) pick(ctx context.Context, in Input, id string, rep engine.Repor
 	return rw
 }
 
-// pending makes rw a change pending's.
+// pending makes rw a change journalled's.
 func pending(rw *Row, err error) {
-	rw.Kind, rw.Words, rw.Refusal, rw.Err = Pending, WordsPending, PendingWords, err
+	rw.Kind, rw.Words, rw.Refusal, rw.Err = Pending, WordsPending, words(err), err
+}
+
+// refused makes rw refused by err.
+func refused(rw *Row, err error) {
+	rw.Kind, rw.Words, rw.Refusal, rw.Err = Refused, WordsRefused, words(err), err
 }
 
 // port is the SSH Port row: as asked where sshd listens on sshPort, else
-// SSH Login's to change (decision 3); refused where the read is.
+// SSH Login's to change (decision 3); refused where sshd cannot be read
+// (sshd -T's error, the reading's EffErr).
 func (r Reading) port(ctx context.Context, in Input, want uint16, rw *Row) {
 	sr, err := sshchange.Read(ctx, in.System, in.Facts, in.Config, in.Session, in.Getenv)
+	if err == nil {
+		err = sr.EffErr
+	}
 	switch {
 	case err != nil:
-		rw.Kind, rw.Words, rw.Refusal, rw.Err = Refused, WordsRefused, words(err), err
+		refused(rw, err)
 	case slices.Contains(sr.Effective.Listeners.Ports(), want):
 		rw.Kind, rw.Words = AsAsked, WordsAsked
 	default:
@@ -416,20 +441,20 @@ func (r Reading) port(ctx context.Context, in Input, want uint16, rw *Row) {
 	}
 }
 
-// alone plans a's control alone, writing nothing: a change pending, a user
-// there (userThere), a refusal, nothing to change, or planned.
+// alone plans a's control alone, writing nothing: a user there
+// (userThere), a refusal, nothing to change, or planned. A change pending
+// is Busy, read first (pick); one journalled since is the engine's
+// refusal, Refused in its words.
 func (r Reading) alone(ctx context.Context, in Input, a Ask, rw *Row) {
 	p, err := newEngine(in).Plan(ctx, []engine.Control{a.Control}, in.Config)
 	if err == nil && len(p.Refused) > 0 {
 		err = p.Refused[0]
 	}
 	switch {
-	case errors.Is(err, revert.ErrPending):
-		pending(rw, err)
 	case errors.Is(err, users.ErrNameTaken):
 		r.userThere(ctx, in, rw)
 	case err != nil:
-		rw.Kind, rw.Words, rw.Refusal, rw.Err = Refused, WordsRefused, words(err), err
+		refused(rw, err)
 	case len(p.Changes) == 0:
 		rw.Kind, rw.Words = AsAsked, WordsAsked
 	default:
@@ -440,14 +465,16 @@ func (r Reading) alone(ctx context.Context, in Input, a Ask, rw *Row) {
 // userThere is the User row where hardn.yml's username is taken: as asked
 // where the users read (users.Read) has it an admin with every key
 // hardn.yml asks for, else User Management's, with what is missing: Run
-// All does not change a user that is there.
+// All does not change a user that is there. Refused, the read's error its
+// why, where the users cannot be read; a key that does not parse is
+// missing.
 func (r Reading) userThere(ctx context.Context, in Input, rw *Row) {
-	rw.Kind = Elsewhere
 	rd, err := users.Read(ctx, in.System, in.Facts, in.Getenv)
 	if err != nil {
-		rw.Words = userMgmt + "not read"
+		refused(rw, err)
 		return
 	}
+	rw.Kind = Elsewhere
 	i := slices.IndexFunc(rd.Users, func(u users.User) bool { return u.Name == in.Config.Username })
 	if i < 0 {
 		rw.Words = userMgmt + "name taken"
@@ -489,12 +516,15 @@ func (r *Reading) afterFirewall() {
 	rw.Kind, rw.Words, rw.Control = Later, WordsAfterFirewall, nil
 }
 
-// words are a refusal in the screens' words: a change pending's
-// (PendingWords); else a control's refusal as screenkit.RefusalWords has
+// words are a refusal in the screens' words: PendingWords where a change
+// waits for hardn confirm (revert.State.Waiting); revert's own for any
+// other change journalled (an unfinished rollback, a change that did not
+// finish), with its hardn rollback; else a control's refusal as screenkit.RefusalWords has
 // it, its why and its fix each a sentence, or the error's own (the test
 // holds the two the same).
 func words(err error) string {
-	if errors.Is(err, revert.ErrPending) {
+	var pe *revert.PendingError
+	if errors.As(err, &pe) && pe.State.Waiting() {
 		return PendingWords
 	}
 	var rf *steps.Refusal
