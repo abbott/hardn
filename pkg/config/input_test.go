@@ -258,3 +258,29 @@ func TestFirstRun(t *testing.T) {
 		})
 	}
 }
+
+// TestTerminalsReal: the real terminals check (not useTerminals's stub) is false with
+// stdin a pipe, and with stdout a pipe, one at a time, the other left as the test
+// binary has it: the first-run question is asked only when both are a terminal.
+func TestTerminalsReal(t *testing.T) {
+	for _, f := range []struct {
+		name string
+		file **os.File
+	}{{"stdin", &os.Stdin}, {"stdout", &os.Stdout}} {
+		t.Run(f.name+" a pipe", func(t *testing.T) {
+			r, w, err := os.Pipe()
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = r.Close(); _ = w.Close() })
+			was := *f.file
+			t.Cleanup(func() { *f.file = was })
+			*f.file = map[string]*os.File{"stdin": r, "stdout": w}[f.name]
+			got := terminals()
+			*f.file = was
+			if got {
+				t.Errorf("terminals() = true with %s a pipe", f.name)
+			}
+		})
+	}
+}
