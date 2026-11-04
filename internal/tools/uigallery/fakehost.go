@@ -680,6 +680,13 @@ type engineSys struct {
 // system returns the simulated host as the engine reaches it.
 func (h *fakeHost) system() engineSys { return engineSys{h.f, h} }
 
+// Stat is the fake's, with the setuid bit on the elevation tools as the
+// checks see it (statusSys), so a control's Plan reads the admins
+// (users.Read) as its screen does.
+func (s engineSys) Stat(ctx context.Context, name string) (fs.FileInfo, error) {
+	return s.h.sys().Stat(ctx, name)
+}
+
 // WriteFileAtomic is the fake's, but for an immutable file and one on a
 // read-only file system.
 func (s engineSys) WriteFileAtomic(ctx context.Context, name string, data []byte, perm fs.FileMode, uid, gid int) error {
