@@ -15,7 +15,7 @@ const ExampleConfigContent = `# Hardn - Linux Hardening Configuration
 #################################################
 # Basic Configuration
 #################################################
-username: "george"                # Default username to create
+username: ""                      # The user -c creates, and User Management's and Run All's default; none by default
 dryRun: false                     # Preview changes without applying them
 enableBackups: true               # Backup files before modifying them
 backupPath: "/var/backups/hardn"  # Path to store backups
