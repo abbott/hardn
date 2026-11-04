@@ -65,33 +65,6 @@ func TestProxmoxHost(t *testing.T) {
 	})
 }
 
-// TestDisableRootSSHOnProxmox checks that disable-root on Proxmox writes
-// prohibit-password, never no, in place, and keeps root in AllowUsers.
-func TestDisableRootSSHOnProxmox(t *testing.T) {
-	const dropIn = "/etc/ssh/sshd_config.d/hardn.conf"
-	for _, tc := range []struct {
-		name, seed, want string
-		etc, pkg         bool
-	}{
-		{"by /etc/pve", "Port 2230\nPermitRootLogin yes\nAllowUsers root alice\n", "Port 2230\nPermitRootLogin prohibit-password\nAllowUsers root alice\n", true, false},
-		{"by pve-manager", "Port 2230\nPermitRootLogin no\nAllowUsers root\n", "Port 2230\nPermitRootLogin prohibit-password\nAllowUsers root\n", false, true},
-		{"no drop-in yet", "", "PermitRootLogin prohibit-password\n", true, true},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			fs, mc := pveHost(tc.etc, tc.pkg)
-			if tc.seed != "" {
-				fs.Files[dropIn] = []byte(tc.seed)
-			}
-			if err := NewFileSSHRepository(fs, mc, "debian", nil).DisableRootSSH(); err != nil {
-				t.Fatal(err)
-			}
-			if got := string(fs.Files[dropIn]); got != tc.want {
-				t.Errorf("hardn.conf:\n%s\nwant:\n%s", got, tc.want)
-			}
-		})
-	}
-}
-
 // TestSaveSSHConfigOnProxmox checks that ConfigureSSH's writer (hardn -c,
 // -r and Run All) puts prohibit-password where it would put no.
 func TestSaveSSHConfigOnProxmox(t *testing.T) {

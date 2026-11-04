@@ -3,6 +3,7 @@
 Unit (a) of slice 6, `next/s6-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`ssh.go`, `sshhost.go`).
 Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM. The hosts' shapes are the VMs' read of 2026-11-03 (`vm-runs/s6/00-inspect-*.log`), their values synthetic. *Since `next/s6-control` the mock runs on the real control, no stand-ins left ([control-ssh.md](control-ssh.md)).*
 *Since `next/s6-screen` ([screen-ssh.md](screen-ssh.md)): the listing and its mocks are gone; git keeps them at `next/s6-control`, and §3 records what they showed. `play ssh` and `play ssh/<host>` run hardn's own screen on the same hosts, as does main menu 2; each `play/ssh-*` golden differs from `3bb26be0` in its opening note alone.*
+*Since `next/s6-replace` (unit (d), [cmd-engine.md](cmd-engine.md) §2.16, §2.17): main menu 2 runs that screen, under plan only too; `-d` plans Disallow root login, typed on a terminal, refused off one, `-n` its plan (decision 8 (a)); `-c -d` runs, `-c` first; the five unused SSH keys warn once (decision 9 (a)); the legacy screen, `-d`'s legacy path and their records are deleted, so §2's file references are origin/main's.*
 
 ## 1. What to run
 

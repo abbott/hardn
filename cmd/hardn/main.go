@@ -125,13 +125,6 @@ var rootCmd = &cobra.Command{
 	Short: "Linux hardening tool",
 	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// -c with -d: refused outright, whatever hardn.yml holds, before
-		// anything runs (refactor plan slice 5, unit (d); the maintainer,
-		// 2026-11-03): -d turns off root's SSH login, and a key -c adds is
-		// not proof that its user can log in (hardncmd.RefuseCreateDisableRoot).
-		if refuse(hardncmd.RefuseCreateDisableRoot(createUser, disableRootSSH)) {
-			return
-		}
 		// -n only previews: refuse operation flags before anything runs (V1).
 		if refuseDryRunOperations(operationFlags()) {
 			return
@@ -258,7 +251,7 @@ var rootCmd = &cobra.Command{
 		// Process command line options using the new architecture
 
 		// Get required managers
-		sshManager := serviceFactory.CreateSSHManager()
+		// (-d needs no manager: it plans and applies the SSH Login control's Root, ssh.go)
 		// (-w needs no manager: it plans and applies the Firewall control, firewall.go)
 		// (-g needs no manager: it plans and applies the DNS control, dns.go)
 		packageManager := serviceFactory.CreatePackageManager()
@@ -316,15 +309,6 @@ var rootCmd = &cobra.Command{
 				} else {
 					logging.LogSuccess("Proxmox sources updated")
 				}
-			}
-		}
-
-		// Disable root SSH access
-		if disableRootSSH {
-			if err := sshManager.DisableRootSSH(); err != nil {
-				logging.LogError("Failed to disable root SSH access: %v", err)
-			} else {
-				logging.LogSuccess("%s", hardncmd.DisableRootDone(serviceFactory.IsProxmoxHost()))
 			}
 		}
 
@@ -405,9 +389,19 @@ var rootCmd = &cobra.Command{
 		// question, as -g's (users.go). Its status is hardn's as -g's is,
 		// composed by runStatus, once the flags after it have run. It no
 		// longer configures sshd after the user (SSH is slice 6's).
-		status := 0 // -c's, -w's, -g's and -p's, what -e's yields to (runStatus)
+		status := 0 // -c's, -d's, -w's, -g's and -p's, what -e's yields to (runStatus)
 		if createUser {
 			status = createAdmin(cfg)
+		}
+
+		// Disallow root login: the SSH Login control's Root through the
+		// engine, the hostname typed on a terminal, refused off one (ssh.go).
+		// After -c, so that its proof, whether an admin could still log in,
+		// sees the user -c created: -c -d is no longer refused (slice 6,
+		// decision 8 (a)), its guard -d's own. Its status is hardn's as -c's
+		// is, composed by runStatus, once the flags after it have run.
+		if disableRootSSH {
+			status = runStatus(status, disallowRoot(cfg))
 		}
 
 		// Configure firewall: the Firewall control through the engine, the hostname
@@ -445,7 +439,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Output completion message for the legacy operations other than the all-in-one run
-		if disableRootSSH || installLinux || installPython || installAll || updateSources {
+		if installLinux || installPython || installAll || updateSources {
 			logging.LogSuccess("Script completed selected hardening operations.")
 		}
 	},
@@ -505,12 +499,13 @@ var (
 
 // operationFlags names the operation flags set on the command line that
 // -n refuses: the flags that change the host (pkg/cmd lists them), but -g,
-// -e, -w and -c, whose dry runs are the DNS, Environment, Firewall and
-// User controls' plans, shown with nothing written (refactor plan slice 2,
-// unit (d); the maintainer, 2026-10-23; slice 9, unit (d),
+// -e, -w, -c and -d, whose dry runs are the DNS, Environment, Firewall,
+// User and SSH Login controls' plans, shown with nothing written (refactor
+// plan slice 2, unit (d); the maintainer, 2026-10-23; slice 9, unit (d),
 // gallery-environment.md §5, Made here, adopted 2026-10-29; slice 4, unit
 // (d), parity-firewall.md §6, adopted 2026-11-02; slice 5, unit (d),
-// gallery-users.md §5, decision 6 (a), adopted 2026-11-03).
+// gallery-users.md §5, decision 6 (a), adopted 2026-11-03; slice 6, unit
+// (d), gallery-ssh.md §5, decision 8 (a), adopted 2026-11-03).
 func operationFlags() []string {
 	var names []string
 	for _, f := range []struct {
@@ -518,7 +513,6 @@ func operationFlags() []string {
 		name string
 	}{
 		{runAll, hardncmd.FlagRunAll},
-		{disableRootSSH, hardncmd.FlagDisableRoot},
 		{installLinux, hardncmd.FlagInstallLinux},
 		{installPython, hardncmd.FlagInstallPython},
 		{installAll, hardncmd.FlagInstallAll},

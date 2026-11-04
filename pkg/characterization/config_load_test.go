@@ -29,7 +29,7 @@ func configCases() []configCase {
 			},
 			notes: []string{
 				"The unknown key notAConfigKey is ignored without a warning.",
-				"sshConfigFile is loaded but the SSH adapter never reads it; the drop-in path is hard-coded (file_ssh_repository.go:42-48, and sshdConfigFile for disable-root).",
+				"sshConfigFile is loaded but not read by FileSSHRepository (Run All's ConfigureSSH; the path hard-coded); main menu 2's Move old settings reads it.",
 			},
 		},
 		{name: "full-hardn-config-env", fixture: "full.yml", viaEnv: true},
@@ -70,11 +70,11 @@ func TestConfigLoadGoldens(t *testing.T) {
 			}
 
 			explicit := path
-			how := "explicit path (hardn -f <file>, cmd/hardn/main.go:151)"
+			how := "explicit path (hardn -f <file>, cmd/hardn/main.go, Run's loadConfig)"
 			if tc.viaEnv {
 				explicit = ""
 				t.Setenv("HARDN_CONFIG", path)
-				how = "HARDN_CONFIG=<file>, no -f (cmd/hardn/main.go:151)"
+				how = "HARDN_CONFIG=<file>, no -f (cmd/hardn/main.go, Run's loadConfig)"
 			}
 
 			cfg, loadErr := config.LoadConfig(explicit)

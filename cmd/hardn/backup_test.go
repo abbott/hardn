@@ -121,14 +121,15 @@ func TestBackupScreen(t *testing.T) {
 }
 
 // hookSet records the main menu items' hooks as withUsersScreen,
-// withDNSScreen, withFirewallScreen, withBackupScreen,
+// withSSHScreen, withDNSScreen, withFirewallScreen, withBackupScreen,
 // withEnvironmentScreen and withReaderScreens set them.
 type hookSet struct {
-	users, dns, backup, environment, firewall, systemDetails, logs func() error
-	firewallPVE                                                    func() bool
+	users, ssh, dns, backup, environment, firewall, systemDetails, logs func() error
+	firewallPVE                                                         func() bool
 }
 
 func (h *hookSet) SetUsers(run func() error)       { h.users = run }
+func (h *hookSet) SetSSH(run func() error)         { h.ssh = run }
 func (h *hookSet) SetDNS(run func() error)         { h.dns = run }
 func (h *hookSet) SetBackup(run func() error)      { h.backup = run }
 func (h *hookSet) SetEnvironment(run func() error) { h.environment = run }

@@ -11,7 +11,6 @@ type MenuOption struct {
 	Number      int
 	Title       string
 	Description string
-	Style       string
 }
 
 type Menu struct {
@@ -121,7 +120,6 @@ const (
 	Blink     = "\033[5m"
 	Reverse   = "\033[7m"
 	Hidden    = "\033[8m"
-	Strike    = "\033[9m"
 
 	// Cursor control
 	CursorOn  = "\033[?25h"
@@ -205,13 +203,6 @@ func DarkBorder(text string, color ...string) string {
 		return Gray04 + color[0] + text + Reset
 	}
 	return Gray04 + text + Reset
-}
-
-func Striked(text string, color ...string) string {
-	if len(color) > 0 {
-		return Strike + color[0] + text + Reset
-	}
-	return Strike + text + Reset
 }
 
 // Apply italic style with an optional color
@@ -723,19 +714,8 @@ func (m *Menu) FormatOption(opt MenuOption) string {
 	// Add spacing after the number
 	numPadded += " "
 
-	titlePadded := ""
 	// Format title with consistent padding
-	if opt.Style == "" {
-		// opt.Title = Colored(opt.Style, opt.Title)
-		titlePadded += PadRight(opt.Title, m.titleWidth)
-		// titlePadded += PadRight(opt.Title, m.titleWidth + 4)
-	} else if opt.Style == "strike" {
-		// opt.Title = Bolded(opt.Title)
-		strikeTitle := Striked(opt.Title)
-		dimmedStrikeTitle := Dimmed(strikeTitle)
-		titlePadded += PadRight(dimmedStrikeTitle, m.titleWidth)
-		// titlePadded += PadRight(dimmedStrikeTitle, m.titleWidth + 4)
-	}
+	titlePadded := PadRight(opt.Title, m.titleWidth)
 
 	// Add description
 	desc := Dimmed(opt.Description)

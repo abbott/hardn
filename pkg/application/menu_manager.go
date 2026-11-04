@@ -9,7 +9,6 @@ import (
 
 // MenuManager orchestrates menu-related operations
 type MenuManager struct {
-	sshManager      *SSHManager
 	dnsManager      *DNSManager
 	packageManager  *PackageManager
 	securityManager *SecurityManager
@@ -20,24 +19,17 @@ type MenuManager struct {
 
 // In the struct definition:
 func NewMenuManager(
-	sshManager *SSHManager,
 	dnsManager *DNSManager,
 	packageManager *PackageManager,
 	securityManager *SecurityManager,
 	hostInfoManager *HostInfoManager,
 ) *MenuManager {
 	return &MenuManager{
-		sshManager:      sshManager,
 		dnsManager:      dnsManager,
 		packageManager:  packageManager,
 		securityManager: securityManager,
 		hostInfoManager: hostInfoManager,
 	}
-}
-
-// disable SSH access for the root user
-func (m *MenuManager) DisableRootSSH() error {
-	return m.sshManager.DisableRootSSH()
 }
 
 // SetProxmoxCheck wires in the host's Proxmox VE check, the one the SSH

@@ -1,6 +1,6 @@
 # The SSH Login screen on the SSH Login control (`pkg/screens/ssh`, `screen.SSH`)
 
-> **Unit:** refactor plan slice 6, unit (c), `next/s6-screen`, from `aca6a977`. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake (the gallery's SSH Login hosts, its `sshSim` and engine fake copied), the control's plans on the real engine. No real terminal, no hardn binary, no VM. Nothing is wired in: main menu 2 is unit (d)'s.
+> **Unit:** refactor plan slice 6, unit (c), `next/s6-screen`, from `aca6a977`. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake (the gallery's SSH Login hosts, its `sshSim` and engine fake copied), the control's plans on the real engine. No real terminal, no hardn binary, no VM. *Wired in `next/s6-replace` (unit (d)): main menu 2 runs `Run`, and `-d` plans the control's Disallow root login ([cmd-engine.md](cmd-engine.md) §2.16, §2.17).*
 
 ## What it does
 
@@ -25,12 +25,13 @@ ssh.Run(ctx, ssh.Options{
 
 Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wrapping `fs.ErrInvalid`, nothing written. `NewEngine` is called once per item chosen (the plan before asking), once per port the port field checks, and once per change; drawing calls it never. No change saves hardn.yml. `pkg/ui/screen/ssh.go` draws only: `SSH`, `SSHRoot`, `SSHChange` and its makers, the item keys, the section's keys and the port form's words; `rows.go` maps the control's reading to the rows.
 
-## For unit (d)
+## Built in `next/s6-replace` (unit (d))
 
-- **Main menu 2** calls `Run`, with `os.Getenv`, `revert.ReadSession`'s session (the one the engine holds), and the loaded hardn.yml; under plan only too.
-- **`-d`** plans `sshchange.Root{Want: "no"}`, refused under the same rules, typed on a terminal and refused off one, as `-w`; **`-c -d`** comes back, its guard `-d`'s (decision 8 (a)).
-- **hardn.yml's SSH keys** (decision 9 (a)): `sshPort` is the form's default, `sshConfigFile` `Migrate`'s alone; `permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH`, `sshKeyPath` unused, one load warning where any is set.
-- **Deleted** (hard cutover, the maintainer, 2026-11-03): the legacy screen `pkg/menu/disable_root_menu.go` and `-d`'s legacy path, with no freeze and no parity record.
+- **Main menu 2** runs `Run` (`MainMenu.SetSSH`, `cmd/hardn/ssh.go`), with `os.Getenv`, the session `engineOptions` holds, and the loaded hardn.yml; under plan only too, every change stopping at its plan. Its label and description are unchanged.
+- **`-d`** plans `sshchange.Root{Want: "no"}` through `runControls`, under the control's refusals (exit 1, nothing written). On a terminal: the plan, "Disallow root login?", the hostname typed, confirm or revert. Off one: refused, `PLAN_REFUSED`. `-n` or `dryRun: true`: the plan alone, 3 with changes; no longer refused. Root login already off, on Proxmox VE as elsewhere, or Proxmox VE's root already key-only, is nothing to change, 0: `-d` never loosens root login (Proxmox VE's key-only is the screen's Root key-only item).
+- **`-c -d`** is back, `-c` first, so that `-d`'s proof sees the user `-c` created (decision 8 (a)); `hardncmd.RefuseCreateDisableRoot` is gone.
+- **hardn.yml** (decision 9 (a)): `sshPort` is the port form's default, `sshConfigFile` Move old settings'. `permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH` and `sshKeyPath` set to a value other than the default warn once each. Run All and `-r` still read `sshAllowedUsers` and `sshListenAddress` until slice 8.
+- **Deleted** (hard cutover, the maintainer, 2026-11-03): the legacy SSH Login screen (`pkg/menu/disable_root_menu.go`), `-d`'s legacy path and the `DisableRootSSH` chain with origin/main's stub rewrite (P0.8 gate 2), `pkg/characterization`'s `disable_root_ssh` case and Proxmox VE's `hardn -d` record. No freeze, no parity record.
 
 ## Decisions
 
@@ -46,7 +47,7 @@ Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wr
 
 ## Words
 
-Decided and used exactly: gallery-ssh.md §6's, the form's two refusals and the pending refusal among them. The adopted mock's, not in §6, kept: the questions ("Disallow root login?", "Allow root to log in by key?", "Make root key-only?", "Turn password login off?", "Turn password login on?", "Change the SSH port?", "Move hardn's old settings?"), "<ports> held until confirmed", "<files>, into 00-hardn.conf", "Now not read", "A port the change adds is in use. Pick another." Proposed here: the port field's "Default: <port>", as Create User's (screen-users.md). The gallery's unused "Port %d is in use. Pick another." and "Nothing to move." are not carried: an empty plan says "Nothing needs changing." through the flow.
+Decided and used exactly: gallery-ssh.md §6's, the form's two refusals and the pending refusal among them. The adopted mock's, not in §6, kept: the questions ("Disallow root login?", "Allow root to log in by key?", "Make root key-only?", "Turn password login off?", "Turn password login on?", "Change the SSH port?", "Move hardn's old settings?"), "<ports> held until confirmed", "<files>, into 00-hardn.conf", "Now not read", "A port the change adds is in use. Pick another." Proposed here: the port field's "Default: <port>", as Create User's (screen-users.md). Unit (d)'s, proposed: `-d` off a terminal, "Turning root login off here risks a lockout", "run hardn -d from a terminal, which asks you to confirm" (on `-w`'s pattern); the load warning "hardn.yml's <key> isn't used by SSH Login or -d". The gallery's unused "Port %d is in use. Pick another." and "Nothing to move." are not carried: an empty plan says "Nothing needs changing." through the flow.
 
 ## Not run
 
