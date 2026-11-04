@@ -438,3 +438,26 @@ func TestRunAllCombined(t *testing.T) {
 		t.Errorf("ufw-inactive: stages %v, lockout %v, item marked %v; want %v, lockout, unmarked", got, r.lockout(), r.item().Risk, want)
 	}
 }
+
+// TestRunAllKeyGates: hardn.yml's gates as decision 4 (a) maps them:
+// configureDns false asks DNS for nothing whatever nameservers lists, and
+// an admin already there who lacks a key hardn.yml asks for is User
+// Management's, not as asked.
+func TestRunAllKeyGates(t *testing.T) {
+	ctx := context.Background()
+	r, h, err := raReadNamed(ctx, "debian13")
+	if err != nil {
+		t.Fatal(err)
+	}
+	cfg := *r.cfg
+	cfg.ConfigureDns = false
+	if c, _ := raAsk(dnsctl.ID, &cfg, nil); c != nil || len(cfg.Nameservers) == 0 {
+		t.Errorf("configureDns false with %d nameservers: DNS asked %v", len(cfg.Nameservers), c)
+	}
+	cfg = *r.cfg
+	cfg.SshKeys = append(slices.Clone(cfg.SshKeys), synthKey(9, "george@laptop-2"))
+	r.cfg = &cfg
+	if got := r.userThere(ctx, h, func(k string) string { return raEnvOf("debian13")[k] }); got != raUserMgmt+"1 key missing" {
+		t.Errorf("an admin lacking an asked key: %q, want %q", got, raUserMgmt+"1 key missing")
+	}
+}
