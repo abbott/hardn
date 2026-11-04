@@ -60,6 +60,7 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 	t.Helper()
 	s := &revertSeams{f: hostfake.New(host.Options{}), exit: -1}
 	s.f.AddFile(revertTestHardn, []byte("ELF"), 0o755, 0, 0)
+	s.f.AddFile("/usr/bin/sudo", []byte("ELF"), 0o755, 0, 0) // the words say sudo hardn (with neither tool, hardn)
 	s.f.AddDir("/var/lib", 0o755, 0, 0)
 	s.f.AddFile(revertBootIDFile, []byte(revertBootID+"\n"), 0o444, 0, 0) // the timer records it (revert-boot.md)
 	argv := []string{"systemd-run", "--unit=hardn-revert-" + revertTestID, "--description=hardn: roll back change " + revertTestID + " unless confirmed",
@@ -706,6 +707,9 @@ func TestHostsToolInCommandWords(t *testing.T) {
 	if out := s.output(t, "confirm"); !strings.Contains(out, "hardn confirm must be run as root: sudo hardn confirm") {
 		t.Errorf("no doas:\n%s", out)
 	}
+	if err := s.f.Remove(context.Background(), "/usr/bin/sudo"); err != nil {
+		t.Fatal(err)
+	}
 	s.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
 	if got := rootHint(); got != "Run `doas hardn` or switch to root `su`" {
 		t.Errorf("rootHint = %q", got)
@@ -724,6 +728,9 @@ func TestHostsToolInCommandWords(t *testing.T) {
 // connection from the kernel, through the seams hardn confirm runs on.
 func TestConfirmOneCommandCommand(t *testing.T) {
 	s := newRevertSeams(t, 0)
+	if err := s.f.Remove(context.Background(), "/usr/bin/sudo"); err != nil {
+		t.Fatal(err)
+	}
 	s.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
 	revertProc(s.f, 4000, 4100, "hardn", "DOAS_USER=alice")
 	s.f.AddSymlink("/proc/4100/fd/3", "socket:[7001]")

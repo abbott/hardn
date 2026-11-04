@@ -25,18 +25,43 @@ type State struct {
 	OutcomeErr error
 	// Elevate is the command that runs hardn as root on this host
 	// (detect.Elevation.Command), for the lines that say what to run: set by
-	// ReadState when a change is journalled. Empty reads as sudo.
+	// ReadState when a change is journalled. Empty reads as sudo; NoElevation
+	// where neither sudo nor doas is installed (Proxmox VE as installed), so
+	// root runs hardn itself.
 	Elevate string
 }
+
+// NoElevation is State.Elevate where neither sudo nor doas is installed:
+// the lines then say "hardn", as root, whose own session it is, runs it.
+const NoElevation = "none"
+
+// Elevate is the State.Elevate of a host with elevation tools e:
+// NoElevation where neither sudo nor doas is found (not where either is
+// unknown), else e.Command().
+func Elevate(e detect.Elevation) string {
+	if e.Sudo.Present == detect.No && e.Doas.Present == detect.No {
+		return NoElevation
+	}
+	return e.Command()
+}
+
+// Hardn is how the lines say to run hardn as root on a host with
+// elevation tools e: "sudo hardn", "doas hardn", or "hardn" where neither
+// is installed (Proxmox VE as installed: root's own session, and `sudo
+// hardn confirm` would fail there).
+func Hardn(e detect.Elevation) string { return State{Elevate: Elevate(e)}.hardn() }
 
 // Busy reports whether a change is journalled: a new one is then refused.
 func (s State) Busy() bool { return s.Pending != nil || s.RollingBack != nil }
 
 // hardn is how the lines of s say to run hardn as root: "doas hardn" on a
-// doas host.
+// doas host, "hardn" on a host with neither sudo nor doas.
 func (s State) hardn() string {
-	if s.Elevate == "" {
+	switch s.Elevate {
+	case "":
 		return "sudo hardn"
+	case NoElevation:
+		return "hardn"
 	}
 	return s.Elevate + " hardn"
 }
@@ -179,7 +204,7 @@ func ReadState(ctx context.Context, sys host.System, opts Options) (State, error
 		st.OutcomeErr = fmt.Errorf("%s: %w", RevertedName, err)
 	}
 	if st.Busy() {
-		st.Elevate = detect.FindElevation(ctx, sys).Command()
+		st.Elevate = Elevate(detect.FindElevation(ctx, sys))
 	}
 	return st, nil
 }

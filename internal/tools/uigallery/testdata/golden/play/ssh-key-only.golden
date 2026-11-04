@@ -124,10 +124,10 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
 $
-      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mhardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
-  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run hardn rollback␛[m$
   ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -302,10 +302,10 @@ $
 # This change reverts automatically in 3:01$
 # To keep it, open a new SSH session and run:$
 $
-      $ sudo hardn confirm$
+      $ hardn confirm$
 $
   Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
-  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
+  back at 12:03:01 UTC. To undo it now, run hardn rollback$
   20261020T120000Z-xxxxxxxx.$
 $
 # SSH Login ####################################################$
@@ -499,11 +499,11 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:01␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
 $
-      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mhardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
-  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
-  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run hardn␛[m$
+  ␛[38;2;129;134;156mrollback 20261020T120000Z-xxxxxxxx.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

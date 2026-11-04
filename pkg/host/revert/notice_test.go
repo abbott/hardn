@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
@@ -93,13 +94,22 @@ func TestNotices(t *testing.T) {
 func doasHost(t *testing.T) *hostfake.System {
 	t.Helper()
 	f := newHost(t)
-	f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+	asDoas(t, f)
 	return f
+}
+
+// asDoas makes f a doas host: sudo removed, doas installed.
+func asDoas(t *testing.T, f *hostfake.System) {
+	t.Helper()
+	if err := f.Remove(context.Background(), "/usr/bin/sudo"); err != nil {
+		t.Fatal(err)
+	}
+	f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
 }
 
 // TestHostsToolInTheWords: every line that says to run hardn says doas on a
 // doas host (found on the Alpine 3.23 VM, 2026-10-30), and sudo where sudo is
-// installed, doas or not.
+// installed, doas or not; "hardn" alone where neither is (Proxmox VE).
 func TestHostsToolInTheWords(t *testing.T) {
 	ctx := context.Background()
 	check := func(t *testing.T, what, got string, want ...string) {
@@ -157,7 +167,7 @@ func TestHostsToolInTheWords(t *testing.T) {
 
 	t.Run("a rollback that stops part-way", func(t *testing.T) {
 		ch := newChange(t)
-		ch.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+		asDoas(t, ch.f)
 		ch.f.Respond(hostfake.Response{ExitCode: 1, Stderr: "ERROR: Could not delete non-existent rule\n"}, "ufw", "delete", "allow", "2230/tcp")
 		ch.c.t = ch.j.Deadline()
 		_, err := Rollback(ctx, ch.f, testID, ch.opts)
@@ -167,7 +177,7 @@ func TestHostsToolInTheWords(t *testing.T) {
 	t.Run("at boot", func(t *testing.T) {
 		ch := rebooted(t, 100*time.Second+500*time.Millisecond)
 		respond(ch.f, hostfake.Response{}, rearmArgv("80s"))
-		ch.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+		asDoas(t, ch.f)
 		res, err := Boot(ctx, ch.f, systemd, ch.opts)
 		if err != nil {
 			t.Fatal(err)
@@ -175,7 +185,7 @@ func TestHostsToolInTheWords(t *testing.T) {
 		check(t, "the re-arm", res.Why, "unless confirmed with `doas hardn confirm` from a new SSH connection to port 2230")
 
 		ch = newChangeBare(t)
-		ch.f.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+		asDoas(t, ch.f)
 		markApplied(t, ch.f, ch.c)
 		timerState(ch.f, "inactive")
 		ch.f.AddDir(DefaultRunDir, 0o700, 0, 0)
@@ -208,7 +218,46 @@ func TestHostsToolInTheWords(t *testing.T) {
 		check(t, "abandoning a rollback that runs", err.Error(), "run `doas hardn rollback "+testID+"` once more")
 	})
 
-	t.Run("sudo installed too, or no tool found", func(t *testing.T) {
+	t.Run("neither sudo nor doas: root runs hardn itself", func(t *testing.T) {
+		f := bareHost(t)
+		c := &clock{testNow}
+		armed(t, f, c)
+		st, err := ReadState(ctx, f, testOptions(c, nil))
+		if err != nil || st.Elevate != NoElevation {
+			t.Fatalf("ReadState: Elevate %q, %v", st.Elevate, err)
+		}
+		markApplied(t, f, c)
+		_, err = Arm(ctx, f, second, systemd, testOptions(c, nil))
+		check(t, "the refusal while it waits", err.Error(), "confirm it with `hardn confirm` from a new SSH connection to port 2230, or undo it with `hardn rollback "+testID+"`")
+		if st, err = ReadState(ctx, f, testOptions(c, nil)); err != nil {
+			t.Fatal(err)
+		}
+		check(t, "the notice while it waits", Notices(st, c.t)[0].Text, "unless you run `hardn confirm` from a new SSH connection to port 2230", "`hardn rollback "+testID+"`")
+		if strings.Contains(Notices(st, c.t)[0].Text, "doas") {
+			t.Errorf("the notice names doas: %s", Notices(st, c.t)[0].Text)
+		}
+	})
+
+	t.Run("Hardn: the words for each host", func(t *testing.T) {
+		tool := func(p detect.Tri) detect.Tool { return detect.Tool{Present: p} }
+		for _, tc := range []struct {
+			sudo, doas detect.Tri
+			want       string
+		}{
+			{detect.No, detect.No, "hardn"},
+			{detect.Yes, detect.No, "sudo hardn"},
+			{detect.No, detect.Yes, "doas hardn"},
+			{detect.Yes, detect.Yes, "sudo hardn"},
+			{detect.Unknown, detect.No, "sudo hardn"},
+			{detect.No, detect.Unknown, "sudo hardn"},
+		} {
+			if got := Hardn(detect.Elevation{Sudo: tool(tc.sudo), Doas: tool(tc.doas)}); got != tc.want {
+				t.Errorf("Hardn(sudo %v, doas %v) = %q, want %q", tc.sudo, tc.doas, got, tc.want)
+			}
+		}
+	})
+
+	t.Run("sudo installed too, or sudo alone", func(t *testing.T) {
 		f := doasHost(t)
 		f.AddFile("/usr/bin/sudo", []byte("ELF"), 0o755, 0, 0)
 		c := &clock{testNow}
@@ -219,7 +268,7 @@ func TestHostsToolInTheWords(t *testing.T) {
 		f = newHost(t)
 		armed(t, f, c)
 		if st, err := ReadState(ctx, f, testOptions(c, nil)); err != nil || st.Elevate != "sudo" {
-			t.Errorf("with neither: Elevate %q, %v", st.Elevate, err)
+			t.Errorf("with sudo: Elevate %q, %v", st.Elevate, err)
 		}
 		if st, err := ReadState(ctx, doasHost(t), testOptions(c, nil)); err != nil || st.Elevate != "" {
 			t.Errorf("nothing journalled: Elevate %q, %v", st.Elevate, err)

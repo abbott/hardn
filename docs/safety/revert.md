@@ -394,6 +394,14 @@ The other lines keep their words, with the tool in place of `sudo`.
 
 **Not shown on a VM:** the refusal with a forward in use. On Alpine the probe saw one established connection with `ssh -L` set up and `nc` connected through it, so the kit did not try the confirm, and why the forward did not show was not established. `TestConfirmOneCommand` and `TestReadSession` cover the refusal. If a real forward's socket were held elsewhere, the count would still be right. Also not run: a real confirm under sudo (the code path is unchanged, as above), and the `sudo sshd -t` line's doas form in the abandon report.
 
+### 9.5 A host with neither sudo nor doas says `hardn` (slice 8 (b), 2026-11-04)
+
+**What was wrong.** `State.hardn()` said `sudo hardn` wherever no tool was recorded, and `detect.Elevation.Command()` says sudo when neither is installed. On Proxmox VE as installed (root's own session, no sudo or doas) the confirm and rollback lines told root to run `sudo hardn confirm`, which fails there (carried from slice 8 (a)'s review, [gallery-runall.md](../engine/gallery-runall.md) §7).
+
+**Now.** `revert.Elevate(e)` is `NoElevation` where sudo and doas are both found absent (`Present == No`; not where either is unknown, which still says sudo), else `e.Command()`; `ReadState` records that in `State.Elevate`, and `hardn()` then says `hardn` alone. `revert.Hardn(e)` is the same words for a caller holding the facts: `pkg/output`'s confirm, undo and finish-the-rollback commands use it, so the apply's report says `hardn confirm` too. `Command()` is unchanged, as its other callers prefix more than hardn.
+
+**Tested:** `TestHostsToolInTheWords` ("neither sudo nor doas", "Hardn: the words for each host"), `TestHostAndConfirm` in `pkg/output`. The test host now has sudo (`newHost`; `bareHost` has neither). No golden changed: every fixture host has sudo or doas. **Not changed here:** `pkg/engine/confirm`'s report (`hardn confirm`'s own words, and its `sudo sshd -T`, `sudo ufw` lines) and `cmd/hardn`'s `rootHint` and abandon line still use `Command()`, so say sudo on such a host. Not run on a Proxmox host.
+
 ## 10. A control's record (`/var/lib/hardn/controls/<id>.json`, slice 7 (b))
 
 Slice 7's decision 4 (a) and R2 ([gallery-updates.md](../engine/gallery-updates.md) §4): what hardn changed for one control, so that undoing it later counts only what hardn did. `record.go`, beside the journal, under its trust checks.
