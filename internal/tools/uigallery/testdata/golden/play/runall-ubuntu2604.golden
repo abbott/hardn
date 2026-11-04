@@ -251,7 +251,7 @@ $
 $
    -  SSH Login            Root login off$
    -  DNS                  Set 2 nameservers$
-   -  eth0 still uses its own nameserver 192.0.2.1$
+  [ ] eth0 still uses its own nameserver 192.0.2.1$
 $
    -  Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$

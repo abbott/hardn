@@ -130,6 +130,12 @@ type KeyValue struct {
 	// as Figma's "/var/backups/hardn Writable" and "Enabled, No password";
 	// empty shows none.
 	Note string
+	// Finding marks a bullet item as a plan's finding (flow.Finding): with
+	// no colour to tell it from a change's or a row's bullet, a warning's
+	// leads with Glyphs.Warn, ⭘ [ ], the design system's warning marker, in
+	// place of the bullet (DEV-068). With colour, and for any other state,
+	// it draws as any bullet item.
+	Finding bool
 }
 
 // Render renders the row for c. See KeyValue for the layout.
@@ -155,7 +161,11 @@ func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 	case ValueNone:
 		text = t.Value
 	}
-	lead := marker(c.Theme.Glyphs.Bullet, bullet).to(theme.LabelCol)
+	glyph := c.Theme.Glyphs.Bullet
+	if vm.Finding && vm.State == ValueWarn && !c.Env.HasColor() {
+		glyph = c.Theme.Glyphs.Warn
+	}
+	lead := marker(glyph, bullet).to(theme.LabelCol)
 	rows := wrap(c.text(vm.Key), w-theme.LabelCol)
 	if c.Whole {
 		rows = []string{c.text(vm.Key)}

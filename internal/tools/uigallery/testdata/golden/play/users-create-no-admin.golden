@@ -174,7 +174,7 @@ $
    -  Sudo                 Disabled$
   [ ] SSH Keys             None$
    -  Password             None$
-   -  Without a key carol can't log in: there's no password$
+  [ ] Without a key carol can't log in: there's no password$
 $
    -  Create user carol$
       /etc/passwd$

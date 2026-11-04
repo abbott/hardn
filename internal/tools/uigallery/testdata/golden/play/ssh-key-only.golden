@@ -224,7 +224,7 @@ $
 # SSH Configuration --------------------------------------------$
 $
    -  Password Login       Off$
-   -  PermitRootLogin prohibit-password added: root: key-only$
+  [ ] PermitRootLogin prohibit-password added: root: key-only$
       (required by Proxmox clustering)$
 $
    -  Install hardn's boot unit$

@@ -401,7 +401,7 @@ func TestFindings(t *testing.T) {
 			t.Fatalf("%s: %v", cell.Name, err)
 		}
 		c := component.NewCtx(cell.Env)
-		for _, kv := range []component.KeyValue{{Key: dhcpcdWarning.Text, State: component.ValueWarn}, {Key: searchNote.Text, State: component.ValueNone}} {
+		for _, kv := range []component.KeyValue{{Key: dhcpcdWarning.Text, State: component.ValueWarn, Finding: true}, {Key: searchNote.Text, State: component.ValueNone, Finding: true}} {
 			var want strings.Builder
 			if _, err := io.WriteString(cell.Env.Writer(&want), kv.Render(c)); err != nil {
 				t.Fatal(err)
@@ -409,6 +409,27 @@ func TestFindings(t *testing.T) {
 			if !strings.Contains(out, want.String()) {
 				t.Errorf("%s: no line drawn as %q:\n%s", cell.Name, want.String(), out)
 			}
+		}
+		// Without colour the warning leads with the warning's marker, never
+		// the bullet the plan's changes take (DEV-068); with colour, the
+		// bullet in the warning's colour (DEV-060).
+		g := c.Theme.Glyphs
+		lead, other := g.Bullet, g.Warn
+		if !cell.Env.HasColor() {
+			lead, other = g.Warn, g.Bullet
+		}
+		var found bool
+		for _, l := range strings.Split(ansi.Strip(out), "\n") {
+			if f := strings.Fields(l); len(f) > 1 && strings.HasSuffix(l, "dhcpcd may rewrite /etc/resolv.conf on a lease") {
+				head := strings.TrimSpace(strings.TrimSuffix(l, dhcpcdWarning.Text))
+				found = true
+				if head != lead || head == other {
+					t.Errorf("%s: the warning leads with %q, want %q:\n%s", cell.Name, head, lead, l)
+				}
+			}
+		}
+		if !found && cell.Env.Width >= 60 {
+			t.Errorf("%s: the warning's line not found whole", cell.Name)
 		}
 		flat := strings.Join(strings.Fields(ansi.Strip(out)), " ")
 		at := 0
@@ -436,8 +457,8 @@ func TestFindings(t *testing.T) {
 // apart from what is above; and none for a plan that cannot be made.
 func TestFindingsPaths(t *testing.T) {
 	const (
-		review   = "   -  Search Domains       example.net\n   -  dhcpcd may rewrite /etc/resolv.conf on a lease\n   -  eth0 keeps its search domain example.net\n\n   -  Set the nameservers\n"
-		alone    = "   -  dhcpcd may rewrite /etc/resolv.conf on a lease\n   -  eth0 keeps its search domain example.net\n\n   -  Set the nameservers\n"
+		review   = "   -  Search Domains       example.net\n  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease\n   -  eth0 keeps its search domain example.net\n\n   -  Set the nameservers\n"
+		alone    = "  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease\n   -  eth0 keeps its search domain example.net\n\n   -  Set the nameservers\n"
 		question = "  Use Cloudflare DNS? [y/N, 0 or q]: "
 	)
 	unchanged := Plan{Findings: dnsPlan.Findings}

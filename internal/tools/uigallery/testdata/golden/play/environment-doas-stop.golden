@@ -199,7 +199,7 @@ $
 $
    -  User                 alice$
   [ ] Under doas           Not kept by hardn$
-   -  /etc/doas.d/zz-local.conf may override hardn's rule$
+  [ ] /etc/doas.d/zz-local.conf may override hardn's rule$
 $
    -  Install hardn's boot unit$
       /etc/init.d/hardn-boot$

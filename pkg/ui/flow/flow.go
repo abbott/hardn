@@ -94,13 +94,16 @@ type Finding struct {
 }
 
 // line is f as a bullet item of the review: a warning's in the warning's
-// colour, a note's muted.
+// colour, a note's muted. Without colour a warning's leads with the
+// warning's marker, ⭘ [ ], so that it does not read as one more of the
+// plan's changes, whose bullet it shared (component.KeyValue.Finding;
+// DEV-068).
 func (f Finding) line() component.KeyValue {
 	state := component.ValueWarn
 	if f.Severity == SeverityNote {
 		state = component.ValueNone
 	}
-	return component.KeyValue{Key: f.Text, State: state}
+	return component.KeyValue{Key: f.Text, State: state, Finding: true}
 }
 
 // Typed reports whether the plan is confirmed by typing a phrase: its

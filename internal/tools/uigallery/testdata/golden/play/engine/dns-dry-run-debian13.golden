@@ -68,7 +68,7 @@ $
 # hardn.yml saved with that list. The plan alone: nothing$
 # changes or is saved.$
 $
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Set the nameservers$
       /etc/resolv.conf$

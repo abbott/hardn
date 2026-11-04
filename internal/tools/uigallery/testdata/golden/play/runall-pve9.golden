@@ -260,7 +260,7 @@ $
 $
    -  SSH Login            Root key-only$
    -  DNS                  Set 2 nameservers$
-   -  Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf$
+  [ ] Saving Proxmox VE's DNS settings rewrites /etc/resolv.conf$
 $
    -  Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$

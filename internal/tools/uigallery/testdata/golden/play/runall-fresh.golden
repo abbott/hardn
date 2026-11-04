@@ -267,7 +267,7 @@ $
    -  User                 Create george, 1 key$
    -  Auto Updates         Turn on$
    -  DNS                  Set 2 nameservers$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Install unattended-upgrades$
       unattended-upgrades$
