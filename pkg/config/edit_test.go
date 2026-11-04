@@ -226,7 +226,7 @@ func TestEditExample(t *testing.T) {
 		"nameservers:                      # DNS servers to configure\n  - \"9.9.9.9\"\n  - \"1.1.1.1\"\n", 1)
 	want = strings.Replace(want, "\n  - \"1.0.0.1\"\n", "\n", 1)
 	want = strings.Replace(want, "sshPort: 22                       # SSH port", "sshPort: 2230                       # SSH port", 1)
-	want = strings.Replace(want, "tz: \"America/New_York\"            # Timezone\n", "tz: \"America/New_York\"            # Timezone\nconfirmTimeout: 3m\n", 1)
+	want += "confirmTimeout: 3m\n"
 	if string(got) != want {
 		t.Errorf("Edit of the example:\n%s\nwant\n%s", got, want)
 	}

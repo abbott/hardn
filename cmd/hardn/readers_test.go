@@ -420,6 +420,58 @@ func TestUnusedKeysWarning(t *testing.T) {
 	}
 }
 
+// TestRetiredKeysWarning: each key that nothing reads since the legacy
+// package, sources and localization code went (config.Retired) warns once,
+// as ufwAllowedPorts does, where its value is not config.DefaultConfig's;
+// at the default, as origin/main's SaveConfig wrote it, none warns, and
+// the example hardn.yml sets none of them.
+func TestRetiredKeysWarning(t *testing.T) {
+	words := func(key string) string { return "hardn.yml's " + key + " isn't used" }
+	set := map[string]string{
+		"dmzSubnet": "dmzSubnet: 192.0.2\n", "linuxCorePackages": "linuxCorePackages: [git]\n",
+		"linuxDmzPackages": "linuxDmzPackages: [fail2ban]\n", "linuxLabPackages": "linuxLabPackages: [tree]\n",
+		"pythonPackages": "pythonPackages: [python3-pip]\n", "nonWslPythonPackages": "nonWslPythonPackages: [python3-venv]\n",
+		"pythonPipPackages": "pythonPipPackages: [requests]\n", "alpineCorePackages": "alpineCorePackages: [bash]\n",
+		"alpineDmzPackages": "alpineDmzPackages: [jq]\n", "alpineLabPackages": "alpineLabPackages: [mosh]\n",
+		"alpinePythonPackages": "alpinePythonPackages: [py3-pip]\n", "debianRepos": "debianRepos: [deb http://192.0.2.1/debian trixie main]\n",
+		"proxmoxSrcRepos": "proxmoxSrcRepos: [x]\n", "proxmoxCephRepo": "proxmoxCephRepo: [x]\n",
+		"proxmoxEnterpriseRepo": "proxmoxEnterpriseRepo: [x]\n", "proxmoxPackagePatterns": "proxmoxPackagePatterns: [x]\n",
+		"alpineTestingRepo": "alpineTestingRepo: true\n", "useUvPackageManager": "useUvPackageManager: true\n",
+		"lang": "lang: en_US.UTF-8\n", "language": "language: en_US:en\n", "lcAll": "lcAll: en_US.UTF-8\n",
+		"tz": "tz: America/New_York\n", "pythonUnbuffered": "pythonUnbuffered: \"0\"\n",
+	}
+	read := func(t *testing.T, yml string) *config.Config {
+		t.Helper()
+		const path = "/etc/hardn/hardn.yml"
+		f := hostfake.New(host.Options{})
+		f.AddFile(path, []byte(yml), 0o644, 0, 0)
+		c, err := config.Read(context.Background(), f, path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	for key, yml := range set {
+		t.Run(key, func(t *testing.T) {
+			w := strings.ReplaceAll(loadWarnings(read(t, "username: alice\n"+yml)), "\n# ", " ")
+			if n := strings.Count(w, "isn't used"); n != 1 || strings.Count(w, words(key)) != 1 {
+				t.Errorf("warned:\n%s\nwant %q once, alone", w, words(key))
+			}
+		})
+	}
+	defaults := "username: alice\ndmzSubnet: \"\"\nlinuxCorePackages: []\nlinuxDmzPackages: []\nlinuxLabPackages: []\n" +
+		"pythonPackages: []\nnonWslPythonPackages: []\npythonPipPackages: []\nalpineCorePackages: []\nalpineDmzPackages: []\n" +
+		"alpineLabPackages: []\nalpinePythonPackages: []\ndebianRepos: []\nproxmoxSrcRepos: []\nproxmoxCephRepo: []\n" +
+		"proxmoxEnterpriseRepo: []\nproxmoxPackagePatterns: []\nalpineTestingRepo: false\nuseUvPackageManager: false\n" +
+		"lang: \"\"\nlanguage: \"\"\nlcAll: \"\"\ntz: \"\"\npythonUnbuffered: \"1\"\n"
+	if w := loadWarnings(read(t, defaults)); strings.Contains(w, "isn't used") {
+		t.Errorf("the defaults, as SaveConfig wrote them, warn:\n%s", w)
+	}
+	if keys := read(t, config.ExampleConfigContent).Retired(); len(keys) != 0 {
+		t.Errorf("the example hardn.yml sets %v", keys)
+	}
+}
+
 // TestWarningsFollowDetectOS: detectOS clears the terminal (utils.PrintHeader), so what
 // loading hardn.yml warns of is said after it, or no one reads it (run: the VMs).
 func TestWarningsFollowDetectOS(t *testing.T) {

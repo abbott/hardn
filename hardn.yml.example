@@ -11,7 +11,6 @@ backupPath: "/var/backups/hardn"  # Path to store backups
 #################################################
 # Network Configuration
 #################################################
-dmzSubnet: "192.168.4"            # DMZ subnet for conditional package installation
 nameservers:                      # DNS servers to configure
   - "1.1.1.1"
   - "1.0.0.1"
@@ -50,11 +49,3 @@ ufwAppProfiles:
 enableUfwSshPolicy: false         # Configure UFW with SSH rules
 configureDns: false               # Configure DNS settings
 disableRootSSH: false             # Disable root SSH access
-
-#################################################
-# Localization
-#################################################
-lang: "en_US.UTF-8"               # System locale
-language: "en_US:en"              # System language
-lcAll: "en_US.UTF-8"              # Locale for all categories
-tz: "America/New_York"            # Timezone
