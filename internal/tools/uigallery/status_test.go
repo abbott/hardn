@@ -93,7 +93,7 @@ var wantStatuses = map[string]wantStatus{
 	"alpine324": {rows: [8]string{"configured: non-root, doas", "not-configured: ufw not installed", "configured: root locked", passwordOn, port22,
 		"not-applicable: Alpine default", "not-configured: no apk-cron", dnsNoFile}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
 	"pve9": {rows: [8]string{rootOnly, "not-configured: disabled", "not-configured: root allowed", passwordOn, "configured: default (22)",
-		"configured: 10 profiles enforced", noUnattend, dnsNoFile}, level: "Critical ≈ no security", score: "5.0", lines: []string{"Auto Updates: Up 41 days, no updates"},
+		"configured: 10 profiles enforced", "not-applicable: updated by hand", dnsNoFile}, level: "Critical ≈ no security", score: "18.8",
 		bar: "Proxmox VE 9.0.10 (Trixie)", uptime: "41 days, 1 hour"},
 	"fresh": {rows: [8]string{rootOnly, "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22, "configured: 7 profiles enforced", noUnattend, dnsNoFile},
 		level: "Critical ≈ no security", score: "17.5", bar: debianBar, uptime: threeDays},

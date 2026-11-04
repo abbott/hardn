@@ -76,7 +76,7 @@ func TestPlayUpdatesGolden(t *testing.T) {
 // answers.
 func TestUpdatesHosts(t *testing.T) {
 	type want struct{ detail, item string }
-	rows := map[string]string{"pve9": "updated by hand"} // decision 7's stand-in over the check's
+	rows := map[string]string{} // decision 7's row is the check's own since unit (b)
 	const ro = "read-only"
 	wants := map[string]want{
 		"debian13":         {"unattended-upgrades", ro},
@@ -93,7 +93,7 @@ func TestUpdatesHosts(t *testing.T) {
 		"dormant-jobs":     {"no apk-cron", updEnable},
 		"config-files":     {"no unattended-upgrades", updEnable},
 		"legacy-alpine":    {"no apk-cron", updEnable},
-		"pve9":             {"no unattended-upgrades", ro},
+		"pve9":             {"updated by hand", ro},
 		"not-read":         {"can't read", updEnable},
 	}
 	if len(wants) != len(updHosts()) {
@@ -134,7 +134,9 @@ func TestUpdatesRefusals(t *testing.T) {
 	ctx := context.Background()
 	for _, rf := range updRefusals() {
 		words, err := updRefusalWords(ctx, rf)
-		empty := rf.host == "by-hardn-debian" || rf.host == "own-file"
+		// pve9: since unit (b) the control is Not Applicable on Proxmox VE, so
+		// the engine plans nothing for it, and the item is unavailable.
+		empty := rf.host == "by-hardn-debian" || rf.host == "own-file" || rf.host == "pve9"
 		if err != nil || (words == "") != empty {
 			t.Errorf("%v: %q, %v", rf, words, err)
 		}
