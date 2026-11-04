@@ -119,6 +119,31 @@ func TestRefusals(t *testing.T) {
 			}
 			return m
 		}, true, "UPDATES_STAY_ON", updates.ErrStaysOn, "Updates stay on without hardn's file: 20auto-upgrades turns them on, and hardn has no record that it installed unattended-upgrades. turn them off by hand"},
+		{"own file edited, no record", func(t *testing.T) *model {
+			m := debianOff(t)
+			m.file(hardnFile, bothLines+"APT::Periodic::Verbose \"1\";\n")
+			return m
+		}, true, "UPDATES_CHANGED_SINCE", updates.ErrChangedSince, "Not undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades changed since hardn wrote it. put it back as it was or undo the rest by hand"},
+		{"upgrade timer enabled, not active", func(t *testing.T) *model {
+			m := debianOff(t)
+			m.units["is-active apt-daily-upgrade.timer"] = "inactive"
+			return m
+		}, false, "UPDATES_TIMER_OFF", updates.ErrTimerOff, "apt-daily-upgrade.timer is off, and hardn leaves apt's timers to you. run systemctl enable --now apt-daily-upgrade.timer, then try again"},
+		{"lists timer enabled, not active", func(t *testing.T) *model {
+			m := debianOff(t)
+			m.units["is-active apt-daily.timer"] = "inactive"
+			return m
+		}, false, "UPDATES_TIMER_OFF", updates.ErrTimerOff, "apt-daily.timer is off, and hardn leaves apt's timers to you. run systemctl enable --now apt-daily.timer, then try again"},
+		{"remove would install others", func(t *testing.T) *model {
+			m := installer(t).applied(updates.AutoOn)
+			m.offExtra = []string{"Inst python3-gi [3.50.0-4] (3.50.0-5 Debian:13.1/stable [arm64])"}
+			return m
+		}, true, "UPDATES_OTHER_PACKAGES", updates.ErrOtherPackages, "Removing unattended-upgrades would also change other packages: Inst python3-gi. remove it by hand"},
+		{"alpine jobs not read", func(t *testing.T) *model {
+			m := alpineHost(t).applied(updates.AutoOn)
+			m.f.AddSymlink("/etc/periodic/hourly/loop", "/etc/periodic/hourly/loop") // stat fails, not "absent"
+			return m
+		}, true, "UPDATES_NOT_READ", updates.ErrNotRead, "hardn can't read how updates run here: alpine: crond's jobs: stat /etc/periodic/hourly/loop: too many levels of symbolic links. fix that, then try again"},
 		{"record unreadable, off", unreadableRecord, true, "UPDATES_RECORD_UNREADABLE", updates.ErrRecordUnreadable, "hardn can't read its record of what it changed (/var/lib/hardn/controls/updates.auto.json). undo it by hand"},
 		{"record unreadable, on", unreadableRecord, false, "UPDATES_RECORD_UNREADABLE", updates.ErrRecordUnreadable, "hardn can't read its record of what it changed (/var/lib/hardn/controls/updates.auto.json). undo it by hand"},
 		{"pve9 on", func(t *testing.T) *model { return aptHost(t, pve9(), "") }, false, "UPDATES_PROXMOX", updates.ErrProxmox, "Proxmox VE is updated with apt full-upgrade, and unattended-upgrades wouldn't take its packages. update it by hand"},
@@ -598,5 +623,160 @@ func TestRowAndRead(t *testing.T) {
 	r, _ = control(updates.AutoNone).Read(ctx, m.f, m.facts, nil)
 	if v, file, ok := r.Apt.Value("APT::Periodic::Unattended-Upgrade"); !ok || v != "0" || file != autoUp || r.Package.String() != "yes" || r.Upgrade.Active != "active" || r.On() || r.ByHardn() {
 		t.Errorf("debian-off: %q %q %v, package %s, timer %q, on %v", v, file, ok, r.Package, r.Upgrade.Active, r.On())
+	}
+}
+
+// changeOf is the change id in a fresh plan of a on m.
+func changeOf(t *testing.T, m *model, a updates.AutoAction, id string) engine.Change {
+	t.Helper()
+	cs, err := plan(t, m, a, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	i := slices.IndexFunc(cs, func(c engine.Change) bool { return c.ID == id })
+	if i < 0 {
+		t.Fatalf("no %s in %q", id, ids(cs))
+	}
+	return cs[i]
+}
+
+// TestPurgeConffiles: purge only where every dpkg conffile still holds
+// the MD5 dpkg lists and no ucf side file exists; otherwise a remove, the
+// file kept and said. Every file purge deletes is backed up.
+func TestPurgeConffiles(t *testing.T) {
+	ctx := context.Background()
+	m := installer(t).applied(updates.AutoOn)
+	if c := changeOf(t, m, updates.AutoOff, updates.ChangePackage); !slices.Equal(c.Backups, []string{autoUp, uuConf, logrotate}) {
+		t.Errorf("purge's backups %q", c.Backups)
+	}
+	for _, tc := range []struct {
+		name string
+		edit func(*model)
+		note updates.Note
+	}{
+		{"logrotate edited", func(m *model) { m.file(logrotate, logrotateConf+"# rotate weekly\n") },
+			updates.Note{Key: "unattended-upgrades", Value: "Kept", Note: "changed since installed", Warn: true}},
+		{"ucf side file", func(m *model) { m.file(autoUp+".ucf-dist", autoOn) },
+			updates.Note{Key: "20auto-upgrades.ucf-dist", Value: "Kept", Note: "changed since installed", Warn: true}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			m := installer(t).applied(updates.AutoOn)
+			tc.edit(m)
+			notes, err := control(updates.AutoOff).Notes(ctx, m.f, engine.Input{Facts: m.facts})
+			if err != nil || !slices.Contains(notes, tc.note) {
+				t.Errorf("notes %+v, %v", notes, err)
+			}
+			c := changeOf(t, m, updates.AutoOff, updates.ChangePackage)
+			if c.StateAfter != "removed, its files kept" || !slices.Equal(c.Commands, []string{"apt-get remove -y unattended-upgrades"}) {
+				t.Errorf("%q %q", c.StateAfter, c.Commands)
+			}
+		})
+		t.Run(tc.name+", after the plan", func(t *testing.T) {
+			m := installer(t).applied(updates.AutoOn)
+			c := changeOf(t, m, updates.AutoOff, updates.ChangePackage)
+			tc.edit(m)
+			n := len(m.f.Calls())
+			if _, err := c.Apply(ctx, m.f, engine.Run{Facts: m.facts}); output.CodeOf(err) != "UPDATES_CHANGED_SINCE" {
+				t.Fatalf("apply: %v", err)
+			}
+			if w := writes(m.f, n); len(w) > 0 || !m.installed {
+				t.Errorf("purged anyway: %q", w)
+			}
+		})
+	}
+}
+
+// TestApplyRechecks: each off change checks again, just before it runs,
+// what its plan read: hardn's file's hash, apk-cron's script's, and
+// crond's jobs.
+func TestApplyRechecks(t *testing.T) {
+	ctx := context.Background()
+	t.Run("hardn's file", func(t *testing.T) {
+		m := installer(t).applied(updates.AutoOn)
+		c := changeOf(t, m, updates.AutoOff, updates.ChangeFile)
+		m.file(hardnFile, bothLines+"APT::Periodic::Verbose \"1\";\n")
+		_, err := c.Apply(ctx, m.f, engine.Run{Facts: m.facts})
+		if output.CodeOf(err) != "UPDATES_CHANGED_SINCE" || !strings.Contains(err.Error(), "52hardn-auto-upgrades changed since hardn wrote it") {
+			t.Fatalf("apply: %v", err)
+		}
+		if _, ok := content(t, m, hardnFile); !ok {
+			t.Error("deleted anyway")
+		}
+	})
+	t.Run("apk-cron's script", func(t *testing.T) {
+		m := alpineHost(t).applied(updates.AutoOn)
+		c := changeOf(t, m, updates.AutoOff, updates.ChangeApk)
+		m.f.AddFile(alpine.Script, []byte(apkDaily+"echo done\n"), 0o755, 0, 0)
+		_, err := c.Apply(ctx, m.f, engine.Run{Facts: m.facts})
+		if output.CodeOf(err) != "UPDATES_CHANGED_SINCE" || !strings.Contains(err.Error(), "/etc/periodic/daily/apk changed since hardn installed it") || !m.apkCron {
+			t.Fatalf("apply: %v, apk-cron %v", err, m.apkCron)
+		}
+	})
+	for _, id := range []string{updates.ChangeCrondStop, updates.ChangeCrondBoot} {
+		t.Run(id, func(t *testing.T) {
+			m := alpineHost(t).applied(updates.AutoOn)
+			c := changeOf(t, m, updates.AutoOff, id)
+			m.logrotate()
+			n := len(m.f.Calls())
+			_, err := c.Apply(ctx, m.f, engine.Run{Facts: m.facts})
+			var ref *steps.Refusal
+			if !errors.As(err, &ref) || ref.Why != "crond: logrotate added since" || output.CodeOf(err) != "UPDATES_CHANGED_SINCE" {
+				t.Fatalf("apply: %v", err)
+			}
+			if w := writes(m.f, n); len(w) > 0 || !m.crond {
+				t.Errorf("crond changed anyway: %q", w)
+			}
+		})
+	}
+}
+
+// TestRestartedCrond: a crond hardn restarted (marked started, its daemon
+// gone) was running before hardn, so off keeps it running, said.
+func TestRestartedCrond(t *testing.T) {
+	m := alpineHost(t)
+	m.crashed = true
+	m.applied(updates.AutoOn)
+	if e := record(t, m).Entries[0]; !slices.Contains(e.Steps, "restart") {
+		t.Fatalf("steps %q", e.Steps)
+	}
+	notes, err := control(updates.AutoOff).Notes(context.Background(), m.f, engine.Input{Facts: m.facts})
+	if err != nil || !slices.Contains(notes, updates.Note{Key: "crond", Value: "Kept", Note: "running before hardn"}) {
+		t.Errorf("notes %+v, %v", notes, err)
+	}
+	got, err := m.apply(updates.AutoOff, nil)
+	if err != nil || slices.Contains(got, updates.ChangeCrondStop) || !m.crond {
+		t.Errorf("%q, %v, crond %v", got, err, m.crond)
+	}
+}
+
+// TestStayOnEnableEmpty: Enable "" does not turn apt's jobs off
+// (apt.systemd.daily's `[ $AutoAptEnable -eq 0 ]` fails on it), so
+// 20auto-upgrades still keeps updates on without hardn's file.
+func TestStayOnEnableEmpty(t *testing.T) {
+	m := installer(t).applied(updates.AutoOn)
+	if err := m.f.Remove(context.Background(), recordPath); err != nil {
+		t.Fatal(err)
+	}
+	m.file(confDir+"/99site", "APT::Periodic::Enable \"\";\n")
+	r, err := control(updates.AutoNone).Read(context.Background(), m.f, m.facts, nil)
+	if err != nil || r.StayOn != autoUp {
+		t.Errorf("stay on %q, %v", r.StayOn, err)
+	}
+}
+
+// TestApkOffReadBack: off on Alpine reads the setting back after its last
+// step, as apt's does: still on fails, rolled back.
+func TestApkOffReadBack(t *testing.T) {
+	m := alpineHost(t)
+	m.crond = true
+	m.f.AddSymlink(alpine.RunlevelLink, alpine.InitScript)
+	m.applied(updates.AutoOn)
+	m.apkKept = true
+	_, err := m.apply(updates.AutoOff, nil)
+	if output.CodeOf(err) != "UPDATES_NOT_IN_EFFECT" || !strings.Contains(err.Error(), "updates still run after the change (apk-cron)") {
+		t.Fatalf("apply: %v", err)
+	}
+	if !m.apkCron || record(t, m) == nil {
+		t.Error("not rolled back")
 	}
 }

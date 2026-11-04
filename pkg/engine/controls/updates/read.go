@@ -151,7 +151,14 @@ func (r Reading) Unread() bool {
 // enableOff is the file that sets APT::Periodic::Enable to a decimal 0,
 // and whether one does.
 func (r Reading) enableOff() (string, bool) {
-	v, file, ok := r.Apt.Value(keyEnable)
+	return enableOffIn(r.Apt)
+}
+
+// enableOffIn is enableOff of c: the job exits on `[ $AutoAptEnable -eq
+// 0 ]` (apt.systemd.daily), which an empty or other non-decimal value
+// fails, so only a decimal of zeros turns the jobs off.
+func enableOffIn(c aptconf.Config) (string, bool) {
+	v, file, ok := c.Value(keyEnable)
 	return file, ok && decimal(v) && strings.Trim(v, "0") == ""
 }
 
@@ -218,7 +225,7 @@ func (r Reading) stayOnWithout() string {
 		return ""
 	}
 	w := r.Apt.Without(HardnFile)
-	if v, _, ok := w.Value(keyEnable); ok && strings.Trim(v, "0") == "" {
+	if _, off := enableOffIn(w); off {
 		return ""
 	}
 	if v, file, ok := w.Value(keyUpgrade); ok && strings.Trim(v, "0") != "" {

@@ -2,6 +2,8 @@ package updates_test
 
 import (
 	"context"
+	"crypto/md5" //nolint:gosec // dpkg's conffile hash
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -47,7 +49,11 @@ const (
 	origins    = "Unattended-Upgrade::Origins-Pattern { \"origin=Debian,codename=${distro_codename},label=Debian\"; };\n"
 	apkDaily   = "#!/bin/sh\n\napk upgrade --update --quiet\n"
 	hardnHead  = "// Written by hardn (Auto Updates).\n"
-	bothLines  = hardnHead + "APT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n"
+	// logrotate is the package's one dpkg conffile here (of the five on the
+	// VM: 00-inspect-deb13-vm.log, "conffiles"), as shipped.
+	logrotate     = "/etc/logrotate.d/unattended-upgrades"
+	logrotateConf = "/var/log/unattended-upgrades/*.log {\n  rotate 6\n  monthly\n  compress\n  missingok\n  notifempty\n}\n"
+	bothLines     = hardnHead + "APT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n"
 )
 
 // dirDump is apt-config dump Dir's lines aptconf checks.
@@ -72,12 +78,14 @@ type model struct {
 	units      map[string]string // systemctl's state by "<verb> <unit>"
 	// Alpine
 	apkCron, crond bool
+	crashed        bool // rc-service crond status: crashed (exit 32)
+	apkKept        bool // apk del leaves apk-cron installed
 }
 
 func newModel(t *testing.T, p platform) *model {
 	t.Helper()
 	m := &model{t: t, f: hostfake.New(host.Options{}), facts: p.facts, units: map[string]string{}}
-	for _, d := range []string{"/etc", "/etc/apt", confDir, "/etc/hardn", "/var", "/var/lib", "/var/backups", "/var/log", "/run"} {
+	for _, d := range []string{"/etc", "/etc/apt", confDir, "/etc/hardn", "/etc/logrotate.d", "/var", "/var/lib", "/var/backups", "/var/log", "/run"} {
 		m.f.AddDir(d, 0o755, 0, 0)
 	}
 	if p.facts.Platform.Distro == detect.DistroAlpine {
@@ -102,6 +110,7 @@ func aptHost(t *testing.T, p platform, auto string) *model {
 		m.installed = true
 		m.file(uuConf, origins)
 		m.file(autoUp, auto)
+		m.file(logrotate, logrotateConf)
 	}
 	return m
 }
@@ -202,6 +211,12 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			st = "enabled"
 		}
 		return hostfake.Response{Stdout: st + "\n", ExitCode: exitOf(st)}
+	case cmd == "dpkg-query -W -f=${Conffiles}\\n "+uuName:
+		if !m.installed {
+			return hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}
+		}
+		sum := md5.Sum([]byte(logrotateConf)) //nolint:gosec // dpkg's conffile hash
+		return hostfake.Response{Stdout: " " + logrotate + " " + hex.EncodeToString(sum[:]) + "\n\n"}
 	case cmd == "apt-get install -s -y "+uuName:
 		if m.notInRepos {
 			return hostfake.Response{Stdout: "Reading package lists...\n", Stderr: "E: Unable to locate package unattended-upgrades\n", ExitCode: 100}
@@ -222,6 +237,7 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 		m.installed = false
 		_ = m.f.Remove(ctx, autoUp)
 		_ = m.f.Remove(ctx, uuConf)
+		_ = m.f.Remove(ctx, logrotate)
 		return hostfake.Response{}
 	case cmd == "apt-get remove -s -y "+uuName:
 		return hostfake.Response{Stdout: "NOTE: This is only a simulation!\nRemv " + uuName + " [2.12]\n" + lines(m.offExtra)}
@@ -241,6 +257,8 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 		return hostfake.Response{Stdout: "(1/1) Installing " + alpine.Package + " (" + apkCronVer + ")\nOK: 9 MiB in 42 packages\n"}
 	case cmd == "apk del --simulate "+alpine.Package:
 		return hostfake.Response{Stdout: "(1/1) Purging " + alpine.Package + " (" + apkCronVer + ")\n" + lines(m.offExtra) + "OK: 9 MiB in 41 packages\n"}
+	case cmd == "apk del "+alpine.Package && m.apkKept:
+		return hostfake.Response{}
 	case cmd == "apk del "+alpine.Package: // an edited file under /etc stays
 		m.apkCron = false
 		if data, err := m.f.ReadFile(ctx, alpine.Script); err == nil && string(data) == apkDaily {
@@ -248,12 +266,18 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 		}
 		return hostfake.Response{Stdout: "(1/1) Purging " + alpine.Package + " (" + apkCronVer + ")\nOK: 9 MiB in 41 packages\n"}
 	case cmd == "rc-service crond status":
+		if m.crashed {
+			return hostfake.Response{Stdout: " * status: crashed\n", ExitCode: 32}
+		}
 		if m.crond {
 			return hostfake.Response{Stdout: " * status: started\n"}
 		}
 		return hostfake.Response{Stdout: " * status: stopped\n", ExitCode: 3}
 	case cmd == "rc-service crond start":
 		m.crond = true
+		return hostfake.Response{}
+	case cmd == "rc-service crond restart":
+		m.crond, m.crashed = true, false
 		return hostfake.Response{}
 	case cmd == "rc-service crond stop":
 		m.crond = false
@@ -275,6 +299,7 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 func (m *model) install(ctx context.Context) {
 	m.installed = true
 	m.deps = nil
+	m.file(logrotate, logrotateConf)
 	if _, err := m.f.Lstat(ctx, uuConf); errors.Is(err, fs.ErrNotExist) {
 		m.file(uuConf, origins)
 	}
