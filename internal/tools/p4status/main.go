@@ -27,9 +27,10 @@
 // the run exits 1. It never plans or applies.
 //
 // It is never part of a release, as p2drive: every build target of the
-// makefile, the goreleaser configs and the workflows builds ./cmd/hardn
-// alone, a main package cannot be imported, and depguard's dev-tools rule
-// keeps every package outside internal/tools from importing one.
+// makefile and the workflows (release.yml's build job included) builds
+// ./cmd/hardn alone, a main package cannot be imported, and depguard's
+// dev-tools rule keeps every package outside internal/tools from importing
+// one.
 //
 // Usage (docs/safety/vmtest.md §8 gives the VM run):
 //

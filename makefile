@@ -2,22 +2,30 @@
 
 BINARY_NAME=hardn
 BUILD_DIR=build
-BUILD_DATE=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-GIT_COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitCommit=$(GIT_COMMIT)"
+# The same ldflags as .github/workflows/release.yml's build: HEAD's full commit
+# and its commit date in UTC, not the clock. build, linux, darwin and arm also
+# build as release.yml and check-cross do (GO_BUILD below: CGO_ENABLED=0,
+# -trimpath, -tags=netgo), so with go.mod's toolchain a rebuild of a commit is
+# byte-identical.
+BUILD_DATE=$(shell TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ HEAD 2>/dev/null || echo "unknown")
+GIT_COMMIT=$(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
+LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.GitCommit=$(GIT_COMMIT) -X main.BuildDate=$(BUILD_DATE)"
 
 # Version
 VERSION_MAJOR=0
-VERSION_MINOR=3
-VERSION_PATCH=2
-VERSION=0.3.2
+VERSION_MINOR=4
+VERSION_PATCH=0
+VERSION=0.4.0
 
 .PHONY: release release-artifacts
 
-# Git tag with version
+# Make the annotated tag v$(VERSION) locally. Nothing is pushed: pushing the
+# tag starts .github/workflows/release.yml, so it is the maintainer's step, by
+# explicit refspec, never --tags.
 tag:
 	git tag -a v$(VERSION) -m "Release v$(VERSION)"
-	git push origin v$(VERSION)
+	@echo "Tagged v$(VERSION) locally. To release it:"
+	@echo "  git push origin refs/tags/v$(VERSION)"
 
 # Generate checksums
 checksums:
@@ -31,13 +39,12 @@ archives:
 	cd $(BUILD_DIR) && \
 	tar -czvf $(BINARY_NAME)-$(VERSION)-linux-amd64.tar.gz $(BINARY_NAME)-linux-amd64 && \
 	tar -czvf $(BINARY_NAME)-$(VERSION)-darwin-amd64.tar.gz $(BINARY_NAME)-darwin-amd64 && \
-	tar -czvf $(BINARY_NAME)-$(VERSION)-linux-arm.tar.gz $(BINARY_NAME)-linux-arm && \
 	tar -czvf $(BINARY_NAME)-$(VERSION)-linux-arm64.tar.gz $(BINARY_NAME)-linux-arm64
 
 release-artifacts: cross-compile archives checksums
 
 release: test release-artifacts tag
-	@echo "Release v$(VERSION) created successfully"
+	@echo "v$(VERSION) tagged locally; nothing was pushed."
 
 
 .PHONY: bump-major bump-minor bump-patch
@@ -78,23 +85,25 @@ all: clean build
 
 # Default build flags (can be overridden from environment)
 GO_BUILD_FLAGS?=
+# release.yml's build and check-cross's flags.
+GO_BUILD=CGO_ENABLED=0 go build -trimpath -tags=netgo
 
 build:
 	mkdir -p $(BUILD_DIR)
-	go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/hardn
+	$(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME) ./cmd/hardn
 
 linux:
 	mkdir -p $(BUILD_DIR)
-	GOOS=linux GOARCH=amd64 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/hardn
+	GOOS=linux GOARCH=amd64 $(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-amd64 ./cmd/hardn
 
 darwin:
 	mkdir -p $(BUILD_DIR)
-	GOOS=darwin GOARCH=amd64 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./cmd/hardn
+	GOOS=darwin GOARCH=amd64 $(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-darwin-amd64 ./cmd/hardn
 
+# linux/arm64 only: armv7 is not a release target (decision 6).
 arm:
 	mkdir -p $(BUILD_DIR)
-	GOOS=linux GOARCH=arm GOARM=7 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm ./cmd/hardn
-	GOOS=linux GOARCH=arm64 go build $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./cmd/hardn
+	GOOS=linux GOARCH=arm64 $(GO_BUILD) $(GO_BUILD_FLAGS) $(LDFLAGS) -o $(BUILD_DIR)/$(BINARY_NAME)-linux-arm64 ./cmd/hardn
 
 cross-compile: linux darwin arm
 
@@ -386,7 +395,8 @@ CHECK_GOVULNCHECK_VERSION ?= v1.9.0
 CHECK_ZIZMOR_VERSION ?= 1.32.0
 CHECK_ACTIONLINT_VERSION ?= 1.7.12
 CHECK_SHELLCHECK_VERSION ?= 0.11.0
-# Release targets of .slsa-goreleaser/*.yml, built with that file's env and flags.
+# The release targets: .github/workflows/release.yml's build matrix, built
+# with its env and flags.
 CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
 # Targets check-cross also vets the whole module for, test files included
 # (go vet type-checks them), with the same env and tags (next/p1d-lint). The
@@ -504,12 +514,7 @@ check-cross:
 # finding; its online audits need a GitHub token and run in CI's zizmor
 # workflow instead (.github/workflows/zizmor.yml). actionlint also runs
 # shellcheck on each run: script. It skips that check silently when
-# shellcheck is not on PATH, so this step requires shellcheck. Last, it pins
-# the SLSA Go builder's ref: .github/zizmor.yml lets any ref of that reusable
-# workflow pass (ref-pin), a branch included, so every builder_go_slsa3.yml
-# reference in .github/workflows, comments aside, must be exactly
-# $(CHECK_SLSA_BUILDER_USES). p7-provenance removes the builder and this check.
-CHECK_SLSA_BUILDER_USES = slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
+# shellcheck is not on PATH, so this step requires shellcheck.
 check-actions:
 	@echo "==> $@"
 	@$(call check_need,zizmor,$@)
@@ -517,15 +522,6 @@ check-actions:
 	@$(call check_need,shellcheck,$@)
 	zizmor --offline --no-progress .github
 	actionlint
-	@bad=$$(grep -rnF 'builder_go_slsa3.yml' .github/workflows | \
-		grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' | \
-		grep -vE '^[^:]+:[0-9]+:[[:space:]]*(-[[:space:]]+)?uses:[[:space:]]*slsa-framework/slsa-github-generator/\.github/workflows/builder_go_slsa3\.yml@v2\.1\.0[[:space:]]*(#.*)?$$'); \
-	if [ -n "$$bad" ]; then \
-		echo "$$bad" >&2; \
-		echo "$@: the SLSA Go builder must be referenced as exactly $(CHECK_SLSA_BUILDER_USES): .github/zizmor.yml's ref-pin exception lets any ref pass, a branch included, until p7-provenance replaces the builder" >&2; \
-		exit 1; \
-	fi; \
-	echo "SLSA Go builder pinned at @v2.1.0"
 
 # golden-update (refactor plan P1A, next/p1a-golden) rewrites testdata/golden
 # from the current render in every package of the module whose tests use the
@@ -576,7 +572,6 @@ it-containers it-vm:
 	@echo "$@: run on the VM host (see docs/refactor)"
 
 # Safety gate (refactor plan P0.4): the first target in this file is `tag`,
-# which runs `git tag -a` and `git push origin`, so a bare `make` would publish.
-# Nothing is pushed during the refactor, so the default goal is `check` instead.
-# `make tag` and `make release` still work when invoked explicitly.
+# which makes a git tag, so the default goal is `check` instead. `make tag`
+# and `make release` work when invoked explicitly; neither pushes (p7-release).
 .DEFAULT_GOAL := check

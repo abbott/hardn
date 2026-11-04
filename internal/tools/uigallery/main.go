@@ -6,9 +6,10 @@
 // components and screens and try new colours without editing code (brief
 // 1D).
 //
-// It is never part of a release: every build target of the makefile, the
-// goreleaser configs and the workflows builds ./cmd/hardn alone, and a
-// main package cannot be imported. Run it from the repository root:
+// It is never part of a release: every build target of the makefile and
+// the workflows (release.yml's build job included) builds ./cmd/hardn
+// alone, and a main package cannot be imported. Run it from the repository
+// root:
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
