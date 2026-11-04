@@ -6,8 +6,8 @@ package main
 // pkg/screens/logs), which pkg/screens/mainmenu reaches through the hooks set here, as it reaches
 // the Environment screen (environment.go), so that pkg/screens/mainmenu builds no reader; hardn
 // system-details and -p print through the same packages. All of this only reads, under
-// plan only as live, on a host with no run log; main()'s start-up, ahead of it, does
-// not: as root it creates the log, and /etc/hardn/hardn.yml.example where absent.
+// plan only as live, on a host with no run log; neither opens hardn's log nor writes
+// /etc/hardn/hardn.yml.example (main.go's openStartLog and liveWrites).
 
 import (
 	"context"

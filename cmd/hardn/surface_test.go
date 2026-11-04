@@ -44,6 +44,7 @@ func TestDisableRootWarning(t *testing.T) {
 					}
 					return c, err
 				}
+				loadExisting = loadConfig // -n's
 			}, "-n", "-r")
 			if got := flat(r.stderr); !strings.Contains(got, tc.words) || strings.Count(got, "disableRoot (line") != 1 {
 				t.Errorf("stderr lacks %q once:\n%s", tc.words, r.stderr)
@@ -215,9 +216,9 @@ func TestConfirmTimeout(t *testing.T) {
 			refused: `hardn: confirm timeout "soon": seconds or a duration such as 3m: confirm timeout not accepted (CONFIRM_TIMEOUT_INVALID)`},
 		{name: "the flag empty", flag: "=",
 			refused: `hardn: confirm timeout "": seconds or a duration such as 3m: confirm timeout not accepted (CONFIRM_TIMEOUT_INVALID)`},
-		{name: "the key not a duration", key: "soon", reached: 2,
+		{name: "the key not a duration", key: "soon", reached: 3,
 			refused: `hardn: confirmTimeout: confirm timeout "soon": seconds or a duration such as 3m: confirm timeout not accepted (CONFIRM_TIMEOUT_INVALID)`},
-		{name: "the key below the floor", key: "0", reached: 2,
+		{name: "the key below the floor", key: "0", reached: 3,
 			refused: "hardn: confirmTimeout 0s: at least 1m0s: confirm timeout not accepted (CONFIRM_TIMEOUT_INVALID)"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -241,6 +242,7 @@ func TestConfirmTimeout(t *testing.T) {
 					}
 					return c, nil
 				}
+				loadExisting = loadConfig // -n's
 				detect := detectOS
 				detectOS = func() error {
 					got = engineOptions(context.Background(), h, c).Timeout

@@ -236,6 +236,20 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 - **No `george` default.** The example configuration no longer sets `username: "george"`: neither `hardn.yml.example` nor the copy hardn writes to `/etc/hardn/hardn.yml.example`. The first-run question that creates hardn.yml has no default either: press Enter and no username is saved. Set the user `-c` and Run All create in your own hardn.yml.
 
+## Changed: start-up
+
+- **hardn writes nothing until it knows what it is asked to do.** `--help`, `--version`, a bad command line and a run as a user other than root write nothing. hardn used to create `/var/log/hardn.log` and `/etc/hardn/hardn.yml.example` before it read its flags. Now the main menu, the operation flags and `setup-sudo-env` write them once they run, and `confirm` and `rollback` write the log once they are past refusing `-n` and a user other than root. `system-details`, `-p` and plan only (`-n`) write neither; a plan-only run is still one line of the audit log (below). "Using configuration from: <path>" is no longer in `/var/log/hardn.log`.
+- **"This script needs to be run as root." comes first.** As a user other than root, hardn says it before anything else, with no warnings about the log ahead of it; `hardn confirm` and `hardn rollback` say theirs ("must be run as root") first too.
+- **The question that creates hardn.yml is asked only on a terminal**, stdin and stdout both. Without one, and at the end of the input (Ctrl-D), no hardn.yml is written and hardn uses the defaults, as when you answer n. The end of the input used to answer yes. Ctrl-C ends hardn (exit status 130) and writes nothing; it does not go on to the operation.
+- **No question under `-n`, nor on a system hardn doesn't support.** Plan only (`-n`) reads hardn.yml where there is one and uses the defaults where there isn't, without asking to create one. The supported-system check now comes before the question, so an unsupported system is refused without it. A yes on a live run writes hardn.yml, as asked, even when hardn then refuses the run (such as `-c` with no username).
+
+## New: the audit log
+
+- **Each change hardn plans is recorded in `/var/log/hardn/audit.jsonl`**: one line per run of an operation flag (`-g`, `-c`, `-d`, `-w`, `-r`, `-e`, `setup-sudo-env`), per change made from a screen, and per `hardn confirm` clean-up. Applied, refused, declined, rolled back, interrupted and plan only (`-n`, `"mode": "plan"`) runs are all recorded, and so is `-r` refused before it plans (a change waiting for `hardn confirm`).
+- **Each line is one JSON document**: the time, hardn's version, the host, the plan with its diffs, what happened and the exit status ([docs/reference/output.md](../reference/output.md) §1, §4). Read it as root: `sudo tail -n 5 /var/log/hardn/audit.jsonl`, or one record at a time with `jq`.
+- **Root's alone**: the directory is `0750`, the file `0600`. Where the directory is not root's alone, or the line can't be written, hardn warns on stderr with the code (such as `AUDIT_DIR_UNSAFE`), and the run and its exit status are unchanged.
+- **Not recorded yet:** `hardn confirm`'s confirmation itself, `hardn rollback <id>` (the timer's included), `--abandon` and `--boot`.
+
 ## Changed: supported versions
 
 *Drafted by p7-surface.*

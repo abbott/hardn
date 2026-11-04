@@ -28,6 +28,11 @@ var stdin = sync.OnceValue(func() *Reader {
 // (see the package doc).
 func Stdin() *Reader { return stdin() }
 
+// IsTerminal reports whether f is a terminal, asked as Stdin asks it of
+// os.Stdin (isTerminal): the first-run question (pkg/config) asks it of
+// stdin and stdout, as it is asked only when both are one.
+func IsTerminal(f *os.File) bool { return isTerminal(f) }
+
 // isTerminal reports whether in is a file whose descriptor is a terminal.
 // The descriptor is taken with SyscallConn, which leaves the file as it
 // is (File.Fd would set it to blocking mode).

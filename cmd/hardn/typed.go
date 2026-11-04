@@ -100,6 +100,8 @@ var typedReraise = prompt.Reraise
 // runControls registers them, so that the exit status and how a signal
 // ends hardn are runControls' (endControls). Ctrl-C at the prompt ends
 // hardn by SIGINT, as at every prompt; the end of the input exits 130.
+// The run, declined, interrupted or quit included, is one record of the
+// audit log (audit), written before hardn ends either way.
 func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 	ctx := context.Background()
 	sys := engineHost()
@@ -131,10 +133,11 @@ func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 		},
 	}
 	out, err := f.Run(ctx, p)
+	run := fe.Run(out, err)
 	if errors.Is(err, prompt.ErrInterrupted) {
+		audit(sys, c, run)
 		typedReraise()
 	}
-	run := fe.Run(out, err)
 	switch {
 	case phraseErr != nil && errors.Is(err, nav.ErrPhrase):
 		err = screenkit.Session{Name: "hardn", Prompter: p}.CantConfirm(phraseErr)
@@ -146,5 +149,6 @@ func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 	if err != nil && !errors.Is(err, nav.ErrQuit) && !errors.Is(err, nav.ErrBack) && !errors.Is(err, nav.ErrPhrase) && !errors.Is(err, prompt.ErrAborted) {
 		sayError("%v", err)
 	}
+	audit(sys, c, run)
 	return endControls(run, settle)
 }

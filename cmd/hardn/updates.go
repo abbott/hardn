@@ -43,9 +43,8 @@ var updatesRun = updatesscreen.Run
 // saves, take hardn.yml as saved; a dry run when c says so as the item is
 // chosen, every change then stopping at its plan. The control's record
 // carries version, hardn's, and is kept where hardn keeps its records
-// (Records zero: /var/lib/hardn, time.Now). No audit record is written:
-// the audit log's first writer is next/p3-startup's (Options.Ran left
-// nil). Each change's apply, and nothing else, runs under engineSignals,
+// (Records zero: /var/lib/hardn, time.Now). Each change's run is a record
+// of the audit log (Options.Ran, auditRan). Each change's apply, and nothing else, runs under engineSignals,
 // hardn ending after a hangup (screenApplyContext; runDNSScreen says why).
 func runUpdatesScreen(ctx context.Context, c *config.Config, version string) error {
 	sys := engineHost()
@@ -64,6 +63,7 @@ func runUpdatesScreen(ctx context.Context, c *config.Config, version string) err
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 		Version:      version,
 	})
 }

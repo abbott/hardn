@@ -38,23 +38,60 @@ var (
 	cfg            *config.Config
 )
 
-func main() { start("/var/log/hardn.log") }
+func main() { start(output.LegacyLogPath) }
 
-// start is main, with the log's path for the tests: what hardn says before the
-// command goes to stderr, so that stdout holds the command's output alone (defect 28).
+// start is main, with the log's path for the tests. It writes nothing before the
+// flags are parsed: --help, --version, a usage error, the root check's refusal and
+// a plan write neither the log nor the example hardn.yml (refactor plan §3.23,
+// next/p3-startup). The commands that write the log open it in their run, once
+// every refusal before their operation is past (liveWrites, openStartLog). What
+// hardn says before the command goes to stderr, so that stdout holds the
+// command's output alone (defect 28).
 func start(logPath string) {
-	openLog(logPath)
-
-	// Ensure config directory and example config exist
-	if err := ensureExampleConfig(); err != nil {
-		// A warning, not an exit: the program can still run with defaults.
-		sayWarning("Unable to create example configuration file: %v", err)
-	}
+	startLogPath, logOpened = logPath, false
 
 	// All Execute returns is a bad command line, which cobra has said on stderr with
 	// the usage: a usage error, as refuse's.
 	if err := rootCmd.Execute(); err != nil {
 		exit(output.ExitUsage)
+	}
+}
+
+// startLogPath is the log's path start was given, opened by openStartLog; ""
+// until start runs, as when cmd/hardn's tests run rootCmd without it: nothing is
+// then opened or written.
+var startLogPath string
+
+// logOpened is set once openStartLog has opened the log.
+var logOpened bool
+
+// openStartLog opens hardn's log (openLog), once, for the commands that write it:
+// the main menu, the operation flags and setup-sudo-env through liveWrites, and
+// confirm, rollback, rollback --abandon and rollback --boot, once their own
+// refusals (revertPreflight: -n, not root) are past, whose steps it records under
+// the revert timer and the boot unit (revertLog). Those that only read it, the
+// Logs screen and -p, leave it unopened: a missing log is "no log yet" there.
+func openStartLog() {
+	if startLogPath == "" || logOpened {
+		return
+	}
+	logOpened = true
+	openLog(startLogPath)
+}
+
+// liveWrites are start-up's writes for a run that may change the host: hardn's
+// log opened (openStartLog), and the example hardn.yml written where absent
+// (ensureExampleConfig), a warning and not an exit where it cannot be. They are
+// made after the root check, hardn.yml's load and every refusal before the
+// operation, and not in plan only (c.DryRun, -n or hardn.yml's dryRun), which
+// writes neither.
+func liveWrites(c *config.Config) {
+	if startLogPath == "" || c.DryRun {
+		return
+	}
+	openStartLog()
+	if err := ensureExampleConfig(); err != nil {
+		sayWarning("Unable to create example configuration file: %v", err)
 	}
 }
 
@@ -153,15 +190,32 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
+		// An OS other than Debian, Ubuntu or Alpine, or none os-release
+		// names, is refused (hostOS); nothing is said of one that is not.
+		// Before hardn.yml's load, whose first-run question may write one:
+		// a host hardn refuses is never offered it.
+		if err := detectOS(); err != nil {
+			sayError("Failed to detect OS: %v", err)
+			exit(1)
+		}
+
 		// Load configuration (-f, then HARDN_CONFIG, then the search path).
 		// Which hardn.yml is said once, on stderr, for the flags, and
 		// nothing before the main menu (decision 4 (a) of
-		// docs/engine/legacy-left.md, adopted 2026-11-04).
+		// docs/engine/legacy-left.md, adopted 2026-11-04). With -n, plan
+		// only, none found is the defaults, with no offer to create one
+		// (loadExisting, as setup-sudo-env's), so that -n writes nothing.
+		// A yes to the offer on a live run writes hardn.yml, asked for,
+		// whatever refusal follows it.
 		found := findConfig(configFile)
 		if !mainMenuRun() {
 			sayFound(found)
 		}
-		cfg, err = loadConfig(configFile)
+		load := loadConfig
+		if dryRun {
+			load = loadExisting
+		}
+		cfg, err = load(configFile)
 		if err != nil {
 			sayError("Failed to load configuration: %v", err)
 			exit(1)
@@ -194,12 +248,10 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
-		// An OS other than Debian, Ubuntu or Alpine, or none os-release
-		// names, is refused (hostOS); nothing is said of one that is not.
-		if err := detectOS(); err != nil {
-			sayError("Failed to detect OS: %v", err)
-			exit(1)
-		}
+		// Every refusal before the operation is past (the OS's is ahead of
+		// the load): the log opened and the example written, unless plan
+		// only.
+		liveWrites(cfg)
 
 		warnDeprecations(cfg)
 
@@ -315,6 +367,7 @@ Example:
 		if refuseConfirmTimeout(cfg) {
 			return
 		}
+		liveWrites(cfg)
 		if code := keepEnvironment(cfg); code != 0 {
 			exit(code)
 		}

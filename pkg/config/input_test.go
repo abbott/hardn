@@ -64,40 +64,67 @@ func ask(t *testing.T, fn func()) (out string, code int, ended bool) {
 	return <-done, code, ended
 }
 
+// useTerminals sets whether the first-run question finds stdin and stdout
+// terminals, until the test ends.
+func useTerminals(t *testing.T, tty bool) {
+	t.Helper()
+	was := terminals
+	terminals = func() bool { return tty }
+	t.Cleanup(func() { terminals = was })
+}
+
 // TestShouldCreateDefaultConfig checks the first-run question on the
-// shared reader: its words and its answers are origin/main's, and, as
-// with the bufio reader it replaced, the end of the input takes the
-// default, yes, and nothing more is printed.
+// prompt kit (Ask): on a terminal its words, then Enter, y or yes create
+// hardn.yml and any other answer does not; the end of the input is no,
+// where origin/main took it for yes (refactor plan, next/p3-startup).
 func TestShouldCreateDefaultConfig(t *testing.T) {
-	const question = "No configuration file found. Would you like to create one? [Y/n]\n"
+	const question = FirstRunQuestion + " "
 	tests := []struct {
 		name   string
 		script string
 		want   bool
+		out    string // after the question
 	}{
-		{"Enter takes the default", "\n", true},
-		{"y", "y\n", true},
-		{"YES with spaces and CRLF", " YES \r\n", true},
-		{"n", "n\n", false},
-		{"no", "no\n", false},
-		{"anything else", "nope\n", false},
-		{"a last line with no Enter", "n", false},
-		{"the end of the input takes the default", "", true},
+		{"Enter takes the default", "\n", true, ""},
+		{"y", "y\n", true, ""},
+		{"YES with spaces and CRLF", " YES \r\n", true, ""},
+		{"n", "n\n", false, ""},
+		{"no", "no\n", false, ""},
+		{"anything else", "nope\n", false, ""},
+		{"a last line with no Enter", "n", false, "\n"},
+		{"the end of the input is no", "", false, "\n"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			useReader(t, prompt.New(strings.NewReader(tt.script), false))
+			useTerminals(t, true)
+			useReader(t, prompt.New(strings.NewReader(tt.script), true))
 			var got bool
 			out, code, ended := ask(t, func() { got = ShouldCreateDefaultConfig() })
 			if ended || got != tt.want {
 				t.Errorf("ShouldCreateDefaultConfig() = %v (ended %v, %d), want %v", got, ended, code, tt.want)
 			}
-			if out != question {
-				t.Errorf("printed %q, want %q", out, question)
+			if out != question+tt.out {
+				t.Errorf("printed %q, want %q", out, question+tt.out)
 			}
 		})
 	}
+	// Without a terminal, stdin's or stdout's, nothing is asked or read:
+	// no, so hardn goes on with the defaults.
+	t.Run("no terminal", func(t *testing.T) {
+		useTerminals(t, false)
+		r := prompt.New(strings.NewReader("y\n"), false)
+		useReader(t, r)
+		var got bool
+		out, _, ended := ask(t, func() { got = ShouldCreateDefaultConfig() })
+		if got || ended || out != "" || r.Asked() {
+			t.Errorf("ShouldCreateDefaultConfig() = %v (ended %v, asked %v); printed %q", got, ended, r.Asked(), out)
+		}
+		if line, err := r.ReadLine(); line != "y" || err != nil {
+			t.Errorf("the input was read: next line %q, %v", line, err)
+		}
+	})
 	t.Run("each answer is read once", func(t *testing.T) {
+		useTerminals(t, true)
 		useReader(t, prompt.New(strings.NewReader("n\ny\n"), false))
 		var first, second bool
 		ask(t, func() { first, second = ShouldCreateDefaultConfig(), ShouldCreateDefaultConfig() })
@@ -108,14 +135,14 @@ func TestShouldCreateDefaultConfig(t *testing.T) {
 	// On a terminal Reader, the second answer, already in its buffer
 	// when the first is read, is typeahead. The question can follow a
 	// long step, so it is dropped: the second question meets the end of
-	// the input and takes the default, yes. prompt's tests flush a
-	// pseudo-terminal's queue.
+	// the input: no. prompt's tests flush a pseudo-terminal's queue.
 	t.Run("typeahead is dropped on a terminal", func(t *testing.T) {
-		useReader(t, prompt.New(strings.NewReader("n\nn\n"), true))
+		useTerminals(t, true)
+		useReader(t, prompt.New(strings.NewReader("y\ny\n"), true))
 		var first, second bool
 		ask(t, func() { first, second = ShouldCreateDefaultConfig(), ShouldCreateDefaultConfig() })
-		if first || !second {
-			t.Errorf("answers read as %v, %v; want false, true", first, second)
+		if !first || second {
+			t.Errorf("answers read as %v, %v; want true, false", first, second)
 		}
 	})
 }
@@ -177,6 +204,82 @@ func TestCreateDefaultConfigUsername(t *testing.T) {
 			}
 			if c.Username != tc.want || strings.Contains(string(b), "george") {
 				t.Errorf("username %q, want %q; the file:\n%s", c.Username, tc.want, b)
+			}
+		})
+	}
+}
+
+// TestFirstRun: LoadConfig with no hardn.yml found writes one only where
+// the first-run question is answered yes on a terminal. With no terminal,
+// at the end of the input, or answered no, it writes nothing and returns
+// the defaults, which cmd/hardn says it uses (NoneLoaded). HOME is the
+// test's, where a user other than root creates hardn.yml
+// (GetDefaultConfigLocation); -f names a file that is not there, so no
+// other location is searched.
+func TestFirstRun(t *testing.T) {
+	prevInteractive, prevExample := isInteractive, ensureExample
+	isInteractive = func() bool { return false } // no questions after the first
+	ensureExample = func() error { return errors.New("test: /etc/hardn not written") }
+	t.Cleanup(func() { isInteractive, ensureExample = prevInteractive, prevExample })
+	for _, tc := range []struct {
+		name, script string
+		tty, created bool
+	}{
+		{"no terminal", "y\n", false, false},
+		{"the end of the input", "", true, false},
+		{"n", "n\n", true, false},
+		{"y", "y\n", true, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.created && os.Geteuid() == 0 {
+				t.Skip("as root hardn.yml is created in /etc/hardn")
+			}
+			home := t.TempDir()
+			t.Setenv("HOME", home)
+			t.Setenv("HARDN_CONFIG", "")
+			useTerminals(t, tc.tty)
+			useReader(t, prompt.New(strings.NewReader(tc.script), true))
+			var c *Config
+			var err error
+			ask(t, func() { c, err = LoadConfig(filepath.Join(home, "absent.yml")) })
+			if err != nil {
+				t.Fatal(err)
+			}
+			path := filepath.Join(home, ".config", "hardn", "hardn.yml")
+			_, statErr := os.Stat(path)
+			if created := statErr == nil; created != tc.created || (c.Path() == path) != tc.created {
+				t.Errorf("hardn.yml written %v, loaded from %q; want written %v", created, c.Path(), tc.created)
+			}
+			if !tc.created {
+				if entries, _ := os.ReadDir(home); len(entries) != 0 {
+					t.Errorf("wrote %v in HOME", entries)
+				}
+			}
+		})
+	}
+}
+
+// TestTerminalsReal: the real terminals check (not useTerminals's stub) is false with
+// stdin a pipe, and with stdout a pipe, one at a time, the other left as the test
+// binary has it: the first-run question is asked only when both are a terminal.
+func TestTerminalsReal(t *testing.T) {
+	for _, f := range []struct {
+		name string
+		file **os.File
+	}{{"stdin", &os.Stdin}, {"stdout", &os.Stdout}} {
+		t.Run(f.name+" a pipe", func(t *testing.T) {
+			r, w, err := os.Pipe()
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = r.Close(); _ = w.Close() })
+			was := *f.file
+			t.Cleanup(func() { *f.file = was })
+			*f.file = map[string]*os.File{"stdin": r, "stdout": w}[f.name]
+			got := terminals()
+			*f.file = was
+			if got {
+				t.Errorf("terminals() = true with %s a pipe", f.name)
 			}
 		})
 	}

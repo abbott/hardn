@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -11,6 +10,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 )
 
 // The session's mode (refactor plan §3.19, "explicit flag wins, otherwise
@@ -74,15 +74,16 @@ func (y hardnYML) setup(t *testing.T) func() {
 			}
 			return config.LoadConfigWithEnvPriority(p)
 		}
+		loadExisting = loadConfig // -n's load, the same file
 	}
 }
 
 // TestDryRunPrecedence: each start's mode and its source, -n/--dry-run
 // given (true or false) winning over hardn.yml's dryRun, which wins over
-// the default, live; live names no source (decision 2). detectOS fails, so that
-// the run ends past where the mode is set and the menus are not opened (-p alone,
-// which this ran with, now runs ahead of the load); the menus take the same
-// configuration.
+// the default, live; live names no source (decision 2). The main menu ends the run,
+// so that it ends past where the mode is set and the menus are not opened (-p alone,
+// which this ran with, now runs ahead of the load; detectOS, which ended it, runs
+// ahead of the load too); the menus take the same configuration.
 func TestDryRunPrecedence(t *testing.T) {
 	for _, tc := range []struct {
 		name, file string // file: hardn.yml's dryRun, "" for no file
@@ -103,12 +104,14 @@ func TestDryRunPrecedence(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			y := newHardnYML(t, tc.file)
 			setup := y.setup(t)
+			menuWas := startMenu
+			t.Cleanup(func() { startMenu = menuWas })
 			r := runHardnWith(t, asRoot, func() {
 				setup()
-				detectOS = func() error { return errors.New("test: past the mode") }
+				startMenu = func(context.Context, mainmenu.Options) { exit(1) } // past the mode
 			}, y.args(tc.flag...)...)
 			if !r.ended || r.code != 1 {
-				t.Fatalf("ended %v with %d, want status 1 at detectOS; stderr:\n%s", r.ended, r.code, r.stderr)
+				t.Fatalf("ended %v with %d, want status 1 at the main menu; stderr:\n%s", r.ended, r.code, r.stderr)
 			}
 			if cfg == nil {
 				t.Fatal("no configuration loaded")

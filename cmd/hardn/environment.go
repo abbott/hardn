@@ -157,8 +157,8 @@ func withEnvironmentScreen(m mainmenu.Options, c *config.Config) mainmenu.Option
 // settings, the session a lockout-risk change's journal names, hardn's
 // path for the revert timer); a dry run when c says so as the item is
 // chosen, item 1 then stopping at its plan. No Config: the screen reads
-// and saves no setting of hardn.yml. No audit record is written: the
-// audit log's first writer is next/p3-startup's (Options.Ran left nil).
+// and saves no setting of hardn.yml. Each change's run is a record of
+// the audit log (Options.Ran, auditRan).
 // Each change's apply, and nothing else, runs under engineSignals,
 // hardn ending after a hangup (screenApplyContext; runDNSScreen says
 // why).
@@ -179,5 +179,6 @@ func runEnvironmentScreen(ctx context.Context, c *config.Config) error {
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 	})
 }

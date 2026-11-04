@@ -1,12 +1,10 @@
 package main
 
-// The two wirings of refactor plan P3, next/p3-output, that cmd/hardn owes
-// now (and nothing of pkg/output: §3.11 is not approved, but for hardn
-// system-details' --output json, readers.go, so no other --output, no
-// --yes or --confirm-timeout flag, and the audit log comes with
-// next/p3-startup; since next/p3-confirm-cleanup, hardn confirm's clean-up
-// links pkg/output and the engine, confirm.go, and since slice 2's unit
-// (d), -g and the DNS screen, engine.go and dns.go):
+// The wirings of refactor plan P3, next/p3-output, that cmd/hardn owes
+// (since next/p3-confirm-cleanup, hardn confirm's clean-up links pkg/output
+// and the engine, confirm.go, and since slice 2's unit (d), -g and the DNS
+// screen, engine.go and dns.go; since next/p3-startup, the audit log,
+// audit below):
 //   - §3.17's deprecation warning (approved 2026-10-17) for a bool
 //     permitRootLogin, printed to stderr once, when the configuration loads;
 //   - no colour codes from hardn confirm and hardn rollback (<id>,
@@ -17,16 +15,65 @@ package main
 //     rendered for stderr, which is plain off a colour terminal.
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/logview"
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hangup"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
+
+// auditPath is the audit log's path (output.AuditPath), and auditHost the
+// host it is written on, given the run's: that host itself. Seams for the
+// tests.
+var (
+	auditPath = output.AuditPath
+	auditHost = func(run host.System) host.System { return run }
+)
+
+// audit appends run's record to the audit log (docs/reference/output.md
+// §4) through sys, the host the run planned and applied on: one line for
+// each engine run, a flag's or a screen's change, whatever its outcome (a
+// plan alone, a refusal, an apply, its rollback, one declined or
+// interrupted), once it is reported and before hardn may end on a signal
+// (endControls). Only the operations reach it, so never --help,
+// --version, a usage error or the non-root refusal. The run's version and
+// hostname, and c's deprecations, are filled in where the run has none,
+// so that the line holds what a JSON document of the run would. A record
+// not written is said as a warning on stderr, with its code; it never
+// fails the run nor changes its exit status. output.Append runs without
+// the run's cancellation, so an interrupted run is recorded too.
+func audit(sys host.System, c *config.Config, run output.Run) {
+	ctx, sys := context.Background(), auditHost(sys)
+	if run.HardnVersion == "" {
+		run.HardnVersion = Version
+	}
+	if run.Hostname == "" {
+		if data, err := sys.ReadFile(ctx, header.HostnameFile); err == nil {
+			run.Hostname = strings.TrimSpace(string(data))
+		}
+	}
+	if c != nil && run.Deprecations == nil {
+		run.Deprecations, run.ConfigPath = c.Deprecations(), c.Path()
+	}
+	if err := output.Append(ctx, sys, auditPath, output.NewRecord(run, revertNow())); err != nil {
+		sayWarning("This run is not in the audit log (%s): %v", output.CodeOf(err), err)
+	}
+}
+
+// auditRan is a screen's Options.Ran: each change's run, once its flow has
+// ended, appended to the audit log (audit).
+func auditRan(sys host.System, c *config.Config) func(output.Run) {
+	return func(run output.Run) { audit(sys, c, run) }
+}
 
 // stderrEnv is the render environment of stderr: a seam for the tests.
 var stderrEnv = func() term.Env { return streamEnv(os.Stderr) }

@@ -51,7 +51,7 @@ func under(writes []string, dir string) []string {
 // a path change backs up under the new path, nothing under the old; a dry
 // run, as the configuration says when the item is chosen, a decline and
 // Verify write nothing; 0 goes back (nil), q quits (nav.ErrQuit), the end
-// of the input aborts (prompt.ErrAborted). No audit record is written.
+// of the input aborts (prompt.ErrAborted).
 // The signals are registered for the apply alone, and never while a
 // prompt waits.
 func TestBackupScreen(t *testing.T) {
@@ -111,11 +111,6 @@ func TestBackupScreen(t *testing.T) {
 			}
 			if !cfg.LoadedFrom([]byte(h.content(dnsTestYML))) {
 				t.Error("the configuration does not record hardn.yml as saved, so the next save would be refused CONFIG_CHANGED")
-			}
-			for _, c := range got {
-				if strings.HasPrefix(c, "append ") {
-					t.Errorf("an audit record was written: %s", c)
-				}
 			}
 		})
 	}

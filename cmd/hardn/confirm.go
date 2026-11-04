@@ -55,7 +55,10 @@ var (
 // refusal, is 1); 130 when it was interrupted; 0 once nothing it held is
 // left, and when the clean-up was not run from this session (a console, by
 // design, or a session that could not have confirmed the change before
-// it), whose report says what stays open.
+// it), whose report says what stays open. A clean-up that ran is one
+// record of the audit log (audit), an engine run as a flag's is; the
+// confirmation itself is not one yet: it needs a mode of its own in the
+// document (docs/engine/output.md §7), as hardn rollback's records do.
 func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, opts revert.Options) int {
 	h, err := confirmClaim(ctx, sys, s, opts)
 	code := 0
@@ -83,7 +86,8 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 	}
 	hup := watchHangup() // a hangup during the clean-up drops what is written after it
 	cctx, stop := confirmSignals(ctx)
-	o := confirmCleanup(cctx, confirmHost(), h, s, confirm.Options{
+	csys := confirmHost()
+	o := confirmCleanup(cctx, csys, h, s, confirm.Options{
 		Revert: revert.Options{Log: revertFileLog{}, Now: revertNow}, Hold: confirmHold, PID: revertPID()})
 	stop()
 	hup.stop()
@@ -95,6 +99,7 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 		}
 	}
 	showCleanup(h, o, reported)
+	audit(csys, nil, run)
 	return max(code, output.ExitCode(run))
 }
 
