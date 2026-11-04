@@ -420,9 +420,13 @@ func showRevertNotices(cmd *cobra.Command, _ []string) {
 	}
 }
 
-// revertNotice writes one notice line to stderr, a warning, as hardn's
-// console lines are (say).
-func revertNotice(format string, args ...any) { sayWarning(format, args...) }
+// revertNotice writes one notice line to stderr, a warning, and to stderr
+// only, not hardn's log: every root run shows it (PersistentPreRun), so
+// logging it would append it to the log on each run, and -p would write
+// into the log it prints.
+func revertNotice(format string, args ...any) {
+	writeConsole(component.Messages{{Kind: component.MessageWarn, Text: fmt.Sprintf(format, args...)}})
+}
 
 // stderrIsTerminal reports whether stderr is a character device other than
 // the null device: a terminal, where a person reads the notice.
