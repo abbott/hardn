@@ -98,7 +98,6 @@ linters:
         legacy-style:
           files:
             - "$all"
-            - "!${base-path}/pkg/menu/**"
             - "!${base-path}/cmd/hardn/**"
             - "!${base-path}/pkg/utils/**"
           deny:
@@ -108,7 +107,6 @@ linters:
           files:
             - "$all"
             - "!${base-path}/pkg/style/**" # the legacy library itself
-            - "!${base-path}/pkg/menu/**"
           deny:
             - pkg: github.com/mattn/go-runewidth
               desc: legacy width helper; pkg/ui measures with Lip Gloss (design-system README §9.15)

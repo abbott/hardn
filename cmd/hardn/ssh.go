@@ -3,9 +3,9 @@ package main
 // SSH Login on the plan/apply engine (refactor plan slice 6, SSH Login,
 // unit (d), next/s6-replace; the maintainer, 2026-11-03: a hard cutover,
 // the legacy SSH Login deleted, not frozen): the main menu's SSH Login item
-// runs the SSH Login screen (pkg/screens/ssh), which pkg/menu reaches
+// runs the SSH Login screen (pkg/screens/ssh), which pkg/screens/mainmenu reaches
 // through the hook set here, as it reaches the User Management screen
-// (users.go), so that pkg/menu builds no engine; and -d plans and applies
+// (users.go), so that pkg/screens/mainmenu builds no engine; and -d plans and applies
 // the SSH Login control's Disallow root login through runControls, a
 // lockout-risk plan confirmed by the hostname typed on a terminal and
 // refused off one, as -w's (gallery-ssh.md §5, decision 8 (a), adopted
@@ -22,8 +22,8 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	sshscreen "github.com/abbott/hardn/pkg/screens/ssh"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -104,17 +104,10 @@ var disallowRootConfirm = typedConfirm{
 	},
 }
 
-// sshMenu is what withSSHScreen sets the SSH Login item of: pkg/menu's
-// main menu, and the tests' record of what was set.
-type sshMenu interface{ SetSSH(run func() error) }
-
-// The main menu is an sshMenu.
-var _ sshMenu = (*menu.MainMenu)(nil)
-
 // withSSHScreen returns m with its SSH Login item set to the SSH Login
-// screen on c, the configuration m was given (menu.MainMenu.SetSSH).
-func withSSHScreen[M sshMenu](m M, c *config.Config) M {
-	m.SetSSH(func() error { return runSSHScreen(context.Background(), c) })
+// screen on c, the configuration m was given (mainmenu.Options.SSH).
+func withSSHScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
+	m.SSH = func() error { return runSSHScreen(context.Background(), c) }
 	return m
 }
 

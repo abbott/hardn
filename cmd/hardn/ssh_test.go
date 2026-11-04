@@ -19,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -325,12 +326,12 @@ func (h *sshTestHost) armed() bool {
 func TestSSHHook(t *testing.T) {
 	h, cfg := newSSHHost(t, "debian13")
 	s := useSSHHost(t, h, "1", "0")
-	set := &hookSet{}
-	if got := withSSHScreen(set, cfg); got != set || set.ssh == nil {
+	set := withSSHScreen(mainmenu.Options{}, cfg)
+	if set.SSH == nil {
 		t.Fatal("withSSHScreen did not set the SSH Login item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.ssh(); err != nil {
+	if err := set.SSH(); err != nil {
 		t.Fatalf("the SSH Login item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.sshdWrites(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {

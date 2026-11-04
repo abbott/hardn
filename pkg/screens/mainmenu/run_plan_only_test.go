@@ -1,4 +1,4 @@
-package menu
+package mainmenu
 
 import (
 	"context"
@@ -50,25 +50,25 @@ func TestPlanOnly(t *testing.T) {
 			t.Chdir(t.TempDir())
 			passes := 0
 			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "2", "4", "5", "6", "7", "8", "q")
-			m.config = src.start(t)
+			m.Config = src.start(t)
 			opened := recordScreens(t, m)
 			inPlanOnly := map[string]bool{}
 			for name, set := range map[string]func(func() error){
-				"users":       m.SetUsers,
-				"ssh":         m.SetSSH,
-				"firewall":    func(run func() error) { m.SetFirewall(run, nil) },
-				"backup":      m.SetBackup,
-				"updates":     m.SetUpdates,
-				"runAll":      m.SetRunAll,
-				"environment": m.SetEnvironment,
+				"users":       func(run func() error) { m.Users = run },
+				"ssh":         func(run func() error) { m.SSH = run },
+				"firewall":    func(run func() error) { m.Firewall = run },
+				"backup":      func(run func() error) { m.Backup = run },
+				"updates":     func(run func() error) { m.Updates = run },
+				"runAll":      func(run func() error) { m.RunAll = run },
+				"environment": func(run func() error) { m.Environment = run },
 			} {
 				set(func() error {
-					inPlanOnly[name] = m.config.DryRun
+					inPlanOnly[name] = m.Config.DryRun
 					*opened = append(*opened, name)
 					return nil
 				})
 			}
-			out, _, ended := session(t, func() { m.ShowMainMenu() })
+			out, _, ended := session(t, func() { show(m) })
 			want := []string{"users", "ssh", "firewall", "backup", "updates", "runAll", "environment"}
 			if ended || !slices.Equal(*opened, want) || strings.Contains(out, "(x) ") || passes != 8 {
 				t.Errorf("ended %v, opened %q, read %d times; want %q, none refused, read 8 times:\n%s", ended, *opened, passes, want, out)

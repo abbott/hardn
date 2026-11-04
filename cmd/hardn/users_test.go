@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -270,12 +271,12 @@ func TestUsersScreen(t *testing.T) {
 func TestUsersHook(t *testing.T) {
 	h, cfg := newUsersHost(t)
 	s := useUsersHost(t, h, "2", "carol", "y", "n", "n", "0")
-	set := &hookSet{}
-	if got := withUsersScreen(set, cfg); got != set || set.users == nil {
+	set := withUsersScreen(mainmenu.Options{}, cfg)
+	if set.Users == nil {
 		t.Fatal("withUsersScreen did not set the User Management item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.users(); err != nil {
+	if err := set.Users(); err != nil {
 		t.Fatalf("the User Management item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.writes(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {

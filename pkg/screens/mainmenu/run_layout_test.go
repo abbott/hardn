@@ -1,20 +1,15 @@
-package menu
+package mainmenu
 
 import (
 	"context"
 	"fmt"
 	"io"
-	"os"
-	"path/filepath"
-	"regexp"
 	"slices"
 	"strings"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host/detect"
-	"github.com/abbott/hardn/pkg/screens/mainmenu"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
@@ -40,23 +35,23 @@ const invalid = "  (x) Invalid option. Please try again."
 // records its name in the list returned and prints it, as a screen prints
 // over the main menu: "users", "ssh", "dns", "firewall", "backup",
 // "updates", "runAll", "environment", "systemDetails" and "logs".
-func recordScreens(t *testing.T, m *MainMenu) *[]string {
+func recordScreens(t *testing.T, m *Options) *[]string {
 	t.Helper()
 	var opened []string
 	record := func(name string) {
 		opened = append(opened, name)
 		fmt.Println(strings.ToUpper(name) + " SCREEN")
 	}
-	m.SetUsers(func() error { record("users"); return nil })
-	m.SetSSH(func() error { record("ssh"); return nil })
-	m.SetDNS(func() error { record("dns"); return nil })
-	m.SetFirewall(func() error { record("firewall"); return nil }, nil)
-	m.SetBackup(func() error { record("backup"); return nil })
-	m.SetUpdates(func() error { record("updates"); return nil })
-	m.SetRunAll(func() error { record("runAll"); return nil })
-	m.SetEnvironment(func() error { record("environment"); return nil })
-	m.SetSystemDetails(func() error { record("systemDetails"); return nil })
-	m.SetLogs(func() error { record("logs"); return nil })
+	m.Users = func() error { record("users"); return nil }
+	m.SSH = func() error { record("ssh"); return nil }
+	m.DNS = func() error { record("dns"); return nil }
+	m.Firewall, m.FirewallPVE = func() error { record("firewall"); return nil }, nil
+	m.Backup = func() error { record("backup"); return nil }
+	m.Updates = func() error { record("updates"); return nil }
+	m.RunAll = func() error { record("runAll"); return nil }
+	m.Environment = func() error { record("environment"); return nil }
+	m.SystemDetails = func() error { record("systemDetails"); return nil }
+	m.Logs = func() error { record("logs"); return nil }
 	return &opened
 }
 
@@ -128,14 +123,14 @@ func TestMainMenuKeys(t *testing.T) {
 					useReader(t, prompt.New(interrupted{strings.NewReader(script)}, false))
 				}
 				opened := recordScreens(t, m)
-				out, code, ended := session(t, func() { m.ShowMainMenu() })
+				out, code, ended := session(t, func() { show(m) })
 				if ended != (tc.code != 0) || code != tc.code {
 					t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
 				}
 				if !slices.Equal(*opened, tc.opened) {
 					t.Errorf("opened %q, want %q", *opened, tc.opened)
 				}
-				text := style.StripAnsi(out) // the bold a terminal keeps without colour aside
+				text := stripANSI(out) // the bold a terminal keeps without colour aside
 				if n := strings.Count(text, invalid+"\n"); n != tc.refused {
 					t.Errorf("%d lines refused, want %d:\n%s", n, tc.refused, out)
 				}
@@ -178,12 +173,12 @@ func TestMainMenuInvalid(t *testing.T) {
 			passes := 0
 			m := liveMenu(t, tc.env, fixtureStatus(&passes), "x", "q")
 			opened := recordScreens(t, m)
-			out, _, ended := session(t, func() { m.ShowMainMenu() })
+			out, _, ended := session(t, func() { show(m) })
 			ask := strings.Replace(prompt, ">", component.NewCtx(tc.env).Theme.Glyphs.Prompt, 1)
 			clr := clearOn(tc.env) // on a terminal as it starts and as it returns; off one none
 			noClearOff(t, tc.env, out)
 			if ended || passes != 1 || len(*opened) != 0 || !strings.HasSuffix(out, clr) ||
-				!strings.HasSuffix(style.StripAnsi(strings.TrimSuffix(out, clr)), ask+"\n"+tc.line+"\n"+ask+"\n") ||
+				!strings.HasSuffix(stripANSI(strings.TrimSuffix(out, clr)), ask+"\n"+tc.line+"\n"+ask+"\n") ||
 				clr != "" && strings.Count(out, clr) != 2 || strings.Contains(out, "Press Enter") {
 				t.Errorf("ended %v, read %d times, opened %q; the screen:\n%q\nwant it to end %q", ended, passes, *opened, out, ask+"\n"+tc.line+"\n"+ask+"\n")
 			}
@@ -200,7 +195,7 @@ func TestMainMenuAgain(t *testing.T) {
 		passes := 0
 		m := liveMenu(t, env, fixtureStatus(&passes), "7", "q")
 		recordScreens(t, m)
-		out, _, ended := session(t, func() { m.ShowMainMenu() })
+		out, _, ended := session(t, func() { show(m) })
 		clr := clearOn(env)
 		noClearOff(t, env, out)
 		body := strings.TrimSuffix(strings.TrimPrefix(out, clr), clr)
@@ -247,8 +242,8 @@ func TestMainMenuMode(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), "q")
-			m.config = tc.start(t)
-			out, _, ended := session(t, func() { m.ShowMainMenu() })
+			m.Config = tc.start(t)
+			out, _, ended := session(t, func() { show(m) })
 			if want := "  Select an option         " + tc.want + "\n"; ended || strings.Count(out, "Select an option") != 1 || !strings.Contains(out, want) {
 				t.Errorf("ended %v; want the heading %q:\n%s", ended, want, out)
 			}
@@ -256,64 +251,26 @@ func TestMainMenuMode(t *testing.T) {
 	}
 }
 
-// TestMainMenuItems: the items on the layout are origin/main's, unchanged
-// in content, as the parity record holds origin/main's main menu
-// (testdata/legacy/main_menu, createMainMenu's style.Menu until slice 2b's
-// unit (d)): its numbers, labels and descriptions, item 1's parenthesis
-// its aside, and its Exit row (the trunk's "q to quit", DEV-030, as the
-// record holds it), but item 6, Auto Updates, "Configure automatic
-// updates", where origin/main's Dry-Run was (slice 7, unit (d);
-// gallery-updates.md §4, decision 1), and item 8's description, the
-// decided "Keep HARDN_CONFIG" (slice 9, decision 7 (a), P-07 (c)); and
-// the same as the main-menu mock's (screen.MainMenuFixture), which the
-// gallery draws its main menus with, with item 6 between 5 and 7
-// (withUpdatesItem).
-// The heading and prompt are origin/main's too, the hint generated from
-// the items, "[0-10 or q]" as origin/main's.
+// TestMainMenuItems: the items on the layout are the main-menu mock's
+// (screen.MainMenuFixture), which the gallery draws its main menus with,
+// with item 6, Auto Updates, "Configure automatic updates", between 5 and
+// 7 (withUpdatesItem): its numbers, labels and descriptions, item 1's
+// aside, item 2's "Root login, passwords, port" (legacy-left.md §3,
+// decision 7 (a)), item 8's "Keep HARDN_CONFIG", and its Exit row, "q to
+// quit" (DEV-030). The heading and prompt are origin/main's, the hint
+// generated from the items, "[0-10 or q]".
 func TestMainMenuItems(t *testing.T) {
-	const keepHardnConfig = "Keep HARDN_CONFIG"
-	data, err := os.ReadFile(filepath.Join(legacyDir, "main_menu", "ubuntu-fresh.golden"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	_, record, _ := strings.Cut(string(data), "# ----\n")
-	record = regexp.MustCompile(`\\x1b\[[0-9;]*m`).ReplaceAllString(record, "")
-	row := regexp.MustCompile(`^\s*(\d+)\) (\S.*?)\s{2,}(.*?)\s*\$$`)
-	var legacy [][]string
-	for _, l := range strings.Split(record, "\n") {
-		if r := row.FindStringSubmatch(l); r != nil && r[1] != "6" {
-			if r[1] == "8" && r[3] == "Configure environment variable" {
-				r[3] = keepHardnConfig // decided (slice 9, decision 7 (a))
-			}
-			legacy = append(legacy, r[1:])
-		}
-	}
-	m := NewMainMenu(config.DefaultConfig())
-	view := m.mainMenu().View()
-	var layout [][]string
-	for _, it := range append(slices.Clone(view.Items), view.Exit) {
-		if it.Key == "6" {
-			if it != updatesItem {
-				t.Errorf("item 6 is %+v, want %+v", it, updatesItem)
-			}
-			continue
-		}
-		desc := it.Description
-		if it.Aside != "" {
-			desc += " (" + it.Aside + ")"
-		}
-		layout = append(layout, []string{it.Key, it.Label, desc})
-	}
-	if len(legacy) != 10 || !slices.EqualFunc(legacy, layout, slices.Equal[[]string]) {
-		t.Errorf("the layout's items\n%q\nare not origin/main's but 6 and 8's description\n%q", layout, legacy)
+	m := &Options{Config: config.DefaultConfig()}
+	view := m.items().View()
+	if view.Items[1] != (component.MenuItem{Key: "2", Label: "SSH Login", Description: "Root login, passwords, port"}) {
+		t.Errorf("item 2 is %+v", view.Items[1])
 	}
 	fixture := screen.MainMenuFixture()
 	if !slices.Equal(view.Items, withUpdatesItem(fixture.Menu.Items)) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
 		t.Errorf("the items are not the main-menu mock's:\n%+v\n%+v", view, fixture.Menu)
 	}
-	if !strings.Contains(record, mainHeading) || !strings.Contains(record, mainPrompt+" [0-10 or q]:") ||
-		m.mainMenu().Accepts().Hint() != "0-10 or q" {
-		t.Errorf("the heading, prompt or hint differ from origin/main's, or the hint is %q:\n%s", m.mainMenu().Accepts().Hint(), record)
+	if hint := m.items().Accepts().Hint(); hint != "0-10 or q" {
+		t.Errorf("the hint is %q", hint)
 	}
 }
 
@@ -362,11 +319,11 @@ func TestMainMenuHeights(t *testing.T) {
 			env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: tc.w, Height: tc.h,
 				Environ: []string{"TERM=xterm-256color", "LANG=" + lang}})
 			m := liveMenu(t, env, func(ctx context.Context) (screen.MainMenu, error) {
-				return mainmenu.Status(ctx, mainmenu.Options{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
+				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 			}, "q")
-			out, _, _ := session(t, func() { m.ShowMainMenu() })
+			out, _, _ := session(t, func() { show(m) })
 			drawn, _, _ := strings.Cut(strings.TrimPrefix(out, clearScreen), clearScreen)
-			ls := strings.Split(style.StripAnsi(strings.TrimSuffix(drawn, " \n")), "\n")
+			ls := strings.Split(stripANSI(strings.TrimSuffix(drawn, " \n")), "\n")
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
 			risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
 			if len(ls) != tc.lines || first != tc.visible || (risk >= len(ls)-tc.h) != (len(ls) <= tc.h) ||
@@ -384,8 +341,8 @@ func TestMainMenuKeepsLoadWarning(t *testing.T) {
 	for _, env := range []term.Env{ttyEnv(), plainEnv()} {
 		for _, warned := range []bool{false, true} {
 			m := liveMenu(t, env, fixtureStatus(new(int)), "q")
-			m.SetWarnedAtLoad(warned)
-			out, _, ended := session(t, func() { m.ShowMainMenu() })
+			m.Warned = warned
+			out, _, ended := session(t, func() { show(m) })
 			if ended {
 				t.Fatalf("ended hardn:\n%s", out)
 			}
@@ -412,7 +369,7 @@ func TestMainMenuDraw(t *testing.T) {
 	env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 24,
 		Environ: []string{"TERM=xterm-256color", "LANG=C.UTF-8"}})
 	m := liveMenu(t, env, fixtureStatus(new(int)), "q")
-	out, _, ended := session(t, func() { m.ShowMainMenu() })
+	out, _, ended := session(t, func() { show(m) })
 	vm := screen.MainMenuFixture()
 	vm.Mode = component.ModeIndicator{}
 	vm.Menu.Items = withUpdatesItem(vm.Menu.Items)

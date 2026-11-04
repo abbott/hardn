@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -26,7 +27,7 @@ import (
 // the screen's model answers them (pkg/screens/updates/fake_test.go).
 // Synthetic values only.
 
-// updatesTestVersion is hardn's version as main gives it to withHooks.
+// updatesTestVersion is hardn's version as main gives it to menuOptions.
 const updatesTestVersion = "0.4.0-synthetic"
 
 // updatesHost is the Alpine host with apk-cron's state and crond's.
@@ -125,11 +126,11 @@ func TestUpdatesHook(t *testing.T) {
 	s := useDNSHost(t, h.dnsHost, "1", "y", "0", "1", "y", "0")
 	yml := h.content(dnsTestYML)
 	engineHost = func() host.System { return h }
-	set := &hookSet{}
-	if got := withUpdatesScreen(set, cfg, updatesTestVersion); got != set || set.updates == nil {
+	set := withUpdatesScreen(mainmenu.Options{}, cfg, updatesTestVersion)
+	if set.Updates == nil {
 		t.Fatal("withUpdatesScreen did not set the Auto Updates item on the menu given")
 	}
-	if err := set.updates(); err != nil {
+	if err := set.Updates(); err != nil {
 		t.Fatalf("the Auto Updates item, Enable = %v; screen:\n%s", err, s.out.String())
 	}
 	if !h.apkCron || !h.crond || h.content(dnsTestYML) != yml {
@@ -139,7 +140,7 @@ func TestUpdatesHook(t *testing.T) {
 	if err != nil || rec == nil || len(rec.Entries) != 1 || rec.Entries[0].Hardn != updatesTestVersion {
 		t.Errorf("the control's record after Enable: %+v, %v; want one entry carrying hardn %q", rec, err, updatesTestVersion)
 	}
-	if err := set.updates(); err != nil {
+	if err := set.Updates(); err != nil {
 		t.Fatalf("the Auto Updates item, Disable = %v; screen:\n%s", err, s.out.String())
 	}
 	out := style.StripAnsi(s.out.String())
@@ -190,9 +191,9 @@ func TestUpdatesScreen(t *testing.T) {
 			h, cfg := newUpdatesHost(t)
 			s := useDNSHost(t, h.dnsHost, tc.lines...)
 			engineHost = func() host.System { return h }
-			set := withUpdatesScreen(&hookSet{}, cfg, updatesTestVersion)
+			set := withUpdatesScreen(mainmenu.Options{}, cfg, updatesTestVersion)
 			cfg.DryRun = tc.dryRun // as -n or hardn.yml leaves it before 6 is chosen
-			err := set.updates()
+			err := set.Updates()
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("the Auto Updates item = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}

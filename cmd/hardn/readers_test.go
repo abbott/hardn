@@ -18,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -632,13 +633,12 @@ func TestReaderScreens(t *testing.T) {
 					bounded = sys != host.System(h)
 					return detect.Facts{}, errors.New("detect: not established")
 				}
-				set := &hookSet{}
 				c := config.DefaultConfig()
 				c.LogFile, c.DryRun = "/srv/log/hardn.log", true
-				withReaderScreens(set, c)
-				run := set.systemDetails
+				set := withReaderScreens(mainmenu.Options{}, c)
+				run := set.SystemDetails
 				if screen == "logs" {
-					run = set.logs
+					run = set.Logs
 				}
 				if err := run(); !errors.Is(err, tc.want) || (tc.want == nil && err != nil) {
 					t.Fatalf("= %v, want %v; screen:\n%s", err, tc.want, s.out.String())
@@ -701,9 +701,8 @@ func TestLogsOpenTerm(t *testing.T) {
 	t.Cleanup(func() { engineInput = inputWas })
 	in := prompt.New(uitest.NewTypist(io.Discard, "1", "0"), false)
 	engineInput = func() *prompt.Reader { return in }
-	set := &hookSet{}
-	withReaderScreens(set, config.DefaultConfig())
-	if err := set.logs(); err != nil {
+	set := withReaderScreens(mainmenu.Options{}, config.DefaultConfig())
+	if err := set.Logs(); err != nil {
 		t.Fatalf("= %v; screen:\n%s", err, s.out.String())
 	}
 	opened := false

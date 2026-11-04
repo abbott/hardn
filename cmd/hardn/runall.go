@@ -2,8 +2,8 @@ package main
 
 // Run All on its planner (refactor plan slice 8, Run All, unit (d)): the
 // main menu's Run All item (7) runs the Run All screen
-// (pkg/screens/runall), which pkg/menu reaches through the hook set here,
-// as it reaches the SSH Login screen (ssh.go), so that pkg/menu builds no
+// (pkg/screens/runall), which pkg/screens/mainmenu reaches through the hook set here,
+// as it reaches the SSH Login screen (ssh.go), so that pkg/screens/mainmenu builds no
 // engine (gallery-runall.md §5, decision 7 (a): the item's label and
 // description kept); and -r plans with the same planner
 // (pkg/engine/runall) and applies its one plan through runControls, the
@@ -22,25 +22,18 @@ import (
 	planner "github.com/abbott/hardn/pkg/engine/runall"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
 
-// runAllMenu is what withRunAllScreen sets the Run All item of: pkg/menu's
-// main menu, and the tests' record of what was set.
-type runAllMenu interface{ SetRunAll(run func() error) }
-
-// The main menu is a runAllMenu.
-var _ runAllMenu = (*menu.MainMenu)(nil)
-
 // withRunAllScreen returns m with its Run All item set to the Run All
 // screen on c, the configuration m was given, and hardn's version
-// (menu.MainMenu.SetRunAll).
-func withRunAllScreen[M runAllMenu](m M, c *config.Config, version string) M {
-	m.SetRunAll(func() error { return runRunAllScreen(context.Background(), c, version) })
+// (mainmenu.Options.RunAll).
+func withRunAllScreen(m mainmenu.Options, c *config.Config, version string) mainmenu.Options {
+	m.RunAll = func() error { return runRunAllScreen(context.Background(), c, version) }
 	return m
 }
 

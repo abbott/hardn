@@ -3,8 +3,8 @@ package main
 // DNS on the plan/apply engine (refactor plan slice 2, the DNS pilot,
 // unit (d), next/s2-replace; the maintainer, 2026-10-22: the legacy path
 // replaced, not gated): -g plans and applies the DNS control, and the main
-// menu's DNS item runs the DNS screen (pkg/screens/dns), which pkg/menu
-// reaches through the hook set here, so that pkg/menu builds no engine.
+// menu's DNS item runs the DNS screen (pkg/screens/dns), which pkg/screens/mainmenu
+// reaches through the hook set here, so that pkg/screens/mainmenu builds no engine.
 // The engine's options are engine.go's.
 
 import (
@@ -14,9 +14,9 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	dnsscreen "github.com/abbott/hardn/pkg/screens/dns"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
@@ -132,17 +132,10 @@ func endControls(run output.Run, actx context.Context, hungUp func() bool) int {
 	return code
 }
 
-// dnsMenu is what withDNSScreen sets the DNS item of: pkg/menu's main
-// menu, and the tests' record of what was set.
-type dnsMenu interface{ SetDNS(run func() error) }
-
-// The main menu is a dnsMenu.
-var _ dnsMenu = (*menu.MainMenu)(nil)
-
 // withDNSScreen returns m with its DNS item set to the DNS screen on c,
-// the configuration m was given (menu.MainMenu.SetDNS).
-func withDNSScreen[M dnsMenu](m M, c *config.Config) M {
-	m.SetDNS(func() error { return runDNSScreen(context.Background(), c) })
+// the configuration m was given (mainmenu.Options.DNS).
+func withDNSScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
+	m.DNS = func() error { return runDNSScreen(context.Background(), c) }
 	return m
 }
 

@@ -1,48 +1,61 @@
 package main
 
-// The main menu's hooks, as main sets them on the one main menu hardn
-// builds (main.go:222): the User Management, SSH Login, DNS, Firewall,
-// Backup, Auto Updates, Run All, Environment, System Details and Logs
-// items' screens (users.go, ssh.go, dns.go, firewall.go, backup.go,
-// updates.go, runall.go, environment.go, readers.go) and
-// its status and terminal (status.go). One function, so that a test holds each of them set
-// (TestWithHooks): a main menu without one panics when its item is
-// chosen, or on its first pass for the status.
+// The main menu's Options, as main fills them for the one main menu hardn
+// runs (runMenu): the User Management, SSH Login, DNS, Firewall, Backup,
+// Auto Updates, Run All, Environment, System Details and Logs items'
+// screens (users.go, ssh.go, dns.go, firewall.go, backup.go, updates.go,
+// runall.go, environment.go, readers.go), its status and terminal
+// (status.go), its input and stdout. One function, so that a test holds
+// each of them filled (TestMenuOptions): a main menu without one panics
+// when its item is chosen, or on its first pass for the status.
 
 import (
+	"context"
+	"errors"
+	"fmt"
+	"os"
+
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/menu"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
-// hookedMenu is what withHooks sets the hooks of: pkg/menu's main menu,
-// and the tests' record of what was set.
-type hookedMenu interface {
-	usersMenu
-	sshMenu
-	dnsMenu
-	firewallMenu
-	backupMenu
-	updatesMenu
-	runAllMenu
-	environmentMenu
-	readerMenu
-	statusMenu
-	SetWarnedAtLoad(warned bool)
-}
-
-// The main menu is a hookedMenu.
-var _ hookedMenu = (*menu.MainMenu)(nil)
-
-// withHooks returns m with every hook of its set on c, the configuration
-// m was given, and hardn's version: its User Management, SSH Login, DNS,
+// menuOptions returns the main menu's Options on c, the configuration every
+// screen reads, and hardn's version: its User Management, SSH Login, DNS,
 // Firewall, Backup, Auto Updates, Run All, Environment, System Details and
 // Logs items (withUsersScreen, withSSHScreen, withDNSScreen,
 // withFirewallScreen, withBackupScreen, withUpdatesScreen,
-// withRunAllScreen, withEnvironmentScreen, withReaderScreens) and its status and terminal
-// (withStatus); and whether c warned at load, for the menu to keep the warning.
-func withHooks[M hookedMenu](m M, c *config.Config, version string) M {
-	m.SetWarnedAtLoad(loadWarnings(c) != "")
+// withRunAllScreen, withEnvironmentScreen, withReaderScreens), its status
+// and terminal (withStatus), whether c warned at load, for the main menu
+// to keep the warning, and the line reader every prompt shares and stdout.
+func menuOptions(c *config.Config, version string) mainmenu.Options {
+	m := mainmenu.Options{Config: c, Warned: loadWarnings(c) != "", Input: engineInput, Out: os.Stdout}
 	m = withUpdatesScreen(withBackupScreen(withDNSScreen(withSSHScreen(withUsersScreen(m, c), c), c), c), c, version)
 	m = withRunAllScreen(m, c, version)
 	return withStatus(withReaderScreens(withEnvironmentScreen(withFirewallScreen(m, c), c), c), c, version)
+}
+
+// reraise ends hardn by SIGINT after Ctrl-C at the main menu: a seam for
+// the tests.
+var reraise = prompt.Reraise
+
+// runMenu runs the main menu on o until the user leaves it, and ends hardn
+// as the main menu's error says (mainmenu.Run): by SIGINT after Ctrl-C
+// (reraise), so that a shell running hardn in a loop or a script stops;
+// with exit status 130 at the end of the input (prompt.ExitCode); and with
+// 1, once the error is printed, for any other.
+func runMenu(ctx context.Context, o mainmenu.Options) {
+	err := mainmenu.Run(ctx, o)
+	if err == nil {
+		return
+	}
+	if errors.Is(err, prompt.ErrInterrupted) {
+		reraise()
+	}
+	code, aborted := prompt.ExitCode(err)
+	if !aborted {
+		fmt.Println(err)
+		code = 1
+	}
+	exit(code)
 }
