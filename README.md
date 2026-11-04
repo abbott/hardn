@@ -29,7 +29,7 @@ AppArmor and Lynis are not set up: AppArmor's state is shown, nothing more.
 
 1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [Safety](#safety)).
 2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, Run All) asks you to type the hostname.
-3. **Apply.** Files are backed up first. A step that fails rolls the whole change back.
+3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
 **Plan only.** `-n` (or `dryRun: true` in hardn.yml) shows each plan and changes nothing. Screens stop at their plan. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
@@ -40,7 +40,7 @@ AppArmor and Lynis are not set up: AppArmor's state is shown, nothing more.
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
 ```
 
-Use `doas sh` where the host uses doas (Alpine). The script fetches the latest release's binary for this machine (`hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`; there is no armv7 build) and installs it as `/usr/local/bin/hardn`. It also creates `/etc/hardn`. It doesn't run hardn. hardn writes `/etc/hardn/hardn.yml.example` itself the first time it runs live. On a terminal, hardn also offers to create `hardn.yml`.
+Use `doas sh` where the host uses doas (Alpine). The script fetches the latest release's binary for this machine (`hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`). There is no armv7 build: don't use the script on armv7, where the current script picks the arm64 binary, which won't run there and installs it as `/usr/local/bin/hardn`. It also creates `/etc/hardn`. It doesn't run hardn. hardn writes `/etc/hardn/hardn.yml.example` itself the first time it runs live. On a terminal, hardn also offers to create `hardn.yml`.
 
 To update, run the same command again. To install by hand, download the binary from [Releases](https://github.com/abbott/hardn/releases), verify it (below), then run `sudo install -m 0755 hardn-linux-amd64 /usr/local/bin/hardn`.
 
@@ -139,14 +139,14 @@ sudo hardn system-details --output json > web-01.json
 | Status | Meaning |
 |---|---|
 | `0` | Done: nothing to change, or every change applied (including one waiting for `hardn confirm`) |
-| `1` | An error or a refusal. Anything this run applied is rolled back; if that rollback can't finish, hardn says how to finish it |
-| `2` | A usage error (bad flags or hardn.yml), or changes that need `--yes` off a terminal |
+| `1` | An error or a refusal (also: not root, a hardn.yml that doesn't load, `-c` with no username). Anything this run applied is rolled back; if that rollback can't finish, hardn says how to finish it |
+| `2` | A usage error (bad flags, or a bad `confirmTimeout` in hardn.yml), or changes that need `--yes` off a terminal |
 | `3` | A plan has changes to make (plan only), or you declined them |
 | `130` | Interrupted: Ctrl-C, SIGTERM or a hangup. An apply that was running is rolled back first |
 
 **JSON.** `hardn system-details --output json` prints one JSON document on stdout. [docs/reference/output.md](docs/reference/output.md) describes its fields and the stable error and finding codes.
 
-**Plain output and colour.** Output off a terminal is plain: no colour, no animation, ASCII symbols. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. A flag wins over its variable.
+**Plain output and colour.** Output off a terminal is plain: no colour, no animation, ASCII symbols. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
 
 **Logs.**
 
@@ -163,7 +163,7 @@ sudo hardn system-details --output json > web-01.json
   - The refusal says why and what to do.
 - **The revert timer.** A lockout-risk change runs under a systemd timer, or a process under OpenRC. It rolls the change back unless `hardn confirm` comes from a new connection in time. Where neither systemd nor OpenRC runs, such a change is refused. So is any lockout-risk change when a user other than root can change the hardn binary.
 - **Across a reboot.** Before the first such change, hardn installs a boot unit, `hardn-boot`. At boot, before sshd starts, it restarts the timer for the time left, or rolls the change back if the time ran out. It is removed at the first boot with nothing waiting.
-- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default). A rollback restores them. Backup (5) lists the runs. Restoring a run by hand isn't built yet.
+- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. Backup (5) lists the runs. Restoring a run by hand isn't built yet.
 
 More detail: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot.md](docs/safety/revert-boot.md) (the boot unit), [atomic.md](docs/safety/atomic.md) (writes and backups), [pve.md](docs/safety/pve.md) (Proxmox VE), and the index, [docs/safety](docs/safety/README.md).
 
