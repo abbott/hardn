@@ -8,7 +8,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. by-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. The row says␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso (a stand-in, decision 9); Disable refuses, naming it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso (decision 9); Disable refuses, naming it.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -41,7 +41,7 @@ $
 # Note$
 # Mock: Auto Updates. web-01.example.net runs Debian 13. by-$
 # hardn-debian, then hardn's file edited by hand. The row says$
-# so (a stand-in, decision 9); Disable refuses, naming it.$
+# so (decision 9); Disable refuses, naming it.$
 $
 # Auto Updates #################################################$
 $
@@ -74,8 +74,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. by-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. The row␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays so (a stand-in, decision 9); Disable refuses, naming␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays so (decision 9); Disable refuses, naming it.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -115,7 +114,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. by-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. The row says␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso (a stand-in, decision 9); Disable refuses, naming it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso (decision 9); Disable refuses, naming it.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
 $

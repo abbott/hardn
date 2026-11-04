@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -24,9 +25,11 @@ import (
 //
 // apt's configuration is files under /etc/apt/apt.conf.d, read in name
 // order, then /etc/apt/apt.conf, a later scalar winning (apt.conf(5)); the
-// model's files are written in apt-config dump's own one-line form
-// (`Name "value";`, a list item `Name:: "value";`), not the packages'
-// block form, and a line in any other form is apt's syntax error.
+// model's scalars are written in apt-config dump's own one-line form
+// (`Name "value";`), its lists in the packages' block form (`Name {`, a
+// `"value";` line each, `};`), which aptconf.Read takes and the dump's
+// `Name:: "value";` it refuses; a line in any other form is apt's syntax
+// error.
 
 // The files and commands the model answers.
 const (
@@ -38,33 +41,31 @@ const (
 	uuPackage    = "unattended-upgrades"
 	uuVersion    = "2.12"
 	apkCronVer   = "1.0-r3"
-	crontabRoot  = "/etc/crontabs/root"
 )
 
 // What the packages ship, as the model writes it (synthetic, in the dump's
 // form): 20auto-upgrades from the postinst by its debconf answer (the
 // package's 20auto-upgrades or 20auto-upgrades-disabled), Debian's
 // Origins-Pattern or Ubuntu's Allowed-Origins, Ubuntu's 10periodic
-// (update-notifier-common), apk-cron's daily script, and root's stock
-// crontab on Alpine (run-parts per directory, daily at 02:00).
+// (update-notifier-common) and apk-cron's daily script. Root's stock
+// crontab on Alpine is alpine.StockCrontab, the VM's.
 const (
-	autoOn       = "APT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n"
-	autoOff      = "APT::Periodic::Update-Package-Lists \"0\";\nAPT::Periodic::Unattended-Upgrade \"0\";\n"
-	listsStale   = "APT::Periodic::Update-Package-Lists \"0\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n"
-	ubuntu10     = "APT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Download-Upgradeable-Packages \"0\";\nAPT::Periodic::AutocleanInterval \"0\";\n"
-	apkScript    = "#!/bin/sh\n\napk upgrade --update --quiet\n"
-	stockCrontab = "# min\thour\tday\tmonth\tweekday\tcommand\n*/15\t*\t*\t*\t*\trun-parts /etc/periodic/15min\n0\t*\t*\t*\t*\trun-parts /etc/periodic/hourly\n0\t2\t*\t*\t*\trun-parts /etc/periodic/daily\n0\t3\t*\t*\t6\trun-parts /etc/periodic/weekly\n0\t5\t1\t*\t*\trun-parts /etc/periodic/monthly\n"
+	autoOn     = "APT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n"
+	autoOff    = "APT::Periodic::Update-Package-Lists \"0\";\nAPT::Periodic::Unattended-Upgrade \"0\";\n"
+	listsStale = "APT::Periodic::Update-Package-Lists \"0\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n"
+	ubuntu10   = "APT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Download-Upgradeable-Packages \"0\";\nAPT::Periodic::AutocleanInterval \"0\";\n"
+	apkScript  = "#!/bin/sh\n\napk upgrade --update --quiet\n"
 )
 
 // uuOrigins is 50unattended-upgrades: Ubuntu's Allowed-Origins or Debian's
 // Origins-Pattern.
 func uuOrigins(ubuntu bool) string {
 	if ubuntu {
-		return "Unattended-Upgrade::Allowed-Origins:: \"${distro_id}:${distro_codename}\";\n" +
-			"Unattended-Upgrade::Allowed-Origins:: \"${distro_id}:${distro_codename}-security\";\n"
+		return "Unattended-Upgrade::Allowed-Origins {\n\t\"${distro_id}:${distro_codename}\";\n" +
+			"\t\"${distro_id}:${distro_codename}-security\";\n};\n"
 	}
-	return "Unattended-Upgrade::Origins-Pattern:: \"origin=Debian,codename=${distro_codename},label=Debian\";\n" +
-		"Unattended-Upgrade::Origins-Pattern:: \"origin=Debian,codename=${distro_codename},label=Debian-Security\";\n"
+	return "Unattended-Upgrade::Origins-Pattern {\n\t\"origin=Debian,codename=${distro_codename},label=Debian\";\n" +
+		"\t\"origin=Debian,codename=${distro_codename},label=Debian-Security\";\n};\n"
 }
 
 // updSim is the model's state beyond the files: the debconf answer the
@@ -93,6 +94,8 @@ func (u *updSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 	ctx := context.Background()
 	cmd := strings.Join(argv, " ")
 	switch {
+	case cmd == "apt-config dump Dir": // the model's files set nothing under Dir
+		return hostfake.Response{Stdout: aptDirDump()}, true
 	case argv[0] == "apt-config" && len(argv) > 2 && argv[1] == "dump":
 		out, err := aptDump(ctx, h.f, argv[2:])
 		if err != nil {
@@ -197,6 +200,21 @@ type aptEntry struct {
 // (Dir::Ignore-Files-Silently's defaults).
 var aptIgnored = []string{"~", ".disabled", ".bak", ".save", ".orig", ".distUpgrade", ".ucf-dist", ".ucf-old", ".ucf-new", ".dpkg-old", ".dpkg-dist", ".dpkg-new"}
 
+// aptDirDump is apt-config dump Dir as aptconf.Read reads it: Dir,
+// Dir::Etc, main and parts as the VMs print them (aptconf's dirDump,
+// 02-inspect-c-*.log), then Dir::Ignore-Files-Silently's items, the
+// model's aptIgnored as patterns, so that aptconf skips what the model
+// skips. The VMs' own items are patterns of the same suffixes ("~$",
+// "\.dpkg-[a-z]+$", "\.ucf-[a-z]+$" among them); the model's are literal.
+func aptDirDump() string {
+	var b strings.Builder
+	b.WriteString("Dir \"/\";\nDir::Etc \"etc/apt\";\nDir::Etc::main \"apt.conf\";\nDir::Etc::parts \"apt.conf.d\";\nDir::Ignore-Files-Silently \"\";\n")
+	for _, s := range aptIgnored {
+		fmt.Fprintf(&b, "Dir::Ignore-Files-Silently:: \"%s$\";\n", regexp.QuoteMeta(s))
+	}
+	return b.String()
+}
+
 // aptConfEntries reads apt's configuration as the model writes it: each
 // file of apt.conf.d in name order, then apt.conf; a line not in the
 // dump's form is apt's syntax error, naming the file and line.
@@ -222,9 +240,27 @@ func aptConfEntries(ctx context.Context, sys host.System) ([]aptEntry, error) {
 		if err != nil {
 			return nil, err
 		}
+		list := "" // the name of the list block open, `Name {` to `};`
 		for i, l := range strings.Split(string(data), "\n") {
 			l = strings.TrimSpace(l)
 			if l == "" || strings.HasPrefix(l, "//") {
+				continue
+			}
+			if name, ok := strings.CutSuffix(l, " {"); ok && list == "" && name != "" && !strings.ContainsAny(name, " \t\"") {
+				list = name
+				continue
+			}
+			if list != "" {
+				if l == "};" {
+					list = ""
+					continue
+				}
+				v, ok := strings.CutPrefix(l, `"`)
+				v, closed := strings.CutSuffix(v, `";`)
+				if !ok || !closed || strings.Contains(v, `"`) {
+					return nil, fmt.Errorf("Syntax error %s:%d: Extra junk at end of file", f, i+1)
+				}
+				out = append(out, aptEntry{file: f, name: list, value: v, item: true})
 				continue
 			}
 			name, rest, ok := strings.Cut(l, ` "`)
@@ -331,7 +367,7 @@ func updAlpine() *fakeHost {
 		h.f.AddDir("/etc/periodic/"+d, 0o755, 0, 0)
 	}
 	h.f.AddDir("/etc/crontabs", 0o755, 0, 0)
-	h.f.AddFile(crontabRoot, []byte(stockCrontab), 0o600, 0, 0)
+	h.f.AddFile(alpine.RootCrontab, []byte(alpine.StockCrontab), 0o600, 0, 0) // the VM's 283 bytes (alpine.StockCrontab)
 	_ = h.f.Remove(context.Background(), alpine.RunlevelLink)
 	return h
 }

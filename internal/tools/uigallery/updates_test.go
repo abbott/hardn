@@ -186,9 +186,44 @@ func TestUpdatesOffChanged(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cs, kept, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+	cs, kept, err := updOffPlan(ctx, h, r)
 	if err != nil || len(cs) != 3 || cs[1].Commands[0] != "apt-get remove -y "+uuPackage || !hasKept(kept, "20auto-upgrades", "changed since hardn") {
 		t.Errorf("20auto-upgrades changed: %v, kept %v, %v", changeIDs(cs), kept, err)
+	}
+}
+
+// updOffPlan is the real control's off on h as r reads it: its changes,
+// and its review lines as the screen draws them.
+func updOffPlan(ctx context.Context, h *fakeHost, r updReading) ([]engine.Change, []component.KeyValue, error) {
+	cs, err := updAuto(updates.AutoOff).Plan(ctx, h.system(), engine.Input{Facts: r.Facts, Config: r.Config})
+	if err != nil {
+		return nil, nil, err
+	}
+	kept, err := (&updRunner{h: h}).notes(ctx, r, true)
+	return cs, kept, err
+}
+
+// changeIDs are the ids of cs.
+func changeIDs(cs []engine.Change) []string {
+	var ids []string
+	for _, c := range cs {
+		ids = append(ids, c.ID)
+	}
+	return ids
+}
+
+// TestUpdatesHardnBytes: the fake's hosts hold hardn's file and record
+// where the control writes and reads them: each of hardnAptBytes' files is
+// one updates.IsHardnFile accepts, and updRecordPath is the control's
+// RecordPath.
+func TestUpdatesHardnBytes(t *testing.T) {
+	for _, ks := range [][]string{{keyLists}, {keyUpgrade}, hardnLines} {
+		if !updates.IsHardnFile(hardnAptBytes(ks)) {
+			t.Errorf("%v: not hardn's file to the control:\n%s", ks, hardnAptBytes(ks))
+		}
+	}
+	if p, err := updAuto(updates.AutoOff).RecordPath(); err != nil || p != updRecordPath {
+		t.Errorf("RecordPath %q, %v; want %q", p, err, updRecordPath)
 	}
 }
 
@@ -212,12 +247,12 @@ func TestUpdatesRefusalWords(t *testing.T) {
 		words, it string
 	}{
 		{"timer-off", false, "apt-daily-upgrade.timer is off", "Upgrade timer is off"},
-		{"not-read", false, "apt can't read its settings", updDescAptUnread},
+		{"not-read", false, "apt can't read its settings", "Can't read apt's settings"},
 		{"masked", false, "apt-daily-upgrade.service is masked", "Upgrade job is masked"},
 		{"missing", false, "apt-daily-upgrade.service is missing. Reinstall apt, then try again.", "Upgrade job is missing"},
-		{"no-origin", false, "allows no origin", updDescNoOrigin},
+		{"no-origin", false, "allows no origin", "No origin allowed"},
 		{"extra-packages", false, "would also change other packages: Inst libc6", updDescInstall},
-		{"enable-off", false, "turns apt's daily jobs off", updDescEnableOff},
+		{"enable-off", false, "turns apt's daily jobs off", "Periodic jobs are off"},
 		{"edited", true, "changed since hardn wrote it", "52hardn-auto-upgrades changed"},
 		{"no-record", true, "Updates stay on without hardn's file: 20auto-upgrades turns them on, and hardn has no record that it installed unattended-upgrades. Turn them off by hand.", "20auto-upgrades keeps updates on"},
 	} {
@@ -243,7 +278,7 @@ func TestUpdatesCorruptRecord(t *testing.T) {
 		t.Fatal(err)
 	}
 	screen := ansi.Strip(r.screen().Render(component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))))
-	if !strings.Contains(screen, updDisable+"\n      "+updDescRecord) || strings.Contains(screen, "Unavailable") {
+	if !strings.Contains(screen, updDisable+"\n      "+"Can't read hardn's record") || strings.Contains(screen, "Unavailable") {
 		t.Errorf("the item:\n%s", screen)
 	}
 	if words := (&updRunner{h: h}).refusalOf(ctx, r, true); !strings.Contains(words, "can't read its record") {
@@ -275,7 +310,7 @@ func TestUpdatesCrondJobs(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		cs, kept, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+		cs, kept, err := updOffPlan(ctx, h, r)
 		stops := slices.ContainsFunc(cs, func(c engine.Change) bool { return c.Title == "Stop crond" })
 		if err != nil || stops != (tt.note == "") || tt.note != "" && !hasKept(kept, updRowCrond, tt.note) {
 			t.Errorf("%s: %v, kept %v, %v", tt.name, changeIDs(cs), kept, err)
@@ -292,14 +327,14 @@ func TestUpdatesConfigFiles(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !hasKept(r.onNotes(), "50unattended-upgrades", "there before hardn") {
-		t.Errorf("Enable's notes %v", r.onNotes())
+	if on, err := (&updRunner{h: h}).notes(ctx, r, false); err != nil || !hasKept(on, "50unattended-upgrades", "there before hardn") {
+		t.Errorf("Enable's notes %v, %v", on, err)
 	}
 	updApplied(h)
 	if r, err = readUpdates(ctx, h.sys()); err != nil {
 		t.Fatal(err)
 	}
-	cs, kept, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+	cs, kept, err := updOffPlan(ctx, h, r)
 	if err != nil || len(cs) < 2 || cs[1].Commands[0] != "apt-get remove -y "+uuPackage || !hasKept(kept, "50unattended-upgrades", "there before hardn") {
 		t.Errorf("off: %v, kept %v, %v", changeIDs(cs), kept, err)
 	}
@@ -314,7 +349,7 @@ func TestUpdatesPurgeRechecked(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cs, _, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+	cs, _, err := updOffPlan(ctx, h, r)
 	i := slices.IndexFunc(cs, func(c engine.Change) bool { return c.ID == updates.ID+"/package" })
 	if err != nil || i < 0 || cs[i].Commands[0] != "apt-get purge -y "+uuPackage {
 		t.Fatalf("off: %v, %v", changeIDs(cs), err)
@@ -339,7 +374,7 @@ func TestUpdatesOwnFile(t *testing.T) {
 	if it := r.item(); it.Label != updDisable || it.Disabled {
 		t.Errorf("item %+v, want Disable", it)
 	}
-	cs, _, err := planOff(ctx, h.system(), engine.Input{Facts: r.f})
+	cs, _, err := updOffPlan(ctx, h, r)
 	if err != nil || len(cs) != 1 || cs[0].Target != hardnAptFile {
 		t.Errorf("off: %v, %v; want the file alone", changeIDs(cs), err)
 	}
@@ -400,24 +435,24 @@ func TestUpdatesOffRefusals(t *testing.T) {
 		host func() *fakeHost
 		code string
 	}{
-		{"Proxmox VE", updPVE, codeUpdPVE},
+		{"Proxmox VE", updPVE, "UPDATES_PROXMOX"},
 		{"apt's purge", func() *fakeHost {
 			h := updByHardnDebian()
 			h.upd.offExtra = []string{"Remv python3-apt [3.0.0]"}
 			return h
-		}, codeUpdPackages},
+		}, "UPDATES_OTHER_PACKAGES"},
 		{"apk del", func() *fakeHost {
 			h := updByHardnAlpine()
 			h.upd.offExtra = []string{"(2/2) Purging busybox-extras (1.37.0-r0)"}
 			return h
-		}, codeUpdPackages},
+		}, "UPDATES_OTHER_PACKAGES"},
 	} {
 		h := tt.host()
 		r, err := readUpdates(ctx, h.sys())
 		if err != nil {
 			t.Fatal(err)
 		}
-		_, _, err = planOff(ctx, h.system(), engine.Input{Facts: r.f})
+		_, _, err = updOffPlan(ctx, h, r)
 		var rf *steps.Refusal
 		if !errors.As(err, &rf) || rf.Code != tt.code {
 			t.Errorf("%s: %v, want %s", tt.name, err, tt.code)
@@ -426,7 +461,7 @@ func TestUpdatesOffRefusals(t *testing.T) {
 	h := updAlpine()
 	h.f.AddFile("/etc/periodic/daily/notes", []byte("x\n"), 0o644, 0, 0)
 	h.f.AddFile("/etc/periodic/weekly/backup", []byte("#!/bin/sh\n"), 0o755, 0, 0)
-	if jobs := otherJobs(ctx, h.sys()); !slices.Equal(jobs, []string{"backup"}) {
-		t.Errorf("jobs %v, want [backup]", jobs)
+	if jobs, err := alpine.OtherJobs(ctx, h.sys()); err != nil || !slices.Equal(jobNames(jobs), []string{"backup"}) {
+		t.Errorf("jobs %v, %v; want [backup]", jobs, err)
 	}
 }
