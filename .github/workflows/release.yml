@@ -15,8 +15,9 @@ name: Release
 # --latest=false and /releases/latest is not checked; any other tag is
 # published with --latest and /releases/latest must then be that tag.
 #
-# On workflow_dispatch: the same build, SBOM and SHA256SUMS as one workflow
-# artifact, release-assets. No release is created.
+# A tag push is the only trigger: no workflow_dispatch, so no run that is
+# not a release holds id-token: write. ci.yml's check-cross does the
+# build-only runs.
 #
 # Reproducible: the ldflags come from the tagged commit (its date, not the
 # clock), with CGO_ENABLED=0, -trimpath, -tags=netgo and go.mod's toolchain,
@@ -24,14 +25,17 @@ name: Release
 # fields (creationInfo.created, the clock; documentNamespace, a random UUID)
 # are set from the tagged commit's date, the version and the commit, so its
 # bytes, and SHA256SUMS, are the same on a rebuild too. The makefile's LDFLAGS
-# targets and check-cross use the same values and flags. Provenance
-# (actions/attest) is added by p7-provenance.
+# targets and check-cross use the same values and flags.
+#
+# Provenance (p7-provenance): SLSA Build Level 3. The build job calls the
+# reusable workflow build.yml, which builds the binaries and attests each
+# with actions/attest. Before publishing, the release job checks every
+# downloaded binary with gh attestation verify, signer build.yml at this tag.
 
 on:
   push:
     tags:
       - 'v*'
-  workflow_dispatch:
 
 permissions: {}
 
@@ -67,18 +71,17 @@ jobs:
         id: ldflags
         run: |
           set -euo pipefail
-          if [ "$GITHUB_REF_TYPE" = tag ]; then
-            # Checked before it reaches a file name or an ldflag.
-            # No pre-release suffix: a release is always a full version.
-            if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'; then
-              echo "::error::tag $GITHUB_REF_NAME is not v<major>.<minor>.<patch> (pre-release tags are not released). Nothing was built."
-              exit 1
-            fi
-            version=${GITHUB_REF_NAME#v}
-          else
-            # A build-only run from a branch: no release version.
-            version=0.0.0-dev
+          [ "$GITHUB_REF_TYPE" = tag ] || {
+            echo "::error::$GITHUB_REF is not a tag. Nothing was built."
+            exit 1
+          }
+          # Checked before it reaches a file name or an ldflag.
+          # No pre-release suffix: a release is always a full version.
+          if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'; then
+            echo "::error::tag $GITHUB_REF_NAME is not v<major>.<minor>.<patch> (pre-release tags are not released). Nothing was built."
+            exit 1
           fi
+          version=${GITHUB_REF_NAME#v}
           commit=$(git rev-parse HEAD)
           build_date=$(TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ HEAD)
           {
@@ -88,8 +91,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           echo "version=$version commit=$commit build-date=$build_date"
 
-      - name: Release notes exist (tag push only)
-        if: github.event_name == 'push'
+      - name: Release notes exist
         run: |
           set -euo pipefail
           notes="docs/releases/${GITHUB_REF_NAME}.md"
@@ -98,71 +100,26 @@ jobs:
             exit 1
           fi
 
+  # The build and its provenance are in the reusable workflow build.yml
+  # (SLSA Build Level 3: the attestation is signed by build.yml, not by this
+  # file). GitHub's guide gives this job and build.yml's job the same three
+  # permissions; a called workflow gets no more than its caller's job.
   build:
-    name: Build (${{ matrix.goos }}/${{ matrix.goarch }})
+    name: Build
     needs: prepare
-    runs-on: ubuntu-latest
     permissions:
+      attestations: write
       contents: read
-    strategy:
-      fail-fast: true
-      # The release targets (decision 6). The makefile's CHECK_CROSS_TARGETS
-      # names the same three.
-      matrix:
-        include:
-          - goos: linux
-            goarch: amd64
-          - goos: linux
-            goarch: arm64
-          - goos: darwin
-            goarch: amd64
-    steps:
-      - name: Check out
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-
-      - name: Set up Go from go.mod
-        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
-        with:
-          go-version-file: go.mod
-          cache: false  # No cache in a release (cache poisoning)
-
-      - name: Go is go.mod's toolchain line
-        run: |
-          set -eu
-          want_go=$(sed -n 's/^toolchain //p' go.mod)
-          got_go=$(GOTOOLCHAIN=local go env GOVERSION)
-          [ -n "$want_go" ] && [ "$got_go" = "$want_go" ] || {
-            echo "::error file=go.mod::setup-go installed $got_go, not go.mod's toolchain line ($want_go)"
-            exit 1
-          }
-
-      # The makefile's check-cross flags; its LDFLAGS set the same variables.
-      - name: Build
-        env:
-          CGO_ENABLED: "0"
-          GOOS: ${{ matrix.goos }}
-          GOARCH: ${{ matrix.goarch }}
-          VERSION: ${{ needs.prepare.outputs.version }}
-          COMMIT: ${{ needs.prepare.outputs.commit }}
-          BUILD_DATE: ${{ needs.prepare.outputs.build-date }}
-        run: |
-          set -euo pipefail
-          out="dist/hardn-${GOOS}-${GOARCH}"
-          go build -trimpath -tags=netgo \
-            -ldflags "-X main.Version=${VERSION} -X main.GitCommit=${COMMIT} -X main.BuildDate=${BUILD_DATE}" \
-            -o "$out" ./cmd/hardn
-          go version -m "$out"
-          sha256sum "$out"
-
-      - name: Upload the binary
-        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
-        with:
-          name: bin-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/hardn-${{ matrix.goos }}-${{ matrix.goarch }}
-          if-no-files-found: error
-          retention-days: 7
+      id-token: write
+    # ./ and $/ both read build.yml from this run's commit (GitHub's docs).
+    # zizmor asks for $/, but actionlint 1.7.12 rejects it (rhysd/actionlint
+    # #711, open). Its risk, a file cloned at runtime, is a step's: this job
+    # has no steps. Move to $/ once actionlint accepts it.
+    uses: ./.github/workflows/build.yml  # zizmor: ignore[self-repository]
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      commit: ${{ needs.prepare.outputs.commit }}
+      build-date: ${{ needs.prepare.outputs.build-date }}
 
   sbom:
     name: SBOM
@@ -258,6 +215,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write  # Create, upload to and publish the release
+      attestations: read  # gh attestation verify reads the binaries' attestations
     env:
       GH_REPO: ${{ github.repository }}
     steps:
@@ -329,6 +287,36 @@ jobs:
             echo "::error::the draft's assets differ from this run's"
             exit 1
           }
+
+      # SLSA Build Level 3: each binary on the draft has build provenance
+      # signed by build.yml (the reusable workflow, not this file) at this
+      # tag and commit, on a GitHub-hosted runner. The signer is the exact
+      # certificate identity: --signer-workflow is a prefix match before gh
+      # 2.102.0. The certificate's SAN is https://github.com/ + the OIDC
+      # token's job_workflow_ref, which names the called workflow; build.yml,
+      # called with ./, runs at this run's ref and commit, so the identity
+      # ends @GITHUB_REF and its digest is GITHUB_SHA. A binary that fails
+      # leaves the release a draft.
+      - name: Verify each binary's provenance
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh version
+          read -ra assets <<< "$ASSETS"
+          n=0
+          for f in "${assets[@]}"; do
+            case "$f" in hardn-*.spdx.json) continue ;; esac
+            gh attestation verify "back/$f" \
+              --repo abbott/hardn \
+              --cert-identity "https://github.com/abbott/hardn/.github/workflows/build.yml@$GITHUB_REF" \
+              --source-ref "$GITHUB_REF" \
+              --source-digest "$GITHUB_SHA" \
+              --signer-digest "$GITHUB_SHA" \
+              --deny-self-hosted-runners
+            n=$((n + 1))
+          done
+          [ "$n" -eq 3 ] || { echo "::error::verified $n binaries, not 3"; exit 1; }
 
       - name: Publish (latest unless an older version)
         env:
