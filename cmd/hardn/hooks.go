@@ -42,7 +42,7 @@ var reraise = prompt.Reraise
 // as the main menu's error says (mainmenu.Run): by SIGINT after Ctrl-C
 // (reraise), so that a shell running hardn in a loop or a script stops;
 // with exit status 130 at the end of the input (prompt.ExitCode); and with
-// 1, once the error is printed, for any other.
+// 1, once the error is said on stderr (sayError), for any other.
 func runMenu(ctx context.Context, o mainmenu.Options) {
 	err := mainmenu.Run(ctx, o)
 	if err == nil {

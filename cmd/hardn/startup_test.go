@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"strings"
 	"testing"
@@ -8,6 +9,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 )
 
 // TestConfigLine: which hardn.yml was read is said once, on stderr, for
@@ -32,6 +34,7 @@ func TestConfigLine(t *testing.T) {
 		{"HARDN_CONFIG not there, -r", []string{"-r"}, config.Found{Path: yml, By: config.FoundEnv},
 			"Operation Failed Configuration file specified by HARDN_CONFIG environment variable not found: " + yml + " Using default configuration (no config file found)"},
 		{"none, -e", []string{"-e"}, config.Found{}, "No configuration file found in any location Using default configuration (no config file found)"},
+		{"the search path, -g -p", []string{"-g", "-p"}, config.Found{Path: yml, By: config.FoundSearch, Exists: true}, "Using configuration from: " + yml},
 		{"the main menu", nil, config.Found{Path: yml, By: config.FoundSearch, Exists: true}, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -90,5 +93,28 @@ func TestHostOS(t *testing.T) {
 				t.Errorf("wrote stdout %q, stderr %q", stdout, stderr)
 			}
 		})
+	}
+}
+
+// TestRootRunsMenu: the root command with no operation flag runs the main
+// menu on the configuration it loaded, the very pointer, as menuOptions
+// fills it.
+func TestRootRunsMenu(t *testing.T) {
+	var loaded *config.Config
+	var got mainmenu.Options
+	ran := false
+	was := startMenu
+	t.Cleanup(func() { startMenu = was })
+	startMenu = func(_ context.Context, o mainmenu.Options) { got, ran = o, true }
+	r := runHardnWith(t, asRoot, func() {
+		load := loadConfig
+		loadConfig = func(path string) (*config.Config, error) {
+			c, err := load(path)
+			loaded = c
+			return c, err
+		}
+	})
+	if r.ended || !ran || loaded == nil || got.Config != loaded {
+		t.Errorf("ended %v (%d), main menu run %v; its configuration %p, the loaded one %p; stderr %q", r.ended, r.code, ran, got.Config, loaded, r.stderr)
 	}
 }

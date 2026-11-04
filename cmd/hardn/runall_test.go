@@ -417,7 +417,9 @@ func TestRunAllFlagPrintLogs(t *testing.T) {
 }
 
 // TestRunAllFlagVersion: -r gives the planner hardn's version (Auto
-// Updates' record carries it), as the Run All screen is given it.
+// Updates' record carries it), as the Run All screen is given it, and the
+// session engineOptions read (george's over SSH), the one its engines plan
+// with, as TestRunAllScreenOptions holds for the screen.
 func TestRunAllFlagVersion(t *testing.T) {
 	h, cfg := newRunAllHost(t, "debian13", "")
 	var got planner.Input
@@ -432,5 +434,15 @@ func TestRunAllFlagVersion(t *testing.T) {
 	}
 	if got.Version != runAllTestVersion {
 		t.Errorf("the planner's version %q, want %q", got.Version, runAllTestVersion)
+	}
+	if !got.Session.Remote || got.Session.Source == "" {
+		t.Errorf("the planner's session %+v, want george's over SSH", got.Session)
+	}
+	var planned []any
+	if _, err := got.NewEngine(nil).Plan(context.Background(), []engine.Control{sessionProbe{&planned}}, cfg); err != nil {
+		t.Fatal(err)
+	}
+	if len(planned) != 1 || !reflect.DeepEqual(planned[0], got.Session) {
+		t.Errorf("the engine planned with the session %+v, the planner's is %+v", planned, got.Session)
 	}
 }

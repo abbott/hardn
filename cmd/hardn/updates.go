@@ -26,6 +26,10 @@ func withUpdatesScreen(m mainmenu.Options, c *config.Config, version string) mai
 	return m
 }
 
+// updatesRun is the Auto Updates screen's Run, a seam for the tests, which
+// record the options runUpdatesScreen gives it.
+var updatesRun = updatesscreen.Run
+
 // runUpdatesScreen is the main menu's Auto Updates item: the Auto Updates
 // screen until the user goes back (nil) or quits (nav.ErrQuit), or the
 // input ends (prompt.ErrAborted), as runSSHScreen runs the SSH Login
@@ -50,7 +54,7 @@ func runUpdatesScreen(ctx context.Context, c *config.Config, version string) err
 		return err
 	}
 	env := stdoutEnv()
-	return updatesscreen.Run(ctx, updatesscreen.Options{
+	return updatesRun(ctx, updatesscreen.Options{
 		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
 		System:       sys,
 		Facts:        facts,

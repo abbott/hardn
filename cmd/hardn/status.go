@@ -40,6 +40,10 @@ func withStatus(m mainmenu.Options, c *config.Config, version string) mainmenu.O
 	return m
 }
 
+// menuStatus is the main menu's status read, a seam for the tests, which
+// record the options readStatus gives it.
+var menuStatus = mainmenu.Status
+
 // readStatus is one pass's status: read through statusHost, the facts
 // detected by engineDetect, against c's nameservers as they are now (the
 // DNS screen adopts each list it saves into c), the main menu's
@@ -47,7 +51,7 @@ func withStatus(m mainmenu.Options, c *config.Config, version string) mainmenu.O
 // Nothing is registered for Ctrl-C: it ends hardn by Go's default for
 // SIGINT, as during origin/main's checks (pkg/screens/mainmenu).
 func readStatus(ctx context.Context, c *config.Config, version string) (screen.MainMenu, error) {
-	return mainmenu.Status(ctx, mainmenu.StatusOptions{
+	return menuStatus(ctx, mainmenu.StatusOptions{
 		System:  statusHost(),
 		Detect:  engineDetect,
 		Config:  c,
