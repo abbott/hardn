@@ -164,7 +164,7 @@ func TestPlaySize(t *testing.T) {
 	}
 	vm := screen.MainMenuFixture()
 	i := slices.IndexFunc(vm.Menu.Items, func(it component.MenuItem) bool { return it.Key == "7" })
-	vm.Menu.Items = slices.Insert(vm.Menu.Items, i, updMenuItem) // play's main menu: the Auto Updates mock's item (updates.go)
+	vm.Menu.Items = slices.Insert(vm.Menu.Items, i, updMenuItem) // play's main menu: the Auto Updates screen's item (updates.go)
 	drawn := func(height int) string {
 		env := term.Fixed(80, colorprofile.ASCII, false, true)
 		env.Height = height
@@ -773,7 +773,7 @@ func TestPlayTouchesNothing(t *testing.T) {
 		"pkg/screens/environment", "pkg/engine/controls/environment", "pkg/host/sudoers",
 		"pkg/screens/systemdetails", "pkg/screens/logs", "pkg/engine/details", "pkg/engine/logview",
 		"pkg/screens/firewall", "pkg/engine/controls/firewall", "pkg/host/ufw", "pkg/host/pve",
-		"pkg/screens/users", "pkg/screens/ssh"} {
+		"pkg/screens/users", "pkg/screens/ssh", "pkg/screens/updates"} {
 		if !seen[filepath.Join(root, filepath.FromSlash(p))] {
 			t.Errorf("%s, which play links, was not checked", p)
 		}

@@ -1,6 +1,7 @@
 # Auto Updates mock (slice 7, unit (a))
 
 Unit (a) of slice 7, `next/s7-gallery`, adopted 2026-11-03; since unit (b), `next/s7-control`, it runs on the real control. The screen is still the gallery's (unit (c)); the mock is in `internal/tools/uigallery` (`updates.go`, `updateshost.go`).
+*Since `next/s7-screen` ([screen-updates.md](screen-updates.md)): the listing and its mocks are gone; git keeps them at `next/s7-control`, and §2 records what they showed. `play updates` and `play updates/<host>` run hardn's own screen, `pkg/screens/updates`, on the same hosts, as does main menu 6 in play; each `play/updates-*` golden differs from `9a4bb455` in its opening note and the version notes ("Installed 2.12", "1.0-r3") alone.*
 Status: tested on macOS in process (`go test ./internal/tools/uigallery/`) on the fake host; no hardn binary ran, nothing ran on a VM. The hosts' shapes are the VMs' read of 2026-11-03 (`vm-runs/s7/00-inspect-*.log`), their values synthetic.
 
 ## 1. What to run
