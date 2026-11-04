@@ -236,6 +236,12 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 - **No `george` default.** The example configuration no longer sets `username: "george"`: neither `hardn.yml.example` nor the copy hardn writes to `/etc/hardn/hardn.yml.example`. The first-run question that creates hardn.yml has no default either: press Enter and no username is saved. Set the user `-c` and Run All create in your own hardn.yml.
 
+## Changed: start-up
+
+- **`--help`, `--version`, a bad command line and a run as a user other than root write nothing.** hardn used to create `/var/log/hardn.log` and `/etc/hardn/hardn.yml.example` before it read its flags. Now the main menu, the operation flags and `setup-sudo-env` write them once they run, and `confirm` and `rollback` write the log. `system-details` and `-p` write neither, and plan only (`-n`) writes neither.
+- **"This script needs to be run as root." comes first.** As a user other than root, hardn says it before anything else, with no warnings about the log ahead of it.
+- **The question that creates hardn.yml is asked only on a terminal**, stdin and stdout both. Without one, and at the end of the input (Ctrl-D), no hardn.yml is written and hardn uses the defaults, as when you answer n. The end of the input used to answer yes.
+
 ## Changed: supported versions
 
 *Drafted by p7-surface.*
