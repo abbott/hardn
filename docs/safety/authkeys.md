@@ -36,4 +36,6 @@ type Plan struct { Path string; Before *string; After string; MakeDir []string }
 func (p Plan) Empty() bool
 func PlanAdd(ctx context.Context, sys host.System, u accounts.User, entries []string, k Key) (Plan, error)
 func PlanRemove(ctx context.Context, sys host.System, u accounts.User, entries []string, fingerprint string) (Plan, error)
+func (k Key) RSABits() int                           // slice 6 (b): an ssh-rsa modulus in bits (RFC 4253 §6.6), 0 otherwise
+func TypeAccepted(keyType string, algos []string) bool // slice 6 (b): PubkeyAcceptedAlgorithms takes the type; ssh-rsa by ssh-rsa or rsa-sha2-*
 ```

@@ -146,6 +146,11 @@ type Line struct { Origin; Keyword string; Args []string; Match *Block } // next
 func ReadOrder(main []byte, drops []File) []Line
 func Accumulates(keyword string) bool
 func CanonicalKeyword(keyword string, args []string) string
+// slice 6 (b), for SSH Login's proof (gallery-ssh.md §5 decision 2): sshd -T -C for one user and address, Match blocks applied; patterns, methods, the session's login line. Reads only.
+func ReadUser(ctx context.Context, sys host.System, bin, user, addr string) (UserView, error) // permitrootlogin without-password read as prohibit-password
+func Listed(patterns []string, user, addr string) (ok bool, host string, named bool)          // USER[@HOST]; HOST an address pattern or CIDR, "!" entries; a host name never matched [I: match.c not read]
+func MethodsMet(lists []string, have map[string]bool) bool
+func ReadAccepted(ctx context.Context, sys host.System, openRC bool, conn string, pids []int) (Accepted, error) // journalctl -b -u ssh -u sshd; OpenRC /var/log/messages, then .0; the last line from conn's address and port, logged by one of pids where known (revert.Session.LogPIDs); ErrNotLogged
 ```
 
 > The API list above was brought up to date by `next/p2-vmtest` with what `next/p2-reload` and `next/p2-sshd-migrate` added to this package.
