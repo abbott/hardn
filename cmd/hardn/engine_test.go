@@ -133,10 +133,9 @@ func TestEngineSeamsAreReal(t *testing.T) {
 // TestTerminalWriters: what cmd/hardn writes to stdout and stderr goes
 // through one writer each (termStdout and termStderr, which
 // TestTerminalWritersDropAfterHangup holds to hardn's terminal): the
-// screens' and -g's (engineStdout), hardn confirm's (confirmStdout), the
-// command line's refusals (stderr), the next-run notices (revertStderr),
-// the legacy logger's console lines (fatih/color's Output and Error) and
-// its fallback when hardn's log cannot be opened (logging.FallbackOutput).
+// screens' and -g's (engineStdout), hardn confirm's (confirmStdout), and
+// the console lines (stderr: the command line's refusals, the next-run
+// notices and every line say writes).
 func TestTerminalWriters(t *testing.T) {
 	if termStdout == termStderr {
 		t.Fatal("stdout and stderr share one writer")

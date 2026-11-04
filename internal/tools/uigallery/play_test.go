@@ -543,13 +543,14 @@ func TestPlayWriteFails(t *testing.T) {
 //
 // The engine's scenarios link what does all of that: the real side of the
 // seam (host.Real), the engine's signal hold (pkg/engine/hold), and
-// pkg/config and pkg/logging, which pkg/engine and pkg/output link for
-// their types. Those files (realSide) are exempt, and the test checks
+// pkg/config, which pkg/engine and pkg/output link for its types (it no
+// longer links pkg/logging: docs/engine/legacy-left.md §2, step 6). Those
+// files (realSide) are exempt, and the test checks
 // instead, by name, that nothing play links can reach them. No file but
 // host.Real's own names the type, in any form (a literal, new, a
 // declaration, a conversion), and those make one only in host.NewReal,
-// which no file names. No file names pkg/config's or pkg/logging's
-// functions (pkg/config, unreached itself, aside), but for pkg/config's
+// which no file names. No file names pkg/config's functions (pkg/config,
+// unreached itself, aside), but for pkg/config's
 // Read, Save and Edit, which reach the host only through the host.System
 // they are given, or not at all (the save of hardn.yml, steps.PlanSave). hold.Signals and
 // SignalsAs are named only by pkg/engine's default hold, which an
@@ -603,11 +604,11 @@ func TestPlayTouchesNothing(t *testing.T) {
 		"pkg/host/scan.go": real, "pkg/host/interactive.go": real, "pkg/host/terminal_linux.go": real, "pkg/host/terminal_darwin.go": real,
 		"pkg/engine/hold/hold.go": holding, "pkg/engine/hold/restore_darwin.go": holding,
 		"pkg/engine/hold/restore_linux.go": holding, "pkg/engine/hold/restore_other.go": holding,
-		"pkg/config/config.go": start, "pkg/config/embed.go": start, "pkg/logging/logging.go": start,
+		"pkg/config/config.go": start, "pkg/config/embed.go": start,
 	}
 	// unreached are the functions of the packages behind realSide that
 	// nothing play links may name, by package; filled from their files.
-	unreached := map[string]map[string]bool{module + "pkg/config": {}, module + "pkg/logging": {}}
+	unreached := map[string]map[string]bool{module + "pkg/config": {}}
 	for p, funcs := range unreached {
 		paths, err := filepath.Glob(filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(p, module)), "*.go"))
 		if err != nil {
