@@ -1,0 +1,135 @@
+# Golden file of TestRunAllGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrunall flag␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: hardn -r's words, proposed (decision 8): off a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith another operation flag.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mhardn -r, off a terminal␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r asks you to type the hostname, and this isn't a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mterminal (PLAN_REFUSED)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo go on: run hardn -r from a terminal.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mhardn -r -e␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r runs alone: it can't be combined with -c, -d, -w, -g␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mor -e.␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# runall flag --------------------------------------------------$
+$
+# Note$
+# Mock: hardn -r's words, proposed (decision 8): off a terminal,$
+# with another operation flag.$
+$
+# hardn -r, off a terminal -------------------------------------$
+$
+# Warning$
+# hardn -r asks you to type the hostname, and this isn't a$
+# terminal (PLAN_REFUSED)$
+# To go on: run hardn -r from a terminal.$
+$
+# hardn -r -e --------------------------------------------------$
+$
+# Warning$
+# hardn -r runs alone: it can't be combined with -c, -d, -w, -g$
+# or -e.$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrunall flag␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: hardn -r's words, proposed (decision 8): off a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal, with another operation flag.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mhardn -r, off a terminal␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r asks you to type the hostname, and this isn't a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mterminal (PLAN_REFUSED)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo go on: run hardn -r from a terminal.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mhardn -r -e␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r runs alone: it can't be combined with -c, -d, -w,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m-g or -e.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mrunall flag␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: hardn -r's words, proposed (decision 8): off a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith another operation flag.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mhardn -r, off a terminal␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r asks you to type the hostname, and this isn't a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mterminal (PLAN_REFUSED)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo go on: run hardn -r from a terminal.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mhardn -r -e␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r runs alone: it can't be combined with -c, -d, -w, -g␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mor -e.␛[m$
+$
+$
+
+=== truecolor-dark-unicode-80-40: width 80, height 40, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mrunall flag␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: hardn -r's words, proposed (decision 8): off a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith another operation flag.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mhardn -r, off a terminal␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r asks you to type the hostname, and this isn't a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mterminal (PLAN_REFUSED)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo go on: run hardn -r from a terminal.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mhardn -r -e␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r runs alone: it can't be combined with -c, -d, -w, -g␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mor -e.␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80-40: width 80, height 40, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mrunall flag␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: hardn -r's words, proposed (decision 8): off a terminal,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith another operation flag.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mhardn -r, off a terminal␛[m ␛[38;2;48;52;64m-------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r asks you to type the hostname, and this isn't a␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mterminal (PLAN_REFUSED)␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo go on: run hardn -r from a terminal.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mhardn -r -e␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn -r runs alone: it can't be combined with -c, -d, -w, -g␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mor -e.␛[m$
+$
+$

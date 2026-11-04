@@ -1,0 +1,715 @@
+# Golden file of TestPlayRunAllGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay runall/alpine323␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Run All screen proposed for slice 8,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's Plan, all of them in one plan on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Which controls hardn.yml asks for, how a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is skipped, a change pending read before any plan, and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhostname asked whatever the risk are the gallery's stand-ins,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munit (b)'s to build. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/alpine323␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM: no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPAM, root "!", george in wheel, no ufw, no apk-cron.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml: george with a key, port 22, two nameservers,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups on, and enableUnattendedUpgrades, enableUfwSshPolicy,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigureDns and disableRootSSH true.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mhardn can't tell which port…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFirewall skipped: hardn can't tell which ports SSH uses: ss␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156misn't installed. Install iproute2, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mApply all␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRun All␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+#!/sbin/openrc-run␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot service (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd starts: re-arm the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ a change waiting␛[m$
+      ␛[38;2;112;212;127m+# for "hardn confirm", for what remains of its window, or␛[m$
+      ␛[38;2;112;212;127m↪ roll the change␛[m$
+      ␛[38;2;112;212;127m+# back when its deadline has passed. Ordering only: sshd␛[m$
+      ␛[38;2;112;212;127m↪ starts whatever␛[m$
+      ␛[38;2;112;212;127m+# this service does.␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+description="hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change"␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+depend() {␛[m$
+      ␛[38;2;112;212;127m+    need localmount␛[m$
+      ␛[38;2;112;212;127m+    after bootmisc firewall␛[m$
+      ␛[38;2;112;212;127m+    before sshd␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+start() {␛[m$
+      ␛[38;2;112;212;127m+    ebegin "hardn: checking the change journal"␛[m$
+      ␛[38;2;112;212;127m+    /usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+    eend $?␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;231;70;105m-apk-cron not installed, crond stopped␛[m$
+      ␛[38;2;112;212;127m+apk-cron installed, crond started at boot␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mDisallow root login␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,3 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,3 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # Generated by dhcpcd from eth0.dhcp␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+$
+      ␛[38;2;129;134;156msshd␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows no root login␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
+      ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
+$
+  ␛[38;2;192;196;216mApply this plan?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m    ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m       ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDisallow root login␛[m          ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m          ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m    ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows no root login␛[m  ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m       ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
+  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run doas hardn␛[m$
+  ␛[38;2;129;134;156mrollback 20261020T120000Z-xxxxxxxx.␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/resolv.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mChange pending␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/alpine323␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Turn on daily upgrades␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Disallow root login␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload sshd (openrc sshd)␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Record hardn's changes␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play runall/alpine323 ----------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Run All screen proposed for slice 8,$
+# each row's state from the control's real Check, each change$
+# the real control's Plan, all of them in one plan on the real$
+# plan/apply engine. Which controls hardn.yml asks for, how a$
+# row is skipped, a change pending read before any plan, and the$
+# hostname asked whatever the risk are the gallery's stand-ins,$
+# unit (b)'s to build. Nothing on this machine changes: every$
+# command and file is the fake's.$
+$
+# Info: runall/alpine323$
+# web-01.example.net runs Alpine 3.23 (OpenRC). As the VM: no$
+# PAM, root "!", george in wheel, no ufw, no apk-cron.$
+# hardn.yml: george with a key, port 22, two nameservers,$
+# backups on, and enableUnattendedUpgrades, enableUfwSshPolicy,$
+# configureDns and disableRootSSH true.$
+$
+# Run All ######################################################$
+$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Already as asked$
+   -  Firewall             Refused: hardn can't tell which po...$
+   -  SSH Login            Root login off$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         Turn on$
+   -  DNS                  Set 2 nameservers$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
+$
+  Select an option$
+$
+   1) Apply all            Plan, review, confirm$
+                           [ ] Lockout risk$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 1$
+$
+# Warning$
+# Firewall skipped: hardn can't tell which ports SSH uses: ss$
+# isn't installed. Install iproute2, then try again.$
+$
+# Apply all ####################################################$
+$
+# Run All ------------------------------------------------------$
+$
+   -  SSH Login            Root login off$
+   -  Auto Updates         Turn on$
+   -  DNS                  Set 2 nameservers$
+   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+$
+   -  Install hardn's boot unit$
+      /etc/init.d/hardn-boot$
+      @@ -0,0 +1,23 @@$
+      +#!/sbin/openrc-run$
+      +# hardn's boot service (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd starts: re-arm the revert timer of$
+      | a change waiting$
+      +# for "hardn confirm", for what remains of its window, or$
+      | roll the change$
+      +# back when its deadline has passed. Ordering only: sshd$
+      | starts whatever$
+      +# this service does.$
+      +$
+      +description="hardn: re-arm or run the revert timer of an$
+      | unconfirmed change"$
+      +$
+      +depend() {$
+      +    need localmount$
+      +    after bootmisc firewall$
+      +    before sshd$
+      +}$
+      +$
+      +start() {$
+      +    ebegin "hardn: checking the change journal"$
+      +    /usr/local/bin/hardn rollback --boot$
+      +    eend $?$
+      +}$
+      -not installed$
+      +installed and enabled$
+      $ sh -n /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot$
+      $ rc-update add hardn-boot default$
+$
+   -  Turn on daily upgrades$
+      crond$
+      -apk-cron not installed, crond stopped$
+      +apk-cron installed, crond started at boot$
+      $ apk add apk-cron$
+      $ rc-update add crond default$
+      $ rc-service crond start$
+$
+  [ ] Lockout risk$
+      Disallow root login$
+$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+      @@ -0,0 +1,3 @@$
+      +# Managed by hardn.$
+      +# Set by hardn:$
+      +PermitRootLogin no$
+$
+   -  Set the nameservers$
+      /etc/resolv.conf$
+      @@ -1,3 +1,4 @@$
+       # Generated by dhcpcd from eth0.dhcp$
+       search example.net$
+      -nameserver 192.0.2.1$
+      +nameserver 192.0.2.54$
+      +nameserver 2001:db8::54$
+$
+  [ ] Lockout risk$
+      Reload sshd (openrc sshd)$
+$
+      sshd$
+      $ rc-service sshd reload$
+$
+  [ ] Lockout risk$
+      sshd -T shows no root login$
+$
+      sshd -T$
+      $ sshd -T$
+$
+   -  Record hardn's changes$
+      /var/lib/hardn/controls/updates.auto.json$
+$
+  Apply this plan?$
+$
+  Type the hostname [web-01, 0 or q]: web-01$
+$
+  [+] Install hardn's boot unit    Done$
+  [+] Turn on daily upgrades       Done$
+  [+] Disallow root login          Done$
+  [+] Set the nameservers          Done$
+  [+] Reload sshd (openrc sshd)    Done$
+  [+] sshd -T shows no root login  Done$
+  [+] Record hardn's changes       Done$
+$
+# Operation Successful$
+$
+# Warning$
+# This change reverts automatically in 3:00$
+# To keep it, open a new SSH session and run:$
+$
+      $ doas hardn confirm$
+$
+  Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
+  back at about 12:03:00 UTC. To undo it now, run doas hardn$
+  rollback 20261020T120000Z-xxxxxxxx.$
+$
+  Backup of /etc/resolv.conf kept in$
+  /var/backups/hardn/20261020T120000Z-xxxxxxxx$
+$
+# Run All ######################################################$
+$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Change pending$
+   -  Firewall             Change pending$
+   -  SSH Login            Change pending$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         Change pending$
+   -  DNS                  Change pending$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
+$
+  Select an option$
+$
+   1) Apply all            Change pending$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Info: runall/alpine323$
+# Recorded by the fake, not done: what each step ran on web-$
+# 01.example.net, and the files it changed, in order; hardn's$
+# own journal, run directory and backups left out.$
+$
+   -  Before the first change$
+      $ rc-service crond status$
+      $ rc-service crond status$
+      $ rc-service crond status$
+      $ rc-service crond status$
+$
+   -  Applied: Install hardn's boot unit$
+      /etc/init.d/hardn-boot$
+      $ rc-update add hardn-boot default$
+$
+   -  Armed the revert timer$
+      $ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""$
+      | /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx$
+$
+   -  Applied: Turn on daily upgrades$
+      $ rc-service crond status$
+      $ apk add apk-cron$
+      $ rc-update add crond default$
+      $ rc-service crond start$
+      $ rc-service crond status$
+$
+   -  Applied: Disallow root login$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+$
+   -  Applied: Set the nameservers$
+      /etc/resolv.conf$
+$
+   -  Applied: Reload sshd (openrc sshd)$
+      $ rc-service sshd reload$
+$
+   -  Applied: Record hardn's changes$
+      $ rc-service crond status$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay runall/alpine323␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Run All screen proposed for slice 8,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meach row's state from the control's real Check, each␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchange the real control's Plan, all of them in one plan on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real plan/apply engine. Which controls hardn.yml asks␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfor, how a row is skipped, a change pending read before␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156many plan, and the hostname asked whatever the risk are the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/alpine323␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno PAM, root "!", george in wheel, no ufw, no apk-cron.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml: george with a key, port 22, two nameservers,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups on, and enableUnattendedUpgrades,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUfwSshPolicy, configureDns and disableRootSSH true.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mhardn can't tell which ports SSH uses: ss is…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
+      ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFirewall skipped: hardn can't tell which ports SSH uses:␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mss isn't installed. Install iproute2, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mApply all␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mRun All␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+#!/sbin/openrc-run␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot service (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd starts: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change waiting␛[m$
+      ␛[38;2;112;212;127m+# for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the change␛[m$
+      ␛[38;2;112;212;127m+# back when its deadline has passed. Ordering only:␛[m$
+      ␛[38;2;112;212;127m↪ sshd starts whatever␛[m$
+      ␛[38;2;112;212;127m+# this service does.␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+description="hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change"␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+depend() {␛[m$
+      ␛[38;2;112;212;127m+    need localmount␛[m$
+      ␛[38;2;112;212;127m+    after bootmisc firewall␛[m$
+      ␛[38;2;112;212;127m+    before sshd␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+start() {␛[m$
+      ␛[38;2;112;212;127m+    ebegin "hardn: checking the change journal"␛[m$
+      ␛[38;2;112;212;127m+    /usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+    eend $?␛[m$
+      ␛[38;2;112;212;127m+}␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ sh -n␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m$
+      ␛[38;2;129;134;156mcrond␛[m$
+      ␛[38;2;231;70;105m-apk-cron not installed, crond stopped␛[m$
+      ␛[38;2;112;212;127m+apk-cron installed, crond started at boot␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mDisallow root login␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,3 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,3 +1,4 @@␛[m$
+      ␛[38;2;129;134;156m # Generated by dhcpcd from eth0.dhcp␛[m$
+      ␛[38;2;129;134;156m search example.net␛[m$
+      ␛[38;2;231;70;105m-nameserver 192.0.2.1␛[m$
+      ␛[38;2;112;212;127m+nameserver 192.0.2.54␛[m$
+      ␛[38;2;112;212;127m+nameserver 2001:db8::54␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+$
+      ␛[38;2;129;134;156msshd␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows no root login␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
+      ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
+$
+  ␛[38;2;192;196;216mApply this plan?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[web-01, 0 or q]:␛[m web-01$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDisallow root login␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSet the nameservers␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mReload sshd (openrc sshd)␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216msshd -T shows no root login␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
+      ␛[38;2;112;212;127mDone␛[m$
+$
+␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mThis change reverts automatically in ␛[m␛[1;38;2;219;184;83m3:00␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mTo keep it, open a new SSH session and run:␛[m$
+$
+      ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
+$
+  ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
+  ␛[38;2;129;134;156mrolled back at about 12:03:00 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+$
+  ␛[38;2;129;134;156mBackup of /etc/resolv.conf kept in␛[m$
+  ␛[38;2;129;134;156m/var/backups/hardn/20261020T120000Z-xxxxxxxx␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/alpine323␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/init.d/hardn-boot␛[m$
+      ␛[38;2;129;134;156m$ rc-update add hardn-boot default␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mArmed the revert timer␛[m$
+      ␛[38;2;129;134;156m$ /bin/sh -c "sleep \"$1\" && \"$0\" rollback \"$2\""␛[m$
+      ␛[38;2;129;134;156m↪ /usr/local/bin/hardn 180 20261020T120000Z-xxxxxxxx␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Turn on daily upgrades␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ apk add apk-cron␛[m$
+      ␛[38;2;129;134;156m$ rc-update add crond default␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond start␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Disallow root login␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
+      ␛[38;2;129;134;156m/etc/resolv.conf␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Reload sshd (openrc sshd)␛[m$
+      ␛[38;2;129;134;156m$ rc-service sshd reload␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Record hardn's changes␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+$

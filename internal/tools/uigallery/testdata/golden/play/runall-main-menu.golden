@@ -1,0 +1,418 @@
+# Golden file of TestPlayRunAllGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfixture plans. Nothing on this machine changes: the simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem only records each step it would apply, and the record␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis shown when play ends.␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+$
+␛[38;2;48;52;64m────────────────────────────────────────────────────────────────␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mToggle SSH root access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george (two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george with␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma key, port 22, two nameservers, backups on, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. george logged in by key, hardn through␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+$
+␛[38;2;48;52;64m────────────────────────────────────────────────────────────────␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mToggle SSH root access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play main-menu/00-tui-main -----------------------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the gallery's$
+# fixture plans. Nothing on this machine changes: the simulated$
+# system only records each step it would apply, and the record$
+# is shown when play ends.$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Debian 12 (Bookworm) #########################################$
+$
+  [BOS-SAN-L01]            192.0.2.10$
+                           182 days, 2 hours, 26 minutes$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Mode Live$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle SSH root access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Auto Updates         Configure automatic updates$
+   7) Run All              Execute hardening operations$
+   8) Environment          Keep HARDN_CONFIG$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter selection [0-10 or q]: 7$
+$
+# Info: runall/debian13$
+# web-01.example.net runs Debian 13. As the VM: george (two$
+# keys, sudo by cloud-init) and alice, ufw allowing 22,$
+# unattended-upgrades on by the package. hardn.yml: george with$
+# a key, port 22, two nameservers, backups on, and$
+# enableUnattendedUpgrades, enableUfwSshPolicy, configureDns and$
+# disableRootSSH true. george logged in by key, hardn through$
+# sudo.$
+$
+# Run All ######################################################$
+$
+# Controls -----------------------------------------------------$
+$
+   -  User                 Already as asked$
+   -  Firewall             Already as asked$
+   -  SSH Login            Root login off$
+   -  SSH Auth             Nothing asked$
+   -  SSH Port             Already as asked$
+   -  AppArmor             Status only$
+   -  Auto Updates         Already as asked$
+   -  DNS                  Set 2 nameservers$
+   -  Backups              Used, not changed$
+   -  Environment          Nothing asked$
+$
+  Select an option$
+$
+   1) Apply all            Plan, review, confirm$
+                           [ ] Lockout risk$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 0$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Debian 12 (Bookworm) #########################################$
+$
+  [BOS-SAN-L01]            192.0.2.10$
+                           182 days, 2 hours, 26 minutes$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] Firewall             Configured deny policy$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [ ] AppArmor             Not Configured$
+  [ ] Auto Updates         Not Configured$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Mode Live$
+$
+   1) User Management      Create, Configure (sudo, SSH keys)$
+   2) SSH Login            Toggle SSH root access$
+   3) DNS                  Configure Nameservers$
+   4) Firewall             Configure UFW rules$
+   5) Backup               Configure Hardn backup settings$
+   6) Auto Updates         Configure automatic updates$
+   7) Run All              Execute hardening operations$
+   8) Environment          Keep HARDN_CONFIG$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+  > Enter selection [0-10 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay main-menu/00-tui-main␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's fixture plans. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe simulated system only records each step it would␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapply, and the record is shown when play ends.␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m$
+      ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+$
+␛[38;2;48;52;64m────────────────────────────────────────────────────────────␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m$
+      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mToggle SSH root access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
+      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mConfigure automatic updates␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+      ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+      ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+      ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
+      ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george (two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a key, port 22, two nameservers, backups on, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand disableRootSSH true. george logged in by key, hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthrough sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;129;134;156mUsed, not changed␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
+      ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m$
+      ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+$
+␛[38;2;48;52;64m────────────────────────────────────────────────────────────␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m$
+      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mToggle SSH root access␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
+      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mConfigure automatic updates␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+      ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+      ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+      ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
+      ␛[38;2;129;134;156mq to quit␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
