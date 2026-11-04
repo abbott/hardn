@@ -147,7 +147,7 @@ Nothing here has run on Linux. On the Debian 13, Ubuntu 26.04 and Alpine 3.24 VM
 - `systemctl soft-reboot` inside the window on Debian 13 and Ubuntu 26.04: the boot id kept, the transient timer gone, and the change re-armed (§2.2, §3's two rows on it; vmtest §4.10 step 9);
 - `hardn rollback --boot` run by hand after the boot, past the deadline, with `ssh.service` stopped: it is started (§2.4; step 10); and `systemctl is-active hardn-boot.service` printing `activating` from the unit's own `ExecStart=` (§3);
 - OpenRC: `/run/openrc/starting/hardn-boot` while the service's `start()` runs (§2.4), and, where a `firewall` provider is in a runlevel, `hardn-boot` starting after it (§2.14);
-- `/var/log/hardn.log` and the unit's journal as the record, as root; `main()`'s writes before flag parsing at boot (V26, `p3-startup`).
+- `/var/log/hardn.log` and the unit's journal as the record, as root; ~~`main()`'s writes before flag parsing at boot (V26, `p3-startup`)~~ *closed by `next/p3-startup`: `hardn rollback --boot` opens the log after its flags, and writes no example hardn.yml*.
 
 ## 5. API
 
