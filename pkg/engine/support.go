@@ -3,7 +3,7 @@ package engine
 import "github.com/abbott/hardn/pkg/host/detect"
 
 // CodeBestEffort is the finding of a plan made on a best-effort release
-// (detect.BestEffort: Ubuntu 22.04, Alpine 3.22 and 3.21): one its vendor
+// (detect.BestEffort: Ubuntu 22.04 and Alpine 3.22): one its vendor
 // still supports and hardn changes, but is not tested on. It is stable
 // once released; p3-output's registry holds it (P-41, decided by the
 // maintainer on 2026-10-19: such releases are changed, with this warning
