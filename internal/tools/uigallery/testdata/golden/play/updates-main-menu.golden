@@ -59,7 +59,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 20auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 20auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
@@ -175,7 +175,7 @@ $
 $
 # Update Configuration -----------------------------------------$
 $
-   -  unattended-upgrades  Installed 2.12$
+   -  unattended-upgrades  Installed$
    -  Upgrades             Daily by 20auto-upgrades$
    -  Package Lists        Daily by 20auto-upgrades$
    -  Upgrade Timer        On apt-daily-upgrade.timer$
@@ -315,7 +315,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m$
-      ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+      ␛[38;2;129;134;156mInstalled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
       ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 20auto-upgrades␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m$
