@@ -1,4 +1,4 @@
-package menu
+package mainmenu
 
 import (
 	"errors"
@@ -8,14 +8,13 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // TestDNSItem: the main menu's 3 runs the DNS screen cmd/hardn sets
-// (SetDNS) from a cleared screen, once, and maps what it returns: Return
+// (Options.DNS) from a cleared screen, once, and maps what it returns: Return
 // (nil) or back (nav.ErrBack) to the main menu, drawn again under the
 // screen, which shows the configuration as the screen left it; q
 // (nav.ErrQuit) ends hardn as the main menu's q does, clearing the
@@ -24,7 +23,7 @@ import (
 // With no screen set, a programming error, the item panics.
 func TestDNSItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "3", name: "DNS", set: (*MainMenu).SetDNS,
+		key: "3", name: "DNS", set: setDNS,
 		edit: func(c *config.Config) { c.Nameservers = append(c.Nameservers, "192.0.2.55") },
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53", "192.0.2.55"})
@@ -33,25 +32,25 @@ func TestDNSItem(t *testing.T) {
 }
 
 // TestBackupItem: the main menu's 5 runs the Backup screen cmd/hardn sets
-// (SetBackup), as TestDNSItem's 3 runs the DNS screen, and maps what it
+// (Options.Backup), as TestDNSItem's 3 runs the DNS screen, and maps what it
 // returns the same way (refactor plan slice 3, unit (d)); the main menu
 // holds the backup settings as the screen left them.
 func TestBackupItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "5", name: "BACKUP", set: (*MainMenu).SetBackup,
+		key: "5", name: "BACKUP", set: setBackup,
 		edit:   func(c *config.Config) { c.BackupPath = "/srv/backups/hardn" },
 		edited: func(c *config.Config) bool { return c.BackupPath == "/srv/backups/hardn" },
 	})
 }
 
 // TestEnvironmentItem: the main menu's 8 runs the Environment screen
-// cmd/hardn sets (SetEnvironment), as TestDNSItem's 3 runs the DNS screen,
+// cmd/hardn sets (Options.Environment), as TestDNSItem's 3 runs the DNS screen,
 // and maps what it returns the same way (refactor plan slice 9, unit (d));
 // the screen saves no setting, so the main menu's configuration is as it
 // was.
 func TestEnvironmentItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "8", name: "ENVIRONMENT", set: (*MainMenu).SetEnvironment,
+		key: "8", name: "ENVIRONMENT", set: setEnvironment,
 		edit: func(*config.Config) {},
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.BackupPath == config.DefaultConfig().BackupPath
@@ -60,12 +59,12 @@ func TestEnvironmentItem(t *testing.T) {
 }
 
 // TestFirewallItem: the main menu's 4 runs the Firewall screen cmd/hardn
-// sets (SetFirewall), as TestDNSItem's 3 runs the DNS screen, and maps what
+// sets (Options.Firewall), as TestDNSItem's 3 runs the DNS screen, and maps what
 // it returns the same way (refactor plan slice 4, unit (d)); the main menu
 // holds the application profiles as the screen left them.
 func TestFirewallItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "4", name: "FIREWALL", set: func(m *MainMenu, run func() error) { m.SetFirewall(run, nil) },
+		key: "4", name: "FIREWALL", set: func(m *Options, run func() error) { m.Firewall = run },
 		edit: func(c *config.Config) {
 			c.UfwAppProfiles = append(c.UfwAppProfiles, config.UfwAppProfile{Name: "WebServer", Title: "Web", Description: "Web", Ports: []string{"80/tcp"}})
 		},
@@ -76,7 +75,7 @@ func TestFirewallItem(t *testing.T) {
 }
 
 // TestFirewallItemOnPVE: the main menu's 4 reads "View pve-firewall" where
-// cmd/hardn says the host is Proxmox VE (SetFirewall's onPVE; decision 7,
+// cmd/hardn says the host is Proxmox VE (Options.Firewall's onPVE; decision 7,
 // adopted 2026-11-01), and origin/main's "Configure UFW rules" where it
 // says not, or says nothing; its key, label and action are the same.
 func TestFirewallItemOnPVE(t *testing.T) {
@@ -90,9 +89,9 @@ func TestFirewallItemOnPVE(t *testing.T) {
 		{"not said", nil, "Configure UFW rules"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			m := &MainMenu{config: config.DefaultConfig()}
-			m.SetFirewall(func() error { return nil }, tc.onPVE)
-			for _, o := range m.mainMenu().Options {
+			m := &Options{Config: config.DefaultConfig()}
+			m.Firewall, m.FirewallPVE = func() error { return nil }, tc.onPVE
+			for _, o := range m.items().Options {
 				if o.Item.Key == "4" {
 					if o.Item.Label != "Firewall" || o.Item.Description != tc.want {
 						t.Errorf("item 4 is %q, %q; want Firewall, %q", o.Item.Label, o.Item.Description, tc.want)
@@ -106,13 +105,13 @@ func TestFirewallItemOnPVE(t *testing.T) {
 }
 
 // TestUsersItem: the main menu's 1 runs the User Management screen
-// cmd/hardn sets (SetUsers), as TestDNSItem's 3 runs the DNS screen, and
+// cmd/hardn sets (Options.Users), as TestDNSItem's 3 runs the DNS screen, and
 // maps what it returns the same way (refactor plan slice 5, unit (d)); no
 // change the screen makes saves hardn.yml, so the main menu's
 // configuration is as it was.
 func TestUsersItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "1", name: "USERS", set: (*MainMenu).SetUsers,
+		key: "1", name: "USERS", set: setUsers,
 		edit: func(*config.Config) {},
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.Username == config.DefaultConfig().Username
@@ -121,13 +120,13 @@ func TestUsersItem(t *testing.T) {
 }
 
 // TestSSHItem: the main menu's 2 runs the SSH Login screen cmd/hardn sets
-// (SetSSH), as TestDNSItem's 3 runs the DNS screen, and maps what it
+// (Options.SSH), as TestDNSItem's 3 runs the DNS screen, and maps what it
 // returns the same way (refactor plan slice 6, unit (d)); no change the
 // screen makes saves hardn.yml, so the main menu's configuration is as it
 // was.
 func TestSSHItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "2", name: "SSH", set: (*MainMenu).SetSSH,
+		key: "2", name: "SSH", set: setSSH,
 		edit: func(*config.Config) {},
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.SshPort == config.DefaultConfig().SshPort
@@ -136,26 +135,26 @@ func TestSSHItem(t *testing.T) {
 }
 
 // TestUpdatesItem: the main menu's 6 runs the Auto Updates screen
-// cmd/hardn sets (SetUpdates), as TestDNSItem's 3 runs the DNS screen, and
+// cmd/hardn sets (Options.Updates), as TestDNSItem's 3 runs the DNS screen, and
 // maps what it returns the same way (refactor plan slice 7, unit (d));
 // the main menu holds enableUnattendedUpgrades as the screen's off saved
 // it.
 func TestUpdatesItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "6", name: "UPDATES", set: (*MainMenu).SetUpdates,
+		key: "6", name: "UPDATES", set: setUpdates,
 		edit:   func(c *config.Config) { c.EnableUnattendedUpgrades = false },
 		edited: func(c *config.Config) bool { return !c.EnableUnattendedUpgrades },
 	})
 }
 
 // TestRunAllItem: the main menu's 7 runs the Run All screen cmd/hardn sets
-// (SetRunAll), as TestDNSItem's 3 runs the DNS screen, and maps what it
+// (Options.RunAll), as TestDNSItem's 3 runs the DNS screen, and maps what it
 // returns the same way (refactor plan slice 8, unit (d)); no change the
 // screen makes saves hardn.yml, so the main menu's configuration is as it
 // was.
 func TestRunAllItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "7", name: "RUN ALL", set: (*MainMenu).SetRunAll,
+		key: "7", name: "RUN ALL", set: setRunAll,
 		edit: func(*config.Config) {},
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.Username == config.DefaultConfig().Username
@@ -168,8 +167,8 @@ func TestRunAllItem(t *testing.T) {
 // (d)); neither saves a setting.
 func TestSystemDetailsAndLogsItems(t *testing.T) {
 	for _, it := range []screenItem{
-		{key: "9", name: "SYSTEM DETAILS", set: (*MainMenu).SetSystemDetails},
-		{key: "10", name: "LOGS", set: (*MainMenu).SetLogs},
+		{key: "9", name: "SYSTEM DETAILS", set: setSystemDetails},
+		{key: "10", name: "LOGS", set: setLogs},
 	} {
 		t.Run(it.name, func(t *testing.T) {
 			it.edit = func(*config.Config) {}
@@ -185,7 +184,7 @@ func TestSystemDetailsAndLogsItems(t *testing.T) {
 // a configuration holds it.
 type screenItem struct {
 	key, name string
-	set       func(*MainMenu, func() error)
+	set       func(*Options, func() error)
 	edit      func(*config.Config)
 	edited    func(*config.Config) bool
 }
@@ -216,7 +215,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 				cfg.Nameservers = []string{"192.0.2.53"}
 				passes := 0
 				m := liveMenu(t, env, fixtureStatus(&passes), item.key, "q")
-				m.config = cfg
+				m.Config = cfg
 				calls := 0
 				item.set(m, func() error {
 					calls++
@@ -224,7 +223,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 					item.edit(cfg) // the screen adopts hardn.yml as saved
 					return tc.err
 				})
-				out, code, ended := session(t, func() { m.ShowMainMenu() })
+				out, code, ended := session(t, func() { show(m) })
 				switch {
 				case tc.code != 0 && (!ended || code != tc.code):
 					t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
@@ -241,7 +240,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 				if calls != 1 || passes != wantPasses {
 					t.Errorf("the screen ran %d times, the main menu drawn %d times; want 1 and %d", calls, passes, wantPasses)
 				}
-				if tc.again && !strings.Contains(style.StripAnsi(out), said+"\n\nhardn ") {
+				if tc.again && !strings.Contains(stripANSI(out), said+"\n\nhardn ") {
 					t.Errorf("the main menu is not drawn again under the screen, a blank line between:\n%q", out)
 				}
 				if tc.code == 0 && !strings.HasSuffix(out, clearOn(env)) {
@@ -250,8 +249,8 @@ func testScreenItem(t *testing.T, item screenItem) {
 				if tc.said != "" && !strings.Contains(out, tc.said) {
 					t.Errorf("printed %q, want %q", out, tc.said)
 				}
-				if !item.edited(m.config) {
-					t.Errorf("the main menu's configuration is not the screen's: %+v", m.config)
+				if !item.edited(m.Config) {
+					t.Errorf("the main menu's configuration is not the screen's: %+v", m.Config)
 				}
 			})
 		}
@@ -264,7 +263,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 					t.Errorf("item %s ran with no screen set", item.key)
 				}
 			}()
-			m.ShowMainMenu()
+			show(m)
 		})
 		if ended {
 			t.Error("ended hardn; want the panic")

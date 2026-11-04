@@ -22,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -241,12 +242,12 @@ func TestEnvironmentHook(t *testing.T) {
 	h := newEnvHost(t, "debian13")
 	s := useEnvHost(t, h, "1", "0")
 	cfg := config.DefaultConfig()
-	set := &hookSet{}
-	if got := withEnvironmentScreen(set, cfg); got != set || set.environment == nil {
+	set := withEnvironmentScreen(mainmenu.Options{}, cfg)
+	if set.Environment == nil {
 		t.Fatal("withEnvironmentScreen did not set the Environment item's screen on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.environment(); err != nil {
+	if err := set.Environment(); err != nil {
 		t.Fatalf("the Environment item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.writes(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
@@ -274,24 +275,24 @@ func TestBackupThenEnvironment(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := useEnvHost(t, h, "1", "y", "0", "2", backupTestPath, "y", "0", "1", "y", "0")
-	set := &hookSet{}
-	if got := withEnvironmentScreen(withBackupScreen(set, cfg), cfg); got != set || set.backup == nil || set.environment == nil {
+	set := withEnvironmentScreen(withBackupScreen(mainmenu.Options{}, cfg), cfg)
+	if set.Backup == nil || set.Environment == nil {
 		t.Fatal("withBackupScreen and withEnvironmentScreen did not set the Backup and Environment items' screens on the menu given")
 	}
-	if err := set.environment(); err != nil {
+	if err := set.Environment(); err != nil {
 		t.Fatalf("the Environment item, first = %v; screen:\n%s", err, s.out.String())
 	}
 	if h.content(envTestFile) == "<absent>" {
 		t.Fatalf("the first visit did not keep HARDN_CONFIG; screen:\n%s", s.out.String())
 	}
-	if err := set.backup(); err != nil {
+	if err := set.Backup(); err != nil {
 		t.Fatalf("the Backup item = %v; screen:\n%s", err, s.out.String())
 	}
 	if cfg.BackupPath != backupTestPath {
 		t.Fatalf("the main menu's configuration says backupPath %q after the path change, want %q; screen:\n%s", cfg.BackupPath, backupTestPath, s.out.String())
 	}
 	before := len(h.writes())
-	if err := set.environment(); err != nil {
+	if err := set.Environment(); err != nil {
 		t.Fatalf("the Environment item, again = %v; screen:\n%s", err, s.out.String())
 	}
 	envWrites := h.writes()[before:]

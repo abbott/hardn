@@ -17,21 +17,21 @@ import (
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
-// The main menu's status over hostfake (pkg/menu's tests draw the main
+// The main menu's status over hostfake (pkg/screens/mainmenu's tests draw the main
 // menu with it over the gallery's status hosts). Nothing on this machine
 // is read or run.
 
 // calls are hostfake's records of the methods that only read, and of
 // Run, whose commands this host answers none of: which commands a pass
-// runs, and that each only reads, pkg/menu's TestLiveStatusOnHosts checks
+// runs, and that each only reads, pkg/screens/mainmenu's TestLiveStatusOnHosts checks
 // on hosts that answer them.
 var calls = []string{"read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group", "run"}
 
 // options are a status read on f, hardn.yml listing one nameserver.
-func options(f *hostfake.System) mainmenu.Options {
+func options(f *hostfake.System) mainmenu.StatusOptions {
 	cfg := config.DefaultConfig()
 	cfg.Nameservers = []string{"192.0.2.53"}
-	return mainmenu.Options{System: f, Detect: detect.Detect, Config: cfg, Version: "v9.9.9"}
+	return mainmenu.StatusOptions{System: f, Detect: detect.Detect, Config: cfg, Version: "v9.9.9"}
 }
 
 // plain renders vm plain, as written to output that is not a terminal,
@@ -51,7 +51,7 @@ func plain(t *testing.T, vm interface{ Render(component.Ctx) string }) string {
 // is still returned: each weighed row with "Counted as not configured"
 // under it, DNS with its own "can't read" and nothing under it, the risk
 // level Unknown, the header the version given; the heading, mode, menu
-// and prompt left for pkg/menu; and every call a read or a command
+// and prompt left for pkg/screens/mainmenu; and every call a read or a command
 // (calls), so no file is written (which commands, this test does not
 // check).
 func TestNothingRead(t *testing.T) {

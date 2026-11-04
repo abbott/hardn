@@ -3,9 +3,9 @@ package main
 // Environment on the plan/apply engine (refactor plan slice 9,
 // Environment, unit (d), next/s9-replace; plan §3.14: the legacy path
 // replaced, not gated): the main menu's Environment item runs the
-// Environment screen (pkg/screens/environment), which pkg/menu reaches
+// Environment screen (pkg/screens/environment), which pkg/screens/mainmenu reaches
 // through the hook set here, as it reaches the DNS and Backup screens
-// (dns.go, backup.go), so that pkg/menu builds no engine; and -e and
+// (dns.go, backup.go), so that pkg/screens/mainmenu builds no engine; and -e and
 // setup-sudo-env plan and apply the Environment control as -g runs the
 // DNS control (runControls), refusing a lockout-risk plan. The engine's
 // options are engine.go's.
@@ -22,9 +22,9 @@ import (
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	envscreen "github.com/abbott/hardn/pkg/screens/environment"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
@@ -134,18 +134,11 @@ func checkRoot() error {
 	return nil
 }
 
-// environmentMenu is what withEnvironmentScreen sets the Environment item
-// of: pkg/menu's main menu, and the tests' record of what was set.
-type environmentMenu interface{ SetEnvironment(run func() error) }
-
-// The main menu is an environmentMenu.
-var _ environmentMenu = (*menu.MainMenu)(nil)
-
 // withEnvironmentScreen returns m with its Environment item set to the
 // Environment screen on c, the configuration m was given
-// (menu.MainMenu.SetEnvironment).
-func withEnvironmentScreen[M environmentMenu](m M, c *config.Config) M {
-	m.SetEnvironment(func() error { return runEnvironmentScreen(context.Background(), c) })
+// (mainmenu.Options.Environment).
+func withEnvironmentScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
+	m.Environment = func() error { return runEnvironmentScreen(context.Background(), c) }
 	return m
 }
 

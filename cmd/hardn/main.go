@@ -12,7 +12,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
@@ -184,9 +183,7 @@ var rootCmd = &cobra.Command{
 			!runAll && !printLogs && !setupSudoEnv {
 
 			// The main menu; its screens' items and its status: hooks.go
-			mainMenu := withHooks(menu.NewMainMenu(cfg), cfg, Version)
-
-			mainMenu.ShowMainMenu()
+			runMenu(context.Background(), menuOptions(cfg, Version))
 			return
 		}
 

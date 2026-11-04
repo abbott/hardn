@@ -1,4 +1,4 @@
-package menu
+package mainmenu
 
 import (
 	"context"
@@ -15,21 +15,18 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/mattn/go-runewidth"
-
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/screens/mainmenu"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // The main menu live (refactor plan slice 2, next/s2-menu-live): its
-// status read through the hook cmd/hardn sets (SetStatus), and drawn
+// status read through the hook cmd/hardn sets (Options.Status), and drawn
 // with the rest of the main menu on its layout (slice 2b, next/s2b-menu).
 // Nothing on this machine is read or run: the hook is a fake, or
 // pkg/screens/mainmenu over hostfake.
@@ -63,14 +60,11 @@ func noClearOff(t *testing.T, env term.Env, out string) {
 
 // liveMenu is a main menu as cmd/hardn builds it, its status read by read
 // and drawn on terminal env; the end of the input after lines.
-func liveMenu(t *testing.T, env term.Env, read func(ctx context.Context) (screen.MainMenu, error), lines ...string) *MainMenu {
+func liveMenu(t *testing.T, env term.Env, read func(ctx context.Context) (screen.MainMenu, error), lines ...string) *Options {
 	t.Helper()
 	scripted(t, strings.Join(append(lines, ""), "\n"))
-	m := NewMainMenu(config.DefaultConfig())
-	if read != nil {
-		m.SetStatus(read)
-	}
-	m.SetTerminal(func() term.Env { return env })
+	m := &Options{Config: config.DefaultConfig(), Status: read, Terminal: func() term.Env { return env },
+		Input: func() *prompt.Reader { return input() }, Out: stdout{}}
 	return m
 }
 
@@ -103,9 +97,9 @@ func TestLiveStatus(t *testing.T) {
 		}
 		return read(ctx)
 	}, "q")
-	out, _, ended := session(t, func() { m.ShowMainMenu() })
+	out, _, ended := session(t, func() { show(m) })
 	vm, _ := fixtureStatus(new(int))(context.Background())
-	vm.Heading, vm.Mode, vm.Prompt, vm.Menu = mainHeading, m.mode(), mainPrompt, m.mainMenu().View()
+	vm.Heading, vm.Mode, vm.Prompt, vm.Menu = mainHeading, m.mode(), mainPrompt, m.items().View()
 	want := written(plainEnv(), vm.Render(component.NewCtx(plainEnv()))) + " \n" // off a terminal, no clear
 	if ended || out != want || n != 1 {
 		t.Errorf("ended %v, the hook called %d times; the screen:\n%q\nwant:\n%q", ended, n, out, want)
@@ -141,7 +135,7 @@ func TestLiveStatusEnds(t *testing.T) {
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := liveMenu(t, plainEnv(), func(context.Context) (screen.MainMenu, error) { return screen.MainMenu{}, tc.err }, "q")
-			out, code, ended := session(t, func() { m.ShowMainMenu() })
+			out, code, ended := session(t, func() { show(m) })
 			if !ended || code != tc.code || strings.Contains(out, "Select an option") {
 				t.Errorf("ended %v with %d, want %d; the screen:\n%q", ended, code, tc.code, out)
 			}
@@ -162,7 +156,7 @@ func TestLiveStatusEnds(t *testing.T) {
 			}
 			m := liveMenu(t, plainEnv(), read, "q")
 			if !tc.terminal {
-				m.terminal = nil
+				m.Terminal = nil
 			}
 			out, _, ended := session(t, func() {
 				defer func() {
@@ -170,7 +164,7 @@ func TestLiveStatusEnds(t *testing.T) {
 						t.Error("the main menu drew with nothing to draw it with")
 					}
 				}()
-				m.ShowMainMenu()
+				show(m)
 			})
 			if ended || out != "" {
 				t.Errorf("ended %v, printed %q", ended, out)
@@ -184,8 +178,8 @@ func TestLiveStatusEnds(t *testing.T) {
 // from the gallery's model (its testdata/README.md), and the gallery's
 // own drawing of each in its golden file, plain at 80 columns.
 const (
-	fixtureDir = "../../internal/tools/p4status/testdata/hosts"
-	goldenDir  = "../../internal/tools/uigallery/testdata/golden/status"
+	fixtureDir = "../../../internal/tools/p4status/testdata/hosts"
+	goldenDir  = "../../../internal/tools/uigallery/testdata/golden/status"
 	hardnYML   = "/etc/hardn/hardn.yml"
 )
 
@@ -222,9 +216,9 @@ func TestLiveStatusOnHosts(t *testing.T) {
 			}
 			before := len(f.Calls())
 			m := liveMenu(t, plainEnv(), func(ctx context.Context) (screen.MainMenu, error) {
-				return mainmenu.Status(ctx, mainmenu.Options{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
+				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 			}, "q")
-			out, _, ended := session(t, func() { m.ShowMainMenu() })
+			out, _, ended := session(t, func() { show(m) })
 			want := galleryStatus(t, name) + " \n" // off a terminal, no clear
 			if ended || out != want {
 				t.Errorf("ended %v; the main menu:\n%s\nwant the gallery's status:\n%s", ended, out, want)
@@ -254,9 +248,6 @@ func TestLiveStatusOnHosts(t *testing.T) {
 // layout in its full form, the same at both heights, its compact form
 // gated (screen.CompactMainMenu; docs/engine/menu-layout.md).
 func TestLiveMainMenuGolden(t *testing.T) {
-	prevEastAsian, prevColors := runewidth.DefaultCondition.EastAsianWidth, style.UseColors
-	runewidth.DefaultCondition.EastAsianWidth, style.UseColors = false, true
-	t.Cleanup(func() { runewidth.DefaultCondition.EastAsianWidth, style.UseColors = prevEastAsian, prevColors })
 	ctx := context.Background()
 	for _, name := range []string{"debian13", "hardened"} {
 		for _, rows := range []int{24, 40} {
@@ -272,9 +263,9 @@ func TestLiveMainMenuGolden(t *testing.T) {
 				env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: rows,
 					Environ: []string{"TERM=xterm-256color", "LANG=C.UTF-8"}})
 				m := liveMenu(t, env, func(ctx context.Context) (screen.MainMenu, error) {
-					return mainmenu.Status(ctx, mainmenu.Options{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
+					return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 				}, "q")
-				out, _, _ := session(t, func() { m.ShowMainMenu() })
+				out, _, _ := session(t, func() { show(m) })
 				screen, _, _ := strings.Cut(strings.TrimPrefix(out, clearScreen), clearScreen)
 				var b strings.Builder
 				b.WriteString("# hardn's live main menu (refactor plan slice 2, next/s2-menu-live), on its layout (slice 2b, next/s2b-menu)\n")

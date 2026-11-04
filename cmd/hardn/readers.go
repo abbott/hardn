@@ -3,8 +3,8 @@ package main
 // System Details and Logs (refactor plan slice 1, unit (d), next/s1-replace;
 // docs/engine/screen-system-details.md §7; plan §3.14: the legacy path replaced, not
 // gated): main menu 9 and 10 run the two screens (pkg/screens/systemdetails,
-// pkg/screens/logs), which pkg/menu reaches through the hooks set here, as it reaches
-// the Environment screen (environment.go), so that pkg/menu builds no reader; hardn
+// pkg/screens/logs), which pkg/screens/mainmenu reaches through the hooks set here, as it reaches
+// the Environment screen (environment.go), so that pkg/screens/mainmenu builds no reader; hardn
 // system-details and -p print through the same packages. All of this only reads, under
 // plan only as live, on a host with no run log; main()'s start-up, ahead of it, does
 // not: as root it creates the log, and /etc/hardn/hardn.yml.example where absent.
@@ -20,9 +20,9 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/logs"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/screens/systemdetails"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -33,21 +33,11 @@ import (
 // changes, and -p writes nothing to the log it prints.
 var readerHost = func() host.System { return host.NewReal(host.Options{}) }
 
-// readerMenu is what withReaderScreens sets the System Details and Logs items of:
-// pkg/menu's main menu, and the tests' record of what was set.
-type readerMenu interface {
-	SetSystemDetails(run func() error)
-	SetLogs(run func() error)
-}
-
-// The main menu is a readerMenu.
-var _ readerMenu = (*menu.MainMenu)(nil)
-
 // withReaderScreens returns m with its System Details and Logs items set to their
 // screens on c, the configuration m was given.
-func withReaderScreens[M readerMenu](m M, c *config.Config) M {
-	m.SetSystemDetails(func() error { return runSystemDetailsScreen(context.Background()) })
-	m.SetLogs(func() error { return runLogsScreen(context.Background(), c) })
+func withReaderScreens(m mainmenu.Options, c *config.Config) mainmenu.Options {
+	m.SystemDetails = func() error { return runSystemDetailsScreen(context.Background()) }
+	m.Logs = func() error { return runLogsScreen(context.Background(), c) }
 	return m
 }
 
@@ -68,7 +58,7 @@ func readerFacts(ctx context.Context, sys host.System) detect.Facts {
 
 // runSystemDetailsScreen is main menu 9: the screen until the user goes back (nil) or
 // quits (nav.ErrQuit), or the input ends (prompt.ErrAborted), as runEnvironmentScreen
-// runs Environment's, pkg/menu's showScreen mapping what it returns; the facts detected
+// runs Environment's, pkg/screens/mainmenu's showScreen mapping what it returns; the facts detected
 // once per visit.
 func runSystemDetailsScreen(ctx context.Context) error {
 	sys := readerHost()

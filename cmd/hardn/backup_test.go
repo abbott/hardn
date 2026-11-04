@@ -19,6 +19,7 @@ import (
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -120,28 +121,6 @@ func TestBackupScreen(t *testing.T) {
 	}
 }
 
-// hookSet records the main menu items' hooks as withUsersScreen,
-// withSSHScreen, withDNSScreen, withFirewallScreen, withBackupScreen,
-// withUpdatesScreen, withRunAllScreen, withEnvironmentScreen and
-// withReaderScreens set them.
-type hookSet struct {
-	users, ssh, dns, backup, updates, runAll, environment, firewall, systemDetails, logs func() error
-	firewallPVE                                                                          func() bool
-}
-
-func (h *hookSet) SetUsers(run func() error)       { h.users = run }
-func (h *hookSet) SetSSH(run func() error)         { h.ssh = run }
-func (h *hookSet) SetDNS(run func() error)         { h.dns = run }
-func (h *hookSet) SetBackup(run func() error)      { h.backup = run }
-func (h *hookSet) SetUpdates(run func() error)     { h.updates = run }
-func (h *hookSet) SetRunAll(run func() error)      { h.runAll = run }
-func (h *hookSet) SetEnvironment(run func() error) { h.environment = run }
-func (h *hookSet) SetFirewall(run func() error, onPVE func() bool) {
-	h.firewall, h.firewallPVE = run, onPVE
-}
-func (h *hookSet) SetSystemDetails(run func() error) { h.systemDetails = run }
-func (h *hookSet) SetLogs(run func() error)          { h.logs = run }
-
 // TestBackupThenDNS: a path change through the Backup item leaves the main
 // menu's configuration holding the new path, and the DNS item's next
 // change backs up under it, nothing under the old: each visit assembles
@@ -158,17 +137,17 @@ func TestBackupThenDNS(t *testing.T) {
 	h, cfg := newDNSHost(t, "debian13", dnsTestList)
 	h.AddDir("/srv", 0o755, 0, 0)
 	s := useDNSHost(t, h, "3", "2", "y", "0", "2", backupTestPath, "y", "0", "2", "192.0.2.55", "y", "0")
-	set := &hookSet{}
-	if got := withBackupScreen(withDNSScreen(set, cfg), cfg); got != set || set.dns == nil || set.backup == nil {
+	set := withBackupScreen(withDNSScreen(mainmenu.Options{}, cfg), cfg)
+	if set.DNS == nil || set.Backup == nil {
 		t.Fatal("withDNSScreen and withBackupScreen did not set the DNS and Backup items' screens on the menu given")
 	}
-	if err := set.dns(); err != nil {
+	if err := set.DNS(); err != nil {
 		t.Fatalf("the DNS item, first = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := under(h.writes(), backup.DefaultPath); len(got) == 0 {
 		t.Fatalf("the first DNS change wrote %q: want its backup under %s", h.writes(), backup.DefaultPath)
 	}
-	if err := set.backup(); err != nil {
+	if err := set.Backup(); err != nil {
 		t.Fatalf("the Backup item = %v; screen:\n%s", err, s.out.String())
 	}
 	if cfg.BackupPath != backupTestPath {
@@ -178,7 +157,7 @@ func TestBackupThenDNS(t *testing.T) {
 		t.Errorf("engineOptions' Backups = %+v after the path change", o.Backups)
 	}
 	before := len(h.writes())
-	if err := set.dns(); err != nil {
+	if err := set.DNS(); err != nil {
 		t.Fatalf("the DNS item, again = %v; screen:\n%s", err, s.out.String())
 	}
 	dnsWrites := h.writes()[before:]

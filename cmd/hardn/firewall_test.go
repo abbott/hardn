@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -315,23 +316,23 @@ func TestFirewallHook(t *testing.T) {
 	h := newFWHost(t, "debian13")
 	s := useFWHost(t, h, "1", "0")
 	cfg := config.DefaultConfig()
-	set := &hookSet{}
-	if got := withFirewallScreen(set, cfg); got != set || set.firewall == nil || set.firewallPVE == nil {
+	set := withFirewallScreen(mainmenu.Options{}, cfg)
+	if set.Firewall == nil || set.FirewallPVE == nil {
 		t.Fatal("withFirewallScreen did not set the Firewall item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.firewall(); err != nil {
+	if err := set.Firewall(); err != nil {
 		t.Fatalf("the Firewall item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.changed(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("ufw changed by %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
 	}
-	if set.firewallPVE() {
+	if set.FirewallPVE() {
 		t.Error("Debian 13 is taken for Proxmox VE")
 	}
 	pve := newFWHost(t, "pve9")
 	useFWHost(t, pve)
-	if set := withFirewallScreen(&hookSet{}, cfg); !set.firewallPVE() {
+	if set := withFirewallScreen(mainmenu.Options{}, cfg); !set.FirewallPVE() {
 		t.Error("Proxmox VE 9 is not taken for Proxmox VE")
 	}
 }

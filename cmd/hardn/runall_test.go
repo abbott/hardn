@@ -15,6 +15,7 @@ import (
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -198,12 +199,12 @@ func TestRunAllHook(t *testing.T) {
 	h, cfg := newRunAllHost(t, "debian13", runAllYML)
 	s := useSSHHost(t, h, "1", "0")
 	t.Setenv("SUDO_USER", "george")
-	set := &hookSet{}
-	if got := withRunAllScreen(set, cfg, runAllTestVersion); got != set || set.runAll == nil {
+	set := withRunAllScreen(mainmenu.Options{}, cfg, runAllTestVersion)
+	if set.RunAll == nil {
 		t.Fatal("withRunAllScreen did not set the Run All item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.runAll(); err != nil {
+	if err := set.RunAll(); err != nil {
 		t.Fatalf("the Run All item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.sshdWrites(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
@@ -214,7 +215,7 @@ func TestRunAllHook(t *testing.T) {
 	was := runAllRun
 	t.Cleanup(func() { runAllRun = was })
 	runAllRun = func(_ context.Context, o runallscreen.Options) error { got = o; return nil }
-	if err := set.runAll(); err != nil {
+	if err := set.RunAll(); err != nil {
 		t.Fatal(err)
 	}
 	if got.Config != cfg {
