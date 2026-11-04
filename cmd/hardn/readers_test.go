@@ -353,7 +353,7 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 // legacy-left unit's decision 6 (a), or the deprecated true, whose deprecation
 // is said once beside it; false and "no", the default, only the
 // deprecation or nothing), sshAllowedUsers, sshListenAddress, sshKeyPath,
-// ufwAllowedPorts, enableAppArmor and enableLynis; set to the default, as
+// ufwAllowedPorts, enableAppArmor, enableLynis and logsconfig; set to the default, as
 // origin/main's SaveConfig writes it, none warns. disableRootSSH, which
 // Run All reads, sshPort and sshConfigFile never warn. Through hardn,
 // the warning is on stderr, once.
@@ -361,7 +361,7 @@ func TestUnusedKeysWarning(t *testing.T) {
 	const deprecated = "is deprecated"
 	words := func(key string) string { return "hardn.yml's " + key + " isn't used" }
 	keys := []string{"permitRootLogin", "sshAllowedUsers", "sshListenAddress", "sshKeyPath", "ufwAllowedPorts", "enableAppArmor", "enableLynis",
-		"disableRootSSH", "sshPort", "sshConfigFile"}
+		"disableRootSSH", "sshPort", "sshConfigFile", "logsconfig"}
 	for _, tc := range []struct {
 		name, yml  string
 		warned     []string // the keys warned of
@@ -378,6 +378,8 @@ func TestUnusedKeysWarning(t *testing.T) {
 		{"sshAllowedUsers", "username: alice\nsshAllowedUsers:\n  - george\n", []string{"sshAllowedUsers"}, false},
 		{"sshListenAddress", "username: alice\nsshListenAddress: 192.0.2.10\n", []string{"sshListenAddress"}, false},
 		{"sshKeyPath", "username: alice\nsshKeyPath: .ssh/authorized_keys\n", []string{"sshKeyPath"}, false},
+		{"logsconfig, origin/main's as its save wrote it", "username: alice\nlogsconfig:\n  logfilepath: /var/log/hardn.log\n", nil, false},
+		{"logsconfig", "username: alice\nlogsconfig:\n  logfilepath: /srv/log/hardn.log\n", []string{"logsconfig"}, false},
 		{"ufwAllowedPorts", "username: alice\nufwAllowedPorts: [22, 443]\n", []string{"ufwAllowedPorts"}, false},
 		{"enableAppArmor", "username: alice\nenableAppArmor: true\n", []string{"enableAppArmor"}, false},
 		{"enableLynis", "username: alice\nenableLynis: true\n", []string{"enableLynis"}, false},

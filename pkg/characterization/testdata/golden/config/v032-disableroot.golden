@@ -15,7 +15,6 @@
   "Nameservers": null,
   "SshPort": 22,
   "PermitRootLogin": false,
-  "SshKeyPath": ".ssh_%u",
   "SshConfigFile": "/etc/ssh/sshd_config.d/hardn.conf",
   "SudoNoPassword": true,
   "SshKeys": [],
