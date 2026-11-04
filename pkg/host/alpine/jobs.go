@@ -126,13 +126,18 @@ func dirNames(ctx context.Context, sys host.System, dir string) ([]string, error
 }
 
 // runPartsName reports whether busybox's run-parts runs a file of this
-// name: letters, digits, '_', '-' and '.', not starting with '.'.
+// name: the negation of invalid_name in busybox 1.37.0's
+// debianutils/run_parts.c (the 1.37.0 release tarball, read 2026-11-03),
+// byte for byte. A name starting with '.' is invalid; otherwise every byte
+// must be an ASCII letter or digit (libbb.h's isalnum is
+// bb_ascii_isalnum), '_', '-' or '.', a dot anywhere after the first byte
+// allowed.
 func runPartsName(name string) bool {
-	if name == "" || name[0] == '.' {
+	if name != "" && name[0] == '.' {
 		return false
 	}
-	for _, c := range name {
-		switch {
+	for i := 0; i < len(name); i++ {
+		switch c := name[i]; {
 		case c >= 'a' && c <= 'z', c >= 'A' && c <= 'Z', c >= '0' && c <= '9', c == '_', c == '-', c == '.':
 		default:
 			return false
