@@ -2,22 +2,28 @@
 
 BINARY_NAME=hardn
 BUILD_DIR=build
-BUILD_DATE=$(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-GIT_COMMIT=$(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.BuildDate=$(BUILD_DATE) -X main.GitCommit=$(GIT_COMMIT)"
+# The same ldflags as .github/workflows/release.yml's build: HEAD's full commit
+# and its commit date in UTC, not the clock, so a rebuild of a commit is
+# byte-identical.
+BUILD_DATE=$(shell TZ=UTC git log -1 --format=%cd --date=format-local:%Y-%m-%dT%H:%M:%SZ HEAD 2>/dev/null || echo "unknown")
+GIT_COMMIT=$(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
+LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.GitCommit=$(GIT_COMMIT) -X main.BuildDate=$(BUILD_DATE)"
 
 # Version
 VERSION_MAJOR=0
-VERSION_MINOR=3
-VERSION_PATCH=2
-VERSION=0.3.2
+VERSION_MINOR=4
+VERSION_PATCH=0
+VERSION=0.4.0
 
 .PHONY: release release-artifacts
 
-# Git tag with version
+# Make the annotated tag v$(VERSION) locally. Nothing is pushed: pushing the
+# tag starts .github/workflows/release.yml, so it is the maintainer's step, by
+# explicit refspec, never --tags.
 tag:
 	git tag -a v$(VERSION) -m "Release v$(VERSION)"
-	git push origin v$(VERSION)
+	@echo "Tagged v$(VERSION) locally. To release it:"
+	@echo "  git push origin refs/tags/v$(VERSION)"
 
 # Generate checksums
 checksums:
@@ -37,7 +43,7 @@ archives:
 release-artifacts: cross-compile archives checksums
 
 release: test release-artifacts tag
-	@echo "Release v$(VERSION) created successfully"
+	@echo "v$(VERSION) tagged locally; nothing was pushed."
 
 
 .PHONY: bump-major bump-minor bump-patch
@@ -563,7 +569,6 @@ it-containers it-vm:
 	@echo "$@: run on the VM host (see docs/refactor)"
 
 # Safety gate (refactor plan P0.4): the first target in this file is `tag`,
-# which runs `git tag -a` and `git push origin`, so a bare `make` would publish.
-# Nothing is pushed during the refactor, so the default goal is `check` instead.
-# `make tag` and `make release` still work when invoked explicitly.
+# which makes a git tag, so the default goal is `check` instead. `make tag`
+# and `make release` work when invoked explicitly; neither pushes (p7-release).
 .DEFAULT_GOAL := check
