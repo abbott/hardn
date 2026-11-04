@@ -8,6 +8,7 @@ package main
 // deprecation warning (§3.11).
 
 import (
+	"io"
 	"os"
 	"sync"
 
@@ -62,11 +63,36 @@ func addSurfaceFlags(flags *pflag.FlagSet) {
 	flags.BoolVar(&plainOutput, "plain", false, "Plain output: ASCII glyphs, no colour, no animation (or set HARDN_PLAIN=1)")
 	flags.Var(themeValue{&themeMode}, "theme", "The colour theme; auto asks the terminal for its background (or set HARDN_THEME; default dark)")
 	flags.BoolVar(&noColor, "no-color", false, "Deprecated: use --color=never")
+	noColorFlag = flags.Lookup("no-color")
 }
 
+// noColorFlag is --no-color as the root command's persistent flags hold
+// it: one *pflag.Flag for every command, so its Changed says it was given
+// to any of them.
+var noColorFlag *pflag.Flag
+
 // noColorDeprecated is --no-color's warning (refactor plan §3.11), said
-// with hardn.yml's where the configuration loads (loadWarnings).
+// once whenever the flag is given, by every command (warnNoColor).
 const noColorDeprecated = "--no-color is now --color=never"
+
+// noColorGiven reports whether --no-color was given, true or false, to
+// any command (noColorFlag).
+func noColorGiven() bool {
+	return noColorFlag != nil && noColorFlag.Changed
+}
+
+// warnNoColor says noColorDeprecated on stderr, a warning, where
+// --no-color was given (noColorGiven): from the root command's
+// PersistentPreRun, so before anything else is said, by -p, --version and
+// system-details too, and from confirm's and rollback's (noRevertNotices).
+func warnNoColor() {
+	if !noColorGiven() {
+		return
+	}
+	if w := deprecationWarnings(stderrEnv(), "", nil, noColorDeprecated); w != "" {
+		_, _ = io.WriteString(stderrEnv().Writer(stderr), w)
+	}
+}
 
 // renderOptions are the render choices given on the command line, for
 // term.Detect: --no-color as --color=never where --color is not given.

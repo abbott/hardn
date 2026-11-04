@@ -514,7 +514,7 @@ func TestSystemDetailsFlags(t *testing.T) {
 		{args: []string{"-r"}, code: 2, stderr: []string{"hardn: -r is refused: " + runAlone}},
 		{args: []string{"-e"}, code: 2, stderr: []string{"hardn: -e is refused: " + runAlone}},
 		{args: []string{"-n"}},
-		{args: []string{"--no-color"}},
+		{args: []string{"--no-color"}, stderr: []string{noColorDeprecated}}, // warnNoColor
 		{args: []string{"-f", "hardn.yml"}},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {

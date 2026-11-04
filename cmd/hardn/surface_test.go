@@ -89,8 +89,8 @@ func TestVersionFlag(t *testing.T) {
 // command's, every command's, and give term.Detect their options
 // (renderOptions), which term.Resolve weighs with HARDN_ASCII, HARDN_PLAIN,
 // HARDN_THEME, NO_COLOR and TERM as its table says; --no-color is
-// --color=never where --color is not given, and is warned about where
-// the configuration loads, in the deprecation warnings' callout.
+// --color=never where --color is not given, and is warned about once,
+// first, by every command it is given to (warnNoColor).
 func TestRenderFlags(t *testing.T) {
 	tty := term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Environ: []string{"TERM=xterm-256color", "LANG=en_US.UTF-8"}}
 	for _, tc := range []struct {
@@ -127,11 +127,33 @@ func TestRenderFlags(t *testing.T) {
 			}
 		})
 	}
-	t.Run("--no-color warned", func(t *testing.T) {
-		r := runHardnWith(t, asRoot, func() { onDNSHost(t) }, "--no-color", "-n", "-r")
-		if got := flat(r.stderr); strings.Count(got, "Warning ") != 1 || strings.Count(got, noColorDeprecated) != 1 {
-			t.Errorf("stderr:\n%s", r.stderr)
-		}
+	// --no-color warns once, first, whenever it is given (the root
+	// command's PersistentPreRun): -r's run, -p, --version and
+	// system-details, none of which loads hardn.yml, too.
+	for _, tc := range []struct {
+		args []string
+		run  func(t *testing.T, args ...string) result
+	}{
+		{[]string{"--no-color", "-n", "-r"}, func(t *testing.T, args ...string) result {
+			return runHardnWith(t, asRoot, func() { onDNSHost(t) }, args...)
+		}},
+		{[]string{"--no-color", "--version"}, func(t *testing.T, args ...string) result { return runHardn(t, hostUnreachable, args...) }},
+		{[]string{"--no-color=false", "-v"}, func(t *testing.T, args ...string) result { return runHardn(t, hostUnreachable, args...) }},
+		{[]string{"--no-color", "-p"}, func(t *testing.T, args ...string) result {
+			return runReader(t, hostUnreachable, logHost(readerLog), &readerSeams{}, args...)
+		}},
+		{[]string{"system-details", "--no-color"}, func(t *testing.T, args ...string) result {
+			return runReader(t, hostUnreachable, logHost(readerLog), &readerSeams{}, args...)
+		}},
+	} {
+		t.Run("--no-color warned: "+strings.Join(tc.args, " "), func(t *testing.T) {
+			r := tc.run(t, tc.args...)
+			if got := flat(r.stderr); r.ended || strings.Count(got, "Warning ") != 1 || strings.Count(got, noColorDeprecated) != 1 || !strings.HasPrefix(got, "Warning ") {
+				t.Errorf("ended %v (%d); stderr:\n%s", r.ended, r.code, r.stderr)
+			}
+		})
+	}
+	t.Run("--color=never not warned", func(t *testing.T) {
 		if r := runHardnWith(t, asRoot, func() { onDNSHost(t) }, "--color=never", "-n", "-r"); strings.Contains(r.stderr, noColorDeprecated) {
 			t.Errorf("--color=never warned:\n%s", r.stderr)
 		}
