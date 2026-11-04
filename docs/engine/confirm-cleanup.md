@@ -64,7 +64,7 @@ A port change holds the old port while it waits for confirmation: `00-hardn.conf
 | At boot, a journalled change with no timer (`risk: other`) is left to the next run's notice | [revert-boot.md](../safety/revert-boot.md) §2.7 | §2.4 |
 | The engine journals a plan with no lockout-risk change as `other`: no timer, no boot unit, `revert.Done` last | [engine.md](engine.md) §2.10, [engine-boot.md](engine-boot.md) §2.1 | §2.3, §2.4 |
 | The support matrix: Ubuntu 22.04, Alpine 3.22 and 3.21 best effort (3.21's vendor support ends 2026-11-01); the gate refuses the rest | brief §2; `detect.Matrix` ([detect.md](../safety/detect.md)); [engine.md](engine.md) §2.6 | §2.11 |
-| The legacy logger writes the console (fatih/color, stdout) and `/var/log/hardn.log` | [output.md](output.md) §3 | §2.9: the run log to the file alone |
+| The legacy logger writes the console (fatih/color, stdout) and `/var/log/hardn.log` | [output.md](output.md) §3 | §2.9: the run log to the file alone *Since `next/legacy-rehome`:* fatih/color is gone; colour comes from `pkg/ui/term`, and console lines are messages on stderr. |
 
 ## 4. Written, not run (gate 5)
 

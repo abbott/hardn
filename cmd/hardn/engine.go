@@ -23,7 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hangup"
 	"github.com/abbott/hardn/pkg/host/revert"
-	"github.com/abbott/hardn/pkg/logging"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
@@ -143,7 +143,7 @@ func screenApplyContext(ctx context.Context) (context.Context, context.CancelFun
 		stop()
 		once.Do(func() {
 			if hup.stop() {
-				logging.LogFileOnly("hangup during the apply: hardn ends")
+				hardnLog.Printf(output.LogInfo, "hangup during the apply: hardn ends")
 				endHangup()
 			}
 		})
@@ -204,7 +204,7 @@ func engineOptions(ctx context.Context, sys host.System, c *config.Config) engin
 	}
 	s, err := revert.ReadSession(ctx, sys, revertGetenv, revertPID())
 	if err != nil {
-		logging.LogFileOnly("%v", err)
+		hardnLog.Printf(output.LogInfo, "%v", err)
 	}
 	o.Session = s
 	return o

@@ -56,12 +56,14 @@ func TestRead(t *testing.T) {
 		{"hardn.yml", fs.ErrInvalid},
 		{"/etc/hardn/../hardn/hardn.yml", fs.ErrInvalid},
 		{"/etc/hardn/none.yml", fs.ErrNotExist},
-		{"/etc/hardn/pp.yml", ErrRootLoginNotApplied},
 		{"/etc/hardn/broken.yml", ErrInvalidFile},
 	} {
 		if _, err := Read(ctx, sys, tt.path); !errors.Is(err, tt.want) {
 			t.Errorf("Read(%q) = %v, want %v", tt.path, err, tt.want)
 		}
+	}
+	if c, err := Read(ctx, sys, "/etc/hardn/pp.yml"); err != nil || c.RootLogin() != RootLoginProhibitPassword {
+		t.Errorf("Read prohibit-password, no longer refused (decision 6 (a)): %v", err)
 	}
 	if c, err := Read(ctx, sys, "/etc/hardn/link.yml"); err != nil || c.Path() != "/etc/hardn/link.yml" {
 		t.Errorf("Read through a link, as LoadConfig reads it: %v", err)

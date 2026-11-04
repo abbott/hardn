@@ -2,36 +2,33 @@ package main
 
 // Auto Updates on the plan/apply engine (refactor plan slice 7, Auto
 // Updates, unit (d)): the main menu's Auto Updates item (6) runs the Auto
-// Updates screen (pkg/screens/updates), which pkg/menu reaches through the
+// Updates screen (pkg/screens/updates), which pkg/screens/mainmenu reaches through the
 // hook set here, as it reaches the SSH Login screen (ssh.go), so that
-// pkg/menu builds no engine. The engine's options are engine.go's. No flag
+// pkg/screens/mainmenu builds no engine. The engine's options are engine.go's. No flag
 // routes to Auto Updates' off (gallery-updates.md §4, decision 2).
 
 import (
 	"context"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	updatesscreen "github.com/abbott/hardn/pkg/screens/updates"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
 
-// updatesMenu is what withUpdatesScreen sets the Auto Updates item of:
-// pkg/menu's main menu, and the tests' record of what was set.
-type updatesMenu interface{ SetUpdates(run func() error) }
-
-// The main menu is an updatesMenu.
-var _ updatesMenu = (*menu.MainMenu)(nil)
-
 // withUpdatesScreen returns m with its Auto Updates item set to the Auto
 // Updates screen on c, the configuration m was given, and hardn's version
-// (menu.MainMenu.SetUpdates).
-func withUpdatesScreen[M updatesMenu](m M, c *config.Config, version string) M {
-	m.SetUpdates(func() error { return runUpdatesScreen(context.Background(), c, version) })
+// (mainmenu.Options.Updates).
+func withUpdatesScreen(m mainmenu.Options, c *config.Config, version string) mainmenu.Options {
+	m.Updates = func() error { return runUpdatesScreen(context.Background(), c, version) }
 	return m
 }
+
+// updatesRun is the Auto Updates screen's Run, a seam for the tests, which
+// record the options runUpdatesScreen gives it.
+var updatesRun = updatesscreen.Run
 
 // runUpdatesScreen is the main menu's Auto Updates item: the Auto Updates
 // screen until the user goes back (nil) or quits (nav.ErrQuit), or the
@@ -57,7 +54,7 @@ func runUpdatesScreen(ctx context.Context, c *config.Config, version string) err
 		return err
 	}
 	env := stdoutEnv()
-	return updatesscreen.Run(ctx, updatesscreen.Options{
+	return updatesRun(ctx, updatesscreen.Options{
 		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
 		System:       sys,
 		Facts:        facts,

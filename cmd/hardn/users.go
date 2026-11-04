@@ -4,8 +4,8 @@ package main
 // Management, unit (d), next/s5-replace; the maintainer, 2026-11-03: a
 // hard cutover, the legacy User Management deleted, not frozen): the main
 // menu's User Management item runs the User Management screen
-// (pkg/screens/users), which pkg/menu reaches through the hook set here, as
-// it reaches the Firewall screen (firewall.go), so that pkg/menu builds no
+// (pkg/screens/users), which pkg/screens/mainmenu reaches through the hook set here, as
+// it reaches the Firewall screen (firewall.go), so that pkg/screens/mainmenu builds no
 // engine; and -c plans and applies the User control's Create through
 // runControls, as -g runs the DNS control (gallery-users.md §5, decision 6
 // (a), adopted 2026-11-03). The engine's options are engine.go's.
@@ -19,8 +19,8 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/steps"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	usrscreen "github.com/abbott/hardn/pkg/screens/users"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -86,18 +86,11 @@ func refuseCreateLockoutRisk(p *engine.Plan) error {
 	return nil
 }
 
-// usersMenu is what withUsersScreen sets the User Management item of:
-// pkg/menu's main menu, and the tests' record of what was set.
-type usersMenu interface{ SetUsers(run func() error) }
-
-// The main menu is a usersMenu.
-var _ usersMenu = (*menu.MainMenu)(nil)
-
 // withUsersScreen returns m with its User Management item set to the User
 // Management screen on c, the configuration m was given
-// (menu.MainMenu.SetUsers).
-func withUsersScreen[M usersMenu](m M, c *config.Config) M {
-	m.SetUsers(func() error { return runUsersScreen(context.Background(), c) })
+// (mainmenu.Options.Users).
+func withUsersScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
+	m.Users = func() error { return runUsersScreen(context.Background(), c) }
 	return m
 }
 

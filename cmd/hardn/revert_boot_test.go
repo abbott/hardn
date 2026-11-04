@@ -82,7 +82,7 @@ func TestRevertBootCommand(t *testing.T) {
 		s.f.Respond(hostfake.Response{}, "systemd-run", "--unit=hardn-revert-"+revertTestID, "--description=hardn: roll back change "+revertTestID+" unless confirmed",
 			"--on-active=120s", "--timer-property=AccuracySec=1s", revertTestHardn, "rollback", revertTestID)
 		out := s.output(t, "rollback", "--boot")
-		if s.exit != -1 || !strings.Contains(out, "[SUCCESS] At boot, change "+revertTestID+" (SSH port 22 to 2230 on web-01.example.net): its timer is re-armed for what remains of its window, 2m0s") {
+		if s.exit != -1 || !strings.Contains(out, "Operation Successful At boot, change "+revertTestID+" (SSH port 22 to 2230 on web-01.example.net): its timer is re-armed for what remains of its window, 2m0s") {
 			t.Fatalf("exit %d:\n%s", s.exit, out)
 		}
 		if s.held != 1 || s.released != 1 {
@@ -103,7 +103,7 @@ func TestRevertBootCommand(t *testing.T) {
 		rebootSeams(s, time.Minute)
 		revertExecutable = func() (string, error) { return "/usr/sbin/hardn", nil }
 		out := s.output(t, "rollback", "--boot")
-		if s.exit != 1 || !strings.Contains(out, "[WARNING] At boot, change "+revertTestID) || !strings.Contains(out, "not this hardn (/usr/sbin/hardn)") || !s.has(pending) {
+		if s.exit != 1 || !strings.Contains(out, "Warning At boot, change "+revertTestID) || !strings.Contains(out, "not this hardn (/usr/sbin/hardn)") || !s.has(pending) {
 			t.Errorf("exit %d:\n%s", s.exit, out)
 		}
 	})
@@ -114,7 +114,7 @@ func TestRevertBootCommand(t *testing.T) {
 		if s.exit != -1 || !strings.Contains(out, "has passed: rolled back") || s.has(pending) || !s.has(revert.DefaultDir+"/"+revert.RevertedName) {
 			t.Errorf("exit %d:\n%s", s.exit, out)
 		}
-		if !strings.Contains(out, "No change is journalled, so hardn's boot unit is removed") || strings.Contains(out, "[WARNING]") {
+		if !strings.Contains(out, "No change is journalled, so hardn's boot unit is removed") || strings.Contains(out, "Warning") {
 			t.Errorf("the boot unit is not removed:\n%s", out)
 		}
 	})
@@ -123,7 +123,7 @@ func TestRevertBootCommand(t *testing.T) {
 		s.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
 		u := rebootSeams(s, time.Hour)
 		out := s.output(t, "rollback", "--boot")
-		if s.exit != 1 || !strings.Contains(out, "[ERROR] At boot, change "+revertTestID) || !strings.Contains(out, "has passed; the rollback did not finish") ||
+		if s.exit != 1 || !strings.Contains(out, "Operation Failed At boot, change "+revertTestID) || !strings.Contains(out, "has passed; the rollback did not finish") ||
 			!s.has(revert.DefaultDir+"/"+revert.RollbackName) || !s.has(u.Path) || strings.Contains(out, "boot unit is removed") {
 			t.Errorf("exit %d, rollback.json %v, unit %v:\n%s", s.exit, s.has(revert.DefaultDir+"/"+revert.RollbackName), s.has(u.Path), out)
 		}
@@ -137,7 +137,7 @@ func TestRevertBootCommand(t *testing.T) {
 			t.Fatal(err)
 		}
 		out := s.output(t, "rollback", "--boot")
-		if s.exit != -1 || !strings.Contains(out, "[WARNING] hardn's boot unit was not removed: ") || !strings.Contains(out, "kept, disabled") ||
+		if s.exit != -1 || !strings.Contains(out, "Warning hardn's boot unit was not removed: ") || !strings.Contains(out, "kept, disabled") ||
 			strings.Contains(out, "boot unit is removed") || !s.has(u.Path) {
 			t.Errorf("exit %d:\n%s", s.exit, out)
 		}
@@ -147,8 +147,8 @@ func TestRevertBootCommand(t *testing.T) {
 		executeHardn(t, "confirm")
 		rebootSeams(s, time.Minute)
 		out := s.output(t, "rollback", "--boot")
-		if s.exit != -1 || !strings.Contains(out, "[INFO] At boot: nothing to do: no change is journalled; the last change confirmed is "+revertTestID) ||
-			!strings.Contains(out, "hardn's boot unit is removed") || strings.Contains(out, "[WARNING]") || s.has("/etc/systemd/system/hardn-boot.service") ||
+		if s.exit != -1 || !strings.Contains(out, "At boot: nothing to do: no change is journalled; the last change confirmed is "+revertTestID) ||
+			!strings.Contains(out, "hardn's boot unit is removed") || strings.Contains(out, "Warning") || s.has("/etc/systemd/system/hardn-boot.service") ||
 			s.has("/etc/systemd/system/multi-user.target.wants/hardn-boot.service") {
 			t.Errorf("exit %d:\n%s", s.exit, out)
 		}

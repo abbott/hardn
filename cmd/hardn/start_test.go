@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host"
-	"github.com/abbott/hardn/pkg/logging"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
@@ -22,7 +22,7 @@ type startRun struct {
 }
 
 // captureStreams runs fn with os.Stdout and os.Stderr on pipes, and returns what each
-// took: fmt.Print, InitLogging and cobra look them up when they write.
+// took: fmt.Print and cobra look them up when they write.
 func captureStreams(t *testing.T, fn func()) (stdout, stderr string) {
 	t.Helper()
 	capture := func(f **os.File) func() string {
@@ -63,19 +63,19 @@ func runStart(t *testing.T, sys host.System, args ...string) startRun {
 	}
 
 	was := struct {
-		ensure   func() error
-		exit     func(int)
-		host     func() host.System
-		out      io.Writer
-		errOut   io.Writer
-		stdout   func() term.Env
-		stderr   func() term.Env
-		fallback io.Writer
-	}{ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, logging.FallbackOutput}
+		ensure func() error
+		exit   func(int)
+		host   func() host.System
+		out    io.Writer
+		errOut io.Writer
+		stdout func() term.Env
+		stderr func() term.Env
+		log    *output.Log
+		logErr bool
+	}{ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, hardnLog, logOnStderr}
 	t.Cleanup(func() {
-		ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, logging.FallbackOutput =
-			was.ensure, was.exit, was.host, was.out, was.errOut, was.stdout, was.stderr, was.fallback
-		logging.InitLogging(os.DevNull)
+		ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, hardnLog, logOnStderr =
+			was.ensure, was.exit, was.host, was.out, was.errOut, was.stdout, was.stderr, was.log, was.logErr
 		resetFlags()
 		rootCmd.SetArgs(nil)
 	})
@@ -90,7 +90,6 @@ func runStart(t *testing.T, sys host.System, args ...string) startRun {
 	rootCmd.SetArgs(args)
 	r.stdout, r.stderr = captureStreams(t, func() {
 		engineStdout, stderr = os.Stdout, os.Stderr
-		logging.FallbackOutput = os.Stderr
 		defer func() {
 			if v := recover(); v != nil {
 				code, ok := v.(exited)
@@ -106,13 +105,13 @@ func runStart(t *testing.T, sys host.System, args ...string) startRun {
 }
 
 // TestStartUpLeavesStdoutAlone: as a user other than root, hardn's three start-up lines
-// go to stderr, each of them, so that > file holds the report alone, --output json the
+// go to stderr, each of them a warning (say), so that > file holds the report alone, --output json the
 // document alone and -p the log alone (defect 28; unreleased.md; cmd-engine.md §2.11).
 func TestStartUpLeavesStdoutAlone(t *testing.T) {
 	lines := []string{
 		"Failed to create log directory",
 		"Failed to open log file",
-		"Warning: Unable to create example configuration file",
+		"Unable to create example configuration file",
 	}
 	for _, tc := range []struct {
 		args  []string
@@ -168,6 +167,9 @@ func TestUsageErrors(t *testing.T) {
 		{[]string{"system-details", "--bogus"}, "unknown flag: --bogus"},
 		{[]string{"-p", "--bogus"}, "unknown flag: --bogus"},
 		{[]string{"--bogus"}, "unknown flag: --bogus"},
+		{[]string{"--test-update"}, "unknown flag: --test-update"},
+		{[]string{"--test-security-update"}, "unknown flag: --test-security-update"},
+		{[]string{"--debug-updates"}, "unknown flag: --debug-updates"},
 		{[]string{"bogus"}, `unknown command "bogus"`},
 		{[]string{"confirm", "extra"}, `unknown command "extra"`},
 	} {

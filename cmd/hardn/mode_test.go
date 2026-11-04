@@ -8,10 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
-	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/output"
 )
 
 // The session's mode (refactor plan §3.19, "explicit flag wins, otherwise
@@ -67,7 +66,7 @@ func (y hardnYML) setup(t *testing.T) func() {
 			if y.path == "" {
 				c := config.DefaultConfig()
 				c.Username, c.LogFile, c.SshPort = "alice", y.logFile, 2230
-				c.SshAllowedUsers, c.Nameservers = []string{"alice"}, []string{"192.0.2.53"}
+				c.Nameservers = []string{"192.0.2.53"}
 				return c, nil
 			}
 			if p != y.path {
@@ -106,7 +105,7 @@ func TestDryRunPrecedence(t *testing.T) {
 			setup := y.setup(t)
 			r := runHardnWith(t, asRoot, func() {
 				setup()
-				detectOS = func() (*osdetect.OSInfo, error) { return nil, errors.New("test: past the mode") }
+				detectOS = func() error { return errors.New("test: past the mode") }
 			}, y.args(tc.flag...)...)
 			if !r.ended || r.code != 1 {
 				t.Fatalf("ended %v with %d, want status 1 at detectOS; stderr:\n%s", r.ended, r.code, r.stderr)
@@ -133,7 +132,7 @@ func TestConfigureDNSFlagPlanOnlyFromFile(t *testing.T) {
 	}{
 		{"-g", []string{"-g"}, 3},
 		{"--dry-run=false -g", []string{"--dry-run=false", "-g"}, 0},
-		{"-g -r", []string{"-g", "-r"}, hardncmd.ExitUsage},
+		{"-g -r", []string{"-g", "-r"}, output.ExitUsage},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, _ := newDNSHost(t, "debian13", dnsTestList)

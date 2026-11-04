@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/hold"
@@ -23,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -242,12 +242,12 @@ func TestEnvironmentHook(t *testing.T) {
 	h := newEnvHost(t, "debian13")
 	s := useEnvHost(t, h, "1", "0")
 	cfg := config.DefaultConfig()
-	set := &hookSet{}
-	if got := withEnvironmentScreen(set, cfg); got != set || set.environment == nil {
+	set := withEnvironmentScreen(mainmenu.Options{}, cfg)
+	if set.Environment == nil {
 		t.Fatal("withEnvironmentScreen did not set the Environment item's screen on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.environment(); err != nil {
+	if err := set.Environment(); err != nil {
 		t.Fatalf("the Environment item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.writes(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
@@ -275,24 +275,24 @@ func TestBackupThenEnvironment(t *testing.T) {
 		t.Fatal(err)
 	}
 	s := useEnvHost(t, h, "1", "y", "0", "2", backupTestPath, "y", "0", "1", "y", "0")
-	set := &hookSet{}
-	if got := withEnvironmentScreen(withBackupScreen(set, cfg), cfg); got != set || set.backup == nil || set.environment == nil {
+	set := withEnvironmentScreen(withBackupScreen(mainmenu.Options{}, cfg), cfg)
+	if set.Backup == nil || set.Environment == nil {
 		t.Fatal("withBackupScreen and withEnvironmentScreen did not set the Backup and Environment items' screens on the menu given")
 	}
-	if err := set.environment(); err != nil {
+	if err := set.Environment(); err != nil {
 		t.Fatalf("the Environment item, first = %v; screen:\n%s", err, s.out.String())
 	}
 	if h.content(envTestFile) == "<absent>" {
 		t.Fatalf("the first visit did not keep HARDN_CONFIG; screen:\n%s", s.out.String())
 	}
-	if err := set.backup(); err != nil {
+	if err := set.Backup(); err != nil {
 		t.Fatalf("the Backup item = %v; screen:\n%s", err, s.out.String())
 	}
 	if cfg.BackupPath != backupTestPath {
 		t.Fatalf("the main menu's configuration says backupPath %q after the path change, want %q; screen:\n%s", cfg.BackupPath, backupTestPath, s.out.String())
 	}
 	before := len(h.writes())
-	if err := set.environment(); err != nil {
+	if err := set.Environment(); err != nil {
 		t.Fatalf("the Environment item, again = %v; screen:\n%s", err, s.out.String())
 	}
 	envWrites := h.writes()[before:]
@@ -578,9 +578,6 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 						t.Errorf("hardn.yml's directory written: %v", c)
 					}
 				}
-				if len(r.calls) != 0 {
-					t.Errorf("%s went through the legacy provider: %v", spelling[0], r.calls)
-				}
 				applied := !tc.dryRun && (tc.code == 0 || tc.host == "visudo-fails") // nothing to change is applied too, as -g's
 				if want := map[bool]int{true: 1}[applied]; s.applies != want || s.live != 0 {
 					t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
@@ -592,8 +589,9 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 
 // TestKeepEnvironmentNotRoot: setup-sudo-env now has the root command's
 // root check (gallery-environment.md §5, Made here, adopted 2026-10-29;
-// defect 9): a user other than root is refused in its words, exit status
-// 1, before hardn.yml is loaded or the host reached; -e had it already.
+// defect 9): a user other than root is refused in its words, on stderr
+// (say), exit status 1, before hardn.yml is loaded or the host reached; -e
+// had it already.
 func TestKeepEnvironmentNotRoot(t *testing.T) {
 	for _, args := range [][]string{{"setup-sudo-env"}, {"-e"}, {"-n", "setup-sudo-env"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
@@ -601,8 +599,8 @@ func TestKeepEnvironmentNotRoot(t *testing.T) {
 			r, _ := runE(t, h, func(*dnsSeams) {
 				lookupCurrentUser = func() (*osuser.User, error) { return &osuser.User{Uid: "1000", Username: "alice"}, nil }
 			}, args...)
-			if !r.ended || r.code != 1 || !strings.Contains(r.stdout, "This script needs to be run as root.") || len(r.reached) != 0 || len(h.Calls()) != 0 {
-				t.Errorf("ended %v with %d after %v, %d host calls; stdout:\n%s", r.ended, r.code, r.reached, len(h.Calls()), r.stdout)
+			if !r.ended || r.code != 1 || !strings.HasPrefix(flat(r.stderr), "Operation Failed This script needs to be run as root. Run `") || r.stdout != "" || len(r.reached) != 0 || len(h.Calls()) != 0 {
+				t.Errorf("ended %v with %d after %v, %d host calls; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.reached, len(h.Calls()), r.stdout, r.stderr)
 			}
 		})
 	}
@@ -647,7 +645,7 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 		{[]string{"setup-sudo-env"}, 3},
 		{[]string{"--dry-run=false", "-e"}, 0},
 		{[]string{"--dry-run=false", "setup-sudo-env"}, 0},
-		{[]string{"-e", "-r"}, hardncmd.ExitUsage},
+		{[]string{"-e", "-r"}, output.ExitUsage},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			h := newEnvHost(t, "debian13")

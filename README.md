@@ -342,7 +342,6 @@ This project builds upon:
 - [Cobra](https://github.com/spf13/cobra) for CLI functionality
 - [Viper](https://github.com/spf13/viper) for configuration management
 - [yaml.v3](https://github.com/go-yaml/yaml) for YAML parsing
-- [color](https://github.com/fatih/color) for terminal color support
 
 Special thanks to the **Linux security community** (experts & enthusiasts) for the wisdom and knowledge over the years.
 

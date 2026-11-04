@@ -137,7 +137,7 @@ Still a stand-in, unit (c)'s:
 Carried:
 - Plain output: a plan's finding gets its own marker, not the change's bullet (debian13's "- dhcpcd may rewrite /etc/resolv.conf" reads as a change), answering slice 2's open note ("findings without a review look like plan bullets in plain output (before Run All)"). Fixed in unit (b): the warning marker `[ ]` (DEV-068).
 - A real fix: `revert.State.hardn()` says "sudo hardn" where no elevation tool is recorded (`pkg/host/revert/store.go:36-41`), so pve9's root with no sudo is told `sudo hardn confirm`; a root session with no sudo or doas should say `hardn confirm`. The mock keeps the real words. Fixed in unit (b) (`revert.Hardn`, revert.md §9.5): pve9 now says `hardn confirm`.
-- Main menu item 2's description, "Toggle SSH root access", is P-07's, not Run All's: to the leftover-legacy unit.
+- Main menu item 2's description, "Toggle SSH root access", is P-07's, not Run All's: to the leftover-legacy unit. *Done in `next/legacy-rehome`:* it reads "Root login, passwords, port" (P-07 (a)).
 
 Findings: on the Alpine VM the firewall control refuses (no `ss`), so Run All never enables it there; on Proxmox VE as installed, Create refuses (no sudo); in an LXC container the firewall control applies (only DNS and AppArmor are Not Applicable), which the brief assumed otherwise; each control's `Plan` runs alone and then together, and again under the lock (§2.9), which costs reads only. With ufw inactive, Enable and root login off in one plan are refused whole by the engine (`engine.ErrConflict`: "both plan changes of sshd and ufw, each from the host as it is now"); decision 5 (a), adopted, plans the firewall alone, and ufw-inactive draws and plays that.
 

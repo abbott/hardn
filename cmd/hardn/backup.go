@@ -3,32 +3,25 @@ package main
 // Backup on the plan/apply engine (refactor plan slice 3, Backup, unit
 // (d), next/s3-replace; plan §3.14: the legacy path replaced, not gated):
 // the main menu's Backup item runs the Backup screen (pkg/screens/backup),
-// which pkg/menu reaches through the hook set here, as it reaches the DNS
-// screen (dns.go), so that pkg/menu builds no engine. The engine's options
+// which pkg/screens/mainmenu reaches through the hook set here, as it reaches the DNS
+// screen (dns.go), so that pkg/screens/mainmenu builds no engine. The engine's options
 // are engine.go's. No flag routes to Backup.
 
 import (
 	"context"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	backupscreen "github.com/abbott/hardn/pkg/screens/backup"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
 
-// backupMenu is what withBackupScreen sets the Backup item of: pkg/menu's
-// main menu, and the tests' record of what was set.
-type backupMenu interface{ SetBackup(run func() error) }
-
-// The main menu is a backupMenu.
-var _ backupMenu = (*menu.MainMenu)(nil)
-
 // withBackupScreen returns m with its Backup item set to the Backup screen
-// on c, the configuration m was given (menu.MainMenu.SetBackup).
-func withBackupScreen[M backupMenu](m M, c *config.Config) M {
-	m.SetBackup(func() error { return runBackupScreen(context.Background(), c) })
+// on c, the configuration m was given (mainmenu.Options.Backup).
+func withBackupScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
+	m.Backup = func() error { return runBackupScreen(context.Background(), c) }
 	return m
 }
 

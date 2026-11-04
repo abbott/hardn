@@ -138,3 +138,30 @@ func TestParseModes(t *testing.T) {
 		}
 	}
 }
+
+// TestClear: Clear writes the clear on a terminal, whatever its colours,
+// and nothing when the Env is plain: piped output, or --plain on a
+// terminal.
+func TestClear(t *testing.T) {
+	plainTTY := Fixed(80, colorprofile.TrueColor, true, true)
+	plainTTY.Plain = true
+	for _, tc := range []struct {
+		name string
+		env  Env
+		want string
+	}{
+		{"truecolor terminal", Fixed(80, colorprofile.TrueColor, true, true), "\x1b[H\x1b[2J"},
+		{"ASCII terminal", Fixed(80, colorprofile.ASCII, false, false), "\x1b[H\x1b[2J"},
+		{"piped", Fixed(80, colorprofile.NoTTY, false, false), ""},
+		{"plain on a terminal", plainTTY, ""},
+		{"resolved off a terminal", Resolve(Options{}, Facts{Width: 80}), ""},
+		{"resolved on a terminal", Resolve(Options{}, Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Environ: []string{"TERM=xterm-256color"}}), "\x1b[H\x1b[2J"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var b bytes.Buffer
+			if err := tc.env.Clear(&b); err != nil || b.String() != tc.want {
+				t.Errorf("wrote %q (%v), want %q", b.String(), err, tc.want)
+			}
+		})
+	}
+}

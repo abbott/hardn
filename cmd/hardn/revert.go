@@ -11,13 +11,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/engine/hold"
@@ -25,7 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
-	"github.com/abbott/hardn/pkg/logging"
+	"github.com/abbott/hardn/pkg/ui/component"
 )
 
 func init() {
@@ -51,17 +49,16 @@ var rollbackBoot bool
 // environment and process id, the exit, the clock, where notices go and
 // whether a person sees them, and the signals a rollback holds off.
 var (
-	revertEUID                  = os.Geteuid
-	revertHost                  = func() host.System { return host.NewReal(host.Options{RunLog: revertLog{}}) }
-	revertGetenv                = os.Getenv
-	revertPID                   = os.Getpid
-	revertExit                  = os.Exit
-	revertNow                   = time.Now
-	revertStderr      io.Writer = termStderr
-	revertNoticeSeen            = stderrIsTerminal
-	revertHoldSignals           = holdSignals
-	revertExecutable            = executable
-	revertInit                  = detect.DetectInit
+	revertEUID        = os.Geteuid
+	revertHost        = func() host.System { return host.NewReal(host.Options{RunLog: revertLog{}}) }
+	revertGetenv      = os.Getenv
+	revertPID         = os.Getpid
+	revertExit        = os.Exit
+	revertNow         = time.Now
+	revertNoticeSeen  = stderrIsTerminal
+	revertHoldSignals = holdSignals
+	revertExecutable  = executable
+	revertInit        = detect.DetectInit
 )
 
 // executable is this hardn's path, resolved: what the boot unit ran, which
@@ -83,15 +80,14 @@ func executable() (string, error) {
 var revertPlans = plans.Registry()
 
 // revertLog writes each line to hardn's log, /var/log/hardn.log, and the
-// console, through the legacy logging package: the commands a rollback runs
-// and each of its steps. Under the systemd timer the console is the
-// journal; under the OpenRC sleeper it is the null device, and the log file
-// is the record.
+// console, stderr (say): the commands a rollback runs and each of its
+// steps. Under the systemd timer the console is the journal; under the
+// OpenRC sleeper it is the null device, and the log file is the record.
 type revertLog struct{}
 
 func (revertLog) Write(p []byte) (int, error) {
 	for _, line := range strings.Split(strings.TrimRight(string(p), "\n"), "\n") {
-		logging.LogInfo("%s", line)
+		sayInfo("%s", line)
 	}
 	return len(p), nil
 }
@@ -185,12 +181,12 @@ func revertAsRoot(cmd string) string {
 // root, who cannot read the journal.
 func revertPreflight(name string) bool {
 	if dryRun {
-		logging.LogError("-n only previews, and hardn %s changes the host: run it without -n", name)
+		sayError("-n only previews, and hardn %s changes the host: run it without -n", name)
 		revertExit(2)
 		return false
 	}
 	if revertEUID() != 0 {
-		logging.LogError("hardn %s must be run as root: %s %s", name, revert.Hardn(revertElevation()), name)
+		sayError("hardn %s must be run as root: %s %s", name, revert.Hardn(revertElevation()), name)
 		revertExit(1)
 		return false
 	}
@@ -198,7 +194,6 @@ func revertPreflight(name string) bool {
 }
 
 func runConfirm(*cobra.Command, []string) {
-	setRevertColour()
 	if !revertPreflight("confirm") {
 		return
 	}
@@ -207,7 +202,7 @@ func runConfirm(*cobra.Command, []string) {
 	opts := revert.Options{Log: revertLog{}, Now: revertNow}
 	s, err := revert.ReadSession(ctx, sys, revertGetenv, revertPID())
 	if err != nil {
-		logging.LogWarning("%v", err)
+		sayWarning("%v", err)
 	}
 	if code := confirmAndCleanUp(ctx, sys, s, opts); code != 0 {
 		revertExit(code)
@@ -215,7 +210,6 @@ func runConfirm(*cobra.Command, []string) {
 }
 
 func runRollback(_ *cobra.Command, args []string) {
-	setRevertColour()
 	if rollbackBoot {
 		runBoot()
 		return
@@ -235,18 +229,18 @@ func runRollback(_ *cobra.Command, args []string) {
 	res, err := revert.Rollback(ctx, sys, args[0], opts)
 	switch {
 	case errors.Is(err, revert.ErrID):
-		logging.LogError("%v", err)
+		sayError("%v", err)
 		revertExit(2)
 	case err != nil:
-		logging.LogError("%v", err)
+		sayError("%v", err)
 		revertExit(1)
 	case res.Nothing:
-		logging.LogInfo("Nothing to roll back for %s: %s.", args[0], res.Why)
+		sayInfo("Nothing to roll back for %s: %s.", args[0], res.Why)
 		if res.Reverted != nil {
 			acknowledge(ctx, sys, opts)
 		}
 	default:
-		logging.LogSuccess("Change %s (%s) rolled back.", res.Journal.ID, res.Journal.Summary)
+		saySuccess("Change %s (%s) rolled back.", res.Journal.ID, res.Journal.Summary)
 	}
 }
 
@@ -263,46 +257,52 @@ func runAbandon(id string) {
 	res, err := revert.Abandon(context.Background(), revertHost(), id, revert.Options{Log: revertLog{}, Now: revertNow})
 	switch {
 	case errors.Is(err, revert.ErrID):
-		logging.LogError("%v", err)
+		sayError("%v", err)
 		revertExit(2)
 		return
 	case err != nil:
-		logging.LogError("%v", err)
+		sayError("%v", err)
 		rb := filepath.Join(revert.DefaultDir, revert.RollbackName)
 		switch {
 		case errors.Is(err, host.ErrLocked):
-			logging.LogInfo("Run it again once that hardn has finished: one stopped inside the lock (Ctrl-Z) keeps it until it goes on or ends.")
+			sayInfo("Run it again once that hardn has finished: one stopped inside the lock (Ctrl-Z) keeps it until it goes on or ends.")
 		case errors.Is(err, revert.ErrNoLock):
-			logging.LogInfo("The journal lock %s could not be taken, so nothing was given up: free space on its file system, or put right what the error names, and run it again. Moving %s aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.",
+			sayInfo("The journal lock %s could not be taken, so nothing was given up: free space on its file system, or put right what the error names, and run it again. Moving %s aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.",
 				filepath.Join(revert.DefaultDir, revert.JournalLockName), rb)
 		case errors.Is(err, revert.ErrJournal) || errors.Is(err, revert.ErrUnsafe):
-			logging.LogInfo("If the file it names is %s and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.", rb)
+			sayInfo("If the file it names is %s and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.", rb)
 		}
 		revertExit(1)
 		return
 	}
 	j := res.Journal
 	done, left := revert.Unfinished(j)
-	logging.LogSuccess("Gave up the rollback of change %s (%s).", j.ID, j.Summary)
-	logging.LogWarning("The host stays as the rollback left it: hardn will not undo what the rollback did not.")
+	ok := func(text string) component.Message { return component.Message{Kind: component.MessageOK, Text: text} }
+	warn := func(text string) component.Message { return component.Message{Kind: component.MessageWarn, Text: text} }
+	info := func(text string) component.Message { return component.Message{Text: text} }
+	run := []component.Message{
+		ok(fmt.Sprintf("Gave up the rollback of change %s (%s).", j.ID, j.Summary)),
+		warn("The host stays as the rollback left it: hardn will not undo what the rollback did not."),
+	}
 	if j.Rollback == nil {
-		logging.LogWarning("The rollback stopped before it recorded its progress, so it may have done more than its record shows.")
+		run = append(run, warn("The rollback stopped before it recorded its progress, so it may have done more than its record shows."))
 	}
 	if res.RunnerUnknown {
-		logging.LogWarning("Its record does not name the process that ran it, so hardn cannot tell whether a `hardn rollback %s` is still running it: check with `ps`. One that still runs writes its record again as it goes, and the next run of hardn reports it.", j.ID)
+		run = append(run, warn(fmt.Sprintf("Its record does not name the process that ran it, so hardn cannot tell whether a `hardn rollback %s` is still running it: check with `ps`. One that still runs writes its record again as it goes, and the next run of hardn reports it.", j.ID)))
 	}
-	logging.LogInfo("Undone by the rollback, by its record:")
+	run = append(run, info("Undone by the rollback, by its record:"))
 	for _, line := range orNothing(done) {
-		logging.LogInfo("  - %s", line)
+		run = append(run, info("  - "+line))
 	}
-	logging.LogWarning("Not undone, or not finished:")
+	run = append(run, warn("Not undone, or not finished:"))
 	for _, line := range orNothing(left) {
-		logging.LogWarning("  - %s", line)
+		run = append(run, warn("  - "+line))
 	}
 	if res.SSHUnchecked {
-		logging.LogWarning("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `%s` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.", revertAsRoot("sshd -t"))
+		run = append(run, warn(fmt.Sprintf("The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). Check them now with `%s` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.", revertAsRoot("sshd -t"))))
 	}
-	logging.LogInfo("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.", res.Kept)
+	run = append(run, info(fmt.Sprintf("The rollback's record is kept in %s, and /var/log/hardn.log has what each of its steps did. New changes can be applied again.", res.Kept)))
+	sayRun(run...)
 }
 
 // runBoot is `hardn rollback --boot` (P-34 (c)): revert.Boot, with this
@@ -323,7 +323,7 @@ func runBoot() {
 	sys := revertHost()
 	self, err := revertExecutable()
 	if err != nil {
-		logging.LogError("hardn rollback --boot: this hardn's own path cannot be read, so whether it wrote the change journal cannot be told, and hardn does not act on it: %v", err)
+		sayError("hardn rollback --boot: this hardn's own path cannot be read, so whether it wrote the change journal cannot be told, and hardn does not act on it: %v", err)
 		revertExit(1)
 		return
 	}
@@ -333,22 +333,24 @@ func runBoot() {
 	if j := res.Change; j.ID != "" {
 		what = "At boot, change " + j.ID + " (" + j.Summary + ")"
 	}
+	var run []component.Message
 	switch {
 	case err != nil:
-		logging.LogError("%s: %s: %v", what, res.Why, err)
+		run = append(run, component.Message{Kind: component.MessageBad, Text: fmt.Sprintf("%s: %s: %v", what, res.Why, err)})
 	case res.Action == revert.BootLeft:
-		logging.LogWarning("%s: %s.", what, res.Why)
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: fmt.Sprintf("%s: %s.", what, res.Why)})
 	case res.Action == revert.BootNothing:
-		logging.LogInfo("%s: nothing to do: %s.", what, res.Why)
+		run = append(run, component.Message{Text: fmt.Sprintf("%s: nothing to do: %s.", what, res.Why)})
 	default:
-		logging.LogSuccess("%s: %s.", what, res.Why)
+		run = append(run, component.Message{Kind: component.MessageOK, Text: fmt.Sprintf("%s: %s.", what, res.Why)})
 	}
 	if res.Removed {
-		logging.LogInfo("No change is journalled, so hardn's boot unit is removed; hardn installs it again before the next change that could lock you out.")
+		run = append(run, component.Message{Text: "No change is journalled, so hardn's boot unit is removed; hardn installs it again before the next change that could lock you out."})
 	}
 	if res.RemoveErr != nil {
-		logging.LogWarning("hardn's boot unit was not removed: %v", res.RemoveErr)
+		run = append(run, component.Message{Kind: component.MessageWarn, Text: fmt.Sprintf("hardn's boot unit was not removed: %v", res.RemoveErr)})
 	}
+	sayRun(run...)
 	if err != nil || res.Action == revert.BootLeft {
 		revertExit(1)
 	}
@@ -384,7 +386,7 @@ type revertWarnLog struct{}
 
 func (revertWarnLog) Write(p []byte) (int, error) {
 	for _, line := range strings.Split(strings.TrimRight(string(p), "\n"), "\n") {
-		logging.LogWarning("%s", line)
+		sayWarning("%s", line)
 	}
 	return len(p), nil
 }
@@ -418,10 +420,12 @@ func showRevertNotices(cmd *cobra.Command, _ []string) {
 	}
 }
 
-// revertNotice writes one notice line to stderr, as the legacy warnings
-// look.
+// revertNotice writes one notice line to stderr, a warning, and to stderr
+// only, not hardn's log: every root run shows it (PersistentPreRun), so
+// logging it would append it to the log on each run, and -p would write
+// into the log it prints.
 func revertNotice(format string, args ...any) {
-	_, _ = color.New(color.FgYellow).Fprintf(revertStderr, "[WARNING] "+format+"\n", args...)
+	writeConsole(component.Messages{{Kind: component.MessageWarn, Text: fmt.Sprintf(format, args...)}})
 }
 
 // stderrIsTerminal reports whether stderr is a character device other than
@@ -437,6 +441,6 @@ func stderrIsTerminal() bool {
 
 func acknowledge(ctx context.Context, sys host.System, opts revert.Options) {
 	if err := revert.Acknowledge(ctx, sys, opts); err != nil {
-		logging.LogWarning("hardn could not clear the rollback notice: %v", err)
+		sayWarning("hardn could not clear the rollback notice: %v", err)
 	}
 }

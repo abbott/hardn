@@ -3,9 +3,9 @@ package main
 // Firewall on the plan/apply engine (refactor plan slice 4, Firewall,
 // unit (d), next/s4-replace; plan §3.14: the legacy path replaced, not
 // gated): the main menu's Firewall item runs the Firewall screen
-// (pkg/screens/firewall), which pkg/menu reaches through the hook set
+// (pkg/screens/firewall), which pkg/screens/mainmenu reaches through the hook set
 // here, as it reaches the Environment screen (environment.go), so that
-// pkg/menu builds no engine; and -w plans and applies the Firewall
+// pkg/screens/mainmenu builds no engine; and -w plans and applies the Firewall
 // control's Enable through runControls, a lockout-risk plan confirmed by
 // the hostname typed on a terminal and refused off one
 // (gallery-firewall.md §5, decision 4, adopted 2026-11-01). The engine's
@@ -21,9 +21,9 @@ import (
 	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/detect"
-	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	fwscreen "github.com/abbott/hardn/pkg/screens/firewall"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
@@ -61,27 +61,18 @@ var enableFirewall = typedConfirm{
 	},
 }
 
-// firewallMenu is what withFirewallScreen sets the Firewall item of:
-// pkg/menu's main menu, and the tests' record of what was set.
-type firewallMenu interface {
-	SetFirewall(run func() error, onPVE func() bool)
-}
-
-// The main menu is a firewallMenu.
-var _ firewallMenu = (*menu.MainMenu)(nil)
-
 // withFirewallScreen returns m with its Firewall item set to the Firewall
 // screen on c, the configuration m was given, and its description to
 // Proxmox VE's where the host is Proxmox VE, as the screen reads it
-// (menu.MainMenu.SetFirewall): detect's Proxmox VE installed, read through
+// (mainmenu.Options.Firewall): detect's Proxmox VE installed, read through
 // engineDetect once, as the main menu is first drawn, a fact that does not
 // change while hardn runs.
-func withFirewallScreen[M firewallMenu](m M, c *config.Config) M {
+func withFirewallScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
 	onPVE := sync.OnceValue(func() bool {
 		facts, err := engineDetect(context.Background(), statusHost())
 		return err == nil && facts.Proxmox.Installed == detect.Yes
 	})
-	m.SetFirewall(func() error { return runFirewallScreen(context.Background(), c) }, onPVE)
+	m.Firewall, m.FirewallPVE = func() error { return runFirewallScreen(context.Background(), c) }, onPVE
 	return m
 }
 

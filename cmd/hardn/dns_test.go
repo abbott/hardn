@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
@@ -578,9 +577,6 @@ func TestConfigureDNSFlag(t *testing.T) {
 			if got := h.content(dnsTestYML); got != yml {
 				t.Errorf("hardn.yml changed:\n%s", got)
 			}
-			if len(r.calls) != 0 {
-				t.Errorf("-g went through the legacy provider: %v", r.calls)
-			}
 			applied := !tc.dryRun && (tc.code == 0 || tc.files != nil) // not refused
 			if want := map[bool]int{true: 1}[applied]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
@@ -884,7 +880,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 		before := len(h.Calls())
 		r, _ := runG(t, h, cfg, nil, "-n", "-g", "-r")
 		want := errRunAllAlone.Error()
-		if !r.ended || r.code != hardncmd.ExitUsage || len(r.reached) != 0 || !strings.Contains(r.stderr, want) || len(h.Calls()) != before {
+		if !r.ended || r.code != output.ExitUsage || len(r.reached) != 0 || !strings.Contains(r.stderr, want) || len(h.Calls()) != before {
 			t.Errorf("ended %v with %d after %v, host calls %d; stderr:\n%s", r.ended, r.code, r.reached, len(h.Calls())-before, r.stderr)
 		}
 	})

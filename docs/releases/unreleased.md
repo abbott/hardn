@@ -90,6 +90,7 @@ See [docs/configuration.md](../configuration.md), "`username`, `sudoNoPassword` 
 - **With hardn's old sshd settings, `-d` and SSH Login's other changes are refused** until Move old settings (main menu 2) moves them.
 - **`hardn -c -d` works again.** It creates the user first, then turns root login off only if an admin, the new user among them, can still log in.
 - **hardn.yml's SSH settings warn where unused.** SSH Login and `-d` read sshd. `sshPort` is Change SSH port's default, and `sshConfigFile` is read to move hardn's old settings. Where `permitRootLogin`, `sshAllowedUsers`, `sshListenAddress` or `sshKeyPath` is set to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used". Run All and `-r` don't read them either; `disableRootSSH: true` is Run All's.
+- **`permitRootLogin: "prohibit-password"` no longer stops hardn.** It was refused, exit status 2. Like `"yes"`, it now warns "hardn.yml's permitRootLogin isn't used".
 
 See [docs/configuration.md](../configuration.md), "SSH Configuration".
 
@@ -117,6 +118,8 @@ See [docs/configuration.md](../configuration.md), "What Run All reads".
 
 ## Changed: the main menu
 
+- **Main menu 2 says "Root login, passwords, port"**, where it said "Toggle SSH root access".
+- **The main menu clears the screen only on a terminal.**
 - **An invalid choice is answered under the prompt**, which asks again. The screen is no longer cleared, and there is no "Press Enter" to go on.
 - **After a screen, the main menu is drawn again below it**, so what the screen printed stays in view above it.
 
@@ -133,3 +136,21 @@ See [docs/configuration.md](../configuration.md), "What Run All reads".
 - **`hardn -p` alone needs no root,** and off a terminal prints the log's lines and nothing else. To a terminal it prints the file's details and the last lines. With another operation flag it still prints after them.
 - **`hardn -p` has exit statuses.** 1 where the log can't be read, with the reason on stderr; 0 with "hardn: no log yet: <path>" on stderr where there is none.
 - **As a user other than root, `hardn system-details > file` holds the report alone.** hardn's two start-up lines go to stderr.
+
+## Changed: start-up and messages
+
+- **Start-up no longer clears the screen**, and no longer prints a line of `~` or "debian trixie detected" ("Proxmox environment detected" on Proxmox VE).
+- **Which hardn.yml was read is said once, on stderr**: "Using configuration from: <path>", for `-c`, `-d`, `-g`, `-w`, `-r`, `-e` and `setup-sudo-env`. The main menu prints nothing before it starts.
+- **An unsupported OS is still refused**, exit status 1.
+- **hardn's messages go to stderr**, in the same look as the screens' messages: errors, warnings and notices, such as "must be run as root" and the reports of `hardn confirm` and `hardn rollback`. They no longer start with "[ERROR]", "[WARNING]", "[INFO]" or "[SUCCESS]". Off a terminal they have no colour codes.
+- **Stdout holds a command's output alone.** `/var/log/hardn.log` is unchanged.
+
+## Removed: the update-test flags
+
+- **`--test-update`, `--test-security-update` and `--debug-updates` are removed**, as are `HARDN_FORCE_UPDATE` and `HARDN_FORCE_SECURITY`. They did nothing since update checks were turned off. Each flag is now an unknown flag, exit status 2; the variables are ignored.
+
+## Changed: keys nothing reads
+
+- **23 hardn.yml keys warn where set**: `dmzSubnet`, the ten package lists, the five repository keys and `alpineTestingRepo`, `useUvPackageManager`, `lang`, `language`, `lcAll`, `tz` and `pythonUnbuffered`. Nothing reads them. Where one is set to other than its default, hardn warns, such as "hardn.yml's dmzSubnet isn't used". The file is still accepted.
+
+See [docs/configuration.md](../configuration.md), "Configuration Options".

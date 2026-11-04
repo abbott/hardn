@@ -14,71 +14,17 @@
   "EnableBackups": false,
   "BackupPath": "/var/backups/hardn",
   "ConfirmTimeout": "",
-  "DmzSubnet": "192.0.2",
   "Nameservers": [
     "192.0.2.53",
     "192.0.2.54"
   ],
   "SshPort": 2230,
   "PermitRootLogin": false,
-  "SshAllowedUsers": [
-    "alice"
-  ],
-  "SshListenAddress": "192.0.2.10",
-  "SshKeyPath": ".ssh_%u",
   "SshConfigFile": "/etc/ssh/sshd_config.d/hardn.conf",
   "SudoNoPassword": false,
   "SshKeys": [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLEKEYEXAMPLEKEYEXAMPLEKEYEXAMPLEKEY0 alice-example"
   ],
-  "LinuxCorePackages": [
-    "sudo",
-    "curl"
-  ],
-  "LinuxDmzPackages": [
-    "fail2ban"
-  ],
-  "LinuxLabPackages": [
-    "tree"
-  ],
-  "PythonPackages": [
-    "python3-pip"
-  ],
-  "NonWslPythonPackages": [
-    "python3-venv"
-  ],
-  "PythonPipPackages": [
-    "example-package"
-  ],
-  "AlpineCorePackages": [
-    "sudo",
-    "openssh"
-  ],
-  "AlpineDmzPackages": [
-    "fail2ban"
-  ],
-  "AlpineLabPackages": [
-    "tree"
-  ],
-  "AlpinePythonPackages": [
-    "py3-pip"
-  ],
-  "DebianRepos": [
-    "deb http://deb.example.invalid/debian trixie main"
-  ],
-  "ProxmoxSrcRepos": [
-    "deb http://pve.example.invalid/debian/pve trixie pve-no-subscription"
-  ],
-  "ProxmoxCephRepo": [
-    "deb http://pve.example.invalid/debian/ceph-squid trixie no-subscription"
-  ],
-  "ProxmoxEnterpriseRepo": [
-    "# deb https://enterprise.example.invalid/debian/pve trixie pve-enterprise"
-  ],
-  "ProxmoxPackagePatterns": [
-    "proxmox-ve"
-  ],
-  "AlpineTestingRepo": true,
   "UfwAppProfiles": [
     {
       "Name": "ExampleHTTPS",
@@ -89,25 +35,8 @@
       ]
     }
   ],
-  "UfwDefaultIncomingPolicy": "deny",
-  "UfwDefaultOutgoingPolicy": "allow",
-  "UfwAllowedPorts": [
-    8080,
-    8443
-  ],
-  "UseUvPackageManager": true,
-  "EnableAppArmor": true,
-  "EnableLynis": true,
   "EnableUnattendedUpgrades": true,
   "EnableUfwSshPolicy": true,
   "ConfigureDns": true,
-  "DisableRootSSH": true,
-  "Lang": "en_US.UTF-8",
-  "Language": "en_US:en",
-  "LcAll": "en_US.UTF-8",
-  "Tz": "Etc/UTC",
-  "PythonUnbuffered": "0",
-  "LogsConfig": {
-    "LogFilePath": "/var/log/hardn.log"
-  }
+  "DisableRootSSH": true
 }

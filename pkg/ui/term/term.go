@@ -107,3 +107,19 @@ func (e Env) HasColor() bool {
 func (e Env) Writer(w io.Writer) io.Writer {
 	return &colorprofile.Writer{Forward: w, Profile: e.Profile}
 }
+
+// ClearSequence is what Clear writes on a terminal: the cursor home, then
+// the screen erased.
+const ClearSequence = "\x1b[H\x1b[2J"
+
+// Clear clears the screen w is drawn on when e is not Plain, and writes
+// nothing when it is: off a terminal (a pipe, a file, a journal) the
+// sequence is noise (legacy-left.md §3, decision 4 (a)). w is the stream
+// itself, not Writer's: a clear is no colour to downsample.
+func (e Env) Clear(w io.Writer) error {
+	if e.Plain {
+		return nil
+	}
+	_, err := io.WriteString(w, ClearSequence)
+	return err
+}

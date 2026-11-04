@@ -26,35 +26,22 @@ const (
 
 // updateCheckEnabled: DISABLED 2026-10-17. Flip to true to restore.
 //
-// With it true, every interactive start asks the GitHub API for the latest
-// release (twice, from racing goroutines, pkg/menu) and caches the answer
-// as root in the predictable /tmp/hardn-version-cache.json, which root also
-// reads back without validating it. An unprivileged local user can plant
-// that file (a future last_check, tag v99, a "security" release body, any
-// URL), and root's hardn then replaces the menu with an "Update Binary
-// <URL>" screen and exits after a key (V26; Phase 0 side-effects §9 D2,
-// proposal P-15). The test hooks --test-update, --test-security-update,
-// HARDN_FORCE_UPDATE and HARDN_FORCE_SECURITY force the same screens.
+// With it true, origin/main's main menu (pkg/menu) asked the GitHub API
+// for the latest release at every interactive start (twice, from racing
+// goroutines) and cached the answer as root in the predictable
+// /tmp/hardn-version-cache.json, which root also read back without
+// validating it. An unprivileged local user could plant that file (a
+// future last_check, tag v99, a "security" release body, any URL), and
+// root's hardn then replaced the menu with an "Update Binary <URL>" screen
+// and exited after a key (V26; Phase 0 side-effects §9 D2, proposal P-15).
 //
 // With it false, no check runs: CheckForUpdates and Service.CheckForUpdates
 // report no update, forced or not, without a network call and without
 // reading, writing or removing the cache; GetCacheStatus reports that
-// checks are disabled. The flags stay accepted and do nothing (their help
-// says so), so no script that passes them breaks.
+// checks are disabled. Nothing calls the checker since pkg/menu, its
+// test flags and its alert went (docs/engine/legacy-left.md, decision 3
+// (a)); it stays for P-15.
 const updateCheckEnabled = false
-
-// UpdateCheckEnabled reports whether hardn checks for new releases at all
-// (updateCheckEnabled).
-func UpdateCheckEnabled() bool { return updateCheckEnabled }
-
-// UpdateFlagUsage is the help text of a flag that drives the update
-// check: usage, plus a note while checks are disabled.
-func UpdateFlagUsage(usage string) string {
-	if updateCheckEnabled {
-		return usage
-	}
-	return usage + " (no effect: update checks are disabled)"
-}
 
 // The checker's network and cache I/O. Tests replace them to show that a
 // disabled check makes none.

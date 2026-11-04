@@ -17,7 +17,6 @@ import (
 	"syscall"
 	"testing"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
@@ -276,7 +275,6 @@ var sentinels = map[string]error{
 // otherSentinels are the sentinels of other packages that have codes of
 // their own.
 var otherSentinels = map[string]error{
-	"config.ErrRootLoginNotApplied":  config.ErrRootLoginNotApplied,
 	"config.ErrNotLoaded":            config.ErrNotLoaded,
 	"config.ErrInvalidFile":          config.ErrInvalidFile,
 	"config.ErrChanged":              config.ErrChanged,     // next/s2-config-edit
@@ -721,14 +719,14 @@ func TestBootCodes(t *testing.T) {
 	}
 }
 
-// TestExitStatuses: the exit statuses are the brief's, and pkg/cmd's and
-// pkg/ui/prompt's equal them.
+// TestExitStatuses: the exit statuses are the brief's, and pkg/ui/prompt's
+// equals them.
 func TestExitStatuses(t *testing.T) {
 	if output.ExitOK != 0 || output.ExitError != 1 || output.ExitUsage != 2 || output.ExitChanges != 3 || output.ExitInterrupted != 130 {
 		t.Fatal("the exit statuses changed")
 	}
-	if hardncmd.ExitUsage != output.ExitUsage || prompt.ExitInterrupted != output.ExitInterrupted {
-		t.Errorf("pkg/cmd ExitUsage %d, pkg/ui/prompt ExitInterrupted %d", hardncmd.ExitUsage, prompt.ExitInterrupted)
+	if prompt.ExitInterrupted != output.ExitInterrupted {
+		t.Errorf("pkg/ui/prompt ExitInterrupted %d", prompt.ExitInterrupted)
 	}
 	if steps.CodeNoRunDir != "SSHD_ENV_NO_RUNDIR" || steps.CodeListenConfNotInEffect != "SSH_LISTEN_CONF_NOT_IN_EFFECT" {
 		t.Error("steps' codes changed")

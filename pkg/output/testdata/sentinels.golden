@@ -26,7 +26,6 @@ config.ErrEditUnsafe CONFIG_EDIT_UNSAFE
 config.ErrInvalidFile CONFIG_FILE_INVALID
 config.ErrNotEditable CONFIG_NOT_EDITABLE
 config.ErrNotLoaded CONFIG_NOT_LOADED
-config.ErrRootLoginNotApplied CONFIG_ROOT_LOGIN_NOT_APPLIED
 context.Canceled CANCELLED
 context.DeadlineExceeded TIMED_OUT
 detect.ErrConflict DETECT_SIGNALS_DISAGREE
