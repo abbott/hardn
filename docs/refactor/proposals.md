@@ -96,6 +96,7 @@
 ### P-02: Make Run All hard to trigger by accident
 
 - **Status:** proposed
+- **Mock:** slice 8's unit (a), [gallery-runall.md](../engine/gallery-runall.md): the combined plan and the typed confirmation played; placement and numbering are its decision 7 (keep 7 recommended; the last item, 10, drawn).
 - **Source:** brief §7.2.
 - **Problem:**
   - Run All is item 7, one keystroke and Enter away in live mode.
