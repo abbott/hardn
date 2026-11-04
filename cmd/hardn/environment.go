@@ -21,7 +21,6 @@ import (
 	envctl "github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/revert"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/output"
 	envscreen "github.com/abbott/hardn/pkg/screens/environment"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
@@ -118,16 +117,21 @@ func rootHint() string {
 	return "Run `" + revert.Hardn(revertElevation()) + "` or switch to root `" + su + "`"
 }
 
+// sayNotRoot is the root check's refusal of a user other than root, and
+// how to run hardn as root (rootHint), one report on stderr (say).
+func sayNotRoot() {
+	sayRun(component.Message{Kind: component.MessageBad, Text: "This script needs to be run as root."}, component.Message{Text: rootHint()})
+}
+
 func checkRoot() error {
 	currentUser, err := lookupCurrentUser()
 	if err != nil {
-		logging.LogError("Failed to get current user: %v", err)
+		sayError("Failed to get current user: %v", err)
 		exit(1)
 		return err
 	}
 	if currentUser.Uid != "0" {
-		logging.LogError("This script needs to be run as root.")
-		fmt.Println(rootHint())
+		sayNotRoot()
 		exit(1)
 		return errNotRoot
 	}

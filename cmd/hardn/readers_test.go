@@ -17,7 +17,6 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -470,29 +469,6 @@ func TestRetiredKeysWarning(t *testing.T) {
 	}
 	if keys := read(t, config.ExampleConfigContent).Retired(); len(keys) != 0 {
 		t.Errorf("the example hardn.yml sets %v", keys)
-	}
-}
-
-// TestWarningsFollowDetectOS: detectOS clears the terminal (utils.PrintHeader), so what
-// loading hardn.yml warns of is said after it, or no one reads it (run: the VMs).
-func TestWarningsFollowDetectOS(t *testing.T) {
-	const cleared, words = "the terminal cleared", "isn't used"
-	r := runHardnWith(t, asRoot, func() {
-		onDNSHost(t)
-		loadConfig = func(string) (*config.Config, error) {
-			c := config.DefaultConfig()
-			c.Username, c.LogFile = "alice", "/srv/log/hardn.log"
-			return c, nil
-		}
-		detected := detectOS
-		detectOS = func() (*osdetect.OSInfo, error) {
-			_, _ = io.WriteString(stderr, cleared+"\n")
-			return detected()
-		}
-	}, "-r")
-	at, said := strings.Index(r.stderr, cleared), strings.Index(r.stderr, words)
-	if at < 0 || said < at {
-		t.Errorf("the warning at %d, the clear at %d; stderr:\n%s", said, at, r.stderr)
 	}
 }
 

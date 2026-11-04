@@ -90,8 +90,6 @@ linters:
         legacy-color:
           files:
             - "$all"
-            - "!${base-path}/cmd/hardn/**"
-            - "!${base-path}/pkg/logging/**"
           deny:
             - pkg: github.com/fatih/color
               desc: legacy colour library; use pkg/ui (design-system README §9.15)

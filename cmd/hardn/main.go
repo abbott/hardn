@@ -7,12 +7,9 @@ import (
 	"os"
 	osuser "os/user"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
@@ -46,12 +43,12 @@ func main() { start("/var/log/hardn.log") }
 // start is main, with the log's path for the tests: what hardn says before the
 // command goes to stderr, so that stdout holds the command's output alone (defect 28).
 func start(logPath string) {
-	logging.InitLogging(logPath)
+	openLog(logPath)
 
 	// Ensure config directory and example config exist
 	if err := ensureExampleConfig(); err != nil {
-		// Just log a warning, don't exit - the program can still run with defaults
-		fmt.Fprintf(os.Stderr, "Warning: Unable to create example configuration file: %v\n", err)
+		// A warning, not an exit: the program can still run with defaults.
+		sayWarning("Unable to create example configuration file: %v", err)
 	}
 
 	// All Execute returns is a bad command line, which cobra has said on stderr with
@@ -66,7 +63,7 @@ func init() {
 	rootCmd.Version = Version
 
 	// if rootCmd.Version != "" {
-	// 	logging.LogInfo("Current version :::: : %s", rootCmd.Version)
+	// 	sayInfo("Current version :::: : %s", rootCmd.Version)
 	// }
 
 	// Setup color processing before command execution
@@ -89,14 +86,29 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 }
 
+// initializeColor turns pkg/style's colour, the legacy main menu's, off
+// for --no-color. Colour is no longer forced on: the console lines (say)
+// and the screens take it from pkg/ui/term's detection, which --no-color
+// reaches as --color=never (streamEnv).
 func initializeColor() {
-	if noColor {
-		color.NoColor = true
-		style.UseColors = false
-	} else {
-		color.NoColor = false
-		style.UseColors = true
+	style.UseColors = !noColor
+}
+
+// mainMenuRun reports whether the root command opens the main menu: no
+// operation flag given.
+func mainMenuRun() bool {
+	return !createUser && !disableRootSSH && !configureUfw && !configureDns &&
+		!runAll && !printLogs && !setupSudoEnv
+}
+
+// sayFound says which hardn.yml FindConfigFile found, once, on stderr:
+// an error when -f or HARDN_CONFIG names a file that is not there.
+func sayFound(f config.Found) {
+	if f.By != config.FoundNone && !f.Exists {
+		sayError("%s", f)
+		return
 	}
+	sayInfo("%s", f)
 }
 
 var rootCmd = &cobra.Command{
@@ -132,21 +144,30 @@ var rootCmd = &cobra.Command{
 		// Check if running as root
 		currentUser, err := lookupCurrentUser()
 		if err != nil {
-			logging.LogError("Failed to get current user: %v", err)
+			sayError("Failed to get current user: %v", err)
 			exit(1)
 		}
 
 		if currentUser.Uid != "0" {
-			logging.LogError("This script needs to be run as root.")
-			fmt.Println(rootHint())
+			sayNotRoot()
 			exit(1)
 		}
 
-		// Load configuration (will check both command-line flag and environment variable)
+		// Load configuration (-f, then HARDN_CONFIG, then the search path).
+		// Which hardn.yml is said once, on stderr, for the flags, and
+		// nothing before the main menu (decision 4 (a) of
+		// docs/engine/legacy-left.md, adopted 2026-11-04).
+		found := findConfig(configFile)
+		if !mainMenuRun() {
+			sayFound(found)
+		}
 		cfg, err = loadConfig(configFile)
 		if err != nil {
-			logging.LogError("Failed to load configuration: %v", err)
+			sayError("Failed to load configuration: %v", err)
 			exit(1)
+		}
+		if !mainMenuRun() && !found.Exists && cfg.Path() == "" {
+			sayInfo("%s", config.NoneLoaded) // the offer to create one declined
 		}
 
 		// The session's mode: -n/--dry-run when given, true or false, else
@@ -163,24 +184,22 @@ var rootCmd = &cobra.Command{
 		// Check if we need to create a user and no username is provided
 		// (-r without one asks Run All for no user: runall.Asked)
 		if createUser && cfg.Username == "" {
-			logging.LogError("Please specify a username with -u flag or in the configuration file.")
+			sayError("Please specify a username with -u flag or in the configuration file.")
 			exit(1)
 		}
 
-		// Detect OS
+		// An OS other than Debian, Ubuntu or Alpine, or none os-release
+		// names, is refused (hostOS); nothing is said of one that is not.
 		_, err = detectOS()
 		if err != nil {
-			logging.LogError("Failed to detect OS: %v", err)
+			sayError("Failed to detect OS: %v", err)
 			exit(1)
 		}
 
-		// After detectOS, which clears the terminal: said before it, these are gone
-		// before anyone can read them.
 		warnDeprecations(cfg)
 
 		// If no specific flags provided, show the interactive menu
-		if !createUser && !disableRootSSH && !configureUfw && !configureDns &&
-			!runAll && !printLogs && !setupSudoEnv {
+		if mainMenuRun() {
 
 			// The main menu; its screens' items and its status: hooks.go
 			runMenu(context.Background(), menuOptions(cfg, Version))
@@ -279,9 +298,10 @@ Example:
 		if checkRoot() != nil {
 			return
 		}
+		sayFound(findConfig(configFile))
 		var err error
 		if cfg, err = loadExisting(configFile); err != nil {
-			logging.LogError("Failed to load configuration: %v", err)
+			sayError("Failed to load configuration: %v", err)
 			exit(1)
 			return
 		}
@@ -304,7 +324,8 @@ var (
 	loadConfig                    = config.LoadConfig
 	loadExisting                  = config.LoadExisting
 	ensureExampleConfig           = config.EnsureExampleConfigExists
-	detectOS                      = osdetect.DetectOS
+	findConfig                    = config.FindConfigFile
+	detectOS                      = hostOS
 	exit                          = os.Exit
 	stderr              io.Writer = termStderr
 )
