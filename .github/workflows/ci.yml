@@ -46,17 +46,16 @@ jobs:
       - name: Compare tool versions with the makefile
         run: |
           set -eu
-          for pair in \
-            "CHECK_GOLANGCI_LINT_VERSION $GOLANGCI_LINT_VERSION" \
-            "CHECK_GOVULNCHECK_VERSION $GOVULNCHECK_VERSION" \
-            "CHECK_ZIZMOR_VERSION $ZIZMOR_VERSION" \
-            "CHECK_ACTIONLINT_VERSION $ACTIONLINT_VERSION"; do
-            set -- $pair
+          want() { # want <makefile variable> <version ci.yml installs>
             grep -qx "$1 ?= $2" makefile || {
               echo "::error file=makefile::$1 is not $2, the version ci.yml installs"
               exit 1
             }
-          done
+          }
+          want CHECK_GOLANGCI_LINT_VERSION "$GOLANGCI_LINT_VERSION"
+          want CHECK_GOVULNCHECK_VERSION "$GOVULNCHECK_VERSION"
+          want CHECK_ZIZMOR_VERSION "$ZIZMOR_VERSION"
+          want CHECK_ACTIONLINT_VERSION "$ACTIONLINT_VERSION"
 
       - name: Set up Go from go.mod
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
