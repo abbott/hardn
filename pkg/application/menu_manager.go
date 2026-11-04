@@ -51,8 +51,3 @@ func (m *MenuManager) GetUptime() (time.Duration, error) {
 func (m *MenuManager) FormatUptime(uptime time.Duration) string {
 	return m.hostInfoManager.FormatUptime(uptime)
 }
-
-// format byte size to human readable format
-func (m *MenuManager) FormatBytes(bytes int64) string {
-	return m.hostInfoManager.FormatBytes(bytes)
-}

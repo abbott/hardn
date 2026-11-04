@@ -55,7 +55,6 @@ func hostInfoGolden(t *testing.T, via seam) string {
 	provider := &interfaces.Provider{
 		FS:        recordingFS{inner: innerFS, log: log},
 		Commander: &recordingCommander{inner: innerCmd, log: log},
-		Network:   interfaces.NewMockNetworkOperations(),
 	}
 
 	osInfo := &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"}

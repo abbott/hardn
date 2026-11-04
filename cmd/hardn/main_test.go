@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/fs"
 	"os"
 	osuser "os/user"
 	"path/filepath"
@@ -49,29 +48,9 @@ func (f loggingFS) ReadFile(name string) ([]byte, error) {
 	return f.inner.ReadFile(name)
 }
 
-func (f loggingFS) WriteFile(name string, data []byte, perm fs.FileMode) error {
-	f.log.add("write %s", name)
-	return f.inner.WriteFile(name, data, perm)
-}
-
-func (f loggingFS) MkdirAll(path string, perm fs.FileMode) error {
-	f.log.add("mkdir %s", path)
-	return f.inner.MkdirAll(path, perm)
-}
-
 func (f loggingFS) Stat(name string) (os.FileInfo, error) {
 	f.log.add("stat %s", name)
 	return f.inner.Stat(name)
-}
-
-func (f loggingFS) Remove(name string) error {
-	f.log.add("remove %s", name)
-	return f.inner.Remove(name)
-}
-
-func (f loggingFS) RemoveAll(path string) error {
-	f.log.add("rmall %s", path)
-	return f.inner.RemoveAll(path)
 }
 
 type loggingCommander struct {
@@ -82,11 +61,6 @@ type loggingCommander struct {
 func (c loggingCommander) Execute(command string, args ...string) ([]byte, error) {
 	c.log.add("exec %s", strings.Join(append([]string{command}, args...), " "))
 	return c.inner.Execute(command, args...)
-}
-
-func (c loggingCommander) ExecuteWithInput(input string, command string, args ...string) ([]byte, error) {
-	c.log.add("exec %s (stdin)", strings.Join(append([]string{command}, args...), " "))
-	return c.inner.ExecuteWithInput(input, command, args...)
 }
 
 // exited is what the stubbed exit panics with: the status hardn would
@@ -187,7 +161,6 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	provider = &interfaces.Provider{
 		FS:        loggingFS{inner: mockFS, log: log},
 		Commander: loggingCommander{inner: interfaces.NewMockCommander(), log: log},
-		Network:   interfaces.NewMockNetworkOperations(),
 	}
 	var errOut, out bytes.Buffer
 	stderr = &errOut
