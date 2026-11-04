@@ -564,8 +564,7 @@ func TestPlayWriteFails(t *testing.T) {
 // is a check of names, not of types or values: the gallery's own code is
 // held to its literals, the linked packages to never naming what reaches
 // the real side. The simulated system records; it never applies. Lip
-// Gloss's own init effects, such as colorprofile's "tmux info", and
-// fatih/color's (NO_COLOR, TERM, whether stdout is a terminal), are
+// Gloss's own init effects, such as colorprofile's "tmux info", are
 // outside this check (docs/refactor/phase0/side-effects.md §13.1).
 func TestPlayTouchesNothing(t *testing.T) {
 	const module = "github.com/abbott/hardn/"
