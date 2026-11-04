@@ -31,15 +31,10 @@ func NewMenuFactory(
 	}
 }
 
-func (f *MenuFactory) CreateHelpMenu() *menu.HelpMenu {
-	return menu.NewHelpMenu()
-}
-
 // CreateMainMenu creates the main menu with all dependencies wired up
 func (f *MenuFactory) CreateMainMenu(versionService *version.Service) *menu.MainMenu {
-	packageManager := f.serviceFactory.CreatePackageManager()
 	hostInfoManager := f.serviceFactory.CreateHostInfoManager()
-	menuManager := application.NewMenuManager(packageManager, hostInfoManager)
+	menuManager := application.NewMenuManager(hostInfoManager)
 
 	// Create menu with all necessary fields initialized
 	return menu.NewMainMenu(menuManager, f.config, f.osInfo, versionService)

@@ -51,7 +51,7 @@ func (f *ServiceFactory) CreateHostInfoManager() *application.HostInfoManager {
 	hostInfoRepo := secondary.NewOSHostInfoRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType, userRepo)
 
 	// Create domain service
-	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, userRepo, convertOSInfo(f.osInfo))
+	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, convertOSInfo(f.osInfo))
 
 	// Create application service
 	return application.NewHostInfoManager(hostInfoService)
@@ -65,59 +65,4 @@ func convertOSInfo(info *osdetect.OSInfo) model.OSInfo {
 		Version:   info.OsVersion,
 		IsProxmox: info.IsProxmox,
 	}
-}
-
-// CreatePackageManager creates a PackageManager
-func (f *ServiceFactory) CreatePackageManager() *application.PackageManager {
-	// Convert config to PackageSources model
-	sources := &model.PackageSources{
-		// Standard repositories
-		DebianRepos:           f.config.DebianRepos,
-		ProxmoxSrcRepos:       f.config.ProxmoxSrcRepos,
-		ProxmoxCephRepo:       f.config.ProxmoxCephRepo,
-		ProxmoxEnterpriseRepo: f.config.ProxmoxEnterpriseRepo,
-		AlpineTestingRepo:     f.config.AlpineTestingRepo,
-
-		// Package lists
-		DebianCorePackages: f.config.LinuxCorePackages,
-		DebianDmzPackages:  f.config.LinuxDmzPackages,
-		DebianLabPackages:  f.config.LinuxLabPackages,
-		AlpineCorePackages: f.config.AlpineCorePackages,
-		AlpineDmzPackages:  f.config.AlpineDmzPackages,
-		AlpineLabPackages:  f.config.AlpineLabPackages,
-
-		// Python packages
-		DebianPythonPackages: f.config.PythonPackages,
-		NonWslPythonPackages: f.config.NonWslPythonPackages,
-		PythonPipPackages:    f.config.PythonPipPackages,
-		AlpinePythonPackages: f.config.AlpinePythonPackages,
-	}
-
-	// Create repository
-	packageRepo := secondary.NewOSPackageRepository(
-		f.provider.FS,
-		f.provider.Commander,
-		f.osInfo.OsType,
-		f.osInfo.OsVersion,
-		f.osInfo.OsCodename,
-		f.osInfo.IsProxmox,
-		sources,
-	)
-
-	// Create domain service
-	packageService := service.NewPackageServiceImpl(packageRepo, convertOSInfo(f.osInfo))
-
-	// Create application service with all required dependencies
-	return application.NewPackageManager(
-		packageService,
-		sources,
-		&model.OSInfo{
-			Type:      f.osInfo.OsType,
-			Version:   f.osInfo.OsVersion,
-			Codename:  f.osInfo.OsCodename,
-			IsProxmox: f.osInfo.IsProxmox,
-		},
-		f.provider.Network,
-		f.config.DmzSubnet,
-	)
 }

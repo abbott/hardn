@@ -179,7 +179,6 @@ The main menu's User Management (1) shows the users, their admin rights and SSH 
 ### Network Configuration
 
 ```yaml
-dmzSubnet: "192.168.4"              # DMZ subnet for conditional package installation
 nameservers:                        # DNS servers to configure
   - "1.1.1.1"
   - "1.0.0.1"

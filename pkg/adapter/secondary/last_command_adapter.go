@@ -22,16 +22,6 @@ func NewLastCommandAdapter(commander interfaces.Commander) domainports.UserLogin
 	}
 }
 
-// GetLastLoginTime implements UserLoginPort.GetLastLoginTime
-func (a *LastCommandAdapter) GetLastLoginTime(username string) (time.Time, error) {
-	lastLoginOutput, err := a.commander.Execute("last", "-1", username)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("failed to execute last command: %w", err)
-	}
-
-	return a.parseLastOutput(lastLoginOutput)
-}
-
 // GetLastLoginInfo implements UserLoginPort.GetLastLoginInfo
 func (a *LastCommandAdapter) GetLastLoginInfo(username string) (time.Time, string, error) {
 	lastLoginOutput, err := a.commander.Execute("last", "-1", username)
