@@ -340,6 +340,7 @@
   - Before: n/a (no screen exists).
   - After: `docs/refactor/img/p-16-after-*.png` (placeholders; inferred screens, labelled as such in the gallery).
 - **Slice 4:** the UFW install is drawn and adopted: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 1.
+- **Slice 7:** the Auto Updates screen is mocked for review: [gallery-updates.md](../engine/gallery-updates.md) §4.
 
 <a id="p-43"></a>
 ### P-43: Turning AppArmor and Auto Updates off
@@ -401,6 +402,7 @@
     - **`next/p2-alpine`** keeps its on and its `Rollback`; slice 7 adds the off planner beside them and fills the record from the plan's `From` and `Changes`, all of which have run once `Apply` returns nil (`steps.Alpine` discards `alpine.Result`) [V, `next/p3-gallery-engine` `pkg/engine/steps/plans.go:157`; [alpine.md](../safety/alpine.md) §2.9].
     - **From the engine:** only the direction, in `Input` (decision 1); the record is an ordinary change [I].
     - **Noted for slice 7's on, outside this entry:** on a host using cronie or dcron, Alpine's on would enable busybox crond too, running the periodic jobs twice [I]; Debian's default origins take stable point releases as well as security updates, against brief 2.5's "just security ones" [V, unattended-upgrades `debian/NEWS` 0.99].
+- **Slice 7:** decisions 1, 3, 4 and 5 (Auto Updates halves) are mocked for review, as decisions 2, 5, 6 and 7 there: [gallery-updates.md](../engine/gallery-updates.md) §4.
 - **Effort:** L [I]: a Debian/Ubuntu updates control from scratch, the off planners, the record, the Phase 4 details, and VM steps per OS.
 - **Risk:** Medium [I]. Off removes packages and stops services; a drift check that misreads the host could undo an administrator's change, so every unclear case refuses. Nothing here can lock a user out (brief 2.4), but turning updates off lowers the host's protection, by the user's choice.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):
