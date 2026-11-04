@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/risk"
+	"github.com/abbott/hardn/pkg/engine/runall"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -89,7 +90,7 @@ func TestPlayRunAllGolden(t *testing.T) {
 		{"runall-nothing-asked", []string{"runall/nothing-asked"}, []string{"0"}, nil},
 		{"runall-refused", []string{"runall/refused"}, []string{"1", hostName, "0"}, nil},
 		{"runall-pending", []string{"runall/pending"}, []string{"1", "0"}, nil},
-		{"runall-ufw-inactive", []string{"runall/ufw-inactive"}, []string{"1", "0"}, nil},
+		{"runall-ufw-inactive", []string{"runall/ufw-inactive"}, []string{"1", hostName, "0"}, nil},
 		{"runall-new-admin", []string{"runall/new-admin"}, []string{"1", hostName, "0"}, raCells()},
 		{"runall-george-no-sudo", []string{"runall/george-no-sudo"}, []string{"1", hostName, "0"}, nil},
 		{"runall-wrong-phrase", []string{"runall/debian13"}, []string{"1", "WEB-01", "0", "0"}, nil},
@@ -117,8 +118,8 @@ func TestPlayRunAllGolden(t *testing.T) {
 // it skips as refused or not applicable, and whether the plan is
 // lockout-risk.
 type raWant struct {
-	planned, refused, na []string
-	lockout              bool
+	planned, refused, na, later []string
+	lockout                     bool
 }
 
 // TestRunAllHosts holds each host's rows to the real controls: a planned
@@ -141,7 +142,7 @@ func TestRunAllHosts(t *testing.T) {
 		"nothing-asked":  {},
 		"refused":        {planned: []string{login, dnsctl.ID}, refused: []string{updates.ID}, lockout: true},
 		"pending":        {},
-		"ufw-inactive":   {planned: []string{fwctl.ID, login}, lockout: true},
+		"ufw-inactive":   {planned: []string{fwctl.ID}, later: []string{login}, lockout: true},
 		"new-admin":      {planned: []string{users.ID, login}, lockout: true},
 		"george-no-sudo": {planned: []string{dnsctl.ID}, refused: []string{login}},
 	}
@@ -156,67 +157,72 @@ func TestRunAllHosts(t *testing.T) {
 		if err != nil {
 			t.Fatalf("%s: %v", rh.name, err)
 		}
-		var planned, refused, na []string
-		for _, rw := range r.rows {
-			rep, _ := raReport(r.reports, rw.id)
-			switch {
-			case rw.planned:
-				planned = append(planned, rw.id)
-			case rw.refusal != "" && rw.does != raPending:
-				refused = append(refused, rw.id)
-			case rep.Status.State == engine.NotApplicable && rw.does != raNothing && raLeft[rw.id] == "":
-				na = append(na, rw.id)
+		var planned, refused, na, later []string
+		for _, rw := range r.Rows {
+			switch rw.Kind {
+			case runall.Planned:
+				planned = append(planned, rw.ID)
+			case runall.Refused:
+				refused = append(refused, rw.ID)
+			case runall.NotApplicable:
+				na = append(na, rw.ID)
+			case runall.Later:
+				later = append(later, rw.ID)
 			}
 		}
-		if !slices.Equal(planned, w.planned) || !slices.Equal(refused, w.refused) || !slices.Equal(na, w.na) || r.lockout() != w.lockout {
-			t.Errorf("%s: planned %q, refused %q, not applicable %q, lockout %v; want %q, %q, %q, %v", rh.name, planned, refused, na, r.lockout(), w.planned, w.refused, w.na, w.lockout)
+		if !slices.Equal(planned, w.planned) || !slices.Equal(refused, w.refused) || !slices.Equal(na, w.na) || !slices.Equal(later, w.later) || r.Lockout() != w.lockout {
+			t.Errorf("%s: planned %q, refused %q, not applicable %q, later %q, lockout %v; want %q, %q, %q, %q, %v", rh.name, planned, refused, na, later, r.Lockout(), w.planned, w.refused, w.na, w.later, w.lockout)
 		}
 		raHeldToControls(ctx, t, rh.name, r, h)
 	}
 }
 
 // raHeldToControls re-derives each row of r on h from the controls
-// themselves, outside the mock's own reading.
+// themselves, outside the planner's reading.
 func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReading, h *fakeHost) {
 	t.Helper()
 	sys := h.sys()
-	e := engine.New(sys, engine.Options{Detect: func(context.Context, host.System) (detect.Facts, error) { return r.facts, nil }})
+	e := engine.New(sys, engine.Options{Detect: func(context.Context, host.System) (detect.Facts, error) { return r.Facts, nil }})
 	getenv := func(k string) string { return raEnvOf(name)[k] }
 	status := r.status()
-	for i, rw := range r.rows {
-		c, _ := raAsk(rw.id, r.cfg, getenv)
-		checked := raChecked(r.cfg, getenv)
-		j := slices.IndexFunc(checked, func(x engine.Control) bool { return x.ID() == rw.id })
+	for i, rw := range r.Rows {
+		c := runall.Asked(r.in, rw.ID).Control
+		checked := runall.Checked(r.Config, getenv)
+		j := slices.IndexFunc(checked, func(x engine.Control) bool { return x.ID() == rw.ID })
 		reps, err := e.Check(ctx, checked[j:j+1])
 		if err != nil {
-			t.Fatalf("%s %s: %v", name, rw.id, err)
+			t.Fatalf("%s %s: %v", name, rw.ID, err)
 		}
 		if got := status.Rows[i].State; got != raState(reps[0]) {
-			t.Errorf("%s %s: row state %v, the check's %v", name, rw.id, got, raState(reps[0]))
+			t.Errorf("%s %s: row state %v, the check's %v", name, rw.ID, got, raState(reps[0]))
 		}
-		if c == nil || rw.id == (ssh.Port{}).ID() || reps[0].Status.State == engine.NotApplicable || rw.does == raPending {
+		if c == nil || reps[0].Status.State == engine.NotApplicable || rw.Kind == runall.Pending {
 			continue
 		}
-		p, err := raEngine(h, r.sess, r.cfg, nil, &updQuiet).Plan(ctx, []engine.Control{c}, r.cfg)
+		p, err := raEngine(h, r.in.Session, r.Config, nil, &updQuiet).Plan(ctx, []engine.Control{c}, r.Config)
 		if err == nil && len(p.Refused) > 0 {
 			err = p.Refused[0]
 		}
 		switch {
-		case rw.planned:
-			if err != nil || len(p.Changes) == 0 || !slices.ContainsFunc(r.plan.Changes, func(ch engine.Change) bool { return ch.Control == rw.id }) {
-				t.Errorf("%s %s: planned, but alone %v, %d changes, or not in the one plan", name, rw.id, err, len(p.Changes))
+		case rw.Kind == runall.Planned:
+			if err != nil || len(p.Changes) == 0 || !slices.ContainsFunc(r.Plan.Changes, func(ch engine.Change) bool { return ch.Control == rw.ID }) {
+				t.Errorf("%s %s: planned, but alone %v, %d changes, or not in the one plan", name, rw.ID, err, len(p.Changes))
 			}
-		case rw.refusal != "":
-			if err == nil || screenkit.RefusalWords(err) != rw.refusal {
-				t.Errorf("%s %s: refused %q, alone %v", name, rw.id, rw.refusal, err)
+		case rw.Kind == runall.Later:
+			if err != nil || len(p.Changes) == 0 || slices.ContainsFunc(r.Plan.Changes, func(ch engine.Change) bool { return ch.Control == rw.ID }) {
+				t.Errorf("%s %s: after the firewall, but alone %v, %d changes, or in the one plan", name, rw.ID, err, len(p.Changes))
 			}
-		case rw.does == raAsked && rw.id != users.ID:
+		case rw.Kind == runall.Refused:
+			if err == nil || screenkit.RefusalWords(err) != rw.Refusal {
+				t.Errorf("%s %s: refused %q, alone %v", name, rw.ID, rw.Refusal, err)
+			}
+		case rw.Kind == runall.AsAsked && rw.ID != users.ID:
 			if err != nil || len(p.Changes) > 0 {
-				t.Errorf("%s %s: already as asked, but alone %v, %d changes", name, rw.id, err, len(p.Changes))
+				t.Errorf("%s %s: already as asked, but alone %v, %d changes", name, rw.ID, err, len(p.Changes))
 			}
-		case rw.does == raAsked:
+		case rw.Kind == runall.AsAsked:
 			if !errors.Is(err, users.ErrNameTaken) {
-				t.Errorf("%s %s: already there, but Create %v", name, rw.id, err)
+				t.Errorf("%s %s: already there, but Create %v", name, rw.ID, err)
 			}
 		}
 	}
@@ -256,7 +262,7 @@ func TestRunAllPlanOnlyWritesNothing(t *testing.T) {
 		if code != exitOK {
 			t.Errorf("%s: exit %d:\n%s", rh.name, code, out)
 		}
-		if len(r.planned()) > 0 && r.refusal == "" && !strings.Contains(flatText(out), "No actual changes were made") {
+		if len(r.Planned()) > 0 && r.Refusal == "" && !strings.Contains(flatText(out), "No actual changes were made") {
 			t.Errorf("%s: plan only did not stop at the plan:\n%s", rh.name, out)
 		}
 		cmds, files := changed(h.f.Calls()[n:])
@@ -273,8 +279,8 @@ func TestRunAllPlanOnlyWritesNothing(t *testing.T) {
 // (decision 6), fresh's plain plan too.
 func TestRunAllTyped(t *testing.T) {
 	r, _, err := raReadNamed(context.Background(), "fresh")
-	if err != nil || r.lockout() || len(r.planned()) == 0 {
-		t.Fatalf("fresh: %v, lockout %v, %d planned; want a plain plan", err, r.lockout(), len(r.planned()))
+	if err != nil || r.Lockout() || len(r.Planned()) == 0 {
+		t.Fatalf("fresh: %v, lockout %v, %d planned; want a plain plan", err, r.Lockout(), len(r.Planned()))
 	}
 	code, out, errs, unread := playGallery([]string{"1", "0", "0"}, "-profile", "none", "runall/fresh")
 	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, typeTheHostname+" [web-01") {
@@ -325,14 +331,13 @@ func TestRunAllUsage(t *testing.T) {
 // with the asked keys; george with keys and no sudo is left to User
 // Management, unchanged.
 func TestRunAllUserThere(t *testing.T) {
-	for name, want := range map[string]string{"debian13": raAsked, "george-no-sudo": raUserMgmt + "not an admin"} {
+	for name, want := range map[string]string{"debian13": runall.WordsAsked, "george-no-sudo": "User Management's: not an admin"} {
 		r, _, err := raReadNamed(context.Background(), name)
 		if err != nil {
 			t.Fatal(err)
 		}
-		i := slices.IndexFunc(r.rows, func(rw raRow) bool { return rw.id == users.ID })
-		if got := r.rows[i]; got.does != want || got.planned {
-			t.Errorf("%s: User row %q, planned %v; want %q, not planned", name, got.does, got.planned, want)
+		if got, _ := r.Row(users.ID); got.Words != want || got.Kind == runall.Planned {
+			t.Errorf("%s: User row %q, %v; want %q, not planned", name, got.Words, got.Kind, want)
 		}
 	}
 }
@@ -344,22 +349,22 @@ func TestRunAllUserThere(t *testing.T) {
 func TestRunAllPendingAfterApply(t *testing.T) {
 	ctx := context.Background()
 	r, h, err := raReadNamed(ctx, "debian13")
-	if err != nil || !r.lockout() {
-		t.Fatalf("debian13: %v, lockout %v", err, r.lockout())
+	if err != nil || !r.Lockout() {
+		t.Fatalf("debian13: %v, lockout %v", err, r.Lockout())
 	}
-	if _, err := raEngine(h, r.sess, r.cfg, nil, &updQuiet).Apply(ctx, r.plan); err != nil {
+	if _, err := raEngine(h, r.in.Session, r.Config, nil, &updQuiet).Apply(ctx, r.Plan); err != nil {
 		t.Fatal(err)
 	}
 	again, err := readRA(ctx, h, raEnvOf("debian13"))
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !again.busy || len(again.planned()) > 0 || again.plan != nil || again.refusal != raPendingWords || again.item().Description != raPending {
-		t.Errorf("after the apply: busy %v, %d planned, plan %v, refusal %q, item %q; want Change pending", again.busy, len(again.planned()), again.plan != nil, again.refusal, again.item().Description)
+	if !again.Busy || len(again.Planned()) > 0 || again.Plan != nil || again.Refusal != runall.PendingWords || again.item().Description != runall.WordsPending {
+		t.Errorf("after the apply: busy %v, %d planned, plan %v, refusal %q, item %q; want Change pending", again.Busy, len(again.Planned()), again.Plan != nil, again.Refusal, again.item().Description)
 	}
-	for _, rw := range again.rows {
-		if c, _ := raAsk(rw.id, again.cfg, nil); c != nil && rw.id != (ssh.Port{}).ID() && rw.does != raPending {
-			t.Errorf("after the apply: %s %q, want %q", rw.id, rw.does, raPending)
+	for _, rw := range again.Rows {
+		if runall.Asked(again.in, rw.ID).Control != nil && rw.Kind != runall.Pending {
+			t.Errorf("after the apply: %s %q, want %q", rw.ID, rw.Words, runall.WordsPending)
 		}
 	}
 }
@@ -372,10 +377,10 @@ func TestRunAllNoSave(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if r.plan == nil {
+		if r.Plan == nil {
 			continue
 		}
-		for _, c := range r.plan.Changes {
+		for _, c := range r.Plan.Changes {
 			if c.ID == dnsctl.ChangeSave || c.ID == backupctl.ChangeSave || c.Control == backupctl.ID {
 				t.Errorf("%s: the plan has %s", rh.name, c.ID)
 			}
@@ -398,20 +403,21 @@ func raStages(p *engine.Plan) []engine.Stage {
 // TestRunAllCombined holds the two combined plans: on new-admin, Create
 // carol and root login off in one lockout-risk plan, accounts before files
 // before the reload, its undo, journalled, removing carol and putting root
-// login back, the timer said; on ufw-inactive, Enable and root login off,
-// firewall before files, refused whole by the engine as two controls
-// changing sshd and ufw (engine.ErrConflict).
+// login back, the timer said; on ufw-inactive, Enable alone, root login
+// off after the firewall (decision 5 (a)): the two in one plan are refused
+// whole by the engine as two controls changing sshd and ufw
+// (engine.ErrConflict).
 func TestRunAllCombined(t *testing.T) {
 	ctx := context.Background()
 	r, h, err := raReadNamed(ctx, "new-admin")
-	if err != nil || r.refusal != "" || !r.lockout() {
-		t.Fatalf("new-admin: %v, refusal %q, lockout %v", err, r.refusal, r.lockout())
+	if err != nil || r.Refusal != "" || !r.Lockout() {
+		t.Fatalf("new-admin: %v, refusal %q, lockout %v", err, r.Refusal, r.Lockout())
 	}
 	want := []engine.Stage{engine.StageAccounts, engine.StageFiles, engine.StageReload, engine.StageVerify}
-	if got := raStages(r.plan); !slices.Equal(got, want) {
+	if got := raStages(r.Plan); !slices.Equal(got, want) {
 		t.Errorf("new-admin: stages %v, want %v", got, want)
 	}
-	if _, err := raEngine(h, r.sess, r.cfg, nil, &updQuiet).Apply(ctx, r.plan); err != nil {
+	if _, err := raEngine(h, r.in.Session, r.Config, nil, &updQuiet).Apply(ctx, r.Plan); err != nil {
 		t.Fatal(err)
 	}
 	st, err := revert.ReadState(ctx, h.system(), raRevert)
@@ -429,13 +435,19 @@ func TestRunAllCombined(t *testing.T) {
 		t.Errorf("new-admin: exit %d, stderr %q, %d unread; want the timer said:\n%s", code, errs, unread, out)
 	}
 
-	r, _, err = raReadNamed(ctx, "ufw-inactive")
-	if err != nil || r.plan == nil || len(r.plan.Refused) == 0 || !errors.Is(r.plan.Refused[0], engine.ErrConflict) {
-		t.Fatalf("ufw-inactive: %v; want the plan refused as a conflict", err)
+	r, h, err = raReadNamed(ctx, "ufw-inactive")
+	if err != nil || r.Plan == nil || r.Refusal != "" || len(r.Plan.Refused) > 0 {
+		t.Fatalf("ufw-inactive: %v, refusal %q; want the firewall's plan", err, r.Refusal)
 	}
-	want = []engine.Stage{engine.StageFirewall, engine.StageFiles, engine.StageReload, engine.StageVerify}
-	if got := raStages(r.plan); !slices.Equal(got, want) || !r.lockout() || r.item().Risk {
-		t.Errorf("ufw-inactive: stages %v, lockout %v, item marked %v; want %v, lockout, unmarked", got, r.lockout(), r.item().Risk, want)
+	want = []engine.Stage{engine.StageFirewall}
+	login, _ := r.Row(ssh.Login{}.ID())
+	if got := raStages(r.Plan); !slices.Equal(got, want) || !r.Lockout() || !r.item().Risk || login.Kind != runall.Later || login.Words != runall.WordsAfterFirewall {
+		t.Errorf("ufw-inactive: stages %v, lockout %v, item marked %v, root login %v %q; want %v, lockout, marked, later", got, r.Lockout(), r.item().Risk, login.Kind, login.Words, want)
+	}
+	both := []engine.Control{runall.Asked(r.in, fwctl.ID).Control, runall.Asked(r.in, ssh.Login{}.ID()).Control}
+	p, err := raEngine(h, r.in.Session, r.Config, nil, &updQuiet).Plan(ctx, both, r.Config)
+	if err != nil || len(p.Refused) == 0 || !errors.Is(p.Refused[0], engine.ErrConflict) {
+		t.Errorf("ufw-inactive: Enable and root login off in one plan: %v; want refused as a conflict", err)
 	}
 }
 
@@ -449,15 +461,22 @@ func TestRunAllKeyGates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	cfg := *r.cfg
+	in := r.in
+	cfg := *r.Config
 	cfg.ConfigureDns = false
-	if c, _ := raAsk(dnsctl.ID, &cfg, nil); c != nil || len(cfg.Nameservers) == 0 {
+	in.Config = &cfg
+	if c := runall.Asked(in, dnsctl.ID).Control; c != nil || len(cfg.Nameservers) == 0 {
 		t.Errorf("configureDns false with %d nameservers: DNS asked %v", len(cfg.Nameservers), c)
 	}
-	cfg = *r.cfg
+	cfg = *r.Config
 	cfg.SshKeys = append(slices.Clone(cfg.SshKeys), synthKey(9, "george@laptop-2"))
-	r.cfg = &cfg
-	if got := r.userThere(ctx, h, func(k string) string { return raEnvOf("debian13")[k] }); got != raUserMgmt+"1 key missing" {
-		t.Errorf("an admin lacking an asked key: %q, want %q", got, raUserMgmt+"1 key missing")
+	in.Config = &cfg
+	in.NewEngine = func(progress func(engine.Event)) *engine.Engine {
+		return raEngine(h, in.Session, &cfg, progress, &updQuiet)
+	}
+	rd, err := runall.Read(ctx, in)
+	const want = "User Management's: 1 key missing"
+	if got, _ := rd.Row(users.ID); err != nil || got.Words != want {
+		t.Errorf("an admin lacking an asked key: %q, %v; want %q", got.Words, err, want)
 	}
 }
