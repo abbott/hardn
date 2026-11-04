@@ -7,9 +7,8 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. A␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE 9 node, with no unattended-upgrades. The row is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdecision 7's, a stand-in over the check's; the item is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munavailable.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE 9 node, with no unattended-upgrades. The row is Not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mApplicable (decision 7); the item is unavailable.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -41,9 +40,8 @@ $
 $
 # Note$
 # Mock: Auto Updates. web-01.example.net runs Debian 13. A$
-# Proxmox VE 9 node, with no unattended-upgrades. The row is$
-# decision 7's, a stand-in over the check's; the item is$
-# unavailable.$
+# Proxmox VE 9 node, with no unattended-upgrades. The row is Not$
+# Applicable (decision 7); the item is unavailable.$
 $
 # Auto Updates #################################################$
 $
@@ -76,8 +74,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. A␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE 9 node, with no unattended-upgrades. The row is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdecision 7's, a stand-in over the check's; the item is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munavailable.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNot Applicable (decision 7); the item is unavailable.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -116,9 +113,8 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. A␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE 9 node, with no unattended-upgrades. The row is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdecision 7's, a stand-in over the check's; the item is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munavailable.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProxmox VE 9 node, with no unattended-upgrades. The row is Not␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mApplicable (decision 7); the item is unavailable.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
 $

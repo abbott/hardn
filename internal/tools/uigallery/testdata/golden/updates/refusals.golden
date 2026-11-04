@@ -6,8 +6,8 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real control's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlan: the direction, the host.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
 $
@@ -110,8 +110,8 @@ $
 # updates refusals ---------------------------------------------$
 $
 # Note$
-# Mock: The refusals before asking, each from the stand-in$
-# planner on the real reading: the direction, the host.$
+# Mock: The refusals before asking, each from the real control's$
+# Plan: the direction, the host.$
 $
 # on, timer-off ------------------------------------------------$
 $
@@ -214,8 +214,8 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontrol's Plan: the direction, the host.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
@@ -320,8 +320,8 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real control's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlan: the direction, the host.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
 $

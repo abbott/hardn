@@ -7,13 +7,12 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host (the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuto Updates check, apt-config, dpkg, systemctl,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as built,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe rest of each direction and the record the gallery's stand-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mins, unit (b)'s to build. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(updates.Auto's Read: the check, aptconf, dpkg, systemctl,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates and OtherJobs, hardn's record), each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's (updates.Auto, on and off) on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323 with␛[m$
@@ -148,6 +147,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
       ␛[38;2;129;134;156m$ rc-service crond status␛[m$
       ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Turn on daily upgrades␛[m$
       ␛[38;2;129;134;156m$ rc-service crond status␛[m$
@@ -189,13 +190,12 @@ $
 $
 # Note$
 # Play mode, mocks: the Auto Updates screen proposed for slice$
-# 7, drawn from what real code reads of a simulated host (the$
-# Auto Updates check, apt-config, dpkg, systemctl,$
-# alpine.ReadUpdates), each change on the real plan/apply$
-# engine: alpine.PlanUpdates and packages.PlanInstall as built,$
-# the rest of each direction and the record the gallery's stand-$
-# ins, unit (b)'s to build. Nothing on this machine changes:$
-# every command and file is the fake's.$
+# 7, drawn from what real code reads of a simulated host$
+# (updates.Auto's Read: the check, aptconf, dpkg, systemctl,$
+# alpine.ReadUpdates and OtherJobs, hardn's record), each change$
+# the real control's (updates.Auto, on and off) on the real$
+# plan/apply engine. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # Info: updates/dormant-jobs$
 # web-01.example.net runs Alpine 3.23 (OpenRC). alpine323 with$
@@ -330,6 +330,8 @@ $
    -  Before the first change$
       $ rc-service crond status$
       $ rc-service crond status$
+      $ rc-service crond status$
+      $ rc-service crond status$
 $
    -  Applied: Turn on daily upgrades$
       $ rc-service crond status$
@@ -372,11 +374,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 7, drawn from what real code reads of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (the Auto Updates check, apt-config, dpkg, systemctl,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuilt, the rest of each direction and the record the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (updates.Auto's Read: the check, aptconf, dpkg,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystemctl, alpine.ReadUpdates and OtherJobs, hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord), each change the real control's (updates.Auto, on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand off) on the real plan/apply engine. Nothing on this␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
@@ -536,6 +537,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
+      ␛[38;2;129;134;156m$ rc-service crond status␛[m$
       ␛[38;2;129;134;156m$ rc-service crond status␛[m$
       ␛[38;2;129;134;156m$ rc-service crond status␛[m$
 $
