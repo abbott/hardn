@@ -60,12 +60,11 @@ echo "Installed hardn to /usr/local/bin"
 echo "Creating configuration directory..."
 mkdir -p /etc/hardn
 
-# Run hardn once with --version to trigger config initialization
-echo "Initializing configuration..."
-/usr/local/bin/hardn --version > /dev/null 2>&1 || true
+# hardn is not run here: it writes its example configuration itself when it
+# first runs (p7-install part 1, ahead of p3-startup's lazy start-up writes).
 
 echo "Reload your shell, and verify 'hardn --help'"
 echo ""
-echo "Note: Configuration examples will be available at /etc/hardn/hardn.yml.example"
+echo "Note: hardn writes a configuration example to /etc/hardn/hardn.yml.example when it first runs"
 echo "      Run 'hardn' without arguments to enter interactive mode"
 echo ""
