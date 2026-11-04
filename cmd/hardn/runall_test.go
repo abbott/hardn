@@ -241,11 +241,13 @@ const runAllDNSYML = "configureDns: true\nnameservers:\n  - 192.0.2.53\n  - 192.
 // never y/N, the apply, PermitRootLogin no and the nameservers written
 // and the revert timer armed, then sudo hardn confirm, 0; a plain plan
 // (the nameservers alone) asked the same, applied, nothing armed, 0; 0
-// and q declining, nothing written, 3. Off a terminal any plan with
-// changes refused, PLAN_REFUSED in §6's words, nothing written or armed,
-// 1, a plain one too. --yes changes none of it (decisions 6 (a) and 8 (a)
-// kept over §3.11): on a terminal the hostname typed, a plain plan's too;
-// off one refused, PLAN_REFUSED, 1, never CONFIRMATION_REQUIRED. -n the
+// and q declining, nothing written, 3. Off a terminal a lockout-risk
+// plan refused, PLAN_REFUSED in §6's words, nothing written or armed, 1,
+// --yes or not; a plain plan shown, nothing written, CONFIRMATION_REQUIRED,
+// 2 (stdin a terminal and stdout not too), and with --yes applied, no
+// hostname asked, 0 (decision 8 (a) as
+// amended 2026-11-04). On a terminal the hostname typed, --yes or not, a
+// plain plan's too (decision 6 (a)). -n the
 // plan alone, no question, nothing written, 3, on a terminal or off; nothing asked (no username either), nothing to
 // change, 0, under -n too. -u names Run All's user (Create carol). Nothing
 // goes through the legacy provider; hardn.yml is never saved.
@@ -253,7 +255,8 @@ func TestRunAllFlag(t *testing.T) {
 	for _, tc := range []struct {
 		name, yml   string
 		tty, dryRun bool
-		args        []string // after -r (and -n)
+		env         func() term.Env // in place of tty's
+		args        []string        // after -r (and -n)
 		lines       []string
 		code        int      // the exit status; 0: hardn did not exit
 		said        []string // in order, on stdout
@@ -272,10 +275,12 @@ func TestRunAllFlag(t *testing.T) {
 			unsaid: []string{"Type the hostname"}},
 		{name: "a plain plan on a terminal", yml: runAllDNSYML, tty: true, lines: []string{"web-01"}, dns: true,
 			said: []string{"Apply this plan?", "Type the hostname", "Operation Successful"}, unsaid: []string{"Lockout risk", "sudo hardn confirm"}},
-		{name: "a plain plan off a terminal", yml: runAllDNSYML, code: 1,
-			said: []string{"No actual changes were made to your system.", rRefusalWords}, unsaid: []string{"Type the hostname", "CONFIRMATION_REQUIRED"}},
-		{name: "a plain plan off a terminal, --yes", yml: runAllDNSYML, args: []string{"--yes"}, code: 1,
-			said: []string{"No actual changes were made to your system.", rRefusalWords}, unsaid: []string{"Type the hostname", "CONFIRMATION_REQUIRED"}},
+		{name: "a plain plan off a terminal", yml: runAllDNSYML, code: 2,
+			said: []string{"No actual changes were made to your system.", confirmationWords}, unsaid: []string{"Type the hostname", rRefusalWords}},
+		{name: "a plain plan off a terminal, --yes", yml: runAllDNSYML, args: []string{"--yes"}, dns: true,
+			said: []string{"Operation Successful"}, unsaid: []string{"Type the hostname", "Lockout risk", "sudo hardn confirm", rRefusalWords, "CONFIRMATION_REQUIRED"}},
+		{name: "a plain plan, stdin a terminal, stdout not", yml: runAllDNSYML, env: func() term.Env { return ttyEnv(false, true) }, code: 2,
+			said: []string{"No actual changes were made to your system.", confirmationWords}, unsaid: []string{"Type the hostname", rRefusalWords}},
 		{name: "a plain plan on a terminal, --yes", yml: runAllDNSYML, tty: true, args: []string{"--yes"}, lines: []string{"web-01"}, dns: true,
 			said: []string{"Apply this plan?", "Type the hostname", "Operation Successful"}, unsaid: []string{"Lockout risk", "sudo hardn confirm"}},
 		{name: "a plain plan on a terminal, --yes, 0 declines", yml: runAllDNSYML, tty: true, args: []string{"--yes"}, lines: []string{"0"}, code: 3,
@@ -304,7 +309,7 @@ func TestRunAllFlag(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h, cfg := newRunAllHost(t, "debian13", tc.yml)
 			yml, conf, was := h.content(dnsTestYML), h.content(hostdns.ResolvConf), h.rootLogin()
-			var env func() term.Env
+			env := tc.env
 			if tc.tty {
 				env = onTTY
 			}

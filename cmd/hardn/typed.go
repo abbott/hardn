@@ -37,9 +37,11 @@ import (
 // lockout-risk plan is refused with offTerminal, shown with the plan and
 // not applied, nothing armed, --yes or not (gatePlan). Under plan only
 // nothing is asked or refused: the plan alone. With always, any plan with
-// changes is confirmed so, a plain one too, and refused off a terminal,
-// --yes or not (hardn -r: gallery-runall.md §5, decisions 6 (a) and
-// 8 (a)); a plan with nothing to change is neither asked nor refused.
+// changes is confirmed so on a terminal, a plain one too, --yes or not;
+// off one a plain plan is applied with --yes alone, without it
+// CONFIRMATION_REQUIRED (hardn -r: gallery-runall.md §5, decision 6 (a),
+// and 8 (a) as amended 2026-11-04); a plan with nothing to change is
+// neither asked nor refused.
 type typedConfirm struct {
 	question    string
 	offTerminal error
