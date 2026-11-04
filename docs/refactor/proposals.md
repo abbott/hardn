@@ -82,7 +82,7 @@
 - **Problem:**
   - AppArmor and Auto Updates show a status ("Not Configured") but have no menu item. DNS has a menu item but no status row [V, `00-TUI-MAIN` and origin/main `main_menu.go`].
   - SSH Auth and SSH Port also have rows with no screen that changes them.
-  - On origin/main, AppArmor, Lynis and Auto Updates can't be applied at all: the code is dead. Run All still prints them as configured (V23).
+  - On origin/main, AppArmor, Lynis and Auto Updates can't be applied at all: the code is dead. Run All still prints them as configured (V23). *(V23 resolved by `next/s8-replace`: the legacy Run All is deleted; Run All plans neither AppArmor nor Lynis, and `enableAppArmor` and `enableLynis` warn that they aren't used.)*
 - **Proposal:**
   - Drive status rows and menu items from one list of controls (the Phase 3/4 `Control` registry). Every row then either has a menu item or is marked read-only, and DNS gains a status row.
   - The AppArmor and Auto Updates screens themselves are [P-16](#p-16).
@@ -328,7 +328,7 @@
 - **Source:** plan §5.9; brief §7.1. Related: [P-01](#p-01).
 - **Problem:**
   - v0.3.2 could install UFW and set up AppArmor, Lynis and unattended-upgrades.
-  - On origin/main that code is unreachable, while Run All reports AppArmor and Lynis as done (V23).
+  - On origin/main that code is unreachable, while Run All reports AppArmor and Lynis as done (V23). *(Resolved by `next/s8-replace`, as [P-01](#p-01).)*
   - No ref has an AppArmor or Auto Updates screen.
 - **Proposal:**
   - **UFW install:** restore it, but never on Proxmox (brief §2).
@@ -591,7 +591,7 @@
 
     Alternatives: one sentence for every prompt ("Invalid input. Please try again."); naming the inputs ("Please answer y or n."); no "Please try again." where the prompt is asked again anyway.
   - **(d) The typed confirmation's layout:** the phrase is shown as the answer the hint offers, `Type the hostname [bos-san-l01, 0 or q]:`, and always whole: the prompt cuts the label first, and hardn asks only when the whole hint shows after some of the label. A phrase too long for that is refused before anything is written, and the flow asks with a shorter phrase or label: with the label "Type the hostname", up to 48 cells from 64 columns up and 44 at 60 (46 and 42 in ASCII), 3 more than before the decision below shortened the hint. Linux allows a hostname of 64 bytes, so a long one needs another phrase, such as its first label. The label is the flow's (P-10). Alternatives:
-    - (d2) the phrase in the label, as origin/main's Run All asks "Type 'yes' to confirm you want to apply real changes:" (pkg/menu run_all_menu.go:162): a narrow terminal cuts the label first, phrase included.
+    - (d2) the phrase in the label, as origin/main's Run All asks "Type 'yes' to confirm you want to apply real changes:" (pkg/menu run_all_menu.go:162): a narrow terminal cuts the label first, phrase included. *(That prompt is deleted by `next/s8-replace`: Run All asks "Type the hostname" as every typed confirmation does.)*
     - (d3) when the hint does not fit, the phrase on a line of its own above the prompt, at column 6: room for 58 cells at 64 columns, but a second layout for one prompt.
   - **(e) Explaining the navigation inputs:** built, nothing explains `0`, and the hint lists `0` and `q` with a prompt's answers. Alternatives:
     - (e2) a help line generated from the bindings (`keys.Set.Help`, which writes the Exit row's "q to quit"; nav uses it nowhere else): "0 to go back, q to quit", under the first question of a form and under each menu's prompt, or as the description of a sub-menu's "0) Return" row, as the main menu's Exit row says "q to quit". One line more per screen, or none on the Return row.
@@ -625,7 +625,7 @@
 
 - **Status:** proposed
 - **Source:** `next/p1c-flow`, which builds brief 1C's canonical action flow in `pkg/ui/flow`. Related: [P-09](#p-09), [P-10](#p-10), [P-23](#p-23), [P-24](#p-24), [P-25](#p-25), [P-26](#p-26).
-- **Problem:** brief 1C decides the steps: collect with a form, review the answers, show the plan (dry-run stops there), confirm with y/N or, for lockout risk and Run All, a typed confirmation, apply with rollback, and return to the menu without wiping the result. It leaves open:
+- **Problem:** brief 1C decides the steps: collect with a form, review the answers, show the plan (dry-run stops there), confirm with y/N or, for lockout risk and Run All, a typed confirmation, apply with rollback, and return to the menu without wiping the result. *(Since `next/s8-replace`, Run All types the hostname whatever the plan's risk, on the planner; the legacy Run All is deleted: [gallery-runall.md](../engine/gallery-runall.md) §5, decision 6 (a).)* It leaves open:
   - what `0` does at the confirmation, where the grammar has it go back one level ([P-25](#p-25) (b)), and where a typed confirmation has no "no";
   - what a plan with no changes says, and whether the flow then asks anything;
   - how the plan reads apart from the review above it: both are rows from column 2 under the review's section header, and Figma draws no plan;
