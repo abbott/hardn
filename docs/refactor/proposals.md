@@ -26,7 +26,7 @@
 | ID | Title | Source | Area / slice | Effort | Risk | Status |
 |---|---|---|---|---|---|---|
 | [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed; the DNS row's design agreed (2026-10-22); no Environment row (2026-10-29) |
-| [P-02](#p-02) | Make Run All hard to trigger by accident | brief §7.2 | Main menu; slice 8 | M | Low | proposed |
+| [P-02](#p-02) | Make Run All hard to trigger by accident | brief §7.2 | Main menu; slice 8 | M | Low | decided (2026-11-04): item 7 kept, the combined plan and the hostname typed whatever the risk |
 | [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | decided (2026-10-23): one "Plan only" mode set at start; item 6 removed, its key unused |
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
 | [P-05](#p-05) | SSH statuses from `sshd -T`, with a firewall cross-check | brief §7.5 | Status; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-check-ssh`, `next/p4-check-firewall` |
@@ -96,7 +96,7 @@
 ### P-02: Make Run All hard to trigger by accident
 
 - **Status:** proposed
-- **Mock:** slice 8's unit (a), [gallery-runall.md](../engine/gallery-runall.md): the combined plan and the typed confirmation played; placement and numbering are its decision 7 (keep 7 recommended; the last item, 10, drawn).
+- **Mock:** slice 8's unit (a), [gallery-runall.md](../engine/gallery-runall.md): the combined plan and the typed confirmation played; placement and numbering are its decision 7 (keep 7 recommended; the last item, 10, drawn). **Decided** (maintainer, 2026-11-04, "Adopt all, start (b)"): decision 7 (a), item 7 kept with its label and description; the combined plan shown and the hostname typed whatever the risk (decision 6 (a)).
 - **Source:** brief §7.2.
 - **Problem:**
   - Run All is item 7, one keystroke and Enter away in live mode.
