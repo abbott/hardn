@@ -82,6 +82,10 @@ func init() {
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
 }
 
+// startMenu runs the main menu (runMenu), a seam for the tests, which
+// record the options the root command gives it.
+var startMenu = runMenu
+
 // mainMenuRun reports whether the root command opens the main menu: no
 // operation flag given.
 func mainMenuRun() bool {
@@ -189,7 +193,7 @@ var rootCmd = &cobra.Command{
 		if mainMenuRun() {
 
 			// The main menu; its screens' items and its status: hooks.go
-			runMenu(context.Background(), menuOptions(cfg, Version))
+			startMenu(context.Background(), menuOptions(cfg, Version))
 			return
 		}
 
