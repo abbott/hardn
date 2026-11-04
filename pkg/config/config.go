@@ -73,8 +73,7 @@ type Config struct {
 // Default configuration
 func DefaultConfig() *Config {
 	return &Config{
-		// Basic Configuration
-		// Username:      "george",
+		// Basic Configuration: no username (refactor plan §3.11)
 		LogFile:       defaultLogFile,
 		DryRun:        false,
 		EnableBackups: true,
@@ -340,14 +339,11 @@ func CreateDefaultConfig(path string, config *Config) error {
 
 	// Ask for basic configuration if interactive
 	if isInteractive() {
-		// Ask for username
-		fmt.Print("Enter default username [george]: ")
-		username := readAnswer()
-		username = strings.TrimSpace(username)
-		if username != "" {
+		// Ask for username: none by default (refactor plan §3.11, "george"
+		// dropped), so that -c asks for -u and the screens for a name.
+		fmt.Print("Enter default username (optional, press Enter to skip): ")
+		if username := strings.TrimSpace(readAnswer()); username != "" {
 			config.Username = username
-		} else {
-			config.Username = "george" // Default if nothing provided
 		}
 
 		// Ask for SSH port
@@ -385,7 +381,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 
 	// Ensure the example config exists and tell the user about it
 	examplePath := "/etc/hardn/hardn.yml.example"
-	if err := EnsureExampleConfigExists(); err == nil {
+	if err := ensureExample(); err == nil {
 		fmt.Printf("A complete example configuration with all options is available at %s\n", examplePath)
 	}
 
@@ -426,13 +422,16 @@ func SaveConfig(config *Config, filePath string) error {
 	return nil
 }
 
-// isInteractive checks if we're running in an interactive terminal
-func isInteractive() bool {
-	fileInfo, _ := os.Stdin.Stat()
-	return (fileInfo.Mode() & os.ModeCharDevice) != 0
-}
-
 var (
+	// isInteractive checks if we're running in an interactive terminal.
+	// Tests replace it.
+	isInteractive = func() bool {
+		fileInfo, _ := os.Stdin.Stat()
+		return (fileInfo.Mode() & os.ModeCharDevice) != 0
+	}
+	// ensureExample is CreateDefaultConfig's EnsureExampleConfigExists,
+	// which writes /etc/hardn. Tests replace it.
+	ensureExample = EnsureExampleConfigExists
 	// input returns the Reader the prompts above read from: the
 	// process-wide prompt.Stdin, which pkg/menu shares, so stdin has one
 	// buffer (refactor plan risk R17). Tests replace it.

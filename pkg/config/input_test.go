@@ -1,8 +1,10 @@
 package config
 
 import (
+	"errors"
 	"io"
 	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -136,5 +138,46 @@ func TestReadAnswer(t *testing.T) {
 	}
 	if out != "" {
 		t.Errorf("printed %q, want nothing", out)
+	}
+}
+
+// TestCreateDefaultConfigUsername: the first-run save, on a terminal,
+// writes no username where the question is answered with Enter alone (no
+// "george" default: refactor plan §3.11), and the name typed where one
+// is; the question offers no default.
+func TestCreateDefaultConfigUsername(t *testing.T) {
+	prevInteractive, prevExample := isInteractive, ensureExample
+	isInteractive = func() bool { return true }
+	ensureExample = func() error { return errors.New("test: /etc/hardn not written") }
+	t.Cleanup(func() { isInteractive, ensureExample = prevInteractive, prevExample })
+	for _, tc := range []struct {
+		name, answers, want string
+	}{
+		{"Enter alone", "\n\n\n\n", ""},
+		{"a name typed", "alice\n\n\n\n", "alice"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			useReader(t, prompt.New(strings.NewReader(tc.answers), true))
+			path := filepath.Join(t.TempDir(), "hardn.yml")
+			var err error
+			out, _, ended := ask(t, func() { err = CreateDefaultConfig(path, DefaultConfig()) })
+			if err != nil || ended {
+				t.Fatalf("CreateDefaultConfig: %v (ended %v)", err, ended)
+			}
+			if !strings.Contains(out, "Enter default username (optional, press Enter to skip): ") || strings.Contains(out, "george") {
+				t.Errorf("the question: %q", out)
+			}
+			b, err := os.ReadFile(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c, err := LoadConfig(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if c.Username != tc.want || strings.Contains(string(b), "george") {
+				t.Errorf("username %q, want %q; the file:\n%s", c.Username, tc.want, b)
+			}
+		})
 	}
 }

@@ -37,15 +37,73 @@ func (r RootLogin) Valid() bool {
 // the caller shows it as a warning (brief §4: add the new form, and
 // deprecate the old one with a warning).
 type Deprecation struct {
-	Key   string // permitRootLogin
+	Key   string // permitRootLogin, disableRoot
 	Line  int    // the value's line in the file, 1-based
 	Found string // the value as written, such as false
-	Use   string // what to write instead, which means the same, such as "no"
+	Use   string // what to write instead, which means the same, such as "no"; for a key renamed, the key's new name
+	// Renamed: Key is an old name of the key Use (disableRoot, v0.3.2's
+	// disableRootSSH), read as Use. Shadowed: the file sets Use too, which
+	// wins, so Key's value is not read.
+	Renamed, Shadowed bool
 }
 
 // String is the warning to show for d.
 func (d Deprecation) String() string {
+	switch {
+	case d.Renamed && d.Shadowed:
+		return fmt.Sprintf("%s (line %d) is now %s, which this file sets too; %s is used", d.Key, d.Line, d.Use, d.Use)
+	case d.Renamed:
+		return fmt.Sprintf("%s (line %d) is now %s", d.Key, d.Line, d.Use)
+	}
 	return fmt.Sprintf("%s: %s (line %d) is deprecated; write %q, which means the same", d.Key, d.Found, d.Line, d.Use)
+}
+
+// disableRootKey is v0.3.2's name for disableRootSSH (refactor plan §3.11,
+// approved 2026-11-04): read as disableRootSSH, with a Deprecation, where
+// the file does not set disableRootSSH itself; until then it was ignored
+// without a word (V24).
+const (
+	disableRootKey    = "disableRoot"
+	disableRootSSHKey = "disableRootSSH"
+)
+
+// readDisableRoot reads m's disableRoot, hardn.yml's top-level mapping, as
+// disableRootSSH (disableRootKey), the last value of either winning as
+// the decoder's did; a value that is not a bool is the error a bool field
+// gives.
+func (c *Config) readDisableRoot(m *yaml.Node) []string {
+	var old *yaml.Node
+	shadowed := false
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		switch k := m.Content[i]; {
+		case k.Kind != yaml.ScalarNode:
+		case k.Value == disableRootKey:
+			old = m.Content[i+1]
+		case k.Value == disableRootSSHKey:
+			shadowed = true
+		}
+	}
+	if old == nil {
+		return nil
+	}
+	v := old
+	for v.Kind == yaml.AliasNode && v.Alias != nil {
+		v = v.Alias
+	}
+	if !shadowed && !(v.Kind == yaml.ScalarNode && v.ShortTag() == "!!null") {
+		var b bool
+		if err := v.Decode(&b); err != nil {
+			var te *yaml.TypeError
+			if errors.As(err, &te) {
+				return te.Errors
+			}
+			return []string{err.Error()}
+		}
+		c.DisableRootSSH = b
+	}
+	c.loaded.deprecations = append(c.loaded.deprecations, Deprecation{Key: disableRootKey, Line: old.Line, Found: old.Value,
+		Use: disableRootSSHKey, Renamed: true, Shadowed: shadowed})
+	return nil
 }
 
 // loaded is what the YAML said beyond Config's fields, and where it was.
@@ -121,6 +179,9 @@ func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 		}
 	}
 	c.loaded.dryRun = c.DryRun
+	if n.Kind == yaml.MappingNode {
+		errs = append(errs, c.readDisableRoot(n)...)
+	}
 	if len(values) > 0 {
 		var te *yaml.TypeError
 		if err := c.readRootLogin(values[0]); errors.As(err, &te) {

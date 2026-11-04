@@ -56,19 +56,6 @@ func terminalWriter(f *os.File) io.Writer {
 	return hangup.Writer(f)
 }
 
-// streamEnv is pkg/ui/term's detection for the stream f, as it detects
-// stdout: f a terminal, TERM, NO_COLOR, HARDN_PLAIN, and --no-color as
-// --color=never. The theme is fixed to dark, so that nothing queries the
-// terminal's background (HARDN_THEME=auto would): only the profile is
-// needed here.
-func streamEnv(f *os.File) term.Env {
-	opts := term.Options{Theme: term.ThemeDark}
-	if noColor {
-		opts.Color = term.ColorNever
-	}
-	return term.Detect(opts, os.Stdin, f)
-}
-
 // warnDeprecations prints the configuration's values read in a deprecated
 // form (§3.17: a bool permitRootLogin) to stderr, as warnings through
 // pkg/ui, with the file they were read from. The root command calls it

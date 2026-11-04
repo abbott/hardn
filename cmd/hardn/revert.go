@@ -32,7 +32,15 @@ func init() {
 	rollbackCmd.Flags().BoolVar(&rollbackBoot, "boot", false,
 		"what hardn's boot unit runs, with no <id>: re-arm the revert timer of the change waiting for confirmation, or roll it back once its deadline has passed")
 	rootCmd.AddCommand(confirmCmd, rollbackCmd)
-	rootCmd.PersistentPreRun = showRevertNotices
+	rootCmd.PersistentPreRun = rootPreRun
+}
+
+// rootPreRun is every command's first step but confirm's and rollback's
+// (noRevertNotices): --no-color's warning (warnNoColor), then the revert
+// notices (showRevertNotices).
+func rootPreRun(cmd *cobra.Command, args []string) {
+	warnNoColor()
+	showRevertNotices(cmd, args)
 }
 
 // rollbackAbandon is `hardn rollback --abandon <id>` (refactor plan P3,
@@ -93,8 +101,9 @@ func (revertLog) Write(p []byte) (int, error) {
 }
 
 // noRevertNotices replaces the root command's notice for confirm and
-// rollback, which report the journal themselves.
-func noRevertNotices(*cobra.Command, []string) {}
+// rollback, which report the journal themselves; --no-color's warning
+// stays (warnNoColor).
+func noRevertNotices(*cobra.Command, []string) { warnNoColor() }
 
 var confirmCmd = &cobra.Command{
 	Use:   "confirm",

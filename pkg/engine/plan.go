@@ -244,7 +244,11 @@ func (e *Engine) refuseApply(ctx context.Context, p *Plan, st revert.State, stEr
 	switch s := p.Facts.Platform; s.Support {
 	case detect.Supported, detect.BestEffort:
 	default:
-		refuseN(fmt.Errorf("engine: %v %s is %v: %w", s.Distro, s.Version, s.Support, ErrUnsupported))
+		note := ""
+		if s.Note != "" {
+			note = " (" + s.Note + ")" // Alpine 3.21's "vendor support ended 2026-11-01"
+		}
+		refuseN(fmt.Errorf("engine: %v %s is %v%s: %w", s.Distro, s.Version, s.Support, note, ErrUnsupported))
 	}
 	switch {
 	case stErr != nil:

@@ -50,14 +50,14 @@ You can set the `HARDN_CONFIG` environment variable to specify a configuration f
 
 ### Using with sudo or doas
 
-`sudo` and `doas` drop most environment variables, `HARDN_CONFIG` among them. The main menu's Environment (8) keeps it for the user who ran `sudo hardn`, or `doas hardn`, and shows whether it is kept. `sudo hardn setup-sudo-env`, or `sudo hardn -e`, keeps it without asking you to confirm.
+`sudo` and `doas` drop most environment variables, `HARDN_CONFIG` among them. The main menu's Environment (8) keeps it for the user who ran `sudo hardn`, or `doas hardn`, and shows whether it is kept. `sudo hardn setup-sudo-env`, or `sudo hardn -e`, keeps it: on a terminal without asking you to confirm; off one only with `--yes`, otherwise it shows the plan and exits 2.
 
 - **hardn writes only its own file**, `/etc/sudoers.d/hardn-env-<user>` (on doas, its rule `/etc/doas.d/zz-hardn-<user>.conf`), and leaves the others as they are.
 - **An earlier hardn's line is read.** `env_keep += "HARDN_CONFIG"` in `/etc/sudoers.d/<user>` shows as kept by that file. hardn leaves the file as it is.
 - **Both ways.** Once hardn's file keeps it, Environment offers to stop keeping it.
 - **doas needs a rule of hardn's for you**, which this release does not write. Without one, hardn says to add `setenv { HARDN_CONFIG }` to the rule that lets you use doas, and changes nothing.
 - **A root login is refused.** Run `sudo hardn` as the user to keep it for.
-- **`-e` and `setup-sudo-env` apply without asking you to confirm.** A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan, and the change is not made.
+- **`-e` and `setup-sudo-env` apply without asking you to confirm, on a terminal.** Off one they apply only with `--yes`; without it they show the plan, change nothing and exit 2. A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan, and the change is not made.
 - **With no hardn.yml found,** `setup-sudo-env` goes on with the defaults and asks nothing. `-e` first asks to create one, as `hardn` does at any start, with `-n` too; answer `n` to go on without one.
 - **It takes effect at the next `sudo hardn`.**
 
@@ -176,7 +176,7 @@ sshKeys:                            # -c adds them all; Create's default is the 
 The main menu's User Management (1) shows the users, their admin rights and SSH keys, and changes them.
 
 - **In User Management, `username` and `sshKeys` are only Create's defaults:** they never choose which user a change is about, and no change saves them.
-- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`, which goes on if the new user, or another admin, can still log in.
+- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing on a terminal; off one it needs `--yes`, otherwise it shows the plan and exits 2. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`, which goes on if the new user, or another admin, can still log in.
 - **`-c` no longer changes sshd_config.**
 - **`sudoNoPassword` isn't used.** A new user has no password, so their admin rights never ask one, from User Management, `-c` or Run All. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used".
 
@@ -210,6 +210,14 @@ The main menu's SSH Login (2) shows root login, password login, the SSH port and
 - **`sshPort` is Change SSH port's default.** **`sshConfigFile` is read by Move old settings alone**, to find hardn's old file.
 - **`permitRootLogin`, `sshAllowedUsers`, `sshListenAddress` and `sshKeyPath` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used". `permitRootLogin: "prohibit-password"` is warned too, as `"yes"` is; it is no longer refused.
 
+#### `confirmTimeout`: the time to confirm
+
+```yaml
+confirmTimeout: "3m"                # seconds, such as 300, or a duration
+```
+
+A change that could lock you out rolls back unless `sudo hardn confirm` keeps it within this time. It is 3 minutes when unset; less than 60 seconds is refused. `--confirm-timeout` wins over it.
+
 ### Feature Toggles
 
 ```yaml
@@ -225,6 +233,7 @@ The main menu's Run All (7) and `hardn -r` plan these keys' changes as one plan:
 
 - **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
 - **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.
+- **`disableRoot`**, its old name, is read as `disableRootSSH`, with a warning that it is deprecated. Rename it.
 - **`enableUfwSshPolicy: true`:** enables the firewall.
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
@@ -242,7 +251,7 @@ The main menu's Auto Updates (6) reads the host, never `enableUnattendedUpgrades
 The main menu's Firewall (4) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing.
 
 - **Enabling asks you to type the hostname**, since a wrong rule could lock you out. It lets SSH through, denies incoming by default, starts ufw and starts it at boot. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
-- **`hardn -w` enables it the same way.** On a terminal, a change that could lock you out asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out, such as starting ufw at boot when it already runs, is applied without asking, on a terminal or off. With `-n` it shows the plan. On Proxmox VE `-w` is refused, exit status 1.
+- **`hardn -w` enables it the same way.** On a terminal, a change that could lock you out asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out, such as starting ufw at boot when it already runs, is applied without asking on a terminal; off one only with `--yes`, otherwise hardn shows the plan and exits 2. With `-n` it shows the plan. On Proxmox VE `-w` is refused, exit status 1.
 - **Application Profiles (2)** adds a profile to hardn.yml, removes one, and applies them: Apply writes `/etc/ufw/applications.d/hardn` and lets their ports through ufw.
 
 ```yaml

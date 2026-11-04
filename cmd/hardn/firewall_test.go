@@ -368,8 +368,10 @@ func runW(t *testing.T, h *fwTestHost, env func() term.Env, lines []string, setu
 // 3; the hostname unreadable said in place of the question, nothing
 // asked or run, 1; the end of the input 130. Off a terminal the plan is
 // refused, PLAN_REFUSED, nothing run or armed, 1, and so it is where
-// stdout alone, or stdin alone, is a terminal. A plain plan ("Start ufw at
-// boot" alone) is applied unasked, nothing armed, 0, on a terminal or off.
+// stdout alone, or stdin alone, is a terminal; with --yes too. A plain plan
+// ("Start ufw at boot" alone) is applied unasked, nothing armed, 0, on a
+// terminal, and off one with --yes; off one without it, shown and not
+// applied, CONFIRMATION_REQUIRED, 2.
 // -n the plan alone, no
 // question, nothing run, 3, on a terminal or off. Proxmox VE refused
 // (UFW_NOT_APPLICABLE), 1. A host already as asked: nothing to change, 0,
@@ -378,15 +380,15 @@ func runW(t *testing.T, h *fwTestHost, env func() term.Env, lines []string, setu
 // runControls applies any flag's.
 func TestConfigureFirewallFlag(t *testing.T) {
 	for _, tc := range []struct {
-		name, host  string
-		tty, dryRun bool
-		env         func() term.Env // stdout's render environment, when not tty's
-		lines       []string
-		code        int      // the exit status; 0: hardn did not exit
-		said        []string // in order
-		unsaid      []string
-		applied     bool // Enable's lockout-risk plan applied: ufw started, the timer armed
-		plain       bool // the plain plan applied: ufw's service started at boot, nothing armed
+		name, host       string
+		tty, dryRun, yes bool
+		env              func() term.Env // stdout's render environment, when not tty's
+		lines            []string
+		code             int      // the exit status; 0: hardn did not exit
+		said             []string // in order
+		unsaid           []string
+		applied          bool // Enable's lockout-risk plan applied: ufw started, the timer armed
+		plain            bool // the plain plan applied: ufw's service started at boot, nothing armed
 	}{
 		{name: "on a terminal", host: "debian13", tty: true, lines: []string{"web-01"}, applied: true,
 			said: []string{"Lockout risk", "Enable the firewall?", "Type the hostname [web-01, 0 or q]", "Done", "Operation Successful", "sudo hardn confirm"}},
@@ -405,8 +407,16 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			said: []string{"Lockout risk", fwLockoutWords}, unsaid: []string{"Type the hostname"}},
 		{name: "a plain plan on a terminal", host: "boot-off", tty: true, plain: true,
 			said: []string{"Start ufw at boot"}, unsaid: []string{"Lockout risk", "Type the hostname", "Enable the firewall?"}},
-		{name: "a plain plan off a terminal", host: "boot-off", plain: true,
-			said: []string{"Start ufw at boot"}, unsaid: []string{"Lockout risk", "Type the hostname", fwLockoutWords}},
+		{name: "a plain plan off a terminal", host: "boot-off", code: 2,
+			said: []string{"Start ufw at boot", confirmationWords, "CONFIRMATION_REQUIRED"}, unsaid: []string{"Lockout risk", "Type the hostname", fwLockoutWords}},
+		{name: "a plain plan off a terminal, --yes", host: "boot-off", yes: true, plain: true,
+			said: []string{"Start ufw at boot"}, unsaid: []string{"Lockout risk", "Type the hostname", fwLockoutWords, "CONFIRMATION_REQUIRED"}},
+		{name: "off a terminal, --yes", host: "debian13", yes: true, code: 1,
+			said: []string{"Lockout risk", "No actual changes were made to your system.", fwLockoutWords}, unsaid: []string{"CONFIRMATION_REQUIRED"}},
+		{name: "on a terminal, --yes", host: "debian13", tty: true, yes: true, lines: []string{"web-01"}, applied: true,
+			said: []string{"Lockout risk", "Enable the firewall?", "Type the hostname", "Operation Successful", "sudo hardn confirm"}},
+		{name: "-n off a terminal, --yes", host: "debian13", yes: true, dryRun: true, code: 3, said: []string{"Lockout risk", "No actual changes were made to your system."},
+			unsaid: []string{fwLockoutWords, "CONFIRMATION_REQUIRED"}},
 		{name: "-n on a terminal", host: "debian13", tty: true, dryRun: true, code: 3, said: []string{"Lockout risk", "No actual changes were made to your system."}},
 		{name: "-n off a terminal", host: "debian13", dryRun: true, code: 3, said: []string{"Lockout risk", "No actual changes were made to your system."}},
 		{name: "Proxmox VE", host: "pve9", tty: true, code: 1, said: []string{"UFW_NOT_APPLICABLE"}},
@@ -416,6 +426,9 @@ func TestConfigureFirewallFlag(t *testing.T) {
 		args := []string{"-w"}
 		if tc.dryRun {
 			args = []string{"-n", "-w"}
+		}
+		if tc.yes {
+			args = append(args, "--yes")
 		}
 		t.Run(tc.name, func(t *testing.T) {
 			h := newFWHost(t, tc.host)
