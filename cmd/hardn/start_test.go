@@ -427,6 +427,19 @@ func TestStartLiveWrites(t *testing.T) {
 			t.Errorf("stderr %q, want %q", flat(r.stderr), want)
 		}
 	})
+	// setup-sudo-env, live, as root, opens the log and writes the example once its
+	// refusals are past, ahead of its run (here on a host with nothing on it).
+	t.Run("setup-sudo-env", func(t *testing.T) {
+		r := runStartWith(t, logHost(readerLog), asRootStart(func() {
+			engineHost = func() host.System { return hostfake.New(host.Options{}) }
+		}), "setup-sudo-env")
+		if _, err := os.Stat(filepath.Join(r.root, startLog)); err != nil {
+			t.Errorf("the log: %v; stderr:\n%s", err, r.stderr)
+		}
+		if b, err := os.ReadFile(filepath.Join(r.root, startExample)); err != nil || string(b) != config.ExampleConfigContent {
+			t.Errorf("the example: %v", err)
+		}
+	})
 	// confirm and rollback, as root, past their refusals (revertPreflight): the log
 	// opened, and the steps written to it; rollback --boot's, as the boot unit runs
 	// it, among them.
