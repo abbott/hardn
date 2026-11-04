@@ -3,6 +3,7 @@ package updates
 import (
 	"fmt"
 	"path"
+	"slices"
 	"strings"
 	"time"
 
@@ -57,11 +58,12 @@ const (
 
 // statusRow is the Auto Updates row, the main menu's: the control's check
 // (Reading.Status), through the main menu's own mapping and its assessment
-// (an Unknown row's "Counted as not configured"), with no header probe, as
-// the SSH Login screen draws its rows; then decision 9 (a)'s line, the
-// control's finding, which output.StatusViewOf does not draw (it draws the
-// risk factors). A reading cut short is Unknown.
-func statusRow(h reading) component.StatusList {
+// over the header the main menu reads (hd: an Unknown row's "Counted as
+// not configured", the uptime's line under a host that does not upgrade
+// itself); then decision 9 (a)'s line, the control's finding, which
+// output.StatusViewOf does not draw (it draws the risk factors). A reading
+// cut short is Unknown.
+func statusRow(h reading, hd header.Header) component.StatusList {
 	rp := engine.Report{Control: updatesctl.ID, Title: updatesctl.Auto{}.Title(), Status: h.Status, Err: h.StatusErr}
 	if h.err != nil && rp.Err == nil {
 		rp.Err = h.err
@@ -70,7 +72,8 @@ func statusRow(h reading) component.StatusList {
 		rp.Status.State = engine.Unknown
 	}
 	reports := []engine.Report{rp}
-	view := output.StatusViewOf(reports, risk.Assess(reports, header.Header{})).Status
+	view := output.StatusViewOf(reports, risk.Assess(reports, hd)).Status
+	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != rp.Title })
 	if len(view.Rows) == 1 {
 		for _, fd := range h.Status.Findings {
 			if fd.Code == updatesctl.CodeChangedSince {
@@ -86,7 +89,7 @@ func statusRow(h reading) component.StatusList {
 // while on not by hardn; its description Blocked where something is in
 // the way (R1).
 func mainView(h reading) screen.Updates {
-	v := screen.Updates{Status: statusRow(h), Rows: sectionRows(h), Apk: h.Apk, Install: !h.Apk && h.Package == detect.No}
+	v := screen.Updates{Status: statusRow(h, h.header), Rows: sectionRows(h), Apk: h.Apk, Install: !h.Apk && h.Package == detect.No}
 	switch {
 	case h.PVE:
 		v.Item = screen.UpdatesPVE

@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	updatesctl "github.com/abbott/hardn/pkg/engine/controls/updates"
+	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -127,16 +128,19 @@ func (r *runner) control(a updatesctl.AutoAction) updatesctl.Auto {
 	return updatesctl.Auto{Action: a, Version: r.o.Version, Records: r.o.Records}
 }
 
-// reading is one reading of the host: the control's, and why it was cut
-// short (err: the context's).
+// reading is one reading of the host: the control's, why it was cut short
+// (err: the context's), and the header the main menu reads, for the row's
+// assessment.
 type reading struct {
 	updatesctl.Reading
-	err error
+	err    error
+	header header.Header
 }
 
-// read reads the host as the control reads it (updates.Auto's Read,
-// writing nothing, running only reads).
+// read reads the host as the control reads it (updates.Auto's Read), and
+// the header as the main menu reads it (header.Read), writing nothing,
+// running only reads.
 func (r *runner) read(ctx context.Context) reading {
 	rd, err := r.control(updatesctl.AutoNone).Read(ctx, r.o.System, r.o.Facts, r.cfg)
-	return reading{Reading: rd, err: err}
+	return reading{Reading: rd, err: err, header: header.Read(ctx, r.o.System, r.o.Facts)}
 }
