@@ -291,6 +291,8 @@ None. These four had no source, and the maintainer adopted each (2026-11-02: "Ad
 - **Decision 8** (638d189): `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` warn on load where the file gives a value, the file still accepted, beside `logFile`'s (`cmd/hardn/output.go`, `loadWarnings`): "hardn.yml's ufwDefaultIncomingPolicy isn't used", and the same for outgoing, proposed. "" does not warn: it is the default, and origin/main's `SaveConfig` writes it into every file it saves. `TestUfwPolicyWarning` (run).
 - **Then** main menu 4 opens the screen (5d981ac) and `-w` runs the control (d4a5ac3), refusing a lockout-risk plan off a terminal.
 
+*Since `next/s8-replace`: the `ops/configure_secure_firewall` characterization case and its goldens are deleted with the legacy Run All; the copy under `pkg/screens/firewall/testdata/legacy` is the only record.*
+
 ## 9. Written, not run (gate 5)
 
 No hardn binary, VM, ufw, apt, apk or pve-firewall ran. ufw and the package tools answer from the model in `host_test.go`, the shape of `plan_test.go`'s; `apk add ufw`'s success is pkg/host/alpine's tests' form [I]. `make check` passed at the unit's end. `Slice.Reader`'s `Dry` and `CLI`, and `start-detached` read as a command, are the harness's only growth; no other slice's table, golden or page changed (run: `make golden-update`, `git status`).

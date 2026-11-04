@@ -55,7 +55,9 @@ func TestParity(t *testing.T) { parity.Run(t, fwParity) }
 // ops/configure_secure_firewall_profiles, moved with its TestOperationGoldens
 // case, retired too; ops/configure_secure_firewall, copied byte for byte, as
 // TestOperationGoldens still records FirewallManager.ConfigureSecureFirewall,
-// which Run All and hardn -r call until slice 8. Nothing regenerates them: no
+// which Run All and hardn -r call until slice 8 (since next/s8-replace that
+// case and its goldens are deleted with the legacy Run All: this copy is the
+// only record). Nothing regenerates them: no
 // test writes under testdata/legacy (TestLegacyRecord holds each file's
 // bytes). parity.golden's header still says "read in place": it is part of
 // the golden, kept as it was so that the record is provably unchanged

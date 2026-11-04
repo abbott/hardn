@@ -9,10 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
@@ -185,30 +183,5 @@ func TestUsageErrors(t *testing.T) {
 				t.Errorf("said %d times on stderr, want once:\n%s", got, r.stderr)
 			}
 		})
-	}
-}
-
-// TestRunAllFlagNamesHardnsLog: -r's closing line names the file hardn writes, whatever
-// hardn.yml's logFile says (decision 6 (a); defect 21).
-func TestRunAllFlagNamesHardnsLog(t *testing.T) {
-	const elsewhere = "/srv/log/elsewhere.log"
-	stdout, _ := captureStreams(t, func() {
-		r := runHardnWith(t, asRoot, func() {
-			loadConfig = func(string) (*config.Config, error) {
-				c := config.DefaultConfig()
-				c.Username, c.LogFile, c.SshPort = "alice", elsewhere, 2230
-				c.SshAllowedUsers = []string{"alice"}
-				return c, nil
-			}
-		}, "-r")
-		if r.ended {
-			t.Errorf("ended with %d; stderr:\n%s", r.code, r.stderr)
-		}
-	})
-	if !strings.Contains(stdout, "Check the log file at "+output.LegacyLogPath+" for details.") {
-		t.Errorf("does not name %s:\n%s", output.LegacyLogPath, stdout)
-	}
-	if strings.Contains(stdout, elsewhere) {
-		t.Errorf("names hardn.yml's logFile:\n%s", stdout)
 	}
 }

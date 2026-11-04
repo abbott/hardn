@@ -90,8 +90,9 @@ func streamEnv(f *os.File) term.Env {
 // not warn again). A logFile naming another path than the one hardn writes
 // is one too (decision 6 (a); gallery-system-details.md §6's words), and
 // so is either ufw policy the file sets (slice 4, decision 8),
-// sudoNoPassword: false (slice 5, decision 7 (a)), and each SSH setting
-// SSH Login and -d don't read (slice 6, decision 9 (a): sshNotUsed).
+// sudoNoPassword: false (slice 5, decision 7 (a)), and each key nothing
+// reads set to a value (slices 6 and 8, decisions 9 (a) and 4 (a):
+// notUsed).
 func warnDeprecations(c *config.Config) {
 	if w := loadWarnings(c); w != "" {
 		_, _ = io.WriteString(stderrEnv().Writer(stderr), w)
@@ -114,8 +115,8 @@ func loadWarnings(c *config.Config) string {
 	if !c.SudoNoPassword {
 		retired = append(retired, sudoNoPasswordNotUsed)
 	}
-	for _, key := range sshNotUsed(c) {
-		retired = append(retired, fmt.Sprintf(sshKeyNotUsed, key))
+	for _, key := range notUsed(c) {
+		retired = append(retired, fmt.Sprintf(keyNotUsed, key))
 	}
 	return deprecationWarnings(stderrEnv(), c.Path(), c.Deprecations(), retired...)
 }
@@ -128,49 +129,44 @@ const logFileNotUsed = "hardn.yml's logFile, %s, isn't used"
 // the two policies, so a file that sets one is told so, and still loads.
 // Only a value warns: the defaults leave both "" (config.DefaultConfig),
 // and origin/main's SaveConfig writes them as "" into every file it saves,
-// so "" is hardn's, not the file's. ufwAllowedPorts, which Run All reads,
-// waits for slice 8.
+// so "" is hardn's, not the file's.
 const (
 	ufwIncomingNotUsed = "hardn.yml's ufwDefaultIncomingPolicy isn't used"
 	ufwOutgoingNotUsed = "hardn.yml's ufwDefaultOutgoingPolicy isn't used"
 )
 
 // sudoNoPasswordNotUsed is refactor plan slice 5's decision 7 (a)
-// (gallery-users.md §5, adopted 2026-11-03; proposed words, unit (d)):
+// (gallery-users.md §5, adopted 2026-11-03), and since slice 8 Run All's
+// too (gallery-runall.md §5, decision 4 (a), adopted 2026-11-04):
 // hardn.yml's username, sudoNoPassword and sshKeys are Create's defaults
-// alone, and nothing on the User control reads sudoNoPassword: a new user
-// has no password to ask (decision 3 (a)), so Create's grant, the screen's
-// and -c's, asks none whatever it says. Only false warns: the defaults have
-// true (config.DefaultConfig), which is what Create does, so true, set or
-// not, is hardn's, not a value unused. username and sshKeys never warn:
-// the screen's Create offers both, and -c takes both (with no key, its
-// plan's own finding, USERS_NO_KEY, says so). Run All (-r, main menu 7)
-// still reads sudoNoPassword, through origin/main's UserManager, until
-// slice 8.
-const sudoNoPasswordNotUsed = "hardn.yml's sudoNoPassword: false isn't used by User Management or -c"
+// alone, and nothing reads sudoNoPassword: a new user has no password to
+// ask, so Create's grant, the screen's, -c's and Run All's, asks none
+// whatever it says. Only false warns: the defaults have true
+// (config.DefaultConfig), which is what Create does, so true, set or not,
+// is hardn's, not a value unused. username and sshKeys never warn: User
+// Management, -c and Run All read both.
+const sudoNoPasswordNotUsed = "hardn.yml's sudoNoPassword: false isn't used"
 
-// sshKeyNotUsed is refactor plan slice 6's decision 9 (a) (gallery-ssh.md
-// §5, adopted 2026-11-03; proposed words, unit (d)), said once for each of
-// hardn.yml's SSH settings that neither the SSH Login screen nor -d reads
-// (sshNotUsed): the screen reads sshd, and -d plans Disallow root login
-// whatever hardn.yml says.
-const sshKeyNotUsed = "hardn.yml's %s isn't used by SSH Login or -d"
+// keyNotUsed is said once for each key of notUsed: refactor plan slice 6's
+// decision 9 (a) (gallery-ssh.md §5, adopted 2026-11-03) for the SSH
+// settings, and slice 8's decision 4 (a) (gallery-runall.md §5, adopted
+// 2026-11-04) for ufwAllowedPorts, enableAppArmor and enableLynis. Since
+// slice 8 nothing reads them, Run All included, so the words name no
+// screen (slice 6's were "isn't used by SSH Login or -d").
+const keyNotUsed = "hardn.yml's %s isn't used"
 
-// sshNotUsed are the SSH settings of c that SSH Login and -d don't read and
-// that hold a value other than config.DefaultConfig's, by their keys:
-// permitRootLogin (as RootLogin reads it, so that the bool of §3.17,
-// which loadWarnings already says is deprecated, warns here only where it
-// is true), sshAllowedUsers, sshListenAddress, disableRootSSH and
-// sshKeyPath. A value equal to the default never warns: origin/main's
+// notUsed are the keys of c that nothing in hardn reads and that hold a
+// value other than config.DefaultConfig's: permitRootLogin (as RootLogin
+// reads it, so that the bool of §3.17, which loadWarnings already says is
+// deprecated, warns here only where it is true), sshAllowedUsers,
+// sshListenAddress, sshKeyPath, ufwAllowedPorts, enableAppArmor and
+// enableLynis. A value equal to the default never warns: origin/main's
 // SaveConfig writes the defaults into every file it saves, as for the ufw
-// policies, so it is hardn's, not the file's. sshPort, the port form's
-// default, and sshConfigFile, Move old settings' old file, are read and
-// never warn. Run All (-r, main menu 7) still reads sshAllowedUsers,
-// sshListenAddress and disableRootSSH (its HardeningConfig and toggles),
-// until slice 8; pkg/security's legacy status reads sshKeyPath
-// (OSUserRepository.GetExtendedUserInfo); nothing outside pkg/config
-// reads permitRootLogin.
-func sshNotUsed(c *config.Config) []string {
+// policies, so it is hardn's, not the file's. disableRootSSH is read:
+// true, Run All turns root login off (decision 4 (a)), so it warns no more.
+// sshPort and sshConfigFile, SSH Login's port form's default and Move old
+// settings' old file, and sshPort Run All's too, never warn.
+func notUsed(c *config.Config) []string {
 	d := config.DefaultConfig()
 	var keys []string
 	for _, k := range []struct {
@@ -180,8 +176,10 @@ func sshNotUsed(c *config.Config) []string {
 		{"permitRootLogin", c.RootLogin() != d.RootLogin()},
 		{"sshAllowedUsers", !slices.Equal(c.SshAllowedUsers, d.SshAllowedUsers)},
 		{"sshListenAddress", c.SshListenAddress != d.SshListenAddress},
-		{"disableRootSSH", c.DisableRootSSH != d.DisableRootSSH},
 		{"sshKeyPath", c.SshKeyPath != d.SshKeyPath},
+		{"ufwAllowedPorts", !slices.Equal(c.UfwAllowedPorts, d.UfwAllowedPorts)},
+		{"enableAppArmor", c.EnableAppArmor != d.EnableAppArmor},
+		{"enableLynis", c.EnableLynis != d.EnableLynis},
 	} {
 		if k.set {
 			keys = append(keys, k.key)

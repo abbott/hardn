@@ -157,7 +157,7 @@ sudo hardn
 | Root SSH (disable)   | `-d, --disable-root`       | Disable SSH access for root user      |
 | DNS (configure)      | `-g, --configure-dns`      | Configure DNS settings                |
 | UFW (configure)      | `-w, --configure-ufw`      | Configure firewall with SSH rules     |
-| Run all (execute)    | `-r, --run-all`            | Run all hardening operations          |
+| Run all (execute)    | `-r, --run-all`            | Apply hardn.yml's changes as one plan |
 | Dry run (mode)       | `-n, --dry-run`            | Preview changes without applying them |
 | Logs (print)         | `-p, --print-logs`         | View logs                             |
 | Version (print)      | `-v --version`             | View version                          |
@@ -167,7 +167,7 @@ sudo hardn
 CLI Examples
 
 ```bash
-# Run all hardening operations
+# Apply hardn.yml's changes as one plan
 sudo hardn -r
 
 # Create a non-root user w/SSH access
@@ -176,7 +176,7 @@ sudo hardn -u george -c
 # Configure firewall
 sudo hardn -w
 
-# Enable dry-run mode and preview all operations
+# Show that plan without applying it
 sudo hardn -n -r
 
 # Show version information

@@ -137,9 +137,9 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 
 `dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
 
-- **User Management, SSH Login, Firewall, Backup and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
+- **User Management, SSH Login, Firewall, Backup, Auto Updates, Run All and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
 - **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
-- **Operation flags are refused** under plan only, as with `-n`: `hardn -r` exits with status 2 and changes nothing. `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` show their plan instead, and exit 3 when there are changes. To apply, add `--dry-run=false`.
+- **Operation flags show their plan** under plan only, as with `-n`: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
@@ -164,7 +164,7 @@ The main menu's Backup (5) shows and changes these two settings.
 
 ```yaml
 username: "george"                  # Create's default name; -c's user
-sudoNoPassword: true                # not used by User Management or -c
+sudoNoPassword: true                # not used
 sshKeys:                            # -c adds them all; Create's default is the first
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
 ```
@@ -174,7 +174,7 @@ The main menu's User Management (1) shows the users, their admin rights and SSH 
 - **In User Management, `username` and `sshKeys` are only Create's defaults:** they never choose which user a change is about, and no change saves them.
 - **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`, which goes on if the new user, or another admin, can still log in.
 - **`-c` no longer changes sshd_config.**
-- **`sudoNoPassword` isn't used by User Management or `-c`.** A new user has no password, so their admin rights never ask one. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used by User Management or -c". Run All and `-r` still read it, until their slice.
+- **`sudoNoPassword` isn't used.** A new user has no password, so their admin rights never ask one, from User Management, `-c` or Run All. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used".
 
 ### Network Configuration
 
@@ -189,12 +189,12 @@ nameservers:                        # DNS servers to configure
 
 ```yaml
 sshPort: 22                         # SSH Login's default for Change SSH port
-permitRootLogin: "no"               # not used by SSH Login or -d
+permitRootLogin: "no"               # not used
                                     # true and false still work but are deprecated: write "no" or "yes"
-sshAllowedUsers:                    # not used by SSH Login or -d
+sshAllowedUsers:                    # not used
   - "george"
-sshListenAddress: "0.0.0.0"         # not used by SSH Login or -d
-sshKeyPath: ".ssh_%u"               # not used by SSH Login or -d
+sshListenAddress: "0.0.0.0"         # not used
+sshKeyPath: ".ssh_%u"               # not used
 sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # the old file Move old settings moves
 ```
 
@@ -205,22 +205,34 @@ The main menu's SSH Login (2) shows root login, password login, the SSH port and
 - **Some changes are refused before anything is asked**, such as turning root login off where no other admin could log in by key. With hardn's old sshd settings, every change but Move old settings is refused until it moves them.
 - **`hardn -d` turns root login off the same way.** On a terminal it asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -d` from a terminal. With `-n` it shows the plan. Root login already off is nothing to change, exit status 0. It is refused where no other admin could log in afterwards, by key, or by password while password login is on, and become root. On Proxmox VE it makes root key-only, which the cluster needs.
 - **`sshPort` is Change SSH port's default.** **`sshConfigFile` is read by Move old settings alone**, to find hardn's old file.
-- **`permitRootLogin`, `sshAllowedUsers`, `sshListenAddress`, `disableRootSSH` and `sshKeyPath` aren't used by SSH Login or `-d`.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used by SSH Login or -d". Run All and `-r` still read `sshPort`, `sshAllowedUsers` and `sshListenAddress`, until their slice.
+- **`permitRootLogin`, `sshAllowedUsers`, `sshListenAddress` and `sshKeyPath` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used".
 
 ### Feature Toggles
 
 ```yaml
-enableAppArmor: false               # Set up and enable AppArmor
-enableLynis: false                  # Install and run Lynis security audit
-enableUnattendedUpgrades: false     # shown by Run All; not read by Auto Updates
-enableUfwSshPolicy: false           # Configure UFW with SSH rules
-configureDns: false                 # Configure DNS settings
-disableRootSSH: false               # shown by Run All; changes nothing
+enableUnattendedUpgrades: false     # Run All: true turns automatic updates on
+enableUfwSshPolicy: false           # Run All: true enables the firewall
+configureDns: false                 # Run All: true sets the nameservers
+disableRootSSH: false               # Run All: true turns root login off
 ```
 
-**`enableUnattendedUpgrades` is Run All's.** Run All lists it and doesn't act on it yet; slice 8 makes it turn updates on. hardn's first-run setup still asks "Enable automatic security updates? [y/N]" and sets it.
+#### What Run All reads
 
-The main menu's Auto Updates (6) reads the host, never this key. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableUnattendedUpgrades: false` where hardn.yml says true, so Run All doesn't turn them back on.
+The main menu's Run All (7) and `hardn -r` plan these keys' changes as one plan:
+
+- **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
+- **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.
+- **`enableUfwSshPolicy: true`:** enables the firewall.
+- **`configureDns: true`** with **`nameservers`:** sets the nameservers.
+- **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
+- **`sshPort`:** compared with the port sshd listens on; never changed.
+- **`enableBackups` and `backupPath`:** the plan's backups.
+
+A change that is refused, doesn't apply or has nothing to change is skipped, and Run All says why. You type the hostname to apply, whatever the plan.
+
+**`ufwAllowedPorts`, `enableAppArmor` and `enableLynis` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's enableLynis isn't used".
+
+The main menu's Auto Updates (6) reads the host, never `enableUnattendedUpgrades`. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableUnattendedUpgrades: false` where hardn.yml says true, so Run All doesn't turn them back on.
 
 ### Firewall Configuration with UFW Application Profiles
 
@@ -248,7 +260,7 @@ Each profile has these fields:
 - **In ufw's file the ports are joined by `|`**, as ufw requires: `ports=80/tcp|443/tcp`. Keep one port per entry in hardn.yml.
 - **Removing a profile leaves its rule in ufw.** It is taken out of hardn.yml only. Delete it with `ufw delete`.
 
-Enabling, from main menu 4 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` still set incoming to "deny" and outgoing to "allow", the old way, until their slice. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
+Enabling, from main menu 4 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` enable it the same way. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 ## Configuration Recommendations
 <!-- 
@@ -258,8 +270,6 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
 
 1. **System Hardening**: For production servers, enable all security features:
    ```yaml
-   enableAppArmor: true
-   enableLynis: true
    enableUnattendedUpgrades: true
    enableUfwSshPolicy: true
    configureDns: true
@@ -270,7 +280,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    dryRun: true      # plan only at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is plan only, scripts and cron jobs included: operation flags are refused, and `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is plan only, scripts and cron jobs included: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml

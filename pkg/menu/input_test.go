@@ -247,18 +247,6 @@ func TestAbort(t *testing.T) {
 	})
 }
 
-// runAllInPlanOnly is the Run All screen under plan only, on hardn's
-// defaults: a choice it does not take refused with a pause, the screen
-// drawn again; nothing is read from or run on this host, nothing saved.
-// (The Environment screen served here until refactor plan slice 9's unit
-// (d) deleted it, then the Firewall menu's application profiles until
-// slice 4's unit (d) deleted that.)
-func runAllInPlanOnly() func() {
-	cfg := config.DefaultConfig()
-	cfg.DryRun = true
-	return NewRunAllMenu(nil, cfg, nil).Show
-}
-
 // TestScreens drives legacy screens with scripted stdin: each pause waits
 // for one line, says "Press Enter", and leaves the next line to the next
 // prompt. (The main menu's invalid choice paused too until slice 2b's unit
@@ -277,12 +265,6 @@ func TestScreens(t *testing.T) {
 			run:    func(*testing.T) { NewHelpMenu().Show() },
 			want:   []string{"Command Line Usage:", "Press Enter to return to the main menu..."},
 			pauses: 0,
-		},
-		{
-			name: "run all: the removed 2, an invalid choice, q", script: "2\n\nx\n\nq\n",
-			run:    func(*testing.T) { runAllInPlanOnly()() },
-			want:   []string{"Run All Hardening Steps", "Invalid option. Please try again.", pause, "Invalid option. Please try again.", pause},
-			pauses: 2,
 		},
 	}
 	for _, tt := range tests {
@@ -312,17 +294,6 @@ func TestScreens(t *testing.T) {
 			}
 		})
 	}
-	t.Run("the end of the input at a pause ends hardn there", func(t *testing.T) {
-		scripted(t, "x\n")
-		show := runAllInPlanOnly()
-		out, code, ended := session(t, show)
-		if !ended || code != prompt.ExitInterrupted {
-			t.Fatalf("ended %v with %d, want exit status %d", ended, code, prompt.ExitInterrupted)
-		}
-		if !strings.HasSuffix(out, pause+"\n") || strings.Count(out, "Run All Hardening Steps") != 1 {
-			t.Errorf("want the invalid choice's pause last, and the screen not drawn again:\n%s", out)
-		}
-	})
 }
 
 // TestSharedStdin runs this test binary as a child process whose stdin

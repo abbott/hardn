@@ -656,9 +656,7 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			r, s := runG(t, h.dnsHost, cfg, func(*dnsSeams) {
-				fileDryRun = func(string) (string, bool, error) { return dnsTestYML, true, nil }
-			}, tc.args...)
+			r, s := runG(t, h.dnsHost, cfg, nil, tc.args...)
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, s.out.String(), r.stderr)
 			}
@@ -673,8 +671,7 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 					t.Errorf("not applied; report:\n%s", s.out.String())
 				}
 			default:
-				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, hardncmd.FlagRunAll) ||
-					strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) {
+				if len(written) > 0 || len(r.reached) != 0 || !strings.Contains(r.stderr, errRunAllAlone.Error()) {
 					t.Errorf("wrote %q after %v; stderr:\n%s", written, r.reached, r.stderr)
 				}
 			}
