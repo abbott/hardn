@@ -82,6 +82,12 @@ A sub-menu has no compact form: each screen is 22 lines, 23 with the item's lock
 
 In dependency order. The brief's (5) "refuses or doesn't apply" comes second here: the design problem's answer rests on it.
 
+**Adopted (the maintainer, 2026-11-04):** "Adopt all, start (b)." Every recommended answer below is adopted, and every Made here call as stated. What follows from them:
+
+- Run All plans User (Create), SSH Login (root login off; root key-only on Proxmox VE), Firewall (Enable), DNS and Auto Updates (on only), each planned alone first and skipped, said, where it refuses, doesn't apply or has nothing to change; the rest in one plan, with the firewall before root login off where both are asked (1 (a), 2 (a), 3 (a), 5 (a)).
+- hardn.yml's keys as 4 (a), `sudoNoPassword` unused (Create's grant as `-c`'s); the hostname typed whatever the risk (6 (a)); main menu item 7 kept (7 (a), P-02 decided); `hardn -r` as 8 (a); §6's words decided (9); each row Run All's outcome alone (10 (a)).
+- Unit (b) builds the planner as real code for the screen and `-r`, with the two real fixes of §7.
+
 1. **Scope: which controls Run All plans.** GATES all. Run All is main menu 7 and `hardn -r`; the brief decides one combined plan of the real controls. *(a), recommended:* it plans User (Create), SSH Login (root login off; root key-only on Proxmox VE), Firewall (Enable), DNS and Auto Updates (on only, never off: control-updates.md §2). It leaves SSH Auth (no key asks for it), the SSH port (decision 3), Backup's settings (a saver is planned alone, engine.md §2.18: Run All uses them as its plan's backups), Environment (no key asks for it: screen 8), AppArmor (status only in v0.4) and Lynis (§3.12, open: no row). *(b)* Environment always, as a plain change that `sudo hardn` needs: not mocked. *(c)* the firewall's install too: not in one plan, since Enable reads the host as it is and refuses with no ufw (fresh), so it would take a second plan: not mocked. Drawn and played: (a).
 2. **A control that refuses or doesn't apply.** GATES 3. The engine refuses a whole plan for any control's refusal (engine.md §2.6), and DNS refuses on common hosts (control-dns.md, "Run All (slice 8)"). *(a), recommended:* Run All plans each control alone first, writing nothing, and skips one that refuses, doesn't apply, or has nothing to change, saying so on its row and in full before the review; the rest is one plan, whose own refusals (two controls in conflict) still refuse it whole. No engine change. *(b)* refuse everything when one refuses: on alpine323, fresh and pve9 nothing applies; not mocked. *(c)* skip semantics in the engine: an engine change that weakens §2.6; not mocked. Played: (a), on refused, fresh, pve9, alpine323, george-no-sudo.
 3. **The admin and root login in one plan.** The controls plan from the host as it is: creating george and turning root login off together has SSH Login's proof refuse, george not existing yet. The reading showed more: on a fresh host the session is root's own, and `sshchange.Root` refuses that before the proof ("You're logged in as root over SSH..."), so no plan can turn root login off until the user logs in as the admin. *(a), recommended:* skip it, as 2 (a): the first Run All creates george, the row says why; logged in as george, the next Run All turns root login off on the real proof. *(b)* two phases in one run, accounts then a plan read afresh: refused all the same from root's session, and a second confirmation; not mocked. *(c)* SSH changes left to SSH Login: `disableRootSSH` unused; not mocked. *(d)* the proof given the planned users (an engine change): nothing it reads exists at plan time, and it still refuses root's own session; not mocked. **The port:** always SSH Login's, never planned: Enable in the same plan allows the listeners as they are, so after the change was confirmed and 22 closed, the new port would not be allowed. Played: (a), on fresh.
@@ -105,6 +111,8 @@ In dependency order. The brief's (5) "refuses or doesn't apply" comes second her
 - `play/user-management` opens 7 and goes back, rather than dropping the step.
 
 ## 6. Words
+
+Decided (2026-11-04, decision 9):
 
 | Where | Words |
 |---|---|
