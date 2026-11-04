@@ -58,12 +58,6 @@ func (e *EditError) Error() string {
 // Unwrap returns ErrNotEditable or ErrEditUnsafe, with its cause.
 func (e *EditError) Unwrap() error { return e.Err }
 
-// derivedKey is logsconfig, which is not a setting: LoadConfig sets
-// LogsConfig.LogFilePath from logFile whatever the file says, and nothing
-// reads it from the file. Edit neither compares nor writes it, so a file's
-// logsconfig stays as it is and none is added.
-const derivedKey = "logsconfig"
-
 var bom = []byte("\xef\xbb\xbf")
 
 // Edit returns original, hardn.yml's bytes as read, with the settings
@@ -151,20 +145,14 @@ func Edit(original []byte, to *Config, settings ...string) ([]byte, error) {
 }
 
 // tree is c as a YAML mapping, setting by setting, in the configuration's
-// order (canonical: permitRootLogin as its string), without logsconfig
-// (derivedKey), and with a setting yaml.v3 leaves out when empty
+// order (canonical: permitRootLogin as its string), and with a setting yaml.v3 leaves out when empty
 // (omitempty, confirmTimeout) given its empty value, at the end.
 func tree(c *Config) (*yaml.Node, error) {
 	n, err := c.canonical()
 	if err != nil {
 		return nil, fmt.Errorf("config: %w", err)
 	}
-	out := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map"}
-	for i := 0; i+1 < len(n.Content); i += 2 {
-		if n.Content[i].Value != derivedKey {
-			out.Content = append(out.Content, n.Content[i], n.Content[i+1])
-		}
-	}
+	out := &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Content: n.Content}
 	t := reflect.TypeFor[plain]()
 	for i := range t.NumField() {
 		f := t.Field(i)

@@ -275,7 +275,6 @@ var sentinels = map[string]error{
 // otherSentinels are the sentinels of other packages that have codes of
 // their own.
 var otherSentinels = map[string]error{
-	"config.ErrRootLoginNotApplied":  config.ErrRootLoginNotApplied,
 	"config.ErrNotLoaded":            config.ErrNotLoaded,
 	"config.ErrInvalidFile":          config.ErrInvalidFile,
 	"config.ErrChanged":              config.ErrChanged,     // next/s2-config-edit

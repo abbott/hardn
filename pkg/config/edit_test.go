@@ -41,7 +41,7 @@ func TestEdit(t *testing.T) {
 			want: "# hardn's configuration\nusername: alice    # the admin\n\n# SSH\nsshPort: 2230 # the port\n"},
 		{name: "double quotes kept", in: "username: \"alice\" # q\n", set: user, want: "username: \"bob\" # q\n"},
 		{name: "single quotes kept", in: "username: 'alice'\n", set: user, want: "username: 'bob'\n"},
-		{name: "plain to a value that needs quotes", in: "dmzSubnet: x\n", set: func(c *Config) { c.DmzSubnet = "" }, want: "dmzSubnet: \"\"\n"},
+		{name: "plain to a value that needs quotes", in: "username: x\n", set: func(c *Config) { c.Username = "" }, want: "username: \"\"\n"},
 		{name: "a key quoted, a tab after the colon", in: "\"username\":\talice\n", set: user, want: "\"username\":\tbob\n"},
 		{name: "characters before the value", in: "lang: \"ключ\"\nusername: alice # é\n", set: user, want: "lang: \"ключ\"\nusername: bob # é\n"},
 		{name: "a quoted value over two lines", in: "username: \"alice\n  # smith\" # c\nsshPort: 22\n", set: user, want: "username: \"bob\" # c\nsshPort: 22\n"},
@@ -85,8 +85,8 @@ func TestEdit(t *testing.T) {
 		{name: "a list in brackets over several lines, on one now",
 			in: "nameservers: [\n  192.0.2.54,\n  192.0.2.52,\n] # two\nsshPort: 22\n", set: list("192.0.2.53"),
 			want: "nameservers: [192.0.2.53] # two\nsshPort: 22\n"},
-		{name: "a ] inside a quoted item", in: "sshAllowedUsers: [\"a]b\", bob] # who\n", set: func(c *Config) { c.SshAllowedUsers = []string{"alice"} },
-			want: "sshAllowedUsers: [\"alice\"] # who\n"},
+		{name: "a ] inside a quoted item", in: "sshKeys: [\"a]b\", bob] # who\n", set: func(c *Config) { c.SshKeys = []string{"alice"} },
+			want: "sshKeys: [\"alice\"] # who\n"},
 		{name: "a list in brackets stays in brackets, in its quotes",
 			in: "nameservers: ['192.0.2.54'] # two\n", set: list("1.1.1.1", "1.0.0.1"),
 			want: "nameservers: ['1.1.1.1', '1.0.0.1'] # two\n"},
@@ -133,10 +133,10 @@ func TestEdit(t *testing.T) {
 			want: "permitRootLogin: false # old\nsshPort: 2230\n"},
 		{name: "a deprecated bool replaced by its string when its value changes", in: "permitRootLogin: false # old\n",
 			set: func(c *Config) { _ = c.SetRootLogin(RootLoginYes) }, want: "permitRootLogin: \"yes\" # old\n"},
-		{name: "logsconfig left as the file has it", in: "logsconfig:\n    logfilepath: \"\"\nusername: alice\n",
-			set: func(c *Config) { c.LogsConfig.LogFilePath = c.LogFile; c.Username = "bob" }, want: "logsconfig:\n    logfilepath: \"\"\nusername: bob\n"},
-		{name: "logsconfig as LoadConfig sets it, not added", in: "username: alice\n",
-			set: func(c *Config) { c.LogsConfig.LogFilePath = c.LogFile; c.Username = "bob" }, want: "username: bob\n"},
+		{name: "logsconfig, origin/main's, left as the file has it", in: "logsconfig:\n    logfilepath: \"\"\nusername: alice\n",
+			set: user, want: "logsconfig:\n    logfilepath: \"\"\nusername: bob\n"},
+		{name: "a retired key left as the file has it", in: "tz: UTC # local\nenableLynis: true\nusername: alice\n",
+			set: user, want: "tz: UTC # local\nenableLynis: true\nusername: bob\n"},
 		{name: "an unknown key kept", in: "legacy: 1\nusername: alice\n", set: user, want: "legacy: 1\nusername: bob\n"},
 
 		{name: "a mapping in braces", in: "{username: alice, sshPort: 22}  # all\n",
@@ -252,7 +252,7 @@ func TestEditSettings(t *testing.T) {
 	if got, err := Edit([]byte(in), c, "nameservers", "sshPort"); err != nil || string(got) != want {
 		t.Errorf("Edit of nameservers and sshPort = %q, %v; want %q", got, err, want)
 	}
-	for _, name := range []string{"nameserver", derivedKey} {
+	for _, name := range []string{"nameserver", "logsconfig", "tz"} {
 		if _, err := Edit([]byte(in), c, name); !errors.Is(err, fs.ErrInvalid) {
 			t.Errorf("Edit of %q = %v; want fs.ErrInvalid", name, err)
 		}
@@ -260,8 +260,8 @@ func TestEditSettings(t *testing.T) {
 }
 
 // TestEditNested edits a nested mapping at the key that changed, adding
-// the one it lacks at its end; no setting of Config is one (logsconfig is
-// not a setting: derivedKey), so the trees are given here.
+// the one it lacks at its end; no setting of Config is one (origin/main's
+// logsconfig is not a setting), so the trees are given here.
 func TestEditNested(t *testing.T) {
 	node := func(s string) *yaml.Node {
 		var doc yaml.Node
@@ -300,7 +300,7 @@ func TestEditChecks(t *testing.T) {
 		{"username: bob\nlegacy: 1\nlogsconfig: {logfilepath: x}\nsshPort: 2230\n", "sshPort"},
 		{"username: bob\nlegacy: 2\nlogsconfig: {logfilepath: x}\n", "legacy"},
 		{"username: bob\nlogsconfig: {logfilepath: x}\n", "legacy"},
-		{"username: bob\nlegacy: 1\nlogsconfig: {logfilepath: y}\n", derivedKey},
+		{"username: bob\nlegacy: 1\nlogsconfig: {logfilepath: y}\n", "logsconfig"},
 		{"username: bob\nlegacy: 1\nlogsconfig: {logfilepath: x}\nother: 1\n", "other"},
 		{"username: [\n", ""},
 		{"username: bob\n---\nusername: bob\n", ""},
@@ -324,9 +324,9 @@ func TestEditChecks(t *testing.T) {
 // as is each changed setting's own comment.
 func TestEditKeepsTheRest(t *testing.T) {
 	const file = "# hardn's configuration (web-01.example.net)\n\n" +
-		"# Who\nusername: \"alice\"   # the admin\nsshAllowedUsers:   # who may log in\n  - alice # first\n  # bob is new\n  - bob\n\n" +
+		"# Who\nusername: \"alice\"   # the admin\nsshKeys:   # who may log in\n  - alice # first\n  # bob is new\n  - bob\n\n" +
 		"# DNS\nnameservers:\n  # ours, see the runbook\n  - \"192.0.2.54\" # ours\n  - \"2001:db8::54\"\n  # - 192.0.2.52\n" +
-		"sshPort: 22   # SSH\n                # a second line\ndmzSubnet: '192.0.2'\nenableLynis: false # audit\n# Time\ntz: \"UTC\"\n# the end\n"
+		"sshPort: 22   # SSH\n                # a second line\nbackupPath: '/srv/backups'\nenableBackups: false # audit\n# Time\ntz: \"UTC\"\n# the end\n"
 	pool := []string{"192.0.2.54", "2001:db8::54", "192.0.2.53", "192.0.2.52", "1.1.1.1"}
 	users := []string{"alice", "bob", "george"}
 	r := rand.New(rand.NewPCG(1, 2))
@@ -339,8 +339,8 @@ func TestEditKeepsTheRest(t *testing.T) {
 	// spans are the lines each setting's edit may change: a scalar's line,
 	// a block list's first item's to its last's (its key's line and the
 	// comments before its first item stay).
-	spans := map[string][2]int{"username": {3, 3}, "sshAllowedUsers": {5, 7}, "nameservers": {12, 13}, "sshPort": {15, 15},
-		"dmzSubnet": {17, 17}, "enableLynis": {18, 18}, "tz": {20, 20}}
+	spans := map[string][2]int{"username": {3, 3}, "sshKeys": {5, 7}, "nameservers": {12, 13}, "sshPort": {15, 15},
+		"backupPath": {17, 17}, "enableBackups": {18, 18}, "tz": {20, 20}}
 	for i := range 300 {
 		c := load(t, file)
 		changed := map[string]bool{}
@@ -348,7 +348,7 @@ func TestEditKeepsTheRest(t *testing.T) {
 			c.Username, changed["username"] = users[r.IntN(3)], true
 		}
 		if r.IntN(2) == 0 {
-			c.SshAllowedUsers, changed["sshAllowedUsers"] = pick(users), true
+			c.SshKeys, changed["sshKeys"] = pick(users), true
 		}
 		if r.IntN(2) == 0 {
 			c.Nameservers, changed["nameservers"] = pick(pool), true
@@ -357,10 +357,10 @@ func TestEditKeepsTheRest(t *testing.T) {
 			c.SshPort, changed["sshPort"] = 2230, true
 		}
 		if r.IntN(3) == 0 {
-			c.DmzSubnet, changed["dmzSubnet"] = "192.0.2.128", true
+			c.BackupPath, changed["backupPath"] = "/srv/backups/hardn", true
 		}
 		if r.IntN(3) == 0 {
-			c.EnableLynis, changed["enableLynis"] = true, true
+			c.EnableBackups, changed["enableBackups"] = true, true
 		}
 		if r.IntN(4) == 0 {
 			c.ConfirmTimeout = "3m"
@@ -370,8 +370,8 @@ func TestEditKeepsTheRest(t *testing.T) {
 			t.Fatalf("run %d: %v", i, err)
 		}
 		back := load(t, string(got))
-		if fmt.Sprint(back.Username, back.SshAllowedUsers, back.Nameservers, back.SshPort, back.DmzSubnet, back.EnableLynis, back.ConfirmTimeout, back.Tz) !=
-			fmt.Sprint(c.Username, c.SshAllowedUsers, c.Nameservers, c.SshPort, c.DmzSubnet, c.EnableLynis, c.ConfirmTimeout, c.Tz) {
+		if fmt.Sprint(back.Username, back.SshKeys, back.Nameservers, back.SshPort, back.BackupPath, back.EnableBackups, back.ConfirmTimeout) !=
+			fmt.Sprint(c.Username, c.SshKeys, c.Nameservers, c.SshPort, c.BackupPath, c.EnableBackups, c.ConfirmTimeout) {
 			t.Fatalf("run %d: read back %+v, want %+v:\n%s", i, back, c, got)
 		}
 		var keep []string
@@ -435,11 +435,11 @@ func FuzzEdit(f *testing.F) {
 		case 3:
 			c.Nameservers = append([]string{"192.0.2.53"}, c.Nameservers...)
 		case 4:
-			c.SshKeys, c.SshAllowedUsers = nil, []string{"alice", "bob"}
+			c.SshKeys = []string{"alice", "bob"}
 		case 5:
 			c.UfwAppProfiles = append(c.UfwAppProfiles, UfwAppProfile{Name: "ssh", Ports: []string{"2230/tcp"}})
 		case 6:
-			c.ConfirmTimeout, c.Tz = "3m", "UTC"
+			c.ConfirmTimeout = "3m"
 		case 7:
 			if len(c.Nameservers) > 0 {
 				c.Nameservers = c.Nameservers[1:]
