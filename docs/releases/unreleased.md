@@ -238,9 +238,16 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 ## Changed: start-up
 
-- **`--help`, `--version`, a bad command line and a run as a user other than root write nothing.** hardn used to create `/var/log/hardn.log` and `/etc/hardn/hardn.yml.example` before it read its flags. Now the main menu, the operation flags and `setup-sudo-env` write them once they run, and `confirm` and `rollback` write the log. `system-details` and `-p` write neither, and plan only (`-n`) writes neither.
+- **hardn writes nothing until it knows what it is asked to do.** `--help`, `--version`, a bad command line and a run as a user other than root write nothing. hardn used to create `/var/log/hardn.log` and `/etc/hardn/hardn.yml.example` before it read its flags. Now the main menu, the operation flags and `setup-sudo-env` write them once they run, and `confirm` and `rollback` write the log. `system-details`, `-p` and plan only (`-n`) write neither. "Using configuration from: <path>" is no longer in `/var/log/hardn.log`.
 - **"This script needs to be run as root." comes first.** As a user other than root, hardn says it before anything else, with no warnings about the log ahead of it.
-- **The question that creates hardn.yml is asked only on a terminal**, stdin and stdout both. Without one, and at the end of the input (Ctrl-D), no hardn.yml is written and hardn uses the defaults, as when you answer n. The end of the input used to answer yes.
+- **The question that creates hardn.yml is asked only on a terminal**, stdin and stdout both. Without one, and at the end of the input (Ctrl-D), no hardn.yml is written and hardn uses the defaults, as when you answer n. The end of the input used to answer yes. Ctrl-C still ends hardn, exit status 130.
+
+## New: the audit log
+
+- **Each change hardn plans is recorded in `/var/log/hardn/audit.jsonl`**: one line per run of an operation flag (`-g`, `-c`, `-d`, `-w`, `-r`, `-e`, `setup-sudo-env`), per change made from a screen, and per `hardn confirm` clean-up. Applied, refused, declined, rolled back, interrupted and plan only (`-n`) runs are all recorded.
+- **Each line is one JSON document**: the time, hardn's version, the host, the plan with its diffs, what happened and the exit status ([docs/reference/output.md](../reference/output.md) §1, §4). Read it as root: `sudo tail -n 5 /var/log/hardn/audit.jsonl`, or one record at a time with `jq`.
+- **Root's alone**: the directory is `0750`, the file `0600`. Where the directory is not root's alone, or the line can't be written, hardn warns on stderr with the code (such as `AUDIT_DIR_UNSAFE`), and the run and its exit status are unchanged.
+- **Not recorded yet:** `hardn confirm`'s confirmation itself, `hardn rollback <id>` (the timer's included), `--abandon` and `--boot`.
 
 ## Changed: supported versions
 
