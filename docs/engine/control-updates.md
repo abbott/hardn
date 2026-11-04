@@ -2,6 +2,8 @@
 
 `pkg/engine/controls/updates`, `next/s7-control`: the check of [check-updates.md](check-updates.md) gains a `Plan` that turns updates on or off, the record, and the reading the Auto Updates screen draws. It builds what [gallery-updates.md](gallery-updates.md) §4 adopted (2026-11-03, "Adopt all, start (b)") and §5's words, on the mock's behaviour (`internal/tools/uigallery/updates.go`, `updateshost.go`). Status: tested on macOS on `hostfake` only; nothing ran on a VM.
 
+*Since `next/s7-replace`: main menu 6 opens the Auto Updates screen on this control. Run All does not use it yet (slice 8).*
+
 ## 1. What it does
 
 - **On, Debian and Ubuntu** (decision 3): unattended-upgrades installed when missing (`packages.PlanInstall`; the change backs up `20auto-upgrades` and `50unattended-upgrades`, so a rolled-back install also removes them), then hardn's own `/etc/apt/apt.conf.d/52hardn-auto-upgrades` holding only the lines whose value is `"0"` or unset, set to `"1"`, read back with `apt-config dump`. Which file sets each value is `aptconf.Read`'s. It refuses `Enable "0"`, a timer off, a masked or missing job, no origin, and an install that changes other packages. Debconf, `20auto-upgrades` and the timers are never touched.

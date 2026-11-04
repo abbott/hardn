@@ -2,6 +2,8 @@
 
 > **Unit:** refactor plan slice 7, unit (c), `next/s7-screen`, from `9a4bb455`. **Status:** built and tested on macOS, in process: the screen through `Run` on `fake_test.go`'s model (the control's `model_test.go` and the gallery's hosts, copied), the control's plans on the real engine. No real terminal, no hardn binary, no VM. Not yet on the main menu: unit (d) wires it.
 
+> *Since `next/s7-replace` (unit (d)): main menu 6 opens it ([cmd-engine.md](cmd-engine.md) §2.18).*
+
 ## What it does
 
 Main menu 6 as the maintainer adopted its mock on 2026-11-03 ([gallery-updates.md](gallery-updates.md) §4, "Adopt all, start (b)", §5's words), drawn from `updates.Auto`'s `Read` alone ([control-updates.md](control-updates.md) §2), writing nothing, under plan only too. Never from hardn.yml.
@@ -30,7 +32,7 @@ Required: the Prompter's In and Out, System, NewEngine. Without them `Run` retur
 
 - **Main menu 6** runs `Run`, labelled "Auto Updates", "Configure automatic updates" (decision 1). It passes the loaded hardn.yml, hardn's version and zero `Records`, under plan only too.
 - **Off** saves `enableUnattendedUpgrades: false` through the control's plan (`steps.PlanSave`) when the loaded hardn.yml says true. The screen sets it false in the copy the change plans with (`Controls(edited)`), and the control saves that copy as given, so `screenkit.Adopt` finds the bytes written and a later save in the same session is not refused as `CONFIG_CHANGED`. With a nil `Config` there is nothing to save.
-- **Delete or keep, and say which:** the dead `pkg/updates` (nothing imports it) and the interactive "Enable automatic security updates?" prompt (`autoUpdates`, `pkg/config/config.go:432-436`).
+- **Delete or keep, and say which:** the dead `pkg/updates` (nothing imports it) and the interactive "Enable automatic security updates?" prompt (`autoUpdates`, `pkg/config/config.go:432-436`). *Done in `next/s7-replace`: `pkg/updates` deleted; the prompt kept, since it sets `enableUnattendedUpgrades`, Run All's key, which slice 8 owns.*
 - **Run All** belongs to slice 8. It plans `AutoOn` only, never `AutoOff` (decision 2).
 - **The gallery's second stage** moves `internal/tools/uigallery/updates.go` onto `Run`. It retires `updReading`'s `rows`, `item`, `screen`, the runner's `preplan`, `refusalOf`, `notes` and `change`, and `TestUpdatesHosts`, `TestUpdatesRefusalWords`, `TestUpdatesHeights` and `TestUpdatesPlanOnlyWritesNothing`, which are held here now.
 
