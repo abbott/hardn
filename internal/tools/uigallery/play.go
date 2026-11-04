@@ -33,8 +33,9 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // kept among the mocks as Figma's record (figmaRecords), and its 8 to the
 // real Environment screen (envLinks, environment.go), its 9 to the real System
 // Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
-// (logsLinks, logs.go), its 4 to the real Firewall screen (fwLinks, firewall.go)
-// and its 1 to the real User Management screen (usrLinks, users.go). An item with no
+// (logsLinks, logs.go), its 4 to the real Firewall screen (fwLinks, firewall.go),
+// its 1 to the real User Management screen (usrLinks, users.go) and its 2 to the
+// real SSH Login screen (sshLinks, ssh.go). An item with no
 // link, and no refusal (screen.Mock.Refusals), says that the gallery has
 // no screen for it.
 var links = map[string]string{
@@ -164,13 +165,13 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the SSH Login mock fails where its host does")
+			return usage("-fail is for the fixture plans of the screen mocks; the SSH Login screen fails where its host does")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the SSH Login mock plays normal or dry-run", *sequence)
+			return usage("-sequence %s: the SSH Login screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
-			return s.play("play "+name, []string{engineNote, sshNote}, s.openSSH(name), stderr)
+			return s.play("play "+name, []string{engineNote}, s.openSSH(name), stderr)
 		})
 	}
 	if name, ok, err := fwStart(fs.Args()); ok || err != nil {

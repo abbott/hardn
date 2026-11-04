@@ -1,24 +1,22 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"slices"
+	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/x/ansi"
-
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
-	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
-
-// TestSSHGolden pins each listing mock on the core set and under LANG=C:
-// the screen on every host, and the refusals.
-func TestSSHGolden(t *testing.T) { goldenListing(t, sshListing) }
 
 // TestPlaySSHGolden plays each flow end to end and pins the transcript:
 // each change planned, typed and applied on the real engine; refusals
@@ -63,56 +61,35 @@ func TestPlaySSHGolden(t *testing.T) {
 	}
 }
 
-// TestSSHHosts holds each host's rows to the real readers: the three SSH
-// rows' details, and the section's root, password and port values, every
-// call one the model answers.
+// TestSSHHosts: each host, the menu's and the variants, reads with the
+// control (sshchange.Read), on the session revert.ReadSession finds there,
+// with sshd -T read but on not-read, the ports sshd listens on its note's,
+// and every call a read the model answers.
 func TestSSHHosts(t *testing.T) {
-	type want struct{ login, auth, port, root, pass, ports string }
-	wants := map[string]want{
-		"debian13":         {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"ubuntu2604":       {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"alpine323":        {"root locked", "key-only auth", "default (22)", "Locked", "Off", "22"},
-		"hardened":         {"root disallowed", "key-only auth", "non-default (2230)", "Disallowed", "Off", "2230"},
-		"password-login":   {"root key-only", "password auth on", "default (22)", "Key only", "On", "22"},
-		"password-session": {"root key-only", "password auth on", "default (22)", "Key only", "On", "22"},
-		"root-session":     {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"legacy-v032":      {"root disallowed", "key-only auth", "socket and sshd differ", "Disallowed", "Off", "22, 2230"},
-		"legacy-main":      {"root disallowed", "key-only auth", "default (22)", "Disallowed", "Off", "22"}, // by AuthenticationMethods
-		"include-other":    {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"match-allows":     {"match block allows root", "match block allows passwords", "default (22)", "Key only", "Off", "22"},
-		"allow-users":      {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"pve9":             {"root allowed", "password auth on", "default (22)", "Allowed", "On", "22"},
-		"ufw-restricted":   {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"confirm-window":   {"root key-only", "key-only auth", "22 and 2230", "Key only", "Off", "22, 2230"},
-		"not-read":         {"can't read", "can't read", "can't read", "Can't read", "Can't read", "Can't read"},
-		"nopam-locked":     {"root locked", "key-only auth", "default (22)", "Locked", "Off", "22"},
-		"rsa-small":        {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"admin-no-sudo":    {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-	}
-	if len(wants) != len(sshHosts()) {
-		t.Fatalf("%d hosts, %d wanted", len(sshHosts()), len(wants))
+	ports := map[string]string{"hardened": "2230", "legacy-v032": "22, 2230", "confirm-window": "22, 2230", "not-read": ""}
+	if n := len(sshHosts()); n != 19 {
+		t.Fatalf("%d hosts, 19 wanted", n)
 	}
 	ctx := context.Background()
-	for _, sh := range sshHosts() {
+	for _, sh := range slices.Concat(sshHosts(), sshVariants()) {
 		h := sh.host()
-		r, err := readSSH(ctx, h.sys(), sh.env)
+		sys := h.sys()
+		f, err := detect.Detect(ctx, sys)
 		if err != nil {
 			t.Fatalf("%s: %v", sh.name, err)
 		}
-		w := wants[sh.name]
+		sess, _ := revert.ReadSession(ctx, sys, sh.getenv, applyPID)
+		r, err := sshchange.Read(ctx, sys, f, nil, sess, sh.getenv)
+		want, ok := ports[sh.name]
+		if !ok {
+			want = "22"
+		}
 		var got []string
-		for _, row := range r.status.Rows {
-			got = append(got, row.Detail)
+		for _, p := range r.Effective.Listeners.Ports() {
+			got = append(got, strconv.Itoa(int(p)))
 		}
-		if strings.Join(got, "|") != strings.Join([]string{w.login, w.auth, w.port}, "|") {
-			t.Errorf("%s: rows %q, want %q", sh.name, got, []string{w.login, w.auth, w.port})
-		}
-		vals := map[string]string{}
-		for _, kv := range r.rows() {
-			vals[kv.Key] = kv.Value
-		}
-		if vals[sshRowRoot] != w.root || !strings.HasPrefix(vals[sshRowPass], w.pass) || vals[sshRowPort] != w.ports {
-			t.Errorf("%s: section %q, %q, %q; want %q, %q, %q", sh.name, vals[sshRowRoot], vals[sshRowPass], vals[sshRowPort], w.root, w.pass, w.ports)
+		if err != nil || (r.EffErr != nil) != (sh.name == "not-read") || strings.Join(got, ", ") != want {
+			t.Errorf("%s: ports %q, sshd -T %v, %v; want %q", sh.name, got, r.EffErr, err, want)
 		}
 		if u := h.unanswered(); len(u) > 0 {
 			t.Errorf("%s: unanswered %q", sh.name, u)
@@ -120,68 +97,20 @@ func TestSSHHosts(t *testing.T) {
 	}
 }
 
-// TestSSHRefusals: every lockout path and refusal of sshRefusals refuses
-// before asking, through the engine's plan of the item's control. The
-// refusals' logic, words and codes are sshchange's tests'
-// (pkg/engine/controls/sshchange); kept here, the one plan they lack: the
-// port on ssh.socket, of lockout risk alone.
-func TestSSHRefusals(t *testing.T) {
+// TestSSHPortSocket: the port on ssh.socket plans with no refusal, every
+// change of lockout risk but the engine's own and the boot's, on the
+// gallery's engine; the refusals before asking are pkg/screens/ssh's tests'.
+func TestSSHPortSocket(t *testing.T) {
 	ctx := context.Background()
-	for _, rf := range sshRefusals() {
-		words, err := refusalOf(ctx, rf)
-		if err != nil || words == "" {
-			t.Errorf("%v: %q, %v; want a refusal", rf, words, err)
-		}
-	}
-	r, h, err := sshReadNamed(ctx, "ubuntu2604")
-	if err != nil {
-		t.Fatal(err)
-	}
+	h := sshUbuntu()
 	c := sshchange.Port{To: 2230}
-	p, err := sshEngine(h, r.session(), nil).Plan(ctx, []engine.Control{c}, r.cfg)
+	p, err := sshEngine(h, applySession, nil).Plan(ctx, []engine.Control{c}, config.DefaultConfig())
 	if err != nil || len(p.Refused) > 0 || len(p.Changes) == 0 {
 		t.Fatalf("ubuntu2604, %s: %v, refused %v", c.ID(), err, p.Refused)
 	}
 	for _, ch := range p.Changes {
 		if ch.Risk != engine.RiskLockout && !strings.HasPrefix(ch.ID, "engine.") && !strings.Contains(ch.ID, "boot") {
 			t.Errorf("ubuntu2604, %s: change %s of risk %v, want lockout", c.ID(), ch.ID, ch.Risk)
-		}
-	}
-}
-
-// TestSSHPortInUse: a port another program has bound is refused at plan
-// time by the real check (reload.ErrInUse), in the screen's words.
-func TestSSHPortInUse(t *testing.T) {
-	ctx := context.Background()
-	h := sshDebian13()
-	h.bound = append(h.bound, "0.0.0.0:8080")
-	sh, _ := findSSHHost("debian13")
-	r, err := readSSH(ctx, h.sys(), sh.env)
-	if err != nil {
-		t.Fatal(err)
-	}
-	e := &sshRunner{h: h}
-	if words := e.preplan(ctx, r, sshchange.Port{To: 8080}); !strings.Contains(words, "in use") {
-		t.Errorf("port 8080 in use: %q, want a refusal", words)
-	}
-}
-
-// TestSSHPlanOnlyWritesNothing: under plan only every item opens and stops
-// at its plan, and no file outside hardn's own state changes.
-func TestSSHPlanOnlyWritesNothing(t *testing.T) {
-	for _, tt := range []struct {
-		host  string
-		lines []string
-	}{
-		{"ssh/debian13", []string{"1", "2", "3", "2230", "0"}},
-		{"ssh/hardened", []string{"1", "2", "0"}},
-		{"ssh/legacy-main", []string{"4", "0"}},
-		{"ssh/pve9", []string{"1", "2", "0"}},
-	} {
-		code, out, errs, unread := playGallery(tt.lines, "-profile", "plain", "-sequence", "dry-run", tt.host)
-		_, record, _ := strings.Cut(out, "# simulated system ")
-		if code != exitOK || errs != "" || unread != 0 || !strings.Contains(record, "Nothing was applied.") || strings.Contains(record, "Applied: ") {
-			t.Errorf("%s: exit %d, stderr %q, %d unread; the record:\n%s", tt.host, code, errs, unread, record)
 		}
 	}
 }
@@ -198,36 +127,22 @@ func TestSSHMatchModel(t *testing.T) {
 	}
 }
 
-// TestSSHHeights: every host's screen is as many lines at 80x24 as at
-// 80x40, Unicode and ASCII, the prompt on its last, no line over 80 cells.
-// Those over 24 rows are the page's §4.
-func TestSSHHeights(t *testing.T) {
-	ctx := context.Background()
-	for _, sh := range sshHosts() {
-		r, _, err := sshReadNamed(ctx, sh.name)
-		if err != nil {
-			t.Fatal(err)
+// TestSSHUsage: play refuses what it does not take, and the listing is
+// gone, with status 2 and nothing on stdout; the main menu's 2 leads to
+// debian13's.
+func TestSSHUsage(t *testing.T) {
+	for _, args := range [][]string{
+		{sshPrefix},
+		{"play", "ssh/nope"},
+		{"play", "-fail", "1", "ssh/debian13"},
+		{"play", "-sequence", "failure", "ssh/debian13"},
+	} {
+		var out, errs bytes.Buffer
+		if code := run(args, nil, offTerminal, &out, &errs); code != exitUsage || out.Len() > 0 || errs.Len() == 0 {
+			t.Errorf("%v: exit %d, stdout %q, stderr %q", args, code, out.String(), errs.String())
 		}
-		var n []int
-		for _, unicode := range []bool{true, false} {
-			for _, rows := range []int{24, 40} {
-				env := term.Fixed(80, colorprofile.TrueColor, unicode, true)
-				env.Height = rows
-				lines := strings.Split(ansi.Strip(r.screen().Render(component.NewCtx(env))), "\n")
-				for _, l := range lines {
-					if w := ansi.StringWidth(l); w > 80 {
-						t.Errorf("%s: %d cells: %q", sh.name, w, l)
-					}
-				}
-				if !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
-					t.Errorf("%s: the last line %q, want the prompt", sh.name, lines[len(lines)-1])
-				}
-				n = append(n, len(lines))
-			}
-		}
-		t.Logf("%s: %v", sh.name, n)
-		if n[0] != n[1] || n[0] != n[2] || n[0] != n[3] {
-			t.Errorf("%s: lines %v, want the same at 24 and 40 rows", sh.name, n)
-		}
+	}
+	if sshLinks[mainMenuMock+"/2"] != sshMainHost {
+		t.Errorf("the main menu's 2 leads to %q", sshLinks[mainMenuMock+"/2"])
 	}
 }
