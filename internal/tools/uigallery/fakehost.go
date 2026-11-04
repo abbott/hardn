@@ -106,6 +106,9 @@ type fakeHost struct {
 	// ssh answers the SSH Login mock's commands (sshhost.go); nil on every
 	// other host.
 	ssh *sshSim
+	// upd answers the Auto Updates mock's commands (updateshost.go); nil on
+	// every other host.
+	upd *updSim
 }
 
 // platform is what a simulated host's release ships, as detect reads it.
@@ -555,6 +558,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		return r
 	}
 	if r, ok := h.ssh.answer(h, argv); ok {
+		return r
+	}
+	if r, ok := h.upd.answer(h, argv); ok {
 		return r
 	}
 	switch path.Base(argv[0]) {
