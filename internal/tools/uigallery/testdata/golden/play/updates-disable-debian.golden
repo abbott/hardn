@@ -47,6 +47,10 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mOff␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mpython3-dbus␛[m         ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mapt autoremove removes it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mpython3-distro-info␛[m  ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mapt autoremove removes it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m             ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRollback␛[m             ␛[38;2;129;134;156mTurns updates on␛[m ␛[38;2;219;184;83mby 20auto-upgrades␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurn off daily upgrades␛[m$
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$
@@ -123,6 +127,9 @@ $
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/20auto-upgrades,␛[m$
       ␛[38;2;129;134;156m↪ /etc/apt/apt.conf.d/50unattended-upgrades␛[m$
       ␛[38;2;129;134;156m$ apt-get purge -y unattended-upgrades␛[m$
+      ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -170,6 +177,10 @@ $
 # Update Configuration -----------------------------------------$
 $
    -  Auto Updates         Off$
+   -  python3-dbus         Kept apt autoremove removes it$
+   -  python3-distro-info  Kept apt autoremove removes it$
+   -  Rollback             Reinstalls from the repositories$
+  [ ] Rollback             Turns updates on by 20auto-upgrades$
 $
    -  Turn off daily upgrades$
       /etc/apt/apt.conf.d/52hardn-auto-upgrades$
@@ -246,6 +257,9 @@ $
       /etc/apt/apt.conf.d/20auto-upgrades,$
       | /etc/apt/apt.conf.d/50unattended-upgrades$
       $ apt-get purge -y unattended-upgrades$
+      $ apt-config dump APT::Periodic$
+      | Unattended-Upgrade::Origins-Pattern$
+      | Unattended-Upgrade::Allowed-Origins$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -301,6 +315,14 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;129;134;156mOff␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mpython3-dbus␛[m$
+      ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mapt autoremove removes it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mpython3-distro-info␛[m$
+      ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mapt autoremove removes it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m$
+      ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRollback␛[m$
+      ␛[38;2;129;134;156mTurns updates on␛[m ␛[38;2;219;184;83mby 20auto-upgrades␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurn off daily upgrades␛[m$
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$
@@ -386,6 +408,9 @@ $
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/20auto-upgrades,␛[m$
       ␛[38;2;129;134;156m↪ /etc/apt/apt.conf.d/50unattended-upgrades␛[m$
       ␛[38;2;129;134;156m$ apt-get purge -y unattended-upgrades␛[m$
+      ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
@@ -433,6 +458,10 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mOff␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mpython3-dbus␛[m         ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mapt autoremove removes it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mpython3-distro-info␛[m  ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mapt autoremove removes it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m             ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mRollback␛[m             ␛[38;2;129;134;156mTurns updates on␛[m ␛[38;2;219;184;83mby 20auto-upgrades␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurn off daily upgrades␛[m$
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$
@@ -509,4 +538,7 @@ $
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/20auto-upgrades,␛[m$
       ␛[38;2;129;134;156m| /etc/apt/apt.conf.d/50unattended-upgrades␛[m$
       ␛[38;2;129;134;156m$ apt-get purge -y unattended-upgrades␛[m$
+      ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m| Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m| Unattended-Upgrade::Allowed-Origins␛[m$
 $

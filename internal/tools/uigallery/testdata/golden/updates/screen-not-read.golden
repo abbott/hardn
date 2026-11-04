@@ -8,7 +8,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. A file␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min apt.conf.d with a syntax error: apt-config dump fails, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe row is Unknown and both directions refuse.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe row is Unknown; the item is offered, saying so, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -23,7 +24,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
-      ␛[38;2;129;134;156mCan't read␛[m$
+      ␛[38;2;129;134;156mCan't read apt's settings␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -37,7 +38,8 @@ $
 # Note$
 # Mock: Auto Updates. web-01.example.net runs Debian 13. A file$
 # in apt.conf.d with a syntax error: apt-config dump fails, so$
-# the row is Unknown and both directions refuse.$
+# the row is Unknown; the item is offered, saying so, and$
+# refuses.$
 $
 # Auto Updates #################################################$
 $
@@ -52,7 +54,7 @@ $
   Select an option$
 $
    1) Enable automatic updates$
-      Can't read$
+      Can't read apt's settings$
 $
    0) Return$
 $
@@ -66,7 +68,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. A␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile in apt.conf.d with a syntax error: apt-config dump␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfails, so the row is Unknown and both directions refuse.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfails, so the row is Unknown; the item is offered, saying␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso, and refuses.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -84,7 +87,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
-      ␛[38;2;129;134;156mCan't read␛[m$
+      ␛[38;2;129;134;156mCan't read apt's settings␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -98,7 +101,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. A file␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min apt.conf.d with a syntax error: apt-config dump fails, so␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe row is Unknown and both directions refuse.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe row is Unknown; the item is offered, saying so, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
 $
@@ -113,7 +117,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
-      ␛[38;2;129;134;156mCan't read␛[m$
+      ␛[38;2;129;134;156mCan't read apt's settings␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $

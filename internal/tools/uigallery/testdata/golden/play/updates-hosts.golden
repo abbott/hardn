@@ -30,13 +30,15 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mOn by hardn, Alpine␛[m  ␛[38;2;129;134;156mA record␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdited since␛[m         ␛[38;2;129;134;156mRefused, named␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m         ␛[38;2;129;134;156mcrond kept␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216morigin/main's script␛[m ␛[38;2;129;134;156mapk-upgrade␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mNot offered␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNot read␛[m             ␛[38;2;129;134;156mapt-config fails␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m  ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m           ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m ␛[38;2;129;134;156mapk-upgrade␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mNot offered␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m             ␛[38;2;129;134;156mapt-config fails␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 9$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/by-hardn-alpine␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323 after␛[m$
@@ -79,13 +81,15 @@ $
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mOn by hardn, Alpine␛[m  ␛[38;2;129;134;156mA record␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdited since␛[m         ␛[38;2;129;134;156mRefused, named␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m         ␛[38;2;129;134;156mcrond kept␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216morigin/main's script␛[m ␛[38;2;129;134;156mapk-upgrade␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mNot offered␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNot read␛[m             ␛[38;2;129;134;156mapt-config fails␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m  ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m           ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m ␛[38;2;129;134;156mapk-upgrade␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mNot offered␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m             ␛[38;2;129;134;156mapt-config fails␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -121,13 +125,15 @@ $
    9) On by hardn, Alpine  A record$
   10) Edited since         Refused, named$
   11) crond shared         crond kept$
-  12) origin/main's script apk-upgrade$
-  13) Proxmox VE 9         Not offered$
-  14) Not read             apt-config fails$
+  12) Jobs, crond stopped  Also starts$
+  13) Files left           Removed earlier$
+  14) origin/main's script apk-upgrade$
+  15) Proxmox VE 9         Not offered$
+  16) Not read             apt-config fails$
 $
    0) Return$
 $
-  > Enter your choice [0-14 or q]: 9$
+  > Enter your choice [0-16 or q]: 9$
 $
 # Info: updates/by-hardn-alpine$
 # web-01.example.net runs Alpine 3.23 (OpenRC). alpine323 after$
@@ -170,13 +176,15 @@ $
    9) On by hardn, Alpine  A record$
   10) Edited since         Refused, named$
   11) crond shared         crond kept$
-  12) origin/main's script apk-upgrade$
-  13) Proxmox VE 9         Not offered$
-  14) Not read             apt-config fails$
+  12) Jobs, crond stopped  Also starts$
+  13) Files left           Removed earlier$
+  14) origin/main's script apk-upgrade$
+  15) Proxmox VE 9         Not offered$
+  16) Not read             apt-config fails$
 $
    0) Return$
 $
-  > Enter your choice [0-14 or q]: 0$
+  > Enter your choice [0-16 or q]: 0$
 $
 # simulated system ---------------------------------------------$
 $
@@ -223,16 +231,20 @@ $
       ␛[38;2;129;134;156mRefused, named␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m$
       ␛[38;2;129;134;156mcrond kept␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216morigin/main's script␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m$
+      ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m$
+      ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m$
       ␛[38;2;129;134;156mapk-upgrade␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mNot offered␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNot read␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m$
       ␛[38;2;129;134;156mapt-config fails␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 9$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/by-hardn-alpine␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323␛[m$
@@ -291,16 +303,20 @@ $
       ␛[38;2;129;134;156mRefused, named␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m$
       ␛[38;2;129;134;156mcrond kept␛[m$
-  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216morigin/main's script␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m$
+      ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m$
+      ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m$
       ␛[38;2;129;134;156mapk-upgrade␛[m$
-  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mNot offered␛[m$
-  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216mNot read␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m$
       ␛[38;2;129;134;156mapt-config fails␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-14 or q]:␛[m 0$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $

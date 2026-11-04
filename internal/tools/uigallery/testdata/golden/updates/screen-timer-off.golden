@@ -8,7 +8,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. apt-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdaily-upgrade.timer disabled and stopped by the administrator.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEnable refuses: hardn leaves apt's timers alone.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEnable is offered, saying so, and refuses: hardn leaves apt's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtimers alone.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -25,7 +26,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
-      ␛[38;2;129;134;156mDaily, by unattended-upgrades␛[m$
+      ␛[38;2;129;134;156mUpgrade timer is off␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -39,7 +40,8 @@ $
 # Note$
 # Mock: Auto Updates. web-01.example.net runs Debian 13. apt-$
 # daily-upgrade.timer disabled and stopped by the administrator.$
-# Enable refuses: hardn leaves apt's timers alone.$
+# Enable is offered, saying so, and refuses: hardn leaves apt's$
+# timers alone.$
 $
 # Auto Updates #################################################$
 $
@@ -56,7 +58,7 @@ $
   Select an option$
 $
    1) Enable automatic updates$
-      Daily, by unattended-upgrades$
+      Upgrade timer is off$
 $
    0) Return$
 $
@@ -70,8 +72,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer disabled and stopped by the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156madministrator. Enable refuses: hardn leaves apt's timers␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156madministrator. Enable is offered, saying so, and refuses:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn leaves apt's timers alone.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -94,7 +96,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
-      ␛[38;2;129;134;156mDaily, by unattended-upgrades␛[m$
+      ␛[38;2;129;134;156mUpgrade timer is off␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -108,7 +110,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. apt-␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdaily-upgrade.timer disabled and stopped by the administrator.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEnable refuses: hardn leaves apt's timers alone.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEnable is offered, saying so, and refuses: hardn leaves apt's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtimers alone.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
 $
@@ -125,7 +128,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
-      ␛[38;2;129;134;156mDaily, by unattended-upgrades␛[m$
+      ␛[38;2;129;134;156mUpgrade timer is off␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $

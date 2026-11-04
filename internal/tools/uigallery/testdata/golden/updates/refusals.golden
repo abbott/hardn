@@ -16,11 +16,38 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mto you. Run systemctl enable --now apt-daily-upgrade.timer,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthen try again.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, masked␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.service is masked, and hardn leaves apt's␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtimers to you. Run systemctl unmask apt-daily-upgrade.service,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthen try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, missing␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.service is missing. Reinstall apt, then try␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, enable-off␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAPT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mturns apt's daily jobs off. Remove that line, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, no-origin␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m50unattended-upgrades allows no origin, so nothing would be␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgraded. Add your distribution's origins there, then try␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, extra-packages␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades would also change other␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mpackages: Inst libc6 [2.41-11] (2.41-12 Debian:13.1/stable␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m[arm64]). Install it by hand, then try again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, not-read␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
@@ -49,6 +76,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/periodic/daily/apk changed since hardn␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minstalled it. Put it back as it was or undo the rest by hand.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, no-record␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpdates stay on without hardn's file: 20auto-upgrades turns␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem on, and hardn has no record that it installed unattended-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrades. Turn them off by hand.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -62,6 +96,11 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhand.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, by-hardn-debian␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, own-file␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
@@ -82,11 +121,38 @@ $
 # to you. Run systemctl enable --now apt-daily-upgrade.timer,$
 # then try again.$
 $
+# on, masked ---------------------------------------------------$
+$
+# Warning$
+# apt-daily-upgrade.service is masked, and hardn leaves apt's$
+# timers to you. Run systemctl unmask apt-daily-upgrade.service,$
+# then try again.$
+$
+# on, missing --------------------------------------------------$
+$
+# Warning$
+# apt-daily-upgrade.service is missing. Reinstall apt, then try$
+# again.$
+$
 # on, enable-off -----------------------------------------------$
 $
 # Warning$
 # APT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,$
 # turns apt's daily jobs off. Remove that line, then try again.$
+$
+# on, no-origin ------------------------------------------------$
+$
+# Warning$
+# 50unattended-upgrades allows no origin, so nothing would be$
+# upgraded. Add your distribution's origins there, then try$
+# again.$
+$
+# on, extra-packages -------------------------------------------$
+$
+# Warning$
+# Installing unattended-upgrades would also change other$
+# packages: Inst libc6 [2.41-11] (2.41-12 Debian:13.1/stable$
+# [arm64]). Install it by hand, then try again.$
 $
 # on, not-read -------------------------------------------------$
 $
@@ -115,6 +181,13 @@ $
 # Not undone: /etc/periodic/daily/apk changed since hardn$
 # installed it. Put it back as it was or undo the rest by hand.$
 $
+# off, no-record -----------------------------------------------$
+$
+# Warning$
+# Updates stay on without hardn's file: 20auto-upgrades turns$
+# them on, and hardn has no record that it installed unattended-$
+# upgrades. Turn them off by hand.$
+$
 # on, pve9 -----------------------------------------------------$
 $
 # Warning$
@@ -128,6 +201,11 @@ $
 # hand.$
 $
 # on, by-hardn-debian ------------------------------------------$
+$
+# Warning$
+# Nothing needs changing.$
+$
+# on, own-file -------------------------------------------------$
 $
 # Warning$
 # Nothing needs changing.$
@@ -148,12 +226,39 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtimers to you. Run systemctl enable --now apt-daily-␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrade.timer, then try again.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, masked␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.service is masked, and hardn leaves␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt's timers to you. Run systemctl unmask apt-daily-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrade.service, then try again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, missing␛[m ␛[38;2;48;52;64m──────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.service is missing. Reinstall apt, then␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtry again.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, enable-off␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAPT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mturns apt's daily jobs off. Remove that line, then try␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, no-origin␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m50unattended-upgrades allows no origin, so nothing would␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mbe upgraded. Add your distribution's origins there, then␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtry again.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, extra-packages␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades would also change other␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mpackages: Inst libc6 [2.41-11] (2.41-12 Debian:13.1/stable␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m[arm64]). Install it by hand, then try again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, not-read␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
@@ -183,6 +288,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minstalled it. Put it back as it was or undo the rest by␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhand.␛[m$
 $
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, no-record␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpdates stay on without hardn's file: 20auto-upgrades␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mturns them on, and hardn has no record that it installed␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156munattended-upgrades. Turn them off by hand.␛[m$
+$
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -197,6 +309,11 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, by-hardn-debian␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, own-file␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
@@ -217,11 +334,38 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mto you. Run systemctl enable --now apt-daily-upgrade.timer,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthen try again.␛[m$
 $
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, masked␛[m ␛[38;2;48;52;64m---------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.service is masked, and hardn leaves apt's␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtimers to you. Run systemctl unmask apt-daily-upgrade.service,␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthen try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, missing␛[m ␛[38;2;48;52;64m--------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.service is missing. Reinstall apt, then try␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, enable-off␛[m ␛[38;2;48;52;64m-----------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAPT::Periodic::Enable "0", in /etc/apt/apt.conf.d/99site,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mturns apt's daily jobs off. Remove that line, then try again.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, no-origin␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m50unattended-upgrades allows no origin, so nothing would be␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgraded. Add your distribution's origins there, then try␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, extra-packages␛[m ␛[38;2;48;52;64m-------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mInstalling unattended-upgrades would also change other␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mpackages: Inst libc6 [2.41-11] (2.41-12 Debian:13.1/stable␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m[arm64]). Install it by hand, then try again.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, not-read␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
@@ -250,6 +394,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/periodic/daily/apk changed since hardn␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156minstalled it. Put it back as it was or undo the rest by hand.␛[m$
 $
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156moff, no-record␛[m ␛[38;2;48;52;64m-----------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpdates stay on without hardn's file: 20auto-upgrades turns␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthem on, and hardn has no record that it installed unattended-␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrades. Turn them off by hand.␛[m$
+$
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m-----------------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -263,6 +414,11 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhand.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, by-hardn-debian␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, own-file␛[m ␛[38;2;48;52;64m-------------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$

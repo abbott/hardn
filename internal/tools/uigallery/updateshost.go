@@ -78,6 +78,7 @@ type updSim struct {
 	// Unset is the template's default, true: installing turns updates on.
 	debconfOff bool
 	deps       []string // what apt-get install -s lists with unattended-upgrades
+	extra      []string // the simulation's other lines: a removal or an upgrade
 	apkCron    bool
 	crond      bool // rc-service crond status: started
 }
@@ -102,6 +103,9 @@ func (u *updSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 		out.WriteString("NOTE: This is only a simulation!\n")
 		for _, p := range append(slices.Clone(u.deps), uuPackage) {
 			fmt.Fprintf(&out, "Inst %s (%s Debian:13.1/stable [all])\n", p, uuVersion)
+		}
+		for _, l := range u.extra {
+			out.WriteString(l + "\n")
 		}
 		return hostfake.Response{Stdout: out.String()}, true
 	case cmd == "apt-get install -y "+uuPackage:

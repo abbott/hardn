@@ -16,9 +16,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/crond-shared␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). logrotate's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdaily job under /etc/periodic, then hardn's Enable. Disable␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mremoves apk-cron and keeps crond, saying why.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). crond running␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand at boot before hardn, logrotate's daily job, then hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEnable. Disable removes apk-cron and keeps crond, saying why.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -46,7 +46,8 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mOff␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m                ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mlogrotate needs it␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m                ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mrunning before hardn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m             ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRemove apk-cron␛[m$
       ␛[38;2;129;134;156mapk-cron␛[m$
@@ -118,9 +119,9 @@ $
 # every command and file is the fake's.$
 $
 # Info: updates/crond-shared$
-# web-01.example.net runs Alpine 3.23 (OpenRC). logrotate's$
-# daily job under /etc/periodic, then hardn's Enable. Disable$
-# removes apk-cron and keeps crond, saying why.$
+# web-01.example.net runs Alpine 3.23 (OpenRC). crond running$
+# and at boot before hardn, logrotate's daily job, then hardn's$
+# Enable. Disable removes apk-cron and keeps crond, saying why.$
 $
 # Auto Updates #################################################$
 $
@@ -148,7 +149,8 @@ $
 # Update Configuration -----------------------------------------$
 $
    -  Auto Updates         Off$
-   -  crond                Kept logrotate needs it$
+   -  crond                Kept running before hardn$
+   -  Rollback             Reinstalls from the repositories$
 $
    -  Remove apk-cron$
       apk-cron$
@@ -220,9 +222,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/crond-shared␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). logrotate's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdaily job under /etc/periodic, then hardn's Enable.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDisable removes apk-cron and keeps crond, saying why.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). crond␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrunning and at boot before hardn, logrotate's daily job,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthen hardn's Enable. Disable removes apk-cron and keeps␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcrond, saying why.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -258,7 +261,9 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;129;134;156mOff␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m$
-      ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mlogrotate needs it␛[m$
+      ␛[38;2;129;134;156mKept␛[m ␛[38;2;129;134;156mrunning before hardn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRollback␛[m$
+      ␛[38;2;129;134;156mReinstalls from the repositories␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRemove apk-cron␛[m$
       ␛[38;2;129;134;156mapk-cron␛[m$

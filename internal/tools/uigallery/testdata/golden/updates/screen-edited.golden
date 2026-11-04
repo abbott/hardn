@@ -7,18 +7,19 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. by-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. Disable␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses, naming it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. The row says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso (a stand-in, decision 9); Disable refuses, naming it.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- changed since hardn␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m          ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily.timer␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m         ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-10-20␛[m$
@@ -26,7 +27,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
-      ␛[38;2;129;134;156mUndo hardn's changes␛[m$
+      ␛[38;2;129;134;156m52hardn-auto-upgrades changed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -39,18 +40,19 @@ $
 $
 # Note$
 # Mock: Auto Updates. web-01.example.net runs Debian 13. by-$
-# hardn-debian, then hardn's file edited by hand. Disable$
-# refuses, naming it.$
+# hardn-debian, then hardn's file edited by hand. The row says$
+# so (a stand-in, decision 9); Disable refuses, naming it.$
 $
 # Auto Updates #################################################$
 $
   [+] Auto Updates         Configured unattended-upgrades$
+                           - changed since hardn$
 $
 # Update Configuration -----------------------------------------$
 $
    -  unattended-upgrades  Installed 2.12$
-   -  Upgrades             Daily by 52hardn-auto-upgrades$
-   -  Package Lists        Daily by 52hardn-auto-upgrades$
+  [ ] Upgrades             Daily changed since hardn$
+  [ ] Package Lists        Daily changed since hardn$
    -  Upgrade Timer        On apt-daily-upgrade.timer$
    -  Lists Timer          On apt-daily.timer$
    -  Turned on by         hardn record of 2026-10-20$
@@ -58,7 +60,7 @@ $
   Select an option$
 $
    1) Disable automatic updates$
-      Undo hardn's changes$
+      52hardn-auto-upgrades changed$
 $
    0) Return$
 $
@@ -71,22 +73,24 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. by-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. Disable␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses, naming it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. The row␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays so (a stand-in, decision 9); Disable refuses, naming␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+      ␛[38;2;219;184;83m- changed since hardn␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m$
       ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
-      ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m$
-      ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
+      ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mPackage Lists␛[m$
+      ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m$
       ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m$
@@ -97,7 +101,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
-      ␛[38;2;129;134;156mUndo hardn's changes␛[m$
+      ␛[38;2;129;134;156m52hardn-auto-upgrades changed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
@@ -110,18 +114,19 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. by-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. Disable␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses, naming it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn-debian, then hardn's file edited by hand. The row says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso (a stand-in, decision 9); Disable refuses, naming it.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
+                           ␛[38;2;219;184;83m- changed since hardn␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 52hardn-auto-upgrades␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mDaily␛[m ␛[38;2;219;184;83mchanged since hardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m          ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily.timer␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m         ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-10-20␛[m$
@@ -129,7 +134,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
-      ␛[38;2;129;134;156mUndo hardn's changes␛[m$
+      ␛[38;2;129;134;156m52hardn-auto-upgrades changed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
