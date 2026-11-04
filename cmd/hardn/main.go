@@ -11,7 +11,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/output"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
 )
 
@@ -66,9 +65,6 @@ func init() {
 	// 	sayInfo("Current version :::: : %s", rootCmd.Version)
 	// }
 
-	// Setup color processing before command execution
-	cobra.OnInitialize(initializeColor)
-
 	rootCmd.AddCommand(setupSudoEnvCmd)
 	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
 
@@ -84,14 +80,6 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
-}
-
-// initializeColor turns pkg/style's colour, the legacy main menu's, off
-// for --no-color. Colour is no longer forced on: the console lines (say)
-// and the screens take it from pkg/ui/term's detection, which --no-color
-// reaches as --color=never (streamEnv).
-func initializeColor() {
-	style.UseColors = !noColor
 }
 
 // mainMenuRun reports whether the root command opens the main menu: no
@@ -190,8 +178,7 @@ var rootCmd = &cobra.Command{
 
 		// An OS other than Debian, Ubuntu or Alpine, or none os-release
 		// names, is refused (hostOS); nothing is said of one that is not.
-		_, err = detectOS()
-		if err != nil {
+		if err := detectOS(); err != nil {
 			sayError("Failed to detect OS: %v", err)
 			exit(1)
 		}

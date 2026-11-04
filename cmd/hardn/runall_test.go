@@ -17,7 +17,6 @@ import (
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -123,7 +122,7 @@ func TestRunAllScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runRunAllScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
 			}
@@ -295,7 +294,7 @@ func TestRunAllFlag(t *testing.T) {
 				env = onTTY
 			}
 			r, s := runD(t, h, cfg, env, tc.lines, nil, args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -355,7 +354,7 @@ func TestRunAllFlagPlanOnlyFromFile(t *testing.T) {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			h, cfg := newRunAllHost(t, "debian13", runAllYML+"dryRun: true\n")
 			r, s := runD(t, h, cfg, onTTY, tc.lines, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -406,7 +405,7 @@ func TestRunAllFlagPrintLogs(t *testing.T) {
 				t.Cleanup(func() { readerHost = was })
 				readerHost = func() host.System { return logHost(readerLog) }
 			}, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; stdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}

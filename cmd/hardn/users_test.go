@@ -27,7 +27,6 @@ import (
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -251,7 +250,7 @@ func TestUsersScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runUsersScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
 			}
@@ -337,7 +336,7 @@ func TestCreateUserFlag(t *testing.T) {
 			}
 			yml, sshdConfig := h.content(dnsTestYML), h.content(sshd.MainConfig)
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stdout, r.stderr)
 			}
@@ -401,7 +400,7 @@ func TestCreateUserKeys(t *testing.T) {
 			h, _ := newUsersHost(t)
 			cfg := withKeys(t, h, tc.keys...)
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
@@ -444,7 +443,7 @@ func TestCreateUserPlanOnlyFromFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
@@ -493,7 +492,7 @@ func TestCreateUserFlagWithOthers(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h, cfg := newUsersHost(t)
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
@@ -521,7 +520,7 @@ func TestCreateUserRefused(t *testing.T) {
 	r, s := runC(t, h, cfg, func(*dnsSeams) {
 		createRefuse = func(*engine.Plan) error { return refuseCreateLockoutRisk(&engine.Plan{Risk: engine.RiskLockout}) }
 	}, "-c", "-u", "carol")
-	report := style.StripAnsi(s.out.String())
+	report := stripANSI(s.out.String())
 	if !r.ended || r.code != 1 {
 		t.Fatalf("exit status %d (ended %v), want 1; report:\n%s\nstderr:\n%s", r.code, r.ended, report, r.stderr)
 	}
@@ -593,7 +592,7 @@ func TestUsersScreenSignals(t *testing.T) {
 			if err := runUsersScreen(context.Background(), cfg); err != nil {
 				t.Fatalf("runUsersScreen = %v; screen:\n%s", err, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if s.applies != 1 || s.held != 1 || h.content(grant) != "<absent>" || !slices.Equal(h.commands("userdel"), []string{"userdel --remove carol"}) {
 				t.Errorf("%d applies, %d holds, ran %q; %s:\n%s\nscreen:\n%s", s.applies, s.held, h.commands("useradd", "userdel"), grant, h.content(grant), out)
 			}
@@ -627,7 +626,7 @@ func TestUsersScreenSessionUser(t *testing.T) {
 	if err := runUsersScreen(context.Background(), cfg); err != nil {
 		t.Fatalf("runUsersScreen = %v; screen:\n%s", err, s.out.String())
 	}
-	out := strings.Join(strings.Fields(strings.ReplaceAll(style.StripAnsi(s.out.String()), "#", "")), " ") // the warning's lines joined
+	out := strings.Join(strings.Fields(strings.ReplaceAll(stripANSI(s.out.String()), "#", "")), " ") // the warning's lines joined
 	if !strings.Contains(out, "You're running hardn through george's sudo. Removing it would leave no way to become root") || strings.Contains(out, "hardn can't tell who you're logged in as") {
 		t.Errorf("the screen does not say the session-user refusal:\n%s", out)
 	}
