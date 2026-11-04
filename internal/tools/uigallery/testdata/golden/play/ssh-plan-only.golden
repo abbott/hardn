@@ -1,0 +1,1071 @@
+# Golden file of TestPlaySSHGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay ssh/debian13␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the SSH Login screen proposed for slice 6,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrawn from what real code reads of a simulated host (the SSH␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchecks, sshd.ReadEffective, migrate.Find, users.Read,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrevert.ReadSession), each change the real steps.PlanSSH or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlanMigration on the real plan/apply engine. The lockout␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchecks before asking are the gallery's stand-ins, unit (b)'s␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto build. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2). As the VM:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe stock Include first, PasswordAuthentication no, UsePAM␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156myes; root "*" with george's first key; george "!", two keys,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo by cloud-init; alice a password, no key, in sudo; ufw␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mallows 22 from anywhere; the old hardn.yml. george logged in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mby key, hardn through sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDisallow root login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mDisallow root login␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,3 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+$
+      ␛[38;2;129;134;156mssh.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows no root login␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 2$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mPassword login on␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOn␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mSet PasswordAuthentication yes␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,3 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+PasswordAuthentication yes␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+$
+      ␛[38;2;129;134;156mssh.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows PasswordAuthentication yes␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 3$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mChange SSH port␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;192;196;216mNew SSH port␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 2230$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22 held until confirmed␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
+$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+Port 22␛[m$
+      ␛[38;2;112;212;127m+Port 2230␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+$
+      ␛[38;2;129;134;156mssh.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play ssh/debian13 --------------------------------------------$
+$
+# Note$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
+# Play mode, mocks: the SSH Login screen proposed for slice 6,$
+# drawn from what real code reads of a simulated host (the SSH$
+# checks, sshd.ReadEffective, migrate.Find, users.Read,$
+# revert.ReadSession), each change the real steps.PlanSSH or$
+# PlanMigration on the real plan/apply engine. The lockout$
+# checks before asking are the gallery's stand-ins, unit (b)'s$
+# to build. Nothing on this machine changes: every command and$
+# file is the fake's.$
+$
+# Info: ssh/debian13$
+# web-01.example.net runs Debian 13 (OpenSSH 10.0p2). As the VM:$
+# the stock Include first, PasswordAuthentication no, UsePAM$
+# yes; root "*" with george's first key; george "!", two keys,$
+# sudo by cloud-init; alice a password, no key, in sudo; ufw$
+# allows 22 from anywhere; the old hardn.yml. george logged in$
+# by key, hardn through sudo.$
+$
+# SSH Login ####################################################$
+$
+  [ ] SSH Login            Partial root key-only$
+  [+] SSH Auth             Configured key-only auth$
+  [ ] SSH Port             Not Configured default (22)$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Key only sshd's default$
+   -  Password Login       Off by sshd_config$
+   -  SSH Port             22$
+   -  Allowed Users        Anyone$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Disallow root login  Root can't log in over SSH$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22$
+$
+   0) Return$
+$
+  > Enter your choice [0-3 or q]: 1$
+$
+# Disallow root login ##########################################$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Disallowed$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      Disallow root login$
+$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+      @@ -0,0 +1,3 @@$
+      +# Managed by hardn.$
+      +# Set by hardn:$
+      +PermitRootLogin no$
+$
+  [ ] Lockout risk$
+      Reload sshd (ssh.service)$
+$
+      ssh.service$
+      $ systemctl reload ssh.service$
+$
+  [ ] Lockout risk$
+      sshd -T shows no root login$
+$
+      sshd -T$
+      $ sshd -T$
+$
+  No actual changes were made to your system.$
+$
+# SSH Login ####################################################$
+$
+  [ ] SSH Login            Partial root key-only$
+  [+] SSH Auth             Configured key-only auth$
+  [ ] SSH Port             Not Configured default (22)$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Key only sshd's default$
+   -  Password Login       Off by sshd_config$
+   -  SSH Port             22$
+   -  Allowed Users        Anyone$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Disallow root login  Root can't log in over SSH$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22$
+$
+   0) Return$
+$
+  > Enter your choice [0-3 or q]: 2$
+$
+# Password login on ############################################$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Password Login       On$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      Set PasswordAuthentication yes$
+$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+      @@ -0,0 +1,3 @@$
+      +# Managed by hardn.$
+      +# Set by hardn:$
+      +PasswordAuthentication yes$
+$
+  [ ] Lockout risk$
+      Reload sshd (ssh.service)$
+$
+      ssh.service$
+      $ systemctl reload ssh.service$
+$
+  [ ] Lockout risk$
+      sshd -T shows PasswordAuthentication yes$
+$
+      sshd -T$
+      $ sshd -T$
+$
+  No actual changes were made to your system.$
+$
+# SSH Login ####################################################$
+$
+  [ ] SSH Login            Partial root key-only$
+  [+] SSH Auth             Configured key-only auth$
+  [ ] SSH Port             Not Configured default (22)$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Key only sshd's default$
+   -  Password Login       Off by sshd_config$
+   -  SSH Port             22$
+   -  Allowed Users        Anyone$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Disallow root login  Root can't log in over SSH$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22$
+$
+   0) Return$
+$
+  > Enter your choice [0-3 or q]: 3$
+$
+# Change SSH port ##############################################$
+$
+  New SSH port [0 or q]: 2230$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  SSH Port             22 held until confirmed$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      ufw: allow 2230/tcp$
+$
+      ufw$
+      $ ufw allow 2230/tcp$
+$
+  [ ] Lockout risk$
+      Add SSH port 2230$
+$
+      /etc/ssh/sshd_config.d/00-hardn.conf$
+      @@ -0,0 +1,4 @@$
+      +# Managed by hardn.$
+      +# Set by hardn:$
+      +Port 22$
+      +Port 2230$
+$
+  [ ] Lockout risk$
+      Reload sshd (ssh.service)$
+$
+      ssh.service$
+      $ systemctl reload ssh.service$
+$
+  [ ] Lockout risk$
+      sshd -T shows ports 22, 2230$
+$
+      sshd -T$
+      $ sshd -T$
+$
+  No actual changes were made to your system.$
+$
+# SSH Login ####################################################$
+$
+  [ ] SSH Login            Partial root key-only$
+  [+] SSH Auth             Configured key-only auth$
+  [ ] SSH Port             Not Configured default (22)$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Key only sshd's default$
+   -  Password Login       Off by sshd_config$
+   -  SSH Port             22$
+   -  Allowed Users        Anyone$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Disallow root login  Root can't log in over SSH$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22$
+$
+   0) Return$
+$
+  > Enter your choice [0-3 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay ssh/debian13␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the SSH Login screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m6, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(the SSH checks, sshd.ReadEffective, migrate.Find,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156musers.Read, revert.ReadSession), each change the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msteps.PlanSSH or PlanMigration on the real plan/apply␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine. The lockout checks before asking are the gallery's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstand-ins, unit (b)'s to build. Nothing on this machine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchanges: every command and file is the fake's.␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2). As the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mVM: the stock Include first, PasswordAuthentication no,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mUsePAM yes; root "*" with george's first key; george "!",␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo keys, sudo by cloud-init; alice a password, no key, in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo; ufw allows 22 from anywhere; the old hardn.yml.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgeorge logged in by key, hardn through sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m$
+      ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDisallow root login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mDisallowed␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mDisallow root login␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,3 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+PermitRootLogin no␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+$
+      ␛[38;2;129;134;156mssh.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows no root login␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m$
+      ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 2$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mPassword login on␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOn␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mSet PasswordAuthentication yes␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,3 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+PasswordAuthentication yes␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+$
+      ␛[38;2;129;134;156mssh.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows PasswordAuthentication yes␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m$
+      ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 3$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mChange SSH port␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[38;2;192;196;216mNew SSH port␛[m ␛[38;2;192;196;216m[0 or q]:␛[m 2230$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22 held until confirmed␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261020T120000Z-xxxxxxxx/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mufw: allow 2230/tcp␛[m$
+$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;129;134;156m$ ufw allow 2230/tcp␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mAdd SSH port 2230␛[m$
+$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,4 @@␛[m$
+      ␛[38;2;112;212;127m+# Managed by hardn.␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn:␛[m$
+      ␛[38;2;112;212;127m+Port 22␛[m$
+      ␛[38;2;112;212;127m+Port 2230␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mReload sshd (ssh.service)␛[m$
+$
+      ␛[38;2;129;134;156mssh.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216msshd -T shows ports 22, 2230␛[m$
+$
+      ␛[38;2;129;134;156msshd -T␛[m$
+      ␛[38;2;129;134;156m$ sshd -T␛[m$
+$
+  ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m$
+      ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

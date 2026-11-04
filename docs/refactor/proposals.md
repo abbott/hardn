@@ -34,9 +34,9 @@
 | [P-07](#p-07) | Main-menu wording | brief §7.7 | Main menu | S | Low | proposed; (c) decided (2026-10-29): item 8 "Keep HARDN_CONFIG"; on Proxmox VE, item 4 "View pve-firewall" (2026-11-01) |
 | [P-08](#p-08) | Sub-screen header: Header + Breadcrumb, or Figma's TitleBar | plan §5.1 | Layouts; Phase 1 | S | Low | decided (2026-10-17); implemented, `next/p1d-divider` |
 | [P-09](#p-09) | Replace "Press any key to continue" | plan §5.2 | All screens; Phase 1C | M | Low | proposed |
-| [P-10](#p-10) | Typed confirmation + confirm-or-revert where Figma shows `(y/n)` | plan §5.3 | SSH, sudo; slices 5–6 | M | Low | proposed; User Management decided (2026-11-03): as slice 5's lockout rules draw |
+| [P-10](#p-10) | Typed confirmation + confirm-or-revert where Figma shows `(y/n)` | plan §5.3 | SSH, sudo; slices 5–6 | M | Low | proposed; User Management decided (2026-11-03): as slice 5's lockout rules draw; SSH decided (2026-11-03): every change typed, confirmed or reverted |
 | [P-11](#p-11) | Polarity of the sudo-password question | plan §5.4 | User Management; slice 5 | S | Medium | decided (2026-11-03): Figma's polarity, default no |
-| [P-12](#p-12) | Name the result instead of "Toggle root SSH access" | plan §5.5 | SSH Login; slice 6 | S | Low | proposed |
+| [P-12](#p-12) | Name the result instead of "Toggle root SSH access" | plan §5.5 | SSH Login; slice 6 | S | Low | decided (2026-11-03): items named by their result |
 | [P-13](#p-13) | "Sudo Method" row; "Users" vs "User" | plan §5.6 | Main menu | S | Low | decided (2026-11-03): (a) |
 | [P-14](#p-14) | Reachable risk bands, with factors shown | plan §5.7 | RiskSummary; Phase 4 | S | Low | proposed; the factors' place decided (2026-10-21), see P-06 |
 | [P-15](#p-15) | Update checker: opt-in and non-blocking | plan §5.8 | Startup; Phase 3 | M | Low | proposed |
@@ -52,17 +52,17 @@
 | [P-25](#p-25) | Navigation: free text, `0` off menus, the refusals' words, the typed phrase and explaining the inputs | `next/p1c-nav` | Every prompt; Phase 1C | S | Low | proposed; back `0` only decided (2026-10-17), implemented, `next/p1d-divider` |
 | [P-26](#p-26) | Forms: back through the fields, the earlier answer and a free-text default | `next/p1c-form` | Every form; Phase 1C | S | Low | proposed |
 | [P-27](#p-27) | The canonical flow: back at the confirmation, an empty plan, the plan's heading, the steps' lines, a long hostname and a narrow terminal | `next/p1c-flow` | Every action; Phase 1C | S | Low | proposed |
-| [P-28](#p-28) | A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY | `next/p1d-slice` | Layouts; SSH Login; slice 6 | M | Low | proposed |
+| [P-28](#p-28) | A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY | `next/p1d-slice` | Layouts; SSH Login; slice 6 | M | Low | decided for SSH Login (2026-11-03): (a), View SSH Settings dropped |
 | [P-29](#p-29) | Figma's words or origin/main's: the menu prompt and the User Management sub-menu | `next/p1d-slice` | Every menu; Phase 5 | S | Low | proposed; (b) decided (2026-11-03): Figma's words |
 | [P-30](#p-30) | A notice line in the sub-menu layout: origin/main's Firewall screen and an empty DNS list | `next/p1d-gallery-screens` | Layouts; Firewall, DNS; slices 2, 4 | S | Low | decided for DNS (2026-10-22): (b); implemented for DNS, `next/s2-screen`; Firewall's proposed |
-| [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed; 05-BACKUP decided (2026-10-27); the USER frames decided (2026-11-03): slice 5's words |
+| [P-31](#p-31) | Figma's words or origin/main's on the other Figma frames | `next/p1d-gallery-screens` | SSH Login, Backup, User Management; slices 3, 5, 6 | S | Low | proposed; 05-BACKUP decided (2026-10-27); the USER frames decided (2026-11-03): slice 5's words; the 02-SSH frames decided (2026-11-03): slice 6's words |
 | [P-32](#p-32) | Run the legacy commands and file calls through `host.Real` | `next/p2-system` | Every legacy command; Phase 2 | S | Medium | proposed |
-| [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slices 4, 6 | S | Low | (1) and (3) decided (2026-11-01): (1) (b), (3) (a); (2) proposed, slice 6 |
+| [P-33](#p-33) | UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist | `next/p2-ufw` | Firewall; slices 4, 6 | S | Low | (1) and (3) decided (2026-11-01): (1) (b), (3) (a); (2) decided (2026-11-03): (a), refuse |
 | [P-34](#p-34) | A reboot inside the confirm window | `next/p2-revert` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): (c) re-arm at boot; implemented, `next/p3-revert-boot` |
 | [P-35](#p-35) | Giving up a rollback that cannot finish | `next/p2-revert` | Confirm-or-revert; Phase 3 | S | Low | decided (2026-10-19): (a) `hardn rollback --abandon <id>`; implemented, `next/p3-rollback-abandon` |
-| [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | proposed |
+| [P-36](#p-36) | An `AllowUsers` without root on Proxmox VE: add root, or refuse | `next/p2-pve` | Proxmox VE; slice 6 | S | Low | decided (2026-11-03): (a) |
 | [P-37](#p-37) | DNS on hosts whose resolver hardn reports but does not configure | `next/p2-dns` | DNS; slice 2 | none to M | Low to Medium | decided (2026-10-22): (a), report only; implemented, `next/s2-control`, `next/s2-screen` |
-| [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | proposed |
+| [P-38](#p-38) | An `sshd_config` whose Include is not the stock first line | `next/p2-vmtest` (from `next/p2-sshd-validate`) | SSH; slice 6 | none to M | Low to Medium | decided (2026-11-03): (a) |
 | [P-39](#p-39) | Migrating `listen.conf` on a socket host where it never took effect (D9) | `next/p2-revert-plans` | SSH migration; Phase 3 | none | Low | decided (2026-10-19): (a) keep refusing, with a report; built in `next/p3-steps` (written, not run) |
 | [P-40](#p-40) | The clean-up after a confirmation: who removes the held port and its ufw rule | `next/p3-engine` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): `hardn confirm`; implemented, `next/p3-confirm-cleanup` |
 | [P-41](#p-41) | Changes on best-effort releases | `next/p3-engine` | Every change; Phase 3 | S | Low | decided (2026-10-19): changed, with a warning in the plan; implemented, `next/p3-confirm-cleanup` |
@@ -234,7 +234,7 @@
 <a id="p-10"></a>
 ### P-10: Typed confirmation + confirm-or-revert where Figma shows `(y/n)`
 
-- **Status:** proposed; **User Management decided** (maintainer, 2026-11-03, slice 5 decision 4, "Adopt all, start (b)"): the typed hostname, confirmed or reverted, for removing another user's grant, asking a password the user has, removing any key of the session user's and anyone's last key; y/N for granting, not asking a password, adding a key and creating a user. [gallery-users.md](../engine/gallery-users.md) §5.
+- **Status:** proposed; **User Management decided** (maintainer, 2026-11-03, slice 5 decision 4, "Adopt all, start (b)"): the typed hostname, confirmed or reverted, for removing another user's grant, asking a password the user has, removing any key of the session user's and anyone's last key; y/N for granting, not asking a password, adding a key and creating a user. [gallery-users.md](../engine/gallery-users.md) §5. **SSH decided** (maintainer, 2026-11-03, slice 6 decision 2, "Adopt all, start (b)"): every SSH change typed and confirmed or reverted, after the refusals of [gallery-ssh.md](../engine/gallery-ssh.md) §5 decision 2.
 - **Source:** plan §5.3. It records a departure from the Figma frames; the brief already decides the behaviour (1C confirmations; 2.4 confirm-or-revert).
 - **Problem:**
   - `SSH_LOGIN-TOGGLE_CONFIRMATION` and `USER-MANAGE_SUDO-CONFIRMATION` confirm lockout-risk changes with a plain `(y/n)`, with no default.
@@ -265,7 +265,7 @@
 <a id="p-12"></a>
 ### P-12: Name the result instead of "Toggle root SSH access"
 
-- **Status:** proposed
+- **Status:** **decided** (maintainer, 2026-11-03, slice 6 decision 3 and 10, "Adopt all, start (b)"): the items named by their result, [gallery-ssh.md](../engine/gallery-ssh.md) §5, §6; on Proxmox VE "Root key-only".
 - **Source:** plan §5.5. Overlaps [P-07](#p-07) (a).
 - **Problem:** "Toggle" hides the direction, and on origin/main the screen can only disable root login [V].
 - **Proposal:**
@@ -644,7 +644,7 @@
 <a id="p-28"></a>
 ### P-28: A layout for a screen that only shows: SSH_LOGIN-SSH_SETTINGS_DISPLAY
 
-- **Status:** proposed
+- **Status:** **decided for SSH Login** (maintainer, 2026-11-03, slice 6 decision 1, "Adopt all, start (b)"): (a), View SSH Settings dropped, its rows in the screen's own section. [gallery-ssh.md](../engine/gallery-ssh.md) §5.
 - **Source:** `next/p1d-slice`, which builds brief 1B's three layouts; brief 1B: a screen that fits no layout becomes a proposal, not a one-off. Depends on [P-09](#p-09). Related: [P-08](#p-08), [P-12](#p-12).
 - **Problem:**
   - Figma's SSH_LOGIN-SSH_SETTINGS_DISPLAY is a title bar, the "SSH Configuration" section with three rows, then "❯ Press any key to continue...": no menu and no action. origin/main's "View current SSH configuration" is the same screen, ending "Press any key to return to the main menu" (pkg/menu disable_root_menu.go:203), as do its System Details and Logs views (system_details_menu.go:126, logs_menu.go:62; [P-17](#p-17), [P-18](#p-18)).
@@ -695,7 +695,7 @@
 <a id="p-31"></a>
 ### P-31: Figma's words or origin/main's on the other Figma frames
 
-- **Status:** proposed (each frame is decided separately); **the USER frames decided** (maintainer, 2026-11-03, slice 5 decision 8, "Adopt all, start (b)"): slice 5's words, [gallery-users.md](../engine/gallery-users.md) §6; **05-BACKUP decided** (maintainer, 2026-10-27, slice 3 decisions 2 and 4): origin/main's title, "Backup Settings", and prompt, "Enter selection"; Figma's section, rows and item labels; item 1 "Turn backups off" / "Turn backups on", item 3 "Check the path, writing nothing", item 2 Figma's "Change backup path". [gallery-backup.md](../engine/gallery-backup.md) §5.
+- **Status:** proposed (each frame is decided separately); **the USER frames decided** (maintainer, 2026-11-03, slice 5 decision 8, "Adopt all, start (b)"): slice 5's words, [gallery-users.md](../engine/gallery-users.md) §6; **05-BACKUP decided** (maintainer, 2026-10-27, slice 3 decisions 2 and 4): origin/main's title, "Backup Settings", and prompt, "Enter selection"; Figma's section, rows and item labels; item 1 "Turn backups off" / "Turn backups on", item 3 "Check the path, writing nothing", item 2 Figma's "Change backup path". [gallery-backup.md](../engine/gallery-backup.md) §5. **The 02-SSH frames decided** (maintainer, 2026-11-03, slice 6 decision 10, "Adopt all, start (b)"): slice 6's words, the title "SSH Login", [gallery-ssh.md](../engine/gallery-ssh.md) §6.
 - **Source:** `next/p1d-gallery-screens`, whose mocks draw each Figma frame as Figma fills it, while origin/main is the baseline for wording (refactor plan, decision 6). It asks of the other frames what [P-29](#p-29) (b) asks of 01-USER. Related: [P-07](#p-07), [P-11](#p-11), [P-12](#p-12), [P-28](#p-28), [P-29](#p-29).
 - **Problem:** the frames' words differ from origin/main's (origin/main pkg/menu; [interaction.md](phase0/interaction.md) §4.3, §9.1):
   - **02-SSH_LOGIN, SSH_LOGIN-TOGGLE_CONFIRMATION:** the title "Manage Root SSH Login" against "Disable Root SSH Access"; the items "Root SSH Login" (Toggle root SSH access) and "View SSH Settings" (Show SSH configuration) against "Disable root SSH access" (Modify SSH config to prevent root login) and "View current SSH configuration" (Show details of SSH security settings); "0) Return" with no description against "Keep current settings"; the question "Disable SSH login for 'root'?" against "Are you sure you want to disable root SSH access?"; the warning "Before disabling root SSH login, ensure:" against "Before disabling root SSH access, ensure that:", and its checklist, "Non-root user has sudo privileges", "Non-root user SSH access has been tested" and "If SSH fails, a fallback access method is available", against "You have created at least one non-root user with sudo privileges", "You have tested SSH access with this non-root user" and "You have a backup method to access this system if SSH fails" (origin/main shows them on the SSH Login screen, above its menu); the section "SSH Configuration" and its rows "Root SSH Login", "SSH Port" and "Allowed Users" against "Current SSH Configuration:" and "Root SSH login", "SSH port" and "Allowed users", which origin/main shows only under item 2, its view of the configuration ([P-28](#p-28)) (disable_root_menu.go). Item 1's words are also [P-12](#p-12)'s.
@@ -729,7 +729,7 @@
 <a id="p-33"></a>
 ### P-33: UFW rules hardn adds on its own: while ufw is inactive, for a moved port, and around a blocklist
 
-- **Status:** (1) and (3) decided (maintainer, 2026-11-01, slice 4 decision 5, "Adopt all ten"): (1) (b), save none and report what a later start would block; (3) (a), refuse the enable. (2) stays proposed, for slice 6
+- **Status:** (1) and (3) decided (maintainer, 2026-11-01, slice 4 decision 5, "Adopt all ten"): (1) (b), save none and report what a later start would block; (3) (a), refuse the enable. (2) stays proposed, for slice 6; **(2) decided** (maintainer, 2026-11-03, slice 6 decision 5, "Adopt all, start (b)"): (a), a port change refused while ufw allows 22 from some sources alone, until the rule is moved by hand. [gallery-ssh.md](../engine/gallery-ssh.md) §5.
 - **Source:** `next/p2-ufw` and its review (2026-10-17): V8's open approach, "adding an allow rule the user didn't ask for", which has no §3 row ([side-effects.md](phase0/side-effects.md), V8 row); [docs/safety/ufw.md](../safety/ufw.md) §2.7, §2.9. Related: [P-16](#p-16), [P-20](#p-20).
 - **Problem:** the UFW primitive makes three choices on the user's behalf:
   - (1) With ufw inactive and staying so, `PlanFor` saves `ufw allow <port>/tcp` for each SSH listener and the new port (ufw writes them to its rule files without loading them), so that a later `ufw enable` keeps SSH open. That adds rules to a firewall the user may not use.
@@ -772,7 +772,7 @@
 <a id="p-36"></a>
 ### P-36: An `AllowUsers` without root on Proxmox VE: add root, or refuse
 
-- **Status:** proposed
+- **Status:** **decided** (maintainer, 2026-11-03, slice 6 decision 7, "Adopt all, start (b)"): (a), as built. [gallery-ssh.md](../engine/gallery-ssh.md) §5.
 - **Source:** `next/p2-pve` ([docs/safety/pve.md](../safety/pve.md) §2.5); the open item `next/p0-hazards` left to that unit: legacy `ConfigureSSH` writes the configured `AllowUsers`, which can leave root out and so block the cluster's root logins whatever `PermitRootLogin` says. Related: V11, plan R15, [P-33](#p-33) (rules hardn adds on its own).
 - **Problem:** Proxmox VE's nodes log in to each other as root, by key, on port 22 (pve-docs, Cluster Manager). An `AllowUsers alice` in hardn's settings would stop that. `pve.PlanSSH` adds `root` to such an `AllowUsers` (`AllowUsers alice root`) and reports it (`root-allowed`): hardn then writes a user the configuration did not name. A `root@<host>` entry does not count, since the other nodes' addresses are not read, so `root` is added beside it. Root stays key-only either way (`PermitRootLogin prohibit-password`).
 - **Proposal:** the maintainer decides:
@@ -804,7 +804,7 @@
 <a id="p-38"></a>
 ### P-38: An `sshd_config` whose Include is not the stock first line
 
-- **Status:** proposed
+- **Status:** **decided** (maintainer, 2026-11-03, slice 6 decision 6, "Adopt all, start (b)"): (a), refuse, naming the line. [gallery-ssh.md](../engine/gallery-ssh.md) §5.
 - **Source:** `next/p2-sshd-validate` ([docs/safety/sshd-validate.md](../safety/sshd-validate.md) §2.1 `IncludeOther`, finding `include-not-first`, and §6 "Open for the maintainer"), also refused by `next/p2-sshd-migrate` (`ErrIncludeOther`, [sshd-migrate.md](../safety/sshd-migrate.md) §2.11) and by `next/p2-vmtest`'s driver ([vmtest.md](../safety/vmtest.md)). Brief 2.2's strategy, decided in brief §2 ("hardn's SSH settings live in `00-hardn.conf`").
 - **Problem:** brief 2.2 has two write strategies: `/etc/ssh/sshd_config.d/00-hardn.conf` when `sshd_config`'s first directive is the stock `Include /etc/ssh/sshd_config.d/*.conf`, and a `# BEGIN hardn` … `# END hardn` block at the top of `sshd_config` when there is no Include at all. A third shape has none: an Include that is not exactly that first line, such as another spelling (`include`, a tab, `Include=`, quotes, a trailing comment, indentation), another path or glob, or the stock line below other directives (an administrator's `Port 22` above it, say). sshd may read some of these as the stock line; in others the drop-ins are read after the lines above the Include, which then win for every first-value keyword, or are not read at all. hardn reports the shape (`include-not-first`), validates only exact Includes (any other is `ErrUnsupportedInclude`), and writes nothing: no SSH setting can be applied on such a host today.
 - **Proposal:** the maintainer decides:

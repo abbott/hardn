@@ -1,0 +1,176 @@
+# Golden file of TestSSHGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mssh screen-legacy-v032␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Ubuntu 26.04 (OpenSSH␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(AuthorizedKeysFile .ssh/authorized_keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh_%u/authorized_keys, george's keys in ~/.ssh_george), and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlisten.conf for 2230 written with no daemon-reload, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+                           ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m  ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# ssh screen-legacy-v032 ---------------------------------------$
+$
+# Note$
+# Mock: SSH Login. web-01.example.net runs Ubuntu 26.04 (OpenSSH$
+# 10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf$
+# (AuthorizedKeysFile .ssh/authorized_keys$
+# .ssh_%u/authorized_keys, george's keys in ~/.ssh_george), and$
+# listen.conf for 2230 written with no daemon-reload, so$
+# ssh.socket still listens on 22.$
+$
+# SSH Login ####################################################$
+$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [?] SSH Port             Unknown socket and sshd differ$
+                           - Counted as not configured$
+$
+# SSH Configuration --------------------------------------------$
+$
+   -  Root SSH Login       Disallowed by manage.conf$
+   -  Password Login       Off by 60-cloudimg-settings.conf$
+   -  SSH Port             22, 2230 ssh.socket$
+   -  Allowed Users        george by manage.conf$
+  [ ] Old Settings         manage.conf, listen.conf$
+   -  Logged in as         george, by key$
+$
+  Select an option$
+$
+   1) Allow root key-only  Root logs in by key alone$
+   2) Password login on    Let passwords log in again$
+   3) Change SSH port      Now 22 and 2230$
+   4) Move old settings    Into 00-hardn.conf$
+$
+   0) Return$
+$
+  > Enter your choice [0-4 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mssh screen-legacy-v032␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Ubuntu 26.04␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(OpenSSH 10.2p1, ssh.socket). Hardened by v0.3.2: its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmanage.conf (AuthorizedKeysFile .ssh/authorized_keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh_%u/authorized_keys, george's keys in ~/.ssh_george),␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand listen.conf for 2230 written with no daemon-reload, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+      ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
+      ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m$
+      ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
+      ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m$
+      ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m$
+      ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
+      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
+      ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mssh screen-legacy-v032␛[m ␛[38;2;48;52;64m---------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: SSH Login. web-01.example.net runs Ubuntu 26.04 (OpenSSH␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10.2p1, ssh.socket). Hardened by v0.3.2: its manage.conf␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(AuthorizedKeysFile .ssh/authorized_keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m.ssh_%u/authorized_keys, george's keys in ~/.ssh_george), and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlisten.conf for 2230 written with no daemon-reload, so␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m####################################################␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+                           ␛[38;2;129;134;156m- Counted as not configured␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;48;52;64m--------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mAllow root key-only␛[m  ␛[38;2;129;134;156mRoot logs in by key alone␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m$
+$
+$
