@@ -17,7 +17,8 @@ import (
 // with no [INFO]; an -f or HARDN_CONFIG file that is not there is an
 // error; the defaults, the offer to create one declined, are said after
 // it; nothing is said before the main menu (decision 4 (a) of
-// docs/engine/legacy-left.md). The OS check fails each run, ending it there.
+// docs/engine/legacy-left.md). hardn.yml's confirmTimeout is refused each run,
+// ending it past the line (the OS check, which ended it, is ahead of the load).
 func TestConfigLine(t *testing.T) {
 	const yml = "/etc/hardn/hardn.yml"
 	for _, tc := range []struct {
@@ -40,10 +41,14 @@ func TestConfigLine(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			r := runHardnWith(t, asRoot, func() {
 				findConfig = func(string) config.Found { return tc.found }
-				detectOS = func() error { return errors.New("test: the OS check") }
+				loadConfig = func(string) (*config.Config, error) {
+					c := config.DefaultConfig()
+					c.ConfirmTimeout = "soon" // refused past the line
+					return c, nil
+				}
 			}, tc.args...)
-			got := strings.TrimSuffix(flat(r.stderr), "Operation Failed Failed to detect OS: test: the OS check")
-			if !r.ended || r.code != 1 || strings.TrimSpace(got) != tc.want || r.stdout != "" {
+			got, _, _ := strings.Cut(flat(r.stderr), "hardn: confirmTimeout:")
+			if !r.ended || r.code != 2 || strings.TrimSpace(got) != tc.want || r.stdout != "" {
 				t.Errorf("ended %v with %d; stderr %q, want %q; stdout %q", r.ended, r.code, got, tc.want, r.stdout)
 			}
 		})

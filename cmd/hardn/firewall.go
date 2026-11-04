@@ -87,10 +87,10 @@ func withFirewallScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
 // that the screen and the engine never disagree on the port Enable keeps;
 // c, the configuration the main menu holds, whose application profiles the
 // screen shows and adopts as each change saved them; a dry run when c says
-// so as the item is chosen. No audit record is written: the audit log's
-// first writer is next/p3-startup's (Options.Ran left nil). Each change's
-// apply, and nothing else, runs under engineSignals, hardn ending after a
-// hangup (screenApplyContext; runDNSScreen says why).
+// so as the item is chosen. Each change's run is a record of the audit
+// log (Options.Ran, auditRan). Each change's apply, and nothing else,
+// runs under engineSignals, hardn ending after a hangup
+// (screenApplyContext; runDNSScreen says why).
 func runFirewallScreen(ctx context.Context, c *config.Config) error {
 	sys := engineHost()
 	facts, err := engineDetect(ctx, sys)
@@ -110,5 +110,6 @@ func runFirewallScreen(ctx context.Context, c *config.Config) error {
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 	})
 }

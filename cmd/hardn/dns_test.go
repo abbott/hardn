@@ -282,7 +282,7 @@ func useDNSHost(t *testing.T, h *dnsHost, lines ...string) *dnsSeams {
 // the configuration the main menu holds adopts the list as saved; 0 goes
 // back (nil), q quits (nav.ErrQuit), the end of the input aborts
 // (prompt.ErrAborted); a dry run, as the configuration says when the item
-// is chosen, writes nothing. No audit record is written. The signals are
+// is chosen, writes nothing. The signals are
 // registered for the apply alone, and never while a prompt waits.
 func TestDNSScreen(t *testing.T) {
 	added := append(slices.Clone(dnsTestList), "192.0.2.55")
@@ -337,11 +337,6 @@ func TestDNSScreen(t *testing.T) {
 			}
 			if !cfg.LoadedFrom([]byte(h.content(dnsTestYML))) {
 				t.Error("the configuration does not record hardn.yml as saved, so the next save would be refused CONFIG_CHANGED")
-			}
-			for _, c := range got {
-				if strings.HasPrefix(c, "append ") {
-					t.Errorf("an audit record was written: %s", c)
-				}
 			}
 		})
 	}
@@ -547,8 +542,8 @@ func TestConfigureDNSFlag(t *testing.T) {
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
-			if want := []string{"root check", "config load", "OS detection"}; !slices.Equal(r.reached, want) {
-				t.Errorf("reached %v, want %v: -g runs after the root check and the configuration's load", r.reached, want)
+			if want := []string{"root check", "OS detection", "config load"}; !slices.Equal(r.reached, want) {
+				t.Errorf("reached %v, want %v: -g runs after the root check, the OS check and the configuration's load", r.reached, want)
 			}
 			rest := report
 			for _, w := range tc.said {

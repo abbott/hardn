@@ -170,8 +170,8 @@ func useEnvHost(t *testing.T, h *envTestHost, lines ...string) *dnsSeams {
 // stops at the plan and writes nothing, as do a decline and the guide; a
 // host the control refuses (doas, no rule of hardn's) is refused before
 // asking, nothing planned; 0 goes back (nil), q quits (nav.ErrQuit), the
-// end of the input aborts (prompt.ErrAborted). No audit record is
-// written, and the main menu's configuration is as it was. The signals
+// end of the input aborts (prompt.ErrAborted). The main menu's
+// configuration is as it was. The signals
 // are registered for the apply alone, and never while a prompt waits.
 func TestEnvironmentScreen(t *testing.T) {
 	for _, tc := range []struct {
@@ -217,8 +217,8 @@ func TestEnvironmentScreen(t *testing.T) {
 				t.Errorf("%s: %04o %d:%d\n%s\nwrites %q", envTestFile, mode, uid, gid, h.content(envTestFile), got)
 			}
 			for _, c := range got {
-				if strings.HasPrefix(c, "append ") || strings.HasPrefix(c, "write-atomic /etc/hardn") {
-					t.Errorf("an audit record or hardn.yml was written: %s", c)
+				if strings.HasPrefix(c, "write-atomic /etc/hardn") {
+					t.Errorf("hardn.yml was written: %s", c)
 				}
 			}
 			if cfg.DryRun != was.DryRun || cfg.BackupPath != was.BackupPath || cfg.EnableBackups != was.EnableBackups {
@@ -539,9 +539,9 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 				if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 					t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stdout, r.stderr)
 				}
-				want := []string{"root check", "config load", "OS detection"}
+				want := []string{"root check", "OS detection", "config load"}
 				if spelling[0] == "setup-sudo-env" {
-					want = want[:2] // it detects no OS: the engine does
+					want = []string{"root check", "config load"} // it detects no OS: the engine does
 				}
 				if strings.Join(r.reached, ",") != strings.Join(want, ",") {
 					t.Errorf("reached %v, want %v: after the root check and the configuration's load", r.reached, want)

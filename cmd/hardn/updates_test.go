@@ -117,8 +117,7 @@ func (h *updatesHost) answer(argv []string, stdin []byte) hostfake.Response {
 // under /var/backups/hardn, and the main menu's configuration adopts the
 // save (screenkit.Adopt), so that the next save is not refused
 // CONFIG_CHANGED; 0 goes back (nil). The signals are registered for each
-// apply alone, and never while a prompt waits. No audit record is
-// written.
+// apply alone, and never while a prompt waits.
 func TestUpdatesHook(t *testing.T) {
 	ctx := context.Background()
 	h, cfg := newUpdatesHost(t)
@@ -162,11 +161,6 @@ func TestUpdatesHook(t *testing.T) {
 	}
 	if s.applies != 2 || s.live != 0 || s.atPrompt != 0 {
 		t.Errorf("signals registered %d times (want 2), %d left, %d prompts read under them", s.applies, s.live, s.atPrompt)
-	}
-	for _, w := range h.writes() {
-		if strings.HasPrefix(w, "append ") {
-			t.Errorf("an audit record was written: %s", w)
-		}
 	}
 }
 

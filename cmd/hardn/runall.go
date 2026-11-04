@@ -54,8 +54,8 @@ var runAllRun = runallscreen.Run
 // the configuration the main menu holds, what Run All is asked, which no
 // change saves; hardn's version, in Auto Updates' record; a dry run when c
 // says so as the item is chosen, Apply all then stopping at its plan.
-// Revert is zero: the journal's options are hardn's own. No audit record
-// is written (Options.Ran left nil, as the other screens'). Each change's
+// Revert is zero: the journal's options are hardn's own. Apply all's run
+// is a record of the audit log (Options.Ran, auditRan). Each change's
 // apply, and nothing else, runs under engineSignals, hardn ending after a
 // hangup (screenApplyContext; runDNSScreen says why).
 func runRunAllScreen(ctx context.Context, c *config.Config, version string) error {
@@ -78,6 +78,7 @@ func runRunAllScreen(ctx context.Context, c *config.Config, version string) erro
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 		Version:      version,
 	})
 }
@@ -97,7 +98,8 @@ func runRunAllScreen(ctx context.Context, c *config.Config, version string) erro
 // --yes, without it shown and not applied, CONFIRMATION_REQUIRED; under
 // -n, or hardn.yml's dryRun: true, the plan alone. A change pending, or
 // the one plan's refusal, is said on stderr in the planner's words and
-// refuses -r, nothing planned. No plan saves hardn.yml. It returns the
+// refuses -r, nothing planned, one refused record of the audit log
+// (runAllRefused). No plan saves hardn.yml. It returns the
 // exit status, runControls': 0 applied or nothing to change, 3 a plan
 // with changes to make (-n) or declined, 2 a plain plan off a terminal
 // without --yes, 1 refused or failed; 1 too where the host can't be read.
@@ -121,9 +123,31 @@ func runAllFlag(c *config.Config, version string) int {
 	}
 	if r.Refusal != "" {
 		fmt.Fprintln(stderr, r.Refusal)
+		audit(sys, c, runAllRefused(c, r))
 		return 1
 	}
 	return runControls(c, r.Controls(), nil, &runAllConfirm)
+}
+
+// runAllRefused is the run of -r refused by its planner before any plan
+// (r.Refusal): its record in the audit log, refused, as any flag's refusal
+// is (audit). Its mode is -r's (a plan alone under plan only), its plan the
+// planner's where it made one, and its error the refusal, an
+// engine.ErrRefused, with the refusal's own code where it has one (a change
+// pending: CHANGE_PENDING).
+func runAllRefused(c *config.Config, r planner.Reading) output.Run {
+	err := r.Err
+	if err == nil {
+		err = errors.New(r.Refusal)
+	}
+	if !errors.Is(err, engine.ErrRefused) {
+		err = fmt.Errorf("%w: %w", engine.ErrRefused, err)
+	}
+	run := output.Run{Mode: output.ModeApply, Plan: r.Plan, Err: err}
+	if c.DryRun {
+		run.Mode = output.ModePlan
+	}
+	return run
 }
 
 // runAllRead is -r's planner.Read, a seam for the tests, which record the
