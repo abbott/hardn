@@ -49,23 +49,9 @@ func InitLogging(logPath string) {
 	}
 }
 
-// CloseLogging closes the log file
-func CloseLogging() {
-	if logFile != nil {
-		if err := logFile.Close(); err != nil {
-			fmt.Printf("Failed to close log file: %v\n", err)
-		}
-	}
-}
-
 // SetSilentMode enables or disables console logging output
 func SetSilentMode(silent bool) {
 	silentMode = silent
-}
-
-// IsSilent returns the current silent mode state
-func IsSilent() bool {
-	return silentMode
 }
 
 // LogError logs an error message
@@ -109,17 +95,6 @@ func LogSuccess(format string, v ...interface{}) {
 	}
 	if logger != nil {
 		logger.Printf("SUCCESS: %s", msg)
-	}
-}
-
-// LogInstall logs a package installation
-func LogInstall(format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
-	if !silentMode {
-		color.Cyan("[INSTALLED] %s", msg)
-	}
-	if logger != nil {
-		logger.Printf("INSTALLED: %s", msg)
 	}
 }
 
