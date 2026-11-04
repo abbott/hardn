@@ -1,27 +1,23 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"slices"
 	"strings"
 	"testing"
 
-	"github.com/charmbracelet/colorprofile"
-	"github.com/charmbracelet/x/ansi"
-
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/alpine"
+	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
-
-// TestUpdatesGolden pins each listing mock on the core set and under
-// LANG=C: the screen on every host, and the refusals.
-func TestUpdatesGolden(t *testing.T) { goldenListing(t, updListing) }
 
 // TestPlayUpdatesGolden plays each flow end to end and pins the
 // transcript: each direction planned, asked y/N and applied on the real
@@ -70,77 +66,96 @@ func TestPlayUpdatesGolden(t *testing.T) {
 	}
 }
 
-// TestUpdatesHosts holds each host's row to the real check, and its item
-// to the rule: Enable while off, Disable while on by hardn, read-only
-// while on not by hardn and on Proxmox VE; every call one the model
-// answers.
-func TestUpdatesHosts(t *testing.T) {
-	type want struct{ detail, item string }
-	rows := map[string]string{} // decision 7's row is the check's own since unit (b)
-	const ro = "read-only"
-	wants := map[string]want{
-		"debian13":         {"unattended-upgrades", ro},
-		"ubuntu2604":       {"unattended-upgrades", ro},
-		"alpine323":        {"no apk-cron", updEnable},
-		"debian-installer": {"no unattended-upgrades", updEnable},
-		"debian-off":       {"upgrades off", updEnable},
-		"lists-stale":      {"lists not refreshed", updEnable},
-		"timer-off":        {"upgrade timer off", updEnable},
-		"by-hardn-debian":  {"unattended-upgrades", updDisable},
-		"by-hardn-alpine":  {"apk-cron", updDisable},
-		"edited":           {"unattended-upgrades", updDisable},
-		"crond-shared":     {"apk-cron", updDisable},
-		"dormant-jobs":     {"no apk-cron", updEnable},
-		"config-files":     {"no unattended-upgrades", updEnable},
-		"legacy-alpine":    {"no apk-cron", updEnable},
-		"pve9":             {"updated by hand", ro},
-		"not-read":         {"can't read", updEnable},
-	}
-	if len(wants) != len(updHosts()) {
-		t.Fatalf("%d hosts, %d wanted", len(updHosts()), len(wants))
-	}
+// TestUpdatesRefusals: each direction the real control's Plan refuses on
+// these hosts refuses before asking; on a host hardn turned on, and on
+// Proxmox VE, where the control is Not Applicable, on plans nothing.
+func TestUpdatesRefusals(t *testing.T) {
 	ctx := context.Background()
-	for _, uh := range updHosts() {
-		h := uh.host()
-		r, err := readUpdates(ctx, h.sys())
-		if err != nil {
-			t.Fatalf("%s: %v", uh.name, err)
-		}
-		w := wants[uh.name]
-		row, ok := rows[uh.name]
+	for _, rf := range []struct {
+		host  string
+		off   bool
+		empty bool
+	}{
+		{"timer-off", false, false},      // a timer off: hardn leaves the timers alone
+		{"masked", false, false},         // apt-daily-upgrade.service masked
+		{"missing", false, false},        // apt-daily-upgrade.service not found
+		{"enable-off", false, false},     // APT::Periodic::Enable "0"
+		{"no-origin", false, false},      // 50unattended-upgrades allows none
+		{"extra-packages", false, false}, // the install would change another package
+		{"not-read", false, false},       // apt-config fails
+		{"not-read", true, false},        // either direction
+		{"edited", true, false},          // hardn's file changed since
+		{"edited-alpine", true, false},   // apk's script changed since
+		{"no-record", true, false},       // 20auto-upgrades keeps updates on without hardn's file
+		{"debian13", true, false},        // not hardn's
+		{"pve9", false, true},            // decision 7
+		{"by-hardn-debian", false, true}, // on already: an empty plan, not a refusal
+		{"own-file", false, true},        // on by hardn with no record: an empty plan too
+	} {
+		uh, ok := findUpdHost(rf.host)
 		if !ok {
-			row = w.detail
+			t.Fatalf("no host %q", rf.host)
 		}
-		if len(r.status.Rows) != 1 || r.status.Rows[0].Detail != row || r.check.Detail != w.detail {
-			t.Errorf("%s: rows %+v, check %q; want %q", uh.name, r.status.Rows, r.check.Detail, w.detail)
+		h := uh.host()
+		r, err := updRead(ctx, h)
+		if err != nil {
+			t.Fatal(err)
 		}
-		it := r.item()
-		got := it.Label
-		if it.Disabled {
-			got = ro
-		}
-		if got != w.item {
-			t.Errorf("%s: item %q, want %q", uh.name, got, w.item)
-		}
-		if u := h.unanswered(); len(u) > 0 {
-			t.Errorf("%s: unanswered %q", uh.name, u)
+		if words := updRefusalOf(ctx, h, r, rf.off); (words == "") != rf.empty {
+			t.Errorf("%s, off %v: %q", rf.host, rf.off, words)
 		}
 	}
 }
 
-// TestUpdatesRefusals: each refusal of updRefusals refuses before asking,
-// but on on a host hardn turned on, an empty plan.
-func TestUpdatesRefusals(t *testing.T) {
-	ctx := context.Background()
-	for _, rf := range updRefusals() {
-		words, err := updRefusalWords(ctx, rf)
-		// pve9: since unit (b) the control is Not Applicable on Proxmox VE, so
-		// the engine plans nothing for it, and the item is unavailable.
-		empty := rf.host == "by-hardn-debian" || rf.host == "own-file" || rf.host == "pve9"
-		if err != nil || (words == "") != empty {
-			t.Errorf("%v: %q, %v", rf, words, err)
-		}
+// updRead reads h as the screen does, writing nothing: updates.Auto's Read
+// with detect's facts and hardn.yml the host's, or the defaults.
+func updRead(ctx context.Context, h *fakeHost) (updates.Reading, error) {
+	sys := h.sys()
+	cfg, err := statusConfig(ctx, sys)
+	if err != nil {
+		return updates.Reading{}, err
 	}
+	f, err := detect.Detect(ctx, sys)
+	if err != nil {
+		return updates.Reading{}, err
+	}
+	return updAuto(updates.AutoNone).Read(ctx, sys, f, cfg)
+}
+
+// updDirection is the real control turning updates off (off) or on.
+func updDirection(off bool) updates.Auto {
+	if off {
+		return updAuto(updates.AutoOff)
+	}
+	return updAuto(updates.AutoOn)
+}
+
+// updRefusalOf plans the real control in the direction off on h, writing
+// nothing, and returns its first refusal in the screen's words, "" for none.
+func updRefusalOf(ctx context.Context, h *fakeHost, r updates.Reading, off bool) string {
+	p, err := updEngine(h, nil, &updQuiet).Plan(ctx, []engine.Control{updDirection(off)}, r.Config)
+	switch {
+	case err != nil:
+		return screenkit.RefusalWords(err)
+	case len(p.Refused) > 0:
+		return screenkit.RefusalWords(p.Refused[0])
+	}
+	return ""
+}
+
+// updNotes are the control's review lines (Notes) in the direction off on
+// h, as the review draws them, a warning where the control marks one.
+func updNotes(ctx context.Context, h *fakeHost, r updates.Reading, off bool) ([]component.KeyValue, error) {
+	ns, err := updDirection(off).Notes(ctx, h.system(), engine.Input{Facts: r.Facts, Config: r.Config})
+	var out []component.KeyValue
+	for _, n := range ns {
+		kv := component.KeyValue{Key: n.Key, Value: n.Value, Note: n.Note}
+		if n.Warn {
+			kv.State = component.ValueWarn
+		}
+		out = append(out, kv)
+	}
+	return out, err
 }
 
 // TestUpdatesOffChanged: off refuses each step changed since hardn made it
@@ -172,17 +187,17 @@ func TestUpdatesOffChanged(t *testing.T) {
 		}, hardnAptFile + " changed since"},
 	} {
 		h := tt.host()
-		r, err := readUpdates(ctx, h.sys())
+		r, err := updRead(ctx, h)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if words := (&updRunner{h: h}).refusalOf(ctx, r, true); !strings.Contains(words, tt.want) {
+		if words := updRefusalOf(ctx, h, r, true); !strings.Contains(words, tt.want) {
 			t.Errorf("%s: %q, want %q", tt.name, words, tt.want)
 		}
 	}
 	h := updByHardnDebian()
 	h.f.AddFile(autoUpgrades, []byte(autoOff), 0o644, 0, 0)
-	r, err := readUpdates(ctx, h.sys())
+	r, err := updRead(ctx, h)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,12 +209,12 @@ func TestUpdatesOffChanged(t *testing.T) {
 
 // updOffPlan is the real control's off on h as r reads it: its changes,
 // and its review lines as the screen draws them.
-func updOffPlan(ctx context.Context, h *fakeHost, r updReading) ([]engine.Change, []component.KeyValue, error) {
+func updOffPlan(ctx context.Context, h *fakeHost, r updates.Reading) ([]engine.Change, []component.KeyValue, error) {
 	cs, err := updAuto(updates.AutoOff).Plan(ctx, h.system(), engine.Input{Facts: r.Facts, Config: r.Config})
 	if err != nil {
 		return nil, nil, err
 	}
-	kept, err := (&updRunner{h: h}).notes(ctx, r, true)
+	kept, err := updNotes(ctx, h, r, true)
 	return cs, kept, err
 }
 
@@ -237,51 +252,17 @@ func hasKept(kept []component.KeyValue, key, note string) bool {
 	return false
 }
 
-// TestUpdatesRefusalWords: each refusal says what is in the way and the
-// fix, and the item, still offered, says it in a few words (R1).
-func TestUpdatesRefusalWords(t *testing.T) {
-	ctx := context.Background()
-	for _, tt := range []struct {
-		host      string
-		off       bool
-		words, it string
-	}{
-		{"timer-off", false, "apt-daily-upgrade.timer is off", "Upgrade timer is off"},
-		{"not-read", false, "apt can't read its settings", "Can't read apt's settings"},
-		{"masked", false, "apt-daily-upgrade.service is masked", "Upgrade job is masked"},
-		{"missing", false, "apt-daily-upgrade.service is missing. Reinstall apt, then try again.", "Upgrade job is missing"},
-		{"no-origin", false, "allows no origin", "No origin allowed"},
-		{"extra-packages", false, "would also change other packages: Inst libc6", updDescInstall},
-		{"enable-off", false, "turns apt's daily jobs off", "Periodic jobs are off"},
-		{"edited", true, "changed since hardn wrote it", "52hardn-auto-upgrades changed"},
-		{"no-record", true, "Updates stay on without hardn's file: 20auto-upgrades turns them on, and hardn has no record that it installed unattended-upgrades. Turn them off by hand.", "20auto-upgrades keeps updates on"},
-	} {
-		r, h, err := updReadNamed(ctx, tt.host)
-		if err != nil {
-			t.Fatal(err)
-		}
-		words := (&updRunner{h: h}).refusalOf(ctx, r, tt.off)
-		if it := r.item(); !strings.Contains(words, tt.words) || it.Description != tt.it || it.Disabled {
-			t.Errorf("%s: %q, item %+v; want %q, %q", tt.host, words, it, tt.words, tt.it)
-		}
-	}
-}
-
-// TestUpdatesCorruptRecord: on Alpine, a record hardn can't read keeps
-// Disable offered, saying so, and refuses with the record's words (R1).
+// TestUpdatesCorruptRecord: on Alpine, a record hardn can't read refuses
+// off with the record's words (R1).
 func TestUpdatesCorruptRecord(t *testing.T) {
 	ctx := context.Background()
 	h := updByHardnAlpine()
 	h.f.AddFile(updRecordPath, []byte("{\"schemaVersion\": 1, \"entries\": [\n"), 0o600, 0, 0)
-	r, err := readUpdates(ctx, h.sys())
+	r, err := updRead(ctx, h)
 	if err != nil {
 		t.Fatal(err)
 	}
-	screen := ansi.Strip(r.screen().Render(component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))))
-	if !strings.Contains(screen, updDisable+"\n      "+"Can't read hardn's record") || strings.Contains(screen, "Unavailable") {
-		t.Errorf("the item:\n%s", screen)
-	}
-	if words := (&updRunner{h: h}).refusalOf(ctx, r, true); !strings.Contains(words, "can't read its record") {
+	if words := updRefusalOf(ctx, h, r, true); !strings.Contains(words, "can't read its record") {
 		t.Errorf("off: %q", words)
 	}
 }
@@ -306,13 +287,13 @@ func TestUpdatesCrondJobs(t *testing.T) {
 	} {
 		h := updApplied(updDormantJobs())
 		tt.add(h)
-		r, err := readUpdates(ctx, h.sys())
+		r, err := updRead(ctx, h)
 		if err != nil {
 			t.Fatal(err)
 		}
 		cs, kept, err := updOffPlan(ctx, h, r)
 		stops := slices.ContainsFunc(cs, func(c engine.Change) bool { return c.Title == "Stop crond" })
-		if err != nil || stops != (tt.note == "") || tt.note != "" && !hasKept(kept, updRowCrond, tt.note) {
+		if err != nil || stops != (tt.note == "") || tt.note != "" && !hasKept(kept, "crond", tt.note) {
 			t.Errorf("%s: %v, kept %v, %v", tt.name, changeIDs(cs), kept, err)
 		}
 	}
@@ -323,15 +304,16 @@ func TestUpdatesCrondJobs(t *testing.T) {
 // package in place of the purge (R2).
 func TestUpdatesConfigFiles(t *testing.T) {
 	ctx := context.Background()
-	r, h, err := updReadNamed(ctx, "config-files")
+	h := updConfigFiles()
+	r, err := updRead(ctx, h)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if on, err := (&updRunner{h: h}).notes(ctx, r, false); err != nil || !hasKept(on, "50unattended-upgrades", "there before hardn") {
+	if on, err := updNotes(ctx, h, r, false); err != nil || !hasKept(on, "50unattended-upgrades", "there before hardn") {
 		t.Errorf("Enable's notes %v, %v", on, err)
 	}
 	updApplied(h)
-	if r, err = readUpdates(ctx, h.sys()); err != nil {
+	if r, err = updRead(ctx, h); err != nil {
 		t.Fatal(err)
 	}
 	cs, kept, err := updOffPlan(ctx, h, r)
@@ -345,7 +327,7 @@ func TestUpdatesConfigFiles(t *testing.T) {
 func TestUpdatesPurgeRechecked(t *testing.T) {
 	ctx := context.Background()
 	h := updByHardnDebian()
-	r, err := readUpdates(ctx, h.sys())
+	r, err := updRead(ctx, h)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -367,61 +349,18 @@ func TestUpdatesPurgeRechecked(t *testing.T) {
 // bytes is on by hardn, and off deletes it and nothing else.
 func TestUpdatesOwnFile(t *testing.T) {
 	ctx := context.Background()
-	r, h, err := updReadNamed(ctx, "own-file")
+	uh, _ := findUpdHost("own-file")
+	h := uh.host()
+	r, err := updRead(ctx, h)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if it := r.item(); it.Label != updDisable || it.Disabled {
-		t.Errorf("item %+v, want Disable", it)
+	if !r.ByHardn() {
+		t.Error("not on by hardn")
 	}
 	cs, _, err := updOffPlan(ctx, h, r)
 	if err != nil || len(cs) != 1 || cs[0].Target != hardnAptFile {
 		t.Errorf("off: %v, %v; want the file alone", changeIDs(cs), err)
-	}
-}
-
-// TestUpdatesPlanOnlyWritesNothing: under plan only every item opens and
-// stops at its plan, nothing applied.
-func TestUpdatesPlanOnlyWritesNothing(t *testing.T) {
-	for _, host := range []string{"updates/debian-installer", "updates/debian-off", "updates/alpine323", "updates/legacy-alpine", "updates/by-hardn-debian", "updates/by-hardn-alpine"} {
-		code, out, errs, unread := playGallery([]string{"1", "0"}, "-profile", "plain", "-sequence", "dry-run", host)
-		_, record, _ := strings.Cut(out, "# simulated system ")
-		if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "No actual changes were made") || strings.Contains(record, "Applied: ") {
-			t.Errorf("%s: exit %d, stderr %q, %d unread; the record:\n%s", host, code, errs, unread, record)
-		}
-	}
-}
-
-// TestUpdatesHeights: every host's screen is as many lines at 80x24 as at
-// 80x40, Unicode and ASCII, the prompt on its last, no line over 80 cells.
-func TestUpdatesHeights(t *testing.T) {
-	ctx := context.Background()
-	for _, uh := range updHosts() {
-		r, _, err := updReadNamed(ctx, uh.name)
-		if err != nil {
-			t.Fatal(err)
-		}
-		var n []int
-		for _, unicode := range []bool{true, false} {
-			for _, rows := range []int{24, 40} {
-				env := term.Fixed(80, colorprofile.TrueColor, unicode, true)
-				env.Height = rows
-				lines := strings.Split(ansi.Strip(r.screen().Render(component.NewCtx(env))), "\n")
-				for _, l := range lines {
-					if w := ansi.StringWidth(l); w > 80 {
-						t.Errorf("%s: %d cells: %q", uh.name, w, l)
-					}
-				}
-				if !strings.HasSuffix(lines[len(lines)-1], " or q]:") {
-					t.Errorf("%s: the last line %q, want the prompt", uh.name, lines[len(lines)-1])
-				}
-				n = append(n, len(lines))
-			}
-		}
-		t.Logf("%s: %v", uh.name, n)
-		if n[0] != n[1] || n[0] != n[2] || n[0] != n[3] {
-			t.Errorf("%s: lines %v, want the same at 24 and 40 rows", uh.name, n)
-		}
 	}
 }
 
@@ -448,7 +387,7 @@ func TestUpdatesOffRefusals(t *testing.T) {
 		}, "UPDATES_OTHER_PACKAGES"},
 	} {
 		h := tt.host()
-		r, err := readUpdates(ctx, h.sys())
+		r, err := updRead(ctx, h)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -461,7 +400,27 @@ func TestUpdatesOffRefusals(t *testing.T) {
 	h := updAlpine()
 	h.f.AddFile("/etc/periodic/daily/notes", []byte("x\n"), 0o644, 0, 0)
 	h.f.AddFile("/etc/periodic/weekly/backup", []byte("#!/bin/sh\n"), 0o755, 0, 0)
-	if jobs, err := alpine.OtherJobs(ctx, h.sys()); err != nil || !slices.Equal(jobNames(jobs), []string{"backup"}) {
+	if jobs, err := alpine.OtherJobs(ctx, h.sys()); err != nil || len(jobs) != 1 || jobs[0].Name != "backup" {
 		t.Errorf("jobs %v, %v; want [backup]", jobs, err)
+	}
+}
+
+// TestUpdatesUsage: play refuses what it does not take, and the listing is
+// gone, with status 2 and nothing on stdout; the main menu's 6 leads to
+// debian13's.
+func TestUpdatesUsage(t *testing.T) {
+	for _, args := range [][]string{
+		{updPrefix},
+		{"play", "updates/nope"},
+		{"play", "-fail", "1", "updates/debian13"},
+		{"play", "-sequence", "failure", "updates/debian13"},
+	} {
+		var out, errs bytes.Buffer
+		if code := run(args, nil, offTerminal, &out, &errs); code != exitUsage || out.Len() > 0 || errs.Len() == 0 {
+			t.Errorf("%v: exit %d, stdout %q, stderr %q", args, code, out.String(), errs.String())
+		}
+	}
+	if updMainHost != updPrefix+"/debian13" || updMenuItem.Key != "6" {
+		t.Errorf("the main menu's %s leads to %q", updMenuItem.Key, updMainHost)
 	}
 }

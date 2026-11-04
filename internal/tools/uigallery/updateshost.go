@@ -15,8 +15,8 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
-// The Auto Updates mock's model of a host (updates.go; refactor plan slice
-// 7, unit (a); docs/engine/gallery-updates.md): what apt, dpkg, apk and
+// The Auto Updates hosts' model (updates.go; refactor plan slice 7, unit
+// (a); docs/engine/gallery-updates.md): what apt, dpkg, apk and
 // OpenRC answer of unattended-upgrades, apt's configuration, apk-cron and
 // crond, in the shapes the three VMs showed on 2026-11-03
 // (vm-runs/s7/00-inspect-*.log), their values synthetic. It sits on a

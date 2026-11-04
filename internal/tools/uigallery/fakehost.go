@@ -106,7 +106,7 @@ type fakeHost struct {
 	// ssh answers the SSH Login mock's commands (sshhost.go); nil on every
 	// other host.
 	ssh *sshSim
-	// upd answers the Auto Updates mock's commands (updateshost.go); nil on
+	// upd answers the Auto Updates control's commands (updateshost.go); nil on
 	// every other host.
 	upd *updSim
 }

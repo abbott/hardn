@@ -6,13 +6,11 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/dormant-jobs␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(updates.Auto's Read: the check, aptconf, dpkg, systemctl,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates and OtherJobs, hardn's record), each change␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's (updates.Auto, on and off) on the real␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Nothing on this machine changes: every␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323 with␛[m$
@@ -69,7 +67,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mapk-cron␛[m             ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m1.0-r3␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mapk-cron␛[m             ␛[38;2;129;134;156mInstalled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDaily Script␛[m         ␛[38;2;129;134;156mIn place␛[m ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m                ␛[38;2;129;134;156mRunning␛[m ␛[38;2;129;134;156mstarts at boot␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOther Jobs␛[m           ␛[38;2;129;134;156mlogrotate␛[m ␛[38;2;129;134;156muse crond␛[m$
@@ -190,13 +188,11 @@ $
 # play updates/dormant-jobs ------------------------------------$
 $
 # Note$
-# Play mode, mocks: the Auto Updates screen proposed for slice$
-# 7, drawn from what real code reads of a simulated host$
-# (updates.Auto's Read: the check, aptconf, dpkg, systemctl,$
-# alpine.ReadUpdates and OtherJobs, hardn's record), each change$
-# the real control's (updates.Auto, on and off) on the real$
-# plan/apply engine. Nothing on this machine changes: every$
-# command and file is the fake's.$
+# Play mode: hardn's own screens and prompts, on the real$
+# plan/apply engine against a simulated host, hostfake's$
+# recording host.System, whose commands a model of the host$
+# answers. Nothing on this machine changes: every command and$
+# file is the fake's, and its record is shown when play ends.$
 $
 # Info: updates/dormant-jobs$
 # web-01.example.net runs Alpine 3.23 (OpenRC). alpine323 with$
@@ -253,7 +249,7 @@ $
 $
 # Update Configuration -----------------------------------------$
 $
-   -  apk-cron             Installed 1.0-r3$
+   -  apk-cron             Installed$
    -  Daily Script         In place /etc/periodic/daily/apk$
    -  crond                Running starts at boot$
    -  Other Jobs           logrotate use crond$
@@ -374,13 +370,12 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/dormant-jobs␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 7, drawn from what real code reads of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (updates.Auto's Read: the check, aptconf, dpkg,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystemctl, alpine.ReadUpdates and OtherJobs, hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord), each change the real control's (updates.Auto, on␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand off) on the real plan/apply engine. Nothing on this␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine against a simulated host, hostfake's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecording host.System, whose commands a model of the host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers. Nothing on this machine changes: every command␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand file is the fake's, and its record is shown when play␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/dormant-jobs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323␛[m$
@@ -448,7 +443,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mapk-cron␛[m$
-      ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m1.0-r3␛[m$
+      ␛[38;2;129;134;156mInstalled␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDaily Script␛[m$
       ␛[38;2;129;134;156mIn place␛[m ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m$
