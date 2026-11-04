@@ -11,7 +11,10 @@ rules:
         # as @vX.Y.Z, for slsa-verifier to verify the builder's ref, and that
         # a shorter tag fails the build (slsa-framework/slsa-github-generator
         # v2.1.0, README.md, "Referencing SLSA builders and generators").
-        # zizmor accepts no @ref in this rule's patterns, so any tag passes.
-        # p7-provenance replaces the builder with actions/attest and removes
-        # this exception.
+        # ref-pin is a policy on the kind of ref, not a ref: any ref passes,
+        # a branch such as @main included (zizmor accepts no @ref in this
+        # rule's patterns). make check-actions pins the ref instead: it fails
+        # unless every builder_go_slsa3.yml reference in .github/workflows is
+        # exactly @v2.1.0. p7-provenance replaces the builder with
+        # actions/attest and removes this exception and that check.
         slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml: ref-pin
