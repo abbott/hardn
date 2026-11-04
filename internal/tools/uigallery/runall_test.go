@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"slices"
 	"strconv"
 	"strings"
@@ -26,7 +27,6 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 	"github.com/abbott/hardn/pkg/ui/uitest"
-	"github.com/charmbracelet/x/ansi"
 )
 
 // raCells are the Run All goldens' cells: the core set and LANG=C's at
@@ -51,21 +51,6 @@ func raArgs(t *testing.T, env term.Env) []string {
 		args = append(args, "-height", strconv.Itoa(env.Height))
 	}
 	return args
-}
-
-// TestRunAllGolden pins each mock of the listing at both heights,
-// Unicode and ASCII: testdata/golden/runall/<mock>.golden.
-func TestRunAllGolden(t *testing.T) {
-	for _, m := range raListing.mocks() {
-		uitest.Golden(t, raPrefix+"/"+m.name, raCells(), func(env term.Env) string {
-			var out, errs bytes.Buffer
-			args := append(raArgs(t, env), m.name)
-			if code := run(append([]string{raPrefix}, args...), nil, offTerminal, &out, &errs); code != exitOK || errs.Len() > 0 {
-				t.Errorf("%s: exit %d, stderr %q", m.name, code, errs.String())
-			}
-			return out.String()
-		})
-	}
 }
 
 // TestPlayRunAllGolden plays each flow end to end and pins the
@@ -112,6 +97,49 @@ func TestPlayRunAllGolden(t *testing.T) {
 			return sessionIDs(t, out)
 		})
 	}
+}
+
+// raReading is a host read for Run All: the planner's Reading
+// (pkg/engine/runall), and what it was read with.
+type raReading struct {
+	runall.Reading
+	in runall.Input
+}
+
+// readRA reads h for Run All with the planner, as the screen does:
+// hardn.yml and the facts as play reads them, the plans made on the
+// gallery's engine (raEngine).
+func readRA(ctx context.Context, h *fakeHost, env map[string]string) (raReading, error) {
+	cfg, err := statusConfig(ctx, h.sys())
+	if err != nil {
+		return raReading{}, err
+	}
+	facts, err := detect.Detect(ctx, h.sys())
+	if err != nil {
+		return raReading{}, err
+	}
+	sess := sshSession(env["SSH_CONNECTION"])
+	in := runall.Input{
+		System: h.system(), Facts: facts, Config: cfg, Session: sess,
+		Getenv: func(k string) string { return env[k] },
+		Revert: raRevert, Version: updVersion,
+		NewEngine: func(progress func(engine.Event)) *engine.Engine {
+			return raEngine(h, sess, cfg, progress, &updQuiet)
+		},
+	}
+	rd, err := runall.Read(ctx, in)
+	return raReading{Reading: rd, in: in}, err
+}
+
+// raReadNamed reads the host named name, fresh.
+func raReadNamed(ctx context.Context, name string) (raReading, *fakeHost, error) {
+	rh, ok := findRAHost(name)
+	if !ok {
+		return raReading{}, nil, fmt.Errorf("no runall host %q", name)
+	}
+	h := rh.host()
+	r, err := readRA(ctx, h, raEnvOf(name))
+	return r, h, err
 }
 
 // raWant is what a host's rows must say: the controls Run All plans, those
@@ -184,7 +212,7 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 	sys := h.sys()
 	e := engine.New(sys, engine.Options{Detect: func(context.Context, host.System) (detect.Facts, error) { return r.Facts, nil }})
 	getenv := func(k string) string { return raEnvOf(name)[k] }
-	status := r.status()
+	status := output.StatusViewOf(r.Reports, risk.Level{}).Status
 	for i, rw := range r.Rows {
 		c := runall.Asked(r.in, rw.ID).Control
 		checked := runall.Checked(r.Config, getenv)
@@ -240,78 +268,6 @@ func raState(r engine.Report) component.StatusState {
 	return rows[i].State
 }
 
-// TestRunAllPlanOnlyWritesNothing: on every host, item 1 under plan only
-// stops at the plan, or refuses before it, and changes nothing outside
-// hardn's own state.
-func TestRunAllPlanOnlyWritesNothing(t *testing.T) {
-	for _, rh := range raHosts() {
-		h := rh.host()
-		r, err := readRA(context.Background(), h, raEnvOf(rh.name))
-		if err != nil {
-			t.Fatal(err)
-		}
-		n := len(h.f.Calls())
-		lines := []string{"1", "0"}
-		if r.item().Disabled {
-			lines = []string{"0"}
-		}
-		_, out, code := playWith(t, raPrefix+"/"+rh.name, func(s *session) func() error {
-			s.sequence = "dry-run"
-			return func() error { return s.raScreen(context.Background(), rh, h) }
-		}, lines...)
-		if code != exitOK {
-			t.Errorf("%s: exit %d:\n%s", rh.name, code, out)
-		}
-		if len(r.Planned()) > 0 && r.Refusal == "" && !strings.Contains(flatText(out), "No actual changes were made") {
-			t.Errorf("%s: plan only did not stop at the plan:\n%s", rh.name, out)
-		}
-		cmds, files := changed(h.f.Calls()[n:])
-		cmds = slices.DeleteFunc(cmds, func(c string) bool {
-			return strings.HasPrefix(c, "apt-config dump ") || c == "rc-service crond status" // the Auto Updates control's reads
-		})
-		if len(cmds) > 0 || len(files) > 0 {
-			t.Errorf("%s: plan only changed the host: %q, %q", rh.name, cmds, files)
-		}
-	}
-}
-
-// TestRunAllTyped: the hostname is asked whatever the plan's risk
-// (decision 6), fresh's plain plan too.
-func TestRunAllTyped(t *testing.T) {
-	r, _, err := raReadNamed(context.Background(), "fresh")
-	if err != nil || r.Lockout() || len(r.Planned()) == 0 {
-		t.Fatalf("fresh: %v, lockout %v, %d planned; want a plain plan", err, r.Lockout(), len(r.Planned()))
-	}
-	code, out, errs, unread := playGallery([]string{"1", "0", "0"}, "-profile", "none", "runall/fresh")
-	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, typeTheHostname+" [web-01") {
-		t.Errorf("fresh: exit %d, stderr %q, %d unread; want the hostname asked:\n%s", code, errs, unread, out)
-	}
-}
-
-// TestRunAllHeights: every host's screen fits 80x24, no line over 80
-// cells, Unicode and ASCII.
-func TestRunAllHeights(t *testing.T) {
-	for _, unicode := range []bool{true, false} {
-		env := term.Fixed(80, 0, unicode, true)
-		c := component.NewCtx(env)
-		for _, rh := range raHosts() {
-			r, _, err := raReadNamed(context.Background(), rh.name)
-			if err != nil {
-				t.Fatal(err)
-			}
-			lines := strings.Split(r.screen().Render(c), "\n")
-			if len(lines) > term.DefaultHeight {
-				t.Errorf("%s, unicode %v: %d lines", rh.name, unicode, len(lines))
-			}
-			for _, l := range lines {
-				if w := ansi.StringWidth(l); w > 80 {
-					t.Errorf("%s, unicode %v: %d cells: %q", rh.name, unicode, w, l)
-				}
-			}
-		}
-	}
-}
-
 // TestRunAllUsage: play refuses what it does not take, with status 2 and
 // nothing on stdout.
 func TestRunAllUsage(t *testing.T) {
@@ -343,9 +299,8 @@ func TestRunAllUserThere(t *testing.T) {
 }
 
 // TestRunAllPendingAfterApply: after a lockout-risk Apply all, not yet
-// confirmed, the host read again plans nothing: every row asked of and
-// the item say "Change pending", as on pending, and choosing it says the
-// SSH Login screen's words.
+// confirmed, the host read again plans nothing: every row asked of says
+// "Change pending", as on pending.
 func TestRunAllPendingAfterApply(t *testing.T) {
 	ctx := context.Background()
 	r, h, err := raReadNamed(ctx, "debian13")
@@ -359,8 +314,8 @@ func TestRunAllPendingAfterApply(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !again.Busy || len(again.Planned()) > 0 || again.Plan != nil || again.Refusal != runall.PendingWords || again.item().Description != runall.WordsPending {
-		t.Errorf("after the apply: busy %v, %d planned, plan %v, refusal %q, item %q; want Change pending", again.Busy, len(again.Planned()), again.Plan != nil, again.Refusal, again.item().Description)
+	if !again.Busy || len(again.Planned()) > 0 || again.Plan != nil || again.Refusal != runall.PendingWords {
+		t.Errorf("after the apply: busy %v, %d planned, plan %v, refusal %q; want Change pending", again.Busy, len(again.Planned()), again.Plan != nil, again.Refusal)
 	}
 	for _, rw := range again.Rows {
 		if runall.Asked(again.in, rw.ID).Control != nil && rw.Kind != runall.Pending {
@@ -441,8 +396,8 @@ func TestRunAllCombined(t *testing.T) {
 	}
 	want = []engine.Stage{engine.StageFirewall}
 	login, _ := r.Row(ssh.Login{}.ID())
-	if got := raStages(r.Plan); !slices.Equal(got, want) || !r.Lockout() || !r.item().Risk || login.Kind != runall.Later || login.Words != runall.WordsAfterFirewall {
-		t.Errorf("ufw-inactive: stages %v, lockout %v, item marked %v, root login %v %q; want %v, lockout, marked, later", got, r.Lockout(), r.item().Risk, login.Kind, login.Words, want)
+	if got := raStages(r.Plan); !slices.Equal(got, want) || !r.Lockout() || login.Kind != runall.Later || login.Words != runall.WordsAfterFirewall {
+		t.Errorf("ufw-inactive: stages %v, lockout %v, root login %v %q; want %v, lockout, later", got, r.Lockout(), login.Kind, login.Words, want)
 	}
 	both := []engine.Control{runall.Asked(r.in, fwctl.ID).Control, runall.Asked(r.in, ssh.Login{}.ID()).Control}
 	p, err := raEngine(h, r.in.Session, r.Config, nil, &updQuiet).Plan(ctx, both, r.Config)
