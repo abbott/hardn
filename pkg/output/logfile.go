@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"os"
-	"path/filepath"
 	"strings"
 )
 
@@ -31,36 +29,10 @@ type Log struct {
 	l *log.Logger
 }
 
-// OpenLog opens the log at path, as hardn has since v0.3.x: its directory
-// made 0755 where missing, the file opened O_CREATE|O_APPEND, 0644. Each
-// step that fails is an error in the returned list, worded as pkg/logging
-// worded it ("Failed to create log directory: …", "Failed to open log file
-// <path>: …"); the Log is then one that writes nothing, where pkg/logging
-// wrote the log's lines to stderr, which now has the console's lines.
-func OpenLog(path string) (*Log, []error) {
-	var errs []error
-	if dir := filepath.Dir(path); dir != "." {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			errs = append(errs, logOpenError{"Failed to create log directory", err})
-		}
-	}
-	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
-	if err != nil {
-		return nil, append(errs, logOpenError{"Failed to open log file " + path, err})
-	}
-	return NewLog(f), errs
-}
-
-// logOpenError is a step of OpenLog that failed, in pkg/logging's words.
-type logOpenError struct {
-	what string
-	err  error
-}
-
-func (e logOpenError) Error() string { return e.what + ": " + e.err.Error() }
-func (e logOpenError) Unwrap() error { return e.err }
-
-// NewLog is a Log writing to w.
+// NewLog is a Log writing to w: cmd/hardn's open LegacyLogPath (its
+// directory made 0755 where missing, the file O_CREATE|O_APPEND, 0644, as
+// since v0.3.x), which it opens itself, as nothing linked by the gallery
+// may (uigallery's TestPlayTouchesNothing).
 func NewLog(w io.Writer) *Log { return &Log{l: log.New(w, "", log.LstdFlags)} }
 
 // Printf writes one line at level, the message formatted as fmt.Sprintf

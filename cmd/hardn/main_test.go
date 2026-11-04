@@ -12,8 +12,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/color"
-
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -70,7 +68,7 @@ type exited int
 // result is one hardn run.
 type result struct {
 	stderr  string
-	stdout  string // what the logging package printed (fatih/color's Output)
+	stdout  string // what the command wrote to stdout (engineStdout), unless setup points it elsewhere
 	code    int    // exit status, when ended
 	ended   bool   // the run ended by exit
 	calls   []string
@@ -137,7 +135,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 		detect   func() (*osdetect.OSInfo, error)
 		exit     func(int)
 	}{provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit}
-	prevStderr, prevOutput, prevNoColor, prevStderrEnv := stderr, color.Output, color.NoColor, stderrEnv
+	prevStderr, prevStderrEnv := stderr, stderrEnv
 	prevEngineHost, prevEngineDetect, prevEngineStdout := engineHost, engineDetect, engineStdout
 	stderrEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
 	engineHost = func() host.System {
@@ -148,7 +146,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	engineStdout = io.Discard
 	t.Cleanup(func() {
 		provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit = prev.provider, prev.user, prev.load, prev.existing, prev.detect, prev.exit
-		stderr, color.Output, color.NoColor, stderrEnv = prevStderr, prevOutput, prevNoColor, prevStderrEnv
+		stderr, stderrEnv = prevStderr, prevStderrEnv
 		engineHost, engineDetect, engineStdout = prevEngineHost, prevEngineDetect, prevEngineStdout
 		resetFlags()
 		rootCmd.SetArgs(nil)
@@ -164,7 +162,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	}
 	var errOut, out bytes.Buffer
 	stderr = &errOut
-	color.Output = &out
+	engineStdout = &out
 	exit = func(code int) { panic(exited(code)) }
 	unreachable := errors.New("test: a host step was reached")
 	lookupCurrentUser = func() (*osuser.User, error) {
@@ -245,8 +243,8 @@ func TestDryRunAloneIsNotRefused(t *testing.T) {
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {
 				t.Fatalf("ended %v with %d after %v, want status 1 at the root check; stderr:\n%s", r.ended, r.code, r.reached, r.stderr)
 			}
-			if r.stderr != "" || len(r.calls) != 0 {
-				t.Errorf("stderr %q, calls %v", r.stderr, r.calls)
+			if flat(r.stderr) != "Operation Failed Failed to get current user: test: a host step was reached" || r.stdout != "" || len(r.calls) != 0 {
+				t.Errorf("stderr %q, stdout %q, calls %v", r.stderr, r.stdout, r.calls)
 			}
 		})
 	}

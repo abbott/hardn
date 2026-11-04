@@ -8,7 +8,6 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -16,7 +15,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/engine/confirm"
@@ -25,7 +23,6 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
-	"github.com/abbott/hardn/pkg/logging"
 )
 
 // Synthetic values: web-01.example.net, 192.0.2.0/24, port 2230.
@@ -93,7 +90,7 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 	revertProc(s.f, 4000, 3990, "hardn")
 
 	euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas := revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun
-	stderrWas, seenWas, holdWas := revertStderr, revertNoticeSeen, revertHoldSignals
+	stderrWas, envWas, seenWas, holdWas := stderr, stderrEnv, revertNoticeSeen, revertHoldSignals
 	executableWas, initWas := revertExecutable, revertInit
 	confirmHostWas, confirmCleanupWas := confirmHost, confirmCleanup
 	// hardn confirm's clean-up never reaches this machine: its host is the
@@ -109,7 +106,7 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 	revertPID = func() int { return 4000 }
 	revertExit = func(code int) { s.exit = code }
 	revertNow = clock
-	revertStderr = &s.stderr
+	stderr, stderrEnv = &s.stderr, plainEnv
 	revertNoticeSeen = func() bool { return s.seen }
 	revertHoldSignals = func() func() { s.held++; return func() { s.released++ } }
 	revertExecutable = func() (string, error) { return revertTestHardn, nil }
@@ -117,14 +114,12 @@ func newRevertSeamsWith(t *testing.T, euid int, record func(revert.Journal) reve
 		return detect.Init{Kind: detect.Systemd, Running: detect.Yes}
 	}
 	s.seen = true
-	logging.SetSilentMode(true)
 	t.Cleanup(func() {
 		revertEUID, revertHost, revertGetenv, revertPID, revertExit, revertNow, dryRun = euidWas, hostWas, getenvWas, pidWas, exitWas, nowWas, dryRunWas
-		revertStderr, revertNoticeSeen, revertHoldSignals = stderrWas, seenWas, holdWas
+		stderr, stderrEnv, revertNoticeSeen, revertHoldSignals = stderrWas, envWas, seenWas, holdWas
 		revertExecutable, revertInit = executableWas, initWas
 		confirmHost, confirmCleanup = confirmHostWas, confirmCleanupWas
 		rollbackAbandon, rollbackBoot = false, false // a flag's value outlives the run that set it
-		logging.SetSilentMode(false)
 		rootCmd.SetArgs(nil)
 	})
 	return s
@@ -145,19 +140,17 @@ func (s *revertSeams) has(name string) bool {
 	return ok
 }
 
-// output runs hardn with args, as executeHardn, and returns what it
-// printed through the legacy logger, without colour (the root command turns
-// it on); s.exit is reset first.
+// output runs hardn with args, as executeHardn, and returns its console
+// lines (say), plain, as flat words; s.exit is reset first.
 func (s *revertSeams) output(t *testing.T, args ...string) string {
 	t.Helper()
 	var out bytes.Buffer
-	outWas := color.Output
-	color.Output = &out
-	logging.SetSilentMode(false)
-	defer func() { color.Output = outWas; logging.SetSilentMode(true) }()
+	was := stderr
+	stderr = &out
+	defer func() { stderr = was }()
 	s.exit = -1
 	executeHardn(t, args...)
-	return regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), "")
+	return flat(out.String())
 }
 
 func executeHardn(t *testing.T, args ...string) {
@@ -324,7 +317,7 @@ func TestRevertAbandonCommand(t *testing.T) {
 		revertEUID = func() int { return tt.euid }
 		calls := len(s.f.Calls())
 		out := s.output(t, tt.args...)
-		if s.exit != tt.exit || !strings.Contains(out, "[ERROR] ") || !strings.Contains(out, tt.says) || !s.has(rollbackJSON) || s.has(kept) {
+		if s.exit != tt.exit || !strings.Contains(out, "Operation Failed ") || !strings.Contains(out, tt.says) || !s.has(rollbackJSON) || s.has(kept) {
 			t.Errorf("%s: exit %d, want %d; rollback.json %v, abandoned %v; output:\n%s", tt.name, s.exit, tt.exit, s.has(rollbackJSON), s.has(kept), out)
 		}
 		for _, c := range s.f.Calls()[calls:] {
@@ -364,7 +357,7 @@ func TestRevertAbandonCommand(t *testing.T) {
 	// The next run's notice names the flag.
 	s.stderr.Reset()
 	showRevertNotices(setupSudoEnvCmd, nil)
-	if !strings.Contains(s.stderr.String(), "to give it up, leaving the host as it is, run `sudo hardn rollback --abandon "+revertTestID+"`") {
+	if !strings.Contains(flat(s.stderr.String()), "to give it up, leaving the host as it is, run `sudo hardn rollback --abandon "+revertTestID+"`") {
 		t.Errorf("notice: %q", s.stderr.String())
 	}
 
@@ -373,16 +366,14 @@ func TestRevertAbandonCommand(t *testing.T) {
 		t.Fatalf("abandon: exit %d; rollback.json %v, abandoned %v\n%s", s.exit, s.has(rollbackJSON), s.has(kept), out)
 	}
 	for _, want := range []string{
-		"[SUCCESS] Gave up the rollback of change " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net).\n" +
-			"[WARNING] The host stays as the rollback left it: hardn will not undo what the rollback did not.\n" +
-			"[INFO] Undone by the rollback, by its record:\n" +
-			"[INFO]   - undo 1 of 1: ufw delete allow 2230/tcp\n" +
-			"[WARNING] Not undone, or not finished:\n" +
-			"[WARNING]   - restore the backups in /var/backups/hardn/" + revertTestID + " (entry 1)\n" +
-			"[WARNING]   - reload ssh (Port)\n" +
-			"[WARNING] The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). " +
-			"Check them now with `sudo sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back.\n" +
-			"[INFO] The rollback's record is kept in " + kept + ", and /var/log/hardn.log has what each of its steps did. New changes can be applied again.\n",
+		// One report: each kind's title once over its run of lines.
+		"Operation Successful Gave up the rollback of change " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net). " +
+			"Warning The host stays as the rollback left it: hardn will not undo what the rollback did not. " +
+			"Undone by the rollback, by its record: - undo 1 of 1: ufw delete allow 2230/tcp " +
+			"Warning Not undone, or not finished: - restore the backups in /var/backups/hardn/" + revertTestID + " (entry 1) - reload ssh (Port) " +
+			"The backups were not all restored, so sshd's files on disk may be a mix of the change's and the ones before it, which no check has passed, and sshd reads them the next time it starts (a restart, a package upgrade, a reboot). " +
+			"Check them now with `sudo sshd -t` and fix what it reports: the rollback's restore lines in /var/log/hardn.log say which files came back. " +
+			"The rollback's record is kept in " + kept + ", and /var/log/hardn.log has what each of its steps did. New changes can be applied again.",
 		"revert: rollback " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net) abandoned: backups restored false, 1 of 1 undo steps and 0 of 1 reloads done; kept in " + kept,
 	} {
 		if !strings.Contains(out, want) {
@@ -398,8 +389,8 @@ func TestRevertAbandonCommand(t *testing.T) {
 		t.Errorf("abandon again: exit %d, want 1:\n%s", s.exit, out)
 	}
 	rollbackAbandon = false
-	if out := s.output(t, "rollback", revertTestID); s.exit != -1 || !strings.Contains(out, "[INFO] Nothing to roll back for "+revertTestID+
-		": its rollback did not finish and was given up (`hardn rollback --abandon`), leaving the host as that rollback left it; its record is kept in "+kept+".\n") {
+	if out := s.output(t, "rollback", revertTestID); s.exit != -1 || !strings.Contains(out, "Nothing to roll back for "+revertTestID+
+		": its rollback did not finish and was given up (`hardn rollback --abandon`), leaving the host as that rollback left it; its record is kept in "+kept+".") {
 		t.Errorf("rollback after abandon: exit %d, want none:\n%s", s.exit, out)
 	}
 }
@@ -467,7 +458,7 @@ func (f *failRename) Rename(ctx context.Context, oldname, newname string) error 
 // names the manual fallback.
 func TestRevertAbandonFails(t *testing.T) {
 	rollbackJSON := revert.DefaultDir + "/" + revert.RollbackName
-	fallback := "[INFO] If the file it names is " + rollbackJSON + " and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is.\n"
+	fallback := "If the file it names is " + rollbackJSON + " and this hardn cannot act on it, moving that file aside by hand, as root, gives its rollback up the same way, without this report, and leaves the host as it is."
 	for _, tt := range []struct {
 		name     string
 		setup    func(t *testing.T, s *revertSeams)
@@ -493,7 +484,7 @@ func TestRevertAbandonFails(t *testing.T) {
 			tt.setup(t, s)
 			calls := len(s.f.Calls())
 			out := s.output(t, "rollback", "--abandon", revertTestID)
-			if s.exit != 1 || !strings.Contains(out, "[ERROR] ") || !strings.Contains(out, tt.says) || strings.Contains(out, fallback) != tt.fallback {
+			if s.exit != 1 || !strings.Contains(out, "Operation Failed ") || !strings.Contains(out, tt.says) || strings.Contains(out, fallback) != tt.fallback {
 				t.Errorf("exit %d, want 1, saying %q (the fallback: %v):\n%s", s.exit, tt.says, tt.fallback, out)
 			}
 			for _, c := range s.f.Calls()[calls:] {
@@ -513,11 +504,12 @@ func TestRevertAbandonNoProgress(t *testing.T) {
 		t.Fatal(err)
 	}
 	text := s.output(t, "rollback", "--abandon", revertTestID)
-	want := "[WARNING] The rollback stopped before it recorded its progress, so it may have done more than its record shows.\n" +
-		"[WARNING] Its record does not name the process that ran it, so hardn cannot tell whether a `hardn rollback " + revertTestID + "` is still running it: check with `ps`. " +
-		"One that still runs writes its record again as it goes, and the next run of hardn reports it.\n" +
-		"[INFO] Undone by the rollback, by its record:\n[INFO]   - nothing\n" +
-		"[WARNING] Not undone, or not finished:\n[WARNING]   - nothing\n"
+	want := "Warning The host stays as the rollback left it: hardn will not undo what the rollback did not. " +
+		"The rollback stopped before it recorded its progress, so it may have done more than its record shows. " +
+		"Its record does not name the process that ran it, so hardn cannot tell whether a `hardn rollback " + revertTestID + "` is still running it: check with `ps`. " +
+		"One that still runs writes its record again as it goes, and the next run of hardn reports it. " +
+		"Undone by the rollback, by its record: - nothing " +
+		"Warning Not undone, or not finished: - nothing "
 	if s.exit != -1 || !s.has(revert.DefaultDir+"/"+revert.AbandonedName(revertTestID)) || !strings.Contains(text, want) {
 		t.Errorf("exit %d; output:\n%s", s.exit, text)
 	}
@@ -535,9 +527,9 @@ func TestRevertNotices(t *testing.T) {
 		t.Fatal("no outcome after the timer's rollback")
 	}
 	var stdout bytes.Buffer
-	outWas := color.Output
-	color.Output = &stdout
-	defer func() { color.Output = outWas }()
+	outWas := engineStdout
+	engineStdout = &stdout
+	defer func() { engineStdout = outWas }()
 	showRevertNotices(rootCmd, nil)
 	if !s.has(reverted) {
 		t.Error("the root command cleared the notice")
@@ -547,7 +539,7 @@ func TestRevertNotices(t *testing.T) {
 	s.seen = false
 	s.stderr.Reset()
 	showRevertNotices(systemDetailsCmdForTest(), nil)
-	if !strings.Contains(s.stderr.String(), "[WARNING] Change "+revertTestID) || !strings.Contains(s.stderr.String(), "because it was not confirmed within 180s") {
+	if notice := flat(s.stderr.String()); !strings.Contains(notice, "Warning Change "+revertTestID) || !strings.Contains(notice, "because it was not confirmed within 180s") {
 		t.Errorf("stderr = %q", s.stderr.String())
 	}
 	if stdout.Len() != 0 {
@@ -612,10 +604,9 @@ func systemDetailsCmdForTest() *cobra.Command {
 // always used for SIGTERM (revertWarnLog, pkg/engine/hold's SignalsAs).
 func TestHoldSignals(t *testing.T) {
 	var out syncBuffer
-	outWas := color.Output
-	color.Output = &out
-	logging.SetSilentMode(false)
-	defer func() { color.Output = outWas; logging.SetSilentMode(false) }()
+	outWas, envWas := stderr, stderrEnv
+	stderr, stderrEnv = &out, plainEnv
+	defer func() { stderr, stderrEnv = outWas, envWas }()
 	release := holdSignals()
 	if !signal.Ignored(syscall.SIGINT) || signal.Ignored(syscall.SIGHUP) {
 		release()
@@ -628,15 +619,15 @@ func TestHoldSignals(t *testing.T) {
 		}
 	}
 	warnings := []string{
-		"[WARNING] hardn rollback: SIGHUP received; the rollback finishes first",
-		"[WARNING] hardn rollback: SIGTERM received; the rollback finishes first",
+		"Warning hardn rollback: SIGHUP received; the rollback finishes first",
+		"Warning hardn rollback: SIGTERM received; the rollback finishes first",
 	}
 	deadline := time.Now().Add(2 * time.Second) // the process is still here
-	for !(strings.Contains(out.String(), warnings[0]) && strings.Contains(out.String(), warnings[1])) && time.Now().Before(deadline) {
+	for !(strings.Contains(flat(out.String()), warnings[0]) && strings.Contains(flat(out.String()), warnings[1])) && time.Now().Before(deadline) {
 		time.Sleep(10 * time.Millisecond)
 	}
 	release()
-	got := regexp.MustCompile("\x1b\\[[0-9;]*m").ReplaceAllString(out.String(), "")
+	got := flat(out.String())
 	for _, warning := range warnings {
 		if strings.Count(got, warning) != 1 {
 			t.Errorf("output %q; want one %q", got, warning)
@@ -667,23 +658,19 @@ func (s *syncBuffer) String() string {
 }
 
 // TestRevertColour: hardn confirm and hardn rollback (<id>, --abandon,
-// --boot) write no colour codes unless stdout and stderr are colour
-// terminals (setRevertColour, through pkg/ui/term's detection): the VM runs
-// found escape codes in the journal (vmtest.md §4.9). The root command's
-// initializeColor turns colour on before each runs.
+// --boot) write their lines on stderr (say), with colour codes on a colour
+// terminal alone (pkg/ui/term's detection of stderr): the VM runs found
+// escape codes in the journal (vmtest.md §4.9).
 func TestRevertColour(t *testing.T) {
 	for _, args := range [][]string{{"confirm"}, {"rollback", revertTestID}, {"rollback", "--abandon", revertTestID}, {"rollback", "--boot"}} {
 		for _, colour := range []bool{false, true} {
 			t.Run(fmt.Sprintf("%s/colour %v", strings.Join(args, " "), colour), func(t *testing.T) {
 				newRevertSeams(t, 0)
-				colourWas, noColorWas := revertColour, color.NoColor
-				revertColour = func() bool { return colour }
-				defer func() { revertColour, color.NoColor = colourWas, noColorWas }()
+				if colour {
+					stderrEnv = colourEnv
+				}
 				var out bytes.Buffer
-				outWas := color.Output
-				color.Output = &out
-				logging.SetSilentMode(false)
-				defer func() { color.Output = outWas; logging.SetSilentMode(true) }()
+				stderr = &out
 				executeHardn(t, args...)
 				if out.Len() == 0 {
 					t.Fatal("nothing printed")

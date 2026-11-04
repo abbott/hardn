@@ -11,8 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fatih/color"
-
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/confirm"
 	"github.com/abbott/hardn/pkg/engine/steps"
@@ -21,7 +19,6 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
@@ -76,8 +73,8 @@ func appliedAll() []engine.Applied {
 
 // cleanupSeams are newRevertSeams with the change holding port 22 (and
 // 00-hardn.conf with it, as the change wrote it), the clean-up stubbed with
-// out (recording what it was given), stdout's environment plain and stdout
-// and the legacy logger in one buffer.
+// out (recording what it was given), stdout's and stderr's environments
+// plain, and stdout and stderr (the console lines, say) in one buffer.
 type cleanupSeams struct {
 	*revertSeams
 	out      bytes.Buffer
@@ -92,7 +89,7 @@ func newCleanupSeams(t *testing.T, outcome func(h confirm.Held) confirm.Outcome)
 	t.Helper()
 	s := &cleanupSeams{revertSeams: newRevertSeamsWith(t, 0, heldPort)}
 	s.dropIn("Port 22", "Port 2230")
-	cleanupWas, stdoutWas, envWas, signalsWas, outputWas := confirmCleanup, confirmStdout, stdoutEnv, confirmSignals, color.Output
+	cleanupWas, stdoutWas, envWas, signalsWas, stderrWas := confirmCleanup, confirmStdout, stdoutEnv, confirmSignals, stderr
 	confirmCleanup = func(ctx context.Context, sys host.System, h confirm.Held, se revert.Session, o confirm.Options) confirm.Outcome {
 		s.calls++
 		s.held, s.session = h, se
@@ -106,12 +103,10 @@ func newCleanupSeams(t *testing.T, outcome func(h confirm.Held) confirm.Outcome)
 		s.signals++
 		return context.WithCancel(ctx)
 	}
-	confirmStdout, color.Output = &s.out, &s.out
+	confirmStdout, stderr = &s.out, &s.out                                            // the report on stdout, the console lines on stderr (say), in order
 	stdoutEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
-	logging.SetSilentMode(false)
 	t.Cleanup(func() {
-		confirmCleanup, confirmStdout, stdoutEnv, confirmSignals, color.Output = cleanupWas, stdoutWas, envWas, signalsWas, outputWas
-		logging.SetSilentMode(true)
+		confirmCleanup, confirmStdout, stdoutEnv, confirmSignals, stderr = cleanupWas, stdoutWas, envWas, signalsWas, stderrWas
 	})
 	return s
 }
@@ -146,20 +141,20 @@ func TestConfirmCleanupCommand(t *testing.T) {
 		want    []string
 	}{
 		{"applied", confirm.Outcome{Plan: cleanupPlan(), Result: &engine.Result{ID: cleanupTestID, Applied: appliedAll()}}, -1, []string{
-			"[SUCCESS] Change " + revertTestID + " confirmed",
+			"Operation Successful Change " + revertTestID + " confirmed",
 			"Drop port 22 from", "Operation Successful",
 			"Port 22, which change " + revertTestID + " held during its confirm window, is dropped",
 			"ufw's rule for 22/tcp, which hardn added, is deleted."}},
 		{"the reload failed: rolled back", failedAt(engine.StepApply, reloadErr), 1, []string{
-			"[SUCCESS] Change " + revertTestID + " confirmed", "COMMAND_FAILED", "Job for ssh.service failed",
+			"Operation Successful Change " + revertTestID + " confirmed", "COMMAND_FAILED", "Job for ssh.service failed",
 			"Port 22, which change " + revertTestID + " held during its confirm window, is still open",
 			"or by hand: delete the `Port 22` line"}},
 		{"interrupted", failedAt(engine.StepStart, context.Canceled), 130, []string{
-			"[SUCCESS] Change " + revertTestID + " confirmed", "is still open"}},
+			"Operation Successful Change " + revertTestID + " confirmed", "is still open"}},
 		{"refused", confirm.Outcome{Plan: &engine.Plan{ID: cleanupTestID, Facts: cleanupPlan().Facts, Refused: []error{refusal},
 			Items: []engine.Item{{Control: confirm.ControlID, Title: "SSH clean-up after the confirmation", Err: refusal}}},
 			Err: fmt.Errorf("%w: %w", engine.ErrRefused, refusal)}, 1, []string{
-			"[SUCCESS] Change " + revertTestID + " confirmed", "still configured outside", "SSHD_NO_WRITE_STRATEGY", "is still open"}},
+			"Operation Successful Change " + revertTestID + " confirmed", "still configured outside", "SSHD_NO_WRITE_STRATEGY", "is still open"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			s := newCleanupSeams(t, func(confirm.Held) confirm.Outcome { return tc.outcome })
@@ -309,7 +304,7 @@ func TestConfirmFinishCommand(t *testing.T) {
 		if s.exit != 1 || s.calls != 1 || !s.held.Finishing || s.held.Change.ID != revertTestID {
 			t.Fatalf("exit %d, clean-up called %d times (%+v):\n%s", s.exit, s.calls, s.held, out)
 		}
-		inOrder(t, out, "[ERROR] revert: confirm: no change is waiting for confirmation",
+		inOrder(t, out, "Operation Failed revert: confirm: no change is waiting for confirmation",
 			"Change "+revertTestID+" (SSH port 22 to 2230 on web-01.example.net), the last one confirmed, still has port 22 in /etc/ssh/sshd_config.d/00-hardn.conf",
 			"Operation Successful", "the last one confirmed, held during its confirm window, is dropped")
 	})
@@ -327,7 +322,7 @@ func TestConfirmFinishCommand(t *testing.T) {
 		if s.exit != 1 || s.calls != 1 || s.has(revert.DefaultDir+"/"+revert.RevertedName) {
 			t.Fatalf("exit %d, clean-up called %d times, reverted.json kept %v:\n%s", s.exit, s.calls, s.has(revert.DefaultDir+"/"+revert.RevertedName), out)
 		}
-		inOrder(t, out, "[ERROR] revert: confirm: no change is waiting for confirmation: change "+later, "was rolled back at",
+		inOrder(t, out, "Operation Failed revert: confirm: no change is waiting for confirmation: change "+later, "was rolled back at",
 			"Change "+revertTestID, "still has port 22", "Operation Successful")
 	})
 	t.Run("nothing left", func(t *testing.T) {
@@ -339,7 +334,7 @@ func TestConfirmFinishCommand(t *testing.T) {
 		s.dropIn("Port 2230")
 		executeHardn(t, "confirm")
 		out := s.out.String()
-		if s.exit != 1 || !strings.Contains(out, "[ERROR] revert: confirm: no change is waiting for confirmation") ||
+		if s.exit != 1 || !strings.Contains(squash(out), squash("Operation Failed revert: confirm: no change is waiting for confirmation")) ||
 			strings.Contains(out, "Port 22") || strings.Contains(out, "Nothing needs changing") {
 			t.Errorf("exit %d:\n%s", s.exit, out)
 		}
@@ -409,7 +404,7 @@ func TestConfirmCarriedCommand(t *testing.T) {
 		t.Errorf("confirmed.json %+v, %v; want %s", c, err, later)
 	}
 	at := 0
-	for _, w := range []string{"[SUCCESS] Change " + later + " confirmed",
+	for _, w := range []string{"Operation Successful Change " + later + " confirmed",
 		"Change " + revertTestID + " (SSH port 22 to 2230 on web-01.example.net), confirmed before change " + later + ", still has port 22",
 		"Operation Successful", "Port 22, which change " + revertTestID + ", confirmed before change " + later + ", held during its confirm window, is dropped"} {
 		i := strings.Index(squash(out)[at:], squash(w))

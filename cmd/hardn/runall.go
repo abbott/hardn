@@ -21,7 +21,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	planner "github.com/abbott/hardn/pkg/engine/runall"
 	"github.com/abbott/hardn/pkg/engine/steps"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
@@ -112,14 +111,14 @@ func runAllFlag(c *config.Config, version string) int {
 	sys := engineHost()
 	facts, err := engineDetect(ctx, sys)
 	if err != nil {
-		logging.LogError("%v", err)
+		sayError("%v", err)
 		return 1
 	}
 	o := engineOptions(ctx, sys, c)
 	r, err := runAllRead(ctx, planner.Input{System: sys, Facts: facts, Config: c, Session: o.Session,
 		Getenv: os.Getenv, Version: version, NewEngine: newEngine(sys, o)})
 	if err != nil {
-		logging.LogError("%v", err)
+		sayError("%v", err)
 		return 1
 	}
 	for _, rw := range r.Refused() {
