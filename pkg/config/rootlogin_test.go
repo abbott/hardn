@@ -199,10 +199,9 @@ func TestSave(t *testing.T) {
 	}
 }
 
-// TestLoadConfigRootLogin: the legacy loader records the absolute path it
-// read and refuses prohibit-password, which the legacy SSH writers would
-// apply as "no" (R15), as it refused it when the key was a bool; the bool
-// and the other two strings load.
+// TestLoadConfigRootLogin: the loader records the absolute path it read,
+// and every value loads, prohibit-password too, no longer refused
+// (decision 6 (a), adopted 2026-11-04), the bool too.
 func TestLoadConfigRootLogin(t *testing.T) {
 	dir := t.TempDir()
 	for _, tt := range []struct {
@@ -210,7 +209,7 @@ func TestLoadConfigRootLogin(t *testing.T) {
 		want RootLogin
 		err  error
 	}{
-		{"permitRootLogin: prohibit-password\n", "", ErrRootLoginNotApplied},
+		{"permitRootLogin: prohibit-password\n", RootLoginProhibitPassword, nil},
 		{"permitRootLogin: \"no\"\n", RootLoginNo, nil},
 		{"permitRootLogin: yes\n", RootLoginYes, nil},
 		{"permitRootLogin: false\n", RootLoginNo, nil},

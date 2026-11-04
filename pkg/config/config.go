@@ -43,68 +43,27 @@ type Config struct {
 	ConfirmTimeout string `yaml:"confirmTimeout,omitempty"`
 
 	// Network Configuration
-	DmzSubnet   string   `yaml:"dmzSubnet"`
 	Nameservers []string `yaml:"nameservers"`
 
 	// SSH Configuration
-	SshPort          int      `yaml:"sshPort"`
-	PermitRootLogin  bool     `yaml:"permitRootLogin"`
-	SshAllowedUsers  []string `yaml:"sshAllowedUsers"`
-	SshListenAddress string   `yaml:"sshListenAddress"`
-	SshKeyPath       string   `yaml:"sshKeyPath"`
-	SshConfigFile    string   `yaml:"sshConfigFile"`
+	SshPort         int    `yaml:"sshPort"`
+	PermitRootLogin bool   `yaml:"permitRootLogin"`
+	SshKeyPath      string `yaml:"sshKeyPath"`
+	SshConfigFile   string `yaml:"sshConfigFile"`
 
 	// User Configuration
 	SudoNoPassword bool     `yaml:"sudoNoPassword"`
 	SshKeys        []string `yaml:"sshKeys"`
 
-	// Package Configuration
-	LinuxCorePackages    []string `yaml:"linuxCorePackages"`
-	LinuxDmzPackages     []string `yaml:"linuxDmzPackages"`
-	LinuxLabPackages     []string `yaml:"linuxLabPackages"`
-	PythonPackages       []string `yaml:"pythonPackages"`
-	NonWslPythonPackages []string `yaml:"nonWslPythonPackages"`
-	PythonPipPackages    []string `yaml:"pythonPipPackages"`
-	AlpineCorePackages   []string `yaml:"alpineCorePackages"`
-	AlpineDmzPackages    []string `yaml:"alpineDmzPackages"`
-	AlpineLabPackages    []string `yaml:"alpineLabPackages"`
-	AlpinePythonPackages []string `yaml:"alpinePythonPackages"`
-
-	// Repository Configuration
-	DebianRepos            []string `yaml:"debianRepos"`
-	ProxmoxSrcRepos        []string `yaml:"proxmoxSrcRepos"`
-	ProxmoxCephRepo        []string `yaml:"proxmoxCephRepo"`
-	ProxmoxEnterpriseRepo  []string `yaml:"proxmoxEnterpriseRepo"`
-	ProxmoxPackagePatterns []string `yaml:"proxmoxPackagePatterns"`
-	AlpineTestingRepo      bool     `yaml:"alpineTestingRepo"`
-
 	// Firewall Configuration
 	// UfwAppProfiles represents UFW application profiles
-	UfwAppProfiles           []UfwAppProfile `yaml:"ufwAppProfiles"`
-	UfwDefaultIncomingPolicy string          `yaml:"ufwDefaultIncomingPolicy"`
-	UfwDefaultOutgoingPolicy string          `yaml:"ufwDefaultOutgoingPolicy"`
-	UfwAllowedPorts          []int           `yaml:"ufwAllowedPorts"`
+	UfwAppProfiles []UfwAppProfile `yaml:"ufwAppProfiles"`
 
 	// Feature Toggles
-	UseUvPackageManager      bool `yaml:"useUvPackageManager"`
-	EnableAppArmor           bool `yaml:"enableAppArmor"`
-	EnableLynis              bool `yaml:"enableLynis"`
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`
 	ConfigureDns             bool `yaml:"configureDns"`
 	DisableRootSSH           bool `yaml:"disableRootSSH"`
-
-	// Localization
-	Lang             string `yaml:"lang"`
-	Language         string `yaml:"language"`
-	LcAll            string `yaml:"lcAll"`
-	Tz               string `yaml:"tz"`
-	PythonUnbuffered string `yaml:"pythonUnbuffered"`
-
-	// Logs Configuration (embedded for easy access to LogFile)
-	LogsConfig struct {
-		LogFilePath string
-	}
 
 	// loaded is what the YAML said beyond the fields: permitRootLogin's
 	// string value and the deprecated forms read, and the path LoadConfig
@@ -123,16 +82,13 @@ func DefaultConfig() *Config {
 		BackupPath:    "/var/backups/hardn",
 
 		// Network Configuration
-		// DmzSubnet:   "192.168.4",
 		// Nameservers: []string{"1.1.1.1", "1.0.0.1"},
 
 		// SSH Configuration
 		SshPort:         22,
 		PermitRootLogin: false,
-		// SshAllowedUsers:  []string{"george"},
-		SshListenAddress: "0.0.0.0",
-		SshKeyPath:       ".ssh_%u",
-		SshConfigFile:    "/etc/ssh/sshd_config.d/hardn.conf",
+		SshKeyPath:      ".ssh_%u",
+		SshConfigFile:   "/etc/ssh/sshd_config.d/hardn.conf",
 
 		// User Configuration
 		SudoNoPassword: true,
@@ -140,39 +96,12 @@ func DefaultConfig() *Config {
 
 		// Firewall Configuration
 		UfwAppProfiles: []UfwAppProfile{},
-		// UfwDefaultIncomingPolicy: "deny",
-		// UfwDefaultOutgoingPolicy: "allow",
-		// UfwAllowedPorts:          []int{22},
 
 		// Feature Toggles
-		UseUvPackageManager:      false,
-		EnableAppArmor:           false,
-		EnableLynis:              false,
 		EnableUnattendedUpgrades: false,
 		EnableUfwSshPolicy:       false,
 		ConfigureDns:             false,
 		DisableRootSSH:           false,
-
-		// Localization
-		// Lang:             "en_US.UTF-8",
-		// Language:         "en_US:en",
-		// LcAll:            "en_US.UTF-8",
-		// Tz:               "America/New_York",
-		PythonUnbuffered: "1",
-
-		// Package configuration with common defaults
-		LinuxCorePackages:  []string{},
-		LinuxDmzPackages:   []string{},
-		LinuxLabPackages:   []string{},
-		AlpineCorePackages: []string{},
-		AlpineDmzPackages:  []string{},
-		AlpineLabPackages:  []string{},
-		// LinuxCorePackages:        []string{"apt-transport-https", "dstat", "gawk", "git", "jq", "htop", "iputils-clockdiff", "sed", "strace", "sudo", "sysstat"},
-		// LinuxDmzPackages:         []string{"dnsutils", "fail2ban", "nethogs"},
-		// LinuxLabPackages:         []string{"aria2", "arping", "fping", "iperf3", "lshw",  "mosh", "net-tools", "tree"},
-		// AlpineCorePackages:       []string{"bash", "openssh", "shadow", "sudo", "ca-certificates"},
-		// AlpineDmzPackages:        []string{"bind-tools", "fail2ban", "git", "htop", "jq", "sudo"},
-		// AlpineLabPackages:        []string{"iperf3", "mosh", "net-tools", "tree"},
 	}
 }
 
@@ -322,31 +251,19 @@ func readConfigFile(path string) (*Config, error) {
 	if err := yaml.Unmarshal(data, config); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", path, err)
 	}
-	if err := checkLoaded(config); err != nil {
-		return nil, fmt.Errorf("config file %s: %w", path, err)
-	}
 	config.setLoaded(path, data)
 
 	return config, nil
 }
 
 // LoadConfig loads hardn's configuration as LoadConfigWithEnvPriority
-// finds it (-f, HARDN_CONFIG, then the search path), its LogsConfig set
-// from its logFile. It runs nothing: origin/main's su - probe of the sudo
+// finds it (-f, HARDN_CONFIG, then the search path). It runs nothing: origin/main's su - probe of the sudo
 // user's login shell for HARDN_CONFIG, and the notice after it, are gone
 // (refactor plan slice 9, unit (d), decision 4; side-effects row 5): the
 // Environment screen's state row says whether sudo, or doas, keeps
 // HARDN_CONFIG, read from hardn's files (pkg/screens/environment).
 func LoadConfig(filePath string) (*Config, error) {
-	cfg, err := LoadConfigWithEnvPriority(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// Initialize LogsConfig
-	cfg.LogsConfig.LogFilePath = cfg.LogFile
-
-	return cfg, nil
+	return LoadConfigWithEnvPriority(filePath)
 }
 
 // LoadExisting loads hardn's configuration as LoadConfig does where a file
@@ -372,7 +289,6 @@ func LoadExisting(filePath string) (*Config, error) {
 	case os.Getenv("HARDN_CONFIG") != "":
 		return nil, fmt.Errorf("config: %s (HARDN_CONFIG): %w", os.Getenv("HARDN_CONFIG"), fs.ErrNotExist)
 	}
-	cfg.LogsConfig.LogFilePath = cfg.LogFile
 	return cfg, nil
 }
 
@@ -479,8 +395,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 }
 
 // SaveConfig saves configuration to the specified file: the whole
-// configuration, but the retired keys at their defaults (retired.go), with
-// dryRun as loaded, never the session's mode (slice 2b
+// configuration, with dryRun as loaded, never the session's mode (slice 2b
 // decision 8), so that -n, --dry-run=false and a toggle inside the session
 // are never saved; only an edit of the file sets it.
 func SaveConfig(config *Config, filePath string) error {
@@ -492,13 +407,7 @@ func SaveConfig(config *Config, filePath string) error {
 		saved.LogFile = ""
 	}
 
-	// Marshal YAML, without the retired keys at their defaults (retired.go)
-	var n yaml.Node
-	if err := n.Encode(&saved); err != nil {
-		return fmt.Errorf("failed to marshal config to YAML: %w", err)
-	}
-	withoutRetired(&n, &saved)
-	data, err := yaml.Marshal(&n)
+	data, err := yaml.Marshal(&saved)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config to YAML: %w", err)
 	}

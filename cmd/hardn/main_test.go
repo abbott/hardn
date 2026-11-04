@@ -139,7 +139,6 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 			c := config.DefaultConfig()
 			c.Username = "alice"
 			c.SshPort = 2230
-			c.SshAllowedUsers = []string{"alice"}
 			c.Nameservers = []string{"192.0.2.53"}
 			return c, nil
 		}

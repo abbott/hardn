@@ -202,7 +202,6 @@ var errorCodes = []Entry{
 	is("AUDIT_DIR_UNSAFE", ErrAuditDir),
 
 	// The configuration (pkg/config).
-	is("CONFIG_ROOT_LOGIN_NOT_APPLIED", config.ErrRootLoginNotApplied).exit(ExitUsage),
 	is("CONFIG_NOT_LOADED", config.ErrNotLoaded),
 	is("CONFIG_FILE_INVALID", config.ErrInvalidFile), // next/s2-control
 	// The edit of hardn.yml, the save's (config.Edit, next/s2-config-edit).
