@@ -7,13 +7,12 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for slice␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host (the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuto Updates check, apt-config, dpkg, systemctl,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as built,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe rest of each direction and the record the gallery's stand-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mins, unit (b)'s to build. Nothing on this machine changes:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(updates.Auto's Read: the check, aptconf, dpkg, systemctl,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates and OtherJobs, hardn's record), each change␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe real control's (updates.Auto, on and off) on the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan/apply engine. Nothing on this machine changes: every␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/later-file␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian-off with 60site,␛[m$
@@ -54,20 +53,22 @@ $
       ␛[38;2;112;212;127m+APT::Periodic::Update-Package-Lists "1";␛[m$
       ␛[38;2;112;212;127m+APT::Periodic::Unattended-Upgrade "1";␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
       ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
 $
   ␛[38;2;192;196;216mTurn automatic updates on?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m  ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mDETECT_UNRECOGNISED␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m  ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mUPDATES_NOT_IN_EFFECT␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m  ␛[38;2;86;91;107mSkipped␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mTurn on daily upgrades in /etc/apt/apt.conf.d/52hardn-auto-␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mupgrades: apt reads APT::Periodic::Unattended-Upgrade as "0"␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mafter the change, not "1": a file read later sets it␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(DETECT_UNRECOGNISED)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(UPDATES_NOT_IN_EFFECT)␛[m$
 $
   ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[38;2;129;134;156mTo go on: find that file, then try again.␛[m$
@@ -104,14 +105,20 @@ $
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
+      ␛[38;2;129;134;156m$ apt-config dump Dir␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
+      ␛[38;2;129;134;156m$ apt-config dump Dir␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
@@ -119,6 +126,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFailed: Turn on daily upgrades␛[m$
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRolled back from the journal␛[m$
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$
@@ -129,13 +138,12 @@ $
 $
 # Note$
 # Play mode, mocks: the Auto Updates screen proposed for slice$
-# 7, drawn from what real code reads of a simulated host (the$
-# Auto Updates check, apt-config, dpkg, systemctl,$
-# alpine.ReadUpdates), each change on the real plan/apply$
-# engine: alpine.PlanUpdates and packages.PlanInstall as built,$
-# the rest of each direction and the record the gallery's stand-$
-# ins, unit (b)'s to build. Nothing on this machine changes:$
-# every command and file is the fake's.$
+# 7, drawn from what real code reads of a simulated host$
+# (updates.Auto's Read: the check, aptconf, dpkg, systemctl,$
+# alpine.ReadUpdates and OtherJobs, hardn's record), each change$
+# the real control's (updates.Auto, on and off) on the real$
+# plan/apply engine. Nothing on this machine changes: every$
+# command and file is the fake's.$
 $
 # Info: updates/later-file$
 # web-01.example.net runs Debian 13. debian-off with 60site,$
@@ -176,20 +184,22 @@ $
       +APT::Periodic::Update-Package-Lists "1";$
       +APT::Periodic::Unattended-Upgrade "1";$
       $ apt-config dump APT::Periodic$
+      | Unattended-Upgrade::Origins-Pattern$
+      | Unattended-Upgrade::Allowed-Origins$
 $
    -  Record hardn's changes$
       /var/lib/hardn/controls/updates.auto.json$
 $
   Turn automatic updates on? [y/N, 0 or q]: y$
 $
-  [ ] Turn on daily upgrades  Failed DETECT_UNRECOGNISED$
+  [ ] Turn on daily upgrades  Failed UPDATES_NOT_IN_EFFECT$
    -  Record hardn's changes  Skipped$
 $
 # Operation Failed$
 # Turn on daily upgrades in /etc/apt/apt.conf.d/52hardn-auto-$
 # upgrades: apt reads APT::Periodic::Unattended-Upgrade as "0"$
 # after the change, not "1": a file read later sets it$
-# (DETECT_UNRECOGNISED)$
+# (UPDATES_NOT_IN_EFFECT)$
 $
   Check the log file at /var/log/hardn.log for details$
   To go on: find that file, then try again.$
@@ -226,14 +236,20 @@ $
       $ apt-config dump APT::Periodic$
       | Unattended-Upgrade::Origins-Pattern$
       | Unattended-Upgrade::Allowed-Origins$
+      $ apt-config dump Dir$
       $ apt-config dump APT::Periodic$
+      | Unattended-Upgrade::Origins-Pattern$
+      | Unattended-Upgrade::Allowed-Origins$
       $ apt-config dump APT::Periodic$
       | Unattended-Upgrade::Origins-Pattern$
       | Unattended-Upgrade::Allowed-Origins$
       $ apt-config dump APT::Periodic$
       | Unattended-Upgrade::Origins-Pattern$
       | Unattended-Upgrade::Allowed-Origins$
+      $ apt-config dump Dir$
       $ apt-config dump APT::Periodic$
+      | Unattended-Upgrade::Origins-Pattern$
+      | Unattended-Upgrade::Allowed-Origins$
       $ apt-config dump APT::Periodic$
       | Unattended-Upgrade::Origins-Pattern$
       | Unattended-Upgrade::Allowed-Origins$
@@ -241,6 +257,8 @@ $
    -  Failed: Turn on daily upgrades$
       /etc/apt/apt.conf.d/52hardn-auto-upgrades$
       $ apt-config dump APT::Periodic$
+      | Unattended-Upgrade::Origins-Pattern$
+      | Unattended-Upgrade::Allowed-Origins$
 $
    -  Rolled back from the journal$
       /etc/apt/apt.conf.d/52hardn-auto-upgrades$
@@ -252,11 +270,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 7, drawn from what real code reads of a simulated␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (the Auto Updates check, apt-config, dpkg, systemctl,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuilt, the rest of each direction and the record the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (updates.Auto's Read: the check, aptconf, dpkg,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystemctl, alpine.ReadUpdates and OtherJobs, hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord), each change the real control's (updates.Auto, on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand off) on the real plan/apply engine. Nothing on this␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/later-file␛[m$
@@ -305,6 +322,8 @@ $
       ␛[38;2;112;212;127m+APT::Periodic::Update-Package-Lists "1";␛[m$
       ␛[38;2;112;212;127m+APT::Periodic::Unattended-Upgrade "1";␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
       ␛[38;2;129;134;156m/var/lib/hardn/controls/updates.auto.json␛[m$
@@ -312,7 +331,7 @@ $
   ␛[38;2;192;196;216mTurn automatic updates on?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mTurn on daily upgrades␛[m$
-      ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mDETECT_UNRECOGNISED␛[m$
+      ␛[38;2;231;70;105mFailed␛[m ␛[38;2;86;91;107mUPDATES_NOT_IN_EFFECT␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRecord hardn's changes␛[m$
       ␛[38;2;86;91;107mSkipped␛[m$
 $
@@ -320,7 +339,7 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mTurn on daily upgrades in /etc/apt/apt.conf.d/52hardn-␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mauto-upgrades: apt reads APT::Periodic::Unattended-Upgrade␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mas "0" after the change, not "1": a file read later sets␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mit (DETECT_UNRECOGNISED)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mit (UPDATES_NOT_IN_EFFECT)␛[m$
 $
   ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[38;2;129;134;156mTo go on: find that file, then try again.␛[m$
@@ -363,14 +382,20 @@ $
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
+      ␛[38;2;129;134;156m$ apt-config dump Dir␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
+      ␛[38;2;129;134;156m$ apt-config dump Dir␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
       ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
@@ -378,6 +403,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFailed: Turn on daily upgrades␛[m$
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$
       ␛[38;2;129;134;156m$ apt-config dump APT::Periodic␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Origins-Pattern␛[m$
+      ␛[38;2;129;134;156m↪ Unattended-Upgrade::Allowed-Origins␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRolled back from the journal␛[m$
       ␛[38;2;129;134;156m/etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$

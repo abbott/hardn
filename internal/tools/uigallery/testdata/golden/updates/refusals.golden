@@ -6,8 +6,8 @@
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real control's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlan: the direction, the host.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
 $
@@ -86,8 +86,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is updated with apt full-upgrade, and unattended-␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrades wouldn't take its packages. Update it by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, debian13␛[m ␛[38;2;48;52;64m────────────────────────────────────────────────␛[m$
 $
@@ -111,8 +110,8 @@ $
 # updates refusals ---------------------------------------------$
 $
 # Note$
-# Mock: The refusals before asking, each from the stand-in$
-# planner on the real reading: the direction, the host.$
+# Mock: The refusals before asking, each from the real control's$
+# Plan: the direction, the host.$
 $
 # on, timer-off ------------------------------------------------$
 $
@@ -191,8 +190,7 @@ $
 # on, pve9 -----------------------------------------------------$
 $
 # Warning$
-# Proxmox VE is updated with apt full-upgrade, and unattended-$
-# upgrades wouldn't take its packages. Update it by hand.$
+# Nothing needs changing.$
 $
 # off, debian13 ------------------------------------------------$
 $
@@ -216,8 +214,8 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontrol's Plan: the direction, the host.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
@@ -298,9 +296,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is updated with apt full-upgrade, and␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156munattended-upgrades wouldn't take its packages. Update it␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mby hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156moff, debian13␛[m ␛[38;2;48;52;64m────────────────────────────────────────────␛[m$
 $
@@ -324,8 +320,8 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mupdates refusals␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the stand-in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplanner on the real reading: the direction, the host.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: The refusals before asking, each from the real control's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlan: the direction, the host.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, timer-off␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
 $
@@ -404,8 +400,7 @@ $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mon, pve9␛[m ␛[38;2;48;52;64m-----------------------------------------------------␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mProxmox VE is updated with apt full-upgrade, and unattended-␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrades wouldn't take its packages. Update it by hand.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNothing needs changing.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156moff, debian13␛[m ␛[38;2;48;52;64m------------------------------------------------␛[m$
 $

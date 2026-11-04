@@ -316,6 +316,26 @@ linters:
               desc: the packages unit makes no network calls (docs/safety/packages.md §2)
             - pkg: plugin
               desc: the packages unit loads no code (docs/safety/packages.md §2)
+        # Slice 7, unit (b): apt's configuration files are read, and
+        # apt-config run, only through host.System, as packages are.
+        aptconf-through-host:
+          list-mode: lax
+          files:
+            - "${base-path}/pkg/host/aptconf/**"
+            - "!$test"
+          deny:
+            - pkg: os
+              desc: apt's files are read and apt-config run only through host.System (docs/safety/aptconf.md)
+            - pkg: io/ioutil
+              desc: apt's files are read only through host.System (docs/safety/aptconf.md)
+            - pkg: golang.org/x/sys
+              desc: the aptconf unit makes no system calls of its own (docs/safety/aptconf.md)
+            - pkg: syscall
+              desc: the aptconf unit makes no system calls of its own (docs/safety/aptconf.md)
+            - pkg: net
+              desc: the aptconf unit makes no network calls (docs/safety/aptconf.md)
+            - pkg: plugin
+              desc: the aptconf unit loads no code (docs/safety/aptconf.md)
         # Slice 5, unit (b): a user's authorized_keys are read and planned
         # only through host.System, as ufw's files are; the keys are parsed
         # without x/crypto.
