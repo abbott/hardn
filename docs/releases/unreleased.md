@@ -219,9 +219,10 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 *Drafted by p7-surface.*
 
-- **Off a terminal, an operation flag applies a change only with `--yes`.** Without it, the plan is shown, nothing is applied, and hardn exits 2, saying to add `--yes`. A plan with nothing to change exits 0, so a scheduled run on a hardened host is 0.
-- **`--yes` never applies a change that could lock you out off a terminal.** Such a plan from `-w`, `-d` or `-r` is still refused there, exit status 1, `--yes` or not: run it from a terminal, where you type the hostname.
-- **On a terminal, operation flags work as before.** `--yes` only skips a question asked today, and only for a plan that can't lock you out.
+- **Off a terminal, `-g`, `-c`, `-e` and `setup-sudo-env` apply a change only with `--yes`**, and so do `-w` and `-d` for a change that can't lock you out. Without it, the plan is shown, nothing is applied, and hardn exits 2, saying to add `--yes`. A plan with nothing to change exits 0, so a scheduled run on a hardened host is 0.
+- **`--yes` never applies a change that could lock you out off a terminal.** Such a plan from `-w` or `-d` is still refused there, exit status 1, `--yes` or not: run it from a terminal, where you type the hostname.
+- **`--yes` changes nothing for `-r`.** Off a terminal it refuses any change, exit status 1, `--yes` or not; on one it asks you to type the hostname, as before.
+- **On a terminal, operation flags work as before**, `--yes` or not.
 
 ## Changed: `hardn --version`
 
@@ -233,7 +234,7 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 *Drafted by p7-surface.*
 
-- **The example configuration no longer sets `username: "george"`**: neither `hardn.yml.example` nor the copy hardn writes to `/etc/hardn/hardn.yml.example`. Set the user `-c` and Run All create in your own hardn.yml.
+- **No `george` default.** The example configuration no longer sets `username: "george"`: neither `hardn.yml.example` nor the copy hardn writes to `/etc/hardn/hardn.yml.example`. The first-run question that creates hardn.yml has no default either: press Enter and no username is saved. Set the user `-c` and Run All create in your own hardn.yml.
 
 ## Changed: supported versions
 
