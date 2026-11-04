@@ -5,17 +5,27 @@ name: Release
 # On a push of a v* tag: build the binaries, the SBOM and SHA256SUMS; create
 # the release as a draft, its body docs/releases/<tag>.md at the tagged
 # commit; upload every asset; download them back from the draft and check
-# them against SHA256SUMS; only then publish it as latest. A failure anywhere
-# leaves at most a draft, never a published release without its assets
-# (install.sh takes /releases/latest).
+# them against SHA256SUMS; only then publish it. A failure anywhere leaves at
+# most a draft, never a published release without its assets (install.sh
+# takes /releases/latest).
+#
+# Tags are v<major>.<minor>.<patch> only: a pre-release tag (v1.2.3-rc1)
+# fails prepare, before anything is built. Which release becomes latest: a tag
+# older (sort -V) than the newest published v* release is published with
+# --latest=false and /releases/latest is not checked; any other tag is
+# published with --latest and /releases/latest must then be that tag.
 #
 # On workflow_dispatch: the same build, SBOM and SHA256SUMS as one workflow
 # artifact, release-assets. No release is created.
 #
 # Reproducible: the ldflags come from the tagged commit (its date, not the
-# clock), with -trimpath and go.mod's toolchain, so a rebuild of a tag is
-# byte-identical. The makefile's LDFLAGS and check-cross use the same values
-# and flags. Provenance (actions/attest) is added by p7-provenance.
+# clock), with CGO_ENABLED=0, -trimpath, -tags=netgo and go.mod's toolchain,
+# so a rebuild of a tag gives byte-identical binaries. The SBOM's two per-run
+# fields (creationInfo.created, the clock; documentNamespace, a random UUID)
+# are set from the tagged commit's date, the version and the commit, so its
+# bytes, and SHA256SUMS, are the same on a rebuild too. The makefile's LDFLAGS
+# targets and check-cross use the same values and flags. Provenance
+# (actions/attest) is added by p7-provenance.
 
 on:
   push:
@@ -59,8 +69,9 @@ jobs:
           set -euo pipefail
           if [ "$GITHUB_REF_TYPE" = tag ]; then
             # Checked before it reaches a file name or an ldflag.
-            if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.]+)?'; then
-              echo "::error::tag $GITHUB_REF_NAME is not v<major>.<minor>.<patch>[-<pre>]"
+            # No pre-release suffix: a release is always a full version.
+            if ! printf '%s\n' "$GITHUB_REF_NAME" | grep -Eqx 'v[0-9]+\.[0-9]+\.[0-9]+'; then
+              echo "::error::tag $GITHUB_REF_NAME is not v<major>.<minor>.<patch> (pre-release tags are not released). Nothing was built."
               exit 1
             fi
             version=${GITHUB_REF_NAME#v}
@@ -173,6 +184,27 @@ jobs:
           output-file: hardn-sbom.spdx.json
           upload-artifact: false
           upload-release-assets: false  # The release job uploads every asset
+
+      # syft writes the clock into creationInfo.created and a random UUID into
+      # documentNamespace. Both are set from the tagged commit, so a rebuild
+      # of a tag gives the same bytes.
+      - name: Make the SBOM reproducible
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+          COMMIT: ${{ needs.prepare.outputs.commit }}
+          BUILD_DATE: ${{ needs.prepare.outputs.build-date }}
+        run: |
+          set -euo pipefail
+          f=hardn-sbom.spdx.json
+          jq -e '.creationInfo.created and .documentNamespace' "$f" > /dev/null || {
+            echo "::error::$f has no creationInfo.created or documentNamespace"
+            exit 1
+          }
+          jq --arg created "$BUILD_DATE" \
+            --arg ns "https://github.com/${GITHUB_REPOSITORY}/spdx/hardn-${VERSION}-${COMMIT}" \
+            '.creationInfo.created = $created | .documentNamespace = $ns' "$f" > "$f.tmp"
+          mv "$f.tmp" "$f"
+          jq '{created: .creationInfo.created, namespace: .documentNamespace}' "$f"
 
       - name: Upload the SBOM
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
@@ -298,11 +330,22 @@ jobs:
             exit 1
           }
 
-      - name: Publish as latest
+      - name: Publish (latest unless an older version)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
+          # The newest published, non-pre-release v* release. This tag's own
+          # release is still a draft, so it is not among them.
+          tags=$(gh api --paginate "repos/$GH_REPO/releases" \
+            --jq '.[] | select(.draft == false and .prerelease == false) | .tag_name')
+          newest=$(printf '%s\n' "$tags" | grep -Ex 'v[0-9]+\.[0-9]+\.[0-9]+' | sort -V | tail -n 1 || true)
+          if [ -n "$newest" ] &&
+            [ "$(printf '%s\n%s\n' "$newest" "$GITHUB_REF_NAME" | sort -V | tail -n 1)" = "$newest" ]; then
+            echo "$GITHUB_REF_NAME is older than $newest: published with --latest=false."
+            gh release edit "$GITHUB_REF_NAME" --draft=false --latest=false
+            exit 0
+          fi
           gh release edit "$GITHUB_REF_NAME" --draft=false --latest
           latest=$(gh api "repos/$GH_REPO/releases/latest" --jq .tag_name)
           [ "$latest" = "$GITHUB_REF_NAME" ] || {
