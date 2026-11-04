@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/hold"
@@ -647,7 +646,7 @@ func TestKeepEnvironmentPlanOnlyFromFile(t *testing.T) {
 		{[]string{"setup-sudo-env"}, 3},
 		{[]string{"--dry-run=false", "-e"}, 0},
 		{[]string{"--dry-run=false", "setup-sudo-env"}, 0},
-		{[]string{"-e", "-r"}, hardncmd.ExitUsage},
+		{[]string{"-e", "-r"}, output.ExitUsage},
 	} {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			h := newEnvHost(t, "debian13")

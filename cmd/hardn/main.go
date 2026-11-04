@@ -10,12 +10,12 @@ import (
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/infrastructure"
 	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
 )
@@ -65,7 +65,7 @@ func start(logPath string) {
 	// All Execute returns is a bad command line, which cobra has said on stderr with
 	// the usage: a usage error, as refuse's.
 	if err := rootCmd.Execute(); err != nil {
-		exit(hardncmd.ExitUsage)
+		exit(output.ExitUsage)
 	}
 }
 
@@ -81,7 +81,7 @@ func init() {
 	cobra.OnInitialize(initializeColor)
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
-	rootCmd.AddCommand(hardncmd.SystemDetailsCmd(runSystemDetails))
+	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
@@ -361,6 +361,6 @@ func refuse(err error) bool {
 		return false
 	}
 	fmt.Fprintln(stderr, err)
-	exit(hardncmd.ExitUsage)
+	exit(output.ExitUsage)
 	return true
 }

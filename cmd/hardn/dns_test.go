@@ -17,7 +17,6 @@ import (
 	"testing"
 	"time"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
@@ -884,7 +883,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 		before := len(h.Calls())
 		r, _ := runG(t, h, cfg, nil, "-n", "-g", "-r")
 		want := errRunAllAlone.Error()
-		if !r.ended || r.code != hardncmd.ExitUsage || len(r.reached) != 0 || !strings.Contains(r.stderr, want) || len(h.Calls()) != before {
+		if !r.ended || r.code != output.ExitUsage || len(r.reached) != 0 || !strings.Contains(r.stderr, want) || len(h.Calls()) != before {
 			t.Errorf("ended %v with %d after %v, host calls %d; stderr:\n%s", r.ended, r.code, r.reached, len(h.Calls())-before, r.stderr)
 		}
 	})
