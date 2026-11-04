@@ -4,12 +4,14 @@ on:
     tags:
       - 'v*'
 
-permissions: read-all
+permissions: {}
 
 jobs:
   # Generate ldflags dynamically (copied from release.yml)
   args:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read  # For checkout
     outputs:
       commit-date: ${{ steps.ldflags.outputs.commit-date }}
       commit: ${{ steps.ldflags.outputs.commit }}
@@ -17,33 +19,38 @@ jobs:
       tree-state: ${{ steps.ldflags.outputs.tree-state }}
     steps:
       - id: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - id: ldflags
         run: |
-          echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)" >> "$GITHUB_OUTPUT"
-          echo "commit=$GITHUB_SHA" >> "$GITHUB_OUTPUT"
-          echo "version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
-          echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)" >> "$GITHUB_OUTPUT"
+          {
+            echo "commit-date=$(git log --date=iso8601-strict -1 --pretty=%ct)"
+            echo "commit=$GITHUB_SHA"
+            echo "version=${GITHUB_REF#refs/tags/v}"
+            echo "tree-state=$(if git diff --quiet; then echo "clean"; else echo "dirty"; fi)"
+          } >> "$GITHUB_OUTPUT"
 
   # This job will prepare the repository before SLSA build
   prepare:
     needs: args
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: read  # For checkout
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
-      
+          persist-credentials: false
+
       - name: Set up Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          go-version: '1.21'
-      
+          go-version-file: go.mod
+          cache: false  # No cache in release jobs (cache poisoning)
+
       - name: Remove replace directive for release
         run: |
           if grep -q "replace github.com/abbott/hardn" go.mod; then
@@ -51,13 +58,13 @@ jobs:
             sed -i '/replace github.com\/abbott\/hardn/d' go.mod
             go mod tidy
           fi
-      
+
       - name: Sync vendor directory
         run: |
           echo "Syncing vendor directory with go.mod..."
           go mod vendor
           echo "Vendor directory synced successfully."
-      
+
       - name: Run tests to verify everything works
         run: |
           # Run tests with vendor
@@ -67,14 +74,16 @@ jobs:
   build-and-provenance:
     needs: [args, prepare]
     permissions:
-      id-token: write  # For signing
+      id-token: write  # For signing the provenance
       contents: write  # For uploading release assets
-      actions: read    # For reading workflow path
+      actions: read    # For reading workflow path (the builder's provenance job)
+    # Referenced by its release tag, not a commit: the builder's README requires
+    # @vX.Y.Z (internal/builders/go/README.md@v2.1.0, "MUST be referenced by a tag").
     uses: slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
     with:
-      go-version: '1.21'
+      go-version-file: go.mod
       evaluated-envs: "COMMIT_DATE:${{needs.args.outputs.commit-date}}, COMMIT:${{needs.args.outputs.commit}}, VERSION:${{needs.args.outputs.version}}, TREE_STATE:${{needs.args.outputs.tree-state}}"
-      
+
   # Add SBOM generation
   generate-sbom:
     needs: [build-and-provenance]
@@ -83,21 +92,26 @@ jobs:
       contents: write  # For uploading release assets
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0  # Full history for proper versioning
-        
+          persist-credentials: false
+
       - name: Generate SBOM
-        uses: anchore/sbom-action@v0.15.8
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           format: spdx-json
           output-file: hardn-sbom.spdx.json
           upload-artifact: false  # Disable artifact upload
-          
+
       - name: Upload SBOM to release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: hardn-sbom.spdx.json
-          tag_name: ${{ github.ref_name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # Create the release for this tag if the builder has not
+          if ! gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" > /dev/null 2>&1; then
+            gh release create "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" \
+              --title "$GITHUB_REF_NAME" --verify-tag --notes ""
+          fi
+          gh release upload "$GITHUB_REF_NAME" hardn-sbom.spdx.json \
+            --repo "$GITHUB_REPOSITORY" --clobber

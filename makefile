@@ -349,7 +349,7 @@ verify-release-full:
 #                       and stops everything if a tool is missing.
 #   make check-<step>   run one step: check-tools, check-mod-verify, check-tidy,
 #                       check-build, check-vet, check-test, check-lint,
-#                       check-vuln, check-cross
+#                       check-vuln, check-cross, check-actions
 #   make golden-update  rewrite the golden files after an intended change
 #                       (pkg/ui/uitest's -update), in every package whose
 #                       tests link uitest. Not part of check: check-test
@@ -373,13 +373,19 @@ verify-release-full:
 #                           so it needs no change when vendor/ stops being
 #                           committed. Override: make check CHECK_GOFLAGS=...
 #
-# Tools come from PATH. check-tools fails if one is missing and warns when a
-# version differs from the CHECK_*_VERSION values below.
+# Tools come from PATH: go, golangci-lint, govulncheck, zizmor, actionlint and
+# shellcheck (actionlint runs it on every run: script).
+# check-tools fails if one is missing and warns when a version differs from
+# the CHECK_*_VERSION values below. CI's check job (.github/workflows/ci.yml)
+# installs the same versions and fails if these values differ from its own.
 # ---------------------------------------------------------------------------
 
 CHECK_GOFLAGS ?= -mod=readonly
 CHECK_GOLANGCI_LINT_VERSION ?= 2.14.0
 CHECK_GOVULNCHECK_VERSION ?= v1.9.0
+CHECK_ZIZMOR_VERSION ?= 1.32.0
+CHECK_ACTIONLINT_VERSION ?= 1.7.12
+CHECK_SHELLCHECK_VERSION ?= 0.11.0
 # Release targets of .slsa-goreleaser/*.yml, built with that file's env and flags.
 CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
 # Targets check-cross also vets the whole module for, test files included
@@ -395,7 +401,7 @@ CHECK_CROSS_TARGETS ?= linux/amd64 linux/arm64 darwin/amd64
 # (pkg/ui/prompt's *_other.go) are compiled by no target here.
 CHECK_CROSS_VET_TARGETS ?= linux/amd64 linux/arm64
 CHECK_STEPS = check-mod-verify check-tidy check-build check-vet check-test \
-	check-lint check-vuln check-cross
+	check-lint check-vuln check-cross check-actions
 
 check check-%: export GOTOOLCHAIN = local
 check check-%: export GOWORK = off
@@ -403,7 +409,7 @@ check check-%: export GOFLAGS = $(CHECK_GOFLAGS)
 
 # $(call check_need,<tool>,<step>): fail with a clear message if <tool> is not on PATH.
 check_need = command -v $(1) >/dev/null 2>&1 || { \
-	echo "$(2): '$(1)' not found on PATH. Install go, golangci-lint $(CHECK_GOLANGCI_LINT_VERSION) and govulncheck $(CHECK_GOVULNCHECK_VERSION) (for example with mise) and retry." >&2; \
+	echo "$(2): '$(1)' not found on PATH. Install go, golangci-lint $(CHECK_GOLANGCI_LINT_VERSION), govulncheck $(CHECK_GOVULNCHECK_VERSION), zizmor $(CHECK_ZIZMOR_VERSION), actionlint $(CHECK_ACTIONLINT_VERSION) and shellcheck $(CHECK_SHELLCHECK_VERSION) (for example with mise) and retry." >&2; \
 	exit 1; }
 
 .PHONY: check check-tools $(CHECK_STEPS)
@@ -424,6 +430,9 @@ check-tools:
 	@$(call check_need,go,$@)
 	@$(call check_need,golangci-lint,$@)
 	@$(call check_need,govulncheck,$@)
+	@$(call check_need,zizmor,$@)
+	@$(call check_need,actionlint,$@)
+	@$(call check_need,shellcheck,$@)
 	@go version
 	@v=$$(golangci-lint version --short 2>/dev/null); echo "golangci-lint $$v"; \
 	[ "$$v" = "$(CHECK_GOLANGCI_LINT_VERSION)" ] || \
@@ -432,6 +441,15 @@ check-tools:
 	echo "govulncheck $$v"; \
 	[ "$$v" = "$(CHECK_GOVULNCHECK_VERSION)" ] || \
 		echo "$@: warning: expected govulncheck $(CHECK_GOVULNCHECK_VERSION)" >&2
+	@v=$$(zizmor --version 2>/dev/null | awk '{ print $$2 }'); echo "zizmor $$v"; \
+	[ "$$v" = "$(CHECK_ZIZMOR_VERSION)" ] || \
+		echo "$@: warning: expected zizmor $(CHECK_ZIZMOR_VERSION)" >&2
+	@v=$$(actionlint --version 2>/dev/null | sed -n 1p); echo "actionlint $$v"; \
+	[ "$$v" = "$(CHECK_ACTIONLINT_VERSION)" ] || \
+		echo "$@: warning: expected actionlint $(CHECK_ACTIONLINT_VERSION)" >&2
+	@v=$$(shellcheck --version 2>/dev/null | sed -n 's/^version: //p'); echo "shellcheck $$v"; \
+	[ "$$v" = "$(CHECK_SHELLCHECK_VERSION)" ] || \
+		echo "$@: warning: expected shellcheck $(CHECK_SHELLCHECK_VERSION)" >&2
 	@echo "GOTOOLCHAIN=$$GOTOOLCHAIN GOWORK=$$GOWORK GOFLAGS=$$GOFLAGS"
 
 check-mod-verify:
@@ -480,6 +498,34 @@ check-cross:
 		CGO_ENABLED=0 GOOS=$$os GOARCH=$$arch \
 			go vet -tags=netgo ./... || exit 1; \
 	done
+
+# check-actions (p7-actions) runs zizmor's offline audits and actionlint over
+# the workflows in .github. zizmor reads .github/zizmor.yml and fails on any
+# finding; its online audits need a GitHub token and run in CI's zizmor
+# workflow instead (.github/workflows/zizmor.yml). actionlint also runs
+# shellcheck on each run: script. It skips that check silently when
+# shellcheck is not on PATH, so this step requires shellcheck. Last, it pins
+# the SLSA Go builder's ref: .github/zizmor.yml lets any ref of that reusable
+# workflow pass (ref-pin), a branch included, so every builder_go_slsa3.yml
+# reference in .github/workflows, comments aside, must be exactly
+# $(CHECK_SLSA_BUILDER_USES). p7-provenance removes the builder and this check.
+CHECK_SLSA_BUILDER_USES = slsa-framework/slsa-github-generator/.github/workflows/builder_go_slsa3.yml@v2.1.0
+check-actions:
+	@echo "==> $@"
+	@$(call check_need,zizmor,$@)
+	@$(call check_need,actionlint,$@)
+	@$(call check_need,shellcheck,$@)
+	zizmor --offline --no-progress .github
+	actionlint
+	@bad=$$(grep -rnF 'builder_go_slsa3.yml' .github/workflows | \
+		grep -vE '^[^:]+:[0-9]+:[[:space:]]*#' | \
+		grep -vE '^[^:]+:[0-9]+:[[:space:]]*(-[[:space:]]+)?uses:[[:space:]]*slsa-framework/slsa-github-generator/\.github/workflows/builder_go_slsa3\.yml@v2\.1\.0[[:space:]]*(#.*)?$$'); \
+	if [ -n "$$bad" ]; then \
+		echo "$$bad" >&2; \
+		echo "$@: the SLSA Go builder must be referenced as exactly $(CHECK_SLSA_BUILDER_USES): .github/zizmor.yml's ref-pin exception lets any ref pass, a branch included, until p7-provenance replaces the builder" >&2; \
+		exit 1; \
+	fi; \
+	echo "SLSA Go builder pinned at @v2.1.0"
 
 # golden-update (refactor plan P1A, next/p1a-golden) rewrites testdata/golden
 # from the current render in every package of the module whose tests use the

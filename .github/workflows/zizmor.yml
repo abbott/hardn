@@ -1,0 +1,39 @@
+name: zizmor
+
+# p7-actions: zizmor audits every workflow and fails on any finding, as
+# GitHub annotations. Offline audits plus the online ones (impostor commits,
+# known-vulnerable actions, ...), which use this job's GITHUB_TOKEN.
+# Not a SARIF upload: that exits 0 whatever zizmor finds, so it gates nothing.
+# Configuration: .github/zizmor.yml, which zizmor finds itself.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  zizmor:
+    name: zizmor
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run zizmor
+        uses: zizmorcore/zizmor-action@45d7276c9ca790aabd705e31ca99c6185c3e76dd # v0.8.1
+        with:
+          # Keep in step with the makefile's CHECK_ZIZMOR_VERSION.
+          version: 1.32.0
+          online-audits: true
+          token: ${{ github.token }}
+          # SARIF off (it never fails the job); --format=github instead.
+          advanced-security: false
+          annotations: true
