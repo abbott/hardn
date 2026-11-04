@@ -53,6 +53,9 @@ type MainMenu struct {
 	// backup runs the Backup item (SetBackup).
 	backup func() error
 
+	// updates runs the Auto Updates item (SetUpdates).
+	updates func() error
+
 	// environment runs the Environment item (SetEnvironment).
 	environment func() error
 
@@ -192,6 +195,23 @@ func (m *MainMenu) showBackup() error {
 	return showScreen(m.backup, "menu: the Backup item has no screen (SetBackup)")
 }
 
+// SetUpdates sets what the Auto Updates item (6) runs: the Auto Updates
+// screen (pkg/screens/updates) on the plan/apply engine, which cmd/hardn
+// assembles, as SetSSH sets SSH Login's (refactor plan slice 7, unit (d);
+// gallery-updates.md §4, decision 1). It returns as SetDNS's does. Off
+// saves enableUnattendedUpgrades false where the configuration this menu
+// was given says true, and the screen adopts the save into it, so the
+// main menu, and the next screens' changes, take hardn.yml as saved. A
+// main menu whose Auto Updates item is chosen without one set panics:
+// cmd/hardn sets it on the one main menu it builds.
+func (m *MainMenu) SetUpdates(run func() error) { m.updates = run }
+
+// showUpdates is the Auto Updates item's action: the Auto Updates screen
+// (showScreen).
+func (m *MainMenu) showUpdates() error {
+	return showScreen(m.updates, "menu: the Auto Updates item has no screen (SetUpdates)")
+}
+
 // SetEnvironment sets what the Environment item (8) runs: the Environment
 // screen (pkg/screens/environment) on the plan/apply engine, which
 // cmd/hardn assembles, as SetDNS and SetBackup set theirs (refactor plan
@@ -259,8 +279,8 @@ func (m *MainMenu) showLogs() error {
 }
 
 // showScreen runs an item's screen that cmd/hardn sets (SetUsers, SetSSH,
-// SetDNS, SetBackup, SetEnvironment, SetFirewall, SetSystemDetails,
-// SetLogs) from a cleared screen, as every item's screen starts, and
+// SetDNS, SetBackup, SetUpdates, SetEnvironment, SetFirewall,
+// SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
 // from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
@@ -801,8 +821,8 @@ func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open that are still
 // origin/main's screens: Run All (7). Every other item's screen is a hook
-// cmd/hardn sets (SetUsers, SetSSH, SetDNS, SetBackup, SetEnvironment,
-// SetFirewall, SetSystemDetails, SetLogs); the legacy User Management went
+// cmd/hardn sets (SetUsers, SetSSH, SetDNS, SetBackup, SetUpdates,
+// SetEnvironment, SetFirewall, SetSystemDetails, SetLogs); the legacy User Management went
 // with slice 5's unit (d), and the legacy SSH Login with slice 6's, each
 // deleted, not frozen.
 type screens struct {
@@ -828,18 +848,19 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // Proxmox VE, "View pve-firewall" (slice 4, decision 7); item 1's
 // parenthesis its aside; each bound to the screen it opened (legacyScreens,
 // Run All's, and the User Management, SSH Login, DNS, Firewall, Backup,
-// Environment, System Details and Logs screens, showUsers, showSSH,
-// showDNS, showFirewall, showBackup, showEnvironment, showSystemDetails
-// and showLogs); its Exit item "0)
-// Exit", "q to quit" (DEV-030). Item 6,
-// Dry-Run, is removed and its key left unused (slice 2b, unit (d);
-// decision 1): 6 is refused as any key no item has, 7 to 10 keep their
-// keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
+// Auto Updates, Environment, System Details and Logs screens, showUsers,
+// showSSH, showDNS, showFirewall, showBackup, showUpdates,
+// showEnvironment, showSystemDetails and showLogs); its Exit item "0)
+// Exit", "q to quit" (DEV-030). Item 6 is Auto Updates, "Configure
+// automatic updates" (slice 7, unit (d); gallery-updates.md §4, decision
+// 1), where origin/main's Dry-Run was until slice 2b's unit (d) removed
+// it; the hint, generated from the items, says "[0-10 or q]".
 // Each screen is built as its item is chosen, as origin/main built it,
 // and ends the pass when it returns (errAgain). User Management (1), SSH
-// Login (2), Firewall (4), Backup (5) and Environment (8) open under plan
-// only as live: their screens stop each change at its plan (slice 6, unit
-// (d), Options.DryRun of pkg/screens/ssh; slice 5, unit (d),
+// Login (2), Firewall (4), Backup (5), Auto Updates (6) and Environment
+// (8) open under plan only as live: their screens stop each change at its
+// plan (slice 7, unit (d), Options.DryRun of pkg/screens/updates; slice
+// 6, unit (d), Options.DryRun of pkg/screens/ssh; slice 5, unit (d),
 // which lifts slice 2b's "Not available in plan only." from item 1 as its
 // screen goes on the flow; slice 4, screen-firewall.md; slice 3, decision
 // 10; slice 9, gallery-environment.md §5, Made here).
@@ -861,6 +882,7 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
 			{Item: item("4", "Firewall", m.firewallDescription()), Action: m.showFirewall},
 			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},
+			{Item: item("6", "Auto Updates", "Configure automatic updates"), Action: m.showUpdates},
 			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
 			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: m.showEnvironment},
 			{Item: item("9", "System Details", "View system information"), Action: m.showSystemDetails},
