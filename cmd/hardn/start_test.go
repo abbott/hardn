@@ -168,6 +168,9 @@ func TestUsageErrors(t *testing.T) {
 		{[]string{"system-details", "--bogus"}, "unknown flag: --bogus"},
 		{[]string{"-p", "--bogus"}, "unknown flag: --bogus"},
 		{[]string{"--bogus"}, "unknown flag: --bogus"},
+		{[]string{"--test-update"}, "unknown flag: --test-update"},
+		{[]string{"--test-security-update"}, "unknown flag: --test-security-update"},
+		{[]string{"--debug-updates"}, "unknown flag: --debug-updates"},
 		{[]string{"bogus"}, `unknown command "bogus"`},
 		{[]string{"confirm", "extra"}, `unknown command "extra"`},
 	} {

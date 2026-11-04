@@ -68,7 +68,7 @@ func TestPlanOnly(t *testing.T) {
 					return nil
 				})
 			}
-			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, _, ended := session(t, func() { m.ShowMainMenu() })
 			want := []string{"users", "ssh", "firewall", "backup", "updates", "runAll", "environment"}
 			if ended || !slices.Equal(*opened, want) || strings.Contains(out, "(x) ") || passes != 8 {
 				t.Errorf("ended %v, opened %q, read %d times; want %q, none refused, read 8 times:\n%s", ended, *opened, passes, want, out)

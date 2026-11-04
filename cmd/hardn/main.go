@@ -27,22 +27,19 @@ var (
 )
 
 var (
-	noColor             bool
-	configFile          string
-	username            string
-	dryRun              bool
-	createUser          bool
-	disableRootSSH      bool
-	configureUfw        bool
-	configureDns        bool
-	runAll              bool
-	printLogs           bool
-	showVersion         bool
-	setupSudoEnv        bool
-	debugUpdates        bool
-	testUpdateAvailable bool
-	testSecurityUpdate  bool
-	cfg                 *config.Config
+	noColor        bool
+	configFile     string
+	username       string
+	dryRun         bool
+	createUser     bool
+	disableRootSSH bool
+	configureUfw   bool
+	configureDns   bool
+	runAll         bool
+	printLogs      bool
+	showVersion    bool
+	setupSudoEnv   bool
+	cfg            *config.Config
 )
 
 func main() { start("/var/log/hardn.log") }
@@ -91,9 +88,6 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
-	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, version.UpdateFlagUsage("Enable debugging for update checks"))
-	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, version.UpdateFlagUsage("Force update notification for testing"))
-	rootCmd.PersistentFlags().BoolVar(&testSecurityUpdate, "test-security-update", false, version.UpdateFlagUsage("Test security update notification"))
 }
 
 func initializeColor() {
@@ -190,32 +184,9 @@ var rootCmd = &cobra.Command{
 			!runAll && !printLogs && !setupSudoEnv {
 
 			// The main menu; its screens' items and its status: hooks.go
-			mainMenu := withHooks(menu.NewMainMenu(cfg, versionService), cfg, Version)
+			mainMenu := withHooks(menu.NewMainMenu(cfg), cfg, Version)
 
-			// Handle test flags
-			if testUpdateAvailable {
-				// Force the update notification to appear with a hard-coded newer version
-				mainMenu.SetTestUpdateAvailable("99.0.0")
-			}
-
-			// Test security update notification if requested
-			if testSecurityUpdate {
-				// Force security update notification to appear
-				mainMenu.SetTestSecurityUpdate("Critical security vulnerability CVE-2023-1234: Privilege escalation in SSH component")
-			}
-
-			if os.Getenv("HARDN_FORCE_UPDATE") != "" {
-				// Force the update notification to appear with a hard-coded newer version
-				mainMenu.SetTestUpdateAvailable("99.0.0")
-			} else if os.Getenv("HARDN_FORCE_SECURITY") != "" {
-				// Test mode for security updates - use the mainMenu method instead of direct field access
-				mainMenu.SetTestSecurityUpdate("CVE-2023-1234: Security update")
-			} else {
-				mainMenu.CheckForUpdates()
-			}
-
-			// Show main menu with version info
-			mainMenu.ShowMainMenu(Version, BuildDate, GitCommit)
+			mainMenu.ShowMainMenu()
 			return
 		}
 

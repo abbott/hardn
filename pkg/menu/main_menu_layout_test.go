@@ -127,7 +127,7 @@ func TestMainMenuKeys(t *testing.T) {
 				useReader(t, prompt.New(interrupted{strings.NewReader(script)}, false))
 			}
 			opened := recordScreens(t, m)
-			out, code, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, code, ended := session(t, func() { m.ShowMainMenu() })
 			if ended != (tc.code != 0) || code != tc.code {
 				t.Fatalf("ended %v with %d, want %d:\n%s", ended, code, tc.code, out)
 			}
@@ -172,7 +172,7 @@ func TestMainMenuInvalid(t *testing.T) {
 			passes := 0
 			m := liveMenu(t, tc.env, fixtureStatus(&passes), "x", "q")
 			opened := recordScreens(t, m)
-			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, _, ended := session(t, func() { m.ShowMainMenu() })
 			ask := strings.Replace(prompt, ">", component.NewCtx(tc.env).Theme.Glyphs.Prompt, 1)
 			if ended || passes != 1 || len(*opened) != 0 || !strings.HasSuffix(out, clearScreen) ||
 				!strings.HasSuffix(style.StripAnsi(strings.TrimSuffix(out, clearScreen)), ask+"\n"+tc.line+"\n"+ask+"\n") ||
@@ -191,7 +191,7 @@ func TestMainMenuAgain(t *testing.T) {
 	passes := 0
 	m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "7", "q")
 	recordScreens(t, m)
-	out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+	out, _, ended := session(t, func() { m.ShowMainMenu() })
 	body := strings.TrimSuffix(strings.TrimPrefix(out, clearScreen), clearScreen)
 	first, second, ok := strings.Cut(body, " \n"+clearScreen+"RUNALL SCREEN\n\n")
 	if ended || passes != 2 || !ok || first+" \n" != second || strings.Contains(second, clearScreen) {
@@ -236,7 +236,7 @@ func TestMainMenuMode(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), "q")
 			m.config = tc.start(t)
-			out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, _, ended := session(t, func() { m.ShowMainMenu() })
 			if want := "  Select an option         " + tc.want + "\n"; ended || strings.Count(out, "Select an option") != 1 || !strings.Contains(out, want) {
 				t.Errorf("ended %v; want the heading %q:\n%s", ended, want, out)
 			}
@@ -276,7 +276,7 @@ func TestMainMenuItems(t *testing.T) {
 			legacy = append(legacy, r[1:])
 		}
 	}
-	m := NewMainMenu(config.DefaultConfig(), nil)
+	m := NewMainMenu(config.DefaultConfig())
 	view := m.mainMenu().View()
 	var layout [][]string
 	for _, it := range append(slices.Clone(view.Items), view.Exit) {
@@ -352,7 +352,7 @@ func TestMainMenuHeights(t *testing.T) {
 			m := liveMenu(t, env, func(ctx context.Context) (screen.MainMenu, error) {
 				return mainmenu.Status(ctx, mainmenu.Options{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 			}, "q")
-			out, _, _ := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+			out, _, _ := session(t, func() { m.ShowMainMenu() })
 			drawn, _, _ := strings.Cut(strings.TrimPrefix(out, clearScreen), clearScreen)
 			ls := strings.Split(style.StripAnsi(strings.TrimSuffix(drawn, " \n")), "\n")
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
@@ -373,7 +373,7 @@ func TestMainMenuKeepsLoadWarning(t *testing.T) {
 		env := plainEnv()
 		m := liveMenu(t, env, fixtureStatus(new(int)), "q")
 		m.SetWarnedAtLoad(warned)
-		out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+		out, _, ended := session(t, func() { m.ShowMainMenu() })
 		if ended {
 			t.Fatalf("ended hardn:\n%s", out)
 		}
@@ -395,7 +395,7 @@ func TestMainMenuDraw(t *testing.T) {
 	env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 24,
 		Environ: []string{"TERM=xterm-256color", "LANG=C.UTF-8"}})
 	m := liveMenu(t, env, fixtureStatus(new(int)), "q")
-	out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
+	out, _, ended := session(t, func() { m.ShowMainMenu() })
 	vm := screen.MainMenuFixture()
 	vm.Mode = component.ModeIndicator{}
 	vm.Menu.Items = withUpdatesItem(vm.Menu.Items)

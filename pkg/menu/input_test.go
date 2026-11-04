@@ -2,14 +2,12 @@ package menu
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
 	"strings"
 	"testing"
-	"testing/iotest"
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -62,152 +60,19 @@ func session(t *testing.T, fn func()) (out string, code int, ended bool) {
 	return out, code, ended
 }
 
-// reads are the legacy input functions, each a line read now.
-var reads = []struct {
-	name string
-	read func() string
-}{
-	{"ReadKey", ReadKey},
-}
-
-// TestReads checks what the legacy read returns for a line: trimmed of
-// spaces. Without a terminal no echoed Enter ended the prompt's line, so
-// the read ends it.
-func TestReads(t *testing.T) {
-	tests := []struct {
-		name   string
-		read   func() string
-		script string
-		want   string
-	}{
-		{"a key's line", ReadKey, "x\n", "x"},
-		{"Enter alone", ReadKey, "\n", ""},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			scripted(t, tt.script)
-			var got string
-			out, code, ended := session(t, func() { got = tt.read() })
-			if ended || got != tt.want {
-				t.Errorf("read = %q (ended %v, %d); want %q", got, ended, code, tt.want)
-			}
-			if out != "\n" {
-				t.Errorf("printed %q, want the prompt's line ended", out)
-			}
-		})
-	}
-	t.Run("typeahead is dropped on a terminal", func(t *testing.T) {
-		// One read takes both lines into the Reader's buffer, as if the
-		// second were typed while the first answer's step ran: the next
-		// read flushes it and meets the end of the input. A
-		// strings.Reader has no descriptor, so only the buffer is
-		// flushed; prompt's tests flush a pseudo-terminal's queue.
-		useReader(t, prompt.New(strings.NewReader("1\ntypeahead\n"), true))
-		var first string
-		out, code, ended := session(t, func() { first = ReadKey(); ReadKey() })
-		if first != "1" || !ended || code != prompt.ExitInterrupted {
-			t.Errorf("read %q, then ended %v with %d; want \"1\", then the typeahead dropped and exit status %d", first, ended, code, prompt.ExitInterrupted)
-		}
-		if out != "\n" {
-			t.Errorf("printed %q, want only the aborted prompt's line ended", out)
-		}
-	})
-	t.Run("a line too long reads as empty", func(t *testing.T) {
-		scripted(t, strings.Repeat("1", prompt.MaxLine+1)+"\n2\n")
-		var first, second string
-		_, _, ended := session(t, func() { first, second = ReadKey(), ReadKey() })
-		if ended || first != "" || second != "2" {
-			t.Errorf("reads = %q, %q (ended %v); want \"\", \"2\"", first, second, ended)
-		}
-	})
-}
-
-// TestEnterRequired checks that no read returns before Enter: origin/main
-// took a menu's q, and any key at a pause, without one (brief §2).
-func TestEnterRequired(t *testing.T) {
-	for _, r := range []struct {
-		name string
-		read func() string
-		key  string
-	}{
-		{"ReadKey", ReadKey, "x"},
-	} {
-		t.Run(r.name, func(t *testing.T) {
-			pr, pw, err := os.Pipe()
-			if err != nil {
-				t.Fatal(err)
-			}
-			t.Cleanup(func() { _ = pr.Close(); _ = pw.Close() })
-			useReader(t, prompt.New(pr, false))
-			out, _, _ := session(t, func() {
-				done := make(chan string, 1)
-				go func() { done <- r.read() }()
-				_, _ = pw.WriteString(r.key)
-				select {
-				case got := <-done:
-					t.Errorf("%s returned %q before Enter", r.name, got)
-					return
-				case <-time.After(200 * time.Millisecond):
-				}
-				_, _ = pw.WriteString("\n")
-				select {
-				case got := <-done:
-					if got != r.key {
-						t.Errorf("%s = %q, want %q", r.name, got, r.key)
-					}
-				case <-time.After(10 * time.Second):
-					t.Errorf("%s did not return on Enter", r.name)
-				}
-			})
-			if out != "\n" {
-				t.Errorf("printed %q, want the prompt's line ended", out)
-			}
-		})
-	}
-}
-
-// TestAbort checks that the end of the input at any legacy read ends
-// hardn with exit status 130, after ending the prompt's line, where
-// origin/main's menus spun forever (side-effects D6), and that a read
-// error ends it with status 1.
-func TestAbort(t *testing.T) {
-	for _, r := range reads {
-		t.Run(r.name, func(t *testing.T) {
-			scripted(t, "")
-			out, code, ended := session(t, func() { r.read() })
-			if !ended || code != prompt.ExitInterrupted {
-				t.Errorf("ended %v with %d, want exit status %d", ended, code, prompt.ExitInterrupted)
-			}
-			if out != "\n" {
-				t.Errorf("printed %q, want the prompt's line ended", out)
-			}
-		})
-	}
-	t.Run("a read error", func(t *testing.T) {
-		useReader(t, prompt.New(iotest.ErrReader(errors.New("input/output error")), false))
-		out, code, ended := session(t, func() { ReadKey() })
-		if !ended || code != 1 {
-			t.Errorf("ended %v with %d, want exit status 1", ended, code)
-		}
-		if want := "\nprompt: read: input/output error\n"; out != want {
-			t.Errorf("printed %q, want %q", out, want)
-		}
-	})
-}
-
 // TestSharedStdin runs this test binary as a child process whose stdin
 // is a pipe holding two answers, so that the first read takes both into
-// its buffer: the config prompt's, then a pause's. Both read through
-// prompt.Stdin, so the pause gets its line; origin/main's two
-// bufio readers lost it to the first (plan risk R17, side-effects D5).
-// The child then ends at the end of the input, by os.Exit with status
-// 130.
+// its buffer: the config prompt's, then the main menu's q. Both read
+// through prompt.Stdin, so the main menu gets its line and quits;
+// origin/main's two bufio readers lost it to the first (plan risk R17,
+// side-effects D5), and the main menu would meet the end of the input,
+// exit status 130.
 func TestSharedStdin(t *testing.T) {
 	if os.Getenv("HARDN_MENU_CHILD") == "shared" {
 		create := config.ShouldCreateDefaultConfig()
-		choice := ReadKey()
-		fmt.Printf("child: %v %q\n", create, choice)
-		ReadKey()
+		fmt.Printf("child: %v\n", create)
+		childMenu().ShowMainMenu()
+		fmt.Println("child: quit")
 		os.Exit(0)
 	}
 	pr, pw, err := os.Pipe()
@@ -215,7 +80,7 @@ func TestSharedStdin(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = pr.Close() })
-	if _, err := pw.WriteString("n\n1\n"); err != nil {
+	if _, err := pw.WriteString("n\nq\n"); err != nil {
 		t.Fatal(err)
 	}
 	_ = pw.Close()
@@ -225,13 +90,22 @@ func TestSharedStdin(t *testing.T) {
 	cmd.Env = append(os.Environ(), "HARDN_MENU_CHILD=shared")
 	cmd.Stdin = pr
 	out, err := cmd.Output()
-	var exit *exec.ExitError
-	if !errors.As(err, &exit) || exit.ExitCode() != prompt.ExitInterrupted {
-		t.Errorf("child: %v; want exit status %d", err, prompt.ExitInterrupted)
+	if err != nil {
+		t.Errorf("child: %v; want exit status 0", err)
 	}
-	if want := `child: false "1"`; !strings.Contains(string(out), want) {
-		t.Errorf("child printed:\n%s\nwant %s", out, want)
+	if want := "child: false\n"; !strings.Contains(string(out), want) || !strings.HasSuffix(string(out), "child: quit\n") {
+		t.Errorf("child printed:\n%s\nwant %q, then the main menu quit", out, want)
 	}
+}
+
+// childMenu is the main menu as a child process runs it, with the
+// production input, exit and reraise: Figma's fixture as its status, drawn
+// as off a terminal.
+func childMenu() *MainMenu {
+	m := NewMainMenu(config.DefaultConfig())
+	m.SetStatus(fixtureStatus(new(int)))
+	m.SetTerminal(plainEnv)
+	return m
 }
 
 // captureStdout returns what fn writes to os.Stdout.

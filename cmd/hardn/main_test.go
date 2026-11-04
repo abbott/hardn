@@ -62,7 +62,7 @@ const (
 func resetFlags() {
 	noColor, configFile, username, dryRun = false, "", "", false
 	createUser, disableRootSSH, configureUfw, configureDns, runAll, printLogs = false, false, false, false, false, false
-	showVersion, setupSudoEnv, debugUpdates, testUpdateAvailable, testSecurityUpdate = false, false, false, false, false
+	showVersion, setupSudoEnv = false, false
 	cfg = nil
 	// A flag given in one run stays given in pflag for the next (dryRunGiven).
 	for _, name := range []string{"dry-run", "print-logs", "create-user", "disable-root", "configure-dns", "configure-ufw", "run-all", "setup-sudo-env"} {
@@ -200,14 +200,14 @@ func TestDryRunAloneIsNotRefused(t *testing.T) {
 	}
 }
 
-// TestUpdateFlagsSayDisabled checks that the update-check flags, which do
-// nothing while pkg/version's updateCheckEnabled is false (V26), say so in
-// hardn --help.
-func TestUpdateFlagsSayDisabled(t *testing.T) {
+// TestUpdateFlagsGone: the update-check flags, which did nothing while
+// pkg/version's updateCheckEnabled is false (V26), are gone (legacy-left.md
+// §3, decision 3 (a)); TestUsageErrors runs each as an unknown flag, exit
+// status 2.
+func TestUpdateFlagsGone(t *testing.T) {
 	for _, name := range []string{"debug-updates", "test-update", "test-security-update"} {
-		f := rootCmd.PersistentFlags().Lookup(name)
-		if f == nil || !strings.HasSuffix(f.Usage, "(no effect: update checks are disabled)") {
-			t.Errorf("--%s: %+v", name, f)
+		if f := rootCmd.PersistentFlags().Lookup(name); f != nil {
+			t.Errorf("--%s is still a flag: %+v", name, f)
 		}
 	}
 }
