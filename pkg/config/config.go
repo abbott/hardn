@@ -73,8 +73,7 @@ type Config struct {
 // Default configuration
 func DefaultConfig() *Config {
 	return &Config{
-		// Basic Configuration
-		// Username:      "george",
+		// Basic Configuration: no username (refactor plan §3.11)
 		LogFile:       defaultLogFile,
 		DryRun:        false,
 		EnableBackups: true,
@@ -340,14 +339,11 @@ func CreateDefaultConfig(path string, config *Config) error {
 
 	// Ask for basic configuration if interactive
 	if isInteractive() {
-		// Ask for username
-		fmt.Print("Enter default username [george]: ")
-		username := readAnswer()
-		username = strings.TrimSpace(username)
-		if username != "" {
+		// Ask for username: none by default (refactor plan §3.11, "george"
+		// dropped), so that -c asks for -u and the screens for a name.
+		fmt.Print("Enter default username (optional, press Enter to skip): ")
+		if username := strings.TrimSpace(readAnswer()); username != "" {
 			config.Username = username
-		} else {
-			config.Username = "george" // Default if nothing provided
 		}
 
 		// Ask for SSH port
