@@ -239,9 +239,15 @@ var rootCmd = &cobra.Command{
 
 		// Run All: the planner's one plan through the engine, the hostname
 		// typed on a terminal, any plan with changes refused off one
-		// (runall.go). It runs alone (runAllAlone).
+		// (runall.go). It runs alone (runAllAlone), -p aside: the log printed
+		// after -r's run, as after -c, -d, -w and -g, its status composed by
+		// runStatus.
 		if runAll {
-			if code := runAllFlag(cfg, Version); code != 0 {
+			code := runAllFlag(cfg, Version)
+			if printLogs {
+				code = runStatus(code, printLog(context.Background(), cfg.LogFile))
+			}
+			if code != 0 {
 				exit(code)
 			}
 			return
