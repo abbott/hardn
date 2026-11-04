@@ -51,7 +51,7 @@ func (f *ServiceFactory) CreateHostInfoManager() *application.HostInfoManager {
 	hostInfoRepo := secondary.NewOSHostInfoRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType, userRepo)
 
 	// Create domain service
-	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, userRepo, convertOSInfo(f.osInfo))
+	hostInfoService := service.NewHostInfoServiceImpl(hostInfoRepo, convertOSInfo(f.osInfo))
 
 	// Create application service
 	return application.NewHostInfoManager(hostInfoService)
