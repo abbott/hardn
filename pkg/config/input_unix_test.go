@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/ui/prompt"
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
 // TestInterrupt checks that Ctrl-C at the first-run question ends hardn
@@ -24,19 +25,19 @@ import (
 // 10 ms while the question waits on a pipe that never ends.
 // TestInterruptChild checks that the process then dies of the signal.
 func TestInterrupt(t *testing.T) {
-	// A SIGINT that lands outside the read's relay reaches guard rather
-	// than ending the test binary.
-	guard := make(chan os.Signal, 64)
-	signal.Notify(guard, os.Interrupt)
-	t.Cleanup(func() { signal.Stop(guard) })
+	// A SIGINT that lands outside the read's relay reaches the
+	// Interrupter's guard rather than ending the test binary.
+	sig := uitest.NewInterrupter(t)
 	pr, pw, err := os.Pipe()
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = pr.Close(); _ = pw.Close() })
 	useReader(t, prompt.New(pr, false))
-	// The sender is stopped and waited for before guard is stopped
-	// (cleanups run last first), so no SIGINT follows signal.Stop.
+	// The sender is stopped and waited for before the guard is stopped
+	// (cleanups run last first), and each SIGINT it sent has been
+	// delivered (sig.Send), so none is still on its way after the guard
+	// stops, when it would kill the test binary.
 	stop, sent := make(chan struct{}), make(chan struct{})
 	t.Cleanup(func() { close(stop); <-sent })
 	go func() {
@@ -52,7 +53,10 @@ func TestInterrupt(t *testing.T) {
 				_, _ = pw.WriteString("not interrupted\n")
 				return
 			case <-tick.C:
-				_ = syscall.Kill(os.Getpid(), syscall.SIGINT)
+				if err := sig.Send(); err != nil {
+					t.Error(err)
+					return
+				}
 			}
 		}
 	}()
