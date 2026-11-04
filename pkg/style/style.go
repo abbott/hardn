@@ -215,10 +215,6 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	return symbol + symbolPadding + label + padding + status + " " + descripitionStyle
 }
 
-// func (sf *StatusFormatter) FormatBullet(label string, status string, description string, opts ...string) string {
-// 	return sf.FormatLine(BulletItem, Dim, label, status, Dim, description, opts...)
-// }
-
 // Format Configured
 func (sf *StatusFormatter) FormatConfigured(label string, status string, description string, opts ...string) string {
 	symbol := Dimmed(SymEnabled)
