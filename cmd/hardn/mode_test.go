@@ -67,7 +67,7 @@ func (y hardnYML) setup(t *testing.T) func() {
 			if y.path == "" {
 				c := config.DefaultConfig()
 				c.Username, c.LogFile, c.SshPort = "alice", y.logFile, 2230
-				c.SshAllowedUsers, c.Nameservers = []string{"alice"}, []string{"192.0.2.53"}
+				c.Nameservers = []string{"192.0.2.53"}
 				return c, nil
 			}
 			if p != y.path {

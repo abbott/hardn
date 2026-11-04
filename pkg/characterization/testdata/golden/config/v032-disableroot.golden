@@ -15,23 +15,13 @@
   "Nameservers": null,
   "SshPort": 22,
   "PermitRootLogin": false,
-  "SshAllowedUsers": null,
-  "SshListenAddress": "0.0.0.0",
   "SshKeyPath": ".ssh_%u",
   "SshConfigFile": "/etc/ssh/sshd_config.d/hardn.conf",
   "SudoNoPassword": true,
   "SshKeys": [],
   "UfwAppProfiles": [],
-  "UfwDefaultIncomingPolicy": "",
-  "UfwDefaultOutgoingPolicy": "",
-  "UfwAllowedPorts": null,
-  "EnableAppArmor": false,
-  "EnableLynis": false,
   "EnableUnattendedUpgrades": false,
   "EnableUfwSshPolicy": false,
   "ConfigureDns": false,
-  "DisableRootSSH": false,
-  "LogsConfig": {
-    "LogFilePath": "/var/log/hardn.log"
-  }
+  "DisableRootSSH": false
 }

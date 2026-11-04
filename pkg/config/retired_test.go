@@ -29,6 +29,9 @@ func TestRetired(t *testing.T) {
 		{"dmzSubnet: \"\"\nlinuxCorePackages: []\npythonPackages:\nalpineTestingRepo: false\nuseUvPackageManager: off\n" +
 			"lang: \"\"\ntz:\npythonUnbuffered: \"1\"\n", nil},
 		{"pythonUnbuffered: 1\n", nil},
+		{"sshAllowedUsers: []\nsshListenAddress: 0.0.0.0\nufwDefaultIncomingPolicy: \"\"\nufwAllowedPorts: []\nenableLynis: false\n", nil},
+		{"enableLynis: true\nsshListenAddress: 192.0.2.10\nufwDefaultOutgoingPolicy: allow\n",
+			[]string{"sshListenAddress", "ufwDefaultOutgoingPolicy", "enableLynis"}},
 		{"tz: UTC\ndmzSubnet: 192.0.2\npythonUnbuffered: \"\"\nalpineTestingRepo: true\n" +
 			"debianRepos:\n  - deb http://192.0.2.1/debian trixie main\n",
 			[]string{"dmzSubnet", "debianRepos", "alpineTestingRepo", "tz", "pythonUnbuffered"}},

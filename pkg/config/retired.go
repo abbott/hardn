@@ -24,14 +24,20 @@ type retiredKey struct {
 	text string // retiredText's default
 }
 
-// retired are hardn.yml's keys that nothing in hardn reads since the legacy
+// retired are hardn.yml's keys that nothing in hardn reads: since slice 6,
+// sshAllowedUsers and sshListenAddress (decision 9 (a)); since slice 4,
+// the two ufw policies (decision 8); since slice 8, ufwAllowedPorts,
+// enableAppArmor and enableLynis (decision 4 (a)); and since the legacy
 // package, sources and localization code went (refactor plan, the unit
-// after slice 9): the DMZ subnet, the package lists, the repositories,
+// after slice 9), the DMZ subnet, the package lists, the repositories,
 // useUvPackageManager and the locale settings. Config has no field for
 // them (docs/engine/legacy-left.md §2, step 8). A file that sets one
 // still loads, and is told so (Retired); a save edits only the keys it
 // changes (Save, Edit), so the file keeps it.
 var retired = []retiredKey{
+	{name: "sshAllowedUsers"}, {name: "sshListenAddress", kind: retiredText, text: "0.0.0.0"},
+	{name: "ufwDefaultIncomingPolicy", kind: retiredText}, {name: "ufwDefaultOutgoingPolicy", kind: retiredText},
+	{name: "ufwAllowedPorts"}, {name: "enableAppArmor", kind: retiredFlag}, {name: "enableLynis", kind: retiredFlag},
 	{name: "dmzSubnet", kind: retiredText},
 	{name: "linuxCorePackages"}, {name: "linuxDmzPackages"}, {name: "linuxLabPackages"},
 	{name: "pythonPackages"}, {name: "nonWslPythonPackages"}, {name: "pythonPipPackages"},

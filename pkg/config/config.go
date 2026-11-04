@@ -47,12 +47,10 @@ type Config struct {
 	Nameservers []string `yaml:"nameservers"`
 
 	// SSH Configuration
-	SshPort          int      `yaml:"sshPort"`
-	PermitRootLogin  bool     `yaml:"permitRootLogin"`
-	SshAllowedUsers  []string `yaml:"sshAllowedUsers"`
-	SshListenAddress string   `yaml:"sshListenAddress"`
-	SshKeyPath       string   `yaml:"sshKeyPath"`
-	SshConfigFile    string   `yaml:"sshConfigFile"`
+	SshPort         int    `yaml:"sshPort"`
+	PermitRootLogin bool   `yaml:"permitRootLogin"`
+	SshKeyPath      string `yaml:"sshKeyPath"`
+	SshConfigFile   string `yaml:"sshConfigFile"`
 
 	// User Configuration
 	SudoNoPassword bool     `yaml:"sudoNoPassword"`
@@ -60,23 +58,13 @@ type Config struct {
 
 	// Firewall Configuration
 	// UfwAppProfiles represents UFW application profiles
-	UfwAppProfiles           []UfwAppProfile `yaml:"ufwAppProfiles"`
-	UfwDefaultIncomingPolicy string          `yaml:"ufwDefaultIncomingPolicy"`
-	UfwDefaultOutgoingPolicy string          `yaml:"ufwDefaultOutgoingPolicy"`
-	UfwAllowedPorts          []int           `yaml:"ufwAllowedPorts"`
+	UfwAppProfiles []UfwAppProfile `yaml:"ufwAppProfiles"`
 
 	// Feature Toggles
-	EnableAppArmor           bool `yaml:"enableAppArmor"`
-	EnableLynis              bool `yaml:"enableLynis"`
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`
 	ConfigureDns             bool `yaml:"configureDns"`
 	DisableRootSSH           bool `yaml:"disableRootSSH"`
-
-	// Logs Configuration (embedded for easy access to LogFile)
-	LogsConfig struct {
-		LogFilePath string
-	}
 
 	// loaded is what the YAML said beyond the fields: permitRootLogin's
 	// string value and the deprecated forms read, and the path LoadConfig
@@ -100,10 +88,8 @@ func DefaultConfig() *Config {
 		// SSH Configuration
 		SshPort:         22,
 		PermitRootLogin: false,
-		// SshAllowedUsers:  []string{"george"},
-		SshListenAddress: "0.0.0.0",
-		SshKeyPath:       ".ssh_%u",
-		SshConfigFile:    "/etc/ssh/sshd_config.d/hardn.conf",
+		SshKeyPath:      ".ssh_%u",
+		SshConfigFile:   "/etc/ssh/sshd_config.d/hardn.conf",
 
 		// User Configuration
 		SudoNoPassword: true,
@@ -111,13 +97,8 @@ func DefaultConfig() *Config {
 
 		// Firewall Configuration
 		UfwAppProfiles: []UfwAppProfile{},
-		// UfwDefaultIncomingPolicy: "deny",
-		// UfwDefaultOutgoingPolicy: "allow",
-		// UfwAllowedPorts:          []int{22},
 
 		// Feature Toggles
-		EnableAppArmor:           false,
-		EnableLynis:              false,
 		EnableUnattendedUpgrades: false,
 		EnableUfwSshPolicy:       false,
 		ConfigureDns:             false,
@@ -258,22 +239,13 @@ func readConfigFile(path string) (*Config, error) {
 }
 
 // LoadConfig loads hardn's configuration as LoadConfigWithEnvPriority
-// finds it (-f, HARDN_CONFIG, then the search path), its LogsConfig set
-// from its logFile. It runs nothing: origin/main's su - probe of the sudo
+// finds it (-f, HARDN_CONFIG, then the search path). It runs nothing: origin/main's su - probe of the sudo
 // user's login shell for HARDN_CONFIG, and the notice after it, are gone
 // (refactor plan slice 9, unit (d), decision 4; side-effects row 5): the
 // Environment screen's state row says whether sudo, or doas, keeps
 // HARDN_CONFIG, read from hardn's files (pkg/screens/environment).
 func LoadConfig(filePath string) (*Config, error) {
-	cfg, err := LoadConfigWithEnvPriority(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// Initialize LogsConfig
-	cfg.LogsConfig.LogFilePath = cfg.LogFile
-
-	return cfg, nil
+	return LoadConfigWithEnvPriority(filePath)
 }
 
 // LoadExisting loads hardn's configuration as LoadConfig does where a file
@@ -299,7 +271,6 @@ func LoadExisting(filePath string) (*Config, error) {
 	case os.Getenv("HARDN_CONFIG") != "":
 		return nil, fmt.Errorf("config: %s (HARDN_CONFIG): %w", os.Getenv("HARDN_CONFIG"), fs.ErrNotExist)
 	}
-	cfg.LogsConfig.LogFilePath = cfg.LogFile
 	return cfg, nil
 }
 
