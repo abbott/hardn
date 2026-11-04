@@ -445,9 +445,6 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			if tc.host == "boot-off" && (h.unit == "enabled") != tc.plain {
 				t.Errorf("ufw's service at boot %q, want the plain plan applied %t", h.unit, tc.plain)
 			}
-			if len(r.calls) != 0 {
-				t.Errorf("-w went through the legacy provider: %v", r.calls)
-			}
 			if want := map[bool]int{true: 1}[tc.applied || !tc.dryRun && tc.code == 0]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
 			}

@@ -6,11 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/domain/model"
-	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/security"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/keys"
@@ -24,9 +20,7 @@ import (
 
 // MainMenu is the main menu of the application
 type MainMenu struct {
-	menuManager *application.MenuManager
-	config      *config.Config
-	osInfo      *osdetect.OSInfo
+	config *config.Config
 
 	// Version service for update checks
 	versionService *version.Service
@@ -96,41 +90,10 @@ const (
 // main menu under what the screen printed.
 var errAgain = errors.New("menu: the main menu again")
 
-// legacySecurityStatus: DISABLED 2026-10-23. Flip to true to restore.
-//
-// With it true, each pass of the main menu draws origin/main's block
-// above its heading and items, in place of the layout's status blocks,
-// from pkg/security: the version line, the host and
-// uptime lines (MenuManager.GetHostInfo), the OS title bar, the risk
-// level of GetSecurityRiskLevel (eight equal booleans) and the rows of
-// DisplaySecurityStatusWithCustomPrinter: Users, Sudo (when missing),
-// Sudo Method, Firewall, SSH Login, SSH Auth, SSH Port (from hardn.yml's
-// port, not the host's), AppArmor and Auto Updates, read by
-// CheckSecurityStatus from files and commands of its own (showLegacyStatus).
-// With it false, the main menu goes live (the maintainer, 2026-10-23,
-// refactor plan slice 2, next/s2-menu-live): the block is drawn from the
-// status model, the controls' checks, the header probe and the risk
-// level, through the hook cmd/hardn sets (SetStatus), as the gallery and
-// p4status draw it, the DNS row included (docs/engine/menu-live.md §7
-// says what changes). The security-update alert, which replaces the block
-// when an update check finds a security release, is drawn either way;
-// it needs update checks, off while pkg/version's updateCheckEnabled is
-// false (V26).
-const legacySecurityStatus = false
-
-// NewMainMenu creates a new MainMenu
-func NewMainMenu(
-	menuManager *application.MenuManager,
-	config *config.Config,
-	osInfo *osdetect.OSInfo,
-	versionService *version.Service,
-) *MainMenu {
-	return &MainMenu{
-		menuManager:    menuManager,
-		config:         config,
-		osInfo:         osInfo,
-		versionService: versionService,
-	}
+// NewMainMenu returns the main menu on config, the configuration every
+// screen reads, and versionService, hardn's version.
+func NewMainMenu(config *config.Config, versionService *version.Service) *MainMenu {
+	return &MainMenu{config: config, versionService: versionService}
 }
 
 // SetUsers sets what the User Management item (1) runs: the User
@@ -344,9 +307,7 @@ func (m *MainMenu) SetStatus(read func(ctx context.Context) (screen.MainMenu, er
 func (m *MainMenu) SetTerminal(env func() term.Env) { m.terminal = env }
 
 // readStatus reads the status for one pass (SetStatus): the main menu's
-// view-model with its status blocks filled, or none while
-// legacySecurityStatus draws origin/main's block in their place. The
-// checks only read, and run again on every pass, so each pass shows the
+// view-model with its status blocks filled. The checks only read, and run again on every pass, so each pass shows the
 // host as it is then. Nothing bounds a pass: ctx is context.Background(),
 // never done, so a command that blocks holds the screen until it returns
 // or Ctrl-C ends hardn (docs/engine/menu-live.md §5). Ctrl-C while they
@@ -356,9 +317,6 @@ func (m *MainMenu) SetTerminal(env func() term.Env) { m.terminal = env }
 // context's error, of a context of its own, ends hardn the same way: the
 // error is returned as Ctrl-C's (prompt.ErrInterrupted).
 func (m *MainMenu) readStatus(ctx context.Context) (screen.MainMenu, error) {
-	if legacySecurityStatus {
-		return screen.MainMenu{}, nil
-	}
 	if m.status == nil {
 		panic("menu: the main menu has no status (SetStatus)")
 	}
@@ -367,36 +325,6 @@ func (m *MainMenu) readStatus(ctx context.Context) (screen.MainMenu, error) {
 		return vm, fmt.Errorf("%w: %w", prompt.ErrInterrupted, err)
 	}
 	return vm, err
-}
-
-// showLegacyStatus is origin/main's block (legacySecurityStatus): the
-// status pkg/security reads, drawn by displaySecurityStatus with
-// origin/main's formatter, or a blank line when it is not read.
-func (m *MainMenu) showLegacyStatus() {
-	// Get security status
-	securityStatus, err := security.CheckSecurityStatus(m.config, m.osInfo)
-
-	// Create formatter for security status
-	formatter := style.NewStatusFormatter([]string{
-		"Host",
-		"OS",
-		"Uptime",
-		"Risk Level",
-		"SSH Root Login",
-		"Firewall",
-		"Users",
-		"SSH Port",
-		"SSH Auth",
-		"AppArmor",
-		"Auto Updates",
-	}, 2) // 2 spaces buffer
-
-	// Display security status if available
-	if err == nil {
-		m.displaySecurityStatus(securityStatus, formatter)
-	} else {
-		fmt.Println()
-	}
 }
 
 // refresh any configuration values that might have been
@@ -408,7 +336,6 @@ func (m *MainMenu) refreshConfig() {
 }
 
 const (
-	repoURL             = "https://github.com/abbott/hardn"
 	testVersionNumber   = "0.3.3"
 	testSecurityMessage = "Critical security vulnerability fixed - CVE-2023-1234"
 )
@@ -499,18 +426,6 @@ func (m *MainMenu) SetTestSecurityUpdate(details string) {
 	m.applyUpdateResult(result)
 }
 
-// displaySecurityStatus displays the security status with appropriate borders
-func (m *MainMenu) displaySecurityStatus(securityStatus *security.SecurityStatus, formatter *style.StatusFormatter) {
-	// If security update is available, display special alert and return
-	if m.securityUpdateAvailable && m.versionService != nil && m.versionService.CurrentVersion != "" {
-		m.displaySecurityUpdateAlert(formatter)
-		return
-	}
-
-	// Otherwise display the normal security status
-	m.displayNormalSecurityStatus(securityStatus, formatter)
-}
-
 // displaySecurityUpdateAlert displays the security update alert
 // Preserves exact formatting and messaging for security updates
 func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) {
@@ -555,170 +470,6 @@ func (m *MainMenu) displaySecurityUpdateAlert(formatter *style.StatusFormatter) 
 	fmt.Println()
 	fmt.Println()
 	fmt.Print(style.Dimmed("Press Enter to exit... "))
-}
-
-// displayNormalSecurityStatus displays the normal security status in a box
-func (m *MainMenu) displayNormalSecurityStatus(securityStatus *security.SecurityStatus, formatter *style.StatusFormatter) {
-	// Format hardn version line with update info if available
-	hardnLine := m.formatHardnVersionLine(formatter)
-
-	// Display version information
-	fmt.Println(hardnLine)
-
-	repo := style.Dimmed(repoURL)
-
-	// When update is available, also display the repo URL on a new line
-	if m.updateAvailable {
-		repoLine := formatter.FormatLine("", "", "", repo, style.Gray08, "", "no-indent")
-		fmt.Println(repoLine)
-	}
-
-	// Get host information and format lines for display
-	hostInfo, err := m.menuManager.GetHostInfo()
-	hostLine := ""
-	uptimeLine := ""
-	if err == nil && hostInfo != nil {
-		hostLine, uptimeLine = m.formatHostInfoLines(hostInfo, formatter)
-	}
-
-	// Format OS information for the box title
-	osTitle := m.formatOSTitle()
-
-	// Create a separate box for security status
-	securityBox := style.NewBox(style.BoxConfig{
-		Width:               64,
-		ShowEmptyRow:        true,
-		ShowTopShade:        true,
-		ShowBottomSeparator: true,
-		Indentation:         0,
-		Title:               osTitle,
-		TitleColor:          "skip",
-	})
-
-	// Draw the security box with all content
-	securityBox.DrawBox(func(printLine func(string)) {
-		// Display host information if available
-		if hostLine != "" {
-			printLine(hostLine)
-			printLine(uptimeLine)
-			printLine("")
-		}
-
-		// Display security status if available
-		if securityStatus != nil {
-			// Define indentation for all security status items
-			indentSpaces := 2
-			indentedPrintLine := style.IndentPrinter(printLine, indentSpaces)
-
-			// Display risk level with appropriate color
-			riskLevel, riskDescription, riskColor := security.GetSecurityRiskLevel(securityStatus)
-			boldRiskLabel := style.Bold + "Risk Level" + style.Reset
-			riskDescription = style.SymApprox + " " + riskDescription
-			riskLine := formatter.FormatLine(style.SymDotTri, riskColor, boldRiskLabel, riskLevel, riskColor, riskDescription, "dark")
-
-			// Use indented print function for risk level as well
-			indentedPrintLine(riskLine)
-
-			// Add empty line after risk level
-			indentedPrintLine("")
-
-			// Display security status items using the same indentation
-			security.DisplaySecurityStatusWithCustomPrinter(m.config, securityStatus, formatter, indentedPrintLine, 0)
-
-			// securityBox.DrawSeparator()
-		}
-	})
-}
-
-// formatOSTitle formats the OS information into a pretty title string
-func (m *MainMenu) formatOSTitle() string {
-	if m.osInfo == nil {
-		return ""
-	}
-
-	boldOsType := style.Bolded(utils.Capitalize(m.osInfo.OsType))
-	dimOsType := style.Dimmed(boldOsType, style.Gray15)
-	regularVersion := style.Dimmed(m.osInfo.OsVersion, style.Gray15)
-	grayCodename := style.Dimmed("("+utils.Capitalize(m.osInfo.OsCodename+")"), style.Gray15)
-
-	// Format based on OS type
-	switch m.osInfo.OsType {
-	case "debian":
-		// For Debian, format as "Debian X (Codename)"
-		return fmt.Sprintf("%s %s %s", dimOsType, regularVersion, grayCodename)
-	case "ubuntu":
-		// For Ubuntu, format as "Ubuntu X.Y (Codename)"
-		return fmt.Sprintf("%s %s %s", dimOsType, regularVersion, grayCodename)
-	case "alpine":
-		// For Alpine, format as "Alpine Linux X.Y.Z" - but "Linux" should not be bold
-		return fmt.Sprintf("%s Linux %s", dimOsType, regularVersion)
-	default:
-		// Generic format for other OS types
-		return fmt.Sprintf("%s %s", dimOsType, regularVersion)
-	}
-}
-
-// formatHardnVersionLine formats the hardn version line with update information if available
-func (m *MainMenu) formatHardnVersionLine(formatter *style.StatusFormatter) string {
-	// Create common elements
-	hardnBold := style.Bold + "hardn" + style.Reset
-	// hardnPad := " " + hardnBold + " "
-	// hardnLabel := style.Colored(style.BgGray02, hardnPad)
-	currentVersion := "v" + m.versionService.CurrentVersion
-	currentVersionPad := " " + currentVersion + " "
-	currentVersionDim := style.Dimmed(currentVersionPad)
-	currentVersionBg := style.Colored(style.BgGray03, currentVersionDim)
-	hardnVersion := hardnBold + " " + currentVersionBg
-	repo := style.Dimmed(repoURL)
-
-	// Format differently based on update availability
-	if m.updateAvailable {
-		latestVersion := "v" + m.latestVersion
-		message := latestVersion + " " + "available"
-		notification := style.Colored(style.Royal, message)
-		return formatter.FormatLine(
-			"",
-			"",
-			hardnVersion,
-			notification,
-			style.Royal,
-			"",
-			"no-indent",
-		)
-	} else {
-		return formatter.FormatLine(
-			"",
-			"",
-			hardnVersion,
-			repo,
-			style.Gray10,
-			"",
-			"no-indent",
-		)
-	}
-}
-
-// formatHostInfoLines formats host information lines for display
-func (m *MainMenu) formatHostInfoLines(hostInfo *model.HostInfo, formatter *style.StatusFormatter) (string, string) {
-	// Get IP address if available
-	ipAddress := "Unknown"
-	if len(hostInfo.IPAddresses) > 0 {
-		ipAddress = hostInfo.IPAddresses[0]
-	}
-
-	// Format hostname as highlighted label
-	hostLabel := style.ColoredLabel(hostInfo.Hostname)
-
-	// Format host info line
-	hostLine := formatter.FormatLine("", "", hostLabel, ipAddress, "", "", "no-indent")
-	// hostLine := formatter.FormatLine("", "", hostLabel, ipAddress, style.Dim, "", "bold", "no-indent")
-
-	// Format uptime line
-	uptime := m.menuManager.FormatUptime(hostInfo.Uptime)
-	uptime = style.Dimmed(uptime)
-	uptimeLine := formatter.FormatLine("", "", "", uptime, style.Gray10, "", "no-indent")
-
-	return hostLine, uptimeLine
 }
 
 // ShowMainMenu displays the main menu and handles user input. The main
@@ -797,11 +548,6 @@ func (m *MainMenu) pass(ctx context.Context) error {
 	p := nav.Prompter{Ctx: component.NewCtx(env), In: input(), Out: env.Writer(os.Stdout)}
 	menu := m.mainMenu()
 	drawn := vm.Screen(p.Ctx, menu)
-	if legacySecurityStatus {
-		// origin/main's block, then the layout from its heading down
-		m.showLegacyStatus()
-		drawn.Above = component.MenuHeading{Title: vm.Heading, Mode: &vm.Mode}.Render(p.Ctx)
-	}
 	return p.Run(func() nav.Screen { return drawn })
 }
 

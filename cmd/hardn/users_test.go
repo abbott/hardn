@@ -369,9 +369,6 @@ func TestCreateUserFlag(t *testing.T) {
 			if h.content(dnsTestYML) != yml {
 				t.Errorf("hardn.yml changed:\n%s", h.content(dnsTestYML))
 			}
-			if len(r.calls) != 0 {
-				t.Errorf("-c went through the legacy provider: %v", r.calls)
-			}
 			if want := map[bool]int{true: 1}[tc.applied != ""]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
 			}

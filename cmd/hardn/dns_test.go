@@ -577,9 +577,6 @@ func TestConfigureDNSFlag(t *testing.T) {
 			if got := h.content(dnsTestYML); got != yml {
 				t.Errorf("hardn.yml changed:\n%s", got)
 			}
-			if len(r.calls) != 0 {
-				t.Errorf("-g went through the legacy provider: %v", r.calls)
-			}
 			applied := !tc.dryRun && (tc.code == 0 || tc.files != nil) // not refused
 			if want := map[bool]int{true: 1}[applied]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)

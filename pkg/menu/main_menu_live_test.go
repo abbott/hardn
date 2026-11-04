@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 	"io/fs"
@@ -16,12 +17,10 @@ import (
 
 	"github.com/mattn/go-runewidth"
 
-	"github.com/abbott/hardn/pkg/application"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -31,8 +30,7 @@ import (
 )
 
 // The main menu live (refactor plan slice 2, next/s2-menu-live): its
-// status read through the hook cmd/hardn sets (SetStatus), in place of
-// pkg/security's block, which is gated (legacySecurityStatus), and drawn
+// status read through the hook cmd/hardn sets (SetStatus), and drawn
 // with the rest of the main menu on its layout (slice 2b, next/s2b-menu).
 // Nothing on this machine is read or run: the hook is a fake, or
 // pkg/screens/mainmenu over hostfake.
@@ -41,18 +39,11 @@ import (
 const clearScreen = "\033[H\033[2J"
 
 // liveMenu is a main menu as cmd/hardn builds it, its status read by read
-// and drawn on terminal env; the end of the input after lines. Its menu
-// manager, which reaches no host, and its OS are set, as cmd/hardn sets
-// them.
+// and drawn on terminal env; the end of the input after lines.
 func liveMenu(t *testing.T, env term.Env, read func(ctx context.Context) (screen.MainMenu, error), lines ...string) *MainMenu {
 	t.Helper()
-	if legacySecurityStatus {
-		t.Skip("legacySecurityStatus is set: the main menu would read this machine (pkg/security)")
-	}
 	scripted(t, strings.Join(append(lines, ""), "\n"))
-	mm := application.NewMenuManager(application.NewHostInfoManager(nil))
-	m := NewMainMenu(mm, config.DefaultConfig(), &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"},
-		version.NewService("0.4.0", "", ""))
+	m := NewMainMenu(config.DefaultConfig(), version.NewService("0.4.0", "", ""))
 	if read != nil {
 		m.SetStatus(read)
 	}
@@ -418,3 +409,57 @@ func (s setuidHost) Stat(ctx context.Context, name string) (fs.FileInfo, error) 
 type setuidInfo struct{ fs.FileInfo }
 
 func (i setuidInfo) Mode() fs.FileMode { return i.FileInfo.Mode() | fs.ModeSetuid }
+
+var update = flag.Bool("update", false, "rewrite golden files under testdata/ instead of comparing")
+
+// visibleScreen escapes ESC and marks each line end with $.
+func visibleScreen(screen string) string {
+	screen = strings.ReplaceAll(screen, "\x1b", `\x1b`)
+	lines := strings.Split(screen, "\n")
+	var b strings.Builder
+	for i, l := range lines {
+		if i == len(lines)-1 {
+			// Text after the last newline: the prompt, printed without one.
+			if l != "" {
+				b.WriteString(l + "<no-newline>\n")
+			}
+			break
+		}
+		b.WriteString(l + "$\n")
+	}
+	return b.String()
+}
+
+func assertRenderGolden(t *testing.T, rel, got string) {
+	t.Helper()
+	path := filepath.Join("testdata", "golden", filepath.FromSlash(rel))
+	if *update {
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, []byte(got), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		return
+	}
+	want, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatalf("read golden %s: %v (run with -update to create it)", path, err)
+	}
+	if got == string(want) {
+		return
+	}
+	wl, gl := strings.Split(string(want), "\n"), strings.Split(got, "\n")
+	for i := 0; i < len(wl) || i < len(gl); i++ {
+		var w, g string
+		if i < len(wl) {
+			w = wl[i]
+		}
+		if i < len(gl) {
+			g = gl[i]
+		}
+		if w != g {
+			t.Fatalf("golden %s differs at line %d\nwant: %q\ngot:  %q\n(if the change is intended, rerun with -update and explain the diff in the review description)", path, i+1, w, g)
+		}
+	}
+}

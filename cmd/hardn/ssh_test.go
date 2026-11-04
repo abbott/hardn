@@ -444,9 +444,6 @@ func TestDisallowRootFlag(t *testing.T) {
 			if h.armed() != tc.applied {
 				t.Errorf("the revert timer armed %t, want %t", h.armed(), tc.applied)
 			}
-			if len(r.calls) != 0 {
-				t.Errorf("-d went through the legacy provider: %v", r.calls)
-			}
 			if want := map[bool]int{true: 1}[tc.applied || !tc.dryRun && tc.code == 0]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
 			}
@@ -587,8 +584,8 @@ func TestCreateUserThenDisallowRoot(t *testing.T) {
 			if w := h.writes()[before:]; !tc.made && len(w) > 0 {
 				t.Errorf("wrote %q", w)
 			}
-			if len(r.calls) != 0 || strings.Contains(r.stderr, "hardn -c -d") {
-				t.Errorf("legacy calls %q; stderr:\n%s", r.calls, r.stderr)
+			if strings.Contains(r.stderr, "hardn -c -d") {
+				t.Errorf("stderr:\n%s", r.stderr)
 			}
 		})
 	}

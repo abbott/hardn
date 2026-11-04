@@ -100,7 +100,6 @@ linters:
             - "$all"
             - "!${base-path}/pkg/menu/**"
             - "!${base-path}/cmd/hardn/**"
-            - "!${base-path}/pkg/security/**"
             - "!${base-path}/pkg/utils/**"
           deny:
             - pkg: github.com/abbott/hardn/pkg/style
