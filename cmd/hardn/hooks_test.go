@@ -18,10 +18,10 @@ type hooksSet struct {
 func (h *hooksSet) SetWarnedAtLoad(warned bool) { h.warned = warned }
 
 // TestWithHooks: withHooks, as main builds the main menu, sets every hook
-// of it, the User Management, SSH Login, DNS, Firewall, Backup, Auto Updates, Environment, System Details and Logs items' (the
+// of it, the User Management, SSH Login, DNS, Firewall, Backup, Auto Updates, Run All, Environment, System Details and Logs items' (the
 // Firewall item's description's too) and the status's and terminal's, and returns the menu it was given. What each hook runs is
 // its own tests' (TestBackupThenDNS, TestBackupThenEnvironment,
-// TestFirewallHook, TestUsersHook, TestSSHHook, TestUpdatesHook, TestWithStatus); that main.go:222 calls withHooks is held by reading,
+// TestFirewallHook, TestUsersHook, TestSSHHook, TestUpdatesHook, TestRunAllHook, TestWithStatus); that main.go:222 calls withHooks is held by reading,
 // and by the VM checks that choose 3, 5 and 8 (screen-environment.md §4).
 func TestWithHooks(t *testing.T) {
 	set := &hooksSet{}
@@ -30,7 +30,7 @@ func TestWithHooks(t *testing.T) {
 	}
 	for name, ok := range map[string]bool{
 		"User Management": set.users != nil, "SSH Login": set.ssh != nil, "DNS": set.dns != nil, "Firewall": set.firewall != nil, "the Firewall item's description": set.firewallPVE != nil,
-		"Backup": set.backup != nil, "Auto Updates": set.updates != nil, "Environment": set.environment != nil,
+		"Backup": set.backup != nil, "Auto Updates": set.updates != nil, "Run All": set.runAll != nil, "Environment": set.environment != nil,
 		"System Details": set.systemDetails != nil, "Logs": set.logs != nil,
 		"the status": set.read != nil, "the terminal": set.env != nil,
 	} {

@@ -42,9 +42,8 @@ const clearScreen = "\033[H\033[2J"
 
 // liveMenu is a main menu as cmd/hardn builds it, its status read by read
 // and drawn on terminal env; the end of the input after lines. Its menu
-// manager, which reaches no host, and its OS are set, so that each screen
-// an item builds can be told from one built from other values
-// (recordScreens).
+// manager, which reaches no host, and its OS are set, as cmd/hardn sets
+// them.
 func liveMenu(t *testing.T, env term.Env, read func(ctx context.Context) (screen.MainMenu, error), lines ...string) *MainMenu {
 	t.Helper()
 	if legacySecurityStatus {

@@ -6,7 +6,6 @@ import (
 	"io"
 	"os"
 	"path/filepath"
-	"reflect"
 	"regexp"
 	"slices"
 	"strings"
@@ -36,32 +35,17 @@ import (
 // result's ASCII glyph, as plainEnv draws it.
 const invalid = "  (x) Invalid option. Please try again."
 
-// recordScreens records the screens m's items build in place of opening
-// them (openScreen), until the test ends: each is named by the screen of
-// originScreens it is, the same type built from the same values, the
-// test failing on any other, then its name recorded in the list returned
-// and printed, as a screen prints over the main menu. The User
-// Management, SSH Login, DNS, Firewall, Backup, Auto Updates,
-// Environment, System Details and Logs items' screens, m's, do the same as
-// "users", "ssh", "dns", "firewall", "backup", "updates", "environment",
-// "systemDetails" and "logs".
+// recordScreens records the screens m's items open in place of running
+// them, until the test ends: each item's screen, which cmd/hardn sets,
+// records its name in the list returned and prints it, as a screen prints
+// over the main menu: "users", "ssh", "dns", "firewall", "backup",
+// "updates", "runAll", "environment", "systemDetails" and "logs".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
-	was := openScreen
-	t.Cleanup(func() { openScreen = was })
 	var opened []string
 	record := func(name string) {
 		opened = append(opened, name)
 		fmt.Println(strings.ToUpper(name) + " SCREEN")
-	}
-	openScreen = func(s legacyScreen) {
-		for name, want := range originScreens(m) {
-			if sameScreen(s, want) {
-				record(name)
-				return
-			}
-		}
-		t.Errorf("an item built %#v, none of origin/main's screens", s)
 	}
 	m.SetUsers(func() error { record("users"); return nil })
 	m.SetSSH(func() error { record("ssh"); return nil })
@@ -69,68 +53,11 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	m.SetFirewall(func() error { record("firewall"); return nil }, nil)
 	m.SetBackup(func() error { record("backup"); return nil })
 	m.SetUpdates(func() error { record("updates"); return nil })
+	m.SetRunAll(func() error { record("runAll"); return nil })
 	m.SetEnvironment(func() error { record("environment"); return nil })
 	m.SetSystemDetails(func() error { record("systemDetails"); return nil })
 	m.SetLogs(func() error { record("logs"); return nil })
 	return &opened
-}
-
-// originScreens are the screens origin/main's handleMenuChoice built for
-// m's items, by name, transcribed from it as next/s2b-mode had it
-// (7347cbe, pkg/menu/main_menu.go:613-675): each key's constructor and
-// its arguments, but 6's, the Dry-Run handler, which slice 2b's unit (d)
-// removed with its item, 5's, the Backup menu, which slice 3's unit (d)
-// replaced, 8's, the Environment menu, which slice 9's unit (d) replaced,
-// 9's and 10's, which slice 1's unit (d) replaced, and 4's, the Firewall
-// menu, which slice 4's unit (d) replaced, 1's, the User Management
-// menu, which slice 5's unit (d) replaced, and 2's, the SSH Login menu,
-// which slice 6's unit (d) replaced. The User Management, SSH Login, DNS,
-// Firewall, Backup, Auto Updates, Environment, System Details and Logs
-// items' screens are m's (SetUsers, SetSSH, SetDNS, SetFirewall,
-// SetBackup, SetUpdates, SetEnvironment, SetSystemDetails, SetLogs).
-func originScreens(m *MainMenu) map[string]legacyScreen {
-	return map[string]legacyScreen{
-		"runAll": handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
-	}
-}
-
-// sameScreen reports whether a and b are the same screen built from the
-// same values: of one type, a handled one's handler too, with fields that
-// are the same pointers.
-func sameScreen(a, b legacyScreen) bool {
-	if reflect.TypeOf(a) != reflect.TypeOf(b) {
-		return false
-	}
-	unwrap := func(s legacyScreen) reflect.Value {
-		if h, ok := s.(handled); ok {
-			return reflect.ValueOf(h.handler)
-		}
-		return reflect.ValueOf(s)
-	}
-	va, vb := unwrap(a), unwrap(b)
-	return va.Type() == vb.Type() && va.Elem().Interface() == vb.Elem().Interface()
-}
-
-// shown counts its Show calls, as a legacy menu.
-type shown int
-
-func (s *shown) Show() { *s++ }
-
-// handledCount counts its Handle calls, as a legacy handler.
-type handledCount int
-
-func (h *handledCount) Handle() { *h++ }
-
-// TestOpenScreen: openScreen, which the other tests replace, opens the
-// screen an item built: a menu's Show, once; a handler's Handle, once.
-func TestOpenScreen(t *testing.T) {
-	var m shown
-	var h handledCount
-	openScreen(&m)
-	openScreen(handled{&h})
-	if m != 1 || h != 1 {
-		t.Errorf("Show called %d times and Handle %d, want once each", m, h)
-	}
 }
 
 // interrupted reads its lines, then reports Ctrl-C as the line reader
@@ -145,13 +72,12 @@ func (r interrupted) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// TestMainMenuKeys is the main menu's dispatch, every key: 7 opens
-// exactly the screen origin/main's handleMenuChoice opened for it, of the
-// same constructor with the same arguments (recordScreens); 1, 2, 3, 4,
-// 5, 6, 8, 9 and 10 open the User Management, SSH Login, DNS, Firewall,
-// Backup, Auto Updates, Environment, System Details and Logs screens
-// cmd/hardn sets, 6 where origin/main's Dry-Run was (slice 7, unit (d)),
-// and the main menu is drawn again when it returns; 0 (Exit) and q, in
+// TestMainMenuKeys is the main menu's dispatch, every key: 1 to 10 open
+// the User Management, SSH Login, DNS, Firewall, Backup, Auto Updates, Run
+// All, Environment, System Details and Logs screens cmd/hardn sets
+// (recordScreens), 6 where origin/main's Dry-Run was (slice 7, unit (d)),
+// 7 the Run All screen on the planner (slice 8, unit (d)), and the main
+// menu is drawn again when it returns; 0 (Exit) and q, in
 // either case, clear the screen and return, opening nothing; spaces
 // around a key are ignored, as origin/main's read trimmed them; an empty
 // line and a key no item has are refused under the prompt, "Invalid
@@ -216,11 +142,8 @@ func TestMainMenuKeys(t *testing.T) {
 			}
 			clears := strings.Count(out, clearScreen)
 			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			for _, hooked := range []string{"users", "ssh", "dns", "firewall", "backup", "updates", "environment", "systemDetails", "logs"} {
-				if slices.Contains(tc.opened, hooked) {
-					want++ // the items cmd/hardn sets open their screens on a cleared screen, as every legacy screen does
-				}
-			}
+			// every item's screen opens on a cleared screen (showScreen)
+			want += len(tc.opened)
 			if !strings.HasPrefix(out, clearScreen) || clears != want || strings.Contains(out, "Press Enter") {
 				t.Errorf("%d clears, want %d, the first as hardn starts; or a pause:\n%q", clears, want, out)
 			}
@@ -262,16 +185,17 @@ func TestMainMenuInvalid(t *testing.T) {
 
 // TestMainMenuAgain: after an item's screen returns, the main menu is read
 // and drawn again under what the screen printed, a blank line between,
-// the screen not cleared (brief 1C); the drawing is the first's.
+// the screen not cleared after it (brief 1C); the drawing is the first's.
+// The screen itself opens on a cleared screen (showScreen).
 func TestMainMenuAgain(t *testing.T) {
 	passes := 0
-	m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "7", "q") // a legacy screen: 2's clears since slice 6's unit (d)
+	m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "7", "q")
 	recordScreens(t, m)
 	out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
 	body := strings.TrimSuffix(strings.TrimPrefix(out, clearScreen), clearScreen)
-	first, second, ok := strings.Cut(body, " \nRUNALL SCREEN\n\n")
-	if ended || passes != 2 || !ok || first+" \n" != second || strings.Contains(body, clearScreen) {
-		t.Errorf("ended %v, read %d times; want the main menu, the screen, a blank line and the main menu again, uncleared:\n%q", ended, passes, out)
+	first, second, ok := strings.Cut(body, " \n"+clearScreen+"RUNALL SCREEN\n\n")
+	if ended || passes != 2 || !ok || first+" \n" != second || strings.Contains(second, clearScreen) {
+		t.Errorf("ended %v, read %d times; want the main menu, the screen cleared, a blank line and the main menu again, uncleared:\n%q", ended, passes, out)
 	}
 }
 

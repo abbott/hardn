@@ -70,6 +70,9 @@ type MainMenu struct {
 	// logs runs the Logs item (SetLogs).
 	logs func() error
 
+	// runAll runs the Run All item (SetRunAll).
+	runAll func() error
+
 	// warned: warnings above the first draw stay on screen (SetWarnedAtLoad).
 	warned bool
 
@@ -278,8 +281,24 @@ func (m *MainMenu) showLogs() error {
 	return showScreen(m.logs, "menu: the Logs item has no screen (SetLogs)")
 }
 
+// SetRunAll sets what the Run All item (7) runs: the Run All screen
+// (pkg/screens/runall) on Run All's planner and the plan/apply engine,
+// which cmd/hardn assembles, as SetSSH sets SSH Login's (refactor plan
+// slice 8, unit (d); gallery-runall.md §5, decision 7 (a): the item's
+// label and description kept). It returns as SetDNS's does. No change the
+// screen makes saves hardn.yml. A main menu whose Run All item is chosen
+// without one set panics: cmd/hardn sets it on the one main menu it
+// builds.
+func (m *MainMenu) SetRunAll(run func() error) { m.runAll = run }
+
+// showRunAll is the Run All item's action: the Run All screen
+// (showScreen).
+func (m *MainMenu) showRunAll() error {
+	return showScreen(m.runAll, "menu: the Run All item has no screen (SetRunAll)")
+}
+
 // showScreen runs an item's screen that cmd/hardn sets (SetUsers, SetSSH,
-// SetDNS, SetBackup, SetUpdates, SetEnvironment, SetFirewall,
+// SetDNS, SetBackup, SetUpdates, SetRunAll, SetEnvironment, SetFirewall,
 // SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
@@ -381,7 +400,7 @@ func (m *MainMenu) showLegacyStatus() {
 }
 
 // refresh any configuration values that might have been
-// changed by sub-menus like RunAllMenu
+// changed by sub-menus
 func (m *MainMenu) refreshConfig() {
 	// add ways for sub-menus to notify the main menu of changes,
 
@@ -709,11 +728,12 @@ func (m *MainMenu) formatHostInfoLines(hostInfo *model.HostInfo, formatter *styl
 // slice 2b, next/s2b-menu; decision 5 as adopted): the status blocks
 // (SetStatus), "Select an option" with the mode indicator, origin/main's
 // items (mainMenu), and "Enter selection" with its hint generated from
-// them, asked through the one line reader every legacy screen reads
+// them, asked through the one line reader every screen reads
 // (prompt.Stdin, the input seam). The screen is cleared once, as hardn
 // starts; each pass then reads the status again and draws the main menu
 // on the terminal as it is then, under what the item before it printed,
-// not cleared (brief 1C), the legacy screens still clearing as they open.
+// not cleared (brief 1C), each item's screen clearing as it opens
+// (showScreen).
 // A line no item takes is refused under the prompt, "Invalid option.
 // Please try again.", and asked again, the screen above kept (nav.Ask).
 // 0 (Exit) and q clear the screen and return, as they did; the end of the
@@ -789,7 +809,7 @@ func (m *MainMenu) pass(ctx context.Context) error {
 
 // mode is the mode indicator for the session as it is now (slice 2b,
 // decisions 2 and 3): plan only or live, from the configuration every
-// legacy screen reads (DryRun), and what set plan only (DryRunSource):
+// screen reads (DryRun), and what set plan only (DryRunSource):
 // -n or hardn.yml as hardn started, and nothing for live. Plan only with
 // no source, which item 6 and Run All's option 2 set inside the session
 // until unit (d) removed them, is still drawn so, "Mode Plan only", should
@@ -805,73 +825,31 @@ func (m *MainMenu) mode() component.ModeIndicator {
 	return mode
 }
 
-// legacyScreen is one of origin/main's screens left, Run All's, as a
-// main-menu item opens it: a menu's Show, or a handler's
-// (handled). It returns when the user
-// leaves it, or ends hardn itself at the end of the input or on Ctrl-C
-// (endHardn).
-type legacyScreen interface{ Show() }
-
-// handled is a legacy handler, Run All's, opened as a screen: its
-// Handle, as origin/main's handleMenuChoice called it.
-type handled struct{ handler interface{ Handle() } }
-
-// Show runs the handler.
-func (h handled) Show() { h.handler.Handle() }
-
-// screens build what the main menu's items open that are still
-// origin/main's screens: Run All (7). Every other item's screen is a hook
-// cmd/hardn sets (SetUsers, SetSSH, SetDNS, SetBackup, SetUpdates,
-// SetEnvironment, SetFirewall, SetSystemDetails, SetLogs); the legacy User Management went
-// with slice 5's unit (d), and the legacy SSH Login with slice 6's, each
-// deleted, not frozen.
-type screens struct {
-	runAll func(m *MainMenu) legacyScreen
-}
-
-// legacyScreens build each item's screen as origin/main's
-// handleMenuChoice built it, the same constructor with the same
-// arguments.
-var legacyScreens = screens{
-	runAll: func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
-}
-
-// openScreen opens the screen an item built. A seam for the tests, which
-// record the screen each key built, its type and what it was built with,
-// in place of opening it.
-var openScreen = func(s legacyScreen) { s.Show() }
-
 // mainMenu is the main menu's items, origin/main's unchanged in content,
 // labels, keys and descriptions, but item 8's description, "Keep
 // HARDN_CONFIG" where origin/main's said "Configure environment variable"
 // (refactor plan slice 9, decision 7 (a), P-07 (c)), and item 4's on
 // Proxmox VE, "View pve-firewall" (slice 4, decision 7); item 1's
-// parenthesis its aside; each bound to the screen it opened (legacyScreens,
-// Run All's, and the User Management, SSH Login, DNS, Firewall, Backup,
-// Auto Updates, Environment, System Details and Logs screens, showUsers,
-// showSSH, showDNS, showFirewall, showBackup, showUpdates,
-// showEnvironment, showSystemDetails and showLogs); its Exit item "0)
-// Exit", "q to quit" (DEV-030). Item 6 is Auto Updates, "Configure
-// automatic updates" (slice 7, unit (d); gallery-updates.md §4, decision
-// 1), where origin/main's Dry-Run was until slice 2b's unit (d) removed
-// it; the hint, generated from the items, says "[0-10 or q]".
-// Each screen is built as its item is chosen, as origin/main built it,
-// and ends the pass when it returns (errAgain). User Management (1), SSH
-// Login (2), Firewall (4), Backup (5), Auto Updates (6) and Environment
-// (8) open under plan only as live: their screens stop each change at its
-// plan (slice 7, unit (d), Options.DryRun of pkg/screens/updates; slice
-// 6, unit (d), Options.DryRun of pkg/screens/ssh; slice 5, unit (d),
-// which lifts slice 2b's "Not available in plan only." from item 1 as its
-// screen goes on the flow; slice 4, screen-firewall.md; slice 3, decision
-// 10; slice 9, gallery-environment.md §5, Made here).
+// parenthesis its aside; each bound to the screen cmd/hardn sets for it
+// (showUsers, showSSH, showDNS, showFirewall, showBackup, showUpdates,
+// showRunAll, showEnvironment, showSystemDetails and showLogs); its Exit
+// item "0) Exit", "q to quit" (DEV-030). Item 6 is Auto Updates,
+// "Configure automatic updates" (slice 7, unit (d); gallery-updates.md
+// §4, decision 1), where origin/main's Dry-Run was until slice 2b's unit
+// (d) removed it; item 7, Run All, keeps its label and description and
+// runs the Run All screen on the planner (slice 8, unit (d);
+// gallery-runall.md §5, decision 7 (a)); the hint, generated from the
+// items, says "[0-10 or q]". Each screen ends the pass when it returns
+// (errAgain). User Management (1), SSH Login (2), Firewall (4), Backup
+// (5), Auto Updates (6), Run All (7) and Environment (8) open under plan
+// only as live: their screens stop each change at its plan (slice 8,
+// unit (d), Options.DryRun of pkg/screens/runall; slice 7, unit (d),
+// Options.DryRun of pkg/screens/updates; slice 6, unit (d),
+// Options.DryRun of pkg/screens/ssh; slice 5, unit (d), which lifts
+// slice 2b's "Not available in plan only." from item 1 as its screen goes
+// on the flow; slice 4, screen-firewall.md; slice 3, decision 10; slice
+// 9, gallery-environment.md §5, Made here).
 func (m *MainMenu) mainMenu() nav.Menu {
-	s := legacyScreens
-	open := func(build func(*MainMenu) legacyScreen) func() error {
-		return func() error {
-			openScreen(build(m))
-			return errAgain
-		}
-	}
 	item := func(key, label, description string) component.MenuItem {
 		return component.MenuItem{Key: key, Label: label, Description: description}
 	}
@@ -883,7 +861,7 @@ func (m *MainMenu) mainMenu() nav.Menu {
 			{Item: item("4", "Firewall", m.firewallDescription()), Action: m.showFirewall},
 			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},
 			{Item: item("6", "Auto Updates", "Configure automatic updates"), Action: m.showUpdates},
-			{Item: item("7", "Run All", "Execute hardening operations"), Action: open(s.runAll)},
+			{Item: item("7", "Run All", "Execute hardening operations"), Action: m.showRunAll},
 			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: m.showEnvironment},
 			{Item: item("9", "System Details", "View system information"), Action: m.showSystemDetails},
 			{Item: item("10", "Logs", "View log file"), Action: m.showLogs},
