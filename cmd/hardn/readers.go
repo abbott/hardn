@@ -119,8 +119,8 @@ func runSystemDetails(form hardncmd.SystemDetailsForm, refused error) {
 // printOnly reports whether -p is the only operation flag, -n being none: it then
 // runs ahead of the root check (decisions 9 (a), 10 (a)).
 func printOnly() bool {
-	return printLogs && !createUser && !disableRootSSH && !installLinux && !installPython && !installAll &&
-		!configureUfw && !configureDns && !runAll && !updateSources && !setupSudoEnv
+	return printLogs && !createUser && !disableRootSSH && !configureUfw && !configureDns &&
+		!runAll && !setupSudoEnv
 }
 
 // printLog is -p: logs.Print on stdout, logFile said in a row to a terminal where it

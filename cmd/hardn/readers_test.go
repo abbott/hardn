@@ -616,10 +616,8 @@ func TestPrintOnly(t *testing.T) {
 		t.Error("-p alone is not print only")
 	}
 	for name, flag := range map[string]*bool{
-		"create-user": &createUser, "disable-root": &disableRootSSH, "install-linux": &installLinux,
-		"install-python": &installPython, "install-all": &installAll, "configure-ufw": &configureUfw,
-		"configure-dns": &configureDns, "run-all": &runAll, "configure-sources": &updateSources,
-		"setup-sudo-env": &setupSudoEnv,
+		"create-user": &createUser, "disable-root": &disableRootSSH, "configure-ufw": &configureUfw,
+		"configure-dns": &configureDns, "run-all": &runAll, "setup-sudo-env": &setupSudoEnv,
 	} {
 		was := *flag
 		*flag = true
