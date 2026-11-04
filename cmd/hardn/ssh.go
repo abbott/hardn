@@ -127,11 +127,10 @@ func withSSHScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
 // configuration the main menu holds, whose sshPort is the port form's
 // default and sshConfigFile Move old settings' file alone, and which no
 // change saves (gallery-ssh.md §5, decision 9 (a)); a dry run when c says
-// so as the item is chosen, every change then stopping at its plan. No
-// audit record is written: the audit log's first writer is
-// next/p3-startup's (Options.Ran left nil). Each change's apply, and
-// nothing else, runs under engineSignals, hardn ending after a hangup
-// (screenApplyContext; runDNSScreen says why).
+// so as the item is chosen, every change then stopping at its plan. Each
+// change's run is a record of the audit log (Options.Ran, auditRan). Each
+// change's apply, and nothing else, runs under engineSignals, hardn
+// ending after a hangup (screenApplyContext; runDNSScreen says why).
 func runSSHScreen(ctx context.Context, c *config.Config) error {
 	sys := engineHost()
 	facts, err := engineDetect(ctx, sys)
@@ -152,5 +151,6 @@ func runSSHScreen(ctx context.Context, c *config.Config) error {
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 	})
 }

@@ -54,8 +54,8 @@ var runAllRun = runallscreen.Run
 // the configuration the main menu holds, what Run All is asked, which no
 // change saves; hardn's version, in Auto Updates' record; a dry run when c
 // says so as the item is chosen, Apply all then stopping at its plan.
-// Revert is zero: the journal's options are hardn's own. No audit record
-// is written (Options.Ran left nil, as the other screens'). Each change's
+// Revert is zero: the journal's options are hardn's own. Apply all's run
+// is a record of the audit log (Options.Ran, auditRan). Each change's
 // apply, and nothing else, runs under engineSignals, hardn ending after a
 // hangup (screenApplyContext; runDNSScreen says why).
 func runRunAllScreen(ctx context.Context, c *config.Config, version string) error {
@@ -78,6 +78,7 @@ func runRunAllScreen(ctx context.Context, c *config.Config, version string) erro
 		DryRun:       c.DryRun,
 		LogPath:      output.LegacyLogPath,
 		Now:          revertNow,
+		Ran:          auditRan(sys, c),
 		Version:      version,
 	})
 }
