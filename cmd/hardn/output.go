@@ -76,9 +76,6 @@ func warnDeprecations(c *config.Config) {
 // nothing.
 func loadWarnings(c *config.Config) string {
 	var retired []string
-	if noColor {
-		retired = append(retired, noColorDeprecated) // §3.11: an alias of --color=never
-	}
 	if p := logview.Elsewhere(c.LogFile); p != "" {
 		retired = append(retired, fmt.Sprintf(logFileNotUsed, p))
 	}
