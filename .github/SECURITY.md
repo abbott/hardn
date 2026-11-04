@@ -1,72 +1,58 @@
-# Security Policy
+# Security policy
 
-## Supported Versions
+## Supported versions
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 0.3.x   | YES                |
-<!-- | < 0.3.0 | NO                | -->
+| Version | Supported |
+|---|---|
+| 0.4.x | yes |
+| 0.3.x and older | no |
 
-Only the latest minor version is actively maintained for security updates. Users are encouraged to update to the latest release.
+Only the latest minor version gets security fixes, in a new patch release. When 0.5.0 is out, 0.4.x is no longer supported. Update to the latest release.
 
-## Reporting a Vulnerability
+## Reporting a vulnerability
 
-The security of `hardn` is taken seriously. As a tool designed to enhance Linux system security, the integrity and security of `hardn` itself is paramount.
+**Don't open a public issue.** Report it privately, either way:
 
-### How to Report
+- **GitHub:** the repository's [Security tab](https://github.com/abbott/hardn/security), "Report a vulnerability".
+- **Email:** `641138+abbott@users.noreply.github.com`.
 
-If you discover a security vulnerability, please send a detailed report to:
+Include what the problem is, the steps that show it, the hardn version (`hardn --version`) and the OS, what an attacker could do with it, and a fix if you have one.
 
-**Email**: `641138+abbott@users.noreply.github.com`
+hardn has one maintainer, so there is no bug bounty. What to expect:
 
-Please **DO NOT** create a public GitHub issue for security vulnerabilities.
+1. An acknowledgment within 48 hours.
+2. The report is checked and its severity assessed.
+3. If it is confirmed, a fix is made and released as a patch release. Its release notes name the fix without the details.
+4. The details may be published once users have had time to update.
 
-### What to Include
+Significant reports are credited in the release notes.
 
-When reporting a vulnerability, please include:
+## Verifying a release
 
-1. A clear description of the vulnerability
-2. Steps to reproduce the issue
-3. Potential impact of the vulnerability
-4. Suggested fixes if available
+Each release from v0.4.0 has these files:
 
-### Response Process
+- `hardn-linux-amd64`, `hardn-linux-arm64`, `hardn-darwin-amd64`: the binaries.
+- `SHA256SUMS`: the SHA-256 of each file.
+- `hardn-sbom.spdx.json`: an SBOM, in SPDX JSON.
 
-Here's what you can expect after reporting:
+Each binary also has **SLSA Build Level 3 build provenance**: a GitHub artifact attestation, signed for the repository's build workflow (`.github/workflows/build.yml`) at the release's tag, built on a GitHub-hosted runner. It shows the binary was built by that workflow from that tag. The binaries are not signed with cosign, and there are no `.sig`, `.crt` or `.intoto.jsonl` files.
 
-1. **Acknowledgment**: You will receive an acknowledgment of your report within 48 hours.
-2. **Assessment**: The vulnerability will be verified and assessed for severity.
-3. **Fix Development**: If validated, a fix will be developed as quickly as possible.
-4. **Release**: A security patch will be released, and the fix will be mentioned in release notes without detailing the vulnerability until users have had time to update.
-5. **Public Disclosure**: After a reasonable period for users to update, details may be publicly disclosed.
+**With `verify.sh`**: it downloads the binary and `SHA256SUMS` from the release, checks the binary's SHA-256, then its attestation, and keeps the binary as `./hardn-<platform>` only when both pass. It runs nothing it downloads.
 
-### Bounties
+```sh
+curl -fsSLO https://raw.githubusercontent.com/abbott/hardn/main/verify.sh
+sh verify.sh 0.4.0 linux-amd64
+```
 
-As `hardn` is a solo-maintained project, there is currently no formal bug bounty program at this time. However, significant security contributions will be acknowledged in the project's README and release notes.
+It needs `curl`, `sha256sum` or `shasum`, and [gh](https://cli.github.com) 2.68.0 or later, signed in (`gh auth login`).
 
-## Security Features and Practices
+**By hand**, with the binary and `SHA256SUMS` downloaded from the release page:
 
-`hardn` employs several security features:
+```sh
+sha256sum --ignore-missing -c SHA256SUMS
+gh attestation verify hardn-linux-amd64 --repo abbott/hardn \
+  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.4.0 \
+  --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners
+```
 
-- **SLSA Level 3 Compliance**: All releases follow Supply-chain Levels for Software Artifacts (SLSA) Level 3 requirements.
-- **Sigstore Artifact Signing**: All binaries are cryptographically signed and verifiable.
-- **Tamper Protection**: Binaries include provenance attestation.
-- **Transparency**: Build processes are fully documented in the provenance.
-
-Users are encouraged to verify signatures and provenance of all `hardn` releases using the provided verification tools.
-
-## Security Updates
-
-Security updates will be announced through:
-
-1. GitHub releases
-2. Commit messages with the `security:` prefix
-3. `hardn` CLI and CLI menu header when the binay is run locally
-
-## Third-Party Dependencies
-
-`hardn` aims to maintain minimal dependencies to reduce attack surface. All dependencies are regularly reviewed and updated.
-
----
-
-Last updated: March 2025
+Releases v0.3.x and older had no `SHA256SUMS` and no GitHub artifact attestation; `verify.sh` does not check them.
