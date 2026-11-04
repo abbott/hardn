@@ -15,7 +15,7 @@ const ExampleConfigContent = `# Hardn - Linux Hardening Configuration
 #################################################
 # Basic Configuration
 #################################################
-username: "george"                # Default username to create. (See: 'sshAllowedUsers')
+username: "george"                # Default username to create
 dryRun: false                     # Preview changes without applying them
 enableBackups: true               # Backup files before modifying them
 backupPath: "/var/backups/hardn"  # Path to store backups
@@ -36,16 +36,11 @@ sshPort: 22                       # SSH port (this is the authoritative SSH port
 
 permitRootLogin: "no"             # Root SSH login: "no" or "yes"
                                   # (true and false still work but are deprecated: write "no" or "yes")
-sshAllowedUsers:                  # List of users allowed to access via SSH
-  - "george"
-sshListenAddress: "0.0.0.0"       # IP address to listen on
-sshKeyPath: ".ssh_%u"             # Path to SSH keys (use %u for username substitution)
 sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # SSH config file location
 
 #################################################
 # User Configuration
 #################################################
-sudoNoPassword: true              # Whether to allow sudo without password
 sshKeys:                          # SSH public keys to add for created users
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
   # Add more keys as needed
@@ -64,8 +59,6 @@ ufwAppProfiles:
 #################################################
 # Feature Toggles
 #################################################
-enableAppArmor: false             # Set up and enable AppArmor
-enableLynis: false                # Install and run Lynis security audit
 enableUfwSshPolicy: false         # Configure UFW with SSH rules
 configureDns: false               # Configure DNS settings
 disableRootSSH: false             # Disable root SSH access
