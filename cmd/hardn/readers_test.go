@@ -17,7 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -96,8 +96,8 @@ func TestPrintLogAlone(t *testing.T) {
 			if r.ended {
 				t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 			}
-			if len(r.reached) != 0 || len(r.calls) != 0 {
-				t.Errorf("reached %v, calls %v; want none", r.reached, r.calls)
+			if len(r.reached) != 0 {
+				t.Errorf("reached %v; want none", r.reached)
 			}
 			if got := s.out.String(); got != readerLog {
 				t.Errorf("stdout %q, want the log alone", got)
@@ -349,10 +349,11 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 // TestUnusedKeysWarning: where hardn.yml loads, each key nothing reads
 // warns once, in slice 6's decision 9 (a) and slice 8's decision 4 (a)
 // words, where its value is not config.DefaultConfig's: permitRootLogin,
-// as RootLogin reads it ("yes", or the deprecated true, whose deprecation
+// as RootLogin reads it ("yes", prohibit-password, which loads since the
+// legacy-left unit's decision 6 (a), or the deprecated true, whose deprecation
 // is said once beside it; false and "no", the default, only the
 // deprecation or nothing), sshAllowedUsers, sshListenAddress, sshKeyPath,
-// ufwAllowedPorts, enableAppArmor and enableLynis; set to the default, as
+// ufwAllowedPorts, enableAppArmor, enableLynis and logsconfig; set to the default, as
 // origin/main's SaveConfig writes it, none warns. disableRootSSH, which
 // Run All reads, sshPort and sshConfigFile never warn. Through hardn,
 // the warning is on stderr, once.
@@ -360,7 +361,7 @@ func TestUnusedKeysWarning(t *testing.T) {
 	const deprecated = "is deprecated"
 	words := func(key string) string { return "hardn.yml's " + key + " isn't used" }
 	keys := []string{"permitRootLogin", "sshAllowedUsers", "sshListenAddress", "sshKeyPath", "ufwAllowedPorts", "enableAppArmor", "enableLynis",
-		"disableRootSSH", "sshPort", "sshConfigFile"}
+		"disableRootSSH", "sshPort", "sshConfigFile", "logsconfig"}
 	for _, tc := range []struct {
 		name, yml  string
 		warned     []string // the keys warned of
@@ -371,11 +372,14 @@ func TestUnusedKeysWarning(t *testing.T) {
 			"disableRootSSH: false\nsshKeyPath: .ssh_%u\nsshPort: 22\nsshConfigFile: /etc/ssh/sshd_config.d/hardn.conf\n" +
 			"ufwAllowedPorts: []\nenableAppArmor: false\nenableLynis: false\n", nil, false},
 		{"permitRootLogin yes", "username: alice\npermitRootLogin: \"yes\"\n", []string{"permitRootLogin"}, false},
+		{"permitRootLogin prohibit-password, loaded (decision 6 (a))", "username: alice\npermitRootLogin: prohibit-password\n", []string{"permitRootLogin"}, false},
 		{"permitRootLogin true, deprecated", "username: alice\npermitRootLogin: true\n", []string{"permitRootLogin"}, true},
 		{"permitRootLogin false, deprecated", "username: alice\npermitRootLogin: false\n", nil, true},
 		{"sshAllowedUsers", "username: alice\nsshAllowedUsers:\n  - george\n", []string{"sshAllowedUsers"}, false},
 		{"sshListenAddress", "username: alice\nsshListenAddress: 192.0.2.10\n", []string{"sshListenAddress"}, false},
 		{"sshKeyPath", "username: alice\nsshKeyPath: .ssh/authorized_keys\n", []string{"sshKeyPath"}, false},
+		{"logsconfig, origin/main's as its save wrote it", "username: alice\nlogsconfig:\n  logfilepath: /var/log/hardn.log\n", nil, false},
+		{"logsconfig", "username: alice\nlogsconfig:\n  logfilepath: /srv/log/hardn.log\n", []string{"logsconfig"}, false},
 		{"ufwAllowedPorts", "username: alice\nufwAllowedPorts: [22, 443]\n", []string{"ufwAllowedPorts"}, false},
 		{"enableAppArmor", "username: alice\nenableAppArmor: true\n", []string{"enableAppArmor"}, false},
 		{"enableLynis", "username: alice\nenableLynis: true\n", []string{"enableLynis"}, false},
@@ -409,9 +413,10 @@ func TestUnusedKeysWarning(t *testing.T) {
 	r := runHardnWith(t, asRoot, func() {
 		onDNSHost(t)
 		loadConfig = func(string) (*config.Config, error) {
-			c := config.DefaultConfig()
-			c.Username, c.EnableLynis = "alice", true
-			return c, nil
+			const path = "/etc/hardn/hardn.yml"
+			f := hostfake.New(host.Options{})
+			f.AddFile(path, []byte("username: alice\nenableLynis: true\n"), 0o644, 0, 0)
+			return config.Read(context.Background(), f, path)
 		}
 	}, "-r")
 	flat := strings.ReplaceAll(r.stderr, "\n# ", " ")
@@ -469,29 +474,6 @@ func TestRetiredKeysWarning(t *testing.T) {
 	}
 	if keys := read(t, config.ExampleConfigContent).Retired(); len(keys) != 0 {
 		t.Errorf("the example hardn.yml sets %v", keys)
-	}
-}
-
-// TestWarningsFollowDetectOS: detectOS clears the terminal (utils.PrintHeader), so what
-// loading hardn.yml warns of is said after it, or no one reads it (run: the VMs).
-func TestWarningsFollowDetectOS(t *testing.T) {
-	const cleared, words = "the terminal cleared", "isn't used"
-	r := runHardnWith(t, asRoot, func() {
-		onDNSHost(t)
-		loadConfig = func(string) (*config.Config, error) {
-			c := config.DefaultConfig()
-			c.Username, c.LogFile = "alice", "/srv/log/hardn.log"
-			return c, nil
-		}
-		detected := detectOS
-		detectOS = func() (*osdetect.OSInfo, error) {
-			_, _ = io.WriteString(stderr, cleared+"\n")
-			return detected()
-		}
-	}, "-r")
-	at, said := strings.Index(r.stderr, cleared), strings.Index(r.stderr, words)
-	if at < 0 || said < at {
-		t.Errorf("the warning at %d, the clear at %d; stderr:\n%s", said, at, r.stderr)
 	}
 }
 
@@ -632,13 +614,12 @@ func TestReaderScreens(t *testing.T) {
 					bounded = sys != host.System(h)
 					return detect.Facts{}, errors.New("detect: not established")
 				}
-				set := &hookSet{}
 				c := config.DefaultConfig()
 				c.LogFile, c.DryRun = "/srv/log/hardn.log", true
-				withReaderScreens(set, c)
-				run := set.systemDetails
+				set := withReaderScreens(mainmenu.Options{}, c)
+				run := set.SystemDetails
 				if screen == "logs" {
-					run = set.logs
+					run = set.Logs
 				}
 				if err := run(); !errors.Is(err, tc.want) || (tc.want == nil && err != nil) {
 					t.Fatalf("= %v, want %v; screen:\n%s", err, tc.want, s.out.String())
@@ -701,9 +682,8 @@ func TestLogsOpenTerm(t *testing.T) {
 	t.Cleanup(func() { engineInput = inputWas })
 	in := prompt.New(uitest.NewTypist(io.Discard, "1", "0"), false)
 	engineInput = func() *prompt.Reader { return in }
-	set := &hookSet{}
-	withReaderScreens(set, config.DefaultConfig())
-	if err := set.logs(); err != nil {
+	set := withReaderScreens(mainmenu.Options{}, config.DefaultConfig())
+	if err := set.Logs(); err != nil {
 		t.Fatalf("= %v; screen:\n%s", err, s.out.String())
 	}
 	opened := false

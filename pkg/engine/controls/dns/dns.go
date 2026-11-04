@@ -371,7 +371,7 @@ func savedList(ctx context.Context, sys host.System, cfg *config.Config) (*[]str
 	}
 	f, err := config.Read(ctx, sys, cfg.Path())
 	switch {
-	case errors.Is(err, fs.ErrNotExist), errors.Is(err, config.ErrInvalidFile), errors.Is(err, config.ErrRootLoginNotApplied):
+	case errors.Is(err, fs.ErrNotExist), errors.Is(err, config.ErrInvalidFile):
 		return nil, steps.Changed(cfg.Path(), err)
 	case err != nil:
 		return nil, fmt.Errorf("dns: hardn.yml: %w", err)

@@ -4,16 +4,17 @@
 // from the main menu's status controls (controls.Status: Figma's seven,
 // then DNS), the header probe and the risk level, mapped by pkg/output
 // into pkg/ui/screen's main-menu layout exactly as the gallery's status
-// hosts and internal/tools/p4status map them. Status is the one entry
-// point, which cmd/hardn's hook on the main menu calls on every pass
-// (menu.MainMenu.SetStatus); pkg/menu fills in the menu heading, the mode
-// indicator, the items and the prompt and draws the whole layout (slice
-// 2b, next/s2b-menu). docs/engine/menu-live.md says what it reads and
-// costs.
+// hosts and internal/tools/p4status map them: Status, which cmd/hardn's
+// hook on the main menu calls on every pass (Options.Status). Run is the
+// main menu itself: it fills in the menu heading, the mode indicator, the
+// items and the prompt, draws the whole layout and runs the item chosen
+// (slice 2b, next/s2b-menu; legacy-left.md §2, step 7).
+// docs/engine/menu-live.md says what the status reads and costs.
 //
 // It reaches the host only through host.System and the engine's Check,
 // which only reads (depguard rule screens-through-host), and maps only
-// through pkg/output into pkg/ui's view-models; it draws nothing.
+// through pkg/output into pkg/ui's view-models; Run draws through pkg/ui
+// on the terminal and stdout cmd/hardn gives it.
 package mainmenu
 
 import (
@@ -32,9 +33,9 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// Options is what the main menu's status is read and drawn with: what
+// StatusOptions is what the main menu's status is read with: what
 // cmd/hardn has when it draws its main menu.
-type Options struct {
+type StatusOptions struct {
 	// System is the host the checks and the header probe read.
 	System host.System
 	// Detect establishes the host's facts, once a pass (detect.Detect);
@@ -50,7 +51,7 @@ type Options struct {
 // the main menu's view-model with the blocks the status model fills: the
 // Header (o.Version), the ContextBar, the HostBlock, the RiskSummary and
 // the StatusList (output.MainMenuOf). Its Heading, Mode, Menu and Prompt
-// are left for the caller, pkg/menu, which draws the layout.
+// are left for Run, which draws the layout.
 //
 // The reading is detect's facts, once; Engine.Check over controls.Status
 // on them; the header probe on the same facts; and the risk level over
@@ -60,7 +61,7 @@ type Options struct {
 // the status is returned. The error is ctx's alone (Engine.Check's:
 // detect fails only with ctx), with the zero view-model: a reading cut
 // short is never returned as a whole one.
-func Status(ctx context.Context, o Options) (screen.MainMenu, error) {
+func Status(ctx context.Context, o StatusOptions) (screen.MainMenu, error) {
 	var facts detect.Facts
 	e := engine.New(o.System, engine.Options{
 		Detect: func(ctx context.Context, sys host.System) (detect.Facts, error) {

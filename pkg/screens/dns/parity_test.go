@@ -550,7 +550,7 @@ func answers(c parity.Cell, lines []string) []string {
 // /etc/hardn/hardn.yml (0644, as config.CreateDefaultConfig writes it), as
 // config.Read loads it; with no fixture, none, and the configuration
 // config.LoadConfig gives when it finds none and n is answered
-// (config.DefaultConfig, then its LogsConfig line).
+// (config.DefaultConfig).
 func parityHost(t *testing.T, d parity.Distro, state parity.HostState, fixture string) (*fakeHost, *config.Config) {
 	t.Helper()
 	h := &fakeHost{System: hostfake.New(host.Options{}), facts: d.Facts, active: "inactive", fail: map[string]error{}, lstat: map[string]error{},
@@ -586,7 +586,6 @@ func parityHost(t *testing.T, d parity.Distro, state parity.HostState, fixture s
 	h.Handler = h.answer
 	if fixture == "" {
 		cfg := config.DefaultConfig()
-		cfg.LogsConfig.LogFilePath = cfg.LogFile
 		return h, cfg
 	}
 	data, err := os.ReadFile(filepath.Join(fixtures, fixture))

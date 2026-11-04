@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -55,7 +54,6 @@ func TestExitCode(t *testing.T) {
 		{"plan: no plan", output.Run{Mode: output.ModePlan, Err: errors.New("engine: run directory: x")}, 1, output.OutcomeFailed},
 		{"usage", output.Run{Mode: output.ModePlan, Err: fmt.Errorf("%w: --frobnicate", output.ErrUsage)}, 2, output.OutcomeUsage},
 		{"usage: a bad confirm timeout", output.Run{Mode: output.ModeApply, Err: fmt.Errorf("engine: %w", revert.ErrTimeout)}, 2, output.OutcomeUsage},
-		{"usage: prohibit-password not applied", output.Run{Mode: output.ModeApply, Err: fmt.Errorf("config: %w", config.ErrRootLoginNotApplied)}, 2, output.OutcomeUsage},
 		{"usage: a change id that is not one", output.Run{Mode: output.ModeApply, Err: revert.ErrID}, 2, output.OutcomeUsage},
 		{"no terminal and no yes: the plan, exit 2", output.Run{Mode: output.ModeApply, Plan: portPlan(), Err: confirmationRequired()}, 2, output.OutcomeUsage},
 		{"apply: nothing", output.Run{Mode: output.ModeApply, Plan: empty, Result: &engine.Result{Nothing: true}}, 0, output.OutcomeNothingToDo},

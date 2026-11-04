@@ -1657,8 +1657,7 @@ func settingOf(t *testing.T, lines []string, key string) string {
 }
 
 // settingsVs is every setting but key that hardn.yml's lines give, as
-// hardn loads the file (the defaults, then the file's keys, then
-// LoadConfig's LogsConfig line), against the file loaded's, compared by
+// hardn loads the file (the defaults, then the file's keys), against the file loaded's, compared by
 // value: "as loaded", or each that is not, with its value.
 func settingsVs(t *testing.T, lines, loaded []string, key string) string {
 	t.Helper()
@@ -1686,8 +1685,7 @@ func settingsVs(t *testing.T, lines, loaded []string, key string) string {
 }
 
 // effective is the configuration hardn loads from lines, a hardn.yml (nil:
-// none found), as its keys: config.DefaultConfig, the file's keys, then
-// LoadConfig's LogsConfig line (pkg/config/config.go:362).
+// none found), as its keys: config.DefaultConfig, then the file's keys.
 func effective(t *testing.T, lines []string) map[string]any {
 	t.Helper()
 	c := config.DefaultConfig()
@@ -1696,7 +1694,6 @@ func effective(t *testing.T, lines []string) map[string]any {
 			t.Fatalf("hardn.yml as saved: %v", err)
 		}
 	}
-	c.LogsConfig.LogFilePath = c.LogFile
 	data, err := yaml.Marshal(c)
 	if err != nil {
 		t.Fatal(err)

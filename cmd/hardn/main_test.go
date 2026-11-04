@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	osuser "os/user"
@@ -12,56 +11,19 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/color"
-
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/interfaces"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // These tests drive rootCmd as the hardn binary does, with every step that
-// reaches the host replaced: the provider's file system and commander by the
-// repo's mocks behind a call log, the root check, config load and OS
+// reaches the host replaced: the root check, config load and OS
 // detection by stubs, and the engine's host by a fake that fails the test
 // when a run reaches it unasked (a test of -g gives it one: useDNSHost).
 // Nothing here reads this machine's user, config or OS, runs a command or
 // writes a file.
-
-// callLog records every call made through the provider, in order.
-type callLog struct{ calls []string }
-
-func (l *callLog) add(format string, args ...any) {
-	l.calls = append(l.calls, fmt.Sprintf(format, args...))
-}
-
-type loggingFS struct {
-	inner interfaces.FileSystem
-	log   *callLog
-}
-
-func (f loggingFS) ReadFile(name string) ([]byte, error) {
-	f.log.add("read %s", name)
-	return f.inner.ReadFile(name)
-}
-
-func (f loggingFS) Stat(name string) (os.FileInfo, error) {
-	f.log.add("stat %s", name)
-	return f.inner.Stat(name)
-}
-
-type loggingCommander struct {
-	inner interfaces.Commander
-	log   *callLog
-}
-
-func (c loggingCommander) Execute(command string, args ...string) ([]byte, error) {
-	c.log.add("exec %s", strings.Join(append([]string{command}, args...), " "))
-	return c.inner.Execute(command, args...)
-}
 
 // exited is what the stubbed exit panics with: the status hardn would
 // have ended with.
@@ -70,26 +32,22 @@ type exited int
 // result is one hardn run.
 type result struct {
 	stderr  string
-	stdout  string // what the logging package printed (fatih/color's Output)
-	code    int    // exit status, when ended
-	ended   bool   // the run ended by exit
-	calls   []string
-	reached []string          // the host steps past the dry-run refusal that ran
-	files   map[string]string // the mock file system's files afterwards
+	stdout  string   // what the command wrote to stdout (engineStdout), unless setup points it elsewhere
+	code    int      // exit status, when ended
+	ended   bool     // the run ended by exit
+	reached []string // the host steps past the dry-run refusal that ran
 }
 
 // hostMode sets what the stubbed host steps do. Each records that it was
 // reached. hostUnreachable makes each fail, so a run that gets past the
 // refusal ends at the first (exit status 1). asRoot makes them succeed:
 // root, a fixture config for alice on port 2230, Debian 13 with
-// /etc/sudoers.d. asRootOnProxmox is asRoot on a Debian 13 host that
-// osdetect found to be Proxmox VE.
+// /etc/sudoers.d.
 type hostMode int
 
 const (
 	hostUnreachable hostMode = iota
 	asRoot
-	asRootOnProxmox
 	// asRootBoolRootLogin is asRoot with a configuration file, in the
 	// test's temporary directory, whose permitRootLogin is the deprecated
 	// bool (§3.17).
@@ -99,7 +57,7 @@ const (
 func resetFlags() {
 	noColor, configFile, username, dryRun = false, "", "", false
 	createUser, disableRootSSH, configureUfw, configureDns, runAll, printLogs = false, false, false, false, false, false
-	showVersion, setupSudoEnv, debugUpdates, testUpdateAvailable, testSecurityUpdate = false, false, false, false, false
+	showVersion, setupSudoEnv = false, false
 	cfg = nil
 	// A flag given in one run stays given in pflag for the next (dryRunGiven).
 	for _, name := range []string{"dry-run", "print-logs", "create-user", "disable-root", "configure-dns", "configure-ufw", "run-all", "setup-sudo-env"} {
@@ -128,16 +86,15 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	t.Setenv("HARDN_CONFIG", "")
 
 	var r result
-	log := &callLog{}
 	prev := struct {
-		provider *interfaces.Provider
 		user     func() (*osuser.User, error)
 		load     func(string) (*config.Config, error)
 		existing func(string) (*config.Config, error)
-		detect   func() (*osdetect.OSInfo, error)
+		find     func(string) config.Found
+		detect   func() error
 		exit     func(int)
-	}{provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit}
-	prevStderr, prevOutput, prevNoColor, prevStderrEnv := stderr, color.Output, color.NoColor, stderrEnv
+	}{lookupCurrentUser, loadConfig, loadExisting, findConfig, detectOS, exit}
+	prevStderr, prevStderrEnv := stderr, stderrEnv
 	prevEngineHost, prevEngineDetect, prevEngineStdout := engineHost, engineDetect, engineStdout
 	stderrEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
 	engineHost = func() host.System {
@@ -147,24 +104,16 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	engineDetect = func(context.Context, host.System) (detect.Facts, error) { return detect.Facts{}, nil }
 	engineStdout = io.Discard
 	t.Cleanup(func() {
-		provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit = prev.provider, prev.user, prev.load, prev.existing, prev.detect, prev.exit
-		stderr, color.Output, color.NoColor, stderrEnv = prevStderr, prevOutput, prevNoColor, prevStderrEnv
+		lookupCurrentUser, loadConfig, loadExisting, findConfig, detectOS, exit = prev.user, prev.load, prev.existing, prev.find, prev.detect, prev.exit
+		stderr, stderrEnv = prevStderr, prevStderrEnv
 		engineHost, engineDetect, engineStdout = prevEngineHost, prevEngineDetect, prevEngineStdout
 		resetFlags()
 		rootCmd.SetArgs(nil)
 	})
 
-	mockFS := interfaces.NewMockFileSystem()
-	if mode != hostUnreachable {
-		mockFS.Directories["/etc/sudoers.d"] = true // -e writes a drop-in there
-	}
-	provider = &interfaces.Provider{
-		FS:        loggingFS{inner: mockFS, log: log},
-		Commander: loggingCommander{inner: interfaces.NewMockCommander(), log: log},
-	}
 	var errOut, out bytes.Buffer
 	stderr = &errOut
-	color.Output = &out
+	engineStdout = &out
 	exit = func(code int) { panic(exited(code)) }
 	unreachable := errors.New("test: a host step was reached")
 	lookupCurrentUser = func() (*osuser.User, error) {
@@ -187,19 +136,20 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 			c := config.DefaultConfig()
 			c.Username = "alice"
 			c.SshPort = 2230
-			c.SshAllowedUsers = []string{"alice"}
 			c.Nameservers = []string{"192.0.2.53"}
 			return c, nil
 		}
 		return nil, unreachable
 	}
 	loadExisting = loadConfig // setup-sudo-env's, the same configurations
-	detectOS = func() (*osdetect.OSInfo, error) {
+	// The file the stubbed loads stand for, which hardn says it read.
+	findConfig = func(string) config.Found { return config.Found{Path: confPath, By: config.FoundSearch, Exists: true} }
+	detectOS = func() error {
 		r.reached = append(r.reached, "OS detection")
 		if mode != hostUnreachable {
-			return &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie", IsProxmox: mode == asRootOnProxmox}, nil
+			return nil // Debian 13
 		}
-		return nil, unreachable
+		return unreachable
 	}
 
 	if setup != nil {
@@ -223,11 +173,6 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	}()
 	r.stderr = errOut.String()
 	r.stdout = out.String()
-	r.calls = log.calls
-	r.files = map[string]string{}
-	for p, b := range mockFS.Files {
-		r.files[p] = string(b)
-	}
 	return r
 }
 
@@ -245,21 +190,21 @@ func TestDryRunAloneIsNotRefused(t *testing.T) {
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {
 				t.Fatalf("ended %v with %d after %v, want status 1 at the root check; stderr:\n%s", r.ended, r.code, r.reached, r.stderr)
 			}
-			if r.stderr != "" || len(r.calls) != 0 {
-				t.Errorf("stderr %q, calls %v", r.stderr, r.calls)
+			if flat(r.stderr) != "Operation Failed Failed to get current user: test: a host step was reached" || r.stdout != "" {
+				t.Errorf("stderr %q, stdout %q", r.stderr, r.stdout)
 			}
 		})
 	}
 }
 
-// TestUpdateFlagsSayDisabled checks that the update-check flags, which do
-// nothing while pkg/version's updateCheckEnabled is false (V26), say so in
-// hardn --help.
-func TestUpdateFlagsSayDisabled(t *testing.T) {
+// TestUpdateFlagsGone: the update-check flags, which did nothing while
+// pkg/version's updateCheckEnabled is false (V26), are gone (legacy-left.md
+// §3, decision 3 (a)); TestUsageErrors runs each as an unknown flag, exit
+// status 2.
+func TestUpdateFlagsGone(t *testing.T) {
 	for _, name := range []string{"debug-updates", "test-update", "test-security-update"} {
-		f := rootCmd.PersistentFlags().Lookup(name)
-		if f == nil || !strings.HasSuffix(f.Usage, "(no effect: update checks are disabled)") {
-			t.Errorf("--%s: %+v", name, f)
+		if f := rootCmd.PersistentFlags().Lookup(name); f != nil {
+			t.Errorf("--%s is still a flag: %+v", name, f)
 		}
 	}
 }
@@ -267,7 +212,7 @@ func TestUpdateFlagsSayDisabled(t *testing.T) {
 // TestDeprecationWarning: a bool permitRootLogin in the configuration is
 // warned about on stderr, once, when it loads (§3.17, approved), with the
 // file and line and what to write instead; the operation goes on, and
-// stdout (the legacy logger's) does not repeat it. A configuration without
+// stdout does not repeat it. A configuration without
 // it warns nothing. (Run with -r, which plans Run All on the engine's
 // host, here the DNS tests' (useDNSHost), whose hardn.yml asks nothing.)
 func TestDeprecationWarning(t *testing.T) {
@@ -279,14 +224,10 @@ func TestDeprecationWarning(t *testing.T) {
 	if r.ended {
 		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 	}
-	// One Warning callout (P-42 R5): its title, then the warning as its
-	// body, read here without the bar.
-	lines := strings.Split(r.stderr, "\n")
-	for i, l := range lines {
-		lines[i] = strings.TrimLeft(l, "#█ ")
-	}
-	got := strings.Join(strings.Fields(strings.Join(lines, "\n")), " ")
-	if !strings.HasPrefix(got, "Warning ") || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
+	// The file read (decision 4 (a)), then one Warning callout (P-42 R5):
+	// its title, then the warning as its body, read here without the bar.
+	got := flat(r.stderr)
+	if !strings.HasPrefix(got, "Using configuration from: ") || strings.Count(got, "Warning ") != 1 || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
 		strings.Count(got, "deprecated") != 1 || strings.Contains(r.stderr, "\x1b") {
 		t.Errorf("stderr:\n%s", r.stderr)
 	}

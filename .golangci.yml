@@ -84,32 +84,17 @@ linters:
               desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
             - pkg: golang.org/x/term
               desc: only pkg/ui/term looks at the terminal; use term.Env (design-system README §9.15)
-        # The legacy styling, pkg/ui included, one rule per library, so that
-        # each exception lifts only the denial of what its package imports
-        # today. Each exception goes when its slice moves onto pkg/ui.
+        # The legacy styling's libraries, pkg/ui included: pkg/style and its
+        # callers are deleted, so nothing is excepted.
         legacy-color:
           files:
             - "$all"
-            - "!${base-path}/cmd/hardn/**"
-            - "!${base-path}/pkg/logging/**"
           deny:
             - pkg: github.com/fatih/color
               desc: legacy colour library; use pkg/ui (design-system README §9.15)
-        legacy-style:
-          files:
-            - "$all"
-            - "!${base-path}/pkg/menu/**"
-            - "!${base-path}/cmd/hardn/**"
-            - "!${base-path}/pkg/security/**"
-            - "!${base-path}/pkg/utils/**"
-          deny:
-            - pkg: github.com/abbott/hardn/pkg/style
-              desc: legacy styling; use pkg/ui (design-system README §9.15)
         legacy-width:
           files:
             - "$all"
-            - "!${base-path}/pkg/style/**" # the legacy library itself
-            - "!${base-path}/pkg/menu/**"
           deny:
             - pkg: github.com/mattn/go-runewidth
               desc: legacy width helper; pkg/ui measures with Lip Gloss (design-system README §9.15)

@@ -26,7 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/output"
-	"github.com/abbott/hardn/pkg/style"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -250,7 +250,7 @@ func TestUsersScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runUsersScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
 			}
@@ -270,12 +270,12 @@ func TestUsersScreen(t *testing.T) {
 func TestUsersHook(t *testing.T) {
 	h, cfg := newUsersHost(t)
 	s := useUsersHost(t, h, "2", "carol", "y", "n", "n", "0")
-	set := &hookSet{}
-	if got := withUsersScreen(set, cfg); got != set || set.users == nil {
+	set := withUsersScreen(mainmenu.Options{}, cfg)
+	if set.Users == nil {
 		t.Fatal("withUsersScreen did not set the User Management item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.users(); err != nil {
+	if err := set.Users(); err != nil {
 		t.Fatalf("the User Management item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.writes(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
@@ -336,7 +336,7 @@ func TestCreateUserFlag(t *testing.T) {
 			}
 			yml, sshdConfig := h.content(dnsTestYML), h.content(sshd.MainConfig)
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stdout, r.stderr)
 			}
@@ -369,9 +369,6 @@ func TestCreateUserFlag(t *testing.T) {
 			if h.content(dnsTestYML) != yml {
 				t.Errorf("hardn.yml changed:\n%s", h.content(dnsTestYML))
 			}
-			if len(r.calls) != 0 {
-				t.Errorf("-c went through the legacy provider: %v", r.calls)
-			}
 			if want := map[bool]int{true: 1}[tc.applied != ""]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
 			}
@@ -403,7 +400,7 @@ func TestCreateUserKeys(t *testing.T) {
 			h, _ := newUsersHost(t)
 			cfg := withKeys(t, h, tc.keys...)
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
@@ -446,7 +443,7 @@ func TestCreateUserPlanOnlyFromFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
@@ -459,7 +456,7 @@ func TestCreateUserPlanOnlyFromFile(t *testing.T) {
 }
 
 // TestCreateUserNoName: -c with no -u and no username in hardn.yml is
-// refused as it was, in its words, exit status 1, before the engine's host
+// refused as it was, in its words, on stderr (say), exit status 1, before the engine's host
 // is reached (runHardnWith fails the test if it is).
 func TestCreateUserNoName(t *testing.T) {
 	for _, args := range [][]string{{"-c"}, {"-n", "-c"}} {
@@ -467,7 +464,7 @@ func TestCreateUserNoName(t *testing.T) {
 			r := runHardnWith(t, asRoot, func() {
 				loadConfig = func(string) (*config.Config, error) { return config.DefaultConfig(), nil }
 			}, args...)
-			if !r.ended || r.code != 1 || !strings.Contains(r.stdout+r.stderr, "Please specify a username with -u flag or in the configuration file.") {
+			if !r.ended || r.code != 1 || !strings.HasSuffix(flat(r.stderr), "Operation Failed Please specify a username with -u flag or in the configuration file.") || r.stdout != "" {
 				t.Errorf("ended %v with %d; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.stdout, r.stderr)
 			}
 		})
@@ -495,7 +492,7 @@ func TestCreateUserFlagWithOthers(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			h, cfg := newUsersHost(t)
 			r, s := runC(t, h, cfg, nil, tc.args...)
-			report := style.StripAnsi(s.out.String())
+			report := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stderr)
 			}
@@ -523,7 +520,7 @@ func TestCreateUserRefused(t *testing.T) {
 	r, s := runC(t, h, cfg, func(*dnsSeams) {
 		createRefuse = func(*engine.Plan) error { return refuseCreateLockoutRisk(&engine.Plan{Risk: engine.RiskLockout}) }
 	}, "-c", "-u", "carol")
-	report := style.StripAnsi(s.out.String())
+	report := stripANSI(s.out.String())
 	if !r.ended || r.code != 1 {
 		t.Fatalf("exit status %d (ended %v), want 1; report:\n%s\nstderr:\n%s", r.code, r.ended, report, r.stderr)
 	}
@@ -595,7 +592,7 @@ func TestUsersScreenSignals(t *testing.T) {
 			if err := runUsersScreen(context.Background(), cfg); err != nil {
 				t.Fatalf("runUsersScreen = %v; screen:\n%s", err, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if s.applies != 1 || s.held != 1 || h.content(grant) != "<absent>" || !slices.Equal(h.commands("userdel"), []string{"userdel --remove carol"}) {
 				t.Errorf("%d applies, %d holds, ran %q; %s:\n%s\nscreen:\n%s", s.applies, s.held, h.commands("useradd", "userdel"), grant, h.content(grant), out)
 			}
@@ -629,7 +626,7 @@ func TestUsersScreenSessionUser(t *testing.T) {
 	if err := runUsersScreen(context.Background(), cfg); err != nil {
 		t.Fatalf("runUsersScreen = %v; screen:\n%s", err, s.out.String())
 	}
-	out := strings.Join(strings.Fields(strings.ReplaceAll(style.StripAnsi(s.out.String()), "#", "")), " ") // the warning's lines joined
+	out := strings.Join(strings.Fields(strings.ReplaceAll(stripANSI(s.out.String()), "#", "")), " ") // the warning's lines joined
 	if !strings.Contains(out, "You're running hardn through george's sudo. Removing it would leave no way to become root") || strings.Contains(out, "hardn can't tell who you're logged in as") {
 		t.Errorf("the screen does not say the session-user refusal:\n%s", out)
 	}

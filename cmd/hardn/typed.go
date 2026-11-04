@@ -13,7 +13,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -153,7 +152,7 @@ func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 		}
 	}
 	if err != nil && !errors.Is(err, nav.ErrQuit) && !errors.Is(err, nav.ErrBack) && !errors.Is(err, nav.ErrPhrase) && !errors.Is(err, prompt.ErrAborted) {
-		logging.LogError("%v", err)
+		sayError("%v", err)
 	}
 	return endControls(run, actx, hungUp)
 }

@@ -19,7 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/output"
-	"github.com/abbott/hardn/pkg/style"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -292,7 +292,7 @@ func TestSSHScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runSSHScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
 			}
@@ -325,12 +325,12 @@ func (h *sshTestHost) armed() bool {
 func TestSSHHook(t *testing.T) {
 	h, cfg := newSSHHost(t, "debian13")
 	s := useSSHHost(t, h, "1", "0")
-	set := &hookSet{}
-	if got := withSSHScreen(set, cfg); got != set || set.ssh == nil {
+	set := withSSHScreen(mainmenu.Options{}, cfg)
+	if set.SSH == nil {
 		t.Fatal("withSSHScreen did not set the SSH Login item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.ssh(); err != nil {
+	if err := set.SSH(); err != nil {
 		t.Fatalf("the SSH Login item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.sshdWrites(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
@@ -426,7 +426,7 @@ func TestDisallowRootFlag(t *testing.T) {
 				env = onTTY
 			}
 			r, s := runD(t, h, cfg, env, tc.lines, nil, args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stdout, r.stderr)
 			}
@@ -443,9 +443,6 @@ func TestDisallowRootFlag(t *testing.T) {
 			}
 			if h.armed() != tc.applied {
 				t.Errorf("the revert timer armed %t, want %t", h.armed(), tc.applied)
-			}
-			if len(r.calls) != 0 {
-				t.Errorf("-d went through the legacy provider: %v", r.calls)
 			}
 			if want := map[bool]int{true: 1}[tc.applied || !tc.dryRun && tc.code == 0]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
@@ -477,7 +474,7 @@ func TestDisallowRootPlanOnlyFromFile(t *testing.T) {
 				t.Fatal(err)
 			}
 			r, s := runD(t, h, cfg, onTTY, tc.lines, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -515,7 +512,7 @@ func TestDisallowRootFlagWithOthers(t *testing.T) {
 			h, cfg := newSSHHost(t, tc.host)
 			conf, was := h.content("/etc/resolv.conf"), h.rootLogin()
 			r, s := runD(t, h, cfg, nil, nil, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -571,7 +568,7 @@ func TestCreateUserThenDisallowRoot(t *testing.T) {
 				env = onTTY
 			}
 			r, s := runD(t, h, cfg, env, tc.lines, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -587,8 +584,8 @@ func TestCreateUserThenDisallowRoot(t *testing.T) {
 			if w := h.writes()[before:]; !tc.made && len(w) > 0 {
 				t.Errorf("wrote %q", w)
 			}
-			if len(r.calls) != 0 || strings.Contains(r.stderr, "hardn -c -d") {
-				t.Errorf("legacy calls %q; stderr:\n%s", r.calls, r.stderr)
+			if strings.Contains(r.stderr, "hardn -c -d") {
+				t.Errorf("stderr:\n%s", r.stderr)
 			}
 		})
 	}

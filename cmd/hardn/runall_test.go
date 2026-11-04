@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	planner "github.com/abbott/hardn/pkg/engine/runall"
@@ -16,8 +15,8 @@ import (
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
-	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -123,7 +122,7 @@ func TestRunAllScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runRunAllScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
 			}
@@ -199,12 +198,12 @@ func TestRunAllHook(t *testing.T) {
 	h, cfg := newRunAllHost(t, "debian13", runAllYML)
 	s := useSSHHost(t, h, "1", "0")
 	t.Setenv("SUDO_USER", "george")
-	set := &hookSet{}
-	if got := withRunAllScreen(set, cfg, runAllTestVersion); got != set || set.runAll == nil {
+	set := withRunAllScreen(mainmenu.Options{}, cfg, runAllTestVersion)
+	if set.RunAll == nil {
 		t.Fatal("withRunAllScreen did not set the Run All item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.runAll(); err != nil {
+	if err := set.RunAll(); err != nil {
 		t.Fatalf("the Run All item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.sshdWrites(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
@@ -215,7 +214,7 @@ func TestRunAllHook(t *testing.T) {
 	was := runAllRun
 	t.Cleanup(func() { runAllRun = was })
 	runAllRun = func(_ context.Context, o runallscreen.Options) error { got = o; return nil }
-	if err := set.runAll(); err != nil {
+	if err := set.RunAll(); err != nil {
 		t.Fatal(err)
 	}
 	if got.Config != cfg {
@@ -295,7 +294,7 @@ func TestRunAllFlag(t *testing.T) {
 				env = onTTY
 			}
 			r, s := runD(t, h, cfg, env, tc.lines, nil, args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -315,9 +314,6 @@ func TestRunAllFlag(t *testing.T) {
 			}
 			if dns := h.content(hostdns.ResolvConf) != conf; dns != tc.dns || h.armed() != tc.armed {
 				t.Errorf("the nameservers written %t (want %t), armed %t (want %t)", dns, tc.dns, h.armed(), tc.armed)
-			}
-			if len(r.calls) != 0 {
-				t.Errorf("-r went through the legacy provider: %v", r.calls)
 			}
 			if got := h.content(dnsTestYML); got != yml {
 				t.Errorf("hardn.yml saved:\n%s", got)
@@ -358,7 +354,7 @@ func TestRunAllFlagPlanOnlyFromFile(t *testing.T) {
 		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
 			h, cfg := newRunAllHost(t, "debian13", runAllYML+"dryRun: true\n")
 			r, s := runD(t, h, cfg, onTTY, tc.lines, nil, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -381,9 +377,9 @@ func TestRunAllFlagAlone(t *testing.T) {
 		{"-n", "-r", "-g"}, {"-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
-			if !r.ended || r.code != hardncmd.ExitUsage || len(r.reached) != 0 || len(r.calls) != 0 ||
+			if !r.ended || r.code != output.ExitUsage || len(r.reached) != 0 ||
 				strings.TrimSpace(r.stderr) != "hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e." {
-				t.Errorf("ended %v with %d after %v, calls %v; stderr:\n%s", r.ended, r.code, r.reached, r.calls, r.stderr)
+				t.Errorf("ended %v with %d after %v; stderr:\n%s", r.ended, r.code, r.reached, r.stderr)
 			}
 		})
 	}
@@ -409,7 +405,7 @@ func TestRunAllFlagPrintLogs(t *testing.T) {
 				t.Cleanup(func() { readerHost = was })
 				readerHost = func() host.System { return logHost(readerLog) }
 			}, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; stdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
@@ -421,7 +417,9 @@ func TestRunAllFlagPrintLogs(t *testing.T) {
 }
 
 // TestRunAllFlagVersion: -r gives the planner hardn's version (Auto
-// Updates' record carries it), as the Run All screen is given it.
+// Updates' record carries it), as the Run All screen is given it, and the
+// session engineOptions read (george's over SSH), the one its engines plan
+// with, as TestRunAllScreenOptions holds for the screen.
 func TestRunAllFlagVersion(t *testing.T) {
 	h, cfg := newRunAllHost(t, "debian13", "")
 	var got planner.Input
@@ -436,5 +434,15 @@ func TestRunAllFlagVersion(t *testing.T) {
 	}
 	if got.Version != runAllTestVersion {
 		t.Errorf("the planner's version %q, want %q", got.Version, runAllTestVersion)
+	}
+	if !got.Session.Remote || got.Session.Source == "" {
+		t.Errorf("the planner's session %+v, want george's over SSH", got.Session)
+	}
+	var planned []any
+	if _, err := got.NewEngine(nil).Plan(context.Background(), []engine.Control{sessionProbe{&planned}}, cfg); err != nil {
+		t.Fatal(err)
+	}
+	if len(planned) != 1 || !reflect.DeepEqual(planned[0], got.Session) {
+		t.Errorf("the engine planned with the session %+v, the planner's is %+v", planned, got.Session)
 	}
 }

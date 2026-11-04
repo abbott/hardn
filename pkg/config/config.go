@@ -10,7 +10,6 @@ import (
 
 	"go.yaml.in/yaml/v3"
 
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
@@ -44,68 +43,26 @@ type Config struct {
 	ConfirmTimeout string `yaml:"confirmTimeout,omitempty"`
 
 	// Network Configuration
-	DmzSubnet   string   `yaml:"dmzSubnet"`
 	Nameservers []string `yaml:"nameservers"`
 
 	// SSH Configuration
-	SshPort          int      `yaml:"sshPort"`
-	PermitRootLogin  bool     `yaml:"permitRootLogin"`
-	SshAllowedUsers  []string `yaml:"sshAllowedUsers"`
-	SshListenAddress string   `yaml:"sshListenAddress"`
-	SshKeyPath       string   `yaml:"sshKeyPath"`
-	SshConfigFile    string   `yaml:"sshConfigFile"`
+	SshPort         int    `yaml:"sshPort"`
+	PermitRootLogin bool   `yaml:"permitRootLogin"`
+	SshConfigFile   string `yaml:"sshConfigFile"`
 
 	// User Configuration
 	SudoNoPassword bool     `yaml:"sudoNoPassword"`
 	SshKeys        []string `yaml:"sshKeys"`
 
-	// Package Configuration
-	LinuxCorePackages    []string `yaml:"linuxCorePackages"`
-	LinuxDmzPackages     []string `yaml:"linuxDmzPackages"`
-	LinuxLabPackages     []string `yaml:"linuxLabPackages"`
-	PythonPackages       []string `yaml:"pythonPackages"`
-	NonWslPythonPackages []string `yaml:"nonWslPythonPackages"`
-	PythonPipPackages    []string `yaml:"pythonPipPackages"`
-	AlpineCorePackages   []string `yaml:"alpineCorePackages"`
-	AlpineDmzPackages    []string `yaml:"alpineDmzPackages"`
-	AlpineLabPackages    []string `yaml:"alpineLabPackages"`
-	AlpinePythonPackages []string `yaml:"alpinePythonPackages"`
-
-	// Repository Configuration
-	DebianRepos            []string `yaml:"debianRepos"`
-	ProxmoxSrcRepos        []string `yaml:"proxmoxSrcRepos"`
-	ProxmoxCephRepo        []string `yaml:"proxmoxCephRepo"`
-	ProxmoxEnterpriseRepo  []string `yaml:"proxmoxEnterpriseRepo"`
-	ProxmoxPackagePatterns []string `yaml:"proxmoxPackagePatterns"`
-	AlpineTestingRepo      bool     `yaml:"alpineTestingRepo"`
-
 	// Firewall Configuration
 	// UfwAppProfiles represents UFW application profiles
-	UfwAppProfiles           []UfwAppProfile `yaml:"ufwAppProfiles"`
-	UfwDefaultIncomingPolicy string          `yaml:"ufwDefaultIncomingPolicy"`
-	UfwDefaultOutgoingPolicy string          `yaml:"ufwDefaultOutgoingPolicy"`
-	UfwAllowedPorts          []int           `yaml:"ufwAllowedPorts"`
+	UfwAppProfiles []UfwAppProfile `yaml:"ufwAppProfiles"`
 
 	// Feature Toggles
-	UseUvPackageManager      bool `yaml:"useUvPackageManager"`
-	EnableAppArmor           bool `yaml:"enableAppArmor"`
-	EnableLynis              bool `yaml:"enableLynis"`
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`
 	ConfigureDns             bool `yaml:"configureDns"`
 	DisableRootSSH           bool `yaml:"disableRootSSH"`
-
-	// Localization
-	Lang             string `yaml:"lang"`
-	Language         string `yaml:"language"`
-	LcAll            string `yaml:"lcAll"`
-	Tz               string `yaml:"tz"`
-	PythonUnbuffered string `yaml:"pythonUnbuffered"`
-
-	// Logs Configuration (embedded for easy access to LogFile)
-	LogsConfig struct {
-		LogFilePath string
-	}
 
 	// loaded is what the YAML said beyond the fields: permitRootLogin's
 	// string value and the deprecated forms read, and the path LoadConfig
@@ -124,16 +81,12 @@ func DefaultConfig() *Config {
 		BackupPath:    "/var/backups/hardn",
 
 		// Network Configuration
-		// DmzSubnet:   "192.168.4",
 		// Nameservers: []string{"1.1.1.1", "1.0.0.1"},
 
 		// SSH Configuration
 		SshPort:         22,
 		PermitRootLogin: false,
-		// SshAllowedUsers:  []string{"george"},
-		SshListenAddress: "0.0.0.0",
-		SshKeyPath:       ".ssh_%u",
-		SshConfigFile:    "/etc/ssh/sshd_config.d/hardn.conf",
+		SshConfigFile:   "/etc/ssh/sshd_config.d/hardn.conf",
 
 		// User Configuration
 		SudoNoPassword: true,
@@ -141,39 +94,12 @@ func DefaultConfig() *Config {
 
 		// Firewall Configuration
 		UfwAppProfiles: []UfwAppProfile{},
-		// UfwDefaultIncomingPolicy: "deny",
-		// UfwDefaultOutgoingPolicy: "allow",
-		// UfwAllowedPorts:          []int{22},
 
 		// Feature Toggles
-		UseUvPackageManager:      false,
-		EnableAppArmor:           false,
-		EnableLynis:              false,
 		EnableUnattendedUpgrades: false,
 		EnableUfwSshPolicy:       false,
 		ConfigureDns:             false,
 		DisableRootSSH:           false,
-
-		// Localization
-		// Lang:             "en_US.UTF-8",
-		// Language:         "en_US:en",
-		// LcAll:            "en_US.UTF-8",
-		// Tz:               "America/New_York",
-		PythonUnbuffered: "1",
-
-		// Package configuration with common defaults
-		LinuxCorePackages:  []string{},
-		LinuxDmzPackages:   []string{},
-		LinuxLabPackages:   []string{},
-		AlpineCorePackages: []string{},
-		AlpineDmzPackages:  []string{},
-		AlpineLabPackages:  []string{},
-		// LinuxCorePackages:        []string{"apt-transport-https", "dstat", "gawk", "git", "jq", "htop", "iputils-clockdiff", "sed", "strace", "sudo", "sysstat"},
-		// LinuxDmzPackages:         []string{"dnsutils", "fail2ban", "nethogs"},
-		// LinuxLabPackages:         []string{"aria2", "arping", "fping", "iperf3", "lshw",  "mosh", "net-tools", "tree"},
-		// AlpineCorePackages:       []string{"bash", "openssh", "shadow", "sudo", "ca-certificates"},
-		// AlpineDmzPackages:        []string{"bind-tools", "fail2ban", "git", "htop", "jq", "sudo"},
-		// AlpineLabPackages:        []string{"iperf3", "mosh", "net-tools", "tree"},
 	}
 }
 
@@ -215,47 +141,67 @@ func defaultSearchPath() []string {
 	return append(searchPaths, "./hardn.yml")
 }
 
-// Direct replacement for the FindConfigFile function in pkg/config/config.go
-// This ensures environment variables have the highest priority
+// FoundBy is how FindConfigFile looked for hardn.yml.
+type FoundBy uint8
 
-func FindConfigFile(explicitPath string) (string, bool) {
-	// Log environment variable for debugging
-	envPath := os.Getenv("HARDN_CONFIG")
-	// if envPath != "" {
-	// 	logging.LogInfo("HARDN_CONFIG environment variable is set to: %s", envPath)
-	// }
+const (
+	FoundNone   FoundBy = iota // neither -f nor HARDN_CONFIG, and no file on the search path
+	FoundFlag                  // -f/--config named it
+	FoundEnv                   // HARDN_CONFIG named it
+	FoundSearch                // the first file of the search path (defaultSearchPath)
+)
 
-	// First priority: explicit path from command line
+// Found is what FindConfigFile found: the file and how it was looked for.
+// Exists is false for FoundNone, and for a file -f or HARDN_CONFIG names
+// that is not there, as no other place is looked at then.
+type Found struct {
+	Path   string
+	By     FoundBy
+	Exists bool
+}
+
+// String is what hardn says of f once, on stderr (cmd/hardn), in the words
+// FindConfigFile printed itself before (docs/engine/legacy-left.md,
+// decision 4 (a), adopted 2026-11-04).
+func (f Found) String() string {
+	switch {
+	case f.By == FoundFlag && f.Exists:
+		return "Using configuration from command-line flag: " + f.Path
+	case f.By == FoundFlag:
+		return "Configuration file specified by command-line flag not found: " + f.Path
+	case f.By == FoundEnv && f.Exists:
+		return "Using configuration from HARDN_CONFIG environment variable: " + f.Path
+	case f.By == FoundEnv:
+		return "Configuration file specified by HARDN_CONFIG environment variable not found: " + f.Path
+	case f.By == FoundSearch:
+		return "Using configuration from: " + f.Path
+	}
+	return "No configuration file found in any location"
+}
+
+// NoneLoaded is what hardn says once a run goes on with the defaults, the
+// offer to create hardn.yml declined.
+const NoneLoaded = "Using default configuration (no config file found)"
+
+// FindConfigFile finds hardn.yml: explicitPath (-f) when given, else
+// HARDN_CONFIG when set, neither then falling back elsewhere when its file
+// is not there, else the first file of the search path. It says nothing:
+// cmd/hardn says what it found (Found.String).
+func FindConfigFile(explicitPath string) Found {
 	if explicitPath != "" {
-		if _, err := os.Stat(explicitPath); err == nil {
-			logging.LogInfo("Using configuration from command-line flag: %s", explicitPath)
-			return explicitPath, true
-		}
-		logging.LogError("Configuration file specified by command-line flag not found: %s", explicitPath)
-		return "", false // Don't fall back if explicit path is specified but doesn't exist
+		_, err := os.Stat(explicitPath)
+		return Found{Path: explicitPath, By: FoundFlag, Exists: err == nil}
 	}
-
-	// Second priority: environment variable
-	if envPath != "" {
-		if _, err := os.Stat(envPath); err == nil {
-			logging.LogInfo("Using configuration from HARDN_CONFIG environment variable: %s", envPath)
-			return envPath, true
-		}
-		logging.LogError("Configuration file specified by HARDN_CONFIG environment variable not found: %s", envPath)
-		return "", false // Don't fall back if env var is specified but doesn't exist
+	if envPath := os.Getenv("HARDN_CONFIG"); envPath != "" {
+		_, err := os.Stat(envPath)
+		return Found{Path: envPath, By: FoundEnv, Exists: err == nil}
 	}
-
-	// Third priority: default search paths
 	for _, path := range defaultSearchPath() {
 		if _, err := os.Stat(path); err == nil {
-			logging.LogInfo("Using configuration from: %s", path)
-			return path, true
+			return Found{Path: path, By: FoundSearch, Exists: true}
 		}
 	}
-
-	// No configuration file found
-	logging.LogInfo("No configuration file found in any location")
-	return "", false
+	return Found{}
 }
 
 // helper function to use with LoadConfig
@@ -264,9 +210,9 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 	config := DefaultConfig()
 
 	// Find config file with proper priority
-	configPath, found := FindConfigFile(filePath)
+	found := FindConfigFile(filePath)
 
-	if !found {
+	if !found.Exists {
 		// No config file found, check if we should create one
 		if ShouldCreateDefaultConfig() {
 			path := GetDefaultConfigLocation()
@@ -280,12 +226,11 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 			return config, nil
 		}
 
-		// If we're not creating a default config, just return the default
-		logging.LogInfo("Using default configuration (no config file found)")
+		// Not creating one: the defaults (cmd/hardn says NoneLoaded).
 		return config, nil
 	}
 
-	return readConfigFile(configPath)
+	return readConfigFile(found.Path)
 }
 
 // readConfigFile reads the configuration file at path as LoadConfig reads
@@ -304,31 +249,19 @@ func readConfigFile(path string) (*Config, error) {
 	if err := yaml.Unmarshal(data, config); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", path, err)
 	}
-	if err := checkLoaded(config); err != nil {
-		return nil, fmt.Errorf("config file %s: %w", path, err)
-	}
 	config.setLoaded(path, data)
 
 	return config, nil
 }
 
 // LoadConfig loads hardn's configuration as LoadConfigWithEnvPriority
-// finds it (-f, HARDN_CONFIG, then the search path), its LogsConfig set
-// from its logFile. It runs nothing: origin/main's su - probe of the sudo
+// finds it (-f, HARDN_CONFIG, then the search path). It runs nothing: origin/main's su - probe of the sudo
 // user's login shell for HARDN_CONFIG, and the notice after it, are gone
 // (refactor plan slice 9, unit (d), decision 4; side-effects row 5): the
 // Environment screen's state row says whether sudo, or doas, keeps
 // HARDN_CONFIG, read from hardn's files (pkg/screens/environment).
 func LoadConfig(filePath string) (*Config, error) {
-	cfg, err := LoadConfigWithEnvPriority(filePath)
-	if err != nil {
-		return nil, err
-	}
-
-	// Initialize LogsConfig
-	cfg.LogsConfig.LogFilePath = cfg.LogFile
-
-	return cfg, nil
+	return LoadConfigWithEnvPriority(filePath)
 }
 
 // LoadExisting loads hardn's configuration as LoadConfig does where a file
@@ -342,11 +275,11 @@ func LoadConfig(filePath string) (*Config, error) {
 // 2026-10-29).
 func LoadExisting(filePath string) (*Config, error) {
 	cfg := DefaultConfig()
-	path, found := FindConfigFile(filePath)
+	found := FindConfigFile(filePath)
 	switch {
-	case found:
+	case found.Exists:
 		var err error
-		if cfg, err = readConfigFile(path); err != nil {
+		if cfg, err = readConfigFile(found.Path); err != nil {
 			return nil, err
 		}
 	case filePath != "":
@@ -354,7 +287,6 @@ func LoadExisting(filePath string) (*Config, error) {
 	case os.Getenv("HARDN_CONFIG") != "":
 		return nil, fmt.Errorf("config: %s (HARDN_CONFIG): %w", os.Getenv("HARDN_CONFIG"), fs.ErrNotExist)
 	}
-	cfg.LogsConfig.LogFilePath = cfg.LogFile
 	return cfg, nil
 }
 
@@ -461,8 +393,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 }
 
 // SaveConfig saves configuration to the specified file: the whole
-// configuration, but the retired keys at their defaults (retired.go), with
-// dryRun as loaded, never the session's mode (slice 2b
+// configuration, with dryRun as loaded, never the session's mode (slice 2b
 // decision 8), so that -n, --dry-run=false and a toggle inside the session
 // are never saved; only an edit of the file sets it.
 func SaveConfig(config *Config, filePath string) error {
@@ -474,13 +405,7 @@ func SaveConfig(config *Config, filePath string) error {
 		saved.LogFile = ""
 	}
 
-	// Marshal YAML, without the retired keys at their defaults (retired.go)
-	var n yaml.Node
-	if err := n.Encode(&saved); err != nil {
-		return fmt.Errorf("failed to marshal config to YAML: %w", err)
-	}
-	withoutRetired(&n, &saved)
-	data, err := yaml.Marshal(&n)
+	data, err := yaml.Marshal(&saved)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config to YAML: %w", err)
 	}

@@ -7,16 +7,10 @@ import (
 	"os"
 	osuser "os/user"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/infrastructure"
-	"github.com/abbott/hardn/pkg/interfaces"
-	"github.com/abbott/hardn/pkg/logging"
-	"github.com/abbott/hardn/pkg/osdetect"
-	"github.com/abbott/hardn/pkg/style"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/version"
 )
 
@@ -28,44 +22,38 @@ var (
 )
 
 var (
-	noColor             bool
-	configFile          string
-	username            string
-	dryRun              bool
-	createUser          bool
-	disableRootSSH      bool
-	configureUfw        bool
-	configureDns        bool
-	runAll              bool
-	printLogs           bool
-	showVersion         bool
-	setupSudoEnv        bool
-	debugUpdates        bool
-	testUpdateAvailable bool
-	testSecurityUpdate  bool
-	cfg                 *config.Config
+	noColor        bool
+	configFile     string
+	username       string
+	dryRun         bool
+	createUser     bool
+	disableRootSSH bool
+	configureUfw   bool
+	configureDns   bool
+	runAll         bool
+	printLogs      bool
+	showVersion    bool
+	setupSudoEnv   bool
+	cfg            *config.Config
 )
-
-// Create provider as a global for dependency injection
-var provider = interfaces.NewProvider()
 
 func main() { start("/var/log/hardn.log") }
 
 // start is main, with the log's path for the tests: what hardn says before the
 // command goes to stderr, so that stdout holds the command's output alone (defect 28).
 func start(logPath string) {
-	logging.InitLogging(logPath)
+	openLog(logPath)
 
 	// Ensure config directory and example config exist
 	if err := ensureExampleConfig(); err != nil {
-		// Just log a warning, don't exit - the program can still run with defaults
-		fmt.Fprintf(os.Stderr, "Warning: Unable to create example configuration file: %v\n", err)
+		// A warning, not an exit: the program can still run with defaults.
+		sayWarning("Unable to create example configuration file: %v", err)
 	}
 
 	// All Execute returns is a bad command line, which cobra has said on stderr with
 	// the usage: a usage error, as refuse's.
 	if err := rootCmd.Execute(); err != nil {
-		exit(hardncmd.ExitUsage)
+		exit(output.ExitUsage)
 	}
 }
 
@@ -74,14 +62,11 @@ func init() {
 	rootCmd.Version = Version
 
 	// if rootCmd.Version != "" {
-	// 	logging.LogInfo("Current version :::: : %s", rootCmd.Version)
+	// 	sayInfo("Current version :::: : %s", rootCmd.Version)
 	// }
 
-	// Setup color processing before command execution
-	cobra.OnInitialize(initializeColor)
-
 	rootCmd.AddCommand(setupSudoEnvCmd)
-	rootCmd.AddCommand(hardncmd.SystemDetailsCmd(runSystemDetails))
+	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
@@ -95,19 +80,27 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
 	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
 	rootCmd.PersistentFlags().BoolVar(&noColor, "no-color", false, "Disable colored output")
-	rootCmd.PersistentFlags().BoolVar(&debugUpdates, "debug-updates", false, version.UpdateFlagUsage("Enable debugging for update checks"))
-	rootCmd.PersistentFlags().BoolVar(&testUpdateAvailable, "test-update", false, version.UpdateFlagUsage("Force update notification for testing"))
-	rootCmd.PersistentFlags().BoolVar(&testSecurityUpdate, "test-security-update", false, version.UpdateFlagUsage("Test security update notification"))
 }
 
-func initializeColor() {
-	if noColor {
-		color.NoColor = true
-		style.UseColors = false
-	} else {
-		color.NoColor = false
-		style.UseColors = true
+// startMenu runs the main menu (runMenu), a seam for the tests, which
+// record the options the root command gives it.
+var startMenu = runMenu
+
+// mainMenuRun reports whether the root command opens the main menu: no
+// operation flag given.
+func mainMenuRun() bool {
+	return !createUser && !disableRootSSH && !configureUfw && !configureDns &&
+		!runAll && !printLogs && !setupSudoEnv
+}
+
+// sayFound says which hardn.yml FindConfigFile found, once, on stderr:
+// an error when -f or HARDN_CONFIG names a file that is not there.
+func sayFound(f config.Found) {
+	if f.By != config.FoundNone && !f.Exists {
+		sayError("%s", f)
+		return
 	}
+	sayInfo("%s", f)
 }
 
 var rootCmd = &cobra.Command{
@@ -143,21 +136,30 @@ var rootCmd = &cobra.Command{
 		// Check if running as root
 		currentUser, err := lookupCurrentUser()
 		if err != nil {
-			logging.LogError("Failed to get current user: %v", err)
+			sayError("Failed to get current user: %v", err)
 			exit(1)
 		}
 
 		if currentUser.Uid != "0" {
-			logging.LogError("This script needs to be run as root.")
-			fmt.Println(rootHint())
+			sayNotRoot()
 			exit(1)
 		}
 
-		// Load configuration (will check both command-line flag and environment variable)
+		// Load configuration (-f, then HARDN_CONFIG, then the search path).
+		// Which hardn.yml is said once, on stderr, for the flags, and
+		// nothing before the main menu (decision 4 (a) of
+		// docs/engine/legacy-left.md, adopted 2026-11-04).
+		found := findConfig(configFile)
+		if !mainMenuRun() {
+			sayFound(found)
+		}
 		cfg, err = loadConfig(configFile)
 		if err != nil {
-			logging.LogError("Failed to load configuration: %v", err)
+			sayError("Failed to load configuration: %v", err)
 			exit(1)
+		}
+		if !mainMenuRun() && !found.Exists && cfg.Path() == "" {
+			sayInfo("%s", config.NoneLoaded) // the offer to create one declined
 		}
 
 		// The session's mode: -n/--dry-run when given, true or false, else
@@ -174,57 +176,24 @@ var rootCmd = &cobra.Command{
 		// Check if we need to create a user and no username is provided
 		// (-r without one asks Run All for no user: runall.Asked)
 		if createUser && cfg.Username == "" {
-			logging.LogError("Please specify a username with -u flag or in the configuration file.")
+			sayError("Please specify a username with -u flag or in the configuration file.")
 			exit(1)
 		}
 
-		// Detect OS
-		osInfo, err := detectOS()
-		if err != nil {
-			logging.LogError("Failed to detect OS: %v", err)
+		// An OS other than Debian, Ubuntu or Alpine, or none os-release
+		// names, is refused (hostOS); nothing is said of one that is not.
+		if err := detectOS(); err != nil {
+			sayError("Failed to detect OS: %v", err)
 			exit(1)
 		}
 
-		// After detectOS, which clears the terminal: said before it, these are gone
-		// before anyone can read them.
 		warnDeprecations(cfg)
 
-		// Create service factory
-		serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
-		serviceFactory.SetConfig(cfg)
-
 		// If no specific flags provided, show the interactive menu
-		if !createUser && !disableRootSSH && !configureUfw && !configureDns &&
-			!runAll && !printLogs && !setupSudoEnv {
+		if mainMenuRun() {
 
-			// Create menu factory and main menu; its screens' items and its status: hooks.go
-			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			mainMenu := withHooks(menuFactory.CreateMainMenu(versionService), cfg, Version)
-
-			// Handle test flags
-			if testUpdateAvailable {
-				// Force the update notification to appear with a hard-coded newer version
-				mainMenu.SetTestUpdateAvailable("99.0.0")
-			}
-
-			// Test security update notification if requested
-			if testSecurityUpdate {
-				// Force security update notification to appear
-				mainMenu.SetTestSecurityUpdate("Critical security vulnerability CVE-2023-1234: Privilege escalation in SSH component")
-			}
-
-			if os.Getenv("HARDN_FORCE_UPDATE") != "" {
-				// Force the update notification to appear with a hard-coded newer version
-				mainMenu.SetTestUpdateAvailable("99.0.0")
-			} else if os.Getenv("HARDN_FORCE_SECURITY") != "" {
-				// Test mode for security updates - use the mainMenu method instead of direct field access
-				mainMenu.SetTestSecurityUpdate("CVE-2023-1234: Security update")
-			} else {
-				mainMenu.CheckForUpdates()
-			}
-
-			// Show main menu with version info
-			mainMenu.ShowMainMenu(Version, BuildDate, GitCommit)
+			// The main menu; its screens' items and its status: hooks.go
+			startMenu(context.Background(), menuOptions(cfg, Version))
 			return
 		}
 
@@ -320,9 +289,10 @@ Example:
 		if checkRoot() != nil {
 			return
 		}
+		sayFound(findConfig(configFile))
 		var err error
 		if cfg, err = loadExisting(configFile); err != nil {
-			logging.LogError("Failed to load configuration: %v", err)
+			sayError("Failed to load configuration: %v", err)
 			exit(1)
 			return
 		}
@@ -335,7 +305,7 @@ Example:
 }
 
 // The steps of the commands' Run functions that reach the host outside the
-// provider, and the process exit. cmd/hardn's tests replace them, so that a
+// engine, and the process exit. cmd/hardn's tests replace them, so that a
 // test never reads this machine's user, config or OS, and never exits.
 // loadExisting is setup-sudo-env's load: hardn.yml where one is found, the
 // defaults where none is, never the offer to create one (config.LoadExisting;
@@ -345,7 +315,8 @@ var (
 	loadConfig                    = config.LoadConfig
 	loadExisting                  = config.LoadExisting
 	ensureExampleConfig           = config.EnsureExampleConfigExists
-	detectOS                      = osdetect.DetectOS
+	findConfig                    = config.FindConfigFile
+	detectOS                      = hostOS
 	exit                          = os.Exit
 	stderr              io.Writer = termStderr
 )
@@ -361,6 +332,6 @@ func refuse(err error) bool {
 		return false
 	}
 	fmt.Fprintln(stderr, err)
-	exit(hardncmd.ExitUsage)
+	exit(output.ExitUsage)
 	return true
 }

@@ -17,7 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
-	"github.com/abbott/hardn/pkg/style"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -285,7 +285,7 @@ func TestFirewallScreen(t *testing.T) {
 			if tc.want == nil && err != nil || tc.want != nil && !errors.Is(err, tc.want) {
 				t.Fatalf("runFirewallScreen = %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if w := inOrder(out, tc.said...); w != "" {
 				t.Errorf("the screen lacks %q:\n%s", w, out)
 			}
@@ -315,23 +315,23 @@ func TestFirewallHook(t *testing.T) {
 	h := newFWHost(t, "debian13")
 	s := useFWHost(t, h, "1", "0")
 	cfg := config.DefaultConfig()
-	set := &hookSet{}
-	if got := withFirewallScreen(set, cfg); got != set || set.firewall == nil || set.firewallPVE == nil {
+	set := withFirewallScreen(mainmenu.Options{}, cfg)
+	if set.Firewall == nil || set.FirewallPVE == nil {
 		t.Fatal("withFirewallScreen did not set the Firewall item on the menu given")
 	}
 	cfg.DryRun = true
-	if err := set.firewall(); err != nil {
+	if err := set.Firewall(); err != nil {
 		t.Fatalf("the Firewall item = %v; screen:\n%s", err, s.out.String())
 	}
 	if got := h.changed(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("ufw changed by %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
 	}
-	if set.firewallPVE() {
+	if set.FirewallPVE() {
 		t.Error("Debian 13 is taken for Proxmox VE")
 	}
 	pve := newFWHost(t, "pve9")
 	useFWHost(t, pve)
-	if set := withFirewallScreen(&hookSet{}, cfg); !set.firewallPVE() {
+	if set := withFirewallScreen(mainmenu.Options{}, cfg); !set.FirewallPVE() {
 		t.Error("Proxmox VE 9 is not taken for Proxmox VE")
 	}
 }
@@ -424,7 +424,7 @@ func TestConfigureFirewallFlag(t *testing.T) {
 				env = onTTY
 			}
 			r, s := runW(t, h, env, tc.lines, nil, args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stdout, r.stderr)
 			}
@@ -444,9 +444,6 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			}
 			if tc.host == "boot-off" && (h.unit == "enabled") != tc.plain {
 				t.Errorf("ufw's service at boot %q, want the plain plan applied %t", h.unit, tc.plain)
-			}
-			if len(r.calls) != 0 {
-				t.Errorf("-w went through the legacy provider: %v", r.calls)
 			}
 			if want := map[bool]int{true: 1}[tc.applied || !tc.dryRun && tc.code == 0]; s.applies != want || s.live != 0 {
 				t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)
@@ -471,7 +468,7 @@ func TestConfigureFirewallFlagInterrupted(t *testing.T) {
 		}
 		h.during = func() { cancel() }
 	}, "-w", "-e")
-	out := style.StripAnsi(s.out.String())
+	out := stripANSI(s.out.String())
 	if !r.ended || r.code != 130 {
 		t.Fatalf("exit status %d (ended %v), want 130; report:\n%s\nstderr:\n%s", r.code, r.ended, out, r.stderr)
 	}
@@ -512,7 +509,7 @@ func TestConfigureFirewallPlanOnlyFromFile(t *testing.T) {
 				engineInput = func() *prompt.Reader { return in }
 				stdoutEnv = onTTY
 			}, tc.args...)
-			out := style.StripAnsi(s.out.String())
+			out := stripANSI(s.out.String())
 			if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 				t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, out, r.stderr)
 			}
