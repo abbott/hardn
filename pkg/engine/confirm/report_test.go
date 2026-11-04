@@ -52,7 +52,8 @@ func facts(mode detect.SSHMode, doas bool) detect.Facts {
 // applied (with the rule hardn added, and one it did not); nothing left; a
 // refusal and a step rolled back on Debian's ssh.service, Ubuntu's
 // ssh.socket and Alpine's OpenRC with doas (the reload by hand as each
-// starts sshd); a rollback that did not finish; another hardn run (the
+// starts sshd), and on a host with neither sudo nor doas (Proxmox VE as
+// installed: hardn and its commands bare); a rollback that did not finish; another hardn run (the
 // state not established); the refusals that forbid dropping the port (no
 // way to drop it given). With no plan, the report says that doas takes
 // sudo's place where sudo is not installed.
@@ -69,6 +70,8 @@ func TestReport(t *testing.T) {
 	}
 	console := func(h Held) Held { h.Console = true; return h }
 	debian, ubuntu, alpine := facts(detect.SSHService, false), facts(detect.SSHSocket, false), facts(detect.SSHOpenRC, true)
+	// bareHost is Proxmox VE as installed: neither sudo nor doas.
+	bareHost := detect.Facts{SSH: detect.SSH{Mode: detect.SSHService}, Elevation: detect.Elevation{Sudo: detect.Tool{Present: detect.No}, Doas: detect.Tool{Present: detect.No}}}
 	const doasNote = "Where sudo is not installed (Alpine), use doas."
 	for _, tc := range []struct {
 		name               string
@@ -124,6 +127,12 @@ func TestReport(t *testing.T) {
 			finish: []string{"run `sudo hardn confirm` again from a new SSH connection to port 2230",
 				"delete the `Port 22` line from /etc/ssh/sshd_config.d/00-hardn.conf, check the configuration with `sudo sshd -t`, then `sudo systemctl reload ssh.service`, and `sudo ufw delete allow 22/tcp`."},
 			not: []string{doasNote}, noDone: true},
+		{name: "refused, a host with neither sudo nor doas", h: held("22/tcp"), o: Outcome{Plan: plan(bareHost), Err: refused},
+			finish: []string{"run `hardn confirm` again from a new SSH connection to port 2230",
+				"check the configuration with `sshd -t`, then `systemctl reload ssh.service`, and `ufw delete allow 22/tcp`."},
+			not: []string{"sudo", "doas"}, noDone: true},
+		{name: "another hardn changed the host, neither sudo nor doas", h: held(), o: Outcome{Plan: plan(bareHost), Result: &engine.Result{}, Err: fmt.Errorf("engine: change x: %w", engine.ErrPlanChanged)},
+			finish: []string{"If `sshd -T` still shows port 22, run `hardn confirm` again"}, not: []string{"sudo", "doas"}, noDone: true},
 		{name: "rolled back, Ubuntu's ssh.socket", h: held(), o: Outcome{Plan: plan(ubuntu), Result: &engine.Result{Failed: rolledBack}, Err: rolledBack},
 			left: []string{"is still open"}, finish: []string{"then `sudo systemctl daemon-reload` and `sudo systemctl restart ssh.socket`."}, noDone: true},
 		{name: "rolled back, Alpine's OpenRC with doas", h: held(), o: Outcome{Plan: plan(alpine), Result: &engine.Result{Failed: rolledBack}, Err: rolledBack},
