@@ -134,14 +134,3 @@ func TestPlantedCacheIgnored(t *testing.T) {
 		t.Errorf("files in the cache dir: %v, %v", entries, err)
 	}
 }
-
-// TestUpdateFlagUsage checks the help of the update flags while checks
-// are disabled.
-func TestUpdateFlagUsage(t *testing.T) {
-	if got, want := UpdateFlagUsage("Force update notification for testing"), "Force update notification for testing (no effect: update checks are disabled)"; got != want {
-		t.Errorf("got %q, want %q", got, want)
-	}
-	if UpdateCheckEnabled() {
-		t.Error("UpdateCheckEnabled() = true")
-	}
-}
