@@ -34,6 +34,7 @@ func TestInterrupt(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = pr.Close(); _ = pw.Close() })
+	useTerminals(t, true)
 	useReader(t, prompt.New(pr, false))
 	// The sender is stopped and waited for before guard is stopped
 	// (cleanups run last first), so no SIGINT follows signal.Stop.
@@ -60,14 +61,14 @@ func TestInterrupt(t *testing.T) {
 	if !ended || exited(code) != sigint {
 		t.Errorf("ended %v with %d, want hardn ended by SIGINT", ended, code)
 	}
-	if want := "No configuration file found. Would you like to create one? [Y/n]\n"; out != want {
+	if want := FirstRunQuestion + " \n"; out != want {
 		t.Errorf("printed %q, want %q", out, want)
 	}
 }
 
 // TestInterruptChild runs this test binary as a child process that waits
 // at the first-run question on a pipe that never ends, with the
-// production input, exit and reraise, and sends it SIGINT, as Ctrl-C
+// production input, exit and reraise (its terminals check aside), and sends it SIGINT, as Ctrl-C
 // does: the child must die of SIGINT, as origin/main's bufio reader did,
 // so that a shell running hardn in a loop or a script stops, rather than
 // exit with status 130, which a shell takes as a normal exit and goes on.
@@ -75,8 +76,9 @@ func TestInterrupt(t *testing.T) {
 // catches a SIGINT sent before the read waits, and prompt.Reraise must
 // undo it.
 func TestInterruptChild(t *testing.T) {
-	const question = "No configuration file found. Would you like to create one? [Y/n]\n"
+	const question = FirstRunQuestion + " \n"
 	if os.Getenv("HARDN_CONFIG_CHILD") == "interrupt" {
+		terminals = func() bool { return true } // stdin is the pipe below
 		signal.Notify(make(chan os.Signal, 64), os.Interrupt)
 		fmt.Println("ready")
 		ShouldCreateDefaultConfig()
