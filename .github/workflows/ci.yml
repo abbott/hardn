@@ -28,8 +28,8 @@ jobs:
     env:
       # Keep in step with the makefile's CHECK_*_VERSION; the first step
       # fails if they differ. Each SHA-256 is the linux-amd64 archive's, from
-      # the release's checksums file or, for zizmor, which publishes none,
-      # GitHub's digest of the release asset.
+      # the release's checksums file or, for zizmor and shellcheck, which
+      # publish none, GitHub's digest of the release asset.
       GOLANGCI_LINT_VERSION: 2.14.0
       GOLANGCI_LINT_SHA256: ab90aeb7b066f92a33415b638a50fe5344bbb75a0d32ad30cc248d88f81032ab
       GOVULNCHECK_VERSION: v1.9.0
@@ -37,6 +37,10 @@ jobs:
       ZIZMOR_SHA256: bb110cc765eca9cd7efb2e284a956be5974c60027b0970f16397d86208a9957b
       ACTIONLINT_VERSION: 1.7.12
       ACTIONLINT_SHA256: 8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8
+      # actionlint runs it on every run: script. The runner image has its own
+      # shellcheck; the install step puts this one first on PATH.
+      SHELLCHECK_VERSION: 0.11.0
+      SHELLCHECK_SHA256: b7af85e41cc99489dcc21d66c6d5f3685138f06d34651e6d34b42ec6d54fe6f6
     steps:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -56,6 +60,7 @@ jobs:
           want CHECK_GOVULNCHECK_VERSION "$GOVULNCHECK_VERSION"
           want CHECK_ZIZMOR_VERSION "$ZIZMOR_VERSION"
           want CHECK_ACTIONLINT_VERSION "$ACTIONLINT_VERSION"
+          want CHECK_SHELLCHECK_VERSION "$SHELLCHECK_VERSION"
 
       - name: Set up Go from go.mod
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
@@ -63,7 +68,7 @@ jobs:
           go-version-file: go.mod
           cache-dependency-path: go.sum
 
-      - name: Install golangci-lint, govulncheck, zizmor and actionlint
+      - name: Install golangci-lint, govulncheck, zizmor, actionlint and shellcheck
         run: |
           set -eu
           bin="$RUNNER_TEMP/bin"
@@ -80,8 +85,11 @@ jobs:
           tar -xzf "$f" -C "$bin" zizmor
           fetch "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz" "$ACTIONLINT_SHA256"
           tar -xzf "$f" -C "$bin" actionlint
+          fetch "https://github.com/koalaman/shellcheck/releases/download/v${SHELLCHECK_VERSION}/shellcheck-v${SHELLCHECK_VERSION}.linux.x86_64.tar.gz" "$SHELLCHECK_SHA256"
+          tar -xzf "$f" -C "$bin" --strip-components=1 "shellcheck-v${SHELLCHECK_VERSION}/shellcheck"
           # go install checks the module against go.sum's database (sum.golang.org).
           GOBIN="$bin" go install "golang.org/x/vuln/cmd/govulncheck@${GOVULNCHECK_VERSION}"
+          # GITHUB_PATH prepends: these come before the runner's own copies.
           echo "$bin" >> "$GITHUB_PATH"
 
       # On this Linux host the other steps compile the Linux files, so
