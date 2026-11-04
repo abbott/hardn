@@ -33,6 +33,7 @@
 !wf-prepare-build.sh
 !bin-postinstall.sh
 !bin-verify-release.sh
+!install_test.sh
 
 !docs/**/*.md
 !.github/**/*.yml

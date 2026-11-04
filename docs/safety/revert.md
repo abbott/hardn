@@ -107,7 +107,7 @@ origin/main disables password authentication in the same step that adds keys, wi
 | dash execs the last command of `-c` (the command after `&&` keeps the shell's pid) | observed with `/bin/dash` on macOS (not a Linux host); Debian's dash version, and busybox ash on Alpine, **[unverified]** | §2.7, §2.9 |
 | OpenSSH 9.8 split the server into "a listener binary, sshd(8), and a per-session binary sshd-session"; so the per-session process is `sshd-session` on Debian 13, Ubuntu 26.04 and Alpine 3.23/3.24 and `sshd` on Debian 12 and Ubuntu 24.04 | [OpenSSH 9.8 release notes](https://www.openssh.org/txt/release-9.8); the version per release is **[unverified]** here | §2.10 |
 | Debian's `/usr/local` is `0755 root:root`, or `2775 root:staff` when `/etc/staff-group-for-usr-local` exists | [Debian Policy §9.1.2](https://www.debian.org/doc/debian-policy/ch-opersys.html) | §2.8 |
-| `install.sh` installs hardn as `/usr/local/bin/hardn`; hardn is outside `host.SearchPath` | `install.sh:53`; [system.md](system.md) §2.2 | §2.8 |
+| `install.sh` installs hardn as `/usr/local/bin/hardn`; hardn is outside `host.SearchPath` | `install.sh:189`; [system.md](system.md) §2.2 | §2.8 |
 | `rename(2)` is atomic: of two renames of one file, one succeeds | [atomic.md](atomic.md) §3, rename(2) | §2.5 |
 | `kill -s TERM <pid>` is POSIX `kill(1)`; busybox's `kill` takes it | POSIX [kill](https://pubs.opengroup.org/onlinepubs/9799919799/utilities/kill.html); busybox **[unverified]** | §2.9 |
 | `/bin/sh` and `sleep` exist on every supported release (busybox ash and sleep on Alpine) | **[unverified]**, as [system.md](system.md) §3's row for the commands hardn runs | §2.7 |

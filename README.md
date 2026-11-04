@@ -79,10 +79,15 @@ curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo
 
 The script will:
 
-- Query the GitHub releases API to find the latest asset matching your system (e.g., `hardn-linux-amd64`, etc.).
-- Download the asset and install `/usr/local/bin/hardn` and create `/etc/hardn`.
+- Query the GitHub releases API for the latest release's asset for your system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. There is no armv7 build, so on armv7 it stops.
+- Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing.
+- Install `/usr/local/bin/hardn` and create `/etc/hardn`.
 
-*There is no armv7 build, but on armv7 the script installs the arm64 binary, which won't run.*
+To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have no `SHA256SUMS`):
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo env HARDN_VERSION=0.4.0 sh
+```
 
 The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. *On a terminal, a run that finds no hardn.yml offers to create one, except `setup-sudo-env` and dry runs.*
 

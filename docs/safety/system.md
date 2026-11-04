@@ -97,7 +97,7 @@ The Phase 0 audit found every hardening mutation going through `interfaces.Comma
 | `O_NOFOLLOW` fails with `ELOOP` on a symlink as the last component and still follows earlier ones; `fchmodat`'s `AT_SYMLINK_NOFOLLOW` can fail with `ENOTSUP` | [open(2)](https://man7.org/linux/man-pages/man2/open.2.html), [chmod(2)](https://man7.org/linux/man-pages/man2/chmod.2.html) | §2.7-2.8: parents are followed; `Chmod` |
 | At most 40 symlinks are followed in one lookup; a trailing slash forces resolution as a directory | [path_resolution(7)](https://man7.org/linux/man-pages/man7/path_resolution.7.html) | §2.15: the fake's limit, and why it refuses a trailing slash |
 | `/proc/<pid>/ns/*` are symlinks whose content is the namespace type and inode, e.g. `uts:[4026531838]` | [namespaces(7)](https://man7.org/linux/man-pages/man7/namespaces.7.html) | §2.9: `Readlink` serves `p2-detect`'s pid-namespace check |
-| `install.sh` installs hardn as `/usr/local/bin/hardn` | `install.sh:53` (this repo) | §2.2: hardn is re-invoked by absolute path |
+| `install.sh` installs hardn as `/usr/local/bin/hardn` | `install.sh:189` (this repo) | §2.2: hardn is re-invoked by absolute path |
 
 ## 4. Written, not run (gate 5)
 
