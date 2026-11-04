@@ -3,6 +3,7 @@ package runall_test
 import (
 	"bytes"
 	"context"
+	"io"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
@@ -46,18 +47,39 @@ func play(h *runHost, dryRun bool, lines ...string) played {
 // playWith is play with the options set changes, when not nil. Each
 // engine is built as cmd/hardn builds it (runHost.newEngine).
 func playWith(h *runHost, dryRun bool, set func(*runallscreen.Options), lines ...string) played {
+	return playAt(context.Background(), h, dryRun, nil, set, lines...)
+}
+
+// playAt is playWith under ctx, before (when not nil) run as the screen
+// first reads a line: once it is drawn, before the first line is read.
+func playAt(ctx context.Context, h *runHost, dryRun bool, before func(), set func(*runallscreen.Options), lines ...string) played {
 	var out bytes.Buffer
 	env := term.Resolve(term.Options{}, term.Facts{Width: 120})
 	ty := uitest.NewTypist(&out, lines...)
 	var p played
 	o := options(h, dryRun, &p)
-	o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(ty, false), Out: env.Writer(&out)}
+	o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(&firstRead{r: ty, before: before}, false), Out: env.Writer(&out)}
 	if set != nil {
 		set(&o)
 	}
-	p.err = runallscreen.Run(context.Background(), o)
+	p.err = runallscreen.Run(ctx, o)
 	p.out, p.unread = out.String(), ty.Unread()
 	return p
+}
+
+// firstRead is r, before run once at its first read.
+type firstRead struct {
+	r      io.Reader
+	before func()
+}
+
+func (f *firstRead) Read(b []byte) (int, error) {
+	if f.before != nil {
+		before := f.before
+		f.before = nil
+		before()
+	}
+	return f.r.Read(b)
 }
 
 // options are the screen's options on h, as cmd/hardn gives them, its

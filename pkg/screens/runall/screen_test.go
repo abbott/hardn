@@ -213,8 +213,9 @@ func TestPlanOnly(t *testing.T) {
 }
 
 // TestHostname: a live lockout-risk plan whose hostname can't be read says
-// so before asking anything; a plain one (fresh) says so in place of the
-// question; nothing is written.
+// so before asking anything, and before any of the review or the plan (its
+// title, a step, a lockout-risk step, a finding), nothing run; a plain one
+// (fresh) says so in place of the question; nothing is written.
 func TestHostname(t *testing.T) {
 	for _, name := range []string{"debian13", "fresh"} {
 		h := newHost(t, name)
@@ -224,8 +225,21 @@ func TestHostname(t *testing.T) {
 		if p.err != nil || p.unread != 0 || !shows(p.out, cantConfirm) || asked(p.out) || shows(p.out, applied) {
 			t.Errorf("%s: Run = %v:\n%s", name, p.err, p.out)
 		}
-		if name == "debian13" && shows(p.out, planner.Question) {
-			t.Errorf("%s: the plan shown before the refusal:\n%s", name, p.out)
+		if name == "debian13" {
+			chosen := p.out[strings.Index(p.out, "Enter your choice"):]
+			i := strings.Index(chosen, cantConfirm)
+			if i < 0 {
+				i = len(chosen)
+			}
+			before := chosen[:i]
+			for _, w := range []string{planner.Question, "# Apply all", "Disallow root login", "Set the nameservers", "Lockout risk", "dhcpcd may rewrite"} {
+				if shows(before, w) {
+					t.Errorf("%s: %q shown before the refusal:\n%s", name, w, p.out)
+				}
+			}
+			if len(p.runs) > 0 {
+				t.Errorf("%s: ran %+v", name, p.runs)
+			}
 		}
 		if w := writes(h, n); len(w) > 0 {
 			t.Errorf("%s: wrote %v", name, w)

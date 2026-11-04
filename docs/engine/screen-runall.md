@@ -41,8 +41,9 @@ Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wr
 - **The item** "Refused" where the one plan refuses, though rows are planned (the brief); the gallery's mock said "Plan, review, confirm" there. With nothing planned and rows refused it reads "Nothing to change", available, and says the refusals (gallery-runall.md §5, Made here).
 - **The hostname typed whatever the risk** is a `screenkit.Change` option, not the screen's own engine, so Run All keeps `Session.Change`'s `AfterFlow`, `Ran` and `Adopt`.
 - **A reading that fails** is one row titled Run All, the planner's title, in the error's words.
-- **Labels** are `output.StatusViewOf`'s over the planner's reports, by index, the row's own title where the counts differ.
+- **Labels** are each row's check's title (`planner.Row.Title`), which the main menu's labels are too: `output.StatusViewOf` labels every row with its report's `Title`.
 - **The fake** answers `useradd`, `userdel` and `install -d` (copied from `pkg/screens/users`), which the planner's tests never apply.
+- **Auto Updates** is asked where the gallery's hosts ask it (debian13, ubuntu2604, alpine323, fresh, partial, port, container, ufw-inactive, new-admin), over the gallery's apt and apk model copied into the fake (`updates_test.go`, from `internal/tools/uigallery/updateshost.go`): fresh and alpine323 read "Turn on", the rest "Already as asked".
 
 ## Words
 
@@ -50,4 +51,4 @@ Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wr
 
 ## Not run
 
-No VM, no hardn binary, no real terminal. Auto Updates' apt plan is not modelled (as in the planner's tests): on Debian its row is not planned. No host here refuses the one plan.
+No VM, no hardn binary, no real terminal. No host here refuses the one plan: the Refused item is tested on a reading built in the package (`refused_internal_test.go`).
