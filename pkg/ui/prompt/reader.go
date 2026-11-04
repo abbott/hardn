@@ -76,8 +76,8 @@ type Reader struct {
 	// unended is set when the line take last returned had no line
 	// ending: the end of the input ended it, as Ctrl-D after text does.
 	unended bool
-	// asked is set once Ask has written a prompt or Answer or AnswerNext
-	// has read the answer to one.
+	// asked is set once Ask has written a prompt or Answer has read the
+	// answer to one.
 	asked bool
 }
 
@@ -179,21 +179,6 @@ func (r *Reader) Answer(w io.Writer) (string, error) {
 	return r.answer(w)
 }
 
-// AnswerNext reads the answer to a prompt the caller has already written
-// to w, as Answer does, but keeps typeahead: it reads the next line
-// (ReadLine), which may be one typed or pasted ahead, and ends the
-// prompt's line in w where no echoed Enter ended it, by Ask's rules. It
-// is for a question asked straight after another, with no long step
-// between whose stray keys could answer it, such as the legacy menus'
-// free-text questions (pkg/menu's ReadInput): each answer pasted ahead is
-// read by the question it was meant for, as origin/main's one bufio
-// reader read it and as the first-run config prompts read theirs. A
-// prompt that can follow a long step, such as a menu choice or a pause,
-// uses Answer.
-func (r *Reader) AnswerNext(w io.Writer) (string, error) {
-	return r.answer(w)
-}
-
 // answer reads the answer to the prompt just written to w and ends the
 // prompt's line where no echoed Enter did (Ask).
 func (r *Reader) answer(w io.Writer) (string, error) {
@@ -207,8 +192,8 @@ func (r *Reader) answer(w io.Writer) (string, error) {
 	return line, err
 }
 
-// Asked reports whether Ask has written a prompt, or Answer or AnswerNext
-// has read the answer to one, whatever the answer:
+// Asked reports whether Ask has written a prompt, or Answer has read the
+// answer to one, whatever the answer:
 // output then stands above the next thing written, the prompt's line at
 // least. A caller that draws a screen, such as pkg/ui/nav's Run, separates
 // the drawing from it by a blank line then, and not before the first
