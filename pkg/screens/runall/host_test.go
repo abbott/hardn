@@ -172,6 +172,7 @@ type sshHost struct {
 	rules      []rule   // ufw's allow rules, both families; nil with ufw active and none
 	inactive   bool     // ufw installed and off, as shipped (the gallery's ufwAsShipped)
 	aptBroken  bool     // apt's files have a syntax error, which every apt-config run prints
+	upd        *updSim  // Auto Updates' model (updates_test.go); nil for none
 	bound      []string // what ss shows of sshd's (or ssh.socket's) sockets
 	configured []string // ssh.socket's Listen, as the last daemon-reload set it
 	unexpected []string // the commands the fake does not answer
@@ -733,6 +734,9 @@ func (h *sshHost) answer(argv []string, _ []byte) hostfake.Response {
 			h.AddSymlink(revert.OpenRCDefault+"/"+revert.BootUnitName, revert.OpenRCInitDir+"/"+revert.BootUnitName)
 			return hostfake.Response{}
 		}
+		if r, ok := h.updates(argv); ok {
+			return r
+		}
 	case "rc-service":
 		if cmd == "rc-service sshd reload" {
 			h.bound = slices.Clone(h.listening())
@@ -745,7 +749,7 @@ func (h *sshHost) answer(argv []string, _ []byte) hostfake.Response {
 		if r, ok := h.ufw(argv); ok {
 			return r
 		}
-	case "apt-config", "dpkg-query", "apk":
+	case "apt-config", "apt-get", "dpkg-query", "apk":
 		if r, ok := h.updates(argv); ok {
 			return r
 		}
@@ -830,31 +834,6 @@ func (h *sshHost) ufw(argv []string) (hostfake.Response, bool) {
 		h.rules = slices.DeleteFunc(h.rules, func(r rule) bool { return r.port == uint16(n) && r.src == "" })
 		h.saveRules()
 		return hostfake.Response{Stdout: "Rule deleted\nRule deleted (v6)\n"}, true
-	}
-	return hostfake.Response{}, false
-}
-
-// updates answers Auto Updates' check on the VMs as the gallery's model
-// leaves them (updateshost.go, autoOn): unattended-upgrades installed, apt's
-// daily jobs on, Debian's Origins-Pattern; apk-cron not installed on
-// Alpine. Its plan is not modelled here: with aptBroken, apt's syntax
-// error, every apt-config run fails, as an administrator's typo makes it.
-func (h *sshHost) updates(argv []string) (hostfake.Response, bool) {
-	cmd := strings.Join(argv, " ")
-	switch {
-	case argv[0] == "apt-config" && h.aptBroken:
-		return hostfake.Response{Stderr: "E: Syntax error /etc/apt/apt.conf.d/99local:1: Extra junk at end of file\n", ExitCode: 100}, true
-	case strings.HasPrefix(cmd, "apt-config dump APT::Periodic"):
-		return hostfake.Response{Stdout: "APT::Periodic \"\";\nAPT::Periodic::Update-Package-Lists \"1\";\nAPT::Periodic::Unattended-Upgrade \"1\";\n" +
-			"Unattended-Upgrade::Origins-Pattern \"\";\nUnattended-Upgrade::Origins-Pattern:: \"origin=Debian,codename=${distro_codename},label=Debian-Security\";\n"}, true
-	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "unattended-upgrades":
-		return hostfake.Response{Stdout: "install ok installed\t2.12\n"}, true
-	case cmd == "apk info -e apk-cron":
-		return hostfake.Response{ExitCode: 1}, true
-	case cmd == "apk add --simulate apk-cron": // the Alpine VM's (updateshost.go)
-		return hostfake.Response{Stdout: "(1/1) Installing apk-cron (1.0-r3)\nOK: 9 MiB in 42 packages\n"}, true
-	case cmd == "rc-service crond status": // crond started, as on the Alpine VM
-		return hostfake.Response{Stdout: " * status: started\n"}, true
 	}
 	return hostfake.Response{}, false
 }

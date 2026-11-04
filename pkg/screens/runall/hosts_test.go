@@ -22,9 +22,10 @@ import (
 )
 
 // The hosts, as the gallery's Run All hosts (raHosts), each as its note
-// there says; Auto Updates' model is not copied, so hardn.yml asks it
-// nothing here but on Proxmox VE, where its check says Not Applicable
-// before anything is read, and on the refused host (the gallery holds it
+// there says; hardn.yml asks for Auto Updates where the gallery's does
+// (askUpdates), over its apt and apk model (updates_test.go), and on
+// Proxmox VE, where its check says Not Applicable before anything is read,
+// and on the refused host, whose apt fails to read (the gallery holds it
 // planned and refused). Copied from pkg/engine/runall's hosts_test.go,
 // as a test cannot import another package's tests.
 
@@ -92,7 +93,7 @@ func dhcpcd(h *sshHost, list ...string) *sshHost {
 // cloud-init), alice, root "*" with george's first key, ufw allowing 22,
 // dhcpcd's resolv.conf; george's session through sudo.
 func vm(p platform) *sshHost {
-	h := usersOn(p, true, george(p), alice()).rootLike("*")
+	h := usersOn(p, true, george(p), alice()).rootLike("*").withApt(true)
 	h.env = map[string]string{"SUDO_USER": "george"}
 	return dhcpcd(h.sshFile(sshd.MainConfig, debianMain, 0o644), "192.0.2.1")
 }
@@ -101,10 +102,14 @@ func vm(p platform) *sshHost {
 var runHosts = []string{"debian13", "ubuntu2604", "alpine323", "fresh", "hardened", "partial", "port", "pve9", "container",
 	"nothing-asked", "refused", "pending", "ufw-inactive", "new-admin", "george-no-sudo", "carol-ufw-inactive"}
 
+// askUpdates are the hosts whose hardn.yml asks for Auto Updates here, as
+// the gallery's hosts' do (internal/tools/uigallery/runall.go, raYML).
+var askUpdates = []string{"debian13", "ubuntu2604", "alpine323", "fresh", "partial", "port", "container", "ufw-inactive", "new-admin"}
+
 // newHost is the host name names, with its hardn.yml.
 func newHost(t *testing.T, name string) *runHost {
 	t.Helper()
-	ask := askYML("george", 1, 22, false)
+	ask := askYML("george", 1, 22, slices.Contains(askUpdates, name))
 	switch name {
 	case "debian13", "pending":
 		h := withYML(t, vm(debian13()).withLog("publickey", "george", 1), ask)
@@ -116,7 +121,7 @@ func newHost(t *testing.T, name string) *runHost {
 		return withYML(t, vm(ubuntu2604()).sshFile(sshd.DropInDir+"/60-cloudimg-settings.conf", "PasswordAuthentication no\n", 0o644).withLog("publickey", "george", 1), ask)
 	case "alpine323":
 		p := alpine323()
-		h := usersOn(p, true, simUser{name: "alpine", uid: 1000, groups: []string{"wheel"}, pw: "*", shell: "/bin/ash"}, george(p)).rootLike("!")
+		h := usersOn(p, true, simUser{name: "alpine", uid: 1000, groups: []string{"wheel"}, pw: "*", shell: "/bin/ash"}, george(p)).rootLike("!").withApk()
 		h.env = map[string]string{"DOAS_USER": "george"}
 		h.sshFile(sshd.MainConfig, sshd.IncludeLine+"\n\nUsePAM yes\nAuthorizedKeysFile .ssh/authorized_keys\nAllowTcpForwarding no\n", 0o644)
 		h.sshFile(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication no\n", 0o600)
@@ -125,7 +130,7 @@ func newHost(t *testing.T, name string) *runHost {
 	case "fresh":
 		p := debian13()
 		p.noUFW = true
-		h := usersOn(p, false).rootLike(syntheticHash)
+		h := usersOn(p, false).rootLike(syntheticHash).withApt(false)
 		h.env = nil
 		return withYML(t, dhcpcd(h, "192.0.2.1").withLog("publickey", "root", 1), ask)
 	case "hardened":
@@ -136,9 +141,9 @@ func newHost(t *testing.T, name string) *runHost {
 	case "partial":
 		return withYML(t, dhcpcd(vm(debian13()), nameservers...).withLog("publickey", "george", 1), ask)
 	case "port":
-		return withYML(t, vm(debian13()).withLog("publickey", "george", 1), askYML("george", 1, 2230, false))
+		return withYML(t, vm(debian13()).withLog("publickey", "george", 1), askYML("george", 1, 2230, true))
 	case "pve9":
-		h := usersOn(pve9(), false).rootLike("*")
+		h := usersOn(pve9(), false).rootLike("*").withApt(false)
 		h.sshFile(sshd.MainConfig, sshd.IncludeLine+"\n\nUsePAM yes\nPermitRootLogin yes\n", 0o644) // as installed
 		h.env = nil
 		h.AddFile(hostdns.ResolvConf, []byte("search example.net\nnameserver 192.0.2.1\n"), 0o644, 0, 0)
@@ -159,7 +164,7 @@ func newHost(t *testing.T, name string) *runHost {
 		h.saveRules()
 		return withYML(t, h.withLog("publickey", "george", 1), ask)
 	case "new-admin":
-		return withYML(t, dhcpcd(vm(debian13()), nameservers...).withLog("publickey", "george", 1), askYML("carol", 3, 22, false))
+		return withYML(t, dhcpcd(vm(debian13()), nameservers...).withLog("publickey", "george", 1), askYML("carol", 3, 22, true))
 	case "carol-ufw-inactive":
 		h := vm(debian13())
 		h.inactive, h.rules = true, nil
@@ -168,7 +173,7 @@ func newHost(t *testing.T, name string) *runHost {
 	case "george-no-sudo":
 		g := george(debian13())
 		g.groups = []string{"adm"}
-		h := usersOn(debian13(), false, g, alice()).rootLike(syntheticHash)
+		h := usersOn(debian13(), false, g, alice()).rootLike(syntheticHash).withApt(true)
 		h.env = nil
 		h.sshFile(sshd.MainConfig, debianMain, 0o644)
 		return withYML(t, dhcpcd(h, "192.0.2.1").withLog("publickey", "george", 1), ask)
@@ -225,14 +230,16 @@ func confirmWindow(t *testing.T, h *runHost) {
 }
 
 // readOnlyRun reports whether argv only reads: sshd -T and -t, journalctl,
-// ss, ufw status, the tools' checks, systemctl's questions and the package
-// tools' (apt-config dump, dpkg-query, apk info).
+// ss, ufw status, the tools' checks, systemctl's questions, crond's status
+// and the package tools' (apt-config dump, dpkg-query, apk info, and the
+// simulations apt-get install -s and apk add --simulate).
 func readOnlyRun(argv []string) bool {
 	cmd := strings.Join(argv, " ")
 	switch {
 	case path.Base(argv[0]) == "sshd" && (slices.Contains(argv, "-T") || slices.Contains(argv, "-t")), argv[0] == "journalctl", argv[0] == "ss",
 		cmd == "ufw status verbose", cmd == "visudo -c", strings.HasPrefix(cmd, "doas -C "), argv[0] == "dpkg-query",
-		strings.HasPrefix(cmd, "apt-config dump "), strings.HasPrefix(cmd, "apk info "),
+		strings.HasPrefix(cmd, "apt-config dump "), strings.HasPrefix(cmd, "apk info "), strings.HasPrefix(cmd, "apt-get install -s "),
+		strings.HasPrefix(cmd, "apk add --simulate "), cmd == "rc-service crond status",
 		strings.HasPrefix(cmd, "systemctl is-"), strings.HasPrefix(cmd, "systemctl show "), strings.HasPrefix(cmd, "systemd-analyze verify "):
 		return true
 	}
