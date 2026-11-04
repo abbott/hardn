@@ -41,9 +41,10 @@ const invalid = "  (x) Invalid option. Please try again."
 // originScreens it is, the same type built from the same values, the
 // test failing on any other, then its name recorded in the list returned
 // and printed, as a screen prints over the main menu. The User
-// Management, SSH Login, DNS, Firewall, Backup, Environment, System
-// Details and Logs items' screens, m's, do the same as "users", "ssh",
-// "dns", "firewall", "backup", "environment", "systemDetails" and "logs".
+// Management, SSH Login, DNS, Firewall, Backup, Auto Updates,
+// Environment, System Details and Logs items' screens, m's, do the same as
+// "users", "ssh", "dns", "firewall", "backup", "updates", "environment",
+// "systemDetails" and "logs".
 func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	t.Helper()
 	was := openScreen
@@ -67,6 +68,7 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 	m.SetDNS(func() error { record("dns"); return nil })
 	m.SetFirewall(func() error { record("firewall"); return nil }, nil)
 	m.SetBackup(func() error { record("backup"); return nil })
+	m.SetUpdates(func() error { record("updates"); return nil })
 	m.SetEnvironment(func() error { record("environment"); return nil })
 	m.SetSystemDetails(func() error { record("systemDetails"); return nil })
 	m.SetLogs(func() error { record("logs"); return nil })
@@ -83,9 +85,9 @@ func recordScreens(t *testing.T, m *MainMenu) *[]string {
 // menu, which slice 4's unit (d) replaced, 1's, the User Management
 // menu, which slice 5's unit (d) replaced, and 2's, the SSH Login menu,
 // which slice 6's unit (d) replaced. The User Management, SSH Login, DNS,
-// Firewall, Backup, Environment, System Details and Logs items' screens
-// are m's (SetUsers, SetSSH, SetDNS, SetFirewall, SetBackup,
-// SetEnvironment, SetSystemDetails, SetLogs).
+// Firewall, Backup, Auto Updates, Environment, System Details and Logs
+// items' screens are m's (SetUsers, SetSSH, SetDNS, SetFirewall,
+// SetBackup, SetUpdates, SetEnvironment, SetSystemDetails, SetLogs).
 func originScreens(m *MainMenu) map[string]legacyScreen {
 	return map[string]legacyScreen{
 		"runAll": handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)},
@@ -143,15 +145,13 @@ func (r interrupted) Read(p []byte) (int, error) {
 	return n, err
 }
 
-// TestMainMenuKeys is the main menu's dispatch, every key: 1 to 5 and 7
-// to 10 open exactly the screen origin/main's handleMenuChoice opened for
-// them, of the same constructor with the same arguments (recordScreens),
-// but 1, 2, 3, 4, 5, 8, 9 and 10, which open the User Management, SSH
-// Login, DNS, Firewall, Backup, Environment, System Details and Logs
-// screens cmd/hardn sets, and the main menu is drawn again when it returns; 6,
-// whose item, Dry-Run, slice 2b's unit (d) removed, its key left unused
-// (decision 1),
-// is refused as any key no item has, opening nothing; 0 (Exit) and q, in
+// TestMainMenuKeys is the main menu's dispatch, every key: 7 opens
+// exactly the screen origin/main's handleMenuChoice opened for it, of the
+// same constructor with the same arguments (recordScreens); 1, 2, 3, 4,
+// 5, 6, 8, 9 and 10 open the User Management, SSH Login, DNS, Firewall,
+// Backup, Auto Updates, Environment, System Details and Logs screens
+// cmd/hardn sets, 6 where origin/main's Dry-Run was (slice 7, unit (d)),
+// and the main menu is drawn again when it returns; 0 (Exit) and q, in
 // either case, clear the screen and return, opening nothing; spaces
 // around a key are ignored, as origin/main's read trimmed them; an empty
 // line and a key no item has are refused under the prompt, "Invalid
@@ -172,15 +172,13 @@ func TestMainMenuKeys(t *testing.T) {
 		{"3 opens DNS", []string{"3", "q"}, false, []string{"dns"}, 0, 0},
 		{"4 opens Firewall", []string{"4", "q"}, false, []string{"firewall"}, 0, 0},
 		{"5 opens Backup", []string{"5", "q"}, false, []string{"backup"}, 0, 0},
-		{"6 is refused, its item removed", []string{"6", " 6 ", "q"}, false, nil, 2, 0},
+		{"6 opens Auto Updates", []string{"6", "q"}, false, []string{"updates"}, 0, 0},
 		{"7 opens Run All", []string{"7", "q"}, false, []string{"runAll"}, 0, 0},
 		{"8 opens Environment", []string{"8", "q"}, false, []string{"environment"}, 0, 0},
 		{"9 opens System Details", []string{"9", "q"}, false, []string{"systemDetails"}, 0, 0},
 		{"10 opens Logs", []string{"10", "q"}, false, []string{"logs"}, 0, 0},
-		{"every item in turn", []string{"1", "2", "3", "4", "5", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "ssh", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 0, 0},
-		{"every key in turn, 6 refused", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "ssh", "dns", "firewall", "backup", "runAll", "environment", "systemDetails", "logs"}, 1, 0},
+		{"every item in turn", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
+			[]string{"users", "ssh", "dns", "firewall", "backup", "updates", "runAll", "environment", "systemDetails", "logs"}, 0, 0},
 		{"0 exits", []string{"0"}, false, nil, 0, 0},
 		{"q quits", []string{"q"}, false, nil, 0, 0},
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
@@ -218,7 +216,7 @@ func TestMainMenuKeys(t *testing.T) {
 			}
 			clears := strings.Count(out, clearScreen)
 			want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-			for _, hooked := range []string{"users", "ssh", "dns", "firewall", "backup", "environment", "systemDetails", "logs"} {
+			for _, hooked := range []string{"users", "ssh", "dns", "firewall", "backup", "updates", "environment", "systemDetails", "logs"} {
 				if slices.Contains(tc.opened, hooked) {
 					want++ // the items cmd/hardn sets open their screens on a cleared screen, as every legacy screen does
 				}
@@ -237,7 +235,7 @@ func TestMainMenuKeys(t *testing.T) {
 // the main menu is not read or drawn again, where origin/main cleared the
 // screen, printed its header and paused (main_menu.go:538-544).
 func TestMainMenuInvalid(t *testing.T) {
-	const prompt = "  > Enter selection [0-5, 7-10 or q]: "
+	const prompt = "  > Enter selection [0-10 or q]: "
 	for _, tc := range []struct {
 		name string
 		env  term.Env
@@ -327,13 +325,15 @@ func TestMainMenuMode(t *testing.T) {
 // (testdata/legacy/main_menu, createMainMenu's style.Menu until slice 2b's
 // unit (d)): its numbers, labels and descriptions, item 1's parenthesis
 // its aside, and its Exit row (the trunk's "q to quit", DEV-030, as the
-// record holds it), but item 6, Dry-Run, removed with its key
-// (decision 1), and item 8's description, the decided "Keep HARDN_CONFIG"
-// (slice 9, decision 7 (a), P-07 (c)); and the same as the main-menu
-// mock's (screen.MainMenuFixture), which the gallery draws its main menus
-// with.
+// record holds it), but item 6, Auto Updates, "Configure automatic
+// updates", where origin/main's Dry-Run was (slice 7, unit (d);
+// gallery-updates.md §4, decision 1), and item 8's description, the
+// decided "Keep HARDN_CONFIG" (slice 9, decision 7 (a), P-07 (c)); and
+// the same as the main-menu mock's (screen.MainMenuFixture), which the
+// gallery draws its main menus with, with item 6 between 5 and 7
+// (withUpdatesItem).
 // The heading and prompt are origin/main's too, the hint generated from
-// the items, "[0-5, 7-10 or q]" where origin/main's was "[0-10 or q]".
+// the items, "[0-10 or q]" as origin/main's.
 func TestMainMenuItems(t *testing.T) {
 	const keepHardnConfig = "Keep HARDN_CONFIG"
 	data, err := os.ReadFile(filepath.Join(legacyDir, "main_menu", "ubuntu-fresh.golden"))
@@ -356,6 +356,12 @@ func TestMainMenuItems(t *testing.T) {
 	view := m.mainMenu().View()
 	var layout [][]string
 	for _, it := range append(slices.Clone(view.Items), view.Exit) {
+		if it.Key == "6" {
+			if it != updatesItem {
+				t.Errorf("item 6 is %+v, want %+v", it, updatesItem)
+			}
+			continue
+		}
 		desc := it.Description
 		if it.Aside != "" {
 			desc += " (" + it.Aside + ")"
@@ -366,25 +372,36 @@ func TestMainMenuItems(t *testing.T) {
 		t.Errorf("the layout's items\n%q\nare not origin/main's but 6 and 8's description\n%q", layout, legacy)
 	}
 	fixture := screen.MainMenuFixture()
-	if !slices.Equal(view.Items, fixture.Menu.Items) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
+	if !slices.Equal(view.Items, withUpdatesItem(fixture.Menu.Items)) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
 		t.Errorf("the items are not the main-menu mock's:\n%+v\n%+v", view, fixture.Menu)
 	}
 	if !strings.Contains(record, mainHeading) || !strings.Contains(record, mainPrompt+" [0-10 or q]:") ||
-		m.mainMenu().Accepts().Hint() != "0-5, 7-10 or q" {
+		m.mainMenu().Accepts().Hint() != "0-10 or q" {
 		t.Errorf("the heading, prompt or hint differ from origin/main's, or the hint is %q:\n%s", m.mainMenu().Accepts().Hint(), record)
 	}
+}
+
+// updatesItem is item 6, Auto Updates (gallery-updates.md §4, decision 1).
+var updatesItem = component.MenuItem{Key: "6", Label: "Auto Updates", Description: "Configure automatic updates"}
+
+// withUpdatesItem is the main-menu mock's items (screen.MainMenuFixture)
+// with item 6 between 5 and 7, as the main menu has them since slice 7's
+// unit (d): the mock, pkg/ui/screen's, has no item 6 yet.
+func withUpdatesItem(items []component.MenuItem) []component.MenuItem {
+	i := slices.IndexFunc(items, func(it component.MenuItem) bool { return it.Key == "7" })
+	return slices.Insert(slices.Clone(items), i, updatesItem)
 }
 
 // TestMainMenuHeights pins hardn's main menu's heights, one pass drawn on
 // a terminal over the gallery's hardened Debian 13 host (eight rows, no
 // line under any), in its full form at every height, Unicode (C.UTF-8)
-// and ASCII (C): 35 lines at 80x24 and 80x40, 57 at 60 columns, where the
-// rows stack (DEV-021), one line less, and two at 60 columns, than with
-// item 6, which slice 2b's unit (d) removed. The prompt is the terminal's
-// last line, so on 24 rows the first 11 lines scroll off at 80 columns,
-// the header down to the Firewall row, the risk level among them, and at
-// 60 columns 33, all the status, the heading and the mode; on 40 rows none
-// at 80 columns and 17 at 60.
+// and ASCII (C): 36 lines at 80x24 and 80x40, 59 at 60 columns, where the
+// rows stack (DEV-021), item 6, Auto Updates, one line, and two at 60
+// columns (slice 7, unit (d)). The prompt is the terminal's last line, so
+// on 24 rows the first 12 lines scroll off at 80 columns, the header down
+// to the SSH Login row, the risk level among them, and at 60 columns 35,
+// all the status, the heading, the mode and item 1's label; on 40 rows
+// none at 80 columns and 19 at 60.
 // With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
 // TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
@@ -395,10 +412,10 @@ func TestMainMenuHeights(t *testing.T) {
 		w, h, lines int
 		visible     string // the first line on screen, stripped of colour and glyphs
 	}{
-		{80, 24, 35, "SSH Login            Configured root disallowed"},
-		{80, 40, 35, "hardn  v0.4.0              https://github.com/abbott/hardn"},
-		{60, 24, 57, ""},
-		{60, 40, 57, "Configured root disallowed"},
+		{80, 24, 36, "SSH Auth             Configured key-only auth"},
+		{80, 40, 36, "hardn  v0.4.0              https://github.com/abbott/hardn"},
+		{60, 24, 59, "Create, Configure (sudo, SSH keys)"},
+		{60, 40, 59, "Configured key-only auth"},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")
@@ -457,6 +474,7 @@ func TestMainMenuDraw(t *testing.T) {
 	out, _, ended := session(t, func() { m.ShowMainMenu("0.4.0", "", "") })
 	vm := screen.MainMenuFixture()
 	vm.Mode = component.ModeIndicator{}
+	vm.Menu.Items = withUpdatesItem(vm.Menu.Items)
 	want := clearScreen + written(env, vm.Render(component.NewCtx(env))) + " \n" + clearScreen
 	if ended || out != want {
 		t.Errorf("ended %v; the screen:\n%s\nwant the main-menu mock's, Figma's fixture with origin/main's items, in full:\n%s", ended, out, want)
