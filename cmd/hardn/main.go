@@ -67,9 +67,10 @@ var logOpened bool
 
 // openStartLog opens hardn's log (openLog), once, for the commands that write it:
 // the main menu, the operation flags and setup-sudo-env through liveWrites, and
-// confirm and rollback, whose steps it records under the revert timer and the
-// boot unit (revertLog). Those that only read it, the Logs screen and -p, leave
-// it unopened: a missing log is "no log yet" there.
+// confirm, rollback, rollback --abandon and rollback --boot, once their own
+// refusals (revertPreflight: -n, not root) are past, whose steps it records under
+// the revert timer and the boot unit (revertLog). Those that only read it, the
+// Logs screen and -p, leave it unopened: a missing log is "no log yet" there.
 func openStartLog() {
 	if startLogPath == "" || logOpened {
 		return
@@ -101,9 +102,6 @@ func init() {
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
 	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
-	// confirm and rollback write the log (openStartLog), after their flags.
-	confirmCmd.PreRun = func(*cobra.Command, []string) { openStartLog() }
-	rollbackCmd.PreRun = func(*cobra.Command, []string) { openStartLog() }
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")

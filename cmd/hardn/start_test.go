@@ -11,8 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/spf13/cobra"
+	"time"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
@@ -245,8 +244,9 @@ func TestStartUpLeavesStdoutAlone(t *testing.T) {
 // TestStartWritesNothing: nothing is written before the flags are parsed, nor by a
 // command that refuses before its operation, nor in plan only: --help, --version, a
 // usage error, the root check's refusal, the OS check's, -c with no user, a bad
-// --confirm-timeout, and the main menu under -n write neither hardn's log nor
-// /etc/hardn (refactor plan §3.23, next/p3-startup).
+// --confirm-timeout, the main menu under -n, and confirm and rollback under -n (refused
+// before their log opens) write neither hardn's log nor /etc/hardn (refactor plan §3.23,
+// next/p3-startup).
 func TestStartWritesNothing(t *testing.T) {
 	menu := func() { startMenu = func(context.Context, mainmenu.Options) {} }
 	for _, tc := range []struct {
@@ -280,6 +280,17 @@ func TestStartWritesNothing(t *testing.T) {
 			}
 		})
 	}
+	for _, args := range [][]string{{"-n", "confirm"}, {"-n", "rollback", revertTestID}, {"-n", "rollback", "--abandon", revertTestID}, {"-n", "rollback", "--boot"}} {
+		t.Run("root, "+strings.Join(args, " "), func(t *testing.T) {
+			r := runStartWith(t, logHost(readerLog), revertStart(t, 0, args[len(args)-1] == "--boot"), args...)
+			if !r.ended || r.code != 2 {
+				t.Errorf("ended %v with %d, want 2; stderr:\n%s", r.ended, r.code, r.stderr)
+			}
+			if w := r.written(t); len(w) != 0 {
+				t.Errorf("wrote %v; stderr:\n%s", w, r.stderr)
+			}
+		})
+	}
 }
 
 // TestNotRootRefusedFirst: a user other than root is refused before anything else is
@@ -298,12 +309,35 @@ func TestNotRootRefusedFirst(t *testing.T) {
 			}
 		})
 	}
+	// confirm and rollback refuse a user other than root as their first words, the
+	// log not opened (revertPreflight).
+	for _, tc := range []struct {
+		args []string
+		name string // as the refusal names the command
+	}{
+		{[]string{"confirm"}, "confirm"},
+		{[]string{"rollback", revertTestID}, "rollback"},
+		{[]string{"rollback", "--abandon", revertTestID}, "rollback --abandon"},
+		{[]string{"rollback", "--boot"}, "rollback --boot"},
+	} {
+		t.Run(strings.Join(tc.args, " "), func(t *testing.T) {
+			r := runStartWith(t, logHost(readerLog), revertStart(t, 1000, false), tc.args...)
+			want := "Operation Failed hardn " + tc.name + " must be run as root: sudo hardn " + tc.name
+			if !r.ended || r.code != 1 || flat(r.stderr) != want || r.stdout != "" {
+				t.Errorf("ended %v with %d; stderr %q, want %q; stdout %q", r.ended, r.code, flat(r.stderr), want, r.stdout)
+			}
+			if w := r.written(t); len(w) != 0 {
+				t.Errorf("wrote %v", w)
+			}
+		})
+	}
 }
 
 // TestStartLiveWrites: root's main menu, live, opens hardn's log and writes the example
 // hardn.yml once the root check, hardn.yml's load and the OS check are past; a failure
 // to write the example is a warning, and the menu still runs. confirm and rollback open the
-// log ahead of their run (openStartLog).
+// log once their refusals are past (revertPreflight, openStartLog), and write their steps
+// to it.
 func TestStartLiveWrites(t *testing.T) {
 	t.Run("the main menu", func(t *testing.T) {
 		ran := false
@@ -336,17 +370,40 @@ func TestStartLiveWrites(t *testing.T) {
 			t.Errorf("stderr %q, want %q", flat(r.stderr), want)
 		}
 	})
-	for _, c := range []*cobra.Command{confirmCmd, rollbackCmd} {
-		t.Run(c.Name(), func(t *testing.T) {
-			path := filepath.Join(t.TempDir(), startLog)
-			wasPath, wasOpened, wasLog, wasOn := startLogPath, logOpened, hardnLog, logOnStderr
-			t.Cleanup(func() { startLogPath, logOpened, hardnLog, logOnStderr = wasPath, wasOpened, wasLog, wasOn })
-			startLogPath, logOpened = path, false
-			c.PreRun(c, nil)
-			if _, err := os.Stat(path); err != nil {
-				t.Errorf("the log: %v", err)
+	// confirm and rollback, as root, past their refusals (revertPreflight): the log
+	// opened, and the steps written to it; rollback --boot's, as the boot unit runs
+	// it, among them.
+	for _, tc := range []struct {
+		name   string
+		args   []string
+		reboot bool
+		logged string // in the log
+	}{
+		{"confirm", []string{"confirm"}, false, "Change " + revertTestID + " confirmed"},
+		{"rollback", []string{"rollback", revertTestID}, false, "rolled back"},
+		{"rollback --abandon", []string{"rollback", "--abandon", revertTestID}, false, revertTestID},
+		{"rollback --boot", []string{"rollback", "--boot"}, true, "revert: boot: change " + revertTestID},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			r := runStartWith(t, logHost(readerLog), revertStart(t, 0, tc.reboot), tc.args...)
+			b, err := os.ReadFile(filepath.Join(r.root, startLog))
+			if err != nil || !strings.Contains(string(b), tc.logged) {
+				t.Errorf("the log (%v) lacks %q:\n%s\nstderr:\n%s", err, tc.logged, b, r.stderr)
 			}
 		})
+	}
+}
+
+// revertStart is runStartWith's setup for confirm and rollback: newRevertSeams's change
+// waiting for confirmation, the effective uid euid, rebooted a minute after the change
+// where reboot, and revertExit ending the run as start's exit does.
+func revertStart(t *testing.T, euid int, reboot bool) func() {
+	return func() {
+		s := newRevertSeams(t, euid)
+		if reboot {
+			rebootSeams(s, time.Minute)
+		}
+		revertExit = func(code int) { exit(code) }
 	}
 }
 
