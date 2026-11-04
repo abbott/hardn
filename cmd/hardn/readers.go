@@ -15,7 +15,6 @@ import (
 	"io"
 	"os"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/details"
 	"github.com/abbott/hardn/pkg/host"
@@ -86,7 +85,7 @@ func runLogsScreen(ctx context.Context, c *config.Config) error {
 // form's refusal on stderr, exit status 2, nothing read; its warnings on stderr; the
 // report, or under --output json output.Build's document, on stdout. A failed write
 // is said on stderr, exit status 1.
-func runSystemDetails(form hardncmd.SystemDetailsForm, refused error) {
+func runSystemDetails(form SystemDetailsForm, refused error) {
 	if refuse(refused) {
 		return
 	}

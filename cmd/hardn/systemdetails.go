@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -48,7 +48,7 @@ type systemDetailsFlags struct {
 // warning; --yaml, -O yaml, -S and -E are refused, as is any other value of --output
 // or -O. A flag counts as given whatever its value, as --yaml=false. Root's operation
 // flags, which this command would not run, are refused too. given says which flags
-// were on the command line. A refusal is the error, for exit status 2 (ExitUsage).
+// were on the command line. A refusal is the error, for exit status 2 (output.ExitUsage).
 func (f systemDetailsFlags) form(given func(name string) bool) (SystemDetailsForm, error) {
 	for _, op := range rootOperations {
 		if given(op.flag) {
@@ -83,10 +83,10 @@ func (f systemDetailsFlags) form(given func(name string) bool) (SystemDetailsFor
 	return form, nil
 }
 
-// SystemDetailsCmd returns the system-details command, whose flags it reads and whose
+// systemDetailsCmd returns the system-details command, whose flags it reads and whose
 // work is run's, cmd/hardn's, which has the host and the terminal: run gets the form,
 // or the refusal.
-func SystemDetailsCmd(run func(SystemDetailsForm, error)) *cobra.Command {
+func systemDetailsCmd(run func(SystemDetailsForm, error)) *cobra.Command {
 	var f systemDetailsFlags
 	cmd := &cobra.Command{
 		Use:   "system-details",

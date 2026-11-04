@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/osdetect"
+	"github.com/abbott/hardn/pkg/output"
 )
 
 // The session's mode (refactor plan §3.19, "explicit flag wins, otherwise
@@ -133,7 +133,7 @@ func TestConfigureDNSFlagPlanOnlyFromFile(t *testing.T) {
 	}{
 		{"-g", []string{"-g"}, 3},
 		{"--dry-run=false -g", []string{"--dry-run=false", "-g"}, 0},
-		{"-g -r", []string{"-g", "-r"}, hardncmd.ExitUsage},
+		{"-g -r", []string{"-g", "-r"}, output.ExitUsage},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, _ := newDNSHost(t, "debian13", dnsTestList)

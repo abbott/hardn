@@ -7,7 +7,6 @@ import (
 	"strings"
 	"testing"
 
-	hardncmd "github.com/abbott/hardn/pkg/cmd"
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	planner "github.com/abbott/hardn/pkg/engine/runall"
@@ -381,7 +380,7 @@ func TestRunAllFlagAlone(t *testing.T) {
 		{"-n", "-r", "-g"}, {"-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
-			if !r.ended || r.code != hardncmd.ExitUsage || len(r.reached) != 0 || len(r.calls) != 0 ||
+			if !r.ended || r.code != output.ExitUsage || len(r.reached) != 0 || len(r.calls) != 0 ||
 				strings.TrimSpace(r.stderr) != "hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e." {
 				t.Errorf("ended %v with %d after %v, calls %v; stderr:\n%s", r.ended, r.code, r.reached, r.calls, r.stderr)
 			}
