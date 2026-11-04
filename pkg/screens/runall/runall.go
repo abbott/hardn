@@ -26,7 +26,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/risk"
 	planner "github.com/abbott/hardn/pkg/engine/runall"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -111,6 +110,13 @@ func Run(ctx context.Context, o Options) error {
 	if o.Prompter.In == nil || o.Prompter.Out == nil || o.System == nil || o.Getenv == nil || o.NewEngine == nil {
 		return fmt.Errorf("runall screen: %w: it needs a Prompter with In and Out, a System, Getenv and NewEngine", fs.ErrInvalid)
 	}
+	r := newRunner(o)
+	return o.Prompter.Run(func() nav.Screen { return r.draw(ctx) })
+}
+
+// newRunner is the run of the screen with o, which Run has checked: its
+// clock time.Now where o has none, a nil Config asking nothing.
+func newRunner(o Options) *runner {
 	if o.Now == nil {
 		o.Now = time.Now
 	}
@@ -120,15 +126,19 @@ func Run(ctx context.Context, o Options) error {
 	}
 	r := &runner{o: o, cfg: cfg, s: screenkit.Session{Name: "runall screen", Prompter: o.Prompter, System: o.System, Config: cfg,
 		NewEngine: o.NewEngine, ApplyContext: o.ApplyContext, DryRun: o.DryRun, LogPath: o.LogPath, Now: o.Now, Ran: o.Ran}}
-	return o.Prompter.Run(func() nav.Screen { return r.draw(ctx) })
+	r.reader = r.read
+	return r
 }
 
 // runner is one run of the Run All screen: its options, hardn.yml as the
-// planner reads it, and the session its change runs with.
+// planner reads it, the session its change runs with, and how it reads
+// the host: read, which a test in the package replaces with a reading no
+// host reaches.
 type runner struct {
-	o   Options
-	cfg *config.Config
-	s   screenkit.Session
+	o      Options
+	cfg    *config.Config
+	s      screenkit.Session
+	reader func(ctx context.Context) reading
 }
 
 // reading is one reading of the host for Run All: the planner's, its error,
@@ -147,13 +157,10 @@ func (r *runner) read(ctx context.Context) reading {
 	if err != nil {
 		return h
 	}
-	labels := output.StatusViewOf(rd.Reports, risk.Level{}).Status.Rows
-	for i, rw := range rd.Rows {
-		label := rw.Title
-		if len(labels) == len(rd.Rows) {
-			label = labels[i].Label // the main menu's
-		}
-		row := screen.RunAllRow{Label: label, Outcome: rw.Words}
+	for _, rw := range rd.Rows {
+		// The row's check's title, which is the main menu's label too
+		// (output.StatusViewOf labels each row with its report's Title).
+		row := screen.RunAllRow{Label: rw.Title, Outcome: rw.Words}
 		if rw.Kind == planner.Refused {
 			row.Refusal = rw.Refusal
 		}
@@ -218,7 +225,7 @@ func (h reading) skipped() []string {
 
 // draw reads the host and returns the screen, its item bound.
 func (r *runner) draw(ctx context.Context) nav.Screen {
-	sub := r.read(ctx).view().SubMenu()
+	sub := r.reader(ctx).view().SubMenu()
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {
 		menu.Options = append(menu.Options, nav.Option{Item: it, Action: func() error { return r.applyAll(ctx) }})
@@ -235,7 +242,7 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 // says so before asking; a hostname that can't be read at the question
 // says so in its place (nav.ErrPhrase, as CantConfirm).
 func (r *runner) applyAll(ctx context.Context) error {
-	h := r.read(ctx)
+	h := r.reader(ctx)
 	switch {
 	case h.err != nil && ctx.Err() != nil:
 		return h.err
