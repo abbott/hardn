@@ -52,9 +52,10 @@ func (d Deprecation) String() string {
 type loaded struct {
 	rootLogin    RootLogin // permitRootLogin's string value; "" for the bool or no value
 	deprecations []Deprecation
-	path         string // the absolute path LoadConfig read or created; "" for none
-	sum          string // the SHA-256 of the bytes read there or last saved (LoadedFrom); "" for none
-	dryRun       bool   // dryRun as the file gave it, its default false included: what SaveConfig writes (dryrun.go)
+	retired      []string // the keys of retired the file sets (readRetired)
+	path         string   // the absolute path LoadConfig read or created; "" for none
+	sum          string   // the SHA-256 of the bytes read there or last saved (LoadedFrom); "" for none
+	dryRun       bool     // dryRun as the file gave it, its default false included: what SaveConfig writes (dryrun.go)
 	// What set the session's mode, and the value it set (ResolveDryRun).
 	source   DryRunSource
 	resolved bool
@@ -98,6 +99,7 @@ func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 		node = &yaml.Node{}
 		*node = *n
 		node.Content = nil
+		c.readRetired(n)
 		for i := 0; i+1 < len(n.Content); i += 2 {
 			if k := n.Content[i]; k.Kind == yaml.ScalarNode && k.Value == rootLoginKey {
 				if len(values) > 0 { // as the decoder reports a repeated field
