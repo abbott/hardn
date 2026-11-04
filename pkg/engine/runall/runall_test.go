@@ -1,0 +1,389 @@
+package runall_test
+
+import (
+	"context"
+	"errors"
+	"io/fs"
+	"slices"
+	"testing"
+
+	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
+	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
+	envctl "github.com/abbott/hardn/pkg/engine/controls/environment"
+	fwctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	"github.com/abbott/hardn/pkg/engine/controls/updates"
+	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/runall"
+	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/revert"
+)
+
+var (
+	login = ssh.Login{}.ID()
+	port  = ssh.Port{}.ID()
+)
+
+// want is what a host's rows must be: the rows of each outcome but the
+// plain ones (as asked, nothing asked, left), and whether the plan is
+// lockout-risk.
+type want struct {
+	planned, refused, na, elsewhere, later, pending []string
+	lockout                                         bool
+}
+
+// TestHosts holds each host's rows, as the gallery's TestRunAllHosts, with
+// decision 5 (a) applied (ufw-inactive): every outcome kind, each row held
+// to its control alone (held).
+func TestHosts(t *testing.T) {
+	all := map[string]want{
+		"debian13":           {planned: []string{login, dnsctl.ID}, lockout: true},
+		"ubuntu2604":         {planned: []string{login, dnsctl.ID}, lockout: true},
+		"alpine323":          {planned: []string{login, dnsctl.ID}, refused: []string{fwctl.ID}, lockout: true},
+		"fresh":              {planned: []string{users.ID, dnsctl.ID}, refused: []string{fwctl.ID, login}},
+		"hardened":           {},
+		"partial":            {planned: []string{login}, lockout: true},
+		"port":               {planned: []string{login, dnsctl.ID}, elsewhere: []string{port}, lockout: true},
+		"pve9":               {planned: []string{login, dnsctl.ID}, refused: []string{users.ID, fwctl.ID}, na: []string{updates.ID}, lockout: true},
+		"container":          {planned: []string{login}, na: []string{dnsctl.ID}, lockout: true},
+		"nothing-asked":      {},
+		"refused":            {planned: []string{login, dnsctl.ID}, refused: []string{updates.ID}, lockout: true},
+		"pending":            {pending: []string{users.ID, fwctl.ID, login, dnsctl.ID}},
+		"ufw-inactive":       {planned: []string{fwctl.ID}, later: []string{login}, lockout: true},
+		"new-admin":          {planned: []string{users.ID, login}, lockout: true},
+		"george-no-sudo":     {planned: []string{dnsctl.ID}, refused: []string{login}, elsewhere: []string{users.ID}},
+		"carol-ufw-inactive": {planned: []string{users.ID, fwctl.ID, dnsctl.ID}, later: []string{login}, lockout: true},
+	}
+	for _, name := range runHosts {
+		w, ok := all[name]
+		if !ok {
+			t.Errorf("%s: no rows expected", name)
+			continue
+		}
+		h := newHost(t, name)
+		r := h.read(t, name)
+		ids := func(k runall.Kind) []string {
+			var out []string
+			for _, rw := range r.Rows {
+				if rw.Kind == k {
+					out = append(out, rw.ID)
+				}
+			}
+			return out
+		}
+		for _, c := range []struct {
+			kind runall.Kind
+			want []string
+		}{{runall.Planned, w.planned}, {runall.Refused, w.refused}, {runall.NotApplicable, w.na}, {runall.Elsewhere, w.elsewhere},
+			{runall.Later, w.later}, {runall.Pending, w.pending}} {
+			if got := ids(c.kind); !slices.Equal(got, c.want) {
+				t.Errorf("%s: %v %q, want %q", name, c.kind, got, c.want)
+			}
+		}
+		if r.Lockout() != w.lockout {
+			t.Errorf("%s: lockout %v, want %v", name, r.Lockout(), w.lockout)
+		}
+		held(t, name, h, r)
+	}
+}
+
+// held holds r's rows on h to the controls: the rows in IDs' order, each
+// with its check; a Planned row's control plans changes alone and is in the
+// one plan, its words the mapping's; a Refused row's refuses alone with
+// the row's words; an "already as asked" row's plans nothing alone (the
+// user's: its name taken); the rest planned by no one.
+func held(t *testing.T, name string, h *runHost, r runall.Reading) {
+	t.Helper()
+	ctx := context.Background()
+	if got := rowIDs(r); !slices.Equal(got, runall.IDs()) || len(r.Reports) != len(r.Rows) {
+		t.Fatalf("%s: rows %q, %d reports; want %q", name, got, len(r.Reports), runall.IDs())
+	}
+	for i, rw := range r.Rows {
+		if rw.Report.Control != rw.ID || r.Reports[i].Control != rw.ID || rw.Title == "" {
+			t.Errorf("%s %s: report %q, title %q", name, rw.ID, rw.Report.Control, rw.Title)
+		}
+		if (rw.Kind == runall.Planned) != (rw.Control != nil) || (rw.Kind == runall.Refused || rw.Kind == runall.Pending) != (rw.Refusal != "" && rw.Err != nil) {
+			t.Errorf("%s %s: %v with control %v, refusal %q, err %v", name, rw.ID, rw.Kind, rw.Control, rw.Refusal, rw.Err)
+		}
+		if w, ok := map[string]string{apparmor.ID: runall.WordsStatus, backupctl.ID: runall.WordsUnchanged}[rw.ID]; ok && (rw.Kind != runall.Left || rw.Words != w) {
+			t.Errorf("%s %s: %v %q, want left, %q", name, rw.ID, rw.Kind, rw.Words, w)
+		}
+		if (rw.ID == ssh.Auth{}.ID() || rw.ID == envctl.ID) && (rw.Kind != runall.NothingAsked || rw.Words != runall.WordsNothing) {
+			t.Errorf("%s %s: %v %q, want nothing asked", name, rw.ID, rw.Kind, rw.Words)
+		}
+		a := runall.Asked(h.input(), rw.ID)
+		if a.Control == nil || rw.Kind == runall.NotApplicable || rw.Kind == runall.Pending {
+			continue
+		}
+		p, err := h.newEngine(nil).Plan(ctx, []engine.Control{a.Control}, h.cfg)
+		if err == nil && len(p.Refused) > 0 {
+			err = p.Refused[0]
+		}
+		switch rw.Kind {
+		case runall.Planned:
+			if err != nil || len(p.Changes) == 0 || rw.Words != a.Words || !slices.ContainsFunc(r.Plan.Changes, func(c engine.Change) bool { return c.Control == rw.ID }) {
+				t.Errorf("%s %s: planned %q, but alone %v, %d changes, or not in the one plan", name, rw.ID, rw.Words, err, len(p.Changes))
+			}
+		case runall.Later:
+			if err != nil || len(p.Changes) == 0 || rw.Words != runall.WordsAfterFirewall || slices.ContainsFunc(r.Plan.Changes, func(c engine.Change) bool { return c.Control == rw.ID }) {
+				t.Errorf("%s %s: later %q, but alone %v, %d changes, or in the one plan", name, rw.ID, rw.Words, err, len(p.Changes))
+			}
+		case runall.Refused:
+			if err == nil || !errors.Is(rw.Err, err) && rw.Err.Error() != err.Error() || rw.Words != runall.WordsRefused {
+				t.Errorf("%s %s: refused %q (%v), alone %v", name, rw.ID, rw.Refusal, rw.Err, err)
+			}
+		case runall.AsAsked:
+			if rw.ID == users.ID && !errors.Is(err, users.ErrNameTaken) || rw.ID != users.ID && (err != nil || len(p.Changes) > 0) || rw.Words != runall.WordsAsked {
+				t.Errorf("%s %s: already as asked, but alone %v, %d changes", name, rw.ID, err, len(p.Changes))
+			}
+		}
+	}
+}
+
+func rowIDs(r runall.Reading) []string {
+	var out []string
+	for _, rw := range r.Rows {
+		out = append(out, rw.ID)
+	}
+	return out
+}
+
+// TestAsked holds the mapping (decision 4 (a)) key by key, table-driven:
+// each gate on and off, the change's words, the port compared only,
+// updates on alone, and the rows no key asks of.
+func TestAsked(t *testing.T) {
+	key := synthKey(1, "george@laptop-1")
+	full := func() *config.Config {
+		return &config.Config{Username: "george", SshKeys: []string{key}, SshPort: 2230, EnableUfwSshPolicy: true, ConfigureDns: true,
+			Nameservers: nameservers, DisableRootSSH: true, EnableUnattendedUpgrades: true}
+	}
+	debian := detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}}
+	pve := detect.Facts{Platform: detect.Platform{Distro: detect.DistroProxmox}}
+	records := revert.Options{Dir: "/var/lib/hardn-test"}
+	tests := []struct {
+		name  string
+		id    string
+		facts detect.Facts
+		set   func(*config.Config)
+		want  engine.Control
+		words string
+		port  uint16
+	}{
+		{"user", users.ID, debian, nil, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key}}}, "Create george, 1 key", 0},
+		{"user, two keys", users.ID, debian, func(c *config.Config) { c.SshKeys = []string{key, key} }, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key, key}}}, "Create george, 2 keys", 0},
+		{"no username", users.ID, debian, func(c *config.Config) { c.Username = "" }, nil, "", 0},
+		{"sudoNoPassword false", users.ID, debian, func(c *config.Config) { c.SudoNoPassword = false }, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key}}}, "Create george, 1 key", 0},
+		{"root login off", login, debian, nil, sshchange.Root{Want: "no"}, "Root login off", 0},
+		{"root key-only", login, pve, nil, sshchange.Root{Want: "no"}, "Root key-only", 0},
+		{"disableRootSSH false", login, debian, func(c *config.Config) { c.DisableRootSSH = false }, nil, "", 0},
+		{"port", port, debian, nil, nil, "", 2230},
+		{"port 0", port, debian, func(c *config.Config) { c.SshPort = 0 }, nil, "", 0},
+		{"port out of range", port, debian, func(c *config.Config) { c.SshPort = 65536 }, nil, "", 0},
+		{"firewall", fwctl.ID, debian, nil, fwctl.Incoming{Action: fwctl.ActionEnable}, "Enable, SSH allowed", 0},
+		{"enableUfwSshPolicy false", fwctl.ID, debian, func(c *config.Config) { c.EnableUfwSshPolicy = false }, nil, "", 0},
+		{"dns", dnsctl.ID, debian, nil, dnsctl.Nameservers{}, "Set 2 nameservers", 0},
+		{"configureDns false", dnsctl.ID, debian, func(c *config.Config) { c.ConfigureDns = false }, nil, "", 0},
+		{"no nameservers", dnsctl.ID, debian, func(c *config.Config) { c.Nameservers = nil }, nil, "", 0},
+		{"updates on", updates.ID, debian, nil, updates.Auto{Action: updates.AutoOn, Records: records, Version: "v0.4.0"}, "Turn on", 0},
+		{"enableUnattendedUpgrades false", updates.ID, debian, func(c *config.Config) { c.EnableUnattendedUpgrades = false }, nil, "", 0},
+		{"ssh auth", ssh.Auth{}.ID(), debian, nil, nil, "", 0},
+		{"apparmor", apparmor.ID, debian, nil, nil, "", 0},
+		{"backup", backupctl.ID, debian, nil, nil, "", 0},
+		{"environment", envctl.ID, debian, nil, nil, "", 0},
+	}
+	for _, tt := range tests {
+		cfg := full()
+		if tt.set != nil {
+			tt.set(cfg)
+		}
+		in := runall.Input{Config: cfg, Facts: tt.facts, Revert: records, Version: "v0.4.0"}
+		a := runall.Asked(in, tt.id)
+		if a.Words != tt.words || a.Port != tt.port || a.Asked() != (tt.want != nil || tt.port != 0) {
+			t.Errorf("%s: words %q, port %d, asked %v; want %q, %d", tt.name, a.Words, a.Port, a.Asked(), tt.words, tt.port)
+		}
+		if !sameControl(a.Control, tt.want, cfg) {
+			t.Errorf("%s: control %#v, want %#v", tt.name, a.Control, tt.want)
+		}
+	}
+}
+
+// sameControl reports whether got is want, Getenv and the config pointer
+// aside.
+func sameControl(got, want engine.Control, cfg *config.Config) bool {
+	switch w := want.(type) {
+	case nil:
+		return got == nil
+	case users.Admin:
+		g, ok := got.(users.Admin)
+		return ok && g.Getenv != nil && g.Action == w.Action && g.New.Name == w.New.Name && g.New.Admin && !g.New.Password && slices.Equal(g.New.Keys, w.New.Keys)
+	case sshchange.Root:
+		g, ok := got.(sshchange.Root)
+		return ok && g.Getenv != nil && g.Want == w.Want
+	case dnsctl.Nameservers:
+		g, ok := got.(dnsctl.Nameservers)
+		return ok && g.Config == cfg
+	case updates.Auto:
+		g, ok := got.(updates.Auto)
+		return ok && g.Action == w.Action && g.Version == w.Version && g.Records.Dir == w.Records.Dir
+	}
+	return got == want
+}
+
+// TestPending: a change waiting for hardn confirm, read before any plan:
+// every row asked of but the port Pending with SSH Login's words, nothing
+// planned, the reading refused with them; and debian13 read again after
+// its lockout-risk plan is applied, unconfirmed, the same.
+func TestPending(t *testing.T) {
+	check := func(name string, r runall.Reading) {
+		t.Helper()
+		if !r.Busy || !r.Pending() || r.Plan != nil || len(r.Planned()) > 0 || r.Refusal != runall.PendingWords || !errors.Is(r.Err, revert.ErrPending) {
+			t.Errorf("%s: busy %v, pending %v, plan %v, %d planned, refusal %q, err %v", name, r.Busy, r.Pending(), r.Plan != nil, len(r.Planned()), r.Refusal, r.Err)
+		}
+		for _, rw := range r.Rows {
+			if rw.Kind == runall.Pending && (rw.Words != runall.WordsPending || rw.Refusal != runall.PendingWords || !errors.Is(rw.Err, revert.ErrPending)) {
+				t.Errorf("%s %s: %q, %q, %v", name, rw.ID, rw.Words, rw.Refusal, rw.Err)
+			}
+		}
+	}
+	check("pending", newHost(t, "pending").read(t, "pending"))
+
+	h := newHost(t, "debian13")
+	r := h.read(t, "debian13")
+	if !r.Lockout() || r.Refusal != "" {
+		t.Fatalf("debian13: lockout %v, refusal %q", r.Lockout(), r.Refusal)
+	}
+	if _, err := h.newEngine(nil).Apply(context.Background(), r.Plan); err != nil {
+		t.Fatal(err)
+	}
+	again := h.read(t, "debian13")
+	check("debian13 after the apply", again)
+	for _, rw := range again.Rows {
+		if a := runall.Asked(h.input(), rw.ID); a.Control != nil && rw.Kind != runall.Pending {
+			t.Errorf("debian13 after the apply: %s %v, want pending", rw.ID, rw.Kind)
+		}
+	}
+}
+
+// TestAfterFirewall is decision 5 (a): where Enable and root login off both
+// plan changes (ufw installed and off), the engine refuses the two as one
+// plan, so the firewall is planned and root login off skipped, said; where
+// the firewall has nothing to change, root login off is planned.
+func TestAfterFirewall(t *testing.T) {
+	ctx := context.Background()
+	h := newHost(t, "ufw-inactive")
+	in := h.input()
+	both := []engine.Control{runall.Asked(in, fwctl.ID).Control, runall.Asked(in, login).Control}
+	p, err := h.newEngine(nil).Plan(ctx, both, h.cfg)
+	if err != nil || len(p.Refused) == 0 || !errors.Is(p.Refused[0], engine.ErrConflict) {
+		t.Fatalf("ufw-inactive: Enable and root login off together: %v, refused %v; want ErrConflict, the rule's premise", err, p.Refused)
+	}
+	r := h.read(t, "ufw-inactive")
+	rw, _ := r.Row(login)
+	if rw.Kind != runall.Later || rw.Words != runall.WordsAfterFirewall || rw.Control != nil || r.Refusal != "" || r.Plan == nil || len(r.Plan.Refused) > 0 {
+		t.Errorf("ufw-inactive: root login %v %q, refusal %q; want later, the plan unrefused", rw.Kind, rw.Words, r.Refusal)
+	}
+	if rw, _ := newHost(t, "debian13").read(t, "debian13").Row(login); rw.Kind != runall.Planned {
+		t.Errorf("debian13, ufw on: root login %v, want planned", rw.Kind)
+	}
+}
+
+// stages are p's stages in order, each once, the boot unit's left out.
+func stages(p *engine.Plan) []engine.Stage {
+	var out []engine.Stage
+	for _, c := range p.Changes {
+		if c.Stage != engine.StageBoot && (len(out) == 0 || out[len(out)-1] != c.Stage) {
+			out = append(out, c.Stage)
+		}
+	}
+	return out
+}
+
+// TestCombined holds the one plan (decision 5 (a)): the engine's order,
+// accounts before the firewall before files before the reload, and its
+// risk; no plan saves hardn.yml (neither DNS's save nor a backup saver's).
+func TestCombined(t *testing.T) {
+	tests := []struct {
+		host    string
+		want    []engine.Stage
+		lockout bool
+	}{
+		{"new-admin", []engine.Stage{engine.StageAccounts, engine.StageFiles, engine.StageReload, engine.StageVerify}, true},
+		{"carol-ufw-inactive", []engine.Stage{engine.StageAccounts, engine.StageFirewall, engine.StageFiles}, true},
+		{"debian13", []engine.Stage{engine.StageFiles, engine.StageReload, engine.StageVerify}, true},
+		{"fresh", []engine.Stage{engine.StageAccounts, engine.StageFiles}, false},
+	}
+	for _, tt := range tests {
+		r := newHost(t, tt.host).read(t, tt.host)
+		if r.Plan == nil || r.Refusal != "" {
+			t.Fatalf("%s: plan %v, refusal %q", tt.host, r.Plan != nil, r.Refusal)
+		}
+		if got := stages(r.Plan); !slices.Equal(got, tt.want) || r.Lockout() != tt.lockout {
+			t.Errorf("%s: stages %v, lockout %v; want %v, %v", tt.host, got, r.Lockout(), tt.want, tt.lockout)
+		}
+		if !slices.EqualFunc(r.Plan.Items, r.Controls(), func(it engine.Item, c engine.Control) bool { return it.Control == c.ID() }) {
+			t.Errorf("%s: the plan's controls are not the planned rows'", tt.host)
+		}
+	}
+	for _, name := range runHosts {
+		r := newHost(t, name).read(t, name)
+		if r.Plan == nil {
+			continue
+		}
+		for _, c := range r.Plan.Changes {
+			if c.ID == dnsctl.ChangeSave || c.ID == backupctl.ChangeSave || c.Control == backupctl.ID {
+				t.Errorf("%s: the plan has %s", name, c.ID)
+			}
+		}
+	}
+}
+
+// TestWritesNothing: Read plans only, on every host: nothing changes
+// outside the engine's run directory.
+func TestWritesNothing(t *testing.T) {
+	for _, name := range runHosts {
+		h := newHost(t, name)
+		n := len(h.Calls())
+		h.read(t, name)
+		if w := writes(h, n); len(w) > 0 {
+			t.Errorf("%s: Read changed the host: %q", name, w)
+		}
+	}
+}
+
+// TestUserThere: a user there is as asked only as an admin with every
+// asked key, else User Management's with what is missing.
+func TestUserThere(t *testing.T) {
+	tests := []struct {
+		host string
+		keys []string
+		want string
+		kind runall.Kind
+	}{
+		{"debian13", nil, runall.WordsAsked, runall.AsAsked},
+		{"george-no-sudo", nil, "User Management's: not an admin", runall.Elsewhere},
+		{"debian13", []string{synthKey(9, "george@laptop-2")}, "User Management's: 1 key missing", runall.Elsewhere},
+		{"george-no-sudo", []string{synthKey(9, "george@laptop-2"), synthKey(8, "george@laptop-3")}, "User Management's: not an admin, 2 keys missing", runall.Elsewhere},
+	}
+	for _, tt := range tests {
+		h := newHost(t, tt.host)
+		h.cfg.SshKeys = append(slices.Clone(h.cfg.SshKeys), tt.keys...)
+		rw, _ := h.read(t, tt.host).Row(users.ID)
+		if rw.Kind != tt.kind || rw.Words != tt.want || rw.Control != nil {
+			t.Errorf("%s with %d more keys: %v %q; want %v %q", tt.host, len(tt.keys), rw.Kind, rw.Words, tt.kind, tt.want)
+		}
+	}
+}
+
+// TestReadInvalid: Read needs a System, a Config and NewEngine.
+func TestReadInvalid(t *testing.T) {
+	h := newHost(t, "debian13")
+	for _, in := range []runall.Input{{Config: h.cfg, NewEngine: h.newEngine}, {System: h, NewEngine: h.newEngine}, {System: h, Config: h.cfg}} {
+		if _, err := runall.Read(context.Background(), in); !errors.Is(err, fs.ErrInvalid) {
+			t.Errorf("%+v: %v, want fs.ErrInvalid", in, err)
+		}
+	}
+}
