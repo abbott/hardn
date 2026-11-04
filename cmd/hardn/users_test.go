@@ -459,7 +459,7 @@ func TestCreateUserPlanOnlyFromFile(t *testing.T) {
 }
 
 // TestCreateUserNoName: -c with no -u and no username in hardn.yml is
-// refused as it was, in its words, exit status 1, before the engine's host
+// refused as it was, in its words, on stderr (say), exit status 1, before the engine's host
 // is reached (runHardnWith fails the test if it is).
 func TestCreateUserNoName(t *testing.T) {
 	for _, args := range [][]string{{"-c"}, {"-n", "-c"}} {
@@ -467,7 +467,7 @@ func TestCreateUserNoName(t *testing.T) {
 			r := runHardnWith(t, asRoot, func() {
 				loadConfig = func(string) (*config.Config, error) { return config.DefaultConfig(), nil }
 			}, args...)
-			if !r.ended || r.code != 1 || !strings.Contains(r.stdout+r.stderr, "Please specify a username with -u flag or in the configuration file.") {
+			if !r.ended || r.code != 1 || flat(r.stderr) != "Operation Failed Please specify a username with -u flag or in the configuration file." || r.stdout != "" {
 				t.Errorf("ended %v with %d; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.stdout, r.stderr)
 			}
 		})

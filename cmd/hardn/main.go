@@ -14,7 +14,6 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/infrastructure"
 	"github.com/abbott/hardn/pkg/interfaces"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/version"
@@ -54,12 +53,12 @@ func main() { start("/var/log/hardn.log") }
 // start is main, with the log's path for the tests: what hardn says before the
 // command goes to stderr, so that stdout holds the command's output alone (defect 28).
 func start(logPath string) {
-	logging.InitLogging(logPath)
+	openLog(logPath)
 
 	// Ensure config directory and example config exist
 	if err := ensureExampleConfig(); err != nil {
-		// Just log a warning, don't exit - the program can still run with defaults
-		fmt.Fprintf(os.Stderr, "Warning: Unable to create example configuration file: %v\n", err)
+		// A warning, not an exit: the program can still run with defaults.
+		sayWarning("Unable to create example configuration file: %v", err)
 	}
 
 	// All Execute returns is a bad command line, which cobra has said on stderr with
@@ -74,7 +73,7 @@ func init() {
 	rootCmd.Version = Version
 
 	// if rootCmd.Version != "" {
-	// 	logging.LogInfo("Current version :::: : %s", rootCmd.Version)
+	// 	sayInfo("Current version :::: : %s", rootCmd.Version)
 	// }
 
 	// Setup color processing before command execution
@@ -143,20 +142,19 @@ var rootCmd = &cobra.Command{
 		// Check if running as root
 		currentUser, err := lookupCurrentUser()
 		if err != nil {
-			logging.LogError("Failed to get current user: %v", err)
+			sayError("Failed to get current user: %v", err)
 			exit(1)
 		}
 
 		if currentUser.Uid != "0" {
-			logging.LogError("This script needs to be run as root.")
-			fmt.Println(rootHint())
+			sayNotRoot()
 			exit(1)
 		}
 
 		// Load configuration (will check both command-line flag and environment variable)
 		cfg, err = loadConfig(configFile)
 		if err != nil {
-			logging.LogError("Failed to load configuration: %v", err)
+			sayError("Failed to load configuration: %v", err)
 			exit(1)
 		}
 
@@ -174,14 +172,14 @@ var rootCmd = &cobra.Command{
 		// Check if we need to create a user and no username is provided
 		// (-r without one asks Run All for no user: runall.Asked)
 		if createUser && cfg.Username == "" {
-			logging.LogError("Please specify a username with -u flag or in the configuration file.")
+			sayError("Please specify a username with -u flag or in the configuration file.")
 			exit(1)
 		}
 
 		// Detect OS
 		osInfo, err := detectOS()
 		if err != nil {
-			logging.LogError("Failed to detect OS: %v", err)
+			sayError("Failed to detect OS: %v", err)
 			exit(1)
 		}
 
@@ -322,7 +320,7 @@ Example:
 		}
 		var err error
 		if cfg, err = loadExisting(configFile); err != nil {
-			logging.LogError("Failed to load configuration: %v", err)
+			sayError("Failed to load configuration: %v", err)
 			exit(1)
 			return
 		}

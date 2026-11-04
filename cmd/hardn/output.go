@@ -12,7 +12,9 @@ package main
 //   - no colour codes from hardn confirm and hardn rollback (<id>,
 //     --abandon, --boot) when their output is not a terminal: the Debian 13
 //     and Ubuntu 26.04 VM runs found escape codes in the journal
-//     (docs/safety/vmtest.md §4.9).
+//     (docs/safety/vmtest.md §4.9). Since decision 5 (a) of
+//     docs/engine/legacy-left.md their lines are console lines (say),
+//     rendered for stderr, which is plain off a colour terminal.
 
 import (
 	"fmt"
@@ -20,28 +22,19 @@ import (
 	"os"
 	"slices"
 
-	"github.com/fatih/color"
-
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host/hangup"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
-// Seams for the tests: the render environment of stderr, and whether
-// confirm and rollback write colour.
-var (
-	stderrEnv    = func() term.Env { return streamEnv(os.Stderr) }
-	revertColour = func() bool { return streamEnv(os.Stdout).HasColor() && streamEnv(os.Stderr).HasColor() }
-)
+// stderrEnv is the render environment of stderr: a seam for the tests.
+var stderrEnv = func() term.Env { return streamEnv(os.Stderr) }
 
 // termStdout and termStderr are hardn's stdout and stderr as cmd/hardn
-// writes to them, the legacy logger's console lines (fatih/color's Output
-// and Error) and its fallback when hardn's log cannot be opened
-// (logging.FallbackOutput) among them, set by init before main opens the
-// log: through hangup.Writer (terminalWriter), one each, so that once a
+// writes to them, its console lines (say) among them: through
+// hangup.Writer (terminalWriter), one each, so that once a
 // hangup is caught (hangup.Seen) what hardn writes there is dropped, and
 // a write blocked on a terminal nothing reads any more is given up on
 // (since next/s3-hangup; the maintainer, 2026-10-28: "Make hardn stop
@@ -52,11 +45,6 @@ var (
 	termStdout = terminalWriter(os.Stdout)
 	termStderr = terminalWriter(os.Stderr)
 )
-
-func init() {
-	color.Output, color.Error = termStdout, termStderr
-	logging.FallbackOutput = termStderr
-}
 
 // terminalWriter is f through hangup.Writer, unless f is a regular file
 // (hardn -g > report.txt): a write to a file never waits on a reader, and
@@ -211,10 +199,3 @@ func deprecationWarnings(env term.Env, path string, deps []config.Deprecation, r
 	}
 	return out + "\n"
 }
-
-// setRevertColour turns the legacy logger's colour (fatih/color, which the
-// root command's initializeColor turns on unless --no-color) off for hardn
-// confirm and hardn rollback unless both stdout, where the logger writes,
-// and stderr, where the notices go, are colour terminals. Under the systemd
-// timer both are the journal, under the OpenRC sleeper the null device.
-func setRevertColour() { color.NoColor = !revertColour() }

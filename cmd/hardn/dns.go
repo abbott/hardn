@@ -13,7 +13,6 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	dnsscreen "github.com/abbott/hardn/pkg/screens/dns"
@@ -111,7 +110,7 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 		run.Result, run.Err = &res, err
 	}
 	if err := output.Emit(output.Streams{Stdout: engineStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
-		logging.LogError("%v", err)
+		sayError("%v", err)
 	}
 	return endControls(run, actx, hungUp)
 }

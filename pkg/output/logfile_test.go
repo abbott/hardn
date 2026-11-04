@@ -2,8 +2,6 @@ package output
 
 import (
 	"bytes"
-	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 	"testing"
@@ -40,51 +38,4 @@ func TestLogLine(t *testing.T) {
 	var none *Log
 	none.Printf(LogInfo, "nothing")
 	_, _ = none.Lines(LogInfo).Write([]byte("nothing\n"))
-}
-
-// TestOpenLog: the log is appended to, in a directory made where missing;
-// where the directory cannot be made or the file opened, as for a user
-// other than root, OpenLog says so in pkg/logging's words, writes nothing
-// to stdout or stderr, and its Log writes nothing (defect 28).
-func TestOpenLog(t *testing.T) {
-	path := filepath.Join(t.TempDir(), "log", "hardn.log")
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, []byte("before\n"), 0o644); err != nil {
-		t.Fatal(err)
-	}
-	l, errs := OpenLog(path)
-	if len(errs) != 0 {
-		t.Fatal(errs)
-	}
-	l.Printf(LogInfo, "after")
-	if b, _ := os.ReadFile(path); !strings.HasPrefix(string(b), "before\n") || !strings.HasSuffix(string(b), " INFO: after\n") {
-		t.Errorf("log %q", b)
-	}
-
-	file := filepath.Join(t.TempDir(), "file")
-	if err := os.WriteFile(file, nil, 0o600); err != nil {
-		t.Fatal(err)
-	}
-	for _, tc := range []struct {
-		name, path string
-		want       []string
-	}{
-		{"a directory", t.TempDir(), []string{"Failed to open log file "}},
-		{"no directory", filepath.Join(file, "dir", "hardn.log"), []string{"Failed to create log directory: ", "Failed to open log file " + filepath.Join(file, "dir", "hardn.log") + ": "}},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			l, errs := OpenLog(tc.path)
-			if l != nil || len(errs) != len(tc.want) {
-				t.Fatalf("OpenLog = %v, %v", l, errs)
-			}
-			for i, want := range tc.want {
-				if !strings.HasPrefix(errs[i].Error(), want) {
-					t.Errorf("error %d %q, want %q", i, errs[i], want)
-				}
-			}
-			l.Printf(LogInfo, "nowhere")
-		})
-	}
 }
