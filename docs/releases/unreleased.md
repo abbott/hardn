@@ -221,10 +221,10 @@ See [docs/configuration.md](../configuration.md), "Configuration Options".
 
 ## Changed: the release files
 
-*Drafted by p7-release.*
+*Drafted by p7-release; the provenance line by p7-provenance.*
 
 - **Binaries for linux-amd64, linux-arm64 and darwin-amd64**, as before.
 - **`SHA256SUMS`, new**, lists each binary's SHA-256.
 - **An SBOM** in SPDX JSON, as before.
 - **No cosign signatures.** No release had `.sig` or `.crt` files, though the README said its binaries were signed; signing is dropped.
-- **Provenance is a GitHub attestation**, checked with `gh attestation verify`, in place of the `.intoto.jsonl` files. *(p7-provenance to finish.)*
+- **SLSA Build Level 3 provenance, as before, now a GitHub artifact attestation** for each binary, in place of v0.3.x's `.intoto.jsonl` files. Check a binary with `gh attestation verify hardn-linux-amd64 --repo abbott/hardn --signer-workflow abbott/hardn/.github/workflows/build.yml --source-ref refs/tags/v0.4.0` (gh 2.68.0 or later), or with `verify.sh`, which first checks it against `SHA256SUMS`.
