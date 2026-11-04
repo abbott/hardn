@@ -47,7 +47,36 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
 $
-  ␛[38;2;129;134;156mThe gallery has no screen for Run All yet.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george (two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george with␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma key, port 22, two nameservers, backups on, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true. george logged in by key, hardn through␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m            ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
 $
@@ -303,7 +332,36 @@ $
 $
   > Enter selection [0-10 or q]: 7$
 $
-  The gallery has no screen for Run All yet.$
+# Info: runall/debian13$
+# web-01.example.net runs Debian 13. As the VM: george (two$
+# keys, sudo by cloud-init) and alice, ufw allowing 22,$
+# unattended-upgrades on by the package. hardn.yml: george with$
+# a key, port 22, two nameservers, backups on, and$
+# enableUnattendedUpgrades, enableUfwSshPolicy, configureDns and$
+# disableRootSSH true. george logged in by key, hardn through$
+# sudo.$
+$
+# Run All ######################################################$
+$
+  [+] User                 Configured Already as asked$
+  [+] Firewall             Configured Already as asked$
+  [ ] SSH Login            Partial Root login off$
+  [+] SSH Auth             Configured Nothing asked$
+  [ ] SSH Port             Not Configured Already as asked$
+  [+] AppArmor             Configured Status only$
+  [+] Auto Updates         Configured Already as asked$
+  [ ] DNS                  Not Configured Set 2 nameservers$
+  [+] Backups              Configured Used, not changed$
+  [ ] Environment          Not Configured Nothing asked$
+$
+  Select an option$
+$
+   1) Apply all            Plan, review, confirm$
+                           [ ] Lockout risk$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 0$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -581,7 +639,47 @@ $
 $
   ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 7$
 $
-  ␛[38;2;129;134;156mThe gallery has no screen for Run All yet.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/debian13␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. As the VM: george (two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys, sudo by cloud-init) and alice, ufw allowing 22,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munattended-upgrades on by the package. hardn.yml: george␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a key, port 22, two nameservers, backups on, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand disableRootSSH true. george logged in by key, hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthrough sudo.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mRoot login off␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mStatus only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mAlready as asked␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mSet 2 nameservers␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackups␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mUsed, not changed␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mNothing asked␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply all␛[m$
+      ␛[38;2;129;134;156mPlan, review, confirm␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
 ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
