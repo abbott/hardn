@@ -16,15 +16,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/fatih/color"
-
 	"github.com/abbott/hardn/pkg/engine/hold"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hangup"
 	"github.com/abbott/hardn/pkg/host/revert"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
@@ -136,10 +133,9 @@ func TestEngineSeamsAreReal(t *testing.T) {
 // TestTerminalWriters: what cmd/hardn writes to stdout and stderr goes
 // through one writer each (termStdout and termStderr, which
 // TestTerminalWritersDropAfterHangup holds to hardn's terminal): the
-// screens' and -g's (engineStdout), hardn confirm's (confirmStdout), the
-// command line's refusals (stderr), the next-run notices (revertStderr),
-// the legacy logger's console lines (fatih/color's Output and Error) and
-// its fallback when hardn's log cannot be opened (logging.FallbackOutput).
+// screens' and -g's (engineStdout), hardn confirm's (confirmStdout), and
+// the console lines (stderr: the command line's refusals, the next-run
+// notices and every line say writes).
 func TestTerminalWriters(t *testing.T) {
 	if termStdout == termStderr {
 		t.Fatal("stdout and stderr share one writer")
@@ -150,11 +146,7 @@ func TestTerminalWriters(t *testing.T) {
 	}{
 		{"engineStdout", engineStdout, termStdout},
 		{"confirmStdout", confirmStdout, termStdout},
-		{"color.Output", color.Output, termStdout},
 		{"stderr", stderr, termStderr},
-		{"revertStderr", revertStderr, termStderr},
-		{"color.Error", color.Error, termStderr},
-		{"logging.FallbackOutput", logging.FallbackOutput, termStderr},
 	} {
 		if w.got != w.want {
 			t.Errorf("%s is %T, not hardn's terminal", w.name, w.got)
@@ -485,7 +477,7 @@ const (
 // signals only to itself.
 func TestEndByHangup(t *testing.T) {
 	if mode := os.Getenv(hangupChildEnv); mode != "" {
-		logging.InitLogging(os.Getenv(hangupLogEnv))
+		openLog(os.Getenv(hangupLogEnv))
 		if mode == "ignored" {
 			signal.Ignore(syscall.SIGHUP)
 		}

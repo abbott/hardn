@@ -589,8 +589,9 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 
 // TestKeepEnvironmentNotRoot: setup-sudo-env now has the root command's
 // root check (gallery-environment.md §5, Made here, adopted 2026-10-29;
-// defect 9): a user other than root is refused in its words, exit status
-// 1, before hardn.yml is loaded or the host reached; -e had it already.
+// defect 9): a user other than root is refused in its words, on stderr
+// (say), exit status 1, before hardn.yml is loaded or the host reached; -e
+// had it already.
 func TestKeepEnvironmentNotRoot(t *testing.T) {
 	for _, args := range [][]string{{"setup-sudo-env"}, {"-e"}, {"-n", "setup-sudo-env"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
@@ -598,8 +599,8 @@ func TestKeepEnvironmentNotRoot(t *testing.T) {
 			r, _ := runE(t, h, func(*dnsSeams) {
 				lookupCurrentUser = func() (*osuser.User, error) { return &osuser.User{Uid: "1000", Username: "alice"}, nil }
 			}, args...)
-			if !r.ended || r.code != 1 || !strings.Contains(r.stdout, "This script needs to be run as root.") || len(r.reached) != 0 || len(h.Calls()) != 0 {
-				t.Errorf("ended %v with %d after %v, %d host calls; stdout:\n%s", r.ended, r.code, r.reached, len(h.Calls()), r.stdout)
+			if !r.ended || r.code != 1 || !strings.HasPrefix(flat(r.stderr), "Operation Failed This script needs to be run as root. Run `") || r.stdout != "" || len(r.reached) != 0 || len(h.Calls()) != 0 {
+				t.Errorf("ended %v with %d after %v, %d host calls; stdout:\n%s\nstderr:\n%s", r.ended, r.code, r.reached, len(h.Calls()), r.stdout, r.stderr)
 			}
 		})
 	}

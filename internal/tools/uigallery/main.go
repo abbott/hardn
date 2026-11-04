@@ -275,8 +275,7 @@
 // gallery's, which holds nothing; the DNS scenarios read and save
 // hardn.yml through the fake alone (config.Read, config.Save). Of this
 // machine the engine's code reads only the process's effective uid, the
-// clock and crypto/rand, and fatih/color, which it links, reads NO_COLOR
-// and TERM and asks whether stdout is a terminal at its initialisation.
+// clock and crypto/rand.
 // The package initialisation of Lip Gloss and x/ansi still runs, as in
 // every binary that links Lip Gloss (today the pkg/ui test binaries and
 // this gallery; cmd/hardn links none): an ioctl on stdout and, on a

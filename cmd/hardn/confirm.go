@@ -22,7 +22,6 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
-	"github.com/abbott/hardn/pkg/logging"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -61,14 +60,14 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 	h, err := confirmClaim(ctx, sys, s, opts)
 	code := 0
 	if err != nil {
-		logging.LogError("%v", err)
+		sayError("%v", err)
 		acknowledgeRolledBack(ctx, sys, opts, err)
 		code = 1
 	} else {
 		if h.Confirmed.Local {
-			logging.LogWarning("Confirmed from a session that is not over SSH: this does not show that a new SSH connection works.")
+			sayWarning("Confirmed from a session that is not over SSH: this does not show that a new SSH connection works.")
 		}
-		logging.LogSuccess("Change %s confirmed (%s): it will not be rolled back.", h.Confirmed.Journal.ID, h.Confirmed.Journal.Summary)
+		saySuccess("Change %s confirmed (%s): it will not be rolled back.", h.Confirmed.Journal.ID, h.Confirmed.Journal.Summary)
 	}
 	if !h.Run() {
 		showCleanup(h, confirm.Outcome{}, false)
@@ -79,7 +78,7 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 		if h.Carried {
 			which = "confirmed before change " + h.Confirmed.Journal.ID
 		}
-		logging.LogInfo("Change %s (%s), %s, still has port %s in %s, which it held during its confirm window: its clean-up, from this connection.",
+		sayInfo("Change %s (%s), %s, still has port %s in %s, which it held during its confirm window: its clean-up, from this connection.",
 			h.Change.ID, h.Change.Summary, which, portWords(h.Cleanup.Drop), sshd.HardnDropIn)
 	}
 	hup := watchHangup() // a hangup during the clean-up drops what is written after it
@@ -92,7 +91,7 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 	reported := !o.Done() || !o.Result.Nothing
 	if reported {
 		if err := output.Emit(output.Streams{Stdout: confirmStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
-			logging.LogWarning("hardn confirm: the clean-up's report: %v", err)
+			sayWarning("hardn confirm: the clean-up's report: %v", err)
 		}
 	}
 	showCleanup(h, o, reported)
@@ -155,9 +154,4 @@ func portWords(ps []uint16) string {
 // whose report or screen is what the console shows.
 type revertFileLog struct{}
 
-func (revertFileLog) Write(p []byte) (int, error) {
-	for _, line := range strings.Split(strings.TrimRight(string(p), "\n"), "\n") {
-		logging.LogFileOnly("%s", line)
-	}
-	return len(p), nil
-}
+func (revertFileLog) Write(p []byte) (int, error) { return hardnLog.Lines(output.LogInfo).Write(p) }

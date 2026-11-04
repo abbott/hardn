@@ -11,8 +11,6 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/fatih/color"
-
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -35,7 +33,7 @@ type exited int
 // result is one hardn run.
 type result struct {
 	stderr  string
-	stdout  string   // what the logging package printed (fatih/color's Output)
+	stdout  string   // what the command wrote to stdout (engineStdout), unless setup points it elsewhere
 	code    int      // exit status, when ended
 	ended   bool     // the run ended by exit
 	reached []string // the host steps past the dry-run refusal that ran
@@ -95,10 +93,11 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 		user     func() (*osuser.User, error)
 		load     func(string) (*config.Config, error)
 		existing func(string) (*config.Config, error)
+		find     func(string) config.Found
 		detect   func() (*osdetect.OSInfo, error)
 		exit     func(int)
-	}{lookupCurrentUser, loadConfig, loadExisting, detectOS, exit}
-	prevStderr, prevOutput, prevNoColor, prevStderrEnv := stderr, color.Output, color.NoColor, stderrEnv
+	}{lookupCurrentUser, loadConfig, loadExisting, findConfig, detectOS, exit}
+	prevStderr, prevStderrEnv := stderr, stderrEnv
 	prevEngineHost, prevEngineDetect, prevEngineStdout := engineHost, engineDetect, engineStdout
 	stderrEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
 	engineHost = func() host.System {
@@ -108,8 +107,8 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	engineDetect = func(context.Context, host.System) (detect.Facts, error) { return detect.Facts{}, nil }
 	engineStdout = io.Discard
 	t.Cleanup(func() {
-		lookupCurrentUser, loadConfig, loadExisting, detectOS, exit = prev.user, prev.load, prev.existing, prev.detect, prev.exit
-		stderr, color.Output, color.NoColor, stderrEnv = prevStderr, prevOutput, prevNoColor, prevStderrEnv
+		lookupCurrentUser, loadConfig, loadExisting, findConfig, detectOS, exit = prev.user, prev.load, prev.existing, prev.find, prev.detect, prev.exit
+		stderr, stderrEnv = prevStderr, prevStderrEnv
 		engineHost, engineDetect, engineStdout = prevEngineHost, prevEngineDetect, prevEngineStdout
 		resetFlags()
 		rootCmd.SetArgs(nil)
@@ -117,7 +116,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 
 	var errOut, out bytes.Buffer
 	stderr = &errOut
-	color.Output = &out
+	engineStdout = &out
 	exit = func(code int) { panic(exited(code)) }
 	unreachable := errors.New("test: a host step was reached")
 	lookupCurrentUser = func() (*osuser.User, error) {
@@ -147,6 +146,8 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 		return nil, unreachable
 	}
 	loadExisting = loadConfig // setup-sudo-env's, the same configurations
+	// The file the stubbed loads stand for, which hardn says it read.
+	findConfig = func(string) config.Found { return config.Found{Path: confPath, By: config.FoundSearch, Exists: true} }
 	detectOS = func() (*osdetect.OSInfo, error) {
 		r.reached = append(r.reached, "OS detection")
 		if mode != hostUnreachable {
@@ -193,8 +194,8 @@ func TestDryRunAloneIsNotRefused(t *testing.T) {
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {
 				t.Fatalf("ended %v with %d after %v, want status 1 at the root check; stderr:\n%s", r.ended, r.code, r.reached, r.stderr)
 			}
-			if r.stderr != "" {
-				t.Errorf("stderr %q", r.stderr)
+			if flat(r.stderr) != "Operation Failed Failed to get current user: test: a host step was reached" || r.stdout != "" {
+				t.Errorf("stderr %q, stdout %q", r.stderr, r.stdout)
 			}
 		})
 	}
@@ -215,7 +216,7 @@ func TestUpdateFlagsGone(t *testing.T) {
 // TestDeprecationWarning: a bool permitRootLogin in the configuration is
 // warned about on stderr, once, when it loads (§3.17, approved), with the
 // file and line and what to write instead; the operation goes on, and
-// stdout (the legacy logger's) does not repeat it. A configuration without
+// stdout does not repeat it. A configuration without
 // it warns nothing. (Run with -r, which plans Run All on the engine's
 // host, here the DNS tests' (useDNSHost), whose hardn.yml asks nothing.)
 func TestDeprecationWarning(t *testing.T) {
@@ -227,14 +228,10 @@ func TestDeprecationWarning(t *testing.T) {
 	if r.ended {
 		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 	}
-	// One Warning callout (P-42 R5): its title, then the warning as its
-	// body, read here without the bar.
-	lines := strings.Split(r.stderr, "\n")
-	for i, l := range lines {
-		lines[i] = strings.TrimLeft(l, "#█ ")
-	}
-	got := strings.Join(strings.Fields(strings.Join(lines, "\n")), " ")
-	if !strings.HasPrefix(got, "Warning ") || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
+	// The file read (decision 4 (a)), then one Warning callout (P-42 R5):
+	// its title, then the warning as its body, read here without the bar.
+	got := flat(r.stderr)
+	if !strings.HasPrefix(got, "Using configuration from: ") || strings.Count(got, "Warning ") != 1 || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
 		strings.Count(got, "deprecated") != 1 || strings.Contains(r.stderr, "\x1b") {
 		t.Errorf("stderr:\n%s", r.stderr)
 	}
