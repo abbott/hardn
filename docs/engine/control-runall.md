@@ -5,9 +5,9 @@
 ## 1. What it does
 
 - **The mapping** (`Asked`, decision 4 (a)): `username` and `sshKeys`, Create with admin rights and the keys, the grant asking no password, as `-c`'s (`sudoNoPassword` unused); `disableRootSSH: true`, root login off (`sshchange.Root{Want: "no"}`), "Root key-only" on Proxmox VE; `sshPort`, compared with sshd's listeners only, never planned; `enableUfwSshPolicy: true`, Enable; `configureDns: true` with `nameservers`, the nameservers; `enableUnattendedUpgrades: true`, on (`updates.AutoOn`, never off). SSH Auth and Environment: nothing asked. AppArmor ("Status only") and Backup ("Used, not changed") are left alone.
-- **`Read`**, writing nothing: the revert state first (`revert.ReadState`), then each row's check, then each row in the screen's order (`IDs`: the main menu's, then Backup and Environment). A row is left, nothing asked, Not Applicable by its check (its reason), the port compared, `Pending` where a change waits for `hardn confirm` (every row asked of but the port and Not Applicable ones, with the SSH Login screen's words, none planned), else its control planned alone: a refusal is `Refused` with its words; nothing to change is "Already as asked"; a user there is "Already as asked" only as an admin with every asked key, else "User Management's: not an admin, 1 key missing".
+- **`Read`**, writing nothing: the revert state first (`revert.ReadState`), then each row's check, then each row in the screen's order (`IDs`: the main menu's, then Backup and Environment). A row is left, nothing asked, Not Applicable by its check (its reason), the port compared (`Refused` where sshd cannot be read), `Pending` where a change is journalled (every row asked of but the port and Not Applicable ones, none planned: the SSH Login screen's words where an applied lockout-risk change waits for `hardn confirm`, revert's own, with its `hardn rollback <id>`, for an unfinished rollback or a change that did not finish), else its control planned alone: a refusal is `Refused` with its words; nothing to change is "Already as asked"; a user there is "Already as asked" only as an admin with every asked key, else "User Management's: not an admin, 1 key missing" (a key that does not parse is missing; `Refused` where the users cannot be read).
 - **Decision 5 (a)**: where Enable and root login off both plan changes (ufw installed and off), the engine refuses the two as one plan (`ErrConflict`), so the firewall is planned and root login off is `Later`, "After the firewall: run Run All again".
-- **The one plan**: the planned rows' controls in one `Engine.Plan`; its first refusal, worded, is `Reading.Refusal`. The engine orders it (accounts, firewall, files, reload) and sets its risk. `Read` never applies and never calls `engine.New`: every engine is the caller's (`NewEngine`).
+- **The one plan** (`combine`): the planned rows' controls in one `Engine.Plan`; its first refusal, worded, is `Reading.Refusal`, the plan kept. Decision 5 (a) leaves no gallery host a refusal there; the path stays, a guard for a conflict the rule does not cover. The engine orders it (accounts, firewall, files, reload) and sets its risk. `Read` never applies and never calls `engine.New`: every engine is the caller's (`NewEngine`).
 
 ## 2. API
 
@@ -31,7 +31,7 @@ type Reading struct {
 	Rows    []Row
 	Busy    bool            // revert.State.Busy, read before any plan
 	Plan    *engine.Plan    // nil where nothing is planned or a change is pending
-	Refusal string          // refuses Apply all before asking: PendingWords, or the plan's refusal
+	Refusal string          // refuses Apply all before asking: a change journalled's words, or the plan's refusal
 	Err     error
 }
 func (Reading) Planned() []Row; Refused() []Row; Pending() bool; Lockout() bool
@@ -64,14 +64,15 @@ const Title, Question, WordsAsked, WordsNothing, WordsStatus, WordsUnchanged, Wo
 
 - `Input` is a struct, not the brief's seven arguments: the state read and Auto Updates' record need the revert options, and the record needs hardn's version, which the mock took from the gallery's globals.
 - A refusal's words are a copy of `screenkit.RefusalWords` (the engine may not import `pkg/screens`; `.golangci.yml`'s `runall-through-host`), held equal by `TestWords`.
-- A change pending refused by the one plan itself is worded `PendingWords`, as a row's; the mock gave revert's own words there.
+- A change journalled is worded `PendingWords` only where an applied lockout-risk change waits for `hardn confirm` (`revert.State.Waiting`); otherwise revert's own words, which name its `hardn rollback <id>`. The same rule is in SSH Login's `planWords`. A change journalled after the state read is the engine's refusal: that row is `Refused` in those words.
+- Each asked control is planned alone and then together, so `Read` reads the host more than once (each control's reads once per plan, sshd's and the accounts' among them). Counted on `hostfake` with the checks: about 670 host calls on the debian13 and new-admin hosts against 160 to 200 for their one plan alone, 3 to 4 times; all read-only and local, for words that name the control that refuses.
 - The checks run on the caller's engine (the mock's had its detection fixed to the facts).
 - Decision 5 (a) is new behaviour: the mock's `ufw-inactive` drew the engine's refusal; here it plans the firewall alone.
 
 ## 5. Tests
 
-`hostfake`, the gallery's hosts copied through `pkg/screens/ssh`'s fake, with ufw inactive, dhcpcd's resolv.conf and Auto Updates' check added: every outcome kind and each row held to its control alone (`TestHosts`, 16 hosts), every gate of the mapping (`TestAsked`, table-driven), the pending read and the read after an unconfirmed apply (`TestPending`), decision 5 and its premise (`TestAfterFirewall`), the plan's order and risk and no hardn.yml save (`TestCombined`), nothing written (`TestWritesNothing`), the user there (`TestUserThere`).
+`hostfake`, the gallery's hosts copied through `pkg/screens/ssh`'s fake, with ufw inactive, dhcpcd's resolv.conf and Auto Updates' check added: every outcome kind and each row held to its control alone (`TestHosts`, 16 hosts), every gate of the mapping (`TestAsked`, table-driven; `sshPort` 65536, 70000 and -1 out of range), the port row with sshd unread and the session reaching its read (`TestPortRow`), the one plan's refusal with decision 5's rule not applied (`TestCombinedRefused`, through `Combine`, `export_test.go`), Auto Updates planned on Alpine, apk-cron to install (`TestAutoUpdatesAlpine`), each journalled state's words (`TestWords`), the pending read and the read after an unconfirmed apply (`TestPending`), decision 5 and its premise (`TestAfterFirewall`), the plan's order and risk and no hardn.yml save (`TestCombined`), nothing written (`TestWritesNothing`), the user there (`TestUserThere`: also a system account's name, a key that does not parse, the users read failing).
 
 ## 6. Not run
 
-No VM, no hardn binary. Auto Updates' plan is not modelled here (its apt model is not copied): its row is exercised refused (apt's syntax error) and Not Applicable (Proxmox VE) only; the gallery plays it planned. No host refuses the one plan once decision 5 applies, so a combined refusal is not exercised.
+No VM, no hardn binary. Auto Updates' apt plan is not modelled here (its apt model is not copied): on Debian its row is exercised refused (apt's syntax error) and Not Applicable (Proxmox VE); planned only on Alpine (apk-cron's install, its simulation and crond's status answered). No gallery host refuses the one plan once decision 5 applies: the refusal is exercised only with the rule undone (`TestCombinedRefused`).
