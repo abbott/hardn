@@ -5,17 +5,27 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
+	"os"
+	"os/signal"
 	"os/user"
+	"slices"
 	"strings"
+	"syscall"
 	"testing"
+	"time"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/confirm"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/spf13/pflag"
 )
 
@@ -32,13 +42,18 @@ func init() {
 	}
 }
 
+// auditTestVersion is hardn's version (Version) while an audit test runs, so
+// that a record without it fails wantOneRecord.
+const auditTestVersion = "0.4.0-audit-test"
+
 // auditOnRunHost writes the audit log on the run's own host, as hardn
-// does, for this test.
+// does, for this test, hardn's version auditTestVersion.
 func auditOnRunHost(t *testing.T) {
 	t.Helper()
-	was := auditHost
-	t.Cleanup(func() { auditHost = was })
+	was, version := auditHost, Version
+	t.Cleanup(func() { auditHost, Version = was, version })
 	auditHost = func(run host.System) host.System { return run }
+	Version = auditTestVersion
 }
 
 // auditRecords are the audit log's records on h, one per line, each
@@ -278,4 +293,192 @@ func mustJSON(t *testing.T, v any) []byte {
 		t.Fatal(err)
 	}
 	return b
+}
+
+// TestAuditFlagFill: a flag's record carries what audit fills in where the
+// run has none: hardn's version (wantOneRecord), and hardn.yml's
+// deprecations, each a finding whose source is the file and line it was
+// read from (configPath).
+func TestAuditFlagFill(t *testing.T) {
+	auditOnRunHost(t)
+	h, _ := newDNSHost(t, "debian13", dnsTestList)
+	yml := h.content(dnsTestYML) + "permitRootLogin: false\n"
+	h.AddFile(dnsTestYML, []byte(yml), 0o644, 0, 0)
+	cfg, err := config.Read(context.Background(), h, dnsTestYML)
+	if err != nil || len(cfg.Deprecations()) == 0 {
+		t.Fatalf("config.Read = %v, deprecations %v", err, cfg.Deprecations())
+	}
+	r, _ := runG(t, h, cfg, nil, "--yes", "-g")
+	if r.ended {
+		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
+	}
+	rec := wantOneRecord(t, h.System, output.ModeApply, output.OutcomeApplied)
+	if !slices.ContainsFunc(rec.Findings, func(f output.Finding) bool {
+		return f.Code == output.CodeDeprecated && strings.HasPrefix(f.Source, dnsTestYML+":")
+	}) {
+		t.Errorf("no %s finding from %s: %+v", output.CodeDeprecated, dnsTestYML, rec.Findings)
+	}
+}
+
+// TestAuditTypedInterrupted: Ctrl-C at -w's typed hostname ends hardn by
+// SIGINT (typedReraise, stubbed here to panic as hardn would end): its run
+// is one record, written before the reraise, and none after it.
+func TestAuditTypedInterrupted(t *testing.T) {
+	auditOnRunHost(t)
+	h := newFWHost(t, "debian13")
+	// A SIGINT outside the prompt's own read must not end the test binary.
+	guard := make(chan os.Signal, 64)
+	signal.Notify(guard, os.Interrupt)
+	t.Cleanup(func() { signal.Stop(guard) })
+	pr, pw, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = pr.Close(); _ = pw.Close() })
+	stop, sent := make(chan struct{}), make(chan struct{})
+	t.Cleanup(func() { close(stop); <-sent })
+	go func() { // Ctrl-C, until the read ends
+		defer close(sent)
+		tick := time.NewTicker(10 * time.Millisecond)
+		defer tick.Stop()
+		giveUp := time.After(10 * time.Second)
+		for {
+			select {
+			case <-stop:
+				return
+			case <-giveUp:
+				_, _ = pw.WriteString("0\n")
+				return
+			case <-tick.C:
+				_ = syscall.Kill(os.Getpid(), syscall.SIGINT)
+			}
+		}
+	}()
+	before := -1 // the records when hardn reraised; -1: it did not
+	r, _ := runW(t, h, onTTY, nil, func(*dnsSeams) {
+		in := prompt.New(pr, false)
+		engineInput = func() *prompt.Reader { return in }
+		was := typedReraise
+		t.Cleanup(func() { typedReraise = was })
+		typedReraise = func() {
+			before = len(auditRecords(t, h.System))
+			panic(exited(-2))
+		}
+	}, "-w")
+	if !r.ended || r.code != -2 || before != 1 {
+		t.Fatalf("ended %v with %d, want by the reraise; %d records at the reraise, want 1; stderr:\n%s", r.ended, r.code, before, r.stderr)
+	}
+	wantOneRecord(t, h.System, output.ModeApply, output.OutcomeCancelled)
+}
+
+// TestAuditScreens: a change on each screen but DNS's (TestAuditScreen),
+// as a dry run, is one record of its plan, once its flow has ended
+// (Options.Ran): User Management's Create, SSH Login's Disallow, the
+// Firewall's Enable, Backup's turn off, Auto Updates' Enable, the
+// Environment's keep, and Run All's Apply all.
+func TestAuditScreens(t *testing.T) {
+	ctx := context.Background()
+	for _, tc := range []struct {
+		name string
+		run  func(t *testing.T) (*hostfake.System, error)
+	}{
+		{"users", func(t *testing.T) (*hostfake.System, error) {
+			h, cfg := newUsersHost(t)
+			useUsersHost(t, h, "2", "carol", "y", "n", "n", "0")
+			cfg.DryRun = true
+			return h.System, runUsersScreen(ctx, cfg)
+		}},
+		{"ssh", func(t *testing.T) (*hostfake.System, error) {
+			h, cfg := newSSHHost(t, "debian13")
+			useSSHHost(t, h, "1", "0")
+			cfg.DryRun = true
+			return h.System, runSSHScreen(ctx, cfg)
+		}},
+		{"firewall", func(t *testing.T) (*hostfake.System, error) {
+			h := newFWHost(t, "debian13")
+			useFWHost(t, h, "1", "0")
+			cfg := config.DefaultConfig()
+			cfg.DryRun = true
+			return h.System, runFirewallScreen(ctx, cfg)
+		}},
+		{"backup", func(t *testing.T) (*hostfake.System, error) {
+			h, cfg := newDNSHost(t, "debian13", dnsTestList)
+			h.AddDir("/srv", 0o755, 0, 0)
+			useDNSHost(t, h, "1", "0")
+			cfg.DryRun = true
+			return h.System, runBackupScreen(ctx, cfg)
+		}},
+		{"updates", func(t *testing.T) (*hostfake.System, error) {
+			h, cfg := newUpdatesHost(t)
+			useDNSHost(t, h.dnsHost, "1", "0")
+			engineHost = func() host.System { return h }
+			cfg.DryRun = true
+			return h.System, runUpdatesScreen(ctx, cfg, Version)
+		}},
+		{"environment", func(t *testing.T) (*hostfake.System, error) {
+			h := newEnvHost(t, "debian13")
+			useEnvHost(t, h, "1", "0")
+			cfg := config.DefaultConfig()
+			cfg.DryRun = true
+			return h.System, runEnvironmentScreen(ctx, cfg)
+		}},
+		{"runall", func(t *testing.T) (*hostfake.System, error) {
+			h, cfg := newRunAllHost(t, "debian13", runAllYML)
+			useSSHHost(t, h, "1", "0")
+			t.Setenv("SUDO_USER", "george")
+			cfg.DryRun = true
+			return h.System, runRunAllScreen(ctx, cfg, Version)
+		}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			auditOnRunHost(t)
+			h, err := tc.run(t)
+			if err != nil {
+				t.Fatalf("the screen = %v", err)
+			}
+			wantOneRecord(t, h, output.ModePlan, output.OutcomeChangesNeeded)
+		})
+	}
+}
+
+// TestAuditConfirmCleanup: hardn confirm's clean-up, once it runs from a new
+// connection, is one record on the clean-up's host (confirmAndCleanUp): applied,
+// and refused; a console's confirmation, which runs none, writes none.
+func TestAuditConfirmCleanup(t *testing.T) {
+	refusal := fmt.Errorf("%s: port [22]: %w", confirm.ControlID, steps.ErrNoWriteStrategy)
+	for _, tc := range []struct {
+		name    string
+		outcome confirm.Outcome
+		want    output.Outcome
+	}{
+		{"applied", confirm.Outcome{Plan: cleanupPlan(), Result: &engine.Result{ID: cleanupTestID, Applied: appliedAll()}}, output.OutcomeApplied},
+		{"refused", confirm.Outcome{Plan: &engine.Plan{ID: cleanupTestID, Facts: cleanupPlan().Facts, Refused: []error{refusal},
+			Items: []engine.Item{{Control: confirm.ControlID, Title: "SSH clean-up after the confirmation", Err: refusal}}},
+			Err: fmt.Errorf("%w: %w", engine.ErrRefused, refusal)}, output.OutcomeRefused},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			auditOnRunHost(t)
+			s := newCleanupSeams(t, func(confirm.Held) confirm.Outcome { return tc.outcome })
+			s.f.AddDir("/var/log", 0o755, 0, 0)
+			executeHardn(t, "confirm")
+			if s.calls != 1 {
+				t.Fatalf("clean-up called %d times:\n%s", s.calls, s.out.String())
+			}
+			wantOneRecord(t, s.f, output.ModeApply, tc.want)
+		})
+	}
+	t.Run("a console", func(t *testing.T) {
+		auditOnRunHost(t)
+		s := newCleanupSeams(t, func(confirm.Held) confirm.Outcome {
+			t.Error("the clean-up ran from a console")
+			return confirm.Outcome{}
+		})
+		s.f.AddDir("/var/log", 0o755, 0, 0)
+		revertProc(s.f, 3000, 1, "login")
+		revertProc(s.f, 3980, 3000, "bash")
+		executeHardn(t, "confirm")
+		if recs := auditRecords(t, s.f); len(recs) != 0 {
+			t.Errorf("%d audit records, want none", len(recs))
+		}
+	})
 }
