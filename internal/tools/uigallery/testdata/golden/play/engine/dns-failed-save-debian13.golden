@@ -86,7 +86,7 @@ $
 # The change: Use Cloudflare DNS, 1.1.1.1 and 1.0.0.1, then$
 # hardn.yml saved with that list. y applies it; n declines.$
 $
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Set the nameservers$
       /etc/resolv.conf$

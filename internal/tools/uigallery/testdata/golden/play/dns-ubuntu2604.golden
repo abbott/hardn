@@ -159,7 +159,7 @@ $
 $
    -  Nameservers          192.0.2.54, 2001:db8::54$
    -  Search Domains       example.net (eth0)$
-   -  eth0 still uses its own nameserver 192.0.2.1$
+  [ ] eth0 still uses its own nameserver 192.0.2.1$
 $
    -  Set the nameservers$
       /etc/systemd/resolved.conf.d/zz-hardn.conf$

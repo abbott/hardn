@@ -156,7 +156,7 @@ $
 $
    -  Nameservers          1.1.1.1, 1.0.0.1$
    -  Search Domains       example.net$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Set the nameservers$
       /etc/resolv.conf$

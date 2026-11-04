@@ -54,6 +54,15 @@ var (
 // and run directories, all root's.
 func newHost(t *testing.T) *hostfake.System {
 	t.Helper()
+	f := bareHost(t)
+	f.AddFile("/usr/bin/sudo", []byte("ELF"), 0o755, 0, 0)
+	return f
+}
+
+// bareHost is newHost with no elevation tool: neither sudo nor doas, as
+// Proxmox VE is installed.
+func bareHost(t *testing.T) *hostfake.System {
+	t.Helper()
 	f := hostfake.New(host.Options{})
 	f.AddFile(testHardn, []byte("ELF"), 0o755, 0, 0)
 	f.AddDir("/var/lib", 0o755, 0, 0)

@@ -66,6 +66,14 @@ func alpine324() detect.Facts {
 	return f
 }
 
+// noElevation is a host with neither sudo nor doas: Proxmox VE as
+// installed, where root runs hardn in its own session.
+func noElevation() detect.Facts {
+	f := debian13()
+	f.Elevation = detect.Elevation{Sudo: detect.Tool{Present: detect.No}, Doas: detect.Tool{Present: detect.No}}
+	return f
+}
+
 func ptr[T any](v T) *T { return &v }
 
 // portChanges is the 2230 scenario's plan on Debian 13 with ufw active:

@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/details"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/logs"
@@ -145,11 +146,15 @@ func printLog(ctx context.Context, logFile string) int {
 }
 
 // elevationHint is the tool -p's refusal names: detect's elevation tool, or sudo; ""
-// as root, whom no tool helps (a root-squashed NFS path among what refuses root). It
-// runs nothing (detect.FindElevation).
+// as root, whom no tool helps (a root-squashed NFS path among what refuses root), and
+// where neither sudo nor doas is installed (revert.Elevate). It runs nothing
+// (detect.FindElevation).
 func elevationHint(ctx context.Context, sys host.System) string {
 	if u, err := lookupCurrentUser(); err == nil && u.Uid == "0" {
 		return ""
 	}
-	return detect.FindElevation(ctx, sys).Command()
+	if e := revert.Elevate(detect.FindElevation(ctx, sys)); e != revert.NoElevation {
+		return e
+	}
+	return ""
 }
