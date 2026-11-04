@@ -71,10 +71,11 @@ func runStart(t *testing.T, sys host.System, args ...string) startRun {
 		stdout func() term.Env
 		stderr func() term.Env
 		log    *output.Log
-	}{ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, hardnLog}
+		logErr bool
+	}{ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, hardnLog, logOnStderr}
 	t.Cleanup(func() {
-		ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, hardnLog =
-			was.ensure, was.exit, was.host, was.out, was.errOut, was.stdout, was.stderr, was.log
+		ensureExampleConfig, exit, readerHost, engineStdout, stderr, stdoutEnv, stderrEnv, hardnLog, logOnStderr =
+			was.ensure, was.exit, was.host, was.out, was.errOut, was.stdout, was.stderr, was.log, was.logErr
 		resetFlags()
 		rootCmd.SetArgs(nil)
 	})

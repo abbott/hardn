@@ -22,16 +22,21 @@ import (
 )
 
 // hardnLog is hardn's log file, LegacyLogPath, opened by start (openLog);
-// nil, writing nothing, until then and where it could not be opened.
+// nil, writing nothing, until then. Where it could not be opened it is
+// stderr (logOnStderr), as pkg/logging's fallback was.
 var hardnLog *output.Log
+
+// logOnStderr is set when hardnLog is stderr: a console line (say), on
+// stderr already, is then not logged, so it is not said twice there.
+var logOnStderr bool
 
 // openLog opens hardn's log at path, as hardn has since v0.3.x: its
 // directory made 0755 where missing, the file opened O_CREATE|O_APPEND,
 // 0644. Each step that fails, as for a user other than root, is said on
 // stderr as a warning, in pkg/logging's words ("Failed to create log
-// directory: …", "Failed to open log file <path>: …"), and the log then
-// writes nothing, where pkg/logging wrote its lines to stderr, which has
-// the console's lines now.
+// directory: …", "Failed to open log file <path>: …"), and the log is then
+// stderr, as pkg/logging's was: the log-only lines (revertFileLog, the
+// engine's hangup and session lines) reach it there.
 func openLog(path string) {
 	var run component.Messages
 	failed := func(text string) { run = append(run, component.Message{Kind: component.MessageWarn, Text: text}) }
@@ -40,11 +45,11 @@ func openLog(path string) {
 			failed(fmt.Sprintf("Failed to create log directory: %v", err))
 		}
 	}
-	hardnLog = nil
 	if f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644); err != nil {
 		failed(fmt.Sprintf("Failed to open log file %s: %v", path, err))
+		hardnLog, logOnStderr = output.NewLog(stderr), true
 	} else {
-		hardnLog = output.NewLog(f)
+		hardnLog, logOnStderr = output.NewLog(f), false
 	}
 	writeConsole(run)
 }
@@ -73,7 +78,9 @@ func say(k component.MessageKind, format string, args ...any) {
 // and each line to hardn's log.
 func sayRun(run ...component.Message) {
 	for _, m := range run {
-		hardnLog.Printf(logLevel(m.Kind), "%s", m.Text)
+		if !logOnStderr {
+			hardnLog.Printf(logLevel(m.Kind), "%s", m.Text)
+		}
 	}
 	writeConsole(run)
 }
