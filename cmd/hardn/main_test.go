@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	osuser "os/user"
@@ -18,50 +17,16 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // These tests drive rootCmd as the hardn binary does, with every step that
-// reaches the host replaced: the provider's file system and commander by the
-// repo's mocks behind a call log, the root check, config load and OS
+// reaches the host replaced: the root check, config load and OS
 // detection by stubs, and the engine's host by a fake that fails the test
 // when a run reaches it unasked (a test of -g gives it one: useDNSHost).
 // Nothing here reads this machine's user, config or OS, runs a command or
 // writes a file.
-
-// callLog records every call made through the provider, in order.
-type callLog struct{ calls []string }
-
-func (l *callLog) add(format string, args ...any) {
-	l.calls = append(l.calls, fmt.Sprintf(format, args...))
-}
-
-type loggingFS struct {
-	inner interfaces.FileSystem
-	log   *callLog
-}
-
-func (f loggingFS) ReadFile(name string) ([]byte, error) {
-	f.log.add("read %s", name)
-	return f.inner.ReadFile(name)
-}
-
-func (f loggingFS) Stat(name string) (os.FileInfo, error) {
-	f.log.add("stat %s", name)
-	return f.inner.Stat(name)
-}
-
-type loggingCommander struct {
-	inner interfaces.Commander
-	log   *callLog
-}
-
-func (c loggingCommander) Execute(command string, args ...string) ([]byte, error) {
-	c.log.add("exec %s", strings.Join(append([]string{command}, args...), " "))
-	return c.inner.Execute(command, args...)
-}
 
 // exited is what the stubbed exit panics with: the status hardn would
 // have ended with.
@@ -70,12 +35,10 @@ type exited int
 // result is one hardn run.
 type result struct {
 	stderr  string
-	stdout  string // what the logging package printed (fatih/color's Output)
-	code    int    // exit status, when ended
-	ended   bool   // the run ended by exit
-	calls   []string
-	reached []string          // the host steps past the dry-run refusal that ran
-	files   map[string]string // the mock file system's files afterwards
+	stdout  string   // what the logging package printed (fatih/color's Output)
+	code    int      // exit status, when ended
+	ended   bool     // the run ended by exit
+	reached []string // the host steps past the dry-run refusal that ran
 }
 
 // hostMode sets what the stubbed host steps do. Each records that it was
@@ -128,15 +91,13 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	t.Setenv("HARDN_CONFIG", "")
 
 	var r result
-	log := &callLog{}
 	prev := struct {
-		provider *interfaces.Provider
 		user     func() (*osuser.User, error)
 		load     func(string) (*config.Config, error)
 		existing func(string) (*config.Config, error)
 		detect   func() (*osdetect.OSInfo, error)
 		exit     func(int)
-	}{provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit}
+	}{lookupCurrentUser, loadConfig, loadExisting, detectOS, exit}
 	prevStderr, prevOutput, prevNoColor, prevStderrEnv := stderr, color.Output, color.NoColor, stderrEnv
 	prevEngineHost, prevEngineDetect, prevEngineStdout := engineHost, engineDetect, engineStdout
 	stderrEnv = func() term.Env { return term.Resolve(term.Options{}, term.Facts{}) } // not a terminal: plain
@@ -147,21 +108,13 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	engineDetect = func(context.Context, host.System) (detect.Facts, error) { return detect.Facts{}, nil }
 	engineStdout = io.Discard
 	t.Cleanup(func() {
-		provider, lookupCurrentUser, loadConfig, loadExisting, detectOS, exit = prev.provider, prev.user, prev.load, prev.existing, prev.detect, prev.exit
+		lookupCurrentUser, loadConfig, loadExisting, detectOS, exit = prev.user, prev.load, prev.existing, prev.detect, prev.exit
 		stderr, color.Output, color.NoColor, stderrEnv = prevStderr, prevOutput, prevNoColor, prevStderrEnv
 		engineHost, engineDetect, engineStdout = prevEngineHost, prevEngineDetect, prevEngineStdout
 		resetFlags()
 		rootCmd.SetArgs(nil)
 	})
 
-	mockFS := interfaces.NewMockFileSystem()
-	if mode != hostUnreachable {
-		mockFS.Directories["/etc/sudoers.d"] = true // -e writes a drop-in there
-	}
-	provider = &interfaces.Provider{
-		FS:        loggingFS{inner: mockFS, log: log},
-		Commander: loggingCommander{inner: interfaces.NewMockCommander(), log: log},
-	}
 	var errOut, out bytes.Buffer
 	stderr = &errOut
 	color.Output = &out
@@ -223,11 +176,6 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	}()
 	r.stderr = errOut.String()
 	r.stdout = out.String()
-	r.calls = log.calls
-	r.files = map[string]string{}
-	for p, b := range mockFS.Files {
-		r.files[p] = string(b)
-	}
 	return r
 }
 
@@ -245,8 +193,8 @@ func TestDryRunAloneIsNotRefused(t *testing.T) {
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {
 				t.Fatalf("ended %v with %d after %v, want status 1 at the root check; stderr:\n%s", r.ended, r.code, r.reached, r.stderr)
 			}
-			if r.stderr != "" || len(r.calls) != 0 {
-				t.Errorf("stderr %q, calls %v", r.stderr, r.calls)
+			if r.stderr != "" {
+				t.Errorf("stderr %q", r.stderr)
 			}
 		})
 	}

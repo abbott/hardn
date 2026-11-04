@@ -7,43 +7,26 @@ import (
 )
 
 const (
-	Gray04 = "\033[38;5;234m"
-	Gray08 = "\033[38;5;238m"
 	Gray10 = "\033[38;5;240m"
-	Gray15 = "\033[38;5;245m"
 
 	Reset = "\033[0m"
 
 	// Text colors - normal intensity
 	Royal = "\033[38;5;39m"
 
-	Red    = "\033[31m"
-	Green  = "\033[32m"
-	Yellow = "\033[33m"
+	Red   = "\033[31m"
+	Green = "\033[32m"
 
 	BgGray02 = "\033[48;5;232m"
 	BgGray03 = "\033[48;5;233m"
 
-	BgDarkBlue = "\033[1;37;48;5;20m"  // white bold
-	BgDarkRed  = "\033[1;37;48;5;160m" // white bold
+	BgDarkRed = "\033[1;37;48;5;160m" // white bold
 
 	// Text effects
 	Bold = "\033[1m"
 	Dim  = "\033[2m"
 
-	SymDotTri    = "⛬"
-	SymCrossMark = "✗"
-
 	SymDash = "-"
-
-	SymApprox = "≈"
-	// 233E
-	SymEnabled = "⛛"
-	SymWarning = "⭘"
-
-	// SymEnabled    = "⦿" // 233E
-	// SymWarning    = "⟁"
-
 )
 
 var UseColors = true
@@ -77,19 +60,6 @@ func Colored(color string, text string) string {
 		return text
 	}
 	return color + text + Reset
-}
-
-func ColoredLabel(text string, color ...string) string {
-
-	labelColor := BgDarkBlue
-	if len(color) > 0 && color[0] != "" {
-		labelColor = color[0]
-	}
-
-	paddedLabel := " " + text + " "
-	coloredLabel := Colored(labelColor, paddedLabel)
-
-	return " " + Bolded(coloredLabel)
 }
 
 var ansiRegex = regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]`)
@@ -215,29 +185,6 @@ func (sf *StatusFormatter) FormatLine(symbol string, symbolColor string,
 	return symbol + symbolPadding + label + padding + status + " " + descripitionStyle
 }
 
-// Format Configured
-func (sf *StatusFormatter) FormatConfigured(label string, status string, description string, opts ...string) string {
-	symbol := Dimmed(SymEnabled)
-	return sf.FormatLine(symbol, Green, label, status, Green, description, opts...)
-}
-
-// warning status
-func (sf *StatusFormatter) FormatWarning(label string, status string, description string, opts ...string) string {
-	return sf.FormatLine(SymWarning, Red, label, status, Red, description, opts...)
-}
-
 func (sf *StatusFormatter) FormatBullet(label string, status string, description string, opts ...string) string {
 	return sf.FormatLine(SymDash, Dim, label, status, Dim, description, opts...)
-}
-
-// IndentPrinter wraps a print function to add indentation to each line
-func IndentPrinter(printFn func(string), spaces int) func(string) {
-	if spaces <= 0 {
-		return printFn
-	}
-
-	indentPrefix := strings.Repeat(" ", spaces)
-	return func(line string) {
-		printFn(indentPrefix + line)
-	}
 }

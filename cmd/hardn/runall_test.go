@@ -315,9 +315,6 @@ func TestRunAllFlag(t *testing.T) {
 			if dns := h.content(hostdns.ResolvConf) != conf; dns != tc.dns || h.armed() != tc.armed {
 				t.Errorf("the nameservers written %t (want %t), armed %t (want %t)", dns, tc.dns, h.armed(), tc.armed)
 			}
-			if len(r.calls) != 0 {
-				t.Errorf("-r went through the legacy provider: %v", r.calls)
-			}
 			if got := h.content(dnsTestYML); got != yml {
 				t.Errorf("hardn.yml saved:\n%s", got)
 			}
@@ -380,9 +377,9 @@ func TestRunAllFlagAlone(t *testing.T) {
 		{"-n", "-r", "-g"}, {"-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
-			if !r.ended || r.code != output.ExitUsage || len(r.reached) != 0 || len(r.calls) != 0 ||
+			if !r.ended || r.code != output.ExitUsage || len(r.reached) != 0 ||
 				strings.TrimSpace(r.stderr) != "hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e." {
-				t.Errorf("ended %v with %d after %v, calls %v; stderr:\n%s", r.ended, r.code, r.reached, r.calls, r.stderr)
+				t.Errorf("ended %v with %d after %v; stderr:\n%s", r.ended, r.code, r.reached, r.stderr)
 			}
 		})
 	}

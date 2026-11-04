@@ -577,9 +577,6 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 						t.Errorf("hardn.yml's directory written: %v", c)
 					}
 				}
-				if len(r.calls) != 0 {
-					t.Errorf("%s went through the legacy provider: %v", spelling[0], r.calls)
-				}
 				applied := !tc.dryRun && (tc.code == 0 || tc.host == "visudo-fails") // nothing to change is applied too, as -g's
 				if want := map[bool]int{true: 1}[applied]; s.applies != want || s.live != 0 {
 					t.Errorf("signals registered %d times, want %d; %d left", s.applies, want, s.live)

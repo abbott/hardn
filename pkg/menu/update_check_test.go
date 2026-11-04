@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/version"
 )
 
@@ -53,7 +52,7 @@ func TestStartupMakesNoUpdateCheck(t *testing.T) {
 		for k, v := range env {
 			t.Setenv(k, v)
 		}
-		m := NewMainMenu(nil, config.DefaultConfig(), &osdetect.OSInfo{OsType: "debian", OsVersion: "13", OsCodename: "trixie"}, version.NewService("0.4.0", "", ""))
+		m := NewMainMenu(config.DefaultConfig(), version.NewService("0.4.0", "", ""))
 		m.SetTestUpdateAvailable("99.0.0")
 		m.SetTestSecurityUpdate("Critical security vulnerability CVE-2023-1234: Privilege escalation in SSH component")
 		m.CheckForUpdatesWithEnvVars()

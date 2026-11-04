@@ -11,9 +11,8 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/infrastructure"
-	"github.com/abbott/hardn/pkg/interfaces"
 	"github.com/abbott/hardn/pkg/logging"
+	"github.com/abbott/hardn/pkg/menu"
 	"github.com/abbott/hardn/pkg/osdetect"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
@@ -45,9 +44,6 @@ var (
 	testSecurityUpdate  bool
 	cfg                 *config.Config
 )
-
-// Create provider as a global for dependency injection
-var provider = interfaces.NewProvider()
 
 func main() { start("/var/log/hardn.log") }
 
@@ -179,7 +175,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Detect OS
-		osInfo, err := detectOS()
+		_, err = detectOS()
 		if err != nil {
 			logging.LogError("Failed to detect OS: %v", err)
 			exit(1)
@@ -189,17 +185,12 @@ var rootCmd = &cobra.Command{
 		// before anyone can read them.
 		warnDeprecations(cfg)
 
-		// Create service factory
-		serviceFactory := infrastructure.NewServiceFactory(provider, osInfo)
-		serviceFactory.SetConfig(cfg)
-
 		// If no specific flags provided, show the interactive menu
 		if !createUser && !disableRootSSH && !configureUfw && !configureDns &&
 			!runAll && !printLogs && !setupSudoEnv {
 
-			// Create menu factory and main menu; its screens' items and its status: hooks.go
-			menuFactory := infrastructure.NewMenuFactory(serviceFactory, cfg, osInfo)
-			mainMenu := withHooks(menuFactory.CreateMainMenu(versionService), cfg, Version)
+			// The main menu; its screens' items and its status: hooks.go
+			mainMenu := withHooks(menu.NewMainMenu(cfg, versionService), cfg, Version)
 
 			// Handle test flags
 			if testUpdateAvailable {
@@ -335,7 +326,7 @@ Example:
 }
 
 // The steps of the commands' Run functions that reach the host outside the
-// provider, and the process exit. cmd/hardn's tests replace them, so that a
+// engine, and the process exit. cmd/hardn's tests replace them, so that a
 // test never reads this machine's user, config or OS, and never exits.
 // loadExisting is setup-sudo-env's load: hardn.yml where one is found, the
 // defaults where none is, never the offer to create one (config.LoadExisting;

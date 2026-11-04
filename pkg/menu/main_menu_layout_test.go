@@ -276,7 +276,7 @@ func TestMainMenuItems(t *testing.T) {
 			legacy = append(legacy, r[1:])
 		}
 	}
-	m := NewMainMenu(nil, config.DefaultConfig(), nil, nil)
+	m := NewMainMenu(config.DefaultConfig(), nil)
 	view := m.mainMenu().View()
 	var layout [][]string
 	for _, it := range append(slices.Clone(view.Items), view.Exit) {
