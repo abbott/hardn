@@ -482,3 +482,30 @@ func TestAuditConfirmCleanup(t *testing.T) {
 		}
 	})
 }
+
+// TestAuditRunAllRefused: -r refused by its planner before any plan (a change
+// pending) is one refused record, its code the refusal's, under -n too, where its
+// mode is plan.
+func TestAuditRunAllRefused(t *testing.T) {
+	auditOnRunHost(t)
+	h, cfg := newRunAllHost(t, "debian13", runAllYML)
+	if r, s := runD(t, h, cfg, onTTY, []string{"web-01"}, nil, "-r"); r.ended || !h.armed() {
+		t.Fatalf("the first -r: ended %v with %d, armed %t; report:\n%s\nstderr:\n%s", r.ended, r.code, h.armed(), s.out.String(), r.stderr)
+	}
+	for _, tc := range []struct {
+		args []string
+		mode output.Mode
+	}{{[]string{"-r"}, output.ModeApply}, {[]string{"-n", "-r"}, output.ModePlan}} {
+		before := len(auditRecords(t, h.System))
+		r, _ := runD(t, h, cfg, onTTY, []string{"web-01"}, nil, tc.args...)
+		recs := auditRecords(t, h.System)
+		if !r.ended || r.code != 1 || len(recs) != before+1 {
+			t.Fatalf("%q: ended %v with %d; %d records after %d, want one more", tc.args, r.ended, r.code, len(recs), before)
+		}
+		rec := recs[len(recs)-1]
+		if rec.Mode != tc.mode || rec.Result.Outcome != output.OutcomeRefused || rec.HardnVersion != Version ||
+			!strings.Contains(string(mustJSON(t, rec)), "CHANGE_PENDING") {
+			t.Errorf("%q: record %s", tc.args, mustJSON(t, rec))
+		}
+	}
+}
