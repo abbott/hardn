@@ -442,7 +442,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `DNS_PROXMOX_NODE` | Proxmox VE's node DNS settings rewrite /etc/resolv.conf |
 | `DNS_UDHCPC_UNKNOWN` | whether Alpine's udhcpc is the DHCP client is not established ([dns.md](../safety/dns.md) §3) |
 | `CONFIG_DEPRECATED_VALUE` | a configuration value in a form that is going away; it still works (§3.17) |
-| `PLATFORM_BEST_EFFORT` | a best-effort release: its vendor still supports it and hardn changes it, but hardn is not tested on it (P-41); in every plan made on one, as the plan's own finding (no `control` or `change`) |
+| `PLATFORM_BEST_EFFORT` | a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it (P-41); in every plan made on one, as the plan's own finding (no `control` or `change`) |
 | `SSH_MATCH_ALLOWS_MORE` | a Match block lets in more than the global value does (root's login, a password), for the connections it matches ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_PORT_NOT_IN_EFFECT` | a listener sshd's configuration names is not bound: the configuration is not in effect ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_MATCH_VALUE_UNKNOWN` | a Match block sets a value hardn does not rank, so what it lets in is not established ([check-ssh.md](../engine/check-ssh.md)) |
