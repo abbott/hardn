@@ -1,6 +1,7 @@
 # The legacy code a live path still runs
 
 > **Status:** a reading of `next/legacy-dead` at its tip (from `5079a305`, `next/v0.4`, slices 1 to 9 merged); line numbers are the tip's. Nothing re-homed. Start-up was shown by a scratch test through `start()` with stdout and stderr pipes; no hardn binary ran, nothing on a VM.
+> **Adopted** (maintainer, 2026-11-04: "Adopt all, start part 2"): (a) on all seven (§3). Part 2, the re-home of §2, on `next/legacy-rehome`.
 > **Scope:** refactor plan, "One unit after slice 9", part 1. `next/legacy-dead` deleted the code no path can run: `main.go`'s install and sources branches, the `PackageManager` chain, the menus nothing opens, the declarations with no caller (to a fixpoint, then the host-info getters, `style.Error`, `prompt.Reader.AnswerNext`); and it warns the `hardn.yml` keys nothing reads (§1, last row). Still there, each behind a switch that is off: origin/main's status block (`legacySecurityStatus`, with `pkg/security`; decision 1), the update alert (decision 3), `legacyThroughHost` (decision 2); and `pkg/characterization`, whose `host_info` golden is the last reader of the host-info chain (§2, step 2).
 
 ## 1. What's live
