@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/style"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -32,6 +33,7 @@ const updatesTestVersion = "0.4.0-synthetic"
 type updatesHost struct {
 	*dnsHost
 	apkCron, crond bool
+	apkFails       bool // apk add apk-cron fails
 }
 
 // newUpdatesHost returns the host, and its hardn.yml as hardn reads it,
@@ -74,6 +76,9 @@ func (h *updatesHost) answer(argv []string, stdin []byte) hostfake.Response {
 	case "apk add --simulate " + alpine.Package:
 		return hostfake.Response{Stdout: added}
 	case "apk add " + alpine.Package:
+		if h.apkFails {
+			return hostfake.Response{Stderr: "ERROR: unable to select packages\n", ExitCode: 1}
+		}
 		h.apkCron = true
 		h.AddFile(alpine.Script, []byte("#!/bin/sh\n\napk upgrade --update --quiet\n"), 0o755, 0, 0)
 		return hostfake.Response{Stdout: added}
@@ -138,6 +143,9 @@ func TestUpdatesHook(t *testing.T) {
 		t.Fatalf("the Auto Updates item, Disable = %v; screen:\n%s", err, s.out.String())
 	}
 	out := style.StripAnsi(s.out.String())
+	if first, _, _ := strings.Cut(out, "Enter your choice"); !strings.Contains(first, "apk-cron") || !strings.Contains(first, "crond") {
+		t.Errorf("the first screen does not draw Alpine's rows from the facts detected:\n%s", first)
+	}
 	if w := inOrder(out, "Auto Updates", "Enable automatic updates", "Turn automatic updates on?", "Operation Successful",
 		"Disable automatic updates", "Turn automatic updates off?", "Operation Successful"); w != "" {
 		t.Errorf("the screen lacks %q:\n%s", w, out)
@@ -198,5 +206,28 @@ func TestUpdatesScreen(t *testing.T) {
 				t.Error("the main menu's configuration says enableUnattendedUpgrades false")
 			}
 		})
+	}
+}
+
+// TestUpdatesHookFails: an Enable whose install fails is rolled back, and
+// its report names hardn's log (output.LegacyLogPath), as the hook gives
+// it; nothing is installed or recorded.
+func TestUpdatesHookFails(t *testing.T) {
+	ctx := context.Background()
+	h, cfg := newUpdatesHost(t)
+	h.apkFails = true
+	s := useDNSHost(t, h.dnsHost, "1", "y", "0")
+	engineHost = func() host.System { return h }
+	if err := runUpdatesScreen(ctx, cfg, updatesTestVersion); err != nil {
+		t.Fatalf("runUpdatesScreen = %v; screen:\n%s", err, s.out.String())
+	}
+	out := style.StripAnsi(s.out.String())
+	_, line, _ := strings.Cut(out, "Check the log file at ")
+	line, _, _ = strings.Cut(line, "\n")
+	if !strings.Contains(out, "# Operation Failed") || strings.TrimSpace(line) != output.LegacyLogPath+" for details" {
+		t.Errorf("the failure's report does not name %s:\n%s", output.LegacyLogPath, out)
+	}
+	if rec, err := revert.ReadRecord(ctx, h, revert.Options{}, updatesctl.ID); err != nil || rec != nil || h.apkCron {
+		t.Errorf("after the failure: record %+v, %v; apk-cron installed %t", rec, err, h.apkCron)
 	}
 }

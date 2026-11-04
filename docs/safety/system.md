@@ -220,7 +220,7 @@ type SystemFileSystem struct{ Sys host.LegacySystem }
 
 ## 7. Not in this unit
 
-- **The remaining direct call sites.** 53 lines calling `exec.Command`/`exec.LookPath` in 11 non-test files outside `pkg/interfaces` and `pkg/host` bypass the seam (pkg/security, pkg/system, pkg/updates, pkg/menu, pkg/config, pkg/utils, pkg/adapter/secondary's lastlog adapter), as do their direct `os` file calls. Remote PR #2's idea, injecting the Commander into pkg/system, pkg/security and pkg/updates, is the checklist for moving them (plan §6); it is Phase 3's, area by area.
+- **The remaining direct call sites.** 53 lines calling `exec.Command`/`exec.LookPath` in 11 non-test files outside `pkg/interfaces` and `pkg/host` bypass the seam (pkg/security, pkg/system, pkg/updates, pkg/menu, pkg/config, pkg/utils, pkg/adapter/secondary's lastlog adapter), as do their direct `os` file calls. Remote PR #2's idea, injecting the Commander into pkg/system, pkg/security and pkg/updates, is the checklist for moving them (plan §6); it is Phase 3's, area by area. *Since `next/s7-replace` (slice 7, unit (d)) pkg/updates is deleted, nothing importing it; the counts are the tree's before that.*
 - **Legacy `sh -c` calls** (`yes | ufw enable`, `chown -R`) are explicit shells in legacy code, not the seam's; they go with their slices.
 - **Durable atomic writes and backups** (`p2-atomic`, done: [atomic.md](atomic.md)), detection (`p2-detect`, done: [detect.md](detect.md)), the run log's path (`p3-output`).
 - **Inputs this unit left to later ones:**
