@@ -376,7 +376,7 @@ var rootCmd = &cobra.Command{
 		if configureUfw {
 			status = runStatus(status, configureFirewall(cfg))
 		}
-		// (-w no longer goes through FirewallManager, which Run All and -r keep)
+		// (-w no longer goes through FirewallManager)
 
 		// Configure DNS: the DNS control through the engine, with no question (dns.go).
 		// A refusal or a failure is hardn's exit status, once the flags after it have run (V25).

@@ -30,12 +30,12 @@ Live names no source, whatever made it live (decision 2: "live names nothing"), 
 
 Refused as `-n` with one is: exit status 2, nothing run, the message naming the file and `--dry-run=false` (§5). Where:
 
-- **Before the root check**, as `-n`'s refusal: when an operation flag is given and `-n`/`--dry-run` is not, hardn reads the `dryRun` of the file the loader will find, quietly (`config.FileDryRun`: no log line, no question, no file created). The root command and `setup-sudo-env` both. *Since `next/s9-replace`, the root command alone: `setup-sudo-env` has no refusal under plan only and shows its plan (table below).*
+- **Before the root check**, as `-n`'s refusal: when an operation flag is given and `-n`/`--dry-run` is not, hardn reads the `dryRun` of the file the loader will find, quietly (`config.FileDryRun`: no log line, no question, no file created). The root command and `setup-sudo-env` both. *Since `next/s9-replace`, the root command alone: `setup-sudo-env` has no refusal under plan only and shows its plan (table below).* *Since `next/s8-replace`, both refusals of operation flags, `-n`'s and the file's, are deleted with `config.FileDryRun`'s caller: `-r` shows its plan under plan only, 3 with changes, 0 without.*
 - **Again once the file is loaded** (root command): the configuration the session runs on decides, should the file say `true` now where it did not before the root check, or not have been readable then. A file that does not load is the loader's to report, as before (exit 1).
 
 | Operation | No file | `dryRun: false` | `dryRun: true` | `-n` | `--dry-run=false` over `true` |
 |---|---|---|---|---|---|
-| `-r` (`-w` until `next/s4-replace`, `-c` until `next/s5-replace`, `-d` until `next/s6-replace`) | runs | runs | refused, 2, naming the file | refused, 2 (V1's) | runs |
+| `-r` (`-w` until `next/s4-replace`, `-c` until `next/s5-replace`, `-d` until `next/s6-replace`) | runs | runs | refused, 2, naming the file (*since `next/s8-replace`: the plan, 3 with changes, 0 without*) | refused, 2 (V1's) (*since `next/s8-replace`: the plan, 3 with changes, 0 without*) | runs |
 | `-w` (*since `next/s4-replace`*) | applies, the hostname typed on a terminal | the same | the plan, 3 with changes, no question | the same | applies |
 | `-c` (*since `next/s5-replace`*) | applies | applies | the plan, 3 with changes, 1 refused | the same | applies |
 | `-d` (*since `next/s6-replace`*) | applies, the hostname typed on a terminal, refused off one | the same | the plan, 3 with changes, 0 without, 1 refused, no question | the same | applies |
@@ -96,7 +96,7 @@ No new flag, key or module.
 | Where | Words | Source |
 |---|---|---|
 | Refusal, plan only from hardn.yml with an operation flag (stderr, exit 2) | "hardn: /etc/hardn/hardn.yml sets plan only (dryRun: true), so -d/--disable-root can't run. Nothing was changed. To apply, add --dry-run=false." (*since `next/s6-replace`, `-r/--run-all`'s: `-d` shows its plan*) | **proposed** (decision 9): the file, the mode's name, and the way on |
-| Refusal, `-n` with an operation flag | unchanged | P0.8 |
+| Refusal, `-n` with an operation flag | unchanged (*since `next/s8-replace`, deleted with the file's refusal: `-r` shows its plan under plan only, 3 with changes, 0 without*) | P0.8 |
 | docs/configuration.md, "`dryRun`: plan only" | "`dryRun: true` starts `hardn` in plan only: changes are shown, not applied, except in the three menu areas below. `-n` does the same for one run."; "Not yet in every menu."; "The flag wins."; "Operation flags are refused under plan only, as with `-n`"; "`hardn confirm` and `hardn rollback` still run under the file's `dryRun: true`"; "Set it here, not in the menu." | **proposed** (decision 10) |
 | docs/configuration.md, the note | "Changed in the next release. `dryRun` used to be ignored … Set it to `false`, or run with `--dry-run=false`." | **proposed** (decision 10) |
 | docs/configuration.md, the development example | "plan only at every start"; "With `dryRun: true`, every start is plan only, scripts and cron jobs included …" | **proposed** |

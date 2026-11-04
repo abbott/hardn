@@ -108,7 +108,7 @@ See [docs/configuration.md](../configuration.md), "Feature Toggles".
 
 - **Main menu 7 is rebuilt.** It shows what Run All would change for each of User, SSH Login, Firewall, DNS and Auto Updates, as hardn.yml asks. Opening it changes nothing.
 - **One plan.** Apply all shows every change in one plan and asks you to type the hostname, whatever the plan. A change that could lock you out rolls back unless you run `sudo hardn confirm` from a new session.
-- **What it skips, and why.** A change that is refused, doesn't apply, or has nothing to change is skipped, and Run All says why. Root login is turned off only once you log in as the admin, not as root, and only after the firewall is enabled: run Run All again. It never changes the SSH port, AppArmor, Lynis or backups.
+- **What it skips, and why.** A change that is refused, doesn't apply, or has nothing to change is skipped, and Run All says why. Root login is turned off only once you log in as the admin, not as root, and not in the same run that enables the firewall: run Run All again. It never changes the SSH port, AppArmor, Lynis or backups.
 - **`hardn -r` runs the same plan.** On a terminal it asks you to type the hostname. Off a terminal a plan with changes is refused, exit status 1: run `hardn -r` from a terminal. With `-n` it shows the plan and exits 3. `-r` with `-c`, `-d`, `-w`, `-g` or `-e` is refused, exit status 2.
 - **`enableUnattendedUpgrades: true` now turns updates on.** hardn's first-run question "Enable automatic security updates?" means Run All does so.
 - **`ufwAllowedPorts`, `enableAppArmor` and `enableLynis` warn.** Nothing reads them. Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's enableLynis isn't used".
