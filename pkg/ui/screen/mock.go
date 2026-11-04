@@ -145,7 +145,7 @@ func frameMocks() []Mock {
 		{Name: "sub-menu/02-ssh-login", Screen: sshLoginFixture(), Source: figma("02-SSH_LOGIN",
 			"v0.3.2's Root SSH item warns and asks \"Do you want to continue? (y/n)\", then restarts ssh "+
 				"(pkg/menu/menu.go:352-381). origin/main adds the root-login state, a checklist and two items, "+
-				"to disable root SSH access and to view the SSH configuration (pkg/menu/disable_root_menu.go).",
+				"to disable root SSH access and to view the SSH configuration (origin/main's pkg/menu/disable_root_menu.go).",
 			figmaWords+" Item 1's description, pending P-12.")},
 		{Name: "sub-menu/05-backup", Screen: backupFixture(), Source: figma("05-BACKUP",
 			"v0.3.2's Backup Settings prints the two settings and two items, to toggle backups and change the path "+
@@ -160,7 +160,7 @@ func frameMocks() []Mock {
 		{Name: "workflow-step/ssh-login-toggle-confirmation", Source: figma("SSH_LOGIN-TOGGLE_CONFIRMATION",
 			"v0.3.2 warns, asks \"Do you want to continue? (y/n)\" and restarts ssh (pkg/menu/menu.go:352-381). "+
 				"origin/main asks \"Are you sure you want to disable root SSH access? (y/n)\" under the SSH Login "+
-				"screen's state and checklist (pkg/menu/disable_root_menu.go).",
+				"screen's state and checklist (origin/main's pkg/menu/disable_root_menu.go).",
 			"Confirmed by typing the hostname, as brief 1C asks for a lockout-risk change, where Figma asks (y/n): "+
 				"pending P-10 (DEV-057). "+figmaWords),
 			Sequences: []Sequence{

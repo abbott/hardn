@@ -44,6 +44,9 @@ type MainMenu struct {
 	// users runs the User Management item (SetUsers).
 	users func() error
 
+	// ssh runs the SSH Login item (SetSSH).
+	ssh func() error
+
 	// dns runs the DNS item (SetDNS).
 	dns func() error
 
@@ -139,6 +142,23 @@ func (m *MainMenu) SetUsers(run func() error) { m.users = run }
 // screen (showScreen).
 func (m *MainMenu) showUsers() error {
 	return showScreen(m.users, "menu: the User Management item has no screen (SetUsers)")
+}
+
+// SetSSH sets what the SSH Login item (2) runs: the SSH Login screen
+// (pkg/screens/ssh) on the plan/apply engine, which cmd/hardn assembles,
+// as SetUsers sets User Management's (refactor plan slice 6, unit (d); the
+// legacy SSH Login deleted, not frozen: the maintainer, 2026-11-03, hard
+// cutover). It returns as SetDNS's does. No change the screen makes saves
+// hardn.yml: the configuration this menu was given is the port form's
+// default and Move old settings' file alone (gallery-ssh.md §5, decision
+// 9 (a)). A main menu whose SSH Login item is chosen without one set
+// panics: cmd/hardn sets it on the one main menu it builds.
+func (m *MainMenu) SetSSH(run func() error) { m.ssh = run }
+
+// showSSH is the SSH Login item's action: the SSH Login screen
+// (showScreen).
+func (m *MainMenu) showSSH() error {
+	return showScreen(m.ssh, "menu: the SSH Login item has no screen (SetSSH)")
 }
 
 // SetDNS sets what the DNS item (3) runs: the DNS screen
@@ -238,8 +258,9 @@ func (m *MainMenu) showLogs() error {
 	return showScreen(m.logs, "menu: the Logs item has no screen (SetLogs)")
 }
 
-// showScreen runs an item's screen that cmd/hardn sets (SetUsers, SetDNS,
-// SetBackup, SetEnvironment, SetFirewall, SetSystemDetails, SetLogs) from a cleared screen, as every item's screen starts, and
+// showScreen runs an item's screen that cmd/hardn sets (SetUsers, SetSSH,
+// SetDNS, SetBackup, SetEnvironment, SetFirewall, SetSystemDetails,
+// SetLogs) from a cleared screen, as every item's screen starts, and
 // panics with unset, a programming error, when none is set. Return, or a
 // back from it, comes back here (errAgain); q quits from the screen as
 // from this menu (nav.ErrQuit); the end of the input, Ctrl-C and any
@@ -764,8 +785,8 @@ func (m *MainMenu) mode() component.ModeIndicator {
 	return mode
 }
 
-// legacyScreen is one of origin/main's screens left, SSH Login's or Run
-// All's, as a main-menu item opens it: a menu's Show, or a handler's
+// legacyScreen is one of origin/main's screens left, Run All's, as a
+// main-menu item opens it: a menu's Show, or a handler's
 // (handled). It returns when the user
 // leaves it, or ends hardn itself at the end of the input or on Ctrl-C
 // (endHardn).
@@ -779,20 +800,20 @@ type handled struct{ handler interface{ Handle() } }
 func (h handled) Show() { h.handler.Handle() }
 
 // screens build what the main menu's items open that are still
-// origin/main's screens: SSH Login (2) and Run All (7). Every other item's
-// screen is a hook cmd/hardn sets (SetUsers, SetDNS, SetBackup,
-// SetEnvironment, SetFirewall, SetSystemDetails, SetLogs); the legacy User
-// Management went with slice 5's unit (d), deleted, not frozen.
+// origin/main's screens: Run All (7). Every other item's screen is a hook
+// cmd/hardn sets (SetUsers, SetSSH, SetDNS, SetBackup, SetEnvironment,
+// SetFirewall, SetSystemDetails, SetLogs); the legacy User Management went
+// with slice 5's unit (d), and the legacy SSH Login with slice 6's, each
+// deleted, not frozen.
 type screens struct {
-	sshLogin, runAll func(m *MainMenu) legacyScreen
+	runAll func(m *MainMenu) legacyScreen
 }
 
 // legacyScreens build each item's screen as origin/main's
 // handleMenuChoice built it, the same constructor with the same
 // arguments.
 var legacyScreens = screens{
-	sshLogin: func(m *MainMenu) legacyScreen { return NewDisableRootMenu(m.menuManager, m.config, m.osInfo) },
-	runAll:   func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
+	runAll: func(m *MainMenu) legacyScreen { return handled{NewRunAllHandler(m.menuManager, m.config, m.osInfo)} },
 }
 
 // openScreen opens the screen an item built. A seam for the tests, which
@@ -806,17 +827,19 @@ var openScreen = func(s legacyScreen) { s.Show() }
 // (refactor plan slice 9, decision 7 (a), P-07 (c)), and item 4's on
 // Proxmox VE, "View pve-firewall" (slice 4, decision 7); item 1's
 // parenthesis its aside; each bound to the screen it opened (legacyScreens,
-// SSH Login's and Run All's, and the User Management, DNS, Firewall, Backup, Environment, System
-// Details and Logs screens, showUsers, showDNS, showFirewall, showBackup,
-// showEnvironment, showSystemDetails and showLogs); its Exit item "0)
+// Run All's, and the User Management, SSH Login, DNS, Firewall, Backup,
+// Environment, System Details and Logs screens, showUsers, showSSH,
+// showDNS, showFirewall, showBackup, showEnvironment, showSystemDetails
+// and showLogs); its Exit item "0)
 // Exit", "q to quit" (DEV-030). Item 6,
 // Dry-Run, is removed and its key left unused (slice 2b, unit (d);
 // decision 1): 6 is refused as any key no item has, 7 to 10 keep their
 // keys, and the hint, generated from the items, says "[0-5, 7-10 or q]".
 // Each screen is built as its item is chosen, as origin/main built it,
-// and ends the pass when it returns (errAgain). User Management (1),
-// Firewall (4), Backup (5) and Environment (8) open under plan only as
-// live: their screens stop each change at its plan (slice 5, unit (d),
+// and ends the pass when it returns (errAgain). User Management (1), SSH
+// Login (2), Firewall (4), Backup (5) and Environment (8) open under plan
+// only as live: their screens stop each change at its plan (slice 6, unit
+// (d), Options.DryRun of pkg/screens/ssh; slice 5, unit (d),
 // which lifts slice 2b's "Not available in plan only." from item 1 as its
 // screen goes on the flow; slice 4, screen-firewall.md; slice 3, decision
 // 10; slice 9, gallery-environment.md §5, Made here).
@@ -834,7 +857,7 @@ func (m *MainMenu) mainMenu() nav.Menu {
 	return nav.Menu{
 		Options: []nav.Option{
 			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"}, Action: m.showUsers},
-			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: open(s.sshLogin)},
+			{Item: item("2", "SSH Login", "Toggle SSH root access"), Action: m.showSSH},
 			{Item: item("3", "DNS", "Configure Nameservers"), Action: m.showDNS},
 			{Item: item("4", "Firewall", m.firewallDescription()), Action: m.showFirewall},
 			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: m.showBackup},

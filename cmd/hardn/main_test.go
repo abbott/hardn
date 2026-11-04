@@ -273,14 +273,14 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 // and setup-sudo-env, whose dry run is the Environment control's
 // (TestKeepEnvironmentFlag; refactor plan slice 9, unit (d)), -w,
 // whose dry run is the Firewall control's (TestConfigureFirewallFlag;
-// slice 4, unit (d)), and -c, whose dry run is the User control's
-// (TestCreateUserFlag; slice 5, unit (d)).
+// slice 4, unit (d)), -c, whose dry run is the User control's
+// (TestCreateUserFlag; slice 5, unit (d)), and -d, whose dry run is the
+// SSH Login control's (TestDisallowRootFlag; slice 6, unit (d)).
 var operationRuns = []struct {
 	args []string
 	name string
 }{
 	{[]string{"-r"}, hardncmd.FlagRunAll},
-	{[]string{"-d"}, hardncmd.FlagDisableRoot},
 }
 
 // TestDryRunRefusesOperations checks V1's gate: -n with any operation is
@@ -309,14 +309,12 @@ func TestDryRunRefusesOperations(t *testing.T) {
 			})
 		}
 	}
-	// -c is left out: with -d, its own refusal comes first
-	// (TestCreateUserDisableRoot).
 	t.Run("several operations are all named", func(t *testing.T) {
-		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-r", "-w", "-g", "-e")
+		r := runHardn(t, hostUnreachable, "-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c")
 		if !r.ended || r.code != hardncmd.ExitUsage || len(r.calls) != 0 || len(r.reached) != 0 {
 			t.Fatalf("ended %v with %d, reached %v, calls %v", r.ended, r.code, r.reached, r.calls)
 		}
-		want := "can't be combined with " + hardncmd.FlagRunAll + " and " + hardncmd.FlagDisableRoot + ", which apply them."
+		want := "can't be combined with " + hardncmd.FlagRunAll + ", which applies them."
 		if !strings.Contains(r.stderr, want) {
 			t.Errorf("stderr lacks %q:\n%s", want, r.stderr)
 		}
@@ -324,20 +322,20 @@ func TestDryRunRefusesOperations(t *testing.T) {
 			t.Errorf("-p only reads, but the refusal names it:\n%s", r.stderr)
 		}
 		if strings.Contains(r.stderr, hardncmd.FlagConfigureDNS) || strings.Contains(r.stderr, hardncmd.FlagSetupSudoEnv) || strings.Contains(r.stderr, hardncmd.FlagConfigureUFW) ||
-			strings.Contains(r.stderr, hardncmd.FlagCreateUser) {
-			t.Errorf("-n -g, -n -e, -n -w and -n -c show the plan, but the refusal names -g, -e, -w or -c:\n%s", r.stderr)
+			strings.Contains(r.stderr, hardncmd.FlagCreateUser) || strings.Contains(r.stderr, hardncmd.FlagDisableRoot) {
+			t.Errorf("-n -g, -n -e, -n -w, -n -c and -n -d show the plan, but the refusal names -g, -e, -w, -c or -d:\n%s", r.stderr)
 		}
 	})
 }
 
 // TestDryRunAloneIsNotRefused checks that -n without an operation, or with
-// -g, -e, -w, -c or setup-sudo-env, whose dry runs are their plans, still reaches the
+// -g, -e, -w, -c, -d or setup-sudo-env, whose dry runs are their plans, still reaches the
 // root check (and then the menus in dry-run mode, or the plan); the stubbed
 // root check fails, so the run ends there with status 1. -n -p no longer
 // does: -p alone runs ahead of the root check (decisions 9 (a), 10 (a);
 // TestPrintLogAlone).
 func TestDryRunAloneIsNotRefused(t *testing.T) {
-	for _, args := range [][]string{{"-n"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "-w"}, {"-n", "-c", "-u", "carol"}, {"-n", "setup-sudo-env"}, {"-d"}} {
+	for _, args := range [][]string{{"-n"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "-w"}, {"-n", "-c", "-u", "carol"}, {"-n", "-d"}, {"-n", "setup-sudo-env"}, {"-d"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {
@@ -386,45 +384,14 @@ func TestUpdateFlagsSayDisabled(t *testing.T) {
 	}
 }
 
-// TestDisableRootReport checks what hardn -d reports (gate 6,
-// proxmoxTreatedAsDebian): on Proxmox VE, where DisableRootSSH sets root
-// login to key-only rather than off, it says key-only, not "disabled".
-func TestDisableRootReport(t *testing.T) {
-	for _, tc := range []struct {
-		name  string
-		mode  hostMode
-		value string // PermitRootLogin in hardn.conf afterwards
-		want  string
-	}{
-		{"debian", asRoot, "no", "[SUCCESS] Root SSH access disabled"},
-		{"proxmox", asRootOnProxmox, "prohibit-password", "[SUCCESS] Root SSH login set to key-only (PermitRootLogin prohibit-password), not disabled: Proxmox VE clustering needs root key login"},
-	} {
-		t.Run(tc.name, func(t *testing.T) {
-			r := runHardn(t, tc.mode, "-d")
-			if r.ended {
-				t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
-			}
-			if conf := r.files["/etc/ssh/sshd_config.d/hardn.conf"]; !strings.Contains(conf, "PermitRootLogin "+tc.value+"\n") {
-				t.Errorf("hardn.conf lacks PermitRootLogin %s:\n%s", tc.value, conf)
-			}
-			if !strings.Contains(r.stdout, tc.want) {
-				t.Errorf("printed\n%s\nwant %q", r.stdout, tc.want)
-			}
-			if tc.mode == asRootOnProxmox && strings.Contains(r.stdout, "Root SSH access disabled") {
-				t.Errorf("says disabled on Proxmox:\n%s", r.stdout)
-			}
-		})
-	}
-}
-
 // TestDeprecationWarning: a bool permitRootLogin in the configuration is
 // warned about on stderr, once, when it loads (§3.17, approved), with the
 // file and line and what to write instead; the operation goes on, and
 // stdout (the legacy logger's) does not repeat it. A configuration without
-// it warns nothing. (Run with -d, a legacy operation, since -g left the
-// provider for the engine: TestConfigureDNSFlag.)
+// it warns nothing. (Run with -r, a legacy operation, since -g and -d left
+// the provider for the engine: TestConfigureDNSFlag, TestDisallowRootFlag.)
 func TestDeprecationWarning(t *testing.T) {
-	r := runHardn(t, asRootBoolRootLogin, "-d")
+	r := runHardn(t, asRootBoolRootLogin, "-r")
 	if r.ended {
 		t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 	}
@@ -442,7 +409,7 @@ func TestDeprecationWarning(t *testing.T) {
 	if strings.Contains(r.stdout, "deprecated") {
 		t.Errorf("stdout repeats it:\n%s", r.stdout)
 	}
-	if r := runHardn(t, asRoot, "-d"); strings.Contains(r.stderr, "deprecated") {
+	if r := runHardn(t, asRoot, "-r"); strings.Contains(r.stderr, "deprecated") {
 		t.Errorf("a configuration without the bool warns:\n%s", r.stderr)
 	}
 }

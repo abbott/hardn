@@ -9,10 +9,6 @@ harden_system                     debian   5            0                 0
 harden_system                     ubuntu   5            0                 0
 harden_system                     alpine   7            0                 0
 harden_system                     proxmox  4            0                 0
-disable_root_ssh                  debian   1            0                 0
-disable_root_ssh                  ubuntu   1            0                 0
-disable_root_ssh                  alpine   1            0                 0
-disable_root_ssh                  proxmox  1            0                 0
 configure_secure_firewall         debian   0            0                 0
 configure_secure_firewall         ubuntu   0            0                 0
 configure_secure_firewall         alpine   0            0                 0

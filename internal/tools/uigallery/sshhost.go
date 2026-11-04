@@ -344,9 +344,10 @@ func sshLegacyV032() *fakeHost {
 }
 
 // legacyMainConf is origin/main's hardn.conf as SaveSSHConfig writes it
-// for Disable root SSH access (DisableRootSSH: the stub's Port 22, no key
-// path, so one "AuthorizedKeysFile .ssh/authorized_keys"), where that
-// build's AddAuthorizedKey put george's keys (side-effects.md D7).
+// for Disable root SSH access (that build's DisableRootSSH: the stub's
+// Port 22, no key path, so one "AuthorizedKeysFile .ssh/authorized_keys"),
+// where that build's AddAuthorizedKey put george's keys (side-effects.md
+// D7).
 const legacyMainConf = "# SSH configuration managed by Hardn\n\nProtocol 2\nStrictModes yes\n\nPort 22\n\n" +
 	"AuthenticationMethods publickey\nPubkeyAuthentication yes\n\nPermitRootLogin no\n\n" +
 	"PasswordAuthentication no\nPermitEmptyPasswords no\n\nAuthorizedKeysFile .ssh/authorized_keys\n"

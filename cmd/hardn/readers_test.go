@@ -178,34 +178,41 @@ func TestPrintLogPositions(t *testing.T) {
 			t.Errorf("stdout:\n%s", s.out.String())
 		}
 	})
-	t.Run("after -d", func(t *testing.T) {
+	// After -g, on a host whose resolv.conf is as hardn.yml lists it (newDNSHost's
+	// configured), so that -g writes nothing: its report on stdout first. (-g, not
+	// -d, since -d left the provider for the engine: no legacy flag runs before
+	// -p now.)
+	afterG := func(t *testing.T, sys host.System, s *readerSeams) result {
+		t.Helper()
+		h, cfg := newDNSHost(t, "configured", dnsTestList)
+		cfg.LogFile = "/srv/log/hardn.log"
+		r, _ := runG(t, h, cfg, func(*dnsSeams) { useReaderHost(t, sys, s) }, "-g", "-p")
+		if w := h.writes(); len(w) > 0 {
+			t.Errorf("-g wrote %q", w)
+		}
+		return r
+	}
+	t.Run("after -g", func(t *testing.T) {
 		s := &readerSeams{terminal: true}
-		var loaded bool
-		r := runHardnWith(t, asRoot, func() {
-			useReaderHost(t, logHost(readerLog), s)
-			loadConfig = func(p string) (*config.Config, error) { loaded = true; return elsewhere(p) }
-		}, "-d", "-p")
-		if !loaded || r.ended {
-			t.Fatalf("loaded %v, ended %v with %d; stderr:\n%s", loaded, r.ended, r.code, r.stderr)
+		r := afterG(t, logHost(readerLog), s)
+		if r.ended {
+			t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
 		}
-		if !strings.Contains(s.out.String(), row) {
-			t.Errorf("no row %q:\n%s", row, s.out.String())
-		}
-		if !strings.Contains(r.stdout, "Script completed") {
-			t.Errorf("the other operation's lines left stdout:\n%s", r.stdout)
+		if w := inOrder(s.out.String(), "Nothing needs changing.", row); w != "" {
+			t.Errorf("stdout lacks %q, -g's report then the row:\n%s", w, s.out.String())
 		}
 	})
-	t.Run("after -d, refused", func(t *testing.T) {
+	t.Run("after -g, refused", func(t *testing.T) {
 		s := &readerSeams{}
-		r := runReader(t, asRoot, refusingRead{logHost(readerLog)}, s, "-d", "-p")
+		r := afterG(t, refusingRead{logHost(readerLog)}, s)
 		if !r.ended || r.code != 1 {
 			t.Fatalf("ended %v with %d, want 1; stderr:\n%s", r.ended, r.code, r.stderr)
 		}
 		if !strings.Contains(r.stderr, "can't read") || strings.Contains(r.stderr, "Run it with") {
 			t.Errorf("as root stderr %q", r.stderr)
 		}
-		if !strings.Contains(r.stdout, "Script completed") {
-			t.Errorf("the operation after it did not finish:\n%s", r.stdout)
+		if !strings.Contains(s.out.String(), "Nothing needs changing.") {
+			t.Errorf("the operation before it did not finish:\n%s", s.out.String())
 		}
 	})
 }
@@ -229,7 +236,7 @@ func TestLogFileWarning(t *testing.T) {
 					c.Username, c.LogFile = "alice", tc.logFile
 					return c, nil
 				}
-			}, "-d")
+			}, "-r")
 			const words = "hardn.yml's logFile, /srv/log/hardn.log, isn't used"
 			if got := strings.Contains(r.stderr, words); got != tc.warned {
 				t.Errorf("warned %v, want %v; stderr:\n%s", got, tc.warned, r.stderr)
@@ -267,7 +274,7 @@ func TestUfwPolicyWarning(t *testing.T) {
 					loaded = err == nil
 					return c, err
 				}
-			}, "-d")
+			}, "-r")
 			if !loaded {
 				t.Fatalf("hardn.yml did not load; stderr:\n%s", r.stderr)
 			}
@@ -277,8 +284,8 @@ func TestUfwPolicyWarning(t *testing.T) {
 			if got := strings.Contains(r.stderr, outgoing); got != tc.outWarned {
 				t.Errorf("outgoing warned %v, want %v; stderr:\n%s", got, tc.outWarned, r.stderr)
 			}
-			if !strings.Contains(r.stdout, "Script completed") {
-				t.Errorf("-d did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
+			if r.ended || !strings.Contains(r.stdout, "System hardening completed successfully!") {
+				t.Errorf("-r did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
 			}
 		})
 	}
@@ -310,7 +317,7 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 					loaded = err == nil
 					return c, err
 				}
-			}, "-d")
+			}, "-r")
 			if !loaded {
 				t.Fatalf("hardn.yml did not load; stderr:\n%s", r.stderr)
 			}
@@ -318,13 +325,80 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 			if n := strings.Count(flat, words); n != map[bool]int{true: 1}[tc.warned] {
 				t.Errorf("warned %d times, want warned %v; stderr:\n%s", n, tc.warned, r.stderr)
 			}
-			if !strings.Contains(r.stdout, "Script completed") {
-				t.Errorf("-d did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
+			if r.ended || !strings.Contains(r.stdout, "System hardening completed successfully!") {
+				t.Errorf("-r did not run on the file:\n%s\nstderr:\n%s", r.stdout, r.stderr)
 			}
 		})
 	}
 	if w := loadWarnings(config.DefaultConfig()); strings.Contains(w, "sudoNoPassword") {
 		t.Errorf("hardn's defaults warn:\n%s", w)
+	}
+}
+
+// TestSSHSettingsWarning: where hardn.yml loads, each SSH setting that SSH
+// Login and -d don't read warns once, in slice 6's decision 9 (a) words,
+// where its value is not config.DefaultConfig's: permitRootLogin, as
+// RootLogin reads it ("yes", or the deprecated true, whose deprecation is
+// said once beside it; false and "no", the default, only the deprecation
+// or nothing), sshAllowedUsers, sshListenAddress, disableRootSSH and
+// sshKeyPath; set to the default, as origin/main's SaveConfig writes it,
+// none warns. sshPort and sshConfigFile, which the screen reads, never
+// warn. Through hardn, the warning is on stderr, once.
+func TestSSHSettingsWarning(t *testing.T) {
+	const deprecated = "is deprecated"
+	words := func(key string) string { return "hardn.yml's " + key + " isn't used by SSH Login or -d" }
+	keys := []string{"permitRootLogin", "sshAllowedUsers", "sshListenAddress", "disableRootSSH", "sshKeyPath", "sshPort", "sshConfigFile"}
+	for _, tc := range []struct {
+		name, yml  string
+		warned     []string // the keys warned of
+		deprecated bool     // the bool's deprecation said
+	}{
+		{"left out", "username: alice\n", nil, false},
+		{"the defaults, as SaveConfig writes them", "username: alice\npermitRootLogin: \"no\"\nsshAllowedUsers: []\nsshListenAddress: 0.0.0.0\n" +
+			"disableRootSSH: false\nsshKeyPath: .ssh_%u\nsshPort: 22\nsshConfigFile: /etc/ssh/sshd_config.d/hardn.conf\n", nil, false},
+		{"permitRootLogin yes", "username: alice\npermitRootLogin: \"yes\"\n", []string{"permitRootLogin"}, false},
+		{"permitRootLogin true, deprecated", "username: alice\npermitRootLogin: true\n", []string{"permitRootLogin"}, true},
+		{"permitRootLogin false, deprecated", "username: alice\npermitRootLogin: false\n", nil, true},
+		{"sshAllowedUsers", "username: alice\nsshAllowedUsers:\n  - george\n", []string{"sshAllowedUsers"}, false},
+		{"sshListenAddress", "username: alice\nsshListenAddress: 192.0.2.10\n", []string{"sshListenAddress"}, false},
+		{"disableRootSSH", "username: alice\ndisableRootSSH: true\n", []string{"disableRootSSH"}, false},
+		{"sshKeyPath", "username: alice\nsshKeyPath: .ssh/authorized_keys\n", []string{"sshKeyPath"}, false},
+		{"sshPort and sshConfigFile", "username: alice\nsshPort: 2230\nsshConfigFile: /etc/ssh/sshd_config.d/old.conf\n", nil, false},
+		{"all five", "username: alice\npermitRootLogin: \"yes\"\nsshAllowedUsers: [george]\nsshListenAddress: 192.0.2.10\n" +
+			"disableRootSSH: true\nsshKeyPath: .ssh/authorized_keys\n", keys[:5], false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			const path = "/etc/hardn/hardn.yml"
+			f := hostfake.New(host.Options{})
+			f.AddFile(path, []byte(tc.yml), 0o644, 0, 0)
+			c, err := config.Read(context.Background(), f, path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			w := strings.ReplaceAll(loadWarnings(c), "\n# ", " ") // the callout wraps its lines
+			for _, key := range keys {
+				if n := strings.Count(w, words(key)); n != map[bool]int{true: 1}[slices.Contains(tc.warned, key)] {
+					t.Errorf("%s warned %d times, want warned %v:\n%s", key, n, slices.Contains(tc.warned, key), w)
+				}
+			}
+			if n := strings.Count(w, deprecated); n != map[bool]int{true: 1}[tc.deprecated] {
+				t.Errorf("deprecated said %d times, want said %v:\n%s", n, tc.deprecated, w)
+			}
+		})
+	}
+	if w := loadWarnings(config.DefaultConfig()); strings.Contains(w, "SSH Login") {
+		t.Errorf("hardn's defaults warn:\n%s", w)
+	}
+	r := runHardnWith(t, asRoot, func() {
+		loadConfig = func(string) (*config.Config, error) {
+			c := config.DefaultConfig()
+			c.Username, c.DisableRootSSH = "alice", true
+			return c, nil
+		}
+	}, "-r")
+	flat := strings.ReplaceAll(r.stderr, "\n# ", " ")
+	if r.ended || strings.Count(flat, words("disableRootSSH")) != 1 || strings.Contains(r.stdout, "SSH Login or -d") {
+		t.Errorf("ended %v with %d; stderr:\n%s\nstdout:\n%s", r.ended, r.code, r.stderr, r.stdout)
 	}
 }
 
@@ -343,7 +417,7 @@ func TestWarningsFollowDetectOS(t *testing.T) {
 			_, _ = io.WriteString(stderr, cleared+"\n")
 			return detected()
 		}
-	}, "-d")
+	}, "-r")
 	at, said := strings.Index(r.stderr, cleared), strings.Index(r.stderr, words)
 	if at < 0 || said < at {
 		t.Errorf("the warning at %d, the clear at %d; stderr:\n%s", said, at, r.stderr)

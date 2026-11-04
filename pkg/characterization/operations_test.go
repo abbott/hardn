@@ -74,7 +74,8 @@ type opEnv struct {
 }
 
 // fixtureConfig is config.DefaultConfig() with synthetic overrides, then the
-// dry-run flag applied the way main.go:158 applies -n.
+// dry-run flag applied the way cmd/hardn/main.go's Run applies -n
+// (cfg.ResolveDryRun).
 func fixtureConfig(dryRun bool) *config.Config {
 	cfg := config.DefaultConfig()
 	cfg.Username = fixtureUser
@@ -170,7 +171,8 @@ func (e *opEnv) setDNSStrategy(strategy string) {
 	e.fixtureNotes = append(e.fixtureNotes, "DNS probe results forced to select the "+strategy+" strategy, whatever this distro ships")
 }
 
-// hardeningConfigFromCLI mirrors cmd/hardn/main.go:234-250 (hardn -r).
+// hardeningConfigFromCLI mirrors cmd/hardn/main.go's Run, its runAll
+// branch (hardn -r).
 func hardeningConfigFromCLI(cfg *config.Config) *model.HardeningConfig {
 	return &model.HardeningConfig{
 		CreateUser:         cfg.Username != "",
@@ -226,7 +228,7 @@ type cliRun struct {
 }
 
 // Where cmd/hardn/main.go calls pkg/cmd's RefuseDryRunOperations.
-const refusedInRoot = "cmd/hardn/main.go:123, before the root check"
+const refusedInRoot = "cmd/hardn/main.go, the top of Run (refuseDryRunOperations), before the root check"
 
 // fixedItem is a V-list (or A-) item a P0.8 hazard gate fixed: its id (a
 // key of fixedText) and the unexported constant(s) that gate the fix.
@@ -237,7 +239,6 @@ type fixedItem struct {
 
 // Gate constants, as the FIXED lines name them.
 const (
-	gateStub   = "stubDisableRoot"
 	gateRunAll = "runAllWithoutConfirmation"
 	gatePVE    = "proxmoxTreatedAsDebian"
 )
@@ -267,8 +268,7 @@ type observed struct {
 // sshWrite is the directives of one sshd config write that the gates
 // decide, each a list of the values of its lines, in order.
 type sshWrite struct {
-	port, permitRootLogin, allowUsers, authorizedKeysFile []string
-	sftp                                                  bool // a Subsystem sftp line
+	permitRootLogin, allowUsers []string
 }
 
 // observe reads t, one cfg.DryRun=false run's trace.
@@ -296,16 +296,10 @@ func observe(t *trace) observed {
 				}
 				value := strings.Join(f[1:], " ")
 				switch strings.ToLower(f[0]) {
-				case "port":
-					w.port = append(w.port, value)
 				case "permitrootlogin":
 					w.permitRootLogin = append(w.permitRootLogin, value)
 				case "allowusers":
 					w.allowUsers = append(w.allowUsers, value)
-				case "authorizedkeysfile":
-					w.authorizedKeysFile = append(w.authorizedKeysFile, value)
-				case "subsystem":
-					w.sftp = w.sftp || f[1] == "sftp"
 				}
 			}
 			o.ssh = append(o.ssh, w)
@@ -355,29 +349,15 @@ func (o observed) allowUsersWithoutRoot() bool {
 	return false
 }
 
-// portKept: every sshd config write keeps the seed's Port fixturePort.
-func (o observed) portKept() bool {
-	return o.every(func(w sshWrite) []string { return w.port }, allEqual(strconv.Itoa(fixturePort)))
-}
-
-// noKeysFile: no sshd config write has an AuthorizedKeysFile line.
-func (o observed) noKeysFile() bool {
-	return o.every(func(w sshWrite) []string { return w.authorizedKeysFile }, func(v []string) bool { return len(v) == 0 })
-}
-
-// sftpKept: every sshd config write keeps its Subsystem sftp line.
-func (o observed) sftpKept() bool {
-	return len(o.ssh) > 0 && !slices.ContainsFunc(o.ssh, func(w sshWrite) bool { return !w.sftp })
-}
-
 // Short texts for the V-list (Phase 0 side-effect inventory, V1-V27), for
 // the V-numbers a case cites. V20's, cited by setup_sudo_preservation
 // alone, went with that case (slice 9, unit (d)); its frozen goldens keep
 // it (pkg/screens/environment/testdata/legacy/ops). V5's, cited by
-// create_user_c_path alone, went with that case (slice 5, unit (d)).
+// create_user_c_path alone, went with that case (slice 5, unit (d)), and
+// V4's and V11:disable-root's, cited by disable_root_ssh alone, with that
+// case (slice 6, unit (d)).
 var vText = map[string]string{
 	"V1":  "CLI -n/--dry-run is ignored below the menu layer: the cfg.DryRun=true section repeats every command and write",
-	"V4":  "disable-root rebuilds the SSH config from a stub (Port 22, no ListenAddress/AllowUsers, key-only) instead of editing PermitRootLogin",
 	"V6":  "password auth disabled and AuthenticationMethods publickey set in the same step that adds keys; nothing proves a key works",
 	"V7":  "no sshd -t before the restart and no sshd -T after; restart instead of reload",
 	"V8":  "the SSH port changes (sshd restart) before any firewall rule allows the new port",
@@ -398,7 +378,6 @@ var vText = map[string]string{
 
 	// Variants: one V-number, wording specific to the recorded behaviour.
 	"V11:proxmox":          "PermitRootLogin no is written on a Proxmox host, where root SSH is to stay key-only (prohibit-password)",
-	"V11:disable-root":     "PermitRootLogin no is written on a Proxmox host, where root SSH is to stay key-only (prohibit-password)",
 	"V11:config":           "the root-login value is forced regardless of permitRootLogin/disableRootSSH in the config (§3.17)",
 	"V11:allowusers":       "on Proxmox the AllowUsers line written from sshAllowedUsers leaves out root, so sshd refuses root's key login, which clustering uses, whatever PermitRootLogin says (whether hardn adds root there is p2-pve's call)",
 	"V19:systemd-resolved": "DNS: /etc/systemd/resolved.conf overwritten wholesale and systemd-resolved restarted; Domains=lan forced",
@@ -438,16 +417,11 @@ func newUserDefects(c osCell) []string {
 
 // fixedText says what a P0.8 hazard gate does instead, for each fixed item.
 var fixedText = map[string]string{
-	"V1":               "hardn -n refuses every operation flag with exit status 2 before the root check, so nothing runs; the cfg.DryRun=true section is what the layers below the menus still do with DryRun set (A1), which no CLI flag reaches now",
-	"V4":               "disable-root reads the file and edits it in place: PermitRootLogin set to no (added before the first Match block if absent) and root removed from AllowUsers; every other line kept",
-	"V12:disable-root": "disable-root no longer writes a Port line, so there is no port change for ssh.socket to miss (ssh.socket handling itself is Phase 2)",
-	"V15:disable-root": "Alpine: /etc/ssh/sshd_config is edited in place, so Subsystem sftp, Include and comments survive",
-	"V24:disable-root": "disable-root no longer writes AuthorizedKeysFile; the line the file has, if any, is kept",
-	"V9:proxmox":       "on Proxmox no ufw command runs at all, so there is no default deny, disable or reset",
-	"V10":              "on Proxmox, configuring or enabling UFW is refused with an error before any ufw command runs (pve-firewall manages the packet filter; brief §2)",
-	"V11:proxmox":      "on Proxmox, PermitRootLogin prohibit-password (key-only) is written where origin/main wrote no (brief §2)",
-	"V11:disable-root": "Proxmox: disable-root writes PermitRootLogin prohibit-password, never no, and does not take root out of AllowUsers",
-	"A4":               "Run All option 1 asks for a typed 'yes' before a live run, and any other answer cancels with nothing applied; hardn -r does not ask. Not observed by this harness: pkg/menu's TestRunAllConfirmation and run_all/option1-live-cancel.golden record it",
+	"V1":          "hardn -n refuses every operation flag with exit status 2 before the root check, so nothing runs; the cfg.DryRun=true section is what the layers below the menus still do with DryRun set (A1), which no CLI flag reaches now",
+	"V9:proxmox":  "on Proxmox no ufw command runs at all, so there is no default deny, disable or reset",
+	"V10":         "on Proxmox, configuring or enabling UFW is refused with an error before any ufw command runs (pve-firewall manages the packet filter; brief §2)",
+	"V11:proxmox": "on Proxmox, PermitRootLogin prohibit-password (key-only) is written where origin/main wrote no (brief §2)",
+	"A4":          "Run All option 1 asks for a typed 'yes' before a live run, and any other answer cancels with nothing applied; hardn -r does not ask. Not observed by this harness: pkg/menu's TestRunAllConfirmation and run_all/option1-live-cancel.golden record it",
 }
 
 // proxmoxUFWGates is the Proxmox gate's fix for a UFW operation.
@@ -492,7 +466,7 @@ func dryRunNote(refused bool) string {
 	if refused {
 		reach = " (which now reaches only the menus)"
 	}
-	return "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go:158 does for -n" + reach + ". No layer below pkg/menu reads it."
+	return "cfg.DryRun is set on the config passed to ServiceFactory.SetConfig, as cmd/hardn/main.go's Run does for -n" + reach + ". No layer below pkg/menu reads it."
 }
 
 // gatedHeader is a golden's first line when it holds FIXED lines naming
@@ -512,10 +486,10 @@ func opScenarios() []opScenario {
 		{
 			name:  "harden_system",
 			op:    "MenuManager.HardenSystem -> SecurityManager.HardenSystem (user, SSH, UFW, DNS)",
-			entry: "hardn -r (cmd/hardn/main.go:230-260); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:226-268), in live mode only after a typed 'yes' (run_all_menu.go:155)",
+			entry: "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem); menu Run All option 1 makes the same call with AllowedPorts=cfg.UfwAllowedPorts (pkg/menu/run_all_menu.go:226-268), in live mode only after a typed 'yes' (run_all_menu.go:155)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			notes: []string{
-				"HardeningConfig is built as cmd/hardn/main.go:234-250 builds it; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile.",
+				"HardeningConfig is built as cmd/hardn/main.go's Run builds it in its runAll branch; SshKeyPaths is left empty, so the adapter writes its default AuthorizedKeysFile.",
 			},
 			pveCheck: true,
 			gateNotes: func(c osCell, shown map[string]bool) []string {
@@ -550,57 +524,14 @@ func opScenarios() []opScenario {
 				return append(g, proxmoxRootLoginGate(c)...)
 			},
 		},
-		{
-			name:  "disable_root_ssh",
-			op:    "SSHManager.DisableRootSSH -> FileSSHRepository.DisableRootSSH",
-			entry: "hardn -d (cmd/hardn/main.go:283-289); the SSH Login menu makes the same call and then restarts sshd again with a direct exec.Command, which these goldens cannot see (pkg/menu/disable_root_menu.go:146-161)",
-			cli:   []cliRun{{"-d", []string{hardncmd.FlagDisableRoot}, refusedInRoot}},
-			gateNotes: func(c osCell, shown map[string]bool) []string {
-				var n []string
-				if shown["V4"] {
-					n = append(n, "Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers. DisableRootSSH reads the file it manages (hardn.conf; /etc/ssh/sshd_config on Alpine) and edits PermitRootLogin and AllowUsers in place (file_ssh_repository.go, setRootLogin); /etc/ssh/sshd_config is not read on the other distros.")
-				} else {
-					n = append(n, "Seed files model a host where an earlier hardn run set Port 2230 and AllowUsers; GetSSHConfig is a stub (FileSSHRepository.GetSSHConfig), so the seed is never read.")
-				}
-				if shown["V11:disable-root"] {
-					n = append(n, "On this Proxmox host hardn -d and the SSH Login menu report root login as key-only, not disabled, and the menu does not restart sshd again (pkg/menu/disable_root_menu.go:139, setRootKeyOnly); cmd/hardn TestDisableRootReport and pkg/menu TestDisableRootOnProxmoxSaysKeyOnly record it, not this harness.")
-				}
-				return n
-			},
-			pveCheck: true,
-			setup: func(e *opEnv) {
-				e.fs.Files["/etc/ssh/sshd_config"] = []byte("Port 2230\nListenAddress 192.0.2.10\nAllowUsers root alice\nPermitRootLogin yes\nSubsystem sftp /usr/lib/ssh/sftp-server\n")
-				if !e.cell.alpine() {
-					e.fs.Files["/etc/ssh/sshd_config.d/hardn.conf"] = []byte("Port 2230\nListenAddress 0.0.0.0\nPermitRootLogin yes\nAllowUsers root alice\n")
-				}
-			},
-			run: func(e *opEnv) []callResult {
-				return []callResult{{"SSHManager.DisableRootSSH", e.factory.CreateSSHManager().DisableRootSSH()}}
-			},
-			defects: func(c osCell, o observed) []string {
-				d := []string{"V7", "V18"}
-				if !c.alpine() {
-					d = append(d, "V13")
-				}
-				return d
-			},
-			gates: func(c osCell) []gateCheck {
-				g := []gateCheck{
-					{fixedItem{"V4", gateStub}, []string{"V4"}, observed.portKept},
-					{fixedItem{"V24:disable-root", gateStub}, []string{"V24"}, observed.noKeysFile},
-				}
-				if c.proxmox {
-					g = append(g, gateCheck{fixedItem{"V11:disable-root", gatePVE}, []string{"V11:disable-root"}, func(o observed) bool { return o.keyOnly() && !o.allowUsersWithoutRoot() }})
-				}
-				if c.alpine() {
-					g = append(g, gateCheck{fixedItem{"V15:disable-root", gateStub}, []string{"V15"}, observed.sftpKept})
-				}
-				if c.osType == "ubuntu" {
-					g = append(g, gateCheck{fixedItem{"V12:disable-root", gateStub}, []string{"V12"}, observed.portKept})
-				}
-				return g
-			},
-		},
+		// disable_root_ssh, origin/main's hardn -d and SSH Login menu
+		// (SSHManager.DisableRootSSH), is retired (refactor plan slice 6,
+		// unit (d), next/s6-replace): -d and main menu 2 run the SSH Login
+		// control, so nothing reaches that call now. Its four goldens are
+		// deleted, not frozen (the maintainer, 2026-11-03: hard cutover), and
+		// with them the stubDisableRoot gate and the fixedText lines (V4,
+		// V11:, V12:, V15: and V24:disable-root) that case alone cited.
+		//
 		// create_user_c_path, origin/main's hardn -c (UserManager.CreateUser,
 		// then SSHManager.ConfigureSSH with pkg/cmd's
 		// CreateUserAuthorizedKeysFiles), is retired (refactor plan slice 5,
@@ -617,7 +548,7 @@ func opScenarios() []opScenario {
 			// of SecurityManager.HardenSystem, which hardn -r and Run All's
 			// live run call, until slice 8. Its goldens as they were, -w's,
 			// are frozen in pkg/screens/firewall/testdata/legacy/ops.
-			entry: "hardn -r (cmd/hardn/main.go:284) and Run All's live run (pkg/menu/run_all_menu.go:228), through SecurityManager.HardenSystem's firewall step (pkg/application/security_manager.go:58); hardn -w and the Firewall screen move to the Firewall control in slice 4 unit (d)",
+			entry: "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem) and Run All's live run (pkg/menu/run_all_menu.go:228), through SecurityManager.HardenSystem's firewall step (pkg/application/security_manager.go:58); hardn -w and the Firewall screen move to the Firewall control in slice 4 unit (d)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			run: func(e *opEnv) []callResult {
 				err := e.factory.CreateFirewallManager().ConfigureSecureFirewall(e.cfg.SshPort, []int{}, []model.FirewallProfile{})
@@ -646,7 +577,7 @@ func opScenarios() []opScenario {
 			// the User Management screen on the User control: the user step of
 			// SecurityManager.HardenSystem, which hardn -r and Run All's live run
 			// call for an existing username, until slice 8.
-			entry: "hardn -r (cmd/hardn/main.go:286) and Run All's live run (pkg/menu/run_all_menu.go:228) when alice exists, through SecurityManager.HardenSystem's user step (pkg/application/security_manager.go:34); hardn -c and the User Management screen move to the User control in slice 5 unit (d)",
+			entry: "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem) and Run All's live run (pkg/menu/run_all_menu.go:228) when alice exists, through SecurityManager.HardenSystem's user step (pkg/application/security_manager.go:34); hardn -c and the User Management screen move to the User control in slice 5 unit (d)",
 			cli:   []cliRun{{"-r", []string{hardncmd.FlagRunAll}, refusedInRoot}},
 			notes: []string{"Seed: /etc/sudoers.d/alice holds the env_keep line that setup-sudo-env writes, and alice's authorized_keys already holds the fixture key."},
 			setup: func(e *opEnv) {
@@ -702,7 +633,7 @@ func opScenarios() []opScenario {
 // run call, until slice 8 (dnsReach, then the scenario's condition, then
 // dnsMoved).
 const (
-	dnsReach = "hardn -r (cmd/hardn/main.go:254) and Run All's live run (pkg/menu/run_all_menu.go:268), through SecurityManager.HardenSystem's DNS step (pkg/application/security_manager.go:68-75)"
+	dnsReach = "hardn -r (cmd/hardn/main.go, Run's runAll branch, menuManager.HardenSystem) and Run All's live run (pkg/menu/run_all_menu.go:268), through SecurityManager.HardenSystem's DNS step (pkg/application/security_manager.go:68-75)"
 	dnsMoved = "; hardn -g and the DNS screen use the DNS control since slice 2 unit (d)"
 )
 
