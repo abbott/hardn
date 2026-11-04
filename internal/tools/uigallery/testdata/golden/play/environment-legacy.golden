@@ -124,7 +124,7 @@ $
 $
    -  User                 alice$
   [+] Under sudo           Kept by hardn$
-   -  /etc/sudoers.d/alice may also let alice use sudo$
+  [ ] /etc/sudoers.d/alice may also let alice use sudo$
 $
    -  Keep HARDN_CONFIG$
       /etc/sudoers.d/hardn-env-alice$

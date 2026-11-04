@@ -108,7 +108,7 @@ $
 # The plan alone, for key-only login: it carries the release's$
 # warning (P-41).$
 $
-   -  Ubuntu 22.04 is a best-effort release: its vendor still$
+  [ ] Ubuntu 22.04 is a best-effort release: its vendor still$
       supports it and hardn changes it, but hardn is not tested$
       on it$
 $

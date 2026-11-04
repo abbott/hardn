@@ -307,7 +307,7 @@ $
 $
    -  Nameservers          1.1.1.1, 1.0.0.1$
    -  Search Domains       example.net$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Set the nameservers$
       /etc/resolv.conf$
@@ -371,7 +371,7 @@ $
 $
    -  Nameservers          8.8.8.8, 8.8.4.4$
    -  Search Domains       example.net$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Set the nameservers$
       /etc/resolv.conf$
@@ -430,7 +430,7 @@ $
 $
    -  Nameservers          9.9.9.9, 149.112.112.112$
    -  Search Domains       example.net$
-   -  dhcpcd may rewrite /etc/resolv.conf on a lease$
+  [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Set the nameservers$
       /etc/resolv.conf$

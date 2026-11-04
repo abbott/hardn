@@ -142,7 +142,8 @@ func TestConfirmation(t *testing.T) {
 
 // TestHostAndConfirm: detect's facts in the schema's own words, and the
 // commands in the host's elevation tool, the confirmation's and the one
-// that finishes a rollback: doas on an Alpine host without sudo, sudo
+// that finishes a rollback: doas on an Alpine host without sudo, hardn
+// alone where neither is installed (Proxmox VE, root's own session), sudo
 // elsewhere (engine.md §7).
 func TestHostAndConfirm(t *testing.T) {
 	facts := alpine324()
@@ -160,12 +161,17 @@ func TestHostAndConfirm(t *testing.T) {
 	if d := output.Build(fixtures()[3].run); d.Result.Confirm.Command != "sudo hardn confirm" {
 		t.Errorf("Debian: %s", d.Result.Confirm.Command)
 	}
+	pve := noElevation()
+	r.Facts = &pve
+	if c := output.Build(r).Result.Confirm; c.Command != "hardn confirm" || c.Undo != "hardn rollback "+fixtureID {
+		t.Errorf("neither sudo nor doas (Proxmox VE): %+v", c)
+	}
 	incomplete := &engine.ApplyError{ID: fixtureID, Change: "ssh.port/reload", Step: engine.StepApply, Err: errors.New("x"),
 		RollbackErr: fmt.Errorf("revert: %w", revert.ErrIncomplete)}
 	for _, tc := range []struct {
 		facts detect.Facts
 		want  string
-	}{{alpine324(), "doas hardn rollback " + fixtureID}, {debian13(), "sudo hardn rollback " + fixtureID}} {
+	}{{alpine324(), "doas hardn rollback " + fixtureID}, {debian13(), "sudo hardn rollback " + fixtureID}, {noElevation(), "hardn rollback " + fixtureID}} {
 		r := output.Run{Mode: output.ModeApply, Facts: &tc.facts, Plan: portPlan(), Result: &engine.Result{ID: fixtureID, Failed: incomplete}, Err: incomplete}
 		if rb := output.Build(r).Result.Rollback; rb == nil || rb.Command != tc.want {
 			t.Errorf("%s: rollback %+v, want the command %q", tc.facts.OS.ID, rb, tc.want)

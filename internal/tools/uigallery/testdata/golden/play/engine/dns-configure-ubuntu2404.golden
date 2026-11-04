@@ -73,7 +73,7 @@ $
 # 255 cannot reload systemd-resolved, so the same command$
 # restarts it. y applies it; n declines.$
 $
-   -  eth0 still uses its own nameserver 192.0.2.1$
+  [ ] eth0 still uses its own nameserver 192.0.2.1$
 $
    -  Set the nameservers$
       /etc/systemd/resolved.conf.d/zz-hardn.conf$
