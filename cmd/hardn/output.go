@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"slices"
 
 	"github.com/fatih/color"
 
@@ -89,10 +88,9 @@ func streamEnv(f *os.File) term.Env {
 // them (pkg/output's documents carry them as findings, and its Emit does
 // not warn again). A logFile naming another path than the one hardn writes
 // is one too (decision 6 (a); gallery-system-details.md §6's words), and
-// so is either ufw policy the file sets (slice 4, decision 8),
-// sudoNoPassword: false (slice 5, decision 7 (a)), and each key nothing
-// reads set to a value (slices 6 and 8, decisions 9 (a) and 4 (a):
-// notUsed).
+// so is sudoNoPassword: false (slice 5, decision 7 (a)), and each key nothing
+// reads set to a value (slices 4, 6 and 8, decisions 8, 9 (a) and 4 (a),
+// and the legacy-left unit: notUsed).
 func warnDeprecations(c *config.Config) {
 	if w := loadWarnings(c); w != "" {
 		_, _ = io.WriteString(stderrEnv().Writer(stderr), w)
@@ -106,12 +104,6 @@ func loadWarnings(c *config.Config) string {
 	if p := logview.Elsewhere(c.LogFile); p != "" {
 		retired = append(retired, fmt.Sprintf(logFileNotUsed, p))
 	}
-	if c.UfwDefaultIncomingPolicy != "" {
-		retired = append(retired, ufwIncomingNotUsed)
-	}
-	if c.UfwDefaultOutgoingPolicy != "" {
-		retired = append(retired, ufwOutgoingNotUsed)
-	}
 	if !c.SudoNoPassword {
 		retired = append(retired, sudoNoPasswordNotUsed)
 	}
@@ -123,17 +115,6 @@ func loadWarnings(c *config.Config) string {
 
 // logFileNotUsed is decision 6 (a)'s warning, and the Logs screen's row.
 const logFileNotUsed = "hardn.yml's logFile, %s, isn't used"
-
-// ufwIncomingNotUsed and ufwOutgoingNotUsed are refactor plan slice 4's
-// decision 8 (gallery-firewall.md §5, adopted 2026-11-01): nothing reads
-// the two policies, so a file that sets one is told so, and still loads.
-// Only a value warns: the defaults leave both "" (config.DefaultConfig),
-// and origin/main's SaveConfig writes them as "" into every file it saves,
-// so "" is hardn's, not the file's.
-const (
-	ufwIncomingNotUsed = "hardn.yml's ufwDefaultIncomingPolicy isn't used"
-	ufwOutgoingNotUsed = "hardn.yml's ufwDefaultOutgoingPolicy isn't used"
-)
 
 // sudoNoPasswordNotUsed is refactor plan slice 5's decision 7 (a)
 // (gallery-users.md §5, adopted 2026-11-03), and since slice 8 Run All's
@@ -150,7 +131,9 @@ const sudoNoPasswordNotUsed = "hardn.yml's sudoNoPassword: false isn't used"
 // keyNotUsed is said once for each key of notUsed: refactor plan slice 6's
 // decision 9 (a) (gallery-ssh.md §5, adopted 2026-11-03) for the SSH
 // settings, and slice 8's decision 4 (a) (gallery-runall.md §5, adopted
-// 2026-11-04) for ufwAllowedPorts, enableAppArmor and enableLynis. Since
+// 2026-11-04) for ufwAllowedPorts, enableAppArmor and enableLynis, and
+// slice 4's decision 8 (gallery-firewall.md §5, adopted 2026-11-01) for
+// the two ufw policies. Since
 // slice 8 nothing reads them, Run All included, so the words name no
 // screen (slice 6's were "isn't used by SSH Login or -d").
 const keyNotUsed = "hardn.yml's %s isn't used"
@@ -158,12 +141,13 @@ const keyNotUsed = "hardn.yml's %s isn't used"
 // notUsed are the keys of c that nothing in hardn reads and that hold a
 // value other than config.DefaultConfig's: permitRootLogin (as RootLogin
 // reads it, so that the bool of §3.17, which loadWarnings already says is
-// deprecated, warns here only where it is true), sshAllowedUsers,
-// sshListenAddress, sshKeyPath, ufwAllowedPorts, enableAppArmor and
-// enableLynis, then the keys the legacy package, sources and localization
-// code read (config.Retired: the unit after slice 9). A value equal to the default never warns: origin/main's
-// SaveConfig writes the defaults into every file it saves, as for the ufw
-// policies, so it is hardn's, not the file's. disableRootSSH is read:
+// deprecated, warns here only where it is true) and sshKeyPath, then the
+// keys Config has no field for (config.Retired, read from the file's own
+// keys): sshAllowedUsers, sshListenAddress, the ufw policies,
+// ufwAllowedPorts, enableAppArmor, enableLynis and the keys the legacy
+// package, sources and localization code read. A value equal to the
+// default never warns: origin/main's SaveConfig writes the defaults into
+// every file it saves, so it is hardn's, not the file's. disableRootSSH is read:
 // true, Run All turns root login off (decision 4 (a)), so it warns no more.
 // sshPort and sshConfigFile, SSH Login's port form's default and Move old
 // settings' old file, and sshPort Run All's too, never warn.
@@ -175,12 +159,7 @@ func notUsed(c *config.Config) []string {
 		set bool
 	}{
 		{"permitRootLogin", c.RootLogin() != d.RootLogin()},
-		{"sshAllowedUsers", !slices.Equal(c.SshAllowedUsers, d.SshAllowedUsers)},
-		{"sshListenAddress", c.SshListenAddress != d.SshListenAddress},
 		{"sshKeyPath", c.SshKeyPath != d.SshKeyPath},
-		{"ufwAllowedPorts", !slices.Equal(c.UfwAllowedPorts, d.UfwAllowedPorts)},
-		{"enableAppArmor", c.EnableAppArmor != d.EnableAppArmor},
-		{"enableLynis", c.EnableLynis != d.EnableLynis},
 	} {
 		if k.set {
 			keys = append(keys, k.key)

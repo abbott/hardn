@@ -25,7 +25,7 @@ func TestLoadExisting(t *testing.T) {
 	var cfg *Config
 	var err error
 	out, _, ended := ask(t, func() { cfg, err = LoadExisting("") })
-	if err != nil || ended || out != "" || cfg.Username != DefaultConfig().Username || cfg.LogsConfig.LogFilePath != cfg.LogFile {
+	if err != nil || ended || out != "" || cfg.Username != DefaultConfig().Username {
 		t.Fatalf("none found: %+v, %v (ended %v), said %q", cfg, err, ended, out)
 	}
 	if entries, _ := os.ReadDir(dir); len(entries) != 0 {

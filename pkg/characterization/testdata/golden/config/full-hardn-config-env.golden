@@ -17,10 +17,6 @@
   ],
   "SshPort": 2230,
   "PermitRootLogin": false,
-  "SshAllowedUsers": [
-    "alice"
-  ],
-  "SshListenAddress": "192.0.2.10",
   "SshKeyPath": ".ssh_%u",
   "SshConfigFile": "/etc/ssh/sshd_config.d/hardn.conf",
   "SudoNoPassword": false,
@@ -37,19 +33,8 @@
       ]
     }
   ],
-  "UfwDefaultIncomingPolicy": "deny",
-  "UfwDefaultOutgoingPolicy": "allow",
-  "UfwAllowedPorts": [
-    8080,
-    8443
-  ],
-  "EnableAppArmor": true,
-  "EnableLynis": true,
   "EnableUnattendedUpgrades": true,
   "EnableUfwSshPolicy": true,
   "ConfigureDns": true,
-  "DisableRootSSH": true,
-  "LogsConfig": {
-    "LogFilePath": "/var/log/hardn.log"
-  }
+  "DisableRootSSH": true
 }

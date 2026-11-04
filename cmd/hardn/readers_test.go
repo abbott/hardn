@@ -411,9 +411,10 @@ func TestUnusedKeysWarning(t *testing.T) {
 	r := runHardnWith(t, asRoot, func() {
 		onDNSHost(t)
 		loadConfig = func(string) (*config.Config, error) {
-			c := config.DefaultConfig()
-			c.Username, c.EnableLynis = "alice", true
-			return c, nil
+			const path = "/etc/hardn/hardn.yml"
+			f := hostfake.New(host.Options{})
+			f.AddFile(path, []byte("username: alice\nenableLynis: true\n"), 0o644, 0, 0)
+			return config.Read(context.Background(), f, path)
 		}
 	}, "-r")
 	flat := strings.ReplaceAll(r.stderr, "\n# ", " ")
