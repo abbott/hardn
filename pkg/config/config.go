@@ -44,7 +44,6 @@ type Config struct {
 	ConfirmTimeout string `yaml:"confirmTimeout,omitempty"`
 
 	// Network Configuration
-	DmzSubnet   string   `yaml:"dmzSubnet"`
 	Nameservers []string `yaml:"nameservers"`
 
 	// SSH Configuration
@@ -59,26 +58,6 @@ type Config struct {
 	SudoNoPassword bool     `yaml:"sudoNoPassword"`
 	SshKeys        []string `yaml:"sshKeys"`
 
-	// Package Configuration
-	LinuxCorePackages    []string `yaml:"linuxCorePackages"`
-	LinuxDmzPackages     []string `yaml:"linuxDmzPackages"`
-	LinuxLabPackages     []string `yaml:"linuxLabPackages"`
-	PythonPackages       []string `yaml:"pythonPackages"`
-	NonWslPythonPackages []string `yaml:"nonWslPythonPackages"`
-	PythonPipPackages    []string `yaml:"pythonPipPackages"`
-	AlpineCorePackages   []string `yaml:"alpineCorePackages"`
-	AlpineDmzPackages    []string `yaml:"alpineDmzPackages"`
-	AlpineLabPackages    []string `yaml:"alpineLabPackages"`
-	AlpinePythonPackages []string `yaml:"alpinePythonPackages"`
-
-	// Repository Configuration
-	DebianRepos            []string `yaml:"debianRepos"`
-	ProxmoxSrcRepos        []string `yaml:"proxmoxSrcRepos"`
-	ProxmoxCephRepo        []string `yaml:"proxmoxCephRepo"`
-	ProxmoxEnterpriseRepo  []string `yaml:"proxmoxEnterpriseRepo"`
-	ProxmoxPackagePatterns []string `yaml:"proxmoxPackagePatterns"`
-	AlpineTestingRepo      bool     `yaml:"alpineTestingRepo"`
-
 	// Firewall Configuration
 	// UfwAppProfiles represents UFW application profiles
 	UfwAppProfiles           []UfwAppProfile `yaml:"ufwAppProfiles"`
@@ -87,20 +66,12 @@ type Config struct {
 	UfwAllowedPorts          []int           `yaml:"ufwAllowedPorts"`
 
 	// Feature Toggles
-	UseUvPackageManager      bool `yaml:"useUvPackageManager"`
 	EnableAppArmor           bool `yaml:"enableAppArmor"`
 	EnableLynis              bool `yaml:"enableLynis"`
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`
 	ConfigureDns             bool `yaml:"configureDns"`
 	DisableRootSSH           bool `yaml:"disableRootSSH"`
-
-	// Localization
-	Lang             string `yaml:"lang"`
-	Language         string `yaml:"language"`
-	LcAll            string `yaml:"lcAll"`
-	Tz               string `yaml:"tz"`
-	PythonUnbuffered string `yaml:"pythonUnbuffered"`
 
 	// Logs Configuration (embedded for easy access to LogFile)
 	LogsConfig struct {
@@ -124,7 +95,6 @@ func DefaultConfig() *Config {
 		BackupPath:    "/var/backups/hardn",
 
 		// Network Configuration
-		// DmzSubnet:   "192.168.4",
 		// Nameservers: []string{"1.1.1.1", "1.0.0.1"},
 
 		// SSH Configuration
@@ -146,34 +116,12 @@ func DefaultConfig() *Config {
 		// UfwAllowedPorts:          []int{22},
 
 		// Feature Toggles
-		UseUvPackageManager:      false,
 		EnableAppArmor:           false,
 		EnableLynis:              false,
 		EnableUnattendedUpgrades: false,
 		EnableUfwSshPolicy:       false,
 		ConfigureDns:             false,
 		DisableRootSSH:           false,
-
-		// Localization
-		// Lang:             "en_US.UTF-8",
-		// Language:         "en_US:en",
-		// LcAll:            "en_US.UTF-8",
-		// Tz:               "America/New_York",
-		PythonUnbuffered: "1",
-
-		// Package configuration with common defaults
-		LinuxCorePackages:  []string{},
-		LinuxDmzPackages:   []string{},
-		LinuxLabPackages:   []string{},
-		AlpineCorePackages: []string{},
-		AlpineDmzPackages:  []string{},
-		AlpineLabPackages:  []string{},
-		// LinuxCorePackages:        []string{"apt-transport-https", "dstat", "gawk", "git", "jq", "htop", "iputils-clockdiff", "sed", "strace", "sudo", "sysstat"},
-		// LinuxDmzPackages:         []string{"dnsutils", "fail2ban", "nethogs"},
-		// LinuxLabPackages:         []string{"aria2", "arping", "fping", "iperf3", "lshw",  "mosh", "net-tools", "tree"},
-		// AlpineCorePackages:       []string{"bash", "openssh", "shadow", "sudo", "ca-certificates"},
-		// AlpineDmzPackages:        []string{"bind-tools", "fail2ban", "git", "htop", "jq", "sudo"},
-		// AlpineLabPackages:        []string{"iperf3", "mosh", "net-tools", "tree"},
 	}
 }
 
@@ -458,8 +406,7 @@ func CreateDefaultConfig(path string, config *Config) error {
 }
 
 // SaveConfig saves configuration to the specified file: the whole
-// configuration, but the retired keys at their defaults (retired.go), with
-// dryRun as loaded, never the session's mode (slice 2b
+// configuration, with dryRun as loaded, never the session's mode (slice 2b
 // decision 8), so that -n, --dry-run=false and a toggle inside the session
 // are never saved; only an edit of the file sets it.
 func SaveConfig(config *Config, filePath string) error {
@@ -471,13 +418,7 @@ func SaveConfig(config *Config, filePath string) error {
 		saved.LogFile = ""
 	}
 
-	// Marshal YAML, without the retired keys at their defaults (retired.go)
-	var n yaml.Node
-	if err := n.Encode(&saved); err != nil {
-		return fmt.Errorf("failed to marshal config to YAML: %w", err)
-	}
-	withoutRetired(&n, &saved)
-	data, err := yaml.Marshal(&n)
+	data, err := yaml.Marshal(&saved)
 	if err != nil {
 		return fmt.Errorf("failed to marshal config to YAML: %w", err)
 	}

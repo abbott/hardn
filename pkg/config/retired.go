@@ -1,67 +1,92 @@
 package config
 
 import (
-	"reflect"
 	"slices"
-	"strings"
 
 	"go.yaml.in/yaml/v3"
 )
 
-// retired are hardn.yml's keys that nothing in hardn reads since the legacy
-// package, sources and localization code went (refactor plan, the unit after
-// slice 9, part 1): the DMZ subnet, the package lists, the repositories,
-// useUvPackageManager and the locale settings. They still load, so that a
-// file that sets one is told so (Retired) rather than refused, and a save
-// writes one only where the file gave it a value other than the default
-// (SaveConfig).
-var retired = []string{
-	"dmzSubnet",
-	"linuxCorePackages", "linuxDmzPackages", "linuxLabPackages",
-	"pythonPackages", "nonWslPythonPackages", "pythonPipPackages",
-	"alpineCorePackages", "alpineDmzPackages", "alpineLabPackages", "alpinePythonPackages",
-	"debianRepos", "proxmoxSrcRepos", "proxmoxCephRepo", "proxmoxEnterpriseRepo",
-	"proxmoxPackagePatterns", "alpineTestingRepo",
-	"useUvPackageManager",
-	"lang", "language", "lcAll", "tz", "pythonUnbuffered",
+// retiredKind is how a retired key's value was read when Config had a
+// field for it, and so which value of it is the old default.
+type retiredKind int
+
+const (
+	retiredList retiredKind = iota // a list: the default none
+	retiredFlag                    // a bool: the default false
+	retiredText                    // a string: the default retiredKey.text
+)
+
+// retiredKey is a hardn.yml key nothing in hardn reads, and Config has no
+// field for, with the value its field defaulted to.
+type retiredKey struct {
+	name string
+	kind retiredKind
+	text string // retiredText's default
 }
 
-// Retired returns the keys of retired that c holds a value other than
-// DefaultConfig's for, in the configuration's order. An empty list and
-// none are the same value.
-func (c *Config) Retired() []string {
-	d := reflect.ValueOf(DefaultConfig()).Elem()
-	v := reflect.ValueOf(c).Elem()
-	var keys []string
-	t := v.Type()
-	for i := range t.NumField() {
-		name, _, _ := strings.Cut(t.Field(i).Tag.Get("yaml"), ",")
-		if slices.Contains(retired, name) && !sameValue(v.Field(i), d.Field(i)) {
-			keys = append(keys, name)
+// retired are hardn.yml's keys that nothing in hardn reads since the legacy
+// package, sources and localization code went (refactor plan, the unit
+// after slice 9): the DMZ subnet, the package lists, the repositories,
+// useUvPackageManager and the locale settings. Config has no field for
+// them (docs/engine/legacy-left.md §2, step 8). A file that sets one
+// still loads, and is told so (Retired); a save edits only the keys it
+// changes (Save, Edit), so the file keeps it.
+var retired = []retiredKey{
+	{name: "dmzSubnet", kind: retiredText},
+	{name: "linuxCorePackages"}, {name: "linuxDmzPackages"}, {name: "linuxLabPackages"},
+	{name: "pythonPackages"}, {name: "nonWslPythonPackages"}, {name: "pythonPipPackages"},
+	{name: "alpineCorePackages"}, {name: "alpineDmzPackages"}, {name: "alpineLabPackages"}, {name: "alpinePythonPackages"},
+	{name: "debianRepos"}, {name: "proxmoxSrcRepos"}, {name: "proxmoxCephRepo"}, {name: "proxmoxEnterpriseRepo"},
+	{name: "proxmoxPackagePatterns"}, {name: "alpineTestingRepo", kind: retiredFlag},
+	{name: "useUvPackageManager", kind: retiredFlag},
+	{name: "lang", kind: retiredText}, {name: "language", kind: retiredText}, {name: "lcAll", kind: retiredText},
+	{name: "tz", kind: retiredText}, {name: "pythonUnbuffered", kind: retiredText, text: "1"},
+}
+
+// Retired returns the keys of retired that the file c was read from sets
+// to a value other than the old default, in retired's order: what
+// UnmarshalYAML found in the file's own keys (readRetired). At the default,
+// as origin/main's SaveConfig wrote each into every file it saved, a key
+// is hardn's, not the file's, and is not returned.
+func (c *Config) Retired() []string { return slices.Clone(c.loaded.retired) }
+
+// readRetired records the keys of retired that m, hardn.yml's top-level
+// mapping, sets to a value other than the old default.
+func (c *Config) readRetired(m *yaml.Node) {
+	set := map[string]bool{}
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		if k := m.Content[i]; k.Kind == yaml.ScalarNode {
+			set[k.Value] = set[k.Value] || !atDefault(k.Value, m.Content[i+1])
 		}
 	}
-	return keys
+	for _, r := range retired {
+		if set[r.name] {
+			c.loaded.retired = append(c.loaded.retired, r.name)
+		}
+	}
 }
 
-// sameValue reports whether a and b are equal, an empty slice equal to nil.
-func sameValue(a, b reflect.Value) bool {
-	if a.Kind() == reflect.Slice && a.Len() == 0 && b.Len() == 0 {
+// atDefault reports whether v, the value of the key name, is that key's old
+// default; false for a key that is not retired. A null kept the default,
+// as it did when the key had a field; an empty list is none.
+func atDefault(name string, v *yaml.Node) bool {
+	i := slices.IndexFunc(retired, func(r retiredKey) bool { return r.name == name })
+	if i < 0 {
+		return false
+	}
+	for v.Kind == yaml.AliasNode && v.Alias != nil {
+		v = v.Alias
+	}
+	if v.Kind == yaml.ScalarNode && v.ShortTag() == "!!null" {
 		return true
 	}
-	return reflect.DeepEqual(a.Interface(), b.Interface())
-}
-
-// withoutRetired is n, a configuration's YAML mapping, without each key of
-// retired that c holds at its default (Retired): what SaveConfig writes.
-func withoutRetired(n *yaml.Node, c *Config) {
-	set := c.Retired()
-	var kept []*yaml.Node
-	for i := 0; i+1 < len(n.Content); i += 2 {
-		k := n.Content[i].Value
-		if slices.Contains(retired, k) && !slices.Contains(set, k) {
-			continue
-		}
-		kept = append(kept, n.Content[i], n.Content[i+1])
+	switch r := retired[i]; r.kind {
+	case retiredList:
+		return v.Kind == yaml.SequenceNode && len(v.Content) == 0
+	case retiredFlag:
+		var b bool
+		return v.Kind == yaml.ScalarNode && v.Decode(&b) == nil && !b
+	default:
+		return v.Kind == yaml.ScalarNode && v.Value == r.text
 	}
-	n.Content = kept
 }

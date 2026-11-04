@@ -41,7 +41,7 @@ func TestEdit(t *testing.T) {
 			want: "# hardn's configuration\nusername: alice    # the admin\n\n# SSH\nsshPort: 2230 # the port\n"},
 		{name: "double quotes kept", in: "username: \"alice\" # q\n", set: user, want: "username: \"bob\" # q\n"},
 		{name: "single quotes kept", in: "username: 'alice'\n", set: user, want: "username: 'bob'\n"},
-		{name: "plain to a value that needs quotes", in: "dmzSubnet: x\n", set: func(c *Config) { c.DmzSubnet = "" }, want: "dmzSubnet: \"\"\n"},
+		{name: "plain to a value that needs quotes", in: "username: x\n", set: func(c *Config) { c.Username = "" }, want: "username: \"\"\n"},
 		{name: "a key quoted, a tab after the colon", in: "\"username\":\talice\n", set: user, want: "\"username\":\tbob\n"},
 		{name: "characters before the value", in: "lang: \"ключ\"\nusername: alice # é\n", set: user, want: "lang: \"ключ\"\nusername: bob # é\n"},
 		{name: "a quoted value over two lines", in: "username: \"alice\n  # smith\" # c\nsshPort: 22\n", set: user, want: "username: \"bob\" # c\nsshPort: 22\n"},
@@ -326,7 +326,7 @@ func TestEditKeepsTheRest(t *testing.T) {
 	const file = "# hardn's configuration (web-01.example.net)\n\n" +
 		"# Who\nusername: \"alice\"   # the admin\nsshAllowedUsers:   # who may log in\n  - alice # first\n  # bob is new\n  - bob\n\n" +
 		"# DNS\nnameservers:\n  # ours, see the runbook\n  - \"192.0.2.54\" # ours\n  - \"2001:db8::54\"\n  # - 192.0.2.52\n" +
-		"sshPort: 22   # SSH\n                # a second line\ndmzSubnet: '192.0.2'\nenableLynis: false # audit\n# Time\ntz: \"UTC\"\n# the end\n"
+		"sshPort: 22   # SSH\n                # a second line\nbackupPath: '/srv/backups'\nenableLynis: false # audit\n# Time\ntz: \"UTC\"\n# the end\n"
 	pool := []string{"192.0.2.54", "2001:db8::54", "192.0.2.53", "192.0.2.52", "1.1.1.1"}
 	users := []string{"alice", "bob", "george"}
 	r := rand.New(rand.NewPCG(1, 2))
@@ -340,7 +340,7 @@ func TestEditKeepsTheRest(t *testing.T) {
 	// a block list's first item's to its last's (its key's line and the
 	// comments before its first item stay).
 	spans := map[string][2]int{"username": {3, 3}, "sshAllowedUsers": {5, 7}, "nameservers": {12, 13}, "sshPort": {15, 15},
-		"dmzSubnet": {17, 17}, "enableLynis": {18, 18}, "tz": {20, 20}}
+		"backupPath": {17, 17}, "enableLynis": {18, 18}, "tz": {20, 20}}
 	for i := range 300 {
 		c := load(t, file)
 		changed := map[string]bool{}
@@ -357,7 +357,7 @@ func TestEditKeepsTheRest(t *testing.T) {
 			c.SshPort, changed["sshPort"] = 2230, true
 		}
 		if r.IntN(3) == 0 {
-			c.DmzSubnet, changed["dmzSubnet"] = "192.0.2.128", true
+			c.BackupPath, changed["backupPath"] = "/srv/backups/hardn", true
 		}
 		if r.IntN(3) == 0 {
 			c.EnableLynis, changed["enableLynis"] = true, true
@@ -370,8 +370,8 @@ func TestEditKeepsTheRest(t *testing.T) {
 			t.Fatalf("run %d: %v", i, err)
 		}
 		back := load(t, string(got))
-		if fmt.Sprint(back.Username, back.SshAllowedUsers, back.Nameservers, back.SshPort, back.DmzSubnet, back.EnableLynis, back.ConfirmTimeout, back.Tz) !=
-			fmt.Sprint(c.Username, c.SshAllowedUsers, c.Nameservers, c.SshPort, c.DmzSubnet, c.EnableLynis, c.ConfirmTimeout, c.Tz) {
+		if fmt.Sprint(back.Username, back.SshAllowedUsers, back.Nameservers, back.SshPort, back.BackupPath, back.EnableLynis, back.ConfirmTimeout) !=
+			fmt.Sprint(c.Username, c.SshAllowedUsers, c.Nameservers, c.SshPort, c.BackupPath, c.EnableLynis, c.ConfirmTimeout) {
 			t.Fatalf("run %d: read back %+v, want %+v:\n%s", i, back, c, got)
 		}
 		var keep []string
@@ -439,7 +439,7 @@ func FuzzEdit(f *testing.F) {
 		case 5:
 			c.UfwAppProfiles = append(c.UfwAppProfiles, UfwAppProfile{Name: "ssh", Ports: []string{"2230/tcp"}})
 		case 6:
-			c.ConfirmTimeout, c.Tz = "3m", "UTC"
+			c.ConfirmTimeout = "3m"
 		case 7:
 			if len(c.Nameservers) > 0 {
 				c.Nameservers = c.Nameservers[1:]
