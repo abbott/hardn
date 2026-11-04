@@ -137,7 +137,7 @@ Synthetic hosts, each row's state as its check would report it; uptime 3 days an
 | bob's `ALL=(ALL:ALL) NOPASSWD: ALL` in `/etc/sudoers.d/10-bob`, then hardn's own `bob ALL=(ALL) ALL` (`USERS_NOPASSWD`: the first still decides `sudo -u root -g bob`) | 100 | 5 | 95 | Low; *User*: "- No password to become root" (`TestUsersFromTheCheck`) |
 | a container: AppArmor Not Applicable, the rest Configured | 90 of 90 | 0 | 100 | Minimal |
 | the same, SSH on 22 | 85 of 90 | 0 | 94.4 | Low (Not Applicable raises the other rows' share) |
-| a Proxmox VE node: root only, pve-firewall disabled, root key-only (Proxmox), key-only auth, port 22 (its baseline), AppArmor enforcing, no unattended-upgrades; up 41 days | 0 + 0 + 15 + 20 + 5 + 10 + 0 = 50 | 10 | 40 | High; *Auto Updates*: "- Up 41 days, no updates" |
+| a Proxmox VE node: root only, pve-firewall disabled, root key-only (Proxmox), key-only auth, port 22 (its baseline), AppArmor enforcing, no unattended-upgrades; up 41 days | 0 + 0 + 15 + 20 + 5 + 10 + 0 = 50 | 10 | 40 | High; *Auto Updates*: "- Up 41 days, no updates". **Since slice 7 decision 7 no node reports this**: Auto Updates is Not Applicable on Proxmox VE ("updated by hand"), so the same node earns 50 of 90, costs nothing and scores 55.6, Moderate, with no line; the row is kept as `TestAssess` pins it, a report given, not read. The gallery's `pve9` scores 18.8 for the same reason (5 before; [gallery-status.md](gallery-status.md) §5) |
 | SSH Auth "password auth on", Firewall "inactive", AppArmor and Auto Updates Not Configured | 10 + 15 + 5 = 30 | 0 | 30 | High ≈ weak security |
 | nothing configured | 0 | 0 | 0 | Critical ≈ no security |
 | SSH Port Unknown, the rest Configured | 95 | 0 | 95 | Low; *SSH Port*: "- Counted as not configured" |
