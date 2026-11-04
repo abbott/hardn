@@ -26,8 +26,7 @@ func TestHostInfoGolden(t *testing.T) {
 }
 
 // TestHostInfoGoldenThroughSystem is TestHostInfoGolden through the legacy
-// interfaces' adapters over host.System; compare-only, as
-// TestOperationGoldensThroughSystem.
+// interfaces' adapters over host.System; compare-only.
 func TestHostInfoGoldenThroughSystem(t *testing.T) {
 	if *update {
 		t.Skip("compare-only; -update regenerates the golden through TestHostInfoGolden")
