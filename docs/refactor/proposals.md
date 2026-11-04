@@ -40,7 +40,7 @@
 | [P-13](#p-13) | "Sudo Method" row; "Users" vs "User" | plan §5.6 | Main menu | S | Low | decided (2026-11-03): (a) |
 | [P-14](#p-14) | Reachable risk bands, with factors shown | plan §5.7 | RiskSummary; Phase 4 | S | Low | proposed; the factors' place decided (2026-10-21), see P-06 |
 | [P-15](#p-15) | Update checker: opt-in and non-blocking | plan §5.8 | Startup; Phase 3 | M | Low | proposed |
-| [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, no screen; UFW install decided (2026-11-01): restored through the plan, never on Proxmox VE |
+| [P-16](#p-16) | Restore UFW install; add AppArmor and Auto Updates screens | plan §5.9 (brief §7.1) | Firewall, AppArmor, Updates; slices 4, 7 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, no screen; UFW install decided (2026-11-01): restored through the plan, never on Proxmox VE; Auto Updates decided (2026-11-03): a screen, both directions, never on Proxmox VE |
 | [P-17](#p-17) | System Details content | plan §5.10 | System Details; slice 1 | M | Low | proposed |
 | [P-18](#p-18) | Logs via `$PAGER` or a tail, from the file hardn writes | plan §5.11 | Logs; slice 1 | S | Low | proposed |
 | [P-19](#p-19) | Backups: a restore UI | plan §5.12 | Backup; slice 3 | L | Medium | decided (2026-10-27): Backup Runs, read only, in slice 3; the restore a later unit |
@@ -67,7 +67,7 @@
 | [P-40](#p-40) | The clean-up after a confirmation: who removes the held port and its ufw rule | `next/p3-engine` | Confirm-or-revert; Phase 3 | M | Medium | decided (2026-10-19): `hardn confirm`; implemented, `next/p3-confirm-cleanup` |
 | [P-41](#p-41) | Changes on best-effort releases | `next/p3-engine` | Every change; Phase 3 | S | Low | decided (2026-10-19): changed, with a warning in the plan; implemented, `next/p3-confirm-cleanup` |
 | [P-42](#p-42) | Figma's row grammar for the apply's steps, the rolled-back lines, messages and the countdown | `next/p3-gallery-engine` (review) | StepProgress, ErrorReport, Message, ConfirmCountdown; Phase 3 | M | Low | decided (2026-10-22): status markers, aligned column; inline results ⨳, ASCII `(x)`; implemented, `next/s2-row-grammar` |
-| [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, its status lines and risk; implemented, `next/p4-check-apparmor` |
+| [P-43](#p-43) | Turning AppArmor and Auto Updates off | the maintainer (2026-10-20) | AppArmor, Auto Updates; slice 7, Phase 4 | L | Medium | proposed; AppArmor decided (2026-10-20): status only in v0.4, its status lines and risk; implemented, `next/p4-check-apparmor`; Auto Updates decided (2026-11-03): decisions 1 (a), 3 (purge only as recorded), 4 (a), 5 (a) |
 | [P-44](#p-44) | Warn on no updates since boot, not on Auto Updates off | the maintainer (2026-10-21) | Risk level, Auto Updates; Phase 4 | M | Low | deferred (2026-10-21): research later; the trigger stays |
 
 ---
@@ -340,6 +340,7 @@
   - Before: n/a (no screen exists).
   - After: `docs/refactor/img/p-16-after-*.png` (placeholders; inferred screens, labelled as such in the gallery).
 - **Slice 4:** the UFW install is drawn and adopted: [gallery-firewall.md](../engine/gallery-firewall.md) §5, decision 1.
+- **Slice 7:** the Auto Updates screen is mocked for review: [gallery-updates.md](../engine/gallery-updates.md) §4. **Decided** (maintainer, 2026-11-03, "Adopt all, start (b)"): the Auto Updates screen, its one item both ways, main menu key 6; never on Proxmox VE. Lynis stays proposed.
 
 <a id="p-43"></a>
 ### P-43: Turning AppArmor and Auto Updates off
@@ -401,6 +402,7 @@
     - **`next/p2-alpine`** keeps its on and its `Rollback`; slice 7 adds the off planner beside them and fills the record from the plan's `From` and `Changes`, all of which have run once `Apply` returns nil (`steps.Alpine` discards `alpine.Result`) [V, `next/p3-gallery-engine` `pkg/engine/steps/plans.go:157`; [alpine.md](../safety/alpine.md) §2.9].
     - **From the engine:** only the direction, in `Input` (decision 1); the record is an ordinary change [I].
     - **Noted for slice 7's on, outside this entry:** on a host using cronie or dcron, Alpine's on would enable busybox crond too, running the periodic jobs twice [I]; Debian's default origins take stable point releases as well as security updates, against brief 2.5's "just security ones" [V, unattended-upgrades `debian/NEWS` 0.99].
+- **Slice 7:** decisions 1, 3, 4 and 5 (Auto Updates halves) are mocked for review, as decisions 2, 5, 6 and 7 there: [gallery-updates.md](../engine/gallery-updates.md) §4. **Decided** (maintainer, 2026-11-03, "Adopt all, start (b)"): 1 (a), off a screen action only, saving the key as false; 3, the package purged only where its files were absent before hardn's install and still hold the recorded bytes, otherwise removed, its files kept; 4 (a); 5 (a), Auto Updates not offered on Proxmox VE, its row Not Applicable; the record of (4) as gallery-updates.md decision 4 (a). AppArmor's halves wait for a later release.
 - **Effort:** L [I]: a Debian/Ubuntu updates control from scratch, the off planners, the record, the Phase 4 details, and VM steps per OS.
 - **Risk:** Medium [I]. Off removes packages and stops services; a drift check that misreads the host could undo an administrator's change, so every unclear case refuses. Nothing here can lock a user out (brief 2.4), but turning updates off lowers the host's protection, by the user's choice.
 - **Screenshots** (captures wait on freeze, [above](#how-to-read-an-entry)):

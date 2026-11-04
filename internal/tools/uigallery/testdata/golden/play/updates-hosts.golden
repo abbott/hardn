@@ -1,0 +1,325 @@
+# Golden file of TestPlayUpdatesGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for slice␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m7, drawn from what real code reads of a simulated host (the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuto Updates check, apt-config, dpkg, systemctl,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as built,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe rest of each direction and the record the gallery's stand-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mins, unit (b)'s to build. Nothing on this machine changes:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mevery command and file is the fake's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m            ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m         ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDebian installer␛[m     ␛[38;2;129;134;156mNo package␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mDebian, off␛[m          ␛[38;2;129;134;156m20auto-upgrades says 0␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLists not refreshed␛[m  ␛[38;2;129;134;156mPartial␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTimer off␛[m            ␛[38;2;129;134;156mRefused␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mOn by hardn, Debian␛[m  ␛[38;2;129;134;156mA record␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mOn by hardn, Alpine␛[m  ␛[38;2;129;134;156mA record␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdited since␛[m         ␛[38;2;129;134;156mRefused, named␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m         ␛[38;2;129;134;156mcrond kept␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m  ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m           ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m ␛[38;2;129;134;156mapk-upgrade␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mNot offered␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m             ␛[38;2;129;134;156mapt-config fails␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 9$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/by-hardn-alpine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323 after␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's Enable: apk-cron, crond at boot and running, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrecord. Disable stops crond, takes it out of the runlevel and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mremoves apk-cron.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mapk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mapk-cron␛[m             ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m1.0-r3␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDaily Script␛[m         ␛[38;2;129;134;156mIn place␛[m ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m                ␛[38;2;129;134;156mRunning␛[m ␛[38;2;129;134;156mstarts at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m         ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-10-20␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
+      ␛[38;2;129;134;156mUndo hardn's changes␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m            ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m         ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDebian installer␛[m     ␛[38;2;129;134;156mNo package␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mDebian, off␛[m          ␛[38;2;129;134;156m20auto-upgrades says 0␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLists not refreshed␛[m  ␛[38;2;129;134;156mPartial␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTimer off␛[m            ␛[38;2;129;134;156mRefused␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mOn by hardn, Debian␛[m  ␛[38;2;129;134;156mA record␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mOn by hardn, Alpine␛[m  ␛[38;2;129;134;156mA record␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdited since␛[m         ␛[38;2;129;134;156mRefused, named␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m         ␛[38;2;129;134;156mcrond kept␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m  ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m           ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m ␛[38;2;129;134;156mapk-upgrade␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mNot offered␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m             ␛[38;2;129;134;156mapt-config fails␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# play updates -------------------------------------------------$
+$
+# Note$
+# Play mode, mocks: the Auto Updates screen proposed for slice$
+# 7, drawn from what real code reads of a simulated host (the$
+# Auto Updates check, apt-config, dpkg, systemctl,$
+# alpine.ReadUpdates), each change on the real plan/apply$
+# engine: alpine.PlanUpdates and packages.PlanInstall as built,$
+# the rest of each direction and the record the gallery's stand-$
+# ins, unit (b)'s to build. Nothing on this machine changes:$
+# every command and file is the fake's.$
+$
+# Auto Updates hosts ###########################################$
+$
+  Select a host$
+$
+   1) Debian 13            The VM's shape$
+   2) Ubuntu 26.04         The VM's shape$
+   3) Alpine 3.23          The VM's shape$
+   4) Debian installer     No package$
+   5) Debian, off          20auto-upgrades says 0$
+   6) Lists not refreshed  Partial$
+   7) Timer off            Refused$
+   8) On by hardn, Debian  A record$
+   9) On by hardn, Alpine  A record$
+  10) Edited since         Refused, named$
+  11) crond shared         crond kept$
+  12) Jobs, crond stopped  Also starts$
+  13) Files left           Removed earlier$
+  14) origin/main's script apk-upgrade$
+  15) Proxmox VE 9         Not offered$
+  16) Not read             apt-config fails$
+$
+   0) Return$
+$
+  > Enter your choice [0-16 or q]: 9$
+$
+# Info: updates/by-hardn-alpine$
+# web-01.example.net runs Alpine 3.23 (OpenRC). alpine323 after$
+# hardn's Enable: apk-cron, crond at boot and running, the$
+# record. Disable stops crond, takes it out of the runlevel and$
+# removes apk-cron.$
+$
+# Auto Updates #################################################$
+$
+  [+] Auto Updates         Configured apk-cron$
+$
+# Update Configuration -----------------------------------------$
+$
+   -  apk-cron             Installed 1.0-r3$
+   -  Daily Script         In place /etc/periodic/daily/apk$
+   -  crond                Running starts at boot$
+   -  Turned on by         hardn record of 2026-10-20$
+$
+  Select an option$
+$
+   1) Disable automatic updates$
+      Undo hardn's changes$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]: 0$
+$
+# Auto Updates hosts ###########################################$
+$
+  Select a host$
+$
+   1) Debian 13            The VM's shape$
+   2) Ubuntu 26.04         The VM's shape$
+   3) Alpine 3.23          The VM's shape$
+   4) Debian installer     No package$
+   5) Debian, off          20auto-upgrades says 0$
+   6) Lists not refreshed  Partial$
+   7) Timer off            Refused$
+   8) On by hardn, Debian  A record$
+   9) On by hardn, Alpine  A record$
+  10) Edited since         Refused, named$
+  11) crond shared         crond kept$
+  12) Jobs, crond stopped  Also starts$
+  13) Files left           Removed earlier$
+  14) origin/main's script apk-upgrade$
+  15) Proxmox VE 9         Not offered$
+  16) Not read             apt-config fails$
+$
+   0) Return$
+$
+  > Enter your choice [0-16 or q]: 0$
+$
+# simulated system ---------------------------------------------$
+$
+# Note$
+# Nothing was applied.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode, mocks: the Auto Updates screen proposed for␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mslice 7, drawn from what real code reads of a simulated␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost (the Auto Updates check, apt-config, dpkg, systemctl,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malpine.ReadUpdates), each change on the real plan/apply␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mengine: alpine.PlanUpdates and packages.PlanInstall as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbuilt, the rest of each direction and the record the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgallery's stand-ins, unit (b)'s to build. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes: every command and file is the fake's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDebian installer␛[m$
+      ␛[38;2;129;134;156mNo package␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mDebian, off␛[m$
+      ␛[38;2;129;134;156m20auto-upgrades says 0␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLists not refreshed␛[m$
+      ␛[38;2;129;134;156mPartial␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTimer off␛[m$
+      ␛[38;2;129;134;156mRefused␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mOn by hardn, Debian␛[m$
+      ␛[38;2;129;134;156mA record␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mOn by hardn, Alpine␛[m$
+      ␛[38;2;129;134;156mA record␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdited since␛[m$
+      ␛[38;2;129;134;156mRefused, named␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m$
+      ␛[38;2;129;134;156mcrond kept␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m$
+      ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m$
+      ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m$
+      ␛[38;2;129;134;156mapk-upgrade␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mNot offered␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m$
+      ␛[38;2;129;134;156mapt-config fails␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 9$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/by-hardn-alpine␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). alpine323␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mafter hardn's Enable: apk-cron, crond at boot and running,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe record. Disable stops crond, takes it out of the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrunlevel and removes apk-cron.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mapk-cron␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mapk-cron␛[m$
+      ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m1.0-r3␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDaily Script␛[m$
+      ␛[38;2;129;134;156mIn place␛[m ␛[38;2;129;134;156m/etc/periodic/daily/apk␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcrond␛[m$
+      ␛[38;2;129;134;156mRunning␛[m ␛[38;2;129;134;156mstarts at boot␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m$
+      ␛[38;2;129;134;156mhardn␛[m ␛[38;2;129;134;156mrecord of 2026-10-20␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable automatic updates␛[m$
+      ␛[38;2;129;134;156mUndo hardn's changes␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates hosts␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mh␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4ms␛[m␛[4;38;2;129;134;156;4mt␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDebian 13␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mUbuntu 26.04␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+      ␛[38;2;129;134;156mThe VM's shape␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDebian installer␛[m$
+      ␛[38;2;129;134;156mNo package␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mDebian, off␛[m$
+      ␛[38;2;129;134;156m20auto-upgrades says 0␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLists not refreshed␛[m$
+      ␛[38;2;129;134;156mPartial␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTimer off␛[m$
+      ␛[38;2;129;134;156mRefused␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mOn by hardn, Debian␛[m$
+      ␛[38;2;129;134;156mA record␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mOn by hardn, Alpine␛[m$
+      ␛[38;2;129;134;156mA record␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mEdited since␛[m$
+      ␛[38;2;129;134;156mRefused, named␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcrond shared␛[m$
+      ␛[38;2;129;134;156mcrond kept␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mJobs, crond stopped␛[m$
+      ␛[38;2;129;134;156mAlso starts␛[m$
+  ␛[1;38;2;192;196;216m13)␛[m ␛[38;2;192;196;216mFiles left␛[m$
+      ␛[38;2;129;134;156mRemoved earlier␛[m$
+  ␛[1;38;2;192;196;216m14)␛[m ␛[38;2;192;196;216morigin/main's script␛[m$
+      ␛[38;2;129;134;156mapk-upgrade␛[m$
+  ␛[1;38;2;192;196;216m15)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
+      ␛[38;2;129;134;156mNot offered␛[m$
+  ␛[1;38;2;192;196;216m16)␛[m ␛[38;2;192;196;216mNot read␛[m$
+      ␛[38;2;129;134;156mapt-config fails␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-16 or q]:␛[m 0$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
+$

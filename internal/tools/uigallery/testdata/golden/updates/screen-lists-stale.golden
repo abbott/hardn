@@ -1,0 +1,138 @@
+# Golden file of TestUpdatesGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates screen-lists-stale␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. 20auto-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mupgrades turns upgrades on and the list refresh off. Enable␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites Update-Package-Lists alone.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mlists not refreshed␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 20auto-upgrades␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mOff␛[m ␛[38;2;231;70;105mby 20auto-upgrades␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m          ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m         ␛[38;2;129;134;156mNot hardn␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
+      ␛[38;2;129;134;156mDaily, by unattended-upgrades␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# updates screen-lists-stale -----------------------------------$
+$
+# Note$
+# Mock: Auto Updates. web-01.example.net runs Debian 13. 20auto-$
+# upgrades turns upgrades on and the list refresh off. Enable$
+# writes Update-Package-Lists alone.$
+$
+# Auto Updates #################################################$
+$
+  [ ] Auto Updates         Partial lists not refreshed$
+$
+# Update Configuration -----------------------------------------$
+$
+   -  unattended-upgrades  Installed 2.12$
+   -  Upgrades             Daily by 20auto-upgrades$
+  [ ] Package Lists        Off by 20auto-upgrades$
+   -  Upgrade Timer        On apt-daily-upgrade.timer$
+   -  Lists Timer          On apt-daily.timer$
+   -  Turned on by         Not hardn$
+$
+  Select an option$
+$
+   1) Enable automatic updates$
+      Daily, by unattended-upgrades$
+$
+   0) Return$
+$
+  > Enter your choice [0-1 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mupdates screen-lists-stale␛[m ␛[38;2;48;52;64m───────────────────────────────␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m20auto-upgrades turns upgrades on and the list refresh␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156moff. Enable writes Update-Package-Lists alone.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mlists not refreshed␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m$
+      ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
+      ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 20auto-upgrades␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mPackage Lists␛[m$
+      ␛[38;2;129;134;156mOff␛[m ␛[38;2;231;70;105mby 20auto-upgrades␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m$
+      ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m$
+      ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m$
+      ␛[38;2;129;134;156mNot hardn␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
+      ␛[38;2;129;134;156mDaily, by unattended-upgrades␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mupdates screen-lists-stale␛[m ␛[38;2;48;52;64m-----------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMock: Auto Updates. web-01.example.net runs Debian 13. 20auto-␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mupgrades turns upgrades on and the list refresh off. Enable␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwrites Update-Package-Lists alone.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mlists not refreshed␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216munattended-upgrades␛[m  ␛[38;2;129;134;156mInstalled␛[m ␛[38;2;129;134;156m2.12␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mDaily␛[m ␛[38;2;129;134;156mby 20auto-upgrades␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mOff␛[m ␛[38;2;231;70;105mby 20auto-upgrades␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUpgrade Timer␛[m        ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLists Timer␛[m          ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156mapt-daily.timer␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTurned on by␛[m         ␛[38;2;129;134;156mNot hardn␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable automatic updates␛[m$
+      ␛[38;2;129;134;156mDaily, by unattended-upgrades␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+  ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
