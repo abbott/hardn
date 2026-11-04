@@ -60,31 +60,9 @@ type loaded struct {
 	resolved bool
 }
 
-// prohibitPasswordApplied: DISABLED 2026-10-17. Flip to true once the SSH
-// code hardn runs applies Config.RootLogin() (p3-engine, with p2-pve). The
-// legacy SSH writers this binary still runs (cmd/hardn's ConfigureSSH,
-// through FileSSHRepository) read the PermitRootLogin bool and write
-// "PermitRootLogin no" for prohibit-password: on a Proxmox VE host where
-// root's key is the only login, that ends it (R15). Until then LoadConfig
-// refuses the value, as it did when the key was a bool; the YAML decoding
-// (UnmarshalYAML) reads it.
-const prohibitPasswordApplied = false
-
-// ErrRootLoginNotApplied: the configuration says prohibit-password, which
-// the SSH code of this build would apply as "no" (prohibitPasswordApplied).
-var ErrRootLoginNotApplied = errors.New(`permitRootLogin "prohibit-password" is not applied by this build's SSH code, which would write PermitRootLogin no; write "no" or "yes"`)
-
 // ErrNotLoaded: the Config was not loaded from a file whose absolute path
 // is known, so Save has nowhere to write (§3.19: the loaded path).
 var ErrNotLoaded = errors.New("the configuration was not loaded from a file")
-
-// checkLoaded refuses a value the legacy code would apply as another.
-func checkLoaded(c *Config) error {
-	if !prohibitPasswordApplied && c.RootLogin() == RootLoginProhibitPassword {
-		return ErrRootLoginNotApplied
-	}
-	return nil
-}
 
 // setPath records name, made absolute, as where c was loaded from; a name
 // that cannot be made absolute records none, so Save refuses.
@@ -109,10 +87,9 @@ type plain Config
 // still the old bool (true or false, or one of YAML 1.1's spellings of it
 // that a bool field accepted, such as on, off, Yes), which reads as "yes"
 // or "no" and records a Deprecation. Any other value is the error the bool
-// field gave. PermitRootLogin, the bool legacy code reads, is true exactly
-// for "yes", so legacy code would write PermitRootLogin no for
-// prohibit-password: LoadConfig refuses that value until the SSH code
-// applies it (prohibitPasswordApplied).
+// field gave. PermitRootLogin is true exactly for "yes". Nothing applies
+// the value (the legacy-left unit's decision 6 (a), adopted 2026-11-04):
+// any but "no" warns that it isn't used (cmd/hardn), prohibit-password too.
 func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 	c.loaded = loaded{}
 	var errs []string

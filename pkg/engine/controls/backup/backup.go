@@ -222,7 +222,7 @@ func (Settings) Plan(ctx context.Context, sys host.System, in engine.Input) ([]e
 	if cfg != nil && cfg.Path() != "" {
 		saved, err := config.Read(ctx, sys, cfg.Path())
 		switch {
-		case errors.Is(err, fs.ErrNotExist), errors.Is(err, config.ErrInvalidFile), errors.Is(err, config.ErrRootLoginNotApplied):
+		case errors.Is(err, fs.ErrNotExist), errors.Is(err, config.ErrInvalidFile):
 			return nil, steps.Changed(cfg.Path(), err)
 		case err != nil:
 			return nil, fmt.Errorf("backup: hardn.yml: %w", err)

@@ -349,7 +349,8 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 // TestUnusedKeysWarning: where hardn.yml loads, each key nothing reads
 // warns once, in slice 6's decision 9 (a) and slice 8's decision 4 (a)
 // words, where its value is not config.DefaultConfig's: permitRootLogin,
-// as RootLogin reads it ("yes", or the deprecated true, whose deprecation
+// as RootLogin reads it ("yes", prohibit-password, which loads since the
+// legacy-left unit's decision 6 (a), or the deprecated true, whose deprecation
 // is said once beside it; false and "no", the default, only the
 // deprecation or nothing), sshAllowedUsers, sshListenAddress, sshKeyPath,
 // ufwAllowedPorts, enableAppArmor and enableLynis; set to the default, as
@@ -371,6 +372,7 @@ func TestUnusedKeysWarning(t *testing.T) {
 			"disableRootSSH: false\nsshKeyPath: .ssh_%u\nsshPort: 22\nsshConfigFile: /etc/ssh/sshd_config.d/hardn.conf\n" +
 			"ufwAllowedPorts: []\nenableAppArmor: false\nenableLynis: false\n", nil, false},
 		{"permitRootLogin yes", "username: alice\npermitRootLogin: \"yes\"\n", []string{"permitRootLogin"}, false},
+		{"permitRootLogin prohibit-password, loaded (decision 6 (a))", "username: alice\npermitRootLogin: prohibit-password\n", []string{"permitRootLogin"}, false},
 		{"permitRootLogin true, deprecated", "username: alice\npermitRootLogin: true\n", []string{"permitRootLogin"}, true},
 		{"permitRootLogin false, deprecated", "username: alice\npermitRootLogin: false\n", nil, true},
 		{"sshAllowedUsers", "username: alice\nsshAllowedUsers:\n  - george\n", []string{"sshAllowedUsers"}, false},

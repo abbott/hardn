@@ -304,9 +304,6 @@ func readConfigFile(path string) (*Config, error) {
 	if err := yaml.Unmarshal(data, config); err != nil {
 		return nil, fmt.Errorf("failed to parse YAML in config file %s: %w", path, err)
 	}
-	if err := checkLoaded(config); err != nil {
-		return nil, fmt.Errorf("config file %s: %w", path, err)
-	}
 	config.setLoaded(path, data)
 
 	return config, nil
