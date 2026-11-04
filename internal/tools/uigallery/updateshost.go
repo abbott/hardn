@@ -346,8 +346,12 @@ func aptDump(ctx context.Context, sys host.System, roots []string) (string, erro
 
 // updApt returns a Debian-family host: unattended-upgrades installed with
 // 20auto-upgrades as auto, or not installed where auto is "".
-func updApt(p platform, auto string) *fakeHost {
-	h := statusOn(p)
+func updApt(p platform, auto string) *fakeHost { return withApt(statusOn(p), auto) }
+
+// withApt gives h, a status host of a Debian-family release, the updates'
+// model as updApt describes it.
+func withApt(h *fakeHost, auto string) *fakeHost {
+	p := h.platform
 	h.upd = &updSim{}
 	h.f.AddDir(aptConfDir, 0o755, 0, 0)
 	if p.socket {
@@ -365,8 +369,11 @@ func updApt(p platform, auto string) *fakeHost {
 // updAlpine returns Alpine 3.23 as the VM: apk-cron not installed,
 // /etc/periodic's directories empty, root's stock crontab, crond in no
 // runlevel and stopped.
-func updAlpine() *fakeHost {
-	h := statusOn(alpine323Platform)
+func updAlpine() *fakeHost { return withApk(statusOn(alpine323Platform)) }
+
+// withApk gives h, a status host of Alpine, the updates' model as
+// updAlpine describes it.
+func withApk(h *fakeHost) *fakeHost {
 	h.upd = &updSim{}
 	for _, d := range []string{"15min", "hourly", "daily", "weekly", "monthly"} {
 		h.f.AddDir("/etc/periodic/"+d, 0o755, 0, 0)
