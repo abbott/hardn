@@ -19,8 +19,6 @@ type ServiceFactory struct {
 	config   *config.Config
 	// Cache for repositories to avoid creating multiple instances
 	userRepository portsecondary.UserRepository
-	// One Proxmox VE check, shared by the SSH and UFW repositories
-	proxmoxHost *secondary.ProxmoxHost
 }
 
 // NewServiceFactory creates a new ServiceFactory
@@ -34,22 +32,6 @@ func NewServiceFactory(provider *interfaces.Provider, osInfo *osdetect.OSInfo) *
 // SetConfig sets the configuration
 func (f *ServiceFactory) SetConfig(config *config.Config) {
 	f.config = config
-}
-
-// getProxmoxHost returns or creates the host's Proxmox VE check
-func (f *ServiceFactory) getProxmoxHost() *secondary.ProxmoxHost {
-	if f.proxmoxHost == nil {
-		f.proxmoxHost = secondary.NewProxmoxHost(f.provider.FS, f.provider.Commander, f.osInfo.OsType, f.osInfo.IsProxmox)
-	}
-	return f.proxmoxHost
-}
-
-// IsProxmoxHost reports whether the host is Proxmox VE by the check the
-// SSH and UFW repositories share, so a caller can say what they did there:
-// root login set to key-only rather than off, and UFW refused. It is false
-// while pkg/adapter/secondary's proxmoxTreatedAsDebian is set.
-func (f *ServiceFactory) IsProxmoxHost() bool {
-	return f.getProxmoxHost().IsProxmox()
 }
 
 // getUserRepository returns or creates a UserRepository
@@ -75,30 +57,6 @@ func (f *ServiceFactory) CreateHostInfoManager() *application.HostInfoManager {
 	return application.NewHostInfoManager(hostInfoService)
 }
 
-// CreateUserManager creates a UserManager with all required dependencies
-func (f *ServiceFactory) CreateUserManager() *application.UserManager {
-	// Get the shared user repository
-	userRepo := f.getUserRepository()
-
-	// Create domain service
-	userService := service.NewUserServiceImpl(userRepo)
-
-	// Create application service
-	return application.NewUserManager(userService)
-}
-
-// CreateSSHManager creates an SSHManager with all required dependencies
-func (f *ServiceFactory) CreateSSHManager() *application.SSHManager {
-	// Create repository
-	sshRepo := secondary.NewFileSSHRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType, f.getProxmoxHost())
-
-	// Create domain service
-	sshService := service.NewSSHServiceImpl(sshRepo, convertOSInfo(f.osInfo))
-
-	// Create application service
-	return application.NewSSHManager(sshService)
-}
-
 // Helper to convert osdetect.OSInfo to domain model.OSInfo
 func convertOSInfo(info *osdetect.OSInfo) model.OSInfo {
 	return model.OSInfo{
@@ -107,30 +65,6 @@ func convertOSInfo(info *osdetect.OSInfo) model.OSInfo {
 		Version:   info.OsVersion,
 		IsProxmox: info.IsProxmox,
 	}
-}
-
-// CreateFirewallManager creates a FirewallManager
-func (f *ServiceFactory) CreateFirewallManager() *application.FirewallManager {
-	// Create repository
-	firewallRepo := secondary.NewUFWFirewallRepository(f.provider.FS, f.provider.Commander, f.getProxmoxHost())
-
-	// Create domain service
-	firewallService := service.NewFirewallServiceImpl(firewallRepo, convertOSInfo(f.osInfo))
-
-	// Create application service
-	return application.NewFirewallManager(firewallService)
-}
-
-// CreateDNSManager creates a DNSManager
-func (f *ServiceFactory) CreateDNSManager() *application.DNSManager {
-	// Create repository
-	dnsRepo := secondary.NewFileDNSRepository(f.provider.FS, f.provider.Commander, f.osInfo.OsType)
-
-	// Create domain service
-	dnsService := service.NewDNSServiceImpl(dnsRepo, convertOSInfo(f.osInfo))
-
-	// Create application service
-	return application.NewDNSManager(dnsService)
 }
 
 // CreatePackageManager creates a PackageManager
@@ -186,24 +120,4 @@ func (f *ServiceFactory) CreatePackageManager() *application.PackageManager {
 		f.provider.Network,
 		f.config.DmzSubnet,
 	)
-}
-
-// CreateMenuManager creates a MenuManager with all required dependencies
-func (f *ServiceFactory) CreateMenuManager() *application.MenuManager {
-	userManager := f.CreateUserManager()
-	sshManager := f.CreateSSHManager()
-	firewallManager := f.CreateFirewallManager()
-	dnsManager := f.CreateDNSManager()
-	packageManager := f.CreatePackageManager()
-	hostInfoManager := f.CreateHostInfoManager()
-	securityManager := application.NewSecurityManager(
-		userManager, sshManager, firewallManager, dnsManager)
-
-	menuManager := application.NewMenuManager(
-		dnsManager,
-		packageManager,
-		securityManager,
-		hostInfoManager)
-	menuManager.SetProxmoxCheck(f.IsProxmoxHost)
-	return menuManager
 }
