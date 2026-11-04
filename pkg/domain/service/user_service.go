@@ -1,46 +1,7 @@
 // pkg/domain/service/user_service.go
 package service
 
-import "github.com/abbott/hardn/pkg/domain/model"
-
-// UserService defines operations for user management
-type UserService interface {
-	CreateUser(user model.User) error
-	GetUser(username string) (*model.User, error)
-	ConfigureSudo(username string, noPassword bool) error
-}
-
-// UserServiceImpl implements UserService
-type UserServiceImpl struct {
-	repository UserRepository
-}
-
-// NewUserServiceImpl creates a new UserServiceImpl
-func NewUserServiceImpl(repository UserRepository) *UserServiceImpl {
-	return &UserServiceImpl{
-		repository: repository,
-	}
-}
-
-// UserRepository defines user data operations needed by UserService
+// UserRepository is the user data HostInfoService reads.
 type UserRepository interface {
-	CreateUser(user model.User) error
-	GetUser(username string) (*model.User, error)
-	ConfigureSudo(username string, noPassword bool) error
-
-	// Methods moved from host_info_service.go
 	GetNonSystemGroups() ([]string, error)
-}
-
-// Implement UserService methods...
-func (s *UserServiceImpl) CreateUser(user model.User) error {
-	return s.repository.CreateUser(user)
-}
-
-func (s *UserServiceImpl) GetUser(username string) (*model.User, error) {
-	return s.repository.GetUser(username)
-}
-
-func (s *UserServiceImpl) ConfigureSudo(username string, noPassword bool) error {
-	return s.repository.ConfigureSudo(username, noPassword)
 }
