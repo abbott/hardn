@@ -6,10 +6,8 @@ import (
 	"bytes"
 	"errors"
 	"os"
-	"os/signal"
 	"strings"
 	"sync"
-	"syscall"
 	"testing"
 	"time"
 
@@ -18,6 +16,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
 // TestInterrupt: Ctrl-C at the screen, at the port's field and at the
@@ -25,11 +24,10 @@ import (
 // writing nothing, as the end of the input does (TestNavigation). The input
 // is a pipe, a file as os.Stdin is; once the prompt is shown, SIGINT is sent
 // to the test itself every 10 ms, as Ctrl-C sends it, until Run returns. One
-// that lands outside a read reaches guard instead of ending the test.
+// that lands outside a read reaches the Interrupter's guard instead of ending
+// the test.
 func TestInterrupt(t *testing.T) {
-	guard := make(chan os.Signal, 64)
-	signal.Notify(guard, os.Interrupt)
-	t.Cleanup(func() { signal.Stop(guard) })
+	sig := uitest.NewInterrupter(t)
 	for _, tt := range []struct {
 		host, lines, at string
 	}{
@@ -54,7 +52,7 @@ func TestInterrupt(t *testing.T) {
 				o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(in, false), Out: env.Writer(&out)}
 			})
 		}()
-		p := interrupt(t, &out, tt.at, done)
+		p := interrupt(t, sig, &out, tt.at, done)
 		if !errors.Is(p.err, prompt.ErrInterrupted) || !errors.Is(p.err, prompt.ErrAborted) {
 			t.Errorf("%s %q: Run = %v, want Ctrl-C's abort:\n%s", tt.host, tt.lines, p.err, out.String())
 		}
@@ -70,7 +68,9 @@ func TestInterrupt(t *testing.T) {
 // interrupt waits until out shows at, then sends SIGINT to the test every 10
 // ms until done, and returns what Run did; it fails the test after 10
 // seconds.
-func interrupt(t *testing.T, out *lockedBuffer, at string, done <-chan played) played {
+// Each SIGINT is delivered before the next is sent or interrupt returns
+// (uitest.Interrupter), so that none lands in a later case.
+func interrupt(t *testing.T, sig *uitest.Interrupter, out *lockedBuffer, at string, done <-chan played) played {
 	t.Helper()
 	timeout := time.After(10 * time.Second)
 	for !strings.Contains(out.String(), at) {
@@ -83,7 +83,7 @@ func interrupt(t *testing.T, out *lockedBuffer, at string, done <-chan played) p
 		}
 	}
 	for {
-		if err := syscall.Kill(os.Getpid(), syscall.SIGINT); err != nil {
+		if err := sig.Send(); err != nil {
 			t.Fatal(err)
 		}
 		select {

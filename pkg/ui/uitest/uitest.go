@@ -1,8 +1,9 @@
 // Package uitest is the golden-file harness for pkg/ui: the render
 // matrices (Full and Core), Golden, which renders one case in every cell of
 // a matrix and compares the result with one golden file, and AssertFits;
-// and Typist, the scripted user that answers the prompts of the tests
-// that drive the line reader (pkg/ui/prompt).
+// Typist, the scripted user that answers the prompts of the tests that
+// drive the line reader (pkg/ui/prompt); and Interrupter, the user's
+// Ctrl-C at those prompts, on Linux and macOS.
 //
 // It is test support: import it only from _test.go files. Production code
 // must not import it, because it imports testing and, at init, defines an

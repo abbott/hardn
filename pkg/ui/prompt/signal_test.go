@@ -14,22 +14,20 @@ import (
 	"time"
 
 	"golang.org/x/sys/unix"
+
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// guard keeps SIGINT from ending the test binary while a test sends it:
-// one that lands outside ReadLine's relay reaches guard rather than taking
-// its default action. None of this package's tests runs in parallel, so
-// no other ReadLine can take a signal meant for the one under test.
-func guard(t *testing.T) {
-	c := make(chan os.Signal, 64)
-	signal.Notify(c, os.Interrupt)
-	t.Cleanup(func() { signal.Stop(c) })
-}
-
 // interrupted runs r.ReadLine and sends SIGINT to the process every 10 ms
-// until it returns, as from Ctrl-C: the first that lands while ReadLine
-// waits ends it. It fails the test unless ReadLine reports the interrupt.
-func interrupted(t *testing.T, r *Reader) {
+// with sig until it returns, as from Ctrl-C: the first that lands while
+// ReadLine waits ends it. It fails the test unless ReadLine reports the
+// interrupt. Each SIGINT is delivered before the next is sent or
+// interrupted returns (uitest.Interrupter), so that none interrupts a
+// later read of the test. One that lands outside ReadLine's relay reaches
+// the Interrupter's guard rather than ending the test binary. None of
+// this package's tests runs in parallel, so no other ReadLine can take a
+// signal meant for the one under test.
+func interrupted(t *testing.T, sig *uitest.Interrupter, r *Reader) {
 	t.Helper()
 	done := make(chan error, 1)
 	go func() {
@@ -38,7 +36,7 @@ func interrupted(t *testing.T, r *Reader) {
 	}()
 	timeout := time.After(10 * time.Second)
 	for {
-		if err := syscall.Kill(os.Getpid(), syscall.SIGINT); err != nil {
+		if err := sig.Send(); err != nil {
 			t.Fatal(err)
 		}
 		select {
@@ -84,11 +82,11 @@ func wantLines(t *testing.T, r *Reader, want ...string) {
 }
 
 func TestInterrupt(t *testing.T) {
-	guard(t)
+	sig := uitest.NewInterrupter(t)
 	t.Run("no read outlives the call", func(t *testing.T) {
 		pr, pw := pipe(t)
 		r := New(pr, false)
-		interrupted(t, r)
+		interrupted(t, sig, r)
 		// Anything still reading the pipe would race this direct read.
 		write(t, pw, "direct\n")
 		if err := pr.SetReadDeadline(time.Now().Add(5 * time.Second)); err != nil {
@@ -112,14 +110,14 @@ func TestInterrupt(t *testing.T) {
 		pr, pw := pipe(t)
 		r := New(pr, false)
 		write(t, pw, "par")
-		interrupted(t, r)
+		interrupted(t, sig, r)
 		write(t, pw, "tial\n")
 		wantLines(t, r, "partial")
 	})
 	t.Run("on a terminal", func(t *testing.T) {
 		m, s := openPTY(t)
 		r := New(s, true)
-		interrupted(t, r)
+		interrupted(t, sig, r)
 		write(t, m, "after\n")
 		wantLines(t, r, "after")
 		write(t, m, "\x04") // Ctrl-D (VEOF) on an empty line
