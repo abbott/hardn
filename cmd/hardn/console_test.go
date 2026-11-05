@@ -48,6 +48,12 @@ func flat(s string) string {
 	return strings.Join(strings.Fields(b.String()), " ")
 }
 
+// nospace is s without white space. The wrap cuts a word longer than the
+// width, a temporary file's path among them, at a place that depends on
+// TMPDIR's length and t.TempDir's digits; flat joins the pieces with a
+// space, so text that runs on from such a path is compared this way.
+func nospace(s string) string { return strings.Join(strings.Fields(s), "") }
+
 // TestSay: a console line is a component.Message on stderr, its kind's look
 // on a colour terminal, plain off one, and a line of hardn's log at its
 // kind's level; a run says each kind's title once over its lines.
@@ -130,7 +136,6 @@ func TestOpenLog(t *testing.T) {
 			out.Reset()
 			openLog(tc.path)
 			// Compared without white space: a path longer than the width is cut.
-			nospace := func(s string) string { return strings.Join(strings.Fields(s), "") }
 			if !logOnStderr || !strings.HasPrefix(nospace(flat(out.String())), nospace(tc.want)) {
 				t.Errorf("log on stderr %v; stderr %q, want %q", logOnStderr, flat(out.String()), tc.want)
 			}

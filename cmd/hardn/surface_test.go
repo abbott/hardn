@@ -46,7 +46,9 @@ func TestDisableRootWarning(t *testing.T) {
 				}
 				loadExisting = loadConfig // -n's
 			}, "-n", "-r")
-			if got := flat(r.stderr); !strings.Contains(got, tc.words) || strings.Count(got, "disableRoot (line") != 1 {
+			// Compared without white space: the warning opens with the
+			// temporary file's full path, which the wrap cuts (nospace).
+			if got := nospace(flat(r.stderr)); !strings.Contains(got, nospace(tc.words)) || strings.Count(got, "disableRoot(line") != 1 {
 				t.Errorf("stderr lacks %q once:\n%s", tc.words, r.stderr)
 			}
 			if cfg == nil || cfg.DisableRootSSH != tc.want {

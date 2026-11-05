@@ -229,8 +229,12 @@ func TestDeprecationWarning(t *testing.T) {
 	}
 	// The file read (decision 4 (a)), then one Warning callout (P-42 R5):
 	// its title, then the warning as its body, read here without the bar.
+	// The warning opens with the temporary file's full path, which the wrap
+	// cuts: its words are compared without white space (nospace), and the
+	// title is counted as a word of its own, since a cut just after the
+	// path's TestDeprecationWarning reads "TestDeprecationWarning <digits>".
 	got := flat(r.stderr)
-	if !strings.HasPrefix(got, "Using configuration from: ") || strings.Count(got, "Warning ") != 1 || !strings.Contains(got, `hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`) ||
+	if !strings.HasPrefix(got, "Using configuration from: ") || strings.Count(got, " Warning ") != 1 || !strings.Contains(nospace(got), nospace(`hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`)) ||
 		strings.Count(got, "deprecated") != 1 || strings.Contains(r.stderr, "\x1b") {
 		t.Errorf("stderr:\n%s", r.stderr)
 	}
