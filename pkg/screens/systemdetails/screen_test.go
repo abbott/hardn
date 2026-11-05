@@ -358,7 +358,7 @@ func TestScreenHosts(t *testing.T) {
 			t.Errorf("%s: Run = %v, %d lines unread", tt.host, p.err, p.unread)
 		}
 		lines := strings.Split(strings.TrimRight(p.out, "\n"), "\n")
-		if got := slices.Index(lines, "  > Enter selection [0-1 or q]: 0"); got != tt.lines-1 {
+		if got := slices.Index(lines, "    > Enter selection [0-1 or q]: 0"); got != tt.lines-1 {
 			t.Errorf("%s: the prompt at line %d, want %d:\n%s", tt.host, got+1, tt.lines, p.out)
 		}
 		for _, w := range tt.want {

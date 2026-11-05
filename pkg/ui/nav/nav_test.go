@@ -275,9 +275,9 @@ func TestChoose(t *testing.T) {
 		chosen, err = p.Choose(mainMenu(&ran), choice)
 		return err
 	})
-	want := "  > Enter your choice [0-10 or q]: 11\n" +
+	want := "    > Enter your choice [0-10 or q]: 11\n" +
 		"  (x) Invalid option. Please try again.\n" +
-		"  > Enter your choice [0-10 or q]: 3\n"
+		"    > Enter your choice [0-10 or q]: 3\n"
 	if err != nil || chosen.Item.Label != "DNS" || out != want {
 		t.Errorf("Choose() = %q, %v, transcript\n%s\nwant DNS, nil, transcript\n%s", chosen.Item.Label, err, out, want)
 	}
@@ -336,7 +336,7 @@ func TestRefusal(t *testing.T) {
 				return Screen{Above: "Select an option", Menu: m, Label: choice}
 			})
 		})
-		asked := "  > Enter your choice [0-10 or q]: "
+		asked := "    > Enter your choice [0-10 or q]: "
 		if err != nil || strings.Join(ran, " ") != tt.ran || mains != tt.mains ||
 			strings.Count(out, "\n  (x) "+why+"\n"+asked) != tt.refused {
 			t.Errorf("%s: Run() = %v, ran %q, drawn %d times; want nil, %q, %d, %d refusals under %q:\n%s",
@@ -522,13 +522,13 @@ func TestAsk(t *testing.T) {
 		return p.Ask(question.Render(p.Ctx), InvalidAnswer, resolve)
 	})
 	out = strings.ReplaceAll(out, long, "<long line>")
-	want := "  > [0 or q]: a b\n" +
+	want := "    > [0 or q]: a b\n" +
 		"  (x) Username cannot contain spaces\n" +
-		"  > [0 or q]: blank\n" +
+		"    > [0 or q]: blank\n" +
 		"  (x) " + InvalidAnswer + "\n" +
-		"  > [0 or q]: <long line>\n" +
+		"    > [0 or q]: <long line>\n" +
 		"  (x) " + InvalidAnswer + "\n" +
-		"  > [0 or q]: george\n"
+		"    > [0 or q]: george\n"
 	if err != nil || out != want {
 		t.Errorf("Ask: %v, transcript\n%s\nwant nil and\n%s", err, out, want)
 	}
@@ -553,7 +553,7 @@ func TestAskKinds(t *testing.T) {
 		{"RefuseFor a warning", RefuseFor(fmt.Errorf("dns: %w", Warn(twice))), component.MessageWarn, twice},
 	} {
 		p, out := newPrompter(env, []string{"x", "george"})
-		err := p.Ask("  > [0 or q]: ", InvalidAnswer, func(line string) error {
+		err := p.Ask("    > [0 or q]: ", InvalidAnswer, func(line string) error {
 			if line == "x" {
 				return tc.err
 			}
@@ -639,8 +639,8 @@ func TestRunGap(t *testing.T) {
 		}}}}
 		return p.Run(func() Screen { return Screen{Above: "  Main", Menu: top, Label: choice} })
 	})
-	main := "  Main\n\n   1) Firewall\n\n  > Enter your choice [1, 0 or q]: "
-	firewall := "  Firewall\n\n   1) DNS\n   2) Logs\n\n  > Enter your choice [1-2, 0 or q]: "
+	main := "  Main\n\n   1) Firewall\n\n    > Enter your choice [1, 0 or q]: "
+	firewall := "  Firewall\n\n   1) DNS\n   2) Logs\n\n    > Enter your choice [1-2, 0 or q]: "
 	want := main + "1\n\n" + firewall + "2\n\n  done\n\n" + firewall + "0\n\n" + main + "0\n"
 	if err != nil || out != want {
 		t.Errorf("Run() = %v, transcript\n%s\nwant\n%s", err, out, want)
@@ -660,7 +660,7 @@ func TestRunCompact(t *testing.T) {
 	view := mainMenu(nil).View()
 	view.Compact = true
 	drawing := ansi.Strip(view.Render(component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))))
-	want := "  Select an option\n" + drawing + "\n\n  > Enter your choice [0-10 or q]: "
+	want := "  Select an option\n" + drawing + "\n\n    > Enter your choice [0-10 or q]: "
 	if err != nil || !strings.HasPrefix(out, want+"10\n") || strings.Join(ran, " ") != "10" ||
 		!strings.Contains(drawing, "   5) Backup               10) Logs") {
 		t.Errorf("Run() = %v, ran %q, transcript\n%s\nwant it to start\n%s", err, ran, out, want)

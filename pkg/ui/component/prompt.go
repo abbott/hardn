@@ -14,12 +14,15 @@ import (
 // "❯ Enter your choice [0-10 or q]:". Here with no colour and ASCII
 // glyphs:
 //
-//	0 2
-//	  > Enter your choice [0-10 or q]:
+//	0 2 4 6
+//	   0) Exit
+//	    > Enter your choice [0-10 or q]:
 //
 // The hint is generated from Accepts (keys.Set.Hint), never written by
-// hand. The line starts at theme.Indent (C11, DEV-029) and ends at the
-// colon, with no trailing space: the line reader writes one space after
+// hand. The glyph stands at theme.PromptCol, under a menu key's closing
+// parenthesis, and the label starts at theme.LabelCol, under the items'
+// labels (DEV-070; at theme.Indent until 2026-11-05, C11, DEV-029). The
+// line ends at the colon, with no trailing space: the line reader writes one space after
 // it, where the terminal's own cursor then stands (C8, DEV-029). On a
 // terminal too narrow for the whole line the label is cut first with the
 // ellipsis glyph, and left out once none of its letters fits, so the hint
@@ -36,7 +39,7 @@ type PromptLine struct {
 // Render renders the prompt for c. See PromptLine for the layout.
 func (vm PromptLine) Render(c Ctx) string {
 	t, w := c.Theme.Prompt, c.width()
-	head := line{gap(theme.Indent), {c.Theme.Glyphs.Prompt, t.Glyph}}
+	head := line{gap(theme.PromptCol), {c.Theme.Glyphs.Prompt, t.Glyph}}
 	out, _ := c.ask(head, c.text(vm.Label), clean(vm.Accepts.Hint()), t.Label, t.Hint, w)
 	return c.fit(out, w)
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // The main menu on its layout (refactor plan slice 2b, unit (c),
@@ -159,7 +160,7 @@ func TestMainMenuKeys(t *testing.T) {
 // the main menu is not read or drawn again, where origin/main cleared the
 // screen, printed its header and paused (main_menu.go:538-544).
 func TestMainMenuInvalid(t *testing.T) {
-	const prompt = "  > Enter selection [0-10 or q]: "
+	const prompt = "    > Enter selection [0-10 or q]: "
 	for _, tc := range []struct {
 		name string
 		env  term.Env
@@ -327,7 +328,7 @@ func TestMainMenuHeights(t *testing.T) {
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
 			risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
 			if len(ls) != tc.lines || first != tc.visible || (risk >= len(ls)-tc.h) != (len(ls) <= tc.h) ||
-				!strings.HasPrefix(ls[len(ls)-1], "  "+component.NewCtx(env).Theme.Glyphs.Prompt+" Enter selection") {
+				!strings.HasPrefix(ls[len(ls)-1], strings.Repeat(" ", theme.PromptCol)+component.NewCtx(env).Theme.Glyphs.Prompt+" Enter selection") {
 				t.Errorf("%dx%d, %s: %d lines, the first on screen %q, the risk level on line %d; want %d, %q:\n%s",
 					tc.w, tc.h, lang, len(ls), first, risk+1, tc.lines, tc.visible, strings.Join(ls, "\n"))
 			}
