@@ -222,7 +222,7 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 
 ## Contributing and security
 
-Read [docs/contributing.md](docs/contributing.md) before opening a pull request. Report bugs in the GitHub issue tracker, with your OS and version and the steps to reproduce. Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, not in a public issue. Changes since v0.3.2 are listed in [docs/releases/unreleased.md](docs/releases/unreleased.md).
+Read [docs/contributing.md](docs/contributing.md) before opening a pull request. Report bugs in the GitHub issue tracker, with your OS and version and the steps to reproduce. Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, not in a public issue. Changes since v0.3.2 are listed in [docs/releases/v0.4.0.md](docs/releases/v0.4.0.md).
 
 ## Origin
 
