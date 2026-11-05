@@ -88,42 +88,42 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;251m2.␛[m ␛[38;5;251mSelect a user␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
 $
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;251m2.␛[m ␛[38;5;251mSelect a user␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
 $
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;251m2.␛[m ␛[38;5;251mSelect a user␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
 $
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
    ␛[38;5;251m2.␛[m ␛[38;5;251mSelect a user␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
 $
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
    ␛[38;5;251m2.␛[m ␛[38;5;251mSelect a user␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
 $
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
    ␛[38;5;251m2.␛[m ␛[38;5;251mSelect a user␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
 $
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mgeorge␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251malice␛[m$

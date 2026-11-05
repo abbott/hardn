@@ -216,109 +216,109 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m$
-      ␛[38;5;103mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
+      ␛[38;5;102mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m$
-      ␛[38;5;103mToggle root SSH access␛[m$
+      ␛[38;5;102mToggle root SSH access␛[m$
    ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m$
-      ␛[38;5;103mConfigure Nameservers␛[m$
+      ␛[38;5;102mConfigure Nameservers␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mConfigure UFW rules␛[m$
+      ␛[38;5;102mConfigure UFW rules␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m$
-      ␛[38;5;103mConfigure Hardn backup settings␛[m$
+      ␛[38;5;102mConfigure Hardn backup settings␛[m$
    ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
-      ␛[38;5;103mSimulate changes␛[m$
+      ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-      ␛[38;5;103mExecute hardening operations␛[m$
+      ␛[38;5;102mExecute hardening operations␛[m$
    ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
-      ␛[38;5;103mConfigure environment variable␛[m$
+      ␛[38;5;102mConfigure environment variable␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
-      ␛[38;5;103mView system information␛[m$
+      ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
-      ␛[38;5;103mView log file␛[m$
+      ␛[38;5;102mView log file␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mExit␛[m$
-      ␛[38;5;103mq to quit␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mExit␛[m$
+      ␛[38;5;102mq to quit␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;103mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;103mToggle root SSH access␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;103mConfigure Nameservers␛[m$
-   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;103mConfigure UFW rules␛[m$
-   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;103mConfigure Hardn backup settings␛[m$
-   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;103mSimulate changes␛[m$
-   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;103mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;103mConfigure environment variable␛[m$
-   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;103mView system information␛[m$
-  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;103mView log file␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;102mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;102mToggle root SSH access␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;102mConfigure Nameservers␛[m$
+   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;102mConfigure UFW rules␛[m$
+   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure Hardn backup settings␛[m$
+   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
+   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
+  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mExit␛[m                 ␛[38;5;103mq to quit␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mExit␛[m                 ␛[38;5;102mq to quit␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;103mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;103mToggle root SSH access␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;103mConfigure Nameservers␛[m$
-   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;103mConfigure UFW rules␛[m$
-   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;103mConfigure Hardn backup settings␛[m$
-   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;103mSimulate changes␛[m$
-   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;103mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;103mConfigure environment variable␛[m$
-   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;103mView system information␛[m$
-  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;103mView log file␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;102mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;102mToggle root SSH access␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;102mConfigure Nameservers␛[m$
+   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;102mConfigure UFW rules␛[m$
+   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure Hardn backup settings␛[m$
+   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
+   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
+  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mExit␛[m                 ␛[38;5;103mq to quit␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mExit␛[m                 ␛[38;5;102mq to quit␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m$
-      ␛[38;5;103mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
+      ␛[38;5;102mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m$
-      ␛[38;5;103mToggle root SSH access␛[m$
+      ␛[38;5;102mToggle root SSH access␛[m$
    ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m$
-      ␛[38;5;103mConfigure Nameservers␛[m$
+      ␛[38;5;102mConfigure Nameservers␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mConfigure UFW rules␛[m$
+      ␛[38;5;102mConfigure UFW rules␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m$
-      ␛[38;5;103mConfigure Hardn backup settings␛[m$
+      ␛[38;5;102mConfigure Hardn backup settings␛[m$
    ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
-      ␛[38;5;103mSimulate changes␛[m$
+      ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-      ␛[38;5;103mExecute hardening operations␛[m$
+      ␛[38;5;102mExecute hardening operations␛[m$
    ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
-      ␛[38;5;103mConfigure environment variable␛[m$
+      ␛[38;5;102mConfigure environment variable␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
-      ␛[38;5;103mView system information␛[m$
+      ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
-      ␛[38;5;103mView log file␛[m$
+      ␛[38;5;102mView log file␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mExit␛[m$
-      ␛[38;5;103mq to quit␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mExit␛[m$
+      ␛[38;5;102mq to quit␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;103mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;103mToggle root SSH access␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;103mConfigure Nameservers␛[m$
-   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;103mConfigure UFW rules␛[m$
-   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;103mConfigure Hardn backup settings␛[m$
-   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;103mSimulate changes␛[m$
-   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;103mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;103mConfigure environment variable␛[m$
-   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;103mView system information␛[m$
-  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;103mView log file␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;102mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;102mToggle root SSH access␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;102mConfigure Nameservers␛[m$
+   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;102mConfigure UFW rules␛[m$
+   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure Hardn backup settings␛[m$
+   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
+   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
+  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mExit␛[m                 ␛[38;5;103mq to quit␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mExit␛[m                 ␛[38;5;102mq to quit␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;103mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;103mToggle root SSH access␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;103mConfigure Nameservers␛[m$
-   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;103mConfigure UFW rules␛[m$
-   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;103mConfigure Hardn backup settings␛[m$
-   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;103mSimulate changes␛[m$
-   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;103mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;103mConfigure environment variable␛[m$
-   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;103mView system information␛[m$
-  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;103mView log file␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m      ␛[38;5;102mCreate, Configure␛[m ␛[38;5;59m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m            ␛[38;5;102mToggle root SSH access␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                  ␛[38;5;102mConfigure Nameservers␛[m$
+   ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m             ␛[38;5;102mConfigure UFW rules␛[m$
+   ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure Hardn backup settings␛[m$
+   ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
+   ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
+  ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mExit␛[m                 ␛[38;5;103mq to quit␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mExit␛[m                 ␛[38;5;102mq to quit␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m$

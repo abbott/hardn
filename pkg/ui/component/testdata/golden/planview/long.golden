@@ -175,84 +175,84 @@ $
       ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;5;251mreplication service on web-01.example.net␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;78m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
-      ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;102m$ systemd-run --on-active=180s␛[m$
+      ␛[38;5;102m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;78m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
-      ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;102m$ systemd-run --on-active=180s␛[m$
+      ␛[38;5;102m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;78m↪ monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
-      ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;102m$ systemd-run --on-active=180s␛[m$
+      ␛[38;5;102m↪ --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mAllow SSH logins for alice, bob and the backup␛[m$
       ␛[38;5;251mreplication service on web-01.example.net␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;78m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
-      ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;102m$ systemd-run --on-active=180s␛[m$
+      ␛[38;5;102m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;78m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
-      ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;102m$ systemd-run --on-active=180s␛[m$
+      ␛[38;5;102m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mAllow SSH logins for alice, bob and the backup replication␛[m$
       ␛[38;5;251mservice on web-01.example.net␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1 +1,2 @@␛[m$
       ␛[38;5;204m-AllowUsers alice␛[m$
       ␛[38;5;78m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;78m| monitoring-agent deploy-bot␛[m$
       ␛[38;5;78m+    Match Address 192.0.2.0/24␛[m$
-      ␛[38;5;103m$ systemd-run --on-active=180s␛[m$
-      ␛[38;5;103m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
+      ␛[38;5;102m$ systemd-run --on-active=180s␛[m$
+      ␛[38;5;102m| --unit=hardn-revert-20261016 hardn rollback 20261016␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$

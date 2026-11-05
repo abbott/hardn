@@ -136,69 +136,69 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m(DNS_MANAGED)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m(DNS_MANAGED)␛[m$
 $
-  ␛[38;5;103mTo go on: set the nameservers in NetworkManager.␛[m$
+  ␛[38;5;102mTo go on: set the nameservers in NetworkManager.␛[m$
 $
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReload ssh.service: not run (NOT_RUN)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReload ssh.service: not run (NOT_RUN)␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m(DNS_MANAGED)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m(DNS_MANAGED)␛[m$
 $
-  ␛[38;5;103mTo go on: set the nameservers in NetworkManager.␛[m$
+  ␛[38;5;102mTo go on: set the nameservers in NetworkManager.␛[m$
 $
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReload ssh.service: not run (NOT_RUN)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReload ssh.service: not run (NOT_RUN)␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m(DNS_MANAGED)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m(DNS_MANAGED)␛[m$
 $
-  ␛[38;5;103mTo go on: set the nameservers in NetworkManager.␛[m$
+  ␛[38;5;102mTo go on: set the nameservers in NetworkManager.␛[m$
 $
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReload ssh.service: not run (NOT_RUN)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReload ssh.service: not run (NOT_RUN)␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m(DNS_MANAGED)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m(DNS_MANAGED)␛[m$
 $
-  ␛[38;5;103mTo go on: set the nameservers in NetworkManager.␛[m$
+  ␛[38;5;102mTo go on: set the nameservers in NetworkManager.␛[m$
 $
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReload ssh.service: not run (NOT_RUN)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReload ssh.service: not run (NOT_RUN)␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m(DNS_MANAGED)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m(DNS_MANAGED)␛[m$
 $
-  ␛[38;5;103mTo go on: set the nameservers in NetworkManager.␛[m$
+  ␛[38;5;102mTo go on: set the nameservers in NetworkManager.␛[m$
 $
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReload ssh.service: not run (NOT_RUN)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReload ssh.service: not run (NOT_RUN)␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m(DNS_MANAGED)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mSet the nameservers: dns: /etc/resolv.conf is a link␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m(DNS_MANAGED)␛[m$
 $
-  ␛[38;5;103mTo go on: set the nameservers in NetworkManager.␛[m$
+  ␛[38;5;102mTo go on: set the nameservers in NetworkManager.␛[m$
 $
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReload ssh.service: not run (NOT_RUN)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mAllow 2230/tcp in UFW: ufw is not installed (UFW_MISSING)␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReload ssh.service: not run (NOT_RUN)␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$

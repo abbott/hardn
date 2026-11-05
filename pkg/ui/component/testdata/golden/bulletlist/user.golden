@@ -92,47 +92,47 @@
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;204m⭘␛[m  ␛[38;5;251mSudo␛[m$
-      ␛[38;5;103mEnabled,␛[m ␛[38;5;204mNo password␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSSH Keys␛[m$
-      ␛[38;5;103m7 keys␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUID:GID␛[m$
-      ␛[38;5;103m1000:1000␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mDirectory␛[m$
-      ␛[38;5;103m/home/george␛[m$
+      ␛[38;5;102mEnabled,␛[m ␛[38;5;204mNo password␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSSH Keys␛[m$
+      ␛[38;5;102m7 keys␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUID:GID␛[m$
+      ␛[38;5;102m1000:1000␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mDirectory␛[m$
+      ␛[38;5;102m/home/george␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;204m⭘␛[m  ␛[38;5;251mSudo␛[m                 ␛[38;5;103mEnabled,␛[m ␛[38;5;204mNo password␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;103m7 keys␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;103m1000:1000␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;103m/home/george␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mSudo␛[m                 ␛[38;5;102mEnabled,␛[m ␛[38;5;204mNo password␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;102m7 keys␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;102m1000:1000␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;102m/home/george␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;204m⭘␛[m  ␛[38;5;251mSudo␛[m                 ␛[38;5;103mEnabled,␛[m ␛[38;5;204mNo password␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;103m7 keys␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;103m1000:1000␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;103m/home/george␛[m$
+   ␛[38;5;204m⭘␛[m  ␛[38;5;251mSudo␛[m                 ␛[38;5;102mEnabled,␛[m ␛[38;5;204mNo password␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;102m7 keys␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;102m1000:1000␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;102m/home/george␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;204m[ ]␛[m ␛[38;5;251mSudo␛[m$
-      ␛[38;5;103mEnabled,␛[m ␛[38;5;204mNo password␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSSH Keys␛[m$
-      ␛[38;5;103m7 keys␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUID:GID␛[m$
-      ␛[38;5;103m1000:1000␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mDirectory␛[m$
-      ␛[38;5;103m/home/george␛[m$
+      ␛[38;5;102mEnabled,␛[m ␛[38;5;204mNo password␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSSH Keys␛[m$
+      ␛[38;5;102m7 keys␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUID:GID␛[m$
+      ␛[38;5;102m1000:1000␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mDirectory␛[m$
+      ␛[38;5;102m/home/george␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;204m[ ]␛[m ␛[38;5;251mSudo␛[m                 ␛[38;5;103mEnabled,␛[m ␛[38;5;204mNo password␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;103m7 keys␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;103m1000:1000␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;103m/home/george␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mSudo␛[m                 ␛[38;5;102mEnabled,␛[m ␛[38;5;204mNo password␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;102m7 keys␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;102m1000:1000␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;102m/home/george␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;204m[ ]␛[m ␛[38;5;251mSudo␛[m                 ␛[38;5;103mEnabled,␛[m ␛[38;5;204mNo password␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;103m7 keys␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;103m1000:1000␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;103m/home/george␛[m$
+  ␛[38;5;204m[ ]␛[m ␛[38;5;251mSudo␛[m                 ␛[38;5;102mEnabled,␛[m ␛[38;5;204mNo password␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSSH Keys␛[m             ␛[38;5;102m7 keys␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUID:GID␛[m              ␛[38;5;102m1000:1000␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mDirectory␛[m            ␛[38;5;102m/home/george␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;161m⭘␛[m  ␛[38;5;235mSudo␛[m$

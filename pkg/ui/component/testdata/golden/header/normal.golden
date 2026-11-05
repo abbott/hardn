@@ -43,24 +43,24 @@
 ␛[1;38;2;30;34;48mhardn␛[m ␛[38;2;87;92;110;48;2;230;232;238m v0.4.0 ␛[m             ␛[38;2;129;134;156mhttps://github.com/abbott/hardn␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-␛[1;38;5;251mhardn␛[m ␛[38;5;103;48;5;234m v0.4.0 ␛[m$
+␛[1;38;5;251mhardn␛[m ␛[38;5;102;48;5;234m v0.4.0 ␛[m$
 ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-␛[1;38;5;251mhardn␛[m ␛[38;5;103;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;251mhardn␛[m ␛[38;5;102;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-␛[1;38;5;251mhardn␛[m ␛[38;5;103;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;251mhardn␛[m ␛[38;5;102;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-␛[1;38;5;251mhardn␛[m ␛[38;5;103;48;5;234m v0.4.0 ␛[m$
+␛[1;38;5;251mhardn␛[m ␛[38;5;102;48;5;234m v0.4.0 ␛[m$
 ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-␛[1;38;5;251mhardn␛[m ␛[38;5;103;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;251mhardn␛[m ␛[38;5;102;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-␛[1;38;5;251mhardn␛[m ␛[38;5;103;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;251mhardn␛[m ␛[38;5;102;48;5;234m v0.4.0 ␛[m             ␛[38;5;59mhttps://github.com/abbott/hardn␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[1;38;5;235mhardn␛[m ␛[38;5;59;48;5;254m v0.4.0 ␛[m$

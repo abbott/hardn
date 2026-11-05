@@ -150,6 +150,7 @@ var ansi256Overrides = map[string]struct {
 	reason string
 }{
 	"dark/text.faint": {59, "240 (#585858) is nearest (ΔE 10.04) but 2.95:1 on black, under faint's 3:1; 59 (#5F5F5F, ΔE 10.07) is 3.29:1"},
+	"dark/text.muted": {102, "103 (#8787AF) is nearest (ΔE 10.60) but reads purple: chroma 22.8 to #81869C's 12.7; 102 (#878787, ΔE 12.67) is the gray at the same lightness, 5.85:1 on black to 5.82:1 (DEV-069)"},
 }
 
 // TestDividerBelowFaint holds a rule quieter than the faintest text, so

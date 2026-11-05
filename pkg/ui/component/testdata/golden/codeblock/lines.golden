@@ -63,32 +63,32 @@
       ␛[38;2;138;97;0m2026/10/20 12:00:05 ERROR: an error␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-      ␛[38;5;103m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
       ␛[38;5;179m2026/10/20 12:00:04 WARNING: a warning␛[m$
       ␛[38;5;179m2026/10/20 12:00:05 ERROR: an error␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-      ␛[38;5;103m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
       ␛[38;5;179m2026/10/20 12:00:04 WARNING: a warning␛[m$
       ␛[38;5;179m2026/10/20 12:00:05 ERROR: an error␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-      ␛[38;5;103m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
       ␛[38;5;179m2026/10/20 12:00:04 WARNING: a warning␛[m$
       ␛[38;5;179m2026/10/20 12:00:05 ERROR: an error␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-      ␛[38;5;103m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
       ␛[38;5;179m2026/10/20 12:00:04 WARNING: a warning␛[m$
       ␛[38;5;179m2026/10/20 12:00:05 ERROR: an error␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-      ␛[38;5;103m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
       ␛[38;5;179m2026/10/20 12:00:04 WARNING: a warning␛[m$
       ␛[38;5;179m2026/10/20 12:00:05 ERROR: an error␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-      ␛[38;5;103m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m2026/10/20 12:00:01 INFO: run 1: $ ufw allow 2230/tcp␛[m$
       ␛[38;5;179m2026/10/20 12:00:04 WARNING: a warning␛[m$
       ␛[38;5;179m2026/10/20 12:00:05 ERROR: an error␛[m$
 

@@ -84,43 +84,43 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m$
-      ␛[38;5;103mConfigure a new user␛[m$
+      ␛[38;5;102mConfigure a new user␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;103mConfigure sudo, SSH keys␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;103mConfigure a new user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;102mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;102mConfigure a new user␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;103mConfigure sudo, SSH keys␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;103mConfigure a new user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;102mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;102mConfigure a new user␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m$
-      ␛[38;5;103mConfigure sudo, SSH keys␛[m$
+      ␛[38;5;102mConfigure sudo, SSH keys␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m$
-      ␛[38;5;103mConfigure a new user␛[m$
+      ␛[38;5;102mConfigure a new user␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;103mConfigure sudo, SSH keys␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;103mConfigure a new user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;102mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;102mConfigure a new user␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;103mConfigure sudo, SSH keys␛[m$
-   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;103mConfigure a new user␛[m$
+   ␛[1;38;5;251m1)␛[m ␛[38;5;251mManage User␛[m          ␛[38;5;102mConfigure sudo, SSH keys␛[m$
+   ␛[1;38;5;251m2)␛[m ␛[38;5;251mCreate User␛[m          ␛[38;5;102mConfigure a new user␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mManage User␛[m$

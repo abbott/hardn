@@ -77,38 +77,38 @@
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mBackup State␛[m$
       ␛[38;5;78mEnabled␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103malice␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;102malice␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mBackup State␛[m$
       ␛[38;5;78mEnabled␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103malice␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;102malice␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mBackup State␛[m$
       ␛[38;5;78mEnabled␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103malice␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;102malice␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mBackup State␛[m$
       ␛[38;5;78mEnabled␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103malice␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;102malice␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mBackup State␛[m$
       ␛[38;5;78mEnabled␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103malice␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;102malice␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mBackup State␛[m$
       ␛[38;5;78mEnabled␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103malice␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
+      ␛[38;5;102malice␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mBackup State␛[m$
