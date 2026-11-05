@@ -39,4 +39,4 @@ $
 $
    \x1b[1;38;5;103m0)\x1b[m \x1b[38;5;103mExit\x1b[m                 \x1b[38;5;103mq to quit\x1b[m$
 $
-  \x1b[1;38;5;103m❯\x1b[m \x1b[1;38;5;103mEnter selection\x1b[m \x1b[38;5;103m[0-10 or q]:\x1b[m $
+    \x1b[1;38;5;103m❯\x1b[m \x1b[1;38;5;103mEnter selection\x1b[m \x1b[38;5;103m[0-10 or q]:\x1b[m $

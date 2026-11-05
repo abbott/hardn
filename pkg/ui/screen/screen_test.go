@@ -578,7 +578,7 @@ func TestCompactForm(t *testing.T) {
 
    0) Exit                 q to quit
 
-  > Enter selection [0-5, 7-10 or q]:`
+    > Enter selection [0-5, 7-10 or q]:`
 	if out != want || lines(out) != theme.CompactBudget {
 		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
 	}
@@ -601,12 +601,12 @@ func TestEmptyBlocks(t *testing.T) {
 		Menu:     component.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}},
 		Prompt:   "Enter your choice",
 	}
-	want := ansi.Strip(trail("Firewall").Render(c)) + "\n\n   0) Return\n\n  > Enter your choice [0 or q]:"
+	want := ansi.Strip(trail("Firewall").Render(c)) + "\n\n   0) Return\n\n    > Enter your choice [0 or q]:"
 	if out := ansi.Strip(sub.Render(c)); out != want {
 		t.Errorf("sub-menu with empty blocks:\n%s\nwant\n%s", out, want)
 	}
 	// With no title the bar is all fill, the title bar's empty state.
-	if out, want := ansi.Strip((SubMenu{}).Render(c)), ansi.Strip(component.TitleBar{}.Render(c))+"\n\n  > [0 or q]:"; out != want {
+	if out, want := ansi.Strip((SubMenu{}).Render(c)), ansi.Strip(component.TitleBar{}.Render(c))+"\n\n    > [0 or q]:"; out != want {
 		t.Errorf("empty sub-menu: %q, want %q", out, want)
 	}
 	if out := (Section{Header: component.SectionHeader{Title: "Rules"}}).Render(c); out != "" {
@@ -628,10 +628,10 @@ func TestSubMenuFrames(t *testing.T) {
 		want string
 	}{
 		{"USER-MANAGE_USER-SELECT_USER", selectUserFixture(),
-			head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n  > Enter your choice [0-2 or q]:"},
+			head + "  Select a user\n\n   1) george\n   2) alice\n\n   0) Return\n\n    > Enter your choice [0-2 or q]:"},
 		{"USER-MANAGE_USER-MANAGEMENT", manageUserFixture(),
 			head + "  Managing: [george]\n\n  Select an option\n\n   1) Sudo Method          Toggle password requirement\n" +
-				"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n  > Enter your choice [0-2 or q]:"},
+				"   2) Manage SSH keys      Add or remove SSH keys\n\n   0) Return\n\n    > Enter your choice [0-2 or q]:"},
 	}
 	for _, tt := range tests {
 		if out := ansi.Strip(tt.vm.Render(c)); out != tt.want {
@@ -728,7 +728,7 @@ func TestRunGap(t *testing.T) {
 	}{
 		{"before any prompt, the review first", sudo, false, []string{"y"}, screen + "\n\n# Warning\n"},
 		{"before any prompt, a form first", withForm, false, []string{"george", "y"}, screen + "\n\n  Username [0 or q]: george\n\n# Warning\n"},
-		{"after a prompt", sudo, true, []string{"1", "y"}, "  > Choose [1, 0 or q]: 1\n\n" + screen + "\n\n# Warning\n"},
+		{"after a prompt", sudo, true, []string{"1", "y"}, "    > Choose [1, 0 or q]: 1\n\n" + screen + "\n\n# Warning\n"},
 	}
 	for _, tt := range tests {
 		p, out := prompter(env, tt.lines...)

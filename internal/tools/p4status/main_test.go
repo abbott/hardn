@@ -128,7 +128,7 @@ func galleryMenu(t *testing.T, name string) string {
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
-		if strings.HasPrefix(l, "  > Enter selection") {
+		if strings.HasPrefix(l, "    > Enter selection") {
 			return strings.Join(lines, "\n")
 		}
 	}

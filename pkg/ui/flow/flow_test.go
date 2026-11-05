@@ -684,7 +684,7 @@ func TestReturn(t *testing.T) {
 		holds []string
 	}{
 		{"applied", plain80, createUser(Fixture{Planned: createUserPlan}), "Create User", slices.Concat(answers, []string{"y"}), []string{
-			"  > Enter your choice [0-1 or q]: 1\n\n   1. Username [0 or q]: george\n",
+			"    > Enter your choice [0-1 or q]: 1\n\n   1. Username [0 or q]: george\n",
 			"# Operation Successful\n\n   1) Create User\n",
 		}},
 		{"too narrow to confirm", term.Fixed(28, colorprofile.NoTTY, false, true), disableRoot(Fixture{Planned: planOf(RiskLockout, rootLogin)}), "Root SSH Login", nil, []string{

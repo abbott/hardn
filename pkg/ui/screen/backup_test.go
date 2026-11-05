@@ -145,7 +145,7 @@ func TestBackupRuns(t *testing.T) {
 		t.Errorf("the run: %+v", run)
 	}
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
-	if got := ansi.Strip(run.Render(c)); !strings.HasSuffix(got, "0) Return\n\n  > Enter selection [0 or q]:") {
+	if got := ansi.Strip(run.Render(c)); !strings.HasSuffix(got, "0) Return\n\n    > Enter selection [0 or q]:") {
 		t.Errorf("the run's menu:\n%s", got)
 	}
 }

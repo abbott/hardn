@@ -129,7 +129,7 @@ func TestValidation(t *testing.T) {
 	if n := strings.Count(out, "Specify username to create"); n != 1 {
 		t.Errorf("the head is written %d times, want once:\n%s", n, out)
 	}
-	if n := strings.Count(out, "  > [0 or q]: "); n != 4 {
+	if n := strings.Count(out, "    > [0 or q]: "); n != 4 {
 		t.Errorf("the prompt is asked %d times, want 4:\n%s", n, out)
 	}
 	// A y/N answer and a choice are validated as a text is.
@@ -266,7 +266,7 @@ func TestLayout(t *testing.T) {
 			&Text{Title: newName, Value: &name},
 			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
 		}}, []string{"george", "y"},
-			"   1. " + newName + "\n\n  > [0 or q]: george\n   1. " + newName + ": george\n\n" +
+			"   1. " + newName + "\n\n    > [0 or q]: george\n   1. " + newName + ": george\n\n" +
 				"   2. Grant sudo privilege? [y/N, 0 or q]: y\n"},
 		{"a question that fills its line", 64, Form{Fields: []Field{
 			&Text{Title: newName, Value: &name},
@@ -276,13 +276,13 @@ func TestLayout(t *testing.T) {
 		{"a choice", 80, Form{Fields: []Field{
 			&Select[string]{Title: "Select a user", Options: users(), Value: &name},
 		}}, []string{"2"},
-			"  Select a user\n\n   1) george\n   2) alice\n\n  > Enter your choice [1-2, 0 or q]: 2\n  Select a user: alice\n"},
+			"  Select a user\n\n   1) george\n   2) alice\n\n    > Enter your choice [1-2, 0 or q]: 2\n  Select a user: alice\n"},
 		{"a narrow terminal", 40, Form{Fields: []Field{
 			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
 			&YesNo{Title: "Require sudo password?", Value: &password},
 		}}, []string{"y", "n"},
-			"   1. Grant sudo privilege?\n\n  > [y/N, 0 or q]: y\n   1. Grant sudo privilege? [y/N]: y\n\n" +
-				"   2. Require sudo password?\n\n  > [y/N, 0 or q]: n\n   2. Require sudo password? [y/N]: n\n"},
+			"   1. Grant sudo privilege?\n\n    > [y/N, 0 or q]: y\n   1. Grant sudo privilege? [y/N]: y\n\n" +
+				"   2. Require sudo password?\n\n    > [y/N, 0 or q]: n\n   2. Require sudo password? [y/N]: n\n"},
 	}
 	for _, tt := range tests {
 		if out, err := playAt(tt.width, tt.form, tt.lines...); err != nil || out != tt.want {
@@ -317,7 +317,7 @@ func TestNarrow(t *testing.T) {
 			if lipgloss.Width(head) <= room && !strings.HasPrefix(field, head+" "+q.hint) && !strings.HasPrefix(field, head+"\n") {
 				t.Errorf("width %d: %q is not shown whole:\n%s", w, q.title, field)
 			}
-			if lipgloss.Width("  > "+q.hint) <= room && !strings.HasPrefix(field, head+" "+q.hint) && !strings.Contains(field, "\n  > "+q.hint) {
+			if lipgloss.Width("    > "+q.hint) <= room && !strings.HasPrefix(field, head+" "+q.hint) && !strings.Contains(field, "\n    > "+q.hint) {
 				t.Errorf("width %d: the hint of %q is not shown whole:\n%s", w, q.title, field)
 			}
 		}
