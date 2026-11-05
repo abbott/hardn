@@ -110,6 +110,7 @@ func Resolve(opts Options, f Facts) Env {
 	e.Dark = e.Theme != ThemeLight
 	e.Width = dimension(f.StdoutTTY, f.Width, env[envColumns], DefaultWidth)
 	e.Height = dimension(f.StdoutTTY, f.Height, env[envLines], DefaultHeight)
+	e.HeightMeasured = f.StdoutTTY && f.Height > 0
 	t := env[envTerm]
 	e.Animate = f.StdoutTTY && !e.Plain && t != "" && t != "dumb"
 	return e

@@ -14,6 +14,7 @@ package term
 
 import (
 	"io"
+	"strings"
 
 	"github.com/charmbracelet/colorprofile"
 )
@@ -30,6 +31,10 @@ const (
 type Env struct {
 	// Width and Height are the terminal size in cells.
 	Width, Height int
+	// HeightMeasured reports whether Height was read from the terminal
+	// (Facts.Height, stdout a terminal), not taken from LINES or
+	// DefaultHeight. Clear scrolls the screen by Height only then.
+	HeightMeasured bool
 	// Profile is the colour profile Writer downsamples to: TrueColor,
 	// ANSI256 or ANSI keep colour; ASCII keeps only bold, underline and
 	// other attributes; NoTTY strips every escape sequence.
@@ -108,18 +113,36 @@ func (e Env) Writer(w io.Writer) io.Writer {
 	return &colorprofile.Writer{Forward: w, Profile: e.Profile}
 }
 
-// ClearSequence is what Clear writes on a terminal: the cursor home, then
-// the screen erased.
+// ClearSequence is what Clear writes on a terminal whose height it does not
+// know (Env.HeightMeasured false): the cursor home, then the screen erased.
 const ClearSequence = "\x1b[H\x1b[2J"
 
-// Clear clears the screen w is drawn on when e is not Plain, and writes
-// nothing when it is: off a terminal (a pipe, a file, a journal) the
-// sequence is noise (legacy-left.md §3, decision 4 (a)). w is the stream
-// itself, not Writer's: a clear is no colour to downsample.
+// cursorHome moves the cursor to row 1, column 1.
+const cursorHome = "\x1b[H"
+
+// Clear starts a fresh screen on the terminal w is drawn on when e is not
+// Plain, and writes nothing when it is: off a terminal (a pipe, a file, a
+// journal) the sequence is noise (legacy-left.md §3, decision 4 (a)). w is
+// the stream itself, not Writer's: a clear is no colour to downsample.
+//
+// On a terminal whose height it measured it writes Height-1 newlines and
+// then the cursor home. A newline scrolls only once the cursor is on the
+// last row, so the rows above the cursor, which hold what was printed,
+// scroll into the terminal's scrollback, and the blank rows under it stay
+// on the screen. It writes no ED 2 (ESC[2J): macOS Terminal, VTE (GNOME
+// Terminal) and Konsole push the whole screen, its blank rows too, into
+// scrollback on ED 2, which left blocks of blank lines above and below
+// hardn's screens there, after hardn ended too. With the height unknown it
+// writes ClearSequence: too few newlines would leave the old screen under
+// the new one.
 func (e Env) Clear(w io.Writer) error {
 	if e.Plain {
 		return nil
 	}
-	_, err := io.WriteString(w, ClearSequence)
+	seq := ClearSequence
+	if e.HeightMeasured && e.Height > 1 {
+		seq = strings.Repeat("\n", e.Height-1) + cursorHome
+	}
+	_, err := io.WriteString(w, seq)
 	return err
 }

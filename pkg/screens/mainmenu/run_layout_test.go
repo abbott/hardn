@@ -322,7 +322,7 @@ func TestMainMenuHeights(t *testing.T) {
 				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
 			}, "q")
 			out, _, _ := session(t, func() { show(m) })
-			drawn, _, _ := strings.Cut(strings.TrimPrefix(out, clearScreen), clearScreen)
+			drawn, _, _ := strings.Cut(strings.TrimPrefix(out, clearOn(env)), clearOn(env))
 			ls := strings.Split(stripANSI(strings.TrimSuffix(drawn, " \n")), "\n")
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
 			risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
@@ -373,7 +373,7 @@ func TestMainMenuDraw(t *testing.T) {
 	vm := screen.MainMenuFixture()
 	vm.Mode = component.ModeIndicator{}
 	vm.Menu.Items = withUpdatesItem(vm.Menu.Items)
-	want := clearScreen + written(env, vm.Render(component.NewCtx(env))) + " \n" + clearScreen
+	want := clearOn(env) + written(env, vm.Render(component.NewCtx(env))) + " \n" + clearOn(env)
 	if ended || out != want {
 		t.Errorf("ended %v; the screen:\n%s\nwant the main-menu mock's, Figma's fixture with origin/main's items, in full:\n%s", ended, out, want)
 	}

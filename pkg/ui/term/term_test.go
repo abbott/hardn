@@ -3,6 +3,7 @@ package term
 import (
 	"bytes"
 	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/charmbracelet/colorprofile"
@@ -145,6 +146,11 @@ func TestParseModes(t *testing.T) {
 func TestClear(t *testing.T) {
 	plainTTY := Fixed(80, colorprofile.TrueColor, true, true)
 	plainTTY.Plain = true
+	tty := func(height int, environ ...string) Env {
+		return Resolve(Options{}, Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: height, Environ: append([]string{"TERM=xterm-256color"}, environ...)})
+	}
+	plainMeasured := tty(30)
+	plainMeasured.Plain = true
 	for _, tc := range []struct {
 		name string
 		env  Env
@@ -156,6 +162,13 @@ func TestClear(t *testing.T) {
 		{"plain on a terminal", plainTTY, ""},
 		{"resolved off a terminal", Resolve(Options{}, Facts{Width: 80}), ""},
 		{"resolved on a terminal", Resolve(Options{}, Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Environ: []string{"TERM=xterm-256color"}}), "\x1b[H\x1b[2J"},
+		// A measured height: Height-1 newlines scroll what was printed into
+		// the scrollback, then the cursor goes home; no ED 2.
+		{"a terminal of 30 rows", tty(30), strings.Repeat("\n", 29) + "\x1b[H"},
+		{"a terminal of 2 rows", tty(2), "\n\x1b[H"},
+		{"a terminal of 1 row", tty(1), "\x1b[H\x1b[2J"},
+		{"LINES only: not measured", tty(0, "LINES=30"), "\x1b[H\x1b[2J"},
+		{"plain on a measured terminal", plainMeasured, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var b bytes.Buffer
