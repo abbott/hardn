@@ -115,7 +115,7 @@
       ␛[38;5;78mDone␛[m$
    ␛[38;5;204m⭘␛[m  ␛[38;5;251mReload sshd (ssh.service)␛[m$
       ␛[38;5;204mFailed␛[m ␛[38;5;59mCOMMAND_FAILED␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m$
       ␛[38;5;59mSkipped␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
@@ -123,14 +123,14 @@
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;78mDone␛[m$
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;78mDone␛[m$
    ␛[38;5;204m⭘␛[m  ␛[38;5;251mReload sshd (ssh.service)␛[m     ␛[38;5;204mFailed␛[m ␛[38;5;59mCOMMAND_FAILED␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mInstall hardn's boot unit␛[m     ␛[38;5;78mDone␛[m$
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;78mDone␛[m$
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;78mDone␛[m$
    ␛[38;5;204m⭘␛[m  ␛[38;5;251mReload sshd (ssh.service)␛[m     ␛[38;5;204mFailed␛[m ␛[38;5;59mCOMMAND_FAILED␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mInstall hardn's boot unit␛[m$
@@ -141,7 +141,7 @@
       ␛[38;5;78mDone␛[m$
   ␛[38;5;204m[ ]␛[m ␛[38;5;251mReload sshd (ssh.service)␛[m$
       ␛[38;5;204mFailed␛[m ␛[38;5;59mCOMMAND_FAILED␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m$
       ␛[38;5;59mSkipped␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
@@ -149,14 +149,14 @@
   ␛[38;5;78m[+]␛[m ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;78mDone␛[m$
   ␛[38;5;78m[+]␛[m ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;78mDone␛[m$
   ␛[38;5;204m[ ]␛[m ␛[38;5;251mReload sshd (ssh.service)␛[m     ␛[38;5;204mFailed␛[m ␛[38;5;59mCOMMAND_FAILED␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mInstall hardn's boot unit␛[m     ␛[38;5;78mDone␛[m$
   ␛[38;5;78m[+]␛[m ␛[38;5;251mufw: allow 2230/tcp␛[m           ␛[38;5;78mDone␛[m$
   ␛[38;5;78m[+]␛[m ␛[38;5;251mAdd SSH port 2230␛[m             ␛[38;5;78mDone␛[m$
   ␛[38;5;204m[ ]␛[m ␛[38;5;251mReload sshd (ssh.service)␛[m     ␛[38;5;204mFailed␛[m ␛[38;5;59mCOMMAND_FAILED␛[m$
-   ␛[38;5;103m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251msshd -T shows ports 22, 2230␛[m  ␛[38;5;59mSkipped␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mInstall hardn's boot unit␛[m$

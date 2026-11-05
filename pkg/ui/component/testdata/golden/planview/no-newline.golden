@@ -99,48 +99,48 @@
       ␛[38;2;26;127;55m+web-01.example.net␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSet the domain␛[m$
-      ␛[38;5;103m/etc/hostname␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSet the domain␛[m$
+      ␛[38;5;102m/etc/hostname␛[m$
       ␛[38;5;59m@@ -1 +1 @@␛[m$
       ␛[38;5;204m-web-01␛[m$
       ␛[38;5;59m\ No newline at end of file␛[m$
       ␛[38;5;78m+web-01.example.net␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSet the domain␛[m$
-      ␛[38;5;103m/etc/hostname␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSet the domain␛[m$
+      ␛[38;5;102m/etc/hostname␛[m$
       ␛[38;5;59m@@ -1 +1 @@␛[m$
       ␛[38;5;204m-web-01␛[m$
       ␛[38;5;59m\ No newline at end of file␛[m$
       ␛[38;5;78m+web-01.example.net␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSet the domain␛[m$
-      ␛[38;5;103m/etc/hostname␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSet the domain␛[m$
+      ␛[38;5;102m/etc/hostname␛[m$
       ␛[38;5;59m@@ -1 +1 @@␛[m$
       ␛[38;5;204m-web-01␛[m$
       ␛[38;5;59m\ No newline at end of file␛[m$
       ␛[38;5;78m+web-01.example.net␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSet the domain␛[m$
-      ␛[38;5;103m/etc/hostname␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSet the domain␛[m$
+      ␛[38;5;102m/etc/hostname␛[m$
       ␛[38;5;59m@@ -1 +1 @@␛[m$
       ␛[38;5;204m-web-01␛[m$
       ␛[38;5;59m\ No newline at end of file␛[m$
       ␛[38;5;78m+web-01.example.net␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSet the domain␛[m$
-      ␛[38;5;103m/etc/hostname␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSet the domain␛[m$
+      ␛[38;5;102m/etc/hostname␛[m$
       ␛[38;5;59m@@ -1 +1 @@␛[m$
       ␛[38;5;204m-web-01␛[m$
       ␛[38;5;59m\ No newline at end of file␛[m$
       ␛[38;5;78m+web-01.example.net␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;103m-␛[m  ␛[38;5;251mSet the domain␛[m$
-      ␛[38;5;103m/etc/hostname␛[m$
+   ␛[38;5;102m-␛[m  ␛[38;5;251mSet the domain␛[m$
+      ␛[38;5;102m/etc/hostname␛[m$
       ␛[38;5;59m@@ -1 +1 @@␛[m$
       ␛[38;5;204m-web-01␛[m$
       ␛[38;5;59m\ No newline at end of file␛[m$

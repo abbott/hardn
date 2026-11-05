@@ -204,103 +204,103 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mSet Port 2230␛[m$
       ␛[38;5;179mRolled back␛[m$
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
       ␛[38;5;179mRolled back␛[m$
 $
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
-      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m↪ exited with error code.␛[m$
-      ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[38;5;103m↪ -xeu ssh.service" for details.␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
+      ␛[38;5;102mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;102m↪ exited with error code.␛[m$
+      ␛[38;5;102mSee "systemctl status ssh.service" and "journalctl␛[m$
+      ␛[38;5;102m↪ -xeu ssh.service" for details.␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
-  ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mRun sudo sshd -t to see what sshd rejected.␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mSet Port 2230␛[m          ␛[38;5;179mRolled back␛[m$
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mAllow 2230/tcp in UFW␛[m  ␛[38;5;179mRolled back␛[m$
 $
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
-      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m↪ exited with error code.␛[m$
-      ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;103m↪ ssh.service" for details.␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
+      ␛[38;5;102mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;102m↪ exited with error code.␛[m$
+      ␛[38;5;102mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
+      ␛[38;5;102m↪ ssh.service" for details.␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
-  ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mRun sudo sshd -t to see what sshd rejected.␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mSet Port 2230␛[m          ␛[38;5;179mRolled back␛[m$
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mAllow 2230/tcp in UFW␛[m  ␛[38;5;179mRolled back␛[m$
 $
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
-      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m↪ exited with error code.␛[m$
-      ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;103m↪ ssh.service" for details.␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
+      ␛[38;5;102mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;102m↪ exited with error code.␛[m$
+      ␛[38;5;102mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
+      ␛[38;5;102m↪ ssh.service" for details.␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
-  ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mRun sudo sshd -t to see what sshd rejected.␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mSet Port 2230␛[m$
       ␛[38;5;179mRolled back␛[m$
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m$
       ␛[38;5;179mRolled back␛[m$
 $
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
-      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m| exited with error code.␛[m$
-      ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl␛[m$
-      ␛[38;5;103m| -xeu ssh.service" for details.␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
+      ␛[38;5;102mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;102m| exited with error code.␛[m$
+      ␛[38;5;102mSee "systemctl status ssh.service" and "journalctl␛[m$
+      ␛[38;5;102m| -xeu ssh.service" for details.␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
-  ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mRun sudo sshd -t to see what sshd rejected.␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mSet Port 2230␛[m          ␛[38;5;179mRolled back␛[m$
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m  ␛[38;5;179mRolled back␛[m$
 $
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
-      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m| exited with error code.␛[m$
-      ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;103m| ssh.service" for details.␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
+      ␛[38;5;102mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;102m| exited with error code.␛[m$
+      ␛[38;5;102mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
+      ␛[38;5;102m| ssh.service" for details.␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
-  ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mRun sudo sshd -t to see what sshd rejected.␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mSet Port 2230␛[m          ␛[38;5;179mRolled back␛[m$
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mAllow 2230/tcp in UFW␛[m  ␛[38;5;179mRolled back␛[m$
 $
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
-      ␛[38;5;103mJob for ssh.service failed because the control process␛[m$
-      ␛[38;5;103m| exited with error code.␛[m$
-      ␛[38;5;103mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
-      ␛[38;5;103m| ssh.service" for details.␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
+      ␛[38;5;102mJob for ssh.service failed because the control process␛[m$
+      ␛[38;5;102m| exited with error code.␛[m$
+      ␛[38;5;102mSee "systemctl status ssh.service" and "journalctl -xeu␛[m$
+      ␛[38;5;102m| ssh.service" for details.␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
-  ␛[38;5;103mRun sudo sshd -t to see what sshd rejected.␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mRun sudo sshd -t to see what sshd rejected.␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$

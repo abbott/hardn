@@ -196,7 +196,7 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 
 | Export name | Export id | Hex | Go token | Dark truecolor | 256 | 16 | Light truecolor / 256 / 16 | Deviation, drift |
 |---|---|---|---|---|---|---|---|---|
-| `color.text.muted` | `text:#81869C` | #81869C | `text.muted` | #81869C | 103 | 8 BrightBlack | #575C6E / 59 / 8 BrightBlack | light DEV-011 |
+| `color.text.muted` | `text:#81869C` | #81869C | `text.muted` | #81869C | **102** | 8 BrightBlack | #575C6E / 59 / 8 BrightBlack | DEV-069; light DEV-011 |
 | `color.text.primary` | `text:#C0C4D8` | #C0C4D8 | `text.primary` | #C0C4D8 | 251 | 7 White | #1E2230 / 235 / 0 Black | light DEV-011 |
 | `color.status.ok` | `text:#70D47F` | #70D47F | `status.ok` | #70D47F | 78 | 10 BrightGreen | #1A7F37 / 22 / 2 Green | light DEV-011 |
 | `color.status.err` | `text:#E74669` | #E74669 | `status.bad` (renamed) | #E74669 | 204 | 9 BrightRed | #C2254A / 161 / 1 Red | light DEV-011 |

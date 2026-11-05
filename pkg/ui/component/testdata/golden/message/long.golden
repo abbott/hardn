@@ -76,39 +76,39 @@
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mFailed to restart ssh.service: Job for ssh.service failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mbecause the control process exited with error code; port␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m2230 is still in use␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mFailed to restart ssh.service: Job for ssh.service failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mbecause the control process exited with error code; port␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m2230 is still in use␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mFailed to restart ssh.service: Job for ssh.service failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mbecause the control process exited with error code; port 2230␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mis still in use␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mFailed to restart ssh.service: Job for ssh.service failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mbecause the control process exited with error code; port 2230␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mis still in use␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mFailed to restart ssh.service: Job for ssh.service failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mbecause the control process exited with error code; port 2230␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mis still in use␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mFailed to restart ssh.service: Job for ssh.service failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mbecause the control process exited with error code; port 2230␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mis still in use␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mFailed to restart ssh.service: Job for ssh.service failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mbecause the control process exited with error code; port␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103m2230 is still in use␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mFailed to restart ssh.service: Job for ssh.service failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mbecause the control process exited with error code; port␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102m2230 is still in use␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mFailed to restart ssh.service: Job for ssh.service failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mbecause the control process exited with error code; port 2230␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mis still in use␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mFailed to restart ssh.service: Job for ssh.service failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mbecause the control process exited with error code; port 2230␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mis still in use␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mFailed to restart ssh.service: Job for ssh.service failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mbecause the control process exited with error code; port 2230␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mis still in use␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mFailed to restart ssh.service: Job for ssh.service failed␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mbecause the control process exited with error code; port 2230␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mis still in use␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$

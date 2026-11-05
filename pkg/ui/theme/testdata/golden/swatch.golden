@@ -761,7 +761,7 @@ Typography: the slots that set bold or underline$
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
-  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.muted␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
@@ -808,23 +808,23 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;251mConfirm.Command␛[m$
   ␛[1;38;5;204mConfirm.Urgent␛[m$
   ␛[1;38;5;179mConfirm.Waiting␛[m$
-  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;102mContextBar.Name␛[m$
   ␛[1;38;5;251mHeader.Wordmark␛[m$
-  ␛[1;38;5;103mMenu.ExitKey␛[m$
-  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;102mMenu.ExitKey␛[m$
+  ␛[4;38;5;102;4mM␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mu␛[m␛[4;38;5;102;4m.␛[m␛[4;38;5;102;4mH␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4ma␛[m␛[4;38;5;102;4md␛[m␛[4;38;5;102;4mi␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
   ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;179mPlan.LockoutRisk␛[m$
-  ␛[1;38;5;103mPrompt.Glyph␛[m$
-  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;102mPrompt.Glyph␛[m$
+  ␛[1;38;5;102mPrompt.Label␛[m$
   ␛[1;38;5;251mRisk.Label␛[m$
-  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;102mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
-  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.muted␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
@@ -871,23 +871,23 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;251mConfirm.Command␛[m$
   ␛[1;38;5;204mConfirm.Urgent␛[m$
   ␛[1;38;5;179mConfirm.Waiting␛[m$
-  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;102mContextBar.Name␛[m$
   ␛[1;38;5;251mHeader.Wordmark␛[m$
-  ␛[1;38;5;103mMenu.ExitKey␛[m$
-  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;102mMenu.ExitKey␛[m$
+  ␛[4;38;5;102;4mM␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mu␛[m␛[4;38;5;102;4m.␛[m␛[4;38;5;102;4mH␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4ma␛[m␛[4;38;5;102;4md␛[m␛[4;38;5;102;4mi␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
   ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;179mPlan.LockoutRisk␛[m$
-  ␛[1;38;5;103mPrompt.Glyph␛[m$
-  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;102mPrompt.Glyph␛[m$
+  ␛[1;38;5;102mPrompt.Label␛[m$
   ␛[1;38;5;251mRisk.Label␛[m$
-  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;102mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
-  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.muted␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
@@ -934,23 +934,23 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;251mConfirm.Command␛[m$
   ␛[1;38;5;204mConfirm.Urgent␛[m$
   ␛[1;38;5;179mConfirm.Waiting␛[m$
-  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;102mContextBar.Name␛[m$
   ␛[1;38;5;251mHeader.Wordmark␛[m$
-  ␛[1;38;5;103mMenu.ExitKey␛[m$
-  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;102mMenu.ExitKey␛[m$
+  ␛[4;38;5;102;4mM␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mu␛[m␛[4;38;5;102;4m.␛[m␛[4;38;5;102;4mH␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4ma␛[m␛[4;38;5;102;4md␛[m␛[4;38;5;102;4mi␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
   ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;179mPlan.LockoutRisk␛[m$
-  ␛[1;38;5;103mPrompt.Glyph␛[m$
-  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;102mPrompt.Glyph␛[m$
+  ␛[1;38;5;102mPrompt.Label␛[m$
   ␛[1;38;5;251mRisk.Label␛[m$
-  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;102mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
-  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.muted␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
@@ -997,23 +997,23 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;251mConfirm.Command␛[m$
   ␛[1;38;5;204mConfirm.Urgent␛[m$
   ␛[1;38;5;179mConfirm.Waiting␛[m$
-  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;102mContextBar.Name␛[m$
   ␛[1;38;5;251mHeader.Wordmark␛[m$
-  ␛[1;38;5;103mMenu.ExitKey␛[m$
-  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;102mMenu.ExitKey␛[m$
+  ␛[4;38;5;102;4mM␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mu␛[m␛[4;38;5;102;4m.␛[m␛[4;38;5;102;4mH␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4ma␛[m␛[4;38;5;102;4md␛[m␛[4;38;5;102;4mi␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
   ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;179mPlan.LockoutRisk␛[m$
-  ␛[1;38;5;103mPrompt.Glyph␛[m$
-  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;102mPrompt.Glyph␛[m$
+  ␛[1;38;5;102mPrompt.Label␛[m$
   ␛[1;38;5;251mRisk.Label␛[m$
-  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;102mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
-  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.muted␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
@@ -1060,23 +1060,23 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;251mConfirm.Command␛[m$
   ␛[1;38;5;204mConfirm.Urgent␛[m$
   ␛[1;38;5;179mConfirm.Waiting␛[m$
-  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;102mContextBar.Name␛[m$
   ␛[1;38;5;251mHeader.Wordmark␛[m$
-  ␛[1;38;5;103mMenu.ExitKey␛[m$
-  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;102mMenu.ExitKey␛[m$
+  ␛[4;38;5;102;4mM␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mu␛[m␛[4;38;5;102;4m.␛[m␛[4;38;5;102;4mH␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4ma␛[m␛[4;38;5;102;4md␛[m␛[4;38;5;102;4mi␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
   ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;179mPlan.LockoutRisk␛[m$
-  ␛[1;38;5;103mPrompt.Glyph␛[m$
-  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;102mPrompt.Glyph␛[m$
+  ␛[1;38;5;102mPrompt.Label␛[m$
   ␛[1;38;5;251mRisk.Label␛[m$
-  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;102mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 Tokens: the name in its colour, then as a background$
   ␛[38;5;251mtext.primary␛[m    ␛[48;5;251m      ␛[m$
-  ␛[38;5;103mtext.muted␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.muted␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;59mtext.faint␛[m      ␛[48;5;59m      ␛[m$
   ␛[38;5;78mstatus.ok␛[m       ␛[48;5;78m      ␛[m$
   ␛[38;5;204mstatus.bad␛[m      ␛[48;5;204m      ␛[m$
@@ -1123,17 +1123,17 @@ Typography: the slots that set bold or underline$
   ␛[1;38;5;251mConfirm.Command␛[m$
   ␛[1;38;5;204mConfirm.Urgent␛[m$
   ␛[1;38;5;179mConfirm.Waiting␛[m$
-  ␛[1;38;5;103mContextBar.Name␛[m$
+  ␛[1;38;5;102mContextBar.Name␛[m$
   ␛[1;38;5;251mHeader.Wordmark␛[m$
-  ␛[1;38;5;103mMenu.ExitKey␛[m$
-  ␛[4;38;5;103;4mM␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mu␛[m␛[4;38;5;103;4m.␛[m␛[4;38;5;103;4mH␛[m␛[4;38;5;103;4me␛[m␛[4;38;5;103;4ma␛[m␛[4;38;5;103;4md␛[m␛[4;38;5;103;4mi␛[m␛[4;38;5;103;4mn␛[m␛[4;38;5;103;4mg␛[m$
+  ␛[1;38;5;102mMenu.ExitKey␛[m$
+  ␛[4;38;5;102;4mM␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mu␛[m␛[4;38;5;102;4m.␛[m␛[4;38;5;102;4mH␛[m␛[4;38;5;102;4me␛[m␛[4;38;5;102;4ma␛[m␛[4;38;5;102;4md␛[m␛[4;38;5;102;4mi␛[m␛[4;38;5;102;4mn␛[m␛[4;38;5;102;4mg␛[m$
   ␛[1;38;5;251mMenu.Key␛[m$
   ␛[1;38;5;179mMenu.Risk␛[m$
   ␛[1;38;5;179mPlan.LockoutRisk␛[m$
-  ␛[1;38;5;103mPrompt.Glyph␛[m$
-  ␛[1;38;5;103mPrompt.Label␛[m$
+  ␛[1;38;5;102mPrompt.Glyph␛[m$
+  ␛[1;38;5;102mPrompt.Label␛[m$
   ␛[1;38;5;251mRisk.Label␛[m$
-  ␛[1;38;5;103mSection.Title␛[m$
+  ␛[1;38;5;102mSection.Title␛[m$
   ␛[1;38;5;251mTitleBar.Title␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode

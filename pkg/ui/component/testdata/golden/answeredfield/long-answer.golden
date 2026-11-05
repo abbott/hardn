@@ -52,27 +52,27 @@
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;251m4.␛[m ␛[38;5;251mPaste SSH public key␛[m␛[38;5;251m:␛[m$
-      ␛[38;5;103mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTes…␛[m$
+      ␛[38;5;102mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTes…␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;251m4.␛[m ␛[38;5;251mPaste SSH public key␛[m␛[38;5;251m:␛[m$
-      ␛[38;5;103mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOn…␛[m$
+      ␛[38;5;102mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOn…␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;251m4.␛[m ␛[38;5;251mPaste SSH public key␛[m␛[38;5;251m:␛[m$
-      ␛[38;5;103mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOn…␛[m$
+      ␛[38;5;102mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTestsOn…␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
    ␛[38;5;251m4.␛[m ␛[38;5;251mPaste SSH public key␛[m␛[38;5;251m:␛[m$
-      ␛[38;5;103mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForT...␛[m$
+      ␛[38;5;102mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForT...␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
    ␛[38;5;251m4.␛[m ␛[38;5;251mPaste SSH public key␛[m␛[38;5;251m:␛[m$
-      ␛[38;5;103mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTests...␛[m$
+      ␛[38;5;102mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTests...␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
    ␛[38;5;251m4.␛[m ␛[38;5;251mPaste SSH public key␛[m␛[38;5;251m:␛[m$
-      ␛[38;5;103mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTests...␛[m$
+      ␛[38;5;102mssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExampleKeyForTests...␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;235m4.␛[m ␛[38;5;235mPaste SSH public key␛[m␛[38;5;235m:␛[m$

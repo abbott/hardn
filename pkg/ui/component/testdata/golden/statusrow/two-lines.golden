@@ -70,33 +70,33 @@
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mUser␛[m$
       ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
       ␛[38;5;179m- Second root account␛[m$
-      ␛[38;5;103m- Maybe no password to become root␛[m$
+      ␛[38;5;102m- Maybe no password to become root␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
                            ␛[38;5;179m- Second root account␛[m$
-                           ␛[38;5;103m- Maybe no password to become root␛[m$
+                           ␛[38;5;102m- Maybe no password to become root␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[38;5;78m⛛␛[m  ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
                            ␛[38;5;179m- Second root account␛[m$
-                           ␛[38;5;103m- Maybe no password to become root␛[m$
+                           ␛[38;5;102m- Maybe no password to become root␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mUser␛[m$
       ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
       ␛[38;5;179m- Second root account␛[m$
-      ␛[38;5;103m- Maybe no password to become root␛[m$
+      ␛[38;5;102m- Maybe no password to become root␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
                            ␛[38;5;179m- Second root account␛[m$
-                           ␛[38;5;103m- Maybe no password to become root␛[m$
+                           ␛[38;5;102m- Maybe no password to become root␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[38;5;78m[+]␛[m ␛[38;5;251mUser␛[m                 ␛[38;5;78mConfigured␛[m ␛[38;5;59mnon-root, sudo␛[m$
                            ␛[38;5;179m- Second root account␛[m$
-                           ␛[38;5;103m- Maybe no password to become root␛[m$
+                           ␛[38;5;102m- Maybe no password to become root␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m$

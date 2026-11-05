@@ -282,139 +282,139 @@ $
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
-      ␛[38;5;103mufw␛[m$
+      ␛[38;5;102mufw␛[m$
       ␛[38;5;204m-inactive␛[m$
       ␛[38;5;78m+active␛[m$
       ␛[38;5;78m+deny (incoming), allow (outgoing)␛[m$
-      ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
-      ␛[38;5;103m$ ufw --force enable␛[m$
+      ␛[38;5;102m$ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m$ ufw --force enable␛[m$
 $
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1,3 +1,3 @@␛[m$
-      ␛[38;5;103m # Managed by hardn␛[m$
+      ␛[38;5;102m # Managed by hardn␛[m$
       ␛[38;5;204m-Port 22␛[m$
       ␛[38;5;78m+Port 2230␛[m$
-      ␛[38;5;103m PermitRootLogin no␛[m$
-      ␛[38;5;103m$ sshd -t␛[m$
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
+      ␛[38;5;102m PermitRootLogin no␛[m$
+      ␛[38;5;102m$ sshd -t␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
-      ␛[38;5;103mufw␛[m$
+      ␛[38;5;102mufw␛[m$
       ␛[38;5;204m-inactive␛[m$
       ␛[38;5;78m+active␛[m$
       ␛[38;5;78m+deny (incoming), allow (outgoing)␛[m$
-      ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
-      ␛[38;5;103m$ ufw --force enable␛[m$
+      ␛[38;5;102m$ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m$ ufw --force enable␛[m$
 $
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1,3 +1,3 @@␛[m$
-      ␛[38;5;103m # Managed by hardn␛[m$
+      ␛[38;5;102m # Managed by hardn␛[m$
       ␛[38;5;204m-Port 22␛[m$
       ␛[38;5;78m+Port 2230␛[m$
-      ␛[38;5;103m PermitRootLogin no␛[m$
-      ␛[38;5;103m$ sshd -t␛[m$
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
+      ␛[38;5;102m PermitRootLogin no␛[m$
+      ␛[38;5;102m$ sshd -t␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
-      ␛[38;5;103mufw␛[m$
+      ␛[38;5;102mufw␛[m$
       ␛[38;5;204m-inactive␛[m$
       ␛[38;5;78m+active␛[m$
       ␛[38;5;78m+deny (incoming), allow (outgoing)␛[m$
-      ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
-      ␛[38;5;103m$ ufw --force enable␛[m$
+      ␛[38;5;102m$ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m$ ufw --force enable␛[m$
 $
    ␛[1;38;5;179m⭘␛[m  ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1,3 +1,3 @@␛[m$
-      ␛[38;5;103m # Managed by hardn␛[m$
+      ␛[38;5;102m # Managed by hardn␛[m$
       ␛[38;5;204m-Port 22␛[m$
       ␛[38;5;78m+Port 2230␛[m$
-      ␛[38;5;103m PermitRootLogin no␛[m$
-      ␛[38;5;103m$ sshd -t␛[m$
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
+      ␛[38;5;102m PermitRootLogin no␛[m$
+      ␛[38;5;102m$ sshd -t␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
-      ␛[38;5;103mufw␛[m$
+      ␛[38;5;102mufw␛[m$
       ␛[38;5;204m-inactive␛[m$
       ␛[38;5;78m+active␛[m$
       ␛[38;5;78m+deny (incoming), allow (outgoing)␛[m$
-      ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
-      ␛[38;5;103m$ ufw --force enable␛[m$
+      ␛[38;5;102m$ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m$ ufw --force enable␛[m$
 $
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1,3 +1,3 @@␛[m$
-      ␛[38;5;103m # Managed by hardn␛[m$
+      ␛[38;5;102m # Managed by hardn␛[m$
       ␛[38;5;204m-Port 22␛[m$
       ␛[38;5;78m+Port 2230␛[m$
-      ␛[38;5;103m PermitRootLogin no␛[m$
-      ␛[38;5;103m$ sshd -t␛[m$
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
+      ␛[38;5;102m PermitRootLogin no␛[m$
+      ␛[38;5;102m$ sshd -t␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
-      ␛[38;5;103mufw␛[m$
+      ␛[38;5;102mufw␛[m$
       ␛[38;5;204m-inactive␛[m$
       ␛[38;5;78m+active␛[m$
       ␛[38;5;78m+deny (incoming), allow (outgoing)␛[m$
-      ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
-      ␛[38;5;103m$ ufw --force enable␛[m$
+      ␛[38;5;102m$ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m$ ufw --force enable␛[m$
 $
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1,3 +1,3 @@␛[m$
-      ␛[38;5;103m # Managed by hardn␛[m$
+      ␛[38;5;102m # Managed by hardn␛[m$
       ␛[38;5;204m-Port 22␛[m$
       ␛[38;5;78m+Port 2230␛[m$
-      ␛[38;5;103m PermitRootLogin no␛[m$
-      ␛[38;5;103m$ sshd -t␛[m$
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
+      ␛[38;5;102m PermitRootLogin no␛[m$
+      ␛[38;5;102m$ sshd -t␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mEnable UFW␛[m$
 $
-      ␛[38;5;103mufw␛[m$
+      ␛[38;5;102mufw␛[m$
       ␛[38;5;204m-inactive␛[m$
       ␛[38;5;78m+active␛[m$
       ␛[38;5;78m+deny (incoming), allow (outgoing)␛[m$
-      ␛[38;5;103m$ ufw allow 2230/tcp␛[m$
-      ␛[38;5;103m$ ufw --force enable␛[m$
+      ␛[38;5;102m$ ufw allow 2230/tcp␛[m$
+      ␛[38;5;102m$ ufw --force enable␛[m$
 $
   ␛[1;38;5;179m[ ]␛[m ␛[1;38;5;179mLockout risk␛[m$
       ␛[38;5;251mSet Port 2230␛[m$
 $
-      ␛[38;5;103m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
+      ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
       ␛[38;5;59m@@ -1,3 +1,3 @@␛[m$
-      ␛[38;5;103m # Managed by hardn␛[m$
+      ␛[38;5;102m # Managed by hardn␛[m$
       ␛[38;5;204m-Port 22␛[m$
       ␛[38;5;78m+Port 2230␛[m$
-      ␛[38;5;103m PermitRootLogin no␛[m$
-      ␛[38;5;103m$ sshd -t␛[m$
-      ␛[38;5;103m$ systemctl reload ssh␛[m$
+      ␛[38;5;102m PermitRootLogin no␛[m$
+      ␛[38;5;102m$ sshd -t␛[m$
+      ␛[38;5;102m$ systemctl reload ssh␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;94m⭘␛[m  ␛[1;38;5;94mLockout risk␛[m$

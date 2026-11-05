@@ -55,8 +55,8 @@ type palette struct {
 // which clears it too.
 var darkPalette = palette{
 	TextPrimary: token{"#C0C4D8", 251, lipgloss.White},
-	TextMuted:   token{"#81869C", 103, lipgloss.BrightBlack},
-	TextFaint:   token{"#565B6B", 59, lipgloss.BrightBlack}, // DEV-001
+	TextMuted:   token{"#81869C", 102, lipgloss.BrightBlack}, // DEV-069
+	TextFaint:   token{"#565B6B", 59, lipgloss.BrightBlack},  // DEV-001
 	StatusOK:    token{"#70D47F", 78, lipgloss.BrightGreen},
 	StatusBad:   token{"#E74669", 204, lipgloss.BrightRed},
 	StatusWarn:  token{"#DBB853", 179, lipgloss.Yellow},
