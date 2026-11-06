@@ -76,27 +76,27 @@
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;161m⭘␛[m  ␛[38;5;235mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;161mFailed␛[m ␛[38;5;103msshd -t: Bad configuration option: Portt␛[m$
+      ␛[38;5;161mFailed␛[m ␛[38;5;102msshd -t: Bad configuration option: Portt␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
    ␛[38;5;161m⭘␛[m  ␛[38;5;235mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;161mFailed␛[m ␛[38;5;103msshd -t: Bad configuration option: Portt␛[m$
+      ␛[38;5;161mFailed␛[m ␛[38;5;102msshd -t: Bad configuration option: Portt␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
    ␛[38;5;161m⭘␛[m  ␛[38;5;235mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;161mFailed␛[m ␛[38;5;103msshd -t: Bad configuration option: Portt␛[m$
+      ␛[38;5;161mFailed␛[m ␛[38;5;102msshd -t: Bad configuration option: Portt␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[38;5;161m[ ]␛[m ␛[38;5;235mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;161mFailed␛[m ␛[38;5;103msshd -t: Bad configuration option: Portt␛[m$
+      ␛[38;5;161mFailed␛[m ␛[38;5;102msshd -t: Bad configuration option: Portt␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
   ␛[38;5;161m[ ]␛[m ␛[38;5;235mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;161mFailed␛[m ␛[38;5;103msshd -t: Bad configuration option: Portt␛[m$
+      ␛[38;5;161mFailed␛[m ␛[38;5;102msshd -t: Bad configuration option: Portt␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
   ␛[38;5;161m[ ]␛[m ␛[38;5;235mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;161mFailed␛[m ␛[38;5;103msshd -t: Bad configuration option: Portt␛[m$
+      ␛[38;5;161mFailed␛[m ␛[38;5;102msshd -t: Bad configuration option: Portt␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
    ␛[91m⭘␛[m  ␛[37mSet Port 2230 in /etc/ssh/sshd_config.d/00-hardn.conf␛[m$

@@ -83,28 +83,28 @@
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
   ␛[38;5;59mUnknown␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
   ␛[38;5;59mUnknown␛[m                  ␛[38;5;59m192.0.2.10␛[m$
-                           ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+                           ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
   ␛[38;5;59mUnknown␛[m                  ␛[38;5;59m192.0.2.10␛[m$
-                           ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+                           ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[38;5;59mUnknown␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
   ␛[38;5;59mUnknown␛[m                  ␛[38;5;59m192.0.2.10␛[m$
-                           ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+                           ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
   ␛[38;5;59mUnknown␛[m                  ␛[38;5;59m192.0.2.10␛[m$
-                           ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+                           ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
   ␛[90mUnknown␛[m$

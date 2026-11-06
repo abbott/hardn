@@ -260,7 +260,7 @@ $
       ␛[38;5;235mreplication service on web-01.example.net␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;22m↪ monitoring-agent deploy-bot␛[m$
@@ -274,7 +274,7 @@ $
       ␛[38;5;235mservice on web-01.example.net␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;22m↪ monitoring-agent deploy-bot␛[m$
@@ -288,7 +288,7 @@ $
       ␛[38;5;235mservice on web-01.example.net␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;22m↪ monitoring-agent deploy-bot␛[m$
@@ -302,7 +302,7 @@ $
       ␛[38;5;235mreplication service on web-01.example.net␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;22m| monitoring-agent deploy-bot␛[m$
@@ -316,7 +316,7 @@ $
       ␛[38;5;235mservice on web-01.example.net␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;22m| monitoring-agent deploy-bot␛[m$
@@ -330,7 +330,7 @@ $
       ␛[38;5;235mservice on web-01.example.net␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -1 +1,2 @@␛[m$
       ␛[38;5;161m-AllowUsers alice␛[m$
       ␛[38;5;22m+AllowUsers alice bob backup-replication-service␛[m$
       ␛[38;5;22m| monitoring-agent deploy-bot␛[m$

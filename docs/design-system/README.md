@@ -200,7 +200,7 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 | `color.text.primary` | `text:#C0C4D8` | #C0C4D8 | `text.primary` | #C0C4D8 | 251 | 7 White | #1E2230 / 235 / 0 Black | light DEV-011 |
 | `color.status.ok` | `text:#70D47F` | #70D47F | `status.ok` | #70D47F | 78 | 10 BrightGreen | #1A7F37 / 22 / 2 Green | light DEV-011 |
 | `color.status.err` | `text:#E74669` | #E74669 | `status.bad` (renamed) | #E74669 | 204 | 9 BrightRed | #C2254A / 161 / 1 Red | light DEV-011 |
-| `color.text.dim` | `text:#2B2F3B` | #2B2F3B | `text.faint` (renamed) | **#565B6B** | **59** | 8 BrightBlack | #81869C / 103 / 8 BrightBlack | DEV-001, DEV-009; light DEV-011 |
+| `color.text.dim` | `text:#2B2F3B` | #2B2F3B | `text.faint` (renamed) | **#565B6B** | **59** | 8 BrightBlack | #81869C / **102** / 8 BrightBlack | DEV-001, DEV-009; light DEV-011, DEV-071 |
 | `color.text.dim`, as a fill | `text:#2B2F3B` | #2B2F3B | `bar.shade` (a second token) | #2B2F3B | 236 | **8 BrightBlack** | **#CACEDA / 252 / 7 White**, proposed | The maintainer, 2026-10-21: the ░ of the bars and the section stub, never text (DEV-001, DEV-018); light DEV-011 |
 | `color.status.warn` | `text:#DBB853` | #DBB853 | `status.warn` | #DBB853 | 179 | 3 Yellow | #8A6100 / 94 / 3 Yellow | light DEV-011 (its 16-colour value is the one contrast exception) |
 | `color.text.input` | `text:#DFDFDF` | #DFDFDF | `badge.fg` (merged) | #DFDFDF | 254 | 15 BrightWhite | #FFFFFF / 231 / 15 BrightWhite | DEV-003; D3, D4: used only on badges, merged with the host badge's #C0C4D8 text; answers shown again (`AnsweredField`) are `text.muted`, the live echo is the terminal's (DEV-043) |
@@ -210,7 +210,7 @@ Every colour token of the export, in its order. 256 is the xterm index; 16 is th
 | `color.badge.host` | `surface:#0C2AC0` | #0C2AC0 | `badge.bg` | #0C2AC0 | 19 | 4 Blue | #0C2AC0 / 19 / 4 Blue | light DEV-011 |
 | `color.bar.warn` | `surface:#D2BC13` | #D2BC13 | `accent.warn` | #D2BC13 | 178 | 3 Yellow | #B88A00 / 136 / 3 Yellow | D14: a pair with `status.warn`, kept separate; light DEV-011 |
 | `color.bar.ok` | `surface:#008A00` | #008A00 | `accent.ok` | #008A00 | 28 | 2 Green | #008A00 / 28 / 2 Green | D14: a pair with `status.ok`, kept separate; light DEV-011 |
-| `color.border.divider` | `border:#16181D` | #16181D | `divider` | **#303440** | 236 | 8 BrightBlack | #81869C / 103 / 8 BrightBlack | DEV-002; D6 |
+| `color.border.divider` | `border:#16181D` | #16181D | `divider` | **#303440** | 236 | 8 BrightBlack | #81869C / **102** / 8 BrightBlack | DEV-002; light DEV-071; D6 |
 
 **A use mapped to a different Go token, and a value outside the token export:**
 - The host badge text uses the export's `color.text.primary` (#C0C4D8). That use maps to `badge.fg`, not `text.primary` (drift D3, DEV-003).

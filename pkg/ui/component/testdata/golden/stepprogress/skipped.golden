@@ -88,30 +88,30 @@
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
-      ␛[38;5;103mSkipped␛[m ␛[38;5;103malready allowed␛[m$
+      ␛[38;5;102mSkipped␛[m ␛[38;5;102malready allowed␛[m$
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mInstall apk-cron␛[m$
       ␛[38;5;22mDone␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;103mSkipped␛[m ␛[38;5;103malready allowed␛[m$
+   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;102mSkipped␛[m ␛[38;5;102malready allowed␛[m$
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mInstall apk-cron␛[m       ␛[38;5;22mDone␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;103mSkipped␛[m ␛[38;5;103malready allowed␛[m$
+   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;102mSkipped␛[m ␛[38;5;102malready allowed␛[m$
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mInstall apk-cron␛[m       ␛[38;5;22mDone␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
    ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m$
-      ␛[38;5;103mSkipped␛[m ␛[38;5;103malready allowed␛[m$
+      ␛[38;5;102mSkipped␛[m ␛[38;5;102malready allowed␛[m$
   ␛[38;5;22m[+]␛[m ␛[38;5;235mInstall apk-cron␛[m$
       ␛[38;5;22mDone␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;103mSkipped␛[m ␛[38;5;103malready allowed␛[m$
+   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;102mSkipped␛[m ␛[38;5;102malready allowed␛[m$
   ␛[38;5;22m[+]␛[m ␛[38;5;235mInstall apk-cron␛[m       ␛[38;5;22mDone␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;103mSkipped␛[m ␛[38;5;103malready allowed␛[m$
+   ␛[38;5;59m-␛[m  ␛[38;5;235mAllow 2230/tcp in UFW␛[m  ␛[38;5;102mSkipped␛[m ␛[38;5;102malready allowed␛[m$
   ␛[38;5;22m[+]␛[m ␛[38;5;235mInstall apk-cron␛[m       ␛[38;5;22mDone␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode

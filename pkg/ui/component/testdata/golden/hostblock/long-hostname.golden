@@ -95,32 +95,32 @@
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
   ␛[1;38;5;231;48;5;19m ci-runner-0042.build-cluster.eu-west-1.web-01.example.n… ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
   ␛[1;38;5;231;48;5;19m ci-runner-0042.build-cluster.eu-west-1.web-01.example.net ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
   ␛[1;38;5;231;48;5;19m ci-runner-0042.build-cluster.eu-west-1.web-01.example.net ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;231;48;5;19m ci-runner-0042.build-cluster.eu-west-1.web-01.example... ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;231;48;5;19m ci-runner-0042.build-cluster.eu-west-1.web-01.example.net ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
   ␛[1;38;5;231;48;5;19m ci-runner-0042.build-cluster.eu-west-1.web-01.example.net ␛[m$
       ␛[38;5;59m192.0.2.10␛[m$
-      ␛[38;5;103m182 days, 2 hours, 26 minutes␛[m$
+      ␛[38;5;102m182 days, 2 hours, 26 minutes␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
   ␛[1;97;44m ci-runner-0042.build-cluster.eu-west-1.web-01.example.n… ␛[m$

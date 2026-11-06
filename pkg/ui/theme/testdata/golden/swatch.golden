@@ -1140,7 +1140,7 @@ Typography: the slots that set bold or underline$
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
-  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.faint␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
@@ -1150,7 +1150,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
-  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mdivider␛[m         ␛[48;5;102m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -1203,7 +1203,7 @@ Typography: the slots that set bold or underline$
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
-  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.faint␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
@@ -1213,7 +1213,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
-  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mdivider␛[m         ␛[48;5;102m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -1266,7 +1266,7 @@ Typography: the slots that set bold or underline$
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
-  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.faint␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
@@ -1276,7 +1276,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
-  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mdivider␛[m         ␛[48;5;102m      ␛[m$
 $
 Glyphs$
   Configured      ⛛$
@@ -1329,7 +1329,7 @@ Typography: the slots that set bold or underline$
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
-  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.faint␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
@@ -1339,7 +1339,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
-  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mdivider␛[m         ␛[48;5;102m      ␛[m$
 $
 Glyphs$
   Configured      [+]$
@@ -1392,7 +1392,7 @@ Typography: the slots that set bold or underline$
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
-  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.faint␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
@@ -1402,7 +1402,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
-  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mdivider␛[m         ␛[48;5;102m      ␛[m$
 $
 Glyphs$
   Configured      [+]$
@@ -1455,7 +1455,7 @@ Typography: the slots that set bold or underline$
 Tokens: the name in its colour, then as a background$
   ␛[38;5;235mtext.primary␛[m    ␛[48;5;235m      ␛[m$
   ␛[38;5;59mtext.muted␛[m      ␛[48;5;59m      ␛[m$
-  ␛[38;5;103mtext.faint␛[m      ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mtext.faint␛[m      ␛[48;5;102m      ␛[m$
   ␛[38;5;22mstatus.ok␛[m       ␛[48;5;22m      ␛[m$
   ␛[38;5;161mstatus.bad␛[m      ␛[48;5;161m      ␛[m$
   ␛[38;5;94mstatus.warn␛[m     ␛[48;5;94m      ␛[m$
@@ -1465,7 +1465,7 @@ Tokens: the name in its colour, then as a background$
   ␛[38;5;252mbar.shade␛[m       ␛[48;5;252m      ␛[m$
   ␛[38;5;28maccent.ok␛[m       ␛[48;5;28m      ␛[m$
   ␛[38;5;136maccent.warn␛[m     ␛[48;5;136m      ␛[m$
-  ␛[38;5;103mdivider␛[m         ␛[48;5;103m      ␛[m$
+  ␛[38;5;102mdivider␛[m         ␛[48;5;102m      ␛[m$
 $
 Glyphs$
   Configured      [+]$

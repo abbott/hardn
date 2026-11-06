@@ -64,23 +64,23 @@
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[1;38;5;235mhardn␛[m$
-␛[38;5;103mhttps://github.com/abbott/hardn␛[m$
+␛[38;5;102mhttps://github.com/abbott/hardn␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-␛[1;38;5;235mhardn␛[m                      ␛[38;5;103mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;235mhardn␛[m                      ␛[38;5;102mhttps://github.com/abbott/hardn␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-␛[1;38;5;235mhardn␛[m                      ␛[38;5;103mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;235mhardn␛[m                      ␛[38;5;102mhttps://github.com/abbott/hardn␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
 ␛[1;38;5;235mhardn␛[m$
-␛[38;5;103mhttps://github.com/abbott/hardn␛[m$
+␛[38;5;102mhttps://github.com/abbott/hardn␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-␛[1;38;5;235mhardn␛[m                      ␛[38;5;103mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;235mhardn␛[m                      ␛[38;5;102mhttps://github.com/abbott/hardn␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-␛[1;38;5;235mhardn␛[m                      ␛[38;5;103mhttps://github.com/abbott/hardn␛[m$
+␛[1;38;5;235mhardn␛[m                      ␛[38;5;102mhttps://github.com/abbott/hardn␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
 ␛[1;37mhardn␛[m$

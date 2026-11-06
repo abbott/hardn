@@ -280,93 +280,93 @@
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-root, sudo␛[m$
       ␛[38;5;94m- No password to become root␛[m$
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mdeny policy␛[m$
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mroot disallowed␛[m$
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mkey-only auth␛[m$
    ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-default (2230)␛[m$
    ␛[38;5;59m?␛[m  ␛[38;5;235mAppArmor␛[m$
-      ␛[38;5;59mUnknown␛[m ␛[38;5;103mcan't read␛[m$
+      ␛[38;5;59mUnknown␛[m ␛[38;5;102mcan't read␛[m$
       ␛[38;5;59m- Counted as not configured␛[m$
    ␛[38;5;94m⭘␛[m  ␛[38;5;235mAuto Updates␛[m$
-      ␛[38;5;94mPartial␛[m ␛[38;5;103moff after restart␛[m$
+      ␛[38;5;94mPartial␛[m ␛[38;5;102moff after restart␛[m$
       ␛[38;5;59m- Can't tell if fully on␛[m$
       ␛[38;5;59m- Up 182 days␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-root, sudo␛[m$
                            ␛[38;5;94m- No password to become root␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
-   ␛[38;5;59m?␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;103mcan't read␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mdeny policy␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;102mroot disallowed␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mkey-only auth␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-default (2230)␛[m$
+   ␛[38;5;59m?␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;102mcan't read␛[m$
                            ␛[38;5;59m- Counted as not configured␛[m$
-   ␛[38;5;94m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;103moff after restart␛[m$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;102moff after restart␛[m$
                            ␛[38;5;59m- Can't tell if fully on␛[m$
                            ␛[38;5;59m- Up 182 days␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-root, sudo␛[m$
                            ␛[38;5;94m- No password to become root␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
-   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
-   ␛[38;5;59m?␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;103mcan't read␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mdeny policy␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;102mroot disallowed␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mkey-only auth␛[m$
+   ␛[38;5;22m⛛␛[m  ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-default (2230)␛[m$
+   ␛[38;5;59m?␛[m  ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;102mcan't read␛[m$
                            ␛[38;5;59m- Counted as not configured␛[m$
-   ␛[38;5;94m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;103moff after restart␛[m$
+   ␛[38;5;94m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;102moff after restart␛[m$
                            ␛[38;5;59m- Can't tell if fully on␛[m$
                            ␛[38;5;59m- Up 182 days␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-root, sudo␛[m$
       ␛[38;5;94m- No password to become root␛[m$
   ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mdeny policy␛[m$
   ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mroot disallowed␛[m$
   ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mkey-only auth␛[m$
   ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m$
-      ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
+      ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-default (2230)␛[m$
   ␛[38;5;59m[?]␛[m ␛[38;5;235mAppArmor␛[m$
-      ␛[38;5;59mUnknown␛[m ␛[38;5;103mcan't read␛[m$
+      ␛[38;5;59mUnknown␛[m ␛[38;5;102mcan't read␛[m$
       ␛[38;5;59m- Counted as not configured␛[m$
   ␛[38;5;94m[ ]␛[m ␛[38;5;235mAuto Updates␛[m$
-      ␛[38;5;94mPartial␛[m ␛[38;5;103moff after restart␛[m$
+      ␛[38;5;94mPartial␛[m ␛[38;5;102moff after restart␛[m$
       ␛[38;5;59m- Can't tell if fully on␛[m$
       ␛[38;5;59m- Up 182 days␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-root, sudo␛[m$
                            ␛[38;5;94m- No password to become root␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
-  ␛[38;5;59m[?]␛[m ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;103mcan't read␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mdeny policy␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;102mroot disallowed␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mkey-only auth␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-default (2230)␛[m$
+  ␛[38;5;59m[?]␛[m ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;102mcan't read␛[m$
                            ␛[38;5;59m- Counted as not configured␛[m$
-  ␛[38;5;94m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;103moff after restart␛[m$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;102moff after restart␛[m$
                            ␛[38;5;59m- Can't tell if fully on␛[m$
                            ␛[38;5;59m- Up 182 days␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-root, sudo␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mUser␛[m                 ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-root, sudo␛[m$
                            ␛[38;5;94m- No password to become root␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mdeny policy␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;103mroot disallowed␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mkey-only auth␛[m$
-  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;103mnon-default (2230)␛[m$
-  ␛[38;5;59m[?]␛[m ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;103mcan't read␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mdeny policy␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;22mConfigured␛[m ␛[38;5;102mroot disallowed␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mkey-only auth␛[m$
+  ␛[38;5;22m[+]␛[m ␛[38;5;235mSSH Port␛[m             ␛[38;5;22mConfigured␛[m ␛[38;5;102mnon-default (2230)␛[m$
+  ␛[38;5;59m[?]␛[m ␛[38;5;235mAppArmor␛[m             ␛[38;5;59mUnknown␛[m ␛[38;5;102mcan't read␛[m$
                            ␛[38;5;59m- Counted as not configured␛[m$
-  ␛[38;5;94m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;103moff after restart␛[m$
+  ␛[38;5;94m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;94mPartial␛[m ␛[38;5;102moff after restart␛[m$
                            ␛[38;5;59m- Can't tell if fully on␛[m$
                            ␛[38;5;59m- Up 182 days␛[m$
 

@@ -431,7 +431,7 @@ $
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;5;102m@@ -1,3 +1,3 @@␛[m$
       ␛[38;5;59m # Managed by hardn␛[m$
       ␛[38;5;161m-Port 22␛[m$
       ␛[38;5;22m+Port 2230␛[m$
@@ -454,7 +454,7 @@ $
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;5;102m@@ -1,3 +1,3 @@␛[m$
       ␛[38;5;59m # Managed by hardn␛[m$
       ␛[38;5;161m-Port 22␛[m$
       ␛[38;5;22m+Port 2230␛[m$
@@ -477,7 +477,7 @@ $
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;5;102m@@ -1,3 +1,3 @@␛[m$
       ␛[38;5;59m # Managed by hardn␛[m$
       ␛[38;5;161m-Port 22␛[m$
       ␛[38;5;22m+Port 2230␛[m$
@@ -500,7 +500,7 @@ $
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;5;102m@@ -1,3 +1,3 @@␛[m$
       ␛[38;5;59m # Managed by hardn␛[m$
       ␛[38;5;161m-Port 22␛[m$
       ␛[38;5;22m+Port 2230␛[m$
@@ -523,7 +523,7 @@ $
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;5;102m@@ -1,3 +1,3 @@␛[m$
       ␛[38;5;59m # Managed by hardn␛[m$
       ␛[38;5;161m-Port 22␛[m$
       ␛[38;5;22m+Port 2230␛[m$
@@ -546,7 +546,7 @@ $
       ␛[38;5;235mSet Port 2230␛[m$
 $
       ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf␛[m$
-      ␛[38;5;103m@@ -1,3 +1,3 @@␛[m$
+      ␛[38;5;102m@@ -1,3 +1,3 @@␛[m$
       ␛[38;5;59m # Managed by hardn␛[m$
       ␛[38;5;161m-Port 22␛[m$
       ␛[38;5;22m+Port 2230␛[m$

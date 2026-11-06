@@ -85,7 +85,7 @@ var darkPalette = palette{
 var lightPalette = palette{
 	TextPrimary: token{"#1E2230", 235, lipgloss.Black},
 	TextMuted:   token{"#575C6E", 59, lipgloss.BrightBlack},
-	TextFaint:   token{"#81869C", 103, lipgloss.BrightBlack},
+	TextFaint:   token{"#81869C", 102, lipgloss.BrightBlack}, // DEV-071
 	StatusOK:    token{"#1A7F37", 22, lipgloss.Green},
 	StatusBad:   token{"#C2254A", 161, lipgloss.Red},
 	StatusWarn:  token{"#8A6100", 94, lipgloss.Yellow},
@@ -95,5 +95,5 @@ var lightPalette = palette{
 	BarShade:    token{"#CACEDA", 252, lipgloss.White}, // proposed
 	AccentOK:    token{"#008A00", 28, lipgloss.Green},
 	AccentWarn:  token{"#B88A00", 136, lipgloss.Yellow},
-	Divider:     token{"#81869C", 103, lipgloss.BrightBlack},
+	Divider:     token{"#81869C", 102, lipgloss.BrightBlack}, // DEV-071
 }

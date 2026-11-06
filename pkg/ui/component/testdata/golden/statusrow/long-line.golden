@@ -82,28 +82,28 @@
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m$
-      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;102mno unattended-upgrades␛[m$
       ␛[38;5;94m- Up 182 days without automatic updates or a reboot␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;102mno unattended-upgrades␛[m$
                            ␛[38;5;94m- Up 182 days without automatic upda…␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;102mno unattended-upgrades␛[m$
                            ␛[38;5;94m- Up 182 days without automatic upda…␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m$
-      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;102mno unattended-upgrades␛[m$
       ␛[38;5;94m- Up 182 days without automatic updates or a reboot␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;102mno unattended-upgrades␛[m$
                            ␛[38;5;94m- Up 182 days without automatic up...␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;103mno unattended-upgrades␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mAuto Updates␛[m         ␛[38;5;161mNot Configured␛[m ␛[38;5;102mno unattended-upgrades␛[m$
                            ␛[38;5;94m- Up 182 days without automatic up...␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode

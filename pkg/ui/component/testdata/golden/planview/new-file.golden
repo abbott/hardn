@@ -149,7 +149,7 @@
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m-␛[m  ␛[38;5;235mRequire a password for sudo␛[m$
       ␛[38;5;59m/etc/sudoers.d/hardn-alice␛[m$
-      ␛[38;5;103m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -0,0 +1,2 @@␛[m$
       ␛[38;5;22m+# Managed by hardn␛[m$
       ␛[38;5;22m+alice ALL=(ALL:ALL) ALL␛[m$
       ␛[38;5;59m$ visudo -cf /etc/sudoers.d/hardn-alice␛[m$
@@ -157,7 +157,7 @@
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m-␛[m  ␛[38;5;235mRequire a password for sudo␛[m$
       ␛[38;5;59m/etc/sudoers.d/hardn-alice␛[m$
-      ␛[38;5;103m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -0,0 +1,2 @@␛[m$
       ␛[38;5;22m+# Managed by hardn␛[m$
       ␛[38;5;22m+alice ALL=(ALL:ALL) ALL␛[m$
       ␛[38;5;59m$ visudo -cf /etc/sudoers.d/hardn-alice␛[m$
@@ -165,7 +165,7 @@
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m-␛[m  ␛[38;5;235mRequire a password for sudo␛[m$
       ␛[38;5;59m/etc/sudoers.d/hardn-alice␛[m$
-      ␛[38;5;103m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -0,0 +1,2 @@␛[m$
       ␛[38;5;22m+# Managed by hardn␛[m$
       ␛[38;5;22m+alice ALL=(ALL:ALL) ALL␛[m$
       ␛[38;5;59m$ visudo -cf /etc/sudoers.d/hardn-alice␛[m$
@@ -173,7 +173,7 @@
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
    ␛[38;5;59m-␛[m  ␛[38;5;235mRequire a password for sudo␛[m$
       ␛[38;5;59m/etc/sudoers.d/hardn-alice␛[m$
-      ␛[38;5;103m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -0,0 +1,2 @@␛[m$
       ␛[38;5;22m+# Managed by hardn␛[m$
       ␛[38;5;22m+alice ALL=(ALL:ALL) ALL␛[m$
       ␛[38;5;59m$ visudo -cf /etc/sudoers.d/hardn-alice␛[m$
@@ -181,7 +181,7 @@
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
    ␛[38;5;59m-␛[m  ␛[38;5;235mRequire a password for sudo␛[m$
       ␛[38;5;59m/etc/sudoers.d/hardn-alice␛[m$
-      ␛[38;5;103m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -0,0 +1,2 @@␛[m$
       ␛[38;5;22m+# Managed by hardn␛[m$
       ␛[38;5;22m+alice ALL=(ALL:ALL) ALL␛[m$
       ␛[38;5;59m$ visudo -cf /etc/sudoers.d/hardn-alice␛[m$
@@ -189,7 +189,7 @@
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
    ␛[38;5;59m-␛[m  ␛[38;5;235mRequire a password for sudo␛[m$
       ␛[38;5;59m/etc/sudoers.d/hardn-alice␛[m$
-      ␛[38;5;103m@@ -0,0 +1,2 @@␛[m$
+      ␛[38;5;102m@@ -0,0 +1,2 @@␛[m$
       ␛[38;5;22m+# Managed by hardn␛[m$
       ␛[38;5;22m+alice ALL=(ALL:ALL) ALL␛[m$
       ␛[38;5;59m$ visudo -cf /etc/sudoers.d/hardn-alice␛[m$

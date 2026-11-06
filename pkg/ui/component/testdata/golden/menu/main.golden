@@ -322,7 +322,7 @@ $
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m$
-      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;103m(sudo, SSH keys)␛[m$
+      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;102m(sudo, SSH keys)␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m$
       ␛[38;5;59mToggle root SSH access␛[m$
    ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m$
@@ -346,7 +346,7 @@ $
       ␛[38;5;59mq to quit␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;103m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;102m(sudo, SSH keys)␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;59mToggle root SSH access␛[m$
    ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                  ␛[38;5;59mConfigure Nameservers␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;59mConfigure UFW rules␛[m$
@@ -360,7 +360,7 @@ $
    ␛[1;38;5;59m0)␛[m ␛[38;5;59mExit␛[m                 ␛[38;5;59mq to quit␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;103m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;102m(sudo, SSH keys)␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;59mToggle root SSH access␛[m$
    ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                  ␛[38;5;59mConfigure Nameservers␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;59mConfigure UFW rules␛[m$
@@ -375,7 +375,7 @@ $
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m$
-      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;103m(sudo, SSH keys)␛[m$
+      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;102m(sudo, SSH keys)␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m$
       ␛[38;5;59mToggle root SSH access␛[m$
    ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m$
@@ -399,7 +399,7 @@ $
       ␛[38;5;59mq to quit␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;103m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;102m(sudo, SSH keys)␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;59mToggle root SSH access␛[m$
    ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                  ␛[38;5;59mConfigure Nameservers␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;59mConfigure UFW rules␛[m$
@@ -413,7 +413,7 @@ $
    ␛[1;38;5;59m0)␛[m ␛[38;5;59mExit␛[m                 ␛[38;5;59mq to quit␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;103m(sudo, SSH keys)␛[m$
+   ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m      ␛[38;5;59mCreate, Configure␛[m ␛[38;5;102m(sudo, SSH keys)␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m            ␛[38;5;59mToggle root SSH access␛[m$
    ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                  ␛[38;5;59mConfigure Nameservers␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m             ␛[38;5;59mConfigure UFW rules␛[m$

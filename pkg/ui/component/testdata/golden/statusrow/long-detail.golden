@@ -64,23 +64,23 @@
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m$
-      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also allowed for alice a…␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;102mpassword auth also allowed for alice a…␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also al…␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;102mpassword auth also al…␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
-   ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also al…␛[m$
+   ␛[38;5;161m⭘␛[m  ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;102mpassword auth also al…␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
   ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m$
-      ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also allowed for alice...␛[m$
+      ␛[38;5;161mNot Configured␛[m ␛[38;5;102mpassword auth also allowed for alice...␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also...␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;102mpassword auth also...␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
-  ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;103mpassword auth also...␛[m$
+  ␛[38;5;161m[ ]␛[m ␛[38;5;235mSSH Auth␛[m             ␛[38;5;161mNot Configured␛[m ␛[38;5;102mpassword auth also...␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
    ␛[91m⭘␛[m  ␛[37mSSH Auth␛[m$

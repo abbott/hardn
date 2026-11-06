@@ -149,49 +149,49 @@
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m-␛[m  ␛[38;5;235mSet the domain␛[m$
       ␛[38;5;59m/etc/hostname␛[m$
-      ␛[38;5;103m@@ -1 +1 @@␛[m$
+      ␛[38;5;102m@@ -1 +1 @@␛[m$
       ␛[38;5;161m-web-01␛[m$
-      ␛[38;5;103m\ No newline at end of file␛[m$
+      ␛[38;5;102m\ No newline at end of file␛[m$
       ␛[38;5;22m+web-01.example.net␛[m$
 
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m-␛[m  ␛[38;5;235mSet the domain␛[m$
       ␛[38;5;59m/etc/hostname␛[m$
-      ␛[38;5;103m@@ -1 +1 @@␛[m$
+      ␛[38;5;102m@@ -1 +1 @@␛[m$
       ␛[38;5;161m-web-01␛[m$
-      ␛[38;5;103m\ No newline at end of file␛[m$
+      ␛[38;5;102m\ No newline at end of file␛[m$
       ␛[38;5;22m+web-01.example.net␛[m$
 
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m-␛[m  ␛[38;5;235mSet the domain␛[m$
       ␛[38;5;59m/etc/hostname␛[m$
-      ␛[38;5;103m@@ -1 +1 @@␛[m$
+      ␛[38;5;102m@@ -1 +1 @@␛[m$
       ␛[38;5;161m-web-01␛[m$
-      ␛[38;5;103m\ No newline at end of file␛[m$
+      ␛[38;5;102m\ No newline at end of file␛[m$
       ␛[38;5;22m+web-01.example.net␛[m$
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
    ␛[38;5;59m-␛[m  ␛[38;5;235mSet the domain␛[m$
       ␛[38;5;59m/etc/hostname␛[m$
-      ␛[38;5;103m@@ -1 +1 @@␛[m$
+      ␛[38;5;102m@@ -1 +1 @@␛[m$
       ␛[38;5;161m-web-01␛[m$
-      ␛[38;5;103m\ No newline at end of file␛[m$
+      ␛[38;5;102m\ No newline at end of file␛[m$
       ␛[38;5;22m+web-01.example.net␛[m$
 
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
    ␛[38;5;59m-␛[m  ␛[38;5;235mSet the domain␛[m$
       ␛[38;5;59m/etc/hostname␛[m$
-      ␛[38;5;103m@@ -1 +1 @@␛[m$
+      ␛[38;5;102m@@ -1 +1 @@␛[m$
       ␛[38;5;161m-web-01␛[m$
-      ␛[38;5;103m\ No newline at end of file␛[m$
+      ␛[38;5;102m\ No newline at end of file␛[m$
       ␛[38;5;22m+web-01.example.net␛[m$
 
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
    ␛[38;5;59m-␛[m  ␛[38;5;235mSet the domain␛[m$
       ␛[38;5;59m/etc/hostname␛[m$
-      ␛[38;5;103m@@ -1 +1 @@␛[m$
+      ␛[38;5;102m@@ -1 +1 @@␛[m$
       ␛[38;5;161m-web-01␛[m$
-      ␛[38;5;103m\ No newline at end of file␛[m$
+      ␛[38;5;102m\ No newline at end of file␛[m$
       ␛[38;5;22m+web-01.example.net␛[m$
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
