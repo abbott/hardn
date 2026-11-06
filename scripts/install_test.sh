@@ -213,7 +213,9 @@ printf 'tampered\n' >>"$rel/v9.0.1/hardn-linux-amd64"
 make_release v9.0.2 # no line for the asset
 grep -v ' hardn-linux-amd64$' "$rel/v9.0.2/SHA256SUMS" >"$work/s" && cp "$work/s" "$rel/v9.0.2/SHA256SUMS"
 make_release v9.0.3 # two lines
-sums_for v9.0.3 hardn-linux-amd64 >>"$rel/v9.0.3/SHA256SUMS"
+# Read the line first: GNU grep refuses to append to the file it reads.
+line=$(sums_for v9.0.3 hardn-linux-amd64)
+printf '%s\n' "$line" >>"$rel/v9.0.3/SHA256SUMS"
 make_release v9.0.4 # 63 hex digits
 line=$(sums_for v9.0.4 hardn-linux-amd64)
 grep -v ' hardn-linux-amd64$' "$rel/v9.0.4/SHA256SUMS" >"$work/s"
