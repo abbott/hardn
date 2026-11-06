@@ -369,6 +369,12 @@ func TestMainMenuKeepsLoadWarning(t *testing.T) {
 func TestMainMenuDraw(t *testing.T) {
 	env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 24,
 		Environ: []string{"TERM=xterm-256color", "LANG=C.UTF-8"}})
+	// The clear itself, as written, not as env.Clear computes it: on a terminal of 24
+	// measured rows, 23 newlines scroll the screen away, then the cursor goes home
+	// (next/fix-clear-gaps), with no ESC[2J.
+	if got, lit := clearOn(env), strings.Repeat("\n", 23)+"\x1b[H"; got != lit {
+		t.Fatalf("the clear on a terminal of 24 measured rows: %q, want %q", got, lit)
+	}
 	m := liveMenu(t, env, fixtureStatus(new(int)), "q")
 	out, _, ended := session(t, func() { show(m) })
 	vm := screen.MainMenuFixture()
