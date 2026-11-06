@@ -570,7 +570,18 @@ func TestRestoreFailures(t *testing.T) {
 }
 
 // Restore refuses what it cannot undo safely and goes on with the rest.
+// asRoot checks run directories against root's effective uid, as hardn runs, whoever runs
+// the tests: a directory uid 1000 owns is then another user's, also where the tests run as
+// uid 1000 (deb13-vm's login user, where these cases failed on 2026-11-06).
+func asRoot(t *testing.T) {
+	t.Helper()
+	prev := geteuid
+	geteuid = func() int { return 0 }
+	t.Cleanup(func() { geteuid = prev })
+}
+
 func TestRestoreRefuses(t *testing.T) {
+	asRoot(t)
 	ctx := context.Background()
 	w := fakeWorld(t)
 	f, ok := w.sys.(*hostfake.System)
@@ -620,6 +631,7 @@ func TestRestoreRefuses(t *testing.T) {
 }
 
 func TestLoadRefuses(t *testing.T) {
+	asRoot(t)
 	ctx := context.Background()
 	good := `{"schemaVersion":1,"runId":"r","entries":[{"seq":1,"path":"/etc/a","kind":"file","file":{"backup":"0001-a","mode":"0644","uid":0,"gid":0,"size":0,"sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"}}]}`
 	for _, tt := range []struct{ name, from, to string }{
