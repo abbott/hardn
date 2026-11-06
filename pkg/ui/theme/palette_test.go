@@ -81,16 +81,17 @@ func TestTokensComplete(t *testing.T) {
 // contrastFloors are the WCAG contrast minimums of each token against the
 // page background, by palette. Tokens with no floor are listed with 0: the
 // bar and badge backgrounds are surfaces, the bars' shade is a fill
-// (TestShadeBetweenBarAndDivider, TestShadeFillOnly), and badge text is
-// checked against the badge instead. The dark divider's floor is lower: a
-// rule is decorative, the blank lines around it already part the blocks,
-// and it is kept quieter than the faintest text (TestDividerBelowFaint;
-// DEV-002).
+// (TestShadeAboveBar, TestShadeFillOnly), and badge text is checked
+// against the badge instead. The dark divider's floor is lower: a rule is
+// decorative, the blank lines around it already part the blocks, and it is
+// kept quieter than the faintest text (TestDividerBelowFaint; DEV-002).
+// Since 2026-11-06 it is bar.bg's colour, Figma's own rule, 1.18:1 on black
+// (the maintainer; DEV-074), so its floor is 1.1, where it was 1.5.
 var contrastFloors = map[string]map[string]float64{
 	"dark": {
 		"text.primary": 7, "text.muted": 4.5, "text.faint": 3,
 		"status.ok": 4.5, "status.bad": 4.5, "status.warn": 4.5,
-		"divider": 1.5, "accent.ok": 3, "accent.warn": 3,
+		"divider": 1.1, "accent.ok": 3, "accent.warn": 3,
 		"badge.bg": 0, "badge.fg": 0, "bar.bg": 0, "bar.shade": 0,
 	},
 	"light": {
@@ -150,6 +151,7 @@ var ansi256Overrides = map[string]struct {
 	reason string
 }{
 	"dark/text.faint":  {59, "240 (#585858) is nearest (ΔE 10.04) but 2.95:1 on black, under faint's 3:1; 59 (#5F5F5F, ΔE 10.07) is 3.29:1"},
+	"dark/bar.shade":   {235, "236 (#303030) is nearest, the rule's 256 value until 2026-11-06; 235 (#262626), one step darker, is the maintainer's, seen beside the rule at 234 on util (DEV-074)"},
 	"dark/text.muted":  {102, "103 (#8787AF) is nearest (ΔE 10.60) but reads purple: chroma 22.8 to #81869C's 12.7; 102 (#878787, ΔE 12.67) is the gray at the same lightness, 5.85:1 on black to 5.82:1 (DEV-069)"},
 	"light/text.faint": {102, "103 (#8787AF) is nearest (ΔE 10.60) but reads purple, as dark/text.muted did; 102 (#878787, ΔE 12.67) is the gray at the same lightness, 3.59:1 on white to 3.61:1 (DEV-071)"},
 	"light/divider":    {102, "as light/text.faint, the same hex: 103 is nearest but reads purple; 102 is the gray (DEV-071)"},
@@ -175,21 +177,25 @@ func TestDividerBelowFaint(t *testing.T) {
 	}
 }
 
-// TestShadeBetweenBarAndDivider holds the bars' shade, a fill drawn as ░
-// in front of the page, between the two other quiet colours: louder than
-// bar.bg, the version box's surface, and no louder than a rule, which it
-// equals at 256 colours in the dark theme (both 236). The light value,
-// proposed, stands to white as Figma's #2B2F3B stands to black, 1.57:1
-// (the maintainer, 2026-10-21; DEV-018). At 16 colours the shade is the
-// one gray beside the page, as bar.bg and the divider are.
-func TestShadeBetweenBarAndDivider(t *testing.T) {
+// TestShadeAboveBar holds the bars' shade, a fill drawn as ░ in front of
+// the page, louder than bar.bg, the version box's surface, so that a bar's
+// fill shows beside it. The light value, proposed, stands to white as
+// Figma's #2B2F3B stands to black, 1.57:1 (the maintainer, 2026-10-21;
+// DEV-018). At 16 colours the shade is the one gray beside the page, as
+// bar.bg is. Until 2026-11-06 it also held the shade no louder than a rule;
+// since then the dark rule is bar.bg's colour, quieter than the shade (the
+// maintainer; DEV-074), and that order is held in the light theme alone.
+func TestShadeAboveBar(t *testing.T) {
 	dark := contrast(lipgloss.Color(darkPalette.BarShade.hex), color.Black)
 	for _, pt := range palettes {
 		shade, bar, div := profileColors(pt.p.BarShade), profileColors(pt.p.BarBG), profileColors(pt.p.Divider)
 		for _, profile := range []string{"truecolor", "256"} {
 			s, b, d := contrast(shade[profile], pt.page), contrast(bar[profile], pt.page), contrast(div[profile], pt.page)
-			if s <= b || s > d {
-				t.Errorf("%s/%s: bar.shade is %.2f:1, want above bar.bg's %.2f:1 and at most the divider's %.2f:1", pt.name, profile, s, b, d)
+			if s <= b {
+				t.Errorf("%s/%s: bar.shade is %.2f:1, want above bar.bg's %.2f:1", pt.name, profile, s, b)
+			}
+			if pt.name == "light" && s > d {
+				t.Errorf("%s/%s: bar.shade is %.2f:1, want at most the divider's %.2f:1", pt.name, profile, s, d)
 			}
 		}
 		if s := contrast(shade["truecolor"], pt.page); math.Abs(s-dark) > 0.05 {

@@ -63,10 +63,10 @@ var darkPalette = palette{
 	BadgeBG:     token{"#0C2AC0", 19, lipgloss.Blue},
 	BadgeFG:     token{"#DFDFDF", 254, lipgloss.BrightWhite}, // DEV-003
 	BarBG:       token{"#16181D", 234, lipgloss.BrightBlack}, // DEV-004
-	BarShade:    token{"#2B2F3B", 236, lipgloss.BrightBlack}, // DEV-018: Figma's text.dim, as a fill
+	BarShade:    token{"#2B2F3B", 235, lipgloss.BrightBlack}, // DEV-018: Figma's text.dim, as a fill; 235, DEV-074
 	AccentOK:    token{"#008A00", 28, lipgloss.Green},
 	AccentWarn:  token{"#D2BC13", 178, lipgloss.Yellow},
-	Divider:     token{"#303440", 236, lipgloss.BrightBlack}, // DEV-002
+	Divider:     token{"#16181D", 234, lipgloss.BrightBlack}, // DEV-002, DEV-074: bar.bg's values
 }
 
 // lightPalette is the light theme. Figma has none, so these values are ours
@@ -81,7 +81,8 @@ var darkPalette = palette{
 // bar.shade is proposed (2026-10-21): #CACEDA is 1.57:1 on white as
 // Figma's #2B2F3B is on black, and the same blue-gray, its channels the
 // same steps apart; it falls between bar.bg and the divider, as the dark
-// value does (DEV-011, DEV-018).
+// value did until 2026-11-06, when the dark rule took bar.bg's colour,
+// under the dark shade (DEV-011, DEV-018, DEV-074).
 var lightPalette = palette{
 	TextPrimary: token{"#1E2230", 235, lipgloss.Black},
 	TextMuted:   token{"#575C6E", 59, lipgloss.BrightBlack},

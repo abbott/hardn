@@ -254,7 +254,8 @@ func TestColourRoles(t *testing.T) {
 // which DEV-001 replaced for text, to the fill slots alone: no other slot
 // takes it as its foreground or background (the maintainer, 2026-10-21;
 // DEV-018). It is checked at truecolor, where no other token shares its
-// value; at 256 colours the dark divider is 236 too.
+// value; at 256 colours the dark divider was 236 too until 2026-11-06
+// (DEV-074).
 func TestShadeFillOnly(t *testing.T) {
 	fills := []string{"ContextBar.Fill", "TitleBar.Fill"}
 	for _, dark := range []bool{true, false} {

@@ -8,7 +8,7 @@ $
 $
 \x1b[1;38;5;251mhardn\x1b[m \x1b[38;5;102;48;5;234m v0.4.0 \x1b[m             \x1b[38;5;59mhttps://github.com/abbott/hardn\x1b[m$
 $
-\x1b[38;5;236m░\x1b[m \x1b[1;38;5;102mDebian\x1b[m \x1b[38;5;102m13\x1b[m \x1b[38;5;59m(Trixie)\x1b[m \x1b[38;5;236m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░\x1b[m$
+\x1b[38;5;235m░\x1b[m \x1b[1;38;5;102mDebian\x1b[m \x1b[38;5;102m13\x1b[m \x1b[38;5;59m(Trixie)\x1b[m \x1b[38;5;235m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░\x1b[m$
 $
   \x1b[1;38;5;254;48;5;19m web-01 \x1b[m                 \x1b[38;5;102m192.0.2.20\x1b[m$
                            \x1b[38;5;59m3 days, 5 hours, 12 minutes\x1b[m$
@@ -24,7 +24,7 @@ $
    \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mno unattended-upgrades\x1b[m$
    \x1b[38;5;102m–\x1b[m  \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;102mNot Applicable\x1b[m \x1b[38;5;59mno hardn.yml\x1b[m$
 $
-\x1b[38;5;236m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌\x1b[m$
+\x1b[38;5;234m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌\x1b[m$
 $
   \x1b[4;38;5;102;4mS\x1b[m\x1b[4;38;5;102;4me\x1b[m\x1b[4;38;5;102;4ml\x1b[m\x1b[4;38;5;102;4me\x1b[m\x1b[4;38;5;102;4mc\x1b[m\x1b[4;38;5;102;4mt\x1b[m\x1b[38;5;102;4m \x1b[m\x1b[4;38;5;102;4ma\x1b[m\x1b[4;38;5;102;4mn\x1b[m\x1b[38;5;102;4m \x1b[m\x1b[4;38;5;102;4mo\x1b[m\x1b[4;38;5;102;4mp\x1b[m\x1b[4;38;5;102;4mt\x1b[m\x1b[4;38;5;102;4mi\x1b[m\x1b[4;38;5;102;4mo\x1b[m\x1b[4;38;5;102;4mn\x1b[m         \x1b[38;5;102mMode\x1b[m \x1b[38;5;179mLive\x1b[m$
 $
