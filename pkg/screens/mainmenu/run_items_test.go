@@ -15,8 +15,9 @@ import (
 
 // TestDNSItem: the main menu's 3 runs the DNS screen cmd/hardn sets
 // (Options.DNS) from a cleared screen, once, and maps what it returns: Return
-// (nil) or back (nav.ErrBack) to the main menu, drawn again under the
-// screen, which shows the configuration as the screen left it; q
+// (nil) or back (nav.ErrBack) to the main menu, drawn again on a cleared
+// screen (under the screen, off a terminal), which shows the configuration
+// as the screen left it; q
 // (nav.ErrQuit) ends hardn as the main menu's q does, clearing the
 // screen; the end of the input exits 130, Ctrl-C ends hardn by SIGINT,
 // and any other error is printed and exits 1, as at every legacy prompt.
@@ -233,18 +234,18 @@ func testScreenItem(t *testing.T, item screenItem) {
 				// The screen opens on a cleared screen on a terminal, after the
 				// main menu's prompt and the key typed; off one nothing clears.
 				noClearOff(t, env, out)
-				if !strings.Contains(out, "[0-10 or q]: \n"+clearOn(env)+said+"\n") {
+				if !strings.Contains(out, "[0-10 or q]: \n"+clearGapOn(env)+said+"\n") {
 					t.Errorf("the screen does not open on a cleared screen:\n%q", out)
 				}
 				wantPasses := map[bool]int{false: 1, true: 2}[tc.again]
 				if calls != 1 || passes != wantPasses {
 					t.Errorf("the screen ran %d times, the main menu drawn %d times; want 1 and %d", calls, passes, wantPasses)
 				}
-				if tc.again && !strings.Contains(stripANSI(out), said+"\n\nhardn ") {
-					t.Errorf("the main menu is not drawn again under the screen, a blank line between:\n%q", out)
+				if tc.again && !strings.Contains(out, said+"\n"+clearGapOn(env)+"\n") {
+					t.Errorf("the main menu is not drawn again on a cleared screen, two blank lines at its top (off a terminal, under the screen, a blank line between):\n%q", out)
 				}
-				if tc.code == 0 && !strings.HasSuffix(out, clearOn(env)) {
-					t.Errorf("q does not end with a cleared screen:\n%q", out)
+				if tc.code == 0 && !strings.HasSuffix(out, clearTopOn(env)) {
+					t.Errorf("q does not end with a cleared screen, two blank lines at its top:\n%q", out)
 				}
 				if tc.said != "" && !strings.Contains(out, tc.said) {
 					t.Errorf("printed %q, want %q", out, tc.said)

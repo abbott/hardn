@@ -11,6 +11,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -21,7 +22,8 @@ import (
 // next/s2b-menu; docs/engine/menu-layout.md): origin/main's items on
 // screen.MainMenu in its full form, each key to the screen it opened, a
 // line no item takes refused under the prompt, the main menu drawn again
-// under what an item printed, and the mode indicator in the maintainer's
+// on a cleared screen as an item's screen returns (under it, off a
+// terminal), and the mode indicator in the maintainer's
 // words. The legacy screens are recorded, not run, and the status is
 // Figma's fixture or pkg/screens/mainmenu over the gallery's hosts:
 // nothing on this machine is read or run.
@@ -140,13 +142,15 @@ func TestMainMenuKeys(t *testing.T) {
 				}
 				clears := strings.Count(out, clearScreen)
 				want := 1 + map[bool]int{false: 1, true: 0}[ended] // as hardn starts, and as the main menu returns
-				// every item's screen opens on a cleared screen (showScreen)
-				want += len(tc.opened)
+				// every item's screen opens on a cleared screen, and the screen is
+				// cleared again as it returns (show)
+				want += 2 * len(tc.opened)
 				if env.Plain {
 					want = 0 // off a terminal nothing clears
 				}
-				if !strings.HasPrefix(out, clearOn(env)) || clears != want || strings.Contains(out, "Press Enter") {
-					t.Errorf("%d clears, want %d, the first as hardn starts; or a pause:\n%q", clears, want, out)
+				top := clearTopOn(env) // two blank lines under the first clear (clearTop)
+				if !strings.HasPrefix(out, top+"\x1b[1mhardn") && !strings.HasPrefix(out, top+"hardn") || clears != want || strings.Contains(out, "Press Enter") {
+					t.Errorf("%d clears, want %d, the first as hardn starts, two blank lines under it; or a pause:\n%q", clears, want, out)
 				}
 			})
 		}
@@ -178,8 +182,8 @@ func TestMainMenuInvalid(t *testing.T) {
 			ask := strings.Replace(prompt, ">", component.NewCtx(tc.env).Theme.Glyphs.Prompt, 1)
 			clr := clearOn(tc.env) // on a terminal as it starts and as it returns; off one none
 			noClearOff(t, tc.env, out)
-			if ended || passes != 1 || len(*opened) != 0 || !strings.HasSuffix(out, clr) ||
-				!strings.HasSuffix(stripANSI(strings.TrimSuffix(out, clr)), ask+"\n"+tc.line+"\n"+ask+"\n") ||
+			if ended || passes != 1 || len(*opened) != 0 || !strings.HasSuffix(out, clearTopOn(tc.env)) ||
+				!strings.HasSuffix(stripANSI(strings.TrimSuffix(out, clearTopOn(tc.env))), ask+"\n"+tc.line+"\n"+ask+"\n") ||
 				clr != "" && strings.Count(out, clr) != 2 || strings.Contains(out, "Press Enter") {
 				t.Errorf("ended %v, read %d times, opened %q; the screen:\n%q\nwant it to end %q", ended, passes, *opened, out, ask+"\n"+tc.line+"\n"+ask+"\n")
 			}
@@ -187,10 +191,12 @@ func TestMainMenuInvalid(t *testing.T) {
 	}
 }
 
-// TestMainMenuAgain: after an item's screen returns, the main menu is read
-// and drawn again under what the screen printed, a blank line between,
-// the screen not cleared after it (brief 1C); the drawing is the first's.
-// The screen itself opens on a cleared screen (showScreen).
+// TestMainMenuAgain: an item's screen opens on a cleared screen, and as it
+// returns the screen is cleared again (show), so that the main menu is read
+// and drawn again on a cleared screen, not under the item's; two blank
+// lines at its top, one of them nav's, as on the first drawing (clearTop),
+// and the drawing is the first's. Off a terminal nothing clears and the
+// main menu is drawn under the screen, nav's blank line between.
 func TestMainMenuAgain(t *testing.T) {
 	for _, env := range []term.Env{ttyEnv(), plainEnv()} {
 		passes := 0
@@ -199,10 +205,13 @@ func TestMainMenuAgain(t *testing.T) {
 		out, _, ended := session(t, func() { show(m) })
 		clr := clearOn(env)
 		noClearOff(t, env, out)
-		body := strings.TrimSuffix(strings.TrimPrefix(out, clr), clr)
-		first, second, ok := strings.Cut(body, " \n"+clr+"RUNALL SCREEN\n\n")
+		body := strings.TrimSuffix(strings.TrimPrefix(out, clr), clearTopOn(env))
+		first, second, ok := strings.Cut(body, " \n"+clearGapOn(env)+"RUNALL SCREEN\n"+clearGapOn(env)+"\n")
+		if !env.Plain {
+			first = strings.TrimPrefix(first, strings.Repeat("\n", topRows)) // the blank lines under the first clear (clearTop)
+		}
 		if ended || passes != 2 || !ok || first+" \n" != second || clr != "" && strings.Contains(second, clr) {
-			t.Errorf("ended %v, read %d times; want the main menu, the screen cleared on a terminal, a blank line and the main menu again, uncleared:\n%q", ended, passes, out)
+			t.Errorf("ended %v, read %d times; want the main menu, the screen cleared on a terminal, the item's screen, the screen cleared again, a blank line and the main menu again:\n%q", ended, passes, out)
 		}
 	}
 }
@@ -286,16 +295,58 @@ func withUpdatesItem(items []component.MenuItem) []component.MenuItem {
 	return slices.Insert(slices.Clone(items), i, updatesItem)
 }
 
+// TestMainMenuTopRows: every clear on a terminal leaves topRows blank
+// lines above what follows it, nav.Prompter.Run's gap counted: the main
+// menu's first drawing, with no prompt answered yet and after hardn.yml's
+// first-run question (a prompt answered before the main menu); an item's
+// screen, drawn by nav as every item's is; the main menu again; and, as
+// hardn ends, the shell's prompt.
+func TestMainMenuTopRows(t *testing.T) {
+	for _, asked := range []bool{false, true} {
+		env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 40,
+			Environ: []string{"TERM=xterm-256color", "NO_COLOR=1"}})
+		m := liveMenu(t, env, fixtureStatus(new(int)), "7", "0", "q")
+		recordScreens(t, m)
+		m.RunAll = func() error {
+			p := nav.Prompter{Ctx: component.NewCtx(env), In: m.Input(), Out: env.Writer(stdout{})}
+			return p.Run(func() nav.Screen {
+				return nav.Screen{Above: "RUN ALL", Label: "Enter your choice", Menu: nav.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}}}
+			})
+		}
+		if asked {
+			r := prompt.New(strings.NewReader("y\n7\n0\nq\n"), false)
+			useReader(t, r)
+			if _, err := r.Ask(io.Discard, "Create hardn.yml? "); err != nil {
+				t.Fatal(err)
+			}
+		}
+		out, _, ended := session(t, func() { show(m) })
+		parts := strings.Split(out, clearOn(env))
+		if ended || len(parts) != 5 || parts[0] != "" {
+			t.Fatalf("asked %v: ended %v, %d clears, want 4, the first at once:\n%q", asked, ended, len(parts)-1, out)
+		}
+		top := strings.Repeat("\n", topRows)
+		for i, next := range []string{"hardn ", "RUN ALL", "hardn ", ""} {
+			if got := stripANSI(parts[i+1]); got != top+next && !strings.HasPrefix(got, top+next) || next == "" && got != top ||
+				next != "" && strings.HasPrefix(got, top+"\n") {
+				t.Errorf("asked %v, after clear %d: %q; want %d blank lines, then %q", asked, i+1, got[:min(len(got), 40)], topRows, next)
+			}
+		}
+	}
+}
+
 // TestMainMenuHeights pins hardn's main menu's heights, one pass drawn on
 // a terminal over the gallery's hardened Debian 13 host (eight rows, no
 // line under any), in its full form at every height, Unicode (C.UTF-8)
-// and ASCII (C): 36 lines at 80x24 and 80x40, 59 at 60 columns, where the
-// rows stack (DEV-021), item 6, Auto Updates, one line, and two at 60
-// columns (slice 7, unit (d)). The prompt is the terminal's last line, so
-// on 24 rows the first 12 lines scroll off at 80 columns, the header down
-// to the SSH Login row, the risk level among them, and at 60 columns 35,
-// all the status, the heading, the mode and item 1's label; on 40 rows
-// none at 80 columns and 19 at 60.
+// and ASCII (C): 38 lines at 80x24 and 80x40, the two blank lines under
+// the clear (clearTop) first, 61 at 60 columns, where the rows stack
+// (DEV-021), item 6, Auto Updates, one line, and two at 60 columns (slice
+// 7, unit (d)). The prompt is the terminal's last line, so on 24 rows the
+// first 14 lines scroll off at 80 columns, the blank lines and the header
+// down to the SSH Login row, the risk level among them, and at 60 columns
+// 37, all the status, the heading, the mode and item 1's label; on 40 rows
+// none at 80 columns, the blank lines on the top two rows and the header
+// under them, and 21 at 60.
 // With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
 // TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
@@ -306,10 +357,10 @@ func TestMainMenuHeights(t *testing.T) {
 		w, h, lines int
 		visible     string // the first line on screen, stripped of colour and glyphs
 	}{
-		{80, 24, 36, "SSH Auth             Configured key-only auth"},
-		{80, 40, 36, "hardn  v0.4.0              https://github.com/abbott/hardn"},
-		{60, 24, 59, "Create, Configure (sudo, SSH keys)"},
-		{60, 40, 59, "Configured key-only auth"},
+		{80, 24, 38, "SSH Auth             Configured key-only auth"},
+		{80, 40, 38, ""}, // the blank lines under the clear, the header under them
+		{60, 24, 61, "Create, Configure (sudo, SSH keys)"},
+		{60, 40, 61, "Configured key-only auth"},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")
@@ -327,7 +378,7 @@ func TestMainMenuHeights(t *testing.T) {
 			ls := strings.Split(stripANSI(strings.TrimSuffix(drawn, " \n")), "\n")
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
 			risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
-			if len(ls) != tc.lines || first != tc.visible || (risk >= len(ls)-tc.h) != (len(ls) <= tc.h) ||
+			if len(ls) != tc.lines || first != tc.visible || ls[0] != "" || ls[1] != "" || (risk >= len(ls)-tc.h) != (len(ls) <= tc.h) ||
 				!strings.HasPrefix(ls[len(ls)-1], strings.Repeat(" ", theme.PromptCol)+component.NewCtx(env).Theme.Glyphs.Prompt+" Enter selection") {
 				t.Errorf("%dx%d, %s: %d lines, the first on screen %q, the risk level on line %d; want %d, %q:\n%s",
 					tc.w, tc.h, lang, len(ls), first, risk+1, tc.lines, tc.visible, strings.Join(ls, "\n"))
@@ -380,7 +431,7 @@ func TestMainMenuDraw(t *testing.T) {
 	vm := screen.MainMenuFixture()
 	vm.Mode = component.ModeIndicator{}
 	vm.Menu.Items = withUpdatesItem(vm.Menu.Items)
-	want := clearOn(env) + written(env, vm.Render(component.NewCtx(env))) + " \n" + clearOn(env)
+	want := clearTopOn(env) + written(env, vm.Render(component.NewCtx(env))) + " \n" + clearTopOn(env) // two blank lines under each clear (clearTop)
 	if ended || out != want {
 		t.Errorf("ended %v; the screen:\n%s\nwant the main-menu mock's, Figma's fixture with origin/main's items, in full:\n%s", ended, out, want)
 	}

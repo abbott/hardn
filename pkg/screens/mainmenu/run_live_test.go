@@ -23,6 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // The main menu live (refactor plan slice 2, next/s2-menu-live): its
@@ -49,6 +50,27 @@ func clearOn(env term.Env) string {
 	var b strings.Builder
 	_ = env.Clear(&b)
 	return b.String()
+}
+
+// clearTopOn is what the main menu writes as it starts and as it ends
+// (clearTop): the clear, then on a terminal topRows blank lines; off one
+// nothing.
+func clearTopOn(env term.Env) string {
+	if env.Plain {
+		return ""
+	}
+	return clearOn(env) + strings.Repeat("\n", topRows)
+}
+
+// clearGapOn is what the main menu writes as an item's screen opens and as
+// it returns (clearTop): the clear, then on a terminal the blank lines that
+// with nav.Prompter.Run's gap above the next drawing make topRows; off one
+// nothing. The tests' screens print without that gap (recordScreens).
+func clearGapOn(env term.Env) string {
+	if env.Plain {
+		return ""
+	}
+	return clearOn(env) + strings.Repeat("\n", topRows-theme.SectionGap)
 }
 
 // noClearOff reports a clear written off a terminal, where none is.
@@ -245,9 +267,10 @@ func TestLiveStatusOnHosts(t *testing.T) {
 
 // TestLiveMainMenuGolden records hardn's live main menu, one pass before
 // input, on the gallery's Debian 13 and hardened hosts, on a 256-colour
-// UTF-8 terminal of 80 columns, at 24 and 40 rows: the main menu on its
-// layout in its full form, the same at both heights, its compact form
-// gated (screen.CompactMainMenu; docs/engine/menu-layout.md).
+// UTF-8 terminal of 80 columns, at 24 and 40 rows: the two blank lines
+// under the clear (clearTop), then the main menu on its layout in its full form,
+// the same at both heights, its compact form gated
+// (screen.CompactMainMenu; docs/engine/menu-layout.md).
 func TestLiveMainMenuGolden(t *testing.T) {
 	ctx := context.Background()
 	for _, name := range []string{"debian13", "hardened"} {

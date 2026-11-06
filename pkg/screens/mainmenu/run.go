@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -13,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // Options is what the main menu runs with: what cmd/hardn fills, on the one
@@ -92,8 +94,8 @@ const (
 )
 
 // errAgain ends a pass of the main menu once an item's screen has
-// returned, so that the next pass reads the status again and draws the
-// main menu under what the screen printed.
+// returned and the screen is cleared (show), so that the next pass reads
+// the status again and draws the main menu on the cleared screen.
 var errAgain = errors.New("mainmenu: the main menu again")
 
 // Run runs the main menu until the user leaves it. The main menu is
@@ -101,16 +103,20 @@ var errAgain = errors.New("mainmenu: the main menu again")
 // 2b): the status blocks (Options.Status), "Select an option" with the mode
 // indicator, the items (items), and "Enter selection" with its hint
 // generated from them, asked through Options.Input. The screen is cleared
-// once, as the main menu starts, on a terminal alone (term.Env.Clear), and
-// not when hardn.yml warned (Options.Warned); each pass then reads the
-// status again and draws the main menu on the terminal as it is then,
-// under what the item before it printed, not cleared (brief 1C), each
-// item's screen clearing as it opens (show). A line no item takes is
-// refused under the prompt, "Invalid option. Please try again.", and asked
-// again, the screen above kept (nav.Ask).
+// as the main menu starts, on a terminal alone (term.Env.Clear), and not
+// when hardn.yml warned (Options.Warned); each item's screen opens on a
+// cleared screen, and the screen is cleared again as it returns (show).
+// Each pass reads the status again and draws the main menu on the terminal
+// as it is then. Every clear leaves topRows blank rows at the top of the
+// terminal (clearTop), so that every screen, the main menu's first drawing
+// too, starts on the third row. A line no item takes is refused under the
+// prompt, "Invalid option. Please try again.", and asked again, the screen
+// above kept (nav.Ask).
 //
-// 0 (Exit) and q clear the screen and return nil. Any other end is the
-// error returned, for the caller to end hardn with: the end of the input or
+// 0 (Exit) and q clear the screen, topRows blank rows left at its top
+// (clearTop), so that the shell's prompt comes on the third row too, and
+// return nil. Any other end is the error returned, for the caller to end
+// hardn with: the end of the input or
 // Ctrl-C at the prompt or in a screen (prompt.ErrAborted, prompt.ExitCode:
 // 130; prompt.ErrInterrupted, prompt.Reraise), a status not read, a write
 // that failed. Nothing bounds a pass: ctx is the caller's, and a status
@@ -118,13 +124,13 @@ var errAgain = errors.New("mainmenu: the main menu again")
 // hardn (docs/engine/menu-live.md §5).
 func Run(ctx context.Context, o Options) error {
 	if !o.Warned {
-		o.clear()
+		o.clearTop(o.navGap())
 	}
 	for {
 		switch err := o.pass(ctx); {
 		case errors.Is(err, errAgain):
 		case err == nil, errors.Is(err, nav.ErrQuit):
-			o.clear()
+			o.clearTop(0) // the shell's prompt follows
 			return nil
 		default:
 			return err
@@ -170,10 +176,36 @@ func (o Options) out() io.Writer {
 	return o.Out
 }
 
-// clear clears the screen on the terminal as it is now, and writes nothing
-// off a terminal (term.Env.Clear).
-func (o Options) clear() {
-	_ = o.terminal().Clear(o.out())
+// topRows is how many blank rows every screen keeps at the top of the
+// terminal after a clear: two, so that one shows as a gap under a bar a
+// terminal draws over its own top row, which hides what is written there
+// (the maintainer, 2026-11-06; docs/engine/menu-layout.md §5).
+const topRows = 2
+
+// clearTop clears the screen on the terminal as it is now
+// (term.Env.Clear), then writes the blank lines that leave topRows of them
+// above what comes next, less own, the blank lines that writes itself
+// (navGap, or none before the shell's prompt). Off a terminal it writes
+// nothing.
+func (o Options) clearTop(own int) {
+	env := o.terminal()
+	if env.Plain {
+		return
+	}
+	_ = env.Clear(o.out())
+	_, _ = io.WriteString(o.out(), strings.Repeat("\n", max(0, topRows-own)))
+}
+
+// navGap is how many blank lines nav.Prompter.Run writes above the next
+// drawing, the main menu's or an item's screen's: theme.SectionGap once a
+// prompt has been answered (prompt.Reader.Asked), which every drawing but
+// the main menu's first follows, and that one too after hardn.yml's
+// first-run question; none before any.
+func (o Options) navGap() int {
+	if o.Input != nil && o.Input().Asked() {
+		return theme.SectionGap
+	}
+	return 0
 }
 
 // readStatus reads the status for one pass (Options.Status): the main
@@ -194,20 +226,27 @@ func (o Options) readStatus(ctx context.Context) (screen.MainMenu, error) {
 	return vm, err
 }
 
-// show runs an item's screen from a cleared screen on a terminal (clear),
+// show runs an item's screen from a cleared screen on a terminal (clearTop),
 // as every item's screen starts, and panics with unset, a programming
-// error, when none is set. Return, or a back from it, comes back here
-// (errAgain); q quits from the screen as from the main menu (nav.ErrQuit);
-// the end of the input, Ctrl-C and any other error end the main menu
-// (Run).
+// error, when none is set. Return, or a back from it, clears the screen
+// again and comes back here (errAgain), so that the main menu is drawn on
+// a cleared screen, not under the item's: on a terminal whose height was
+// measured the item's screen scrolls into the scrollback; where it was not,
+// the clear is ED 2, and whether the terminal keeps the screen is the
+// terminal's (term.Env.Clear). Either way no result goes unseen: an item's
+// screen returns only on the user's 0 at its own prompt, drawn again under
+// any result its action wrote. q quits from the screen as
+// from the main menu (nav.ErrQuit); the end of the input, Ctrl-C and any
+// other error end the main menu (Run).
 func (o Options) show(run func() error, unset string) func() error {
 	return func() error {
 		if run == nil {
 			panic(unset)
 		}
-		o.clear()
+		o.clearTop(o.navGap()) // the screen's nav.Prompter.Run writes its gap
 		err := run()
 		if err == nil || errors.Is(err, nav.ErrBack) {
+			o.clearTop(o.navGap()) // the main menu's nav.Prompter.Run writes its gap
 			return errAgain
 		}
 		return err
