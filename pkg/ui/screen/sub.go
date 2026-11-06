@@ -32,7 +32,7 @@ import (
 //
 //	   0) Return
 //
-//	  > Enter your choice [0-2 or q]:
+//	    > Enter your choice [0-2 or q]:
 //
 // The blocks: the TitleBar, SubjectLine, StatusList, each Section, the
 // MenuHeading, the Menu, then the PromptLine after theme.PromptGap blank

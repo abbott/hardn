@@ -60,7 +60,7 @@ const CompactMainMenu = false
 //
 //	   0) Exit                 q to quit
 //
-//	  > Enter selection [0-10 or q]:
+//	    > Enter selection [0-10 or q]:
 //
 // The blocks follow Figma's order: Header, ContextBar, HostBlock,
 // RiskSummary, StatusList, Divider, the MenuHeading with the
@@ -102,7 +102,7 @@ const CompactMainMenu = false
 //
 //	   0) Exit                 q to quit
 //
-//	  > Enter selection [0-10 or q]:
+//	    > Enter selection [0-10 or q]:
 //
 // The host, the risk, every status row, the mode and every item stay on
 // screen, Figma's content in theme.CompactBudget lines: the blank line

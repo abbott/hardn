@@ -600,7 +600,7 @@ Lines match as `keys.Set.Match` compares them: the white space around a line ign
 **One field structure** (DEV-046; brief 1C: one structure, defined by Figma, for every kind of field). A text field refused by its validation, then answered; a choice with a head; a y/N question whose default Enter took. Plain, with the trailing spaces after an empty answer left out:
 
 ```text
-0 2   6
+0 2 4 6
    1. Username [0 or q]: George
   (x) Username must start with a lowercase letter and contain
       only lowercase letters, numbers, hyphens, and underscores
@@ -611,7 +611,7 @@ Lines match as `keys.Set.Match` compares them: the white space around a line ign
    1) george
    2) alice
 
-  > Enter your choice [1-2, 0 or q]: 2
+    > Enter your choice [1-2, 0 or q]: 2
    2. Select a user: alice
 
    3. Grant sudo privilege? [y/N, 0 or q]:
@@ -745,7 +745,7 @@ Every component of `pkg/ui/component`, the section that records it, and its gold
 **The main menu's compact form** (DEV-052; refactor plan §3.15, its compact main menu withdrawn). **Gated since 2026-10-23** (`next/s2b-menu`): `screen.CompactMainMenu` is false, so the main menu takes its full form at every height and width, its top scrolling off a terminal shorter than it, the prompt on the last line (hardn's main menu over a host's eight rows, no line under one, takes 35 lines at 80×24 and 80×40, its first 11 (the header to the Firewall row, the risk level among them) scrolled off at 24 rows, and 57 at 60 columns, where the rows stack, 33 of them off at 24 rows and 17 at 40, since item 6 went (`next/s2b-replace`; one and two lines more before) (pkg/menu's `TestMainMenuHeights`, Unicode and ASCII; [menu-layout.md](../engine/menu-layout.md) §6)): the maintainer adopted slice 2b's decision 5 with the full form at every height, "i'd like to avoid using a compact menu. if we need to reduce row counts, we can explore that later, but a two-column menu is not a desired method" ([gallery-dryrun.md](../engine/gallery-dryrun.md) §4). The code, its tests and its goldens are kept: `render`, `screen` and `statusBlocks` take the gate as a parameter, which `Render`, `Screen` and `StatusBlocks` pass the constant and the tests pass `true`, as `TitleTrail`'s do, and `main-menu/00-tui-main-compact` holds the drawings `Render` made before the gate, byte for byte; flipped, `Render` draws them again. As built, and drawn again once flipped: on a terminal (`Env.TTY`) shorter than `CompactBelow`, 40 rows, or too short for the full form's lines, prompt included, the main menu takes its compact form, which fits `CompactBudget`, 24 lines, with Figma's content from 64 columns up: the `Header` and the `Divider` are left out; the context bar keeps the blank line under it, as a bar always has, Figma's and the sub-screens' title bar alike; the risk line and the status rows are one group, with no blank line inside it; the menu's items start on the line under the heading, with no blank line between; and the menu takes two columns, keys and labels alone (`Menu.Compact`, drawn by `nav.Run` through `Screen.Compact`, which also puts the menu on the line under `Above`). The host, the risk, every status row, the mode and every item stay on screen, in 24 lines: the blank line the heading gives up is the one the bar keeps. The first build did the reverse, joining the bar to the host block; the maintainer's play run of 2026-10-17 showed the bar sitting on the host badge, which no Figma frame draws (DEV-052). The full form is drawn on a terminal of 40 rows or more that holds all its lines, and on output that is not a terminal: Figma's content in 34 lines from 64 columns up, which fit 40 rows (35 with item 6, which Figma draws and hardn removed, `next/s2b-replace`). Here plain, at 80x24:
 
 ```text
-0 2   6                    27  31
+0 2 4 6                    27  31
 # Debian 12 (Bookworm) #########################################
 
   [BOS-SAN-L01]            192.0.2.10
@@ -765,7 +765,7 @@ Every component of `pkg/ui/component`, the section that records it, and its gold
 
    0) Exit                 q to quit
 
-  > Enter selection [0-5, 7-10 or q]:
+    > Enter selection [0-5, 7-10 or q]:
 ```
 
 Known limits: below 64 columns the rows stack (DEV-021) and Figma's content takes 34 lines compact and 55 in full at 60 columns (57 with item 6), the two columns and the exit row beside its label staying as they are, so a 60-column terminal shows the compact form up to 54 rows and the full form from 55; the host block's reboot line, each line under a status row (a risk factor, since `next/p4-risk-lines` under its row rather than under the level: a pending reboot is one line now, not two, but each Unknown row has its own, so a host with nothing read takes 33 lines at 80×24, not 27, its risk level scrolled off; DEV-052) and each status row past Figma's seven add a line, to both forms, and the full form gives way to the compact one wherever its added lines no longer fit; a menu with a marked item keeps one column. Past the terminal's height the compact form's top scrolls, as the full form's would. *Since `next/s2-menu-live`* a host's main menu has an eighth row, DNS, so with no line under a row the compact form takes 25 lines at 80×24 and the full form 36 at 80×40, 35 since item 6 went (DEV-052; [menu-live.md](../engine/menu-live.md) §6).
