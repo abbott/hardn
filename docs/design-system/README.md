@@ -319,9 +319,10 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 | Constant | Value | Meaning |
 |---|---|---|
 | `ContentWidth` | 64 | Figma's content box; a narrower terminal uses its own width |
-| `Indent` | 2 | Left indent of rows, headings and the prompt; bars and the header start at column 0 |
+| `Indent` | 2 | Left indent of rows and headings; bars and the header start at column 0 |
 | `MarkerCol`, `MarkerWidth` | 2, 3 | The marker column: a state glyph, centred (a one-cell glyph at column 3, DEV-020), or a menu key such as `10)`, right-aligned |
 | `LabelCol` | 6 | Where a row's label starts |
+| `PromptCol` | 4 | Where the prompt's `❯` stands: the marker column's last cell, a menu key's closing parenthesis, so that the prompt's label starts at `LabelCol` (DEV-070) |
 | `LabelWidth` | 21 | The label column, including the gap before the value |
 | `ValueCol` | 27 | Where a row's value, state or description starts, on every screen |
 | `StackCol` | 6 | Where a stacked row's value starts, under the label (DEV-021) |
@@ -329,10 +330,11 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 | `PromptGap` | 1 | Blank lines before the prompt (drift D11) |
 
 ```text
-0 2   6                    27
+0 2 4 6                    27
   [+] SSH Port             Configured non-default (2230)
    1) User Management      Create, Configure
   10) Logs                 View log file
+    ❯ Enter selection [0-10 or q]:
 ```
 
 **Export spacing and sizes:**
@@ -444,7 +446,7 @@ Error is not a separate state: a check that failed is Unknown, with the reason i
 |---|---|---|---|---|
 | `MenuHeading` | `Title`, `Mode` (`*ModeIndicator`; nil: none, as on sub-menus) | `normal` (Figma's, with the mode), `no-mode`, `long`, `empty` (renders nothing) | Title at col 2 in `Menu.Heading`, underlined (C11, DEV-029); the mode at col 27, under the title at col 6 below 64 columns, for a title reaching col 27, or when the line beside would not fit (DEV-021, DEV-029), its word kept whole; a title past the content cut with the ellipsis | none: placed with spaces (§2.3). The underline is one SGR per rune, accepted (§2.3) |
 | `Menu` | `Items` (`MenuItem`: `Key`, `Label`, `Description`, `Aside`, `Disabled`, `Risk`), `Exit` (a `MenuItem`), `Compact` | `main` (Figma's), `sub` (01-USER), `risk`, `disabled`, `long`, `compact` (Figma's in two columns, `next/p1d-slice`), `empty` (renders nothing) | Keys right-aligned to end at col 4 (`10)` at col 2), labels at col 6, descriptions at col 27, the aside in parentheses one cell after (DEV-027). The exit item after the section gap; Figma's "Press 'q' to exit immediately" is the brief's "q to quit" (DEV-030). A note line for an item's state: `– Unavailable` / `[-] Unavailable`, the item faint, or `⭘ Lockout risk` / `[ ] Lockout risk`, the warning's glyph, in `status.warn` bold (DEV-028; the glyph the maintainer's, 2026-10-21; P-22 for the words, the place and which items). The whole menu stacks, so one description column holds per menu: below 64 columns, when the label of an item with a description or note reaches col 27 (labels are not cut beside the description; origin/main has 28 such items, DEV-027), or when col 27 has no room for a whole note or a letter of a description. A key of up to five cells grows into the indent to keep its label at col 6. `Compact`: two columns, down then across, keys and labels alone, the second column's keys ending at col 29 and labels at col 31; one column whenever two cannot show every item whole (DEV-052) | `list` evaluated: it right-aligns keys, but pads an item of more than one line into trailing spaces (§2.3). `table` as for `HostBlock` |
-| `PromptLine` | `Label`, `Accepts` (`keys.Set`) | `normal` (Figma's), `no-hint`, `empty` (the glyph alone) | `❯` / `>` at col 2, the label, then `[hint]:` with the hint generated from `Accepts` (C11, DEV-029). No cursor and no trailing space: the line reader adds the space before the terminal's cursor (C8). Too narrow, the label is cut before the hint | none: one line of spans |
+| `PromptLine` | `Label`, `Accepts` (`keys.Set`) | `normal` (Figma's), `no-hint`, `empty` (the glyph alone) | `❯` / `>` at col 4 (`PromptCol`), under a menu key's closing parenthesis, the label at col 6 (`LabelCol`), under the items' labels, then `[hint]:` with the hint generated from `Accepts` (DEV-070; col 2 until 2026-11-05, C11, DEV-029). No cursor and no trailing space: the line reader adds the space before the terminal's cursor (C8). Too narrow, the label is cut before the hint | none: one line of spans |
 
 **Accepted inputs as data** (`pkg/ui/keys`, brief 1C's Bubbles `key.Binding` pattern). A `keys.Binding` names the inputs that select one choice (`Keys`, each a typed line such as `1`, `10` or `q`) and what it does (`Help`, the words after "to"). A `keys.Set` generates both:
 - the hint, `Set.Hint`: the prompt's own inputs (bindings with no `Help`: a menu's items, a question's answers, a phrase) before the inputs every prompt shares (bindings with `Help`, such as `keys.Navigation`'s), each input once; in each part numbers first, in order, each run of two or more consecutive numbers collapsed into a range, then the other inputs in first-seen order; joined as "x, y or z": `0-10 or q`, Figma's main menu's since back is `0` only (P-25), and hardn's until `next/s2b-replace` removed item 6 (`0-5, 7-10 or q` since), `1-3, 5 or q`, and `bos-san-l01, 0 or q` for a phrase (since `next/p1c-nav`; before it every number came first);

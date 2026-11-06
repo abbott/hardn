@@ -19,8 +19,8 @@ const (
 	// CapContent it is the most cells any line uses. A narrower terminal
 	// uses its own width instead.
 	ContentWidth = 64
-	// Indent is the left indent of rows, headings and the prompt. Bars and
-	// the header start at column 0.
+	// Indent is the left indent of rows and headings; the prompt stands at
+	// PromptCol. Bars and the header start at column 0.
 	Indent = 2
 	// MarkerCol and MarkerWidth place the marker column: a state glyph,
 	// centred, so that a one-cell glyph sits at column 3 where its ASCII
@@ -30,6 +30,10 @@ const (
 	MarkerWidth = 3
 	// LabelCol is where a row's label starts, one cell after the markers.
 	LabelCol = MarkerCol + MarkerWidth + 1
+	// PromptCol is where a prompt's glyph stands: the marker column's last
+	// cell, where a menu key's closing parenthesis is, so that the
+	// prompt's label starts at LabelCol, under the items' labels (DEV-070).
+	PromptCol = MarkerCol + MarkerWidth - 1
 	// LabelWidth is the label column's width, including the gap before
 	// the value column.
 	LabelWidth = 21

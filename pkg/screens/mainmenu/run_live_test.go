@@ -308,7 +308,7 @@ func galleryStatus(t *testing.T, name string) string {
 			item := "   6) " + updatesItem.Label
 			lines = append(lines, item+strings.Repeat(" ", desc-len(item))+updatesItem.Description)
 		}
-		if strings.HasPrefix(l, "  > ") && len(lines) > 0 {
+		if strings.HasPrefix(l, "    > ") && len(lines) > 0 {
 			return strings.Join(lines, "\n")
 		}
 	}

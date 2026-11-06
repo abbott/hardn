@@ -100,7 +100,7 @@ var (
 	drawnHeader  = regexp.MustCompile(`^# (.+?) -+$`)
 	drawnBullet  = regexp.MustCompile(`^(?: {3}- {2}| {2}\[.\] )(\S.*)$`)
 	drawnItem    = regexp.MustCompile(`^ {3}(\d+)\) (\S+)(?: {2,}(\S.*))?$`)
-	drawnPrompt  = regexp.MustCompile(`^ {2}> (Enter selection \[0-\d+ or q\]):(?: .*)?$`)
+	drawnPrompt  = regexp.MustCompile(`^ {4}> (Enter selection \[0-\d+ or q\]):(?: .*)?$`)
 	drawnRefused = regexp.MustCompile(`^ {2}\(x\) (.+)$`)
 )
 
@@ -183,7 +183,7 @@ func readDrawn(out string) (screenRead, error) {
 // TestDrawnReaderRefuses: what readDrawn does not know fails, as the reader of
 // origin/main's goldens does.
 func TestDrawnReaderRefuses(t *testing.T) {
-	const screen = "# Logs #####\n\n# File -----\n\n   -  Path                 /var/log/hardn.log\n\n  Select an option\n\n   1) Refresh              Read the log again\n\n   0) Return\n\n  > Enter selection [0-1 or q]: 0\n"
+	const screen = "# Logs #####\n\n# File -----\n\n   -  Path                 /var/log/hardn.log\n\n  Select an option\n\n   1) Refresh              Read the log again\n\n   0) Return\n\n    > Enter selection [0-1 or q]: 0\n"
 	if _, err := readDrawn(screen); err != nil {
 		t.Fatal(err)
 	}
