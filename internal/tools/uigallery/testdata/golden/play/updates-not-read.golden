@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/not-read␛[m ␛[38;2;48;52;64m────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay updates/not-read␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -22,7 +22,7 @@ $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
                            ␛[38;2;129;134;156m- Counted as not configured␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mCan't read␛[m$
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mCan't read␛[m$
@@ -46,7 +46,7 @@ $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
                            ␛[38;2;129;134;156m- Counted as not configured␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mCan't read␛[m$
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mCan't read␛[m$
@@ -60,14 +60,14 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# play updates/not-read ----------------------------------------$
+  play updates/not-read ----------------------------------------$
 $
 # Note$
 # Play mode: hardn's own screens and prompts, on the real$
@@ -86,7 +86,7 @@ $
   [?] Auto Updates         Unknown can't read$
                            - Counted as not configured$
 $
-# Update Configuration -----------------------------------------$
+  Update Configuration -----------------------------------------$
 $
   [?] Upgrades             Can't read$
   [?] Package Lists        Can't read$
@@ -110,7 +110,7 @@ $
   [?] Auto Updates         Unknown can't read$
                            - Counted as not configured$
 $
-# Update Configuration -----------------------------------------$
+  Update Configuration -----------------------------------------$
 $
   [?] Upgrades             Can't read$
   [?] Package Lists        Can't read$
@@ -124,14 +124,14 @@ $
 $
     > Enter your choice [0-1 or q]: 0$
 $
-# simulated system ---------------------------------------------$
+  simulated system ---------------------------------------------$
 $
 # Note$
 # Nothing was applied.$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay updates/not-read␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay updates/not-read␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -152,7 +152,7 @@ $
       ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
       ␛[38;2;129;134;156m- Counted as not configured␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
       ␛[38;2;129;134;156mCan't read␛[m$
@@ -179,7 +179,7 @@ $
       ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
       ␛[38;2;129;134;156m- Counted as not configured␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
       ␛[38;2;129;134;156mCan't read␛[m$
@@ -195,7 +195,7 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$

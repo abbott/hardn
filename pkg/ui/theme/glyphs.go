@@ -22,16 +22,17 @@ package theme
 // are callouts. origin/main's ✓ ✗ ℹ and the first build's ⊘ ◦ ▸ ↺ ↷ ! are
 // gone.
 //
-// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █ ─.
+// East Asian ambiguous-width glyphs in the Unicode set: ⛛ ⭘ ⛬ – ≈ … █.
 // Lip Gloss measures each as one cell, but a terminal set to draw ambiguous
 // characters two cells wide draws each as two. A single glyph then shifts
-// the rest of its line by one cell. Rule is drawn in runs, so a run doubles
-// in width: a 64-cell rule takes 128 cells and wraps at 80 columns.
-// term.Resolve picks the ASCII set in a zh, ja or ko locale for that reason,
-// but cannot see an ambiguous-wide terminal under another UTF-8 locale, such
-// as an SSH session to a server set to C.UTF-8; HARDN_ASCII=1 avoids it
-// there. DEV-015 accepts this cost for Rule. Shade, the bars' run, is ░
-// U+2591, neutral width, so a bar keeps its width there (DEV-018).
+// the rest of its line by one cell. term.Resolve picks the ASCII set in a
+// zh, ja or ko locale for that reason, but cannot see an ambiguous-wide
+// terminal under another UTF-8 locale, such as an SSH session to a server
+// set to C.UTF-8; HARDN_ASCII=1 avoids it there. The glyphs drawn in runs
+// are neutral width, so a run keeps its width there: Shade, the bars' ░
+// U+2591 (DEV-018), and Rule, ╌ U+254C (DEV-072). Rule was ─ U+2500,
+// ambiguous, until 2026-11-06: a 64-cell rule took 128 cells there and
+// wrapped at 80 columns, a cost DEV-015 accepted.
 type Glyphs struct {
 	Configured    string // a control in its hardened state (Figma ⛛)
 	NotConfigured string // a control not hardened (Figma ⭘)
@@ -45,8 +46,8 @@ type Glyphs struct {
 	Separator     string // between the items of a breadcrumb or a title bar's trail
 	Ellipsis      string // marks truncated text
 	Bar           string // a callout's accent bar when there is no colour to paint it
-	Shade         string // the stub and fill of the context and title bars, and a section header's stub, in bar.shade
-	Rule          string // draws a divider or a section header's rule
+	Shade         string // the stub and fill of the context and title bars, in bar.shade
+	Rule          string // draws a divider or a section header's rule (DEV-072)
 	BadgeOpen     string // opens a badge when there is no colour to paint it
 	BadgeClose    string // closes a badge when there is no colour to paint it
 
@@ -74,7 +75,8 @@ type Glyphs struct {
 
 // unicodeGlyphs is the Figma glyph set (DEV-013 to DEV-015, DEV-024,
 // DEV-031, DEV-038, DEV-039 and DEV-062 for the glyphs Figma does not
-// draw, DEV-019 for the badge brackets, DEV-018 for the bars' shade).
+// draw, DEV-019 for the badge brackets, DEV-018 for the bars' shade,
+// DEV-072 for the rule's ╌, the maintainer's of 2026-11-06).
 // Partial, Warn, Unknown and NotApplicable are the maintainer's of
 // 2026-10-21, Inline the maintainer's of 2026-10-22.
 var unicodeGlyphs = Glyphs{
@@ -91,7 +93,7 @@ var unicodeGlyphs = Glyphs{
 	Ellipsis:      "…",
 	Bar:           "█",
 	Shade:         "░",
-	Rule:          "─",
+	Rule:          "╌",
 	BadgeOpen:     "[",
 	BadgeClose:    "]",
 	Warn:          "⭘",

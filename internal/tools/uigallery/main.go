@@ -460,8 +460,8 @@ func (g gallery) ctx(env term.Env) (component.Ctx, error) {
 	return component.Ctx{Env: env, Theme: th}, nil
 }
 
-// headerFrame is the cells a SectionHeader adds to its title: the stub, a
-// cell either side of the title and one cell of rule.
+// headerFrame is the cells a SectionHeader adds to its title: the
+// two-cell indent before it, a cell after it and one cell of rule.
 const headerFrame = 4
 
 // header returns the gallery's header for title in ctx: a SectionHeader.

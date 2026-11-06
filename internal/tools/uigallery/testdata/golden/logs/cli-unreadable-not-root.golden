@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m─────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user other␛[m$
@@ -18,7 +18,7 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# logs cli-unreadable-not-root ---------------------------------$
+  logs cli-unreadable-not-root ---------------------------------$
 $
 # Note$
 # Inferred from v0.3.2 and origin/main. The same as a user other$
@@ -33,7 +33,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m─────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user␛[m$
@@ -49,7 +49,7 @@ $
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
+  ␛[1;38;2;129;134;156mlogs cli-unreadable-not-root␛[m ␛[38;2;48;52;64m---------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from v0.3.2 and origin/main. The same as a user other␛[m$

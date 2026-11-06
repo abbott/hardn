@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay dns/empty␛[m ␛[38;2;48;52;64m───────────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay dns/empty␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -20,13 +20,13 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo nameservers configured␛[m$
 $
@@ -49,13 +49,13 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo nameservers configured␛[m$
 $
@@ -71,14 +71,14 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 0$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# play dns/empty -----------------------------------------------$
+  play dns/empty -----------------------------------------------$
 $
 # Note$
 # Play mode: hardn's own screens and prompts, on the real$
@@ -95,13 +95,13 @@ $
 $
 # DNS Configuration ############################################$
 $
-# Current DNS Configuration ------------------------------------$
+  Current DNS Configuration ------------------------------------$
 $
    -  DNS Implementation   direct (/etc/resolv.conf)$
    -  Nameservers          192.0.2.1$
    -  Search Domains       example.net$
 $
-# Configured Nameservers ---------------------------------------$
+  Configured Nameservers ---------------------------------------$
 $
    -  No nameservers configured$
 $
@@ -124,13 +124,13 @@ $
 $
 # DNS Configuration ############################################$
 $
-# Current DNS Configuration ------------------------------------$
+  Current DNS Configuration ------------------------------------$
 $
    -  DNS Implementation   direct (/etc/resolv.conf)$
    -  Nameservers          192.0.2.1$
    -  Search Domains       example.net$
 $
-# Configured Nameservers ---------------------------------------$
+  Configured Nameservers ---------------------------------------$
 $
    -  No nameservers configured$
 $
@@ -146,14 +146,14 @@ $
 $
     > Enter selection [0-2, 4-6 or q]: 0$
 $
-# simulated system ---------------------------------------------$
+  simulated system ---------------------------------------------$
 $
 # Note$
 # Nothing was applied.$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay dns/empty␛[m ␛[38;2;48;52;64m───────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay dns/empty␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -171,7 +171,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
       ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
@@ -180,7 +180,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
       ␛[38;2;129;134;156mexample.net␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo nameservers configured␛[m$
 $
@@ -208,7 +208,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
       ␛[38;2;129;134;156mdirect (/etc/resolv.conf)␛[m$
@@ -217,7 +217,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
       ␛[38;2;129;134;156mexample.net␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m───────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNo nameservers configured␛[m$
 $
@@ -238,7 +238,7 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2, 4-6 or q]:␛[m 0$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing was applied.␛[m$

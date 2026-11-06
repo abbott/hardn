@@ -154,9 +154,12 @@ func TestRows(t *testing.T) {
 	h, cfg := screenHost(t, "hardened")
 	out := play(h, h, cfg, false, "0").out
 	var ssh []string
-	if _, after, ok := strings.Cut(out, "\n# SSH "); ok {
-		after, _, _ = strings.Cut(after, "\n# ")
-		for _, l := range strings.Split(after, "\n")[1:] {
+	if _, after, ok := strings.Cut(out, "\n  SSH -"); ok {
+		_, after, _ = strings.Cut(after, "\n") // the rest of the header's line
+		if next := sectionHeader.FindStringIndex(after); next != nil {
+			after = after[:next[0]] // down to the next section header
+		}
+		for _, l := range strings.Split(after, "\n") {
 			if f := strings.Fields(l); len(f) > 0 {
 				ssh = append(ssh, strings.Join(f, " "))
 			}

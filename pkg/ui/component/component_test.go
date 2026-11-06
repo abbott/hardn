@@ -313,7 +313,7 @@ func TestLayout(t *testing.T) {
 			"  [?] AppArmor             Unknown can't read\n                           - Counted as not configured\n" +
 				"  [ ] Auto Updates         Not Configured"},
 		{"divider: fills the bar width", Divider{}, 120, false, strings.Repeat("-", maxWidth(Divider{}, 120))},
-		{"divider: Unicode rule", Divider{}, 60, true, strings.Repeat("─", 60)},
+		{"divider: Unicode rule", Divider{}, 60, true, strings.Repeat("╌", 60)},
 		{"mode: live at the value column", ModeIndicator{}, from, false,
 			strings.Repeat(" ", theme.ValueCol) + "Mode Live"},
 		{"mode: live names no source", ModeIndicator{Source: ModeSourceFile}, from, false,
@@ -445,11 +445,11 @@ func TestLayout(t *testing.T) {
 		{"subject: too long for one line, the badge goes under the label", SubjectLine{Label: "Managing sudo method for", Subject: "alice-backup-replication-service"}, 60, false,
 			"  Managing sudo method for:\n      [alice-backup-replication-service]"},
 		{"subject: no label is the badge alone", SubjectLine{Subject: "george"}, 80, true, "  [george]"},
-		{"section: stub, title and rule", SectionHeader{Title: "User Configuration"}, 80, false,
-			"# User Configuration " + strings.Repeat("-", maxWidth(SectionHeader{}, 80)-21)},
-		{"section: no title is the stub and the rule", SectionHeader{}, 60, true, "░ " + strings.Repeat("─", 58)},
+		{"section: title from column 2 and rule, no stub", SectionHeader{Title: "User Configuration"}, 80, false,
+			"  User Configuration " + strings.Repeat("-", maxWidth(SectionHeader{}, 80)-21)},
+		{"section: no title is the rule from column 2", SectionHeader{}, 60, true, "  " + strings.Repeat("╌", 58)},
 		{"section: a long title is cut", SectionHeader{Title: strings.Repeat("x", 70)}, 60, false,
-			"# " + strings.Repeat("x", 53) + "... -"},
+			"  " + strings.Repeat("x", 53) + "... -"},
 		{"breadcrumb: items joined by the separator", Breadcrumb{Items: []string{"User Management", " Manage User", ""}}, 80, true,
 			"  User Management › Manage User"},
 		{"breadcrumb: too long, the middle items go first", Breadcrumb{Items: []string{"User Management", "Manage User", "SSH Keys", "Remove a key"}}, 40, false,
@@ -976,15 +976,16 @@ func TestMenuItemShown(t *testing.T) {
 	}
 }
 
-// TestBars checks the bars (the maintainer, 2026-10-21; DEV-018, DEV-033)
-// at every colour profile, on both backgrounds, in both glyph sets and at
-// two widths: a ContextBar, a TitleBar and a SectionHeader open with a
-// one-cell stub of Glyphs.Shade in their Fill slot, then a space and the
-// text from column 2; a bar then has a space and Glyphs.Shade in Fill to
-// the bar width, and a section header its rule. Fill has bar.shade's
-// colour wherever there is colour and none without (pkg/ui/theme's
-// TestColourRoles), and no part of the line is painted behind: no SGR in
-// it sets a background.
+// TestBars checks the bars (the maintainer, 2026-10-21; DEV-018) at every
+// colour profile, on both backgrounds, in both glyph sets and at two
+// widths: a ContextBar and a TitleBar open with a one-cell stub of
+// Glyphs.Shade in their Fill slot, then a space and the text from column
+// 2, a space and Glyphs.Shade in Fill to the bar width. Fill has
+// bar.shade's colour wherever there is colour and none without
+// (pkg/ui/theme's TestColourRoles), and no part of the line is painted
+// behind: no SGR in it sets a background. A SectionHeader, which had the
+// stub until 2026-11-06 (DEV-033, DEV-073), opens with two plain spaces
+// in its place, the title from column 2, then a space and its rule.
 func TestBars(t *testing.T) {
 	profiles := []colorprofile.Profile{colorprofile.TrueColor, colorprofile.ANSI256, colorprofile.ANSI, colorprofile.ASCII, colorprofile.NoTTY}
 	for _, p := range profiles {
@@ -1002,7 +1003,6 @@ func TestBars(t *testing.T) {
 					}{
 						{"context bar", ContextBar{Name: "Debian", Version: "12", Codename: "Bookworm"}, th.ContextBar.Fill, "Debian 12 (Bookworm)", g.Shade},
 						{"title bar", TitleBar{Title: "Manage User"}, th.TitleBar.Fill, "Manage User", g.Shade},
-						{"section header", SectionHeader{Title: "User Configuration"}, th.Section.Fill, "User Configuration", g.Rule},
 					}
 					for _, tt := range tests {
 						where := fmt.Sprintf("%s, %v, dark %t, unicode %t, width %d", tt.name, p, dark, env.Unicode, w)
@@ -1023,6 +1023,12 @@ func TestBars(t *testing.T) {
 						if paintsBackground(out) {
 							t.Errorf("%s: %q paints a background", where, out)
 						}
+					}
+					sh := SectionHeader{Title: "User Configuration"}
+					out := sh.Render(c)
+					n := maxWidth(sh, w) - theme.Indent - 1 - lipgloss.Width(sh.Title)
+					if got, want := ansi.Strip(out), "  "+sh.Title+" "+strings.Repeat(g.Rule, n); got != want || !strings.HasPrefix(out, "  ") || paintsBackground(out) {
+						t.Errorf("section header, %v, dark %t, unicode %t, width %d: %q; want %q, opening with two plain spaces, no background", p, dark, env.Unicode, w, out, want)
 					}
 				}
 			}
@@ -1074,7 +1080,7 @@ func TestBlockStyles(t *testing.T) {
 		{"badge", Badge{Text: "george"}, []part{{" george ", th.Badge}}},
 		{"subject", SubjectLine{Label: "Managing", Subject: "george"}, []part{{"Managing:", th.Text.Muted}, {" george ", th.Badge}}},
 		{"section", SectionHeader{Title: "User Configuration"}, []part{
-			{th.Glyphs.Shade, th.Section.Fill}, {"User Configuration", th.Section.Title},
+			{"User Configuration", th.Section.Title},
 			{strings.Repeat(th.Glyphs.Rule, maxWidth(SectionHeader{}, 80)-21), th.Section.Rule},
 		}},
 		{"breadcrumb", Breadcrumb{Items: []string{"User Management", "Manage User"}}, []part{

@@ -92,7 +92,7 @@ func TestSSHHosts(t *testing.T) {
 // on: a status row's where status is set, above the section, else a
 // section row's.
 func line(out string, status bool, label string) string {
-	head, section, _ := strings.Cut(out, "# SSH Configuration")
+	head, section, _ := strings.Cut(out, "\n  SSH Configuration ")
 	if status {
 		section = head
 	}

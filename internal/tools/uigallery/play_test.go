@@ -230,7 +230,7 @@ func TestPlayEnds(t *testing.T) {
 	}
 	for _, tt := range tests {
 		code, out, errs, unread := playGallery(tt.lines, append([]string{"-profile", "plain"}, tt.args...)...)
-		_, record, _ := strings.Cut(out, "# simulated system ")
+		_, record, _ := strings.Cut(out, "  simulated system ")
 		applied := !strings.Contains(record, "Nothing was applied.")
 		if code != tt.code || errs != "" || unread != 0 || applied != tt.applied || applied != strings.Contains(record, "Applied: ") {
 			t.Errorf("%s: exit %d, stderr %q, %d lines unread, applied %t; want exit %d, applied %t; the record:\n%s",
@@ -270,7 +270,7 @@ func TestPlayFail(t *testing.T) {
 	}
 	for _, tt := range tests {
 		code, out, errs, _ := playGallery(tt.lines, append([]string{"-profile", "plain"}, tt.args...)...)
-		_, record, _ := strings.Cut(out, "# simulated system ")
+		_, record, _ := strings.Cut(out, "  simulated system ")
 		// A step's title may wrap: find each, in order, in the record
 		// with its line breaks and indents as single spaces.
 		flat, at, found := strings.Join(strings.Fields(record), " "), 0, true

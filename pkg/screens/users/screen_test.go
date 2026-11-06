@@ -149,7 +149,7 @@ func TestHosts(t *testing.T) {
 			if len(r.Users) != len(wants[name]) {
 				t.Errorf("%s: %d users, want %d", name, len(r.Users), len(wants[name]))
 			}
-			sections := strings.Split(p.out, "\n# ")
+			sections := sectionsOf(p.out)
 			for _, u := range r.Users {
 				w := wants[name][u.Name]
 				i := slices.IndexFunc(sections, func(s string) bool { return strings.HasPrefix(s, u.Name+" -") })
@@ -166,6 +166,26 @@ func TestHosts(t *testing.T) {
 			}
 		}
 	}
+}
+
+// sectionHeader is a section header as plain mode draws it
+// (component.SectionHeader): the title from column 2, a space, then a run
+// of the rule's "-".
+var sectionHeader = regexp.MustCompile(`(?m)^  (\S.*?) -+$`)
+
+// sectionsOf is out cut before each section header: each piece from the
+// header's title, its lead dropped, down to the next header.
+func sectionsOf(out string) []string {
+	at := sectionHeader.FindAllStringIndex(out, -1)
+	var got []string
+	for k, ix := range at {
+		end := len(out)
+		if k+1 < len(at) {
+			end = at[k+1][0]
+		}
+		got = append(got, out[ix[0]+2:end])
+	}
+	return got
 }
 
 // rowOf is the value of the row key in s, its marker dropped; "" when it has
@@ -482,7 +502,7 @@ func TestCreatePassword(t *testing.T) {
 		if u, _ := userOf(t, r, "carol"); u.Admin != detect.Yes || u.Decided.Kind != users.RuleHardn || u.Locked || len(u.Keys) != 1 {
 			t.Errorf("%s: carol read back %+v", host, u)
 		}
-		if !strings.Contains(strings.Split(p.out, applied)[1], "# carol -") {
+		if !strings.Contains(strings.Split(p.out, applied)[1], "\n  carol -") {
 			t.Errorf("%s: carol not drawn after:\n%s", host, p.out)
 		}
 	}

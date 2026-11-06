@@ -164,10 +164,23 @@ func TestShadeOneCell(t *testing.T) {
 	}
 }
 
+// TestRuleOneCell checks the rule's glyph as TestShadeOneCell checks the
+// bars' fill: one cell in both sets, and in the Unicode set one cell even in
+// a terminal that draws East Asian ambiguous characters two cells wide (╌
+// is neutral), so that a rule, a run of it, keeps its width there and does
+// not wrap at 80 columns, as ─ did (DEV-015, DEV-072).
+func TestRuleOneCell(t *testing.T) {
+	for name, g := range map[string]Glyphs{"unicode": unicodeGlyphs, "ascii": asciiGlyphs} {
+		if w, ww := lipgloss.Width(g.Rule), wideWidth(g.Rule); w != 1 || ww != 1 {
+			t.Errorf("%s: Rule %q is %d cells, %d when ambiguous is wide; want 1", name, g.Rule, w, ww)
+		}
+	}
+}
+
 // TestAmbiguousGlyphs keeps the Glyphs doc comment's list of East Asian
 // ambiguous-width glyphs in step with the Unicode set.
 func TestAmbiguousGlyphs(t *testing.T) {
-	const documented = "⛛ ⭘ ⛬ – ≈ … █ ─"
+	const documented = "⛛ ⭘ ⛬ – ≈ … █"
 	var found []string
 	for _, glyph := range glyphFields(unicodeGlyphs) {
 		for _, r := range glyph {

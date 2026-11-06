@@ -271,7 +271,7 @@ func TestSelect(t *testing.T) {
 		}
 	}
 	code, out, _ := runGallery("-profile", "plain", "menuheading/no-mode")
-	if want := "# menuheading/no-mode " + strings.Repeat("-", 42) + "\n\n  Select an option\n\n"; code != exitOK || out != want {
+	if want := "  menuheading/no-mode " + strings.Repeat("-", 42) + "\n\n  Select an option\n\n"; code != exitOK || out != want {
 		t.Errorf("one state: exit %d, output %q, want %q", code, out, want)
 	}
 	// Each cell's title holds the state's and the cell's whole names, for
@@ -607,7 +607,7 @@ func TestScreenSelect(t *testing.T) {
 	// One step: the mock's header and note, then the step under its own.
 	code, out, _ := runGallery("-screens", "-profile", "plain", sudo+"/normal/2-applied")
 	plain := strings.Split(out, "\n")
-	if code != exitOK || !strings.HasPrefix(plain[0], "# "+sudo+" ") || !strings.Contains(out, "\n# normal/2-applied ") ||
+	if code != exitOK || !strings.HasPrefix(plain[0], "  "+sudo+" ") || !strings.Contains(out, "\n  normal/2-applied ") ||
 		strings.Contains(out, "normal/1-confirm") || !strings.HasSuffix(out, "# Operation Successful\n\n") {
 		t.Errorf("one step: exit %d, output\n%s", code, out)
 	}

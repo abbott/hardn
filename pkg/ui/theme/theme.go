@@ -233,10 +233,9 @@ type KeyValueStyles struct {
 	ValueNotApplicable lipgloss.Style
 }
 
-// SectionStyles style a section header: a stub, a title and a rule, such as
-// "User Configuration".
+// SectionStyles style a section header: a title and a rule, such as
+// "User Configuration" (no stub since 2026-11-06, DEV-073).
 type SectionStyles struct {
-	Fill  lipgloss.Style // the stub, as ContextBar.Fill
 	Title lipgloss.Style // bold
 	Rule  lipgloss.Style
 }
@@ -325,9 +324,10 @@ func build(env term.Env, p *palette) *Theme {
 	// word and glyph tell it, in no hue of its own (the maintainer,
 	// 2026-10-21; DEV-010).
 	unknown := muted
-	// The bars' stub and fill and a section header's stub are Glyphs.Shade
-	// in bar.shade, on the terminal's own background (the maintainer,
-	// 2026-10-21; DEV-018). Without colour the glyph stands alone.
+	// The bars' stub and fill are Glyphs.Shade in bar.shade, on the
+	// terminal's own background (the maintainer, 2026-10-21; DEV-018).
+	// Without colour the glyph stands alone. A section header has no stub
+	// since 2026-11-06 (DEV-073).
 	shade := fg(p.BarShade)
 
 	// DEV-005: at 16 colours bar.bg is BrightBlack, the colour of muted
@@ -395,7 +395,7 @@ func build(env term.Env, p *palette) *Theme {
 			ValueUnknown: unknown, ValueNotApplicable: muted,
 		},
 		Badge:      fg(p.BadgeFG).Background(c(p.BadgeBG)).Bold(true),
-		Section:    SectionStyles{Fill: shade, Title: muted.Bold(true), Rule: fg(p.Divider)},
+		Section:    SectionStyles{Title: muted.Bold(true), Rule: fg(p.Divider)},
 		Breadcrumb: BreadcrumbStyles{Item: muted, Current: primary.Bold(true), Separator: faint},
 		Plan: PlanStyles{
 			Title: primary, Target: muted,

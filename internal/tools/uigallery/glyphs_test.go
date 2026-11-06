@@ -168,12 +168,12 @@ func TestGlyphsSideBySide(t *testing.T) {
 		// The first row of sets: each set's header at k*step, and each of
 		// its rows at the first set's column plus k*step, on one line.
 		sets := glyphSets()
-		head := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "# "+sets[0].title+" ") })
+		head := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "  "+sets[0].title+" ") })
 		if head < 0 {
 			t.Fatalf("width %d: no header for %s:\n%s", tt.width, sets[0].title, out)
 		}
 		for k := range tt.per {
-			if !strings.HasPrefix(from(lines[head], k*step), "# "+sets[k].title+" ") {
+			if !strings.HasPrefix(from(lines[head], k*step), "  "+sets[k].title+" ") {
 				t.Errorf("width %d: %s's header is not at column %d: %q", tt.width, sets[k].title, k*step, lines[head])
 			}
 		}
@@ -265,7 +265,7 @@ func TestGlyphsUsage(t *testing.T) {
 	if code, out, errs := runGallery("glyphs", "-h"); code != exitOK || out != "" || !strings.Contains(errs, glyphsUsage) {
 		t.Errorf("glyphs -h: exit %d, stdout %q, stderr %q; want the usage line", code, out, errs)
 	}
-	if code, out, _ := runGallery("glyphs", "-profile", "plain", "strip"); code != exitOK || strings.Contains(out, "# Current ") || !strings.Contains(out, "# glyphs strip ") {
+	if code, out, _ := runGallery("glyphs", "-profile", "plain", "strip"); code != exitOK || strings.Contains(out, "  Current -") || !strings.Contains(out, "  glyphs strip ") {
 		t.Errorf("glyphs strip: exit %d, want the strip alone:\n%s", code, out)
 	}
 }

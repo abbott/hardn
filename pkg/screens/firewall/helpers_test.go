@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -280,6 +281,11 @@ func ufwCalls(h *fwHost, n int) []string {
 	}
 	return out
 }
+
+// sectionHeader is a section header as plain mode draws it
+// (component.SectionHeader): the title from column 2, a space, then a run
+// of the rule's "-".
+var sectionHeader = regexp.MustCompile(`(?m)^  \S.*? -+$`)
 
 // screens are the screens out shows of the title, each from its title bar to its
 // prompt: one per round.

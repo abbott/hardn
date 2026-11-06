@@ -366,7 +366,7 @@ func TestScreenHosts(t *testing.T) {
 				t.Errorf("%s: no %q in:\n%s", tt.host, w, p.out)
 			}
 		}
-		for _, w := range []string{"# System Details ###", "# OS and Kernel ---", "# Host and IPs ---", "# Users ---", "# CPU and Load ---", "# Disk ---", "# Memory ---", "# Last Login ---",
+		for _, w := range []string{"# System Details ###", "  OS and Kernel ---", "  Host and IPs ---", "  Users ---", "  CPU and Load ---", "  Disk ---", "  Memory ---", "  Last Login ---",
 			"  Select an option", "   1) Refresh              Read the host again", "   0) Return"} {
 			if !strings.Contains(p.out, w) {
 				t.Errorf("%s: no %q in:\n%s", tt.host, w, p.out)

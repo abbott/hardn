@@ -33,7 +33,7 @@ type palette struct {
 	BadgeBG     token `token:"badge.bg"`     // host and user badges
 	BadgeFG     token `token:"badge.fg"`
 	BarBG       token `token:"bar.bg"`      // the version box (DEV-005)
-	BarShade    token `token:"bar.shade"`   // the ░ of the context and title bars and section stubs: a fill, never text
+	BarShade    token `token:"bar.shade"`   // the ░ of the context and title bars: a fill, never text
 	AccentOK    token `token:"accent.ok"`   // callout bar beside a success title
 	AccentWarn  token `token:"accent.warn"` // callout bar beside a warning title
 	Divider     token `token:"divider"`     // rules

@@ -197,7 +197,6 @@ func TestColourRoles(t *testing.T) {
 		{"Callout.Bad.Bar", true, "status.bad"},
 		{"Callout.Info.Bar", true, "text.muted"},
 		{"Callout.Info.Title", false, "text.primary"},
-		{"Section.Fill", false, "bar.shade"},
 		{"KeyValue.ValueUnknown", false, "text.muted"},
 		{"KeyValue.ValueNotApplicable", false, "text.muted"},
 		{"Badge", false, "badge.fg"},
@@ -257,7 +256,7 @@ func TestColourRoles(t *testing.T) {
 // DEV-018). It is checked at truecolor, where no other token shares its
 // value; at 256 colours the dark divider is 236 too.
 func TestShadeFillOnly(t *testing.T) {
-	fills := []string{"ContextBar.Fill", "TitleBar.Fill", "Section.Fill"}
+	fills := []string{"ContextBar.Fill", "TitleBar.Fill"}
 	for _, dark := range []bool{true, false} {
 		for _, unicode := range []bool{true, false} {
 			env := term.Fixed(term.DefaultWidth, colorprofile.TrueColor, unicode, dark)

@@ -334,7 +334,7 @@ func TestPlayEngineEnds(t *testing.T) {
 		{"the end of the input at the menu", enginePrefix, nil, prompt.ExitInterrupted, false},
 	} {
 		code, out, errs, unread := playGallery(tc.lines, "-profile", "plain", tc.start)
-		_, record, _ := strings.Cut(out, "# simulated system ")
+		_, record, _ := strings.Cut(out, "  simulated system ")
 		applied := strings.Contains(record, "Applied: ")
 		if code != tc.code || errs != "" || unread != 0 || applied != tc.applied || applied == strings.Contains(record, "Nothing was applied.") {
 			t.Errorf("%s: exit %d, stderr %q, %d lines unread, applied %t; want exit %d, applied %t; the record:\n%s",

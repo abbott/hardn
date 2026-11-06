@@ -333,7 +333,7 @@ func TestPaths(t *testing.T) {
 func TestReview(t *testing.T) {
 	warning := "# Warning\n# Before disabling root SSH login, ensure:"
 	checklist := "   -  Non-root user has sudo privileges\n   -  Non-root user SSH access has been tested\n   -  If SSH fails, a fallback access method is available"
-	section := "# SSH Configuration --------------------------------------------\n\n   -  SSH Port             2230"
+	section := "  SSH Configuration --------------------------------------------\n\n   -  SSH Port             2230"
 	port := []component.KeyValue{{Key: "SSH Port", Value: "2230"}}
 	tests := []struct {
 		name   string

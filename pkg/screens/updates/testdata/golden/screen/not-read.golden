@@ -8,7 +8,7 @@ $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
                            ␛[38;2;129;134;156m- Counted as not configured␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mUpgrades␛[m             ␛[38;2;129;134;156mCan't read␛[m$
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mPackage Lists␛[m        ␛[38;2;129;134;156mCan't read␛[m$
@@ -29,7 +29,7 @@ $
   [?] Auto Updates         Unknown can't read$
                            - Counted as not configured$
 $
-# Update Configuration -----------------------------------------$
+  Update Configuration -----------------------------------------$
 $
   [?] Upgrades             Can't read$
   [?] Package Lists        Can't read$
@@ -51,7 +51,7 @@ $
       ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
       ␛[38;2;129;134;156m- Counted as not configured␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mUpdate Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mUpgrades␛[m$
       ␛[38;2;129;134;156mCan't read␛[m$

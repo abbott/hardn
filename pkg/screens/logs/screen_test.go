@@ -47,12 +47,12 @@ func TestScreen(t *testing.T) {
 		if p.err != nil || p.unread != 0 {
 			t.Errorf("%s: Run = %v, %d unread", tt.host, p.err, p.unread)
 		}
-		for _, w := range append(tt.rows, "# Logs ###", "# File ---", "   -  Path                 /var/log/hardn.log", "  Select an option", tt.item, "   0) Return") {
+		for _, w := range append(tt.rows, "# Logs ###", "  File ---", "   -  Path                 /var/log/hardn.log", "  Select an option", tt.item, "   0) Return") {
 			if !strings.Contains(p.out, w) {
 				t.Errorf("%s: no %q in:\n%s", tt.host, w, p.out)
 			}
 		}
-		if tt.section != "" && !strings.Contains(p.out, "# "+tt.section+" ---") {
+		if tt.section != "" && !strings.Contains(p.out, "  "+tt.section+" ---") {
 			t.Errorf("%s: no section %q in:\n%s", tt.host, tt.section, p.out)
 		}
 		if tt.section == "" && strings.Contains(p.out, " lines ---") {
@@ -82,7 +82,7 @@ func TestBlankNewestLine(t *testing.T) {
 		env := off()
 		env.Height = tt.rows
 		p := playWith(newLog(tt.log), env, logs.Options{}, "0")
-		if p.err != nil || !strings.Contains(p.out, "# "+tt.title+" ---") || !strings.Contains(p.out, "1) Open") {
+		if p.err != nil || !strings.Contains(p.out, "  "+tt.title+" ---") || !strings.Contains(p.out, "1) Open") {
 			t.Errorf("%q: Run = %v:\n%s", tt.log, p.err, p.out)
 		}
 	}
@@ -95,7 +95,7 @@ func TestHeights(t *testing.T) {
 	for _, tt := range []struct {
 		rows  int
 		lines string
-	}{{24, "# Last 3 of 1204 lines ---"}, {40, "# Last 18 of 1204 lines ---"}} {
+	}{{24, "  Last 3 of 1204 lines ---"}, {40, "  Last 18 of 1204 lines ---"}} {
 		env := off()
 		env.Height = tt.rows
 		p := playWith(hostNamed(t, "long"), env, logs.Options{}, "0")

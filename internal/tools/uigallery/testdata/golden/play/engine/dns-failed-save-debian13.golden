@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-failed-save-debian13␛[m ␛[38;2;48;52;64m─────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay engine/dns-failed-save-debian13␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -54,7 +54,7 @@ $
 $
   ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-failed-save-debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
@@ -69,7 +69,7 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# play engine/dns-failed-save-debian13 -------------------------$
+  play engine/dns-failed-save-debian13 -------------------------$
 $
 # Note$
 # Play mode: hardn's own screens and prompts, on the real$
@@ -120,7 +120,7 @@ $
 $
   Check the log file at /var/log/hardn.log for details$
 $
-# simulated system ---------------------------------------------$
+  simulated system ---------------------------------------------$
 $
 # Info: engine/dns-failed-save-debian13$
 # Recorded by the fake, not done: what each step ran on web-$
@@ -135,7 +135,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay engine/dns-failed-save-debian13␛[m ␛[38;2;48;52;64m─────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay engine/dns-failed-save-debian13␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -190,7 +190,7 @@ $
 $
   ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-failed-save-debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$

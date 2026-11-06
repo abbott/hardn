@@ -241,15 +241,15 @@ func (c Ctx) paint(fill lipgloss.Style, n int) span {
 	return span{strings.Repeat(c.Theme.Glyphs.Bar, max(0, n)), fill}
 }
 
-// shade returns a run of Glyphs.Shade n cells wide in style, a bar's or a
-// section header's Fill: ░ in bar.shade, or uncoloured with no colour, and
-// # in the ASCII set; never a background (the maintainer, 2026-10-21;
-// DEV-018, DEV-033).
+// shade returns a run of Glyphs.Shade n cells wide in style, a bar's
+// Fill: ░ in bar.shade, or uncoloured with no colour, and # in the ASCII
+// set; never a background (the maintainer, 2026-10-21; DEV-018).
 func (c Ctx) shade(style lipgloss.Style, n int) span {
 	return span{strings.Repeat(c.Theme.Glyphs.Shade, max(0, n)), style}
 }
 
-// rule returns a run of Glyphs.Rule n cells wide in style.
+// rule returns a run of Glyphs.Rule n cells wide in style: ╌, or - in the
+// ASCII set (DEV-072).
 func (c Ctx) rule(style lipgloss.Style, n int) span {
 	g := c.Theme.Glyphs.Rule
 	return span{strings.Repeat(g, max(0, n)/lipgloss.Width(g)), style}

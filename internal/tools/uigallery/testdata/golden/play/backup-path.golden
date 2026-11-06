@@ -3,7 +3,7 @@
 # Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
 
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay backup/default␛[m ␛[38;2;48;52;64m──────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay backup/default␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -18,7 +18,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;112;212;127mEnabled␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
@@ -48,7 +48,7 @@ $
    ␛[38;2;219;184;83m⨳␛[m  ␛[38;2;219;184;83m/var/backups/hardn is the backup path already␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /srv/backups/hardn$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/srv/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
 $
@@ -73,7 +73,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;112;212;127mEnabled␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/srv/backups/hardn␛[m ␛[38;2;112;212;127mRoot only␛[m$
@@ -89,7 +89,7 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/default␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
@@ -101,7 +101,7 @@ $
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
-# play backup/default ------------------------------------------$
+  play backup/default ------------------------------------------$
 $
 # Note$
 # Play mode: hardn's own screens and prompts, on the real$
@@ -116,7 +116,7 @@ $
 $
 # Backup Settings ##############################################$
 $
-# Backup Configuration -----------------------------------------$
+  Backup Configuration -----------------------------------------$
 $
   [+] Backup State         Enabled$
   [+] Backup Path          /var/backups/hardn Not created yet$
@@ -146,7 +146,7 @@ $
   (x) /var/backups/hardn is the backup path already$
   Enter new backup path [0 or q]: /srv/backups/hardn$
 $
-# Backup Configuration -----------------------------------------$
+  Backup Configuration -----------------------------------------$
 $
   [+] Backup Path          /srv/backups/hardn Not created yet$
 $
@@ -171,7 +171,7 @@ $
 $
 # Backup Settings ##############################################$
 $
-# Backup Configuration -----------------------------------------$
+  Backup Configuration -----------------------------------------$
 $
   [+] Backup State         Enabled$
   [+] Backup Path          /srv/backups/hardn Root only$
@@ -187,7 +187,7 @@ $
 $
     > Enter selection [0-4 or q]: 0$
 $
-# simulated system ---------------------------------------------$
+  simulated system ---------------------------------------------$
 $
 # Info: backup/default$
 # Recorded by the fake, not done: what each step ran on web-$
@@ -199,7 +199,7 @@ $
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mplay backup/default␛[m ␛[38;2;48;52;64m──────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mplay backup/default␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -215,7 +215,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m$
       ␛[38;2;112;212;127mEnabled␛[m$
@@ -251,7 +251,7 @@ $
    ␛[38;2;219;184;83m⨳␛[m  ␛[38;2;219;184;83m/var/backups/hardn is the backup path already␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /srv/backups/hardn$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup Path␛[m$
       ␛[38;2;129;134;156m/srv/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
@@ -280,7 +280,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m─────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBackup State␛[m$
       ␛[38;2;112;212;127mEnabled␛[m$
@@ -302,7 +302,7 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m─────────────────────────────────────────␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/default␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
@@ -314,7 +314,7 @@ $
 $
 
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mplay backup/default␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
+  ␛[1;38;2;129;134;156mplay backup/default␛[m ␛[38;2;48;52;64m------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's own screens and prompts, on the real␛[m$
@@ -329,7 +329,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m##############################################␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;112;212;127mEnabled␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/var/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
@@ -359,7 +359,7 @@ $
   ␛[38;2;219;184;83m(x)␛[m ␛[38;2;219;184;83m/var/backups/hardn is the backup path already␛[m$
   ␛[38;2;192;196;216mEnter new backup path␛[m ␛[38;2;192;196;216m[0 or q]:␛[m /srv/backups/hardn$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/srv/backups/hardn␛[m ␛[38;2;112;212;127mNot created yet␛[m$
 $
@@ -384,7 +384,7 @@ $
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mBackup Settings␛[m ␛[38;2;43;47;59m##############################################␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
+  ␛[1;38;2;129;134;156mBackup Configuration␛[m ␛[38;2;48;52;64m-----------------------------------------␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBackup State␛[m         ␛[38;2;112;212;127mEnabled␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBackup Path␛[m          ␛[38;2;129;134;156m/srv/backups/hardn␛[m ␛[38;2;112;212;127mRoot only␛[m$
@@ -400,7 +400,7 @@ $
 $
     ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
+  ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;48;52;64m---------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/default␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$

@@ -1,26 +1,29 @@
 package component
 
 import (
+	"strings"
+
 	"charm.land/lipgloss/v2"
 
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
 // SectionHeader opens a section of a sub-screen, such as Figma's "User
-// Configuration" or "SSH Configuration": a one-cell stub, the title, then
-// a rule to the end of the bar width. Here with no colour and ASCII
-// glyphs:
+// Configuration" or "SSH Configuration": the title, then a rule to the end
+// of the bar width. Here with no colour and ASCII glyphs:
 //
-//	# User Configuration ------------------------------------------
+//	0 2
+//	  User Configuration -------------------------------------------
 //
-// It is laid out as a ContextBar is (DEV-018): the stub at column 0, the
-// title from column 2 in Section.Title with a cell either side, then a run
-// of Glyphs.Rule in Section.Rule, at least one cell, across the content
-// width, or the terminal's when theme.BarsFillContent is off. The stub is
-// a bar's: Glyphs.Shade in Section.Fill, ░ in bar.shade, uncoloured with
-// no colour (the maintainer, 2026-10-21; DEV-033).
-// A title too wide is cut with the ellipsis glyph. With no title, or on a
-// terminal too narrow for one, it is the stub and the rule.
+// The title starts at column 2 (theme.Indent), where a ContextBar's text
+// does (DEV-018), in Section.Title with a cell after it, then a run of
+// Glyphs.Rule (╌, - in ASCII) in Section.Rule, at least one cell, across
+// the content width, or the terminal's when theme.BarsFillContent is off.
+// Nothing is drawn before the title: the bars' ░ stub at column 0, which it
+// had (DEV-033), is a space since 2026-11-06, so the title keeps its column
+// (the maintainer; DEV-073). A title too wide is cut with the ellipsis
+// glyph. With no title, or on a terminal too narrow for one, it is the rule
+// from column 2; under three columns, the rule alone.
 type SectionHeader struct {
 	// Title names the section, such as "User Configuration".
 	Title string
@@ -29,16 +32,16 @@ type SectionHeader struct {
 // Render renders the header for c. See SectionHeader for the layout.
 func (vm SectionHeader) Render(c Ctx) string {
 	t, w := c.Theme.Section, c.barWidth()
-	stub := c.shade(t.Fill, 1).String()
+	lead := strings.Repeat(" ", theme.Indent)
 	title := c.text(vm.Title)
 	if title == "" || w <= barFrame {
-		if w < 3 {
-			return c.shade(t.Fill, w).String()
+		if w <= theme.Indent {
+			return c.rule(t.Rule, w).String()
 		}
-		return stub + " " + c.rule(t.Rule, w-2).String()
+		return lead + c.rule(t.Rule, w-theme.Indent).String()
 	}
 	body := c.fit(line{{title, t.Title}}, w-barFrame)
-	return stub + " " + body + " " + c.rule(t.Rule, w-3-lipgloss.Width(body)).String()
+	return lead + body + " " + c.rule(t.Rule, w-theme.Indent-1-lipgloss.Width(body)).String()
 }
 
 // Breadcrumb says where a sub-screen sits, such as "User Management ›

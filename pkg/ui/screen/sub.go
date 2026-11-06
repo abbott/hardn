@@ -16,7 +16,7 @@ import (
 //
 //	  [+] Non-root             Configured UID >= 1000
 //
-//	# User Configuration -------------------------------------------
+//	  User Configuration -------------------------------------------
 //
 //	  [george]
 //
