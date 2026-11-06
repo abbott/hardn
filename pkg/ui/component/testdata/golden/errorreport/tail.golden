@@ -332,167 +332,167 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
-      ␛[38;5;103m…␛[m$
-      ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-5 [1024 B]␛[m$
-      ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-6 [1024 B]␛[m$
-      ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-7 [1024 B]␛[m$
-      ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-8 [1024 B]␛[m$
-      ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-9 [1024 B]␛[m$
-      ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-10 [1024 B]␛[m$
-      ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-11 [1024 B]␛[m$
-      ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-12 [1024 B]␛[m$
-      ␛[38;5;103mProgress: 100%␛[m$
-      ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[38;5;103m↪ (1)␛[m$
+      ␛[38;5;102m$ apt-get install -y unattended-upgrades␛[m$
+      ␛[38;5;102m…␛[m$
+      ␛[38;5;102mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-5 [1024 B]␛[m$
+      ␛[38;5;102mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-6 [1024 B]␛[m$
+      ␛[38;5;102mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-7 [1024 B]␛[m$
+      ␛[38;5;102mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-8 [1024 B]␛[m$
+      ␛[38;5;102mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-9 [1024 B]␛[m$
+      ␛[38;5;102mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-10 [1024 B]␛[m$
+      ␛[38;5;102mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-11 [1024 B]␛[m$
+      ␛[38;5;102mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-12 [1024 B]␛[m$
+      ␛[38;5;102mProgress: 100%␛[m$
+      ␛[38;5;102mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
+      ␛[38;5;102m↪ (1)␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
-      ␛[38;5;103m…␛[m$
-      ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-5 [1024 B]␛[m$
-      ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-6 [1024 B]␛[m$
-      ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-7 [1024 B]␛[m$
-      ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-8 [1024 B]␛[m$
-      ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-9 [1024 B]␛[m$
-      ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-10 [1024 B]␛[m$
-      ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-11 [1024 B]␛[m$
-      ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-12 [1024 B]␛[m$
-      ␛[38;5;103mProgress: 100%␛[m$
-      ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
+      ␛[38;5;102m$ apt-get install -y unattended-upgrades␛[m$
+      ␛[38;5;102m…␛[m$
+      ␛[38;5;102mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-5 [1024 B]␛[m$
+      ␛[38;5;102mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-6 [1024 B]␛[m$
+      ␛[38;5;102mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-7 [1024 B]␛[m$
+      ␛[38;5;102mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-8 [1024 B]␛[m$
+      ␛[38;5;102mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-9 [1024 B]␛[m$
+      ␛[38;5;102mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-10 [1024 B]␛[m$
+      ␛[38;5;102mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-11 [1024 B]␛[m$
+      ␛[38;5;102mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-12 [1024 B]␛[m$
+      ␛[38;5;102mProgress: 100%␛[m$
+      ␛[38;5;102mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
-      ␛[38;5;103m…␛[m$
-      ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-5 [1024 B]␛[m$
-      ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-6 [1024 B]␛[m$
-      ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-7 [1024 B]␛[m$
-      ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-8 [1024 B]␛[m$
-      ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-9 [1024 B]␛[m$
-      ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-10 [1024 B]␛[m$
-      ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-11 [1024 B]␛[m$
-      ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m↪ package-12 [1024 B]␛[m$
-      ␛[38;5;103mProgress: 100%␛[m$
-      ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
+      ␛[38;5;102m$ apt-get install -y unattended-upgrades␛[m$
+      ␛[38;5;102m…␛[m$
+      ␛[38;5;102mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-5 [1024 B]␛[m$
+      ␛[38;5;102mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-6 [1024 B]␛[m$
+      ␛[38;5;102mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-7 [1024 B]␛[m$
+      ␛[38;5;102mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-8 [1024 B]␛[m$
+      ␛[38;5;102mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-9 [1024 B]␛[m$
+      ␛[38;5;102mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-10 [1024 B]␛[m$
+      ␛[38;5;102mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-11 [1024 B]␛[m$
+      ␛[38;5;102mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m↪ package-12 [1024 B]␛[m$
+      ␛[38;5;102mProgress: 100%␛[m$
+      ␛[38;5;102mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
-      ␛[38;5;103m...␛[m$
-      ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-5 [1024 B]␛[m$
-      ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-6 [1024 B]␛[m$
-      ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-7 [1024 B]␛[m$
-      ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-8 [1024 B]␛[m$
-      ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-9 [1024 B]␛[m$
-      ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-10 [1024 B]␛[m$
-      ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-11 [1024 B]␛[m$
-      ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-12 [1024 B]␛[m$
-      ␛[38;5;103mProgress: 100%␛[m$
-      ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
-      ␛[38;5;103m| (1)␛[m$
+      ␛[38;5;102m$ apt-get install -y unattended-upgrades␛[m$
+      ␛[38;5;102m...␛[m$
+      ␛[38;5;102mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-5 [1024 B]␛[m$
+      ␛[38;5;102mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-6 [1024 B]␛[m$
+      ␛[38;5;102mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-7 [1024 B]␛[m$
+      ␛[38;5;102mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-8 [1024 B]␛[m$
+      ␛[38;5;102mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-9 [1024 B]␛[m$
+      ␛[38;5;102mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-10 [1024 B]␛[m$
+      ␛[38;5;102mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-11 [1024 B]␛[m$
+      ␛[38;5;102mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-12 [1024 B]␛[m$
+      ␛[38;5;102mProgress: 100%␛[m$
+      ␛[38;5;102mE: Sub-process /usr/bin/dpkg returned an error code␛[m$
+      ␛[38;5;102m| (1)␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
-      ␛[38;5;103m...␛[m$
-      ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-5 [1024 B]␛[m$
-      ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-6 [1024 B]␛[m$
-      ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-7 [1024 B]␛[m$
-      ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-8 [1024 B]␛[m$
-      ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-9 [1024 B]␛[m$
-      ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-10 [1024 B]␛[m$
-      ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-11 [1024 B]␛[m$
-      ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-12 [1024 B]␛[m$
-      ␛[38;5;103mProgress: 100%␛[m$
-      ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
+      ␛[38;5;102m$ apt-get install -y unattended-upgrades␛[m$
+      ␛[38;5;102m...␛[m$
+      ␛[38;5;102mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-5 [1024 B]␛[m$
+      ␛[38;5;102mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-6 [1024 B]␛[m$
+      ␛[38;5;102mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-7 [1024 B]␛[m$
+      ␛[38;5;102mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-8 [1024 B]␛[m$
+      ␛[38;5;102mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-9 [1024 B]␛[m$
+      ␛[38;5;102mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-10 [1024 B]␛[m$
+      ␛[38;5;102mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-11 [1024 B]␛[m$
+      ␛[38;5;102mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-12 [1024 B]␛[m$
+      ␛[38;5;102mProgress: 100%␛[m$
+      ␛[38;5;102mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mInstalling unattended-upgrades failed: exit status 100␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mInstalling unattended-upgrades failed: exit status 100␛[m$
 $
-      ␛[38;5;103m$ apt-get install -y unattended-upgrades␛[m$
-      ␛[38;5;103m...␛[m$
-      ␛[38;5;103mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-5 [1024 B]␛[m$
-      ␛[38;5;103mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-6 [1024 B]␛[m$
-      ␛[38;5;103mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-7 [1024 B]␛[m$
-      ␛[38;5;103mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-8 [1024 B]␛[m$
-      ␛[38;5;103mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-9 [1024 B]␛[m$
-      ␛[38;5;103mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-10 [1024 B]␛[m$
-      ␛[38;5;103mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-11 [1024 B]␛[m$
-      ␛[38;5;103mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
-      ␛[38;5;103m| package-12 [1024 B]␛[m$
-      ␛[38;5;103mProgress: 100%␛[m$
-      ␛[38;5;103mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
+      ␛[38;5;102m$ apt-get install -y unattended-upgrades␛[m$
+      ␛[38;5;102m...␛[m$
+      ␛[38;5;102mGet:5 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-5 [1024 B]␛[m$
+      ␛[38;5;102mGet:6 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-6 [1024 B]␛[m$
+      ␛[38;5;102mGet:7 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-7 [1024 B]␛[m$
+      ␛[38;5;102mGet:8 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-8 [1024 B]␛[m$
+      ␛[38;5;102mGet:9 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-9 [1024 B]␛[m$
+      ␛[38;5;102mGet:10 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-10 [1024 B]␛[m$
+      ␛[38;5;102mGet:11 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-11 [1024 B]␛[m$
+      ␛[38;5;102mGet:12 http://deb.example.net/debian trixie/main amd64␛[m$
+      ␛[38;5;102m| package-12 [1024 B]␛[m$
+      ␛[38;5;102mProgress: 100%␛[m$
+      ␛[38;5;102mE: Sub-process /usr/bin/dpkg returned an error code (1)␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$

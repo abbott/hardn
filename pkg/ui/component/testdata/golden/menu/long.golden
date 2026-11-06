@@ -100,51 +100,51 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103mSend the daily report to alice␛[m$
+      ␛[38;5;102mSend the daily report to alice␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mAllow port 2230/tcp from 192.0.2.0/24 and deny the re…␛[m$
+      ␛[38;5;102mAllow port 2230/tcp from 192.0.2.0/24 and deny the re…␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103mSend the daily report to alice␛[m$
+      ␛[38;5;102mSend the daily report to alice␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
+      ␛[38;5;102mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103mSend the daily report to alice␛[m$
+      ␛[38;5;102mSend the daily report to alice␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
+      ␛[38;5;102mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103mSend the daily report to alice␛[m$
+      ␛[38;5;102mSend the daily report to alice␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mAllow port 2230/tcp from 192.0.2.0/24 and deny the...␛[m$
+      ␛[38;5;102mAllow port 2230/tcp from 192.0.2.0/24 and deny the...␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103mSend the daily report to alice␛[m$
+      ␛[38;5;102mSend the daily report to alice␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
+      ␛[38;5;102mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUnattended Upgrades Mail Reports␛[m$
-      ␛[38;5;103mSend the daily report to alice␛[m$
+      ␛[38;5;102mSend the daily report to alice␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mFirewall␛[m$
-      ␛[38;5;103mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
+      ␛[38;5;102mAllow port 2230/tcp from 192.0.2.0/24 and deny the rest␛[m$
 $
-   ␛[1;38;5;103m0)␛[m ␛[38;5;103mReturn␛[m$
+   ␛[1;38;5;102m0)␛[m ␛[38;5;102mReturn␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUnattended Upgrades Mail Reports␛[m$

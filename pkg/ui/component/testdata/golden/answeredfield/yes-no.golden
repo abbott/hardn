@@ -39,22 +39,22 @@
    ␛[38;2;30;34;48m2.␛[m ␛[38;2;30;34;48mGrant sudo privilege?␛[m ␛[38;2;30;34;48m[y/N]:␛[m ␛[38;2;87;92;110my␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
+   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;102my␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
+   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;102my␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
+   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;102my␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
+   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;102my␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
+   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;102my␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;103my␛[m$
+   ␛[38;5;251m2.␛[m ␛[38;5;251mGrant sudo privilege?␛[m ␛[38;5;251m[y/N]:␛[m ␛[38;5;102my␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;235m2.␛[m ␛[38;5;235mGrant sudo privilege?␛[m ␛[38;5;235m[y/N]:␛[m ␛[38;5;59my␛[m$

@@ -43,24 +43,24 @@
   ␛[38;2;87;92;110m[?]␛[m ␛[38;2;30;34;48mAllowed Users␛[m        ␛[38;2;87;92;110mUnknown␛[m$
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m?␛[m  ␛[38;5;251mAllowed Users␛[m$
-      ␛[38;5;103mUnknown␛[m$
+   ␛[38;5;102m?␛[m  ␛[38;5;251mAllowed Users␛[m$
+      ␛[38;5;102mUnknown␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m?␛[m  ␛[38;5;251mAllowed Users␛[m        ␛[38;5;103mUnknown␛[m$
+   ␛[38;5;102m?␛[m  ␛[38;5;251mAllowed Users␛[m        ␛[38;5;102mUnknown␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
-   ␛[38;5;103m?␛[m  ␛[38;5;251mAllowed Users␛[m        ␛[38;5;103mUnknown␛[m$
+   ␛[38;5;102m?␛[m  ␛[38;5;251mAllowed Users␛[m        ␛[38;5;102mUnknown␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;103m[?]␛[m ␛[38;5;251mAllowed Users␛[m$
-      ␛[38;5;103mUnknown␛[m$
+  ␛[38;5;102m[?]␛[m ␛[38;5;251mAllowed Users␛[m$
+      ␛[38;5;102mUnknown␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;103m[?]␛[m ␛[38;5;251mAllowed Users␛[m        ␛[38;5;103mUnknown␛[m$
+  ␛[38;5;102m[?]␛[m ␛[38;5;251mAllowed Users␛[m        ␛[38;5;102mUnknown␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
-  ␛[38;5;103m[?]␛[m ␛[38;5;251mAllowed Users␛[m        ␛[38;5;103mUnknown␛[m$
+  ␛[38;5;102m[?]␛[m ␛[38;5;251mAllowed Users␛[m        ␛[38;5;102mUnknown␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[38;5;59m?␛[m  ␛[38;5;235mAllowed Users␛[m$

@@ -120,61 +120,61 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mSet Port 2230␛[m$
       ␛[38;5;179mRolled back␛[m$
-   ␛[38;5;179m⭘␛[m  ␛[38;5;103mUnknown␛[m$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;102mUnknown␛[m$
       ␛[38;5;179mRolled back␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mSet Port 2230␛[m        ␛[38;5;179mRolled back␛[m$
-   ␛[38;5;179m⭘␛[m  ␛[38;5;103mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;102mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
    ␛[38;5;179m⭘␛[m  ␛[38;5;251mSet Port 2230␛[m        ␛[38;5;179mRolled back␛[m$
-   ␛[38;5;179m⭘␛[m  ␛[38;5;103mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
+   ␛[38;5;179m⭘␛[m  ␛[38;5;102mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mSet Port 2230␛[m$
       ␛[38;5;179mRolled back␛[m$
-  ␛[38;5;179m[ ]␛[m ␛[38;5;103mUnknown␛[m$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;102mUnknown␛[m$
       ␛[38;5;179mRolled back␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mSet Port 2230␛[m        ␛[38;5;179mRolled back␛[m$
-  ␛[38;5;179m[ ]␛[m ␛[38;5;103mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;102mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;204m ␛[m ␛[1;38;5;204mOperation Failed␛[m$
-␛[48;5;204m ␛[m ␛[38;5;103mReloading ssh.service failed: exit status 1␛[m$
+␛[48;5;204m ␛[m ␛[38;5;102mReloading ssh.service failed: exit status 1␛[m$
 $
   ␛[38;5;179m[ ]␛[m ␛[38;5;251mSet Port 2230␛[m        ␛[38;5;179mRolled back␛[m$
-  ␛[38;5;179m[ ]␛[m ␛[38;5;103mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
+  ␛[38;5;179m[ ]␛[m ␛[38;5;102mUnknown␛[m              ␛[38;5;179mRolled back␛[m$
 $
-  ␛[38;5;103mCheck the log file at /var/log/hardn.log for details␛[m$
+  ␛[38;5;102mCheck the log file at /var/log/hardn.log for details␛[m$
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[48;5;161m ␛[m ␛[1;38;5;161mOperation Failed␛[m$
