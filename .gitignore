@@ -19,6 +19,7 @@
 !SECURITY.md
 !GOVERNANCE.md
 !CONTRIBUTING.md
+!/ROADMAP.md
 
 !Makefile
 # Tracked as lowercase; listed explicitly so case-sensitive filesystems agree with macOS.

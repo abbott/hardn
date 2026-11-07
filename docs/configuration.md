@@ -137,18 +137,18 @@ enableBackups: true                 # Backup files before modifying them
 backupPath: "/var/backups/hardn"    # Path to store backups
 ```
 
-#### `dryRun`: plan only
+#### `dryRun`: dry run
 
-`dryRun: true` starts `hardn` in plan only: changes are shown, not applied. `-n` does the same for one run.
+`dryRun: true` starts `hardn` as a dry run: changes are shown, not applied. `-n` does the same for one run.
 
 - **User Management, SSH Login, Firewall, Backup, Auto Updates, Run All and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
-- **The flag wins.** `-n` turns plan only on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
-- **Operation flags show their plan** under plan only, as with `-n`: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` exit 3 when there are changes. To apply, add `--dry-run=false`.
+- **The flag wins.** `-n` turns dry run on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
+- **Operation flags show their plan** in a dry run, as with `-n`: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
-- **The main menu says so.** Beside "Select an option" it shows "Mode Plan only (hardn.yml)", or "(-n)" when the flag set it.
+- **The main menu says so.** Beside "Select an option" it shows "Mode Dry run (hardn.yml)", or "(-n)" when the flag set it.
 
-> **Changed in the next release.** `dryRun` used to be ignored: `hardn` ran live whatever the file said. It is now read. A `dryRun: true` an earlier `hardn` wrote is now plan only. The main menu's Dry-Run item (6) wrote one to `./hardn.yml`, as did any menu save made under `-n`. If changes are no longer applied, check the file `hardn` names at start for `dryRun: true`. Set it to `false`, or run with `--dry-run=false`. Item 6 is now removed, and Run All no longer turns dry run on or off.
+> **Changed in v0.4.0.** `dryRun` used to be ignored: `hardn` ran live whatever the file said. It is now read. A `dryRun: true` an earlier `hardn` wrote now starts a dry run. The main menu's Dry-Run item (6) wrote one to `./hardn.yml`, as did any menu save made under `-n`. If changes are no longer applied, check the file `hardn` names at start for `dryRun: true`. Set it to `false`, or run with `--dry-run=false`. Item 6 is now removed, and Run All no longer turns dry run on or off.
 
 #### `enableBackups` and `backupPath`: the Backup screen
 
@@ -160,7 +160,7 @@ The main menu's Backup (5) shows and changes these two settings.
 - **Each change is shown first.** Confirm it, and only that setting is saved, in the file `hardn` loaded. Without a loaded file, nothing can be saved.
 - **A path change backs up under the new path**, as does every change after it.
 - **Backups off still keeps what a rollback needs.** Changes from the DNS and Backup screens and `-g` still copy the files they change to the backup path.
-- **Backup Runs lists the backups in the path in use**, newest first. It only reads: restoring one is not available yet.
+- **Backup Runs lists the backups in the path in use**, newest first. It only reads.
 
 **`logFile` is retired.** hardn always writes and reads `/var/log/hardn.log`. A file that sets `logFile` to another path is still accepted, and hardn warns: "hardn.yml's logFile, <path>, isn't used".
 
@@ -289,10 +289,10 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
 
 2. **Development Environment**: For testing, you may want to use:
    ```yaml
-   dryRun: true      # plan only at every start
+   dryRun: true      # dry run at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is plan only, scripts and cron jobs included: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is a dry run, scripts and cron jobs included: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml
