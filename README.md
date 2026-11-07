@@ -1,6 +1,6 @@
 # Hardn
 
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](#verify-a-release) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](#verify-a-release) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](LICENSE)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](#verify-a-release) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](#verify-a-release) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](LICENSE)
 
 A simple hardening tool for Linux.
 
@@ -257,7 +257,7 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 
 ## Release Chain Security
 
-[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/)
+[![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/)
 
 A `hardn` binary has a GitHub artifact attestation: [SLSA](https://slsa.dev) Level 3 supply-chain security inclusive of the following security guarantees:
 
@@ -270,6 +270,8 @@ In addition to SLSA provenance, all artifacts are signed using [Sigstore](https:
 
 - **Transparency Log**: Every signature is recorded in the public Rekor log
 - **Keyless Signing**: Short-lived certificate tied to GitHub's OIDC identity
+
+The workflows that build and sign a release are audited by 🌈 [zizmor](https://docs.zizmor.sh) on every push to main and every pull request; any finding fails the check.
 
 ### Verify a Release
 
