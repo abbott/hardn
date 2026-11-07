@@ -484,7 +484,7 @@ const lockoutWords = "Keeping HARDN_CONFIG here risks a lockout (PLAN_REFUSED)"
 // TestKeepEnvironmentFlag: -e and setup-sudo-env plan and apply the
 // Environment control through the engine, without a question (refactor
 // plan slice 9, unit (d); gallery-environment.md §5, Made here, adopted
-// 2026-10-29), after the root check and hardn.yml's load, the report
+// 2026-10-29), after the root check, the OS check and hardn.yml's load, the report
 // output.Human's, the exit status Phase 3's: hardn-env-alice written on
 // Debian 13, nothing else; a host already as asked unchanged; every host
 // the control refuses reported with its code and how to go on, nothing
@@ -539,12 +539,9 @@ func TestKeepEnvironmentFlag(t *testing.T) {
 				if got := map[bool]int{true: r.code}[r.ended]; got != tc.code {
 					t.Fatalf("exit status %d (ended %v), want %d; report:\n%s\nstdout:\n%s\nstderr:\n%s", r.code, r.ended, tc.code, report, r.stdout, r.stderr)
 				}
-				want := []string{"root check", "OS detection", "config load"}
-				if spelling[0] == "setup-sudo-env" {
-					want = []string{"root check", "config load"} // it detects no OS: the engine does
-				}
+				want := []string{"root check", "OS detection", "config load"} // setup-sudo-env's as -e's
 				if strings.Join(r.reached, ",") != strings.Join(want, ",") {
-					t.Errorf("reached %v, want %v: after the root check and the configuration's load", r.reached, want)
+					t.Errorf("reached %v, want %v: after the root check, the OS check and the configuration's load", r.reached, want)
 				}
 				if w := inOrder(report, tc.said...); w != "" {
 					t.Fatalf("the report lacks %q after the text before it:\n%s", w, report)

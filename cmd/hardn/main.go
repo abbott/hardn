@@ -345,14 +345,21 @@ This command must be run with sudo privileges.
 
 Example:
   sudo hardn setup-sudo-env`,
-	// What -e does (keepEnvironment), after the root command's root check
-	// and hardn.yml's load (loadExisting: none found is the defaults, with
+	// What -e does (keepEnvironment), after the root command's root check,
+	// its OS check (detectOS: hardn changes nothing on an OS it refuses,
+	// macOS included, its log and example configuration neither), and
+	// hardn.yml's load (loadExisting: none found is the defaults, with
 	// no offer to create one, which -n would let write), whose backup
 	// settings the engine takes and whose dryRun, or -n, makes it the plan
 	// alone (refactor plan slice 9,
 	// unit (d); gallery-environment.md §5, Made here, adopted 2026-10-29).
 	Run: func(cmd *cobra.Command, args []string) {
 		if checkRoot() != nil {
+			return
+		}
+		if err := detectOS(); err != nil {
+			sayError("Failed to detect OS: %v", err)
+			exit(1)
 			return
 		}
 		sayFound(findConfig(configFile))

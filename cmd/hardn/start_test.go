@@ -266,6 +266,7 @@ func TestStartWritesNothing(t *testing.T) {
 		{"not root, -g", nil, []string{"-g"}},
 		{"not root, setup-sudo-env", nil, []string{"setup-sudo-env"}},
 		{"root, the OS refused", asRootStart(func() { detectOS = func() error { return errors.New("test: the OS check") } }), []string{"-g"}},
+		{"root, the OS refused, setup-sudo-env", asRootStart(func() { detectOS = func() error { return errors.New("test: the OS check") } }), []string{"setup-sudo-env"}},
 		{"root, -c with no user", asRootStart(nil), []string{"-c"}},
 		{"root, plan only, the main menu", asRootStart(menu), []string{"-n"}},
 	} {
