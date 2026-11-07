@@ -11,17 +11,22 @@ A simple hardening tool for Linux.
 Anyone managing a **privately owned** Linux server, container, or virtual machine
 - Homelab enthusiasts, Students, Hobbyists
 
-If you are one of the following, **refrain from deploying this tool in the public or private sector**
+If you are one of the following, **<ins>refrain</ins>** from deploying this tool in the public or private sector
 - System Administrator
 - DevOps Engineer
 - SecOps Architect or Analyst
 
+## Overview
+
 ### Security Disclaimer
 
-`hardn` should be part of a broader security strategy, not a *"set it and forget it"* solution — regular security audits, updates, and monitoring are still required. While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, they are **<ins>not suitable for enterprise use</ins>**.
+`hardn` should be part of a broader security strategy, not a *"set it and forget it"* solution — regular security audits, updates, and monitoring are still required. While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, hardn is **<ins>not intended for enterprise use</ins>**.
 
-## Overview (features, etc.)
+### Air Gapped
 
+> hardn **<ins>DOES NOT</ins>** phone home: **<ins>ZERO</ins>** data, log, or signal collection.
+
+### What It Does
 `sudo hardn` displays a **risk level** based on the current host configuration of users, SSH, firewall, DNS, automatic updates and AppArmor. Utilize the **menu options** to configure each of the following:
 
 | Option | Displays | Configures |
@@ -47,7 +52,7 @@ If you are one of the following, **refrain from deploying this tool in the publi
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
 #### Dry run (Plan mode)
-`hardn -n` (or `dryRun: true` in hardn.yml) shows each operational plan and changes nothing. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
+`sudo hardn -n` (or `dryRun: true` in hardn.yml) shows each operational plan and changes nothing. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
 
 ## Installation
 
@@ -216,7 +221,7 @@ confirmTimeout: "5m"
 
 See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to keep `HARDN_CONFIG` under sudo. Example: [hardn.yml.example](hardn.yml.example)
 
-## Supported Versions
+## Distribution Support
 
 | Distribution | Supported | Best effort | Out of scope |
 |---|---|---|---|
