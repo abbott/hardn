@@ -235,6 +235,7 @@ var sentinels = map[string]error{
 	"users.ErrNameTaken":              users.ErrNameTaken,
 	"users.ErrHomeThere":              users.ErrHomeThere,
 	"users.ErrNewPassword":            users.ErrNewPassword,
+	"users.ErrPasswordBypass":         users.ErrPasswordBypass,
 	"authkeys.ErrNotPlanned":          authkeys.ErrNotPlanned,
 	"authkeys.ErrStrictModes":         authkeys.ErrStrictModes,
 	"authkeys.ErrNotKey":              authkeys.ErrNotKey,
@@ -652,6 +653,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, users.CodeLocked)                                                                                        // next/p4-locked
 	want = append(want, users.CodeNoKey)                                                                                         // next/s5-control
 	want = append(want, output.CodeDetailsUnreadable)                                                                            // next/s1-readers
+	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

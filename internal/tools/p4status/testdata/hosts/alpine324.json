@@ -356,6 +356,28 @@
 			"gid": 0
 		},
 		{
+			"path": "/lib/apk",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/lib/apk/db",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/lib/apk/db/installed",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "P:musl\nV:1.2.5-r10\n\nP:openssh-server\nV:10.3_p1-r2\n\n"
+		},
+		{
 			"path": "/lib/modules",
 			"type": "dir",
 			"mode": "0755",

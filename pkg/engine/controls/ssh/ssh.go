@@ -61,6 +61,7 @@ type reading struct {
 	eff   sshd.Effective
 	found []sshd.Finding // ReadEffective's
 	files migrate.Found  // sshd_config and its drop-ins, for their Match blocks
+	bin   string         // the binary sshd -T ran on OpenRC (reload.OpenRCFlavour); "" elsewhere, sshd on the path
 }
 
 // read reads sshd's configuration: on OpenRC the binary Alpine's init
@@ -89,6 +90,7 @@ func readEffective(ctx context.Context, sys host.System, f detect.Facts) (readin
 		}
 		bin = b
 	}
+	r.bin = bin
 	var err error
 	if r.eff, r.found, err = sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: bin}); err != nil {
 		return r, fmt.Errorf("sshd's effective configuration: %w", err)
@@ -329,6 +331,16 @@ func failed(s detect.SSH, err error) (engine.Status, error) {
 		d = "sshd config invalid"
 	}
 	return engine.Status{State: engine.Unknown, Detail: d}, err
+}
+
+// noSSHD is whether err, a read of sshd, establishes that no sshd can run
+// here: failed's "sshd not installed" (its binary not found) or "no
+// sshd_config", which sshd does not start without (sshd -t -f on a missing
+// file: "No such file or directory", exit 1, on the Alpine 3.23 VM,
+// 2026-11-07).
+func noSSHD(err error) bool {
+	var pe *fs.PathError
+	return errors.Is(err, host.ErrNotFound) || errors.As(err, &pe) && pe.Path == sshd.MainConfig && errors.Is(err, fs.ErrNotExist)
 }
 
 // noRunDir is the detail of sshd -T failing on its privilege separation

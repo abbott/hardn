@@ -11,6 +11,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
@@ -26,9 +27,9 @@ const (
 func TestParse(t *testing.T) {
 	us, err := accounts.ParsePasswd([]byte(passwd))
 	want := []accounts.User{
-		{Name: "root", UID: 0, GID: 0, Home: "/root", Shell: "/bin/bash", Line: 1, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone},
-		{Name: "alice", UID: 1000, GID: 1000, Home: "/home/alice", Shell: "/bin/bash", Line: 4, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone},
-		{Name: "bob", UID: 1001, GID: 27, Home: "/home/bob", Shell: "", Line: 5, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone},
+		{Name: "root", UID: 0, GID: 0, Home: "/root", Shell: "/bin/bash", Line: 1, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone, PasswdShape: accounts.ShapeOther},
+		{Name: "alice", UID: 1000, GID: 1000, Home: "/home/alice", Shell: "/bin/bash", Line: 4, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone, PasswdShape: accounts.ShapeOther},
+		{Name: "bob", UID: 1001, GID: 27, Home: "/home/bob", Shell: "", Line: 5, PasswdLock: accounts.NotLocked, PasswdPassword: accounts.PasswordNone, PasswdShape: accounts.ShapeOther},
 	}
 	if err != nil || !reflect.DeepEqual(us, want) {
 		t.Errorf("ParsePasswd: %+v, %v", us, err)
@@ -134,12 +135,12 @@ const (
 func TestShadow(t *testing.T) {
 	s, err := accounts.ParseShadow([]byte(shadow))
 	want := accounts.Shadow{
-		"root":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Line: 1},
-		"alice":  {Lock: accounts.NotLocked, Password: accounts.PasswordSet, Line: 4}, // the first line; the second, "!", is not getspnam's
-		"bob":    {Lock: accounts.Locked, Password: accounts.PasswordNone, Line: 5},
-		"daemon": {Lock: accounts.NotLocked, Password: accounts.PasswordNone, Line: 6},
-		"sshd":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Line: 7},
-		"nobody": {Lock: accounts.Empty, Password: accounts.PasswordEmpty, Line: 8},
+		"root":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 1},
+		"alice":  {Lock: accounts.NotLocked, Password: accounts.PasswordSet, Shape: accounts.ShapeSHACrypt, Line: 4}, // the first line; the second, "!", is not getspnam's
+		"bob":    {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 5},
+		"daemon": {Lock: accounts.NotLocked, Password: accounts.PasswordNone, Shape: accounts.ShapeStar, Line: 6},
+		"sshd":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 7},
+		"nobody": {Lock: accounts.Empty, Password: accounts.PasswordEmpty, Shape: accounts.ShapeOther, Line: 8},
 	}
 	if err != nil || !reflect.DeepEqual(s, want) {
 		t.Fatalf("ParseShadow: %#v, %v", s, err)
@@ -275,6 +276,70 @@ func TestShadowPrivacy(t *testing.T) {
 	leaks("ParsePasswd", fmt.Sprintf("%#v %v", us, err))
 	_, err = accounts.ParsePasswd([]byte("alice:" + hashBob + ":x:1000::/home/alice:/bin/sh\n"))
 	leaks("a passwd error", fmt.Sprint(err))
+}
+
+// TestShape: the field's shape CVE-2026-123158 turns on: exactly "*";
+// "$5$" or "$6$" a SHA-crypt hash; any other field other, "!*", "**",
+// "*" with blanks, "$y$" and "$2b$" among them; ShapeOf's fallback to
+// /etc/passwd's field without a shadow line, "x" other.
+func TestShape(t *testing.T) {
+	for field, want := range map[string]accounts.Shape{
+		"*": accounts.ShapeStar, "$6$salt$hash": accounts.ShapeSHACrypt, "$5$rounds=5000$salt$hash": accounts.ShapeSHACrypt,
+		"!": accounts.ShapeOther, "!*": accounts.ShapeOther, "**": accounts.ShapeOther, " *": accounts.ShapeOther, "": accounts.ShapeOther,
+		"$y$j9T$salt$hash": accounts.ShapeOther, "$2b$10$hash": accounts.ShapeOther, "$1$salt$hash": accounts.ShapeOther, "!$6$salt$hash": accounts.ShapeOther,
+		"x": accounts.ShapeOther, "$6": accounts.ShapeOther,
+	} {
+		s, err := accounts.ParseShadow([]byte("alice:" + field + ":20000:0:99999:7:::\n"))
+		if err != nil || s["alice"].Shape != want {
+			t.Errorf("shadow %q: %v, %v; want %v", field, s["alice"].Shape, err, want)
+		}
+		us, err := accounts.ParsePasswd([]byte("alice:" + field + ":1000:1000::/home/alice:/bin/sh\n"))
+		if err != nil || us[0].PasswdShape != want || (accounts.Shadow{}).ShapeOf(us[0]) != want {
+			t.Errorf("passwd %q: %+v, %v; want %v", field, us, err, want)
+		}
+	}
+	s, _ := accounts.ParseShadow([]byte(shadow))
+	if got := s.ShapeOf(accounts.User{Name: "daemon", PasswdShape: accounts.ShapeOther}); got != accounts.ShapeStar {
+		t.Errorf("daemon: %v", got)
+	}
+	if got := s.ShapeOf(accounts.User{Name: "george", PasswdShape: accounts.ShapeStar}); got != accounts.ShapeStar {
+		t.Errorf("george, no shadow line: %v", got)
+	}
+	if accounts.ShapeNotRead.String() != "not read" || accounts.ShapeStar.String() != "*" {
+		t.Error(accounts.ShapeNotRead, accounts.ShapeStar)
+	}
+}
+
+// TestLoginShell: nologin, false, true and git-shell, a relative path, a
+// shell not there, not executable or a directory: No; an executable
+// file: Yes, "" read as /bin/sh; a Stat that fails otherwise Unknown,
+// with Stat's own error.
+func TestLoginShell(t *testing.T) {
+	h := hostfake.New(host.Options{})
+	h.AddFile("/bin/sh", []byte("ELF"), 0o755, 0, 0)
+	h.AddFile("/bin/ash", []byte("ELF"), 0o755, 0, 0)
+	h.AddFile("/bin/zsh", []byte("ELF"), 0o644, 0, 0)
+	h.AddFile("/sbin/nologin", []byte("ELF"), 0o755, 0, 0)
+	h.AddDir("/bin/dir", 0o755, 0, 0)
+	ctx := context.Background()
+	for shell, want := range map[string]detect.Tri{
+		"": detect.Yes, "/bin/ash": detect.Yes, "/sbin/nologin": detect.No, "/bin/false": detect.No, "/usr/bin/git-shell": detect.No,
+		"bin/ash": detect.No, "/bin/fish": detect.No, "/bin/zsh": detect.No, "/bin/dir": detect.No,
+	} {
+		if got, err := accounts.LoginShell(ctx, h, shell); got != want || err != nil {
+			t.Errorf("LoginShell(%q) = %v, %v; want %v", shell, got, err, want)
+		}
+	}
+	if got, err := accounts.LoginShell(ctx, statRefused{h}, "/bin/ash"); got != detect.Unknown || !errors.Is(err, fs.ErrPermission) || strings.HasPrefix(err.Error(), "accounts:") {
+		t.Errorf("Stat refused: %v, %v", got, err)
+	}
+}
+
+// statRefused is a host whose every Stat is refused.
+type statRefused struct{ *hostfake.System }
+
+func (statRefused) Stat(_ context.Context, name string) (fs.FileInfo, error) {
+	return nil, &fs.PathError{Op: "stat", Path: name, Err: fs.ErrPermission}
 }
 
 // TestReadShadow: one read through host.System, and a failed read

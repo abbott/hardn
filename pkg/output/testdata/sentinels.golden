@@ -224,6 +224,7 @@ users.ErrNoTool USERS_NO_TOOL
 users.ErrNotAdmin USERS_NOT_ADMIN
 users.ErrNotHardns USERS_GRANT_NOT_HARDNS
 users.ErrNotListed USERS_NOT_LISTED
+users.ErrPasswordBypass USERS_PASSWORD_BYPASS
 users.ErrSessionUser USERS_SESSION_USER
 users.ErrStillAdmin USERS_STILL_ADMIN
 users.ErrStillUnknown USERS_STILL_UNKNOWN

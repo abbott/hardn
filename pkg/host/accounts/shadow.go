@@ -117,11 +117,51 @@ func passwordOf(field string) Password {
 	return PasswordSet
 }
 
+// Shape is the form of an account's password field that
+// CVE-2026-123158 turns on (docs/safety/alpine.md): on musl without PAM, a
+// password of 257 to 1024 bytes matches a field of exactly "*", by the salt
+// of an account whose field is a SHA-256 or SHA-512 crypt hash ($5$, $6$).
+// Like Lock and Password it is read from the field alone, never kept.
+type Shape uint8
+
+// The shapes. The zero value is not read.
+const (
+	ShapeNotRead  Shape = iota
+	ShapeOther          // any other field: "!", "!*", "x", "", another hash
+	ShapeStar           // exactly "*"
+	ShapeSHACrypt       // starting "$5$" or "$6$"
+)
+
+// String is the shape as the evidence says it.
+func (s Shape) String() string {
+	switch s {
+	case ShapeOther:
+		return "other"
+	case ShapeStar:
+		return "*"
+	case ShapeSHACrypt:
+		return "SHA-crypt hash"
+	}
+	return "not read"
+}
+
+// shapeOf is the shape of a password field.
+func shapeOf(field string) Shape {
+	switch {
+	case field == "*":
+		return ShapeStar
+	case strings.HasPrefix(field, "$5$"), strings.HasPrefix(field, "$6$"):
+		return ShapeSHACrypt
+	}
+	return ShapeOther
+}
+
 // ShadowEntry is one name's first line of ShadowFile: its lock state, its
-// password state, and the line, from 1.
+// password state, its field's shape, and the line, from 1.
 type ShadowEntry struct {
 	Lock     Lock
 	Password Password
+	Shape    Shape
 	Line     int
 }
 
@@ -148,7 +188,7 @@ func ReadShadow(ctx context.Context, sys host.System) (Shadow, error) {
 
 // ParseShadow parses ShadowFile's content: name:password:lastchg:min:max:
 // warn:inactive:expire:reserved, nine fields (shadow(5)). Of each line it
-// keeps the name, its lock state and its password state. A line that musl's getspnam would
+// keeps the name, its lock state, its password state and its shape. A line that musl's getspnam would
 // pass over, or for which it would find no entry, is ErrMalformed, whose
 // message names the line, never its content (src/passwd/getspnam_r.c):
 // another number of fields, a numeric field neither empty nor decimal
@@ -163,7 +203,7 @@ func ParseShadow(data []byte) (Shadow, error) {
 			return ErrMalformed
 		}
 		if _, ok := s[f[0]]; !ok {
-			s[f[0]] = ShadowEntry{Lock: lockOf(f[1]), Password: passwordOf(f[1]), Line: n}
+			s[f[0]] = ShadowEntry{Lock: lockOf(f[1]), Password: passwordOf(f[1]), Shape: shapeOf(f[1]), Line: n}
 		}
 		return nil
 	})
@@ -198,4 +238,15 @@ func (s Shadow) PasswordOf(u User) Password {
 		return e.Password
 	}
 	return u.PasswdPassword
+}
+
+// ShapeOf is u's field's shape as sshd reads it without PAM: u's line in
+// ShadowFile, else, with none, its PasswdFile field (sys_auth_passwd takes
+// shadow_pw(), sp_pwdp where getspnam finds the account, else pw_passwd),
+// as LockOf.
+func (s Shadow) ShapeOf(u User) Shape {
+	if e, ok := s[u.Name]; ok {
+		return e.Shape
+	}
+	return u.PasswdShape
 }

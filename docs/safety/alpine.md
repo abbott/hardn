@@ -152,3 +152,40 @@ The `State`, `Step`, `CrondState`, `FindingKind` and `Bootloader` words are stab
 - **`p3-output`:** codes for `ErrNoOpenRC`, `ErrNoCrond`, `ErrScript`, `ErrOtherPackages` (its error names the other changes apk listed), `ErrNotEffective`, `ErrNotRestored`; `Plan.Findings` (`alpine-legacy-script`, `alpine-foreign-script`) into `findings[]`; `Result.Legacy` for the note naming the backup copy.
 - **Slice 7 (AppArmor and Auto Updates) and `p4-check-updates`, `p4-check-apparmor`:** render `Status`, `AppArmor.Note` and the findings through `pkg/ui`. **The legacy Auto Updates row on Alpine reads only whether `apk-upgrade` exists** (`pkg/security/status.go:415-421`), so once this unit's path removes it, that row says "Not Configured" on a host where apk-cron is configured: the row must move to `Updates.Status` in the same slice that wires `Apply`. Nothing calls this package yet, so nothing changes today. `p4-risk`: AppArmor's NotApplicable stays out of the score; a pending reboot after apk-cron upgrades the kernel is its finding.
 - **Not here:** Debian and Ubuntu's unattended-upgrades and AppArmor (other `p4-check-*` units and slice 7); installing a cron daemon or the `apparmor` package; editing any bootloader file; `/etc/apk/repositories` (apk-cron is in `main`, the one repository still supported on 3.21-3.23, findings §12 row 29); the crontab line itself (`/etc/crontabs/root` is not read: an administrator who removes the daily line is not detected); V14's account half (`adduser -D` leaving a user that a non-PAM sshd refuses for public keys), which is the user-management slice's; V15 (origin/main's generated Alpine `sshd_config`), which is `p2-sshd-migrate`'s per the plan row; [reload.md](reload.md) §6's item for this unit, a `UsePAM`/Kerberos change (`ErrFlavour`) that needs `rc-service sshd restart`, whose `stop_pre` runs `checkconfig`: this unit has no sshd step, so it goes to slice 6 (SSH) with `p3-engine`, and whether sessions survive that restart is written, not run (gate 5).
+
+## 7. CVE-2026-123158: sshd's password bypass (`openssh.go`)
+
+> **Unit:** the advisory of 2026-11-05 (CVSS 8.1), scope (a) detect and report, (b) Create refuses, approved by the maintainer; Run All changing sshd and hardn upgrading openssh are not in it ([ROADMAP.md](../../ROADMAP.md)).
+> **Status:** built and tested on macOS against `hostfake` only; nothing of it has run on a host (gate 5).
+
+**The CVE**, published on 2026-11-05 with OpenSSH 10.6p2 and Alpine's post (https://alpinelinux.org/posts/2026-11-05-openssh-password-authentication-bypass/), as the unit's brief has it, checked against those sources on 2026-11-07. On musl without PAM, sshd's `sys_auth_passwd` borrows another account's salt when the stored field is shorter than 2 characters, and musl's SHA-256/512 crypt returns `*` for a key over 256 bytes, so any password of 257 to 1024 bytes matches a field of exactly `*`. A host is exposed when sshd checks passwords without PAM (Alpine's `openssh-server`, or `-pam`, `-krb5` with `UsePAM no`), `PasswordAuthentication` is yes for some account, a login account's field is exactly `*` (root only with `PermitRootLogin yes`), at least one account has a `$5$` or `$6$` hash, and the package is unfixed. `!` is locked and not affected (and without PAM blocks key login too, which is why Create writes `*`).
+
+**The fixed releases** (`opensshFixed`, the same for `openssh-server`, `-pam` and `-krb5`; Alpine bumped the pkgrel, so `sshd -V` still prints the old upstream version and only apk's version tells):
+
+| Branch | First fixed |
+|---|---|
+| 3.24 | 10.3_p1-r2 |
+| 3.23 | 10.2_p1-r1 |
+| 3.22 | 10.0_p1-r11 |
+| 3.21 | 9.9_p2-r1 |
+| edge, any other branch, a VERSION_ID not x.y.z, a package of a later upstream release than its branch's | 10.6_p2-r0 |
+
+**What hardn does.** SSH Auth reports `SSH_PASSWORD_BYPASS`, `SSH_SSHD_UNFIXED` or `SSH_FIX_UNKNOWN` ([check-ssh.md](../engine/check-ssh.md) §11); the first forces the risk level Critical ([risk.md](../engine/risk.md) §6.4). Create refuses a new user, whose field is `*`, on an unfixed host with a password path on ([control-users.md](../engine/control-users.md) §7). The version is apk's installed database, `/lib/apk/db/installed`, its records' `P:` and `V:` alone (`ParseInstalled`), compared by apk's grammar (`CompareVersion`); a version outside it is `Unknown`, never a guess.
+
+**What it cannot tell.** The running daemon: hardn reads the package, not the binary sshd runs from, so after `apk -U upgrade` without `rc-service sshd restart` it reads fixed while the old sshd still answers. **[I]** `CompareVersion`'s order across token kinds (a letter against an extra component) is apk-tools' `version.c` as read, not run against `apk version -t`; the fixed table differs only in a revision or a suffix number.
+
+**Run on the Alpine 3.23 VM** (`alpine323-vm`: 3.23.6, apk-tools 3.0.8), 2026-11-07, through `p4status` and `hardn -n` (log: `_support/hardn-audit-2026-10-16/vm-runs/cve/`):
+
+- apk-tools v3 writes the installed database as v2 does: `P:` and `V:` lines, one record per package.
+- The VM's own `openssh-server` 10.2_p1-r0, before the fix. With password login off, SSH Auth was "key-only auth" and nothing was added. With a drop-in making `sshd -T` read `PasswordAuthentication yes` (sshd not reloaded, so the running daemon kept passwords off), SSH Auth showed `SSH_SSHD_UNFIXED` and "sshd unpatched: upgrade openssh". With an account given a `$6$` hash, it showed `SSH_PASSWORD_BYPASS` naming the two `*` accounts, and the risk level "Critical ≈ password bypass".
+- `hardn -n -c -u cvecarol` was refused (`USERS_PASSWORD_BYPASS`, exit 1); nothing was written.
+- **`apk -U upgrade openssh` upgraded only `openssh`**, to 10.2_p1-r1, and left `openssh-server` at r0, unpatched. Upgrading each `openssh-*` package by name brought all of them to r1; SSH Auth's findings went, and `-n -c` planned again (exit 3). So hardn's words say `apk -U upgrade`.
+- `useradd --password '*'` writes `*`, and a key login to a `*` account works without PAM: the run itself logged in by key as `tmp-4d827d`, whose field is `*`.
+- Afterwards the test accounts and the drop-in were removed, and sshd restarted onto the patched binary.
+
+**Dogfood on an Alpine 3.23.2 LXC on Proxmox VE** (no openssh, doas installed, entered as root by `pct enter`), 2026-11-07, by the maintainer:
+
+- The SSH rows were Unknown, "no sshd_config", with no CVE line. AppArmor was "set by the host" and DNS "container".
+- `hardn -n -c -u dogfoodtest` planned (exit 3), but with `SSH_FIX_UNKNOWN`: "can't tell if openssh-server has the fix … isn't in /lib/apk/db/installed", on a host where no sshd can run. Fixed: Create skips the check where `ReadBypass` reads no sshd ([control-users.md](../engine/control-users.md) §7). Rerun there with the fixed build: the same plan, `USERS_NO_KEY` alone, exit 3.
+
+Not run: Alpine 3.24; `openssh-server-krb5`.

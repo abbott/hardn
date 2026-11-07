@@ -4,8 +4,8 @@
 // a check that needs them all rather than one lookup (host.System's
 // LookupUser and LookupGroup find one name). It reads only. Of
 // /etc/shadow (next/p4-locked) and of the password field of /etc/passwd it
-// keeps only what the field says of the account's lock (Lock) and of its
-// password (Password), never the field (shadow.go).
+// keeps only what the field says of the account's lock (Lock), of its
+// password (Password) and of its form (Shape), never the field (shadow.go).
 //
 // A line in neither file's form is an error (ErrMalformed), never skipped:
 // a line hardn cannot read may be the account or the group a check is
@@ -51,6 +51,9 @@ type User struct {
 	// PasswdPassword is the password state of that field, read where
 	// ShadowFile has no line for it (Shadow.PasswordOf).
 	PasswdPassword Password
+	// PasswdShape is that field's shape, read where ShadowFile has no
+	// line for it (Shadow.ShapeOf).
+	PasswdShape Shape
 }
 
 // Group is one line of GroupFile.
@@ -103,7 +106,7 @@ func ParsePasswd(data []byte) ([]User, error) {
 		if f[0] == "" || err1 != nil || err2 != nil {
 			return ErrMalformed
 		}
-		us = append(us, User{Name: f[0], UID: uid, GID: gid, Home: f[5], Shell: f[6], Line: n, PasswdLock: lockOf(f[1]), PasswdPassword: passwdPassword(f[1])})
+		us = append(us, User{Name: f[0], UID: uid, GID: gid, Home: f[5], Shell: f[6], Line: n, PasswdLock: lockOf(f[1]), PasswdPassword: passwdPassword(f[1]), PasswdShape: shapeOf(f[1])})
 		return nil
 	})
 	return us, err

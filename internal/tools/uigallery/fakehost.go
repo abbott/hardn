@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -147,6 +148,10 @@ type platform struct {
 	// resolvedReload: the release's systemd-resolved reloads its files
 	// (systemd 256 and later); before, it restarts (docs/safety/dns.md §3).
 	resolvedReload bool
+	// openssh is openssh-server's version in apk's installed database
+	// (alpine.InstalledDB), on Alpine: the branch's first with
+	// CVE-2026-123158's fix, a stock current host's (alpine.FixedVersion).
+	openssh string
 }
 
 // The simulated platforms. Debian 13's and Ubuntu 26.04's sudo, OpenSSH
@@ -190,12 +195,12 @@ var (
 	alpine324Platform = platform{
 		osRelease: "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.24.2\nPRETTY_NAME=\"Alpine Linux v3.24\"\n",
 		openRC:    true, noUFW: true, doas: true, session: "sshd-session", rootLogin: "prohibit-password",
-		noPAM: true, kbdInteractive: "yes", resolver: resolverUDHCPC,
+		noPAM: true, kbdInteractive: "yes", resolver: resolverUDHCPC, openssh: "10.3_p1-r2",
 	}
 	alpine323Platform = platform{
 		osRelease: "NAME=\"Alpine Linux\"\nID=alpine\nVERSION_ID=3.23.6\nPRETTY_NAME=\"Alpine Linux v3.23\"\n",
 		openRC:    true, noUFW: true, doas: true, session: "sshd-session", rootLogin: "prohibit-password",
-		noPAM: true, kbdInteractive: "yes", resolver: resolverUDHCPC,
+		noPAM: true, kbdInteractive: "yes", resolver: resolverUDHCPC, openssh: "10.2_p1-r1",
 	}
 	// alpine323CloudPlatform is Alpine 3.23's cloud image, as the
 	// 2026-10-23 VM: dhcpcd installed, which ifupdown-ng runs, not udhcpc.
@@ -295,6 +300,9 @@ func simulate(p platform) *fakeHost {
 	default:
 		f.AddDir(detect.SystemdRunDir, 0o755, 0, 0)
 		f.AddDir(revert.SystemdUnitDir, 0o755, 0, 0)
+	}
+	if p.openssh != "" {
+		f.AddFile(alpine.InstalledDB, []byte("P:musl\nV:1.2.5-r10\n\nP:openssh-server\nV:"+p.openssh+"\n\n"), 0o644, 0, 0)
 	}
 	if p.socket {
 		f.AddFile(detect.SocketGenerator, []byte("ELF"), 0o755, 0, 0)

@@ -42,8 +42,6 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"path"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -238,31 +236,14 @@ func readLocks(ctx context.Context, sys host.System, f detect.Facts, cs []candid
 	return lr
 }
 
-// noShells are the base names of the shells that give no shell to run a
-// command from: nologin, false and true exit, git-shell runs git's
-// commands only.
-var noShells = []string{"nologin", "false", "true", "git-shell"}
-
-// loginShell is whether shell lets its user log in: not one of noShells,
-// and an executable regular file, which sshd requires [I]. An empty shell
-// is /bin/sh (passwd(5)). Any other program is taken for a shell.
+// loginShell is accounts.LoginShell, its error prefixed as this
+// package's are ("users: ...").
 func loginShell(ctx context.Context, sys host.System, shell string) (detect.Tri, error) {
-	if shell == "" {
-		shell = "/bin/sh"
+	t, err := accounts.LoginShell(ctx, sys, shell)
+	if err != nil {
+		return t, fmt.Errorf("users: %w", err)
 	}
-	if slices.Contains(noShells, path.Base(shell)) || !path.IsAbs(shell) {
-		return detect.No, nil
-	}
-	fi, err := sys.Stat(ctx, shell)
-	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		return detect.No, nil
-	case err != nil:
-		return detect.Unknown, fmt.Errorf("users: %w", err)
-	case fi.Mode().IsRegular() && fi.Mode().Perm()&0o111 != 0:
-		return detect.Yes, nil
-	}
-	return detect.No, nil
+	return t, nil
 }
 
 // verdict decides the row from the candidates (see the package comment).

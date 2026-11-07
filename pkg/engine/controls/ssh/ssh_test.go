@@ -17,6 +17,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -124,6 +125,16 @@ type site struct {
 	// locked ("*"). /etc/passwd holds root, its field "x" unless passwd
 	// says otherwise; unreadable is a path whose read is refused.
 	shadow, passwd, unreadable string
+	// apk is apk's installed database on Alpine (alpine.InstalledDB); ""
+	// is a stock current host's, openssh-server at its branch's first
+	// version with CVE-2026-123158's fix; noAPK is none at all.
+	apk   string
+	noAPK bool
+}
+
+// installedDB is an installed database holding openssh-server at version.
+func installedDB(version string) string {
+	return "P:musl\nV:1.2.5-r10\nA:x86_64\n\nP:openssh-server\nV:" + version + "\nA:x86_64\n\n"
 }
 
 // hardened are the drop-in lines that make every SSH row Configured off
@@ -165,8 +176,17 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	}
 	f.AddFile(accounts.PasswdFile, []byte(passwd), 0o644, 0, 0)
 	f.AddFile(accounts.ShadowFile, []byte(shadow), 0o640, 0, 42)
+	for _, sh := range []string{"/bin/sh", "/bin/ash", "/sbin/nologin"} { // the login shells CVE-2026-123158's check stats
+		f.AddFile(sh, []byte("ELF"), 0o755, 0, 0)
+	}
 	for name, data := range s.files {
 		f.AddFile(name, []byte(data), 0o644, 0, 0)
+	}
+	if apk := s.apk; s.plat.facts.Platform.Distro == detect.DistroAlpine && !s.noAPK {
+		if apk == "" {
+			apk = installedDB(alpine.FixedVersion(s.plat.facts.OS.VersionID))
+		}
+		f.AddFile(alpine.InstalledDB, []byte(apk), 0o644, 0, 0)
 	}
 	out, ls := sshdT(s.plat.old, s.plat.noPAM, []byte(main), drops)
 	pamOut, _ := sshdT(s.plat.old, false, []byte(main), drops)

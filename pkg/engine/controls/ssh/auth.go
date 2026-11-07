@@ -45,7 +45,10 @@ const noPrompt = "keyboard-interactive: no password prompt without PAM"
 // (UsePAM may not be set in one), counts as a password path when UsePAM is
 // yes, not when it is no or sshd is built without PAM, and is Unknown when
 // UsePAM, or which build runs (otherPAM), is not established and the state
-// depends on it. docs/engine/check-ssh.md lists each status line.
+// depends on it. On Alpine, "password auth on" and "match block allows
+// passwords" with PAM established No carry CVE-2026-123158's findings
+// (withBypass), the state and detail as they are.
+// docs/engine/check-ssh.md lists each status line.
 func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	r, err := read(ctx, sys, f)
 	if err != nil {
@@ -66,7 +69,7 @@ func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	switch {
 	case pw.Known && pw.Value == "yes" && passwordAlone(lists, kbd.Value == "yes"):
 		st.State, st.Detail = engine.NotConfigured, "password auth on"
-		return st, nil
+		return r.withBypass(ctx, sys, f, st, nil), nil
 	case kbd.Known && kbd.Value == "yes" && kbdAlone(lists) && pam.Known && pam.Value == "yes":
 		st.Evidence = append(st.Evidence, r.pamEvidence()...)
 		st.State, st.Detail = engine.NotConfigured, "kbd-interactive on"
@@ -87,11 +90,13 @@ func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	morePW, moreKbd = r.byMethods(lists, pw.Value == "yes", kbd.Value == "yes", morePW, moreKbd)
 	kbdOn := kbd.Value == "yes" && kbdAlone(lists) // keyboard-interactive a path if sshd uses PAM
 	var notPAM []engine.Finding                    // why the blocks' keyboard-interactive does not count, PAM not established
+	var read *PAM                                  // sshd's PAM, where read here
 	if kbdOn || len(moreKbd) > 0 {
 		p, err := r.pam(ctx, sys, f) // otherPAM where which build runs is not established
 		if err != nil {
 			return failed(f.SSH, err)
 		}
+		read = &p
 		_, kev := matchFindings(moreKbd, CodeMatchAllowsMore)
 		st.Evidence = slices.Concat(st.Evidence, p.Evidence)
 		switch {
@@ -110,6 +115,7 @@ func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.
 	switch {
 	case len(found) > 0:
 		st.State, st.Detail = engine.Partial, "match block allows passwords"
+		st = r.withBypass(ctx, sys, f, st, read)
 	case key.Value == "no":
 		st.State, st.Detail = engine.Partial, "key auth off"
 	case restricted && keyAndPassword(lists, pw.Value == "yes", kbd.Value == "yes" && pam.Known && pam.Value == "yes"):

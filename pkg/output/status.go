@@ -23,6 +23,12 @@ var levelWords = map[risk.Band]struct{ level, gloss string }{
 // docs/engine/risk.md §6).
 const LockoutGloss = "lockout risk"
 
+// BypassGloss is the gloss of a Critical CVE-2026-123158's bypass forced
+// (risk.Level.Bypass), in place of "no security" or LockoutGloss: anyone
+// can log in, which outranks a lockout (proposed wording,
+// docs/engine/risk.md §6).
+const BypassGloss = "password bypass"
+
 // riskBands are the components' tones of the bands: Critical and High
 // share High, Low and Minimal share Low, as origin/main's colours do
 // (DEV-016).
@@ -95,13 +101,17 @@ func statusRow(r engine.Report) component.StatusRow {
 }
 
 // RiskSummaryOf is the risk level l as the main menu's RiskSummary, Figma's
-// one line: the band's tone, its level word and gloss (LockoutGloss when
-// the lockout forced it). l's factors are drawn under the status rows
+// one line: the band's tone, its level word and gloss (BypassGloss when
+// CVE-2026-123158's bypass forced it, else LockoutGloss when the lockout
+// did). l's factors are drawn under the status rows
 // (StatusViewOf) and in the host block (HeaderViewOf). It is pure.
 func RiskSummaryOf(l risk.Level) component.RiskSummary {
 	w := levelWords[l.Band]
 	s := component.RiskSummary{Band: riskBands[l.Band], Level: w.level, Gloss: w.gloss}
-	if l.Forced {
+	switch {
+	case l.Bypass:
+		s.Gloss = BypassGloss
+	case l.Forced:
 		s.Gloss = LockoutGloss
 	}
 	return s

@@ -9,8 +9,10 @@ import (
 	"slices"
 
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -69,29 +71,72 @@ func (r Reading) CheckName(ctx context.Context, sys host.System, name string) er
 
 // CheckNew is why Plan refuses Create of n, in its order: CheckName's;
 // Password (decision 3 (a)); with Admin, ToolRefusal's; with Keys,
-// KeysRefusal's and newKeys'. nil where Create may go on. Create without
-// admin rights works with no tool, as on Proxmox VE.
+// KeysRefusal's and newKeys'; then bypassRefusal's, the host's. nil where
+// Create may go on. Create without admin rights works with no tool, as on
+// Proxmox VE.
 func (r Reading) CheckNew(ctx context.Context, sys host.System, n New) error {
+	_, err := r.checkNew(ctx, sys, n)
+	return err
+}
+
+// checkNew is CheckNew, with the finding planCreate puts on the new
+// account where bypassRefusal does not establish the fix (nil for none).
+func (r Reading) checkNew(ctx context.Context, sys host.System, n New) (*engine.Finding, error) {
 	if err := r.CheckName(ctx, sys, n.Name); err != nil {
-		return err
+		return nil, err
 	}
 	if n.Password {
-		return refuse(codeNewPassword, ErrNewPassword, nil, "A new user has no password, so "+r.toolWord()+" couldn't ask for one", "")
+		return nil, refuse(codeNewPassword, ErrNewPassword, nil, "A new user has no password, so "+r.toolWord()+" couldn't ask for one", "")
 	}
 	if n.Admin {
 		if err := r.ToolRefusal(); err != nil {
-			return err
+			return nil, err
 		}
 	}
 	if len(n.Keys) > 0 {
 		if err := r.KeysRefusal(); err != nil {
-			return err
+			return nil, err
 		}
 		if _, err := newKeys(n); err != nil {
-			return err
+			return nil, err
 		}
 	}
-	return nil
+	return r.bypassRefusal(ctx, sys, n.Name)
+}
+
+// bypassRefusal is CVE-2026-123158's refusal of Create (docs/engine/
+// control-users.md §7): on Alpine, where the new user's field would be "*"
+// (sshd's PAM not established as on, planCreate), sshd as the SSH rows
+// read it (ssh.ReadBypass): with the openssh package established to lack
+// the fix and a password path not established off, sshd would let anyone
+// log in as the new user with a long password, so Create is refused
+// before anything is written; with the fix not established and a password
+// path not established off, Create goes on with a finding
+// (ssh.CodeFixUnknown), as CodeNoKey's. Whether a donor (a $5$ or $6$
+// hash) exists is not asked: one may be set later. A read of sshd that
+// fails leaves the password path Unknown, so that it refuses or warns,
+// except where it establishes that no sshd can run (ssh.Bypass.NoSSHD: not
+// installed, or no sshd_config), which leaves nothing to refuse or warn
+// of: seen as a false warning in an Alpine 3.23 LXC with no openssh,
+// 2026-11-07.
+func (r Reading) bypassRefusal(ctx context.Context, sys host.System, name string) (*engine.Finding, error) {
+	if r.facts.Platform.Distro != detect.DistroAlpine || r.PAM == detect.Yes {
+		return nil, nil
+	}
+	b, _ := ssh.ReadBypass(ctx, sys, r.facts)
+	switch {
+	case !b.Applies || b.NoSSHD || b.Password == detect.No || b.Fix.Fixed == detect.Yes:
+		return nil, nil
+	case b.Fix.Fixed == detect.No:
+		return nil, refuse(codePasswordBypass, ErrPasswordBypass, nil,
+			"sshd would let anyone log in as "+name+" with a long password, since "+name+" has no password ("+ssh.CVE+")",
+			"run apk -U upgrade, then rc-service sshd restart, or turn password login off in SSH Login")
+	}
+	pkg := b.Fix.Package
+	if pkg == "" {
+		pkg = "openssh"
+	}
+	return &engine.Finding{Code: ssh.CodeFixUnknown, Detail: "can't tell if " + pkg + " has the fix for " + ssh.CVE + ": " + b.Fix.Why, Source: alpine.InstalledDB}, nil
 }
 
 // newKeys are n's Keys parsed, in order, the same key (authkeys.Key.Same)
@@ -117,16 +162,19 @@ func newKeys(n New) ([]authkeys.Key, error) {
 // (y/N): useradd with its home stated and created, the release's shell
 // and, where sshd's PAM is not established as on, the password field "*"
 // in place of useradd's "!", which sshd without PAM refuses a key login to
-// (decision 3 (a); [I] not run on a VM), undone by userdel --remove; then,
-// with Admin, hardn's grant asking no password, as Grant plans it; then,
+// (decision 3 (a); run on the Alpine 3.23 VM, 2026-11-07), undone by
+// userdel --remove; then, with Admin, hardn's grant asking no password, as
+// Grant plans it; then,
 // with Keys, every key in ~/.ssh/authorized_keys, one change (each
 // authkeys.PlanAdd's line appended after the keys planned before it, a key
 // a file sshd reads holds already left out), ~/.ssh made by install with
 // the user's name, its own group (USERGROUPS_ENAB yes on all three VMs,
 // s5/00-inspect logs; CheckName refuses a group of the name already
-// there). With no key, a finding: the user cannot log in.
+// there). With no key, a finding: the user cannot log in; with
+// CVE-2026-123158's fix not established, a finding too (bypassRefusal).
 func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engine.Change, error) {
-	if err := r.CheckNew(ctx, sys, n); err != nil {
+	unknownFix, err := r.checkNew(ctx, sys, n)
+	if err != nil {
 		return nil, err
 	}
 	shell := "/bin/bash"
@@ -159,6 +207,9 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 		}}
 	if len(n.Keys) == 0 {
 		add.Findings = []engine.Finding{{Code: CodeNoKey, Detail: "Without a key " + n.Name + " can't log in: there's no password"}}
+	}
+	if unknownFix != nil {
+		add.Findings = append(add.Findings, *unknownFix)
 	}
 	out := []engine.Change{add}
 	if n.Admin {

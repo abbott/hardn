@@ -357,3 +357,31 @@ Tested: `TestAuthMethods` (`any` with passwords on; `publickey` with `PasswordAu
 **Words (proposed).** The detail "key and password". Evidence: `sshd -T: authenticationmethods <lists>` as printed, and a block's line as §2.7 gives it.
 
 **For other units.** [gallery-ssh.md](gallery-ssh.md) §7's finding (the real check does not read `AuthenticationMethods`) is resolved by this unit; that page is unit (a)'s.
+
+## 11. CVE-2026-123158 on Alpine (`bypass.go`)
+
+> **Unit:** the advisory of 2026-11-05, scope (a) detect and report and (b) Create refuses, approved by the maintainer; not Run All, not upgrading openssh ([alpine.md](../safety/alpine.md) §7 has the CVE and its sources).
+> **Status:** built and tested on macOS against `hostfake` only; nothing of it has run on a host (gate 5).
+
+**Guarantees.**
+
+1. **Only on Alpine, only where a password path is on and sshd checks passwords without PAM.** SSH Auth's "password auth on" and "match block allows passwords" lines, with `reading.pam` established `No` (§2.11, §8), carry the findings below; their state and detail stay as they are. PAM `Yes`, not established, or its read failing adds nothing. Keyboard-interactive does not count: without PAM it asks nothing (§8).
+2. **The package of the sshd that runs:** on OpenRC the binary `reload.OpenRCFlavour` picks (`/usr/sbin/sshd`: `openssh-server`; `sshd.pam`: `openssh-server-pam`; `sshd.krb5`: `openssh-server-krb5`), elsewhere `openssh-server`. Its version is read from apk's installed database (`alpine.OpenSSHFix`) and compared with the branch's first fixed release; edge's (`10.6_p2-r0`) for any other branch, and for a package of a later upstream release than the branch's (edge's pinned on 3.24, say), which the branch's backport is not in.
+3. **The accounts** (`targets`), read only with the package unfixed: each name's first `/etc/passwd` line whose field as sshd reads it (`/etc/shadow`, else `/etc/passwd`) is exactly `*` (`accounts.ShapeStar`), with a shell sshd lets in (`accounts.SSHDShell`: an executable regular file, `nologin` and `false` included, since sshd still authenticates such an account and forwards for it), uid 0 only with `PermitRootLogin yes` globally or in a Match block; `!` fields are locked and never targets. A donor is any `/etc/passwd` account whose field is a `$5$` or `$6$` hash (Alpine's rule).
+4. **The findings**, each with source `/lib/apk/db/installed`:
+
+| The host | Code | Detail (*proposed*) |
+|---|---|---|
+| unfixed, a target and a donor | `SSH_PASSWORD_BYPASS` | anyone can log in as alice with a password of 257 to 1024 bytes (CVE-2026-123158) |
+| unfixed, no target or no donor | `SSH_SSHD_UNFIXED` | openssh-server 10.3_p1-r1 lacks the fix for CVE-2026-123158 (10.3_p1-r2) |
+| unfixed, the accounts not read (`/etc/shadow` refused, a shell's stat failing, `PermitRootLogin` not read) with a donor or not established | `SSH_SSHD_UNFIXED`, then `SSH_FIX_UNKNOWN` | can't tell who can log in with a long password (CVE-2026-123158): open /etc/shadow: permission denied |
+| the version not established | `SSH_FIX_UNKNOWN` | can't tell if openssh-server has the fix for CVE-2026-123158: /lib/apk/db/installed is missing |
+| fixed | none | (no evidence added) |
+
+5. **Evidence**, beside a finding: `/lib/apk/db/installed: openssh-server 10.3_p1-r1, fixed in 10.3_p1-r2`, then the donor's and each target's line by shape (`/etc/shadow:3: bob SHA-crypt hash`, `/etc/shadow:2: alice *`); never a hash.
+6. **Read-only:** a read of `/lib/apk/db/installed`, and with the package unfixed `/etc/passwd`, `/etc/shadow` and a `Stat` of each candidate's shell. No command is added.
+7. **`ReadBypass`** gives the same reading to the User control's Create ([control-users.md](control-users.md) §7): `Applies`, `PAM`, `Password` (a password path on: global, or a Match block, whatever it matches; `Unknown` where a value is not read), `Fix`, and `NoSSHD`: the read failed as "sshd not installed" or "no sshd_config" (§5's failure table), so no sshd can run (`sshd -t -f` on a missing file exits 1, run on the Alpine 3.23 VM, 2026-11-07).
+
+**Not read:** the running daemon. An upgrade without `rc-service sshd restart` reads as fixed while the old binary still answers.
+
+Tested: `TestBypass` (exposed; two targets; a `x` field with no shadow line; no donor, a yescrypt hash no donor; alice locked; a nologin shell a target; a shell not there; fixed, a later revision; no database, no entry, a version not compared; `sshd.pam` with `UsePAM yes`; password authentication off; a Match block, with keyboard-interactive on and off; root with `PermitRootLogin yes`, in a Match block, and `prohibit-password`; `/etc/shadow` refused; off Alpine), `TestReadBypass`.

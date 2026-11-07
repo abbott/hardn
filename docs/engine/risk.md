@@ -96,6 +96,9 @@ The score is `100 × earned ÷ applicable weight`, less each factor's cost (§5.
 | Auto Updates Configured, or Partial "off after restart" with nothing open; Not Applicable; inside a container | none | | the host upgrades itself; or the uptime may be the host's (§3) |
 | the Users row carries `USERS_NOPASSWD` | "No password to become root", User | 5 | a stolen session of that account is root at once; lighter than a second root, since the account's own login still guards it. One factor for any number of accounts |
 | the Users row, not Unknown, carries `USERS_RULE_NOT_READ` and not `USERS_NOPASSWD`: a grant of an account that may log in that the row does not establish (§3) | "Maybe no password to become root", User | 5 | **as if found** (`next/p4-users-grants`), by the plan's rule for Unknown, as a reboot or an uptime not established costs what it costs when found: the grant may be one without a password, which is what costs, so the words say so; the account may be the deciding one (a rule before alice's own grant) or able to become root already (`Defaults:bob !authenticate`), where only the password is open. One step milder (no cost, a factor alone) would still keep the host out of Minimal, but would score a grant hardn cannot read above the same grant read (100 against 95), the review's inversion in the score. With `USERS_NOPASSWD` too, that factor alone: the cost counts once for any number of accounts. On an Unknown row it is not scored: the row's "Counted as not configured" says it, and the row earns nothing |
+| SSH Auth carries `SSH_PASSWORD_BYPASS` (CVE-2026-123158, §6.4) | "Anyone can log in: upgrade openssh", SSH Auth | **forces Critical**, whatever the score (`Level.Bypass`) | anyone can log in as the accounts the finding names: worse than any score says |
+| SSH Auth carries `SSH_SSHD_UNFIXED`, not the bypass | "sshd unpatched: upgrade openssh", SSH Auth | 15 (`PenaltyUnfixed`) | one `*` account or one `$6$` hash away from the bypass; as much as a second root |
+| SSH Auth carries `SSH_FIX_UNKNOWN` alone | "Can't tell if sshd is patched", SSH Auth | nothing | the maintainer's scope: a line, not a cost; it keeps Minimal off |
 
 `UFW_SSH_NOT_ALLOWED`, `UFW_SSH_RESTRICTED`, `SSH_PORT_NOT_IN_EFFECT`, `SSH_PORT_22_BOUND`, `USERS_RULE_NOT_READ` on an Unknown row and every other finding are not scored on their own: they explain a row's state, which is scored (check-firewall.md §6, check-users.md §6). [check-ssh.md](check-ssh.md) §6's hand-off, P-05's cross-check made against what `ss` shows bound, with `SSH_PORT_NOT_IN_EFFECT` and `SSH_PORT_22_BOUND` as lockout signals where the firewall denies a bound port, is met by the Firewall row: `FIREWALL_SSH_BLOCKED` is decided over the bound sockets (check-firewall.md §2.3), and a refused socket on 22 that no configured listener names makes the row Unknown, "can't tell if 22 is ssh" (§2.7 there); so neither code is scored again here.
 
@@ -151,6 +154,7 @@ Synthetic hosts, each row's state as its check would report it; uptime 3 days an
 
 | Band | Level | Gloss |
 |---|---|---|
+| Critical, the bypass (§6.4), with or without the lockout | Critical | password bypass (*proposed*) |
 | Critical, the lockout | Critical | lockout risk (*proposed*) |
 | Critical | Critical | no security |
 | High | High | weak security |
@@ -176,6 +180,9 @@ Synthetic hosts, each row's state as its check would report it; uptime 3 days an
 | Auto Updates | the uptime not read, the host not upgrading itself or that not established | Uptime unknown | `text.muted` | 14 |
 | Auto Updates | Partial "off after restart" with a fact left open (`UPDATES_APT_VALUE_UNKNOWN`, `UPDATES_SCHEDULE_UNKNOWN`) | Can't tell if fully on | `text.muted` | 22 |
 | every row | Unknown, a failed check, a state outside the five, or no report: one line under each such row | Counted as not configured | `text.muted` | 25 |
+| SSH Auth | CVE-2026-123158: anyone can log in (`SSH_PASSWORD_BYPASS`, §6.4) | Anyone can log in: upgrade openssh (*proposed*) | `status.warn` | 34 |
+| SSH Auth | sshd unfixed, no account exposed yet (`SSH_SSHD_UNFIXED`) | sshd unpatched: upgrade openssh (*proposed*) | `status.warn` | 31 |
+| SSH Auth | the fix not established (`SSH_FIX_UNKNOWN` alone) | Can't tell if sshd is patched (*proposed*) | `text.muted` | 29 |
 | the host block (no row) | a reboot pending (`Reboot.Pending` Yes) | Reboot pending | `status.warn` | 14 |
 | the host block (no row) | the pending reboot not established, but not inside a container of a distribution the reboot check reads (`Reboot.HostKernel`), where only a package's request counts | Can't tell if reboot pending | `text.muted` | 28 |
 
@@ -191,6 +198,10 @@ No other line exists: a Not Configured, Partial or Unknown row is not repeated b
 | the same on Proxmox VE, Proxmox VE's own not upgraded | `UPTIME_NO_AUTO_UPDATES` | up 182 days, Proxmox not upgraded | `/proc/uptime` |
 
 None when either fact is not established (the line stands, in `text.muted`, with no finding): the uptime not read; Auto Updates Unknown, with no report, or Partial "off after restart" with a fact left open. None inside a container (`Reboot.HostKernel`).
+
+### 6.4 CVE-2026-123158
+
+SSH Auth's findings on Alpine ([check-ssh.md](check-ssh.md) §11) make one factor under the row, the worst of them: `KindPasswordBypass` (established, no cost of its own, `Level.Bypass` forcing Critical and the gloss "password bypass" in place of "lockout risk", since anyone logging in outranks a lockout), else `KindSSHDUnfixed` (established, 15), else `KindFixUnknown` (not established, no cost). The three kinds come after `KindNoPassword`; none before them is renumbered. Tested: `TestBypass`, `TestFactorLines`, `TestFactorsFit`, `TestRiskSummaryOf`.
 
 ## 7. API; changes to other units' code
 

@@ -15,8 +15,10 @@
 // cross-check the host fails then costs points: ufw set to refuse SSH once
 // it starts, a second root account, a reboot pending, a long uptime
 // without automatic updates, a user account that becomes root without a
-// password, or may. A firewall that refuses SSH forces Critical, whatever
-// the score. Unknown counts as not configured and adds a factor under its
+// password, or may, Alpine's sshd without CVE-2026-123158's fix. A
+// firewall that refuses SSH forces Critical, whatever the score, and so
+// does an Alpine host that lets anyone log in with a long password.
+// Unknown counts as not configured and adds a factor under its
 // row, and so does a row with no report, and a grant the User row does
 // not establish costs as one without a password: of what the rows look at
 // (the User row: accounts of uid 1000 or more that may log in, risk.md
@@ -88,6 +90,7 @@ const (
 	PenaltyReboot     = 10 // a reboot pending, or not established
 	PenaltyUptime     = 10 // up LongUptime or more without automatic updates, or either not established
 	PenaltyNoPassword = 5  // a user account becomes root without a password, or may
+	PenaltyUnfixed    = 15 // Alpine's sshd lacks CVE-2026-123158's fix, password auth on without PAM, no account exposed yet
 )
 
 // LongUptime is the uptime from which a host that does not upgrade itself
@@ -137,6 +140,7 @@ func Rows() []Row { return slices.Clone(rows) }
 var (
 	usersID    = users.Admin{}.ID()
 	firewallID = firewall.Incoming{}.ID()
+	authID     = ssh.Auth{}.ID()
 )
 
 // noCredit are the Partial lines, by control, that protect nothing now:
@@ -179,9 +183,13 @@ const (
 	KindReboot                     // a reboot pending, or not established
 	KindUptime                     // up long without automatic updates, or either not established
 	KindNoPassword                 // a user account becomes root without a password (USERS_NOPASSWD), or may (USERS_RULE_NOT_READ)
+	KindPasswordBypass             // anyone can log in with a long password (SSH_PASSWORD_BYPASS): Level.Bypass forces Critical
+	KindSSHDUnfixed                // sshd lacks CVE-2026-123158's fix, no account exposed yet (SSH_SSHD_UNFIXED)
+	KindFixUnknown                 // whether sshd has the fix, or whom it exposes, not established (SSH_FIX_UNKNOWN)
 )
 
-var kindWords = [...]string{"lockout-at-start", "unknown", "second-root", "ssh-unchecked", "updates-open", "reboot", "uptime", "no-password"}
+var kindWords = [...]string{"lockout-at-start", "unknown", "second-root", "ssh-unchecked", "updates-open", "reboot", "uptime", "no-password",
+	"password-bypass", "sshd-unfixed", "fix-unknown"}
 
 // String returns the kind's word.
 func (k Kind) String() string {
@@ -222,6 +230,10 @@ type Level struct {
 	// Forced is true when a firewall refusing SSH made the band Critical,
 	// whatever the score.
 	Forced bool
+	// Bypass is true when SSH Auth reports SSH_PASSWORD_BYPASS
+	// (CVE-2026-123158: anyone can log in with a long password), which
+	// makes the band Critical, whatever the score, as Forced does.
+	Bypass bool
 	// Score is the points the host earns of 100, after the penalties, at
 	// least 0: the rows' share less each factor's Penalty.
 	Score float64
@@ -308,6 +320,11 @@ func Assess(reports []engine.Report, h header.Header) Level {
 	if f, ok := noPassword(us, usOK); ok {
 		add(f)
 	}
+	au, auOK := byID[authID]
+	if f, ok := sshdFix(au, auOK); ok {
+		add(f)
+		l.Bypass = f.Kind == KindPasswordBypass
+	}
 
 	penalty := 0
 	for _, f := range l.Factors {
@@ -321,7 +338,7 @@ func Assess(reports []engine.Report, h header.Header) Level {
 	// penalty >= t.
 	from := func(t int) bool { return 100*earned-penalty*whole >= t*whole }
 	switch {
-	case l.Forced:
+	case l.Forced, l.Bypass:
 		l.Band = Critical
 	case !established:
 		l.Band = Unknown
@@ -382,6 +399,28 @@ func noPassword(r engine.Report, ok bool) (Factor, bool) {
 		f.Detail, f.Established = "No password to become root", true
 	case state(r, ok) != engine.Unknown && has(r, users.CodeRuleNotRead):
 		f.Detail = "Maybe no password to become root"
+	default:
+		return Factor{}, false
+	}
+	return f, true
+}
+
+// sshdFix is SSH Auth's CVE-2026-123158 factor (risk.md §6.4), one for
+// the row: SSH_PASSWORD_BYPASS, the host exposed now, which costs nothing
+// of its own and forces Critical (Level.Bypass); else SSH_SSHD_UNFIXED,
+// established, PenaltyUnfixed; else SSH_FIX_UNKNOWN, not established, of
+// no cost: the rows' weights stand.
+func sshdFix(r engine.Report, ok bool) (Factor, bool) {
+	f := Factor{Kind: KindFixUnknown, Control: r.Control}
+	switch {
+	case !ok:
+		return Factor{}, false
+	case has(r, ssh.CodePasswordBypass):
+		f.Kind, f.Detail, f.Established = KindPasswordBypass, "Anyone can log in: upgrade openssh", true
+	case has(r, ssh.CodeSSHDUnfixed):
+		f.Kind, f.Detail, f.Established, f.Penalty = KindSSHDUnfixed, "sshd unpatched: upgrade openssh", true, PenaltyUnfixed
+	case has(r, ssh.CodeFixUnknown):
+		f.Detail = "Can't tell if sshd is patched"
 	default:
 		return Factor{}, false
 	}

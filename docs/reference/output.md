@@ -322,6 +322,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `USERS_NAME_TAKEN` | 1 | a user or group of that name is there |
 | `USERS_HOME_THERE` | 1 | the new user's home is there already |
 | `USERS_NEW_PASSWORD` | 1 | a new user has no password to ask |
+| `USERS_PASSWORD_BYPASS` | 1 | Alpine: sshd lacks the fix for CVE-2026-123158, so anyone could log in as a new user, whose password field is `*`, with a long password: Create is refused ([control-users.md](../engine/control-users.md)) |
 | `AUTHKEYS_NOT_PLANNED` | 1 | authkeys: sshd does not read .ssh/authorized_keys (`authkeys.Err*`, [authkeys.md](../safety/authkeys.md)); new in `next/s5-control` |
 | `AUTHKEYS_STRICT_MODES` | 1 | sshd's StrictModes would ignore the keys |
 | `AUTHKEYS_NOT_KEY` | 1 | authkeys: not a key |
@@ -446,6 +447,9 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `SSH_PORT_NOT_IN_EFFECT` | a listener sshd's configuration names is not bound: the configuration is not in effect ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_MATCH_VALUE_UNKNOWN` | a Match block sets a value hardn does not rank, so what it lets in is not established ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_PORT_22_BOUND` | a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program ([check-ssh.md](../engine/check-ssh.md)) |
+| `SSH_PASSWORD_BYPASS` | Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, so anyone can log in with a long password as an account whose password field is `*` ([check-ssh.md](../engine/check-ssh.md) §11, [alpine.md](../safety/alpine.md)) |
+| `SSH_SSHD_UNFIXED` | Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, with no account exposed yet ([check-ssh.md](../engine/check-ssh.md) §11) |
+| `SSH_FIX_UNKNOWN` | Alpine: whether the openssh package has the fix for CVE-2026-123158, or which accounts it would expose, is not established ([check-ssh.md](../engine/check-ssh.md) §11) |
 | `FIREWALL_SSH_BLOCKED` | an active firewall refuses new connections to an SSH listener: lockout risk, scored critical ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_SSH_UNCHECKED` | the SSH listeners are not established, so whether the firewall lets them through is not either ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_BOOT_UNCHECKED` | whether an active ufw starts at the next boot is not read, so the row is not Configured ([check-firewall.md](../engine/check-firewall.md)) |

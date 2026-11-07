@@ -349,6 +349,7 @@ var errorCodes = []Entry{
 	is("USERS_NAME_TAKEN", users.ErrNameTaken),
 	is("USERS_HOME_THERE", users.ErrHomeThere),
 	is("USERS_NEW_PASSWORD", users.ErrNewPassword),
+	is("USERS_PASSWORD_BYPASS", users.ErrPasswordBypass),
 	// A user's SSH keys (pkg/host/authkeys, slice 5, unit (b)).
 	is("AUTHKEYS_NOT_PLANNED", authkeys.ErrNotPlanned),
 	is("AUTHKEYS_STRICT_MODES", authkeys.ErrStrictModes),
@@ -510,6 +511,10 @@ var findingCodes = []Entry{
 	finding(ssh.CodeNotInEffect, "a listener sshd's configuration names is not bound: the configuration is not in effect"),
 	finding(ssh.CodeMatchValueUnknown, "a Match block sets a value hardn does not rank, so what it lets in is not established"),
 	finding(ssh.Code22Bound, "a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program"),
+	// SSH Auth's on Alpine, of CVE-2026-123158 (docs/safety/alpine.md).
+	finding(ssh.CodePasswordBypass, "Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, so anyone can log in with a long password as an account whose password field is *"),
+	finding(ssh.CodeSSHDUnfixed, "Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, with no account exposed yet"),
+	finding(ssh.CodeFixUnknown, "Alpine: whether the openssh package has the fix for CVE-2026-123158, or which accounts it would expose, is not established"),
 	// The firewall control's own (next/p4-check-firewall).
 	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener: lockout risk, scored critical"),
 	finding(firewall.CodeSSHUnchecked, "the SSH listeners are not established, so whether the firewall lets them through is not either"),

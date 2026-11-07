@@ -176,7 +176,8 @@ func TestFactorLines(t *testing.T) {
 }
 
 // TestRiskSummaryOf: each band's tone, level word and gloss, origin/main's
-// (DEV-016); the lockout's gloss; no level for Unknown; never a factor,
+// (DEV-016); the lockout's gloss, and CVE-2026-123158's bypass's before
+// it; no level for Unknown; never a factor,
 // which the rows and the host block draw.
 func TestRiskSummaryOf(t *testing.T) {
 	for _, c := range []struct {
@@ -187,6 +188,8 @@ func TestRiskSummaryOf(t *testing.T) {
 		{risk.Level{Band: risk.Critical, Forced: true}, component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss}},
 		{risk.Level{Band: risk.Critical, Forced: true, Factors: []risk.Factor{{Kind: risk.KindReboot, Detail: "Reboot pending"}}},
 			component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.LockoutGloss}},
+		{risk.Level{Band: risk.Critical, Bypass: true}, component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.BypassGloss}},
+		{risk.Level{Band: risk.Critical, Bypass: true, Forced: true}, component.RiskSummary{Band: component.RiskHigh, Level: "Critical", Gloss: output.BypassGloss}},
 		{risk.Level{Band: risk.High}, component.RiskSummary{Band: component.RiskHigh, Level: "High", Gloss: "weak security"}},
 		{risk.Level{Band: risk.Moderate}, component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"}},
 		{risk.Level{Band: risk.Low}, component.RiskSummary{Band: component.RiskLow, Level: "Low", Gloss: "strong security"}},

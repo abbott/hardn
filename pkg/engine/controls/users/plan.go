@@ -89,6 +89,10 @@ var (
 	ErrHomeThere = errors.New("the new user's home is there already")
 	// ErrNewPassword: a password asked of a new user, who has none.
 	ErrNewPassword = errors.New("a new user has no password to ask")
+	// ErrPasswordBypass: sshd lacks CVE-2026-123158's fix and may check
+	// passwords without PAM, so anyone could log in as a new user, whose
+	// field is "*", with a long password.
+	ErrPasswordBypass = errors.New("sshd lacks the fix for CVE-2026-123158, so anyone could log in as a new user with a long password")
 )
 
 // The refusals' codes, the registry's for the errors they wrap (pkg/output;
@@ -118,6 +122,7 @@ const (
 	codeNameTaken        = "USERS_NAME_TAKEN"
 	codeHomeThere        = "USERS_HOME_THERE"
 	codeNewPassword      = "USERS_NEW_PASSWORD"
+	codePasswordBypass   = "USERS_PASSWORD_BYPASS"
 )
 
 // refuse is a refusal: its code, its sentinel wrapping cause where there is
