@@ -103,6 +103,9 @@ type site struct {
 	// "" is not installed. failG makes that -G exit 255.
 	pamG  string
 	failG bool
+	// noUseradd: no /usr/sbin/useradd, as on Alpine without shadow
+	// (Create's UseraddRefusal); every other host has it.
+	noUseradd bool
 }
 
 // sshd -T's answers (next/p4-locked): a build with PAM and UsePAM yes
@@ -168,6 +171,9 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System) {
 	}
 	for _, sh := range []string{"/bin/bash", "/bin/sh", "/usr/sbin/nologin", "/sbin/nologin", "/bin/sync"} {
 		h.AddFile(sh, nil, 0o755, 0, 0)
+	}
+	if !s.noUseradd {
+		h.AddFile("/usr/sbin/useradd", nil, 0o755, 0, 0)
 	}
 	if _, ok := files[sudoers.MainConfig]; ok {
 		h.AddDir(sudoers.DropInDir, 0o750, 0, 0)

@@ -16,9 +16,10 @@ import (
 // the flags and setup-sudo-env, in FindConfigFile's words as they were,
 // with no [INFO]; an -f or HARDN_CONFIG file that is not there is an
 // error; the defaults, the offer to create one declined, are said after
-// it; nothing is said before the main menu (decision 4 (a) of
-// docs/engine/legacy-left.md). hardn.yml's confirmTimeout is refused each run,
-// ending it past the line (the OS check, which ended it, is ahead of the load).
+// it, and alone where none was found; nothing is said before the main
+// menu (decision 4 (a) of docs/engine/legacy-left.md). hardn.yml's
+// confirmTimeout is refused each run, ending it past the line (the OS
+// check, which ended it, is ahead of the load).
 func TestConfigLine(t *testing.T) {
 	const yml = "/etc/hardn/hardn.yml"
 	for _, tc := range []struct {
@@ -34,7 +35,7 @@ func TestConfigLine(t *testing.T) {
 			"Operation Failed Configuration file specified by command-line flag not found: " + yml + " Using default configuration (no config file found)"},
 		{"HARDN_CONFIG not there, -r", []string{"-r"}, config.Found{Path: yml, By: config.FoundEnv},
 			"Operation Failed Configuration file specified by HARDN_CONFIG environment variable not found: " + yml + " Using default configuration (no config file found)"},
-		{"none, -e", []string{"-e"}, config.Found{}, "No configuration file found in any location Using default configuration (no config file found)"},
+		{"none, -e", []string{"-e"}, config.Found{}, "Using default configuration (no config file found)"},
 		{"the search path, -g -p", []string{"-g", "-p"}, config.Found{Path: yml, By: config.FoundSearch, Exists: true}, "Using configuration from: " + yml},
 		{"the main menu", nil, config.Found{Path: yml, By: config.FoundSearch, Exists: true}, ""},
 	} {

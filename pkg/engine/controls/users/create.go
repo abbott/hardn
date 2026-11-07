@@ -70,10 +70,10 @@ func (r Reading) CheckName(ctx context.Context, sys host.System, name string) er
 }
 
 // CheckNew is why Plan refuses Create of n, in its order: CheckName's;
-// Password (decision 3 (a)); with Admin, ToolRefusal's; with Keys,
-// KeysRefusal's and newKeys'; then bypassRefusal's, the host's. nil where
-// Create may go on. Create without admin rights works with no tool, as on
-// Proxmox VE.
+// Password (decision 3 (a)); UseraddRefusal's; with Admin, ToolRefusal's;
+// with Keys, KeysRefusal's and newKeys'; then bypassRefusal's, the host's.
+// nil where Create may go on. Create without admin rights works with no
+// tool, as on Proxmox VE.
 func (r Reading) CheckNew(ctx context.Context, sys host.System, n New) error {
 	_, err := r.checkNew(ctx, sys, n)
 	return err
@@ -87,6 +87,9 @@ func (r Reading) checkNew(ctx context.Context, sys host.System, n New) (*engine.
 	}
 	if n.Password {
 		return nil, refuse(codeNewPassword, ErrNewPassword, nil, "A new user has no password, so "+r.toolWord()+" couldn't ask for one", "")
+	}
+	if err := r.UseraddRefusal(ctx, sys); err != nil {
+		return nil, err
 	}
 	if n.Admin {
 		if err := r.ToolRefusal(); err != nil {
@@ -102,6 +105,28 @@ func (r Reading) checkNew(ctx context.Context, sys host.System, n New) (*engine.
 		}
 	}
 	return r.bypassRefusal(ctx, sys, n.Name)
+}
+
+// UseraddRefusal refuses Create on Alpine where useradd, which Create runs
+// (planCreate), is not installed: it is the shadow package's, and BusyBox
+// has adduser, not useradd (BusyBox 1.37 on the Alpine 3.23 VM:
+// vm-runs/cve/busybox-useradd-alpine323.log; an Alpine 3.23.2 LXC without
+// shadow planned useradd, 2026-11-07). Looked for as host.Real
+// finds a command (detect.FindTool); a lookup that fails is its error.
+// Off Alpine it is not looked for. The User Management screen asks it
+// before Create's first question.
+func (r Reading) UseraddRefusal(ctx context.Context, sys host.System) error {
+	if r.facts.Platform.Distro != detect.DistroAlpine {
+		return nil
+	}
+	switch t := detect.FindTool(ctx, sys, "useradd"); t.Present {
+	case detect.Yes:
+		return nil
+	case detect.No:
+		return refuse(codeNoUseradd, ErrNoUseradd, nil, "useradd isn't installed, so hardn can't create users", "run apk add shadow, then try again")
+	default:
+		return fmt.Errorf("users: %w", t.Err)
+	}
 }
 
 // bypassRefusal is CVE-2026-123158's refusal of Create (docs/engine/
@@ -206,7 +231,7 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 			return engine.Ran{Detail: host.FormatArgv(argv)}, nil
 		}}
 	if len(n.Keys) == 0 {
-		add.Findings = []engine.Finding{{Code: CodeNoKey, Detail: "Without a key " + n.Name + " can't log in: there's no password"}}
+		add.Findings = []engine.Finding{{Code: CodeNoKey, Detail: "Without a key, " + n.Name + " can't log in: there's no password"}}
 	}
 	if unknownFix != nil {
 		add.Findings = append(add.Findings, *unknownFix)

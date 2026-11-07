@@ -59,7 +59,7 @@ func (e Elevation) Command() string {
 // FindElevation looks for sudo and doas in host.SearchPath and runs nothing:
 // enough for Command, where a message has no facts to hand.
 func FindElevation(ctx context.Context, sys host.System) Elevation {
-	return Elevation{Sudo: findTool(ctx, sys, "sudo"), Doas: findTool(ctx, sys, "doas")}
+	return Elevation{Sudo: FindTool(ctx, sys, "sudo"), Doas: FindTool(ctx, sys, "doas")}
 }
 
 // DetectElevation looks for sudo and doas in host.SearchPath and asks sudo
@@ -84,8 +84,9 @@ func DetectElevation(ctx context.Context, sys host.System) Elevation {
 	return e
 }
 
-// findTool looks for name in every host.SearchPath directory, in order.
-func findTool(ctx context.Context, sys host.System, name string) Tool {
+// FindTool looks for name in every host.SearchPath directory, in order:
+// sudo and doas here, useradd for the User control's Create on Alpine.
+func FindTool(ctx context.Context, sys host.System, name string) Tool {
 	var errs []error
 	for _, dir := range strings.Split(host.SearchPath, ":") {
 		p := dir + "/" + name

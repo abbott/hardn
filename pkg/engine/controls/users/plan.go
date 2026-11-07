@@ -93,6 +93,9 @@ var (
 	// passwords without PAM, so anyone could log in as a new user, whose
 	// field is "*", with a long password.
 	ErrPasswordBypass = errors.New("sshd lacks the fix for CVE-2026-123158, so anyone could log in as a new user with a long password")
+	// ErrNoUseradd: useradd, which Create runs, is not installed (Alpine
+	// without shadow).
+	ErrNoUseradd = errors.New("useradd is not installed, so no user is created")
 )
 
 // The refusals' codes, the registry's for the errors they wrap (pkg/output;
@@ -123,6 +126,7 @@ const (
 	codeHomeThere        = "USERS_HOME_THERE"
 	codeNewPassword      = "USERS_NEW_PASSWORD"
 	codePasswordBypass   = "USERS_PASSWORD_BYPASS"
+	codeNoUseradd        = "USERS_NO_USERADD"
 )
 
 // refuse is a refusal: its code, its sentinel wrapping cause where there is
@@ -263,8 +267,9 @@ func notAdmin(name string) error {
 
 // ToolRefusal is why no grant can be planned on the host, before anything
 // is asked: a tool's rules not read (Elevation.NotRead), no tool
-// (sudoers.ErrNoTool), or the tool not established (Choose's error, as it
-// is); nil when one can.
+// (sudoers.ErrNoTool, naming doas on Alpine, its default (sudoers.md),
+// and sudo elsewhere), or the tool not established (Choose's error, as it is); nil
+// when one can.
 func (r Reading) ToolRefusal() error {
 	if len(r.NotRead) > 0 {
 		nr := r.NotRead[0]
@@ -280,7 +285,11 @@ func (r Reading) ToolRefusal() error {
 	}
 	switch {
 	case errors.Is(r.Choice.Err, sudoers.ErrNoTool):
-		return refuse(codeNoTool, ErrNoTool, r.Choice.Err, "sudo isn't installed, so hardn can't grant admin rights", "install sudo, then try again")
+		tool := "sudo"
+		if r.facts.Platform.Distro == detect.DistroAlpine {
+			tool = "doas"
+		}
+		return refuse(codeNoTool, ErrNoTool, r.Choice.Err, tool+" isn't installed, so hardn can't grant admin rights", "install "+tool+", then try again")
 	case r.Choice.Err != nil:
 		return r.Choice.Err
 	}

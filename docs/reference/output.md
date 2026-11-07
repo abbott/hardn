@@ -323,6 +323,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `USERS_HOME_THERE` | 1 | the new user's home is there already |
 | `USERS_NEW_PASSWORD` | 1 | a new user has no password to ask |
 | `USERS_PASSWORD_BYPASS` | 1 | Alpine: sshd lacks the fix for CVE-2026-123158, so anyone could log in as a new user, whose password field is `*`, with a long password: Create is refused ([control-users.md](../engine/control-users.md)) |
+| `USERS_NO_USERADD` | 1 | Alpine: useradd, which Create runs, isn't installed (busybox has adduser alone): Create is refused until `apk add shadow` ([control-users.md](../engine/control-users.md)) |
 | `AUTHKEYS_NOT_PLANNED` | 1 | authkeys: sshd does not read .ssh/authorized_keys (`authkeys.Err*`, [authkeys.md](../safety/authkeys.md)); new in `next/s5-control` |
 | `AUTHKEYS_STRICT_MODES` | 1 | sshd's StrictModes would ignore the keys |
 | `AUTHKEYS_NOT_KEY` | 1 | authkeys: not a key |

@@ -350,6 +350,7 @@ var errorCodes = []Entry{
 	is("USERS_HOME_THERE", users.ErrHomeThere),
 	is("USERS_NEW_PASSWORD", users.ErrNewPassword),
 	is("USERS_PASSWORD_BYPASS", users.ErrPasswordBypass),
+	is("USERS_NO_USERADD", users.ErrNoUseradd),
 	// A user's SSH keys (pkg/host/authkeys, slice 5, unit (b)).
 	is("AUTHKEYS_NOT_PLANNED", authkeys.ErrNotPlanned),
 	is("AUTHKEYS_STRICT_MODES", authkeys.ErrStrictModes),

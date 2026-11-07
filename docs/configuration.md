@@ -41,7 +41,7 @@ nano ~/.config/hardn/hardn.yml
 
 ### 3. Using the Default Configuration
 
-If no configuration file exists and you decline, `hardn` will create one at `/etc/hardn/hardn.yml` with default values.
+If you decline, hardn goes on with its defaults and writes no hardn.yml. A live run still writes `/etc/hardn/hardn.yml.example`.
 <!-- show/link default values -->
 
 ## Environment Variable

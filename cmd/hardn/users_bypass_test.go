@@ -22,6 +22,7 @@ func alpineUsersHost(t *testing.T, version string) *usrTestHost {
 	h.facts.OS = detect.OSRelease{ID: "alpine", VersionID: "3.24.2"}
 	h.facts.Platform = detect.Platform{Distro: detect.DistroAlpine, Version: "3.24", Support: detect.Supported}
 	h.AddFile(sshd.MainConfig, []byte(sshd.IncludeLine+"\n\nUsePAM no\n"), 0o644, 0, 0)
+	h.AddFile("/usr/sbin/useradd", []byte("ELF"), 0o755, 0, 0) // shadow's, which Create runs
 	if version != "" {
 		h.AddFile(alpine.InstalledDB, []byte("P:openssh-server\nV:"+version+"\n\n"), 0o644, 0, 0)
 	}

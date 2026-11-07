@@ -13,6 +13,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/authkeys"
@@ -339,6 +340,8 @@ func TestLockedFinding(t *testing.T) {
 // TestCreateRefusals: Create's refusals, and CheckNew's the same.
 func TestCreateRefusals(t *testing.T) {
 	there := keyed(sshdKeys, map[string]home{"carol": {uid: 0}})
+	alpineNoTool := alpine324()
+	alpineNoTool.facts.Elevation.Doas = no
 	for _, tc := range []struct {
 		name        string
 		site        site
@@ -352,6 +355,11 @@ func TestCreateRefusals(t *testing.T) {
 		{"its home there", there, users.New{Name: "carol"}, "USERS_HOME_THERE", "/home/carol is already there, and undoing Create would delete it. Choose another name."},
 		{"a password", keyed(sshdKeys, nil), users.New{Name: "carol", Admin: true, Password: true}, "USERS_NEW_PASSWORD", "A new user has no password, so sudo couldn't ask for one."},
 		{"admin, no tool", site{plat: pve9(), users: []string{georgeLine}}, users.New{Name: "carol", Admin: true}, "USERS_NO_TOOL", "sudo isn't installed, so hardn can't grant admin rights. Install sudo, then try again."},
+		// Alpine (the LXC of 2026-11-07): doas named, Alpine's default (sudoers.md);
+		// useradd, shadow's, looked for before the tool.
+		{"alpine, admin, no tool", site{plat: alpineNoTool}, users.New{Name: "carol", Admin: true}, "USERS_NO_TOOL", "doas isn't installed, so hardn can't grant admin rights. Install doas, then try again."},
+		{"alpine, no useradd", site{plat: alpine324(), noUseradd: true}, users.New{Name: "carol"}, "USERS_NO_USERADD", "useradd isn't installed, so hardn can't create users. Run apk add shadow, then try again."},
+		{"alpine, no useradd, no tool", site{plat: alpineNoTool, noUseradd: true}, users.New{Name: "carol", Admin: true}, "USERS_NO_USERADD", "useradd isn't installed, so hardn can't create users. Run apk add shadow, then try again."},
 		{"not a key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 		{"a bad second key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{key4, "ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 2 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 		{"an empty key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"", key4}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
@@ -371,6 +379,16 @@ func TestCreateRefusals(t *testing.T) {
 	// Without admin rights Create needs no tool, as on Proxmox VE.
 	if _, p, _, _ := planOn(t, site{plat: pve9(), users: []string{georgeLine}}, users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol"}}); p.Err() != nil || len(p.Changes) != 1 {
 		t.Errorf("Proxmox VE, no admin rights: %v", p.Err())
+	}
+	// useradd is looked for on Alpine alone; a lookup that fails is its
+	// error, not a refusal.
+	if _, p, _, _ := planOn(t, site{plat: debian13(), noUseradd: true}, users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol"}}); p.Err() != nil || len(p.Changes) != 1 {
+		t.Errorf("Debian, no useradd: %v", p.Err())
+	}
+	_, p, _, _ := planOn(t, site{plat: alpine324(), fail: map[string]error{"stat /usr/sbin/useradd": fs.ErrPermission}}, users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol"}})
+	var rf *steps.Refusal
+	if err := p.Err(); !errors.Is(err, fs.ErrPermission) || errors.As(err, &rf) {
+		t.Errorf("Alpine, useradd's lookup failing: %v", err)
 	}
 }
 
@@ -438,7 +456,7 @@ func TestCreate(t *testing.T) {
 
 	_, p, _, _ = planOn(t, keyed(sshdKeys, both()), users.Admin{Action: users.ActionCreate, New: users.New{Name: "carol"}})
 	if p.Err() != nil || len(p.Changes) != 1 || len(p.Changes[0].Findings) != 1 || p.Changes[0].Findings[0].Code != users.CodeNoKey ||
-		p.Changes[0].Findings[0].Detail != "Without a key carol can't log in: there's no password" {
+		p.Changes[0].Findings[0].Detail != "Without a key, carol can't log in: there's no password" {
 		t.Errorf("no key: %v, %+v", p.Err(), p.Changes)
 	}
 }

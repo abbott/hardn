@@ -319,7 +319,7 @@ func TestCreateUserFlag(t *testing.T) {
 		applied string // the user created; "" none
 	}{
 		{name: "-c -u carol", args: []string{"--yes", "-c", "-u", "carol"}, applied: "carol",
-			said: []string{"Create user carol", "Let carol use sudo", "Operation Successful", "Without a key carol can't log in", "USERS_NO_KEY"}},
+			said: []string{"Create user carol", "Let carol use sudo", "Operation Successful", "Without a key, carol can't log in", "USERS_NO_KEY"}},
 		{name: "-c: hardn.yml's username", args: []string{"--yes", "-c"}, applied: "alice",
 			said: []string{"Create user alice", "Let alice use sudo", "Operation Successful"}},
 		{name: "-n -c -u carol", args: []string{"-n", "-c", "-u", "carol"}, code: 3,

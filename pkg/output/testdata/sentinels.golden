@@ -221,6 +221,7 @@ users.ErrNameTaken USERS_NAME_TAKEN
 users.ErrNewPassword USERS_NEW_PASSWORD
 users.ErrNoPasswordToAsk USERS_NO_PASSWORD_TO_ASK
 users.ErrNoTool USERS_NO_TOOL
+users.ErrNoUseradd USERS_NO_USERADD
 users.ErrNotAdmin USERS_NOT_ADMIN
 users.ErrNotHardns USERS_GRANT_NOT_HARDNS
 users.ErrNotListed USERS_NOT_LISTED

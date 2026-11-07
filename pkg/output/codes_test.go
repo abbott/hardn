@@ -236,6 +236,7 @@ var sentinels = map[string]error{
 	"users.ErrHomeThere":              users.ErrHomeThere,
 	"users.ErrNewPassword":            users.ErrNewPassword,
 	"users.ErrPasswordBypass":         users.ErrPasswordBypass,
+	"users.ErrNoUseradd":              users.ErrNoUseradd,
 	"authkeys.ErrNotPlanned":          authkeys.ErrNotPlanned,
 	"authkeys.ErrStrictModes":         authkeys.ErrStrictModes,
 	"authkeys.ErrNotKey":              authkeys.ErrNotKey,

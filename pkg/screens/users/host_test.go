@@ -161,6 +161,7 @@ func usersOn(p platform, cloud bool, us ...simUser) *usrHost {
 		h.AddDir(sudoers.DoasDir, 0o750, 0, 0)
 		h.AddFile(sudoers.DoasDir+"/wheel.conf", []byte("permit nopass :wheel\n"), 0o640, 0, 0)
 		h.AddFile("/usr/bin/doas", []byte("ELF"), 0o755, 0, 0)
+		h.AddFile("/usr/sbin/useradd", []byte("ELF"), 0o755, 0, 0) // shadow's, which Create runs
 	}
 	h.AddFile(sshd.MainConfig, []byte(main), 0o644, 0, 0)
 	if p.sudoers != "" {

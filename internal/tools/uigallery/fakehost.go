@@ -333,6 +333,7 @@ func simulate(p platform) *fakeHost {
 	}
 	if p.doas {
 		f.AddFile("/usr/bin/doas", []byte("ELF"), 0o4755, 0, 0)
+		f.AddFile("/usr/sbin/useradd", []byte("ELF"), 0o755, 0, 0) // shadow's, which Create runs on Alpine
 	}
 	h.addResolver()
 	f.AddUser(host.User{Name: "root", UID: 0, GID: 0, HomeDir: "/root"})

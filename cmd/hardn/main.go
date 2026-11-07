@@ -206,9 +206,11 @@ var rootCmd = &cobra.Command{
 		// only, none found is the defaults, with no offer to create one
 		// (loadExisting, as setup-sudo-env's), so that -n writes nothing.
 		// A yes to the offer on a live run writes hardn.yml, asked for,
-		// whatever refusal follows it.
+		// whatever refusal follows it. None found is not said here: the
+		// offer, NoneLoaded below, or both say it (a third line said it
+		// again, seen on an Alpine LXC, 2026-11-07).
 		found := findConfig(configFile)
-		if !mainMenuRun() {
+		if !mainMenuRun() && found.By != config.FoundNone {
 			sayFound(found)
 		}
 		load := loadConfig

@@ -292,8 +292,13 @@ func (r *runner) removeKey(ctx context.Context, h reading, u usersctl.User) erro
 // admin rights?" no as the mocks drew it: sudoNoPassword is about a
 // password for admin rights, and a new user has none to ask (decision 3),
 // so the form never uses it; one plan for the account, the grant and the key, the control's.
+// Where useradd is not installed (Alpine without shadow), the control's
+// refusal before asking anything (UseraddRefusal), as Add key's.
 func (r *runner) create(ctx context.Context, h reading) error {
 	sys := r.o.System
+	if err := h.UseraddRefusal(ctx, sys); err != nil {
+		return r.refuse(err)()
+	}
 	var name, key, nameDef, nameAbout, keyDef, keyAbout string
 	var admin, password, addKey bool
 	if cfg := r.o.Config; cfg != nil {

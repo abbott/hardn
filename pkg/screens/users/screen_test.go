@@ -60,7 +60,7 @@ const (
 	wordsTaken        = "%s already exists."
 	wordsKey          = "Paste one OpenSSH public key, such as ssh-ed25519 AAAA… name."
 	wordsNewNoPW      = "A new user has no password, so %s couldn't ask for one."
-	wordsNoKeyNotice  = "Without a key %s can't log in: there's no password."
+	wordsNoKeyNotice  = "Without a key, %s can't log in: there's no password."
 	wordsEdited       = "%s holds a rule hardn didn't write. Change it there, then try again."
 	wordsLocked       = "sshd refuses %s's keys: the account is locked (!) and sshd doesn't use PAM"
 	wordsNoPassToAsk  = "No password to ask for"
@@ -504,6 +504,31 @@ func TestCreatePassword(t *testing.T) {
 		}
 		if !strings.Contains(strings.Split(p.out, applied)[1], "\n  carol -") {
 			t.Errorf("%s: carol not drawn after:\n%s", host, p.out)
+		}
+	}
+}
+
+// TestCreateNoUseradd: on Alpine without useradd (no shadow, as the LXC of
+// 2026-11-07), Create is refused before its first question, in the
+// control's words, with nothing planned or written; doas missing too, the
+// useradd refusal still comes first.
+func TestCreateNoUseradd(t *testing.T) {
+	const words = "useradd isn't installed, so hardn can't create users. Run apk add shadow, then try again."
+	for _, noDoas := range []bool{false, true} {
+		h := newHost(t, "alpine323")
+		if err := h.Remove(context.Background(), "/usr/sbin/useradd"); err != nil {
+			t.Fatal(err)
+		}
+		if noDoas {
+			h.facts.Elevation.Doas = detect.Tool{Present: detect.No}
+		}
+		n := len(h.Calls())
+		p := play(h, false, "2", "0")
+		if p.err != nil || !shows(p.out, words) || asked(p.out) || p.engines != 0 {
+			t.Errorf("no doas %v: Run = %v, %d engines, not refused before asking:\n%s", noDoas, p.err, p.engines, p.out)
+		}
+		if w := writes(h, n); len(w) > 0 {
+			t.Errorf("no doas %v: wrote %v", noDoas, w)
 		}
 	}
 }
