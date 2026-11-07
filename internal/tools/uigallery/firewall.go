@@ -22,7 +22,7 @@ import (
 // next/s4-screen): hardn's Firewall screen itself (pkg/screens/firewall), drawn
 // from what the Firewall control reads of each host (firewallhost.go), each of
 // its changes on the real engine, on the hosts the Firewall mocks were drawn
-// for, which it replaces (docs/engine/screen-firewall.md). The main menu's 4
+// for, which it replaces (docs/engine/screen-firewall.md). The main menu's 3
 // leads to it on Debian 13; "play firewall" is the menu of the hosts and "play
 // firewall/<host>" one. The listing of the mocks, "uigallery firewall", was
 // retired with them: git keeps it (firewall.go, next/s4-control), and
@@ -32,12 +32,12 @@ import (
 // them and "firewall/<host>" one.
 const fwPrefix = "firewall"
 
-// fwMainHost is the host the main menu's 4 leads to.
+// fwMainHost is the host the main menu's 3 leads to.
 const fwMainHost = fwPrefix + "/debian13"
 
 // fwLinks lead from a menu mock's item to the Firewall screen on a host, beside
-// links: the main menu's 4.
-var fwLinks = map[string]string{mainMenuMock + "/4": fwMainHost}
+// links: the main menu's 3.
+var fwLinks = map[string]string{mainMenuMock + "/3": fwMainHost}
 
 // fwHost is one simulated host the Firewall screen runs on.
 type fwHost struct {

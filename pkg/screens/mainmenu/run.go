@@ -38,22 +38,22 @@ type Options struct {
 	// SSH is the SSH Login item (2): pkg/screens/ssh. No change it makes
 	// saves hardn.yml (gallery-ssh.md §5, decision 9 (a)).
 	SSH func() error
-	// DNS is the DNS item (3): pkg/screens/dns, which edits hardn.yml's
-	// list in Config.
-	DNS func() error
-	// Firewall is the Firewall item (4): pkg/screens/firewall.
+	// Firewall is the Firewall item (3): pkg/screens/firewall.
 	Firewall func() error
 	// FirewallPVE, asked as the main menu is drawn, says whether the host
-	// is Proxmox VE, where item 4 reads "View pve-firewall"
+	// is Proxmox VE, where item 3 reads "View pve-firewall"
 	// (gallery-firewall.md §5, decision 7); nil is never.
 	FirewallPVE func() bool
-	// Backup is the Backup item (5): pkg/screens/backup.
-	Backup func() error
-	// Updates is the Auto Updates item (6): pkg/screens/updates.
+	// DNS is the DNS item (4): pkg/screens/dns, which edits hardn.yml's
+	// list in Config.
+	DNS func() error
+	// Updates is the Auto Updates item (5): pkg/screens/updates.
 	Updates func() error
-	// RunAll is the Run All item (7): pkg/screens/runall on the planner. No
+	// RunAll is the Run All item (6): pkg/screens/runall on the planner. No
 	// change it makes saves hardn.yml.
 	RunAll func() error
+	// Backup is the Backup item (7): pkg/screens/backup.
+	Backup func() error
 	// Environment is the Environment item (8): pkg/screens/environment,
 	// which saves no setting of hardn.yml.
 	Environment func() error
@@ -280,12 +280,15 @@ func (o Options) firewallDescription() string {
 
 // items is the main menu's items, each bound to the screen cmd/hardn sets
 // for it, and its Exit item "0) Exit", "q to quit" (DEV-030); the hint,
-// generated from the items, says "[0-10 or q]". Item 1's parenthesis is
-// its aside. Item 2 says what the SSH Login screen changes, "Root login,
-// passwords, port" (legacy-left.md §3, decision 7 (a); P-07 (a), P-12);
-// item 4 on Proxmox VE "View pve-firewall" (slice 4, decision 7); item 6
-// is Auto Updates (slice 7, unit (d)), where origin/main's Dry-Run was;
-// item 8 "Keep HARDN_CONFIG" (slice 9, decision 7 (a), P-07 (c)). Every
+// generated from the items, says "[0-10 or q]". The order is the
+// maintainer's (2026-11-07): User Management, SSH Login, Firewall, DNS,
+// Auto Updates, Run All, Backup, Environment, System Details, Logs. Item
+// 1's parenthesis is its aside. Item 2 says what the SSH Login screen
+// changes, "Root login, passwords, port" (legacy-left.md §3, decision 7
+// (a); P-07 (a), P-12); item 3 on Proxmox VE "View pve-firewall" (slice
+// 4, decision 7); Auto Updates (slice 7, unit (d)) took the key
+// origin/main's Dry-Run left; item 8 "Keep HARDN_CONFIG" (slice 9,
+// decision 7 (a), P-07 (c)). Every
 // item opens under plan only as live: its screen stops each change at its
 // plan.
 func (o Options) items() nav.Menu {
@@ -297,11 +300,11 @@ func (o Options) items() nav.Menu {
 			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
 				Action: o.show(o.Users, "mainmenu: the User Management item has no screen (Options.Users)")},
 			{Item: item("2", "SSH Login", "Root login, passwords, port"), Action: o.show(o.SSH, "mainmenu: the SSH Login item has no screen (Options.SSH)")},
-			{Item: item("3", "DNS", "Configure Nameservers"), Action: o.show(o.DNS, "mainmenu: the DNS item has no screen (Options.DNS)")},
-			{Item: item("4", "Firewall", o.firewallDescription()), Action: o.show(o.Firewall, "mainmenu: the Firewall item has no screen (Options.Firewall)")},
-			{Item: item("5", "Backup", "Configure Hardn backup settings"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
-			{Item: item("6", "Auto Updates", "Configure automatic updates"), Action: o.show(o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)")},
-			{Item: item("7", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
+			{Item: item("3", "Firewall", o.firewallDescription()), Action: o.show(o.Firewall, "mainmenu: the Firewall item has no screen (Options.Firewall)")},
+			{Item: item("4", "DNS", "Configure Nameservers"), Action: o.show(o.DNS, "mainmenu: the DNS item has no screen (Options.DNS)")},
+			{Item: item("5", "Auto Updates", "Configure automatic updates"), Action: o.show(o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)")},
+			{Item: item("6", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
+			{Item: item("7", "Backup", "Configure Hardn backup settings"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
 			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: o.show(o.Environment, "mainmenu: the Environment item has no screen (Options.Environment)")},
 			{Item: item("9", "System Details", "View system information"), Action: o.show(o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)")},
 			{Item: item("10", "Logs", "View log file"), Action: o.show(o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)")},

@@ -25,7 +25,7 @@
 
 | ID | Title | Source | Area / slice | Effort | Risk | Status |
 |---|---|---|---|---|---|---|
-| [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed; the DNS row's design agreed (2026-10-22); no Environment row (2026-10-29) |
+| [P-01](#p-01) | Line up status rows and menu items | brief §7.1 | Main menu; slice 7 | L | Medium | proposed; the DNS row's design agreed (2026-10-22); no Environment row (2026-10-29); rows and items in one order (2026-11-07) |
 | [P-02](#p-02) | Make Run All hard to trigger by accident | brief §7.2 | Main menu; slice 8 | M | Low | decided (2026-11-04): item 7 kept, the combined plan and the hostname typed whatever the risk |
 | [P-03](#p-03) | Resolve the dry-run model | brief §7.3 | Dry-Run; slice 2b | M | Medium | decided (2026-10-23): one "Plan only" mode set at start; item 6 removed, its key unused |
 | [P-04](#p-04) | Treat uptime as a finding (pending reboot) | brief §7.4 | HostBlock; Phase 4 | M | Low | approved (2026-10-21); implemented, `next/p4-header`, `next/p4-risk` |
@@ -77,7 +77,7 @@
 <a id="p-01"></a>
 ### P-01: Line up status rows and menu items
 
-- **Status:** proposed; the DNS row's design agreed for its unit (maintainer, 2026-10-22, slice 2 decision 8: a row from `dns.State`, Configured when the servers in use are hardn.yml's; docs/engine/gallery-dns.md §4). Environment has no row (maintainer, 2026-10-29, slice 9 decision 6 (a): whether sudo keeps `HARDN_CONFIG` is how hardn is run, not how the host is hardened; [gallery-environment.md](../engine/gallery-environment.md) §5).
+- **Status:** proposed. Rows and items in one order (maintainer, 2026-11-07): rows User, SSH Login, SSH Auth, SSH Port, Firewall, DNS, Auto Updates, AppArmor; items 1 User Management, 2 SSH Login, 3 Firewall, 4 DNS, 5 Auto Updates, 6 Run All, 7 Backup, 8 Environment, 9 System Details, 10 Logs; still two lists ([menu-live.md](../engine/menu-live.md) §2). The DNS row's design agreed for its unit (maintainer, 2026-10-22, slice 2 decision 8: a row from `dns.State`, Configured when the servers in use are hardn.yml's; docs/engine/gallery-dns.md §4). Environment has no row (maintainer, 2026-10-29, slice 9 decision 6 (a): whether sudo keeps `HARDN_CONFIG` is how hardn is run, not how the host is hardened; [gallery-environment.md](../engine/gallery-environment.md) §5).
 - **Source:** brief §7.1. Related: [P-16](#p-16), [P-13](#p-13).
 - **Problem:**
   - AppArmor and Auto Updates show a status ("Not Configured") but have no menu item. DNS has a menu item but no status row [V, `00-TUI-MAIN` and origin/main `main_menu.go`].
@@ -96,7 +96,7 @@
 ### P-02: Make Run All hard to trigger by accident
 
 - **Status:** proposed
-- **Mock:** slice 8's unit (a), [gallery-runall.md](../engine/gallery-runall.md): the combined plan and the typed confirmation played; placement and numbering are its decision 7 (keep 7 recommended; the last item, 10, drawn). **Decided** (maintainer, 2026-11-04, "Adopt all, start (b)"): decision 7 (a), item 7 kept with its label and description; the combined plan shown and the hostname typed whatever the risk (decision 6 (a)).
+- **Mock:** slice 8's unit (a), [gallery-runall.md](../engine/gallery-runall.md): the combined plan and the typed confirmation played; placement and numbering are its decision 7 (keep 7 recommended; the last item, 10, drawn). **Decided** (maintainer, 2026-11-04, "Adopt all, start (b)"): decision 7 (a), item 7 kept with its label and description (item 6 since 2026-11-07, [P-01](#p-01)); the combined plan shown and the hostname typed whatever the risk (decision 6 (a)).
 - **Source:** brief §7.2.
 - **Problem:**
   - Run All is item 7, one keystroke and Enter away in live mode.

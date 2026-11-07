@@ -8,7 +8,7 @@
 // apply, rolled back on failure, then the screen drawn again from a fresh
 // reading. Every refusal is the control's or the engine's, said before
 // anything is asked. Run is the one entry point, which cmd/hardn's main
-// menu item 6 is to call (unit (d)); docs/engine/screen-updates.md has its
+// menu item 5 is to call (unit (d)); docs/engine/screen-updates.md has its
 // API and what it decided.
 //
 // The change runs through the glue every area's screen shares

@@ -2,7 +2,7 @@
 // docs/engine/control-runall.md): what hardn.yml asks of each control, each
 // control planned alone and skipped, said, where it refuses, doesn't apply
 // or has nothing to change, and the rest in one plan on the engine. The Run
-// All screen (main menu 7) and hardn -r both draw from its Reading, so the
+// All screen (main menu 6) and hardn -r both draw from its Reading, so the
 // two never differ. It reads the host only through host.System and the
 // engine, writes nothing, and renders nothing: its rows are data and words.
 //

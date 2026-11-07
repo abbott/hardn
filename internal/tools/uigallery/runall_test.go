@@ -57,7 +57,7 @@ func raArgs(t *testing.T, env term.Env) []string {
 // transcript: the combined plan typed and applied, confirm-or-revert where
 // it is lockout-risk; a refusal skipped and said; a change pending; nothing
 // to change; a wrong phrase, then back; plan only; the hosts' menu; the
-// main menu's 7.
+// main menu's 6.
 func TestPlayRunAllGolden(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -81,7 +81,7 @@ func TestPlayRunAllGolden(t *testing.T) {
 		{"runall-wrong-phrase", []string{"runall/debian13"}, []string{"1", "WEB-01", "0", "0"}, nil},
 		{"runall-plan-only", []string{"-sequence", "dry-run", "runall/debian13"}, []string{"1", "0"}, raCells()},
 		{"runall-hosts", []string{"runall"}, []string{"4", "0", "0"}, nil},
-		{"runall-main-menu", nil, []string{"7", "0", "0"}, nil},
+		{"runall-main-menu", nil, []string{"6", "0", "0"}, nil},
 	}
 	for _, tt := range tests {
 		cells := tt.cells
@@ -160,8 +160,8 @@ func TestRunAllHosts(t *testing.T) {
 	want := map[string]raWant{
 		"debian13":       {planned: []string{login, dnsctl.ID}, lockout: true},
 		"ubuntu2604":     {planned: []string{login, dnsctl.ID}, lockout: true},
-		"alpine323":      {planned: []string{login, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID}, lockout: true},
-		"fresh":          {planned: []string{users.ID, updates.ID, dnsctl.ID}, refused: []string{fwctl.ID, login}},
+		"alpine323":      {planned: []string{login, dnsctl.ID, updates.ID}, refused: []string{fwctl.ID}, lockout: true},
+		"fresh":          {planned: []string{users.ID, dnsctl.ID, updates.ID}, refused: []string{login, fwctl.ID}},
 		"hardened":       {},
 		"partial":        {planned: []string{login}, lockout: true},
 		"port":           {planned: []string{login, dnsctl.ID}, lockout: true},

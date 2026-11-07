@@ -27,13 +27,13 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // menus lead (docs/refactor/phase0/interaction.md §9): the main menu to
 // its sub-menus, User Management's Manage User to the user list and on to
 // george's menu, its Sudo Method to the sudo change, and SSH Login's first
-// item to the root-login toggle. The main menu's 3 leads to the real DNS
-// screen (dnsLinks, dnsscreen.go), its 5 to the real Backup screen
+// item to the root-login toggle. The main menu's 4 leads to the real DNS
+// screen (dnsLinks, dnsscreen.go), its 7 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
 // kept among the mocks as Figma's record (figmaRecords), and its 8 to the
 // real Environment screen (envLinks, environment.go), its 9 to the real System
 // Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
-// (logsLinks, logs.go), its 4 to the real Firewall screen (fwLinks, firewall.go),
+// (logsLinks, logs.go), its 3 to the real Firewall screen (fwLinks, firewall.go),
 // its 1 to the real User Management screen (usrLinks, users.go) and its 2 to the
 // real SSH Login screen (sshLinks, ssh.go). An item with no
 // link, and no refusal (screen.Mock.Refusals), says that the gallery has
@@ -583,7 +583,7 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		if to, ok := raLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openRunAll(to)
 		}
-		if m.Name == mainMenuMock && it.Key == "7" { // the Auto Updates screen's item, in play alone until unit (d) (decision 1)
+		if m.Name == mainMenuMock && it.Key == "6" { // the Auto Updates screen's item, in play alone until unit (d) (decision 1)
 			out.Options = append(out.Options, nav.Option{Item: updMenuItem, Action: s.openUpdates(updMainHost)})
 		}
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})

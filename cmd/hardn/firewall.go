@@ -33,7 +33,7 @@ import (
 // runControls runs a flag's controls, its report output.Human's on stdout
 // off a terminal, the canonical flow's on one. A lockout-risk plan, which
 // Enable's is wherever it starts ufw or sets the deny policy, is confirmed
-// as main menu 4 confirms it, by the hostname typed, on a terminal, the
+// as main menu 3 confirms it, by the hostname typed, on a terminal, the
 // revert timer then armed as the engine arms it; off a terminal it is
 // refused, nothing armed (enableFirewall). A plain plan ("Start ufw at
 // boot" alone, ufw already running) is applied unasked, on a terminal or

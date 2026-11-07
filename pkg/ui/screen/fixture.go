@@ -32,13 +32,17 @@ func fixtureHeader() component.Header {
 // MainMenuFixture returns the main menu as Figma's 00-TUI-MAIN fills it,
 // with synthetic data: Figma's mock host BOS-SAN-L01 at 192.0.2.10, its
 // SSH port 2230, Figma's seven status rows and its Moderate risk, and the
-// live mode. The menu's items are hardn's (pkg/screens/mainmenu run.go,
-// held equal by its TestMainMenuItems): they differ from the PNG in item
-// 2, "Root login, passwords, port" where Figma has "Toggle root SSH
-// access" (legacy-left.md §3, decision 7 (a); P-07 (a), P-12), in item 6, Dry-Run, which hardn removed, its key left unused
-// (refactor plan slice 2b, decision 1), and in item 8, "Keep HARDN_CONFIG"
-// where Figma and origin/main have "Configure environment variable" (slice
-// 9, decision 7 (a), P-07 (c)). The Exit item says "q to quit" (DEV-030),
+// live mode. The rows and items are in hardn's order, the maintainer's
+// (2026-11-07), not the PNG's: the rows as risk.Rows has them, without
+// DNS; the items User Management, SSH Login, Firewall, DNS, Run All,
+// Backup, Environment, System Details, Logs. The items are hardn's
+// (pkg/screens/mainmenu run.go, held equal by its TestMainMenuItems) but
+// item 5, Auto Updates, which the mock has not yet; they differ from the
+// PNG in item 2, "Root login, passwords, port" where Figma has "Toggle
+// root SSH access" (legacy-left.md §3, decision 7 (a); P-07 (a), P-12),
+// in Dry-Run, which hardn removed (refactor plan slice 2b, decision 1),
+// and in item 8, "Keep HARDN_CONFIG" where Figma and origin/main have
+// "Configure environment variable" (slice 9, decision 7 (a), P-07 (c)). The Exit item says "q to quit" (DEV-030),
 // and the prompt is origin/main's "Enter selection" where Figma's says
 // "Enter your choice" (P-29 (a)).
 func MainMenuFixture() MainMenu {
@@ -52,21 +56,21 @@ func MainMenuFixture() MainMenu {
 		Risk:    component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"},
 		Status: component.StatusList{Rows: []component.StatusRow{
 			configured("User", "non-root, sudo"),
-			configured("Firewall", "deny policy"),
 			configured("SSH Login", "root disallowed"),
 			configured("SSH Auth", "key-only auth"),
 			configured("SSH Port", "non-default (2230)"),
-			{Label: "AppArmor", State: component.StatusNotConfigured},
+			configured("Firewall", "deny policy"),
 			{Label: "Auto Updates", State: component.StatusNotConfigured},
+			{Label: "AppArmor", State: component.StatusNotConfigured},
 		}},
 		Heading: fixtureHeading,
 		Menu: component.Menu{Items: []component.MenuItem{
 			{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
 			{Key: "2", Label: "SSH Login", Description: "Root login, passwords, port"},
-			{Key: "3", Label: "DNS", Description: "Configure Nameservers"},
-			{Key: "4", Label: "Firewall", Description: "Configure UFW rules"},
-			{Key: "5", Label: "Backup", Description: "Configure Hardn backup settings"},
-			{Key: "7", Label: "Run All", Description: "Execute hardening operations"},
+			{Key: "3", Label: "Firewall", Description: "Configure UFW rules"},
+			{Key: "4", Label: "DNS", Description: "Configure Nameservers"},
+			{Key: "6", Label: "Run All", Description: "Execute hardening operations"},
+			{Key: "7", Label: "Backup", Description: "Configure Hardn backup settings"},
 			{Key: "8", Label: "Environment", Description: "Keep HARDN_CONFIG"},
 			{Key: "9", Label: "System Details", Description: "View system information"},
 			{Key: "10", Label: "Logs", Description: "View log file"},

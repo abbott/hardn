@@ -8,7 +8,7 @@
 // risk (decision 6 (a)), the apply, confirmed from a new connection or
 // reverted where the plan is lockout-risk, then the screen drawn again from
 // a fresh reading. Run is the one entry point, which cmd/hardn's main menu
-// item 7 is to call (unit (d)); docs/engine/screen-runall.md has its API
+// item 6 is to call (unit (d)); docs/engine/screen-runall.md has its API
 // and what it decided.
 //
 // The change runs through the glue every area's screen shares

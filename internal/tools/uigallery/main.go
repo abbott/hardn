@@ -188,7 +188,7 @@
 //
 // "play firewall" is the menu of the Firewall screen's hosts and "play
 // firewall/<host>" the real screen on one (pkg/screens/firewall, firewall.go),
-// every change on the real engine; the main menu's 4 leads to it on Debian 13.
+// every change on the real engine; the main menu's 3 leads to it on Debian 13.
 // -sequence dry-run stops each change at its plan, as plan only would; -fail is
 // refused there. The listing of its mocks, "firewall", of refactor plan slice 4,
 // unit (a) (docs/engine/gallery-firewall.md), was removed when the real screen
@@ -212,7 +212,7 @@
 //
 // "play updates" is the menu of the Auto Updates screen's hosts and "play
 // updates/<host>" the real screen on one (pkg/screens/updates, updates.go),
-// every change on the real engine; the main menu's 6 leads to it on Debian
+// every change on the real engine; the main menu's 5 leads to it on Debian
 // 13. -sequence dry-run stops each change at its plan, as plan only would;
 // -fail is refused there. The listing of its mock, "updates", of refactor
 // plan slice 7, unit (a) (docs/engine/gallery-updates.md), was removed when

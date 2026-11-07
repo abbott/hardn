@@ -754,18 +754,18 @@ Every component of `pkg/ui/component`, the section that records it, and its gold
   [*] Risk Level           Moderate ~ medium security
   [+] User                 Configured non-root, sudo
   [...]
-  [ ] Auto Updates         Not Configured
+  [ ] AppArmor             Not Configured
 
   Select an option         Mode Live
-   1) User Management       7) Run All
+   1) User Management       7) Backup
    2) SSH Login             8) Environment
-   3) DNS                   9) System Details
-   4) Firewall             10) Logs
-   5) Backup
+   3) Firewall              9) System Details
+   4) DNS                  10) Logs
+   6) Run All
 
    0) Exit                 q to quit
 
-    > Enter selection [0-5, 7-10 or q]:
+    > Enter selection [0-4, 6-10 or q]:
 ```
 
 Known limits: below 64 columns the rows stack (DEV-021) and Figma's content takes 34 lines compact and 55 in full at 60 columns (57 with item 6), the two columns and the exit row beside its label staying as they are, so a 60-column terminal shows the compact form up to 54 rows and the full form from 55; the host block's reboot line, each line under a status row (a risk factor, since `next/p4-risk-lines` under its row rather than under the level: a pending reboot is one line now, not two, but each Unknown row has its own, so a host with nothing read takes 33 lines at 80×24, not 27, its risk level scrolled off; DEV-052) and each status row past Figma's seven add a line, to both forms, and the full form gives way to the compact one wherever its added lines no longer fit; a menu with a marked item keeps one column. Past the terminal's height the compact form's top scrolls, as the full form's would. *Since `next/s2-menu-live`* a host's main menu has an eighth row, DNS, so with no line under a row the compact form takes 25 lines at 80×24 and the full form 36 at 80×40, 35 since item 6 went (DEV-052; [menu-live.md](../engine/menu-live.md) §6).

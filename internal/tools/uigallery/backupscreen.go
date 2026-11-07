@@ -37,7 +37,7 @@ import (
 // drawn from each host's hardn.yml and backup directory through Backup's
 // control, every change on the real engine, on the hosts the Backup mocks
 // were drawn for, which it replaces (docs/engine/screen-backup.md). The
-// main menu's 5 leads to it on the default host, as hardn's main menu 5
+// main menu's 7 leads to it on the default host, as hardn's main menu 7
 // runs it since next/s3-replace, under plan only too (-sequence dry-run);
 // "play backup" is the menu of the hosts and "play backup/<host>" one.
 //
@@ -53,20 +53,20 @@ const backupPrefix = "backup"
 // restoreMock names the restore's mock in play.
 const restoreMock = "backup-restore"
 
-// backupMainHost is the host the main menu's 5 leads to.
+// backupMainHost is the host the main menu's 7 leads to.
 const backupMainHost = backupPrefix + "/default"
 
 // backupLinks lead from a menu mock's item to the Backup screen on a host,
-// by the mock's name and the item's key, beside links: the main menu's 5,
+// by the mock's name and the item's key, beside links: the main menu's 7,
 // which opened Figma's 05-BACKUP frame (sub-menu/05-backup) until this
 // unit, kept among the mocks as Figma's record.
-var backupLinks = map[string]string{mainMenuMock + "/5": backupMainHost}
+var backupLinks = map[string]string{mainMenuMock + "/7": backupMainHost}
 
 // figmaRecords are the mocks kept as Figma's record of a screen hardn now
 // draws itself, by name, each with the item that leads to hardn's screen
 // in its place: no item leads to them, and play starts at them by name
 // ("play sub-menu/05-backup"), as -screens draws them.
-var figmaRecords = map[string]string{"sub-menu/05-backup": mainMenuMock + "/5"}
+var figmaRecords = map[string]string{"sub-menu/05-backup": mainMenuMock + "/7"}
 
 func init() {
 	// The elsewhere host's backup path is hardn's own state, as

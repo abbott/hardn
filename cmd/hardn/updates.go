@@ -1,7 +1,7 @@
 package main
 
 // Auto Updates on the plan/apply engine (refactor plan slice 7, Auto
-// Updates, unit (d)): the main menu's Auto Updates item (6) runs the Auto
+// Updates, unit (d)): the main menu's Auto Updates item (5) runs the Auto
 // Updates screen (pkg/screens/updates), which pkg/screens/mainmenu reaches through the
 // hook set here, as it reaches the SSH Login screen (ssh.go), so that
 // pkg/screens/mainmenu builds no engine. The engine's options are engine.go's. No flag

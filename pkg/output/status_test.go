@@ -35,7 +35,7 @@ func row(id, title string, s engine.State, detail string, codes ...string) engin
 }
 
 // figmaReports is Figma's 00-TUI-MAIN host, as the checks report it, in
-// Engine.Check's order (the areas' packages), not Figma's, and the DNS
+// an order not the rows' (risk.Rows), and the DNS
 // row, which Figma does not draw, its nameservers hardn.yml's.
 func figmaReports() []engine.Report {
 	return []engine.Report{
@@ -62,8 +62,8 @@ func upFor(d time.Duration) header.Header {
 	return header.Header{Uptime: up(d), Reboot: header.Reboot{Pending: detect.No}}
 }
 
-// TestStatusViewOfFigma: Figma's host, its rows in Figma's order with its
-// details, and its Moderate level, Figma's one line, with the long uptime
+// TestStatusViewOfFigma: Figma's host, its rows in the rows' order
+// (risk.Rows) with its details, and its Moderate level, Figma's one line, with the long uptime
 // its one factor, a cost established under Auto Updates.
 func TestStatusViewOfFigma(t *testing.T) {
 	rs := figmaReports()
@@ -72,14 +72,14 @@ func TestStatusViewOfFigma(t *testing.T) {
 		Risk: component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"},
 		Status: component.StatusList{Rows: []component.StatusRow{
 			{Label: "User", State: component.StatusConfigured, Detail: "non-root, sudo"},
-			{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
 			{Label: "SSH Login", State: component.StatusConfigured, Detail: "root disallowed"},
 			{Label: "SSH Auth", State: component.StatusConfigured, Detail: "key-only auth"},
 			{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
-			{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
+			{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
+			{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"},
 			{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades",
 				Lines: []component.StatusLine{{Text: "Up 182 days, no updates", Warn: true}}},
-			{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"},
+			{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
 		}},
 	}
 	if !reflect.DeepEqual(v, want) {
@@ -87,7 +87,7 @@ func TestStatusViewOfFigma(t *testing.T) {
 	}
 }
 
-// TestStatusRows: Figma's order whatever the reports', a row with no
+// TestStatusRows: the rows' order whatever the reports', a row with no
 // report Unknown, a failed check Unknown, each with its line, a control
 // the score does not weigh after the rows, a control's first report.
 func TestStatusRows(t *testing.T) {
@@ -101,13 +101,13 @@ func TestStatusRows(t *testing.T) {
 	counted := []component.StatusLine{{Text: "Counted as not configured"}}
 	want := []component.StatusRow{
 		{Label: "User", State: component.StatusUnknown, Lines: counted},
-		{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
 		{Label: "SSH Login", State: component.StatusConfigured, Detail: "root disallowed"},
 		{Label: "SSH Auth", State: component.StatusUnknown, Detail: "sshd not running", Lines: counted},
 		{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
-		{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
-		{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades"},
+		{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
 		{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"},
+		{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades"},
+		{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
 		{Label: "Extra", State: component.StatusPartial, Detail: "one server"},
 	}
 	if !reflect.DeepEqual(v.Status.Rows, want) {

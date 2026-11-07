@@ -210,7 +210,7 @@ func nameserversOf(t *testing.T, h *fakeHost) []string {
 
 // TestPlayDNSUsage checks that a DNS host that is not one, -fail, and a
 // sequence other than normal or dry-run stop play with exit status 2
-// before stdin is read; and that the main menu's 3 leads to the screen on
+// before stdin is read; and that the main menu's 4 leads to the screen on
 // Debian 13.
 func TestPlayDNSUsage(t *testing.T) {
 	for _, args := range [][]string{
@@ -225,12 +225,12 @@ func TestPlayDNSUsage(t *testing.T) {
 			t.Errorf("play %v: exit %d, stdout %q, stderr %q, stdin read %t; want exit %d, a message, no output", args, code, out.String(), errs.String(), read, exitUsage)
 		}
 	}
-	if dnsLinks[mainMenuMock+"/3"] != dnsMainHost {
-		t.Errorf("the main menu's 3 leads to %q", dnsLinks[mainMenuMock+"/3"])
+	if dnsLinks[mainMenuMock+"/4"] != dnsMainHost {
+		t.Errorf("the main menu's 4 leads to %q", dnsLinks[mainMenuMock+"/4"])
 	}
-	code, out, errs, unread := playGallery([]string{"3", "0", "0"}, "-profile", "plain")
+	code, out, errs, unread := playGallery([]string{"4", "0", "0"}, "-profile", "plain")
 	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Info: "+dnsMainHost) || !strings.Contains(out, "# DNS Configuration #") {
-		t.Errorf("play, 3: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
+		t.Errorf("play, 4: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, _, unread = playGallery([]string{"7", "0", "0"}, "-profile", "plain", dnsPrefix)
 	if code != exitOK || unread != 0 || !strings.Contains(out, "DNS hosts") || !strings.Contains(out, "Info: "+dnsPrefix+"/one") {

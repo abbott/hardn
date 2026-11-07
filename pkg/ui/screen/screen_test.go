@@ -562,23 +562,23 @@ func TestCompactForm(t *testing.T) {
 
   [*] Risk Level           Moderate ~ medium security
   [+] User                 Configured non-root, sudo
-  [+] Firewall             Configured deny policy
   [+] SSH Login            Configured root disallowed
   [+] SSH Auth             Configured key-only auth
   [+] SSH Port             Configured non-default (2230)
-  [ ] AppArmor             Not Configured
+  [+] Firewall             Configured deny policy
   [ ] Auto Updates         Not Configured
+  [ ] AppArmor             Not Configured
 
   Select an option         Mode Live
-   1) User Management       7) Run All
+   1) User Management       7) Backup
    2) SSH Login             8) Environment
-   3) DNS                   9) System Details
-   4) Firewall             10) Logs
-   5) Backup
+   3) Firewall              9) System Details
+   4) DNS                  10) Logs
+   6) Run All
 
    0) Exit                 q to quit
 
-    > Enter selection [0-5, 7-10 or q]:`
+    > Enter selection [0-4, 6-10 or q]:`
 	if out != want || lines(out) != theme.CompactBudget {
 		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
 	}

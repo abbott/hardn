@@ -148,11 +148,11 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Dry run (hardn.yml)", or "(-n)" when the flag set it.
 
-> **Changed in v0.4.0.** `dryRun` used to be ignored: `hardn` ran live whatever the file said. It is now read. A `dryRun: true` an earlier `hardn` wrote now starts a dry run. The main menu's Dry-Run item (6) wrote one to `./hardn.yml`, as did any menu save made under `-n`. If changes are no longer applied, check the file `hardn` names at start for `dryRun: true`. Set it to `false`, or run with `--dry-run=false`. Item 6 is now removed, and Run All no longer turns dry run on or off.
+> **Changed in v0.4.0.** `dryRun` used to be ignored: `hardn` ran live whatever the file said. It is now read. A `dryRun: true` an earlier `hardn` wrote now starts a dry run. The main menu's Dry-Run item (6) wrote one to `./hardn.yml`, as did any menu save made under `-n`. If changes are no longer applied, check the file `hardn` names at start for `dryRun: true`. Set it to `false`, or run with `--dry-run=false`. The Dry-Run item is now removed, and Run All no longer turns dry run on or off.
 
 #### `enableBackups` and `backupPath`: the Backup screen
 
-The main menu's Backup (5) shows and changes these two settings.
+The main menu's Backup (7) shows and changes these two settings.
 
 - **Showing it writes nothing.** With backups on, it used to write a test file to the backup path each time.
 - **Verify Directory writes nothing.** It checks that only root can change the path.
@@ -229,7 +229,7 @@ disableRootSSH: false               # Run All: true turns root login off
 
 #### What Run All reads
 
-The main menu's Run All (7) and `hardn -r` plan these keys' changes as one plan:
+The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 
 - **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
 - **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.
@@ -244,11 +244,11 @@ A change that is refused, doesn't apply or has nothing to change is skipped, and
 
 **`ufwAllowedPorts`, `enableAppArmor` and `enableLynis` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's enableLynis isn't used".
 
-The main menu's Auto Updates (6) reads the host, never `enableUnattendedUpgrades`. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableUnattendedUpgrades: false` where hardn.yml says true, so Run All doesn't turn them back on.
+The main menu's Auto Updates (5) reads the host, never `enableUnattendedUpgrades`. It turns automatic updates on, and off where hardn turned them on; on Proxmox VE it changes nothing. Turning them off saves `enableUnattendedUpgrades: false` where hardn.yml says true, so Run All doesn't turn them back on.
 
 ### Firewall Configuration with UFW Application Profiles
 
-The main menu's Firewall (4) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing.
+The main menu's Firewall (3) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing.
 
 - **Enabling asks you to type the hostname**, since a wrong rule could lock you out. It lets SSH through, denies incoming by default, starts ufw and starts it at boot. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
 - **`hardn -w` enables it the same way.** On a terminal, a change that could lock you out asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out, such as starting ufw at boot when it already runs, is applied without asking on a terminal; off one only with `--yes`, otherwise hardn shows the plan and exits 2. With `-n` it shows the plan. On Proxmox VE `-w` is refused, exit status 1.
@@ -272,7 +272,7 @@ Each profile has these fields:
 - **In ufw's file the ports are joined by `|`**, as ufw requires: `ports=80/tcp|443/tcp`. Keep one port per entry in hardn.yml.
 - **Removing a profile leaves its rule in ufw.** It is taken out of hardn.yml only. Delete it with `ufw delete`.
 
-Enabling, from main menu 4 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` enable it the same way. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
+Enabling, from main menu 3 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` enable it the same way. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 ## Configuration Recommendations
 <!-- 

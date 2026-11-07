@@ -14,6 +14,8 @@ hardn's main menu has drawn its host lines, status rows and risk level from the 
 
 **Where the DNS row goes: after Auto Updates, last.** Figma's 00-TUI-MAIN draws seven rows, in an order that is not the menu items' (Firewall is the second row and item 4), and P-01's "drive status rows and menu items from one list" is still proposed: putting DNS at item 3's place would reorder Figma's rows for a decision not made. Last, Figma's seven keep their places and lines, the risk lines included. **The order is `risk.Rows`'**: the main menu draws its rows in that order, whatever the reports' (`output.StatusViewOf`), and `TestStatus` holds `controls.Status` to it. So a new row (each control slices 3–9 add) or another order (P-01, when decided) changes both, `risk.rows` (the row's place and weight) and `controls.Status`; `controls.Status` reordered alone fails `TestStatus` and reorders nothing on screen.
 
+*Amended 2026-11-07:* the maintainer set the order of the rows, User, SSH Login, SSH Auth, SSH Port, Firewall, DNS, Auto Updates, AppArmor, and of the items, 1 User Management, 2 SSH Login, 3 Firewall, 4 DNS, 5 Auto Updates, 6 Run All, 7 Backup, 8 Environment, 9 System Details, 10 Logs. `risk.rows` and `controls.Status` changed together; the rows and the items are still two lists (P-01). Run All's rows are the main menu's, so its plan takes the controls in the new order. The engine orders changes by stage first, so only changes within one stage move (DNS's files now come before Auto Updates'), and Run All never plans root login off with the firewall (decision 5 (a)).
+
 ## 3. The risk level: shown, not weighed
 
 `risk.Rows` gains DNS (`dns.nameservers`) after Figma's seven, **weight 0**; the seven keep their weights, still 100 together. `risk.Assess` leaves a row of weight 0 out of everything (`TestShownNotWeighed`): the share and the whole, whether any row is established (a DNS row alone established leaves the band Unknown), and the factors. So **a weight-0 row adds no factor and no "Counted as not configured" line**, which would be false of a row that is not counted. The score, the band, the factors and the lines under the rows are byte for byte the same on every gallery status host: the risk test runs every kind of host with a DNS report in each state, failed and absent, against the same host without it, and the gallery's status goldens gained the DNS row and nothing else (§4). [risk.md](risk.md) §5.1 and §5.2 say it.
@@ -213,7 +215,7 @@ None blocks this unit; each is a decision this unit did not take.
 
 ```go
 package controls // pkg/engine/controls (new)
-func Status(cfg *config.Config) []engine.Control // Figma's seven rows' controls, then dns.Controls(cfg)
+func Status(cfg *config.Config) []engine.Control // the rows' controls, in risk.Rows' order (the maintainer's since 2026-11-07)
 
 package risk // pkg/engine/risk
 // Rows(): DNS added last, Weight 0; Assess leaves a row of weight 0 out of everything.

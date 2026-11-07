@@ -7,7 +7,7 @@
 // typed for a lockout-risk plan, the apply, then the screen drawn again under the
 // result from a fresh reading. On Proxmox VE it is read only: no ufw call, and
 // no item offered, so hardn.yml plays no part. Run is the one entry point, which cmd/hardn's main menu
-// item 4 is to call (unit (d)); docs/engine/screen-firewall.md has its API and
+// item 3 is to call (unit (d)); docs/engine/screen-firewall.md has its API and
 // what it decided.
 //
 // Each change runs through the glue every area's screen shares

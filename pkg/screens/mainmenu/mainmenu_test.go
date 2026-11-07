@@ -72,8 +72,8 @@ func TestNothingRead(t *testing.T) {
 		}
 	}
 	i := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "  [?] DNS ") })
-	if i < 0 || !strings.HasSuffix(lines[i], "Unknown can't read") || i != len(lines)-1 {
-		t.Errorf("DNS: want Unknown, \"can't read\", last, nothing under it:\n%s", out)
+	if i < 0 || !strings.HasSuffix(lines[i], "Unknown can't read") || i+1 < len(lines) && !strings.HasPrefix(lines[i+1], "  [") {
+		t.Errorf("DNS: want Unknown, \"can't read\", nothing under it:\n%s", out)
 	}
 	if risk := plain(t, vm.Risk); !strings.Contains(risk, "Risk Level           Unknown") {
 		t.Errorf("the risk level is not Unknown:\n%s", risk)

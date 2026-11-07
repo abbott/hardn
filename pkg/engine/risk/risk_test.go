@@ -758,20 +758,20 @@ func TestUnknownLines(t *testing.T) {
 	for _, f := range risk.Assess(reports, quiet).Factors {
 		got = append(got, f.Control)
 	}
-	if want := []string{idUser, idFW, idPort, idUpdate}; !slices.Equal(got, want) {
+	if want := []string{idUser, idPort, idFW, idUpdate}; !slices.Equal(got, want) {
 		t.Errorf("lines under %q, want %q", got, want)
 	}
 }
 
-// TestRows: the rows are the five areas' controls, once each, in Figma's
-// order, their weights 100 together, the port lighter than either auth
-// setting, the firewall one row; then DNS, of weight 0. Engine.Check over
-// the areas' Controls(), in this order, gives its reports in Figma's
-// order too (pkg/engine/controls's Status holds the main menu's list to
-// these rows).
+// TestRows: the rows are the six areas' controls, once each, in the
+// maintainer's order (2026-11-07), the weights 100 together, the port
+// lighter than either auth setting, the firewall one row, DNS of weight 0.
+// Engine.Check over the areas' Controls(), in this order, gives its
+// reports in that order too (pkg/engine/controls's Status holds the main
+// menu's list to these rows).
 func TestRows(t *testing.T) {
 	var controls []engine.Control
-	for _, cs := range [][]engine.Control{users.Controls(), firewall.Controls(), ssh.Controls(), apparmor.Controls(), updates.Controls(), dns.Controls(nil)} {
+	for _, cs := range [][]engine.Control{users.Controls(), ssh.Controls(), firewall.Controls(), dns.Controls(nil), updates.Controls(), apparmor.Controls()} {
 		controls = append(controls, cs...)
 	}
 	rows := risk.Rows()
@@ -794,8 +794,8 @@ func TestRows(t *testing.T) {
 	for _, r := range rows {
 		titles = append(titles, r.Title)
 	}
-	if want := []string{"User", "Firewall", "SSH Login", "SSH Auth", "SSH Port", "AppArmor", "Auto Updates", "DNS"}; !slices.Equal(titles, want) {
-		t.Errorf("titles %q, want Figma's %q then DNS", titles, want)
+	if want := []string{"User", "SSH Login", "SSH Auth", "SSH Port", "Firewall", "DNS", "Auto Updates", "AppArmor"}; !slices.Equal(titles, want) {
+		t.Errorf("titles %q, want the maintainer's %q", titles, want)
 	}
 	if sum != 100 {
 		t.Errorf("weights sum to %d, want 100", sum)

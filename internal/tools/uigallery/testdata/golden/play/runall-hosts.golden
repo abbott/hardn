@@ -49,13 +49,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate george, 1 key␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mufw isn't installed. Instal…␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mYou're logged in as root ov…␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mufw isn't installed. Instal…␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -144,13 +144,13 @@ $
   Controls -----------------------------------------------------$
 $
    -  User                 Create george, 1 key$
-   -  Firewall             Refused: ufw isn't installed. Inst...$
    -  SSH Login            Refused: You're logged in as root...$
    -  SSH Auth             Nothing asked$
    -  SSH Port             Already as asked$
-   -  AppArmor             Status only$
-   -  Auto Updates         Turn on$
+   -  Firewall             Refused: ufw isn't installed. Inst...$
    -  DNS                  Set 2 nameservers$
+   -  Auto Updates         Turn on$
+   -  AppArmor             Status only$
    -  Backups              Used, not changed$
    -  Environment          Nothing asked$
 $
@@ -256,20 +256,20 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156mCreate george, 1 key␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mufw isn't installed. Install it, then try ag…␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mYou're logged in as root over SSH. Turning r…␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
-      ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mRefused:␛[m ␛[38;2;129;134;156mufw isn't installed. Install it, then try ag…␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
       ␛[38;2;129;134;156mSet 2 nameservers␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
       ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$

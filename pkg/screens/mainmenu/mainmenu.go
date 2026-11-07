@@ -1,8 +1,8 @@
 // Package mainmenu reads the main menu's status on a host (refactor plan
 // slice 2, next/s2-menu-live; the maintainer, 2026-10-23: "Main menu goes
 // live"): the header, the host block, the risk level and the status rows,
-// from the main menu's status controls (controls.Status: Figma's seven,
-// then DNS), the header probe and the risk level, mapped by pkg/output
+// from the main menu's status controls (controls.Status, in its rows'
+// order), the header probe and the risk level, mapped by pkg/output
 // into pkg/ui/screen's main-menu layout exactly as the gallery's status
 // hosts and internal/tools/p4status map them: Status, which cmd/hardn's
 // hook on the main menu calls on every pass (Options.Status). Run is the

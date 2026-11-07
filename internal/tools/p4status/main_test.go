@@ -233,7 +233,7 @@ func TestRefusedTolerated(t *testing.T) {
 	if code != exitRefused || !strings.Contains(errOut, "4 call(s) refused") {
 		t.Errorf("exit %d, stderr %q", code, errOut)
 	}
-	if !strings.HasPrefix(out, "== incomplete: 4 call(s) refused, in firewall.incoming, ssh.login, ssh.auth, ssh.port\n\nhardn ") {
+	if !strings.HasPrefix(out, "== incomplete: 4 call(s) refused, in ssh.login, ssh.auth, ssh.port, firewall.incoming\n\nhardn ") {
 		t.Errorf("no line above the main menu:\n%s", out)
 	}
 	for id, state := range map[string]string{

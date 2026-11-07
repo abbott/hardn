@@ -84,12 +84,12 @@ func TestPlayGolden(t *testing.T) {
 		lines []string
 		code  int
 	}{
-		{"user-management", nil, []string{"7", "0", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
+		{"user-management", nil, []string{"6", "0", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
 		{"user-management-typed", []string{"-sequence", "typed"}, []string{"1", "1", "1", "1", "bos-san-l01", "q"}, exitOK},
 		{"ssh-toggle", nil, []string{"2", "1", "BOS-SAN-L01", "bos-san-l01", "q"}, exitOK},
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},
 		{"abort", []string{"sub-menu/01-user"}, []string{"2", "alice"}, prompt.ExitInterrupted},
-		{"dns", nil, []string{"3", "2", "999.1.1.1", "192.0.2.54", "192.0.2.53", "y", "0", "0"}, exitOK},
+		{"dns", nil, []string{"4", "2", "999.1.1.1", "192.0.2.54", "192.0.2.53", "y", "0", "0"}, exitOK},
 		{"dns-ubuntu2604", []string{"dns/ubuntu2604"}, []string{"1", "y", "0"}, exitOK},
 		{"dns-alpine324", []string{"dns/alpine324"}, []string{"1", "y", "y", "0"}, exitOK},
 		{"dns-pve9", []string{"dns/pve9"}, []string{"1", "y", "0"}, exitOK},
@@ -163,7 +163,7 @@ func TestPlaySize(t *testing.T) {
 		t.Errorf("play -width 0 on a terminal: exit %d, stdout %q, stderr %q; want exit %d and -width refused", code, out.String(), errs.String(), exitUsage)
 	}
 	vm := screen.MainMenuFixture()
-	i := slices.IndexFunc(vm.Menu.Items, func(it component.MenuItem) bool { return it.Key == "7" })
+	i := slices.IndexFunc(vm.Menu.Items, func(it component.MenuItem) bool { return it.Key == "6" })
 	vm.Menu.Items = slices.Insert(vm.Menu.Items, i, updMenuItem) // play's main menu: the Auto Updates screen's item (updates.go)
 	drawn := func(height int) string {
 		env := term.Fixed(80, colorprofile.ASCII, false, true)

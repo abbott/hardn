@@ -53,9 +53,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: 192.0.2.10 | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -133,9 +133,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: 192.0.2.10 | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Non-System Users: alice (sudo) | alice (doas)
        decision 2 (a); gallery-system-details.md §6, <user>: the sudo group, on a doas host; now what doas grants
 differ Hypervisor: KVM | none
@@ -214,9 +214,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -297,9 +297,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -376,9 +376,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -455,9 +455,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: 192.0.2.10 | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Non-System Users: alice (sudo) | alice (No sudo)
        readers-system-details.md item 16 (adopted 2026-10-30); gallery-system-details.md §6, <user>: the sudo group alone marked alice; now the rules alone: a group no rule names grants nothing
 differ Hypervisor: KVM | none
@@ -529,9 +529,9 @@ differ IP Addresses: 192.0.2.20, 198.51.100.20 | eth0 192.0.2.20/24, eth0 198.51
 differ Client IP: 192.0.2.10 | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ User: root | none
        decision 2 (a), left out: the current user; no row
 differ Non-System Users: alice (sudo), bob | alice (sudo), bob (No sudo)
@@ -600,9 +600,9 @@ differ IP Addresses: 192.0.2.20, 198.51.100.20 | eth0 192.0.2.20/24, eth0 198.51
 differ Client IP: 192.0.2.10 | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ User: root | none
        decision 2 (a), left out: the current user; no row
 differ Non-System Users: alice (sudo), bob | alice (sudo), bob (No sudo)
@@ -715,9 +715,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -794,9 +794,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -871,9 +871,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -951,9 +951,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: Bare Metal | none
        decision 2 (a), left out; defect 15; KNOWN-DEFECT (Bare Metal): not known read as Bare Metal; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1030,9 +1030,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1113,9 +1113,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1196,9 +1196,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1334,9 +1334,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1480,9 +1480,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1624,9 +1624,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1712,9 +1712,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1800,9 +1800,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none
@@ -1944,9 +1944,9 @@ differ Kernel: Linux 6.12.0-example-amd64 | 6.12.0-example-amd64
 differ Client IP: Not connected | none
        decision 2 (a), left out: SSH_CLIENT's address; no row
 differ DNS IP 1: 192.0.2.53 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ DNS IP 2: 192.0.2.54 | none
-       decision 2 (a), left out: DNS has main menu 3's screen; no row
+       decision 2 (a), left out: DNS has main menu 4's screen; no row
 differ Hypervisor: KVM | none
        decision 2 (a), left out: lscpu's vendor, or the report's; no row
 differ CPU Freq: 0.00 GHz | none

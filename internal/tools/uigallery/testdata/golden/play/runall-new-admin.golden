@@ -22,13 +22,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -157,13 +157,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mChange pending␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -232,13 +232,13 @@ $
   Controls -----------------------------------------------------$
 $
    -  User                 Create carol, 1 key$
-   -  Firewall             Already as asked$
    -  SSH Login            Root login off$
    -  SSH Auth             Nothing asked$
    -  SSH Port             Already as asked$
-   -  AppArmor             Status only$
-   -  Auto Updates         Already as asked$
+   -  Firewall             Already as asked$
    -  DNS                  Already as asked$
+   -  Auto Updates         Already as asked$
+   -  AppArmor             Status only$
    -  Backups              Used, not changed$
    -  Environment          Nothing asked$
 $
@@ -367,13 +367,13 @@ $
   Controls -----------------------------------------------------$
 $
    -  User                 Change pending$
-   -  Firewall             Change pending$
    -  SSH Login            Change pending$
    -  SSH Auth             Nothing asked$
    -  SSH Port             Already as asked$
-   -  AppArmor             Status only$
-   -  Auto Updates         Change pending$
+   -  Firewall             Change pending$
    -  DNS                  Change pending$
+   -  Auto Updates         Change pending$
+   -  AppArmor             Status only$
    -  Backups              Used, not changed$
    -  Environment          Nothing asked$
 $
@@ -445,20 +445,20 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;129;134;156mRoot login off␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
       ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
       ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
@@ -602,20 +602,20 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156mChange pending␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
       ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
       ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$
@@ -688,13 +688,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -823,13 +823,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mChange pending␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -898,13 +898,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -1033,13 +1033,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mChange pending␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -1108,13 +1108,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -1243,13 +1243,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mChange pending␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mChange pending␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mChange pending␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $

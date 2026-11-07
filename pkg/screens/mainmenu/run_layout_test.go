@@ -93,16 +93,16 @@ func TestMainMenuKeys(t *testing.T) {
 	}{
 		{"1 opens User Management", []string{"1", "q"}, false, []string{"users"}, 0, 0},
 		{"2 opens SSH Login", []string{"2", "q"}, false, []string{"ssh"}, 0, 0},
-		{"3 opens DNS", []string{"3", "q"}, false, []string{"dns"}, 0, 0},
-		{"4 opens Firewall", []string{"4", "q"}, false, []string{"firewall"}, 0, 0},
-		{"5 opens Backup", []string{"5", "q"}, false, []string{"backup"}, 0, 0},
-		{"6 opens Auto Updates", []string{"6", "q"}, false, []string{"updates"}, 0, 0},
-		{"7 opens Run All", []string{"7", "q"}, false, []string{"runAll"}, 0, 0},
+		{"3 opens Firewall", []string{"3", "q"}, false, []string{"firewall"}, 0, 0},
+		{"4 opens DNS", []string{"4", "q"}, false, []string{"dns"}, 0, 0},
+		{"5 opens Auto Updates", []string{"5", "q"}, false, []string{"updates"}, 0, 0},
+		{"6 opens Run All", []string{"6", "q"}, false, []string{"runAll"}, 0, 0},
+		{"7 opens Backup", []string{"7", "q"}, false, []string{"backup"}, 0, 0},
 		{"8 opens Environment", []string{"8", "q"}, false, []string{"environment"}, 0, 0},
 		{"9 opens System Details", []string{"9", "q"}, false, []string{"systemDetails"}, 0, 0},
 		{"10 opens Logs", []string{"10", "q"}, false, []string{"logs"}, 0, 0},
 		{"every item in turn", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "ssh", "dns", "firewall", "backup", "updates", "runAll", "environment", "systemDetails", "logs"}, 0, 0},
+			[]string{"users", "ssh", "firewall", "dns", "updates", "runAll", "backup", "environment", "systemDetails", "logs"}, 0, 0},
 		{"0 exits", []string{"0"}, false, nil, 0, 0},
 		{"q quits", []string{"q"}, false, nil, 0, 0},
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
@@ -200,7 +200,7 @@ func TestMainMenuInvalid(t *testing.T) {
 func TestMainMenuAgain(t *testing.T) {
 	for _, env := range []term.Env{ttyEnv(), plainEnv()} {
 		passes := 0
-		m := liveMenu(t, env, fixtureStatus(&passes), "7", "q")
+		m := liveMenu(t, env, fixtureStatus(&passes), "6", "q")
 		recordScreens(t, m)
 		out, _, ended := session(t, func() { show(m) })
 		clr := clearOn(env)
@@ -263,8 +263,8 @@ func TestMainMenuMode(t *testing.T) {
 
 // TestMainMenuItems: the items on the layout are the main-menu mock's
 // (screen.MainMenuFixture), which the gallery draws its main menus with,
-// with item 6, Auto Updates, "Configure automatic updates", between 5 and
-// 7 (withUpdatesItem): its numbers, labels and descriptions, item 1's
+// with item 5, Auto Updates, "Configure automatic updates", between 4 and
+// 6 (withUpdatesItem): its numbers, labels and descriptions, item 1's
 // aside, item 2's "Root login, passwords, port" (legacy-left.md §3,
 // decision 7 (a)), item 8's "Keep HARDN_CONFIG", and its Exit row, "q to
 // quit" (DEV-030). The heading and prompt are origin/main's, the hint
@@ -284,14 +284,14 @@ func TestMainMenuItems(t *testing.T) {
 	}
 }
 
-// updatesItem is item 6, Auto Updates (gallery-updates.md §4, decision 1).
-var updatesItem = component.MenuItem{Key: "6", Label: "Auto Updates", Description: "Configure automatic updates"}
+// updatesItem is item 5, Auto Updates (gallery-updates.md §4, decision 1).
+var updatesItem = component.MenuItem{Key: "5", Label: "Auto Updates", Description: "Configure automatic updates"}
 
 // withUpdatesItem is the main-menu mock's items (screen.MainMenuFixture)
-// with item 6 between 5 and 7, as the main menu has them since slice 7's
-// unit (d): the mock, pkg/ui/screen's, has no item 6 yet.
+// with item 5 between 4 and 6, as the main menu has them since slice 7's
+// unit (d): the mock, pkg/ui/screen's, has no Auto Updates item yet.
 func withUpdatesItem(items []component.MenuItem) []component.MenuItem {
-	i := slices.IndexFunc(items, func(it component.MenuItem) bool { return it.Key == "7" })
+	i := slices.IndexFunc(items, func(it component.MenuItem) bool { return it.Key == "6" })
 	return slices.Insert(slices.Clone(items), i, updatesItem)
 }
 
@@ -305,7 +305,7 @@ func TestMainMenuTopRows(t *testing.T) {
 	for _, asked := range []bool{false, true} {
 		env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 40,
 			Environ: []string{"TERM=xterm-256color", "NO_COLOR=1"}})
-		m := liveMenu(t, env, fixtureStatus(new(int)), "7", "0", "q")
+		m := liveMenu(t, env, fixtureStatus(new(int)), "6", "0", "q")
 		recordScreens(t, m)
 		m.RunAll = func() error {
 			p := nav.Prompter{Ctx: component.NewCtx(env), In: m.Input(), Out: env.Writer(stdout{})}
@@ -314,7 +314,7 @@ func TestMainMenuTopRows(t *testing.T) {
 			})
 		}
 		if asked {
-			r := prompt.New(strings.NewReader("y\n7\n0\nq\n"), false)
+			r := prompt.New(strings.NewReader("y\n6\n0\nq\n"), false)
 			useReader(t, r)
 			if _, err := r.Ask(io.Discard, "Create hardn.yml? "); err != nil {
 				t.Fatal(err)
@@ -340,10 +340,10 @@ func TestMainMenuTopRows(t *testing.T) {
 // line under any), in its full form at every height, Unicode (C.UTF-8)
 // and ASCII (C): 38 lines at 80x24 and 80x40, the two blank lines under
 // the clear (clearTop) first, 61 at 60 columns, where the rows stack
-// (DEV-021), item 6, Auto Updates, one line, and two at 60 columns (slice
+// (DEV-021), item 5, Auto Updates, one line, and two at 60 columns (slice
 // 7, unit (d)). The prompt is the terminal's last line, so on 24 rows the
 // first 14 lines scroll off at 80 columns, the blank lines and the header
-// down to the SSH Login row, the risk level among them, and at 60 columns
+// down to the SSH Auth row, the risk level among them, and at 60 columns
 // 37, all the status, the heading, the mode and item 1's label; on 40 rows
 // none at 80 columns, the blank lines on the top two rows and the header
 // under them, and 21 at 60.
@@ -357,10 +357,10 @@ func TestMainMenuHeights(t *testing.T) {
 		w, h, lines int
 		visible     string // the first line on screen, stripped of colour and glyphs
 	}{
-		{80, 24, 38, "SSH Auth             Configured key-only auth"},
+		{80, 24, 38, "SSH Port             Configured non-default (2230)"},
 		{80, 40, 38, ""}, // the blank lines under the clear, the header under them
 		{60, 24, 61, "Create, Configure (sudo, SSH keys)"},
-		{60, 40, 61, "Configured key-only auth"},
+		{60, 40, 61, "Configured non-default (2230)"},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")

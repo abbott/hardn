@@ -105,7 +105,7 @@ func TestRunAllScreen(t *testing.T) {
 		applied bool
 		said    []string
 	}{
-		{"back", false, []string{"0"}, nil, false, []string{"Run All", "Controls", "Firewall", "Refused:", "SSH Login", "Root login off", "DNS", "Set 2 nameservers", "1) Apply all"}},
+		{"back", false, []string{"0"}, nil, false, []string{"Run All", "Controls", "SSH Login", "Root login off", "Firewall", "Refused:", "DNS", "Set 2 nameservers", "1) Apply all"}},
 		{"Apply all", false, []string{"1", "web-01", "0"}, nil, true,
 			[]string{"Firewall skipped:", "Apply this plan?", "Type the hostname", "Operation Successful", "sudo hardn confirm", "Change pending"}},
 		{"Apply all under plan only", true, []string{"1", "0"}, nil, false, []string{"Firewall skipped:", "No actual changes were made to your system."}},

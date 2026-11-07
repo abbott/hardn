@@ -23,7 +23,7 @@ import (
 // (c), next/s8-screen): hardn's Run All screen itself (pkg/screens/runall),
 // drawn from what Run All's planner (pkg/engine/runall) reads of each host,
 // Apply all on the real engine, on the hosts the Run All mock was drawn
-// for, which it replaces (docs/engine/screen-runall.md). The main menu's 7
+// for, which it replaces (docs/engine/screen-runall.md). The main menu's 6
 // leads to it on Debian 13; "play runall" is the menu of the hosts and
 // "play runall/<host>" one. The listing of the mock, "uigallery runall",
 // was retired with it: git keeps it (runall.go, next/s8-gallery), and
@@ -32,12 +32,12 @@ import (
 // raPrefix names the Run All screen's hosts in play: "runall" and "runall/<host>".
 const raPrefix = "runall"
 
-// raMainHost is the host the main menu's 7 leads to in play.
+// raMainHost is the host the main menu's 6 leads to in play.
 const raMainHost = raPrefix + "/debian13"
 
 // raLinks lead from a menu mock's item to the Run All screen on a host:
-// the main menu's 7.
-var raLinks = map[string]string{mainMenuMock + "/7": raMainHost}
+// the main menu's 6.
+var raLinks = map[string]string{mainMenuMock + "/6": raMainHost}
 
 // raHost is one simulated host the Run All screen runs on.
 type raHost struct {

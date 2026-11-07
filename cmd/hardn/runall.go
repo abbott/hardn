@@ -1,7 +1,7 @@
 package main
 
 // Run All on its planner (refactor plan slice 8, Run All, unit (d)): the
-// main menu's Run All item (7) runs the Run All screen
+// main menu's Run All item (6) runs the Run All screen
 // (pkg/screens/runall), which pkg/screens/mainmenu reaches through the hook set here,
 // as it reaches the SSH Login screen (ssh.go), so that pkg/screens/mainmenu builds no
 // engine (gallery-runall.md §5, decision 7 (a): the item's label and

@@ -307,10 +307,10 @@ func TestLiveMainMenuGolden(t *testing.T) {
 
 // galleryStatus is the gallery's main menu of host name, in the plain-80
 // cell of its golden file: from the header's line to the prompt's, each
-// line's "$" taken off; with item 6, Auto Updates, under item 5 in its
+// line's "$" taken off; with item 5, Auto Updates, above item 6 in its
 // columns and the hint "[0-10 or q]", as the main menu has them since
 // slice 7's unit (d), the gallery's main menus, the mock's items
-// (screen.MainMenuFixture), having no item 6 yet (withUpdatesItem).
+// (screen.MainMenuFixture), having no item 5 yet (withUpdatesItem).
 func galleryStatus(t *testing.T, name string) string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(goldenDir, name+".golden"))
@@ -323,13 +323,13 @@ func galleryStatus(t *testing.T, name string) string {
 	}
 	var lines []string
 	for _, l := range strings.Split(cell, "\n")[1:] {
-		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-5, 7-10 or q]", "[0-10 or q]")
+		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-10 or q]", "[0-10 or q]")
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
-		if desc := strings.Index(l, "Configure Hardn backup settings"); strings.HasPrefix(l, "   5) Backup ") && desc > 0 {
-			item := "   6) " + updatesItem.Label
-			lines = append(lines, item+strings.Repeat(" ", desc-len(item))+updatesItem.Description)
+		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
+			item := "   5) " + updatesItem.Label
+			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+updatesItem.Description, l)
 		}
 		if strings.HasPrefix(l, "    > ") && len(lines) > 0 {
 			return strings.Join(lines, "\n")

@@ -778,7 +778,7 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 }
 
 // TestFirewallUsage: play refuses what it does not take, with status 2 and
-// nothing on stdout; the listing of the mocks is gone; the main menu's 4 leads
+// nothing on stdout; the listing of the mocks is gone; the main menu's 3 leads
 // to debian13's.
 func TestFirewallUsage(t *testing.T) {
 	for _, args := range [][]string{
@@ -792,8 +792,8 @@ func TestFirewallUsage(t *testing.T) {
 			t.Errorf("%v: exit %d, stdout %q, stderr %q", args, code, out.String(), errs.String())
 		}
 	}
-	if fwLinks[mainMenuMock+"/4"] != fwMainHost {
-		t.Errorf("the main menu's 4 leads to %q", fwLinks[mainMenuMock+"/4"])
+	if fwLinks[mainMenuMock+"/3"] != fwMainHost {
+		t.Errorf("the main menu's 3 leads to %q", fwLinks[mainMenuMock+"/3"])
 	}
 }
 

@@ -35,8 +35,8 @@ var planOnlySources = []struct {
 }
 
 // TestPlanOnly: under plan only, from -n or hardn.yml, the main menu's
-// User Management (1), SSH Login (2), Firewall (4), Backup (5), Auto
-// Updates (6), Run All (7) and Environment (8) open as live (slice 8,
+// User Management (1), SSH Login (2), Firewall (3), Auto Updates (5),
+// Run All (6), Backup (7) and Environment (8) open as live (slice 8,
 // unit (d), Options.DryRun of pkg/screens/runall; slice 7, unit (d); slice
 // 6, unit (d); slice 5, unit (d),
 // which lifts item 1's "Not available in plan only." as its screen goes
@@ -49,7 +49,7 @@ func TestPlanOnly(t *testing.T) {
 		t.Run("main menu, "+src.name, func(t *testing.T) {
 			t.Chdir(t.TempDir())
 			passes := 0
-			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "2", "4", "5", "6", "7", "8", "q")
+			m := liveMenu(t, plainEnv(), fixtureStatus(&passes), "1", "2", "3", "5", "6", "7", "8", "q")
 			m.Config = src.start(t)
 			opened := recordScreens(t, m)
 			inPlanOnly := map[string]bool{}
@@ -69,7 +69,7 @@ func TestPlanOnly(t *testing.T) {
 				})
 			}
 			out, _, ended := session(t, func() { show(m) })
-			want := []string{"users", "ssh", "firewall", "backup", "updates", "runAll", "environment"}
+			want := []string{"users", "ssh", "firewall", "updates", "runAll", "backup", "environment"}
 			if ended || !slices.Equal(*opened, want) || strings.Contains(out, "(x) ") || passes != 8 {
 				t.Errorf("ended %v, opened %q, read %d times; want %q, none refused, read 8 times:\n%s", ended, *opened, passes, want, out)
 			}

@@ -20,13 +20,13 @@ $
    ␛[38;2;231;70;105m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;231;70;105mHigh␛[m ␛[38;2;86;91;107m≈ weak security␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -34,17 +34,17 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
-   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
-   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
 $
 $
 
@@ -66,13 +66,13 @@ $
   [*] Risk Level           High ~ weak security$
 $
   [+] User                 Configured non-root, sudo$
-  [+] Firewall             Configured deny policy$
   [ ] SSH Login            Partial root key-only$
   [ ] SSH Auth             Not Configured password auth on$
   [ ] SSH Port             Not Configured default (22)$
-  [-] AppArmor             Not Applicable set by the host$
-  [ ] Auto Updates         Not Configured no unattended-upgrades$
+  [+] Firewall             Configured deny policy$
   [-] DNS                  Not Applicable container$
+  [ ] Auto Updates         Not Configured no unattended-upgrades$
+  [-] AppArmor             Not Applicable set by the host$
 $
 ----------------------------------------------------------------$
 $
@@ -80,17 +80,17 @@ $
 $
    1) User Management      Create, Configure (sudo, SSH keys)$
    2) SSH Login            Root login, passwords, port$
-   3) DNS                  Configure Nameservers$
-   4) Firewall             Configure UFW rules$
-   5) Backup               Configure Hardn backup settings$
-   7) Run All              Execute hardening operations$
+   3) Firewall             Configure UFW rules$
+   4) DNS                  Configure Nameservers$
+   6) Run All              Execute hardening operations$
+   7) Backup               Configure Hardn backup settings$
    8) Environment          Keep HARDN_CONFIG$
    9) System Details       View system information$
   10) Logs                 View log file$
 $
    0) Exit                 q to quit$
 $
-    > Enter selection [0-5, 7-10 or q]:$
+    > Enter selection [0-4, 6-10 or q]:$
 $
 $
 
@@ -116,20 +116,20 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
-   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mDNS␛[m$
       ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mcontainer␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno unattended-upgrades␛[m$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mset by the host␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -140,14 +140,14 @@ $
       ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m$
-      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
-   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mConfigure UFW rules␛[m$
-   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m$
-      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
+      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
       ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
@@ -158,6 +158,6 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
       ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-5, 7-10 or q]:␛[m$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
 $
 $

@@ -61,19 +61,19 @@ const (
 )
 
 // hardenedRows are the hardened host's rows.
-var hardenedRows = [8]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth",
-	"configured: non-default (2230)", "configured: 7 profiles enforced", unattendOn, dnsHardn}
+var hardenedRows = [8]string{sudoAdmin, "configured: root disallowed", "configured: key-only auth", "configured: non-default (2230)",
+	denyPolicy, dnsHardn, unattendOn, "configured: 7 profiles enforced"}
 
 // debianWith is the debian13 host's rows, with AppArmor's row apparmor.
 func debianWith(apparmor string) [8]string {
-	return [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, apparmor, noUnattend, dnsNoFile}
+	return [8]string{sudoAdmin, rootKeyOnly, passwordOn, port22, denyPolicy, dnsNoFile, noUnattend, apparmor}
 }
 
 // containerRows are the container's: the debian13 host's, AppArmor and
 // DNS set by the container's host.
 var containerRows = func() [8]string {
 	rows := debianWith("not-applicable: set by the host")
-	rows[7] = "not-applicable: container"
+	rows[5] = "not-applicable: container"
 	return rows
 }()
 
@@ -81,36 +81,36 @@ var containerRows = func() [8]string {
 // firewall.
 func hardenedWith(firewall string) [8]string {
 	rows := hardenedRows
-	rows[1] = firewall
+	rows[4] = firewall
 	return rows
 }
 
 // wantStatuses are the status hosts' main menus, by name.
 var wantStatuses = map[string]wantStatus{
 	"debian13": {rows: debianWith("configured: 7 profiles enforced"), level: "High ≈ weak security", score: "47.5", bar: debianBar, uptime: threeDays},
-	"ubuntu2604": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNoFile},
+	"ubuntu2604": {rows: [8]string{sudoAdmin, rootKeyOnly, passwordOn, port22, denyPolicy, dnsNoFile, unattendOn, ubuntuAA},
 		level: "Moderate ≈ medium security", score: "67.5", bar: ubuntuBar, uptime: threeDays},
-	"alpine324": {rows: [8]string{"configured: non-root, doas", "not-configured: ufw not installed", "configured: root locked", passwordOn, port22,
-		"not-applicable: Alpine default", "not-configured: no apk-cron", dnsNoFile}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
-	"pve9": {rows: [8]string{rootOnly, "not-configured: disabled", "not-configured: root allowed", passwordOn, "configured: default (22)",
-		"configured: 10 profiles enforced", "not-applicable: updated by hand", dnsNoFile}, level: "Critical ≈ no security", score: "18.8",
+	"alpine324": {rows: [8]string{"configured: non-root, doas", "configured: root locked", passwordOn, port22, "not-configured: ufw not installed",
+		dnsNoFile, "not-configured: no apk-cron", "not-applicable: Alpine default"}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
+	"pve9": {rows: [8]string{rootOnly, "not-configured: root allowed", passwordOn, "configured: default (22)", "not-configured: disabled",
+		dnsNoFile, "not-applicable: updated by hand", "configured: 10 profiles enforced"}, level: "Critical ≈ no security", score: "18.8",
 		bar: "Proxmox VE 9.0.10 (Trixie)", uptime: "41 days, 1 hour"},
-	"fresh": {rows: [8]string{rootOnly, "not-configured: ufw not installed", rootKeyOnly, passwordOn, port22, "configured: 7 profiles enforced", noUnattend, dnsNoFile},
+	"fresh": {rows: [8]string{rootOnly, rootKeyOnly, passwordOn, port22, "not-configured: ufw not installed", dnsNoFile, noUnattend, "configured: 7 profiles enforced"},
 		level: "Critical ≈ no security", score: "17.5", bar: debianBar, uptime: threeDays},
-	"ubuntu2604-cloud": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, "configured: key-only auth", port22, ubuntuAA, unattendOn, dnsNoFile},
+	"ubuntu2604-cloud": {rows: [8]string{sudoAdmin, rootKeyOnly, "configured: key-only auth", port22, ufwInactive, dnsNoFile, unattendOn, ubuntuAA},
 		level: "Moderate ≈ medium security", score: "62.5", lines: []string{"User: No password to become root"}, bar: ubuntuBar, uptime: threeDays,
 		finds: map[string]string{"users.admin": "USERS_NOPASSWD"}},
-	"ubuntu2604-iso": {rows: [8]string{sudoAdmin, ufwInactive, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNoFile},
+	"ubuntu2604-iso": {rows: [8]string{sudoAdmin, rootKeyOnly, passwordOn, port22, ufwInactive, dnsNoFile, unattendOn, ubuntuAA},
 		level: "High ≈ weak security", score: "47.5", bar: ubuntuBar, uptime: threeDays},
 	"hardened": {rows: hardenedRows, level: "Minimal ≈ hardened security", score: "100.0", bar: debianBar, uptime: threeDays},
-	"figma": {rows: [8]string{sudoAdmin, denyPolicy, "configured: root disallowed", "configured: key-only auth", "configured: non-default (2230)",
-		"not-configured: no profiles loaded", noUnattend, dnsHardn}, level: "Moderate ≈ medium security", score: "60.0", lines: []string{"Auto Updates: Up 182 days, no updates"},
+	"figma": {rows: [8]string{sudoAdmin, "configured: root disallowed", "configured: key-only auth", "configured: non-default (2230)", denyPolicy,
+		dnsHardn, noUnattend, "not-configured: no profiles loaded"}, level: "Moderate ≈ medium security", score: "60.0", lines: []string{"Auto Updates: Up 182 days, no updates"},
 		bar: debianBar, uptime: "182 days, 2 hours, 26 minutes"},
 	"lockout": {rows: hardenedWith("partial: ssh blocked"), level: "Critical ≈ lockout risk", score: "90.0", bar: debianBar, uptime: threeDays},
 	"lockout-at-start": {rows: hardenedWith("not-configured: enabled, not running"), level: "Moderate ≈ medium security", score: "70.0",
 		lines: []string{"Firewall: SSH may be blocked after restart"}, bar: debianBar, uptime: threeDays,
 		finds: map[string]string{"firewall.incoming": "UFW_SSH_NOT_ALLOWED_AT_START"}},
-	"reboot": {rows: [8]string{sudoAdmin, denyPolicy, rootKeyOnly, passwordOn, port22, ubuntuAA, unattendOn, dnsNoFile},
+	"reboot": {rows: [8]string{sudoAdmin, rootKeyOnly, passwordOn, port22, denyPolicy, dnsNoFile, unattendOn, ubuntuAA},
 		level: "Moderate ≈ medium security", score: "57.5", bar: ubuntuBar, uptime: threeDays, reboot: component.RebootPending},
 	"apparmor-logging": {rows: debianWith("partial: logging only"), level: "High ≈ weak security", score: "37.5", bar: debianBar, uptime: threeDays},
 	"apparmor-restart": {rows: debianWith("partial: off after restart"), level: "High ≈ weak security", score: "42.5", bar: debianBar, uptime: threeDays},
@@ -196,7 +196,7 @@ func TestStatusHosts(t *testing.T) {
 			if bar != want.bar || hb.Hostname != hostName || hb.Address != "192.0.2.20" || hb.Uptime != want.uptime || hb.Reboot != want.reboot {
 				t.Errorf("header %q, host %+v; want %q, %s at 192.0.2.20, up %q, reboot line %d", bar, hb, want.bar, hostName, want.uptime, want.reboot)
 			}
-			// The main menu's rows are the reports', in Figma's order.
+			// The main menu's rows are the reports', in risk.Rows' order.
 			for i, r := range vm.Status.Rows {
 				if r.Label != st.reports[i].Title || r.Detail != st.reports[i].Status.Detail {
 					t.Errorf("main menu row %d: %+v, want %s %q", i, r, st.reports[i].Title, st.reports[i].Status.Detail)

@@ -24,20 +24,20 @@ import (
 // from each host's resolver model (resolver.go) and hardn.yml through the
 // DNS control, every change on the real engine, on the hosts the DNS mocks
 // were drawn for, which it replaces (docs/engine/gallery-dns.md §11). The
-// main menu's 3 leads to it on Debian 13, as it led to the mock; "play
+// main menu's 4 leads to it on Debian 13, as it led to the mock; "play
 // dns" is the menu of the hosts and "play dns/<host>" one.
 
 // dnsPrefix names the DNS screen's hosts in play: "dns" is the menu of
 // them and "dns/<host>" one.
 const dnsPrefix = "dns"
 
-// dnsMainHost is the host the main menu's 3 leads to: Debian 13, as the
+// dnsMainHost is the host the main menu's 4 leads to: Debian 13, as the
 // mock's main host was.
 const dnsMainHost = dnsPrefix + "/debian13"
 
 // dnsLinks lead from a menu mock's item to the DNS screen on a host, by
 // the mock's name and the item's key, beside links.
-var dnsLinks = map[string]string{mainMenuMock + "/3": dnsMainHost}
+var dnsLinks = map[string]string{mainMenuMock + "/4": dnsMainHost}
 
 // dnsScreenHost is one simulated host the DNS screen runs on.
 type dnsScreenHost struct {

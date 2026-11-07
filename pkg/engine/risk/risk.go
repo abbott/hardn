@@ -118,22 +118,22 @@ type Row struct {
 func row(c engine.Control, w int) Row { return Row{ID: c.ID(), Title: c.Title(), Weight: w} }
 
 // rows are the main menu's status rows, each with its weight, together
-// 100 (risk.md §5.1): Figma's seven in Figma's order, then DNS, shown and
-// not weighed (next/s2-menu-live).
+// 100 (risk.md §5.1), in the maintainer's order (2026-11-07): Figma's
+// seven, and DNS (next/s2-menu-live), shown and not weighed.
 var rows = []Row{
 	row(users.Admin{}, 10),
-	row(firewall.Incoming{}, 20),
 	row(ssh.Login{}, 15),
 	row(ssh.Auth{}, 20),
 	row(ssh.Port{}, 5),
-	row(apparmor.Enforce{}, 10),
-	row(updates.Auto{}, 20),
+	row(firewall.Incoming{}, 20),
 	row(dns.Nameservers{}, 0),
+	row(updates.Auto{}, 20),
+	row(apparmor.Enforce{}, 10),
 }
 
-// Rows returns the main menu's status rows, in their order: User,
-// Firewall, SSH Login, SSH Auth, SSH Port, AppArmor, Auto Updates (Figma's
-// seven, which the score weighs), then DNS, of weight 0.
+// Rows returns the main menu's status rows, in their order: User, SSH
+// Login, SSH Auth, SSH Port, Firewall, DNS, Auto Updates, AppArmor (the
+// maintainer's, 2026-11-07). The score weighs all but DNS, of weight 0.
 func Rows() []Row { return slices.Clone(rows) }
 
 // The rows' controls that a cross-check reads.

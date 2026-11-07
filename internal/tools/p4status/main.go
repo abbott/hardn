@@ -2,8 +2,8 @@
 // Phase 4 (next/p4-vmcheck): run as root on a host, it reads the host as
 // hardn's main menu does, through the real code (hardn.yml, where hardn
 // looks for it; detect's facts, once; Engine.Check over the main menu's
-// status controls, controls.Status: User, Firewall, SSH Login, SSH Auth,
-// SSH Port, AppArmor, Auto Updates, then DNS since next/s2-menu-live; the
+// status controls, controls.Status: User, SSH Login, SSH Auth, SSH Port,
+// Firewall, DNS (since next/s2-menu-live), Auto Updates, AppArmor; the
 // header probe; the risk level), and prints
 //
 //  1. the main menu as hardn will draw it: pkg/output's MainMenuOf over the

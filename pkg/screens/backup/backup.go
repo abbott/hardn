@@ -8,7 +8,7 @@
 // setting saved in place, under the settings it saves (decision 7 (a)),
 // then the screen drawn again under the result from a fresh reading, the
 // configuration adopting what was saved. Verify and Backup Runs read only.
-// Run is the one entry point, which cmd/hardn's main menu item 5 calls
+// Run is the one entry point, which cmd/hardn's main menu item 7 calls
 // (unit (d), next/s3-replace); docs/engine/screen-backup.md has its
 // states, its words and its API.
 //

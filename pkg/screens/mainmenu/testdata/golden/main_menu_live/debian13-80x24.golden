@@ -16,13 +16,13 @@ $
    \x1b[38;5;204m⛬\x1b[m  \x1b[1;38;5;251mRisk Level\x1b[m           \x1b[38;5;204mHigh\x1b[m \x1b[38;5;59m≈ weak security\x1b[m$
 $
    \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mUser\x1b[m                 \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59mnon-root, sudo\x1b[m$
-   \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59mdeny policy\x1b[m$
    \x1b[38;5;179m⭘\x1b[m  \x1b[38;5;251mSSH Login\x1b[m            \x1b[38;5;179mPartial\x1b[m \x1b[38;5;59mroot key-only\x1b[m$
    \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mSSH Auth\x1b[m             \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mpassword auth on\x1b[m$
    \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mSSH Port\x1b[m             \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mdefault (22)\x1b[m$
-   \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mAppArmor\x1b[m             \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59m7 profiles enforced\x1b[m$
-   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mno unattended-upgrades\x1b[m$
+   \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59mdeny policy\x1b[m$
    \x1b[38;5;102m–\x1b[m  \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;102mNot Applicable\x1b[m \x1b[38;5;59mno hardn.yml\x1b[m$
+   \x1b[38;5;204m⭘\x1b[m  \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;204mNot Configured\x1b[m \x1b[38;5;59mno unattended-upgrades\x1b[m$
+   \x1b[38;5;78m⛛\x1b[m  \x1b[38;5;251mAppArmor\x1b[m             \x1b[38;5;78mConfigured\x1b[m \x1b[38;5;59m7 profiles enforced\x1b[m$
 $
 \x1b[38;5;234m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌\x1b[m$
 $
@@ -30,11 +30,11 @@ $
 $
    \x1b[1;38;5;251m1)\x1b[m \x1b[38;5;251mUser Management\x1b[m      \x1b[38;5;102mCreate, Configure\x1b[m \x1b[38;5;59m(sudo, SSH keys)\x1b[m$
    \x1b[1;38;5;251m2)\x1b[m \x1b[38;5;251mSSH Login\x1b[m            \x1b[38;5;102mRoot login, passwords, port\x1b[m$
-   \x1b[1;38;5;251m3)\x1b[m \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;102mConfigure Nameservers\x1b[m$
-   \x1b[1;38;5;251m4)\x1b[m \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;102mConfigure UFW rules\x1b[m$
-   \x1b[1;38;5;251m5)\x1b[m \x1b[38;5;251mBackup\x1b[m               \x1b[38;5;102mConfigure Hardn backup settings\x1b[m$
-   \x1b[1;38;5;251m6)\x1b[m \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;102mConfigure automatic updates\x1b[m$
-   \x1b[1;38;5;251m7)\x1b[m \x1b[38;5;251mRun All\x1b[m              \x1b[38;5;102mExecute hardening operations\x1b[m$
+   \x1b[1;38;5;251m3)\x1b[m \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;102mConfigure UFW rules\x1b[m$
+   \x1b[1;38;5;251m4)\x1b[m \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;102mConfigure Nameservers\x1b[m$
+   \x1b[1;38;5;251m5)\x1b[m \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;102mConfigure automatic updates\x1b[m$
+   \x1b[1;38;5;251m6)\x1b[m \x1b[38;5;251mRun All\x1b[m              \x1b[38;5;102mExecute hardening operations\x1b[m$
+   \x1b[1;38;5;251m7)\x1b[m \x1b[38;5;251mBackup\x1b[m               \x1b[38;5;102mConfigure Hardn backup settings\x1b[m$
    \x1b[1;38;5;251m8)\x1b[m \x1b[38;5;251mEnvironment\x1b[m          \x1b[38;5;102mKeep HARDN_CONFIG\x1b[m$
    \x1b[1;38;5;251m9)\x1b[m \x1b[38;5;251mSystem Details\x1b[m       \x1b[38;5;102mView system information\x1b[m$
   \x1b[1;38;5;251m10)\x1b[m \x1b[38;5;251mLogs\x1b[m                 \x1b[38;5;102mView log file\x1b[m$

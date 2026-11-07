@@ -22,7 +22,7 @@ import (
 // TestPlayUpdatesGolden plays each flow end to end and pins the
 // transcript: each direction planned, asked y/N and applied on the real
 // engine; refusals before asking; the read-only item; plan only; the hosts'
-// menu; the main menu's 6.
+// menu; the main menu's 5.
 func TestPlayUpdatesGolden(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -48,7 +48,7 @@ func TestPlayUpdatesGolden(t *testing.T) {
 		{"updates-read-only", []string{"updates/debian13"}, []string{"1", "0"}, nil},
 		{"updates-plan-only", []string{"-sequence", "dry-run", "updates/debian-installer"}, []string{"1", "0"}, nil},
 		{"updates-hosts", []string{"updates"}, []string{"9", "0", "0"}, nil},
-		{"updates-main-menu", nil, []string{"6", "0", "0"}, nil},
+		{"updates-main-menu", nil, []string{"5", "0", "0"}, nil},
 	}
 	for _, tt := range tests {
 		cells := tt.cells
@@ -406,7 +406,7 @@ func TestUpdatesOffRefusals(t *testing.T) {
 }
 
 // TestUpdatesUsage: play refuses what it does not take, and the listing is
-// gone, with status 2 and nothing on stdout; the main menu's 6 leads to
+// gone, with status 2 and nothing on stdout; the main menu's 5 leads to
 // debian13's.
 func TestUpdatesUsage(t *testing.T) {
 	for _, args := range [][]string{
@@ -420,7 +420,7 @@ func TestUpdatesUsage(t *testing.T) {
 			t.Errorf("%v: exit %d, stdout %q, stderr %q", args, code, out.String(), errs.String())
 		}
 	}
-	if updMainHost != updPrefix+"/debian13" || updMenuItem.Key != "6" {
+	if updMainHost != updPrefix+"/debian13" || updMenuItem.Key != "5" {
 		t.Errorf("the main menu's %s leads to %q", updMenuItem.Key, updMainHost)
 	}
 }

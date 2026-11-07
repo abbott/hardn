@@ -24,7 +24,7 @@ import (
 // (pkg/screens/updates), drawn from what the Auto Updates control reads of
 // each host (updateshost.go), each change on the real engine, on the hosts
 // the Auto Updates mock was drawn for, which it replaces
-// (docs/engine/screen-updates.md). The main menu's 6 leads to it on Debian
+// (docs/engine/screen-updates.md). The main menu's 5 leads to it on Debian
 // 13; "play updates" is the menu of the hosts and "play updates/<host>"
 // one. The listing of the mock, "uigallery updates", was retired with it:
 // git keeps it (updates.go, next/s7-control), and gallery-updates.md
@@ -34,12 +34,12 @@ import (
 // the menu of them and "updates/<host>" one.
 const updPrefix = "updates"
 
-// updMainHost is the host the main menu's 6 leads to in play.
+// updMainHost is the host the main menu's 5 leads to in play.
 const updMainHost = updPrefix + "/debian13"
 
-// updMenuItem is play's main menu's item for it (decision 1): key 6, the
-// key slice 2b left unused, named as the row is; unit (d) wires hardn's.
-var updMenuItem = component.MenuItem{Key: "6", Label: "Auto Updates", Description: "Configure automatic updates"}
+// updMenuItem is play's main menu's item for it (decision 1): key 5, named
+// as the row is, before Run All; unit (d) wires hardn's.
+var updMenuItem = component.MenuItem{Key: "5", Label: "Auto Updates", Description: "Configure automatic updates"}
 
 // What hardn writes, as the fake's hosts hold it: its own apt file, and
 // the record (P-43 (4)) at revert.RecordPath's default.

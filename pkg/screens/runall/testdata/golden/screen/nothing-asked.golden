@@ -8,13 +8,13 @@ $
   ␛[1;38;2;129;134;156mControls␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mNothing asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m              ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mNothing asked␛[m$
 $
@@ -34,13 +34,13 @@ $
   Controls -----------------------------------------------------$
 $
    -  User                 Nothing asked$
-   -  Firewall             Nothing asked$
    -  SSH Login            Nothing asked$
    -  SSH Auth             Nothing asked$
    -  SSH Port             Already as asked$
-   -  AppArmor             Status only$
-   -  Auto Updates         Nothing asked$
+   -  Firewall             Nothing asked$
    -  DNS                  Nothing asked$
+   -  Auto Updates         Nothing asked$
+   -  AppArmor             Status only$
    -  Backups              Used, not changed$
    -  Environment          Nothing asked$
 $
@@ -61,20 +61,20 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
       ␛[38;2;129;134;156mAlready as asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
-      ␛[38;2;129;134;156mStatus only␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;129;134;156mNothing asked␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;129;134;156mStatus only␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBackups␛[m$
       ␛[38;2;129;134;156mUsed, not changed␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mEnvironment␛[m$

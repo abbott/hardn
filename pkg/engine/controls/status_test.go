@@ -11,7 +11,7 @@ import (
 )
 
 // TestStatus: the main menu's status controls are the score's rows, by ID
-// and title, in its order (Figma's seven, then DNS), each once; the DNS
+// and title, in its order (risk's TestRows holds it), each once; the DNS
 // control checks against the configuration it was given.
 func TestStatus(t *testing.T) {
 	cfg := config.DefaultConfig()
@@ -28,8 +28,5 @@ func TestStatus(t *testing.T) {
 	}
 	if !slices.Equal(got, want) {
 		t.Errorf("controls %q, want the rows %q", got, want)
-	}
-	if last := got[len(got)-1]; last != dns.ID+" DNS" {
-		t.Errorf("the last row is %q, want DNS after Figma's seven", last)
 	}
 }

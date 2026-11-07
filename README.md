@@ -16,37 +16,38 @@ If you are one of the following, **refrain from deploying this tool in the publi
 - DevOps Engineer
 - SecOps Architect or Analyst
 
+### Security Disclaimer
+
+`hardn` should be part of a broader security strategy, not a *"set it and forget it"* solution — regular security audits, updates, and monitoring are still required. While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, they are **<ins>not suitable for enterprise use</ins>**.
+
 ## Overview (features, etc.)
 
-`sudo hardn` displays a **risk level** based on the current host configuration for users, SSH, firewall, AppArmor, automatic updates and DNS. Utilize the **menu options** to configure each of the following:
+`sudo hardn` displays a **risk level** based on the current host configuration of users, SSH, firewall, DNS, automatic updates and AppArmor. Utilize the **menu options** to configure each of the following:
 
 | Option | Displays | Configures |
 |---|---|---|
 | 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
 | 2) SSH Login | root login, password login, the port, allowed users, as sshd reads them | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
-| 3) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
-| 4) Firewall | `ufw` state, policy, rules, application profiles | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Proxmox: "View pve-firewall", read only |
-| 5) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
-| 6) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu) or apk-cron and crond (Alpine); turns off only what hardn turned on. Read only on Proxmox |
-| 7) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS and automatic updates. Where the firewall and root login both change, root login waits for the next Run All |
+| 3) Firewall | `ufw` state, policy, rules, application profiles | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Proxmox: "View pve-firewall", read only |
+| 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
+| 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu) or apk-cron and crond (Alpine); turns off only what hardn turned on. Read only on Proxmox |
+| 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS and automatic updates. Where the firewall and root login both change, root login waits for the next Run All |
+| 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
 | 8) Environment | whether `HARDN_CONFIG` is kept under `sudo` or `doas` | keeps it in `/etc/sudoers.d/hardn-env-<user>`; under doas, adds it to hardn's own rule for the user, or, where hardn has none, says what to add |
 | 9) System Details | OS, kernel, addresses, users, CPU, disk, memory, last logins | nothing |
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
-*The hardn status for AppArmor only displays current state, nothing more.*
+*The hardn status for **AppArmor** only displays current state, nothing more.*
 
-### Hardn Configuration Workflow
+### How It Works
 
 1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [Safety](#safety)).
 2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, some Environment changes under doas, Run All) asks you to type the hostname.
 3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
-**Dry run.** `-n` (or `dryRun: true` in hardn.yml) shows each plan and changes nothing. Screens stop at their plan. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
-
-## Security Disclaimer
-
-`hardn` should be part of a broader security strategy, not a "set it and forget it" solution — regular security audits, updates, and monitoring are still required. While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, they are **<ins>not suitable for enterprise use</ins>**.
+#### Dry run (Plan mode)
+`hardn -n` (or `dryRun: true` in hardn.yml) shows each operational plan and changes nothing. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
 
 ## Installation
 
@@ -55,7 +56,7 @@ If you are one of the following, **refrain from deploying this tool in the publi
 ```sh
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
 ```
-*Where the host uses `doas` (Alpine), pipe it to `doas sh` instead of `sudo sh`.*
+*When a host uses `doas` (Alpine), pipe it to `doas sh` instead of `sudo sh`.*
 
 The script will:
 
@@ -194,7 +195,7 @@ sudo hardn system-details --output json > web-01.json
   - The refusal says why, and in most cases what to do.
 - **The revert timer.** A lockout-risk change runs under a systemd timer, or a process under OpenRC. It rolls the change back unless `hardn confirm` comes from a new connection in time. Where neither systemd nor OpenRC runs, such a change is refused. So is any lockout-risk change when a user other than root can change the hardn binary.
 - **Across a reboot.** Before the first such change, hardn installs a boot unit, `hardn-boot`. At boot, before sshd starts, it restarts the timer for the time left, or rolls the change back if the time ran out. It is removed at the first boot with nothing waiting.
-- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. Backup (5) lists the runs.
+- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. Backup (7) lists the runs.
 
 Learn more: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot.md](docs/safety/revert-boot.md) (the boot unit), [atomic.md](docs/safety/atomic.md) (writes and backups), [pve.md](docs/safety/pve.md) (Proxmox), and the index, [docs/safety](docs/safety/README.md).
 
@@ -213,7 +214,7 @@ disableRootSSH: true
 confirmTimeout: "5m"
 ```
 
-See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to keep `HARDN_CONFIG` under sudo. The example file is [hardn.yml.example](hardn.yml.example).
+See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to keep `HARDN_CONFIG` under sudo. Example: [hardn.yml.example](hardn.yml.example)
 
 ## Supported Versions
 
