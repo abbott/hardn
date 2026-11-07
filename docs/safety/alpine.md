@@ -187,5 +187,6 @@ The `State`, `Step`, `CrondState`, `FindingKind` and `Bootloader` words are stab
 
 - The SSH rows were Unknown, "no sshd_config", with no CVE line. AppArmor was "set by the host" and DNS "container".
 - `hardn -n -c -u dogfoodtest` planned (exit 3), but with `SSH_FIX_UNKNOWN`: "can't tell if openssh-server has the fix … isn't in /lib/apk/db/installed", on a host where no sshd can run. Fixed: Create skips the check where `ReadBypass` reads no sshd ([control-users.md](../engine/control-users.md) §7). Rerun there with the fixed build: the same plan, `USERS_NO_KEY` alone, exit 3.
+- That plan had `useradd`, which the host lacks without `shadow`. Fixed: Create refuses first ([control-users.md](../engine/control-users.md) §5). Rerun there: "Using default configuration" once, then `USERS_NO_USERADD`, "run apk add shadow, then try again", exit 1.
 
 Not run: Alpine 3.24; `openssh-server-krb5`.
