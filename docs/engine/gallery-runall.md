@@ -85,7 +85,7 @@ In dependency order. The brief's (5) "refuses or doesn't apply" comes second her
 
 **Adopted (the maintainer, 2026-11-04):** "Adopt all, start (b)." Every recommended answer below is adopted, and every Made here call as stated. What follows from them:
 
-- Run All plans User (Create), SSH Login (root login off; root key-only on Proxmox VE), Firewall (Enable), DNS and Auto Updates (on only), each planned alone first and skipped, said, where it refuses, doesn't apply or has nothing to change; the rest in one plan, with the firewall before root login off where both are asked (1 (a), 2 (a), 3 (a), 5 (a)).
+- Run All plans User (Create), SSH Login (root login off; root key-only on Proxmox VE, never loosened, as `-d`'s: root login already off, or key-only already there, is nothing to change), Firewall (Enable), DNS and Auto Updates (on only), each planned alone first and skipped, said, where it refuses, doesn't apply or has nothing to change; the rest in one plan, with the firewall before root login off where both are asked (1 (a), 2 (a), 3 (a), 5 (a)).
 - hardn.yml's keys as 4 (a), `sudoNoPassword` unused (Create's grant as `-c`'s); the hostname typed whatever the risk (6 (a)); main menu item 7 kept (7 (a), P-02 decided); `hardn -r` as 8 (a); §6's words decided (9); each row Run All's outcome alone (10 (a)).
 - Unit (b) builds the planner as real code for the screen and `-r`, with the two real fixes of §7.
 

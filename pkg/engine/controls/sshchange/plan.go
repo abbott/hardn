@@ -339,6 +339,36 @@ func (c Root) Plan(ctx context.Context, sys host.System, in engine.Input) ([]eng
 	return r.planSSH(ctx, sys, in, c.ID(), steps.SSH{Set: []migrate.Directive{directive("PermitRootLogin", want)}})
 }
 
+// Disallow is Disallow root login as -d and Run All plan it: Root, with
+// Want "no", never loosening root's login. Root login already off (sshd
+// -T's PermitRootLogin no) is nothing to change, on Proxmox VE as
+// elsewhere, though there Root would plan root key-only
+// (prohibit-password), which only the screen's Root key-only item offers;
+// root key-only already there (ErrPVEKeyOnly, SSH_PVE_ROOT_KEY_ONLY) is
+// nothing to change too, as a flag and Run All are idempotent.
+type Disallow struct{ Root }
+
+// Plan is Root's, with Proxmox VE's root key-only already, and root's
+// login already off there, planned as nothing to change. Root login off
+// is read first, where sshd's settings read as Root's own check reads
+// them (common), so that a key-only plan it would never make, which Proxmox
+// VE's check of the candidate may refuse (an AllowUsers leaving root out),
+// is not planned at all.
+func (c Disallow) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
+	r, err := Read(ctx, sys, in.Facts, in.Config, in.Session, c.Getenv)
+	if err != nil {
+		return nil, err
+	}
+	if r.PVE && r.common(false) == nil && r.RootValue() == "no" { // root key-only would loosen it: the screen's item
+		return nil, nil
+	}
+	cs, err := c.Root.Plan(ctx, sys, in)
+	if errors.Is(err, ErrPVEKeyOnly) {
+		return nil, nil
+	}
+	return cs, err
+}
+
 // AuthAction is what Auth's Plan does.
 type AuthAction uint8
 

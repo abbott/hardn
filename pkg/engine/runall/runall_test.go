@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/fs"
 	"slices"
+	"strings"
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -24,6 +25,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 )
 
@@ -90,6 +92,35 @@ func TestHosts(t *testing.T) {
 		}
 		if r.Lockout() != w.lockout {
 			t.Errorf("%s: lockout %v, want %v", name, r.Lockout(), w.lockout)
+		}
+		held(t, name, h, r)
+	}
+}
+
+// TestPVERootNeverLoosened: on Proxmox VE, Run All's root login off is
+// -d's (sshchange.Disallow): root login already off is not opened to root
+// key-only, and root key-only already is not refused; each is as asked,
+// nothing lockout-risk planned. Root login off where root key-only could
+// not be planned (AllowUsers leaving root out, which Proxmox VE's own
+// check of a key-only candidate refuses) is as asked too: a change never
+// made is not refused.
+func TestPVERootNeverLoosened(t *testing.T) {
+	for _, tc := range []struct{ value, dropIn string }{{"no", ""}, {"prohibit-password", ""}, {"no", "AllowUsers george\n"}} {
+		h := newHost(t, "pve9")
+		h.sshFile(sshd.MainConfig, sshd.IncludeLine+"\n\nUsePAM yes\nPermitRootLogin "+tc.value+"\n", 0o644)
+		name := "pve9, PermitRootLogin " + tc.value
+		if tc.dropIn != "" {
+			h.sshFile(sshd.DropInDir+"/50-site.conf", tc.dropIn, 0o644)
+			name += ", " + strings.TrimSpace(tc.dropIn)
+		}
+		r := h.read(t, name)
+		for _, rw := range r.Rows {
+			if rw.ID == login && rw.Kind != runall.AsAsked {
+				t.Errorf("%s: root login %v, want as asked", name, rw.Kind)
+			}
+		}
+		if r.Lockout() {
+			t.Errorf("%s: lockout-risk, want not", name)
 		}
 		held(t, name, h, r)
 	}
@@ -184,8 +215,8 @@ func TestAsked(t *testing.T) {
 		{"user, two keys", users.ID, debian, func(c *config.Config) { c.SshKeys = []string{key, key} }, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key, key}}}, "Create george, 2 keys", 0},
 		{"no username", users.ID, debian, func(c *config.Config) { c.Username = "" }, nil, "", 0},
 		{"sudoNoPassword false", users.ID, debian, func(c *config.Config) { c.SudoNoPassword = false }, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key}}}, "Create george, 1 key", 0},
-		{"root login off", login, debian, nil, sshchange.Root{Want: "no"}, "Root login off", 0},
-		{"root key-only", login, pve, nil, sshchange.Root{Want: "no"}, "Root key-only", 0},
+		{"root login off", login, debian, nil, sshchange.Disallow{Root: sshchange.Root{Want: "no"}}, "Root login off", 0},
+		{"root key-only", login, pve, nil, sshchange.Disallow{Root: sshchange.Root{Want: "no"}}, "Root key-only", 0},
 		{"disableRootSSH false", login, debian, func(c *config.Config) { c.DisableRootSSH = false }, nil, "", 0},
 		{"port", port, debian, nil, nil, "", 2230},
 		{"port 0", port, debian, func(c *config.Config) { c.SshPort = 0 }, nil, "", 0},
@@ -229,8 +260,8 @@ func sameControl(got, want engine.Control, cfg *config.Config) bool {
 	case users.Admin:
 		g, ok := got.(users.Admin)
 		return ok && g.Getenv != nil && g.Action == w.Action && g.New.Name == w.New.Name && g.New.Admin && !g.New.Password && slices.Equal(g.New.Keys, w.New.Keys)
-	case sshchange.Root:
-		g, ok := got.(sshchange.Root)
+	case sshchange.Disallow:
+		g, ok := got.(sshchange.Disallow)
 		return ok && g.Getenv != nil && g.Want == w.Want
 	case dnsctl.Nameservers:
 		g, ok := got.(dnsctl.Nameservers)

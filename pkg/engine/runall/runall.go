@@ -173,7 +173,8 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // Asked is the mapping, hardn.yml's keys to the controls, key by key
 // (decision 4 (a)): username and sshKeys, Create with admin rights and the
 // keys, its grant asking no password, as -c's; disableRootSSH true, root
-// login off, key-only on Proxmox VE; sshPort, compared only;
+// login off, key-only on Proxmox VE, never loosened (sshchange.Disallow,
+// as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
 // nameservers; enableUnattendedUpgrades true, on (never off). Every other
 // row asks nothing: SSH Auth, AppArmor, Backup and Environment.
@@ -194,7 +195,7 @@ func Asked(in Input, id string) Ask {
 		if in.Facts.Platform.Distro == detect.DistroProxmox {
 			words = keyOnly
 		}
-		return Ask{Control: sshchange.Root{Want: "no", Getenv: in.getenv}, Words: words}
+		return Ask{Control: sshchange.Disallow{Root: sshchange.Root{Want: "no", Getenv: in.getenv}}, Words: words}
 	case ssh.Port{}.ID():
 		if cfg.SshPort <= 0 || cfg.SshPort > 65535 {
 			return Ask{}

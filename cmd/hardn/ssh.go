@@ -13,7 +13,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 
@@ -21,7 +20,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/steps"
-	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	sshscreen "github.com/abbott/hardn/pkg/screens/ssh"
@@ -47,45 +45,15 @@ import (
 // no) is nothing to change, on Proxmox VE as elsewhere, though there the
 // control would plan root key-only (prohibit-password), which the
 // screen's Root key-only item offers; root key-only already there is
-// nothing to change for -d too (disallowRootControl), a flag being
-// idempotent. Under -n, or hardn.yml's dryRun: true, the plan alone, no
+// nothing to change for -d too (sshchange.Disallow, Run All's as well), a
+// flag being idempotent. Under -n, or hardn.yml's dryRun: true, the plan alone, no
 // question, nothing written. hardn.yml's SSH settings are not read
 // (loadWarnings says so of those set). It returns the exit status: 0
 // applied or nothing to change, 3 a plan with changes to make (-n) or
 // declined (0, q), 1 refused or failed.
 func disallowRoot(c *config.Config) int {
-	root := disallowRootControl{sshchange.Root{Want: "no", Getenv: os.Getenv}}
+	root := sshchange.Disallow{Root: sshchange.Root{Want: "no", Getenv: os.Getenv}}
 	return runControls(c, []engine.Control{root}, nil, &disallowRootConfirm)
-}
-
-// disallowRootControl is -d's control: the SSH Login control's Root, but
-// never loosening root login: on Proxmox VE, where the control plans root
-// key-only (prohibit-password), root login already off (sshd -T's
-// PermitRootLogin no, the reading the control makes) is nothing to
-// change, as it is elsewhere; and the control's refusal where root is
-// key-only already (sshchange.ErrPVEKeyOnly, SSH_PVE_ROOT_KEY_ONLY: the
-// screen's item then read-only) is nothing to change too.
-type disallowRootControl struct{ sshchange.Root }
-
-// Plan is Root's, with Proxmox VE's root key-only already, and a plan
-// there that would open root's login from no, planned as nothing to
-// change.
-func (c disallowRootControl) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
-	cs, err := c.Root.Plan(ctx, sys, in)
-	if errors.Is(err, sshchange.ErrPVEKeyOnly) {
-		return nil, nil
-	}
-	if err != nil || len(cs) == 0 {
-		return cs, err
-	}
-	r, err := sshchange.Read(ctx, sys, in.Facts, in.Config, in.Session, c.Getenv)
-	if err != nil {
-		return nil, err
-	}
-	if r.PVE && r.RootValue() == "no" { // Root key-only would loosen it: the screen's item
-		return nil, nil
-	}
-	return cs, nil
 }
 
 // disallowRootConfirm is -d's confirmation of its lockout-risk plan: the
