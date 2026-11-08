@@ -21,6 +21,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"slices"
 	"strconv"
 	"strings"
@@ -166,10 +167,12 @@ func each(data []byte, file string, fields int, fn func(int, []string) error) er
 	return nil
 }
 
-// id is a uid or gid: decimal, 0 to 2^32-2.
+// id is a uid or gid: decimal, 0 to 2^32-2. Every one fits an int on a
+// 64-bit build, the only builds there are; on a 32-bit one, an id above
+// math.MaxInt is refused rather than read as negative.
 func id(s string) (int, error) {
 	n, err := strconv.ParseUint(s, 10, 32)
-	if err != nil || n == 1<<32-1 {
+	if err != nil || n == 1<<32-1 || n > math.MaxInt {
 		return 0, ErrMalformed
 	}
 	return int(n), nil

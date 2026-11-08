@@ -215,14 +215,14 @@ func TestItems(t *testing.T) {
 }
 
 // TestPortForm: the port refused at its field outside 1 to 65535, "-1"
-// and "-22" among them, and on a port sshd has (its plan empty), in the
-// mock's words, nothing planned; its default hardn.yml's sshPort, said,
-// where sshd does not listen on it, its plan to that port; none from a
-// sshPort sshd has, or with no hardn.yml.
+// and "-22" among them, and signed ("+22"), and on a port sshd has (its
+// plan empty), in the mock's words, nothing planned; its default
+// hardn.yml's sshPort, said, where sshd does not listen on it, its plan to
+// that port; none from a sshPort sshd has, or with no hardn.yml.
 func TestPortForm(t *testing.T) {
 	h := ready(t, "debian13")
-	p := play(h, true, "3", "x", "70000", "-1", "-22", "22", "0", "0")
-	if p.err != nil || strings.Count(flat(p.out), wordsPortRange) != 4 || !shows(p.out, wordsPortHave) || shows(p.out, planned) || p.unread != 0 {
+	p := play(h, true, "3", "x", "70000", "-1", "-22", "+22", "22", "0", "0")
+	if p.err != nil || strings.Count(flat(p.out), wordsPortRange) != 5 || !shows(p.out, wordsPortHave) || shows(p.out, planned) || p.unread != 0 {
 		t.Errorf("refused at the field: Run = %v:\n%s", p.err, p.out)
 	}
 	for _, tt := range []struct {

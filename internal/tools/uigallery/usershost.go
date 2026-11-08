@@ -105,7 +105,7 @@ func (u *userSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 			db, _ := accounts.Read(ctx, h.f)
 			for _, x := range db.Users {
 				if x.Name == argv[5] || strconv.Itoa(x.UID) == argv[5] {
-					m, _ := strconv.ParseUint(argv[3], 8, 32)
+					m, _ := strconv.ParseUint(argv[3], 8, 16)
 					h.f.AddDir(argv[8], fsMode(int(m)), x.UID, x.GID)
 					return hostfake.Response{}, true
 				}

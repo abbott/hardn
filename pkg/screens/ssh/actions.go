@@ -202,8 +202,8 @@ func (r *runner) port(ctx context.Context, _ reading) error {
 		def, about = strconv.Itoa(p), screen.SSHPortDefault(p)
 	}
 	field := &form.Text{Title: screen.SSHPortField, Description: about, Default: def, Value: &value, Validate: func(s string) error {
-		n, err := strconv.Atoi(strings.TrimSpace(s))
-		if err != nil || n < 1 || n > 65535 {
+		n, err := strconv.ParseUint(strings.TrimSpace(s), 10, 16)
+		if err != nil || n < 1 {
 			return nav.Refuse(screen.SSHPortOutOfRange)
 		}
 		words, p, err := r.preplan(ctx, sshchange.Port{To: uint16(n)})
@@ -218,7 +218,7 @@ func (r *runner) port(ctx context.Context, _ reading) error {
 		return nil
 	}}
 	return r.change(ctx, true, screen.SSHPortChange(portWords(h)), []form.Field{field}, func() engine.Control {
-		n, _ := strconv.Atoi(strings.TrimSpace(value))
+		n, _ := strconv.ParseUint(strings.TrimSpace(value), 10, 16)
 		return sshchange.Port{To: uint16(n)}
 	})
 }

@@ -455,7 +455,7 @@ func (h *fakeHost) sshdT(main []byte, drops []sshd.File) (out string, listeners 
 		b.WriteString("port " + p + "\n")
 	}
 	on := func(a netip.Addr, p string) {
-		n, _ := strconv.Atoi(p)
+		n, _ := strconv.ParseUint(p, 10, 16)
 		listeners = append(listeners, netip.AddrPortFrom(a, uint16(n)).String())
 	}
 	if las := acc["listenaddress"]; len(las) > 0 {
@@ -839,7 +839,7 @@ func (h *fakeHost) ufw(argv []string) (hostfake.Response, bool) {
 	if h.inactive {
 		word = "Rules updated"
 	}
-	n, err := strconv.Atoi(strings.TrimSuffix(argv[len(argv)-1], "/tcp"))
+	n, err := strconv.ParseUint(strings.TrimSuffix(argv[len(argv)-1], "/tcp"), 10, 16)
 	switch {
 	case err != nil:
 	case len(argv) == 3 && argv[1] == "allow":
