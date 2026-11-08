@@ -824,6 +824,14 @@ func TestSDRows(t *testing.T) {
 		return component.KeyValue{Key: "Can't read " + source, State: component.ValueWarn}
 	}
 	unread := func(source string) []details.Unread { return []details.Unread{{Source: source}} }
+	failed := func(source string, err error) []details.Unread { return []details.Unread{{Source: source, Err: err}} }
+	checked := func(path string, err error, argv ...string) error {
+		return &sudoers.CheckError{Path: path, Argv: argv, Err: err}
+	}
+	exit1 := &host.ExitError{ExitCode: 1, Err: errors.New("exit status 1")}
+	gone := func(path string) error { return &fs.PathError{Op: "open", Path: path, Err: fs.ErrNotExist} }
+	warn := func(key string) component.KeyValue { return component.KeyValue{Key: key, State: component.ValueWarn} }
+	alice := []details.User{{Name: "alice"}}
 	used := component.KeyValue{Key: rowUsed, Value: "1.0 of 2.0 GiB (50%)"}
 	for _, tt := range []struct {
 		name, section string
@@ -841,8 +849,30 @@ func TestSDRows(t *testing.T) {
 			[]component.KeyValue{{Key: noAddresses, State: component.ValueNone}, cant("/proc/sys/kernel/hostname")}},
 		{"no account file", "Users", details.Report{Users: details.Users{Unread: unread("/etc/passwd")}}, []component.KeyValue{cant("/etc/passwd")}},
 		{"root alone", "Users", details.Report{Users: details.Users{List: []details.User{}}}, []component.KeyValue{{Key: noUsers, State: component.ValueNone}}},
-		{"as root, a rule the tool rejects", "Users", details.Report{Users: details.Users{List: []details.User{{Name: "alice"}}, Root: detect.Yes, Unread: unread("/etc/sudoers")}},
+		{"as root, a rule not read", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes, Unread: unread("/etc/sudoers")}},
 			[]component.KeyValue{{Key: "alice", Value: noSudo}, cant("/etc/sudoers")}},
+		{"visudo -c rejects the rules", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes,
+			Unread: failed("/etc/sudoers", checked("/etc/sudoers", exit1, "visudo", "-c"))}},
+			[]component.KeyValue{{Key: "alice", Value: noSudo}, warn("sudo rejects its rules")}},
+		{"a check ended by a signal rejects nothing", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes,
+			Unread: failed("/etc/sudoers", checked("/etc/sudoers", &host.ExitError{ExitCode: -1, Err: errors.New("signal: killed")}, "visudo", "-c"))}},
+			[]component.KeyValue{{Key: "alice", Value: noSudo}, cant("/etc/sudoers")}},
+		{"doas -C rejects a file", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes, Tool: "doas",
+			Unread: failed("/etc/doas.conf", checked("/etc/doas.conf", exit1, "doas", "-C", "/etc/doas.conf"))}},
+			[]component.KeyValue{{Key: "alice", Value: noDoas}, warn("doas rejects /etc/doas.conf")}},
+		{"doas's ownership rule rejects a file", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes, Tool: "doas",
+			Unread: failed("/etc/doas.d/a.conf", checked("/etc/doas.d/a.conf", sudoers.ErrPerms))}},
+			[]component.KeyValue{{Key: "alice", Value: noDoas}, warn("doas rejects /etc/doas.d/a.conf")}},
+		{"the rules missing", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes, Unread: failed("/etc/sudoers", gone("/etc/sudoers"))}},
+			[]component.KeyValue{{Key: "alice", Value: noSudo}, warn("/etc/sudoers is missing")}},
+		{"no visudo to check them", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes,
+			Unread: failed("/etc/sudoers", checked("/etc/sudoers", host.ErrNotFound, "visudo", "-c"))}},
+			[]component.KeyValue{{Key: "alice", Value: noSudo}, cant("/etc/sudoers")}},
+		{"refused to root", "Users", details.Report{Users: details.Users{List: alice, Root: detect.Yes,
+			Unread: failed("/etc/sudoers", &fs.PathError{Op: "open", Path: "/etc/sudoers", Err: fs.ErrPermission})}},
+			[]component.KeyValue{{Key: "alice", Value: noSudo}, cant("/etc/sudoers")}},
+		{"a missing file elsewhere stays not read", "OS", details.Report{OS: details.OSKernel{Unread: failed("/proc/sys/kernel/osrelease", gone("/proc/sys/kernel/osrelease"))}},
+			[]component.KeyValue{cant("/proc/sys/kernel/osrelease")}},
 		{"no grant on doas", "Users", details.Report{Users: details.Users{List: []details.User{{Name: "alice"}}, Root: detect.Yes, Tool: "doas"}},
 			[]component.KeyValue{{Key: "alice", Value: noDoas}}},
 		{"the load not read, the model stays", "CPU", details.Report{CPU: details.CPU{Model: "m", CPUs: 2, Sockets: 2, Unread: unread(details.LoadAvgFile)}},
@@ -850,13 +880,19 @@ func TestSDRows(t *testing.T) {
 		{"cpuinfo not read, the load stays", "CPU", details.Report{CPU: details.CPU{Load: [3]string{"1", "2", "3"}, Unread: unread(details.CPUInfoFile)}},
 			[]component.KeyValue{{Key: rowLoad, Value: "1, 2, 3"}, cant(details.CPUInfoFile)}},
 		{"df failed, the mount stays", "Disk", details.Report{Disk: details.Disk{Source: "/dev/vda1", Type: "ext4", Unread: unread(details.SourceDF)}},
-			[]component.KeyValue{{Key: rowRoot, Value: "/dev/vda1 ext4"}, cant(details.SourceDF)}},
+			[]component.KeyValue{{Key: rowRoot, Value: "/dev/vda1", Extra: "ext4"}, cant(details.SourceDF)}},
 		{"no zpool, df's figures", "Disk", details.Report{Disk: details.Disk{Source: "rpool/ROOT/pve-1", Type: "zfs", Used: 1 << 30, Total: 2 << 30, Known: true, Pool: "rpool"}},
-			[]component.KeyValue{{Key: rowRoot, Value: "rpool/ROOT/pve-1 zfs"}, used, {Key: "Pool rpool", Value: notKnown, State: component.ValueUnknown}}},
+			[]component.KeyValue{{Key: rowRoot, Value: "rpool/ROOT/pve-1", Extra: "zfs"}, used, {Key: "Pool rpool", Value: notKnown, State: component.ValueUnknown}}},
 		{"a pool not ONLINE", "Disk", details.Report{Disk: details.Disk{Source: "r/d", Type: "zfs", Used: 1 << 30, Total: 2 << 30, Known: true, Pool: "r", Health: "FAULTED"}},
-			[]component.KeyValue{{Key: rowRoot, Value: "r/d zfs"}, used, {Key: "Pool r", Value: "FAULTED", State: component.ValueWarn}}},
+			[]component.KeyValue{{Key: rowRoot, Value: "r/d", Extra: "zfs"}, used, {Key: "Pool r", Value: "FAULTED", State: component.ValueWarn}}},
 		{"no MemAvailable", "Memory", details.Report{Memory: details.Memory{Total: 2 << 30}}, []component.KeyValue{{Key: rowUsed, Value: notKnown, State: component.ValueUnknown}}},
 		{"meminfo", "Memory", details.Report{Memory: details.Memory{Total: 2 << 30, Available: 1 << 30, AvailableKnown: true}}, []component.KeyValue{used}},
+		{"under 1 GiB, whole MiB", "Memory", details.Report{Memory: details.Memory{Total: 256 << 20, Available: 169 << 20, AvailableKnown: true}},
+			[]component.KeyValue{{Key: rowUsed, Value: "87 of 256 MiB (34%)"}}},
+		{"under 1 GiB, MiB rounded", "Disk", details.Report{Disk: details.Disk{Used: 468<<20 + 600<<10, Total: 720 << 20, Known: true}},
+			[]component.KeyValue{{Key: rowUsed, Value: "469 of 720 MiB (65%)"}}},
+		{"1 GiB, GiB", "Disk", details.Report{Disk: details.Disk{Used: 512 << 20, Total: 1 << 30, Known: true}},
+			[]component.KeyValue{{Key: rowUsed, Value: "0.5 of 1.0 GiB (50%)"}}},
 		{"lslogins unread", "Logins", details.Report{Logins: details.Logins{State: details.LoginsUnread, Unread: unread(details.SourceLslogins)}}, []component.KeyValue{cant(details.SourceLslogins)}},
 		{"lslogins not there", "Logins", details.Report{Logins: details.Logins{State: details.LoginsNoTool}}, []component.KeyValue{{Key: rowLogins, Value: noLslogins, State: component.ValueUnknown}}},
 	} {

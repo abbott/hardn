@@ -200,6 +200,7 @@ The command is item 11's: `less -- /var/log/hardn.log`, under `LESSSECURE=1 LESS
 | Users | No user listed | "None but root" | `screen-pve9` | `[]` |
 | Users | A tool grants it; none does; not established | "sudo" or "doas"; "No sudo" or "No doas"; "Not known" | `screen-debian13`, `screen-alpine323`, `screen-many`, `cli-not-root` | `tool` the tool, `""`, `"unknown"` |
 | Users | Not root, rules refused | "Not root: <file>, <file> not read" | `cli-not-root` | one finding |
+| Users | *Since 2026-11-08, approved as built ("Approve as built"):* a rule file its tool rejects (`visudo -c`, `doas -C`, doas's ownership rule); one not there | "sudo rejects its rules" (`visudo -c` checks every file under the main file's name) or "doas rejects <file>"; "<file> is missing"; a check ended by a signal, and any other failure, stays "Can't read <file>" | `TestSDRows` | one `DETAILS_UNREADABLE`, as before |
 | CPU | No `model name`, no `physical id` | Model "Not known"; CPUs alone | `TestSDBlankCPU` | null |
 | Disk | Not read, or no sizes | "/" alone, and "Can't read df" | `TestSDRows` | null where not read |
 | Disk | A pool ONLINE; other; no `zpool` | its health; in the warning's state; "Not known" | `screen-pve9`, `screen-zfs-degraded`, `TestSDRows` | `health` as it says, or `"unknown"` |

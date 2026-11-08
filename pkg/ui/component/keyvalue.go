@@ -130,6 +130,11 @@ type KeyValue struct {
 	// as Figma's "/var/backups/hardn Writable" and "Enabled, No password";
 	// empty shows none.
 	Note string
+	// Extra follows Value after a space where the row has room for both
+	// beside the label, and is left out where it has not, so that Value is
+	// not cut for it, as the root file system's type after its device;
+	// never with a Note.
+	Extra string
 	// Finding marks a bullet item as a plan's finding (flow.Finding): with
 	// no colour to tell it from a change's or a row's bullet, a warning's
 	// leads with Glyphs.Warn, ⭘ [ ], the design system's warning marker, in
@@ -189,6 +194,11 @@ func (vm KeyValue) row(c Ctx) (r entry, ok bool) {
 		value = line{{v, t.Value}, gap(1), {n, state}}
 	case n != "" || v != "":
 		value = line{{v + n, state}}
+		if x := c.text(vm.Extra); x != "" && n == "" {
+			if whole := (line{{v + " " + x, state}}); c.Whole || whole.width() <= c.width()-theme.ValueCol {
+				value = whole
+			}
+		}
 	case vm.State.word() != "":
 		value = line{{vm.State.word(), state}}
 	}

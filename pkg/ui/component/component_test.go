@@ -475,6 +475,14 @@ func TestLayout(t *testing.T) {
 			"   -  Unattended Upgrades Mail Reports\n      alice"},
 		{"keyvalue: a long value is cut", KeyValue{Key: "Allowed Users", Value: strings.Repeat("x", 60)}, from, false,
 			"   -  Allowed Users        " + strings.Repeat("x", maxWidth(KeyValue{}, from)-theme.ValueCol-3) + "..."},
+		{"keyvalue: an extra that fits follows the value", KeyValue{Key: "/", Value: "/dev/sda1", Extra: "ext4"}, from, false,
+			"   -  /                    /dev/sda1 ext4"},
+		{"keyvalue: an extra that doesn't fit is left out, the value whole", KeyValue{Key: "/", Value: "/dev/mapper/pods-vm--103--disk--0", Extra: "ext4"}, 80, false,
+			"   -  /                    /dev/mapper/pods-vm--103--disk--0"},
+		{"keyvalue: an extra filling the room exactly is kept", KeyValue{Key: "/", Value: "/dev/mapper/pve-vm--103--disk--0", Extra: "ext4"}, 80, false,
+			"   -  /                    /dev/mapper/pve-vm--103--disk--0 ext4"},
+		{"keyvalue: no extra with a note", KeyValue{Key: "a", Note: "n", Extra: "x"}, from, false,
+			"   -  a" + strings.Repeat(" ", theme.ValueCol-7) + "n"},
 		{"keyvalue: a state with no value shows nothing", KeyValue{Key: "Sudo", State: ValueBad}, 80, false, "   -  Sudo"},
 		{"keyvalue: no key leaves the key column blank", KeyValue{Value: "2230"}, from, false,
 			"   -                       2230"},
@@ -761,6 +769,15 @@ func TestShowsWhole(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestExtraOffTerminal: off a terminal nothing is cut (Whole), so an extra that
+// would not fit beside the label is kept.
+func TestExtraOffTerminal(t *testing.T) {
+	vm := KeyValue{Key: "/", Value: "/dev/mapper/pods-vm--103--disk--0", Extra: "ext4"}
+	if got := ansi.Strip(vm.Render(OffTerminal())); !strings.HasSuffix(got, "/dev/mapper/pods-vm--103--disk--0 ext4") {
+		t.Errorf("off a terminal: %q", got)
 	}
 }
 

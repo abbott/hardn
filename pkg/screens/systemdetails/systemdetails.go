@@ -15,6 +15,7 @@ package systemdetails
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -57,6 +58,11 @@ const (
 	noLogin     = "None recorded"
 	notKnown    = "Not known"
 	cantRead    = "Can't read %s"
+	rejects     = "%s rejects %s"
+	sudoRejects = "sudo rejects its rules"
+	missing     = "%s is missing"
+	usedGiB     = "%s of %s GiB (%s)"
+	usedMiB     = "%s of %s MiB (%s)"
 	noLslogins  = "Not known: lslogins isn't installed"
 	notRootRow  = "Not root: %s not read"
 	fromHost    = "%s from %s"
@@ -157,6 +163,7 @@ func viewOf(r details.Report, now time.Time) screen.SystemDetails {
 func safeRows(rows []component.KeyValue) []component.KeyValue {
 	for i := range rows {
 		rows[i].Key, rows[i].Value, rows[i].Note = logview.Safe(rows[i].Key), logview.Safe(rows[i].Value), logview.Safe(rows[i].Note)
+		rows[i].Extra = logview.Safe(rows[i].Extra)
 	}
 	return rows
 }
@@ -175,6 +182,53 @@ func cantReadRows(unread []details.Unread) []component.KeyValue {
 		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(cantRead, u.Source), State: component.ValueWarn})
 	}
 	return rows
+}
+
+// ruleRows are cantReadRows for the Users section's rules, each saying why
+// where that is established (unreadWords).
+func ruleRows(unread []details.Unread) []component.KeyValue {
+	var rows []component.KeyValue
+	for _, u := range unread {
+		rows = append(rows, component.KeyValue{Key: unreadWords(u), State: component.ValueWarn})
+	}
+	return rows
+}
+
+// unreadWords says why a rule file u was not read where that is established: a
+// file its tool rejects (sudoers.ErrRejected: visudo -c, doas -C or doas's
+// ownership rule), by the tool's name; sudo's rules as a whole, as visudo -c
+// checks the main file and each it includes under the main file's name; a file
+// that is not there; otherwise that it can't be read.
+func unreadWords(u details.Unread) string {
+	switch tool := rejecter(u.Err); tool {
+	case "":
+	case sudoers.ToolSudo.String():
+		return sudoRejects
+	default:
+		return fmt.Sprintf(rejects, tool, u.Source)
+	}
+	if errors.Is(u.Err, fs.ErrNotExist) {
+		return fmt.Sprintf(missing, u.Source)
+	}
+	return fmt.Sprintf(cantRead, u.Source)
+}
+
+// rejecter is the tool whose check rejected err's file, "" where none did: a
+// check ended by a signal rejected nothing.
+func rejecter(err error) string {
+	var ce *sudoers.CheckError
+	var exit *host.ExitError
+	switch {
+	case !errors.Is(err, sudoers.ErrRejected) || !errors.As(err, &ce):
+		return ""
+	case errors.As(err, &exit) && exit.ExitCode < 0:
+		return ""
+	case len(ce.Argv) == 0: // doas's ownership rule, which hardn checks for it
+		return sudoers.ToolDoas.String()
+	case ce.Argv[0] == "visudo":
+		return sudoers.ToolSudo.String()
+	}
+	return ce.Argv[0]
 }
 
 // osWords is the distribution as the header's bar names it: "Debian 13 (Trixie)".
@@ -224,7 +278,7 @@ func hostRows(r details.Report) []component.KeyValue {
 // guess.
 func userRows(r details.Report) []component.KeyValue {
 	if r.Users.List == nil {
-		return cantReadRows(r.Users.Unread)
+		return ruleRows(r.Users.Unread)
 	}
 	noTool := noSudo
 	if r.Users.Tool == sudoers.ToolDoas.String() {
@@ -249,7 +303,7 @@ func userRows(r details.Report) []component.KeyValue {
 		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(notRootRow, strings.Join(refused, ", ")), State: component.ValueWarn})
 		unread = slices.DeleteFunc(slices.Clone(unread), func(u details.Unread) bool { return slices.Contains(refused, u.Source) })
 	}
-	return append(rows, cantReadRows(unread)...)
+	return append(rows, ruleRows(unread)...)
 }
 
 // cpuRows are the CPU and Load section's rows: Model says Not known where a
@@ -284,7 +338,7 @@ func diskRows(r details.Report) []component.KeyValue {
 	var rows []component.KeyValue
 	d := r.Disk
 	if d.Source != "" {
-		rows = append(rows, component.KeyValue{Key: rowRoot, Value: d.Source + " " + d.Type})
+		rows = append(rows, component.KeyValue{Key: rowRoot, Value: d.Source, Extra: d.Type}) // the type left out, not the device cut
 	}
 	if d.Known {
 		rows = append(rows, component.KeyValue{Key: rowUsed, Value: usedOf(d.Used, d.Total)})
@@ -317,9 +371,17 @@ func memoryRows(r details.Report) []component.KeyValue {
 // gib is n bytes in GiB, one decimal.
 func gib(n uint64) string { return strconv.FormatFloat(float64(n)/(1<<30), 'f', 1, 64) }
 
-// usedOf says how much of total is used: "4.2 of 38.6 GiB (11%)".
+// mib is n bytes in whole MiB, rounded.
+func mib(n uint64) string { return strconv.FormatUint((n+1<<19)>>20, 10) }
+
+// usedOf says how much of total is used: "4.2 of 38.6 GiB (11%)"; in whole MiB
+// where total is under 1 GiB, "87 of 256 MiB (34%)", as one decimal of GiB
+// there reads as another percentage than the one shown.
 func usedOf(used, total uint64) string {
-	return fmt.Sprintf("%s of %s GiB (%s)", gib(used), gib(total), percent(used, total))
+	if total < 1<<30 {
+		return fmt.Sprintf(usedMiB, mib(used), mib(total), percent(used, total))
+	}
+	return fmt.Sprintf(usedGiB, gib(used), gib(total), percent(used, total))
 }
 
 // percent is used of total as a whole percentage.
