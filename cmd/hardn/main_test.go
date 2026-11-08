@@ -49,8 +49,9 @@ const (
 	hostUnreachable hostMode = iota
 	asRoot
 	// asRootBoolRootLogin is asRoot with a configuration file, in the
-	// test's temporary directory, whose permitRootLogin is the deprecated
-	// bool (§3.17).
+	// test's temporary directory, whose permitRootLogin is the bool, as
+	// hardn writes it, no deprecation since 2026-11-07, and which names
+	// disableRootSSH by its old name, disableRoot, a deprecation.
 	asRootBoolRootLogin
 )
 
@@ -130,7 +131,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 	loadConfig = func(string) (*config.Config, error) {
 		r.reached = append(r.reached, "config load")
 		if mode == asRootBoolRootLogin {
-			if err := os.WriteFile(confPath, []byte("username: alice\nsshPort: 2230\npermitRootLogin: false\nnameservers:\n  - 192.0.2.53\n"), 0o600); err != nil {
+			if err := os.WriteFile(confPath, []byte("username: alice\nsshPort: 2230\npermitRootLogin: false\ndisableRoot: false\nnameservers:\n  - 192.0.2.53\n"), 0o600); err != nil {
 				t.Fatal(err)
 			}
 			return config.LoadConfigWithEnvPriority(confPath)
@@ -212,11 +213,12 @@ func TestUpdateFlagsGone(t *testing.T) {
 	}
 }
 
-// TestDeprecationWarning: a bool permitRootLogin in the configuration is
-// warned about on stderr, once, when it loads (§3.17, approved), with the
-// file and line and what to write instead; the operation goes on, and
-// stdout does not repeat it. A configuration without
-// it warns nothing. (Run with -r, which plans Run All on the engine's
+// TestDeprecationWarning: a deprecated form in the configuration, here
+// disableRoot, disableRootSSH's old name, is warned about on stderr, once,
+// when it loads, with the file and line and what to write instead; the
+// operation goes on, and stdout does not repeat it. The bool permitRootLogin
+// beside it, as hardn writes it, warns nothing (2026-11-07), and a
+// configuration without either warns nothing. (Run with -r, which plans Run All on the engine's
 // host, here the DNS tests' (useDNSHost), whose hardn.yml asks nothing.)
 func TestDeprecationWarning(t *testing.T) {
 	onDNSHost := func() {
@@ -234,14 +236,14 @@ func TestDeprecationWarning(t *testing.T) {
 	// title is counted as a word of its own, since a cut just after the
 	// path's TestDeprecationWarning reads "TestDeprecationWarning <digits>".
 	got := flat(r.stderr)
-	if !strings.HasPrefix(got, "Using configuration from: ") || strings.Count(got, " Warning ") != 1 || !strings.Contains(nospace(got), nospace(`hardn.yml: permitRootLogin: false (line 3) is deprecated; write "no", which means the same`)) ||
-		strings.Count(got, "deprecated") != 1 || strings.Contains(r.stderr, "\x1b") {
+	if !strings.HasPrefix(got, "Using configuration from: ") || strings.Count(got, " Warning ") != 1 || !strings.Contains(nospace(got), nospace(`hardn.yml: disableRoot (line 4) is now disableRootSSH`)) ||
+		strings.Contains(got, "permitRootLogin") || strings.Contains(r.stderr, "\x1b") {
 		t.Errorf("stderr:\n%s", r.stderr)
 	}
-	if strings.Contains(r.stdout, "deprecated") {
+	if strings.Contains(r.stdout, "disableRoot") {
 		t.Errorf("stdout repeats it:\n%s", r.stdout)
 	}
-	if r := runHardnWith(t, asRoot, onDNSHost, "-r"); strings.Contains(r.stderr, "deprecated") {
-		t.Errorf("a configuration without the bool warns:\n%s", r.stderr)
+	if r := runHardnWith(t, asRoot, onDNSHost, "-r"); strings.Contains(r.stderr, "deprecated") || strings.Contains(r.stderr, " is now ") {
+		t.Errorf("a configuration without a deprecated form warns:\n%s", r.stderr)
 	}
 }

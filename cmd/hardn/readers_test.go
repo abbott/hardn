@@ -350,9 +350,8 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 // warns once, in slice 6's decision 9 (a) and slice 8's decision 4 (a)
 // words, where its value is not config.DefaultConfig's: permitRootLogin,
 // as RootLogin reads it ("yes", prohibit-password, which loads since the
-// legacy-left unit's decision 6 (a), or the deprecated true, whose deprecation
-// is said once beside it; false and "no", the default, only the
-// deprecation or nothing), sshAllowedUsers, sshListenAddress, sshKeyPath,
+// legacy-left unit's decision 6 (a), or the bool true, no deprecation since
+// 2026-11-07; false and "no", the default, nothing), sshAllowedUsers, sshListenAddress, sshKeyPath,
 // ufwAllowedPorts, enableAppArmor, enableLynis and logsconfig; set to the default, as
 // origin/main's SaveConfig writes it, none warns. disableRootSSH, which
 // Run All reads, sshPort and sshConfigFile never warn. Through hardn,
@@ -365,7 +364,7 @@ func TestUnusedKeysWarning(t *testing.T) {
 	for _, tc := range []struct {
 		name, yml  string
 		warned     []string // the keys warned of
-		deprecated bool     // the bool's deprecation said
+		deprecated bool     // a deprecation said (none here since the bool's went, 2026-11-07)
 	}{
 		{"left out", "username: alice\n", nil, false},
 		{"the defaults, as SaveConfig writes them", "username: alice\npermitRootLogin: \"no\"\nsshAllowedUsers: []\nsshListenAddress: 0.0.0.0\n" +
@@ -373,8 +372,8 @@ func TestUnusedKeysWarning(t *testing.T) {
 			"ufwAllowedPorts: []\nenableAppArmor: false\nenableLynis: false\n", nil, false},
 		{"permitRootLogin yes", "username: alice\npermitRootLogin: \"yes\"\n", []string{"permitRootLogin"}, false},
 		{"permitRootLogin prohibit-password, loaded (decision 6 (a))", "username: alice\npermitRootLogin: prohibit-password\n", []string{"permitRootLogin"}, false},
-		{"permitRootLogin true, deprecated", "username: alice\npermitRootLogin: true\n", []string{"permitRootLogin"}, true},
-		{"permitRootLogin false, deprecated", "username: alice\npermitRootLogin: false\n", nil, true},
+		{"permitRootLogin true, the bool", "username: alice\npermitRootLogin: true\n", []string{"permitRootLogin"}, false},
+		{"permitRootLogin false, as hardn writes it", "username: alice\npermitRootLogin: false\n", nil, false},
 		{"sshAllowedUsers", "username: alice\nsshAllowedUsers:\n  - george\n", []string{"sshAllowedUsers"}, false},
 		{"sshListenAddress", "username: alice\nsshListenAddress: 192.0.2.10\n", []string{"sshListenAddress"}, false},
 		{"sshKeyPath", "username: alice\nsshKeyPath: .ssh/authorized_keys\n", []string{"sshKeyPath"}, false},

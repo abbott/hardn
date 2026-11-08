@@ -302,7 +302,7 @@ func mustJSON(t *testing.T, v any) []byte {
 func TestAuditFlagFill(t *testing.T) {
 	auditOnRunHost(t)
 	h, _ := newDNSHost(t, "debian13", dnsTestList)
-	yml := h.content(dnsTestYML) + "permitRootLogin: false\n"
+	yml := h.content(dnsTestYML) + "disableRoot: false\n" // disableRootSSH's old name: a deprecation
 	h.AddFile(dnsTestYML, []byte(yml), 0o644, 0, 0)
 	cfg, err := config.Read(context.Background(), h, dnsTestYML)
 	if err != nil || len(cfg.Deprecations()) == 0 {

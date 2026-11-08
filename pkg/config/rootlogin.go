@@ -14,9 +14,12 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 )
 
-// RootLogin is the value of the permitRootLogin key: what hardn sets sshd's
+// RootLogin is the value of the permitRootLogin key: what hardn set sshd's
 // PermitRootLogin to (refactor plan §3.17, approved 2026-10-17). A bool
-// cannot say prohibit-password, which Proxmox VE needs (brief 2.5).
+// cannot say prohibit-password, which Proxmox VE needs (brief 2.5), so the
+// string came in beside it; the bool stays a form of its own, not
+// deprecated (the maintainer, 2026-11-07: hardn writes it, and nothing
+// applies the key since the legacy-left unit's decision 6 (a)).
 type RootLogin string
 
 const (
@@ -143,10 +146,11 @@ type plain Config
 
 // UnmarshalYAML reads hardn.yml as yaml.v3 decodes Config's fields, except
 // permitRootLogin. That key takes "no", "prohibit-password" or "yes", and
-// still the old bool (true or false, or one of YAML 1.1's spellings of it
-// that a bool field accepted, such as on, off, Yes), which reads as "yes"
-// or "no" and records a Deprecation. Any other value is the error the bool
-// field gave. PermitRootLogin is true exactly for "yes". Nothing applies
+// the bool (true or false, or one of YAML 1.1's spellings of it that a bool
+// field accepts, such as on, off, Yes), which reads as "yes" or "no" with
+// no warning: SaveConfig writes it so (MarshalYAML), and a Deprecation for
+// it warned of hardn's own file (the maintainer, 2026-11-07). Any other
+// value is the error the bool field gave. PermitRootLogin is true exactly for "yes". Nothing applies
 // the value (the legacy-left unit's decision 6 (a), adopted 2026-11-04):
 // any but "no" warns that it isn't used (cmd/hardn), prohibit-password too.
 func (c *Config) UnmarshalYAML(n *yaml.Node) error {
@@ -214,11 +218,6 @@ func (c *Config) readRootLogin(v *yaml.Node) error {
 		return err
 	}
 	c.PermitRootLogin = b
-	use := RootLoginNo
-	if b {
-		use = RootLoginYes
-	}
-	c.loaded.deprecations = append(c.loaded.deprecations, Deprecation{Key: rootLoginKey, Line: v.Line, Found: v.Value, Use: string(use)})
 	return nil
 }
 

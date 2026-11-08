@@ -30,11 +30,11 @@ func TestPermitRootLogin(t *testing.T) {
 		{yaml: "permitRootLogin: yes\n", want: RootLoginYes},
 		{yaml: "permitRootLogin: prohibit-password\n", want: RootLoginProhibitPassword},
 		{yaml: "permitRootLogin: \"prohibit-password\"\n", want: RootLoginProhibitPassword},
-		{yaml: "permitRootLogin: false\n", want: RootLoginNo, dep: "false"},
-		{yaml: "permitRootLogin: true\n", want: RootLoginYes, dep: "true"},
-		{yaml: "permitRootLogin: on\n", want: RootLoginYes, dep: "on"},
-		{yaml: "permitRootLogin: Off\n", want: RootLoginNo, dep: "Off"},
-		{yaml: "permitRootLogin: Yes\n", want: RootLoginYes, dep: "Yes"},
+		{yaml: "permitRootLogin: false\n", want: RootLoginNo},
+		{yaml: "permitRootLogin: true\n", want: RootLoginYes},
+		{yaml: "permitRootLogin: on\n", want: RootLoginYes},
+		{yaml: "permitRootLogin: Off\n", want: RootLoginNo},
+		{yaml: "permitRootLogin: Yes\n", want: RootLoginYes},
 		{yaml: "permitRootLogin: ~\n", want: RootLoginNo},
 		{yaml: "x: &a yes\npermitRootLogin: *a\n", want: RootLoginYes},
 		{yaml: "permitRootLogin: without-password\n", err: "line 1: cannot unmarshal !!str `without...` into bool"},
@@ -141,7 +141,7 @@ func TestSave(t *testing.T) {
 	data := []byte("# comment\npermitRootLogin: false # old\n")
 	sys.AddFile(path, data, 0o600, 0, 0)
 	c := DefaultConfig()
-	if err := yaml.Unmarshal(data, c); err != nil || len(c.Deprecations()) != 1 {
+	if err := yaml.Unmarshal(data, c); err != nil || len(c.Deprecations()) != 0 { // the bool is no deprecation (2026-11-07)
 		t.Fatalf("load: %v, %v", err, c.Deprecations())
 	}
 	if err := Save(ctx, sys, c); !errors.Is(err, ErrNotLoaded) || len(sys.Calls()) != 0 {
