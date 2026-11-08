@@ -432,8 +432,20 @@ func TestSudo(t *testing.T) {
 		{name: "a grant with a comment", site: site{plat: d, users: []string{alice}, files: dropIn("alice ALL=(ALL:ALL) ALL # admin\n")}, state: engine.Configured, want: "non-root, sudo"},
 		{name: "a user ID after the includedir", site: site{plat: d, users: []string{alice}, members: sudoGroup, files: map[string]string{sudoers.MainConfig: readStock(t, d, "sudoers") + "#1000 ALL=(ALL) !ALL\n"}},
 			state: engine.Unknown, want: "can't tell who has sudo", codes: []string{notRead}},
+		{name: "a negative user ID after the includedir", site: site{plat: d, users: []string{alice}, members: sudoGroup, files: map[string]string{sudoers.MainConfig: readStock(t, d, "sudoers") + "#-1 ALL=(ALL) !ALL\n"}},
+			state: engine.Unknown, want: "can't tell who has sudo", codes: []string{notRead}},
 		inSudo("a continued line", dropIn("alice ALL=(ALL) \\\n  NOPASSWD: ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
-		inSudo("a continued comment", dropIn("# admins \\\nbob ALL=(ALL) ALL\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		// sudo's comment runs to the end of its line, a trailing '\' with it.
+		{name: "a comment ending in a backslash", site: site{plat: d, users: []string{alice}, files: dropIn("# admins \\\nalice ALL=(ALL) ALL\n")}, state: engine.Configured, want: "non-root, sudo"},
+		{name: "a grant, its comment ending in a backslash", site: site{plat: d, users: []string{alice}, files: dropIn("alice ALL=(ALL) ALL # admin \\\nbob ALL=(ALL) ALL\n")},
+			state: engine.Configured, want: "non-root, sudo"},
+		inSudo("a continued line, a comment on its last", dropIn("alice ALL=(ALL) \\\n  ALL # admin\n"), engine.Unknown, "can't tell who has sudo", notRead),
+		// An #includedir ending in a backslash is not read, joined or not; a quote may be open on a continued line, so it joins.
+		{name: "an includedir ending in a backslash", site: site{plat: d, users: []string{alice},
+			files: map[string]string{sudoers.MainConfig: "root ALL=(ALL:ALL) ALL\n@includedir /etc/sudoers.d\n#includedir /etc/sudoers.d \\\nalice ALL=(ALL) ALL\n"}},
+			state: engine.Unknown, want: "can't tell who has sudo", codes: []string{notRead}},
+		{name: "a quote carried onto a line starting with #", site: site{plat: d, users: []string{alice}, files: dropIn("Defaults:bob env_keep = \"X \\\n# Y\" \\\nalice ALL=(ALL) ALL\n")},
+			state: engine.Partial, want: "non-root, no sudo"},
 		inSudo("files sudo skips", map[string]string{grantDir + "zz.conf": "alice ALL=(ALL) !ALL\n", grantDir + "zz~": "alice ALL=(ALL) !ALL\n"}, engine.Configured, "non-root, sudo"),
 		inSudo("root's password asked, before the grant", mainWith("Defaults rootpw\n"), engine.Unknown, "can't tell who has sudo", notRead),
 		inSudo("the target's password asked", dropIn("Defaults targetpw\n"), engine.Unknown, "can't tell who has sudo", notRead),
@@ -475,6 +487,7 @@ func TestPlatforms(t *testing.T) {
 		return map[string]string{sudoers.DoasDir + "/zz-site.conf": rule + "\n"}
 	}
 	both := with(a, func(f *detect.Facts) { f.Elevation.Sudo, f.Elevation.SudoFlavor = sudoYes, detect.SudoOriginal })
+	sudoOnly := with(both, func(f *detect.Facts) { f.Elevation.Doas = no })
 	inWheel := func(name string, files map[string]string, state engine.State, want string, codes ...string) row {
 		return row{name: name, site: site{plat: a, users: []string{aliceSh}, members: wheel, files: files}, state: state, want: want, codes: codes}
 	}
@@ -495,9 +508,17 @@ func TestPlatforms(t *testing.T) {
 		inWheel("alpine, every target after nopass as root", doasFile("permit nopass alice as root\npermit alice"), engine.Configured, "non-root, doas"),
 		inWheel("alpine, a command rule", doasFile("deny alice cmd reboot"), engine.Unknown, "can't tell who has doas", notRead),
 		inWheel("alpine, another account's command rule", doasFile("deny bob cmd reboot"), engine.Configured, "non-root, doas"),
+		// doas's reading of a '\' that ends a comment is not established: the line joins the next, not read.
+		{name: "alpine, a doas comment ending in a backslash", site: site{plat: a, users: []string{aliceSh}, files: doasFile("# admins \\\npermit nopass alice as root")},
+			state: engine.Unknown, want: "can't tell who has doas", codes: []string{notRead}},
 		inWheel("alpine, a quoted rule", doasFile(`permit setenv { PS1="# " } bob`), engine.Unknown, "can't tell who has doas", notRead),
 		{name: "alpine, a second account of the uid", site: site{plat: a, users: []string{aliceSh, "bob:x:1000:1000::/home/bob:/bin/sh"}, members: wheel, files: doasFile("deny bob")},
 			state: engine.Unknown, want: "can't tell who has doas", codes: []string{notRead, notRead}},
+		{name: "alpine, sudo's stock file and a grant", site: site{plat: sudoOnly, users: []string{aliceSh},
+			files: map[string]string{sudoers.MainConfig: readStock(t, a, "sudoers"), grantDir + "alice": "alice ALL=(ALL) NOPASSWD: ALL\n"}},
+			state: engine.Configured, want: "non-root, sudo", codes: []string{noPass}},
+		{name: "alpine, sudo's stock file, no grant", site: site{plat: sudoOnly, users: []string{aliceSh}, files: map[string]string{sudoers.MainConfig: readStock(t, a, "sudoers")}},
+			state: engine.Partial, want: "non-root, no sudo"},
 		{name: "alpine, doas and sudo", site: site{plat: both, users: []string{aliceSh}, members: wheel, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}},
 			state: engine.Configured, want: "non-root, doas"},
 		{name: "alpine, neither grants", site: site{plat: both, users: []string{aliceSh}, files: map[string]string{sudoers.MainConfig: "@includedir /etc/sudoers.d\n"}},

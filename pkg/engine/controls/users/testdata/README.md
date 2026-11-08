@@ -14,7 +14,10 @@ docs/safety/detect.md describe it, not captured from a host:
   listing root; `/etc/doas.conf` in the package's layout (aports
   `3.24-stable/main/doas/doas.conf`: comments, one with a quoted word,
   and its rule commented out) and `/etc/doas.d/20-wheel.conf`
-  (`permit persist :wheel`), as `setup-alpine` leaves them;
+  (`permit persist :wheel`), as `setup-alpine` leaves them; and
+  `/etc/sudoers` as Alpine's `sudo` package installs it, sudo's own
+  sample (vendor text, read from the maintainer's Alpine 3.20 LXC on
+  2026-11-08), with its commented-out `Cmnd_Alias` lines ending in `\`;
 - `pve9`: Debian 13's accounts, root only, and no sudo.
 
 The tests load them into `hostfake` with the accounts and rules each case

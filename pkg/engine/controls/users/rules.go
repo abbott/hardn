@@ -228,7 +228,7 @@ func readSudo(ctx context.Context, sys host.System, st sudoers.State) (rs, auth 
 			auth = append(auth, r)
 		}
 	}
-	for _, l := range lines(main, st.Main) {
+	for _, l := range lines(main, st.Main, true) {
 		f := strings.Fields(l.text)
 		if l.joined || len(f) != 2 || f[0] != "@includedir" && f[0] != "#includedir" || strings.TrimSuffix(f[1], "/") != sudoers.DropInDir {
 			keep(l)
@@ -240,7 +240,7 @@ func readSudo(ctx context.Context, sys host.System, st sudoers.State) (rs, auth 
 			if err != nil {
 				return nil, nil, fmt.Errorf("users: %w", err)
 			}
-			for _, l := range lines(data, p) {
+			for _, l := range lines(data, p, true) {
 				keep(l)
 			}
 		}
@@ -261,7 +261,7 @@ func readDoas(ctx context.Context, sys host.System, st sudoers.State) ([]rule, e
 		if err != nil {
 			return nil, fmt.Errorf("users: %w", err)
 		}
-		for _, l := range lines(data, p) {
+		for _, l := range lines(data, p, false) {
 			if r, ok := doasRule(l); ok {
 				rs = append(rs, r)
 			}
@@ -272,6 +272,14 @@ func readDoas(ctx context.Context, sys host.System, st sudoers.State) ([]rule, e
 
 // line is one line of a file, trimmed, where it starts; a line ending in
 // '\' is continued, and the lines it joins are one, never of a known form.
+// For sudo's files (sudo set) a line that starts afresh and has a comment in
+// it continues nothing: sudo's comment runs to the end of its line, a
+// trailing '\' with it, and sets continued false (sudo's
+// plugins/sudoers/toke.l, its comment rule after the continuation rule), as
+// in the commented-out Cmnd_Alias examples of the sudoers file sudo ships,
+// Alpine's stock. A line continued from the one before still joins (a quote
+// may be open there, where '#' is text). An #include, a directive, is kept
+// not read either way (sudoLine), so whether it joins decides nothing.
 type line struct {
 	text, at string
 	file     string
@@ -279,18 +287,19 @@ type line struct {
 	joined   bool
 }
 
-func lines(data []byte, file string) []line {
+func lines(data []byte, file string, sudo bool) []line {
 	var out []line
 	cont := false
 	for i, l := range strings.Split(string(data), "\n") {
 		t := strings.TrimSpace(l)
+		comment := sudo && !cont && commentAt(t, true) >= 0
 		if cont {
 			out[len(out)-1].text += " " + t
 			out[len(out)-1].joined = true
 		} else {
 			out = append(out, line{text: t, at: steps.SourceAt(file, i+1), file: file, n: i + 1})
 		}
-		cont = strings.HasSuffix(t, `\`)
+		cont = strings.HasSuffix(t, `\`) && !comment
 	}
 	return out
 }
@@ -324,7 +333,7 @@ func sudoLine(l line) (r rule, isRule, isAuth bool) {
 	t := l.text
 	if i := commentAt(t, true); i >= 0 && !strings.HasPrefix(t, "#include") {
 		if l.joined {
-			return r, true, true // whether sudo continues a comment is not read
+			return r, true, true // a joined line, its comment on its last line, is not read
 		}
 		t = strings.TrimSpace(t[:i])
 	}
@@ -359,13 +368,16 @@ func commentAt(t string, uid bool) int {
 		case t[i] == '"' || t[i] == '\\':
 			return -1
 		case t[i] != '#' || i > 0 && t[i-1] != ' ' && t[i-1] != '\t':
-		case uid && i+1 < len(t) && t[i+1] >= '0' && t[i+1] <= '9':
+		case uid && (digitAt(t, i+1) || i+1 < len(t) && t[i+1] == '-' && digitAt(t, i+2)): // a user ID, #-1 too (toke.l's ID, #-?[0-9]+)
 		default:
 			return i
 		}
 	}
 	return -1
 }
+
+// digitAt is whether t has a digit at i.
+func digitAt(t string, i int) bool { return i < len(t) && t[i] >= '0' && t[i] <= '9' }
 
 // defaultsAuth is whether a Defaults line's parameters may change whose
 // password sudo asks, or whether it asks: rootpw, targetpw or runaspw set,
