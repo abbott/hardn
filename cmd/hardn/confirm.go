@@ -10,6 +10,7 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"os/signal"
@@ -67,10 +68,12 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, o
 		acknowledgeRolledBack(ctx, sys, opts, err)
 		code = 1
 	} else {
+		var run []component.Message // one run, so the warning is set apart from the success
 		if h.Confirmed.Local {
-			sayWarning("Confirmed from a session that is not over SSH: this does not show that a new SSH connection works.")
+			run = append(run, component.Message{Kind: component.MessageWarn, Text: "Confirmed from a session that is not over SSH: this does not show that a new SSH connection works."})
 		}
-		saySuccess("Change %s confirmed (%s): it will not be rolled back.", h.Confirmed.Journal.ID, h.Confirmed.Journal.Summary)
+		sayRun(append(run, component.Message{Kind: component.MessageOK,
+			Text: fmt.Sprintf("Change %s confirmed (%s): it will not be rolled back.", h.Confirmed.Journal.ID, h.Confirmed.Journal.Summary)})...)
 	}
 	if !h.Run() {
 		showCleanup(h, confirm.Outcome{}, false)

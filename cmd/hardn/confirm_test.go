@@ -432,6 +432,16 @@ func TestConfirmConsoleCommand(t *testing.T) {
 		!strings.Contains(squash(out), squash("stays open: hardn drops it only from a new SSH connection to port 2230")) {
 		t.Errorf("exit %d:\n%s", s.exit, out)
 	}
+	// The warning and the success are one run: a blank line between their callouts.
+	lines := strings.Split(out, "\n")
+	for i, l := range lines {
+		if strings.Contains(l, "Operation Successful") {
+			if i < 1 || strings.TrimSpace(lines[i-1]) != "" {
+				t.Errorf("no blank line above the success:\n%s", out)
+			}
+			break
+		}
+	}
 }
 
 // squash is s with no white space, and no callout bar at the start of a
