@@ -536,10 +536,14 @@ func TestPlayWriteFails(t *testing.T) {
 // or changes the environment or the working directory, or names anything
 // of syscall or golang.org/x/sys/unix but an errno value, a FileInfo's
 // Stat_t, and what the line reader (pkg/ui/prompt) uses to ask whether
-// stdin is a terminal, to discard typeahead and to wait for a line or
-// Ctrl-C, and, in reraise_unix.go alone, to send the process its own
-// SIGINT (prompt.Reraise, which the gallery must not call: play returns
-// ExitCode's 130 instead).
+// stdin is a terminal, to discard typeahead, to wait for a line or Ctrl-C,
+// and to set the terminal for a menu choice's keys and put it back, waiting
+// for the rest of a key's sequence; in reraise_unix.go alone, to send the
+// process its own SIGINT (prompt.Reraise, which the gallery must not call:
+// play returns ExitCode's 130 instead); and in keys_unix.go alone, to send
+// it again a SIGTERM, SIGHUP or SIGQUIT the key read caught, once the
+// terminal is put back, which ends it as that signal's default action
+// would.
 //
 // The engine's scenarios link what does all of that: the real side of the
 // seam (host.Real), the engine's signal hold (pkg/engine/hold), and
@@ -584,6 +588,12 @@ func TestPlayTouchesNothing(t *testing.T) {
 		"IoctlSetInt": true, "TCFLSH": true, "TCIFLUSH": true, "IoctlSetPointerInt": true, "TIOCFLUSH": true,
 		// Waiting for a line or Ctrl-C (wait_unix.go).
 		"Select": true, "FdSet": true, "FD_SETSIZE": true,
+		// Setting the terminal for a menu choice's keys and putting it
+		// back, and waiting for the rest of a key's sequence (keys_unix.go,
+		// tty_linux.go, tty_darwin.go).
+		"Termios": true, "IoctlSetTermios": true, "TCSETS": true, "TIOCSETA": true,
+		"ICANON": true, "ECHO": true, "ISIG": true, "IEXTEN": true, "VMIN": true, "VTIME": true,
+		"Timeval": true, "NsecToTimeval": true,
 		// A FileInfo's owner, read from its Sys() (host.Owner).
 		"Stat_t": true,
 	}
@@ -592,6 +602,9 @@ func TestPlayTouchesNothing(t *testing.T) {
 	// for the legacy menus and the config prompts), in reraise_unix.go
 	// alone.
 	reraise := map[string]bool{"Kill": true, "Getpid": true, "SIGINT": true}
+	// Sending the process again a signal the key read caught, once the
+	// terminal is put back (prompt's raise), in keys_unix.go alone.
+	keyRaise := map[string]bool{"Kill": true, "Getpid": true, "Signal": true, "SIGTERM": true, "SIGHUP": true, "SIGQUIT": true}
 	// realSide are the files play links and never reaches, by why.
 	const (
 		real    = "host.Real's methods, reached through a host.Real, which only host.NewReal makes"
@@ -742,7 +755,7 @@ func TestPlayTouchesNothing(t *testing.T) {
 					case p == "os" && banned[name] && !isReal:
 						t.Errorf("%s calls os.%s", path, name)
 					case (p == "syscall" || p == "golang.org/x/sys/unix") && !isReal && !sys[name] && !errno.MatchString(name) &&
-						(filepath.Base(path) != "reraise_unix.go" || !reraise[name]):
+						(filepath.Base(path) != "reraise_unix.go" || !reraise[name]) && (filepath.Base(path) != "keys_unix.go" || !keyRaise[name]):
 						t.Errorf("%s names %s.%s, which the line reader does not use", path, p, name)
 					case dir == "." && name == "Reraise":
 						t.Errorf("%s names %s.Reraise, which would end the gallery by SIGINT", path, x.Name)

@@ -294,11 +294,22 @@ func RefuseFor(err error) error {
 // (prompt.ErrAborted) abort, and never go back. An empty question, as a
 // Question with no label renders, is an error.
 func (p Prompter) Ask(question, invalid string, resolve func(line string) error) error {
+	return p.ask(question, invalid, false, resolve)
+}
+
+// ask is Ask; with choice set the answer is read as a menu choice
+// (prompt.Reader.AskChoice), key by key, where stdin and stdout are both a
+// terminal, so that a key no answer has, such as an arrow, shows nothing.
+func (p Prompter) ask(question, invalid string, choice bool, resolve func(line string) error) error {
 	if question == "" {
 		return errors.New("nav: the question has no label")
 	}
+	read := p.In.Ask
+	if choice && p.Ctx.Env.TTY && p.Ctx.Env.InputTTY {
+		read = p.In.AskChoice
+	}
 	for {
-		line, err := p.In.Ask(p.Out, question)
+		line, err := read(p.Out, question)
 		var why refused
 		switch {
 		case errors.Is(err, prompt.ErrLineTooLong):

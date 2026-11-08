@@ -139,13 +139,16 @@ func (m Menu) resolve(line string) (int, error) {
 // ErrQuit for q, and asks again for any other line, b included: "Invalid
 // option", that a disabled item is unavailable, or an item's Refusal. A
 // menu that fails Check returns its error before anything is written.
+// Where stdin and stdout are a terminal, the choice is read key by key
+// (prompt.Reader.AskChoice), so a key no answer has, such as an arrow,
+// shows nothing.
 func (p Prompter) Choose(m Menu, label string) (Option, error) {
 	if err := m.Check(); err != nil {
 		return Option{}, err
 	}
 	question := component.PromptLine{Label: label, Accepts: m.Accepts()}.Render(p.Ctx)
 	var chosen Option
-	err := p.Ask(question, InvalidOption, func(line string) error {
+	err := p.ask(question, InvalidOption, true, func(line string) error {
 		i, err := m.resolve(line)
 		if err == nil {
 			chosen = m.Options[i]

@@ -5,12 +5,13 @@
 // # Lines
 //
 // Every input is a line, typed and confirmed with Enter (brief §2). The
-// terminal stays in its normal (cooked) mode: nothing here switches it to
-// raw or cbreak mode, so the terminal's own echo, line editing and Ctrl-C
-// keep working over SSH, serial consoles, Proxmox's browser console and
-// piped input alike, and a crash cannot leave the terminal broken. This
-// replaces the legacy pkg/menu input, which ran stty raw or cbreak around
-// each key (docs/refactor/phase0/interaction.md §3).
+// terminal stays in its normal (cooked) mode for every prompt but a menu
+// choice on a terminal (Menu choices, below), so the terminal's own echo,
+// line editing and Ctrl-C keep working over SSH, serial consoles,
+// Proxmox's browser console and piped input alike, and a crash cannot
+// leave the terminal broken. This replaces the legacy pkg/menu input,
+// which ran stty raw or cbreak around each key
+// (docs/refactor/phase0/interaction.md §3).
 //
 // ReadLine returns one line without its line ending, "\n" or "\r\n", and
 // otherwise as typed: it trims nothing else and checks nothing. Matching a
@@ -78,6 +79,40 @@
 // flushes before it writes the prompt, and Answer before it reads. Piped and scripted input is never flushed: each
 // line queued there is an answer.
 //
+// # Menu choices
+//
+// In cooked mode the terminal echoes each key as it comes, before hardn
+// reads anything, and shows a control character as ^ and a letter: an
+// arrow typed at "Enter selection" showed as ^[[A, or ^[OA in a terminal's
+// application cursor mode. So a menu choice on a terminal is read key by
+// key (AskChoice; the maintainer, 2026-11-08: "Raw mode for menus"), and
+// pkg/ui/nav asks it so only where stdout is a terminal too, since the
+// echo is then AskChoice's, to stdout. For that one prompt the terminal's
+// line editing, echo, keyboard signals and extended input processing are
+// off (ICANON, ECHO, ISIG, IEXTEN), and a read returns each byte as it
+// comes (VMIN 1, VTIME 0); output processing stays. A printable character
+// is echoed; Backspace or Delete erases one, Ctrl-U or Ctrl-W all; Enter
+// gives the answer, as the keypad's Enter does in application keypad mode,
+// whose digits are digits too; Ctrl-C interrupts and Ctrl-D with nothing
+// typed ends the input, as in a line (Ctrl-C does nothing where SIGINT is
+// ignored, as there in a line); every other key, an arrow, a function key
+// (the Linux console's and Konsole's modified ones too), Alt and a key, a
+// lone Escape (after 100 ms), Ctrl-Z, shows nothing and is no part of the
+// answer. The answer is at most 256 bytes. An end of input a line read
+// before is reported first, as a line reports it.
+//
+// The terminal is put back when AskChoice returns, however it returns,
+// and before SIGTERM, SIGHUP or SIGQUIT takes its default action: the read
+// catches them from before the terminal is set until it is put back, puts
+// it back and raises them again; one ignored when the read starts, as
+// SIGHUP under nohup, is left ignored. Should hardn go on after one, the
+// read ends (ErrInterrupted). os.Interrupt is relayed, as ReadLine relays
+// it, for the whole time the terminal is set, the prompt's write
+// included, so a SIGINT from outside interrupts the read and never ends
+// hardn with the terminal so. Where the terminal's attributes cannot be
+// read or set, the choice is a line.
+// Forms, confirmations and every other question stay lines.
+//
 // # Without a terminal
 //
 // Plain mode needs no input handling of its own. When stdin is not a
@@ -100,7 +135,8 @@
 // component.PromptLine renders up to its colon, with no trailing space
 // and no cursor (C8, DEV-029). Ask writes it with exactly one space after
 // it, where the terminal's own cursor then stands, and reads the answer.
-// The terminal echoes what is typed in its own colours (DEV-043).
+// The terminal echoes what is typed in its own colours (DEV-043); a menu
+// choice's echo is AskChoice's, unstyled, so in those colours too.
 //
 // A prompt written by code that cannot hand it to Ask, such as the legacy
 // menus' (pkg/menu), which print theirs with pkg/style, is answered with

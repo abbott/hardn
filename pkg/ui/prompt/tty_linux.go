@@ -8,3 +8,9 @@ func terminalFd(fd int) bool {
 	_, err := unix.IoctlGetTermios(fd, unix.TCGETS)
 	return err == nil
 }
+
+// getTermios reads fd's terminal attributes (TCGETS).
+func getTermios(fd int) (*unix.Termios, error) { return unix.IoctlGetTermios(fd, unix.TCGETS) }
+
+// setTermios sets fd's terminal attributes at once (TCSETS).
+func setTermios(fd int, t *unix.Termios) error { return unix.IoctlSetTermios(fd, unix.TCSETS, t) }
