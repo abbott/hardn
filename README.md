@@ -230,7 +230,7 @@ See [docs/configuration.md](docs/configuration.md) for every key, where hardn lo
 |---|---|---|---|
 | Debian | 13, 12 | | |
 | Ubuntu | 26.04, 24.04 | 22.04 | interim (non-LTS) releases |
-| Alpine | 3.24, 3.23 | 3.22 | 3.21 (vendor support ended 2026-11-01) |
+| Alpine | 3.24, 3.23 | 3.22 | 3.21 (vendor support ended 2026-11-01), 3.20 (2026-04-01) |
 | Proxmox | 9 | | 8 (end of life since 2026-08-31) |
 
 - **Supported**: hardn changes it.

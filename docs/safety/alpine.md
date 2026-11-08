@@ -168,6 +168,7 @@ The `State`, `Step`, `CrondState`, `FindingKind` and `Bootloader` words are stab
 | 3.23 | 10.2_p1-r1 |
 | 3.22 | 10.0_p1-r11 |
 | 3.21 | 9.9_p2-r1 |
+| 3.20, 3.19, 3.18, 3.17, 3.16 (support ended: hardn changes nothing there, so for SSH Auth's reading alone; *since 2026-11-08*, each branch's openssh APKBUILD secfixes) | 9.7_p1-r6, 9.6_p1-r3, 9.3_p2-r4, 9.1_p1-r7, 9.0_p1-r6 |
 | edge, any other branch, a VERSION_ID not x.y.z, a package of a later upstream release than its branch's | 10.6_p2-r0 |
 
 **What hardn does.** SSH Auth reports `SSH_PASSWORD_BYPASS`, `SSH_SSHD_UNFIXED` or `SSH_FIX_UNKNOWN` ([check-ssh.md](../engine/check-ssh.md) §11); the first forces the risk level Critical ([risk.md](../engine/risk.md) §6.4). Create refuses a new user, whose field is `*`, on an unfixed host with a password path on ([control-users.md](../engine/control-users.md) §7). The version is apk's installed database, `/lib/apk/db/installed`, its records' `P:` and `V:` alone (`ParseInstalled`), compared by apk's grammar (`CompareVersion`); a version outside it is `Unknown`, never a guess.

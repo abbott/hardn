@@ -97,7 +97,8 @@ func TestParseInstalled(t *testing.T) {
 func TestFixedVersion(t *testing.T) {
 	for id, want := range map[string]string{
 		"3.24.2": "10.3_p1-r2", "3.24.0": "10.3_p1-r2", "3.23.6": "10.2_p1-r1", "3.22.1": "10.0_p1-r11", "3.21.4": "9.9_p2-r1",
-		"3.25.0_alpha20261001": "10.6_p2-r0", "3.20.3": "10.6_p2-r0", "3.24": "10.6_p2-r0", "": "10.6_p2-r0",
+		"3.20.10": "9.7_p1-r6", "3.19.9": "9.6_p1-r3", "3.18.12": "9.3_p2-r4", "3.17.10": "9.1_p1-r7", "3.16.9": "9.0_p1-r6",
+		"3.25.0_alpha20261001": "10.6_p2-r0", "3.15.11": "10.6_p2-r0", "3.24": "10.6_p2-r0", "": "10.6_p2-r0",
 	} {
 		if got := alpine.FixedVersion(id); got != want {
 			t.Errorf("FixedVersion(%q) = %s, want %s", id, got, want)

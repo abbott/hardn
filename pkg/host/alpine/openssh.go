@@ -219,6 +219,14 @@ var opensshFixed = map[string]string{
 	"3.23": "10.2_p1-r1",
 	"3.22": "10.0_p1-r11",
 	"3.21": "9.9_p2-r1",
+	// Branches whose support ended, which the post lists too and hardn
+	// changes nothing on, so that their status reads the fix as Alpine
+	// shipped it (each branch's openssh APKBUILD secfixes, read 2026-11-08).
+	"3.20": "9.7_p1-r6",
+	"3.19": "9.6_p1-r3",
+	"3.18": "9.3_p2-r4",
+	"3.17": "9.1_p1-r7",
+	"3.16": "9.0_p1-r6",
 }
 
 const opensshFixedElse = "10.6_p2-r0"
