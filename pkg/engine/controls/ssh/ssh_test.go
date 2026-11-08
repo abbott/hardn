@@ -130,6 +130,12 @@ type site struct {
 	// version with CVE-2026-123158's fix; noAPK is none at all.
 	apk   string
 	noAPK bool
+	// dpkg is dpkg-query's status line for each package it knows
+	// (noServer's question); a package not in it is "no packages found".
+	// nil is no dpkg-query on the host at all.
+	dpkg map[string]string
+	// bins are SSH server binaries present on host.SearchPath, by path.
+	bins []string
 }
 
 // installedDB is an installed database holding openssh-server at version.
@@ -199,6 +205,12 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 	if s.krb5 {
 		f.AddFile(reload.BinaryKrb5, []byte("ELF"), 0o755, 0, 0)
 	}
+	if s.dpkg != nil {
+		f.AddFile("/usr/bin/dpkg-query", []byte("ELF"), 0o755, 0, 0)
+	}
+	for _, b := range s.bins {
+		f.AddFile(b, []byte("ELF"), 0o755, 0, 0)
+	}
 	socket, bound := s.socket, s.bound
 	if socket == nil {
 		socket = ls
@@ -237,6 +249,12 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 			return *s.ssErr
 		case cmd == "ss -Htln":
 			return hostfake.Response{Stdout: ss(bound, s.plat.socket) + s.ssBad}
+		case argv[0] == "dpkg-query" && s.dpkg != nil:
+			pkg := argv[len(argv)-1]
+			if status, ok := s.dpkg[pkg]; ok {
+				return hostfake.Response{Stdout: status + "\t1:9.9p1-1\n"}
+			}
+			return hostfake.Response{Stderr: "dpkg-query: no packages found matching " + pkg + "\n", ExitCode: 1}
 		}
 		t.Errorf("unexpected command %q", cmd)
 		return hostfake.Response{Err: hostfake.ErrUnscripted}
@@ -469,7 +487,8 @@ func readOnly(t *testing.T, f *hostfake.System, bin string) {
 			cmd := strings.Join(c.Argv, " ")
 			sshdT := strings.HasPrefix(cmd, bin+" -T -f "+sshd.MainConfig) || strings.HasPrefix(cmd, reload.BinaryPAM+" -T -f "+sshd.MainConfig)
 			sshdG := cmd == reload.BinaryPAM+" -f "+sshd.MainConfig+" -G" || cmd == reload.BinaryKrb5+" -f "+sshd.MainConfig+" -G"
-			if !sshdT && !sshdG && cmd != "systemctl show -p Listen ssh.socket" && cmd != "ss -Htln" {
+			dpkg := strings.HasPrefix(cmd, "dpkg-query --show ") // noServer's packages
+			if !sshdT && !sshdG && !dpkg && cmd != "systemctl show -p Listen ssh.socket" && cmd != "ss -Htln" {
 				t.Errorf("ran %q", cmd)
 			}
 		default:
@@ -1215,6 +1234,52 @@ func TestUnread(t *testing.T) {
 			{name: "a configuration sshd refuses", site: site{plat: debian13(), failT: invalid}, state: engine.Unknown, want: "sshd config invalid", err: "SSHD_CONFIG_INVALID"},
 			{name: "no sshd", site: site{plat: debian13(), failT: missing}, state: engine.Unknown, want: "sshd not installed", err: "COMMAND_NOT_FOUND"},
 			{name: "no sshd_config", site: site{plat: debian13(), noMain: true}, state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
+		} {
+			r.ctl = ctl
+			t.Run(ctl.ID()+"/"+r.name, func(t *testing.T) { run(t, r) })
+		}
+	}
+}
+
+// TestNoServer: a host established to have no SSH server, no server binary
+// on the search path and the package database read with none of the server
+// packages in it, is Not Applicable on each row, "no SSH server", with no
+// error; every other host without sshd stays Unknown with failed's detail
+// and error: a server package or binary found, dpkg-query absent or saying
+// something other than installed or not, Alpine's database unread.
+func TestNoServer(t *testing.T) {
+	missing := &hostfake.Response{Err: fmt.Errorf("host: run sshd: %w", host.ErrNotFound)}
+	invalid := &hostfake.Response{Stderr: "/etc/ssh/sshd_config line 1: Bad configuration option: Bogus\r\n", ExitCode: 255}
+	none := map[string]string{}
+	noOpenSSH := "P:musl\nV:1.2.5-r10\nA:x86_64\n\n"
+	with := func(name string) string { return noOpenSSH + "P:" + name + "\nV:1.0-r0\nA:x86_64\n\n" }
+	na := func(name string, s site) row {
+		return row{name: name, site: s, state: engine.NotApplicable, want: ssh.DetailNoServer}
+	}
+	unknown := func(name string, s site, want, code string) row {
+		return row{name: name, site: s, state: engine.Unknown, want: want, err: code}
+	}
+	for _, ctl := range ssh.Controls() {
+		for _, r := range []row{
+			na("debian, nothing installed", site{plat: debian13(), failT: missing, noMain: true, dpkg: none}),
+			na("debian, openssh-server removed, its configuration kept", site{plat: debian13(), failT: missing, dpkg: map[string]string{"openssh-server": "deinstall ok config-files"}}),
+			na("ubuntu, nothing installed", site{plat: ubuntu2604(), failT: missing, noMain: true, dpkg: none}),
+			na("alpine, nothing installed", site{plat: alpine324(), failT: missing, noMain: true, apk: noOpenSSH}),
+			unknown("debian, openssh-server installed, no sshd_config", site{plat: debian13(), noMain: true, dpkg: map[string]string{"openssh-server": "install ok installed"}}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("debian, dropbear installed", site{plat: debian13(), failT: missing, noMain: true, dpkg: map[string]string{"dropbear": "install ok installed"}}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("debian, dropbear-bin half-installed", site{plat: debian13(), failT: missing, noMain: true, dpkg: map[string]string{"dropbear-bin": "install ok half-installed"}}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("debian, a dropbear binary no package holds", site{plat: debian13(), failT: missing, noMain: true, dpkg: none, bins: []string{"/usr/sbin/dropbear"}}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("debian, tinysshd installed", site{plat: debian13(), failT: missing, noMain: true, dpkg: map[string]string{"tinysshd": "install ok installed"}}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("debian, an sshd built from source in /usr/local/sbin", site{plat: debian13(), failT: missing, noMain: true, dpkg: none, bins: []string{"/usr/local/sbin/sshd"}}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("debian, no dpkg-query", site{plat: debian13(), failT: missing, noMain: true}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("alpine, dropbear installed", site{plat: alpine324(), failT: missing, noMain: true, apk: with("dropbear")}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("alpine, tinyssh installed", site{plat: alpine324(), failT: missing, noMain: true, apk: with("tinyssh")}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("alpine, openssh-server-pam installed", site{plat: alpine324(), failT: missing, noMain: true, apk: with(alpine.OpenSSHServerPAM)}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("alpine, a dropbear binary no package holds", site{plat: alpine324(), failT: missing, noMain: true, apk: noOpenSSH, bins: []string{"/usr/bin/dropbear"}}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("alpine, no installed database", site{plat: alpine324(), failT: missing, noMain: true, noAPK: true}, "no sshd_config", "FILE_NOT_FOUND"),
+			unknown("debian, sshd refuses its configuration, dpkg lists no server", site{plat: debian13(), failT: invalid, dpkg: none}, "sshd config invalid", "SSHD_CONFIG_INVALID"),
+			unknown("a distribution hardn does not know", site{plat: debian13(), failT: missing, noMain: true, dpkg: none,
+				facts: func(f *detect.Facts) { f.Platform.Distro = detect.DistroOther }}, "no sshd_config", "FILE_NOT_FOUND"),
 		} {
 			r.ctl = ctl
 			t.Run(ctl.ID()+"/"+r.name, func(t *testing.T) { run(t, r) })

@@ -44,7 +44,7 @@ func (Port) Applies(detect.Facts) (bool, string) { return true, "" }
 func (Port) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	r, err := read(ctx, sys, f)
 	if err != nil {
-		return failed(f.SSH, err)
+		return unread(ctx, sys, f, err)
 	}
 	l := r.eff.Listeners
 	st := engine.Status{Evidence: listenEvidence(r), Findings: r.conflicts("port", "listenaddress")}

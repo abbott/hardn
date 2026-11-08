@@ -87,8 +87,15 @@ func DetectElevation(ctx context.Context, sys host.System) Elevation {
 // FindTool looks for name in every host.SearchPath directory, in order:
 // sudo and doas here, useradd for the User control's Create on Alpine.
 func FindTool(ctx context.Context, sys host.System, name string) Tool {
+	return FindToolIn(ctx, sys, host.SearchPath, name)
+}
+
+// FindToolIn is FindTool over dirs, a colon-separated list of directories,
+// in order: an executable regular file is Yes, every directory saying it
+// is missing No, and any other answer the error.
+func FindToolIn(ctx context.Context, sys host.System, dirs, name string) Tool {
 	var errs []error
-	for _, dir := range strings.Split(host.SearchPath, ":") {
+	for _, dir := range strings.Split(dirs, ":") {
 		p := dir + "/" + name
 		fi, t, err := stat(ctx, sys, p)
 		switch {

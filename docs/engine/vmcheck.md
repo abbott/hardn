@@ -44,7 +44,7 @@ The five checks, the header probe and the risk level have run only on the record
    | `ss` | `-Htln` | `reload.ReadBound` (SSH Port, the SSH rows' staleness, Firewall) |
    | `ufw` | `status verbose` | `ufw.Read` (Firewall) |
    | `apt-config` | `dump APT::Periodic Unattended-Upgrade::Origins-Pattern Unattended-Upgrade::Allowed-Origins` | the Auto Updates check (`dump`) |
-   | `dpkg-query` | `--show '--showformat=${Status}\t${Version}\n'` and one of `pve-manager`, `unattended-upgrades`, `linux-image-<release>` (a release's characters only, no pattern) | `detect.DetectProxmox`; the Auto Updates check; the header probe (`kernelReplaced`) |
+   | `dpkg-query` | `--show '--showformat=${Status}\t${Version}\n'` and one of `pve-manager`, `unattended-upgrades`, `linux-image-<release>` (a release's characters only, no pattern), or *since 2026-11-07* `openssh-server`, `dropbear`, `dropbear-bin`, `tinysshd` | `detect.DetectProxmox`; the Auto Updates check; the header probe (`kernelReplaced`); on a host without sshd, `sshd.NoServer`: the SSH rows, the Firewall row and Enable ([check-ssh.md](check-ssh.md) §2.8) |
    | `sudo` | `--version` | `detect.DetectElevation` |
    | `visudo` | `-c` | `sudoers.CheckInstalled` (User) |
    | `doas` | `-C /etc/doas.conf`, or `-C /etc/doas.d/<name>.conf` (one clean path) | `sudoers.CheckInstalled` (User) |

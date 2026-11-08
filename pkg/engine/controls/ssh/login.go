@@ -24,9 +24,11 @@ func (Login) ID() string { return "ssh.login" }
 // Title is Figma's row label.
 func (Login) Title() string { return "SSH Login" }
 
-// Applies is true everywhere: a host without sshd is Unknown, not
-// NotApplicable, since detect's units alone do not show that no SSH server
-// runs.
+// Applies is true everywhere: detect's units alone do not show that no SSH
+// server runs, and sshchange's controls embed this one, so Applies false
+// would refuse their plans unread. A host Check establishes has no SSH
+// server is Not Applicable from Check (unread); one without sshd it does
+// not is Unknown.
 func (Login) Applies(detect.Facts) (bool, string) { return true, "" }
 
 // rootKeys are the keywords pve.CheckSSH reads for root's login by key,
@@ -44,7 +46,7 @@ var rootKeys = []string{"pubkeyauthentication", "allowusers", "denyusers", "allo
 func (Login) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	r, err := read(ctx, sys, f)
 	if err != nil {
-		return failed(f.SSH, err)
+		return unread(ctx, sys, f, err)
 	}
 	ev := r.said("permitrootlogin")
 	if st, ok := r.stale(ctx, sys, f, ev); ok {

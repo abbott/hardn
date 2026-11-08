@@ -338,10 +338,7 @@ func failed(s detect.SSH, err error) (engine.Status, error) {
 // sshd_config", which sshd does not start without (sshd -t -f on a missing
 // file: "No such file or directory", exit 1, on the Alpine 3.23 VM,
 // 2026-11-07).
-func noSSHD(err error) bool {
-	var pe *fs.PathError
-	return errors.Is(err, host.ErrNotFound) || errors.As(err, &pe) && pe.Path == sshd.MainConfig && errors.Is(err, fs.ErrNotExist)
-}
+func noSSHD(err error) bool { return sshd.NoSSHD(err) }
 
 // noRunDir is the detail of sshd -T failing on its privilege separation
 // directory. Only where sshd said the directory is missing and detect's

@@ -111,12 +111,18 @@ var kernelPackage = regexp.MustCompile(`^linux-image-[0-9A-Za-z][0-9A-Za-z.+~_-]
 
 // dpkgQuery is dpkg-query --show of one package in detect's format:
 // pve-manager (detect.DetectProxmox), unattended-upgrades (the Auto
-// Updates check), or the running kernel's (the header probe).
+// Updates check), the SSH server packages (sshd.NoServer: the SSH rows,
+// the Firewall row and Enable, on a host without sshd), or the running
+// kernel's (the header probe).
 func dpkgQuery(args []string) bool {
 	if len(args) != 3 || args[0] != "--show" || args[1] != `--showformat=${Status}\t${Version}\n` {
 		return false
 	}
-	return args[2] == "pve-manager" || args[2] == "unattended-upgrades" || kernelPackage.MatchString(args[2])
+	switch args[2] {
+	case "pve-manager", "unattended-upgrades", "openssh-server", "dropbear", "dropbear-bin", "tinysshd":
+		return true
+	}
+	return kernelPackage.MatchString(args[2])
 }
 
 // doasCheck is doas -C of /etc/doas.conf or of a *.conf in /etc/doas.d:

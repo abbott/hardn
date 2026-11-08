@@ -52,7 +52,7 @@ const noPrompt = "keyboard-interactive: no password prompt without PAM"
 func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	r, err := read(ctx, sys, f)
 	if err != nil {
-		return failed(f.SSH, err)
+		return unread(ctx, sys, f, err)
 	}
 	keys := []string{"passwordauthentication", "kbdinteractiveauthentication", "pubkeyauthentication"}
 	lists := r.methods()
