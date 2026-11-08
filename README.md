@@ -51,6 +51,20 @@ If you are one of the following, **<ins>refrain</ins>** from deploying this tool
 3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
+#### Safety
+
+- **Refused before anything changes.** hardn won't make a change it can't show to be safe:
+  - **Root login.** Turning root's SSH login off is refused unless another admin can still log in and become root (by key, or by password while password login is on). It is also refused while you are logged in as root over SSH.
+  - **Password login.** Turning password login off is refused if you logged in with a password, if an admin has a password and no key, or if no admin could log in by key.
+  - **Firewall.** Enabling `ufw` first lets through every port sshd listens on. It is refused if hardn can't tell which ports those are, or if a rule already there would block SSH.
+  - **One change at a time.** While a change waits for confirmation, or a rollback hasn't finished, new changes are refused.
+  - The refusal says why, and in most cases what to do.
+- **The revert timer.** A lockout-risk change runs under a systemd timer, or a process under OpenRC. It rolls the change back unless `hardn confirm` comes from a new connection in time. Where neither systemd nor OpenRC runs, such a change is refused. So is any lockout-risk change when a user other than root can change the hardn binary.
+- **Across a reboot.** Before the first such change, hardn installs a boot unit, `hardn-boot`. At boot, before sshd starts, it restarts the timer for the time left, or rolls the change back if the time ran out. It is removed at the first boot with nothing waiting.
+- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. Backup (7) lists the runs.
+
+Learn more: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot.md](docs/safety/revert-boot.md) (the boot unit), [atomic.md](docs/safety/atomic.md) (writes and backups), [pve.md](docs/safety/pve.md) (Proxmox), and the index, [docs/safety](docs/safety/README.md).
+
 #### Dry run (Plan mode)
 `sudo hardn -n` (or `dryRun: true` in hardn.yml) shows each operational plan and changes nothing. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
 
@@ -193,20 +207,6 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 - `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
 - `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. Logs (10) and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
 
-## Safety
-
-- **Refused before anything changes.** hardn won't make a change it can't show to be safe:
-  - **Root login.** Turning root's SSH login off is refused unless another admin can still log in and become root (by key, or by password while password login is on). It is also refused while you are logged in as root over SSH.
-  - **Password login.** Turning password login off is refused if you logged in with a password, if an admin has a password and no key, or if no admin could log in by key.
-  - **Firewall.** Enabling `ufw` first lets through every port sshd listens on. It is refused if hardn can't tell which ports those are, or if a rule already there would block SSH.
-  - **One change at a time.** While a change waits for confirmation, or a rollback hasn't finished, new changes are refused.
-  - The refusal says why, and in most cases what to do.
-- **The revert timer.** A lockout-risk change runs under a systemd timer, or a process under OpenRC. It rolls the change back unless `hardn confirm` comes from a new connection in time. Where neither systemd nor OpenRC runs, such a change is refused. So is any lockout-risk change when a user other than root can change the hardn binary.
-- **Across a reboot.** Before the first such change, hardn installs a boot unit, `hardn-boot`. At boot, before sshd starts, it restarts the timer for the time left, or rolls the change back if the time ran out. It is removed at the first boot with nothing waiting.
-- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. Backup (7) lists the runs.
-
-Learn more: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot.md](docs/safety/revert-boot.md) (the boot unit), [atomic.md](docs/safety/atomic.md) (writes and backups), [pve.md](docs/safety/pve.md) (Proxmox), and the index, [docs/safety](docs/safety/README.md).
-
 ## hardn.yml
 
 hardn reads `username`, `sshKeys`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `ufwAppProfiles`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
@@ -257,6 +257,16 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 
 - **`pvecm add <node> --use_ssh`** joins over SSH to the existing node. Where hardn made root key-only on that node (`-d`, Run All or SSH Login), root logs in there by key only. Add the joining node's root key (`/root/.ssh/id_rsa.pub`) to root's keys there first.
 - **`pvecm qdevice setup <address>`** logs in to the QDevice host as root over SSH, using root's password where the node's key isn't there yet. If hardn turned root login off on that host (`-d`, or Run All), allow it again there by hand for the setup.
+
+## CVE Mitigations
+
+### CVE-2026-123158, Alpine (aka "*sshole") 
+OpenSSH before 10.6p2, on musl without PAM, lets a password of 257 to 1024 bytes into an account whose password field is `*`, as a key-only account's is. hardn compares the installed `openssh-server` with each Alpine branch's first fixed release:
+  - **SSH Auth** reports an unfixed sshd (`SSH_SSHD_UNFIXED`), or an exposed host (`SSH_PASSWORD_BYPASS`, risk level Critical) where such an account can be reached by password.
+  - **Creating a user is refused** (`USERS_PASSWORD_BYPASS`) on an unfixed sshd with password login on, since a new user's field is `*`.
+  - **To fix it,** run `apk -U upgrade`, then `rc-service sshd restart`, or turn password login off in SSH Login (2). hardn reads the package, not the running sshd, so restart sshd after the upgrade.
+
+Learn more: [alpine.md](docs/safety/alpine.md) (the fixed releases by branch) and [check-ssh.md](docs/engine/check-ssh.md).
 
 ## Release Chain Security
 
