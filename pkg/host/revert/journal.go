@@ -136,6 +136,11 @@ type Reload struct {
 	// reload's alone, and only with Backup: the rollback refuses one that
 	// is not the path of a journalled backup of a file, before the reload.
 	SocketDropIns []string `json:"socketDropIns,omitempty"`
+	// Binary is the reload of a change that replaced sshd's binaries (an
+	// openssh upgrade), with no keywords (reload.Change.Binary): the
+	// rollback reloads sshd, or starts it once the forward reload's gated
+	// step ran and left it down. Not with Keywords or SocketDropIns.
+	Binary bool `json:"binary,omitempty"`
 }
 
 // ProcStart names one process for as long as it runs: its pid and its
@@ -375,7 +380,9 @@ func (r Reload) check() error {
 	switch {
 	case r.Service != ReloadSSH:
 		return fmt.Errorf("service %q", r.Service)
-	case len(r.Keywords) == 0:
+	case r.Binary && (len(r.Keywords) > 0 || len(r.After) > 0 || len(r.SocketDropIns) > 0):
+		return fmt.Errorf("ssh: binary with keywords %v, after or socketDropIns", r.Keywords)
+	case len(r.Keywords) == 0 && !r.Binary:
 		return fmt.Errorf("ssh: no keywords")
 	case movesListeners(r.Keywords) && len(r.After) == 0:
 		return fmt.Errorf("ssh: %v move listeners: after is needed", r.Keywords)

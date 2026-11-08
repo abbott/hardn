@@ -166,6 +166,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSH_PVE_ROOT_PASSWORD_SESSION` | 1 | the session is root's own SSH login, by password |
 | `SSH_PVE_NO_ROOT_KEY` | 1 | root could not log in by key afterwards |
 | `SSH_PORT_SOURCE_RESTRICTED` | 1 | ufw lets the SSH port in from some sources alone |
+| `SSH_UPGRADE_UNKNOWN` | 1 | whether openssh-server has the fix for CVE-2026-123158 is not established |
 | `SSHD_NO_WRITE_STRATEGY` | 1 | no write strategy for this sshd_config |
 | `SSH_MIGRATE_FIRST` | 1 | legacy hardn SSH files: migrate them first |
 | `SSH_PORT_NO_NEW_LISTENER` | 1 | the port change adds no listener |
@@ -355,6 +356,10 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `ALPINE_OTHER_PACKAGES` | 1 | apk would change packages other than apk-cron |
 | `ALPINE_NOT_EFFECTIVE` | 1 | the step ran, but the host does not show its effect |
 | `ALPINE_NOT_RESTORED` | 1 | the steps were not all undone |
+| `ALPINE_NOT_OPENSSH` | 1 | apk would change packages other than openssh's |
+| `ALPINE_NO_FIX_OFFERED` | 1 | apk's package lists offer no openssh-server with the fix |
+| `ALPINE_UPDATE_FAILED` | 1 | apk could not update its package lists |
+| `ALPINE_OPENSSH_CHANGED` | 1 | the openssh packages changed since they were read |
 | `DNS_UNKNOWN` | 1 | DNS: a fact the answer depends on is not established |
 | `DNS_UNSUPPORTED` | 1 | not a distribution family hardn knows |
 | `DNS_CONTAINER` | 1 | in a container, the container manager provides /etc/resolv.conf |

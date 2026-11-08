@@ -31,9 +31,11 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -90,13 +92,18 @@ type Reading struct {
 	// read, or lets each such port in from anywhere on any interface.
 	OnlyFromPort uint16
 	OnlyFrom     []string
+	// Fix is, on Alpine, whether the openssh-server package sshd runs (the
+	// binary OpenRC's script runs) has CVE-2026-123158's fix
+	// (alpine.OpenSSHFix), Unknown where which sshd runs is not read; the
+	// zero Fix elsewhere.
+	Fix alpine.Fix
 }
 
 // Read reads the host as the screen draws it, writing nothing: sshd -T
 // (OpenRC's binary on OpenRC), the files (migrate.Find with cfg's
 // sshConfigFile; cfg nil is none), users.Read with getenv (os.Getenv in
 // hardn), the session's line in sshd's log where sess is remote, root's
-// account, listen.conf and ufw. A read that fails is kept beside what it
+// account, on Alpine apk's installed database (Fix), listen.conf and ufw. A read that fails is kept beside what it
 // would have given; Read itself returns no error but ctx's.
 func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Config, sess revert.Session, getenv func(string) string) (Reading, error) {
 	r := Reading{Facts: f, Session: sess}
@@ -118,6 +125,12 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	}
 	r.PVE, _ = pve.Applies(f.Proxmox)
 	r.readRoot(ctx, sys)
+	if f.Platform.Distro == detect.DistroAlpine {
+		r.Fix = fixUnread(f)
+		if f.Init.Kind != detect.OpenRC || r.Binary != "" {
+			r.Fix = alpine.OpenSSHFix(ctx, sys, ssh.ServerPackage(r.Binary), f.OS.VersionID)
+		}
+	}
 	if data, err := sys.ReadFile(ctx, migrate.ListenConf); err == nil {
 		for _, l := range strings.Split(string(data), "\n") {
 			if v, ok := strings.CutPrefix(strings.TrimSpace(l), "ListenStream="); ok && v != "" {

@@ -424,7 +424,7 @@ func runReload(ctx context.Context, sys host.System, r Reload, b *Backups, opts 
 		after[i] = l.sshd()
 	}
 	p, err := reload.PlanFor(reload.Input{SSH: ssh, DropIns: drops,
-		Change: reload.Change{Keywords: r.Keywords, After: after, Rollback: true, RestoredDropIns: r.SocketDropIns}})
+		Change: reload.Change{Keywords: r.Keywords, After: after, Rollback: true, RestoredDropIns: r.SocketDropIns, Binary: r.Binary}})
 	if err != nil {
 		return reload.Report{}, err
 	}

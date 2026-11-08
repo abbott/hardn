@@ -52,7 +52,7 @@ func TestCreateUserFlagBypass(t *testing.T) {
 	}{
 		{"unfixed", "10.3_p1-r1", []string{"-c", "-u", "carol"}, 1,
 			[]string{"sshd would let anyone log in as carol with a long password, since carol has no password (CVE-2026-123158)", "USERS_PASSWORD_BYPASS",
-				"To go on: run apk -U upgrade, then rc-service sshd restart, or turn password login off in SSH Login."}, false},
+				"To go on: upgrade openssh in SSH Login (5), or turn password login off there (2)."}, false},
 		{"unfixed, -n", "10.3_p1-r1", []string{"-n", "-c", "-u", "carol"}, 1, []string{"USERS_PASSWORD_BYPASS"}, false},
 		{"fixed", "10.3_p1-r2", []string{"--yes", "-c", "-u", "carol"}, 0, []string{"Create user carol", "Let carol use sudo", "Operation Successful"}, true},
 		{"not established", "", []string{"--yes", "-c", "-u", "carol"}, 0,

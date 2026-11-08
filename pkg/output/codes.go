@@ -159,6 +159,7 @@ var errorCodes = []Entry{
 	is("SSH_PVE_ROOT_PASSWORD_SESSION", sshchange.ErrPVEPasswordSession),
 	is("SSH_PVE_NO_ROOT_KEY", sshchange.ErrPVENoRootKey),
 	is("SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted),
+	is("SSH_UPGRADE_UNKNOWN", sshchange.ErrUpgradeUnknown),
 	is("SSHD_NO_WRITE_STRATEGY", steps.ErrNoWriteStrategy),
 	is("SSH_MIGRATE_FIRST", steps.ErrMigrateFirst),
 	is("SSH_PORT_NO_NEW_LISTENER", steps.ErrNoNewListener),
@@ -393,6 +394,11 @@ var errorCodes = []Entry{
 	is("ALPINE_OTHER_PACKAGES", alpine.ErrOtherPackages),
 	is("ALPINE_NOT_EFFECTIVE", alpine.ErrNotEffective),
 	is("ALPINE_NOT_RESTORED", alpine.ErrNotRestored),
+	// The openssh upgrade's (CVE-2026-123158, docs/safety/alpine.md §7.1).
+	is("ALPINE_NOT_OPENSSH", alpine.ErrNotOpenSSH),
+	is("ALPINE_NO_FIX_OFFERED", alpine.ErrNoFixOffered),
+	is("ALPINE_UPDATE_FAILED", alpine.ErrUpdate),
+	is("ALPINE_OPENSSH_CHANGED", alpine.ErrPackagesChanged),
 
 	// DNS (pkg/host/dns): the wrapping sentinels before ErrInvalid.
 	is("DNS_UNKNOWN", dns.ErrUnknown).what("DNS: a fact the answer depends on is not established"),

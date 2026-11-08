@@ -39,6 +39,11 @@ func TestJournalCheck(t *testing.T) {
 	if err := valid().Check(); err != nil {
 		t.Fatalf("valid journal: %v", err)
 	}
+	binary := valid()
+	binary.Reload = append(binary.Reload, Reload{Service: ReloadSSH, Binary: true, IfUp: true})
+	if err := binary.Check(); err != nil {
+		t.Fatalf("an openssh upgrade's reload, no keywords: %v", err)
+	}
 	tests := []struct {
 		name   string
 		change func(j *Journal)
@@ -84,6 +89,10 @@ func TestJournalCheck(t *testing.T) {
 		{"unknown op", func(j *Journal) { j.Undo[4].Op = "rm-rf" }},
 		{"reload service", func(j *Journal) { j.Reload[0].Service = "ufw" }},
 		{"reload no keywords", func(j *Journal) { j.Reload[0].Keywords = nil }},
+		{"reload binary with keywords", func(j *Journal) { j.Reload[0].Binary = true }},
+		{"reload binary with after", func(j *Journal) {
+			j.Reload[0] = Reload{Service: ReloadSSH, Binary: true, After: []Listener{{Addr: netip.IPv4Unspecified(), Port: 22}}}
+		}},
 		{"reload of a port with no after", func(j *Journal) { j.Reload[0].After = nil }},
 		{"socket drop-in for a reload that moves no listener", func(j *Journal) { j.Reload[0].Keywords = []string{"PasswordAuthentication"} }},
 		{"socket drop-in relative", func(j *Journal) { j.Reload[0].SocketDropIns = []string{"ssh.socket.d/listen.conf"} }},

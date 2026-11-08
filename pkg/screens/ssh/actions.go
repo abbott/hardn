@@ -54,6 +54,7 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 		screen.SSHPasswordItem: func() error { return r.password(ctx, h) },
 		screen.SSHPortItem:     func() error { return r.port(ctx, h) },
 		screen.SSHMigrateItem:  func() error { return r.migrate(ctx, h) },
+		screen.SSHUpgradeItem:  func() error { return r.upgrade(ctx, h) },
 	}
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {
@@ -156,6 +157,16 @@ func (r *runner) password(ctx context.Context, h reading) error {
 	}
 	return r.change(ctx, true, screen.SSHPasswordChange(action == sshchange.AuthPasswordsOn, value), nil, func() engine.Control {
 		return sshchange.Auth{Action: action, Getenv: r.o.Getenv}
+	})
+}
+
+// upgrade is item 5, Upgrade openssh, on Alpine where sshd lacks
+// CVE-2026-123158's fix (sshchange.Upgrade): planned first and refused
+// before asking, then a plain question, as nothing of it is lockout-risk.
+func (r *runner) upgrade(ctx context.Context, h reading) error {
+	fix := h.Fix
+	return r.change(ctx, false, screen.SSHUpgradeChange(fix.Package, fix.Installed, fix.Wanted), nil, func() engine.Control {
+		return sshchange.Upgrade{}
 	})
 }
 

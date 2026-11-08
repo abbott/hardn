@@ -121,6 +121,20 @@ func newHost(t *testing.T, name string) *runHost {
 		h.sshFile(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication no\n", 0o600)
 		h.AddFile(hostdns.ResolvConf, []byte("search example.net\nnameserver 192.0.2.1\n"), 0o644, 0, 0)
 		return withYML(t, h.withLog("publickey", "george", 1), ask)
+	case "alpine-unfixed", "alpine-exposed":
+		p := alpine323()
+		h := usersOn(p, true, simUser{name: "alpine", uid: 1000, groups: []string{"wheel"}, pw: "*", shell: "/bin/ash"}, george(p)).rootLike("!")
+		h.env = map[string]string{"DOAS_USER": "george"}
+		h.sshFile(sshd.MainConfig, sshd.IncludeLine+"\n\nUsePAM yes\nAuthorizedKeysFile .ssh/authorized_keys\nAllowTcpForwarding no\n", 0o644)
+		yml := ask
+		if name == "alpine-unfixed" {
+			h.sshFile(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication no\n", 0o600)
+		} else { // passwords on, sshd's default; Create of carol, whose field would be "*", with shadow's useradd
+			yml = askYML("carol", 3, 22, false)
+			h.AddFile("/usr/sbin/useradd", []byte("ELF"), 0o755, 0, 0)
+		}
+		h.AddFile(hostdns.ResolvConf, []byte("search example.net\nnameserver 192.0.2.1\n"), 0o644, 0, 0)
+		return withYML(t, h.unfixedSSH().withLog("publickey", "george", 1), yml)
 	case "fresh":
 		p := debian13()
 		p.noUFW = true

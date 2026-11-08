@@ -77,7 +77,7 @@ _When a host uses `doas` (Alpine), pipe to `doas sh` instead of `sudo sh`._
 
 **The script will**:
 
-- Find the latest release through the GitHub API (or take `HARDN_VERSION`, below), and its asset for the system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. 📝 There is no armv7 build, so on armv7 it stops.
+- Find the latest release through the GitHub API (or take `HARDN_VERSION`, below), and its asset for the system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. There is no armv7 build, so on armv7 it stops.
 - Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing. Without gh, it installs on the SHA-256 alone and prints the commands that check the attestation.
 - Install `/usr/local/bin/hardn` and create `/etc/hardn`.
 
@@ -270,7 +270,7 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 OpenSSH before 10.6p2, on musl without PAM, lets a password of 257 to 1024 bytes into an account whose password field is `*`, as a key-only account's is. hardn compares the installed `openssh-server` with each Alpine branch's first fixed release:
   - **SSH Auth** reports an unfixed sshd (`SSH_SSHD_UNFIXED`), or an exposed host (`SSH_PASSWORD_BYPASS`, risk level Critical) where such an account can be reached by password.
   - **Creating a user is refused** (`USERS_PASSWORD_BYPASS`) on an unfixed sshd with password login on, since a new user's field is `*`.
-  - **To fix it,** run `apk -U upgrade`, then `rc-service sshd restart`, or turn password login off in SSH Login (2). hardn reads the package, not the running sshd, so restart sshd after the upgrade.
+  - **To fix it,** choose Upgrade openssh in SSH Login (5), or run Run All: hardn upgrades every openssh package, then reloads sshd. Or turn password login off in SSH Login (2).
 
 Learn more: [alpine.md](docs/safety/alpine.md) (the fixed releases by branch) and [check-ssh.md](docs/engine/check-ssh.md).
 

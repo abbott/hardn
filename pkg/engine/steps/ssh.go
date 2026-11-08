@@ -381,6 +381,25 @@ func reloadChange(prefix string, r revert.Reload, rp reload.Plan, replan func(ct
 	return c
 }
 
+// BinaryReload is the reload that makes sshd's listener run the binaries an
+// openssh upgrade replaced (StageReload, after the change after): the
+// reload of reload.Change's Binary, run as reloadChange runs any, IfUp, its
+// rollback starting sshd where the reload's gated step ran and left it
+// down. A service restart, not a lockout: no file of sshd's changes, each
+// new connection runs the new sshd-session before it, and the init
+// script's checkconfig (sshd -t with the new binary) leaves the old daemon
+// running when it refuses (docs/safety/alpine.md §7.1; the maintainer,
+// 2026-11-08: outside confirm-or-revert). It claims sshd.
+func BinaryReload(prefix, after string, s detect.SSH) (engine.Change, error) {
+	rp, err := reload.PlanFor(reload.Input{SSH: s, Change: reload.Change{Binary: true}})
+	if err != nil {
+		return engine.Change{}, err
+	}
+	c := reloadChange(prefix, revert.Reload{Service: revert.ReloadSSH, Binary: true, IfUp: true}, rp, nil)
+	c.After, c.Risk, c.ConfirmVia, c.Resources = []string{after}, engine.RiskServiceRestart, nil, []string{ResourceSSHD}
+	return c, nil
+}
+
 // unitOf names what rp reloads, for the plan's view.
 func unitOf(rp reload.Plan) string {
 	for _, s := range rp.Steps {

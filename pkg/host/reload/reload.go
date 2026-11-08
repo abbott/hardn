@@ -105,6 +105,13 @@ type Change struct {
 	// are before the change (migrate.Plan.CheckRollback), so that a change
 	// whose rollback could not finish is not applied.
 	RestoredDropIns []string
+	// Binary: the change replaced sshd's binaries (an openssh upgrade),
+	// not its files, so no keyword changed; the reload makes the running
+	// listener execute the new sshd, as each new connection already runs
+	// the new sshd-session (docs/safety/alpine.md §7, the 2026-11-08
+	// probe). Not with Keywords, Confirmed or RestoredDropIns
+	// (fs.ErrInvalid); with Rollback, a unit that is not up is started.
+	Binary bool
 }
 
 // Input is what PlanFor plans from.
@@ -190,9 +197,12 @@ type Plan struct {
 }
 
 // PlanFor plans the reload of the change in in. It runs nothing, so it
-// belongs to the plan, before anything changes. Errors: ErrModeUnknown;
-// fs.ErrInvalid for Confirmed with Rollback, and for RestoredDropIns
-// without Rollback; for a listener change ErrListenersUnknown, a
+// belongs to the plan, before anything changes. A change with no keywords
+// plans nothing, unless Binary, which plans the reload of a change that
+// moves no listener. Errors: ErrModeUnknown;
+// fs.ErrInvalid for Confirmed with Rollback, for RestoredDropIns
+// without Rollback, and for a Binary change with keywords, Confirmed or
+// RestoredDropIns; for a listener change ErrListenersUnknown, a
 // *HoldError (ErrDropsListener), ErrAddsListener, and on a socket host
 // ErrNoGenerator, ErrSocketDropIn (a drop-in with ListenStream that is not
 // one of a Rollback's RestoredDropIns), ErrRestoredListeners (those do not
@@ -206,7 +216,9 @@ func PlanFor(in Input) (Plan, error) {
 		kws[i] = strings.ToLower(k)
 	}
 	switch {
-	case len(kws) == 0:
+	case c.Binary && (len(kws) > 0 || c.Confirmed || len(c.RestoredDropIns) > 0):
+		return base, fmt.Errorf("reload: a Binary change has no keywords, is not Confirmed and restores no drop-ins: %w", fs.ErrInvalid)
+	case len(kws) == 0 && !c.Binary:
 		return base, nil
 	case c.Confirmed && c.Rollback:
 		return base, fmt.Errorf("reload: a change is Confirmed or a Rollback, not both: %w", fs.ErrInvalid)

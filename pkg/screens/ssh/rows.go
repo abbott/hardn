@@ -75,6 +75,7 @@ func mainView(h reading) screen.SSH {
 		v.Root = screen.SSHAllowRootKeyOnly
 	}
 	v.PasswordsOff = !v.NotRead && !h.PasswordsOn()
+	v.Unfixed = h.Fix.Fixed == detect.No
 	return v
 }
 

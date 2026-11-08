@@ -18,10 +18,12 @@ import (
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
@@ -174,6 +176,83 @@ type sshHost struct {
 	bound      []string // what ss shows of sshd's (or ssh.socket's) sockets
 	configured []string // ssh.socket's Listen, as the last daemon-reload set it
 	unexpected []string // the commands the fake does not answer
+	// openssh is the version of every openssh package in apk's installed
+	// database, as on the Alpine VM, and offer the repository's; "" with
+	// no database (unfixedSSH sets them).
+	openssh, offer string
+	pid            int // sshd's listener, in /run/sshd.pid
+}
+
+// opensshPackages are the Alpine VM's openssh packages
+// (vm-runs/cve/run-alpine323.log).
+var opensshPackages = []string{"openssh", "openssh-client-common", "openssh-client-default", "openssh-keygen", "openssh-server",
+	"openssh-server-common", "openssh-server-common-openrc", "openssh-server-pam", "openssh-sftp-server"}
+
+// unfixedSSH gives h, the Alpine VM, its openssh packages at 10.2_p1-r0,
+// before CVE-2026-123158's fix (10.2_p1-r1, which the repository offers),
+// sshd started, and its listener on its file.
+func (h *sshHost) unfixedSSH() *sshHost {
+	h.offer, h.pid = "10.2_p1-r1", 900
+	h.plat.facts.OS = detect.OSRelease{ID: "alpine", VersionID: "3.23.6"}
+	h.AddDir(detect.OpenRCStarted, 0o755, 0, 0)
+	h.AddSymlink(detect.OpenRCStarted+"/sshd", detect.OpenRCSSHD)
+	h.AddDir("/lib/apk/db", 0o755, 0, 0)
+	h.writeDB("10.2_p1-r0")
+	h.listener(false)
+	return h
+}
+
+func (h *sshHost) writeDB(v string) {
+	var b strings.Builder
+	b.WriteString("P:musl\nV:1.2.5-r21\n\n")
+	for _, n := range opensshPackages {
+		b.WriteString("P:" + n + "\nV:" + v + "\n\n")
+	}
+	h.AddFile(alpine.InstalledDB, []byte(b.String()), 0o644, 0, 0)
+	h.openssh = v
+}
+
+// listener writes sshd's pid file and its /proc/<pid>/exe, marked deleted
+// where stale (the 2026-11-08 probe).
+func (h *sshHost) listener(stale bool) {
+	exe := reload.BinarySSHD
+	if stale {
+		exe += " (deleted)"
+	}
+	dir := "/proc/" + strconv.Itoa(h.pid)
+	_ = h.RemoveAll(context.Background(), dir)
+	h.AddDir(dir, 0o555, 0, 0)
+	h.AddSymlink(dir+"/exe", exe)
+	h.AddFile(alpine.SSHDPidFile, []byte(strconv.Itoa(h.pid)+"\n"), 0o644, 0, 0)
+}
+
+// opensshApk answers apk update and the upgrade of every openssh package,
+// as apk-tools 3.0.8 did on the Alpine VM; nothing where the host has no
+// openssh packages modelled.
+func (h *sshHost) opensshApk(cmd string) (hostfake.Response, bool) {
+	if h.openssh == "" {
+		return hostfake.Response{}, false
+	}
+	names := strings.Join(opensshPackages, " ")
+	listing := func() string {
+		var b strings.Builder
+		for i, n := range opensshPackages {
+			fmt.Fprintf(&b, "(%d/%d) Upgrading %s (%s -> %s)\n", i+1, len(opensshPackages), n, h.openssh, h.offer)
+		}
+		return b.String() + "OK: 136.9 MiB in 207 packages\n"
+	}
+	switch cmd {
+	case "apk update":
+		return hostfake.Response{Stdout: "OK: 26371 distinct packages available\n"}, true
+	case "apk upgrade --simulate " + names:
+		return hostfake.Response{Stdout: listing()}, true
+	case "apk upgrade " + names:
+		out := listing()
+		h.writeDB(h.offer)
+		h.listener(true)
+		return hostfake.Response{Stdout: out}, true
+	}
+	return hostfake.Response{}, false
 }
 
 // facts are detect's facts of the host.
@@ -731,6 +810,10 @@ func (h *sshHost) answer(argv []string, _ []byte) hostfake.Response {
 	case "rc-service":
 		if cmd == "rc-service sshd reload" {
 			h.bound = slices.Clone(h.listening())
+			if h.pid != 0 {
+				h.pid++
+				h.listener(false)
+			}
 			return hostfake.Response{}
 		}
 		if r, ok := h.updates(argv); ok {
@@ -741,6 +824,9 @@ func (h *sshHost) answer(argv []string, _ []byte) hostfake.Response {
 			return r
 		}
 	case "apt-config", "dpkg-query", "apk":
+		if r, ok := h.opensshApk(cmd); ok {
+			return r
+		}
 		if r, ok := h.updates(argv); ok {
 			return r
 		}

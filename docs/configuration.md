@@ -238,6 +238,7 @@ The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
 - **`sshPort`:** compared with the port sshd listens on; never changed.
+- **No key, on Alpine:** where sshd lacks the fix for CVE-2026-123158, upgrades openssh, then reloads sshd. Root login off, the firewall and creating a user refused for the CVE then wait for the next run.
 - **`enableBackups` and `backupPath`:** the plan's backups.
 
 A change that is refused, doesn't apply or has nothing to change is skipped, and Run All says why. You type the hostname to apply, whatever the plan.

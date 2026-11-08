@@ -54,7 +54,7 @@ func noOpenSSH(s site) site {
 // planned with no such finding where no sshd can run.
 func TestCreateBypass(t *testing.T) {
 	const words = "sshd would let anyone log in as carol with a long password, since carol has no password (CVE-2026-123158). " +
-		"Run apk -U upgrade, then rc-service sshd restart, or turn password login off in SSH Login."
+		"Upgrade openssh in SSH Login (5), or turn password login off there (2)."
 	n := users.New{Name: "carol"}
 	t.Run("refused", func(t *testing.T) {
 		s := alpineCreate(sshdAlpine, "# stock\n", "10.3_p1-r1")

@@ -361,7 +361,7 @@ Tested: `TestAuthMethods` (`any` with passwords on; `publickey` with `PasswordAu
 
 ## 11. CVE-2026-123158 on Alpine (`bypass.go`)
 
-> **Unit:** the advisory of 2026-11-05, scope (a) detect and report and (b) Create refuses, approved by the maintainer; not Run All, not upgrading openssh ([alpine.md](../safety/alpine.md) §7 has the CVE and its sources).
+> **Unit:** the advisory of 2026-11-05, scope (a) detect and report and (b) Create refuses, approved by the maintainer ([alpine.md](../safety/alpine.md) §7 has the CVE and its sources); upgrading openssh, from SSH Login and Run All, is alpine.md §7.1's (2026-11-08).
 > **Status:** built and tested on macOS against `hostfake` only; nothing of it has run on a host (gate 5).
 
 **Guarantees.**
@@ -383,6 +383,6 @@ Tested: `TestAuthMethods` (`any` with passwords on; `publickey` with `PasswordAu
 6. **Read-only:** a read of `/lib/apk/db/installed`, and with the package unfixed `/etc/passwd`, `/etc/shadow` and a `Stat` of each candidate's shell. No command is added.
 7. **`ReadBypass`** gives the same reading to the User control's Create ([control-users.md](control-users.md) §7): `Applies`, `PAM`, `Password` (a password path on: global, or a Match block, whatever it matches; `Unknown` where a value is not read), `Fix`, and `NoSSHD`: the read failed as "sshd not installed" or "no sshd_config" (§5's failure table), so no sshd can run (`sshd -t -f` on a missing file exits 1, run on the Alpine 3.23 VM, 2026-11-07). The rows' own rule is stricter (§2.8): `NoSSHD` holds where only `sshd_config` is gone, and the rows are then still `Unknown`.
 
-**Not read:** the running daemon. An upgrade without `rc-service sshd restart` reads as fixed while the old binary still answers.
+**Not read:** the running daemon. An upgrade reads as fixed at once; *since 2026-11-08* that is known to hold for each new connection, which runs the `sshd-session` on disk, the listener keeping the old binary until sshd is reloaded ([alpine.md](../safety/alpine.md) §7.1, which also upgrades).
 
 Tested: `TestBypass` (exposed; two targets; a `x` field with no shadow line; no donor, a yescrypt hash no donor; alice locked; a nologin shell a target; a shell not there; fixed, a later revision; no database, no entry, a version not compared; `sshd.pam` with `UsePAM yes`; password authentication off; a Match block, with keyboard-interactive on and off; root with `PermitRootLogin yes`, in a Match block, and `prohibit-password`; `/etc/shadow` refused; off Alpine), `TestReadBypass`.

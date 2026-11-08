@@ -3,13 +3,17 @@ accounts.ErrTCB ACCOUNTS_TCB
 alpine.ErrChanged ALPINE_CHANGED
 alpine.ErrNoBackup ALPINE_NO_BACKUP
 alpine.ErrNoCrond ALPINE_NO_CROND
+alpine.ErrNoFixOffered ALPINE_NO_FIX_OFFERED
 alpine.ErrNoOpenRC ALPINE_NO_OPENRC
 alpine.ErrNotAlpine ALPINE_NOT_ALPINE
 alpine.ErrNotEffective ALPINE_NOT_EFFECTIVE
+alpine.ErrNotOpenSSH ALPINE_NOT_OPENSSH
 alpine.ErrNotRestored ALPINE_NOT_RESTORED
 alpine.ErrOtherPackages ALPINE_OTHER_PACKAGES
+alpine.ErrPackagesChanged ALPINE_OPENSSH_CHANGED
 alpine.ErrScript ALPINE_SCRIPT_MISMATCH
 alpine.ErrUnknown ALPINE_UNKNOWN
+alpine.ErrUpdate ALPINE_UPDATE_FAILED
 authkeys.ErrNotKey AUTHKEYS_NOT_KEY
 authkeys.ErrNotPlanned AUTHKEYS_NOT_PLANNED
 authkeys.ErrStrictModes AUTHKEYS_STRICT_MODES
@@ -150,6 +154,7 @@ sshchange.ErrPasswordOnly SSH_ADMIN_PASSWORD_ONLY
 sshchange.ErrPasswordSession SSH_PASSWORD_SESSION
 sshchange.ErrPortRestricted SSH_PORT_SOURCE_RESTRICTED
 sshchange.ErrRootSession SSH_ROOT_SESSION
+sshchange.ErrUpgradeUnknown SSH_UPGRADE_UNKNOWN
 sshd.ErrConfig SSHD_CONFIG_INVALID
 sshd.ErrEnvironment SSHD_ENVIRONMENT
 sshd.ErrNotIncluded SSHD_DROPIN_NOT_INCLUDED

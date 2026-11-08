@@ -25,7 +25,8 @@ import (
 // otherwise), at least one account has a $5$ or $6$ hash (Alpine's rule),
 // and the openssh-server package lacks Alpine's fix. Fields of "!" are
 // locked: not affected. hardn reads the package, not the running daemon,
-// so an upgrade without rc-service sshd restart reads as fixed.
+// so an upgrade reads as fixed at once: each new connection runs the new
+// sshd-session from disk (docs/safety/alpine.md §7.1, the 2026-11-08 probe).
 
 // The CVE's finding codes (pkg/output's registry holds them).
 const (
@@ -92,8 +93,13 @@ func ReadBypass(ctx context.Context, sys host.System, f detect.Facts) (Bypass, e
 // opensshPackage is the package of the sshd read ran: on OpenRC the
 // binary its script runs (reload.OpenRCFlavour), elsewhere sshd on the
 // path, /usr/sbin/sshd, openssh-server's.
-func (r reading) opensshPackage() string {
-	switch r.bin {
+func (r reading) opensshPackage() string { return ServerPackage(r.bin) }
+
+// ServerPackage is the openssh-server package whose sshd bin is: the -pam
+// or -krb5 build for their binaries (reload.BinaryPAM, reload.BinaryKrb5),
+// openssh-server's for any other.
+func ServerPackage(bin string) string {
+	switch bin {
 	case reload.BinaryPAM:
 		return alpine.OpenSSHServerPAM
 	case reload.BinaryKrb5:

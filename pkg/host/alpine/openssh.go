@@ -263,9 +263,11 @@ type Fix struct {
 }
 
 // OpenSSHFix reads InstalledDB for pkg, on the branch of versionID (detect's
-// OS.VersionID). It changes nothing. hardn does not read the running
-// daemon's binary: an upgrade not followed by rc-service sshd restart
-// still reads Yes.
+// OS.VersionID). It changes nothing. It reads the package, not the running
+// daemon: an upgrade reads Yes at once, which holds for every new
+// connection, as each runs the sshd-session (and sshd-auth) on disk; the
+// listener keeps the old binary until sshd is reloaded (ListenerBinary;
+// docs/safety/alpine.md §7.1, the 2026-11-08 probe).
 func OpenSSHFix(ctx context.Context, sys host.System, pkg, versionID string) Fix {
 	f := Fix{Package: pkg, Wanted: FixedVersion(versionID)}
 	db, err := ReadInstalled(ctx, sys)

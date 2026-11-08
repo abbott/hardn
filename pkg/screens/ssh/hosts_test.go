@@ -106,6 +106,8 @@ func newHost(t *testing.T, name string) *sshHost {
 		h := vm(ubu).sshFile(sshd.DropInDir+"/60-cloudimg-settings.conf", "PasswordAuthentication no\n", 0o644).withLog("publickey", "george", 1)
 		_ = h.Remove(ctx, "/run/sshd")
 		return h
+	case "alpine-unfixed":
+		return alpineVM().unfixedSSH().withLog("publickey", "george", 1)
 	case "nopam-locked":
 		h := alpineVM()
 		data, _ := h.ReadFile(ctx, accounts.ShadowFile)

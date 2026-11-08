@@ -155,7 +155,7 @@ func (r Reading) bypassRefusal(ctx context.Context, sys host.System, name string
 	case b.Fix.Fixed == detect.No:
 		return nil, refuse(codePasswordBypass, ErrPasswordBypass, nil,
 			"sshd would let anyone log in as "+name+" with a long password, since "+name+" has no password ("+ssh.CVE+")",
-			"run apk -U upgrade, then rc-service sshd restart, or turn password login off in SSH Login")
+			"upgrade openssh in SSH Login (5), or turn password login off there (2)")
 	}
 	pkg := b.Fix.Package
 	if pkg == "" {

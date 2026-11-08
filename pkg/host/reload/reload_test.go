@@ -145,6 +145,16 @@ func TestPlanFor(t *testing.T) {
 		{"alpine rollback starts sshd", reload.Input{SSH: alpine, Change: reload.Change{Keywords: []string{"PermitRootLogin"}, Rollback: true}},
 			[]string{reloadOpenRC + " else rc-service sshd start"}, nil, nil, nil, 0},
 		{"nothing changed", reload.Input{SSH: detect.SSH{}}, nil, nil, nil, nil, 0},
+		// An openssh upgrade: no keyword, the binaries replaced; the reload
+		// makes the listener run the new sshd.
+		{"alpine binary", reload.Input{SSH: alpine, Change: reload.Change{Binary: true}},
+			[]string{reloadOpenRC}, nil, nil, nil, 0},
+		{"alpine binary rollback starts sshd", reload.Input{SSH: alpine, Change: reload.Change{Binary: true, Rollback: true}},
+			[]string{reloadOpenRC + " else rc-service sshd start"}, nil, nil, nil, 0},
+		{"debian binary", reload.Input{SSH: debian, Change: reload.Change{Binary: true}},
+			[]string{reloadService}, nil, nil, nil, 0},
+		{"ubuntu binary", reload.Input{SSH: ubuntu2604, Change: reload.Change{Binary: true}},
+			[]string{reloadActivated}, nil, nil, nil, 0},
 		// The rollback of a listen.conf migration restored listen.conf, whose
 		// ListenStream lines give the socket its listeners again; After is the
 		// socket's listeners before the migration.
@@ -199,6 +209,9 @@ func TestPlanForRefuses(t *testing.T) {
 		{"mode unknown, no reason", reload.Input{Change: reload.Change{Keywords: []string{"PermitRootLogin"}}},
 			[]error{reload.ErrModeUnknown, detect.ErrNoSignal}},
 		{"mode unknown comes first", reload.Input{Change: port(nil, nil)}, []error{reload.ErrModeUnknown}},
+		{"binary with keywords", reload.Input{SSH: alpine, Change: reload.Change{Binary: true, Keywords: []string{"PermitRootLogin"}}}, []error{fs.ErrInvalid}},
+		{"binary confirmed", reload.Input{SSH: alpine, Change: reload.Change{Binary: true, Confirmed: true}}, []error{fs.ErrInvalid}},
+		{"binary, mode unknown", reload.Input{Change: reload.Change{Binary: true}}, []error{reload.ErrModeUnknown}},
 		{"generator masked", reload.Input{SSH: masked, Change: port(at22, both), DropIns: none}, []error{reload.ErrNoGenerator}},
 		{"generator unknown", reload.Input{SSH: unknownGen, Change: port(at22, both), DropIns: none}, []error{reload.ErrNoGenerator}},
 		{"drop-ins not read", reload.Input{SSH: ubuntu2604, Change: port(at22, both)}, []error{fs.ErrInvalid}},

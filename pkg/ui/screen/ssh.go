@@ -40,6 +40,9 @@ const (
 	sshPortsNotRead  = "not read"
 	sshMigrateLabel  = "Move old settings"
 	sshMigrateAbout  = "Into 00-hardn.conf"
+	sshUpgradeLabel  = "Upgrade openssh"
+	sshUpgradeAbout  = "Fix CVE-2026-123158"
+	sshUpgradeTo     = "%s, to %s or later"
 	sshCantRead      = "Can't read"
 	sshHeld          = "%s held until confirmed"
 	sshMoved         = "%s, into 00-hardn.conf"
@@ -69,12 +72,14 @@ const (
 )
 
 // The screen's items, by key; each keeps its key, 4 offered only with
-// hardn's old files (gallery-ssh.md §3).
+// hardn's old files (gallery-ssh.md §3), 5 only on Alpine where sshd lacks
+// CVE-2026-123158's fix (the maintainer, 2026-11-08).
 const (
 	SSHRootItem     = "1" // Disallow root login, Allow root key-only, Root key-only
 	SSHPasswordItem = "2" // Key-only login, Password login on
 	SSHPortItem     = "3" // Change SSH port
 	SSHMigrateItem  = "4" // Move old settings, with hardn's old files
+	SSHUpgradeItem  = "5" // Upgrade openssh, where sshd lacks the fix
 )
 
 // SSHRoot is what item 1 does.
@@ -112,11 +117,16 @@ type SSH struct {
 	// NotRead: sshd's settings are not read, so each item's description
 	// says so.
 	NotRead bool
+	// Unfixed: on Alpine, the openssh-server package sshd runs lacks
+	// CVE-2026-123158's fix, so item 5 upgrades openssh; its description
+	// stands with NotRead, as the upgrade reads no sshd setting.
+	Unfixed bool
 }
 
 // SubMenu returns the SSH Login screen (02-SSH_LOGIN): the title bar; the
 // three rows; the section; root login, password login and the port, each
-// named by its result, and Move old settings with hardn's old files;
+// named by its result, Move old settings with hardn's old files, and
+// Upgrade openssh where sshd lacks CVE-2026-123158's fix;
 // Return; "Select an option"; "Enter your choice". Every section at every
 // height (Firewall's decision 9).
 func (s SSH) SubMenu() SubMenu {
@@ -143,6 +153,9 @@ func (s SSH) SubMenu() SubMenu {
 		for i := range items {
 			items[i].Description = sshCantRead
 		}
+	}
+	if s.Unfixed {
+		items = append(items, component.MenuItem{Key: SSHUpgradeItem, Label: sshUpgradeLabel, Description: sshUpgradeAbout})
 	}
 	return SubMenu{
 		Title:    trail(sshTitle),
@@ -202,6 +215,12 @@ func SSHPortChange(now string) SSHChange {
 // 00-hardn.conf.
 func SSHMigrateChange(names string) SSHChange {
 	return sshChange(sshMigrateLabel, "Move hardn's old settings?", component.KeyValue{Key: SSHOldKey, Value: fmt.Sprintf(sshMoved, names)})
+}
+
+// SSHUpgradeChange is Upgrade openssh: the server package sshd runs, its
+// version and the branch's first with the fix.
+func SSHUpgradeChange(pkg, installed, wanted string) SSHChange {
+	return sshChange(sshUpgradeLabel, "Upgrade openssh?", component.KeyValue{Key: pkg, Value: fmt.Sprintf(sshUpgradeTo, installed, wanted)})
 }
 
 // SSHPortHave refuses port, one sshd listens on already.

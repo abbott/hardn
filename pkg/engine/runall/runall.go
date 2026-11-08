@@ -55,6 +55,8 @@ const (
 	// WordsAfterFirewall is root login off where the firewall is planned
 	// with it (decision 5 (a)).
 	WordsAfterFirewall = "After the firewall: run Run All again"
+	// WordsAfterUpgrade is a row the openssh upgrade defers (afterUpgrade).
+	WordsAfterUpgrade = "After the openssh upgrade: run Run All again"
 	// PendingWords are a change waiting for hardn confirm's, in full: the
 	// SSH Login screen's (pkg/screens/ssh), where the journal holds an
 	// applied lockout-risk change (revert.State.Waiting). An unfinished
@@ -165,6 +167,10 @@ type Ask struct {
 	// Port is the SSH Port row's sshPort, compared with sshd's listeners
 	// alone: never planned (decision 3).
 	Port uint16
+	// Unfixed: asked by the host, not hardn.yml: the openssh upgrade, on
+	// Alpine, only where sshd lacks CVE-2026-123158's fix
+	// (sshchange.ReadFix); the row is Nothing asked elsewhere.
+	Unfixed bool
 }
 
 // Asked reports whether hardn.yml asks anything of the row.
@@ -176,8 +182,10 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // login off, key-only on Proxmox VE, never loosened (sshchange.Disallow,
 // as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
-// nameservers; enableUnattendedUpgrades true, on (never off). Every other
-// row asks nothing: SSH Auth, AppArmor, Backup and Environment.
+// nameservers; enableUnattendedUpgrades true, on (never off). SSH Auth asks
+// no key: on Alpine, where sshd lacks CVE-2026-123158's fix, it is the
+// openssh upgrade (sshchange.Upgrade; the maintainer, 2026-11-08). Every
+// other row asks nothing: AppArmor, Backup and Environment.
 func Asked(in Input, id string) Ask {
 	cfg := in.Config
 	switch id {
@@ -196,6 +204,11 @@ func Asked(in Input, id string) Ask {
 			words = keyOnly
 		}
 		return Ask{Control: sshchange.Disallow{Root: sshchange.Root{Want: "no", Getenv: in.getenv}}, Words: words}
+	case ssh.Auth{}.ID():
+		if in.Facts.Platform.Distro != detect.DistroAlpine {
+			return Ask{}
+		}
+		return Ask{Control: sshchange.Upgrade{}, Words: sshchange.UpgradeTitle, Unfixed: true}
 	case ssh.Port{}.ID():
 		if cfg.SshPort <= 0 || cfg.SshPort > 65535 {
 			return Ask{}
@@ -343,6 +356,7 @@ func Read(ctx context.Context, in Input) (Reading, error) {
 		r.Reports = append(r.Reports, rep)
 		r.Rows = append(r.Rows, r.pick(ctx, in, id, rep))
 	}
+	r.afterUpgrade()
 	r.afterFirewall()
 	r.noSSHWords()
 	for _, rw := range r.Rows {
@@ -392,7 +406,8 @@ func report(reports []engine.Report, id string) (engine.Report, bool) {
 	return reports[i], true
 }
 
-// pick is the row of control id: left alone; nothing asked; Not
+// pick is the row of control id: left alone; nothing asked (the openssh
+// upgrade where sshd has the fix, or where that is not established); Not
 // Applicable by its check; the port compared; pending where a change
 // waits; else its control planned alone.
 func (r Reading) pick(ctx context.Context, in Input, id string, rep engine.Report) Row {
@@ -405,6 +420,8 @@ func (r Reading) pick(ctx context.Context, in Input, id string, rep engine.Repor
 		rw.Kind, rw.Words = NothingAsked, WordsNothing
 	case rep.Status.State == engine.NotApplicable:
 		rw.Kind, rw.Words = NotApplicable, rep.Status.Detail
+	case a.Unfixed && sshchange.ReadFix(ctx, in.System, in.Facts).Fixed != detect.No:
+		rw.Kind, rw.Words = NothingAsked, WordsNothing
 	case a.Control == nil:
 		r.port(ctx, in, a.Port, &rw)
 	case r.Busy:
@@ -521,6 +538,25 @@ func (r *Reading) noSSHWords() {
 	for i, rw := range r.Rows {
 		if rw.ID == fwctl.ID && rw.Kind == Planned && rw.Words == wordsEnableSSH {
 			r.Rows[i].Words = wordsEnableNoSSH
+		}
+	}
+}
+
+// afterUpgrade is decision 5 (a)'s rule for the openssh upgrade (the
+// maintainer, 2026-11-08): it claims sshd, as Enable and root login off
+// do, so where it is planned they are skipped, said on their rows, and so
+// is a Create refused because sshd lacks the fix (users.ErrPasswordBypass),
+// which the upgrade lifts; the next Run All plans them on the host as the
+// upgrade left it.
+func (r *Reading) afterUpgrade() {
+	if !slices.ContainsFunc(r.Rows, func(rw Row) bool { return rw.ID == (ssh.Auth{}).ID() && rw.Kind == Planned }) {
+		return
+	}
+	for i, rw := range r.Rows {
+		switch {
+		case rw.Kind == Planned && (rw.ID == fwctl.ID || rw.ID == (ssh.Login{}).ID()),
+			rw.Kind == Refused && rw.ID == users.ID && errors.Is(rw.Err, users.ErrPasswordBypass):
+			r.Rows[i].Kind, r.Rows[i].Words, r.Rows[i].Control, r.Rows[i].Refusal, r.Rows[i].Err = Later, WordsAfterUpgrade, nil, "", nil
 		}
 	}
 }
