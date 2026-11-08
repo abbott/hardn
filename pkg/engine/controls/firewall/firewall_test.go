@@ -112,6 +112,9 @@ type rule struct {
 	action, port, src, dst string
 	app                    string // the application's name, a rule ufw allow app adds
 	iface                  string // the interface it is limited to: ufw allow in on <iface>, with no port all of it
+	// v4: in IPv4 alone, its row and its user.rules tuple, none in IPv6, as
+	// ufw keeps a rule added while IPV6=no once IPV6=yes.
+	v4 bool
 }
 
 func allow(ports ...string) []rule {
@@ -170,7 +173,7 @@ func (u fw) status() string {
 		fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, strings.ToUpper(r.action)+" IN", from)
 	}
 	for _, r := range u.rules {
-		if r.src == "" && r.dst == "" && u.v6() {
+		if r.src == "" && r.dst == "" && !r.v4 && u.v6() {
 			to := r.port + "/tcp (v6)"
 			switch {
 			case r.app != "":
@@ -206,7 +209,7 @@ func (u fw) files(h *hostfake.System) {
 		for _, r := range u.rules {
 			src, dst := r.src, r.dst
 			switch {
-			case (src != "" || dst != "") && f.any == "::/0":
+			case (src != "" || dst != "" || r.v4) && f.any == "::/0":
 				continue
 			case src == "":
 				src = f.any

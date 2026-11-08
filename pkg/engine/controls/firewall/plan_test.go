@@ -126,7 +126,12 @@ func (l *live) run(argv []string) (string, bool) {
 		return "Default incoming policy changed to '" + argv[2] + "'\n", true
 	case len(argv) == 3 && argv[1] == "allow":
 		port := strings.TrimSuffix(argv[2], "/tcp")
-		if slices.ContainsFunc(l.u.rules, func(r rule) bool { return r.port == port && r.app == "" }) {
+		i := slices.IndexFunc(l.u.rules, func(r rule) bool { return r.port == port && r.app == "" })
+		switch {
+		case i >= 0 && l.u.rules[i].v4 && l.u.v6(): // IPv4's tuple there, IPv6's added (ufw 0.36.2)
+			l.u.rules[i].v4 = false
+			return "Skipping adding existing rule\nRule added (v6)\n", true
+		case i >= 0:
 			return "Skipping adding existing rule\nSkipping adding existing rule (v6)\n", true
 		}
 		l.u.rules = append(l.u.rules, rule{action: "allow", port: port})
@@ -686,12 +691,31 @@ func TestEnableNothing(t *testing.T) {
 
 // TestEnableLetsIPv6Through: refused on IPv6 alone where no rule decides 22
 // for IPv6, Enable has a change to make, ufw allow 22/tcp, so item 1 stays
-// Enable, letting SSH through, though the row is no lockout risk.
+// Enable, letting SSH through, though the row is no lockout risk. The host
+// is consistent: 22/tcp allowed in IPv4 alone, saved and loaded alike (a
+// rule added while IPV6=no), so PlanFor reads what ufw shows.
 func TestEnableLetsIPv6Through(t *testing.T) {
-	l := liveOn(t, site{plat: debian13(), ufw: fw{active: true, table: rows("22/tcp", "ALLOW IN", "Anywhere")}})
-	r := firewall.Read(context.Background(), l, l.facts, nil, console)
+	ctx := context.Background()
+	l := liveOn(t, site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "allow", port: "22", v4: true}}}})
+	if st, err := ufw.Read(ctx, l, l.facts.Proxmox); err != nil || len(st.Rules) != 1 || st.Rules[0].Family != ufw.IPv4 || len(st.Status.Rules) != 1 {
+		t.Fatalf("not one IPv4 rule, saved and loaded: %v, saved %v, loaded %v", err, st.Rules, st.Status.Rules)
+	}
+	if st, _ := (firewall.Incoming{}).Check(ctx, l, l.facts); st.State != engine.Partial || st.Detail != "ssh IPv4 only" {
+		t.Errorf("before: %v %q", st.State, st.Detail)
+	}
+	r := firewall.Read(ctx, l, l.facts, nil, console)
 	if r.First != firewall.ItemEnable || r.PlanErr != nil || !r.Does.Allows || !slices.ContainsFunc(r.Plan, func(c engine.Change) bool { return slices.Contains(c.Commands, "ufw allow 22/tcp") }) {
 		t.Errorf("read: item %d, %v, does %+v, plan %v", r.First, r.PlanErr, r.Does, r.Plan)
+	}
+	e, p := planOn(t, l, firewall.ActionEnable, console, nil)
+	if p.Err() != nil {
+		t.Fatalf("plan: %v", p.Err())
+	}
+	if _, err := e.Apply(ctx, p); err != nil {
+		t.Fatal(err)
+	}
+	if st, _ := (firewall.Incoming{}).Check(ctx, l, l.facts); st.State != engine.Configured || st.Detail != "deny policy" {
+		t.Errorf("after: %v %q, rules %+v", st.State, st.Detail, l.u.rules)
 	}
 }
 
