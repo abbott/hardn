@@ -7,8 +7,11 @@
 # temporary directory, then run the real tool. PATH holds only the stubs and
 # links to the tools install.sh needs, so gh is absent unless a case adds it.
 #
-# Each case runs under every shell found of sh, dash and busybox sh. Run from anywhere: sh scripts/install_test.sh. Exits 1 if any
-# case fails. make check-install runs it.
+# Each case runs under every shell found of sh, dash and busybox sh, except a
+# busybox that runs its own applets ahead of PATH (Ubuntu's busybox-static): it
+# would bypass the stubs and the wrappers, so it is skipped, and the run says
+# so. Run from anywhere: sh scripts/install_test.sh. Exits 1 if any case
+# fails. make check-install runs it.
 
 set -eu
 
@@ -27,7 +30,14 @@ for s in sh dash; do
 	shells="$shells $p"
 done
 bb=$(command -v busybox 2>/dev/null) || bb=
-[ -z "$bb" ] || shells="$shells busybox"
+skipped=
+if [ -n "$bb" ]; then
+	# A busybox that prefers its applets finds id as an applet, not a path.
+	case $("$bb" sh -c 'command -v id' 2>/dev/null) in
+	/*) shells="$shells busybox" ;;
+	*) skipped="$bb sh: it runs its own applets ahead of PATH, so the stubs cannot stand in" ;;
+	esac
+fi
 
 # The real tools, by absolute path.
 real() {
@@ -537,6 +547,7 @@ $dl/v0.4.0/hardn-linux-amd64"
 	expect_no_download
 done
 
+[ -z "$skipped" ] || printf 'install_test.sh: skipped %s\n' "$skipped"
 if [ "$failures" -gt 0 ]; then
 	printf 'install_test.sh: %d of %d cases failed (shells:%s)\n' "$failures" "$cases" "$shells" >&2
 	exit 1

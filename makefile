@@ -462,8 +462,9 @@ check-actions:
 # dash is on PATH) over install.sh, verify.sh and scripts/install_test.sh,
 # then scripts/install_test.sh: install.sh against stubs and fake releases in
 # a temporary directory, under sh and dash (and busybox sh where it is on
-# PATH). It uses no network, writes nothing outside that directory and never
-# runs a hardn binary; it takes about 20 seconds on a Mac.
+# PATH, unless it runs its own applets ahead of PATH, as Ubuntu's
+# busybox-static does). It uses no network, writes nothing outside that
+# directory and never runs a hardn binary; it takes about 20 seconds on a Mac.
 INSTALL_SCRIPTS = install.sh verify.sh scripts/install_test.sh
 
 check-install:
