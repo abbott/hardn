@@ -284,6 +284,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UFW_ENABLED_MISMATCH` | 1 | ufw's ENABLED setting and its loaded chains disagree |
 | `UFW_INACTIVE` | 1 | ufw is not running: its rules would only be saved |
 | `UFW_BAD_PROFILE` | 1 | the application profile is not one ufw reads |
+| `UFW_BAD_INTERFACE` | 1 | the interface is not one ufw takes |
 | `PACKAGE_NO_TOOL` | 1 | hardn can't install packages on this system |
 | `PACKAGE_NOT_IN_REPOS` | 1 | package not found in the repositories |
 | `PACKAGE_OTHER_CHANGES` | 1 | installing it would change other packages |

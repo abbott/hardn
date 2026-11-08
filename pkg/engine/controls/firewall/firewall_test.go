@@ -111,6 +111,7 @@ func rows(cells ...string) string {
 type rule struct {
 	action, port, src, dst string
 	app                    string // the application's name, a rule ufw allow app adds
+	iface                  string // the interface it is limited to: ufw allow in on <iface>, with no port all of it
 }
 
 func allow(ports ...string) []rule {
@@ -154,19 +155,31 @@ func (u fw) status() string {
 			from = "Anywhere"
 		}
 		to := r.port + "/tcp"
+		if r.port == "" {
+			to = "Anywhere"
+		}
 		if r.dst != "" {
 			to = r.dst + " " + to
 		}
 		if r.app != "" {
 			to += " (" + r.app + ")"
 		}
+		if r.iface != "" {
+			to += " on " + r.iface
+		}
 		fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, strings.ToUpper(r.action)+" IN", from)
 	}
 	for _, r := range u.rules {
 		if r.src == "" && r.dst == "" && u.v6() {
 			to := r.port + "/tcp (v6)"
-			if r.app != "" {
+			switch {
+			case r.app != "":
 				to = r.port + "/tcp (" + r.app + " (v6))"
+			case r.port == "":
+				to = "Anywhere (v6)"
+			}
+			if r.iface != "" {
+				to += " on " + r.iface
 			}
 			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, strings.ToUpper(r.action)+" IN", "Anywhere (v6)")
 		}
@@ -201,11 +214,18 @@ func (u fw) files(h *hostfake.System) {
 			if dst == "" {
 				dst = f.any
 			}
-			if r.app != "" {
-				fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s %s - in\n", r.action, r.port, f.any, src, r.app)
-				continue
+			dir := "in"
+			if r.iface != "" {
+				dir += "_" + r.iface
 			}
-			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.action, r.port, dst, src)
+			switch {
+			case r.app != "":
+				fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s %s - %s\n", r.action, r.port, f.any, src, r.app, dir)
+			case r.port == "":
+				fmt.Fprintf(&b, "\n### tuple ### %s any any %s any %s %s\n", r.action, dst, src, dir)
+			default:
+				fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s %s\n", r.action, r.port, dst, src, dir)
+			}
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		h.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
@@ -236,6 +256,12 @@ type site struct {
 	facts  func(*detect.Facts)
 	edit   func(*hostfake.System) // a change to the host after the rest
 	noMain bool                   // no sshd_config
+	// dpkg is dpkg-query's status line for each SSH server package it
+	// knows (sshd.NoServer); a package not in it is "no packages found".
+	// nil is no dpkg-query on the host.
+	dpkg map[string]string
+	// iproute2: its package is installed though ss is missing (plat.noSS).
+	iproute2 bool
 }
 
 const stockMain = "Include /etc/ssh/sshd_config.d/*.conf\n\nKbdInteractiveAuthentication no\nUsePAM yes\n"
@@ -317,9 +343,30 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 			h.AddFile(name, []byte(data), 0o640, 0, 33)
 		}
 	}
+	if s.dpkg != nil {
+		h.AddFile("/usr/bin/dpkg-query", []byte("ELF"), 0o755, 0, 0)
+	}
 	h.Handler = func(argv []string, _ []byte) hostfake.Response {
 		cmd := strings.Join(argv, " ")
 		switch {
+		case argv[0] == "dpkg-query" && argv[len(argv)-1] == "iproute2" && s.plat.noSS && !s.iproute2: // ss's package, as ss is missing or not
+			return hostfake.Response{Stderr: "dpkg-query: no packages found matching iproute2\n", ExitCode: 1}
+		case argv[0] == "dpkg-query" && argv[len(argv)-1] == "iproute2":
+			return hostfake.Response{Stdout: "install ok installed\t6.15.0-1\n"}
+		case cmd == "apk info -e iproute2" && s.plat.noSS:
+			return hostfake.Response{ExitCode: 1}
+		case cmd == "apk info -e iproute2":
+			return hostfake.Response{Stdout: "iproute2\n"}
+		case cmd == "apt-get install -s -y iproute2":
+			return hostfake.Response{Stdout: "Reading package lists...\nThe following NEW packages will be installed:\n  iproute2\nInst iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\nConf iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\n"}
+		case cmd == "apk add --simulate iproute2":
+			return hostfake.Response{Stdout: "(1/1) Installing iproute2 (6.15.0-r0)\nOK: 12 MiB in 30 packages\n"}
+		case argv[0] == "dpkg-query" && s.dpkg != nil:
+			pkg := argv[len(argv)-1]
+			if status, ok := s.dpkg[pkg]; ok {
+				return hostfake.Response{Stdout: status + "\t1:9.9p1-1\n"}
+			}
+			return hostfake.Response{Stderr: "dpkg-query: no packages found matching " + pkg + "\n", ExitCode: 1}
 		case argv[0] == "ufw" && s.ufw.missing:
 			return hostfake.Response{Err: fmt.Errorf("host: run ufw: %w", host.ErrNotFound)}
 		case cmd == "ufw status verbose" && s.ufw.fail != nil:
@@ -430,7 +477,8 @@ func readOnly(t *testing.T, h *hostfake.System, p platform) {
 		case "run":
 			switch cmd := strings.Join(c.Argv, " "); {
 			case cmd == "ufw status verbose" && !onPVE, cmd == "systemctl is-enabled ufw.service" && !onPVE, strings.HasPrefix(cmd, p.bin+" -T -f "+sshd.MainConfig),
-				cmd == "systemctl show -p Listen ssh.socket", cmd == "ss -Htln",
+				cmd == "systemctl show -p Listen ssh.socket", cmd == "ss -Htln", strings.HasPrefix(cmd, "dpkg-query --show "),
+				cmd == "apk info -e iproute2", cmd == "apt-get install -s -y iproute2", cmd == "apk add --simulate iproute2",
 				cmd == "systemctl is-active "+pve.FirewallUnit, cmd == "systemctl is-active "+pve.NFTablesUnit:
 			default:
 				t.Errorf("ran %q", cmd)
@@ -460,8 +508,10 @@ var (
 	failed    = &hostfake.Response{Stderr: "ERROR: You need to be root to run this script\n", ExitCode: 1}
 	invalid   = &hostfake.Response{Stderr: "/etc/ssh/sshd_config.d/10-site.conf line 1: Bad configuration option: Bogus\r\n" +
 		"/etc/ssh/sshd_config.d/10-site.conf: terminating, 1 bad configuration options\r\n", ExitCode: 255}
-	noSSHD  = &hostfake.Response{Err: fmt.Errorf("host: run sshd: %w", host.ErrNotFound)}
-	stale22 = []string{"[::]:22", "0.0.0.0:22"} // what sshd still holds after an edit to 2230 not reloaded
+	noSSHD = &hostfake.Response{Err: fmt.Errorf("host: run sshd: %w", host.ErrNotFound)}
+	// noServer is dpkg knowing none of the SSH server packages.
+	noServer = map[string]string{}
+	stale22  = []string{"[::]:22", "0.0.0.0:22"} // what sshd still holds after an edit to 2230 not reloaded
 )
 
 func with(u fw, f func(*fw)) fw {
@@ -559,6 +609,25 @@ func TestSSHListeners(t *testing.T) {
 		{name: "no sshd, ENABLED=yes and stopped", site: site{plat: d, failT: noSSHD, ufw: fw{enabled: "yes"}},
 			state: engine.NotConfigured, want: "enabled, not running", codes: []string{uncheckedF}},
 		{name: "a configuration sshd refuses", site: site{plat: d, failT: invalid, ufw: allow22}, state: engine.Unknown, want: "sshd config invalid", err: "SSHD_CONFIG_INVALID"},
+		// No SSH server (sshd.NoServer): no listener to let through, so the
+		// SSH branches fall away and no SSH-unchecked finding is added.
+		{name: "no SSH server, deny policy", site: site{plat: d, failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}, ufw: fw{active: true}},
+			state: engine.Configured, want: "deny policy"},
+		{name: "no SSH server, default allow", site: site{plat: d, failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}, ufw: fw{active: true, incoming: "allow"}},
+			state: engine.Partial, want: "allow policy"},
+		{name: "no SSH server, ENABLED=yes and stopped", site: site{plat: d, failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}, ufw: fw{enabled: "yes"}},
+			state: engine.NotConfigured, want: "enabled, not running"},
+		{name: "no SSH server, not started at boot", site: site{plat: d, failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}, ufw: fw{active: true, boot: "disabled"}},
+			state: engine.Partial, want: "off after restart"},
+		{name: "no SSH server, inactive", site: site{plat: d, failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}}, state: engine.NotConfigured, want: "inactive"},
+		{name: "no SSH server, but a socket on 22", site: site{plat: d, failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{"0.0.0.0:22"}, ufw: fw{active: true}},
+			state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
+		{name: "no SSH server, no ss", site: site{plat: noSS(d), failT: noSSHD, noMain: true, dpkg: noServer, ufw: fw{active: true}},
+			state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},
+		{name: "sshd refuses its configuration, dpkg lists no server", site: site{plat: d, failT: invalid, dpkg: noServer, ufw: fw{active: true}},
+			state: engine.Unknown, want: "sshd config invalid", err: "SSHD_CONFIG_INVALID"},
+		{name: "no sshd, openssh-server installed", site: site{plat: d, failT: noSSHD, dpkg: map[string]string{"openssh-server": "install ok installed"}, ufw: fw{active: true}},
+			state: engine.Unknown, want: "sshd not installed", err: "COMMAND_NOT_FOUND"},
 		{name: "no sshd_config", site: site{plat: d, noMain: true, ufw: allow22}, state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},
 		{name: "ss fails", site: site{plat: d, ssErr: failed, ufw: allow22}, state: engine.Unknown, want: "can't tell ssh ports", err: "COMMAND_FAILED"},
 		{name: "no ss", site: site{plat: noSS(d), ufw: allow22}, state: engine.Unknown, want: "ss not installed", err: "COMMAND_NOT_FOUND"},

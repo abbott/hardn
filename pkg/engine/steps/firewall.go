@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"io/fs"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
@@ -59,7 +61,7 @@ func (st sshState) planUFW(ctx context.Context, sys host.System, listeners sshd.
 	case !state.Installed:
 		return nil, fmt.Errorf("ufw: %w", ufw.ErrNotInstalled)
 	}
-	in := ufw.Input{Proxmox: st.in.Facts.Proxmox, Listeners: listeners, Add: add, State: state}
+	in := ufw.Input{Proxmox: st.in.Facts.Proxmox, Listeners: listeners, Add: add, State: state, NoSSH: st.noSSH}
 	c, cerr := revert.ParseConn(st.in.Session.Conn)
 	switch {
 	case cerr == nil:
@@ -145,13 +147,34 @@ func activeWord(p ufw.Plan, after bool) string {
 // session's port (ufw.md §2.7; p2drive's ufw-enable): one lockout-risk
 // change, id prefix+"/firewall", or none when ufw is already so. The
 // listeners must be established (ufw.ErrListenersUnknown), and so must a remote
-// session's port (ErrSessionPort).
+// session's port (ErrSessionPort). Where sshd's read fails for want of sshd
+// (sshd.NoSSHD), the host is established to have no SSH server at all
+// (sshd.NoServer) and ss shows nothing on 22 (NothingOn22), there is no
+// listener to let through: the plan lets the session's port alone through,
+// a remote session's still required, and is lockout-risk as ever (the
+// maintainer, 2026-11-07).
 func PlanUFWEnable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error) {
 	st, err := readSSH(ctx, sys, in, "")
 	if err != nil {
-		return nil, err
+		if !sshd.NoSSHD(err) {
+			return nil, err
+		}
+		if _, ok := sshd.NoServer(ctx, sys, in.Facts); !ok || !NothingOn22(ctx, sys) {
+			return nil, err
+		}
+		st = sshState{in: in, noSSH: true}
 	}
 	return st.enableUFW(ctx, sys, prefix, UFWEnable)
+}
+
+// NothingOn22 reports whether ss shows no socket bound on 22, every line
+// read: what a host with no SSH server (sshd.NoServer) must show besides,
+// before Enable lets no SSH through, so that a server no package installed
+// and no searched path holds, listening on SSH's port, is not cut off. ss
+// missing or failing is false.
+func NothingOn22(ctx context.Context, sys host.System) bool {
+	bound, bad, err := reload.ReadBound(ctx, sys)
+	return err == nil && len(bad) == 0 && !slices.ContainsFunc(bound, func(b reload.Bound) bool { return b.Port == 22 })
 }
 
 // enableUFW is ufw's enable alone, for mode UFWEnable (PlanUFWEnable, and
@@ -160,7 +183,7 @@ func (st sshState) enableUFW(ctx context.Context, sys host.System, prefix string
 	if mode != UFWEnable {
 		return nil, nil
 	}
-	if !st.before.Listeners.Known {
+	if !st.before.Listeners.Known && !st.noSSH {
 		return nil, fmt.Errorf("the listeners sshd configures now: %w", ufw.ErrListenersUnknown)
 	}
 	p, err := st.planUFW(ctx, sys, st.before.Listeners, UFWEnable, nil)
@@ -241,11 +264,7 @@ func PlanUFWApps(ctx context.Context, sys host.System, in engine.Input, prefix s
 	if err != nil {
 		return nil, ufwStateErr(err)
 	}
-	names := make([]string, len(profiles))
-	for i, pr := range profiles {
-		names[i] = pr.Name
-	}
-	p, err := ufw.PlanApps(st, names, in.Facts.Proxmox)
+	p, err := ufw.PlanApps(st, profiles, in.Facts.Proxmox)
 	if err != nil {
 		return nil, err
 	}
@@ -276,6 +295,34 @@ func PlanUFWApps(ctx context.Context, sys host.System, in engine.Input, prefix s
 				return engine.Ran{}, err
 			}
 		}
+		rep, err := ufw.Execute(ctx, sys, p)
+		u := engine.Undo{Steps: runSteps(firewallWhy, rep.Undo)}
+		return engine.Ran{Rollback: &u, Detail: fmt.Sprintf("firewall: verified %v%s", rep.Verified, because(rep.Unverified))}, err
+	}
+	return []engine.Change{c}, nil
+}
+
+// PlanUFWInterfaces plans the trusted interfaces' Apply: ufw.Execute over
+// ufw.PlanInterfaces, "ufw allow in on <interface>" for each with no rule
+// yet, its undo from Report.Undo: one plain change, id prefix+"/interfaces",
+// since letting more through can lock no one out; or none when every rule is
+// there. ufw must be active (ufw.ErrInactive).
+func PlanUFWInterfaces(ctx context.Context, sys host.System, in engine.Input, prefix string, ifaces []string) ([]engine.Change, error) {
+	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
+	if err != nil {
+		return nil, ufwStateErr(err)
+	}
+	p, err := ufw.PlanInterfaces(st, ifaces, in.Facts.Proxmox)
+	if err != nil || p.Empty() {
+		return nil, err
+	}
+	const title = "Apply the trusted interfaces"
+	c := engine.Change{ID: prefix + "/interfaces", Summary: title, Title: title, Target: "ufw",
+		Risk: engine.RiskPlain, Stage: engine.StageFirewall, Resources: []string{ResourceUFW}}
+	for _, s := range p.Steps {
+		c.Commands = append(c.Commands, host.FormatArgv(s.Argv))
+	}
+	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
 		rep, err := ufw.Execute(ctx, sys, p)
 		u := engine.Undo{Steps: runSteps(firewallWhy, rep.Undo)}
 		return engine.Ran{Rollback: &u, Detail: fmt.Sprintf("firewall: verified %v%s", rep.Verified, because(rep.Unverified))}, err

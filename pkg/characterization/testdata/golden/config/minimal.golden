@@ -19,6 +19,7 @@
   "SudoNoPassword": true,
   "SshKeys": [],
   "UfwAppProfiles": [],
+  "UfwTrustedInterfaces": null,
   "EnableUnattendedUpgrades": false,
   "EnableUfwSshPolicy": false,
   "ConfigureDns": false,

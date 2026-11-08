@@ -40,7 +40,7 @@ var screenHosts = []string{
 	"debian13", "ubuntu2604", "active22", "hardened", "allow-policy", "lockout", "lockout-at-start", "allowlist", "blocklist", "edit-2230",
 	"moved-2230", "denied", "alpine324", "alpine-stock", "alpine-runlevel", "unit-off", "pve9", "pve9-drop", "profiles",
 	"pve-stopped", "pve-moved", "pve-blacklist", "pve-ufw-left", "pve-ufw-unread", "pve-unmounted",
-	"no-ss", "ss-failed", "garbled", "status-fails", "proxmox-unknown", "ipv6-off", "ipv6-off-active", "one-family",
+	"no-ss", "no-ss-active", "ss-failed", "garbled", "status-fails", "proxmox-unknown", "ipv6-off", "ipv6-off-active", "one-family",
 	"apt-not-found", "apt-removes", "bound-elsewhere-inactive", "active-no-rule", "profiles-inactive",
 	"boot-masked", "boot-not-found", "boot-unread",
 }
@@ -105,6 +105,8 @@ func screenHost(t *testing.T, name string) (*fwHost, *config.Config) {
 		distro, st.active, st.ruleOn22 = "proxmox", true, true
 	case "no-ss":
 		st.noSS = true
+	case "no-ss-active":
+		st.noSS, st.active, st.ruleOn22 = true, true, true
 	case "ss-failed":
 		set = func(h *fwHost) { h.ssFails = true }
 	case "status-fails":

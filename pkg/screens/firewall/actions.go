@@ -31,6 +31,8 @@ const (
 	aboutTitle  = "Description"
 	portsTitle  = "Ports"
 	portsAbout  = "Such as 80/tcp,443/tcp."
+	ifaceTitle  = "Interface"
+	ifaceAbout  = "Such as tailscale0. Empty for every interface."
 	removeTitle = "Remove which profile?"
 
 	nameRefused  = "ufw can't use that name. Start it with a letter or digit, then use letters, digits, spaces, dots, dashes, underscores or +."
@@ -39,28 +41,71 @@ const (
 	titleRefused = "Give the profile a title."
 	aboutRefused = "Give the profile a description."
 	portsRefused = "Give each port, 1 to 65535, with its protocol, such as 80/tcp."
+	ifaceRefused = "ufw can't use that interface name. Use up to 15 letters, digits and _-.+,=%@."
+
+	// The trusted interfaces' form, and the profile's interface above it:
+	// approved by the maintainer, 2026-11-07 (gallery-firewall.md §6).
+	trustAbout   = "Such as tailscale0."
+	trustHeld    = "This interface is trusted already."
+	untrustTitle = "Remove which interface?"
 )
 
 // saveChange is the control's save of the application profiles, as NotLoaded
-// names it; the words of its refusal do not depend on it.
-const saveChange = firewallctl.ID + "/profiles"
+// names it; the words of its refusal do not depend on it. saveIfaceChange is
+// the trusted interfaces'.
+const (
+	saveChange      = firewallctl.ID + "/profiles"
+	saveIfaceChange = firewallctl.ID + "/trusted"
+)
 
 // action returns what choosing the item keyed key does with the reading h: item 1
 // says its plan's refusal before asking, or runs its change; item 2 opens the
-// application profiles; item 3 is Disable.
+// application profiles; item 3 the trusted interfaces; item 4 is Disable.
 func (r *runner) action(ctx context.Context, h reading, key string) func() error {
 	switch key {
 	case screen.FirewallFirstItem:
 		if h.PlanErr != nil {
 			return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(h.PlanErr)))
 		}
+		if h.view.First == screen.FirewallEnableSS {
+			return r.enableWithSS(ctx, h)
+		}
 		return r.plain(ctx, firstAction(h.First), h.view.FirstChange(), risky(h.Plan))
 	case screen.FirewallProfilesItem:
 		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawProfiles(ctx) }) }
+	case screen.FirewallInterfacesItem:
+		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawInterfaces(ctx) }) }
 	case screen.FirewallDisableItem:
 		return r.plain(ctx, firewallctl.ActionDisable, screen.FirewallDisableChange(), false)
 	}
 	return func() error { return fmt.Errorf("firewall screen: item %s has no action", key) } // not reached: SubMenu's items are those above
+}
+
+// enableWithSS is item 1 where ufw is not running and ss is missing, "Enable
+// firewall" (the maintainer, 2026-11-07): the hostname, which Enable will ask,
+// checked first, live; then iproute2's install, its review saying why, y/N;
+// then, the host read again with ss there, Enable's own change, as item 1 runs
+// it. Declined, under plan only (the install stops at its plan), or with ss
+// still missing, it ends there, the screen drawn again.
+func (r *runner) enableWithSS(ctx context.Context, h reading) func() error {
+	return func() error {
+		if !r.o.DryRun {
+			if _, _, err := screenkit.Hostname(ctx, r.o.System); err != nil {
+				return r.s.CantConfirm(err)
+			}
+		}
+		if err := r.plain(ctx, firewallctl.ActionInstallSS, h.view.FirstChange(), false)(); err != nil {
+			return err
+		}
+		after := r.read(ctx)
+		switch {
+		case after.Sockets.NoSS || after.First != firewallctl.ItemEnable:
+			return nil
+		case after.PlanErr != nil:
+			return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(after.PlanErr)))()
+		}
+		return r.plain(ctx, firewallctl.ActionEnable, after.view.FirstChange(), risky(after.Plan))()
+	}
 }
 
 // firstAction is what item 1 plans, by Reading.First.
@@ -68,6 +113,8 @@ func firstAction(first firewallctl.Item) firewallctl.Action {
 	switch first {
 	case firewallctl.ItemInstall:
 		return firewallctl.ActionInstall
+	case firewallctl.ItemInstallSS:
+		return firewallctl.ActionInstallSS
 	case firewallctl.ItemDisable:
 		return firewallctl.ActionDisable
 	}
@@ -125,7 +172,7 @@ func (r *runner) change(ctx context.Context, lockout bool, question func() strin
 func (r *runner) drawProfiles(ctx context.Context) nav.Screen {
 	h := r.read(ctx)
 	rows := profileRows(h.Reading)
-	view := screen.FirewallProfiles{Rows: rows, Any: len(h.Profiles) > 0}
+	view := screen.FirewallProfiles{Rows: rows, Any: len(h.Profiles) > 0, Inactive: stopped(h.Reading)}
 	sub := view.SubMenu()
 	notLoaded := screenkit.NotLoaded(ctx, r.o.System, r.o.Config, saveChange, firewallctl.ProfileSetting)
 	menu := nav.Menu{Exit: sub.Menu.Exit}
@@ -161,9 +208,10 @@ func (r *runner) apply(ctx context.Context, view screen.FirewallProfiles) error 
 
 // add is Add: origin/main's four questions, each refused at its field by the
 // control's check of a profile (ufw.ValidProfile), a name in any case already
-// held a warning; then the save.
+// held a warning; then the interface, optional, an empty line every interface
+// (ufw.ValidInterface; the maintainer, 2026-11-07); then the save.
 func (r *runner) add(ctx context.Context, h reading) error {
-	var name, title, about, ports string
+	var name, title, about, ports, iface string
 	check := func(words string, ok func(string) bool) func(string) error {
 		return func(s string) error {
 			if !ok(s) {
@@ -187,15 +235,16 @@ func (r *runner) add(ctx context.Context, h reading) error {
 		&form.Text{Title: titleTitle, Value: &title, Validate: check(titleRefused, func(s string) bool { return profileOK("x", s, "x", "1/tcp") })},
 		&form.Text{Title: aboutTitle, Value: &about, Validate: check(aboutRefused, func(s string) bool { return profileOK("x", "x", s, "1/tcp") })},
 		&form.Text{Title: portsTitle, Description: portsAbout, Value: &ports, Validate: check(portsRefused, func(s string) bool { return profileOK("x", "x", "x", s) })},
+		&form.Text{Title: ifaceTitle, Description: ifaceAbout, Value: &iface, Validate: check(ifaceRefused, func(s string) bool { return s == "" || ufw.ValidInterface(s) })},
 	}
 	return r.change(ctx, false, func() string { return screen.FirewallAddQuestion(name) }, screenkit.Change{
 		Step: screen.FirewallAddStep(),
 		Flow: flow.Flow{
 			Form:   form.Form{Fields: fields},
-			Review: func() flow.Review { return screen.FirewallAddReview(name, splitPorts(ports)) },
+			Review: func() flow.Review { return screen.FirewallAddReview(name, splitPorts(ports), iface) },
 		},
 		Controls: func(edited *config.Config) []engine.Control {
-			edited.UfwAppProfiles = append(slices.Clone(edited.UfwAppProfiles), config.UfwAppProfile{Name: name, Title: title, Description: about, Ports: splitPorts(ports)})
+			edited.UfwAppProfiles = append(slices.Clone(edited.UfwAppProfiles), config.UfwAppProfile{Name: name, Title: title, Description: about, Ports: splitPorts(ports), Interface: iface})
 			return []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionSaveProfiles}}
 		},
 	})
@@ -251,4 +300,96 @@ func (r *runner) remove(ctx context.Context, h reading) error {
 			return []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionSaveProfiles}}
 		},
 	})
+}
+
+// drawInterfaces reads the host and returns the trusted interfaces' screen, as
+// drawProfiles returns the profiles': Add, and with any interface Remove and
+// Apply, each through the flow; under plan only each stops at its plan. With
+// no hardn.yml read, Add and Remove say so before asking anything.
+func (r *runner) drawInterfaces(ctx context.Context) nav.Screen {
+	h := r.read(ctx)
+	view := screen.FirewallInterfaces{Rows: interfaceRows(h.Reading), Any: len(h.Interfaces) > 0, Inactive: stopped(h.Reading)}
+	sub := view.SubMenu()
+	notLoaded := screenkit.NotLoaded(ctx, r.o.System, r.o.Config, saveIfaceChange, firewallctl.InterfaceSetting)
+	menu := nav.Menu{Exit: sub.Menu.Exit}
+	for _, it := range sub.Menu.Items {
+		var act func() error
+		switch {
+		case it.Key == screen.FirewallApplyItem:
+			act = func() error { return r.applyInterfaces(ctx, view) }
+		case notLoaded != nil:
+			act = r.s.Say(screenkit.Warnings(notLoaded...))
+		case it.Key == screen.FirewallAddItem:
+			act = func() error { return r.trust(ctx, h) }
+		default:
+			act = func() error { return r.untrust(ctx, h) }
+		}
+		menu.Options = append(menu.Options, nav.Option{Item: it, Action: act})
+	}
+	return sub.Screen(r.o.Prompter.Ctx, menu)
+}
+
+// applyInterfaces is the trusted interfaces' Apply, as apply is the
+// profiles': its plan's refusal said before asking; else its plain change.
+func (r *runner) applyInterfaces(ctx context.Context, view screen.FirewallInterfaces) error {
+	in := engine.Input{Facts: r.o.Facts, Config: r.o.Config, Session: r.o.Session}
+	apply := firewallctl.Incoming{Action: firewallctl.ActionApplyInterfaces}
+	if _, err := apply.Plan(ctx, r.o.System, in); err != nil {
+		return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(err)))()
+	}
+	return r.plain(ctx, firewallctl.ActionApplyInterfaces, view.ApplyChange(), false)()
+}
+
+// trust is the trusted interfaces' Add: the interface, refused where ufw would
+// not take it (ufw.ValidInterface), one trusted already a warning; the review
+// says what it lets through; then the save.
+func (r *runner) trust(ctx context.Context, h reading) error {
+	var iface string
+	field := &form.Text{Title: ifaceTitle, Description: trustAbout, Value: &iface, Validate: func(s string) error {
+		switch {
+		case !ufw.ValidInterface(s):
+			return nav.Refuse(ifaceRefused)
+		case slices.Contains(h.Interfaces, s):
+			return nav.Warn(trustHeld)
+		}
+		return nil
+	}}
+	return r.change(ctx, false, func() string { return screen.FirewallTrustQuestion(iface) }, screenkit.Change{
+		Step: screen.FirewallTrustStep(),
+		Flow: flow.Flow{
+			Form:   form.Form{Fields: []form.Field{field}},
+			Review: func() flow.Review { return screen.FirewallTrustReview(iface) },
+		},
+		Controls: func(edited *config.Config) []engine.Control {
+			edited.UfwTrustedInterfaces = append(slices.Clone(edited.UfwTrustedInterfaces), iface)
+			return []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionSaveInterfaces}}
+		},
+	})
+}
+
+// untrust is the trusted interfaces' Remove: which one, then the save. A rule
+// already in ufw stays, and the review says so.
+func (r *runner) untrust(ctx context.Context, h reading) error {
+	gone := 0
+	opts := make([]form.Option[int], len(h.Interfaces))
+	for i, iface := range h.Interfaces {
+		opts[i] = form.Option[int]{Label: iface, Value: i}
+	}
+	return r.change(ctx, false, func() string { return screen.FirewallUntrustQuestion(h.Interfaces[gone]) }, screenkit.Change{
+		Step: screen.FirewallUntrustStep(),
+		Flow: flow.Flow{
+			Form:   form.Form{Fields: []form.Field{&form.Select[int]{Title: untrustTitle, Options: opts, Value: &gone}}},
+			Review: screen.FirewallUntrustReview,
+		},
+		Controls: func(edited *config.Config) []engine.Control {
+			edited.UfwTrustedInterfaces = slices.Delete(slices.Clone(edited.UfwTrustedInterfaces), gone, gone+1)
+			return []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionSaveInterfaces}}
+		},
+	})
+}
+
+// stopped: ufw is installed, its status read, and not running: Apply then says
+// to enable the firewall first.
+func stopped(r firewallctl.Reading) bool {
+	return r.StateErr == nil && r.State.Installed && r.State.Status.Known && !r.State.Status.Active
 }

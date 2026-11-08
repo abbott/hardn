@@ -25,12 +25,16 @@ const (
 	firewallTitle         = "UFW Firewall Configuration"
 	firewallPVETitle      = "Firewall Configuration"
 	firewallProfilesTitle = "Manage UFW Application Profiles"
+	// The trusted interfaces' words, as the profiles' screen words its own:
+	// approved by the maintainer, 2026-11-07 (gallery-firewall.md §6).
+	firewallInterfacesTitle = "Manage UFW Trusted Interfaces"
 
 	firewallSectionUFW      = "ufw"
 	firewallSectionPVE      = "pve-firewall"
 	firewallSectionSSH      = "SSH"
 	firewallSectionRules    = "Rules"
 	firewallSectionProfiles = "Application Profiles"
+	firewallSectionIfaces   = "Trusted Interfaces"
 
 	firewallNoChange = "hardn reads pve-firewall and doesn't change it: a wrong rule can cut off the web UI and the cluster."
 
@@ -45,8 +49,21 @@ const (
 	firewallApplyLabel    = "Apply profiles"
 	firewallApplyAbout    = "Let their ports through ufw"
 
+	firewallIfacesLabel      = "Trusted Interfaces"
+	firewallIfacesAbout      = "Add, remove, apply"
+	firewallAddIfaceLabel    = "Add interface"
+	firewallAddIfaceAbout    = "Save an interface in hardn.yml"
+	firewallRemoveIfaceLabel = "Remove interface"
+	firewallRemoveIfaceAbout = "Take one out of hardn.yml"
+	firewallApplyIfaceLabel  = "Apply interfaces"
+	firewallApplyIfaceAbout  = "Let everything on them through ufw"
+
 	firewallDisableWarning = "This stops the firewall and leaves every port open."
 	firewallRemoveNotice   = "This takes the profile out of hardn.yml. A rule already in ufw stays."
+	firewallTrustNotice    = "Everything arriving on this interface gets through ufw: every port, from every address on it."
+	firewallNeedsSSNotice  = "hardn needs ss, from iproute2, to check which ports SSH uses before it starts ufw."
+	firewallApplyInactive  = "Enable the firewall first"
+	firewallUntrustNotice  = "This takes the interface out of hardn.yml. A rule already in ufw stays."
 	firewallPackageKey     = "Package"
 )
 
@@ -59,11 +76,14 @@ const (
 )
 
 // The Firewall screen's items, by key: origin/main's Profiles moved from 3 to
-// 2, its "Configure firewall" gone (gallery-firewall.md §5).
+// 2, its "Configure firewall" gone (gallery-firewall.md §5); Trusted Interfaces
+// 3 since 2026-11-07, Disable after it, so that the last item is the one shown
+// only on an active ufw.
 const (
-	FirewallFirstItem    = "1" // by what its plan does (FirewallFirst)
-	FirewallProfilesItem = "2" // Application Profiles, where ufw is installed
-	FirewallDisableItem  = "3" // Disable, on an active ufw whose item 1 is not it
+	FirewallFirstItem      = "1" // by what its plan does (FirewallFirst)
+	FirewallProfilesItem   = "2" // Application Profiles, where ufw is installed
+	FirewallInterfacesItem = "3" // Trusted Interfaces, where ufw is installed
+	FirewallDisableItem    = "4" // Disable, on an active ufw whose item 1 is not it
 )
 
 // The application profiles' items, by key.
@@ -87,6 +107,10 @@ const (
 	FirewallStartBoot                         // running, let through: start at boot
 	FirewallRepair                            // running, and Enable refuses: selecting it says why
 	FirewallDisableFirst                      // active and set: Disable
+	FirewallEnableNoSSH                       // ufw not running, no SSH server: Enable, denying by default
+	FirewallSetDenyNoSSH                      // running, not deny, no SSH server: deny by default
+	FirewallInstallSS                         // ufw running, ss not: Install iproute2 (the maintainer, 2026-11-07)
+	FirewallEnableSS                          // ufw not running, ss not: Enable, iproute2 installed first (the maintainer, 2026-11-07)
 )
 
 // firewallWords are an item 1's words and its flow's.
@@ -103,6 +127,15 @@ var firewallFirsts = map[FirewallFirst]firewallWords{
 	FirewallStartBoot:    {"Start ufw at boot", "Add it to the boot services", "Start at Boot", "Start ufw at boot?"},
 	FirewallRepair:       {label: "Repair firewall", about: "Refused here: select to see why"},
 	FirewallDisableFirst: {firewallDisableLabel, firewallDisableAbout, "Disable Firewall", "Disable the firewall?"},
+	// No SSH server (the maintainer, 2026-11-07): nothing for SSH to let through.
+	FirewallEnableNoSSH:  {"Enable firewall", "Deny by default, then start ufw", "Enable Firewall", "Enable the firewall?"},
+	FirewallSetDenyNoSSH: {"Set deny policy", "Deny incoming by default", "Set Deny Policy", "Set the deny policy?"},
+	// No ss: Enable needs it to read the bound sockets (approved by the
+	// maintainer, 2026-11-07; gallery-firewall.md §6).
+	FirewallInstallSS: {"Install iproute2", "Needed to check SSH gets through", "Install iproute2", "Install iproute2?"},
+	// ufw not running and no ss: Enable, its first step the install, its
+	// question the install's (the maintainer, 2026-11-07).
+	FirewallEnableSS: {"Enable firewall", "Installs iproute2, then starts ufw", "Enable Firewall", "Install iproute2?"},
 }
 
 // Firewall is ufw's screen's reading of the host, which pkg/screens/firewall
@@ -110,16 +143,17 @@ var firewallFirsts = map[FirewallFirst]firewallWords{
 type Firewall struct {
 	// Status is the Firewall row, as the main menu draws it.
 	Status component.StatusList
-	// UFW, SSH, Rules and Profiles are the sections' rows; a section with none
-	// is left out.
-	UFW, SSH, Rules, Profiles []component.KeyValue
+	// UFW, SSH, Rules, Profiles and Interfaces are the sections' rows; a
+	// section with none is left out.
+	UFW, SSH, Rules, Profiles, Interfaces []component.KeyValue
 	// First is what item 1 does; Risk, that its plan is lockout-risk, which
 	// marks the item.
 	First FirewallFirst
 	Risk  bool
-	// Installed: ufw is installed, so item 2 leads to its profiles.
+	// Installed: ufw is installed, so item 2 leads to its profiles and item 3
+	// to its trusted interfaces.
 	Installed bool
-	// DisableBeside: ufw is active and item 1 is not Disable: item 3 is.
+	// DisableBeside: ufw is active and item 1 is not Disable: item 4 is.
 	DisableBeside bool
 	// KeepsReject: Enable leaves the default incoming policy reject, which its
 	// review says.
@@ -127,15 +161,16 @@ type Firewall struct {
 }
 
 // SubMenu returns ufw's screen: the title bar; the Firewall row; the sections
-// ufw, SSH, Rules, Application Profiles; item 1 by First, item 2 where ufw is
-// installed, item 3 where Disable is beside item 1; Return; "Select an option";
-// "Enter selection". Every section at every height (decision 9).
+// ufw, SSH, Rules, Application Profiles, Trusted Interfaces; item 1 by First,
+// items 2 and 3 where ufw is installed, item 4 where Disable is beside item 1;
+// Return; "Select an option"; "Enter selection". Every section at every height
+// (decision 9).
 func (f Firewall) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(firewallTitle), Status: f.Status, Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem()}}
 	for _, s := range []struct {
 		title string
 		rows  []component.KeyValue
-	}{{firewallSectionUFW, f.UFW}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {firewallSectionProfiles, f.Profiles}} {
+	}{{firewallSectionUFW, f.UFW}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {firewallSectionProfiles, f.Profiles}, {firewallSectionIfaces, f.Interfaces}} {
 		if len(s.rows) > 0 {
 			vm.Sections = append(vm.Sections, firewallSection(s.title, s.rows))
 		}
@@ -144,7 +179,8 @@ func (f Firewall) SubMenu() SubMenu {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallFirstItem, Label: w.label, Description: w.about, Risk: f.Risk})
 	}
 	if f.Installed {
-		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallProfilesItem, Label: firewallProfilesLabel, Description: firewallProfilesAbout})
+		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallProfilesItem, Label: firewallProfilesLabel, Description: firewallProfilesAbout},
+			component.MenuItem{Key: FirewallInterfacesItem, Label: firewallIfacesLabel, Description: firewallIfacesAbout})
 	}
 	if f.DisableBeside {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallDisableItem, Label: firewallDisableLabel, Description: firewallDisableAbout})
@@ -183,6 +219,13 @@ func (f Firewall) FirstChange() FirewallChange {
 	case FirewallInstall:
 		return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionUFW,
 			Items: []component.KeyValue{{Key: firewallPackageKey, Value: "ufw"}, {Key: FirewallStatusKey, Value: "Inactive"}}}}
+	case FirewallInstallSS:
+		return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionSSH,
+			Items: []component.KeyValue{{Key: firewallPackageKey, Value: "iproute2"}}}}
+	case FirewallEnableSS:
+		return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{
+			Notice: &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{firewallNeedsSSNotice}}},
+			Title:  firewallSectionSSH, Items: []component.KeyValue{{Key: firewallPackageKey, Value: "iproute2"}}}}
 	case FirewallDisableFirst:
 		return FirewallDisableChange()
 	}
@@ -235,6 +278,9 @@ type FirewallProfiles struct {
 	Rows []component.KeyValue
 	// Any: hardn.yml has a profile, so there is one to remove or apply.
 	Any bool
+	// Inactive: ufw is installed and not running, so Apply says to enable the
+	// firewall first, as its refusal does.
+	Inactive bool
 }
 
 // SubMenu returns the application profiles' screen: the section; Add, and with
@@ -245,9 +291,18 @@ func (f FirewallProfiles) SubMenu() SubMenu {
 			Items: []component.MenuItem{{Key: FirewallAddItem, Label: firewallAddLabel, Description: firewallAddAbout}}}}
 	if f.Any {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallRemoveItem, Label: firewallRemoveLabel, Description: firewallRemoveAbout},
-			component.MenuItem{Key: FirewallApplyItem, Label: firewallApplyLabel, Description: firewallApplyAbout})
+			component.MenuItem{Key: FirewallApplyItem, Label: firewallApplyLabel, Description: applyAbout(firewallApplyAbout, f.Inactive)})
 	}
 	return vm
+}
+
+// applyAbout is Apply's description: about, or with ufw not running, that the
+// firewall is to be enabled first (the maintainer, 2026-11-07).
+func applyAbout(about string, inactive bool) string {
+	if inactive {
+		return firewallApplyInactive
+	}
+	return about
 }
 
 // firewallProfileStep is the title bar of a change on the profiles' screen.
@@ -264,9 +319,14 @@ func (f FirewallProfiles) ApplyChange() FirewallChange {
 // FirewallAddStep is the title bar over Add's form and flow.
 func FirewallAddStep() WorkflowStep { return firewallProfileStep("Add Profile") }
 
-// FirewallAddReview is Add's review of the profile answered: its name and ports.
-func FirewallAddReview(name string, ports []string) flow.Review {
-	return flow.Review{Title: firewallSectionProfiles, Items: []component.KeyValue{{Key: name, Value: strings.Join(ports, ", ")}}}
+// FirewallAddReview is Add's review of the profile answered: its name and ports,
+// " on <interface>" after them where it is limited to one, as its row says.
+func FirewallAddReview(name string, ports []string, iface string) flow.Review {
+	v := strings.Join(ports, ", ")
+	if iface != "" {
+		v += " on " + iface
+	}
+	return flow.Review{Title: firewallSectionProfiles, Items: []component.KeyValue{{Key: name, Value: v}}}
 }
 
 // FirewallAddQuestion is Add's question.
@@ -282,3 +342,65 @@ func FirewallRemoveReview() flow.Review {
 
 // FirewallRemoveQuestion is Remove's question.
 func FirewallRemoveQuestion(name string) string { return "Remove " + name + "?" }
+
+// FirewallInterfaces is the trusted interfaces' screen's reading of hardn.yml
+// and ufw (the maintainer, 2026-11-07).
+type FirewallInterfaces struct {
+	// Rows are the section's, each interface's or the muted line that there
+	// are none.
+	Rows []component.KeyValue
+	// Any: hardn.yml has one, so there is one to remove or apply.
+	Any bool
+	// Inactive: ufw is installed and not running (FirewallProfiles').
+	Inactive bool
+}
+
+// SubMenu returns the trusted interfaces' screen: the section; Add, and with
+// any interface Remove and Apply; Return. Its items are keyed as the
+// profiles' screen's.
+func (f FirewallInterfaces) SubMenu() SubMenu {
+	vm := SubMenu{Title: trail(firewallTitle, firewallInterfacesTitle), Sections: []Section{firewallSection(firewallSectionIfaces, f.Rows)},
+		Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem(),
+			Items: []component.MenuItem{{Key: FirewallAddItem, Label: firewallAddIfaceLabel, Description: firewallAddIfaceAbout}}}}
+	if f.Any {
+		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallRemoveItem, Label: firewallRemoveIfaceLabel, Description: firewallRemoveIfaceAbout},
+			component.MenuItem{Key: FirewallApplyItem, Label: firewallApplyIfaceLabel, Description: applyAbout(firewallApplyIfaceAbout, f.Inactive)})
+	}
+	return vm
+}
+
+// firewallIfaceStep is the title bar of a change on the trusted interfaces'
+// screen.
+func firewallIfaceStep(title string) WorkflowStep {
+	return WorkflowStep{Title: trail(firewallTitle, firewallInterfacesTitle, title)}
+}
+
+// ApplyChange is Apply's change: the section's rows as they stand, y/N.
+func (f FirewallInterfaces) ApplyChange() FirewallChange {
+	return FirewallChange{Step: firewallIfaceStep("Apply Interfaces"), Question: "Apply the interfaces?",
+		Review: flow.Review{Title: firewallSectionIfaces, Items: f.Rows}}
+}
+
+// FirewallTrustStep is the title bar over Add's form and flow.
+func FirewallTrustStep() WorkflowStep { return firewallIfaceStep("Add Interface") }
+
+// FirewallTrustReview is Add's review: what trusting the interface lets
+// through, then the interface.
+func FirewallTrustReview(iface string) flow.Review {
+	return flow.Review{Notice: firewallWarning(firewallTrustNotice), Title: firewallSectionIfaces,
+		Items: []component.KeyValue{{Key: iface, Value: "Every port"}}}
+}
+
+// FirewallTrustQuestion is Add's question.
+func FirewallTrustQuestion(iface string) string { return "Trust " + iface + "?" }
+
+// FirewallUntrustStep is the title bar over Remove's form and flow.
+func FirewallUntrustStep() WorkflowStep { return firewallIfaceStep("Remove Interface") }
+
+// FirewallUntrustReview is Remove's review: that a rule already in ufw stays.
+func FirewallUntrustReview() flow.Review {
+	return flow.Review{Notice: firewallWarning(firewallUntrustNotice)}
+}
+
+// FirewallUntrustQuestion is Remove's question.
+func FirewallUntrustQuestion(iface string) string { return "Remove " + iface + "?" }

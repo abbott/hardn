@@ -30,7 +30,9 @@ var codeUFWUnknown = steps.FindingCode("UFW", ufw.FindingUnknown.String())
 // everywhere (rate-limited included) is Configured, and from some sources
 // only, or from all but some, Partial: whether the user's own address is
 // let through is not established (ufw.Verdict.OK). Unknown while the
-// listeners are not established, while ufw refuses a socket on 22 that no
+// listeners are not established (but where the host has no SSH server,
+// Sockets.NoServer: then there is none to let through, and an active
+// default-deny ufw that starts at boot is Configured), while ufw refuses a socket on 22 that no
 // configured listener names, for an incoming policy ufw does not set, and in
 // place of Configured while whether ufw starts at boot is not read
 // (CodeBootUnchecked).
@@ -124,7 +126,7 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.State, out.Detail = engine.Partial, DetailAllPorts
 	case !st.Enabled || noBoot:
 		out.State, out.Detail = engine.Partial, "off after restart"
-	case !sk.Established():
+	case !sk.Established() && !sk.NoServer:
 		out.State, out.Detail = engine.Unknown, sk.Why
 		return out, sk.err
 	case unread:
@@ -146,7 +148,7 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		out.State, out.Detail = engine.Configured, string(st.Status.Incoming)+" policy"
 		return out, nil
 	}
-	if !sk.Established() {
+	if !sk.Established() && !sk.NoServer {
 		out = sk.unchecked(out)
 	}
 	return out, nil

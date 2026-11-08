@@ -40,7 +40,7 @@ import (
 // TestPlayFirewallGolden plays the mocks end to end and pins each transcript.
 // Each change id's random suffix is written xxxxxxxx (sessionIDs).
 func TestPlayFirewallGolden(t *testing.T) {
-	addAnswers := []string{"2", "1", "WebServer", "Web Server", "A web server", "80/tcp,443/tcp", "y", "0", "0"}
+	addAnswers := []string{"2", "1", "WebServer", "Web Server", "A web server", "80/tcp,443/tcp", "", "y", "0", "0"}
 	tests := []struct {
 		name  string
 		args  []string
@@ -57,10 +57,10 @@ func TestPlayFirewallGolden(t *testing.T) {
 		{"firewall-lockout-at-start", []string{"firewall/lockout-at-start"}, []string{"1", "0"}, nil},
 		{"firewall-blocklist", []string{"firewall/blocklist"}, []string{"1", "0"}, nil},
 		{"firewall-edit", []string{"firewall/edit-2230"}, []string{"1", "0"}, nil},
-		{"firewall-moved", []string{"firewall/moved-2230"}, []string{"1", "3", "y", "0"}, nil},
+		{"firewall-moved", []string{"firewall/moved-2230"}, []string{"1", "4", "y", "0"}, nil},
 		{"firewall-denied", []string{"firewall/denied"}, []string{"1", "0"}, nil},
 		{"firewall-unit-off", []string{"firewall/unit-off"}, []string{"1", "y", "0"}, nil},
-		{"firewall-lockout-disable", []string{"firewall/lockout"}, []string{"3", "y", "0"}, nil},
+		{"firewall-lockout-disable", []string{"firewall/lockout"}, []string{"4", "y", "0"}, nil},
 		{"firewall-runlevel", []string{"firewall/alpine-runlevel"}, []string{"1", "y", "0"}, nil},
 		{"firewall-pve9", []string{"firewall/pve9"}, []string{"0"}, nil},
 		{"firewall-pve9-drop", []string{"firewall/pve9-drop"}, []string{"0"}, nil},
@@ -359,11 +359,43 @@ func TestFirewallApplies(t *testing.T) {
 	if !strings.Contains(h.content(ufw.ProfileFile), "[LabHTTPS]\ntitle=Lab Web Server (HTTPS)\n") {
 		t.Errorf("apply: %q", h.content(ufw.ProfileFile))
 	}
-	if r := read(h); !r.Applied("LabHTTPS") || !r.Applied("LabDNS") {
+	if r := read(h); !r.Applied(config.UfwAppProfile{Name: "LabHTTPS"}) || !r.Applied(config.UfwAppProfile{Name: "LabDNS"}) {
 		t.Errorf("apply: %+v", r.State.Rules)
 	}
 	if _, p := fwPlan(t, h, firewall.ActionApplyProfiles); p.Err() != nil || len(p.Changes) != 0 {
 		t.Errorf("apply again: %v, %d changes", p.Err(), len(p.Changes))
+	}
+}
+
+// TestFirewallTrustedInterfaces: on the gallery's simulated ufw, a trusted
+// interface added and applied runs "ufw allow in on <interface>", saved for
+// both IP versions, and its row reads Applied; a profile limited to it runs
+// "ufw allow in on <interface> from any to any app <name>".
+func TestFirewallTrustedInterfaces(t *testing.T) {
+	fh := fwHostNamed(t, "profiles")
+	h := fh.host()
+	_, out, code := playFW(t, fh, h, false, "3", "1", "tailscale0", "y", "3", "y", "0",
+		"2", "1", "Tailnet", "Tailnet", "Tailscale", "41641/udp", "tailscale0", "y", "3", "y", "0", "0")
+	if code != exitOK {
+		t.Fatalf("exit %d:\n%s", code, out)
+	}
+	text := flatText(out)
+	for _, want := range []string{"tailscale0 Every port Applied", "41641/udp on tailscale0 Applied"} {
+		if !strings.Contains(text, want) {
+			t.Errorf("no %q:\n%s", want, text)
+		}
+	}
+	var ran []string
+	for _, c := range h.f.Calls() {
+		if c.Op == "run" && path.Base(c.Argv[0]) == "ufw" {
+			ran = append(ran, strings.Join(c.Argv, " "))
+		}
+	}
+	runs := strings.Join(ran, "\n")
+	for _, want := range []string{"ufw allow in on tailscale0", "ufw allow in on tailscale0 from any to any app Tailnet"} {
+		if !strings.Contains(runs, want) {
+			t.Errorf("did not run %q:\n%s", want, runs)
+		}
 	}
 }
 
@@ -373,7 +405,7 @@ func TestFirewallProfilesSave(t *testing.T) {
 	fh := fwHostNamed(t, "profiles")
 	h := fh.host()
 	n := len(h.f.Calls())
-	_, out, code := playFW(t, fh, h, false, "2", "1", "LabDNS", "all", "Web", "Web Server", "A web server", "80", "80/tcp,443/tcp", "y", "0", "0")
+	_, out, code := playFW(t, fh, h, false, "2", "1", "LabDNS", "all", "Web", "Web Server", "A web server", "80", "80/tcp,443/tcp", "", "y", "0", "0")
 	if code != exitOK {
 		t.Fatalf("exit %d:\n%s", code, out)
 	}
@@ -471,7 +503,6 @@ func fwRefusalHosts() []struct {
 		{"apt finds no ufw", fwNoUFWSim(debian13Platform, fwAPTNotFound)},
 		{"apk finds no ufw", fwAlpineStock},
 		{"other packages change", fwNoUFWSim(debian13Platform, fwAPTRemoves)},
-		{"no ss", fwNoSS},
 		{"ss failing", fwSSFailing},
 		{"sshd's configuration not in effect", fwEdit},
 		{"bound elsewhere, inactive", fwMovedInactive},
@@ -512,8 +543,8 @@ func TestFirewallRefusals(t *testing.T) {
 		}
 		return got
 	}
-	if got := r(fwNoSS()); !errors.Is(got.PlanErr, ufw.ErrListenersUnknown) || !got.Sockets.NoSS {
-		t.Errorf("no ss: %v", got.PlanErr)
+	if got := r(fwNoSS()); got.First != firewall.ItemInstallSS || got.PlanErr != nil || !got.Sockets.NoSS || len(got.Plan) != 1 || got.Plan[0].Target != "iproute2" {
+		t.Errorf("no ss: item 1 %v, %v, plan %+v", got.First, got.PlanErr, got.Plan)
 	}
 	if got := r(fwGarbled()); !errors.Is(got.PlanErr, ufw.ErrStateUnknown) {
 		t.Errorf("garbled: %v", got.PlanErr)
@@ -643,7 +674,7 @@ func TestFirewallApplyInactive(t *testing.T) {
 	h = inactive()
 	n := len(h.f.Calls())
 	s, out, code := playFW(t, fh, h, false, "2", "3", "0", "0")
-	if code != exitOK || !strings.Contains(flatText(out), "ufw isn't running, so hardn saves no rule for it. Enable the firewall, then apply.") || len(s.engineRuns) != 0 {
+	if code != exitOK || !strings.Contains(flatText(out), "ufw isn't running, so hardn saves no rule for it. Enable the firewall (Firewall, option 1), then apply.") || len(s.engineRuns) != 0 {
 		t.Errorf("exit %d, %d engines:\n%s", code, len(s.engineRuns), out)
 	}
 	if cmds, files := changed(h.f.Calls()[n:]); len(cmds) > 0 || len(files) > 0 {
@@ -761,7 +792,7 @@ func TestFirewallPlanOnlyWritesNothing(t *testing.T) {
 	}
 	fh := fwHostNamed(t, "profiles")
 	for _, lines := range [][]string{
-		{"2", "1", "Web", "Web Server", "A web server", "80/tcp", "0", "0"},
+		{"2", "1", "Web", "Web Server", "A web server", "80/tcp", "", "0", "0"},
 		{"2", "2", "1", "0", "0"},
 		{"2", "3", "0", "0"},
 	} {
@@ -824,14 +855,23 @@ func TestFirewallInstallRefused(t *testing.T) {
 			t.Errorf("%s: changed %q, %q", tt.name, cmds, files)
 		}
 	}
-	// Decision 1: Install brings ufw alone. Where ss is missing, Enable then refuses.
+	// Decision 1: Install brings ufw alone. Where ss is missing, item 1 is then
+	// Install iproute2 (the maintainer, 2026-11-07), and once that runs, Enable.
 	sim := fwAPKInstalls
 	h := fwWithoutSS(simulateUFW(statusOn(alpine323Platform).withHardnYML(fwYML), ufwSim{incoming: "deny", sim: &sim}))
 	e, p := fwPlan(t, h, firewall.ActionInstall)
 	if _, err := e.Apply(context.Background(), p); err != nil || p.Err() != nil {
 		t.Fatalf("%v, %v", err, p.Err())
 	}
-	if r := fwRead(t, h); !r.Sockets.NoSS || !errors.Is(r.PlanErr, firewall.ErrNoSS) {
-		t.Errorf("after the install: %+v, %v", r.Sockets, r.PlanErr)
+	r := fwRead(t, h)
+	if !r.Sockets.NoSS || r.First != firewall.ItemInstallSS || r.PlanErr != nil {
+		t.Fatalf("after the install: item 1 %v, %+v, %v", r.First, r.Sockets, r.PlanErr)
+	}
+	e, p = fwPlan(t, h, firewall.ActionInstallSS)
+	if _, err := e.Apply(context.Background(), p); err != nil || p.Err() != nil {
+		t.Fatalf("iproute2: %v, %v", err, p.Err())
+	}
+	if r := fwRead(t, h); r.Sockets.NoSS || r.First != firewall.ItemEnable {
+		t.Errorf("after iproute2: item 1 %v, ss missing %v, %v", r.First, r.Sockets.NoSS, r.PlanErr)
 	}
 }

@@ -37,20 +37,27 @@ type Input struct {
 	Add, Keep []uint16
 	State     State // Read's
 	Desired   Desired
+	// NoSSH: the host is established to have no SSH server
+	// (sshd.NoServer), so there is no SSH listener to let through:
+	// Listeners is then the zero value, not read, and a plan with no
+	// need, Keep's aside, stands, ufw started behind its saved rules
+	// alone.
+	NoSSH bool
 }
 
 // StepKind is what a Step does.
 type StepKind uint8
 
 const (
-	StepAllow    StepKind = iota + 1 // ufw allow <port>/tcp
-	StepDefault                      // ufw default <policy> incoming|outgoing
-	StepEnable                       // ufw --force enable
-	StepDisable                      // ufw disable (PlanDisable)
-	StepAllowApp                     // ufw allow from any to any app <name> (PlanApps)
+	StepAllow      StepKind = iota + 1 // ufw allow <port>/tcp
+	StepDefault                        // ufw default <policy> incoming|outgoing
+	StepEnable                         // ufw --force enable
+	StepDisable                        // ufw disable (PlanDisable)
+	StepAllowApp                       // ufw allow from any to any app <name> (PlanApps)
+	StepAllowIface                     // ufw allow in on <interface> (PlanInterfaces)
 )
 
-var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app"}
+var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app", "allow-interface"}
 
 func (k StepKind) String() string {
 	if int(k) >= len(stepNames) {
@@ -60,7 +67,7 @@ func (k StepKind) String() string {
 }
 
 // allows: the step adds a rule, so its undo depends on ufw's answer.
-func (k StepKind) allows() bool { return k == StepAllow || k == StepAllowApp }
+func (k StepKind) allows() bool { return k == StepAllow || k == StepAllowApp || k == StepAllowIface }
 
 // Step is one command of a Plan, with the command that undoes it.
 type Step struct {
@@ -145,7 +152,9 @@ func PlanFor(in Input) (Plan, error) {
 	}
 	st := in.State
 	switch {
-	case !in.Listeners.Known:
+	case in.NoSSH && (in.Listeners.Known || len(in.Listeners.All) > 0):
+		return Plan{}, fmt.Errorf("ufw: listeners with no SSH server: %w", fs.ErrInvalid)
+	case !in.Listeners.Known && !in.NoSSH:
 		return Plan{}, fmt.Errorf("ufw: %w", ErrListenersUnknown)
 	case !st.Installed:
 		return Plan{}, fmt.Errorf("ufw: %w", ErrNotInstalled)
@@ -174,7 +183,7 @@ func PlanFor(in Input) (Plan, error) {
 		return Plan{}, fmt.Errorf("ufw: port 0: %w", fs.ErrInvalid)
 	}
 	needs := Needs(in.Listeners, in.Add, in.Keep)
-	if len(needs) == 0 {
+	if len(needs) == 0 && !in.NoSSH {
 		return Plan{}, fmt.Errorf("ufw: %w: no listener", ErrListenersUnknown)
 	}
 	active := st.Status.Active

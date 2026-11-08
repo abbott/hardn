@@ -182,6 +182,7 @@ sudoers.ErrUnsafeRunDir UNSAFE_DIRECTORY
 sudoers.ErrUnsupported SUDOERS_DOAS_UNSUPPORTED
 sudoers.ErrUserName SUDOERS_USER_NAME
 sudoers.ErrVarName SUDOERS_VAR_NAME
+ufw.ErrBadInterface UFW_BAD_INTERFACE
 ufw.ErrBadProfile UFW_BAD_PROFILE
 ufw.ErrBlocks UFW_WOULD_BLOCK
 ufw.ErrEnabledMismatch UFW_ENABLED_MISMATCH

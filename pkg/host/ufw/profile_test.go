@@ -86,7 +86,7 @@ func TestPlanDisable(t *testing.T) {
 func appHost(m *model, answer hostfake.Response) *hostfake.System {
 	h := m.host()
 	h.Handler = func(argv []string, _ []byte) hostfake.Response {
-		if slices.Contains(argv, "app") {
+		if slices.Contains(argv, "app") || len(argv) >= 4 && argv[1] == "allow" && argv[2] == "in" && argv[3] == "on" { // an application's rule, or an interface's
 			return answer
 		}
 		return m.run(h, argv)
@@ -100,7 +100,7 @@ func appHost(m *model, answer hostfake.Response) *hostfake.System {
 func TestPlanApps(t *testing.T) {
 	ctx := context.Background()
 	m := newModel(t)
-	m.active = true
+	m.active, m.ipv6 = true, false // the rules below are IPv4's alone
 	m.rules = []modelRule{
 		{fam: ufw.IPv4, tuple: "### tuple ### allow tcp 8080 0.0.0.0/0 any 0.0.0.0/0 Web - in", row: fmt.Sprintf("%-26s %-12s%-26s", "8080/tcp (Web)", "ALLOW IN", "Anywhere")},
 		{fam: ufw.IPv4, tuple: "### tuple ### allow tcp 8081 0.0.0.0/0 any 0.0.0.0/0 Web%20Two - in", row: fmt.Sprintf("%-26s %-12s%-26s", "8081/tcp (Web Two)", "ALLOW IN", "Anywhere")},
@@ -113,7 +113,7 @@ func TestPlanApps(t *testing.T) {
 	if len(st.Bad) > 0 {
 		t.Fatalf("not read: %q", st.Bad)
 	}
-	names := []string{"Web", "Mail", "Web Two", "Mail"}
+	names := profilesNamed("Web", "Mail", "Web Two", "Mail")
 	p, err := ufw.PlanApps(st, names, notPVE)
 	if err != nil {
 		t.Fatal(err)
@@ -158,7 +158,7 @@ func TestPlanApps(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		st    ufw.State
-		names []string
+		names []ufw.Profile
 		pve   detect.Proxmox
 		want  error
 	}{
@@ -167,7 +167,8 @@ func TestPlanApps(t *testing.T) {
 		{"not installed", ufw.State{}, names, notPVE, ufw.ErrNotInstalled},
 		{"status not read", ufw.State{Installed: true}, names, notPVE, ufw.ErrStateUnknown},
 		{"rules not read", ufw.State{Installed: true, Enabled: true, Status: ufw.Status{Known: true, Active: true}, Bad: []string{"x"}}, names, notPVE, ufw.ErrStateUnknown},
-		{"a bad name", st, []string{"-x"}, notPVE, ufw.ErrBadProfile},
+		{"a bad name", st, profilesNamed("-x"), notPVE, ufw.ErrBadProfile},
+		{"a bad interface", st, []ufw.Profile{{Name: "Web", Interface: "eth0:1"}}, notPVE, ufw.ErrBadProfile},
 		{"Proxmox not established", st, names, detect.Proxmox{}, ufw.ErrProxmoxUnknown},
 	} {
 		if _, err := ufw.PlanApps(tt.st, tt.names, tt.pve); !errors.Is(err, tt.want) {
@@ -176,6 +177,159 @@ func TestPlanApps(t *testing.T) {
 	}
 	if p, err = ufw.PlanApps(st, names, detect.Proxmox{Installed: detect.Yes}); err != nil || !p.NotApplicable {
 		t.Errorf("Proxmox VE: %+v, %v", p, err)
+	}
+}
+
+// profilesNamed are profiles of these names alone, on every interface.
+func profilesNamed(names ...string) []ufw.Profile {
+	out := make([]ufw.Profile, len(names))
+	for i, n := range names {
+		out[i] = ufw.Profile{Name: n}
+	}
+	return out
+}
+
+// TestPlanAppsInterface: a profile limited to an interface is its own rule,
+// "allow in on <interface> ... app <name>", undone by the same words after
+// "delete"; a rule of the application on every interface does not stand for
+// it, nor the reverse, and a rule already there on that interface is not
+// repeated.
+func TestPlanAppsInterface(t *testing.T) {
+	ctx := context.Background()
+	m := newModel(t)
+	m.active, m.ipv6 = true, false // the rules below are IPv4's alone
+	m.rules = []modelRule{
+		{fam: ufw.IPv4, tuple: "### tuple ### allow tcp 8080 0.0.0.0/0 any 0.0.0.0/0 Web - in", row: fmt.Sprintf("%-26s %-12s%-26s", "8080/tcp (Web)", "ALLOW IN", "Anywhere")},
+		{fam: ufw.IPv4, tuple: "### tuple ### allow udp 41641 0.0.0.0/0 any 0.0.0.0/0 Tailscale - in_tailscale0",
+			row: fmt.Sprintf("%-26s %-12s%-26s", "41641/udp (Tailscale) on tailscale0", "ALLOW IN", "Anywhere")},
+	}
+	h := appHost(m, hostfake.Response{Stdout: "Rule added\nRule added (v6)\n"})
+	st, err := ufw.Read(ctx, h, notPVE)
+	if err != nil || len(st.Bad) > 0 {
+		t.Fatalf("read: %v, not read %q", err, st.Bad)
+	}
+	p, err := ufw.PlanApps(st, []ufw.Profile{{Name: "Web", Interface: "tailscale0"}, {Name: "Tailscale", Interface: "tailscale0"}, {Name: "Tailscale"}}, notPVE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"ufw allow in on tailscale0 from any to any app Web", "ufw allow from any to any app Tailscale"}
+	if got := argvs(p.Steps); !slices.Equal(got, want) {
+		t.Errorf("steps %q, want %q", got, want)
+	}
+	rep, err := ufw.Execute(ctx, h, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := undos(rep); !slices.Equal(got, []string{"ufw delete allow from any to any app Tailscale", "ufw delete allow in on tailscale0 from any to any app Web"}) { // last first
+		t.Errorf("undo %q", got)
+	}
+}
+
+// TestAppApplied: the profile's own rule alone: allow, in, from anywhere, its
+// application, on its interface or on every one as it says; with ufw's IPv6
+// on, in both families, a rule in IPv4 alone not applied.
+func TestAppApplied(t *testing.T) {
+	v4 := ufw.IPv4
+	rules := []ufw.Rule{
+		{Action: "allow", Dir: "in", App: "Web", Family: v4},
+		{Action: "allow", Dir: "in", App: "Mail%20Server", Family: v4},
+		{Action: "allow", Dir: "in", App: "Tailscale", Iface: "tailscale0", Family: v4},
+		{Action: "deny", Dir: "in", App: "Denied", Family: v4},
+		{Action: "allow", Dir: "out", App: "Out", Family: v4},
+		{Action: "allow", Dir: "in", App: "Some", Src: "192.0.2.0/24", Family: v4},
+	}
+	st := ufw.State{Rules: rules}
+	for _, tc := range []struct {
+		name, iface string
+		want        bool
+	}{
+		{"Web", "", true}, {"Mail Server", "", true}, {"Tailscale", "tailscale0", true},
+		{"Web", "tailscale0", false}, {"Tailscale", "", false}, {"Tailscale", "eth0", false},
+		{"Denied", "", false}, {"Out", "", false}, {"Some", "", false}, {"DNS", "", false},
+	} {
+		if got := ufw.AppApplied(st, tc.name, tc.iface); got != tc.want {
+			t.Errorf("%s on %q: %t, want %t", tc.name, tc.iface, got, tc.want)
+		}
+	}
+	both := ufw.State{IPv6: true, Rules: append(slices.Clone(rules), ufw.Rule{Action: "allow", Dir: "in", App: "Tailscale", Iface: "tailscale0", Family: ufw.IPv6})}
+	if !ufw.AppApplied(both, "Tailscale", "tailscale0") || ufw.AppApplied(both, "Web", "") {
+		t.Errorf("IPv6 on: Tailscale in both families %t, Web in IPv4 alone %t", ufw.AppApplied(both, "Tailscale", "tailscale0"), ufw.AppApplied(both, "Web", ""))
+	}
+}
+
+// TestPlanInterfaces: "ufw allow in on <interface>" for each with no rule,
+// undone by the same words after "delete"; refused on an inactive ufw and for
+// a name ufw would not take.
+func TestPlanInterfaces(t *testing.T) {
+	ctx := context.Background()
+	m := newModel(t)
+	m.active, m.ipv6 = true, false // the rule below is IPv4's alone
+	m.rules = []modelRule{{fam: ufw.IPv4, tuple: "### tuple ### allow any any 0.0.0.0/0 any 0.0.0.0/0 in_wg0", row: fmt.Sprintf("%-26s %-12s%-26s", "Anywhere on wg0", "ALLOW IN", "Anywhere")}}
+	h := appHost(m, hostfake.Response{Stdout: "Rule added\nRule added (v6)\n"})
+	st, err := ufw.Read(ctx, h, notPVE)
+	if err != nil || len(st.Bad) > 0 {
+		t.Fatalf("read: %v, not read %q", err, st.Bad)
+	}
+	p, err := ufw.PlanInterfaces(st, []string{"tailscale0", "wg0", "tailscale0"}, notPVE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := argvs(p.Steps); !slices.Equal(got, []string{"ufw allow in on tailscale0"}) {
+		t.Errorf("steps %q", got)
+	}
+	rep, err := ufw.Execute(ctx, h, p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := undos(rep); !slices.Equal(got, []string{"ufw delete allow in on tailscale0"}) {
+		t.Errorf("undo %q", got)
+	}
+	inactive, err := ufw.Read(ctx, newModel(t).host(), notPVE)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := ufw.PlanInterfaces(inactive, []string{"tailscale0"}, notPVE); !errors.Is(err, ufw.ErrInactive) {
+		t.Errorf("inactive: %v", err)
+	}
+	if _, err := ufw.PlanInterfaces(st, []string{"eth0:1"}, notPVE); !errors.Is(err, ufw.ErrBadInterface) {
+		t.Errorf("a bad name: %v", err)
+	}
+	if p, err := ufw.PlanInterfaces(st, []string{"tailscale0"}, detect.Proxmox{Installed: detect.Yes}); err != nil || !p.NotApplicable {
+		t.Errorf("Proxmox VE: %+v, %v", p, err)
+	}
+}
+
+// TestInterfaceAllowed: "ufw allow in on <interface>" alone: not an
+// application's rule on it, a port on it, a source, or a deny.
+func TestInterfaceAllowed(t *testing.T) {
+	v4 := ufw.IPv4
+	rules := []ufw.Rule{
+		{Action: "allow", Dir: "in", Proto: "any", Iface: "tailscale0", Family: v4},
+		{Action: "allow", Dir: "in", Proto: "tcp", DPort: "22", Iface: "eth0", Family: v4},
+		{Action: "allow", Dir: "in", Proto: "any", Iface: "eth1", App: "Web", Family: v4},
+		{Action: "allow", Dir: "in", Proto: "any", Iface: "eth2", Src: "192.0.2.0/24", Family: v4},
+		{Action: "deny", Dir: "in", Proto: "any", Iface: "eth3", Family: v4},
+	}
+	for iface, want := range map[string]bool{"tailscale0": true, "eth0": false, "eth1": false, "eth2": false, "eth3": false, "wg0": false} {
+		if got := ufw.InterfaceAllowed(ufw.State{Rules: rules}, iface); got != want {
+			t.Errorf("%s: %t, want %t", iface, got, want)
+		}
+	}
+	if ufw.InterfaceAllowed(ufw.State{IPv6: true, Rules: rules}, "tailscale0") {
+		t.Error("IPv6 on, a rule in IPv4 alone: applied")
+	}
+}
+
+// TestValidInterface holds ufw 0.36.2's UFWRule.set_interface.
+func TestValidInterface(t *testing.T) {
+	for name, want := range map[string]bool{
+		"tailscale0": true, "eth0": true, "wg-home": true, "br_lan.10": true, "a+b,c=d%e@f": true, "abcdefghijklmno": true,
+		"": false, ".": false, "..": false, "eth0:1": false, "!eth0": false, "eth 0": false, "abcdefghijklmnop": false, "eth/0": false,
+		"out": false, "from": false, "log-all": false, "comment": false,
+	} {
+		if got := ufw.ValidInterface(name); got != want {
+			t.Errorf("%q: %t, want %t", name, got, want)
+		}
 	}
 }
 

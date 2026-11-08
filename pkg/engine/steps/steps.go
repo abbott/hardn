@@ -177,6 +177,10 @@ type sshState struct {
 	before sshd.Effective // sshd -T over the installed files
 	found  migrate.Found
 	pve    bool // Proxmox VE's rules apply
+	// noSSH: no SSH server, established after sshd's read failed for want
+	// of sshd (sshd.NoSSHD, sshd.NoServer): Enable lets no SSH through
+	// (ufw.Input.NoSSH), and nothing else is read.
+	noSSH bool
 }
 
 // readSSH reads sshd's installed configuration and hardn's legacy files.

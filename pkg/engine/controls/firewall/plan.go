@@ -19,6 +19,9 @@ import (
 // ProfileSetting is hardn.yml's key for the application profiles.
 const ProfileSetting = "ufwAppProfiles"
 
+// InterfaceSetting is hardn.yml's key for the trusted interfaces.
+const InterfaceSetting = "ufwTrustedInterfaces"
+
 // Errors of Enable's refusals, testable with errors.Is, each the Err of a
 // *steps.Refusal in the decided words. The first three wrap
 // ufw.ErrListenersUnknown, of which they are the more specific cases.
@@ -58,6 +61,7 @@ const (
 	codeBlocks        = "UFW_WOULD_BLOCK"
 	codeInactive      = "UFW_INACTIVE"
 	codeBadProfile    = "UFW_BAD_PROFILE"
+	codeBadInterface  = "UFW_BAD_INTERFACE"
 	codeNoTool        = "PACKAGE_NO_TOOL"
 	codeNotInRepos    = "PACKAGE_NOT_IN_REPOS"
 	codeOtherPackages = "PACKAGE_OTHER_CHANGES"
@@ -77,6 +81,8 @@ func (c Incoming) Plan(ctx context.Context, sys host.System, in engine.Input) ([
 	switch c.Action {
 	case ActionInstall:
 		return install(ctx, sys, in.Facts)
+	case ActionInstallSS:
+		return installSS(ctx, sys, in.Facts)
 	case ActionEnable:
 		return enable(ctx, sys, in)
 	case ActionDisable:
@@ -93,6 +99,18 @@ func (c Incoming) Plan(ctx context.Context, sys host.System, in engine.Input) ([
 			return nil, err
 		}
 		changes, err := steps.PlanUFWApps(ctx, sys, in, ID, profiles)
+		return changes, refusal(ctx, sys, in, err)
+	case ActionSaveInterfaces:
+		if _, err := interfacesOf(in.Config); err != nil {
+			return nil, err
+		}
+		return steps.PlanSave(ctx, sys, ID+"/trusted", in.Config, []string{InterfaceSetting})
+	case ActionApplyInterfaces:
+		ifaces, err := interfacesOf(in.Config)
+		if err != nil || len(ifaces) == 0 {
+			return nil, err
+		}
+		changes, err := steps.PlanUFWInterfaces(ctx, sys, in, ID, ifaces)
 		return changes, refusal(ctx, sys, in, err)
 	}
 	return nil, fmt.Errorf("firewall: action %d: %w", c.Action, fs.ErrInvalid)
@@ -219,7 +237,7 @@ func refusal(ctx context.Context, sys host.System, in engine.Input, err error) e
 	case errors.Is(err, ufw.ErrNotInstalled):
 		return &steps.Refusal{Code: codeNotInstalled, Why: "ufw isn't installed", Fix: "install it, then try again", Err: err}
 	case errors.Is(err, ufw.ErrInactive):
-		return &steps.Refusal{Code: codeInactive, Why: "ufw isn't running, so hardn saves no rule for it", Fix: "enable the firewall, then apply", Err: err}
+		return &steps.Refusal{Code: codeInactive, Why: "ufw isn't running, so hardn saves no rule for it", Fix: "enable the firewall (Firewall, option 1), then apply", Err: err}
 	case errors.Is(err, ufw.ErrEnabledMismatch):
 		st, rerr := ufw.Read(ctx, sys, in.Facts.Proxmox)
 		if rerr != nil {
@@ -277,6 +295,30 @@ func verdicts(st ufw.State, sk Sockets) []ufw.Coverage {
 	return cs
 }
 
+// interfacesOf is hardn.yml's trusted interfaces, each a name ufw takes
+// (ufw.ValidInterface) and none twice; else a refusal naming the first that is
+// not. Nil cfg is none.
+func interfacesOf(cfg *config.Config) ([]string, error) {
+	if cfg == nil {
+		return nil, nil
+	}
+	out := make([]string, 0, len(cfg.UfwTrustedInterfaces))
+	for _, name := range cfg.UfwTrustedInterfaces {
+		var err error
+		switch {
+		case !ufw.ValidInterface(name):
+			err = fmt.Errorf("ufw: interface %q: %w", name, ufw.ErrBadInterface)
+		case slices.Contains(out, name):
+			err = fmt.Errorf("ufw: interface %q: named twice: %w", name, ufw.ErrBadInterface)
+		}
+		if err != nil {
+			return nil, &steps.Refusal{Code: codeBadInterface, Why: "ufw can't use the interface " + name, Fix: "correct it in hardn.yml, then try again", Err: err}
+		}
+		out = append(out, name)
+	}
+	return out, nil
+}
+
 // profilesOf is hardn.yml's application profiles as ufw's, every one valid, none
 // named twice in any case, as origin/main's Add refuses (firewall_menu.go:450);
 // else a refusal naming the first that is not. Nil cfg is none.
@@ -286,7 +328,7 @@ func profilesOf(cfg *config.Config) ([]ufw.Profile, error) {
 	}
 	out := make([]ufw.Profile, 0, len(cfg.UfwAppProfiles))
 	for _, p := range cfg.UfwAppProfiles {
-		pr := ufw.Profile{Name: p.Name, Title: p.Title, Description: p.Description, Ports: p.Ports}
+		pr := ufw.Profile{Name: p.Name, Title: p.Title, Description: p.Description, Ports: p.Ports, Interface: p.Interface}
 		err := ufw.ValidProfile(pr)
 		if err == nil && slices.ContainsFunc(out, func(o ufw.Profile) bool { return strings.EqualFold(o.Name, p.Name) }) {
 			err = fmt.Errorf("ufw: profile %q: named twice: %w", p.Name, ufw.ErrBadProfile)

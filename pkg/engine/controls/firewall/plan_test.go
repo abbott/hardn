@@ -147,7 +147,24 @@ func (l *live) run(argv []string) (string, bool) {
 		l.u.rules = append(l.u.rules, rule{action: "allow", port: "80", app: name})
 		return "Rule added\nRule added (v6)\n", true
 	case len(argv) == 9 && argv[1] == "delete" && argv[7] == "app":
-		l.u.rules = slices.DeleteFunc(l.u.rules, func(r rule) bool { return r.app == argv[8] })
+		l.u.rules = slices.DeleteFunc(l.u.rules, func(r rule) bool { return r.app == argv[8] && r.iface == "" })
+		return "Rule deleted\nRule deleted (v6)\n", true
+	case len(argv) == 11 && argv[1] == "allow" && argv[2] == "in" && argv[3] == "on" && argv[9] == "app": // a profile on an interface
+		name, iface := argv[10], argv[4]
+		if slices.ContainsFunc(l.u.rules, func(r rule) bool { return r.app == name && r.iface == iface }) {
+			return "Skipping adding existing rule\nSkipping adding existing rule (v6)\n", true
+		}
+		l.u.rules = append(l.u.rules, rule{action: "allow", port: "80", app: name, iface: iface})
+		return "Rule added\nRule added (v6)\n", true
+	case len(argv) == 5 && argv[1] == "allow" && argv[2] == "in" && argv[3] == "on": // a trusted interface
+		iface := argv[4]
+		if slices.ContainsFunc(l.u.rules, func(r rule) bool { return r.port == "" && r.iface == iface }) {
+			return "Skipping adding existing rule\nSkipping adding existing rule (v6)\n", true
+		}
+		l.u.rules = append(l.u.rules, rule{action: "allow", iface: iface})
+		return "Rule added\nRule added (v6)\n", true
+	case len(argv) == 6 && argv[1] == "delete" && argv[3] == "in" && argv[4] == "on":
+		l.u.rules = slices.DeleteFunc(l.u.rules, func(r rule) bool { return r.port == "" && r.iface == argv[5] })
 		return "Rule deleted\nRule deleted (v6)\n", true
 	case cmd == "systemctl enable ufw.service":
 		if !l.bootStuck {
@@ -319,6 +336,76 @@ func TestEnableNoSS(t *testing.T) {
 // on a fresh inactive ufw and on one that was set to allow; the session's port
 // is kept, and a console keeps none but what is configured; a second plan is
 // empty.
+// TestEnableNoServer: on a host established to have no SSH server
+// (sshd.NoServer), Enable lets no SSH through: it denies by default and
+// starts ufw, a remote session's port alone let through, lockout-risk as
+// ever; once applied, the Firewall row is Configured. Where openssh-server
+// is installed but sshd can't run, where ss shows a socket on 22 all the
+// same, or where ss is missing, Enable is refused as before.
+func TestEnableNoServer(t *testing.T) {
+	ctx := context.Background()
+	for name, tc := range map[string]struct {
+		s       site
+		session revert.Session
+		want    []string
+		does    firewall.Does
+	}{
+		"inactive, from the console": {site{plat: debian13(), failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}, ufw: fw{}}, console,
+			[]string{"ufw --force enable"}, firewall.Does{StartsUFW: true}},
+		"the policy allow": {site{plat: debian13(), failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}, ufw: fw{incoming: "allow"}}, console,
+			[]string{"ufw default deny incoming", "ufw --force enable"}, firewall.Does{SetsDeny: true, StartsUFW: true}},
+		"a remote session's port kept": {site{plat: debian13(), failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{}, ufw: fw{}}, remote22,
+			[]string{"ufw allow 22/tcp", "ufw --force enable"}, firewall.Does{Allows: true, StartsUFW: true}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			l := liveOn(t, tc.s)
+			r := firewall.Read(ctx, l, l.facts, nil, tc.session)
+			if r.First != firewall.ItemEnable || r.PlanErr != nil || r.Does != tc.does || !r.Sockets.NoServer {
+				t.Errorf("read: item %d, %v, does %+v, no server %v", r.First, r.PlanErr, r.Does, r.Sockets.NoServer)
+			}
+			e, p := planOn(t, l, firewall.ActionEnable, tc.session, nil)
+			if p.Err() != nil {
+				t.Fatal(p.Err())
+			}
+			if got := commands(p); !slices.Equal(got, tc.want) {
+				t.Errorf("commands %q, want %q", got, tc.want)
+			}
+			if p.Risk != engine.RiskLockout {
+				t.Errorf("risk %v, want lockout", p.Risk)
+			}
+			if _, err := e.Apply(ctx, p); err != nil {
+				t.Fatal(err)
+			}
+			if got := ranUFW(l); !slices.Equal(got, tc.want) {
+				t.Errorf("ran %q, want %q", got, tc.want)
+			}
+			if st, err := (firewall.Incoming{}).Check(ctx, l, l.facts); err != nil || st.State != engine.Configured || st.Detail != "deny policy" {
+				t.Errorf("after: %s %q, %v; want Configured \"deny policy\"", st.State, st.Detail, err)
+			}
+			if r := firewall.Read(ctx, l, l.facts, nil, tc.session); r.First != firewall.ItemDisable {
+				t.Errorf("after: item 1 %d, want Disable: ufw is set", r.First)
+			}
+		})
+	}
+	for name, s := range map[string]site{
+		"a socket on 22 no package explains": {plat: debian13(), failT: noSSHD, noMain: true, dpkg: noServer, bound: []string{"0.0.0.0:22"}, ufw: fw{}},
+		"no ss":                              {plat: noSS(debian13()), failT: noSSHD, noMain: true, dpkg: noServer, ufw: fw{}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			l := liveOn(t, s)
+			if _, p := planOn(t, l, firewall.ActionEnable, console, nil); p.Err() == nil || len(p.Changes) > 0 {
+				t.Errorf("planned %d changes, error %v; want refused", len(p.Changes), p.Err())
+			}
+		})
+	}
+	t.Run("openssh-server installed, no sshd_config", func(t *testing.T) {
+		l := liveOn(t, site{plat: debian13(), noMain: true, dpkg: map[string]string{"openssh-server": "install ok installed"}, ufw: fw{}})
+		if _, p := planOn(t, l, firewall.ActionEnable, console, nil); p.Err() == nil || len(p.Changes) > 0 {
+			t.Errorf("planned %d changes, error %v; want refused", len(p.Changes), p.Err())
+		}
+	})
+}
+
 func TestEnableOrder(t *testing.T) {
 	ctx := context.Background()
 	for name, tc := range map[string]struct {
@@ -766,7 +853,7 @@ func TestApply(t *testing.T) {
 	// Inactive: refused, with its words.
 	l = liveOn(t, site{plat: debian13(), ufw: fw{}})
 	_, p = planOn(t, l, firewall.ActionApplyProfiles, remote22, cfg)
-	refused(t, p, "ufw isn't running, so hardn saves no rule for it. Enable the firewall, then apply.", ufw.ErrInactive)
+	refused(t, p, "ufw isn't running, so hardn saves no rule for it. Enable the firewall (Firewall, option 1), then apply.", ufw.ErrInactive)
 	changedNothing(t, l)
 	// A bad profile: refused, naming it.
 	bad := web
@@ -779,6 +866,79 @@ func TestApply(t *testing.T) {
 	l = liveOn(t, site{plat: debian13(), ufw: allow22})
 	_, p = planOn(t, l, firewall.ActionApplyProfiles, remote22, &config.Config{UfwAppProfiles: []config.UfwAppProfile{web, web}})
 	refused(t, p, "ufw can't read the profile Web. Correct it in hardn.yml, then try again.", ufw.ErrBadProfile)
+}
+
+// TestApplyProfileInterface: a profile limited to an interface is applied as
+// its own rule, "allow in on <interface> ... app <name>", beside a rule of the
+// application on every interface, which does not stand for it; once applied,
+// Applied says so of it and the plan is empty.
+func TestApplyProfileInterface(t *testing.T) {
+	ctx := context.Background()
+	onTS := web
+	onTS.Interface = "tailscale0"
+	cfg := &config.Config{UfwAppProfiles: []config.UfwAppProfile{onTS}}
+	l := liveOn(t, site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "allow", port: "22"}, {action: "allow", port: "80", app: "Web"}}}})
+	e, p := planOn(t, l, firewall.ActionApplyProfiles, remote22, cfg)
+	if p.Err() != nil || len(p.Changes) != 1 || !slices.Equal(p.Changes[0].Commands, []string{"ufw allow in on tailscale0 from any to any app Web"}) {
+		t.Fatalf("plan: %+v, %v", p.Changes, p.Err())
+	}
+	if _, err := e.Apply(ctx, p); err != nil {
+		t.Fatal(err)
+	}
+	if r := firewall.Read(ctx, l, l.facts, cfg, remote22); !r.Applied(onTS) || !r.Applied(web) {
+		t.Errorf("applied: on tailscale0 %t, everywhere %t; rules %+v", r.Applied(onTS), r.Applied(web), r.State.Rules)
+	}
+	if _, p = planOn(t, l, firewall.ActionApplyProfiles, remote22, cfg); p.Err() != nil || !p.Empty() {
+		t.Errorf("again: %d changes, %v", len(p.Changes), p.Err())
+	}
+	bad := onTS
+	bad.Interface = "eth0:1"
+	l = liveOn(t, site{plat: debian13(), ufw: allow22})
+	_, p = planOn(t, l, firewall.ActionApplyProfiles, remote22, &config.Config{UfwAppProfiles: []config.UfwAppProfile{bad}})
+	refused(t, p, "ufw can't read the profile Web. Correct it in hardn.yml, then try again.", ufw.ErrBadProfile)
+	changedNothing(t, l)
+}
+
+// TestApplyInterfaces: each trusted interface's "ufw allow in on <interface>",
+// one plain change; the second plan empty; refused on an inactive ufw, for a
+// name ufw would not take, and for one named twice; none plans nothing; the
+// save writes hardn.yml's key.
+func TestApplyInterfaces(t *testing.T) {
+	ctx := context.Background()
+	cfg := &config.Config{UfwTrustedInterfaces: []string{"tailscale0", "wg0"}}
+	l := liveOn(t, site{plat: debian13(), ufw: allow22})
+	e, p := planOn(t, l, firewall.ActionApplyInterfaces, remote22, cfg)
+	if p.Err() != nil || len(p.Changes) != 1 {
+		t.Fatalf("plan: %d changes, %v", len(p.Changes), p.Err())
+	}
+	c := p.Changes[0]
+	if c.ID != firewall.ID+"/interfaces" || c.Risk != engine.RiskPlain || c.Stage != engine.StageFirewall ||
+		!slices.Equal(c.Commands, []string{"ufw allow in on tailscale0", "ufw allow in on wg0"}) {
+		t.Errorf("change %+v", c)
+	}
+	if _, err := e.Apply(ctx, p); err != nil {
+		t.Fatal(err)
+	}
+	if r := firewall.Read(ctx, l, l.facts, cfg, remote22); !r.InterfaceApplied("tailscale0") || !r.InterfaceApplied("wg0") || r.InterfaceApplied("eth0") {
+		t.Errorf("applied: %+v", r.State.Rules)
+	}
+	if _, p = planOn(t, l, firewall.ActionApplyInterfaces, remote22, cfg); p.Err() != nil || !p.Empty() {
+		t.Errorf("again: %d changes, %v", len(p.Changes), p.Err())
+	}
+	l = liveOn(t, site{plat: debian13(), ufw: fw{}})
+	if _, p = planOn(t, l, firewall.ActionApplyInterfaces, remote22, &config.Config{}); p.Err() != nil || !p.Empty() {
+		t.Errorf("none: %d changes, %v", len(p.Changes), p.Err())
+	}
+	l = liveOn(t, site{plat: debian13(), ufw: fw{}})
+	_, p = planOn(t, l, firewall.ActionApplyInterfaces, remote22, cfg)
+	refused(t, p, "ufw isn't running, so hardn saves no rule for it. Enable the firewall (Firewall, option 1), then apply.", ufw.ErrInactive)
+	changedNothing(t, l)
+	for _, ifaces := range [][]string{{"eth0:1"}, {"wg0", "wg0"}} {
+		l = liveOn(t, site{plat: debian13(), ufw: allow22})
+		_, p = planOn(t, l, firewall.ActionApplyInterfaces, remote22, &config.Config{UfwTrustedInterfaces: ifaces})
+		refused(t, p, "ufw can't use the interface "+ifaces[len(ifaces)-1]+". Correct it in hardn.yml, then try again.", ufw.ErrBadInterface)
+		changedNothing(t, l)
+	}
 }
 
 // TestApplyRollback: a rule ufw refuses, after one it added: the file goes back,
@@ -965,7 +1125,7 @@ func TestReadFirst(t *testing.T) {
 		"allow policy":            {site{plat: debian13(), ufw: fw{active: true, incoming: "allow", rules: allow("22")}}, firewall.ItemEnable, true},
 		"refused":                 {site{plat: debian13(), ufw: on}, firewall.ItemEnable, true},
 		"not in effect, active":   {site{plat: debian13(), ports: []uint16{2230}, bound: stale22, ufw: allow22}, firewall.ItemEnable, true},
-		"set, ss not read":        {site{plat: noSS, ufw: allow22}, firewall.ItemEnable, true},
+		"set, ss not read":        {site{plat: noSS, ufw: allow22}, firewall.ItemInstallSS, true},
 		"Proxmox VE":              {site{plat: pve9(), pve: pf{cluster: "[OPTIONS]\nenable: 1\n"}}, firewall.ItemNone, false},
 		"Proxmox not established": {site{plat: debian13(), ufw: allow22, facts: func(f *detect.Facts) { f.Proxmox = detect.Proxmox{} }}, firewall.ItemEnable, false},
 		"a status row not read":   {site{plat: debian13(), ufw: fw{active: true, noKernel6: true, table: rows("22/tcp", "ALLOW IN", "Anywhere") + "garbage ALLOW\n"}}, firewall.ItemEnable, true},
@@ -995,13 +1155,22 @@ func TestReadProxmoxUnknown(t *testing.T) {
 	}
 }
 
-// TestApplied: a saved application rule by its name, a space in it as ufw holds
-// it ([I]: docs/safety/ufw.md §3).
+// TestApplied: a profile's own saved rule, by its name, a space in it as ufw
+// holds it (docs/safety/ufw.md §3), on its interface or on every one as the
+// profile says (ufw.AppApplied).
 func TestApplied(t *testing.T) {
-	r := firewall.Reading{State: ufw.State{Rules: []ufw.Rule{{App: "Web"}, {App: "Mail%20Server"}}}}
-	for name, want := range map[string]bool{"Web": true, "Mail Server": true, "DNS": false} {
-		if got := r.Applied(name); got != want {
-			t.Errorf("%s: %t", name, got)
+	r := firewall.Reading{State: ufw.State{Rules: []ufw.Rule{{Action: "allow", Dir: "in", App: "Web", Family: ufw.IPv4}, {Action: "allow", Dir: "in", App: "Mail%20Server", Family: ufw.IPv4},
+		{Action: "allow", Dir: "in", App: "Tailscale", Iface: "tailscale0", Family: ufw.IPv4}}}}
+	for _, tc := range []struct {
+		p    config.UfwAppProfile
+		want bool
+	}{
+		{config.UfwAppProfile{Name: "Web"}, true}, {config.UfwAppProfile{Name: "Mail Server"}, true}, {config.UfwAppProfile{Name: "DNS"}, false},
+		{config.UfwAppProfile{Name: "Tailscale", Interface: "tailscale0"}, true}, {config.UfwAppProfile{Name: "Tailscale"}, false},
+		{config.UfwAppProfile{Name: "Web", Interface: "tailscale0"}, false},
+	} {
+		if got := r.Applied(tc.p); got != tc.want {
+			t.Errorf("%+v: %t", tc.p, got)
 		}
 	}
 }
@@ -1139,6 +1308,37 @@ var (
 	aptSim = hostfake.Response{Stdout: "Reading package lists...\nThe following NEW packages will be installed:\n  ufw\nInst ufw (0.36.2-9 Debian:13.7/stable [all])\nConf ufw (0.36.2-9 Debian:13.7/stable [all])\n"}
 	apkSim = hostfake.Response{Stdout: "(1/1) Installing ufw (0.36.2-r0)\nOK: 9 MiB in 26 packages\n"}
 )
+
+// TestInstallSS: Install iproute2's plan on each tool: one package-install
+// change, the tool's command, at the packages stage; none where iproute2 is
+// installed.
+func TestInstallSS(t *testing.T) {
+	deb, alp := debian13(), alpine324()
+	deb.noSS, alp.noSS = true, true
+	for _, tc := range []struct {
+		plat platform
+		cmd  string
+	}{{deb, "apt-get install -y iproute2"}, {alp, "apk add iproute2"}} {
+		l := liveOn(t, site{plat: tc.plat, ufw: allow22})
+		_, p := planOn(t, l, firewall.ActionInstallSS, console, nil)
+		if p.Err() != nil || len(p.Changes) != 1 {
+			t.Fatalf("%s: %d changes, %v", tc.cmd, len(p.Changes), p.Err())
+		}
+		c := p.Changes[0]
+		if c.ID != firewall.ID+"/iproute2" || c.Target != "iproute2" || c.Risk != engine.RiskPackageInstall || c.Stage != engine.StagePackages || !slices.Equal(c.Commands, []string{tc.cmd}) {
+			t.Errorf("%s: change %+v", tc.cmd, c)
+		}
+	}
+	l := liveOn(t, site{plat: debian13(), ufw: allow22})
+	if _, p := planOn(t, l, firewall.ActionInstallSS, console, nil); p.Err() != nil || !p.Empty() {
+		t.Errorf("installed: %d changes, %v", len(p.Changes), p.Err())
+	}
+	// iproute2 installed, ss gone: nothing to install, said as a refusal.
+	l = liveOn(t, site{plat: deb, iproute2: true, ufw: allow22})
+	_, p := planOn(t, l, firewall.ActionInstallSS, console, nil)
+	refused(t, p, "iproute2 is installed, but its ss isn't there. Reinstall iproute2, then try again.", firewall.ErrNoSS)
+	changedNothing(t, l)
+}
 
 // TestInstall: through the engine on each tool: the tool's command, one
 // package-install change, verified, its undo the tool's, a plain y/N.

@@ -8,6 +8,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -35,6 +36,8 @@ const (
 
 	noRules    = "No firewall rules configured"
 	noProfiles = "No application profiles configured"
+	noIfaces   = "No trusted interfaces configured"
+	everyPort  = "Every port"
 	saved      = "Saved"
 )
 
@@ -52,7 +55,8 @@ func statusRow(ctx context.Context, sys host.System, f detect.Facts) component.S
 // here not established, nothing is read: item 1, which says so when selected,
 // under the row saying the same.
 func mainView(r firewallctl.Reading, status component.StatusList, f detect.Facts) screen.Firewall {
-	v := screen.Firewall{Status: status, First: first(r), Risk: risky(r.Plan), Installed: r.State.Installed, DisableBeside: r.DisableBeside,
+	f1 := first(r)
+	v := screen.Firewall{Status: status, First: f1, Risk: risky(r.Plan) || f1 == screen.FirewallEnableSS, Installed: r.State.Installed, DisableBeside: r.DisableBeside,
 		KeepsReject: !r.Does.SetsDeny && r.State.Status.Incoming == ufw.PolicyReject}
 	if r.Proxmox != nil {
 		return v
@@ -63,28 +67,60 @@ func mainView(r firewallctl.Reading, status component.StatusList, f detect.Facts
 		if len(r.Profiles) > 0 {
 			v.Profiles = profileRows(r)
 		}
+		if len(r.Interfaces) > 0 {
+			v.Interfaces = interfaceRows(r)
+		}
 	}
 	return v
 }
 
+// interfaceRows are the trusted interfaces' rows: each one, every port let
+// through on it, and whether its rule is in ufw. None is a muted item.
+func interfaceRows(r firewallctl.Reading) []component.KeyValue {
+	if len(r.Interfaces) == 0 {
+		return []component.KeyValue{{Key: noIfaces, State: component.ValueNone}}
+	}
+	var rows []component.KeyValue
+	for _, iface := range r.Interfaces {
+		row := component.KeyValue{Key: iface, Value: everyPort, Note: "Not applied", State: component.ValueWarn}
+		if r.InterfaceApplied(iface) {
+			row.Note, row.State = "Applied", component.ValueOK
+		}
+		rows = append(rows, row)
+	}
+	return rows
+}
+
 // first is what item 1 does on r: on Enable, what its plan does, starting ufw
-// only while it is not running, so the words hold wherever they are drawn; an
-// active ufw whose plan refuses, a repair that says why.
+// only while it is not running, so the words hold wherever they are drawn,
+// none of SSH where the host has no SSH server (Sockets.NoServer); an active
+// ufw whose plan refuses, a repair that says why.
 func first(r firewallctl.Reading) screen.FirewallFirst {
 	switch r.First {
 	case firewallctl.ItemInstall:
 		return screen.FirewallInstall
+	case firewallctl.ItemInstallSS: // Enable's words only where ufw is read as stopped: unread, Enable would refuse
+		if stopped(r) {
+			return screen.FirewallEnableSS
+		}
+		return screen.FirewallInstallSS
 	case firewallctl.ItemDisable:
 		return screen.FirewallDisableFirst
 	case firewallctl.ItemNone:
 		return screen.FirewallNoFirst
 	}
-	if !r.State.Status.Active {
+	noSSH := r.Sockets.NoServer
+	switch {
+	case !r.State.Status.Active && noSSH:
+		return screen.FirewallEnableNoSSH
+	case !r.State.Status.Active:
 		return screen.FirewallEnable
 	}
 	switch d := r.Does; {
 	case r.PlanErr != nil:
 		return screen.FirewallRepair
+	case d.SetsDeny && noSSH:
+		return screen.FirewallSetDenyNoSSH
 	case d.SetsDeny:
 		return screen.FirewallSetDeny
 	case d.Allows && d.Boot:
@@ -125,7 +161,10 @@ func verdictRow(v ufw.Verdict) (string, component.ValueState) {
 // for what its saved rules would refuse. A listener configured and not bound, or
 // bound and not configured, says so beside it.
 func sshRows(r firewallctl.Reading) []component.KeyValue {
-	if !r.Sockets.Read {
+	switch {
+	case r.Sockets.NoServer:
+		return []component.KeyValue{{Key: keyListeners, Value: ssh.DetailNoServer, State: component.ValueNotApplicable}}
+	case !r.Sockets.Read:
 		return []component.KeyValue{{Key: keyListeners, State: component.ValueUnknown}}
 	}
 	active := r.State.Status.Known && r.State.Status.Active
@@ -294,21 +333,32 @@ func ruleKey(r ufw.Rule) string {
 	return to
 }
 
-// profileRows are the profiles' rows: each one's name and ports, and whether it
-// is in ufw. None is a muted item.
+// profileRows are the profiles' rows: each one's name and ports, " on <interface>"
+// where it is limited to one, as the Rules section writes an interface's rule, and
+// whether it is in ufw. None is a muted item.
 func profileRows(r firewallctl.Reading) []component.KeyValue {
 	if len(r.Profiles) == 0 {
 		return []component.KeyValue{{Key: noProfiles, State: component.ValueNone}}
 	}
 	var rows []component.KeyValue
 	for _, p := range r.Profiles {
-		row := component.KeyValue{Key: p.Name, Value: strings.Join(p.Ports, ", "), Note: "Not applied", State: component.ValueWarn}
-		if r.Applied(p.Name) {
+		row := component.KeyValue{Key: p.Name, Value: profilePorts(p.Ports, p.Interface), Note: "Not applied", State: component.ValueWarn}
+		if r.Applied(p) {
 			row.Note, row.State = "Applied", component.ValueOK
 		}
 		rows = append(rows, row)
 	}
 	return rows
+}
+
+// profilePorts is a profile's ports, " on <interface>" after them where it is
+// limited to one.
+func profilePorts(ports []string, iface string) string {
+	s := strings.Join(ports, ", ")
+	if iface != "" {
+		s += " on " + iface
+	}
+	return s
 }
 
 // pveView is r as the screen on Proxmox VE draws it, under status: whether

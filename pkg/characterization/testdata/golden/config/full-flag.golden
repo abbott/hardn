@@ -32,9 +32,11 @@
       "Description": "Example HTTPS port",
       "Ports": [
         "8443/tcp"
-      ]
+      ],
+      "Interface": ""
     }
   ],
+  "UfwTrustedInterfaces": null,
   "EnableUnattendedUpgrades": true,
   "EnableUfwSshPolicy": true,
   "ConfigureDns": true,

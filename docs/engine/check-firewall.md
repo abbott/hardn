@@ -116,8 +116,9 @@ Every line the row can show, in Figma's grammar (marker, label, the state's word
 | whether the host runs Proxmox VE not established | can't tell if Proxmox | `PVE_UNKNOWN` |
 | `ufw status verbose` failing (not root), a settings or rules file not read | can't read | the error's (`COMMAND_FAILED`, `FILE_NOT_FOUND`) |
 | ufw's status not read whole, an incoming policy ufw does not set (`disabled`), or a rule whose port list hardn cannot read | can't read | none (finding `UFW_UNKNOWN`) |
-| default deny or reject, and: no `sshd` | sshd not installed | `COMMAND_NOT_FOUND` |
-| … no `/etc/ssh/sshd_config` | no sshd_config | `FILE_NOT_FOUND` |
+| default deny or reject, and no SSH server (`Sockets.NoServer`: `sshd.NoServer` after a read `sshd.NoSSHD` says failed for want of sshd, [check-ssh.md](check-ssh.md) §2.8, and `ss` showing nothing on 22, every line read; since 2026-11-07): no listener to let through, so the SSH branches fall away and no `FIREWALL_SSH_UNCHECKED` is added. `ss` missing or failing is "ss not installed" or "can't tell ssh ports", as on any host; a socket on 22 leaves sshd's own detail | deny policy (`Configured`) | none |
+| default deny or reject, and: no `sshd`, otherwise | sshd not installed | `COMMAND_NOT_FOUND` |
+| … no `/etc/ssh/sshd_config`, otherwise | no sshd_config | `FILE_NOT_FOUND` |
 | … `sshd -T` refusing the configuration | sshd config invalid | `SSHD_CONFIG_INVALID` |
 | … `sshd -T` failing otherwise (`/run/sshd` missing, an `Include` other than the stock one), or on Alpine `/etc/conf.d/sshd` naming the binary | can't tell ssh ports | the error's (`SSHD_ENV_NO_RUNDIR`, `RELOAD_OPENRC_CONFD`, …) |
 | … the configured listeners not established (the socket and sshd differ, the unit that listens not up), nothing refused | can't tell ssh ports | none |
@@ -144,7 +145,7 @@ Every line the row can show, in Figma's grammar (marker, label, the state's word
 package firewall // pkg/engine/controls/firewall (new)
 const (
 	CodeSSHBlocked   = "FIREWALL_SSH_BLOCKED"   // the critical cross-check
-	CodeSSHUnchecked = "FIREWALL_SSH_UNCHECKED" // the listeners not established, beside a state that does not depend on them
+	CodeSSHUnchecked = "FIREWALL_SSH_UNCHECKED" // the listeners not established, beside a state that does not depend on them; none where there is no SSH server
 	CodeBootUnchecked = "FIREWALL_BOOT_UNCHECKED" // whether an active ufw starts at the next boot not read
 	CodeLocalOnly    = "FIREWALL_PVE_LOCAL_ONLY" // Proxmox VE: no management IP set written
 )

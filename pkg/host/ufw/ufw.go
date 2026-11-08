@@ -57,6 +57,10 @@ var (
 	// ErrBadProfile: an application profile ufw would not read
 	// (ValidProfile).
 	ErrBadProfile = errors.New("the application profile is not one ufw reads")
+	// ErrBadInterface: an interface name ufw would not take
+	// (ValidInterface), or one named twice, in hardn.yml's trusted
+	// interfaces.
+	ErrBadInterface = errors.New("the interface is not one ufw takes")
 )
 
 // Applies says whether UFW may be used: ErrNotApplicable on Proxmox VE,

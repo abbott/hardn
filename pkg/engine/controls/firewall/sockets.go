@@ -33,6 +33,12 @@ type Sockets struct {
 	Unbound  []sshd.Listener // configured, not bound
 	NoSS     bool            // ss is not installed
 	SSFailed bool            // ss ran and failed
+	// NoServer: sshd's read failed for want of sshd (sshd.NoSSHD), the
+	// host is established to have no SSH server at all (sshd.NoServer), and
+	// ss shows nothing on 22 (noServer): there is no SSH listener to let
+	// through. Why still says what the read showed; the check and Enable
+	// read NoServer beside Established.
+	NoServer bool
 	ev       []string
 	// Why is the detail of a row whose state depends on the listeners
 	// when they are not established; "" when they are. err is the read
@@ -63,6 +69,11 @@ func ReadSockets(ctx context.Context, sys host.System, f detect.Facts) Sockets {
 	eff, _, err := sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: bin})
 	if err != nil {
 		s.Why, s.err = sshdWhy(err), fmt.Errorf("sshd's listeners: %w", err)
+		if sshd.NoSSHD(err) {
+			if ev, ok := sshd.NoServer(ctx, sys, f); ok {
+				s.noServer(ctx, sys, ev)
+			}
+		}
 		return s
 	}
 	s.Conf, s.Read = eff.Listeners, true
@@ -94,6 +105,33 @@ func ReadSockets(ctx context.Context, sys host.System, f detect.Facts) Sockets {
 		s.Why = "ssh config not in effect"
 	}
 	return s
+}
+
+// noServer is ReadSockets past sshd.NoServer: no SSH server stands only
+// where ss shows nothing bound on 22, every line read, so that a server no
+// package installed and no searched path holds, listening on SSH's port,
+// is not taken for none. ss missing or failing is NoSS or SSFailed, as on
+// any host, so Enable is refused in their words; a socket on 22 leaves
+// Why as sshd's read had it.
+func (s *Sockets) noServer(ctx context.Context, sys host.System, ev []string) {
+	bound, bad, err := reload.ReadBound(ctx, sys)
+	switch {
+	case errors.Is(err, host.ErrNotFound):
+		s.ev = append(s.ev, "ss: not installed, so the bound sockets are not read")
+		s.NoSS, s.Why, s.err = true, "ss not installed", err
+		return
+	case err != nil:
+		s.SSFailed, s.Why, s.err = true, "can't tell ssh ports", err
+		return
+	case len(bad) > 0:
+		s.ev = append(s.ev, fmt.Sprintf("ss -Htln: lines not read: %q", bad))
+		return
+	case slices.ContainsFunc(bound, func(b reload.Bound) bool { return b.Port == 22 }):
+		s.ev = append(s.ev, "ss -Htln: a socket on 22, though no SSH server is installed")
+		return
+	}
+	s.Bound = bound
+	s.NoServer, s.ev = true, append(append(s.ev, ev...), "ss -Htln: nothing on 22")
 }
 
 // sshdWhy is what a failed sshd -T shows of the host, in the SSH rows'

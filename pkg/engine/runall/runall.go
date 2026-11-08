@@ -205,7 +205,7 @@ func Asked(in Input, id string) Ask {
 		if !cfg.EnableUfwSshPolicy {
 			return Ask{}
 		}
-		return Ask{Control: fwctl.Incoming{Action: fwctl.ActionEnable}, Words: "Enable, SSH allowed"}
+		return Ask{Control: fwctl.Incoming{Action: fwctl.ActionEnable}, Words: wordsEnableSSH}
 	case dnsctl.ID:
 		if !cfg.ConfigureDns || len(cfg.Nameservers) == 0 {
 			return Ask{}
@@ -344,6 +344,7 @@ func Read(ctx context.Context, in Input) (Reading, error) {
 		r.Rows = append(r.Rows, r.pick(ctx, in, id, rep))
 	}
 	r.afterFirewall()
+	r.noSSHWords()
 	for _, rw := range r.Rows {
 		if rw.Kind == Pending {
 			r.Refusal, r.Err = rw.Refusal, rw.Err
@@ -500,6 +501,28 @@ func (r Reading) userThere(ctx context.Context, in Input, rw *Row) {
 		return
 	}
 	rw.Words = userMgmt + strings.Join(missing, ", ")
+}
+
+// The Firewall row's words when Enable is planned: SSH let through, or,
+// where the SSH rows say the host has no SSH server, Enable alone.
+const (
+	wordsEnableSSH   = "Enable, SSH allowed"
+	wordsEnableNoSSH = "Enable"
+)
+
+// noSSHWords words a planned Enable wordsEnableNoSSH where SSH Login's
+// report is Not Applicable for want of an SSH server (ssh.DetailNoServer):
+// its plan lets no SSH through (steps.PlanUFWEnable).
+func (r *Reading) noSSHWords() {
+	login, ok := report(r.Reports, ssh.Login{}.ID())
+	if !ok || login.Status.State != engine.NotApplicable || login.Status.Detail != ssh.DetailNoServer {
+		return
+	}
+	for i, rw := range r.Rows {
+		if rw.ID == fwctl.ID && rw.Kind == Planned && rw.Words == wordsEnableSSH {
+			r.Rows[i].Words = wordsEnableNoSSH
+		}
+	}
 }
 
 // afterFirewall is decision 5 (a): where Enable and root login off both

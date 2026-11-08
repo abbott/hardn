@@ -203,6 +203,7 @@ var sentinels = map[string]error{
 	"packages.ErrOtherPackages":       packages.ErrOtherPackages,
 	"packages.ErrVerify":              packages.ErrVerify,
 	"ufw.ErrBadProfile":               ufw.ErrBadProfile,
+	"ufw.ErrBadInterface":             ufw.ErrBadInterface,
 	"ufw.ErrBlocks":                   ufw.ErrBlocks,
 	"ufw.ErrEnabledMismatch":          ufw.ErrEnabledMismatch,
 	"ufw.ErrInactive":                 ufw.ErrInactive,

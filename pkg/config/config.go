@@ -19,6 +19,9 @@ type UfwAppProfile struct {
 	Title       string   `yaml:"title"`
 	Description string   `yaml:"description"`
 	Ports       []string `yaml:"ports"`
+	// Interface limits the profile's rule to one network interface, such
+	// as tailscale0; "" (left out) is every interface.
+	Interface string `yaml:"interface,omitempty"`
 }
 
 // defaultLogFile is the log hardn writes, and logFile's default.
@@ -57,6 +60,10 @@ type Config struct {
 	// Firewall Configuration
 	// UfwAppProfiles represents UFW application profiles
 	UfwAppProfiles []UfwAppProfile `yaml:"ufwAppProfiles"`
+	// UfwTrustedInterfaces are network interfaces everything arriving on
+	// gets through ufw, such as tailscale0 ("ufw allow in on <name>"; the
+	// maintainer, 2026-11-07). Left out when there are none.
+	UfwTrustedInterfaces []string `yaml:"ufwTrustedInterfaces,omitempty"`
 
 	// Feature Toggles
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`

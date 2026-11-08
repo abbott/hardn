@@ -85,12 +85,15 @@ type Action uint8
 const (
 	// ActionNone is the status list's: Plan is engine.ErrNotMigrated, with
 	// no change.
-	ActionNone          Action = iota
-	ActionInstall              // the ufw package, through apt-get or apk (decision 1)
-	ActionEnable               // let SSH through, deny by default, start ufw, start it at boot
-	ActionDisable              // ufw disable (decision 6)
-	ActionSaveProfiles         // hardn.yml's ufwAppProfiles, as in.Config has them
-	ActionApplyProfiles        // hardn's profile file, and a rule for each profile
+	ActionNone            Action = iota
+	ActionInstall                // the ufw package, through apt-get or apk (decision 1)
+	ActionEnable                 // let SSH through, deny by default, start ufw, start it at boot
+	ActionDisable                // ufw disable (decision 6)
+	ActionSaveProfiles           // hardn.yml's ufwAppProfiles, as in.Config has them
+	ActionApplyProfiles          // hardn's profile file, and a rule for each profile
+	ActionSaveInterfaces         // hardn.yml's ufwTrustedInterfaces, as in.Config has them
+	ActionApplyInterfaces        // "ufw allow in on <interface>" for each trusted interface
+	ActionInstallSS              // the iproute2 package, which brings ss, through apt-get or apk
 )
 
 // Incoming is Figma's Firewall row: the host's firewall for incoming

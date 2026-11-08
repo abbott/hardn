@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/host/ufw"
 	fwscreen "github.com/abbott/hardn/pkg/screens/firewall"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -27,7 +28,7 @@ const (
 	disableWarns  = "This stops the firewall and leaves every port open."
 	removeNotice  = "This takes the profile out of hardn.yml. A rule already in ufw stays."
 	notLoaded     = "No hardn.yml was read, so there is none to save to. Create /etc/hardn/hardn.yml, then try again."
-	applyInactive = "ufw isn't running, so hardn saves no rule for it. Enable the firewall, then apply."
+	applyInactive = "ufw isn't running, so hardn saves no rule for it. Enable the firewall (Firewall, option 1), then apply."
 	cantConfirm   = "Can't confirm with the hostname:"
 	planned       = "No actual changes were made"
 )
@@ -39,8 +40,8 @@ const (
 // nothing written, no engine made, nothing planned.
 func TestScreen(t *testing.T) {
 	const (
-		p2 = ", 2 Application Profiles"
-		d3 = ", 3 Disable firewall"
+		p2 = ", 2 Application Profiles, 3 Trusted Interfaces"
+		d3 = ", 4 Disable firewall"
 	)
 	for _, tt := range []struct {
 		host, status, items string
@@ -190,7 +191,6 @@ func TestRefusedBeforeAsking(t *testing.T) {
 		"alpine-stock":             "hardn can't find ufw in apk's package lists. Check the network and the community repository, run apk update, then try again.",
 		"apt-not-found":            "hardn can't find ufw in apt's package lists. Run apt-get update, then try again.",
 		"apt-removes":              "Installing ufw would also change other packages: nftables. Install it by hand, then try again.",
-		"no-ss":                    "hardn can't tell which ports SSH uses: ss isn't installed. Install iproute2, then try again.",
 		"ss-failed":                "hardn can't tell which ports SSH uses: ss failed. Check that it runs, then try again.",
 		"garbled":                  "hardn can't read ufw's state. Check ufw status verbose, then try again.",
 		"status-fails":             "hardn can't read ufw's state. Check ufw status verbose, then try again.",
@@ -238,6 +238,63 @@ func TestInstall(t *testing.T) {
 	n := len(h.Calls())
 	if p := play(h, h, cfg, false, "1", "n", "0"); p.err != nil || !h.missing || len(writes(h, n)) > 0 {
 		t.Errorf("declined: Run = %v, installed %t, wrote %v", p.err, !h.missing, writes(h, n))
+	}
+}
+
+// TestEnableSS: ufw installed, not running, and no ss: item 1 is "Enable
+// firewall", "Installs iproute2, then starts ufw", marked lockout-risk;
+// chosen, it installs iproute2, its review saying why, y/N, then goes on to
+// Enable's own change, the hostname typed, the timer armed. Declined at the
+// install, nothing changes and Enable is not asked.
+func TestEnableSS(t *testing.T) {
+	h, cfg := screenHost(t, "no-ss")
+	p := play(h, h, cfg, false, "1", "y", hostName, "0")
+	if p.err != nil || p.unread != 0 || len(p.runs) != 2 || h.noSS || !h.active || !armed(h, 0) {
+		t.Fatalf("Run = %v, %d unread, %d runs, ss missing %t, active %t:\n%s", p.err, p.unread, len(p.runs), h.noSS, h.active, p.out)
+	}
+	if w := inOrder(p.out, "1) Enable firewall", "Installs iproute2, then starts ufw", "Enable Firewall #",
+		"hardn needs ss, from iproute2, to check which ports SSH uses before it starts ufw.", "Package iproute2", "Install iproute2? [y/N",
+		"Enable Firewall #", "Enable the firewall?", "Type the hostname", "hardn confirm", "UFW Firewall Configuration #", "Status Active"); w != "" {
+		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
+	}
+	if !strings.Contains(strings.Join(writes(h, 0), "\n"), "run apt-get install -y iproute2") {
+		t.Errorf("apt-get install -y iproute2 not run: %v", writes(h, 0))
+	}
+	h, cfg = screenHost(t, "no-ss")
+	n := len(h.Calls())
+	if p := play(h, h, cfg, false, "1", "n", "0"); p.err != nil || !h.noSS || h.active || len(writes(h, n)) > 0 || strings.Contains(p.out, "Enable the firewall?") {
+		t.Errorf("declined: Run = %v, ss missing %t, active %t, wrote %v:\n%s", p.err, h.noSS, h.active, writes(h, n), p.out)
+	}
+	// The hostname Enable will ask can't be read: said before the install, nothing installed.
+	h, cfg = screenHost(t, "no-ss")
+	if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
+		t.Fatal(err)
+	}
+	n = len(h.Calls())
+	if p := play(h, h, cfg, false, "1", "0"); p.err != nil || !strings.Contains(flat(p.out), cantConfirm) || p.engines != 0 || !h.noSS || len(writes(h, n)) > 0 {
+		t.Errorf("no hostname: Run = %v, %d engines, ss missing %t:\n%s", p.err, p.engines, h.noSS, p.out)
+	}
+}
+
+// TestInstallSS: ufw running and no ss: item 1 is Install iproute2, "Needed to
+// check that ufw lets SSH through", y/N, by the host's own tool; the screen drawn
+// again with ss there, item 1 no longer the install.
+func TestInstallSS(t *testing.T) {
+	h, cfg := screenHost(t, "no-ss-active")
+	p := play(h, h, cfg, false, "1", "y", "0")
+	if p.err != nil || len(p.runs) != 1 || p.runs[0].Err != nil || h.noSS {
+		t.Fatalf("Run = %v, runs %d, ss missing %t:\n%s", p.err, len(p.runs), h.noSS, p.out)
+	}
+	if w := inOrder(p.out, "1) Install iproute2", "Needed to check SSH gets through", "Install iproute2 #", "Package iproute2", "Install iproute2? [y/N", "UFW Firewall Configuration #"); w != "" {
+		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
+	}
+	if screens := mainScreens(p.out); len(screens) < 2 || strings.Contains(screens[len(screens)-1], "Install iproute2") {
+		t.Errorf("item 1 is still the install once ss is there:\n%s", p.out)
+	}
+	// ufw stopped but its state unread: Enable would refuse, so item 1 doesn't promise it.
+	h, cfg = screenHost(t, "no-ss")
+	if p := play(unreadable{h, ufw.DefaultsFile}, h, cfg, false, "0"); p.err != nil || !strings.Contains(flat(p.out), "1) Install iproute2 Needed to check SSH gets through") || strings.Contains(p.out, "then starts ufw") {
+		t.Errorf("ufw unread: Run = %v:\n%s", p.err, p.out)
 	}
 }
 
@@ -335,7 +392,7 @@ func TestHostnameAtTheQuestion(t *testing.T) {
 // TestDisable: Disable, from item 1 or beside a repair, plain y/N under its
 // warning; ufw stopped, its rules kept; n changes nothing.
 func TestDisable(t *testing.T) {
-	for host, key := range map[string]string{"active22": "1", "lockout": "3", "moved-2230": "3"} {
+	for host, key := range map[string]string{"active22": "1", "lockout": "4", "moved-2230": "4"} {
 		h, cfg := screenHost(t, host)
 		p := play(h, h, cfg, false, key, "y", "0")
 		if p.err != nil || len(p.runs) != 1 || p.runs[0].Err != nil || h.active || len(h.rules) == 0 {
@@ -356,17 +413,38 @@ func TestDisable(t *testing.T) {
 // place, the configuration adopting it, the profiles' screen drawn again with it.
 func TestAdd(t *testing.T) {
 	h, cfg := screenHost(t, "profiles")
-	p := play(h, h, cfg, false, "2", "1", "-web", "all", "webserver", "Web", "", "Web Server", "", "A web server", "99999/tcp", "80/tcp|443/tcp", "80", "8080/tcp, 8443/tcp", "y", "0", "0")
+	p := play(h, h, cfg, false, "2", "1", "-web", "all", "webserver", "Web", "", "Web Server", "", "A web server", "99999/tcp", "80/tcp|443/tcp", "80", "8080/tcp, 8443/tcp", "eth0:1", "", "y", "0", "0")
 	if p.err != nil || p.unread != 0 || len(p.runs) != 1 || p.runs[0].Err != nil {
 		t.Fatalf("Run = %v, %d unread, runs %+v:\n%s", p.err, p.unread, p.runs, p.out)
 	}
 	if w := inOrder(p.out, "Manage UFW Application Profiles #", "Add Profile #", "Profile name", "Start it with a letter or digit", "It keeps all and numbers for itself.", "A profile with this name already exists.",
 		"Give the profile a title.", "Give the profile a description.", "Give each port, 1 to 65535", "Give each port", "Give each port",
-		"Web 8080/tcp, 8443/tcp", "Add Web? [y/N", "Manage UFW Application Profiles #", "Web 8080/tcp, 8443/tcp Not applied"); w != "" {
+		"Interface", "Such as tailscale0. Empty for every interface.", "ufw can't use that interface name.", "Web 8080/tcp, 8443/tcp", "Add Web? [y/N", "Manage UFW Application Profiles #", "Web 8080/tcp, 8443/tcp Not applied"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}
 	if len(cfg.UfwAppProfiles) != 3 || cfg.UfwAppProfiles[2].Name != "Web" || !strings.Contains(content(h), "name: Web\n") {
 		t.Errorf("adopted %+v; hardn.yml:\n%s", cfg.UfwAppProfiles, content(h))
+	}
+}
+
+// TestTrust: the trusted interfaces' Add, from item 3: a name ufw would not take
+// refused, one trusted already a warning; the review says what it lets through;
+// then the save, hardn.yml's key written; then Apply on an active ufw runs "ufw
+// allow in on <interface>", and the row says Applied.
+func TestTrust(t *testing.T) {
+	h, cfg := screenHost(t, "active22")
+	cfg.UfwTrustedInterfaces = []string{"wg0"}
+	p := play(h, h, cfg, false, "3", "1", "eth0:1", "wg0", "tailscale0", "y", "3", "y", "0", "0")
+	if p.err != nil || p.unread != 0 {
+		t.Fatalf("Run = %v, %d unread:\n%s", p.err, p.unread, p.out)
+	}
+	if w := inOrder(p.out, "Manage UFW Trusted Interfaces #", "Add Interface #", "Interface", "Such as tailscale0.", "ufw can't use that interface name.",
+		"This interface is trusted already.", "Everything arriving on this interface gets through ufw", "tailscale0 Every port", "Trust tailscale0? [y/N",
+		"Apply the interfaces? [y/N", "tailscale0 Every port Applied"); w != "" {
+		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
+	}
+	if !slices.Equal(cfg.UfwTrustedInterfaces, []string{"wg0", "tailscale0"}) || !slices.ContainsFunc(h.rules, func(r fwRule) bool { return r.iface == "tailscale0" }) {
+		t.Errorf("adopted %q; rules %+v", cfg.UfwTrustedInterfaces, h.rules)
 	}
 }
 
@@ -416,7 +494,8 @@ func TestApply(t *testing.T) {
 	}
 	h, cfg = screenHost(t, "profiles-inactive")
 	n := len(h.Calls())
-	if p := play(h, h, cfg, false, "2", "3", "0", "0"); p.err != nil || p.engines != 0 || !strings.Contains(flat(p.out), applyInactive) || len(writes(h, n)) > 0 {
+	if p := play(h, h, cfg, false, "2", "3", "0", "0"); p.err != nil || p.engines != 0 || !strings.Contains(flat(p.out), applyInactive) || len(writes(h, n)) > 0 ||
+		!strings.Contains(flat(p.out), "3) Apply profiles Enable the firewall first") {
 		t.Errorf("inactive: Run = %v, %d engines:\n%s", p.err, p.engines, p.out)
 	}
 }
@@ -445,9 +524,9 @@ func TestPlanOnly(t *testing.T) {
 		host  string
 		lines []string
 	}{
-		{"debian13", []string{"1", "0"}}, {"ubuntu2604", []string{"1", "0"}}, {"active22", []string{"1", "0"}}, {"lockout", []string{"3", "0"}},
+		{"debian13", []string{"1", "0"}}, {"ubuntu2604", []string{"1", "0"}}, {"active22", []string{"1", "0"}}, {"lockout", []string{"4", "0"}},
 		{"alpine-runlevel", []string{"1", "0"}},
-		{"profiles", []string{"2", "1", "Web", "Web Server", "A web server", "80/tcp", "0", "0"}},
+		{"profiles", []string{"2", "1", "Web", "Web Server", "A web server", "80/tcp", "", "0", "0"}},
 		{"profiles", []string{"2", "2", "1", "0", "0"}}, {"profiles", []string{"2", "3", "0", "0"}},
 	} {
 		h, cfg := screenHost(t, tt.host)
@@ -502,9 +581,9 @@ func TestProxmox(t *testing.T) {
 // every host and the profiles' screen at 80x24 and at 80x40, in Unicode and
 // ASCII: as many lines at either height, the prompt on its last.
 func TestHeights(t *testing.T) {
-	want := map[string]int{"debian13": 20, "ubuntu2604": 29, "active22": 29, "hardened": 29, "allow-policy": 30, "lockout": 31,
-		"lockout-at-start": 29, "allowlist": 31, "blocklist": 33, "edit-2230": 30, "moved-2230": 31, "denied": 30, "alpine324": 20, "alpine-stock": 21,
-		"alpine-runlevel": 30, "unit-off": 30, "pve9": 17, "pve9-drop": 17, "profiles": 34, "sub-profiles": 16}
+	want := map[string]int{"debian13": 20, "ubuntu2604": 30, "active22": 30, "hardened": 30, "allow-policy": 31, "lockout": 32,
+		"lockout-at-start": 30, "allowlist": 32, "blocklist": 34, "edit-2230": 31, "moved-2230": 32, "denied": 31, "alpine324": 20, "alpine-stock": 21,
+		"alpine-runlevel": 31, "unit-off": 31, "pve9": 17, "pve9-drop": 17, "profiles": 35, "sub-profiles": 16} // ufw installed: item 3, Trusted Interfaces, a line more
 	for name, lines := range want {
 		host, keys, at, title := name, []string{"0"}, 0, "Firewall Configuration"
 		if name == "sub-profiles" {
@@ -584,7 +663,7 @@ func TestNavigation(t *testing.T) {
 		{"debian13", nil, prompt.ErrAborted}, {"debian13", []string{"1"}, prompt.ErrAborted}, {"ubuntu2604", []string{"1"}, prompt.ErrAborted},
 		{"profiles", []string{"2"}, prompt.ErrAborted}, {"profiles", []string{"2", "1"}, prompt.ErrAborted}, {"profiles", []string{"2", "2"}, prompt.ErrAborted},
 		{"pve9", nil, prompt.ErrAborted},
-		{"debian13", []string{"9", "2", "0"}, nil}, {"active22", []string{"3", "2", "2", "3", "0", "0"}, nil}, {"profiles", []string{"2", "1", "0", "0", "0"}, nil},
+		{"debian13", []string{"9", "2", "0"}, nil}, {"active22", []string{"9", "2", "2", "3", "0", "0"}, nil}, {"profiles", []string{"2", "1", "0", "0", "0"}, nil},
 	} {
 		h, cfg := screenHost(t, tt.host)
 		n := len(h.Calls())

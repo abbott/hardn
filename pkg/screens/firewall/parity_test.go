@@ -552,14 +552,15 @@ var fieldWords = map[string][]string{
 }
 
 // keys are what a step types on the Firewall screen to reach its action, read
-// from r: item 1 for Install and Enable, and Disable where it is item 1, else 3
-// beside it; 2, then the sub-screen's item, for a save or Apply. Add's answers
+// from r: item 1 for Install and Enable, and Disable where it is item 1, else 4
+// beside it (3 is Trusted Interfaces, since 2026-11-07); 2, then the sub-screen's item, for a save or Apply. Add's answers
 // follow its 1, up to the field that refuses one, then a 0 for each field back
-// out of the form.
+// out of the form; the interface, optional, follows the ports (an empty line,
+// every interface).
 func keys(r firewall.Reading, s step) []string {
 	switch {
 	case s.action == firewall.ActionDisable && r.First != firewall.ItemDisable:
-		return []string{"3"}
+		return []string{"4"}
 	case s.action == firewall.ActionApplyProfiles:
 		return []string{"2", "3"}
 	case s.action == firewall.ActionSaveProfiles && s.add == nil:
@@ -567,10 +568,13 @@ func keys(r firewall.Reading, s step) []string {
 	case s.action == firewall.ActionSaveProfiles:
 		p := s.add
 		answers := []string{p.Name, p.Title, p.Description, strings.Join(p.Ports, ",")}
-		if s.field == nameTitle {
+		switch s.field {
+		case nameTitle:
 			answers = []string{p.Name, "0"}
-		} else if s.field == portsTitle {
+		case portsTitle:
 			answers = append(answers, "0", "0", "0", "0") // back a field each, out of the form at the first
+		default:
+			answers = append(answers, p.Interface) // optional: an empty line is every interface
 		}
 		return append([]string{"2", "1"}, answers...)
 	}
@@ -872,11 +876,13 @@ func runCell(t *testing.T, c parity.Cell) parity.NewRun {
 	}
 	if rw.flag {
 		live := flagRun(t, c, rw, false)
-		screenSide := rw
-		screenSide.steps = []step{enable}
-		s, _ := screenRun(t, c, screenSide)
-		if a, b := sameAs(live, s); a != b {
-			t.Errorf("-w left\n%s\nthe screen's Enable left\n%s", a, b)
+		if !rw.st.noSS { // with no ss the screen offers Install iproute2 in Enable's place (TestInstallSS)
+			screenSide := rw
+			screenSide.steps = []step{enable}
+			s, _ := screenRun(t, c, screenSide)
+			if a, b := sameAs(live, s); a != b {
+				t.Errorf("-w left\n%s\nthe screen's Enable left\n%s", a, b)
+			}
 		}
 		dryRun := flagRun(t, c, rw, true)
 		if dryRun.Wrote() || dryRun.Journal || len(dryRun.Backups) > 0 || len(dryRun.Actions) > 0 || len(dryRun.Dirs) > 0 {
@@ -886,7 +892,11 @@ func runCell(t *testing.T, c parity.Cell) parity.NewRun {
 		if code, _, _ := strings.Cut(dryRun.Refusal, ", before asking"); code != "" {
 			d = "refused (" + code + "): nothing written"
 		}
-		return parity.NewRun{Live: live, Dry: d, Via: "-w's new form: Incoming{ActionEnable} through the engine as runControls builds it, decision 4's question to come in unit (d); the screen's Enable leaves the same"}
+		via := "-w's new form: Incoming{ActionEnable} through the engine as runControls builds it, decision 4's question to come in unit (d); the screen's Enable leaves the same"
+		if rw.st.noSS {
+			via = "-w's new form: Incoming{ActionEnable} through the engine as runControls builds it; the screen's Enable firewall installs iproute2 first (2026-11-07)"
+		}
+		return parity.NewRun{Live: live, Dry: d, Via: via}
 	}
 	live, via := screenRun(t, c, rw)
 	if len(rw.steps) == 1 && rw.steps[0].action == firewall.ActionEnable && !rw.st.dry {
@@ -1002,7 +1012,7 @@ var fwTable = []tie{
 	{[]string{"disable"}, deb, "refusal", "defect 4; decision 6", "the stub; now ufw disable", false},
 	{[]string{"fails"}, deb, "refusal", seq, "the command's exit status, with ufw left off; now its code, rolled back", false},
 	{[]string{"no-ufw-item2"}, deb, "refusal", "Made here (origin/main's item 2 goes)", "hidden item 2 still ran and failed; it is gone: with no ufw, key 2 is refused, nothing planned", false},
-	{[]string{"w-stock"}, alpine, "refusal", "V9; decision 1; decision 2; §6's words", "no ss: Enable refuses until iproute2 is there, as Install does not bring it", false},
+	{[]string{"w-stock"}, alpine, "refusal", "V9; decision 1; decision 2; §6's words", "no ss: -w refuses until iproute2 is there, as Install does not bring it; the screen's Enable firewall installs iproute2 first (2026-11-07)", false},
 	{[]string{"pve-item1", "pve-item2"}, pveOnly, "refusal", "decision 7", "on origin/main ufw ran here (the golden's NOTE, V10); the trunk's P0.8 gate refuses after the key; now the screen is read-only: the key is refused, nothing planned", false},
 	{[]string{"w"}, pveOnly, "refusal", "V10; decision 7; control-firewall.md: code UFW_NOT_APPLICABLE" + eng, "on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now the plan refuses", false},
 	{[]string{"item2-profile"}, pveOnly, "refusal", "V10; decision 7", "on origin/main ufw ran (V10); the trunk's P0.8 gate refuses; now the screen is read-only: key 1 is refused, nothing planned", false},

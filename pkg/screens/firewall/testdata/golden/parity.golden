@@ -551,7 +551,7 @@ origin/main: menu/firewall_item1_active_yes_stub.golden ()
   start: Debian 13; ufw active, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: stub: isn't yet implemented
-new path: the Firewall screen, typed 3, y
+new path: the Firewall screen, typed 4, y
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   run ufw disable
   backup: none; journal: journalled first; findings: none
@@ -580,7 +580,7 @@ host: ufw active, no rules, sshd on 2230 (forced: the fixture's start, with sshd
 origin/main: menu/firewall_item1_active_no.golden ()
   start: Debian 13; ufw active, no rules; cfg.SshPort 2230; 0 profiles; dryRun false
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
-new path: the Firewall screen, typed 3, n
+new path: the Firewall screen, typed 4, n
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  refusal: none
 agree  files: none
@@ -701,7 +701,7 @@ origin/main: menu/firewall_profiles_add.golden ()
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   hardn.yml: none loaded; the configuration made in memory, the fixture's settings
   write ./hardn.yml (mode not recorded), in place
-new path: the Firewall screen, typed 2, 1, Api, Internal API, Internal service, 8080/tcp,8443/tcp, y
+new path: the Firewall screen, typed 2, 1, Api, Internal API, Internal service, 8080/tcp,8443/tcp, , y
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
   write /etc/hardn/hardn.yml 0600, atomic
     + ufwAppProfiles:
@@ -1022,7 +1022,7 @@ host: ufw active, under plan only (forced: the fixture's start, with sshd as the
 origin/main: menu/firewall_item1_active_yes_dry_run.golden ()
   start: Debian 13; ufw active, no rules; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
-new path: the Firewall screen under plan only, typed 3
+new path: the Firewall screen under plan only, typed 4
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  refusal: none
 agree  files: none
@@ -1072,7 +1072,7 @@ origin/main: menu/firewall_profiles_add_plan_only_refused.golden ()
   start: Debian 13; ufw inactive, no rules; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> ok; ufw status -> ok; which ufw -> ok; ufw status -> ok
   refused: refused: Not available in plan only.
-new path: the Firewall screen under plan only, typed 2, 1, Api, Internal API, Internal service, 8080/tcp,8443/tcp
+new path: the Firewall screen under plan only, typed 2, 1, Api, Internal API, Internal service, 8080/tcp,8443/tcp, 
   probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; systemctl is-enabled ufw.service
 agree  files: none
 agree  directories: none
@@ -1641,7 +1641,7 @@ origin/main: ops/configure_secure_firewall/alpine.golden (V1, V9)
   run ufw allow 2230/tcp comment "SSH access"
   run sh -c "yes | ufw enable"
   hardn -n: refused, exit status 2: hardn: -n/--dry-run only previews changes, so it can't be combined with -w/--configure-ufw, which applies them. Nothing was changed.
-new path: -w's new form: Incoming{ActionEnable} through the engine as runControls builds it, decision 4's question to come in unit (d); the screen's Enable leaves the same
+new path: -w's new form: Incoming{ActionEnable} through the engine as runControls builds it; the screen's Enable firewall installs iproute2 first (2026-11-07)
   probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln
   refused: FIREWALL_SS_NOT_INSTALLED, before asking
 agree  files: none
@@ -1652,7 +1652,7 @@ agree  at boot: not changed
 agree  packages: none
 agree  asks: nothing
 differ refusal: none | FIREWALL_SS_NOT_INSTALLED, before asking
-       V9; decision 1; decision 2; §6's words: no ss: Enable refuses until iproute2 is there, as Install does not bring it
+       V9; decision 1; decision 2; §6's words: no ss: -w refuses until iproute2 is there, as Install does not bring it; the screen's Enable firewall installs iproute2 first (2026-11-07)
 differ commands: ufw default deny incoming, ufw default allow outgoing, ufw disable, ufw reset, ufw allow 2230/tcp comment "SSH access", sh -c "yes | ufw enable" | none
        V9; decision 1; decision 2: no ss, so Enable refuses and nothing runs
 differ ufw after: active | inactive

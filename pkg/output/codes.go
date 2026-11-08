@@ -304,6 +304,7 @@ var errorCodes = []Entry{
 	is("UFW_ENABLED_MISMATCH", ufw.ErrEnabledMismatch),
 	is("UFW_INACTIVE", ufw.ErrInactive),
 	is("UFW_BAD_PROFILE", ufw.ErrBadProfile),
+	is("UFW_BAD_INTERFACE", ufw.ErrBadInterface),
 
 	// Packages (pkg/host/packages): an OtherPackagesError is its sentinel's.
 	is("PACKAGE_NO_TOOL", packages.ErrNoTool),

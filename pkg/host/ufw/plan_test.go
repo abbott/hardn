@@ -243,6 +243,48 @@ func TestPlanForRefuses(t *testing.T) {
 	}
 }
 
+// TestPlanForNoSSH: with no SSH server (Input.NoSSH) there is no listener
+// to let through: Enable sets the policy and starts ufw with no allow but
+// Keep's, its saved rules standing; listeners given with NoSSH are refused
+// as a contradiction, and without NoSSH no listener is still refused.
+func TestPlanForNoSSH(t *testing.T) {
+	stateOf := func(setup func(m *model)) func(t *testing.T) ufw.State {
+		return func(t *testing.T) ufw.State {
+			m := newModel(t)
+			if setup != nil {
+				setup(m)
+			}
+			return read(t, m)
+		}
+	}
+	for _, tc := range []struct {
+		name string
+		keep []uint16
+		m    func(*model)
+		want []string
+	}{
+		{"inactive", nil, nil, []string{"ufw --force enable"}},
+		{"inactive, default allow", nil, func(m *model) { m.incoming = "allow" }, []string{"ufw default deny incoming", "ufw --force enable"}},
+		{"a session's port kept", []uint16{22}, nil, []string{"ufw allow 22/tcp", "ufw --force enable"}},
+		{"active, set", nil, func(m *model) { m.active = true }, nil},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, NoSSH: true, Keep: tc.keep, State: stateOf(tc.m)(t),
+				Desired: ufw.Desired{Enable: true, Incoming: ufw.PolicyDeny}})
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got := argvs(p.Steps); !slices.Equal(got, tc.want) {
+				t.Errorf("steps %q, want %q", got, tc.want)
+			}
+			noDisableOrReset(t, p)
+		})
+	}
+	if _, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, NoSSH: true, Listeners: stock22(), State: stateOf(nil)(t), Desired: hardening}); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("listeners with no SSH server: %v, want fs.ErrInvalid", err)
+	}
+}
+
 // TestPlanForProxmox: never touched (brief §2; V10), whatever is asked.
 func TestPlanForProxmox(t *testing.T) {
 	p, err := ufw.PlanFor(ufw.Input{Proxmox: detect.Proxmox{Installed: detect.Yes}, Desired: hardening, Add: []uint16{2230}})

@@ -18,10 +18,11 @@ import (
 type Item uint8
 
 const (
-	ItemNone    Item = iota // Proxmox VE: Return alone
-	ItemInstall             // no ufw
-	ItemEnable              // anything not set: Enable's plan, or its refusal
-	ItemDisable             // active and set
+	ItemNone      Item = iota // Proxmox VE: Return alone
+	ItemInstall               // no ufw
+	ItemEnable                // anything not set: Enable's plan, or its refusal
+	ItemDisable               // active and set
+	ItemInstallSS             // ufw installed, ss not: Install iproute2 (the maintainer, 2026-11-07)
 )
 
 // Does is what Enable's plan does, so that a screen says item 1's words without
@@ -40,8 +41,10 @@ type Reading struct {
 	// Proxmox is why it is not established whether the host runs Proxmox VE;
 	// nothing below it is read then.
 	Proxmox error
-	// Profiles are hardn.yml's as loaded, whether ufw reads them or not.
-	Profiles []config.UfwAppProfile
+	// Profiles are hardn.yml's as loaded, whether ufw reads them or not;
+	// Interfaces, its trusted interfaces, likewise.
+	Profiles   []config.UfwAppProfile
+	Interfaces []string
 	// On Proxmox VE: pve-firewall's reading, and ENABLED from ufw.conf
 	// (decision 7's warning row), with no ufw call.
 	PVE           pve.Firewall
@@ -57,11 +60,12 @@ type Reading struct {
 	BootUnit string
 	Sockets  Sockets
 	// First is what item 1 does; DisableBeside, that Disable has an item of its
-	// own: ufw is active, and item 1 is not Disable.
+	// own: ufw is active, and item 1 is Enable or Install iproute2.
 	First         Item
 	DisableBeside bool
 	// Plan and PlanErr are what item 1 plans, its refusal, read only where
-	// First is ItemInstall or ItemEnable; Does, what Enable's plan does.
+	// First is ItemInstall, ItemInstallSS or ItemEnable; Does, what Enable's
+	// plan does.
 	Plan    []engine.Change
 	PlanErr error
 	Does    Does
@@ -75,7 +79,7 @@ type Reading struct {
 func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Config, session revert.Session) Reading {
 	var r Reading
 	if cfg != nil {
-		r.Profiles = cfg.UfwAppProfiles
+		r.Profiles, r.Interfaces = cfg.UfwAppProfiles, cfg.UfwTrustedInterfaces
 	}
 	if r.OnPVE, r.Proxmox = pve.Applies(f.Proxmox); r.Proxmox != nil {
 		r.First, r.PlanErr = ItemEnable, applies(f.Proxmox)
@@ -92,7 +96,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 		r.Boot, r.BootUnit = ufw.ReadBootUnit(ctx, sys, f)
 	}
 	r.First = r.first()
-	r.DisableBeside = r.First == ItemEnable && r.State.Status.Known && r.State.Status.Active
+	r.DisableBeside = (r.First == ItemEnable || r.First == ItemInstallSS) && r.State.Status.Known && r.State.Status.Active
 	in := engine.Input{Facts: f, Config: cfg, Session: session}
 	switch r.First {
 	case ItemInstall:
@@ -100,16 +104,21 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	case ItemEnable:
 		r.Plan, r.PlanErr = Incoming{Action: ActionEnable}.Plan(ctx, sys, in)
 		r.Does = does(r.Plan)
+	case ItemInstallSS:
+		r.Plan, r.PlanErr = Incoming{Action: ActionInstallSS}.Plan(ctx, sys, in)
 	}
 	return r
 }
 
-// first is item 1: Install with no ufw; Disable once ufw is active and set;
-// Enable otherwise.
+// first is item 1: Install with no ufw; Install iproute2 with ufw and no ss,
+// which Enable needs to read the bound sockets (Sockets.NoSS); Disable once
+// ufw is active and set; Enable otherwise.
 func (r Reading) first() Item {
 	switch {
 	case r.StateErr == nil && !r.State.Installed:
 		return ItemInstall
+	case r.Sockets.NoSS:
+		return ItemInstallSS
 	case r.set():
 		return ItemDisable
 	}
@@ -118,10 +127,10 @@ func (r Reading) first() Item {
 
 // set: ufw is active and set: it refuses what no rule accepts, lets every SSH
 // listener, known to be what accepts SSH, through (an allowlist and a blocklist
-// count), and starts at the next boot.
+// count), or there is none (Sockets.NoServer), and starts at the next boot.
 func (r Reading) set() bool {
 	s := r.State.Status
-	if r.StateErr != nil || !s.Known || len(s.Bad) > 0 || !s.Active || !r.State.Enabled || r.Boot != detect.Yes || !r.Sockets.Established() ||
+	if r.StateErr != nil || !s.Known || len(s.Bad) > 0 || !s.Active || !r.State.Enabled || r.Boot != detect.Yes || !r.Sockets.Established() && !r.Sockets.NoServer ||
 		s.Incoming != ufw.PolicyDeny && s.Incoming != ufw.PolicyReject {
 		return false
 	}
@@ -132,8 +141,17 @@ func (r Reading) set() bool {
 // shows, else under what its saved rules do once it starts.
 func (r Reading) Coverage() []ufw.Coverage { return verdicts(r.State, r.Sockets) }
 
-// Applied reports whether ufw's saved rules hold application name's rule.
-func (r Reading) Applied(name string) bool { return ufw.HasApp(r.State.Rules, name) }
+// InterfaceApplied reports whether ufw's saved rules let everything on iface
+// through (ufw.InterfaceAllowed).
+func (r Reading) InterfaceApplied(iface string) bool {
+	return ufw.InterfaceAllowed(r.State, iface)
+}
+
+// Applied reports whether ufw's saved rules hold profile p's rule, on its
+// interface or on every one as it says (ufw.AppApplied).
+func (r Reading) Applied(p config.UfwAppProfile) bool {
+	return ufw.AppApplied(r.State, p.Name, p.Interface)
+}
 
 // does says what Enable's plan does, from its commands.
 func does(plan []engine.Change) Does {

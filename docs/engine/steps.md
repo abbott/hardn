@@ -97,7 +97,7 @@
 
    **Its journal:** `Plan.PreUndo()` before it runs; once it ran, error or not, `Report.Undo`, which comes from ufw's answers, so an allow ufw kept is not deleted. Both are `run` steps, `why: firewall`. `ufw.Plan.Findings` ride on the change, or on the write when ufw has nothing to do (§2.23).
 
-   **`PlanUFWEnable`** is p2drive's `ufw-enable` (it needs sshd's listeners established, `ufw.ErrListenersUnknown`).
+   **`PlanUFWEnable`** is p2drive's `ufw-enable` (it needs sshd's listeners established, `ufw.ErrListenersUnknown`). *Since 2026-11-07*, where sshd's read fails for want of sshd (`sshd.NoSSHD`), the host is established to have no SSH server (`sshd.NoServer`) and `ss` shows nothing on 22 (`NothingOn22`), it plans with no listener (`ufw.Input.NoSSH`): a remote session's port alone let through, lockout-risk as ever ([check-firewall.md](check-firewall.md), [ufw.md](../safety/ufw.md) §2.5).
 9. **The clean-up after the confirmation is a change of its own** (`PlanCleanup`; brief 2.3 step 5: "Confirm the change from a new connection, then remove the old port rule"). Its input is `Cleanup{Drop, Firewall}`. `CleanupOf(journal)` reads it from a confirmed change's journal (`confirmed.json` keeps the last one, [revert.md](../safety/revert.md) §2.5):
    - `Drop`: the ports of the listeners its reload restores, which are what sshd listened on before the change, less any `ConfirmVia` has;
    - `Firewall`: its `ufw delete allow` undo commands.

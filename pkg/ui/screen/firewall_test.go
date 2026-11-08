@@ -37,7 +37,7 @@ func TestFirewallHeights(t *testing.T) {
 		vm    SubMenu
 		lines int
 	}{
-		"lockout": {fwTestLockout.SubMenu(), 31}, "no ufw": {fwTestNoUFW.SubMenu(), 20}, "proxmox": {fwTestPVE.SubMenu(), 17},
+		"lockout": {fwTestLockout.SubMenu(), 32}, "no ufw": {fwTestNoUFW.SubMenu(), 20}, "proxmox": {fwTestPVE.SubMenu(), 17},
 		"profiles": {fwTestProfiles.SubMenu(), 16}, "no profiles": {fwTestNoProfiles.SubMenu(), 13},
 	}
 	for name, d := range draws {
@@ -70,13 +70,15 @@ func TestFirewallItems(t *testing.T) {
 		vm   SubMenu
 		want string
 	}{
-		{"lockout", fwTestLockout.SubMenu(), "1 Let SSH through, 2 Application Profiles, 3 Disable firewall"},
+		{"lockout", fwTestLockout.SubMenu(), "1 Let SSH through, 2 Application Profiles, 3 Trusted Interfaces, 4 Disable firewall"},
 		{"no ufw", fwTestNoUFW.SubMenu(), "1 Install UFW"},
-		{"disable", Firewall{First: FirewallDisableFirst, Installed: true}.SubMenu(), "1 Disable firewall, 2 Application Profiles"},
-		{"repair", Firewall{First: FirewallRepair, Installed: true, DisableBeside: true}.SubMenu(), "1 Repair firewall, 2 Application Profiles, 3 Disable firewall"},
+		{"disable", Firewall{First: FirewallDisableFirst, Installed: true}.SubMenu(), "1 Disable firewall, 2 Application Profiles, 3 Trusted Interfaces"},
+		{"repair", Firewall{First: FirewallRepair, Installed: true, DisableBeside: true}.SubMenu(), "1 Repair firewall, 2 Application Profiles, 3 Trusted Interfaces, 4 Disable firewall"},
 		{"proxmox", fwTestPVE.SubMenu(), ""},
 		{"profiles", fwTestProfiles.SubMenu(), "1 Add profile, 2 Remove profile, 3 Apply profiles"},
 		{"no profiles", fwTestNoProfiles.SubMenu(), "1 Add profile"},
+		{"interfaces", FirewallInterfaces{Any: true}.SubMenu(), "1 Add interface, 2 Remove interface, 3 Apply interfaces"},
+		{"no interfaces", FirewallInterfaces{}.SubMenu(), "1 Add interface"},
 	} {
 		if got := items(tt.vm); got != tt.want {
 			t.Errorf("%s: %q, want %q", tt.name, got, tt.want)
@@ -110,7 +112,10 @@ func TestFirewallChanges(t *testing.T) {
 	if c := FirewallDisableChange(); c.Review.Notice == nil || c.Review.Notice.Callout.Body[0] != firewallDisableWarning {
 		t.Errorf("Disable's warning: %+v", c.Review)
 	}
-	if r := FirewallAddReview("Web", []string{"80/tcp", "443/tcp"}); r.Items[0].Value != "80/tcp, 443/tcp" {
+	if r := FirewallAddReview("Tailscale", []string{"41641/udp"}, "tailscale0"); r.Items[0].Value != "41641/udp on tailscale0" {
+		t.Errorf("add review on an interface: %+v", r)
+	}
+	if r := FirewallAddReview("Web", []string{"80/tcp", "443/tcp"}, ""); r.Items[0].Value != "80/tcp, 443/tcp" {
 		t.Errorf("Add's review: %+v", r)
 	}
 }

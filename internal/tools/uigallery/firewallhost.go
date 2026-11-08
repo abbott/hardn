@@ -30,8 +30,9 @@ import (
 
 // simRule is one saved rule of ufwSim: action on port/tcp, from anywhere
 // in both IP versions, or from src in src's alone; app names the
-// application profile it came from.
-type simRule struct{ action, port, src, app, proto string }
+// application profile it came from; iface the interface it is limited to,
+// with no port everything arriving on it ("ufw allow in on <iface>").
+type simRule struct{ action, port, src, app, proto, iface string }
 
 // protocol is the rule's, tcp unless it says.
 func (r simRule) protocol() string {
@@ -128,12 +129,19 @@ func (s *ufwSim) status() string {
 	row := func(r simRule, v6 bool) {
 		to, from := r.port+"/"+r.protocol(), r.src
 		switch {
+		case r.port == "" && v6:
+			to = "Anywhere (v6)"
+		case r.port == "":
+			to = "Anywhere"
 		case r.app != "" && v6:
 			to += " (" + r.app + " (v6))"
 		case r.app != "":
 			to += " (" + r.app + ")"
 		case v6 && r.src == "":
 			to += " (v6)"
+		}
+		if r.iface != "" {
+			to += " on " + r.iface
 		}
 		if r.src == "" {
 			from = "Anywhere"
@@ -187,11 +195,18 @@ func (s *ufwSim) save() {
 			if src == "" {
 				src = list.any
 			}
-			if r.app != "" {
-				fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s %s - in\n", r.action, r.protocol(), r.port, list.any, src, r.app)
-				continue
+			dir := "in"
+			if r.iface != "" {
+				dir += "_" + r.iface
 			}
-			fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s in\n", r.action, r.protocol(), r.port, list.any, src)
+			switch {
+			case r.app != "":
+				fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s %s - %s\n", r.action, r.protocol(), r.port, list.any, src, r.app, dir)
+			case r.port == "":
+				fmt.Fprintf(&b, "\n### tuple ### %s any any %s any %s %s\n", r.action, list.any, src, dir)
+			default:
+				fmt.Fprintf(&b, "\n### tuple ### %s %s %s %s any %s %s\n", r.action, r.protocol(), r.port, list.any, src, dir)
+			}
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		f.AddFile(list.path, []byte(b.String()), 0o640, 0, 0)
@@ -313,6 +328,32 @@ func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 		s.rules = append(s.rules, rules...)
 		s.save()
 		return hostfake.Response{Stdout: both}, true
+	case len(argv) == 11 && argv[1] == "allow" && argv[2] == "in" && argv[3] == "on" && argv[9] == "app": // a profile on an interface
+		app, iface := argv[10], argv[4]
+		rules := s.profileRules(app)
+		if len(rules) == 0 {
+			return hostfake.Response{Stderr: "ERROR: Could not find a profile matching '" + app + "'\n", ExitCode: 1}, true
+		}
+		for i := range rules {
+			rules[i].iface = iface
+		}
+		s.rules = append(s.rules, rules...)
+		s.save()
+		return hostfake.Response{Stdout: both}, true
+	case len(argv) == 12 && argv[1] == "delete" && argv[3] == "in" && argv[4] == "on" && argv[10] == "app":
+		app, iface := argv[11], argv[5]
+		s.rules = slices.DeleteFunc(s.rules, func(r simRule) bool { return r.app == app && r.iface == iface })
+		s.save()
+		return hostfake.Response{Stdout: gone}, true
+	case len(argv) == 5 && argv[1] == "allow" && argv[2] == "in" && argv[3] == "on": // a trusted interface
+		s.rules = append(s.rules, simRule{action: "allow", iface: argv[4]})
+		s.save()
+		return hostfake.Response{Stdout: both}, true
+	case len(argv) == 6 && argv[1] == "delete" && argv[3] == "in" && argv[4] == "on":
+		iface := argv[5]
+		s.rules = slices.DeleteFunc(s.rules, func(r simRule) bool { return r.port == "" && r.iface == iface })
+		s.save()
+		return hostfake.Response{Stdout: gone}, true
 	}
 	return hostfake.Response{}, false
 }
@@ -454,12 +495,34 @@ func fwPVEUFW() *fakeHost {
 // with: not found, as on a stock Alpine (alpine323-vm.log).
 func fwNoSS() *fakeHost { return fwWithoutSS(fwUbuntu()) }
 
-// fwWithoutSS is h with no ss.
+// fwWithoutSS is h with no ss: iproute2 not installed, as dpkg-query and apk
+// say, until Install iproute2 runs its install (the maintainer, 2026-11-07).
 func fwWithoutSS(h *fakeHost) *fakeHost {
 	run := h.f.Handler
+	missing := true
 	h.f.Handler = func(argv []string, in []byte) hostfake.Response {
-		if path.Base(argv[0]) == "ss" {
+		cmd := strings.Join(argv, " ")
+		switch {
+		case path.Base(argv[0]) == "ss" && missing:
 			return hostfake.Response{Err: host.ErrNotFound, ExitCode: -1}
+		case path.Base(argv[0]) == "dpkg-query" && argv[len(argv)-1] == "iproute2" && missing:
+			return hostfake.Response{Stderr: "dpkg-query: no packages found matching iproute2\n", ExitCode: 1}
+		case path.Base(argv[0]) == "dpkg-query" && argv[len(argv)-1] == "iproute2":
+			return hostfake.Response{Stdout: "install ok installed\t6.15.0-1\n"}
+		case cmd == "apk info -e iproute2" && missing:
+			return hostfake.Response{ExitCode: 1}
+		case cmd == "apk info -e iproute2":
+			return hostfake.Response{Stdout: "iproute2\n"}
+		case cmd == "apt-get install -s -y iproute2":
+			return hostfake.Response{Stdout: "Reading package lists...\nThe following NEW packages will be installed:\n  iproute2\nInst iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\nConf iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\n"}
+		case cmd == "apk add --simulate iproute2":
+			return hostfake.Response{Stdout: "(1/1) Installing iproute2 (6.15.0-r0)\nOK: 12 MiB in 30 packages\n"}
+		case cmd == "apt-get install -y iproute2", cmd == "apk add iproute2":
+			missing = false
+			return hostfake.Response{Stdout: "iproute2 installed\n"}
+		case cmd == "apt-get remove -y iproute2", cmd == "apk del iproute2":
+			missing = true
+			return hostfake.Response{}
 		}
 		return run(argv, in)
 	}

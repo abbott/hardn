@@ -28,10 +28,11 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewall␛[m      ␛[38;2;129;134;156mLet SSH through, then start ufw␛[m$
                            ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTrusted Interfaces␛[m   ␛[38;2;129;134;156mAdd, remove, apply␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -60,10 +61,11 @@ $
    1) Enable firewall      Let SSH through, then start ufw$
                            [ ] Lockout risk$
    2) Application Profiles Add, remove, apply$
+   3) Trusted Interfaces   Add, remove, apply$
 $
    0) Return$
 $
-    > Enter selection [0-2 or q]: 0$
+    > Enter selection [0-3 or q]: 0$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -101,8 +103,10 @@ $
       ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mApplication Profiles␛[m$
       ␛[38;2;129;134;156mAdd, remove, apply␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTrusted Interfaces␛[m$
+      ␛[38;2;129;134;156mAdd, remove, apply␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
 $

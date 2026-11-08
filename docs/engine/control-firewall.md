@@ -78,7 +78,7 @@ Under `_support/hardn-audit-2026-10-16/vm-runs/s4/unit-b/`, outside this repo.
 | An empty index and no DNS both say `ufw (no such package)`, exit 1 | `alpine323-vm.log`, `alpine323-vm-2.log` |
 | The Alpine VM has no DNS, so no successful apk simulation has been seen | `alpine323-vm-2.log` |
 
-So `alpine-stock` refuses Install, and with ufw there Enable refuses with §6's `ss` words until `iproute2` is installed. Install does not bring it (decision 1).
+So `alpine-stock` refuses Install, and with ufw there Enable refuses with §6's `ss` words until `iproute2` is installed. Install does not bring it (decision 1). *Since 2026-11-07 (the maintainer: "Yes, build it")* the screen's item 1 is then Install iproute2 (`ActionInstallSS`, `installSS`: `packages.PlanInstall` of `iproute2`, as Install's of ufw; `ItemInstallSS` where `Sockets.NoSS`), Disable beside it on an active ufw; `-w`, Run All and `-r` still refuse with §6's words. *Since Enable-first, the same day:* item 1 is Install iproute2 only on a running ufw; on a stopped one Enable firewall runs `ActionInstallSS`, reads the host again, then runs `ActionEnable` (the screen's `enableWithSS`).
 
 ## Not run
 

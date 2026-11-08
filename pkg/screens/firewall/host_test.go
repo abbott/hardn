@@ -65,7 +65,8 @@ type fwHost struct {
 // run's end state gives it.
 type fwRule struct {
 	port, app string
-	start     bool // a rule of the start
+	iface     string // a trusted interface's rule, ufw allow in on <iface>: every port
+	start     bool   // a rule of the start
 	// action is allow where ""; src is the source, anywhere where "", one IP
 	// version's alone where set.
 	action, src string
@@ -88,6 +89,8 @@ func (r fwRule) words() string {
 		return "the start's " + r.port + "/tcp"
 	case r.app != "":
 		return "app " + r.app
+	case r.iface != "":
+		return "in on " + r.iface
 	}
 	return r.port + "/tcp"
 }
@@ -181,11 +184,14 @@ func (h *fwHost) syncFiles() {
 			case r.src != "":
 				src = r.src
 			}
-			if r.app != "" {
+			switch {
+			case r.iface != "":
+				fmt.Fprintf(&b, "\n### tuple ### allow any any %s any %s in_%s\n", f.any, src, r.iface)
+			case r.app != "":
 				fmt.Fprintf(&b, "\n### tuple ### allow tcp %s %s any %s %s - in\n", r.port, f.any, src, r.app)
-				continue
+			default:
+				fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.verb(), r.port, f.any, src)
 			}
-			fmt.Fprintf(&b, "\n### tuple ### %s tcp %s %s any %s in\n", r.verb(), r.port, f.any, src)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		h.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
@@ -214,6 +220,8 @@ func (h *fwHost) status() string {
 			}
 			to, from := r.port+"/tcp"+v6, "Anywhere"+v6
 			switch {
+			case r.iface != "":
+				to = "Anywhere" + v6 + " on " + r.iface
 			case r.app != "":
 				to = r.port + "/tcp (" + r.app + v6 + ")"
 			case r.src != "":
@@ -309,6 +317,9 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 		port := strings.TrimSuffix(argv[3], "/tcp")
 		h.rules = slices.DeleteFunc(h.rules, func(r fwRule) bool { return r.port == port && r.app == "" && !r.start })
 		return hostfake.Response{Stdout: "Rule deleted\nRule deleted (v6)\n"}
+	case len(argv) == 5 && argv[1] == "allow" && argv[2] == "in" && argv[3] == "on": // a trusted interface
+		h.rules = append(h.rules, fwRule{iface: argv[4]})
+		return hostfake.Response{Stdout: "Rule added\nRule added (v6)\n"}
 	case len(argv) == 8 && argv[1] == "allow" && argv[6] == "app":
 		port := h.appPorts(argv[7])
 		if port == "" {
@@ -344,6 +355,21 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 	case cmd == "systemctl disable ufw.service":
 		h.unit = "disabled"
 		return hostfake.Response{}
+	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "iproute2" && h.noSS: // ss's package, as ss is missing or not
+		return hostfake.Response{Stderr: "dpkg-query: no packages found matching iproute2\n", ExitCode: 1}
+	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "iproute2":
+		return hostfake.Response{Stdout: "install ok installed\t6.15.0-1\n"}
+	case cmd == "apk info -e iproute2" && h.noSS:
+		return hostfake.Response{ExitCode: 1}
+	case cmd == "apk info -e iproute2":
+		return hostfake.Response{Stdout: "iproute2\n"}
+	case cmd == "apt-get install -s -y iproute2":
+		return hostfake.Response{Stdout: "Reading package lists...\nThe following NEW packages will be installed:\n  iproute2\nInst iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\nConf iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\n"}
+	case cmd == "apk add --simulate iproute2":
+		return hostfake.Response{Stdout: "(1/1) Installing iproute2 (6.15.0-r0)\nOK: 12 MiB in 30 packages\n"}
+	case cmd == "apt-get install -y iproute2", cmd == "apk add iproute2":
+		h.noSS = false
+		return hostfake.Response{Stdout: "iproute2 installed\n"}
 	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "ufw" && h.missing:
 		return hostfake.Response{Stderr: "dpkg-query: no packages found matching ufw\n", ExitCode: 1}
 	case argv[0] == "dpkg-query" && argv[len(argv)-1] == "ufw":

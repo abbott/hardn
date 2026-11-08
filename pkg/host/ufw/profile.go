@@ -19,6 +19,10 @@ const ProfileFile = "/etc/ufw/applications.d/hardn"
 type Profile struct {
 	Name, Title, Description string
 	Ports                    []string // "80/tcp", "6000:6007/udp"
+	// Interface limits the profile's rule to what arrives on one network
+	// interface ("ufw allow in on tailscale0 ... app <name>"); "" is every
+	// interface. ufw's profile file has no such field: it is the rule's.
+	Interface string
 }
 
 var (
@@ -29,7 +33,25 @@ var (
 	// around them.
 	pythonInt   = regexp.MustCompile(`^[0-9]+(_[0-9]+)*$`)
 	profilePort = regexp.MustCompile(`^([0-9]{1,5})(?::([0-9]{1,5}))?/(tcp|udp)$`)
+	// interfaceName is the characters ufw 0.36.2 takes in an interface's
+	// name (common.py, UFWRule.set_interface).
+	interfaceName = regexp.MustCompile(`^[a-zA-Z0-9_\-.+,=%@]+$`)
 )
+
+// ValidInterface says whether ufw takes name as an interface, by ufw
+// 0.36.2's UFWRule.set_interface (common.py, read 2026-11-07): no "!",
+// which it keeps for negation, no ":", an alias such as eth0:1, not "."
+// or "..", 1 to 15 characters, each a letter, a digit or one of _-.+,=%@;
+// and not a word its rule parser reads as a clause (parser.py), so that
+// "ufw allow in on <name>" parses: in, out, from, to, port, proto, app,
+// log, log-all, comment.
+func ValidInterface(name string) bool {
+	return name != "." && name != ".." && len(name) >= 1 && len(name) <= 15 && interfaceName.MatchString(name) && !slices.Contains(ruleWords, name)
+}
+
+// ruleWords are the words ufw 0.36.2's rule parser takes as clauses, which
+// an interface named so would be read as.
+var ruleWords = []string{"in", "out", "from", "to", "port", "proto", "app", "log", "log-all", "comment"}
 
 // ValidProfile says whether ufw reads p, by ufw 0.36.2's own rules
 // (applications.py, valid_profile_name and verify_profile; docs/safety/ufw.md
@@ -52,6 +74,8 @@ func ValidProfile(p Profile) error {
 		return bad("a line break")
 	case len(p.Ports) == 0:
 		return bad("no port")
+	case p.Interface != "" && !ValidInterface(p.Interface):
+		return bad(fmt.Sprintf("interface %q", p.Interface))
 	}
 	for _, port := range p.Ports {
 		if !validProfilePort(port) {
@@ -92,13 +116,17 @@ func ProfileBytes(profiles []Profile) []byte {
 }
 
 // PlanApps plans, with no I/O, "ufw allow from any to any app <name>" for each
-// name no saved rule has as its application, in the order given, undone by
-// "ufw delete allow from any to any app <name>" where ufw's answer shows it
-// added the rule (Execute). Rules already there are never repeated or changed.
+// profile whose rule no saved rule is (AppApplied), in the order given, or
+// "ufw allow in on <interface> from any to any app <name>" for a profile
+// limited to an interface, undone by the same words after "delete" (ufw
+// deletes an interface's rule only so) where ufw's answer shows it added
+// the rule (Execute). Rules already there are never repeated or changed: a
+// rule for the profile on another interface, or on every interface, stays.
 // No rule is saved on an inactive ufw (decision 5, ErrInactive). Errors:
 // ErrProxmoxUnknown, ErrNotInstalled, ErrStateUnknown, ErrInactive,
-// ErrEnabledMismatch, ErrBadProfile for a name ufw would not read.
-func PlanApps(st State, names []string, pve detect.Proxmox) (Plan, error) {
+// ErrEnabledMismatch, ErrBadProfile for a name or interface ufw would not
+// read.
+func PlanApps(st State, profiles []Profile, pve detect.Proxmox) (Plan, error) {
 	if err := Applies(pve); errors.Is(err, ErrNotApplicable) {
 		return Plan{NotApplicable: true}, nil
 	} else if err != nil {
@@ -118,23 +146,104 @@ func PlanApps(st State, names []string, pve detect.Proxmox) (Plan, error) {
 	}
 	p := Plan{Active: true, Incoming: st.Status.Incoming, Outgoing: st.Status.Outgoing, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6}
 	var planned []string
-	for _, name := range names {
-		if !validProfileName(name) {
+	for _, pr := range profiles {
+		name, iface := pr.Name, pr.Interface
+		switch {
+		case !validProfileName(name):
 			return Plan{}, fmt.Errorf("ufw: profile %q: its name: %w", name, ErrBadProfile)
+		case iface != "" && !ValidInterface(iface):
+			return Plan{}, fmt.Errorf("ufw: profile %q: interface %q: %w", name, iface, ErrBadProfile)
 		}
-		if slices.Contains(planned, name) || HasApp(st.Rules, name) {
+		key := name + "\x00" + iface
+		if slices.Contains(planned, key) || AppApplied(st, name, iface) {
 			continue
 		}
-		planned = append(planned, name)
-		p.Steps = append(p.Steps, Step{Kind: StepAllowApp, Argv: []string{"ufw", "allow", "from", "any", "to", "any", "app", name},
-			Undo: []string{"ufw", "delete", "allow", "from", "any", "to", "any", "app", name}, Why: "let application " + name + " through"})
+		planned = append(planned, key)
+		rule, why := []string{"allow", "from", "any", "to", "any", "app", name}, "let application "+name+" through"
+		if iface != "" {
+			rule, why = append([]string{"allow", "in", "on", iface}, rule[1:]...), why+" on "+iface
+		}
+		p.Steps = append(p.Steps, Step{Kind: StepAllowApp, Argv: append([]string{"ufw"}, rule...),
+			Undo: append([]string{"ufw", "delete"}, rule...), Why: why})
 	}
 	return p, nil
 }
 
-// HasApp: a saved rule has application name. A saved rule's name has its
-// spaces as "%20", so that the tuple's fields stay split ([I], from memory of
-// ufw's backend, not run; ParseTuples splits on spaces).
-func HasApp(rules []Rule, name string) bool {
-	return slices.ContainsFunc(rules, func(r Rule) bool { return r.App == name || r.App == strings.ReplaceAll(name, " ", "%20") })
+// AppApplied: st's saved rules hold the profile's own rule: allow, in, from
+// any source to any address, application name, on interface iface (""
+// every interface), in IPv4 and, with ufw's IPv6 on, in IPv6 too, as "ufw
+// allow" saves it (inFamilies). A rule of the application otherwise (a
+// deny, out, from some sources, on another interface or every one, or in
+// one family alone) is not. A saved rule's name has its spaces as "%20", so
+// that the tuple's fields stay split (ufw 0.36.2's backend_iptables.py,
+// read 2026-11-07).
+func AppApplied(st State, name, iface string) bool {
+	return inFamilies(st, func(r Rule) bool {
+		return (r.App == name || r.App == strings.ReplaceAll(name, " ", "%20")) &&
+			r.Action == "allow" && r.Dir == "in" && r.Src == "" && r.Dst == "" && r.Iface == iface
+	})
+}
+
+// inFamilies: a saved rule of st matches in IPv4, and, where ufw's IPv6 is
+// on (State.IPv6), one in IPv6 too: a rule saved in one family alone (from
+// an address of one, or while IPV6 was no) leaves the other refused.
+func inFamilies(st State, match func(Rule) bool) bool {
+	has := func(f Family) bool {
+		return slices.ContainsFunc(st.Rules, func(r Rule) bool { return r.Family == f && match(r) })
+	}
+	return has(IPv4) && (!st.IPv6 || has(IPv6))
+}
+
+// PlanInterfaces plans, with no I/O, "ufw allow in on <interface>" for each
+// trusted interface whose rule no saved rule is (InterfaceAllowed), in the
+// order given: everything arriving on it gets through, every port and
+// protocol (the maintainer, 2026-11-07). Each is undone by "ufw delete allow
+// in on <interface>" where ufw's answer shows it added the rule (Execute).
+// Rules already there are never repeated or changed. No rule is saved on an
+// inactive ufw (ErrInactive), as for PlanApps. Errors: ErrProxmoxUnknown,
+// ErrNotInstalled, ErrStateUnknown, ErrInactive, ErrEnabledMismatch,
+// ErrBadInterface for a name ufw would not take.
+func PlanInterfaces(st State, ifaces []string, pve detect.Proxmox) (Plan, error) {
+	if err := Applies(pve); errors.Is(err, ErrNotApplicable) {
+		return Plan{NotApplicable: true}, nil
+	} else if err != nil {
+		return Plan{}, err
+	}
+	switch {
+	case !st.Installed:
+		return Plan{}, fmt.Errorf("ufw: %w", ErrNotInstalled)
+	case !st.Status.Known:
+		return Plan{}, fmt.Errorf("ufw: %w (unread lines %q)", ErrStateUnknown, st.Status.Bad)
+	case !st.Status.Active:
+		return Plan{}, fmt.Errorf("ufw: %w", ErrInactive)
+	case !st.Known():
+		return Plan{}, fmt.Errorf("ufw: %w (unread lines %q)", ErrStateUnknown, st.Bad)
+	case !st.Enabled:
+		return Plan{}, fmt.Errorf("ufw: %w: ENABLED=no (%s), status active", ErrEnabledMismatch, ConfFile)
+	}
+	p := Plan{Active: true, Incoming: st.Status.Incoming, Outgoing: st.Status.Outgoing, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6}
+	var planned []string
+	for _, iface := range ifaces {
+		if !ValidInterface(iface) {
+			return Plan{}, fmt.Errorf("ufw: interface %q: %w", iface, ErrBadInterface)
+		}
+		if slices.Contains(planned, iface) || InterfaceAllowed(st, iface) {
+			continue
+		}
+		planned = append(planned, iface)
+		rule := []string{"allow", "in", "on", iface}
+		p.Steps = append(p.Steps, Step{Kind: StepAllowIface, Argv: append([]string{"ufw"}, rule...),
+			Undo: append([]string{"ufw", "delete"}, rule...), Why: "let everything on " + iface + " through"})
+	}
+	return p, nil
+}
+
+// InterfaceAllowed: st's saved rules let everything arriving on iface
+// through: allow, in, on iface, any protocol, from anywhere, to any address
+// and port, no application, as "ufw allow in on <iface>" saves it, in each
+// family it saves it in (inFamilies).
+func InterfaceAllowed(st State, iface string) bool {
+	return inFamilies(st, func(r Rule) bool {
+		return r.Action == "allow" && r.Dir == "in" && r.Iface == iface && r.Proto == "any" && r.DPort == "" && r.Src == "" && r.Dst == "" && r.App == ""
+	})
 }
