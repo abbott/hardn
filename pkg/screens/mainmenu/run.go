@@ -123,7 +123,9 @@ var errAgain = errors.New("mainmenu: the main menu again")
 // command that blocks holds the screen until it returns or Ctrl-C ends
 // hardn (docs/engine/menu-live.md §5).
 func Run(ctx context.Context, o Options) error {
-	if !o.Warned {
+	if o.Warned {
+		o.belowWarning(o.navGap())
+	} else {
 		o.clearTop(o.navGap())
 	}
 	for {
@@ -194,6 +196,18 @@ func (o Options) clearTop(own int) {
 	}
 	_ = env.Clear(o.out())
 	_, _ = io.WriteString(o.out(), strings.Repeat("\n", max(0, topRows-own)))
+}
+
+// belowWarning leaves theme.SectionGap blank lines between hardn.yml's
+// warning and the main menu drawn under it, less own, the blank lines nav
+// writes itself (navGap), on a terminal alone, where the warning on stderr
+// and the main menu on stdout share the screen. Without it the header sat
+// on the warning's last line (the maintainer's LXC, 2026-11-07).
+func (o Options) belowWarning(own int) {
+	if o.terminal().Plain {
+		return
+	}
+	_, _ = io.WriteString(o.out(), strings.Repeat("\n", max(0, theme.SectionGap-own)))
 }
 
 // navGap is how many blank lines nav.Prompter.Run writes above the next

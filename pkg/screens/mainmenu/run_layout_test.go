@@ -387,8 +387,9 @@ func TestMainMenuHeights(t *testing.T) {
 	}
 }
 
-// TestMainMenuKeepsLoadWarning: a warning at load stays above the first draw; without
-// one the screen is cleared first, on a terminal; off one nothing clears.
+// TestMainMenuKeepsLoadWarning: a warning at load stays above the first draw, one
+// blank line between them on a terminal (belowWarning); without one the screen is
+// cleared first, on a terminal; off one nothing clears.
 func TestMainMenuKeepsLoadWarning(t *testing.T) {
 	for _, env := range []term.Env{ttyEnv(), plainEnv()} {
 		for _, warned := range []bool{false, true} {
@@ -407,6 +408,9 @@ func TestMainMenuKeepsLoadWarning(t *testing.T) {
 			}
 			if strings.Count(out, clearScreen) != map[bool]int{false: 2, true: 1}[warned] {
 				t.Errorf("warned %v: %d clears, the one on leaving aside:\n%q", warned, strings.Count(out, clearScreen), out)
+			}
+			if warned && (!strings.HasPrefix(stripANSI(out), "\nhardn ") || strings.HasPrefix(out, "\n\n")) {
+				t.Errorf("warned: want one blank line between the warning and the header:\n%q", out)
 			}
 		}
 	}
