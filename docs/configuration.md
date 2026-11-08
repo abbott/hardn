@@ -250,9 +250,11 @@ The main menu's Auto Updates (5) reads the host, never `enableUnattendedUpgrades
 
 The main menu's Firewall (3) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing.
 
-- **Enabling asks you to type the hostname**, since a wrong rule could lock you out. It lets SSH through, denies incoming by default, starts ufw and starts it at boot. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
+- **Where `ss` is missing** (stock Alpine), "Enable firewall" installs iproute2 first, with apk or apt, after showing the change, then enables ufw. If ufw already runs, the first item is "Install iproute2". `-w` refuses without it.
+- **Enabling asks you to type the hostname**, since a wrong rule could lock you out. It lets SSH through, denies incoming by default, starts ufw and starts it at boot. On a host with no SSH server, where `ss` shows nothing on port 22, it lets no SSH port through. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
 - **`hardn -w` enables it the same way.** On a terminal, a change that could lock you out asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out, such as starting ufw at boot when it already runs, is applied without asking on a terminal; off one only with `--yes`, otherwise hardn shows the plan and exits 2. With `-n` it shows the plan. On Proxmox VE `-w` is refused, exit status 1.
 - **Application Profiles (2)** adds a profile to hardn.yml, removes one, and applies them: Apply writes `/etc/ufw/applications.d/hardn` and lets their ports through ufw.
+- **Trusted Interfaces (3)** adds an interface to hardn.yml, removes one, and applies them: Apply lets everything arriving on each through ufw, every port, as `ufw allow in on <interface>` does.
 
 ```yaml
 ufwAppProfiles:
@@ -268,9 +270,20 @@ Each profile has these fields:
 - `title`: User-friendly title
 - `description`: Description of the service
 - `ports`: List of ports in the format "port/protocol" (e.g., "30443/tcp")
+- `interface` (optional): the one network interface its ports are let through on, such as `tailscale0`; left out, every interface
 
 - **In ufw's file the ports are joined by `|`**, as ufw requires: `ports=80/tcp|443/tcp`. Keep one port per entry in hardn.yml.
 - **Removing a profile leaves its rule in ufw.** It is taken out of hardn.yml only. Delete it with `ufw delete`.
+
+```yaml
+ufwTrustedInterfaces:
+  - tailscale0
+```
+
+- **A trusted interface lets everything arriving on it through:** every port, from every address on it. Trust only an interface whose peers you trust, such as your tailnet's.
+- **Interface names are ufw's:** up to 15 letters, digits and `_-.+,=%@`, no `:` (no alias such as `eth0:1`).
+- **Removing an interface leaves its rule in ufw**, as for a profile. Delete it with `ufw delete allow in on <interface>`.
+- **Apply needs ufw running**, for profiles and interfaces alike.
 
 Enabling, from main menu 3 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` enable it the same way. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
