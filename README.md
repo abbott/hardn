@@ -79,8 +79,8 @@ curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo
 
 The script will:
 
-- Query the GitHub releases API for the latest release's asset for your system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. There is no armv7 build, so on armv7 it stops.
-- Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing.
+- Find the latest release through the GitHub API (or take `HARDN_VERSION`, below), and its asset for your system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. There is no armv7 build, so on armv7 it stops.
+- Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing. Without gh, it installs on the SHA-256 alone and prints the commands that check the attestation.
 - Install `/usr/local/bin/hardn` and create `/etc/hardn`.
 
 To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have no `SHA256SUMS`):
@@ -124,7 +124,8 @@ sudo cp build/hardn /usr/local/bin/hardn
 
 ### Troubleshooting
 
-- **Permission Issues:** If you encounter permission errors when writing to `/usr/local/bin`, ensure the script is piped to `sudo sh` (or `doas sh`).
+- **Permission Issues:** Not run as root, the script stops before downloading anything and prints the command to use, piped to `sudo sh` (or `doas sh`).
+- **`/usr/local/bin/hardn` is a directory:** The script installs nothing. Move it aside, then run the script again.
 - **Missing curl:** If `curl` is not installed, use your package manager to install it (e.g., `sudo apt-get install curl` on Debian/Ubuntu; `doas apk add curl` or `sudo apk add curl` on Alpine).
 
 ### Updating

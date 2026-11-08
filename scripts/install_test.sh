@@ -453,7 +453,7 @@ $dl/v0.4.0/hardn-linux-amd64"
 	new_case "v0.3.2, pinned"
 	run_install HARDN_VERSION=0.3.2
 	expect_nothing_installed
-	expect_err "no SHA256SUMS at $dl/v0.3.2/SHA256SUMS"
+	expect_err "cannot download $dl/v0.3.2/SHA256SUMS (curl's HTTP error is above). A 404 means there is no release v0.3.2"
 	expect_err "v0.3.2 and earlier have no SHA256SUMS"
 	expect_downloads "$dl/v0.3.2/SHA256SUMS"
 	new_case "v0.3.2, latest"

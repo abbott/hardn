@@ -47,7 +47,7 @@ make build          # build/hardn, from ./cmd/hardn
 | `check-vuln` | `govulncheck ./...`: known vulnerabilities in code hardn calls |
 | `check-cross` | builds the three release targets (linux/amd64, linux/arm64, darwin/amd64) with the release's flags into a temporary directory, then vets the whole module, tests included, for linux/amd64 and linux/arm64, whose files a macOS host's steps don't compile |
 | `check-actions` | zizmor's offline audits and actionlint (which runs shellcheck on each `run:` script) over `.github` |
-| `check-install` | shellcheck, `sh -n` and `dash -n` over install.sh, verify.sh and `scripts/install_test.sh`, then that test: install.sh against stubs and fake releases in a temporary directory, with no network |
+| `check-install` | shellcheck and `sh -n` (`dash -n` too where dash is installed) over install.sh, verify.sh and `scripts/install_test.sh`, then that test: install.sh against stubs and fake releases in a temporary directory, with no network |
 
 Every check target runs with `GOTOOLCHAIN=local`, `GOWORK=off` and `GOFLAGS=-mod=readonly`.
 
