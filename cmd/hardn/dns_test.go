@@ -388,6 +388,7 @@ func TestDNSScreenSignals(t *testing.T) {
 				}
 				select {
 				case <-applying.Done():
+					cancelled(applying)
 				case <-time.After(5 * time.Second):
 					t.Errorf("%v did not cancel the apply", sig)
 				}
@@ -707,6 +708,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 					}
 					select {
 					case <-applying.Done():
+						cancelled(applying)
 					case <-time.After(5 * time.Second):
 						t.Error("the hangup did not cancel the apply")
 					}
@@ -741,6 +743,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 					unread.hangUp()
 					select {
 					case <-applying.Done():
+						cancelled(applying)
 					case <-time.After(5 * time.Second):
 						t.Error("the hangup did not cancel the apply")
 					}
@@ -819,6 +822,7 @@ func TestConfigureDNSFlagWithOthers(t *testing.T) {
 					sendSignal(t, sig)
 					select {
 					case <-applying.Done():
+						cancelled(applying)
 					case <-time.After(5 * time.Second):
 						t.Errorf("%v did not reach the apply's context", sig)
 					}

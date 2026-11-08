@@ -585,6 +585,7 @@ func TestUsersScreenSignals(t *testing.T) {
 				}
 				select {
 				case <-applying.Done():
+					cancelled(applying)
 				case <-time.After(5 * time.Second):
 					t.Errorf("%v did not cancel the apply", sig)
 				}

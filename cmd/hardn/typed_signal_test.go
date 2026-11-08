@@ -83,6 +83,7 @@ func typedSignal(t *testing.T, sig syscall.Signal, inRollback bool) string {
 				sendSignal(t, sig)
 				select {
 				case <-applying.Done():
+					cancelled(applying)
 				case <-time.After(5 * time.Second):
 					t.Errorf("%v did not reach the apply's context", sig)
 				}

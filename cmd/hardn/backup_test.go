@@ -233,6 +233,7 @@ func TestBackupScreenSignals(t *testing.T) {
 					}
 					select {
 					case <-applying.Done():
+						cancelled(applying)
 					case <-time.After(5 * time.Second):
 						t.Errorf("%v did not cancel the apply", sig)
 					}
@@ -313,6 +314,7 @@ func TestScreenHangupTerminalUnread(t *testing.T) {
 				unread.hangUp()
 				select {
 				case <-applying.Done():
+					cancelled(applying)
 				case <-time.After(5 * time.Second):
 					t.Error("the hangup did not cancel the apply")
 				}
