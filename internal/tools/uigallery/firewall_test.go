@@ -187,6 +187,8 @@ func TestFirewallHosts(t *testing.T) {
 		{host: "lockout", state: component.StatusPartial, detail: "ssh blocked", first: firewall.ItemEnable, risky: true},
 		{host: "lockout-at-start", state: component.StatusNotConfigured, detail: "enabled, not running", first: firewall.ItemEnable, refused: ufw.ErrEnabledMismatch},
 		{host: "allowlist", state: component.StatusPartial, detail: "ssh allowlist", first: firewall.ItemDisable},
+		{host: "ipv4-allowlist", state: component.StatusPartial, detail: "ssh allowlist", first: firewall.ItemDisable},
+		{host: "ipv6-off", state: component.StatusPartial, detail: "ssh IPv4 only", first: firewall.ItemDisable},
 		{host: "blocklist", state: component.StatusNotConfigured, detail: "inactive", first: firewall.ItemEnable, refused: ufw.ErrBlocks},
 		{host: "edit-2230", state: component.StatusNotConfigured, detail: "inactive", first: firewall.ItemEnable, refused: firewall.ErrNotInEffect},
 		{host: "moved-2230", state: component.StatusUnknown, detail: "ssh config not in effect", first: firewall.ItemEnable, refused: firewall.ErrNotInEffect},
@@ -511,8 +513,10 @@ func fwRefusalHosts() []struct {
 		{"blocklist", fwWith(ufwSim{incoming: "deny", rules: []simRule{{action: "deny", port: "22", src: "198.51.100.0/24"}, {action: "allow", port: "22"}}})},
 		{"a saved deny", fwSavedDeny},
 		{"IPv6 off in ufw", fwWith(ufwSim{incoming: "deny", noIPv6: true})},
-		{"IPv6 off in ufw, active", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, noIPv6: true, rules: []simRule{{action: "allow", port: "22"}}})},
-		{"an allowlist of one family", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "allow", port: "22", src: "192.0.2.0/24"}}})},
+		// Refused on IPv6 alone is set (hosts ipv4-allowlist, ipv6-off) but for a
+		// change Enable makes, here ufw.service enabled: refused, as before.
+		{"IPv6 off in ufw, active, service off", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, unitOff: true, noIPv6: true, rules: []simRule{{action: "allow", port: "22"}}})},
+		{"an allowlist of one family, service off", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, unitOff: true, rules: []simRule{{action: "allow", port: "22", src: "192.0.2.0/24"}}})},
 		{"an active deny", fwWith(ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "deny", port: "22"}}})},
 		{"Proxmox VE not established", fwProxmoxUnknown},
 	}
@@ -691,9 +695,10 @@ func TestFirewallNothingRefused(t *testing.T) {
 		sim  ufwSim
 		want string
 	}{
+		// One family's allowlist and IPV6=no, refused on IPv6 alone while IPv4
+		// gets in, no longer say SSH is refused: hosts ipv4-allowlist and
+		// ipv6-off (TestFirewallHosts), item 1 Disable (2026-11-08).
 		{"an active deny", ufwSim{rules: []simRule{{action: "deny", port: "22"}}}, "ufw refuses SSH on"},
-		{"one family", ufwSim{rules: []simRule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}, "ufw refuses SSH on [::]:22"},
-		{"IPv6 off", ufwSim{noIPv6: true, rules: []simRule{{action: "allow", port: "22"}}}, "IPv6 is off"},
 	} {
 		tt.sim.incoming, tt.sim.active, tt.sim.enabled = "deny", true, true
 		h := fwWith(tt.sim)()

@@ -23,7 +23,8 @@
 // (reload.ReadBound, reload.Unbound), never the configured set alone
 // (docs/engine/check-ssh.md §6), so without ss they are not established.
 // A firewall that refuses an SSH listener, or lets it through from
-// loopback only, is the brief's critical cross-check (CodeSSHBlocked). A
+// loopback only, is the brief's critical cross-check (CodeSSHBlocked), but
+// for one refused on IPv6 alone while IPv4 gets in on its port (ipv4Only). A
 // read that fails is the check's error, which the engine reports as
 // Unknown; what it read but cannot establish a state from is Unknown with
 // findings: never a guess.
@@ -47,7 +48,9 @@ import (
 const (
 	// CodeSSHBlocked: an active firewall refuses new connections to an SSH
 	// listener, so a new session cannot log in: the lockout risk the
-	// brief's cross-check names, which next/p4-risk scores critical.
+	// brief's cross-check names, which next/p4-risk scores critical. Not
+	// for one refused on IPv6 alone while IPv4 gets in on its port
+	// (ipv4Only): a new session still logs in over IPv4.
 	CodeSSHBlocked = "FIREWALL_SSH_BLOCKED"
 	// CodeSSHUnchecked: the SSH listeners are not established, so whether
 	// the firewall lets them through is not established either, beside a

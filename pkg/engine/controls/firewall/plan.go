@@ -157,7 +157,7 @@ func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Cha
 	if err != nil {
 		return nil, refusal(ctx, sys, in, err)
 	}
-	if err := stillRefused(st, sk, changes); err != nil {
+	if err := stillRefused(st, sk, changes, true); err != nil {
 		return nil, err
 	}
 	boot, unit := ufw.ReadBootUnit(ctx, sys, in.Facts)
@@ -173,6 +173,14 @@ func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Cha
 	case boot == detect.No:
 		changes = slices.Insert(changes, 0, steps.UFWBootChange(ID, in.Facts))
 	}
+	// Refused on IPv6 alone leaves a set host set, its plan empty (Read's
+	// set), but no change is made beside it: a plan that changes anything
+	// is refused for it as before.
+	if len(changes) > 0 {
+		if err := stillRefused(st, sk, changes, false); err != nil {
+			return nil, err
+		}
+	}
 	return changes, nil
 }
 
@@ -180,14 +188,15 @@ func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Cha
 // ufw would refuse once they ran, on a port they do not let through: IPv6 off in
 // ufw, a rule hardn leaves alone (ufw.PlanFor changes no rule it finds), or a
 // socket on 22 no configured listener is on, kept only as the session's own port.
+// With skip4, a listener refused on IPv6 alone (ipv4Only) does not count.
 // nil when there is none.
-func stillRefused(st ufw.State, sk Sockets, changes []engine.Change) error {
+func stillRefused(st ufw.State, sk Sockets, changes []engine.Change, skip4 bool) error {
 	if does(changes).SetsDeny {
 		st.Incoming, st.Status.Incoming = ufw.PolicyDeny, ufw.PolicyDeny
 	}
 	cs := verdicts(st, sk)
 	i := slices.IndexFunc(cs, func(c ufw.Coverage) bool {
-		return (c.Verdict == ufw.Blocked || c.Verdict == ufw.Denied) && !letThrough(changes, c.Need.Port)
+		return (c.Verdict == ufw.Blocked || c.Verdict == ufw.Denied) && !letThrough(changes, c.Need.Port) && !(skip4 && ipv4Only(cs, c))
 	})
 	switch {
 	case i < 0:
@@ -202,6 +211,29 @@ func stillRefused(st ufw.State, sk Sockets, changes []engine.Change) error {
 	addr, _, _ := strings.Cut(strings.TrimPrefix(cs[i].Need.Why, "listener "), " (")
 	return &steps.Refusal{Code: codeRefused, Why: "ufw refuses SSH on " + addr + ", and hardn doesn't change a rule it finds",
 		Fix: "fix it with ufw allow or ufw delete, then try again", Err: ErrRefused}
+}
+
+// ipv4Only reports whether c, one of cs (an SSH listener let through from
+// loopback alone counted as Blocked), is refused on IPv6 alone: c is IPv6,
+// Blocked or Denied, IPv6 off in ufw's file included (started, ufw drops all
+// IPv6), and an IPv4 listener on its port, on an address that is not
+// loopback, is let through from everywhere or from some sources (Allowed,
+// Limited, Restricted or Excepted). SSH still gets in over IPv4, so such a
+// host is no lockout risk (the maintainer, 2026-11-08: "Yes, soften it").
+func ipv4Only(cs []ufw.Coverage, c ufw.Coverage) bool {
+	if c.Need.Family != ufw.IPv6 || c.Verdict != ufw.Blocked && c.Verdict != ufw.Denied {
+		return false
+	}
+	return slices.ContainsFunc(cs, func(o ufw.Coverage) bool {
+		if o.Need.Family != ufw.IPv4 || o.Need.Port != c.Need.Port || o.Need.Addr.IsLoopback() {
+			return false
+		}
+		switch o.Verdict {
+		case ufw.Allowed, ufw.Limited, ufw.Restricted, ufw.Excepted:
+			return true
+		}
+		return false
+	})
 }
 
 // letThrough: changes hold "ufw allow <port>/tcp".

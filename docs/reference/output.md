@@ -452,7 +452,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `SSH_PASSWORD_BYPASS` | Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, so anyone can log in with a long password as an account whose password field is `*` ([check-ssh.md](../engine/check-ssh.md) §11, [alpine.md](../safety/alpine.md)) |
 | `SSH_SSHD_UNFIXED` | Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, with no account exposed yet ([check-ssh.md](../engine/check-ssh.md) §11) |
 | `SSH_FIX_UNKNOWN` | Alpine: whether the openssh package has the fix for CVE-2026-123158, or which accounts it would expose, is not established ([check-ssh.md](../engine/check-ssh.md) §11) |
-| `FIREWALL_SSH_BLOCKED` | an active firewall refuses new connections to an SSH listener: lockout risk, scored critical ([check-firewall.md](../engine/check-firewall.md)) |
+| `FIREWALL_SSH_BLOCKED` | an active firewall refuses new connections to an SSH listener, other than one refused on IPv6 alone while IPv4 gets in: lockout risk, scored critical ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_SSH_UNCHECKED` | the SSH listeners are not established, so whether the firewall lets them through is not either ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_BOOT_UNCHECKED` | whether an active ufw starts at the next boot is not read, so the row is not Configured ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_PVE_LOCAL_ONLY` | on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only ([check-firewall.md](../engine/check-firewall.md)) |

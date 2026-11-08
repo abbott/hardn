@@ -23,7 +23,9 @@ var codeUFWUnknown = steps.FindingCode("UFW", ufw.FindingUnknown.String())
 // inactive are NotConfigured; active, the default incoming policy and the
 // SSH listeners decide (ufw.Check over ufw.Needs). An SSH listener ufw
 // refuses, or lets through from loopback only, is Partial with
-// CodeSSHBlocked, whatever else is not established; an allow policy, a
+// CodeSSHBlocked, whatever else is not established, except one refused on
+// IPv6 alone while an IPv4 listener on its port gets in (ipv4Only): that is
+// Partial "ssh IPv4 only" where no allowlist or blocklist says more; an allow policy, a
 // rule that opens every port, or ufw not started at the next boot (ENABLED=no,
 // or ufw.ReadBoot No: its service in no runlevel, or ufw.service not enabled)
 // is Partial. Under deny or reject, every listener let through from
@@ -66,21 +68,31 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 	out.Evidence = append(out.Evidence, sk.ev...)
 	var refused, stray []netip.AddrPort // refused (loopback only included); a stray socket not let through from everywhere
 	var unread, some, except bool       // a verdict not read; let through from some sources only; from all but some
+	var only4 bool                      // refused on IPv6 alone while IPv4 gets in (ipv4Only)
 	if ls, ok := sk.Listeners(); ok {
 		cs, fs := ufw.Check(st, ufw.Needs(ls, nil, nil))
 		if active {
 			out.Evidence = append(out.Evidence, coverage(cs)...)
 		}
 		out.Findings = ufwFindings(fs)
+		fw := ufw.Firewall{Active: active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Status.Incoming}
+		seen := slices.Clone(cs) // loopback only counted as refused, as verdicts counts it
+		for i, c := range seen {
+			if c.Verdict == ufw.Restricted && loopbackOnly(st.Status.Rules, fw, c.Need) {
+				seen[i].Verdict = ufw.Blocked
+			}
+		}
 		for _, x := range fs {
 			n, k := x.Coverage.Need, x.Kind
-			if k == ufw.FindingRestricted && loopbackOnly(st.Status.Rules, ufw.Firewall{Active: active, IPv6: st.IPv6, NoKernelIPv6: st.NoKernelIPv6, Incoming: st.Status.Incoming}, n) {
+			if k == ufw.FindingRestricted && loopbackOnly(st.Status.Rules, fw, n) {
 				k = ufw.FindingNotAllowed
 			}
 			a := netip.AddrPortFrom(n.Addr, n.Port)
 			switch {
 			case (k == ufw.FindingNotAllowed || k == ufw.FindingRestricted || k == ufw.FindingExcepted) && sk.Stray(n.Port):
 				stray = append(stray, a)
+			case k == ufw.FindingNotAllowed && slices.ContainsFunc(seen, func(c ufw.Coverage) bool { return c.Need == n && ipv4Only(seen, c) }):
+				only4 = true
 			case k == ufw.FindingNotAllowed && !slices.Contains(refused, a):
 				refused = append(refused, a)
 			case k == ufw.FindingRestricted:
@@ -140,6 +152,9 @@ func checkUFW(ctx context.Context, sys host.System, f detect.Facts) (engine.Stat
 		return out, nil
 	case except:
 		out.State, out.Detail = engine.Partial, "ssh blocklist"
+		return out, nil
+	case only4:
+		out.State, out.Detail = engine.Partial, "ssh IPv4 only"
 		return out, nil
 	case bootUnread:
 		out.State, out.Detail = engine.Unknown, "can't tell boot state"

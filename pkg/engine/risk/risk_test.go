@@ -240,6 +240,10 @@ func TestAssess(t *testing.T) {
 			want{band: risk.Critical, score: 80, forced: true, factors: []string{unread}}},
 		{"blocked beats unchecked", with(rep(idFW, engine.Partial, "ssh blocked", firewall.CodeSSHBlocked, firewall.CodeSSHUnchecked)), quiet,
 			want{band: risk.Critical, score: 80, forced: true}},
+		// Refused on IPv6 alone while IPv4 gets in: ufw's per-listener finding
+		// alone, no lockout (check-firewall.md §2.6, 2026-11-08).
+		{"ssh refused on IPv6 alone", with(rep(idFW, engine.Partial, "ssh IPv4 only", "UFW_SSH_NOT_ALLOWED")), quiet,
+			want{band: risk.Low, score: 90}},
 		{"ufw may block ssh at start", with(rep(idFW, engine.NotConfigured, "enabled, not running", "UFW_SSH_NOT_ALLOWED_AT_START")), quiet,
 			want{band: risk.Moderate, score: 70, factors: []string{"SSH may be blocked after restart"}}},
 		{"ufw may block ssh at start, a reboot pending", with(rep(idFW, engine.NotConfigured, "enabled, not running", "UFW_SSH_NOT_ALLOWED_AT_START")),

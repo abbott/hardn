@@ -560,7 +560,7 @@ func TestUFW(t *testing.T) {
 			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, blockedF}},
 		{name: "default deny, nothing allowed", site: site{plat: d, ufw: on}, state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, blockedF}},
 		{name: "IPV6=no, sshd on [::]:22", site: site{plat: d, ufw: with(allow22, func(u *fw) { u.noV6 = true })},
-			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, blockedF}},
+			state: engine.Partial, want: "ssh IPv4 only", codes: []string{notAllowed}},
 		{name: "default allow", site: site{plat: d, ufw: fw{active: true, incoming: "allow"}}, state: engine.Partial, want: "allow policy"},
 		{name: "default allow, 22 denied", site: site{plat: d, ufw: fw{active: true, incoming: "allow", rules: []rule{{action: "deny", port: "22"}}}},
 			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, blockedF}},
@@ -577,6 +577,56 @@ func TestUFW(t *testing.T) {
 		{name: "no /etc/default/ufw", site: site{plat: d, ufw: with(allow22, func(u *fw) { u.noDefault = true })}, state: engine.Unknown, want: "can't read", err: "FILE_NOT_FOUND"},
 	} {
 		t.Run(r.name, func(t *testing.T) { run(t, r) })
+	}
+}
+
+// TestIPv4Only: an SSH listener refused on IPv6 alone, while an IPv4 listener
+// on its port gets in, is no lockout risk (no CodeSSHBlocked): Partial "ssh
+// IPv4 only", or the allowlist's or blocklist's words where they say more.
+// IPv4 let in from loopback alone, or on another port only, is still blocked.
+func TestIPv4Only(t *testing.T) {
+	d := debian13()
+	for _, r := range []row{
+		{name: "22 allowed on IPv4 alone", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp", "ALLOW IN", "Anywhere")}},
+			state: engine.Partial, want: "ssh IPv4 only", codes: []string{notAllowed}},
+		{name: "22 rate-limited on IPv4 alone", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp", "LIMIT IN", "Anywhere")}},
+			state: engine.Partial, want: "ssh IPv4 only", codes: []string{notAllowed}},
+		{name: "22 from two IPv4 subnets only", site: site{plat: d, ufw: fw{active: true, rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}, {action: "allow", port: "22", src: "198.51.100.0/24"}}}},
+			state: engine.Partial, want: "ssh allowlist", codes: []string{notAllowed, restricted}},
+		{name: "22 from everywhere but 192.0.2.0/24, IPv4 alone", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp", "DENY IN", "192.0.2.0/24", "22/tcp", "ALLOW IN", "Anywhere")}},
+			state: engine.Partial, want: "ssh blocklist", codes: []string{notAllowed, excepted}},
+		{name: "22 on lo alone for IPv4, nothing for IPv6", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp on lo", "ALLOW IN", "Anywhere")}},
+			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, restricted, blockedF}},
+		{name: "IPv4 allowed, IPv6 denied by a rule", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp", "ALLOW IN", "Anywhere", "22/tcp (v6)", "DENY IN", "Anywhere (v6)")}},
+			state: engine.Partial, want: "ssh IPv4 only", codes: []string{notAllowed}},
+		{name: "IPV6=no, ufw off after restart", site: site{plat: d, ufw: fw{active: true, noV6: true, enabled: "no", rules: allow("22")}},
+			state: engine.Partial, want: "off after restart", codes: []string{notAllowed}},
+	} {
+		t.Run(r.name, func(t *testing.T) { run(t, r) })
+	}
+	// The listeners FIREWALL_SSH_BLOCKED names, where IPv4 does not get in on
+	// the IPv6 listener's own port from an address that is not loopback.
+	for _, tc := range []struct {
+		r      row
+		detail string
+	}{
+		// IPv4 in on 2230 alone: 22 refused on both, 2230's IPv6 listener not
+		// named, IPv4 on 2230 covering it.
+		{row{name: "IPv4 on 2230 alone, sshd on 22 and 2230", site: site{plat: d, ports: []uint16{22, 2230}, ufw: fw{active: true, table: rows("2230/tcp", "ALLOW IN", "Anywhere")}},
+			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, notAllowed, notAllowed, blockedF}}, "[::]:22, 0.0.0.0:22 blocked: lockout risk"},
+		// IPv4 on lo alone is refused, so it lets no IPv6 listener off.
+		{row{name: "22 on lo alone for IPv4: both named", site: site{plat: d, ufw: fw{active: true, table: rows("22/tcp on lo", "ALLOW IN", "Anywhere")}},
+			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, restricted, blockedF}}, "[::]:22, 0.0.0.0:22 blocked: lockout risk"},
+		// sshd's IPv4 listener on 127.0.0.1: allowed, as loopback is, but no
+		// remote session reaches it, so [::]:22 is still a lockout.
+		{row{name: "sshd's IPv4 listener on 127.0.0.1", site: site{plat: d, bound: []string{"[::]:22", "127.0.0.1:22"}, ufw: fw{active: true, table: rows("22/tcp", "ALLOW IN", "Anywhere")},
+			failT: &hostfake.Response{Stdout: "port 22\nlistenaddress [::]:22\nlistenaddress 127.0.0.1:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\nusepam yes\n"}},
+			state: engine.Partial, want: "ssh blocked", codes: []string{notAllowed, blockedF}}, "[::]:22 blocked: lockout risk"},
+	} {
+		st := run(t, tc.r)
+		if i := slices.IndexFunc(st.Findings, func(f engine.Finding) bool { return f.Code == blockedF }); i < 0 || st.Findings[i].Detail != tc.detail {
+			t.Errorf("%s: findings %v, want %s %q", tc.r.name, st.Findings, blockedF, tc.detail)
+		}
 	}
 }
 

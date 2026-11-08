@@ -616,12 +616,14 @@ func TestEnableRefusals(t *testing.T) {
 		words string
 		want  error
 	}{
-		"a saved deny":               {site{plat: debian13(), ufw: fw{rules: []rule{{action: "deny", port: "22"}}}}, blocks, ufw.ErrBlocks},
-		"a blocklist":                {site{plat: debian13(), ufw: fw{rules: []rule{{action: "deny", port: "22", src: "198.51.100.0/24"}, {action: "allow", port: "22"}}}}, blocks, ufw.ErrBlocks},
-		"IPv6 off":                   {site{plat: debian13(), ufw: fw{noV6: true}}, ipv6, ufw.ErrBlocks},
-		"IPv6 off, active":           {site{plat: debian13(), ufw: fw{active: true, noV6: true, rules: allow("22")}}, ipv6, firewall.ErrRefused},
-		"an allowlist of one family": {site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}}, refused6, firewall.ErrRefused},
-		"an active deny":             {site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "deny", port: "22"}}}}, refused6, firewall.ErrRefused},
+		"a saved deny":   {site{plat: debian13(), ufw: fw{rules: []rule{{action: "deny", port: "22"}}}}, blocks, ufw.ErrBlocks},
+		"a blocklist":    {site{plat: debian13(), ufw: fw{rules: []rule{{action: "deny", port: "22", src: "198.51.100.0/24"}, {action: "allow", port: "22"}}}}, blocks, ufw.ErrBlocks},
+		"IPv6 off":       {site{plat: debian13(), ufw: fw{noV6: true}}, ipv6, ufw.ErrBlocks},
+		"an active deny": {site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "deny", port: "22"}}}}, refused6, firewall.ErrRefused},
+		// Refused on IPv6 alone, set but for a change Enable makes: refused, as
+		// before (an IPv6 refusal with nothing to change is TestEnableNothing's).
+		"an allowlist of one family, boot off":  {site{plat: debian13(), ufw: fw{active: true, boot: "disabled", rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}}, refused6, firewall.ErrRefused},
+		"IPv4 from loopback only, IPv6 nothing": {site{plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "allow", port: "22", src: "127.0.0.1"}}}}, refused6, firewall.ErrRefused},
 		"a dual-stack socket refused": {site{plat: ubuntu2604(), ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "deny", port: "22"}}},
 			failT: &hostfake.Response{Stdout: "port 22\nlistenaddress [::]:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication no\nusepam yes\n"}}, refused6, firewall.ErrRefused},
 		"not read":                     {site{plat: debian13(), ufw: fw{active: true, garbage: true}}, "hardn can't read ufw's state. Check ufw status verbose, then try again.", ufw.ErrStateUnknown},
@@ -664,6 +666,9 @@ func TestEnableNothing(t *testing.T) {
 		"allowed":      {plat: debian13(), ufw: allow22},
 		"an allowlist": {plat: debian13(), ufw: fw{active: true, noKernel6: true, rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}},
 		"a blocklist":  {plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "deny", port: "22", src: "198.51.100.0/24"}, {action: "allow", port: "22"}}}},
+		// Refused on IPv6 alone while IPv4 gets in (the maintainer, 2026-11-08).
+		"IPv6 off, IPv4 allowed":     {plat: debian13(), ufw: fw{active: true, noV6: true, rules: allow("22")}},
+		"an allowlist of one family": {plat: debian13(), ufw: fw{active: true, rules: []rule{{action: "allow", port: "22", src: "192.0.2.0/24"}}}},
 	} {
 		t.Run(name, func(t *testing.T) {
 			l := liveOn(t, s)
@@ -676,6 +681,17 @@ func TestEnableNothing(t *testing.T) {
 				t.Errorf("read: item %d, beside %t, %v, %v", r.First, r.DisableBeside, r.Plan, r.PlanErr)
 			}
 		})
+	}
+}
+
+// TestEnableLetsIPv6Through: refused on IPv6 alone where no rule decides 22
+// for IPv6, Enable has a change to make, ufw allow 22/tcp, so item 1 stays
+// Enable, letting SSH through, though the row is no lockout risk.
+func TestEnableLetsIPv6Through(t *testing.T) {
+	l := liveOn(t, site{plat: debian13(), ufw: fw{active: true, table: rows("22/tcp", "ALLOW IN", "Anywhere")}})
+	r := firewall.Read(context.Background(), l, l.facts, nil, console)
+	if r.First != firewall.ItemEnable || r.PlanErr != nil || !r.Does.Allows || !slices.ContainsFunc(r.Plan, func(c engine.Change) bool { return slices.Contains(c.Commands, "ufw allow 22/tcp") }) {
+		t.Errorf("read: item %d, %v, does %+v, plan %v", r.First, r.PlanErr, r.Does, r.Plan)
 	}
 }
 

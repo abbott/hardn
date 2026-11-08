@@ -104,6 +104,12 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	case ItemEnable:
 		r.Plan, r.PlanErr = Incoming{Action: ActionEnable}.Plan(ctx, sys, in)
 		r.Does = does(r.Plan)
+		// Set but for a listener refused on IPv6 alone, with nothing for Enable
+		// to change (where it would let IPv6 through, item 1 stays Enable):
+		// item 1 is Disable, as on a set host.
+		if r.PlanErr == nil && len(r.Plan) == 0 && r.setBut(true) {
+			r.First, r.DisableBeside, r.Plan, r.Does = ItemDisable, false, nil, Does{}
+		}
 	case ItemInstallSS:
 		r.Plan, r.PlanErr = Incoming{Action: ActionInstallSS}.Plan(ctx, sys, in)
 	}
@@ -128,13 +134,20 @@ func (r Reading) first() Item {
 // set: ufw is active and set: it refuses what no rule accepts, lets every SSH
 // listener, known to be what accepts SSH, through (an allowlist and a blocklist
 // count), or there is none (Sockets.NoServer), and starts at the next boot.
-func (r Reading) set() bool {
+func (r Reading) set() bool { return r.setBut(false) }
+
+// setBut is set, with ipv6 a listener refused on IPv6 alone while IPv4 gets
+// in (ipv4Only) not counting against it.
+func (r Reading) setBut(ipv6 bool) bool {
 	s := r.State.Status
 	if r.StateErr != nil || !s.Known || len(s.Bad) > 0 || !s.Active || !r.State.Enabled || r.Boot != detect.Yes || !r.Sockets.Established() && !r.Sockets.NoServer ||
 		s.Incoming != ufw.PolicyDeny && s.Incoming != ufw.PolicyReject {
 		return false
 	}
-	return !slices.ContainsFunc(r.Coverage(), func(c ufw.Coverage) bool { return c.Verdict == ufw.Blocked || c.Verdict == ufw.Denied })
+	cs := r.Coverage()
+	return !slices.ContainsFunc(cs, func(c ufw.Coverage) bool {
+		return (c.Verdict == ufw.Blocked || c.Verdict == ufw.Denied) && !(ipv6 && ipv4Only(cs, c))
+	})
 }
 
 // Coverage is ufw's verdict on each SSH listener: while active under what ufw

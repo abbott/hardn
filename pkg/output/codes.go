@@ -518,7 +518,7 @@ var findingCodes = []Entry{
 	finding(ssh.CodeSSHDUnfixed, "Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, with no account exposed yet"),
 	finding(ssh.CodeFixUnknown, "Alpine: whether the openssh package has the fix for CVE-2026-123158, or which accounts it would expose, is not established"),
 	// The firewall control's own (next/p4-check-firewall).
-	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener: lockout risk, scored critical"),
+	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener, other than one refused on IPv6 alone while IPv4 gets in: lockout risk, scored critical"),
 	finding(firewall.CodeSSHUnchecked, "the SSH listeners are not established, so whether the firewall lets them through is not either"),
 	finding(firewall.CodeBootUnchecked, "whether an active ufw starts at the next boot is not read, so the row is not Configured"),
 	finding(firewall.CodeLocalOnly, "on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only"),
