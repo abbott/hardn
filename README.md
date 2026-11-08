@@ -4,7 +4,7 @@
 
 A simple hardening tool for Linux.
 
-> Implement fundamental security measures on Debian, Ubuntu, Proxmox, and Alpine Linux servers.
+> Implement fundamental security measures on Debian, Ubuntu, Proxmox, and Alpine servers.
 
 ## Target Audience
 
@@ -24,7 +24,7 @@ If you are one of the following, **<ins>refrain</ins>** from deploying this tool
 
 ### Air Gapped
 
-> hardn **<ins>DOES NOT</ins>** phone home: **<ins>ZERO</ins>** data, log, or signal collection.
+> hardn **<ins>DOES NOT</ins>** phone home: **<ins>ZERO</ins>** data collection.
 
 ### What It Does
 `sudo hardn` displays a **risk level** based on the current host configuration of users, SSH, firewall, DNS, automatic updates and AppArmor. Utilize the **menu options** to configure each of the following:
@@ -181,12 +181,13 @@ sudo hardn system-details --output json > web-01.json
 | `3` | A plan has changes to make (dry run), or you declined them |
 | `130` | Interrupted: Ctrl-C, SIGTERM or a hangup. An apply that was running is rolled back first |
 
-**JSON.** `hardn system-details --output json` prints one JSON document on stdout. [docs/reference/output.md](docs/reference/output.md) describes its fields and the stable error and finding codes.
+#### JSON
+`hardn system-details --output json` prints one JSON document on stdout. [docs/reference/output.md](docs/reference/output.md) describes its fields and the stable error and finding codes.
 
-**Plain output and colour.** Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color=always` colours it anyway, and wins over `--plain`, `NO_COLOR` and `TERM=dumb` too. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
+#### Plain output and colour
+Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color=always` colours it anyway, and wins over `--plain`, `NO_COLOR` and `TERM=dumb` too. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
 
-**Logs.**
-
+#### Logs
 - `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
 - `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. Logs (10) and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
 
