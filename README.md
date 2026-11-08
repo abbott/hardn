@@ -187,6 +187,8 @@ sudo hardn system-details --output json > web-01.json
 #### Plain output and colour
 Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color=always` colours it anyway, and wins over `--plain`, `NO_COLOR` and `TERM=dumb` too. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
 
+`TERM=linux`, as under Proxmox VE's `pct console`, gets basic colours and ASCII symbols. Where your terminal can show more, add `[ "$TERM" = linux ] && alias hardn='TERM=xterm-256color LANG=C.UTF-8 hardn'` to `/root/.profile`.
+
 #### Logs
 - `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
 - `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. Logs (10) and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
@@ -301,7 +303,7 @@ Read [docs/contributing.md](docs/contributing.md) before opening a pull request.
 
 ## Origin
 
-After hardening Debian-based containers and VMs by hand for years, I wrote a local script to automate the essentials from a config file and command-line arguments. Within a year a CLI menu was bolted on, the code needed a rewrite to stay maintainable, so I moved it to Go and published it.
+After hardening Debian-based containers and VMs by hand for years, I wrote a local script to automate the essentials from a config file and command-line arguments. Within a year a CLI menu was bolted on, the code needed a rewrite to stay maintainable, so I moved it to Go and published it. Enjoy! 🥃
 
 ## Acknowledgments
 
