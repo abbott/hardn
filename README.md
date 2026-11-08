@@ -8,23 +8,21 @@ A simple hardening tool for Linux.
 
 ## Target Audience
 
-Anyone managing a **privately owned** Linux server, container, or virtual machine
-- Homelab enthusiasts, Students, Hobbyists
+Anyone managing a **privately owned** Linux server, container, or virtual machine, such as Homelab enthusiasts and Students.
 
-If you are one of the following, **<ins>refrain</ins>** from deploying this tool in the public or private sector
-- System Administrator
-- DevOps Engineer
-- SecOps Architect or Analyst
+> [!NOTE]
+> While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, hardn is **<ins>not intended for enterprise use</ins>**.
 
 ## Overview
 
 ### Security Disclaimer
 
-`hardn` should be part of a broader security strategy, not a *"set it and forget it"* solution — regular security audits, updates, and monitoring are still required. While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, hardn is **<ins>not intended for enterprise use</ins>**.
+> [!IMPORTANT]
+> `hardn` should be part of a broader security strategy, not a _"set it and forget it"_ solution — regular security audits, updates, and monitoring are still required.
 
 ### Air Gapped
 
-> hardn **<ins>DOES NOT</ins>** phone home: **<ins>ZERO</ins>** data collection.
+hardn **<ins>DOES NOT</ins>** phone home: **<ins>ZERO</ins>** data collection.
 
 ### What It Does
 `sudo hardn` displays a **risk level** based on the current host configuration of users, SSH, firewall, DNS, automatic updates and AppArmor. Utilize the **menu options** to configure each of the following:
@@ -42,7 +40,7 @@ If you are one of the following, **<ins>refrain</ins>** from deploying this tool
 | 9) System Details | OS, kernel, addresses, users, CPU, disk, memory, last logins | nothing |
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
-*The hardn status for **AppArmor** only displays current state, nothing more.*
+_The hardn status for **AppArmor** only displays current state, nothing more._
 
 ### How It Works
 
@@ -51,7 +49,7 @@ If you are one of the following, **<ins>refrain</ins>** from deploying this tool
 3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
-#### Safety
+### Safety
 
 - **Refused before anything changes.** hardn won't make a change it can't show to be safe:
   - **Root login.** Turning root's SSH login off is refused unless another admin can still log in and become root (by key, or by password while password login is on). It is also refused while you are logged in as root over SSH.
@@ -65,7 +63,7 @@ If you are one of the following, **<ins>refrain</ins>** from deploying this tool
 
 Learn more: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot.md](docs/safety/revert-boot.md) (the boot unit), [atomic.md](docs/safety/atomic.md) (writes and backups), [pve.md](docs/safety/pve.md) (Proxmox), and the index, [docs/safety](docs/safety/README.md).
 
-#### Dry run (Plan mode)
+### Dry run _(Plan mode)_
 `sudo hardn -n` (or `dryRun: true` in hardn.yml) shows each operational plan and changes nothing. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
 
 ## Installation
@@ -75,11 +73,11 @@ Learn more: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot
 ```sh
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh
 ```
-*When a host uses `doas` (Alpine), pipe it to `doas sh` instead of `sudo sh`.*
+_When a host uses `doas` (Alpine), pipe to `doas sh` instead of `sudo sh`._
 
-The script will:
+**The script will**:
 
-- Find the latest release through the GitHub API (or take `HARDN_VERSION`, below), and its asset for your system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. There is no armv7 build, so on armv7 it stops.
+- Find the latest release through the GitHub API (or take `HARDN_VERSION`, below), and its asset for the system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. 📝 There is no armv7 build, so on armv7 it stops.
 - Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing. Without gh, it installs on the SHA-256 alone and prints the commands that check the attestation.
 - Install `/usr/local/bin/hardn` and create `/etc/hardn`.
 
@@ -89,7 +87,7 @@ To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have n
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo env HARDN_VERSION=0.4.0 sh
 ```
 
-The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. *On a terminal, a run that finds no hardn.yml offers to create one, except `setup-sudo-env` and dry runs.*
+The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except `setup-sudo-env` and dry runs._
 
 ### Install Manually
 
@@ -125,7 +123,6 @@ sudo cp build/hardn /usr/local/bin/hardn
 ### Troubleshooting
 
 - **Permission Issues:** Not run as root, the script stops before downloading anything and prints the command to use, piped to `sudo sh` (or `doas sh`).
-- **`/usr/local/bin/hardn` is a directory:** The script installs nothing. Move it aside, then run the script again.
 - **Missing curl:** If `curl` is not installed, use your package manager to install it (e.g., `sudo apt-get install curl` on Debian/Ubuntu; `doas apk add curl` or `sudo apk add curl` on Alpine).
 
 ### Updating
@@ -201,15 +198,16 @@ sudo hardn system-details --output json > web-01.json
 | `3` | A plan has changes to make (dry run), or you declined them |
 | `130` | Interrupted: Ctrl-C, SIGTERM or a hangup. An apply that was running is rolled back first |
 
-#### JSON
+### JSON
 `hardn system-details --output json` prints one JSON document on stdout. [docs/reference/output.md](docs/reference/output.md) describes its fields and the stable error and finding codes.
 
-#### Plain output and colour
+### Plain output and colour
 Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color=always` colours it anyway, and wins over `--plain`, `NO_COLOR` and `TERM=dumb` too. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
 
-`TERM=linux`, as under Proxmox VE's `pct console`, gets basic colours and ASCII symbols. Where your terminal can show more, add `[ "$TERM" = linux ] && alias hardn='TERM=xterm-256color LANG=C.UTF-8 hardn'` to `/root/.profile`.
+> [!TIP]
+> `TERM=linux`, as under Proxmox VE's `pct console`, gets basic colours and ASCII symbols. Where your terminal can show more, add `[ "$TERM" = linux ] && alias hardn='TERM=xterm-256color LANG=C.UTF-8 hardn'` to `/root/.profile`.
 
-#### Logs
+### Logs
 - `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
 - `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. Logs (10) and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
 
@@ -228,7 +226,8 @@ disableRootSSH: true
 confirmTimeout: "5m"
 ```
 
-See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to keep `HARDN_CONFIG` under sudo. Example: [hardn.yml.example](hardn.yml.example)
+> [!TIP]
+> See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to keep `HARDN_CONFIG` under sudo. Example: [hardn.yml.example](hardn.yml.example)
 
 ## Distribution Support
 
@@ -244,9 +243,8 @@ See [docs/configuration.md](docs/configuration.md) for every key, where hardn lo
 - **Out of scope**, and any version not in the table: hardn shows the screens and refuses every change.
 - **Any other distribution**: hardn doesn't start.
 
-**Tested so far** on VMs during development: Debian 13, Ubuntu 26.04 and Alpine 3.23. The release's VM suite will add to this list. Proxmox 9 and the other supported versions haven't been run on a VM yet.
-
-On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.
+> [!NOTE]
+> On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.
 
 ### Proxmox
 
@@ -265,6 +263,8 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 - **`pvecm qdevice setup <address>`** logs in to the QDevice host as root over SSH, using root's password where the node's key isn't there yet. If hardn turned root login off on that host (`-d`, or Run All), allow it again there by hand for the setup.
 
 ## CVE Mitigations
+> [!IMPORTANT]
+> `hardn` doesn’t patch the vulnerable software. For each CVE below, it checks whether the host has the vendor’s fix, alerts when the fix is missing, and refuses any change the vulnerability would make unsafe.
 
 ### CVE-2026-123158, Alpine (aka "*sshole") 
 OpenSSH before 10.6p2, on musl without PAM, lets a password of 257 to 1024 bytes into an account whose password field is `*`, as a key-only account's is. hardn compares the installed `openssh-server` with each Alpine branch's first fixed release:
@@ -278,7 +278,7 @@ Learn more: [alpine.md](docs/safety/alpine.md) (the fixed releases by branch) an
 
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/)
 
-A `hardn` binary has a GitHub artifact attestation: [SLSA](https://slsa.dev) Level 3 supply-chain security inclusive of the following security guarantees:
+A `hardn` binary has a GitHub artifact attestation [SLSA](https://slsa.dev) Level 3 supply-chain security inclusive of the following security guarantees:
 
 - **Tamper Protection**: Each binary is signed and includes a provenance attestation
 - **Build Integrity**: Builds are performed in GitHub's trusted environment
@@ -310,22 +310,25 @@ gh attestation verify /usr/local/bin/hardn --repo abbott/hardn \
   --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.4.0 \
   --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners
 ```
-
-To check the SHA-256 alone, download `SHA256SUMS` from the same release, then run `grep ' hardn-linux-amd64$' SHA256SUMS | sha256sum -c -`.
+> [!NOTE]
+> To check the SHA-256 alone, download `SHA256SUMS` from the same release, then run `grep ' hardn-linux-amd64$' SHA256SUMS | sha256sum -c -`.
 
 ## Contributing and Security
+> [!IMPORTANT]
+> Read [docs/contributing.md](docs/contributing.md) before opening a pull request.\
+> Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, **<ins>not in a public issue</ins>**. 
 
-Read [docs/contributing.md](docs/contributing.md) before opening a pull request. Report bugs in the GitHub issue tracker, with your OS and version and the steps to reproduce. Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, not in a public issue. The release notes are in [docs/releases/v0.4.0.md](docs/releases/v0.4.0.md). Planned features are in [ROADMAP.md](ROADMAP.md).
+Report bugs in the GitHub issue tracker, with your OS and version and the steps to reproduce. 
+
+Planned features are in [ROADMAP.md](ROADMAP.md). The release notes are in [docs/releases/v0.4.0.md](docs/releases/v0.4.0.md). 
 
 ## Origin
 
-After hardening Debian-based containers and VMs by hand for years, I wrote a local script to automate the essentials from a config file and command-line arguments. Within a year a CLI menu was bolted on, the code needed a rewrite to stay maintainable, so I moved it to Go and published it. Enjoy! 🥃
+After hardening Debian-based containers and VMs by hand for years, I wrote a script to automate the essentials from a config file and command-line arguments. Within a year a CLI menu was bolted on, the code needed a rewrite to stay maintainable, so I adopted Go and published `hardn`. Enjoy! :tumbler_glass:
 
 ## Acknowledgments
 
 hardn is built with [Cobra](https://github.com/spf13/cobra) and [pflag](https://github.com/spf13/pflag) (command line), [Lip Gloss](https://github.com/charmbracelet/lipgloss), [colorprofile](https://github.com/charmbracelet/colorprofile), [x/ansi](https://github.com/charmbracelet/x) and x/term from Charm (terminal output), [go.yaml.in/yaml/v3](https://github.com/yaml/go-yaml) (hardn.yml), and Go's [x/sys](https://pkg.go.dev/golang.org/x/sys) and [x/text](https://pkg.go.dev/golang.org/x/text).
-
-Thanks to the Linux security community for what they have shared over the years.
 
 ## License
 
