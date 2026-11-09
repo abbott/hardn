@@ -48,9 +48,9 @@ var alertKinds = []risk.Kind{risk.KindPasswordBypass, risk.KindSSHDUnfixed, risk
 // AlertOf is the main menu's alert from l, nil for none, and l without
 // the factors it raises, so that each is drawn once: the CVE's, its fix
 // and the route to SSH Login, where item 5 upgrades openssh. The level,
-// its band and glosses are l's; only the factors differ. Other screens'
-// rows, SSH Login's among them, keep the lines (StatusViewOf over l). It
-// is pure.
+// its band and glosses are l's; only the factors differ. SSH Login's rows
+// take l without them too, its screen raising its own alert
+// (pkg/screens/ssh, the maintainer, 2026-11-09). It is pure.
 func AlertOf(l risk.Level) (*screen.Alert, risk.Level) {
 	var alert *screen.Alert
 	rest := l

@@ -48,7 +48,9 @@ const (
 // menu's: each check's, through the main menu's own mapping and its
 // assessment, as the gallery drew them (an Unknown row's "Counted as not
 // configured"), with no engine and no header probe: the zero header gives
-// these rows no factor of its own.
+// these rows no factor of its own. The CVE's established factor is no line
+// under SSH Auth, as on the main menu (output.AlertOf): the screen's alert
+// says it (the maintainer, 2026-11-09).
 func statusRows(ctx context.Context, sys host.System, f detect.Facts) component.StatusList {
 	var reports []engine.Report
 	var titles []string
@@ -60,7 +62,8 @@ func statusRows(ctx context.Context, sys host.System, f detect.Facts) component.
 		}
 		reports, titles = append(reports, r), append(titles, c.Title())
 	}
-	view := output.StatusViewOf(reports, risk.Assess(reports, header.Header{})).Status
+	_, level := output.AlertOf(risk.Assess(reports, header.Header{}))
+	view := output.StatusViewOf(reports, level).Status
 	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return !slices.Contains(titles, row.Label) })
 	return view
 }

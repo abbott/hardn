@@ -55,8 +55,8 @@ type StatusView struct {
 // a cost established (the maintainer, 2026-10-21); the pending reboot,
 // with no row, is the host block's (HeaderViewOf). The lines are the main
 // menu's, and SSH Login's own three rows' (pkg/screens/ssh); no other
-// screen's rows carry them. On the main menu MainMenuOf draws the CVE's
-// established ones as its alert instead (AlertOf). It is pure.
+// screen's rows carry them. The main menu and SSH Login draw the CVE's
+// established ones as their alert instead (AlertOf). It is pure.
 func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
 	first := map[string]engine.Report{}
 	var others []engine.Report

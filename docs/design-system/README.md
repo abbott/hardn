@@ -782,7 +782,7 @@ Known limits: below 64 columns the rows stack (DEV-021) and Figma's content take
 ----------------------------------------------------------------
 ```
 
-SSH Login's screen raises it too, where item 5 is offered: no fix line, its route to 5) Upgrade openssh, between its rows and its section, SSH Auth's line kept (`SubMenu.Alert`).
+SSH Login's screen raises it too, where item 5 is offered: no fix line, its route to 5) Upgrade openssh, between its rows and its section, SSH Auth's line dropped as on the main menu (`SubMenu.Alert`; *since 2026-11-09*).
 
 **The live main menu** (`next/s2-menu-live`, on its layout since `next/s2b-menu`). hardn's main menu is this layout whole: `pkg/screens/mainmenu.Status` fills the blocks the status model owns, and `pkg/menu` the heading, the mode indicator from the session's configuration (DEV-065), origin/main's items but item 6, removed and its key left unused (`next/s2b-replace`, [dryrun-replace.md](../engine/dryrun-replace.md)), and "Enter selection", then runs it with `nav.Run` on `Screen`, in the full form at every height (DEV-052, gated): 35 lines at 80×24 and 80×40, 57 at 60 columns ([menu-layout.md](../engine/menu-layout.md)). From `next/s2-menu-live` until then it drew `MainMenu.StatusBlocks(c, below)` above its legacy menu (DEV-064); `StatusBlocks` is kept, with no caller in hardn. *Since `next/legacy-rehome`* `pkg/screens/mainmenu` does what `pkg/menu` did here; item 2 reads "Root login, passwords, port" (P-07 (a)).
 

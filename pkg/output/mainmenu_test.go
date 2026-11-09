@@ -52,7 +52,7 @@ func TestMainMenuOf(t *testing.T) {
 // the route to SSH Login, and is then no line under SSH Auth, while the
 // risk level, its band and gloss, stays l's; whether sshd is patched not
 // established stays a line, with no alert; l is not changed; and
-// StatusViewOf, which SSH Login's own rows use, keeps the line.
+// StatusViewOf over l keeps the line: only AlertOf drops it.
 func TestAlertOf(t *testing.T) {
 	want := &screen.Alert{Title: "CVE-2026-123158", Fix: "Upgrade openssh.", Item: "SSH Login"}
 	for _, c := range []struct {

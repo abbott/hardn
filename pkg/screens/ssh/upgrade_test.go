@@ -15,8 +15,9 @@ const (
 	upgradeQuestion = "Upgrade openssh?"
 	upgradeRow      = "openssh-server 10.2_p1-r0, to 10.2_p1-r1 or later"
 	// upgradeAlert is the alert over the section, pointing to item 5 (the
-	// maintainer's words, 2026-11-08), flat as shows compares it.
-	upgradeAlert = "SSH Port Not Configured default (22) # Warning: CVE-2026-123158 # Select option: 5) Upgrade openssh SSH Configuration"
+	// maintainer's words, 2026-11-08), SSH Auth with no line of the CVE's
+	// (2026-11-09), flat as shows compares it.
+	upgradeAlert = "SSH Auth Configured key-only auth [ ] SSH Port Not Configured default (22) # Warning: CVE-2026-123158 # Select option: 5) Upgrade openssh SSH Configuration"
 )
 
 // TestUpgradeItem: item 5 is offered on Alpine where sshd lacks
