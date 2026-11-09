@@ -62,7 +62,7 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
   - The refusal says why, and in most cases what to do.
 - **The revert timer.** A lockout-risk change runs under a systemd timer, or a process under OpenRC. It rolls the change back unless `hardn confirm` comes from a new connection in time. Where neither systemd nor OpenRC runs, such a change is refused. So is any lockout-risk change when a user other than root can change the hardn binary.
 - **Across a reboot.** Before the first such change, hardn installs a boot unit, `hardn-boot`. At boot, before sshd starts, it restarts the timer for the time left, or rolls the change back if the time ran out. It is removed at the first boot with nothing waiting.
-- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. Backup (7) lists the runs.
+- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. `7) Backup` lists the runs.
 
 Learn more: [revert.md](docs/safety/revert.md) (confirm-or-revert), [revert-boot.md](docs/safety/revert-boot.md) (the boot unit), [atomic.md](docs/safety/atomic.md) (writes and backups), [pve.md](docs/safety/pve.md) (Proxmox), and the index, [docs/safety](docs/safety/README.md).
 
@@ -212,7 +212,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 
 ### Logs
 - `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
-- `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. Logs (10) and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
+- `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. `10) Logs` and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
 
 ## hardn.yml
 
@@ -267,14 +267,14 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 
 ## CVE Mitigations
 > [!IMPORTANT]
-> `hardn` doesn’t patch the vulnerable software. For each CVE below, it checks whether the host has the vendor’s fix, alerts when the fix is missing, and refuses any change the vulnerability would make unsafe.
+> `hardn` doesn’t write its own patches. For each CVE below, it checks whether the host has the vendor’s fix, alerts when the fix is missing, refuses any change the vulnerability would make unsafe, and installs the fix where it can.
 
 ### CVE-2026-123158, Alpine (aka "*sshole") 
 OpenSSH before 10.6p2, on musl without PAM, lets a password of 257 to 1024 bytes into an account whose password field is `*`, as a key-only account's is. hardn compares the installed `openssh-server` with each Alpine branch's first fixed release:
   - **SSH Auth** reports an unfixed sshd (`SSH_SSHD_UNFIXED`, or `SSH_SSHD_UNFIXED_LATENT` with password login off), or an exposed host (`SSH_PASSWORD_BYPASS`, risk level Critical) where such an account can be reached by password. The main menu shows an alert for either.
   - **Creating a user is refused** (`USERS_PASSWORD_BYPASS`) on an unfixed sshd with password login on, since a new user's field is `*`.
   - **Turning password login on is refused** (`SSH_PASSWORDS_UNFIXED`) on an unfixed sshd, for the same reason.
-  - **To fix it,** choose Upgrade openssh in SSH Login (5), or run Run All: hardn upgrades every openssh package, then reloads sshd. Or turn password login off in SSH Login (2).
+  - **To fix it,** select `2) SSH Login`, then `5) Upgrade openssh`, or select `6) Run All`: hardn upgrades every openssh package, then reloads sshd. Or turn password login off: select `2) SSH Login`, then `2) Key-only login`.
 
 Learn more: [alpine.md](docs/safety/alpine.md) (the fixed releases by branch) and [check-ssh.md](docs/engine/check-ssh.md).
 
@@ -324,7 +324,7 @@ gh attestation verify /usr/local/bin/hardn --repo abbott/hardn \
 
 Report bugs in the GitHub issue tracker, with your OS and version and the steps to reproduce. 
 
-Planned features are in [ROADMAP.md](ROADMAP.md). The release notes are in [docs/releases/v0.4.0.md](docs/releases/v0.4.0.md). 
+Planned features are in [ROADMAP.md](ROADMAP.md). The release notes are in [docs/releases/v0.5.0.md](docs/releases/v0.5.0.md). 
 
 ## Origin
 
