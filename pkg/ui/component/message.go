@@ -251,6 +251,11 @@ func (vm InlineResult) Render(c Ctx) string {
 // wraps at spaces. A list that belongs to the callout, such as Figma's
 // checklist under its warning, is a BulletList after it, as Figma draws
 // it outside the bar.
+//
+// Indent moves the whole callout right by that many cells, its bar at
+// column Indent and its text two cells after, the lines as much narrower:
+// the main menu's alert stands with its bar in the marker column's centre
+// (screen.Alert, DEV-075).
 type Callout struct {
 	// Kind sets the word, the default title and their colours; the zero
 	// value is MessageInfo.
@@ -262,12 +267,15 @@ type Callout struct {
 	// Body holds the paragraphs under the title, in order; empty ones are
 	// skipped.
 	Body []string
+	// Indent is the bar's column, 0 for the left edge; the lines are as
+	// much narrower.
+	Indent int
 }
 
 // Render renders the callout for c. See Callout for the layout.
 func (vm Callout) Render(c Ctx) string {
 	k, w := vm.Kind.callout(c.Theme.Callout), c.width()
-	bar := c.calloutBar(k)
+	bar := append(line{gap(vm.Indent)}, c.calloutBar(k)...)
 	title := c.text(vm.Title)
 	switch {
 	case title == "":

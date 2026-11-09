@@ -271,8 +271,9 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 
 ### CVE-2026-123158, Alpine (aka "*sshole") 
 OpenSSH before 10.6p2, on musl without PAM, lets a password of 257 to 1024 bytes into an account whose password field is `*`, as a key-only account's is. hardn compares the installed `openssh-server` with each Alpine branch's first fixed release:
-  - **SSH Auth** reports an unfixed sshd (`SSH_SSHD_UNFIXED`), or an exposed host (`SSH_PASSWORD_BYPASS`, risk level Critical) where such an account can be reached by password.
+  - **SSH Auth** reports an unfixed sshd (`SSH_SSHD_UNFIXED`, or `SSH_SSHD_UNFIXED_LATENT` with password login off), or an exposed host (`SSH_PASSWORD_BYPASS`, risk level Critical) where such an account can be reached by password. The main menu shows an alert for either.
   - **Creating a user is refused** (`USERS_PASSWORD_BYPASS`) on an unfixed sshd with password login on, since a new user's field is `*`.
+  - **Turning password login on is refused** (`SSH_PASSWORDS_UNFIXED`) on an unfixed sshd, for the same reason.
   - **To fix it,** choose Upgrade openssh in SSH Login (5), or run Run All: hardn upgrades every openssh package, then reloads sshd. Or turn password login off in SSH Login (2).
 
 Learn more: [alpine.md](docs/safety/alpine.md) (the fixed releases by branch) and [check-ssh.md](docs/engine/check-ssh.md).

@@ -441,6 +441,7 @@ func States() []State {
 			"A user password is required for sudo usage.",
 			"Keep this session open until a new connection to port 2230 from 192.0.2.0/24 succeeds.",
 		}}},
+		{"callout/indent", component.Callout{Kind: component.MessageWarn, Title: "CVE-2026-123158", Body: []string{"Upgrade openssh.", "Select option: 2) SSH Login"}, Indent: 3}},
 		{"answeredfield/text", component.AnsweredField{Number: 1, Label: "Username", Answer: "george"}},
 		{"answeredfield/yes-no", component.AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}},
 		{"answeredfield/confirm", component.AnsweredField{Label: "Disable SSH login for 'root'?", Accepts: yesNo, Answer: "y"}},

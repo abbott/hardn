@@ -160,6 +160,7 @@ var errorCodes = []Entry{
 	is("SSH_PVE_NO_ROOT_KEY", sshchange.ErrPVENoRootKey),
 	is("SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted),
 	is("SSH_UPGRADE_UNKNOWN", sshchange.ErrUpgradeUnknown),
+	is("SSH_PASSWORDS_UNFIXED", sshchange.ErrPasswordsUnfixed),
 	is("SSHD_NO_WRITE_STRATEGY", steps.ErrNoWriteStrategy),
 	is("SSH_MIGRATE_FIRST", steps.ErrMigrateFirst),
 	is("SSH_PORT_NO_NEW_LISTENER", steps.ErrNoNewListener),
@@ -522,6 +523,7 @@ var findingCodes = []Entry{
 	// SSH Auth's on Alpine, of CVE-2026-123158 (docs/safety/alpine.md).
 	finding(ssh.CodePasswordBypass, "Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, so anyone can log in with a long password as an account whose password field is *"),
 	finding(ssh.CodeSSHDUnfixed, "Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, with no account exposed yet"),
+	finding(ssh.CodeSSHDUnfixedLatent, "Alpine: sshd lacks the fix for CVE-2026-123158, with no password path to it established (password login off, sshd checking passwords through PAM, or either not established)"),
 	finding(ssh.CodeFixUnknown, "Alpine: whether the openssh package has the fix for CVE-2026-123158, or which accounts it would expose, is not established"),
 	// The firewall control's own (next/p4-check-firewall).
 	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener, other than one refused on IPv6 alone while IPv4 gets in: lockout risk, scored critical"),

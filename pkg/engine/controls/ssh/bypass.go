@@ -37,6 +37,11 @@ const (
 	// with a password path on, but no login account's field is "*" or no
 	// account has a $5$ or $6$ hash yet.
 	CodeSSHDUnfixed = "SSH_SSHD_UNFIXED"
+	// CodeSSHDUnfixedLatent: sshd lacks the fix, with no password path to
+	// it established: password login off, sshd checking passwords
+	// through PAM, or either not established. The upgrade is still
+	// offered (SSH Login's item 5, Run All), so the row says why.
+	CodeSSHDUnfixedLatent = "SSH_SSHD_UNFIXED_LATENT"
 	// CodeFixUnknown: whether the openssh package has the fix, or with it
 	// unfixed which accounts sshd would let in, is not established.
 	CodeFixUnknown = "SSH_FIX_UNKNOWN"
@@ -166,6 +171,39 @@ func (r reading) withBypass(ctx context.Context, sys host.System, f detect.Facts
 	return st
 }
 
+// cveCodes are the CVE's findings.
+var cveCodes = []string{CodePasswordBypass, CodeSSHDUnfixed, CodeSSHDUnfixedLatent, CodeFixUnknown}
+
+// withUnfixed is SSH Auth's status st with CodeSSHDUnfixedLatent added on
+// Alpine where the package of the sshd that runs is established to lack
+// the fix and st carries none of the CVE's findings (withBypass adds
+// those where a password path reaches the flaw): the upgrade SSH Login
+// and Run All offer then has its reason on the row (the maintainer,
+// 2026-11-08: a line, no cost). Its state and detail stay as they are; a
+// fix not established adds nothing.
+func (r reading) withUnfixed(ctx context.Context, sys host.System, f detect.Facts, st engine.Status) engine.Status {
+	if f.Platform.Distro != detect.DistroAlpine || slices.ContainsFunc(st.Findings, func(x engine.Finding) bool { return slices.Contains(cveCodes, x.Code) }) {
+		return st
+	}
+	fx := r.fix(ctx, sys, f)
+	if fx.Fixed != detect.No {
+		return st
+	}
+	st.Evidence = append(st.Evidence, fixEvidence(fx))
+	st.Findings = append(st.Findings, engine.Finding{Code: CodeSSHDUnfixedLatent, Detail: lacksFix(fx), Source: alpine.InstalledDB})
+	return st
+}
+
+// lacksFix is the words of an unfixed package's finding.
+func lacksFix(fx alpine.Fix) string {
+	return fx.Package + " " + fx.Installed + " lacks the fix for " + CVE + " (" + fx.Wanted + ")"
+}
+
+// fixEvidence is an unfixed package's evidence line.
+func fixEvidence(fx alpine.Fix) string {
+	return alpine.InstalledDB + ": " + fx.Package + " " + fx.Installed + ", fixed in " + fx.Wanted
+}
+
 // bypass is the CVE's findings, and their evidence, on a host where sshd
 // checks passwords without PAM with a password path on: none where the
 // package has the fix; CodeFixUnknown where that is not established;
@@ -185,8 +223,8 @@ func (r reading) bypass(ctx context.Context, sys host.System, f detect.Facts) ([
 		return []engine.Finding{{Code: CodeFixUnknown, Detail: "can't tell if " + pkg + " has the fix for " + CVE + ": " + fx.Why, Source: alpine.InstalledDB}},
 			[]string{alpine.InstalledDB + ": " + fx.Why}
 	}
-	ev := []string{alpine.InstalledDB + ": " + fx.Package + " " + fx.Installed + ", fixed in " + fx.Wanted}
-	unfixed := engine.Finding{Code: CodeSSHDUnfixed, Detail: fx.Package + " " + fx.Installed + " lacks the fix for " + CVE + " (" + fx.Wanted + ")", Source: alpine.InstalledDB}
+	ev := []string{fixEvidence(fx)}
+	unfixed := engine.Finding{Code: CodeSSHDUnfixed, Detail: lacksFix(fx), Source: alpine.InstalledDB}
 	t := r.targets(ctx, sys)
 	ev = append(ev, t.ev...)
 	switch {

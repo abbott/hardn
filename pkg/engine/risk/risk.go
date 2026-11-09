@@ -186,10 +186,11 @@ const (
 	KindPasswordBypass             // anyone can log in with a long password (SSH_PASSWORD_BYPASS): Level.Bypass forces Critical
 	KindSSHDUnfixed                // sshd lacks CVE-2026-123158's fix, no account exposed yet (SSH_SSHD_UNFIXED)
 	KindFixUnknown                 // whether sshd has the fix, or whom it exposes, not established (SSH_FIX_UNKNOWN)
+	KindUnfixedLatent              // sshd lacks the fix, no password path to it established (SSH_SSHD_UNFIXED_LATENT): no cost
 )
 
 var kindWords = [...]string{"lockout-at-start", "unknown", "second-root", "ssh-unchecked", "updates-open", "reboot", "uptime", "no-password",
-	"password-bypass", "sshd-unfixed", "fix-unknown"}
+	"password-bypass", "sshd-unfixed", "fix-unknown", "sshd-unfixed-latent"}
 
 // String returns the kind's word.
 func (k Kind) String() string {
@@ -211,9 +212,11 @@ type Factor struct {
 	// Detail is the line, in sentence case (risk.md §6, the maintainer's
 	// words of 2026-10-21).
 	Detail string
-	// Established is true for a cost hardn established, drawn in
-	// status.warn, and false, the zero value, for a line that rests on
-	// something hardn could not establish, drawn in text.muted: a factor
+	// Established is true for a fact hardn established, drawn in
+	// status.warn, whether it costs or not (KindPasswordBypass forces the
+	// band instead, KindUnfixedLatent costs nothing), and false, the zero
+	// value, for a line that rests on something hardn could not
+	// establish, drawn in text.muted: a factor
 	// that does not say is taken as not established, as every zero value
 	// of the status model establishes nothing. KindLockoutAtStart is
 	// established for every verdict at start but OK, a saved rule ufw
@@ -405,11 +408,17 @@ func noPassword(r engine.Report, ok bool) (Factor, bool) {
 	return f, true
 }
 
+// unpatched is the line of an sshd that lacks CVE-2026-123158's fix,
+// whether a password path reaches it or not: the remedy is the same.
+const unpatched = "sshd unpatched: upgrade openssh"
+
 // sshdFix is SSH Auth's CVE-2026-123158 factor (risk.md §6.4), one for
 // the row: SSH_PASSWORD_BYPASS, the host exposed now, which costs nothing
 // of its own and forces Critical (Level.Bypass); else SSH_SSHD_UNFIXED,
-// established, PenaltyUnfixed; else SSH_FIX_UNKNOWN, not established, of
-// no cost: the rows' weights stand.
+// established, PenaltyUnfixed; else SSH_SSHD_UNFIXED_LATENT, established,
+// of no cost, as the score weighs how near the host is to the bypass and
+// no password path to it is established (the maintainer, 2026-11-08); else
+// SSH_FIX_UNKNOWN, not established, of no cost: the rows' weights stand.
 func sshdFix(r engine.Report, ok bool) (Factor, bool) {
 	f := Factor{Kind: KindFixUnknown, Control: r.Control}
 	switch {
@@ -418,7 +427,9 @@ func sshdFix(r engine.Report, ok bool) (Factor, bool) {
 	case has(r, ssh.CodePasswordBypass):
 		f.Kind, f.Detail, f.Established = KindPasswordBypass, "Anyone can log in: upgrade openssh", true
 	case has(r, ssh.CodeSSHDUnfixed):
-		f.Kind, f.Detail, f.Established, f.Penalty = KindSSHDUnfixed, "sshd unpatched: upgrade openssh", true, PenaltyUnfixed
+		f.Kind, f.Detail, f.Established, f.Penalty = KindSSHDUnfixed, unpatched, true, PenaltyUnfixed
+	case has(r, ssh.CodeSSHDUnfixedLatent):
+		f.Kind, f.Detail, f.Established = KindUnfixedLatent, unpatched, true
 	case has(r, ssh.CodeFixUnknown):
 		f.Detail = "Can't tell if sshd is patched"
 	default:

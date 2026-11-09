@@ -375,6 +375,12 @@ const syntheticHash = "$y$synthetic$not-a-hash"
 // root and alice have a password (the model's choice: with PAM, which
 // those hosts' sshd uses, no lock decides a row).
 func (h *fakeHost) accounts(admin bool) {
+	h.writeAccounts(h.accountFiles(admin))
+}
+
+// accountFiles is what accounts writes: /etc/passwd, /etc/group and
+// /etc/shadow.
+func (h *fakeHost) accountFiles(admin bool) (passwd, group, shadow string) {
 	shell, nologin, tool := "/bin/bash", "/usr/sbin/nologin", "sudo:x:27:"
 	if h.openRC {
 		shell, nologin = "/bin/sh", "/sbin/nologin"
@@ -382,11 +388,11 @@ func (h *fakeHost) accounts(admin bool) {
 	if h.doas {
 		tool = "wheel:x:10:root"
 	}
-	passwd := "root:x:0:0:root:/root:" + shell + "\n" +
+	passwd = "root:x:0:0:root:/root:" + shell + "\n" +
 		"daemon:x:1:1:daemon:/usr/sbin:" + nologin + "\n" +
 		"sshd:x:100:65534::/run/sshd:" + nologin + "\n" +
 		"nobody:x:65534:65534:nobody:/nonexistent:" + nologin + "\n"
-	group := "root:x:0:\n" + tool
+	group = "root:x:0:\n" + tool
 	switch {
 	case admin && h.doas:
 		group += ",alice"
@@ -398,7 +404,7 @@ func (h *fakeHost) accounts(admin bool) {
 	if h.openRC {
 		root, login = "!", "*"
 	}
-	shadow := "root:" + root + ":20000:0:99999:7:::\n" +
+	shadow = "root:" + root + ":20000:0:99999:7:::\n" +
 		"daemon:*:20000:0:99999:7:::\n" +
 		"sshd:*:20000:0:99999:7:::\n" +
 		"nobody:*:20000:0:99999:7:::\n"
@@ -407,9 +413,38 @@ func (h *fakeHost) accounts(admin bool) {
 		group += "alice:x:1000:\n"
 		shadow += "alice:" + login + ":20000:0:99999:7:::\n"
 	}
+	return passwd, group, shadow
+}
+
+// writeAccounts writes /etc/passwd, /etc/group and /etc/shadow.
+func (h *fakeHost) writeAccounts(passwd, group, shadow string) {
 	h.f.AddFile("/etc/passwd", []byte(passwd), 0o644, 0, 0)
 	h.f.AddFile("/etc/group", []byte(group), 0o644, 0, 0)
 	h.f.AddFile(accounts.ShadowFile, []byte(shadow), 0o640, 0, 42)
+}
+
+// shaHash stands for a SHA-512 crypt hash, as passwd(1) writes one on
+// Alpine: made up, and read by CVE-2026-123158's check for its "$6$"
+// alone.
+const shaHash = "$6$synthetic$not-a-hash"
+
+// passwordUser adds bob, uid 1001 with a login shell and a SHA-512 hash,
+// to the accounts with admin alice: an account given a password with
+// passwd(1), which CVE-2026-123158 borrows the salt of (alpine.md §7).
+func (h *fakeHost) passwordUser() {
+	passwd, group, shadow := h.accountFiles(true)
+	shell := "/bin/bash"
+	if h.openRC {
+		shell = "/bin/sh"
+	}
+	h.writeAccounts(passwd+"bob:x:1001:1001:bob:/home/bob:"+shell+"\n", group+"bob:x:1001:\n",
+		shadow+"bob:"+shaHash+":20000:0:99999:7:::\n")
+}
+
+// keyOnly turns password login off in a drop-in, as the site's own file,
+// leaving keyboard-interactive as the platform's sshd has it.
+func (h *fakeHost) keyOnly() {
+	h.f.AddFile(sshd.DropInDir+"/10-site.conf", []byte("PasswordAuthentication no\n"), 0o644, 0, 0)
 }
 
 // unattendedUpgrades installs unattended-upgrades, on: its package, and

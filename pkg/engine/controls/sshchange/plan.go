@@ -392,7 +392,8 @@ type Auth struct {
 }
 
 // Plan reads the host (Read, with in.Session), refuses as passwordRefusal
-// does (Password login on: the common refusals alone), and plans through
+// does (Password login on: the common refusals, then CVE-2026-123158's,
+// passwordsUnfixed), and plans through
 // steps.PlanSSH; nothing where passwords are already off (Key-only) or on
 // (Password login on), as PasswordsOn reads them.
 func (c Auth) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
@@ -409,6 +410,9 @@ func (c Auth) Plan(ctx context.Context, sys host.System, in engine.Input) ([]eng
 	}
 	if c.Action == AuthPasswordsOn {
 		if err := r.common(false); err != nil || r.PasswordsOn() {
+			return nil, err
+		}
+		if err := passwordsUnfixed(ctx, sys, in.Facts); err != nil {
 			return nil, err
 		}
 		return r.planSSH(ctx, sys, in, c.ID(), steps.SSH{Set: []migrate.Directive{directive("PasswordAuthentication", "yes")}})

@@ -641,7 +641,8 @@ func TestFactors(t *testing.T) {
 // SSH_PASSWORD_BYPASS forces Critical whatever the score, at no cost of its
 // own (Level.Bypass), on a host otherwise Minimal and beside a forced
 // lockout too; SSH_SSHD_UNFIXED costs PenaltyUnfixed, established;
-// SSH_FIX_UNKNOWN costs nothing, not established, and keeps Minimal off;
+// SSH_SSHD_UNFIXED_LATENT costs nothing, established, and keeps Minimal
+// off; SSH_FIX_UNKNOWN costs nothing, not established, and keeps Minimal off;
 // one factor for the row, the worst; none on another row's findings.
 func TestBypass(t *testing.T) {
 	auth := func(codes ...string) engine.Report { return rep(idAuth, engine.Configured, "key-only auth", codes...) }
@@ -661,6 +662,8 @@ func TestBypass(t *testing.T) {
 			[]risk.Factor{{Kind: risk.KindSSHDUnfixed, Control: idAuth, Detail: "sshd unpatched: upgrade openssh", Established: true, Penalty: risk.PenaltyUnfixed}}},
 		{"unfixed, the accounts not read", with(auth(ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)), risk.Low, 85, false,
 			[]risk.Factor{{Kind: risk.KindSSHDUnfixed, Control: idAuth, Detail: "sshd unpatched: upgrade openssh", Established: true, Penalty: risk.PenaltyUnfixed}}},
+		{"unfixed, no password path: no cost, kept off Minimal", with(auth(ssh.CodeSSHDUnfixedLatent)), risk.Low, 100, false,
+			[]risk.Factor{{Kind: risk.KindUnfixedLatent, Control: idAuth, Detail: "sshd unpatched: upgrade openssh", Established: true}}},
 		{"not established", with(auth(ssh.CodeFixUnknown)), risk.Low, 100, false,
 			[]risk.Factor{{Kind: risk.KindFixUnknown, Control: idAuth, Detail: "Can't tell if sshd is patched"}}},
 		{"another row's", with(rep(idLogin, engine.Configured, "root disallowed", ssh.CodePasswordBypass)), risk.Minimal, 100, false, nil},
@@ -695,6 +698,7 @@ func everyLine() []risk.Factor {
 	for _, code := range []string{ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown} {
 		all = append(all, risk.Assess(with(rep(idAuth, engine.NotConfigured, "password auth on", code)), quiet).Factors...)
 	}
+	all = append(all, risk.Assess(with(rep(idAuth, engine.Configured, "key-only auth", ssh.CodeSSHDUnfixedLatent)), quiet).Factors...)
 	return append(all, risk.Assess(with(rep(idUser, engine.Configured, "x", users.CodeRuleNotRead)), quiet).Factors...)
 }
 
@@ -709,13 +713,13 @@ func TestFactorsFit(t *testing.T) {
 			t.Errorf("%q: %d cells, over 35", f.Detail, n)
 		}
 	}
-	if len(kinds) != 11 {
-		t.Errorf("%d kinds checked, want 11", len(kinds))
+	if len(kinds) != 12 {
+		t.Errorf("%d kinds checked, want 12", len(kinds))
 	}
 }
 
 // TestFactorLines: every line of risk.md §6.2 in its colour, status.warn
-// for a cost hardn established (Established) and text.muted for one that
+// for a fact hardn established (Established) and text.muted for one that
 // rests on something hardn could not establish, and in its place: under
 // the main menu's row its kind is about, an Unknown row's under that row,
 // and only the pending reboot in the host block (Control ""). Every kind
@@ -741,7 +745,7 @@ func TestFactorLines(t *testing.T) {
 	}
 	under := map[risk.Kind]string{risk.KindLockoutAtStart: idFW, risk.KindSecondRoot: idUser, risk.KindSSHUnchecked: idFW,
 		risk.KindUpdatesOpen: idUpdate, risk.KindReboot: "", risk.KindUptime: idUpdate, risk.KindNoPassword: idUser,
-		risk.KindPasswordBypass: idAuth, risk.KindSSHDUnfixed: idAuth, risk.KindFixUnknown: idAuth}
+		risk.KindPasswordBypass: idAuth, risk.KindSSHDUnfixed: idAuth, risk.KindFixUnknown: idAuth, risk.KindUnfixedLatent: idAuth}
 	shown := map[string]bool{}
 	for _, r := range risk.Rows() {
 		shown[r.ID] = true
@@ -878,12 +882,13 @@ func TestBandWords(t *testing.T) {
 			t.Errorf("%d: %q, want %q", b, b.String(), w)
 		}
 	}
-	if risk.KindNoPassword.String() != "no-password" || risk.KindUnknown.String() != "unknown" || risk.Kind(11).String() != "kind(11)" ||
-		risk.KindPasswordBypass.String() != "password-bypass" || risk.KindSSHDUnfixed.String() != "sshd-unfixed" || risk.KindFixUnknown.String() != "fix-unknown" {
+	if risk.KindNoPassword.String() != "no-password" || risk.KindUnknown.String() != "unknown" || risk.Kind(12).String() != "kind(12)" ||
+		risk.KindPasswordBypass.String() != "password-bypass" || risk.KindSSHDUnfixed.String() != "sshd-unfixed" || risk.KindFixUnknown.String() != "fix-unknown" ||
+		risk.KindUnfixedLatent.String() != "sshd-unfixed-latent" {
 		t.Error("kind words")
 	}
 	// The kinds before CVE-2026-123158's keep their numbers.
-	if risk.KindNoPassword != 7 || risk.KindPasswordBypass != 8 || risk.KindSSHDUnfixed != 9 || risk.KindFixUnknown != 10 {
+	if risk.KindNoPassword != 7 || risk.KindPasswordBypass != 8 || risk.KindSSHDUnfixed != 9 || risk.KindFixUnknown != 10 || risk.KindUnfixedLatent != 11 {
 		t.Error("kinds renumbered")
 	}
 }

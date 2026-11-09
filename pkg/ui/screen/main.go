@@ -1,6 +1,8 @@
 package screen
 
 import (
+	"fmt"
+
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -66,7 +68,9 @@ const CompactMainMenu = false
 // RiskSummary, StatusList, Divider, the MenuHeading with the
 // ModeIndicator beside it, Menu, then the PromptLine after
 // theme.PromptGap blank lines. An empty StatusList is left out with its
-// gap. From theme.StackBelow columns up Figma's content takes 35 lines,
+// gap. An Alert, which Figma does not draw, stands between the StatusList
+// and the Divider, in the compact form after the rows: three lines and a
+// gap more. From theme.StackBelow columns up Figma's content takes 35 lines,
 // and a host's eight rows, DNS among them, 36, with each line under a row
 // one more; below that width the rows stack (DEV-021), and at 60 columns
 // Figma's content takes 57. The main menu takes this form at every height
@@ -127,6 +131,9 @@ type MainMenu struct {
 	// lines under the rows they are about; with no rows the block is left
 	// out.
 	Status component.StatusList
+	// Alert is a fact the main menu raises between the status rows and the
+	// Divider, nil for none (Alert).
+	Alert *Alert
 	// Heading is the menu heading's title, such as "Select an option".
 	Heading string
 	// Mode is the mode hardn runs in, live or plan only, and what set
@@ -197,15 +204,66 @@ func (vm MainMenu) above(c component.Ctx, short bool) string {
 
 // blocks renders the blocks above the menu heading, which the status
 // model fills: the full form's Header, ContextBar, HostBlock,
-// RiskSummary, StatusList and Divider, or, when short is set, the compact
-// form's ContextBar, HostBlock, and the RiskSummary and StatusList as one
-// group.
+// RiskSummary, StatusList, Alert and Divider, or, when short is set, the
+// compact form's ContextBar, HostBlock, the RiskSummary and StatusList as
+// one group, and the Alert. The Alert's route is vm.Menu's item.
 func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
+	alert := vm.Alert.render(c, vm.Menu)
 	if short {
-		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c))}
+		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c)), alert}
 	}
 	return []string{vm.Header.Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c),
-		component.Divider{}.Render(c)}
+		alert, component.Divider{}.Render(c)}
+}
+
+// selectOption is an alert's route to its fix: the main menu's item, by
+// its key and label (the maintainer's words, 2026-11-08).
+const selectOption = "Select option: %s) %s"
+
+// Alert is a fact the main menu raises, such as an sshd that lacks a
+// CVE's fix: a warning callout between the status rows and the Divider,
+// SectionGap blank lines from each, its bar in the marker column's centre
+// (column 3, under a one-cell status glyph, inside "[+]") and its text at
+// column 5, as the maintainer drew it (2026-11-08; DEV-075). Here with no
+// colour and ASCII glyphs:
+//
+//	  [-] AppArmor             Not Applicable Alpine default
+//
+//	   # Warning: CVE-2026-123158
+//	   # Upgrade openssh.
+//	   # Select option: 2) SSH Login
+//
+//	----------------------------------------------------------------
+//
+// The title follows the warning's word; the fix and the route are body
+// lines, in the body's colour. The route names the menu's own key for
+// Item, so it cannot name another; with no item of that label it is left
+// out.
+type Alert struct {
+	// Title names the fact: "CVE-2026-123158".
+	Title string
+	// Fix is what to do: "Upgrade openssh.".
+	Fix string
+	// Item is the label of the main menu's item where the fix is done:
+	// "SSH Login".
+	Item string
+}
+
+// render renders a for c, the route from m's item labelled a.Item; ""
+// for a nil a.
+func (a *Alert) render(c component.Ctx, m component.Menu) string {
+	if a == nil {
+		return ""
+	}
+	body := []string{a.Fix}
+	for _, it := range m.Items {
+		if it.Label == a.Item {
+			body = append(body, fmt.Sprintf(selectOption, it.Key, it.Label))
+			break
+		}
+	}
+	return component.Callout{Kind: component.MessageWarn, Title: a.Title, Body: body,
+		Indent: theme.MarkerCol + theme.MarkerWidth/2}.Render(c)
 }
 
 // StatusBlocks renders the blocks the status model fills, down to the full

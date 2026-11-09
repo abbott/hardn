@@ -9,7 +9,9 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -281,6 +283,12 @@ func TestMainMenuItems(t *testing.T) {
 	}
 	if hint := m.items().Accepts().Hint(); hint != "0-10 or q" {
 		t.Errorf("the hint is %q", hint)
+	}
+	// The CVE alert's route (output.AlertOf) is to this menu's SSH Login.
+	alert, _ := output.AlertOf(risk.Level{Factors: []risk.Factor{{Kind: risk.KindUnfixedLatent, Established: true}}})
+	above := screen.MainMenu{Alert: alert}.Screen(component.OffTerminal(), m.items()).Above
+	if !strings.Contains(above, "# Select option: 2) SSH Login\n") {
+		t.Errorf("the alert's route:\n%s", above)
 	}
 }
 

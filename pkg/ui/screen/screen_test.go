@@ -614,6 +614,60 @@ func TestEmptyBlocks(t *testing.T) {
 	}
 }
 
+// cveAlertFixture is the main-menu fixture on an Alpine host whose sshd
+// lacks CVE-2026-123158's fix: Figma's rows and items, and the alert the
+// status model raises for it (output.AlertOf), in the maintainer's words
+// (2026-11-08).
+func cveAlertFixture() MainMenu {
+	vm := MainMenuFixture()
+	vm.Context = component.ContextBar{Name: "Alpine", Version: "3.23.6"}
+	vm.Alert = &Alert{Title: "CVE-2026-123158", Fix: "Upgrade openssh.", Item: "SSH Login"}
+	return vm
+}
+
+// TestAlert checks the main menu's alert (Alert): between the status rows
+// and the divider, a blank line from each; its bar at col 3 and its text
+// at col 5; its route the menu's own key for its item, left out with no
+// such item; in the compact form after the rows; nothing with none; and
+// through Screen, the route from the menu nav.Run draws. Plain, at 80
+// columns.
+func TestAlert(t *testing.T) {
+	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	alert := "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH Login"
+	vm := cveAlertFixture()
+	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "AppArmor             Not Configured\n\n"+alert+"\n\n----") {
+		t.Errorf("main menu with an alert:\n%s\nwant the rows, a blank line, the alert, a blank line, then the divider:\n%s", out, alert)
+	}
+	if out := ansi.Strip(vm.render(c, true)); !strings.Contains(out, "AppArmor             Not Configured\n\n"+alert+"\n\n----") {
+		t.Errorf("main menu with an alert, the compact form allowed, no terminal:\n%s", out)
+	}
+	short := ansi.Strip(vm.form(c, true))
+	if !strings.Contains(short, "AppArmor             Not Configured\n\n"+alert+"\n\n  Select an option") {
+		t.Errorf("compact form with an alert:\n%s\nwant the alert after the rows, then the heading", short)
+	}
+	moved := vm
+	moved.Menu.Items = slices.Clone(vm.Menu.Items)
+	moved.Menu.Items[1].Key = "12"
+	if out := ansi.Strip(moved.Render(c)); !strings.Contains(out, "   # Select option: 12) SSH Login\n") {
+		t.Errorf("the route names the menu's own key: got\n%s", out)
+	}
+	none := vm
+	none.Alert = &Alert{Title: "CVE-2026-123158", Fix: "Upgrade openssh.", Item: "No such item"}
+	if out := ansi.Strip(none.Render(c)); !strings.Contains(out, "   # Upgrade openssh.\n\n----") || strings.Contains(out, "Select option") {
+		t.Errorf("an alert whose item the menu lacks has no route: got\n%s", out)
+	}
+	plain := MainMenuFixture()
+	withNil := plain
+	withNil.Alert = nil
+	if a, b := plain.Render(c), withNil.Render(c); a != b || strings.Contains(a, "Warning") {
+		t.Error("a nil alert changes the main menu")
+	}
+	s := vm.Screen(c, menuOf(vm.Menu))
+	if got := ansi.Strip(s.Above); !strings.Contains(got, "\n\n"+alert+"\n\n----") {
+		t.Errorf("Screen's Above:\n%s\nwant the alert", got)
+	}
+}
+
 // TestSubMenuFrames checks that the sub-menu layout draws Figma's other
 // sub-menu frames by leaving out the blocks they have no data for:
 // USER-MANAGE_USER-SELECT_USER, a menu of users under its own heading, and

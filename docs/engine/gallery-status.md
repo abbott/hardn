@@ -14,7 +14,7 @@ A status line is reviewed in its place: beside the six others, under the level t
 
 ### The hosts (`status.go`, `statushost.go`)
 
-1. **Seventeen simulated hosts**, `statusHosts()`, listed by `status` and in play's menu in this order:
+1. **Nineteen simulated hosts**, `statusHosts()`, listed by `status` and in play's menu in this order:
 
    | Host | What it is | Shows |
    |---|---|---|
@@ -32,6 +32,8 @@ A status line is reviewed in its place: beside the six others, under the level t
    | `reboot` | `ubuntu2604` with a newer kernel and `/var/run/reboot-required` | the host block's "- Reboot pending", its one place |
    | `apparmor-logging`, `apparmor-restart`, `apparmor-kernel`, `apparmor-unread` | `debian13` with its profiles in complain mode; `apparmor.service` disabled; `apparmor=0`; securityfs not mounted | AppArmor's "logging only", "off after restart", "off in kernel", "can't read" |
    | `container` | `debian13` in an LXC container | "set by the host" |
+   | `alpine-unpatched` | `alpine324` with password login off and `openssh-server` 10.3_p1-r1, a revision before the fix (*since 2026-11-08*) | `SSH_SSHD_UNFIXED_LATENT`: the main menu's CVE alert (DEV-075), the level unchanged by it |
+   | `alpine-exposed` | `alpine324`, password login on, with 10.3_p1-r1 and bob's `$6$` hash beside alice's `*` (*since 2026-11-08*) | `SSH_PASSWORD_BYPASS`: "Critical ≈ password bypass" and the alert |
 
    With `debian13`'s "7 profiles enforced", `figma`'s "no profiles loaded" and `alpine324`'s "Alpine default", **AppArmor's eight lines** ([P-43](../refactor/proposals.md#p-43) (3)) are each one host's. Each host is fresh each time it is read, and nothing carries from one to the next. Tested: `TestStatusHosts` (every host's main menu as §5 lists it, its score included).
 2. **Read by the real code, as the main menu will read it** (`session.readStatus`): detect's facts once (`engine.Options.Detect`, which keeps them), `Engine.Check` over the status rows' controls (`statusControls`: the five areas' `Controls()`, in `risk.Rows`' order, Figma's; *since `next/s2-menu-live` `controls.Status(cfg)`, the main menu's one list, DNS last, `cfg` the host's `hardn.yml` or the defaults*), `header.Read` on the same facts, `risk.Assess` over both; then `output.HeaderViewOf` and `output.StatusViewOf` fill the main menu's mock (`screen.MainMenuFixture`) in place of its header, bar, host block, risk summary and status rows, its version the mock's, `v0.4.0` (`hostStatus.mainMenu`). The gallery computes no line: each is a check's, the probe's or the score's. Tested: `TestStatusHosts` (the rows, the level, its gloss and score, the lines under the rows and the host block's reboot line, one per factor, the bar, the host block, the main menu's rows the reports' in order; the one check error where a host says, `FILE_NOT_FOUND` for `apparmor-unread`; detect's platform, Proxmox VE, container and init system as the host's note names them).
@@ -109,6 +111,8 @@ Every line the hosts show, as the main menu shows them (the state's word, then i
 | `apparmor-kernel` | as `debian13` | | | | | Not Configured *off in kernel* | as `debian13` | as `debian13` |
 | `apparmor-unread` | as `debian13` | | | | | Unknown *can't read* (`FILE_NOT_FOUND`) | as `debian13` | as `debian13` |
 | `container` | as `debian13` | | | | | Not Applicable *set by the host* | as `debian13` | Not Applicable *container* |
+| `alpine-unpatched` | as `alpine324` | | | Configured *key-only auth* (`SSH_SSHD_UNFIXED_LATENT`) | as `alpine324` | | | as `alpine324` |
+| `alpine-exposed` | as `alpine324` | | | Not Configured *password auth on* (`SSH_PASSWORD_BYPASS`) | as `alpine324` | | | as `alpine324` |
 
 | Host | Risk level | Lines under the rows (*muted*: `text.muted`; else `status.warn`) | Bar | Host block | Score |
 |---|---|---|---|---|---|
@@ -129,6 +133,8 @@ Every line the hosts show, as the main menu shows them (the state's word, then i
 | `apparmor-kernel` | High ≈ weak security | none | Debian 13 (Trixie) | as `debian13` | 37.5 |
 | `apparmor-unread` | High ≈ weak security | AppArmor: Counted as not configured (*muted*) | Debian 13 (Trixie) | as `debian13` | 37.5 |
 | `container` | High ≈ weak security | none | Debian 13 (Trixie) | web-01, 192.0.2.20, 1 hour | 41.7 |
+| `alpine-unpatched` | Moderate ≈ medium security | none: the alert in their place | Alpine 3.24.2 | as `debian13` | 50 |
+| `alpine-exposed` | Critical ≈ password bypass | none: the alert in their place | Alpine 3.24.2 | as `debian13` | 27.8 |
 
 **What the goldens show, for the maintainer** (each the code of another unit, shown as it is):
 
@@ -149,7 +155,7 @@ go run ./internal/tools/uigallery play [flags] status              # the hosts' 
 go run ./internal/tools/uigallery play [flags] status/<host>       # one host's main menu
   hosts: debian13, ubuntu2604, alpine324, pve9, fresh, ubuntu2604-cloud, ubuntu2604-iso, hardened, figma,
          lockout, lockout-at-start, reboot, apparmor-logging, apparmor-restart, apparmor-kernel,
-         apparmor-unread, container
+         apparmor-unread, container, alpine-unpatched, alpine-exposed
   flags: -theme, -profile, -ascii, -width, -height, -override; in play -sequence and -fail, for the mocks
 ```
 

@@ -256,6 +256,7 @@ var sentinels = map[string]error{
 	"sshchange.ErrNoSession":          sshchange.ErrNoSession,
 	"sshchange.ErrRootSession":        sshchange.ErrRootSession,
 	"sshchange.ErrUpgradeUnknown":     sshchange.ErrUpgradeUnknown,
+	"sshchange.ErrPasswordsUnfixed":   sshchange.ErrPasswordsUnfixed,
 	"sshchange.ErrNoAdmin":            sshchange.ErrNoAdmin,
 	"sshchange.ErrPasswordSession":    sshchange.ErrPasswordSession,
 	"sshchange.ErrPasswordOnly":       sshchange.ErrPasswordOnly,
@@ -662,6 +663,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, users.CodeNoKey)                                                                                         // next/s5-control
 	want = append(want, output.CodeDetailsUnreadable)                                                                            // next/s1-readers
 	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158
+	want = append(want, ssh.CodeSSHDUnfixedLatent)                                                                               // its line with no password path
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

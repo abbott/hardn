@@ -28,7 +28,7 @@ import (
 
 // wantStatus is a status host's main menu as docs/engine/gallery-status.md
 // §5 lists it: each row's state and detail in the rows' order, the risk
-// level, its gloss and score, the lines under the rows, the
+// level, its gloss and score, the lines under the rows, the alert, the
 // distribution's bar, the uptime and the host block's reboot line; the
 // code of each check that failed, and a finding §5 names, by control.
 type wantStatus struct {
@@ -36,6 +36,7 @@ type wantStatus struct {
 	level       string    // "<level> ≈ <gloss>"
 	score       string    // the score, to one decimal place
 	lines       []string  // "<row>: <line>", "(muted)" after one not in status.warn
+	alert       bool      // the CVE-2026-123158 alert (output.AlertOf), which draws its factor
 	bar, uptime string
 	reboot      component.RebootLine
 	errs, finds map[string]string
@@ -90,8 +91,7 @@ var wantStatuses = map[string]wantStatus{
 	"debian13": {rows: debianWith("configured: 7 profiles enforced"), level: "High ≈ weak security", score: "47.5", bar: debianBar, uptime: threeDays},
 	"ubuntu2604": {rows: [8]string{sudoAdmin, rootKeyOnly, passwordOn, port22, denyPolicy, dnsNoFile, unattendOn, ubuntuAA},
 		level: "Moderate ≈ medium security", score: "67.5", bar: ubuntuBar, uptime: threeDays},
-	"alpine324": {rows: [8]string{"configured: non-root, doas", "configured: root locked", passwordOn, port22, "not-configured: ufw not installed",
-		dnsNoFile, "not-configured: no apk-cron", "not-applicable: Alpine default"}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays},
+	"alpine324": wantStatusAlpine324,
 	"pve9": {rows: [8]string{rootOnly, "not-configured: root allowed", passwordOn, "configured: default (22)", "not-configured: disabled",
 		dnsNoFile, "not-applicable: updated by hand", "configured: 10 profiles enforced"}, level: "Critical ≈ no security", score: "18.8",
 		bar: "Proxmox VE 9.0.10 (Trixie)", uptime: "41 days, 1 hour"},
@@ -118,7 +118,17 @@ var wantStatuses = map[string]wantStatus{
 	"apparmor-unread": {rows: debianWith("unknown: can't read"), level: "High ≈ weak security", score: "37.5", lines: []string{"AppArmor: Counted as not configured (muted)"},
 		bar: debianBar, uptime: threeDays, errs: map[string]string{"apparmor.enforce": "FILE_NOT_FOUND"}},
 	"container": {rows: containerRows, level: "High ≈ weak security", score: "41.7", bar: debianBar, uptime: "1 hour"},
+	"alpine-unpatched": {rows: [8]string{"configured: non-root, doas", "configured: root locked", "configured: key-only auth", port22,
+		"not-configured: ufw not installed", dnsNoFile, "not-configured: no apk-cron", "not-applicable: Alpine default"},
+		level: "Moderate ≈ medium security", score: "50.0", alert: true, bar: "Alpine 3.24.2", uptime: threeDays,
+		finds: map[string]string{"ssh.auth": "SSH_SSHD_UNFIXED_LATENT"}},
+	"alpine-exposed": {rows: wantStatusAlpine324.rows, level: "Critical ≈ password bypass", score: "27.8", alert: true, bar: "Alpine 3.24.2", uptime: threeDays,
+		finds: map[string]string{"ssh.auth": "SSH_PASSWORD_BYPASS"}},
 }
+
+// wantStatusAlpine324 is the alpine324 host's main menu.
+var wantStatusAlpine324 = wantStatus{rows: [8]string{"configured: non-root, doas", "configured: root locked", passwordOn, port22, "not-configured: ufw not installed",
+	dnsNoFile, "not-configured: no apk-cron", "not-applicable: Alpine default"}, level: "High ≈ weak security", score: "27.8", bar: "Alpine 3.24.2", uptime: threeDays}
 
 // statusReads reports whether argv only reads the host: the scenarios'
 // reads, and the status checks' and the header probe's: apt-config's
@@ -181,8 +191,14 @@ func TestStatusHosts(t *testing.T) {
 					lines = append(lines, r.Label+": "+l.Text+muted)
 				}
 			}
-			drawn := len(lines) // and the host block's reboot line: one per factor
+			drawn := len(lines) // and the host block's reboot line and the alert: one per factor
 			if vm.Host.Reboot != component.RebootNone {
+				drawn++
+			}
+			if (vm.Alert != nil) != want.alert {
+				t.Errorf("alert %+v, want one: %t", vm.Alert, want.alert)
+			}
+			if vm.Alert != nil {
 				drawn++
 			}
 			if !slices.Equal(lines, want.lines) || drawn != len(st.level.Factors) {
@@ -209,7 +225,7 @@ func TestStatusHosts(t *testing.T) {
 				t.Errorf("platform %+v: not a supported release", f.Platform)
 			case (f.Proxmox.Installed == detect.Yes) != (sh.name == "pve9"), (f.Container.Detected == detect.Yes) != container, f.Container.Detected == detect.Unknown:
 				t.Errorf("Proxmox VE %v, container %v", f.Proxmox.Installed, f.Container.Detected)
-			case (f.Init.Kind == detect.OpenRC) != (sh.name == "alpine324"), f.Init.Running != detect.Yes:
+			case (f.Init.Kind == detect.OpenRC) != strings.HasPrefix(sh.name, "alpine"), f.Init.Running != detect.Yes:
 				t.Errorf("init %+v", f.Init)
 			}
 			if u := h.unanswered(); len(u) > 0 {

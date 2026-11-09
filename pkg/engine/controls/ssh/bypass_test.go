@@ -35,8 +35,10 @@ func exposedSite() site {
 // TestBypass: SSH Auth's CVE-2026-123158 findings on Alpine, its state and
 // detail as before: exposed (a "*" login account and a $6$ hash, the
 // package unfixed), unfixed with no target or no donor, fixed, the
-// package not established; none with PAM, with password authentication
-// off; a Match block that allows passwords; root a target only with
+// package not established; with PAM, or password authentication off,
+// SSH_SSHD_UNFIXED_LATENT where the package is unfixed and nothing where
+// it is fixed, not established or off Alpine; a Match block that allows
+// passwords; root a target only with
 // PermitRootLogin yes, globally or in a Match block; a nologin shell a
 // target (sshd lets it in, and forwards for it), a shell not there and a
 // locked field not targets; the accounts not read; off Alpine nothing.
@@ -82,7 +84,24 @@ func TestBypass(t *testing.T) {
 			[]string{"can't tell if openssh-server has the fix for CVE-2026-123158: version 10.3_p1-r1~1 isn't one hardn compares"}},
 		{row{name: "PAM: sshd.pam with UsePAM yes", site: func() site { s := withDrops(exposedSite(), "10-site.conf", "UsePAM yes\n"); s.pam = true; return s }(),
 			state: engine.NotConfigured, want: "password auth on"}, nil},
+		{row{name: "PAM: sshd.pam with UsePAM yes, its package unfixed", site: func() site {
+			s := withDrops(exposedSite(), "10-site.conf", "UsePAM yes\n")
+			s.pam, s.apk = true, "P:openssh-server-pam\nV:"+unfixed+"\nA:x86_64\n\n"
+			return s
+		}(), state: engine.NotConfigured, want: "password auth on", codes: []string{ssh.CodeSSHDUnfixedLatent}},
+			[]string{"openssh-server-pam 10.3_p1-r1 lacks the fix for CVE-2026-123158 (10.3_p1-r2)"}},
 		{row{name: "password authentication off", site: withDrops(exposedSite(), "10-site.conf", "PasswordAuthentication no\n"),
+			state: engine.Configured, want: "key-only auth", codes: []string{ssh.CodeSSHDUnfixedLatent}}, []string{lacks}},
+		{row{name: "an Unknown row: a Match block's value not ranked", site: withDrops(exposedSite(), "10-site.conf", "PasswordAuthentication no\nMatch User alice\n\tPasswordAuthentication maybe\n"),
+			state: engine.Unknown, want: "can't read", codes: []string{ssh.CodeMatchValueUnknown, ssh.CodeSSHDUnfixedLatent}}, []string{"", lacks}},
+		{row{name: "password authentication off, fixed", site: site{plat: alpine324(), passwd: bypassPasswd, shadow: bypassShadow, drops: drops("10-site.conf", "PasswordAuthentication no\n")},
+			state: engine.Configured, want: "key-only auth"}, nil},
+		{row{name: "password authentication off, no installed database", site: func() site {
+			s := withDrops(exposedSite(), "10-site.conf", "PasswordAuthentication no\n")
+			s.apk, s.noAPK = "", true
+			return s
+		}(), state: engine.Configured, want: "key-only auth"}, nil},
+		{row{name: "password authentication off, off Alpine", site: site{plat: debian13(), passwd: bypassPasswd, shadow: bypassShadow, apk: installedDB(unfixed), drops: drops("10-site.conf", "PasswordAuthentication no\n")},
 			state: engine.Configured, want: "key-only auth"}, nil},
 		{row{name: "a Match block allows passwords", site: withDrops(exposedSite(), "10-site.conf", "PasswordAuthentication no\nMatch User alice\n\tPasswordAuthentication yes\n"),
 			state: engine.Partial, want: "match block allows passwords", codes: []string{ssh.CodeMatchAllowsMore, ssh.CodePasswordBypass}}, []string{"", exposedAlice}},
@@ -117,6 +136,11 @@ func TestBypass(t *testing.T) {
 			}
 			if slices.Contains(c.r.codes, ssh.CodePasswordBypass) && !slices.Contains(st.Evidence, "/etc/shadow:3: bob SHA-crypt hash") {
 				t.Errorf("evidence %q: no donor", st.Evidence)
+			}
+			if slices.Contains(c.r.codes, ssh.CodeSSHDUnfixedLatent) && !slices.ContainsFunc(st.Evidence, func(e string) bool {
+				return strings.HasPrefix(e, "/lib/apk/db/installed: openssh-server") && strings.HasSuffix(e, " 10.3_p1-r1, fixed in 10.3_p1-r2")
+			}) {
+				t.Errorf("evidence %q: no package line", st.Evidence)
 			}
 		})
 	}

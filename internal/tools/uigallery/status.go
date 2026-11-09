@@ -115,6 +115,12 @@ func statusHosts() []statusHost {
 		{name: "container", label: "Container", about: "Debian 13 in LXC", host: container,
 			note: "Debian 13 in an LXC container, whose host sets AppArmor: sshd on 22 through ssh.service, " +
 				"ufw active allowing 22, alice in sudo, no unattended-upgrades; up an hour."},
+		{name: "alpine-unpatched", label: "Alpine, sshd unpatched", about: "Key-only, openssh 10.3_p1-r1", host: alpineUnpatched,
+			note: "The alpine324 host with password login off and openssh at 10.3_p1-r1, which lacks " +
+				"CVE-2026-123158's fix."},
+		{name: "alpine-exposed", label: "Alpine, password bypass", about: "CVE-2026-123158 exposed", host: alpineExposed,
+			note: "The alpine-unpatched host with password login on and bob given a password: " +
+				"anyone can log in as alice."},
 	}
 }
 
@@ -183,6 +189,29 @@ func ubuntuISO() *fakeHost {
 func rebooting() *fakeHost {
 	h := statusOn(ubuntu2604Platform)
 	h.rebootPending()
+	return h
+}
+
+// unfixedOpenSSH is openssh-server one revision before Alpine 3.24's fix
+// for CVE-2026-123158 (10.3_p1-r2).
+const unfixedOpenSSH = "10.3_p1-r1"
+
+// alpineUnpatched is Alpine 3.24, key-only, its sshd unfixed.
+func alpineUnpatched() *fakeHost {
+	p := alpine324Platform
+	p.openssh = unfixedOpenSSH
+	h := statusOn(p)
+	h.keyOnly()
+	return h
+}
+
+// alpineExposed is Alpine 3.24, its sshd unfixed, password login on, and
+// bob's SHA-512 hash the salt a long password borrows to log in as alice.
+func alpineExposed() *fakeHost {
+	p := alpine324Platform
+	p.openssh = unfixedOpenSSH
+	h := statusOn(p)
+	h.passwordUser()
 	return h
 }
 

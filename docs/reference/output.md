@@ -167,6 +167,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSH_PVE_NO_ROOT_KEY` | 1 | root could not log in by key afterwards |
 | `SSH_PORT_SOURCE_RESTRICTED` | 1 | ufw lets the SSH port in from some sources alone |
 | `SSH_UPGRADE_UNKNOWN` | 1 | whether openssh-server has the fix for CVE-2026-123158 is not established |
+| `SSH_PASSWORDS_UNFIXED` | 1 | password login would open sshd's unfixed CVE-2026-123158 |
 | `SSHD_NO_WRITE_STRATEGY` | 1 | no write strategy for this sshd_config |
 | `SSH_MIGRATE_FIRST` | 1 | legacy hardn SSH files: migrate them first |
 | `SSH_PORT_NO_NEW_LISTENER` | 1 | the port change adds no listener |
@@ -456,6 +457,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `SSH_PORT_22_BOUND` | a socket on port 22 is bound while no configured SSH listener is on 22: sshd not reloaded, or another program ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_PASSWORD_BYPASS` | Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, so anyone can log in with a long password as an account whose password field is `*` ([check-ssh.md](../engine/check-ssh.md) §11, [alpine.md](../safety/alpine.md)) |
 | `SSH_SSHD_UNFIXED` | Alpine: sshd lacks the fix for CVE-2026-123158 and checks passwords without PAM, with no account exposed yet ([check-ssh.md](../engine/check-ssh.md) §11) |
+| `SSH_SSHD_UNFIXED_LATENT` | Alpine: sshd lacks the fix for CVE-2026-123158, with no password path to it established (password login off, sshd checking passwords through PAM, or either not established) ([check-ssh.md](../engine/check-ssh.md) §11) |
 | `SSH_FIX_UNKNOWN` | Alpine: whether the openssh package has the fix for CVE-2026-123158, or which accounts it would expose, is not established ([check-ssh.md](../engine/check-ssh.md) §11) |
 | `FIREWALL_SSH_BLOCKED` | an active firewall refuses new connections to an SSH listener, other than one refused on IPv6 alone while IPv4 gets in: lockout risk, scored critical ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_SSH_UNCHECKED` | the SSH listeners are not established, so whether the firewall lets them through is not either ([check-firewall.md](../engine/check-firewall.md)) |

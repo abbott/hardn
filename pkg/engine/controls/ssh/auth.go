@@ -47,13 +47,23 @@ const noPrompt = "keyboard-interactive: no password prompt without PAM"
 // UsePAM, or which build runs (otherPAM), is not established and the state
 // depends on it. On Alpine, "password auth on" and "match block allows
 // passwords" with PAM established No carry CVE-2026-123158's findings
-// (withBypass), the state and detail as they are.
-// docs/engine/check-ssh.md lists each status line.
+// (withBypass), the state and detail as they are; any other reading there
+// of an sshd established to lack the fix carries CodeSSHDUnfixedLatent
+// (withUnfixed). docs/engine/check-ssh.md lists each status line.
 func (Auth) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	r, err := read(ctx, sys, f)
 	if err != nil {
 		return unread(ctx, sys, f, err)
 	}
+	st, err := r.auth(ctx, sys, f)
+	if err != nil {
+		return st, err
+	}
+	return r.withUnfixed(ctx, sys, f, st), nil
+}
+
+// auth is Check's status from sshd as read.
+func (r reading) auth(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	keys := []string{"passwordauthentication", "kbdinteractiveauthentication", "pubkeyauthentication"}
 	lists := r.methods()
 	restricted := !slices.Equal(lists, []string{"any"}) // "any": the rows as before §10

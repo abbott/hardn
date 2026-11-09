@@ -405,3 +405,66 @@ func TestUpgradeVerify(t *testing.T) {
 		t.Fatalf("verify: %v", err)
 	}
 }
+
+// TestPasswordsOnUnfixed: on Alpine, Password login on is refused before
+// anything is written where sshd lacks CVE-2026-123158's fix and checks
+// passwords without PAM (SSH_PASSWORDS_UNFIXED, item 5 its remedy), as
+// Create is refused from the other side; it is planned where the package
+// has the fix, where its version is not established, where sshd checks
+// passwords through PAM (openssh-server-pam's sshd.pam, run with UsePAM
+// yes, its package unfixed), and off Alpine whatever apk's database holds.
+func TestPasswordsOnUnfixed(t *testing.T) {
+	alpineVM := func(t *testing.T, facts detect.Facts, version string, pam bool) *vm {
+		v := newVM(t, facts, false, george)
+		v.noPAM = !pam // Alpine's openssh-server: sshd built without PAM
+		v.f.AddDir("/lib/apk/db", 0o755, 0, 0)
+		pkg := alpine.OpenSSHServer
+		if pam {
+			pkg = alpine.OpenSSHServerPAM
+			v.f.AddFile(reload.BinaryPAM, []byte("ELF"), 0o755, 0, 0)
+			run := v.f.Handler
+			v.f.Handler = func(argv []string, in []byte) hostfake.Response {
+				if argv[0] != reload.BinaryPAM {
+					return run(argv, in)
+				}
+				if slices.Contains(argv, "-G") { // reload.OpenRCFlavour: debianMain's UsePAM yes
+					return hostfake.Response{Stdout: "usepam yes\n"}
+				}
+				return v.sshd(argv)
+			}
+		}
+		if version != "" {
+			v.f.AddFile(alpine.InstalledDB, []byte("P:"+pkg+"\nV:"+version+"\nA:x86_64\n\n"), 0o644, 0, 0)
+		}
+		return v
+	}
+	for _, c := range []struct {
+		name    string
+		facts   detect.Facts
+		version string
+		pam     bool
+		refused bool
+	}{
+		{"unfixed", alpineFacts(), "10.2_p1-r0", false, true},
+		{"fixed", alpineFacts(), "10.2_p1-r1", false, false},
+		{"not established", alpineFacts(), "", false, false},
+		{"PAM, its package unfixed", alpineFacts(), "10.2_p1-r0", true, false},
+		{"off Alpine", debian13(), "10.2_p1-r0", false, false},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			_, p := planOn(t, alpineVM(t, c.facts, c.version, c.pam), passOn) // planOn fails a write
+			if !c.refused {
+				if err := p.Err(); err != nil || p.Empty() {
+					t.Fatalf("plan: %v, %d changes; want the change", err, len(p.Changes))
+				}
+				return
+			}
+			rf := refusalOf(t, p)
+			if rf.Code != "SSH_PASSWORDS_UNFIXED" || !errors.Is(rf, sshchange.ErrPasswordsUnfixed) ||
+				rf.Why != "openssh-server 10.2_p1-r0 lacks the fix for CVE-2026-123158: with passwords on, anyone could log in as an account with no password" ||
+				rf.Fix != "Upgrade openssh first: item 5" {
+				t.Fatalf("refusal %+v", rf)
+			}
+		})
+	}
+}

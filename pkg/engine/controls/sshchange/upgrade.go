@@ -20,17 +20,45 @@ import (
 // CVE-2026-123158's fix is not established, so the upgrade is not planned.
 var ErrUpgradeUnknown = errors.New("whether openssh-server has the fix for CVE-2026-123158 is not established")
 
-// codeUpgradeUnknown is ErrUpgradeUnknown's refusal's code.
-const codeUpgradeUnknown = "SSH_UPGRADE_UNKNOWN"
+// ErrPasswordsUnfixed: Password login on, where sshd lacks
+// CVE-2026-123158's fix and checks passwords without PAM.
+var ErrPasswordsUnfixed = errors.New("password login would open sshd's unfixed CVE-2026-123158")
+
+// The CVE's refusals' codes: ErrUpgradeUnknown's, ErrPasswordsUnfixed's.
+const (
+	codeUpgradeUnknown   = "SSH_UPGRADE_UNKNOWN"
+	codePasswordsUnfixed = "SSH_PASSWORDS_UNFIXED"
+)
 
 // The upgrade's words: the plan's, and its failures' (proposed,
 // 2026-11-08).
 const (
 	wordsUpgradeUnknown = "hardn can't tell if %s has the fix for CVE-2026-123158: %s. Nothing is upgraded until it can."
+	// wordsPassUnfixed refuses Password login on (passwordsUnfixed);
+	// approved by the maintainer, 2026-11-08.
+	wordsPassUnfixed = "%s lacks the fix for CVE-2026-123158: with passwords on, anyone could log in as an account with no password. Upgrade openssh first: item 5."
 	// UpgradeTitle is the upgrade's change's title, and Run All's row.
 	UpgradeTitle = "Upgrade openssh"
 	verifyTitle  = "Check sshd runs the fix"
 )
+
+// passwordsUnfixed refuses Password login on (docs/engine/control-ssh.md
+// §1) on Alpine where sshd, as the SSH rows read it (ssh.ReadBypass),
+// lacks CVE-2026-123158's fix and checks passwords without PAM (its PAM
+// not established as on, as Create's refusal takes it): passwords on
+// would let anyone log in as an account whose field is "*", as every key
+// user's Create writes is, once any account has a $5$ or $6$ hash, which
+// is not asked: one may be set later. Create refuses the same host from
+// the other side (pkg/engine/controls/users, bypassRefusal). A fix not
+// established, or no sshd that can run (ssh.Bypass.NoSSHD), refuses
+// nothing here.
+func passwordsUnfixed(ctx context.Context, sys host.System, f detect.Facts) error {
+	b, _ := ssh.ReadBypass(ctx, sys, f)
+	if !b.Applies || b.NoSSHD || b.PAM.Uses == detect.Yes || b.Fix.Fixed != detect.No {
+		return nil
+	}
+	return refuse(codePasswordsUnfixed, ErrPasswordsUnfixed, nil, fmt.Sprintf(wordsPassUnfixed, b.Fix.Package+" "+b.Fix.Installed))
+}
 
 // Upgrade is SSH Login's Upgrade openssh (item 5) and Run All's on Alpine
 // where sshd lacks CVE-2026-123158's fix (the maintainer, 2026-11-08,

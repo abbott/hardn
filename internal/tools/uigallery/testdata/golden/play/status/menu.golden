@@ -51,10 +51,14 @@ $
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mAlpine, sshd unpatched␛[m$
+      ␛[38;2;129;134;156mKey-only, openssh 10.3_p1-r1␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAlpine, password bypass␛[m$
+      ␛[38;2;129;134;156mCVE-2026-123158 exposed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 9$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: status/figma␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 with 00-TUI-MAIN's rows: the hardened host, but␛[m$
@@ -137,10 +141,14 @@ $
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mAlpine, sshd unpatched␛[m$
+      ␛[38;2;129;134;156mKey-only, openssh 10.3_p1-r1␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAlpine, password bypass␛[m$
+      ␛[38;2;129;134;156mCVE-2026-123158 exposed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -197,10 +205,14 @@ $
       securityfs not mounted$
   17) Container$
       Debian 13 in LXC$
+  18) Alpine, sshd unpatched$
+      Key-only, openssh 10.3_p1-r1$
+  19) Alpine, password bypass$
+      CVE-2026-123158 exposed$
 $
    0) Return$
 $
-    > Enter your choice [0-17 or q]: 9$
+    > Enter your choice [0-19 or q]: 9$
 $
 # Info: status/figma$
 # Debian 13 with 00-TUI-MAIN's rows: the hardened host, but$
@@ -283,10 +295,14 @@ $
       securityfs not mounted$
   17) Container$
       Debian 13 in LXC$
+  18) Alpine, sshd unpatched$
+      Key-only, openssh 10.3_p1-r1$
+  19) Alpine, password bypass$
+      CVE-2026-123158 exposed$
 $
    0) Return$
 $
-    > Enter your choice [0-17 or q]: 0$
+    > Enter your choice [0-19 or q]: 0$
 $
   simulated system ---------------------------------------------$
 $
@@ -344,10 +360,14 @@ $
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mAlpine, sshd unpatched␛[m$
+      ␛[38;2;129;134;156mKey-only, openssh 10.3_p1-r1␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAlpine, password bypass␛[m$
+      ␛[38;2;129;134;156mCVE-2026-123158 exposed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 9$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 9$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: status/figma␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13 with 00-TUI-MAIN's rows: the hardened host, but␛[m$
@@ -453,10 +473,14 @@ $
       ␛[38;2;129;134;156msecurityfs not mounted␛[m$
   ␛[1;38;2;192;196;216m17)␛[m ␛[38;2;192;196;216mContainer␛[m$
       ␛[38;2;129;134;156mDebian 13 in LXC␛[m$
+  ␛[1;38;2;192;196;216m18)␛[m ␛[38;2;192;196;216mAlpine, sshd unpatched␛[m$
+      ␛[38;2;129;134;156mKey-only, openssh 10.3_p1-r1␛[m$
+  ␛[1;38;2;192;196;216m19)␛[m ␛[38;2;192;196;216mAlpine, password bypass␛[m$
+      ␛[38;2;129;134;156mCVE-2026-123158 exposed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-17 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
