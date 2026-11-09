@@ -3,8 +3,11 @@
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](#verify-a-release) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](#verify-a-release) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](LICENSE)
 
 A simple hardening tool for Linux.
-
 > Implement fundamental security measures on Debian, Ubuntu, Proxmox, and Alpine servers.
+
+<p align="center">
+<img width="1327" height="1803" alt="hardn v0.4.0" src="https://github.com/user-attachments/assets/e7b53b65-47f7-4283-aeda-1c3ec7b3d352" />
+</p>
 
 ## Target Audience
 
