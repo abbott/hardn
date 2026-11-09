@@ -1,8 +1,6 @@
 package screen
 
 import (
-	"fmt"
-
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -216,9 +214,13 @@ func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
 		alert, component.Divider{}.Render(c)}
 }
 
-// selectOption is an alert's route to its fix: the main menu's item, by
-// its key and label (the maintainer's words, 2026-11-08).
-const selectOption = "Select option: %s) %s"
+// selectOption leads an alert's route to its fix: the menu's item, by its
+// key and label (the maintainer's words, 2026-11-08).
+const selectOption = "Select option:"
+
+// CVEUnfixed is the title of the alert for an sshd that lacks
+// CVE-2026-123158's fix, on the main menu and SSH Login's screen.
+const CVEUnfixed = "CVE-2026-123158"
 
 // Alert is a fact the main menu raises, such as an sshd that lacks a
 // CVE's fix: a warning callout between the status rows and the Divider,
@@ -235,14 +237,16 @@ const selectOption = "Select option: %s) %s"
 //
 //	----------------------------------------------------------------
 //
-// The title follows the warning's word; the fix and the route are body
-// lines, in the body's colour. The route names the menu's own key for
-// Item, so it cannot name another; with no item of that label it is left
-// out.
+// The title follows the warning's word; the fix is a body line, in the
+// body's colour, and the route's lead too, the item's key and label in
+// the menu's styles (Callout.Choice). The route names the menu's own key
+// for Item, so it cannot name another; with no item of that label it is
+// left out. SSH Login's screen raises the same alert with no fix, its
+// route to Upgrade openssh (SubMenu.Alert).
 type Alert struct {
 	// Title names the fact: "CVE-2026-123158".
 	Title string
-	// Fix is what to do: "Upgrade openssh.".
+	// Fix is what to do: "Upgrade openssh."; empty for none.
 	Fix string
 	// Item is the label of the main menu's item where the fix is done:
 	// "SSH Login".
@@ -255,15 +259,15 @@ func (a *Alert) render(c component.Ctx, m component.Menu) string {
 	if a == nil {
 		return ""
 	}
-	body := []string{a.Fix}
+	vm := component.Callout{Kind: component.MessageWarn, Title: a.Title, Body: []string{a.Fix},
+		Indent: theme.MarkerCol + theme.MarkerWidth/2, ChoiceLead: selectOption}
 	for _, it := range m.Items {
 		if it.Label == a.Item {
-			body = append(body, fmt.Sprintf(selectOption, it.Key, it.Label))
+			vm.Choice = &it
 			break
 		}
 	}
-	return component.Callout{Kind: component.MessageWarn, Title: a.Title, Body: body,
-		Indent: theme.MarkerCol + theme.MarkerWidth/2}.Render(c)
+	return vm.Render(c)
 }
 
 // StatusBlocks renders the blocks the status model fills, down to the full

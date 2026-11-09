@@ -256,6 +256,12 @@ func (vm InlineResult) Render(c Ctx) string {
 // column Indent and its text two cells after, the lines as much narrower:
 // the main menu's alert stands with its bar in the marker column's centre
 // (screen.Alert, DEV-075).
+//
+// Choice is a menu item the callout sends the user to, its last line:
+// ChoiceLead in the body's colour, then the item's key and label as the
+// menu draws them, so that they stand out as the item does below (the
+// maintainer, 2026-11-08: "Select option: 2) SSH Login"). The line is cut,
+// never wrapped.
 type Callout struct {
 	// Kind sets the word, the default title and their colours; the zero
 	// value is MessageInfo.
@@ -270,6 +276,10 @@ type Callout struct {
 	// Indent is the bar's column, 0 for the left edge; the lines are as
 	// much narrower.
 	Indent int
+	// Choice is the menu item the callout sends the user to, nil for none.
+	Choice *MenuItem
+	// ChoiceLead leads Choice's line, such as "Select option:".
+	ChoiceLead string
 }
 
 // Render renders the callout for c. See Callout for the layout.
@@ -292,7 +302,24 @@ func (vm Callout) Render(c Ctx) string {
 			out = append(out, c.fit(append(bar, span{l, c.Theme.Callout.Body}), w))
 		}
 	}
+	if vm.Choice != nil {
+		out = append(out, c.fit(vm.choice(c, bar), w))
+	}
 	return strings.Join(out, "\n")
+}
+
+// choice is the line of vm.Choice after bar: ChoiceLead in the body's
+// colour, then the item's key and label in the menu's styles.
+func (vm Callout) choice(c Ctx, bar line) line {
+	key, label, _, _ := vm.Choice.parts(c, false)
+	l := append(line{}, bar...)
+	if lead := c.text(vm.ChoiceLead); lead != "" {
+		l = append(l, span{lead, c.Theme.Callout.Body}, gap(1))
+	}
+	if key.text != "" {
+		l = append(l, key, gap(1))
+	}
+	return append(l, label)
 }
 
 // calloutBar is the start of every line of a callout of kind k: the

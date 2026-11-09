@@ -30,3 +30,21 @@ func TestScreenGoldens(t *testing.T) {
 		})
 	}
 }
+
+// TestUnfixedGolden pins the screen on alpine-unfixed, which the gallery's
+// menu does not list: item 5 and the alert pointing to it, between the rows
+// and the section (the maintainer's drawing, 2026-11-08). 28 lines at 80
+// columns, so at 80x24 its top four scroll off.
+func TestUnfixedGolden(t *testing.T) {
+	uitest.Golden(t, "screen/alpine-unfixed", uitest.Core(), func(env term.Env) string {
+		h := ready(t, "alpine-unfixed")
+		var out bytes.Buffer
+		p := playWith(h, false, func(o *sshscreen.Options) {
+			o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, "0"), false), Out: env.Writer(&out)}
+		})
+		if p.err != nil {
+			t.Errorf("Run = %v", p.err)
+		}
+		return out.String()
+	})
+}

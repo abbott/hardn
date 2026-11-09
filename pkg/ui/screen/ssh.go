@@ -126,7 +126,8 @@ type SSH struct {
 // SubMenu returns the SSH Login screen (02-SSH_LOGIN): the title bar; the
 // three rows; the section; root login, password login and the port, each
 // named by its result, Move old settings with hardn's old files, and
-// Upgrade openssh where sshd lacks CVE-2026-123158's fix;
+// Upgrade openssh where sshd lacks CVE-2026-123158's fix, which the alert
+// over the section points to (the maintainer, 2026-11-08);
 // Return; "Select an option"; "Enter your choice". Every section at every
 // height (Firewall's decision 9).
 func (s SSH) SubMenu() SubMenu {
@@ -154,12 +155,15 @@ func (s SSH) SubMenu() SubMenu {
 			items[i].Description = sshCantRead
 		}
 	}
+	var alert *Alert
 	if s.Unfixed {
 		items = append(items, component.MenuItem{Key: SSHUpgradeItem, Label: sshUpgradeLabel, Description: sshUpgradeAbout})
+		alert = &Alert{Title: CVEUnfixed, Item: sshUpgradeLabel}
 	}
 	return SubMenu{
 		Title:    trail(sshTitle),
 		Status:   s.Status,
+		Alert:    alert,
 		Sections: []Section{{Header: component.SectionHeader{Title: sshSection}, Rows: component.BulletList{Items: s.Rows}}},
 		Heading:  fixtureHeading,
 		Menu:     component.Menu{Items: items, Exit: returnItem()},

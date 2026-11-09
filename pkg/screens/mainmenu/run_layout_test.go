@@ -287,7 +287,7 @@ func TestMainMenuItems(t *testing.T) {
 	// The CVE alert's route (output.AlertOf) is to this menu's SSH Login.
 	alert, _ := output.AlertOf(risk.Level{Factors: []risk.Factor{{Kind: risk.KindUnfixedLatent, Established: true}}})
 	above := screen.MainMenu{Alert: alert}.Screen(component.OffTerminal(), m.items()).Above
-	if !strings.Contains(above, "# Select option: 2) SSH Login\n") {
+	if !strings.Contains(stripANSI(above), "# Select option: 2) SSH Login\n") {
 		t.Errorf("the alert's route:\n%s", above)
 	}
 }

@@ -80,3 +80,33 @@ func TestSSHItems(t *testing.T) {
 		}
 	}
 }
+
+// TestSSHAlert: where sshd lacks CVE-2026-123158's fix, the alert stands
+// between the rows and the section, pointing to item 5, as the maintainer
+// drew it (2026-11-08), sshd's settings read or not; its route is the
+// menu's that nav.Run draws; none where sshd has the fix. Plain, at 80
+// columns.
+func TestSSHAlert(t *testing.T) {
+	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	unfixed := sshTestDebian
+	unfixed.Unfixed = true
+	alert := "  [ ] SSH Port             Partial default (22)\n\n   # Warning: CVE-2026-123158\n   # Select option: 5) Upgrade openssh\n\n  SSH Configuration "
+	vm := unfixed.SubMenu()
+	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, alert) {
+		t.Errorf("SSH Login, sshd unfixed:\n%s\nwant\n%s", out, alert)
+	}
+	m := menuOf(vm.Menu)
+	vm.Menu = component.Menu{}
+	if out := ansi.Strip(vm.Screen(c, m).Above); !strings.Contains(out, alert) {
+		t.Errorf("Screen's Above:\n%s\nwant the route from the menu nav.Run draws", out)
+	}
+	notRead := sshTestNotRead
+	notRead.Unfixed = true
+	if out := ansi.Strip(notRead.SubMenu().Render(c)); !strings.Contains(out, "   # Select option: 5) Upgrade openssh\n") ||
+		!strings.Contains(out, "   5) Upgrade openssh") {
+		t.Errorf("SSH Login, sshd unfixed, its settings not read:\n%s\nwant the alert and item 5", out)
+	}
+	if out := ansi.Strip(sshTestDebian.SubMenu().Render(c)); strings.Contains(out, "Warning") {
+		t.Errorf("SSH Login, sshd fixed, raises an alert:\n%s", out)
+	}
+}

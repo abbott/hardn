@@ -530,6 +530,12 @@ func TestLayout(t *testing.T) {
 		{"callout: an indent moves the bar and narrows the lines", Callout{Kind: MessageOK, Title: "Success", Body: []string{"aaa bbb ccc dd"}, Indent: 3}, 16, false,
 			"   # Success\n   # aaa bbb ccc\n   # dd"},
 		{"callout: an indented title is cut at the width", Callout{Kind: MessageOK, Title: "Done", Indent: 3}, 12, false, "   # Succ..."},
+		{"callout: a choice is the last line, the item's key and label after the lead", Callout{Kind: MessageWarn, Title: "CVE-2026-123158", Body: []string{"Upgrade openssh."}, Indent: 3,
+			Choice: &MenuItem{Key: "2", Label: "SSH Login", Description: "Root login, passwords, port"}, ChoiceLead: "Select option:"}, 80, false,
+			"   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH Login"},
+		{"callout: a choice with no lead and no key is its label", Callout{Kind: MessageOK, Choice: &MenuItem{Label: "Return"}}, 80, false, "# Operation Successful\n# Return"},
+		{"callout: a long choice is cut, not wrapped", Callout{Kind: MessageOK, Title: "Done", Choice: &MenuItem{Key: "5", Label: "Upgrade openssh"}, ChoiceLead: "Select option:"}, 24, false,
+			"# Success: Done\n# Select option: 5) U..."},
 		{"field: the number right-aligned, the answer after the colon", AnsweredField{Number: 1, Label: "Username", Answer: "george"}, 80, false,
 			"   1. Username: george"},
 		{"field: the hint generated from the inputs", AnsweredField{Number: 2, Label: "Grant sudo privilege?", Accepts: yesNo, Answer: "y"}, 80, false,
@@ -1307,5 +1313,25 @@ func TestInlineKinds(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestCalloutChoice: a callout's choice line, the main menu's alert's
+// route, draws its lead in the body's colour and the item's key and label
+// in the menu's styles, as the menu draws the item (the maintainer,
+// 2026-11-08); the description stays the menu's.
+func TestCalloutChoice(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	it := MenuItem{Key: "2", Label: "SSH Login", Description: "Root login, passwords, port"}
+	got := Callout{Kind: MessageWarn, Title: "CVE-2026-123158", Indent: 3, Choice: &it, ChoiceLead: "Select option:"}.Render(c)
+	last := got[strings.LastIndex(got, "\n")+1:]
+	m := c.Theme.Menu
+	for _, want := range []string{c.Theme.Callout.Body.Render("Select option:"), m.Key.Render("2)"), m.Label.Render("SSH Login")} {
+		if !strings.Contains(last, want) {
+			t.Errorf("choice line %q lacks %q", last, want)
+		}
+	}
+	if strings.Contains(got, "Root login") {
+		t.Errorf("the description is drawn: %q", got)
 	}
 }

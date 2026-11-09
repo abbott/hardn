@@ -32,7 +32,7 @@ func MainMenuOf(base screen.MainMenu, h header.Header, reports []engine.Report, 
 
 // The CVE alert's words (the maintainer, 2026-11-08).
 const (
-	AlertCVE = "CVE-2026-123158"
+	AlertCVE = screen.CVEUnfixed
 	AlertFix = "Upgrade openssh."
 )
 

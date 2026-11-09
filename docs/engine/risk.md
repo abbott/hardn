@@ -217,7 +217,7 @@ SSH Auth's findings on Alpine ([check-ssh.md](check-ssh.md) §11) make one facto
    # Select option: 2) SSH Login
 ```
 
-The route's key is the main menu's own for SSH Login. "Can't tell if sshd is patched" stays a line, with no alert. Three lines and a blank one in place of SSH Auth's line: the main menu is three lines longer (`output.AlertOf`, `TestAlertOf`).
+The route's key is the main menu's own for SSH Login. "Can't tell if sshd is patched" stays a line, with no alert. Three lines and a blank one in place of SSH Auth's line: the main menu is three lines longer (`output.AlertOf`, `TestAlertOf`). SSH Login's screen, where item 5 is, raises the alert too, pointing to it, and keeps the line.
 
 ## 7. API; changes to other units' code
 

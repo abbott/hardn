@@ -56,6 +56,10 @@ type SubMenu struct {
 	Subject component.SubjectLine
 	// Status is the area's status rows; with none the block is left out.
 	Status component.StatusList
+	// Alert is a fact the screen raises between the status rows and the
+	// sections, as the main menu does (Alert), its route to vm.Menu's
+	// item; nil for none.
+	Alert *Alert
 	// Sections are the area's details, in order.
 	Sections []Section
 	// Heading is the menu heading's title, such as "Select an option",
@@ -87,13 +91,14 @@ func (vm SubMenu) render(c component.Ctx, withTrail bool) string {
 // so that nav.Run draws what Render renders. Call it in each round of
 // Run's draw.
 func (vm SubMenu) Screen(c component.Ctx, m nav.Menu) nav.Screen {
+	vm.Menu = m.View()
 	return nav.Screen{Above: vm.above(c, TitleTrail), Menu: m, Label: vm.Prompt}
 }
 
 // above renders every block above the menu, the title bar with its trail
 // when withTrail is set.
 func (vm SubMenu) above(c component.Ctx, withTrail bool) string {
-	blocks := []string{titleBar(vm.Title, withTrail).Render(c), vm.Subject.Render(c), vm.Status.Render(c)}
+	blocks := []string{titleBar(vm.Title, withTrail).Render(c), vm.Subject.Render(c), vm.Status.Render(c), vm.Alert.render(c, vm.Menu)}
 	for _, s := range vm.Sections {
 		blocks = append(blocks, s.Render(c))
 	}
