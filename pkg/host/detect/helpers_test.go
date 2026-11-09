@@ -96,12 +96,16 @@ func (d denied) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, error)
 // readOnlyRuns are the only commands detection runs (docs/safety/detect.md
 // §2.2), as argv joined with NUL.
 var readOnlyRuns = map[string]bool{
-	strings.Join(dpkgQuery, "\x00"):          true,
-	"systemctl\x00is-enabled\x00ssh.socket":  true,
-	"systemctl\x00is-active\x00ssh.socket":   true,
-	"systemctl\x00is-enabled\x00ssh.service": true,
-	"systemctl\x00is-active\x00ssh.service":  true,
-	"sudo\x00--version":                      true,
+	strings.Join(dpkgQuery, "\x00"):           true,
+	"systemctl\x00is-enabled\x00ssh.socket":   true,
+	"systemctl\x00is-active\x00ssh.socket":    true,
+	"systemctl\x00is-enabled\x00ssh.service":  true,
+	"systemctl\x00is-active\x00ssh.service":   true,
+	"systemctl\x00is-enabled\x00sshd.socket":  true,
+	"systemctl\x00is-active\x00sshd.socket":   true,
+	"systemctl\x00is-enabled\x00sshd.service": true,
+	"systemctl\x00is-active\x00sshd.service":  true,
+	"sudo\x00--version":                       true,
 }
 
 // readOnly fails t when f recorded anything but a read, or a command that is

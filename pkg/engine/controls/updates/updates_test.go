@@ -49,6 +49,14 @@ type platform struct {
 	facts detect.Facts
 }
 
+// rocky102 is rocky10-test-110's facts: Rocky Linux 10.2, read only.
+func rocky102() platform {
+	p := debian13()
+	p.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+	return p
+}
+
 func debian13() platform {
 	return platform{name: "debian13", facts: detect.Facts{
 		OS:        detect.OSRelease{ID: "debian", VersionID: "13", VersionCodename: "trixie"},
@@ -541,6 +549,11 @@ func TestLines(t *testing.T) {
 		{name: "a distribution hardn does not read", site: site{plat: debian13(), facts: func(f *detect.Facts) {
 			f.OS = detect.OSRelease{ID: "fedora", IDLike: nil}
 			f.Platform = detect.Platform{Distro: detect.DistroOther, Support: detect.Unlisted}
+		}}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "rocky102: dnf-automatic not read yet", site: site{plat: rocky102()}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "AlmaLinux: dnf-automatic not read yet", site: site{plat: rocky102(), facts: func(f *detect.Facts) {
+			f.OS = detect.OSRelease{ID: "almalinux", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.1"}
+			f.Platform.Distro = detect.DistroAlma
 		}}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
 
 		// Alpine.

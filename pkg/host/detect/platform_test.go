@@ -51,6 +51,15 @@ func TestClassify(t *testing.T) {
 		{"Alpine VERSION_ID not numeric", detect.OSRelease{ID: "alpine", VersionID: "edge"}, notPVE, detect.DistroAlpine, "", detect.Unlisted, nil},
 		{"Ubuntu VERSION_ID not YY.MM", detect.OSRelease{ID: "ubuntu", VersionID: "24.04.1"}, notPVE, detect.DistroUbuntu, "24.04.1", detect.Unlisted, nil},
 		{"Proxmox on Ubuntu not established is still Ubuntu", read("ubuntu-24.04"), detect.Proxmox{}, detect.DistroUbuntu, "24.04", detect.Supported, nil},
+		// Rocky Linux and AlmaLinux: no matrix row yet, so read only.
+		{"Rocky Linux 10.2 (rocky10-test-110)", read("rocky-10.2"), notPVE, detect.DistroRocky, "10", detect.Unlisted, nil},
+		{"Rocky Linux 9.8", detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "9.8"}, notPVE, detect.DistroRocky, "9", detect.Unlisted, nil},
+		{"AlmaLinux 10.1", detect.OSRelease{ID: "almalinux", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.1"}, notPVE, detect.DistroAlma, "10", detect.Unlisted, nil},
+		{"Rocky Linux with Proxmox not established", read("rocky-10.2"), detect.Proxmox{Err: errFixture}, detect.DistroRocky, "10", detect.Unlisted, nil},
+		{"Rocky VERSION_ID with no minor", detect.OSRelease{ID: "rocky", VersionID: "10"}, notPVE, detect.DistroRocky, "", detect.Unlisted, nil},
+		{"AlmaLinux VERSION_ID of three parts", detect.OSRelease{ID: "almalinux", VersionID: "10.1.1"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
+		{"AlmaLinux VERSION_ID not numeric", detect.OSRelease{ID: "almalinux", VersionID: "10.x"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
+		{"RHEL is not Rocky", detect.OSRelease{ID: "rhel", IDLike: []string{"fedora"}, VersionID: "10.1"}, notPVE, detect.DistroOther, "", detect.Unlisted, nil},
 
 		{"os-release unreadable", detect.OSRelease{Err: errFixture}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, errFixture},
 		{"empty OSRelease", detect.OSRelease{}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, detect.ErrNoSignal},
@@ -66,6 +75,16 @@ func TestClassify(t *testing.T) {
 		}
 		if (tt.wantErr == nil) != (got.Err == nil) || (tt.wantErr != nil && !errors.Is(got.Err, tt.wantErr)) {
 			t.Errorf("%s: Classify err = %v, want %v", tt.name, got.Err, tt.wantErr)
+		}
+	}
+}
+
+// EL is Rocky Linux and AlmaLinux alone.
+func TestEL(t *testing.T) {
+	for _, d := range []detect.Distro{detect.DistroUnknown, detect.DistroDebian, detect.DistroUbuntu, detect.DistroAlpine,
+		detect.DistroProxmox, detect.DistroRocky, detect.DistroAlma, detect.DistroOther, "rhel", "centos"} {
+		if want := d == detect.DistroRocky || d == detect.DistroAlma; d.EL() != want {
+			t.Errorf("%q.EL() = %v, want %v", d, d.EL(), want)
 		}
 	}
 }

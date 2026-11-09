@@ -12,7 +12,8 @@
 //   - whether a reboot is pending (Reboot): /var/run/reboot-required and
 //     the running kernel against the newest in /boot on Debian, Ubuntu and
 //     Proxmox VE, with a Debian-built kernel's package version; the
-//     running kernel's modules on Alpine.
+//     running kernel's modules on Alpine; needs-restarting -r on Rocky
+//     Linux and AlmaLinux.
 //
 // A fact that cannot be read, or is read in a form the probe does not
 // know, is not established, with the reason in its Err: nothing is
@@ -58,7 +59,8 @@ type Header struct {
 
 // OS is the distribution, as the header names it.
 type OS struct {
-	// Name is Debian, Ubuntu, Alpine or Proxmox VE, or, for a
+	// Name is Debian, Ubuntu, Alpine, Proxmox VE, Rocky Linux or
+	// AlmaLinux, or, for a
 	// distribution hardn does not name, os-release's PRETTY_NAME (its ID
 	// when it has none); "" when os-release was not read.
 	Name string
@@ -99,7 +101,8 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) Header {
 }
 
 // names are the distributions hardn names, by os-release ID.
-var names = map[string]string{"debian": "Debian", "ubuntu": "Ubuntu", "alpine": "Alpine"}
+var names = map[string]string{"debian": "Debian", "ubuntu": "Ubuntu", "alpine": "Alpine",
+	"rocky": "Rocky Linux", "almalinux": "AlmaLinux"}
 
 // OSOf names the distribution from detect's facts: Proxmox VE when it is
 // installed (its os-release is Debian's), else by os-release's ID.

@@ -66,6 +66,90 @@ func systemctlStates(f *hostfake.System, sockEnabled, sockActive, svcEnabled, sv
 	}
 }
 
+// sshdStates scripts ssh.socket and ssh.service as ssh says, then
+// sshd.socket and sshd.service as sshd says (each is-enabled, is-active).
+func sshdStates(ssh, sshd [4]string) func(*hostfake.System) {
+	return func(f *hostfake.System) {
+		systemctlStates(f, ssh[0], ssh[1], ssh[2], ssh[3])
+		for i, s := range []struct{ verb, unit string }{
+			{"is-enabled", "sshd.socket"}, {"is-active", "sshd.socket"}, {"is-enabled", "sshd.service"}, {"is-active", "sshd.service"},
+		} {
+			stdout, code, _ := strings.Cut(sshd[i], ":")
+			exit := 0
+			if code != "" {
+				_, _ = fmt.Sscan(code, &exit)
+			}
+			f.Respond(out(stdout+"\n", exit), "systemctl", s.verb, s.unit)
+		}
+	}
+}
+
+// TestDetectSSHDUnits: where systemd has neither ssh.socket nor
+// ssh.service (both not-found), detection asks about sshd.socket and
+// sshd.service (Rocky Linux, AlmaLinux): the service is SSHService, an
+// enabled or active sshd.socket (Accept=yes, one sshd per connection) is
+// ErrUnrecognised. A host with one ssh.* unit found never asks about
+// sshd.*.
+func TestDetectSSHDUnits(t *testing.T) {
+	ctx := context.Background()
+	gone := [4]string{"not-found:4", "inactive:4", "not-found:4", "inactive:4"}
+	tests := []struct {
+		name      string
+		ssh, sshd [4]string
+		mode      detect.SSHMode
+		sshdUnits bool
+		source    string
+		wantErr   error
+	}{
+		{"Rocky 10.2: service enabled, running", gone, [4]string{"disabled:1", "inactive:3", "enabled", "active"}, detect.SSHService, true, "sshd.service enabled, active", nil},
+		{"service started by hand", gone, [4]string{"disabled:1", "inactive:3", "disabled:1", "active"}, detect.SSHService, true, "sshd.service disabled, active", nil},
+		{"service enabled, stopped", gone, [4]string{"disabled:1", "inactive:3", "enabled", "inactive:3"}, detect.SSHService, true, "sshd.service enabled, inactive", nil},
+		{"socket enabled", gone, [4]string{"enabled", "active", "disabled:1", "inactive:3"}, detect.SSHUnknown, true, "", detect.ErrUnrecognised},
+		{"socket active, service enabled", gone, [4]string{"disabled:1", "active", "enabled", "inactive:3"}, detect.SSHUnknown, true, "", detect.ErrUnrecognised},
+		{"socket enabled, stopped", gone, [4]string{"enabled", "inactive:3", "disabled:1", "inactive:3"}, detect.SSHUnknown, true, "", detect.ErrUnrecognised},
+		{"service starting", gone, [4]string{"disabled:1", "inactive:3", "disabled:1", "activating:3"}, detect.SSHUnknown, true, "", detect.ErrUnrecognised},
+		{"service static", gone, [4]string{"disabled:1", "inactive:3", "static", "inactive:3"}, detect.SSHUnknown, true, "", detect.ErrUnrecognised},
+		{"neither", gone, gone, detect.SSHUnknown, true, "", detect.ErrNoSignal},
+		{"only ssh.socket not-found: Debian's rules", [4]string{"not-found:4", "inactive:4", "enabled", "active"}, [4]string{"enabled", "active", "enabled", "active"}, detect.SSHService, false, "ssh.service enabled, active", nil},
+		{"only ssh.service not-found: Debian's rules", [4]string{"enabled", "active", "not-found:4", "inactive:4"}, [4]string{"enabled", "active", "enabled", "active"}, detect.SSHSocket, false, "ssh.socket enabled, active", nil},
+		{"ssh.service's file removed while sshd runs: Debian's rules", [4]string{"not-found:4", "inactive:3", "not-found:4", "active"}, gone, detect.SSHService, false, "ssh.service not-found, active", nil},
+		{"ssh.socket's file removed while it listens: Debian's rules", [4]string{"not-found:4", "active", "not-found:4", "inactive:3"}, gone, detect.SSHSocket, false, "ssh.socket not-found, active", nil},
+	}
+	for _, tt := range tests {
+		f := newFake(t, "")
+		sshdStates(tt.ssh, tt.sshd)(f)
+		got := detect.DetectSSH(ctx, f, systemdBooted)
+		if got.Mode != tt.mode || got.SSHDUnits != tt.sshdUnits || got.Source != tt.source || !matches(got.Err, tt.wantErr) {
+			t.Errorf("%s: DetectSSH = %s sshd units %v source %q err %v; want %s %v %q %v", tt.name, got.Mode, got.SSHDUnits, got.Source, got.Err, tt.mode, tt.sshdUnits, tt.source, tt.wantErr)
+		}
+		asked := slices.ContainsFunc(f.Runs(), func(argv []string) bool { return strings.HasPrefix(argv[len(argv)-1], "sshd.") })
+		if asked != tt.sshdUnits {
+			t.Errorf("%s: asked about sshd.* units %v, want %v (%q)", tt.name, asked, tt.sshdUnits, f.Runs())
+		}
+		wantSvc, wantSock := "ssh.service", "ssh.socket"
+		if tt.sshdUnits {
+			wantSvc, wantSock = "sshd.service", "sshd.socket"
+		}
+		if got.ServiceUnit() != wantSvc || got.SocketUnit() != wantSock {
+			t.Errorf("%s: units %s, %s; want %s, %s", tt.name, got.ServiceUnit(), got.SocketUnit(), wantSvc, wantSock)
+		}
+		readOnly(t, f)
+	}
+}
+
+// TestDetectSSHDUnitsGenerator: on the sshd.* path the mode stands and a
+// generator not established is SSH.Err, as on the ssh.* path.
+func TestDetectSSHDUnitsGenerator(t *testing.T) {
+	f := newFake(t, "")
+	gone := [4]string{"not-found:4", "inactive:4", "not-found:4", "inactive:4"}
+	sshdStates(gone, [4]string{"disabled:1", "inactive:3", "enabled", "active"})(f)
+	f.AddDir("/run/systemd/system-generators", 0o755, 0, 0)
+	got := detect.DetectSSH(context.Background(), deny(f, "/run/systemd/system-generators/sshd-socket-generator"), systemdBooted)
+	if got.Mode != detect.SSHService || !got.SSHDUnits || got.Generator != detect.Unknown || !errors.Is(got.Err, fs.ErrPermission) {
+		t.Errorf("DetectSSH = %s sshd units %v generator %s err %v; want ssh.service, true, unknown, a permission error", got.Mode, got.SSHDUnits, got.Generator, got.Err)
+	}
+}
+
 // vendorGenerator installs Ubuntu's sshd-socket-generator: a non-empty
 // executable, since an empty file masks a generator.
 func vendorGenerator(f *hostfake.System) {
@@ -108,7 +192,7 @@ func TestDetectSSH(t *testing.T) {
 		{"socket enabled but inactive, service running without it", states("enabled", "inactive:3", "disabled:1", "active"), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrConflict},
 		{"socket active, service enabled and running", states("disabled:1", "active", "enabled", "active"), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrConflict},
 		{"socket active, service enabled and stopped", states("disabled:1", "active", "enabled", "inactive:3"), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrConflict},
-		{"no openssh-server", states("not-found:4", "inactive:4", "not-found:4", "inactive:4"), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrNoSignal},
+		{"no openssh-server", sshdStates([4]string{"not-found:4", "inactive:4", "not-found:4", "inactive:4"}, [4]string{"not-found:4", "inactive:4", "not-found:4", "inactive:4"}), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrNoSignal},
 		{"socket starting", states("static", "activating:3", "disabled:1", "inactive:3"), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrUnrecognised},
 		{"socket enabled, stopped; service starting", states("enabled", "inactive:3", "disabled:1", "activating:3"), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrUnrecognised},
 		{"unrecognised output", states("Failed to connect to bus:1", "inactive:3", "enabled", "active"), systemdBooted, detect.SSHUnknown, detect.No, detect.ErrUnrecognised},
@@ -126,9 +210,14 @@ func TestDetectSSH(t *testing.T) {
 		if got.Mode != tt.mode || got.Generator != tt.generator || !matches(got.Err, tt.wantErr) {
 			t.Errorf("%s: DetectSSH = %s generator %s err %v; want %s generator %s err %v", tt.name, got.Mode, got.Generator, got.Err, tt.mode, tt.generator, tt.wantErr)
 		}
-		for _, argv := range f.Runs() {
-			if argv[0] != "systemctl" || len(argv) != 3 || (argv[2] != "ssh.socket" && argv[2] != "ssh.service") {
-				t.Errorf("%s: ran %q; detection queries ssh.socket and ssh.service only, never sshd", tt.name, argv)
+		ran := f.Runs()
+		for i, argv := range ran {
+			sshd := len(argv) == 3 && (argv[2] == "sshd.socket" || argv[2] == "sshd.service")
+			switch {
+			case argv[0] != "systemctl" || len(argv) != 3 || argv[2] != "ssh.socket" && argv[2] != "ssh.service" && !sshd:
+				t.Errorf("%s: ran %q; detection queries ssh.* and sshd.* units only", tt.name, argv)
+			case sshd && (i < 4 || !got.SSHDUnits):
+				t.Errorf("%s: ran %q before both ssh.socket and ssh.service were not-found", tt.name, argv)
 			}
 		}
 		if (tt.in.Kind != detect.Systemd || tt.in.Running != detect.Yes) && len(f.Calls()) > 0 {

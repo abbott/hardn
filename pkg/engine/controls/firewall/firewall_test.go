@@ -750,6 +750,26 @@ const (
 )
 
 // TestProxmox: pve-firewall's state, ufw never consulted (readOnly).
+// TestRocky: on Rocky Linux (sshd.service, detect's SSHDUnits) the row
+// reads as on Debian over the same host, but an /etc/sysconfig/sshd whose
+// OPTIONS gives sshd arguments leaves the SSH ports not established.
+func TestRocky(t *testing.T) {
+	r := debian13()
+	r.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+	r.facts.SSH.SSHDUnits = true
+	for _, row := range []row{
+		{name: "stock sysconfig, 22 allowed", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+			h.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"\"\n"), 0o644, 0, 0)
+		}}, state: engine.Configured, want: "deny policy"},
+		{name: "sysconfig gives sshd a port", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+			h.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"-p 2222\"\n"), 0o644, 0, 0)
+		}}, state: engine.Unknown, want: "can't tell ssh ports", err: "RELOAD_SYSCONFIG_OPTIONS"},
+	} {
+		t.Run(row.name, func(t *testing.T) { run(t, row) })
+	}
+}
+
 func TestProxmox(t *testing.T) {
 	p := pve9()
 	for _, r := range []row{

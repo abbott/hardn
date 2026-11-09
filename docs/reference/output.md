@@ -33,11 +33,11 @@ detect's facts in this schema's own words (they are mapped, never written as det
 |---|---|
 | `hostname` | the host's name; `""` when not read |
 | `os.id`, `os.versionId`, `os.codename`, `os.prettyName` | `/etc/os-release`'s `ID`, `VERSION_ID`, `VERSION_CODENAME`, `PRETTY_NAME`, as written there |
-| `platform.distro` | `debian`, `ubuntu`, `alpine`, `proxmox`, `other`, `unknown` (open) |
+| `platform.distro` | `debian`, `ubuntu`, `alpine`, `proxmox`, `rocky`, `almalinux`, `other`, `unknown` (open) |
 | `platform.version` | the support matrix's key (`13`, `24.04`, `3.24`); `""` when not established |
 | `platform.support` | `supported`, `best-effort`, `out-of-scope`, `unlisted`, `unknown` |
 | `init` | `systemd`, `openrc`, `unknown` (open) |
-| `ssh` | how sshd is started: `ssh.socket`, `ssh.service`, `openrc`, `unknown` (open) |
+| `ssh` | how sshd is started: `ssh.socket`, `ssh.service` (on Rocky Linux and AlmaLinux too, whose unit is `sshd.service`), `openrc`, `unknown` (open) |
 | `proxmox.installed`, `container.detected` | `yes`, `no`, `unknown`; with `proxmox.version` (pve-manager's) and `container.manager` |
 | `elevation.sudo`, `elevation.doas` | `yes`, `no`, `unknown`; `elevation.sudoFlavor`: `sudo`, `sudo-rs`, `unknown` (open) |
 
@@ -269,6 +269,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `RELOAD_RESTORED_LISTENERS` | 1 | the restored ssh.socket drop-ins do not give the socket the listeners it had |
 | `RELOAD_NOT_IN_EFFECT` | 1 | the configured listeners are not the ones in effect |
 | `RELOAD_OPENRC_CONFD` | 1 | conf.d sets the sshd binary, configuration file or arguments |
+| `RELOAD_SYSCONFIG_OPTIONS` | 1 | sysconfig sets sshd's arguments: `/etc/sysconfig/sshd`'s `OPTIONS` on Rocky Linux and AlmaLinux ([el-readonly.md](../engine/el-readonly.md)) |
 | `FIREWALL_SS_NOT_INSTALLED` | 1 | ss is not installed, so which ports SSH uses is not established and the firewall is not enabled |
 | `FIREWALL_SS_FAILED` | 1 | ss failed, so which ports SSH uses is not established and the firewall is not enabled |
 | `FIREWALL_SSH_NOT_IN_EFFECT` | 1 | a listener sshd is configured for is not bound, so the firewall is not enabled |
@@ -473,7 +474,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_ORIGINS_UNKNOWN` | a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_CHANGED_SINCE_HARDN` | hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone: "changed since hardn" ([control-updates.md](../engine/control-updates.md)) |
-| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists: a package asks for a reboot ([header.md](../engine/header.md)) |
+| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists, or on Rocky Linux and AlmaLinux `needs-restarting -r` exits 1: a package asks for a reboot ([header.md](../engine/header.md)) |
 | `REBOOT_NEWER_KERNEL` | a kernel newer than the one running is installed in `/boot` ([header.md](../engine/header.md)) |
 | `REBOOT_MODULES_MISSING` | Alpine: the running kernel's own modules are not installed, while another kernel's are ([header.md](../engine/header.md)) |
 | `REBOOT_KERNEL_REPLACED` | a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running ([header.md](../engine/header.md)) |

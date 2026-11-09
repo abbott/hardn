@@ -244,6 +244,7 @@ confirmTimeout: "5m"
 - **Supported**: hardn changes it.
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
 - **Out of scope**, and any version not in the table: hardn shows the screens and refuses every change.
+- **Rocky Linux, AlmaLinux**: read only for now. hardn shows the screens and refuses every change.
 - **Any other distribution**: hardn doesn't start.
 
 > [!NOTE]

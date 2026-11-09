@@ -499,7 +499,8 @@ var (
 	supportWords = map[detect.Support]string{detect.Supported: "supported", detect.BestEffort: "best-effort",
 		detect.OutOfScope: "out-of-scope", detect.Unlisted: "unlisted"}
 	distroWords = map[detect.Distro]string{detect.DistroDebian: "debian", detect.DistroUbuntu: "ubuntu",
-		detect.DistroAlpine: "alpine", detect.DistroProxmox: "proxmox", detect.DistroOther: "other"}
+		detect.DistroAlpine: "alpine", detect.DistroProxmox: "proxmox", detect.DistroRocky: "rocky",
+		detect.DistroAlma: "almalinux", detect.DistroOther: "other"}
 	flavourWords = map[detect.SudoFlavor]string{detect.SudoOriginal: "sudo", detect.SudoRS: "sudo-rs"}
 )
 

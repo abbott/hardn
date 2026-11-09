@@ -12,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/alpine"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 )
@@ -805,5 +806,22 @@ func TestApkOffReadBack(t *testing.T) {
 	}
 	if !m.apkCron || record(t, m) == nil {
 		t.Error("not rolled back")
+	}
+}
+
+// TestReadRocky: on Rocky Linux the screen's reading runs no apt reads:
+// apt's settings are unread with the check's reason, so the screen says
+// Can't read (not "apt's settings") and on and off are refused (Unread).
+func TestReadRocky(t *testing.T) {
+	m := newModel(t, rocky102())
+	r, err := control(updates.AutoNone).Read(context.Background(), m.f, m.facts, nil)
+	if err != nil || r.Status.State != engine.Unknown || !errors.Is(r.AptErr, detect.ErrUnrecognised) || !r.Unread() {
+		t.Fatalf("read: err %v, %s, apt %v, unread %v", err, r.Status.State, r.AptErr, r.Unread())
+	}
+	if on, off := r.Blocked(false), r.Blocked(true); on != "Can't read" || off != "Can't read" {
+		t.Errorf("blocked %q, %q", on, off)
+	}
+	if runs := m.f.Runs(); len(runs) != 0 {
+		t.Errorf("ran %q", runs)
 	}
 }

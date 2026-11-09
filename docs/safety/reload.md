@@ -13,7 +13,7 @@ origin/main writes the sshd files and runs `systemctl restart ssh` or `rc-servic
 
 ### Planning (`PlanFor`, pure)
 
-1. **The steps follow the SSH mode detect established**, and an Unknown mode is refused (`ErrModeUnknown`, wrapping `SSH.Err`, for example detect's `ErrConflict`): hardn does not guess which unit listens ([detect.md](detect.md) §2.7, §6).
+1. **The steps follow the SSH mode detect established**, and an Unknown mode is refused (`ErrModeUnknown`, wrapping `SSH.Err`, for example detect's `ErrConflict`): hardn does not guess which unit listens ([detect.md](detect.md) §2.7, §6). So is Rocky Linux's and AlmaLinux's `sshd.service` (`SSH.SSHDUnits`), until a reload of it has run ([el-readonly.md](../engine/el-readonly.md)).
 
    | Mode (platforms) | A listener keyword changed (`Port`, `ListenAddress`, `AddressFamily`) | Only other keywords changed |
    |---|---|---|

@@ -2,6 +2,7 @@ package header_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"maps"
@@ -114,6 +115,9 @@ type site struct {
 	ip    map[string]hostfake.Response
 	dpkg  map[string]hostfake.Response
 	deny  []string
+	// restarting is needs-restarting -r's answer (Rocky, AlmaLinux); nil
+	// leaves it unscripted.
+	restarting *hostfake.Response
 }
 
 // with returns s with path's content set.
@@ -149,6 +153,12 @@ func (s site) dpkgAnswer(pkg string, r hostfake.Response) site {
 	return s
 }
 
+// restartingAnswer returns s with needs-restarting -r's answer set.
+func (s site) restartingAnswer(r hostfake.Response) site {
+	s.restarting = &r
+	return s
+}
+
 func (s site) denying(paths ...string) site {
 	s.deny = append(slices.Clone(s.deny), paths...)
 	return s
@@ -167,6 +177,9 @@ func (s site) build() (host.System, *hostfake.System) {
 	}
 	for pkg, r := range s.dpkg {
 		f.Respond(r, "dpkg-query", "--show", dpkgFormat, pkg)
+	}
+	if s.restarting != nil {
+		f.Respond(*s.restarting, header.NeedsRestarting[0], header.NeedsRestarting[1:]...)
 	}
 	return denied{System: f, paths: s.deny}, f
 }
@@ -256,6 +269,24 @@ func alpine324() site {
 	return s
 }
 
+// rebootLines is needs-restarting -r's output when a reboot is needed
+// (needs_restarting.py's messages, read on rocky10-test-110).
+const rebootLines = "Core libraries or services have been updated since boot-up:\n  * kernel\n\nReboot is required to fully utilize these updates.\n"
+
+// rocky102 is rocky10-test-110: Rocky Linux 10.2, systemd, the kernel the
+// probe read, no reboot pending (needs-restarting -r exit 0).
+func rocky102() site {
+	s := debian13()
+	s.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2", PrettyName: "Rocky Linux 10.2 (Red Quartz)"}
+	s.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+	s.facts.Proxmox = detect.Proxmox{Installed: detect.No}
+	s = s.without("/boot").without(releaseFile).without(versionFile)
+	s.files[releaseFile] = "6.12.0-211.16.1.el10_2.0.1.x86_64\n"
+	s.files["/boot/vmlinuz-6.12.0-211.16.1.el10_2.0.1.x86_64"] = ""
+	s.dpkg = nil
+	return s.restartingAnswer(hostfake.Response{Stdout: "No core libraries or services have been updated since boot-up.\nReboot should not be necessary.\n"})
+}
+
 // container is Debian 13 in an LXC container: no kernel of its own, no
 // iproute2, the uptime LXCFS gives it (one hour).
 func container() site {
@@ -313,7 +344,8 @@ func readOnly(t *testing.T, f *hostfake.System) {
 			ip := len(c.Argv) == 6 && strings.Join(c.Argv[:5], " ") == "ip -4 addr show dev"
 			dpkg := len(c.Argv) == 4 && c.Argv[0] == "dpkg-query" && c.Argv[1] == "--show" && c.Argv[2] == dpkgFormat &&
 				strings.HasPrefix(c.Argv[3], "linux-image-")
-			if !ip && !dpkg {
+			restarting := slices.Equal(c.Argv, header.NeedsRestarting)
+			if !ip && !dpkg && !restarting {
 				t.Errorf("ran %q", strings.Join(c.Argv, " "))
 			}
 		default:
@@ -473,6 +505,9 @@ func TestOS(t *testing.T) {
 		{name: "a derivative", f: detect.Facts{OS: detect.OSRelease{ID: "linuxmint", IDLike: []string{"ubuntu"}, VersionID: "22.1", VersionCodename: "xia", PrettyName: "Linux Mint 22.1"}},
 			want: header.OS{Name: "Linux Mint 22.1"}},
 		{name: "no PRETTY_NAME", f: detect.Facts{OS: detect.OSRelease{ID: "fedora", VersionID: "43"}}, want: header.OS{Name: "fedora"}},
+		{name: "Rocky Linux 10.2", f: rocky102().facts, want: header.OS{Name: "Rocky Linux", Version: "10.2"}},
+		{name: "AlmaLinux 10.1", f: detect.Facts{OS: detect.OSRelease{ID: "almalinux", VersionID: "10.1", PrettyName: "AlmaLinux 10.1"}},
+			want: header.OS{Name: "AlmaLinux", Version: "10.1"}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			s := debian13()
@@ -659,6 +694,12 @@ func TestZeroFamily(t *testing.T) {
 func TestReboot(t *testing.T) {
 	deb := debian13()
 	alp := alpine324()
+	rocky := rocky102()
+	rockyContainer := rocky.without("/boot").without(releaseFile)
+	rockyContainer.facts.Container = detect.Container{Detected: detect.Yes, Signal: detect.DockerEnvFile, Manager: "docker"}
+	alma := rocky
+	alma.facts.OS = detect.OSRelease{ID: "almalinux", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.1"}
+	alma.facts.Platform = detect.Platform{Distro: detect.DistroAlma, Version: "10", Support: detect.Unlisted}
 	other := deb
 	other.facts.OS = detect.OSRelease{ID: "fedora", VersionID: "43"}
 	other.facts.Platform = detect.Platform{Distro: detect.DistroOther, Support: detect.Unlisted}
@@ -756,6 +797,23 @@ func TestReboot(t *testing.T) {
 		{name: "container", site: container(), pending: detect.No},
 		{name: "container: reboot-required", site: container().with(requiredFile, ""), pending: detect.Yes, codes: []string{header.CodeRebootRequired}, sources: []string{requiredFile}},
 		{name: "container: Alpine", site: alpContainer.without("/lib/modules"), pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
+		{name: "rocky102: needs-restarting exit 0", site: rocky, pending: detect.No},
+		{name: "rocky102: needs-restarting exit 1", site: rocky.restartingAnswer(hostfake.Response{Stdout: rebootLines, ExitCode: 1}),
+			pending: detect.Yes, codes: []string{header.CodeRebootRequired}, sources: []string{"needs-restarting -r"}},
+		{name: "rocky102: exit 1 without the reboot line is dnf's error", site: rocky.restartingAnswer(hostfake.Response{Stderr: "Error: rpmdb open failed\n", ExitCode: 1}),
+			pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
+		{name: "rocky102: needs-restarting fails to start", site: rocky.restartingAnswer(hostfake.Response{Err: errors.New("fork/exec: resource temporarily unavailable")}),
+			pending: detect.Unknown, err: "UNCLASSIFIED_ERROR"},
+		{name: "rocky102 in a container: needs-restarting alone", site: rockyContainer.restartingAnswer(hostfake.Response{Stdout: rebootLines, ExitCode: 1}),
+			pending: detect.Yes, codes: []string{header.CodeRebootRequired}, sources: []string{"needs-restarting -r"}},
+		{name: "rocky102 in a container, no reboot", site: rockyContainer, pending: detect.No},
+		{name: "rocky102: needs-restarting exit 2", site: rocky.restartingAnswer(hostfake.Response{ExitCode: 2}), pending: detect.Unknown, err: "DETECT_UNRECOGNISED"},
+		{name: "rocky102: no needs-restarting", site: rocky.restartingAnswer(hostfake.Response{Err: fmt.Errorf("host: needs-restarting: %w", host.ErrNotFound)}),
+			pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
+		{name: "rocky102: reboot-required is not Rocky's", site: rocky.with(requiredFile, ""), pending: detect.No},
+		{name: "rocky102: a newer kernel in /boot is needs-restarting's to say", site: rocky.with("/boot/vmlinuz-6.12.0-230.1.1.el10_2.x86_64", ""), pending: detect.No},
+		{name: "AlmaLinux: needs-restarting exit 1", site: alma.restartingAnswer(hostfake.Response{Stdout: rebootLines, ExitCode: 1}), pending: detect.Yes,
+			codes: []string{header.CodeRebootRequired}, sources: []string{"needs-restarting -r"}},
 		{name: "a distribution not known", site: other, pending: detect.Unknown, err: "DETECT_NO_SIGNAL"},
 		{name: "os-release not read", site: noOS, pending: detect.Unknown, err: "PERMISSION_DENIED"},
 	} {

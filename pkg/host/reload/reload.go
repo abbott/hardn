@@ -230,6 +230,10 @@ func PlanFor(in Input) (Plan, error) {
 			err = detect.ErrNoSignal
 		}
 		return base, fmt.Errorf("reload: %w: %w", ErrModeUnknown, err)
+	case s.SSHDUnits:
+		// Rocky Linux and AlmaLinux are read only (el-readonly.md): no
+		// reload of sshd.service has run on one yet.
+		return base, fmt.Errorf("reload: %w: hardn does not reload %s yet", ErrModeUnknown, s.ServiceUnit())
 	}
 	p := base
 	p.Listen = slices.ContainsFunc(kws, func(k string) bool { return slices.Contains(listenKeywords, k) })

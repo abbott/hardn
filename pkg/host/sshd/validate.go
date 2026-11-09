@@ -159,7 +159,8 @@ type Report struct {
 	// Include classifies the sshd_config the candidate leaves in place.
 	Include Include
 	// Files are the real paths of the configuration checked: MainConfig,
-	// then the drop-ins in the order sshd reads them. It is not precedence
+	// then the drop-ins in the order sshd reads them, CryptoPolicyFile
+	// after a drop-in that includes it. It is not precedence
 	// order: in IncludeFirst mode sshd reads the drop-ins at the Include
 	// (Include.Line), before the settings of sshd_config.
 	Files     []string
@@ -280,12 +281,72 @@ func assemble(ctx context.Context, sys host.System, changes []Change, rep *Repor
 		if err := refuseNUL(d.path, d.data); err != nil {
 			return c, err
 		}
-		if ds := includes(d.data); len(ds) > 0 {
-			return c, fmt.Errorf("sshd: %s line %d: %q: %w", d.path, ds[0].line, ds[0].text, ErrUnsupportedInclude)
+		policy, match := false, false
+		for _, dir := range directives(d.data) {
+			switch {
+			case dir.keyword == "match":
+				match = true
+			case dir.keyword != "include":
+			case dir.text != CryptoPolicyInclude:
+				return c, fmt.Errorf("sshd: %s line %d: %q: %w", d.path, dir.line, dir.text, ErrUnsupportedInclude)
+			case match: // sshd would apply the policy to that block's connections alone, where the file readings do not look
+				return c, fmt.Errorf("sshd: %s line %d: %q under a Match block: %w", d.path, dir.line, dir.text, ErrUnsupportedInclude)
+			default:
+				policy = true
+			}
+		}
+		if policy {
+			if err := checkCryptoPolicy(ctx, sys); err != nil {
+				return c, fmt.Errorf("sshd: %s: %w", d.path, err)
+			}
 		}
 		rep.Files = append(rep.Files, d.path)
+		if policy {
+			rep.Files = append(rep.Files, CryptoPolicyFile)
+		}
 	}
 	return c, nil
+}
+
+// CryptoPolicyFile is the system-wide crypto policy's sshd settings on
+// Rocky Linux and AlmaLinux (crypto-policies(7)): a link into
+// /usr/share/crypto-policies/<policy>/opensshserver.txt, which the vendor's
+// 40-redhat-crypto-policies.conf includes (CryptoPolicyInclude). hardn
+// never writes it.
+const CryptoPolicyFile = "/etc/crypto-policies/back-ends/opensshserver.config"
+
+// CryptoPolicyInclude is the one Include a drop-in may hold.
+const CryptoPolicyInclude = "Include " + CryptoPolicyFile
+
+// cryptoKeywords are what CryptoPolicyFile may set for its Include to be
+// followed: what the DEFAULT, FIPS, FUTURE and LEGACY policies set
+// (rocky10-test-110, crypto-policies 20260216). hardn writes none of them
+// and reads two (pubkeyacceptedalgorithms, requiredrsasize) only from
+// sshd -T, which follows the Include. The readings of the files that do
+// not follow it (Evaluate's conflicts, the Match blocks, HostKey) lose
+// nothing, since assemble refuses the Include under a Match block; sshd
+// itself reads the file, in Validate's copy as on the host, by its
+// absolute path.
+var cryptoKeywords = []string{"casignaturealgorithms", "ciphers", "gssapikexalgorithms", "gssapikeyexchange",
+	"hostbasedacceptedalgorithms", "hostkeyalgorithms", "kexalgorithms", "macs", "pubkeyacceptedalgorithms", "requiredrsasize"}
+
+// checkCryptoPolicy refuses CryptoPolicyFile unless it resolves to a regular
+// file with no NUL byte that sets only cryptoKeywords (ErrUnsupportedInclude
+// for any other directive: a Match, an Include, a setting hardn reads).
+func checkCryptoPolicy(ctx context.Context, sys host.System) error {
+	data, err := readRegular(ctx, sys, CryptoPolicyFile)
+	if err != nil {
+		return err
+	}
+	if err := refuseNUL(CryptoPolicyFile, data); err != nil {
+		return err
+	}
+	for _, d := range directives(data) {
+		if !slices.Contains(cryptoKeywords, d.keyword) {
+			return fmt.Errorf("%s line %d: %q, not a crypto setting: %w", CryptoPolicyFile, d.line, d.text, ErrUnsupportedInclude)
+		}
+	}
+	return nil
 }
 
 // refuseNUL: sshd's loader keeps a line only up to a NUL byte and drops its

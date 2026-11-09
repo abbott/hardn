@@ -129,8 +129,8 @@ func (b *evidenceWriter) facts(f detect.Facts) {
 	b.item("init", "kind=%s running=%s source=%s", f.Init.Kind, f.Init.Running, f.Init.Source)
 	b.fail("error", f.Init.Err)
 	s := f.SSH
-	b.item("ssh", "mode=%s source=%q ssh.socket=%s/%s ssh.service=%s/%s generator=%s generator-path=%s openrc-started=%s runlevels=%s",
-		s.Mode, s.Source, s.Socket.Enabled, s.Socket.Active, s.Service.Enabled, s.Service.Active,
+	b.item("ssh", "mode=%s source=%q %s=%s/%s %s=%s/%s generator=%s generator-path=%s openrc-started=%s runlevels=%s",
+		s.Mode, s.Source, s.SocketUnit(), s.Socket.Enabled, s.Socket.Active, s.ServiceUnit(), s.Service.Enabled, s.Service.Active,
 		s.Generator, s.GeneratorPath, s.OpenRC.Started, strings.Join(s.OpenRC.Runlevels, ","))
 	b.fail("error", s.Err)
 	p := f.Proxmox

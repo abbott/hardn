@@ -103,8 +103,10 @@ func (m SSHMode) String() string {
 	return "unknown"
 }
 
-// The SSH signals. hardn never queries a unit named sshd: that alias is
-// missing on a fresh Ubuntu 24.04.
+// The SSH signals. hardn asks systemd about ssh.socket and ssh.service, the
+// Debian family's units (the sshd alias is missing on a fresh Ubuntu 24.04),
+// and about sshd.socket and sshd.service only where systemd has neither
+// (Rocky Linux, AlmaLinux).
 const (
 	// SocketGenerator is Ubuntu 24.04+'s generator in systemd's vendor
 	// generator directory. An entry of the same name in a directory that
@@ -162,9 +164,13 @@ type OpenRCService struct {
 // SSH is how sshd is started.
 type SSH struct {
 	Mode    SSHMode
-	Socket  UnitState     // ssh.socket (systemd)
-	Service UnitState     // ssh.service (systemd)
+	Socket  UnitState     // ssh.socket, or sshd.socket with SSHDUnits (systemd)
+	Service UnitState     // ssh.service, or sshd.service with SSHDUnits (systemd)
 	OpenRC  OpenRCService // sshd (OpenRC)
+	// SSHDUnits: systemd has no ssh.socket or ssh.service, so Socket and
+	// Service are sshd.socket's and sshd.service's (Rocky Linux,
+	// AlmaLinux). SocketUnit and ServiceUnit name them.
+	SSHDUnits bool
 	// Generator is whether Ubuntu's sshd-socket-generator runs: it derives
 	// ssh.socket's ListenStream from sshd_config's Port and ListenAddress
 	// at boot and on daemon-reload (systemd only). No when it is not
@@ -178,7 +184,8 @@ type SSH struct {
 	Err error
 }
 
-// DetectSSH asks systemctl about ssh.socket and ssh.service on systemd, and
+// DetectSSH asks systemctl about ssh.socket and ssh.service on systemd (or
+// sshd.socket and sshd.service where systemd has neither), and
 // reads OpenRC's state for sshd on OpenRC. Unless in is an init system that
 // booted the host, it runs and reads nothing: an init system that is only
 // installed does not start sshd.
@@ -194,7 +201,8 @@ func DetectSSH(ctx context.Context, sys host.System, in Init) SSH {
 	return systemdSSH(ctx, sys)
 }
 
-// systemdSSH tells ssh.socket from ssh.service. One unit's boot-time state
+// systemdSSH tells ssh.socket from ssh.service, or, where systemd knows
+// neither, sshd.socket from sshd.service (sshdUnits). One unit's boot-time state
 // (is-enabled) must not contradict the other's runtime state (is-active): a
 // socket that is enabled but inactive while ssh.service runs, or a socket
 // that is active while ssh.service is enabled to start sshd by itself, is
@@ -203,12 +211,20 @@ func systemdSSH(ctx context.Context, sys host.System) SSH {
 	var s SSH
 	var errs [5]error
 	s.Generator, s.GeneratorPath, errs[0] = generator(ctx, sys)
-	s.Socket.Enabled, errs[1] = systemctl(ctx, sys, "is-enabled", "ssh.socket")
-	s.Socket.Active, errs[2] = systemctl(ctx, sys, "is-active", "ssh.socket")
-	s.Service.Enabled, errs[3] = systemctl(ctx, sys, "is-enabled", "ssh.service")
-	s.Service.Active, errs[4] = systemctl(ctx, sys, "is-active", "ssh.service")
+	s.Socket.Enabled, errs[1] = systemctl(ctx, sys, "is-enabled", SSHSocketUnit)
+	s.Socket.Active, errs[2] = systemctl(ctx, sys, "is-active", SSHSocketUnit)
+	s.Service.Enabled, errs[3] = systemctl(ctx, sys, "is-enabled", SSHServiceUnit)
+	s.Service.Active, errs[4] = systemctl(ctx, sys, "is-active", SSHServiceUnit)
 	if err := errors.Join(errs[1:]...); err != nil {
 		s.Err = fmt.Errorf("detect: ssh: %w", err)
+		return s
+	}
+	// sshd.* only where neither ssh.* unit is known or running: a Debian
+	// sshd whose unit files were removed while it runs is decided as before.
+	if s.Socket.Enabled == notFound && s.Service.Enabled == notFound && s.Socket.IsActive() == No && s.Service.IsActive() == No {
+		if s = sshdUnits(ctx, sys, s); s.Generator == Unknown && s.Err == nil {
+			s.Err = fmt.Errorf("detect: ssh: %w", errs[0])
+		}
 		return s
 	}
 	sockOn, sockUp := s.Socket.IsEnabled(), s.Socket.IsActive()
@@ -236,8 +252,71 @@ func systemdSSH(ctx context.Context, sys host.System) SSH {
 }
 
 func (s SSH) unitsErr(what string, sentinel error) error {
-	return fmt.Errorf("detect: ssh: %s (ssh.socket %s/%s, ssh.service %s/%s): %w",
-		what, s.Socket.Enabled, s.Socket.Active, s.Service.Enabled, s.Service.Active, sentinel)
+	return fmt.Errorf("detect: ssh: %s (%s %s/%s, %s %s/%s): %w",
+		what, s.SocketUnit(), s.Socket.Enabled, s.Socket.Active, s.ServiceUnit(), s.Service.Enabled, s.Service.Active, sentinel)
+}
+
+// The systemd units sshd may run under: the Debian family's, and Rocky
+// Linux's and AlmaLinux's.
+const (
+	SSHSocketUnit  = "ssh.socket"
+	SSHServiceUnit = "ssh.service"
+	SSHDSocketUnit = "sshd.socket"
+	// SSHDServiceUnit runs sshd -D $OPTIONS, OPTIONS from
+	// /etc/sysconfig/sshd, which sshd -T does not see (el-readonly.md §5).
+	SSHDServiceUnit = "sshd.service"
+)
+
+// SocketUnit is the socket unit Socket is: sshd.socket with SSHDUnits,
+// else ssh.socket.
+func (s SSH) SocketUnit() string {
+	if s.SSHDUnits {
+		return SSHDSocketUnit
+	}
+	return SSHSocketUnit
+}
+
+// ServiceUnit is the service unit Service is: sshd.service with
+// SSHDUnits, else ssh.service.
+func (s SSH) ServiceUnit() string {
+	if s.SSHDUnits {
+		return SSHDServiceUnit
+	}
+	return SSHServiceUnit
+}
+
+// notFound: systemctl knows no unit of that name.
+const notFound = "not-found"
+
+// sshdUnits tells sshd.service from sshd.socket where systemd has neither
+// ssh.socket nor ssh.service. Rocky Linux's and AlmaLinux's sshd.socket
+// starts one sshd per connection (Accept=yes, sshd@.service), which is not
+// the Debian family's ssh.socket and which hardn does not read: an enabled
+// or active sshd.socket is ErrUnrecognised.
+func sshdUnits(ctx context.Context, sys host.System, s SSH) SSH {
+	s.SSHDUnits = true
+	var errs [4]error
+	s.Socket.Enabled, errs[0] = systemctl(ctx, sys, "is-enabled", SSHDSocketUnit)
+	s.Socket.Active, errs[1] = systemctl(ctx, sys, "is-active", SSHDSocketUnit)
+	s.Service.Enabled, errs[2] = systemctl(ctx, sys, "is-enabled", SSHDServiceUnit)
+	s.Service.Active, errs[3] = systemctl(ctx, sys, "is-active", SSHDServiceUnit)
+	if err := errors.Join(errs[:]...); err != nil {
+		s.Err = fmt.Errorf("detect: ssh: %w", err)
+		return s
+	}
+	sockOn, sockUp := s.Socket.IsEnabled(), s.Socket.IsActive()
+	svcOn, svcUp := s.Service.IsEnabled(), s.Service.IsActive()
+	switch {
+	case sockOn == Yes, sockUp == Yes:
+		s.Err = s.unitsErr("sshd.socket starts one sshd per connection, which hardn does not read", ErrUnrecognised)
+	case sockOn == No && sockUp == No && (svcOn == Yes || svcUp == Yes):
+		s.Mode, s.Source = SSHService, SSHDServiceUnit+" "+s.Service.Enabled+", "+s.Service.Active
+	case sockOn == No && sockUp == No && svcOn == No && svcUp == No:
+		s.Err = fmt.Errorf("detect: ssh: none of ssh.socket, ssh.service, sshd.socket and sshd.service is enabled or active: %w", ErrNoSignal)
+	default:
+		s.Err = s.unitsErr("no rule decides", ErrUnrecognised)
+	}
+	return s
 }
 
 // generator resolves sshd-socket-generator as systemd.generator(7) says

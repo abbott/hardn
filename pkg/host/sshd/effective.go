@@ -662,7 +662,7 @@ func notListening(s detect.SSH) string {
 		}
 	case detect.SSHService:
 		if s.Service.IsActive() != detect.Yes {
-			return fmt.Sprintf("ssh.service is not active (%s), so sshd may not be listening", state(s.Service.Active))
+			return fmt.Sprintf("%s is not active (%s), so sshd may not be listening", s.ServiceUnit(), state(s.Service.Active))
 		}
 	case detect.SSHOpenRC:
 		if s.OpenRC.Started != detect.Yes {

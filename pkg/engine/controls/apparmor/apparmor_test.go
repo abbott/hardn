@@ -72,6 +72,15 @@ func alpine324() platform {
 	return p
 }
 
+// rocky102 is rocky10-test-110: Rocky Linux 10.2, whose kernel has no
+// AppArmor (the module absent).
+func rocky102() platform {
+	p := debian13() // debian13's fixture files: only the module's absence is read
+	p.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+	return p
+}
+
 // The kernel parameter's states, besides its content.
 const (
 	noParam  = "no parameter"      // /sys/module without apparmor: a kernel built without it
@@ -94,6 +103,7 @@ type site struct {
 	cmdline  string
 	deny     []string // paths a read, stat or lstat of fails with a permission error
 	facts    func(*detect.Facts)
+	selinux  string // /sys/fs/selinux/enforce's content; "" is no selinuxfs
 }
 
 func (s site) build(t *testing.T) (host.System, *hostfake.System, detect.Facts) {
@@ -136,6 +146,9 @@ func (s site) build(t *testing.T) (host.System, *hostfake.System, detect.Facts) 
 		cmd = "BOOT_IMAGE=/boot/vmlinuz root=/dev/vda1 ro quiet"
 	}
 	f.AddFile("/proc/cmdline", []byte(cmd+"\n"), 0o444, 0, 0)
+	if s.selinux != "" {
+		f.AddFile(apparmor.SELinuxEnforce, []byte(s.selinux), 0o644, 0, 0)
+	}
 	if s.plat.facts.Init.Kind == detect.OpenRC {
 		f.AddFile("/etc/init.d/apparmor", []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
 		for _, l := range []string{"boot", "default", "nonetwork", "shutdown", "sysinit"} {
@@ -290,6 +303,7 @@ const (
 	offKernel  = "off in kernel"
 	byHost     = "set by the host"
 	alpineDef  = "Alpine default"
+	selinux    = "uses SELinux"
 	cantRead   = "can't read"
 )
 
@@ -348,6 +362,18 @@ func TestLines(t *testing.T) {
 		// Not Applicable, Alpine default.
 		{name: "alpine324 stock", site: site{plat: alpine324(), enabled: "N\n"}, state: engine.NotApplicable, detail: alpineDef},
 		{name: "alpine324, a kernel built without it", site: site{plat: alpine324(), enabled: noParam}, state: engine.NotApplicable, detail: alpineDef},
+
+		// Rocky Linux and AlmaLinux: Not Applicable, uses SELinux, while
+		// SELinux enforces (rocky10-test-110: "1"); else off in kernel.
+		{name: "rocky102 stock: no AppArmor, SELinux enforcing", site: site{plat: rocky102(), enabled: noParam, selinux: "1"}, state: engine.NotApplicable, detail: selinux},
+		{name: "AlmaLinux, the LSM off, SELinux enforcing", site: site{plat: rocky102(), enabled: "N\n", selinux: "1", facts: func(f *detect.Facts) { f.Platform.Distro = detect.DistroAlma }},
+			state: engine.NotApplicable, detail: selinux},
+		{name: "rocky102, SELinux permissive", site: site{plat: rocky102(), enabled: noParam, selinux: "0"}, state: engine.NotConfigured, detail: offKernel},
+		{name: "rocky102, SELinux disabled (no selinuxfs)", site: site{plat: rocky102(), enabled: noParam}, state: engine.NotConfigured, detail: offKernel},
+		{name: "rocky102, SELinux's mode unrecognised", site: site{plat: rocky102(), enabled: noParam, selinux: "2"}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
+		{name: "rocky102, SELinux's mode unreadable", site: site{plat: rocky102(), enabled: noParam, selinux: "1", deny: []string{"/sys/fs/selinux/enforce"}},
+			state: engine.Unknown, detail: cantRead, err: "PERMISSION_DENIED"},
+		{name: "debian13 never reads SELinux", site: site{plat: debian13(), enabled: noParam, selinux: "1"}, state: engine.NotConfigured, detail: offKernel},
 
 		// Not Applicable, set by the host: Check alike when called without Applies.
 		{name: "a container", site: site{plat: debian13(), facts: inContainer}, state: engine.NotApplicable, detail: byHost},
@@ -542,7 +568,7 @@ func TestDetails(t *testing.T) {
 	for got, want := range map[string]string{
 		apparmor.DetailLoggingOnly: logging, apparmor.DetailOffAfterRestart: offRestart,
 		apparmor.DetailNoProfiles: noProfiles, apparmor.DetailOffInKernel: offKernel,
-		apparmor.DetailByHost: byHost, apparmor.DetailAlpineDefault: alpineDef,
+		apparmor.DetailByHost: byHost, apparmor.DetailAlpineDefault: alpineDef, apparmor.DetailSELinux: selinux,
 		apparmor.DetailCantRead: cantRead, apparmor.ID: "apparmor.enforce",
 	} {
 		if got != want {

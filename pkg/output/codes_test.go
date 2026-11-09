@@ -136,6 +136,7 @@ var sentinels = map[string]error{
 	"pve.ErrStateUnknown":             pve.ErrStateUnknown,
 	"reload.ErrAddsListener":          reload.ErrAddsListener,
 	"reload.ErrConfd":                 reload.ErrConfd,
+	"reload.ErrSysconfig":             reload.ErrSysconfig,
 	"reload.ErrDropsListener":         reload.ErrDropsListener,
 	"reload.ErrFlavour":               reload.ErrFlavour,
 	"reload.ErrInUse":                 reload.ErrInUse,

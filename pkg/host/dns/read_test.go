@@ -551,6 +551,21 @@ func TestUDHCPCUnknownSource(t *testing.T) {
 // TestHostOfRefuses: a distribution or container fact that is not
 // established, another distribution and a container are refused before
 // anything is read.
+// TestReadRocky: Rocky Linux's resolv.conf, which NetworkManager writes,
+// is read and reported (ManagerNetworkManager), never planned: a plan of
+// nameservers is ErrManaged.
+func TestReadRocky(t *testing.T) {
+	w := newWorld(t, "rocky-10.2")
+	s := w.read(t)
+	if s.Manager != dns.ManagerNetworkManager || s.Err != nil || s.Host.Distro != detect.DistroRocky {
+		t.Fatalf("manager %s, distro %s, err %v", s.Manager, s.Host.Distro, s.Err)
+	}
+	if _, err := dns.PlanDNS(s, dns.Config{Nameservers: []string{"192.0.2.53"}}); !errors.Is(err, dns.ErrManaged) {
+		t.Errorf("plan: err %v, want ErrManaged", err)
+	}
+	readOnly(t, w.h)
+}
+
 func TestHostOfRefuses(t *testing.T) {
 	tests := []struct {
 		name string
@@ -559,6 +574,7 @@ func TestHostOfRefuses(t *testing.T) {
 	}{
 		{"distribution unknown", func(f *detect.Facts) { f.Platform = detect.Platform{} }, dns.ErrUnknown},
 		{"another distribution", func(f *detect.Facts) { f.Platform.Distro = detect.DistroOther }, dns.ErrUnsupported},
+		{"another distribution like Rocky", func(f *detect.Facts) { f.Platform.Distro = "rhel" }, dns.ErrUnsupported},
 		{"container", func(f *detect.Facts) { f.Container = detect.Container{Detected: detect.Yes, Signal: "/.dockerenv"} }, dns.ErrContainer},
 		{"container unknown", func(f *detect.Facts) { f.Container = detect.Container{} }, dns.ErrUnknown},
 	}

@@ -71,7 +71,8 @@ type Reading struct {
 
 // Read reads the host as the screen draws it, writing nothing: the check,
 // apt's configuration (aptconf.Read), dpkg-query, systemctl, or
-// alpine.ReadUpdates and alpine.OtherJobs, the record and hardn's file. A
+// alpine.ReadUpdates and alpine.OtherJobs, the record and hardn's file; on
+// Rocky Linux and AlmaLinux the check and the record alone. A
 // read that fails is kept beside what it would have given; Read itself
 // returns no error but ctx's.
 func (c Auto) Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Config) (Reading, error) {
@@ -90,6 +91,8 @@ func (c Auto) Read(ctx context.Context, sys host.System, f detect.Facts, cfg *co
 		r.Jobs, r.JobsErr = alpine.OtherJobs(ctx, sys)
 		r.Changed = changedFile(ctx, sys, r.Record, alpine.Script)
 		r.PackageGone = r.Record != nil && installedBy(r.Record) && r.Updates.Package == detect.No
+	} else if f.Platform.Distro.EL() {
+		r.AptErr = errNoDnf(f) // no apt to read; the screen says Can't read, and on and off are refused (Unread)
 	} else {
 		r.Apt, r.AptErr = aptconf.Read(ctx, sys, dumpArgs[1:]...)
 		r.Package, r.PackageErr = detect.DpkgInstalled(ctx, sys, Package)
@@ -177,7 +180,7 @@ const (
 // the item's decided words, as Plan refuses; "" for nothing.
 func (r Reading) Blocked(off bool) string {
 	unread := descAptUnread
-	if r.Apk {
+	if r.Apk || r.Facts.Platform.Distro.EL() {
 		unread = descUnread
 	}
 	switch {

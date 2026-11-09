@@ -13,6 +13,8 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
 	"github.com/abbott/hardn/pkg/host/sshd"
@@ -47,6 +49,25 @@ func paths(t *testing.T, v *vm, keyOnly bool) string {
 		got = append(got, s)
 	}
 	return strings.Join(got, "|")
+}
+
+// TestReadSysconfig: on Rocky Linux (sshd.service, detect's SSHDUnits) an
+// /etc/sysconfig/sshd whose OPTIONS gives sshd arguments leaves sshd's
+// effective configuration unread for the screen (EffErr); the stock file
+// reads as Debian does.
+func TestReadSysconfig(t *testing.T) {
+	for _, c := range []struct {
+		options string
+		want    error
+	}{{`""`, nil}, {`"-o PermitRootLogin=yes"`, reload.ErrSysconfig}} {
+		v := debianVM(t)
+		v.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+		v.facts.SSH.SSHDUnits = true
+		v.f.AddFile(reload.SysconfigSSHD, []byte("OPTIONS="+c.options+"\n"), 0o644, 0, 0)
+		if r := read(t, v, sudoGeorge); !errors.Is(r.EffErr, c.want) || (c.want == nil) != (r.EffErr == nil) {
+			t.Errorf("OPTIONS=%s: EffErr %v, want %v", c.options, r.EffErr, c.want)
+		}
+	}
 }
 
 // TestRead: the reading of the Debian 13 VM, and that Read runs only

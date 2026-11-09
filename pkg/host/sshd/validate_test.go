@@ -91,6 +91,58 @@ func (h *fakeHost) checkClean(t *testing.T) {
 	}
 }
 
+// redhatCrypto is Rocky Linux's and AlmaLinux's drop-in that includes the
+// crypto policy (openssh-server, rocky10-test-110).
+const redhatCrypto = sshd.DropInDir + "/40-redhat-crypto-policies.conf"
+
+// policyText is rocky10-test-110's DEFAULT policy, its lists cut short.
+const policyText = "Ciphers aes256-gcm@openssh.com,aes256-ctr\nMACs hmac-sha2-256-etm@openssh.com\n" +
+	"GSSAPIKexAlgorithms gss-curve25519-sha256-\nKexAlgorithms mlkem768x25519-sha256,curve25519-sha256\n" +
+	"HostKeyAlgorithms ssh-ed25519,rsa-sha2-256\nPubkeyAcceptedAlgorithms ssh-ed25519,rsa-sha2-256\n" +
+	"HostbasedAcceptedAlgorithms ssh-ed25519\nCASignatureAlgorithms ssh-ed25519\nRequiredRSASize 2048\n"
+
+// cryptoPolicy installs Rocky Linux's drop-in and its policy as there: a
+// link into /usr/share/crypto-policies, holding text.
+func cryptoPolicy(h *fakeHost, text string) {
+	h.AddFile(redhatCrypto, []byte("# crypto policy\n"+sshd.CryptoPolicyInclude+"\n"), 0o600, 0, 0)
+	h.AddFile("/usr/share/crypto-policies/DEFAULT/opensshserver.txt", []byte(text), 0o644, 0, 0)
+	h.AddSymlink(sshd.CryptoPolicyFile, "/usr/share/crypto-policies/DEFAULT/opensshserver.txt")
+}
+
+// TestValidateCryptoPolicy: Rocky Linux's drop-in that includes the crypto
+// policy is copied as it is, so sshd reads the policy by its absolute path,
+// and the policy is a file of the check (Files); the FIPS policy's
+// GSSAPIKeyExchange is a crypto setting too.
+func TestValidateCryptoPolicy(t *testing.T) {
+	for _, text := range []string{policyText, "GSSAPIKeyExchange no\nCiphers aes256-gcm@openssh.com\n"} {
+		h := newHost(t, stockMain)
+		cryptoPolicy(h, text)
+		h.script(hostfake.Response{}, "port 2230\n")
+		h.Respond(hostfake.Response{Stdout: "passwordauthentication yes\n"}, "sshd", "-T", "-f", h.cfg, "-C", "user=bob,host=probe.invalid,addr=192.0.2.1")
+		rep, err := sshd.Validate(context.Background(), h, h.request(sshd.Change{Path: sshd.HardnDropIn, Data: []byte(candidate)}))
+		if err != nil {
+			t.Fatalf("Validate: %v", err)
+		}
+		if e, ok := h.Entry(h.work + "/sshd_config.d/40-redhat-crypto-policies.conf"); ok {
+			t.Errorf("copy left behind: %q", e.Data)
+		}
+		want := []string{sshd.MainConfig, sshd.HardnDropIn, redhatCrypto, sshd.CryptoPolicyFile, sshd.DropInDir + "/50-cloud-init.conf"}
+		if !slices.Equal(rep.Files, want) {
+			t.Errorf("Files = %q, want %q", rep.Files, want)
+		}
+		var copied string
+		for _, c := range h.Calls() {
+			if c.Op == "write-atomic" && c.Path == h.work+"/sshd_config.d/40-redhat-crypto-policies.conf" {
+				copied = string(c.Data)
+			}
+		}
+		if copied != "# crypto policy\n"+sshd.CryptoPolicyInclude+"\n" {
+			t.Errorf("the copy's drop-in = %q, want it as on the host", copied)
+		}
+		h.checkClean(t)
+	}
+}
+
 func TestValidateDropIn(t *testing.T) {
 	h := newHost(t, stockMain)
 	h.script(hostfake.Response{}, "port 2230\npermitrootlogin prohibit-password\n")
@@ -312,6 +364,68 @@ func TestValidateRefuses(t *testing.T) {
 		}, sshd.ErrUnsupportedInclude},
 		{"Include in a drop-in", func(h *fakeHost, _ *sshd.Request) {
 			h.AddFile(sshd.DropInDir+"/10-x.conf", []byte("Include /etc/ssh/sshd_config.d/*.conf\n"), 0o644, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		// The crypto policy's Include (Rocky Linux, AlmaLinux) is followed
+		// only to a regular file of crypto settings.
+		{"the crypto policy's Include, the policy missing", func(h *fakeHost, _ *sshd.Request) {
+			h.AddFile(redhatCrypto, []byte(sshd.CryptoPolicyInclude+"\n"), 0o600, 0, 0)
+		}, fs.ErrNotExist},
+		{"the crypto policy setting a login option", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText+"PasswordAuthentication yes\n")
+		}, sshd.ErrUnsupportedInclude},
+		{"the crypto policy with a Match", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText+"Match User bob\n  Ciphers aes256-ctr\n")
+		}, sshd.ErrUnsupportedInclude},
+		{"the crypto policy including another file", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, "Include /etc/ssh/extra.conf\n")
+		}, sshd.ErrUnsupportedInclude},
+		{"the crypto policy a directory", func(h *fakeHost, _ *sshd.Request) {
+			h.AddFile(redhatCrypto, []byte(sshd.CryptoPolicyInclude+"\n"), 0o600, 0, 0)
+			h.AddDir(sshd.CryptoPolicyFile, 0o755, 0, 0)
+		}, sshd.ErrNotRegular},
+		{"the crypto policy with a NUL", func(h *fakeHost, _ *sshd.Request) { cryptoPolicy(h, "Ciphers aes256-ctr\x00\n") }, fs.ErrInvalid},
+		{"the crypto policy's Include beside another", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte(sshd.CryptoPolicyInclude+"\nInclude /etc/ssh/extra.conf\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"another path of the policy", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte("Include /usr/share/crypto-policies/DEFAULT/opensshserver.txt\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		// Only the exact line: a variant sshd would read the same is refused
+		// too (over-refusal is safe); a second argument would read the real
+		// sshd_config.d into the copy.
+		{"the policy's Include with a second argument", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte(sshd.CryptoPolicyInclude+" /etc/ssh/sshd_config.d/*.conf\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"the policy's Include in lower case", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte("include "+sshd.CryptoPolicyFile+"\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"the policy's Include with a doubled space", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte("Include  "+sshd.CryptoPolicyFile+"\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"the policy's path in quotes", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte("Include \""+sshd.CryptoPolicyFile+"\"\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"the policy's Include with a trailing comment", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte(sshd.CryptoPolicyInclude+" # policy\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"the policy's Include after a leading =", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(redhatCrypto, []byte("Include="+sshd.CryptoPolicyFile+"\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"the policy's Include under a Match", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, "PubkeyAcceptedAlgorithms ssh-ed25519\n")
+			h.AddFile(redhatCrypto, []byte("Match User root\n"+sshd.CryptoPolicyInclude+"\n"), 0o600, 0, 0)
+		}, sshd.ErrUnsupportedInclude},
+		{"the crypto policy's Include in sshd_config", func(h *fakeHost, _ *sshd.Request) {
+			cryptoPolicy(h, policyText)
+			h.AddFile(sshd.MainConfig, []byte(stockMain+sshd.CryptoPolicyInclude+"\n"), 0o644, 0, 0)
 		}, sshd.ErrUnsupportedInclude},
 		{"directory drop-in", func(h *fakeHost, _ *sshd.Request) { h.AddDir(sshd.DropInDir+"/10-x.conf", 0o755, 0, 0) }, sshd.ErrNotRegular},
 		{"no sshd_config", func(h *fakeHost, _ *sshd.Request) { _ = h.Remove(context.Background(), sshd.MainConfig) }, fs.ErrNotExist},

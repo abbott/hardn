@@ -24,6 +24,9 @@ var (
 	ubuntu2404 = detect.SSH{Mode: detect.SSHSocket, Socket: unit("enabled", "active"), Service: unit("disabled", "inactive"),
 		Generator: detect.Yes, GeneratorPath: detect.SocketGenerator}
 	debian = detect.SSH{Mode: detect.SSHService, Socket: unit("disabled", "inactive"), Service: unit("enabled", "active"), Generator: detect.No}
+	// rocky is rocky10-test-110's: sshd.service, which hardn reads and does
+	// not reload yet.
+	rocky  = detect.SSH{Mode: detect.SSHService, SSHDUnits: true, Socket: unit("disabled", "inactive"), Service: unit("enabled", "active"), Generator: detect.No}
 	alpine = detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.Yes, InRunlevel: detect.Yes, Runlevels: []string{"default"}}}
 )
 
@@ -209,6 +212,8 @@ func TestPlanForRefuses(t *testing.T) {
 		{"mode unknown, no reason", reload.Input{Change: reload.Change{Keywords: []string{"PermitRootLogin"}}},
 			[]error{reload.ErrModeUnknown, detect.ErrNoSignal}},
 		{"mode unknown comes first", reload.Input{Change: port(nil, nil)}, []error{reload.ErrModeUnknown}},
+		{"Rocky's sshd.service: read only", reload.Input{SSH: rocky, Change: reload.Change{Keywords: []string{"PermitRootLogin"}}}, []error{reload.ErrModeUnknown}},
+		{"Rocky's sshd.service, a binary change", reload.Input{SSH: rocky, Change: reload.Change{Binary: true}}, []error{reload.ErrModeUnknown}},
 		{"binary with keywords", reload.Input{SSH: alpine, Change: reload.Change{Binary: true, Keywords: []string{"PermitRootLogin"}}}, []error{fs.ErrInvalid}},
 		{"binary confirmed", reload.Input{SSH: alpine, Change: reload.Change{Binary: true, Confirmed: true}}, []error{fs.ErrInvalid}},
 		{"binary, mode unknown", reload.Input{Change: reload.Change{Binary: true}}, []error{reload.ErrModeUnknown}},

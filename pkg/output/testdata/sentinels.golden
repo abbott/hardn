@@ -119,6 +119,7 @@ reload.ErrNotInEffect RELOAD_NOT_IN_EFFECT
 reload.ErrRestoredListeners RELOAD_RESTORED_LISTENERS
 reload.ErrSocketConfig RELOAD_SOCKET_CONFIG
 reload.ErrSocketDropIn RELOAD_SOCKET_DROPIN
+reload.ErrSysconfig RELOAD_SYSCONFIG_OPTIONS
 reload.ErrUnitDown RELOAD_UNIT_DOWN
 reload.ErrUnitState RELOAD_UNIT_STATE_UNKNOWN
 revert.ErrApplied CHANGE_APPLIED_ALREADY
