@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -44,6 +45,10 @@ type Options struct {
 	// is Proxmox VE, where item 3 reads "View pve-firewall"
 	// (gallery-firewall.md §5, decision 7); nil is never.
 	FirewallPVE func() bool
+	// FirewallEL, asked as the main menu is drawn, says whether the host
+	// is Rocky Linux or AlmaLinux, where item 3 reads "Configure firewalld"
+	// (el-firewalld.md §1.6); nil is never.
+	FirewallEL func() bool
 	// DNS is the DNS item (4): pkg/screens/dns, which edits hardn.yml's
 	// list in Config.
 	DNS func() error
@@ -284,10 +289,14 @@ func (o Options) mode() component.ModeIndicator {
 
 // firewallDescription is the Firewall item's description: origin/main's,
 // or on Proxmox VE what the screen does there (gallery-firewall.md §5,
-// decision 7).
+// decision 7), or on Rocky Linux and AlmaLinux firewalld's
+// (el-firewalld.md §1.6).
 func (o Options) firewallDescription() string {
-	if o.FirewallPVE != nil && o.FirewallPVE() {
+	switch {
+	case o.FirewallPVE != nil && o.FirewallPVE():
 		return "View pve-firewall"
+	case o.FirewallEL != nil && o.FirewallEL():
+		return "Configure firewalld"
 	}
 	return "Configure UFW rules"
 }
@@ -300,7 +309,7 @@ func (o Options) firewallDescription() string {
 // 1's parenthesis is its aside. Item 2 says what the SSH Login screen
 // changes, "Root login, passwords, port" (legacy-left.md §3, decision 7
 // (a); P-07 (a), P-12); item 3 on Proxmox VE "View pve-firewall" (slice
-// 4, decision 7); Auto Updates (slice 7, unit (d)) took the key
+// 4, decision 7), on Rocky Linux and AlmaLinux "Configure firewalld"; Auto Updates (slice 7, unit (d)) took the key
 // origin/main's Dry-Run left; item 8 "Keep HARDN_CONFIG" (slice 9,
 // decision 7 (a), P-07 (c)). Every
 // item opens under plan only as live: its screen stops each change at its
@@ -325,4 +334,21 @@ func (o Options) items() nav.Menu {
 		},
 		Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()},
 	}
+}
+
+// FirewallOf is what the Firewall item's description turns on, from
+// detect's facts f: whether the host is Proxmox VE (Options.FirewallPVE)
+// and whether it is Rocky Linux or AlmaLinux (Options.FirewallEL).
+// cmd/hardn's hooks answer with it. It is pure.
+func FirewallOf(f detect.Facts) (pve, el bool) {
+	return f.Proxmox.Installed == detect.Yes, f.Platform.Distro.EL()
+}
+
+// MenuOf is the main menu's items as Run draws them on a host with facts
+// f (items, its Firewall hooks answered by FirewallOf), for a drawing of
+// the main menu that runs no item: internal/tools/p4status draws a host's
+// main menu with it. It is pure.
+func MenuOf(f detect.Facts) component.Menu {
+	pve, el := FirewallOf(f)
+	return Options{FirewallPVE: func() bool { return pve }, FirewallEL: func() bool { return el }}.items().View()
 }

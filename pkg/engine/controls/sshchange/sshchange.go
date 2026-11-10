@@ -114,6 +114,9 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 		r.Binary, _ = reload.OpenRCFlavour(ctx, sys) // its error is sshd -T's below, run with the default binary
 	}
 	r.Effective, _, r.EffErr = sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: r.Binary})
+	if f.SSH.SSHDUnits && r.EffErr == nil {
+		r.EffErr = reload.CheckSysconfig(ctx, sys) // sshd's command line, which sshd -T does not see
+	}
 	var file string
 	if cfg != nil {
 		file = cfg.SshConfigFile

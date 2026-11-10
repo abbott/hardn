@@ -63,6 +63,9 @@ const (
 	// Ubuntu, before the first SSH connection since boot), so sshd's
 	// listeners are not established (sshd-validate.md §6's code).
 	CodeNoRunDir = "SSHD_ENV_NO_RUNDIR"
+	// CodeSELinuxLabels: where SELinux enforces, a file sshd rereads at the
+	// reload is labelled otherwise than its policy (selinux.ErrMislabeled).
+	CodeSELinuxLabels = "SELINUX_MISLABELED"
 )
 
 // The resources the planners' changes name (engine.Change.Resources): two
@@ -76,6 +79,9 @@ const (
 	ResourceSSHD = "sshd"
 	// ResourceUFW is ufw's rules, policies and state.
 	ResourceUFW = "ufw"
+	// ResourceFirewalld: firewalld's unit and configuration (the Firewall
+	// item on Rocky Linux and AlmaLinux).
+	ResourceFirewalld = "firewalld"
 )
 
 // claim names, on each of a planner's changes, the resources every SSH
@@ -107,6 +113,11 @@ var (
 	// ErrMigrateFirst: hardn's legacy SSH files are on the host; their
 	// migration (PlanMigration) is a change of its own, made first.
 	ErrMigrateFirst = errors.New("legacy hardn SSH files: migrate them first")
+	// ErrELFirewall: the Firewall item's ufw changes are refused on Rocky
+	// Linux and AlmaLinux, which use firewalld (firewall.ErrEL;
+	// el-changes.md). A port change still lets its new port through an
+	// installed, active ufw there (EPEL's), as elsewhere.
+	ErrELFirewall = errors.New("hardn doesn't drive ufw on Rocky Linux or AlmaLinux, which use firewalld")
 	// ErrNoNewListener: a port change whose Port line reaches no listener
 	// (a ListenAddress with its own port ignores every Port line).
 	ErrNoNewListener = errors.New("the port change adds no listener")
@@ -193,6 +204,11 @@ func readSSH(ctx context.Context, sys host.System, in engine.Input, configFile s
 			return st, err
 		}
 	}
+	if in.Facts.SSH.SSHDUnits {
+		if err := reload.CheckSysconfig(ctx, sys); err != nil {
+			return st, err
+		}
+	}
 	if st.before, _, err = sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: in.Facts.SSH, Binary: st.binary}); err != nil {
 		return st, noRunDir(in.Facts.SSH, fmt.Errorf("sshd's effective configuration: %w", err))
 	}
@@ -234,8 +250,9 @@ func noRunDir(ssh detect.SSH, err error) error {
 		r.Why = "sshd -T cannot run: its privilege separation directory " + dir + " is missing, or another user can write to it; so the listeners sshd configures are not established"
 		r.Fix = "from the console, make " + dir + " a directory owned by root that no other user can write to, then plan again"
 	default:
-		r.Why = "sshd -T cannot run: " + dir + " is missing, which ssh.service creates when it starts and is gone while it is stopped: sshd is not running, so the listeners it configures are not established"
-		r.Fix = "start ssh.service from the console (`systemctl start ssh.service`), check that it is active, then plan again"
+		unit := ssh.ServiceUnit()
+		r.Why = "sshd -T cannot run: " + dir + " is missing, which " + unit + " creates when it starts and is gone while it is stopped: sshd is not running, so the listeners it configures are not established"
+		r.Fix = "start " + unit + " from the console (`systemctl start " + unit + "`), check that it is active, then plan again"
 	}
 	return r
 }

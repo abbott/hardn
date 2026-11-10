@@ -6,28 +6,28 @@
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mbe rolled back (SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [0.0.0.0:22 [::]:22] (no␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mdaemon-reload since it was written, D9). Migrating it now␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mcould not be rolled back (SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
 $
   ␛[38;2;129;134;156mTo go on: first make sure the firewall lets port 2230 through,␛[m$
-  ␛[38;2;129;134;156mthen run `systemctl daemon-reload` and `systemctl restart␛[m$
-  ␛[38;2;129;134;156mssh.socket`, check that a new SSH connection to port 2230␛[m$
-  ␛[38;2;129;134;156mworks, and run hardn again.␛[m$
+  ␛[38;2;129;134;156mthen run `systemctl daemon-reload` and␛[m$
+  ␛[38;2;129;134;156m`systemctl restart ssh.socket`, check that a new SSH␛[m$
+  ␛[38;2;129;134;156mconnection to port 2230 works, and run hardn again.␛[m$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
 # Operation Failed$
 # /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
 # sets ssh.socket to port 2230, but it never took effect:$
-# ssh.socket is configured for [0.0.0.0:22 [::]:22] (no daemon-$
-# reload since it was written, D9). Migrating it now could not$
-# be rolled back (SSH_LISTEN_CONF_NOT_IN_EFFECT)$
+# ssh.socket is configured for [0.0.0.0:22 [::]:22] (no$
+# daemon-reload since it was written, D9). Migrating it now$
+# could not be rolled back (SSH_LISTEN_CONF_NOT_IN_EFFECT)$
 $
   To go on: first make sure the firewall lets port 2230 through,$
-  then run `systemctl daemon-reload` and `systemctl restart$
-  ssh.socket`, check that a new SSH connection to port 2230$
-  works, and run hardn again.$
+  then run `systemctl daemon-reload` and$
+  `systemctl restart ssh.socket`, check that a new SSH$
+  connection to port 2230 works, and run hardn again.$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -40,7 +40,7 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m(SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
 $
   ␛[38;2;129;134;156mTo go on: first make sure the firewall lets port 2230␛[m$
-  ␛[38;2;129;134;156mthrough, then run `systemctl daemon-reload` and `systemctl␛[m$
-  ␛[38;2;129;134;156mrestart ssh.socket`, check that a new SSH connection to␛[m$
-  ␛[38;2;129;134;156mport 2230 works, and run hardn again.␛[m$
+  ␛[38;2;129;134;156mthrough, then run `systemctl daemon-reload` and␛[m$
+  ␛[38;2;129;134;156m`systemctl restart ssh.socket`, check that a new SSH␛[m$
+  ␛[38;2;129;134;156mconnection to port 2230 works, and run hardn again.␛[m$
 $

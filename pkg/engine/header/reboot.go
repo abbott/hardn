@@ -28,7 +28,8 @@ const KernelPackagePrefix = "linux-image-"
 // The finding codes of this package (pkg/output's registry holds them):
 // why a reboot is pending, one finding per source that shows it.
 const (
-	// CodeRebootRequired: /var/run/reboot-required exists.
+	// CodeRebootRequired: /var/run/reboot-required exists, or on Rocky
+	// Linux and AlmaLinux dnf needs-restarting -r exits 1.
 	CodeRebootRequired = "REBOOT_REQUIRED"
 	// CodeNewerKernel: /boot holds a kernel newer than the one running.
 	CodeNewerKernel = "REBOOT_NEWER_KERNEL"
@@ -86,11 +87,15 @@ const (
 	familyUnknown family = iota
 	familyDebian         // Debian, Ubuntu, Proxmox VE and their derivatives
 	familyAlpine
+	familyEL // Rocky Linux, AlmaLinux
 )
 
 // familyOf is the first of detect's platform, the platform's ID_LIKE,
 // os-release's ID and its ID_LIKE that the check knows.
 func familyOf(f detect.Facts) family {
+	if f.Platform.Distro.EL() {
+		return familyEL
+	}
 	ids := append([]string{string(f.Platform.Distro), string(f.Platform.Like), f.OS.ID}, f.OS.IDLike...)
 	for _, id := range ids {
 		switch id {
@@ -114,8 +119,11 @@ func readReboot(ctx context.Context, sys host.System, f detect.Facts) Reboot {
 	}
 	r := Reboot{HostKernel: container}
 	var srcs []source
-	if fam == familyDebian {
+	switch fam {
+	case familyDebian:
 		srcs = append(srcs, rebootRequired(ctx, sys))
+	case familyEL:
+		srcs = append(srcs, needsRestarting(ctx, sys))
 	}
 	if !container {
 		var ks []source
@@ -140,6 +148,8 @@ func kernelSources(ctx context.Context, sys host.System, fam family) (release st
 		return "", []source{src}
 	case fam == familyAlpine:
 		return release, []source{src, modulesMissing(ctx, sys, release)}
+	case fam == familyEL:
+		return release, []source{src} // needsRestarting covers the kernel
 	}
 	srcs = []source{src, newerKernel(ctx, sys, release)}
 	build, src, debian := readBuild(ctx, sys)
@@ -196,6 +206,50 @@ func readRelease(ctx context.Context, sys host.System) (string, source) {
 	}
 	return release, source{state: detect.No, evidence: KernelReleaseFile + ": " + release}
 }
+
+// needsRestarting is dnf-plugins-core's needs-restarting -r on Rocky Linux
+// and AlmaLinux: exit 0 when no core package was updated since boot, exit 1
+// with "Reboot is required" when one was. It runs as a dnf command: the
+// needs-restarting program is yum-utils' wrapper for it, which AlmaLinux 9.8
+// and 10.2 don't install. The plugin loads the installed packages only, no
+// repository. It sets exit 1 by raising dnf's own error, as any dnf failure
+// does (needs_restarting.py, read on rocky10-test-110), so exit 1 without
+// that line, and any other exit, are not established: exit 200 among them,
+// another dnf holding its lock (exit_on_lock, as packages' dnf commands
+// run, rather than a wait). dnf without the plugin says "No such command"
+// on stderr, exit 1: no source, as dnf missing is. host.System runs it
+// with LC_ALL=C, so neither line is translated.
+func needsRestarting(ctx context.Context, sys host.System) source {
+	res, err := sys.Run(ctx, NeedsRestarting[0], NeedsRestarting[1:]...)
+	var xe *host.ExitError
+	switch {
+	case err == nil:
+		return source{state: detect.No, evidence: needsRestartingWords + ": exit 0"}
+	case errors.As(err, &xe) && res.ExitCode == 1 && strings.Contains(string(res.Stdout), needsReboot):
+		return source{state: detect.Yes, evidence: needsRestartingWords + ": exit 1",
+			finding: &engine.Finding{Code: CodeRebootRequired, Detail: DetailRebootRequired, Source: needsRestartingWords}}
+	case errors.As(err, &xe) && res.ExitCode == 1 && strings.Contains(string(res.Stderr), noSuchCommand):
+		return source{err: fmt.Errorf("%s: not installed: %w", needsRestartingWords, detect.ErrNoSignal)}
+	case errors.As(err, &xe):
+		return source{err: fmt.Errorf("%s: exit %d: %w", needsRestartingWords, res.ExitCode, detect.ErrUnrecognised)}
+	case errors.Is(err, host.ErrNotFound): // no dnf: no source, as a missing dpkg-query is
+		return source{err: fmt.Errorf("%s: not installed: %w", needsRestartingWords, detect.ErrNoSignal)}
+	}
+	return source{err: fmt.Errorf("%s: %w", needsRestartingWords, err)}
+}
+
+// NeedsRestarting is the command needsRestarting runs.
+var NeedsRestarting = []string{"dnf", "--setopt=exit_on_lock=True", "needs-restarting", "-r"}
+
+const needsRestartingWords = "dnf needs-restarting -r"
+
+// noSuchCommand is what dnf says on stderr for a command no plugin of its
+// provides (dnf 4.14 and 4.20 with the plugin disabled, read on
+// alma9-test-111 and alma10-test-112).
+const noSuchCommand = "No such command: needs-restarting"
+
+// needsReboot is what needs-restarting -r prints when a reboot is needed.
+const needsReboot = "Reboot is required"
 
 // rebootRequired: /var/run/reboot-required exists. Its absence says
 // nothing more than that no package asked: Debian writes it less often

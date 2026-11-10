@@ -40,6 +40,9 @@ const (
 	cmdline   = "/proc/cmdline"
 	unit      = "apparmor.service"
 	service   = "apparmor" // OpenRC's, from Alpine's apparmor package
+	// SELinuxEnforce is selinuxfs's mode: "1" enforcing, "0" permissive;
+	// absent when SELinux is disabled (Rocky Linux, AlmaLinux).
+	SELinuxEnforce = "/sys/fs/selinux/enforce"
 )
 
 // The profile modes the kernel names (aa_profile_mode_names). enforce and
@@ -65,6 +68,7 @@ const (
 	DetailOffInKernel     = "off in kernel"      // NotConfigured
 	DetailByHost          = "set by the host"    // NotApplicable
 	DetailAlpineDefault   = "Alpine default"     // NotApplicable
+	DetailSELinux         = "uses SELinux"       // NotApplicable: Rocky Linux, AlmaLinux
 	DetailCantRead        = "can't read"         // Unknown
 )
 
@@ -211,6 +215,23 @@ func Enforced(st engine.Status) (n int, ok bool) {
 	return n, true
 }
 
+// selinux reads whether SELinux enforces: SELinuxEnforce "1". "0"
+// (permissive) and no selinuxfs (disabled) are not; anything else is not
+// established. ev is the file as read.
+func selinux(ctx context.Context, sys host.System) (on bool, ev string, err error) {
+	data, err := sys.ReadFile(ctx, SELinuxEnforce)
+	switch v := strings.TrimSpace(string(data)); {
+	case errors.Is(err, fs.ErrNotExist):
+		return false, SELinuxEnforce + ": absent", nil
+	case err != nil:
+		return false, SELinuxEnforce + ": not read", fmt.Errorf("apparmor: %w", err)
+	case v == "1" || v == "0":
+		return v == "1", fmt.Sprintf("%s: %q", SELinuxEnforce, data), nil
+	default:
+		return false, fmt.Sprintf("%s: %q", SELinuxEnforce, data), fmt.Errorf("apparmor: %s: %q: %w", SELinuxEnforce, data, detect.ErrUnrecognised)
+	}
+}
+
 // lsm reads whether the AppArmor LSM is on: on Alpine through
 // alpine.CheckAppArmor, elsewhere from the same file by its rules
 // (readLSM). The evidence is the file as read, or that the module is
@@ -266,7 +287,9 @@ func readLSM(ctx context.Context, sys host.System) (detect.Tri, []string, error)
 }
 
 // off is the line of a kernel with the LSM off: Alpine's default on
-// Alpine, which hardn does not change there (brief §2), and off in kernel
+// Alpine, which hardn does not change there (brief §2); on Rocky Linux and
+// AlmaLinux, whose kernels have SELinux and no AppArmor, Not Applicable
+// while SELinux enforces (selinux), else off in kernel; and off in kernel
 // elsewhere, with the command line's AppArmor parameters as evidence.
 // Where whether the host is Alpine is not established, the two lines
 // differ, so it is Unknown.
@@ -274,6 +297,15 @@ func off(ctx context.Context, sys host.System, f detect.Facts, ev []string) (eng
 	switch {
 	case f.Platform.Distro == detect.DistroAlpine:
 		return status(engine.NotApplicable, DetailAlpineDefault, ev), nil
+	case f.Platform.Distro.EL():
+		on, sev, err := selinux(ctx, sys)
+		ev = append(ev, sev)
+		switch {
+		case err != nil:
+			return unread(ev, err)
+		case on:
+			return status(engine.NotApplicable, DetailSELinux, ev), nil
+		}
 	case f.Platform.Distro == detect.DistroUnknown && (!f.OS.Known() || f.OS.ID == string(detect.DistroAlpine)):
 		return unread(ev, fmt.Errorf("apparmor: distribution: %w", errOr(f.Platform.Err, detect.ErrNoSignal)))
 	}

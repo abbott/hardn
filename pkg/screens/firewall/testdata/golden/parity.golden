@@ -39,7 +39,7 @@ new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan a
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -105,7 +105,7 @@ new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan a
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -172,7 +172,7 @@ new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan a
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -238,7 +238,7 @@ new path: the Firewall screen, typed 1, host-01: the hostname typed; -w's plan a
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -315,7 +315,7 @@ new path: the Firewall screen, typed 1, host-01: the hostname typed; then hardn 
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -1143,7 +1143,7 @@ new path: -w's new form: Incoming{ActionEnable} through the engine as runControl
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -1212,7 +1212,7 @@ new path: -w's new form: Incoming{ActionEnable} through the engine as runControl
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -1382,7 +1382,7 @@ new path: the Firewall screen, typed 1, host-01: the hostname typed; then hardn 
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]
@@ -1468,7 +1468,7 @@ new path: the Firewall screen, typed 1, host-01: the hostname typed; then hardn 
     | Description=hardn: re-arm or run the revert timer of an unconfirmed change
     | DefaultDependencies=no
     | After=local-fs.target sysinit.target ufw.service
-    | Before=ssh.service ssh.socket shutdown.target
+    | Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
     | Conflicts=shutdown.target
     |
     | [Service]

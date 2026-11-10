@@ -43,6 +43,7 @@ var screenHosts = []string{
 	"no-ss", "no-ss-active", "ss-failed", "garbled", "status-fails", "proxmox-unknown", "ipv6-off", "ipv6-off-active", "one-family",
 	"apt-not-found", "apt-removes", "bound-elsewhere-inactive", "active-no-rule", "profiles-inactive",
 	"boot-masked", "boot-not-found", "boot-unread",
+	"rocky-missing", "rocky-stopped", "rocky-at-boot", "rocky-running",
 }
 
 // screenHost returns the host name names, as its start leaves it, hardn.yml
@@ -135,6 +136,8 @@ func screenHost(t *testing.T, name string) (*fwHost, *config.Config) {
 		st.active = true
 	case "profiles-inactive":
 		st.ruleOn22 = true
+	case "rocky-missing", "rocky-stopped", "rocky-at-boot", "rocky-running": // Rocky Linux 10, no ufw: firewalld missing, stopped and disabled, stopped and starting at boot, running
+		distro, st.missing = "rocky", true
 	default:
 		t.Fatalf("no host %q", name)
 	}
@@ -159,6 +162,12 @@ func screenHost(t *testing.T, name string) (*fwHost, *config.Config) {
 		h.AddFile(pve.ClusterFW, []byte("[OPTIONS]\nenable: 1\npolicy_in: DROP\n\n[IPSET management]\n192.0.2.0/24\n\n[IPSET blacklist]\n198.51.100.7\n"), 0o640, 0, 33)
 	case "pve-unmounted":
 		h.facts.Proxmox.ClusterFS = detect.No
+	case "rocky-stopped":
+		*h.fwd = fwdModel{installed: true, active: "inactive", enabled: "disabled"}
+	case "rocky-at-boot":
+		*h.fwd = fwdModel{installed: true, active: "inactive", enabled: "enabled"}
+	case "rocky-running":
+		*h.fwd = fwdModel{installed: true, active: "active", enabled: "enabled"}
 	}
 	if name == "pve-stopped" {
 		h.pveDown = true

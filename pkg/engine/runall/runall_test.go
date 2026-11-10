@@ -405,6 +405,27 @@ func TestAutoUpdatesAlpine(t *testing.T) {
 	held(t, "alpine323 with updates", h, r)
 }
 
+// TestAutoUpdatesRocky: on Rocky Linux, where hardn.yml asks for updates
+// (enableUnattendedUpgrades), the Auto Updates row plans dnf-automatic on,
+// as it plans unattended-upgrades on elsewhere (el-updates.md §1.4):
+// dnf-automatic's install is in the one plan.
+func TestAutoUpdatesRocky(t *testing.T) {
+	p := debian13()
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	p.facts.SSH.SSHDUnits = true
+	h := withYML(t, vm(p), "enableUnattendedUpgrades: true\n")
+	r := h.read(t, "rocky")
+	rw, _ := r.Row(updates.ID)
+	if c, ok := rw.Control.(updates.Auto); rw.Kind != runall.Planned || rw.Words != "Turn on" || !ok || c.Action != updates.AutoOn {
+		t.Errorf("auto updates: %v %q (%v), want planned, Turn on", rw.Kind, rw.Words, rw.Err)
+	}
+	if r.Plan == nil || !slices.ContainsFunc(r.Plan.Changes, func(c engine.Change) bool { return c.ID == updates.ChangeInstall }) {
+		t.Errorf("dnf-automatic's install is not in the one plan")
+	}
+	held(t, "rocky with updates", h, r)
+	checkHost(t, "rocky", h.sshHost)
+}
+
 // noPasswd is a host whose /etc/passwd cannot be read: Read's System, the
 // engine's still the host, so Create plans (the name taken) and the users
 // read fails.
@@ -532,5 +553,40 @@ func TestReadInvalid(t *testing.T) {
 		if _, err := runall.Read(context.Background(), in); !errors.Is(err, fs.ErrInvalid) {
 			t.Errorf("%+v: %v, want fs.ErrInvalid", in, err)
 		}
+	}
+}
+
+// TestPortRocky: on Rocky Linux the SSH Port row whose sshPort sshd doesn't
+// listen on is SSH Login's to change, as on Debian: SSH Login changes the
+// port there too (el-ports.md).
+func TestPortRocky(t *testing.T) {
+	p := debian13()
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	p.facts.SSH.SSHDUnits = true
+	h := withYML(t, vm(p), "sshPort: 2230\n")
+	r, err := runall.Read(context.Background(), h.input())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rw, _ := r.Row(port); rw.Kind != runall.Elsewhere {
+		t.Errorf("port: %v %q, err %v; want elsewhere", rw.Kind, rw.Words, rw.Err)
+	}
+}
+
+// TestFirewallRocky: on Rocky Linux the Firewall row is status only, the
+// Firewall screen's, even where hardn.yml asks for the firewall
+// (enableUfwSshPolicy): Run All plans no firewall change there
+// (el-firewalld.md §1.7).
+func TestFirewallRocky(t *testing.T) {
+	p := debian13()
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	p.facts.SSH.SSHDUnits = true
+	h := withYML(t, vm(p), "enableUfwSshPolicy: true\n")
+	r, err := runall.Read(context.Background(), h.input())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rw, _ := r.Row(fwctl.ID); rw.Kind != runall.Left || rw.Words != runall.WordsStatus || rw.Control != nil {
+		t.Errorf("firewall: %v %q, control %v; want left, status only", rw.Kind, rw.Words, rw.Control)
 	}
 }

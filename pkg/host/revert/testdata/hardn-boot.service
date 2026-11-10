@@ -10,7 +10,7 @@
 Description=hardn: re-arm or run the revert timer of an unconfirmed change
 DefaultDependencies=no
 After=local-fs.target sysinit.target ufw.service
-Before=ssh.service ssh.socket shutdown.target
+Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
 Conflicts=shutdown.target
 
 [Service]

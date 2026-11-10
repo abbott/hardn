@@ -100,9 +100,9 @@ $
   ␛[1;38;2;129;134;156msystem-details cli-terminal␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetails to a terminal: the report, no menu and no prompt.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mIt reads the same as the screen.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystem-details to a terminal: the report, no menu and no␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mprompt. It reads the same as the screen.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

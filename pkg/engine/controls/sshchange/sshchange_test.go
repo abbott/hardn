@@ -13,8 +13,12 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/firewalld"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/output"
@@ -47,6 +51,142 @@ func paths(t *testing.T, v *vm, keyOnly bool) string {
 		got = append(got, s)
 	}
 	return strings.Join(got, "|")
+}
+
+// TestReadSysconfig: on Rocky Linux (sshd.service, detect's SSHDUnits) an
+// /etc/sysconfig/sshd whose OPTIONS gives sshd arguments leaves sshd's
+// effective configuration unread for the screen (EffErr); the stock file
+// reads as Debian does.
+func TestReadSysconfig(t *testing.T) {
+	for _, c := range []struct {
+		options string
+		want    error
+	}{{`""`, nil}, {`"-o PermitRootLogin=yes"`, reload.ErrSysconfig}} {
+		v := debianVM(t)
+		v.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+		v.facts.SSH.SSHDUnits = true
+		v.f.AddFile(reload.SysconfigSSHD, []byte("OPTIONS="+c.options+"\n"), 0o644, 0, 0)
+		if r := read(t, v, sudoGeorge); !errors.Is(r.EffErr, c.want) || (c.want == nil) != (r.EffErr == nil) {
+			t.Errorf("OPTIONS=%s: EffErr %v, want %v", c.options, r.EffErr, c.want)
+		}
+	}
+}
+
+// TestPlanSELinuxLabels: where SELinux enforces, an SSH change asks
+// matchpathcon about every file sshd rereads (not 00-hardn.conf, written
+// new) and its host keys, and is refused (SELINUX_MISLABELED) when one is
+// labelled otherwise; with every label the policy's it is planned. Where
+// SELinux doesn't enforce nothing is asked.
+func TestPlanSELinuxLabels(t *testing.T) {
+	v := rockyVM(t).enforcing()
+	_, p := planOn(t, v, disallow)
+	if err := p.Err(); err != nil || p.Empty() {
+		t.Fatalf("labels the policy's: %v, %d changes", err, len(p.Changes))
+	}
+	if !slices.Contains(v.labelled, sshd.MainConfig) || slices.Contains(v.labelled, sshd.HardnDropIn) {
+		t.Errorf("asked about %q, want sshd_config and not 00-hardn.conf", v.labelled)
+	}
+	v = rockyVM(t).enforcing()
+	v.mislabeled = map[string]string{sshd.MainConfig: "system_u:object_r:etc_t:s0"}
+	_, p = planOn(t, v, disallow)
+	if err := p.Err(); !errors.Is(err, selinux.ErrMislabeled) || output.CodeOf(err) != "SELINUX_MISLABELED" || !p.Empty() {
+		t.Errorf("sshd_config mislabeled: %v (%s), %d changes", err, output.CodeOf(err), len(p.Changes))
+	}
+	v = rockyVM(t)
+	if _, p = planOn(t, v, disallow); p.Err() != nil || len(v.labelled) != 0 {
+		t.Errorf("no SELinux: %v, asked about %q", p.Err(), v.labelled)
+	}
+	// A drop-in that is a link: the file it points to is asked about too,
+	// and refuses when it is labelled otherwise.
+	v = rockyVM(t).enforcing()
+	v.f.AddDir("/root/ssh", 0o700, 0, 0)
+	v.f.AddFile("/root/ssh/site.conf", []byte("MaxAuthTries 4\n"), 0o600, 0, 0)
+	v.f.AddSymlink(sshd.DropInDir+"/10-site.conf", "/root/ssh/site.conf")
+	v.mislabeled = map[string]string{"/root/ssh/site.conf": "system_u:object_r:etc_t:s0"}
+	_, p = planOn(t, v, disallow)
+	if err := p.Err(); !errors.Is(err, selinux.ErrMislabeled) || !slices.Contains(v.labelled, sshd.DropInDir+"/10-site.conf") {
+		t.Errorf("a linked drop-in's target mislabeled: %v, asked about %q", err, v.labelled)
+	}
+	// Debian with SELinux enforcing: its ssh.service runs sshd -t itself;
+	// nothing is asked of sshd's files.
+	v = debianVM(t).enforcing()
+	if _, p = planOn(t, v, disallow); p.Err() != nil || len(v.labelled) != 0 {
+		t.Errorf("debian13 enforcing: %v, asked about %q", p.Err(), v.labelled)
+	}
+	// hardn's binary not bin_t: the engine shows the plan and refuses it
+	// (the revert timer could not run hardn), so nothing is applied.
+	v = rockyVM(t).enforcing()
+	v.hardnType = "admin_home_t"
+	if _, p = planOn(t, v, disallow); !errors.Is(p.Err(), selinux.ErrNotRunnable) || output.CodeOf(p.Refused[0]) != "SELINUX_HARDN_NOT_RUNNABLE" {
+		t.Errorf("hardn admin_home_t: %v", p.Err())
+	}
+}
+
+// TestPlanSysconfig: a change planned on Rocky Linux whose
+// /etc/sysconfig/sshd gives sshd arguments is refused at plan time
+// (RELOAD_SYSCONFIG_OPTIONS): sshd -T would not show what sshd runs with.
+func TestPlanSysconfig(t *testing.T) {
+	v := rockyVM(t)
+	v.f.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"-o PermitRootLogin=yes\"\n"), 0o644, 0, 0)
+	_, p := planOn(t, v, disallow)
+	if err := p.Err(); !errors.Is(err, reload.ErrSysconfig) || !p.Empty() {
+		t.Errorf("plan: %v, %d changes; want RELOAD_SYSCONFIG_OPTIONS and none", err, len(p.Changes))
+	}
+}
+
+// TestStepsRefuseOnRocky: steps.PlanSSH itself refuses on Rocky Linux,
+// whatever control calls it: any change
+// while /etc/sysconfig/sshd gives sshd arguments (ErrSysconfig); both
+// before anything is written.
+func TestStepsRefuseOnRocky(t *testing.T) {
+	ctx := context.Background()
+	in := func(v *vm) engine.Input {
+		v.f.AddDir("/run/hardn", 0o700, 0, 0)
+		v.f.AddDir("/run/hardn/x", 0o700, 0, 0)
+		return engine.Input{ID: "x", RunDir: "/run/hardn/x", Facts: v.facts, Config: &config.Config{}, Session: v.session}
+	}
+	v := rockyVM(t) // no SELinux, no firewalld: the port needs neither
+	if cs, err := steps.PlanSSH(ctx, v.sys(), in(v), steps.SSH{Prefix: "t", Port: 2230}); err != nil ||
+		slices.ContainsFunc(cs, func(c engine.Change) bool {
+			return strings.Contains(c.ID, "selinux") || strings.Contains(c.ID, "firewalld")
+		}) {
+		t.Errorf("port, no SELinux or firewalld: %v, %d changes", err, len(cs))
+	}
+	v = elPorts(t)
+	cs, err := steps.PlanSSH(ctx, v.sys(), in(v), steps.SSH{Prefix: "t", Port: 2230})
+	var ids []string
+	for _, c := range cs {
+		ids = append(ids, c.ID)
+	}
+	if err != nil || !slices.Contains(ids, "t/selinux-2230") || !slices.Contains(ids, "t/firewalld") {
+		t.Errorf("port, SELinux and firewalld: %v, changes %q", err, ids)
+	}
+	v = elPorts(t) // EPEL's ufw, active, beside firewalld: the port is let through both
+	v.noUFW, v.rules = false, []ufwRule{{port: 22}}
+	v.saveRules()
+	cs, err = steps.PlanSSH(ctx, v.sys(), in(v), steps.SSH{Prefix: "t", Port: 2230})
+	if err != nil || !slices.ContainsFunc(cs, func(c engine.Change) bool { return c.Target == "ufw" }) || !slices.ContainsFunc(cs, func(c engine.Change) bool { return c.Target == "firewalld" }) {
+		t.Errorf("port, EPEL's ufw beside firewalld: %v, %d changes", err, len(cs))
+	}
+	v = elPorts(t)
+	v.fw.stopped = true // and disabled: it filters nothing, now or after a reboot
+	cs, err = steps.PlanSSH(ctx, v.sys(), in(v), steps.SSH{Prefix: "t", Port: 2230})
+	if err != nil || slices.ContainsFunc(cs, func(c engine.Change) bool { return strings.Contains(c.ID, "firewalld") }) || len(v.fw.added) != 0 {
+		t.Errorf("port, firewalld stopped and disabled: %v, %d changes", err, len(cs))
+	}
+	v = rockyVM(t)
+	v.f.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=-p2222\n"), 0o644, 0, 0)
+	set := []migrate.Directive{{Keyword: "PermitRootLogin", Args: []string{"no"}}}
+	if _, err := steps.PlanSSH(ctx, v.sys(), in(v), steps.SSH{Prefix: "t", Set: set}); !errors.Is(err, reload.ErrSysconfig) {
+		t.Errorf("sysconfig: %v, want ErrSysconfig", err)
+	}
+	v = rockyVM(t)
+	cs, err = steps.PlanSSH(ctx, v.sys(), in(v), steps.SSH{Prefix: "t", Set: set})
+	if err != nil || !slices.ContainsFunc(cs, func(c engine.Change) bool {
+		return c.Title == "Reload sshd (sshd.service)" && c.Target == "sshd.service"
+	}) {
+		t.Errorf("root login off: %v; want a step \"Reload sshd (sshd.service)\" in %+v", err, cs)
+	}
 }
 
 // TestRead: the reading of the Debian 13 VM, and that Read runs only
@@ -415,6 +555,26 @@ func TestRefusals(t *testing.T) {
 			"Root would lose SSH login: root has no key sshd reads. Add a key for root first.", false},
 		{"the port on Proxmox VE", pveVM, port2230, "PVE_PORT_CHANGE_REFUSED", nil,
 			"The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it.", false},
+		{"the port on Rocky Linux, SELinux on, no semanage", func(t *testing.T) *vm {
+			v := elPorts(t)
+			v.sshPorts = nil
+			return v
+		}, port2230, "SELINUX_NO_SEMANAGE", selinux.ErrNoSemanage, "SELinux is on, and semanage isn't installed to let sshd use port 2230", true},
+		{"the port on Rocky Linux, SELinux gives it to another service", func(t *testing.T) *vm {
+			v := elPorts(t)
+			v.otherPorts = map[uint16]string{2230: "http_port_t"}
+			return v
+		}, port2230, "SELINUX_PORT_TAKEN", selinux.ErrPortTaken, "SELinux gives port 2230 to another service", true},
+		{"the port on Rocky Linux, no zone carries SSH", func(t *testing.T) *vm {
+			v := elPorts(t)
+			v.fw.services = []string{"cockpit"}
+			return v
+		}, port2230, "FIREWALLD_NO_SSH_PATH", firewalld.ErrNoSSHPath, "hardn can't tell how SSH gets through firewalld here", true},
+		{"the port on Rocky Linux, firewalld stopped and starting at boot", func(t *testing.T) *vm {
+			v := elPorts(t)
+			v.fw.stopped, v.fw.enabled = true, true
+			return v
+		}, port2230, "FIREWALLD_STOPPED", firewalld.ErrStartsAtBoot, "firewalld is stopped and starts at boot", true},
 		{"ufw lets 22 in from 192.0.2.0/24 alone", func(t *testing.T) *vm {
 			v := debianVM(t)
 			v.rules = []ufwRule{{port: 22, src: "192.0.2.0/24"}}
@@ -474,6 +634,9 @@ func TestPlans(t *testing.T) {
 		changes bool
 	}{
 		{"Disallow on debian13", debianVM, disallow, true},
+		{"Disallow on Rocky Linux", rockyVM, disallow, true},
+		{"Key-only on Rocky Linux where passwords are off", rockyVM, keyOnly, false},
+		{"Password login on, Rocky Linux", rockyVM, passOn, true},
 		{"Disallow from a console, george able", func(t *testing.T) *vm { return debianVM(t).console() }, disallow, true},
 		{"Disallow, AllowUsers george", func(t *testing.T) *vm {
 			return debianVM(t).file(sshd.DropInDir+"/10-allow.conf", "AllowUsers george\n")
@@ -561,6 +724,11 @@ func snapshot(v *vm) map[string]string {
 // ufw's rules byte for byte as before, and sshd on what it listened on.
 func TestApplyRollBack(t *testing.T) {
 	ctx := context.Background()
+	fwDown := func(t *testing.T) *vm { // firewalld down at the rollback: the boot unit's
+		v := elPorts(t)
+		v.downAt = func() { v.fw.stopped, v.fw.runtime = true, map[string]bool{} }
+		return v
+	}
 	for _, tt := range []struct {
 		name string
 		host func(*testing.T) *vm
@@ -568,6 +736,9 @@ func TestApplyRollBack(t *testing.T) {
 		want string // what sshd -T shows applied
 	}{
 		{"Disallow", debianVM, disallow, "permitrootlogin no"},
+		{"Disallow on Rocky Linux, sshd.service", rockyVM, disallow, "permitrootlogin no"},
+		{"the port on Rocky Linux, SELinux and firewalld", elPorts, port2230, "port 2230"},
+		{"the port on Rocky Linux, firewalld down at the rollback", fwDown, port2230, "port 2230"},
 		{"Key-only", func(t *testing.T) *vm {
 			a := alice
 			a.keys = []string{key(3, "alice@laptop-3")}
@@ -589,6 +760,9 @@ func TestApplyRollBack(t *testing.T) {
 			if out := v.sshd([]string{"sshd", "-T", "-f", sshd.MainConfig}).Stdout; !strings.Contains(out, tt.want+"\n") {
 				t.Errorf("applied: sshd -T shows\n%s\nwant %q", out, tt.want)
 			}
+			if v.downAt != nil {
+				v.downAt()
+			}
 			opts := revert.Options{Now: func() time.Time { return now.Add(time.Minute) }, Hardn: hardnBinary, Reason: revert.ReasonTimeout, Plans: plans.Registry()}
 			if _, err := revert.Rollback(ctx, v.sys(), res.ID, opts); err != nil {
 				t.Fatal(err)
@@ -606,6 +780,21 @@ func TestApplyRollBack(t *testing.T) {
 			}
 			if !slices.Equal(v.bound, bound) {
 				t.Errorf("sshd on %v, was %v", v.bound, bound)
+			}
+			if v.sshdUnits && v.reloads != 2 {
+				t.Errorf("sshd.service reloaded %d times, want 2 (the change, its rollback)", v.reloads)
+			}
+			if v.fw != nil {
+				removed := 2 // at runtime and permanently; firewall-offline-cmd only the permanent one
+				if v.downAt != nil {
+					removed = 1
+				}
+				if len(v.fw.runtime) != 0 || len(v.fw.perm) != 0 || len(v.fw.added) != 2 || len(v.fw.removed) != removed {
+					t.Errorf("firewalld after the rollback: runtime %v, permanent %v; added %q, removed %q", v.fw.runtime, v.fw.perm, v.fw.added, v.fw.removed)
+				}
+				if !slices.Equal(v.sshPorts, []uint16{22}) {
+					t.Errorf("ssh_port_t after the rollback: %v, want [22]", v.sshPorts)
+				}
 			}
 		})
 	}

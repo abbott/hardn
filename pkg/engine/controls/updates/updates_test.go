@@ -49,6 +49,14 @@ type platform struct {
 	facts detect.Facts
 }
 
+// rocky102 is rocky10-test-110's facts: Rocky Linux 10.2.
+func rocky102() platform {
+	p := debian13()
+	p.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	return p
+}
+
 func debian13() platform {
 	return platform{name: "debian13", facts: detect.Facts{
 		OS:        detect.OSRelease{ID: "debian", VersionID: "13", VersionCodename: "trixie"},
@@ -542,7 +550,6 @@ func TestLines(t *testing.T) {
 			f.OS = detect.OSRelease{ID: "fedora", IDLike: nil}
 			f.Platform = detect.Platform{Distro: detect.DistroOther, Support: detect.Unlisted}
 		}}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
-
 		// Alpine.
 		{name: "alpine324", site: site{plat: alpine324()}, state: engine.Configured, detail: apkCron},
 		{name: "alpine324, origin/main's script beside", site: site{plat: alpine324(), legacy: "hardn"}, state: engine.Configured, detail: apkCron, findings: []string{"ALPINE_LEGACY_SCRIPT"}},

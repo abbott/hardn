@@ -5,7 +5,10 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
+	"io/fs"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -13,9 +16,12 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 )
@@ -128,6 +134,13 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 		return nil, err
 	}
 	var out []engine.Change
+	if in.Facts.Platform.Distro.EL() {
+		el, err := planELPorts(ctx, sys, s.Prefix, portsOf(st.before.Listeners.All), portsOf(rp.Adds))
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, el...)
+	}
 	r := sshReload(e.keywords, st.before.Listeners.SSHD, nil)
 	files := e.change(r)
 	if port != 0 {
@@ -260,6 +273,9 @@ func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set
 	if err != nil {
 		return nil, noRunDir(st.in.Facts.SSH, fmt.Errorf("validation in context: %w", err))
 	}
+	if err := sshLabels(ctx, sys, st.in.Facts, rep); err != nil {
+		return nil, err
+	}
 	e.cand, _ = sshd.Evaluate(sshd.EffectiveInputs{Effective: rep.Effective})
 	e.findings = append(e.findings, sshdFindings(rep.Findings)...)
 	if st.pve {
@@ -356,8 +372,12 @@ func reloadChange(prefix string, r revert.Reload, rp reload.Plan, replan func(ct
 	for _, s := range rp.Steps {
 		cmds = append(cmds, host.FormatArgv(s.Argv))
 	}
+	unit := rp.Mode.String()
+	if rp.Mode == detect.SSHService {
+		unit = unitOf(rp) // sshd.service on Rocky Linux and AlmaLinux
+	}
 	c := engine.Change{
-		ID: prefix + "/reload", Summary: "Reload sshd (" + rp.Mode.String() + ")", Title: engine.FitTitle("Reload sshd ("+rp.Mode.String()+")", "Reload sshd"), Target: unitOf(rp), Commands: cmds,
+		ID: prefix + "/reload", Summary: "Reload sshd (" + unit + ")", Title: engine.FitTitle("Reload sshd ("+unit+")", "Reload sshd"), Target: unitOf(rp), Commands: cmds,
 		Risk: engine.RiskLockout, Stage: engine.StageReload, After: []string{prefix + "/files"},
 		Rollback: engine.Undo{Reloads: []revert.Reload{r}}, ConfirmVia: revert.ListenersOf(rp.Adds),
 	}
@@ -618,4 +638,183 @@ func (st sshState) checkPVE(ctx context.Context, sys host.System, after sshd.Eff
 		return fmt.Errorf("Proxmox VE: root key-only %v, root by key %v, port 22 %v; each must be yes: %w", chk.RootKeyOnly, chk.RootByKey, chk.Port22, ErrNotInEffect)
 	}
 	return nil
+}
+
+// sshLabels refuses, on Rocky Linux and AlmaLinux where SELinux enforces,
+// a change after which sshd would reread a file its own context may be
+// refused: one of the files Validate checked, the file each of them links
+// to (followed to the end), or a host key sshd -T names that exists, whose
+// label is not the policy's (selinux.Check). hardn checks the files as root
+// outside sshd's context, and their reload has no sshd -t of its own, so
+// the reload is where sshd would exit (Debian's ssh.service runs sshd -t
+// first). 00-hardn.conf is left out: hardn writes it new, in a directory
+// whose default label it takes. A link that can't be followed is refused;
+// a host key that doesn't exist is left out (sshd only warns). Elsewhere
+// it reads nothing.
+func sshLabels(ctx context.Context, sys host.System, f detect.Facts, rep sshd.Report) error {
+	if !f.Platform.Distro.EL() {
+		return nil
+	}
+	var paths []string
+	add := func(p string) error {
+		for range 8 { // a chain of links; sshd's fopen follows it
+			paths = append(paths, p)
+			fi, err := sys.Lstat(ctx, p)
+			if err != nil {
+				return err
+			}
+			if fi.Mode()&fs.ModeSymlink == 0 {
+				return nil
+			}
+			if _, p, err = sys.ResolveSymlink(ctx, p); err != nil {
+				return err
+			}
+		}
+		return fmt.Errorf("%s: too many links: %w", paths[len(paths)-1], fs.ErrInvalid)
+	}
+	for _, p := range rep.Files {
+		if p == sshd.HardnDropIn {
+			continue
+		}
+		if err := add(p); err != nil {
+			return &Refusal{Code: CodeSELinuxLabels, Why: "hardn can't tell what sshd reads through " + p, Fix: "check that link, then plan again", Err: err}
+		}
+	}
+	for _, l := range strings.Split(string(rep.Effective), "\n") {
+		if k, v, ok := strings.Cut(l, " "); ok && k == "hostkey" && filepath.IsAbs(v) {
+			if _, err := sys.Lstat(ctx, v); err == nil {
+				if err := add(v); err != nil {
+					return &Refusal{Code: CodeSELinuxLabels, Why: "hardn can't tell what sshd reads through " + v, Fix: "check that link, then plan again", Err: err}
+				}
+			}
+		}
+	}
+	if err := selinux.Check(ctx, sys, paths...); err != nil {
+		return &Refusal{Code: CodeSELinuxLabels, Why: "sshd may not be able to read its files after the reload: SELinux labels them otherwise than its policy",
+			Fix: "run `restorecon -v` on the files named, then plan again", Err: err}
+	}
+	return nil
+}
+
+// The codes of the EL port refusals (el-ports.md).
+const (
+	CodeNoSemanage   = "SELINUX_NO_SEMANAGE"
+	CodePortTaken    = "SELINUX_PORT_TAKEN"
+	CodeNoSSHPath    = "FIREWALLD_NO_SSH_PATH"
+	CodeFirewalldMix = "FIREWALLD_UNKNOWN"
+	// CodeFirewalldBoot: firewalld stopped and enabled (firewalld.ErrStartsAtBoot).
+	CodeFirewalldBoot = "FIREWALLD_STOPPED"
+)
+
+// planELPorts plans, on Rocky Linux and AlmaLinux, the ports a change adds
+// (add) made reachable before sshd moves, each a lockout-risk change of
+// StageFirewall: SELinux labelling each ssh_port_t, which sshd needs to
+// bind it (selinux.PlanSSHPort), and firewalld letting each through every
+// zone that lets one of the current ports (hold) through
+// (firewalld.PlanFor). Each change's undo is what its Apply did, journalled
+// after it ran: a label or a port hardn added, never one it found. Refused
+// before anything changes: semanage missing where SELinux is on
+// (CodeNoSemanage), a port the policy gives another service
+// (CodePortTaken), firewalld running with no zone hardn reads carrying SSH
+// (CodeNoSSHPath), and firewalld not read (CodeFirewalldMix).
+func planELPorts(ctx context.Context, sys host.System, prefix string, hold, add []uint16) ([]engine.Change, error) {
+	if len(add) == 0 {
+		return nil, nil
+	}
+	var out []engine.Change
+	for _, port := range add {
+		step, err := selinux.PlanSSHPort(ctx, sys, port)
+		switch {
+		case errors.Is(err, selinux.ErrNoSemanage):
+			return nil, &Refusal{Code: CodeNoSemanage, Why: fmt.Sprintf("SELinux is on, and semanage isn't installed to let sshd use port %d", port),
+				Fix: "install it (`dnf install policycoreutils-python-utils`), then plan again", Err: err}
+		case errors.Is(err, selinux.ErrPortTaken):
+			return nil, &Refusal{Code: CodePortTaken, Why: fmt.Sprintf("SELinux gives port %d to another service", port), Fix: "choose another port", Err: err}
+		case err != nil:
+			return nil, err
+		case step != nil:
+			c, err := selinuxChange(fmt.Sprintf("%s/selinux-%d", prefix, port), *step)
+			if err != nil {
+				return nil, err
+			}
+			out = append(out, c)
+		}
+	}
+	st, err := firewalld.Read(ctx, sys)
+	switch {
+	case errors.Is(err, firewalld.ErrFailed):
+		return nil, &Refusal{Code: "FIREWALLD_FAILED", Why: "firewalld's service failed, and its rules may still be loaded",
+			Fix: "see `journalctl -u firewalld`, fix it, then run `systemctl reset-failed firewalld.service`", Err: err}
+	case err != nil:
+		return nil, &Refusal{Code: CodeFirewalldMix, Why: "hardn can't read firewalld here", Fix: "check that `systemctl status firewalld` answers, then plan again", Err: err}
+	}
+	p, err := firewalld.PlanFor(ctx, sys, st, hold, add)
+	switch {
+	case errors.Is(err, firewalld.ErrStartsAtBoot):
+		return nil, &Refusal{Code: CodeFirewalldBoot, Why: "firewalld is stopped and starts at boot, so hardn can't read what it will let through then",
+			Fix: "enable it from the Firewall screen, or disable it (`systemctl disable firewalld`), then plan again", Err: err}
+	case errors.Is(err, firewalld.ErrNoSSHPath):
+		return nil, &Refusal{Code: CodeNoSSHPath, Why: "hardn can't tell how SSH gets through firewalld here: no zone lets the current port through by its ports or services",
+			Fix: "let SSH through a zone (`firewall-cmd --permanent --add-service=ssh`, then `firewall-cmd --reload`), then plan again", Err: err}
+	case err != nil:
+		return nil, &Refusal{Code: CodeFirewalldMix, Why: "hardn can't read firewalld here", Fix: "check that `firewall-cmd --state` answers, then plan again", Err: err}
+	case len(p.Steps) > 0:
+		c, err := firewalldChange(prefix+"/firewalld", p, add)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, c)
+	}
+	return out, nil
+}
+
+const selinuxWhy, firewalldWhy = "the SSH port's SELinux label hardn added", "the SSH port hardn let through firewalld"
+
+// selinuxChange labels port ssh_port_t, then checks it is so. Its undo,
+// journalled before, takes the label away if it is there
+// (selinux.RollbackPorts).
+func selinuxChange(id string, s selinux.PortStep) (engine.Change, error) {
+	step, err := plans.SELinuxPorts(selinux.PortsUndo{Ports: []uint16{s.Port}}, selinuxWhy)
+	if err != nil {
+		return engine.Change{}, err
+	}
+	c := engine.Change{ID: id, Summary: "SELinux: " + host.FormatArgv(s.Argv), Title: engine.FitTitle(fmt.Sprintf("SELinux: let sshd use port %d", s.Port), "SELinux: label the port"),
+		Target: "SELinux", Commands: []string{host.FormatArgv(s.Argv)}, Risk: engine.RiskLockout, Stage: engine.StageFirewall,
+		Rollback: engine.Undo{Steps: []revert.Step{step}}, Resources: []string{plans.UnitSELinux}}
+	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
+		if _, err := sys.Run(ctx, s.Argv[0], s.Argv[1:]...); err != nil {
+			return engine.Ran{}, fmt.Errorf("selinux: %s: %w", host.FormatArgv(s.Argv), err)
+		}
+		ok, err := selinux.LabelsSSHPort(ctx, sys, s.Port)
+		if err == nil && !ok {
+			err = fmt.Errorf("selinux: port %d is not %s after %s: %w", s.Port, selinux.SSHPortType, host.FormatArgv(s.Argv), selinux.ErrMislabeled)
+		}
+		return engine.Ran{Detail: fmt.Sprintf("selinux: port %d labelled", s.Port)}, err
+	}
+	return c, nil
+}
+
+// firewalldChange lets the added ports through firewalld, then checks
+// each is let through at runtime (firewalld.Execute). Its undo, journalled
+// before, takes each port away that is there (firewalld.Rollback).
+func firewalldChange(id string, p firewalld.Plan, add []uint16) (engine.Change, error) {
+	step, err := plans.Firewalld(p.Undo(), firewalldWhy)
+	if err != nil {
+		return engine.Change{}, err
+	}
+	var cmds, ports []string
+	for _, s := range p.Steps {
+		cmds = append(cmds, host.FormatArgv(s.Argv()))
+	}
+	for _, a := range add {
+		ports = append(ports, fmt.Sprintf("%d/tcp", a))
+	}
+	c := engine.Change{ID: id, Summary: "firewalld: " + strings.Join(cmds, "; "), Title: engine.FitTitle("firewalld: allow "+strings.Join(ports, ", "), "firewalld: allow the new port"),
+		Target: "firewalld", Commands: cmds, Risk: engine.RiskLockout, Stage: engine.StageFirewall,
+		Rollback: engine.Undo{Steps: []revert.Step{step}}, Resources: []string{plans.UnitFirewalld}}
+	c.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
+		err := firewalld.Execute(ctx, sys, p, add)
+		return engine.Ran{Detail: "firewalld: zones " + strings.Join(p.Zones, ", ")}, err
+	}
+	return c, nil
 }

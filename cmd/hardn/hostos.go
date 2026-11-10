@@ -14,8 +14,10 @@ var osHost = func() host.System { return host.NewReal(host.Options{}) }
 // hostOS is the root command's OS check, past the root check and the
 // config load (docs/engine/legacy-left.md, decision 4 (a), adopted
 // 2026-11-04): pkg/host/detect's os-release and Proxmox VE facts, placed by
-// Classify. No os-release, or one naming an OS other than Debian, Ubuntu
-// or Alpine (detect.DistroOther), is refused; Proxmox VE is Debian's. It
+// Classify. No os-release, or one naming an OS other than Debian, Ubuntu,
+// Alpine, Rocky Linux or AlmaLinux (detect.DistroOther), is refused;
+// Proxmox VE is Debian's. Rocky Linux and AlmaLinux are placed by the
+// matrix as the others are (docs/engine/el-changes.md). It
 // says nothing of an OS it accepts, and clears nothing: the OS is on the
 // main menu's context bar.
 func hostOS() error {

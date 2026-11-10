@@ -16,8 +16,17 @@ const (
 	DistroUbuntu  Distro = "ubuntu"  // os-release ID
 	DistroAlpine  Distro = "alpine"  // os-release ID
 	DistroProxmox Distro = "proxmox" // Proxmox VE: pve-manager installed; os-release says debian
-	DistroOther   Distro = "other"   // an os-release ID hardn does not know
+	// Rocky Linux and AlmaLinux, Enterprise Linux (EL) rebuilds: 10 and 9
+	// are supported for the changes docs/engine/el-changes.md lists; hardn
+	// reads the rest (docs/engine/el-readonly.md).
+	DistroRocky Distro = "rocky"     // os-release ID
+	DistroAlma  Distro = "almalinux" // os-release ID
+	DistroOther Distro = "other"     // an os-release ID hardn does not know
 )
+
+// EL reports Rocky Linux or AlmaLinux: dnf, SELinux, firewalld or none,
+// NetworkManager, sshd.service.
+func (d Distro) EL() bool { return d == DistroRocky || d == DistroAlma }
 
 // Support is a platform's place in the support matrix.
 type Support uint8
@@ -48,7 +57,9 @@ func (s Support) String() string {
 type Release struct {
 	Distro Distro
 	// Version is VERSION_ID for Debian and Ubuntu, VERSION_ID's major.minor
-	// for Alpine, and pve-manager's major version for Proxmox VE.
+	// for Alpine, VERSION_ID's major for Rocky Linux and AlmaLinux (their
+	// minor releases are updates of one major, which the vendor supports
+	// as a whole), and pve-manager's major version for Proxmox VE.
 	Version string
 	Support Support
 	Note    string
@@ -70,6 +81,13 @@ var matrix = []Release{
 	{DistroAlpine, "3.24", Supported, ""},
 	{DistroAlpine, "3.23", Supported, ""},
 	{DistroProxmox, "9", Supported, ""},
+	// Rocky Linux and AlmaLinux: every change but DNS (el-changes.md,
+	// el-ports.md, el-firewalld.md, el-updates.md). VM runs covered Rocky
+	// Linux 10 alone.
+	{DistroRocky, "10", Supported, ""},
+	{DistroRocky, "9", Supported, ""},
+	{DistroAlma, "10", Supported, ""},
+	{DistroAlma, "9", Supported, ""},
 	{DistroUbuntu, "22.04", BestEffort, ""},
 	{DistroAlpine, "3.22", BestEffort, ""},
 	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01"},
@@ -124,6 +142,8 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 			p.Support, p.Note = Unlisted, "VERSION_ID "+osr.VersionID+" is not a stable release's x.y.z"
 		}
 		return p
+	case DistroRocky, DistroAlma:
+		return lookup(Platform{Distro: d, Version: elMajor(osr.VersionID)})
 	}
 	p := Platform{Distro: DistroOther, Support: Unlisted}
 	for _, id := range osr.IDLike {
@@ -177,6 +197,16 @@ func majorMinor(v string) string {
 func alpineStable(v string) bool {
 	parts := strings.Split(v, ".")
 	return len(parts) == 3 && digits(parts[0]) && digits(parts[1]) && digits(parts[2])
+}
+
+// elMajor is "10" for Rocky Linux's and AlmaLinux's "10.2": a VERSION_ID of
+// two numeric components, as both write it. Anything else is "".
+func elMajor(v string) string {
+	major, minor, ok := strings.Cut(v, ".")
+	if !ok || !digits(major) || !digits(minor) {
+		return ""
+	}
+	return major
 }
 
 // pveMajor is "9" for pve-manager's "9.2.22".

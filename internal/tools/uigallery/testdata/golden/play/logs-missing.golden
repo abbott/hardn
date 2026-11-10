@@ -125,8 +125,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. No file␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthere. origin/main's main() makes it at every start as␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot, before flags (cmd/hardn/main.go:57; logging.go:38),␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso today this shows only where that open failed; next/p3-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstartup moves that write.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso today this shows only where that open failed;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnext/p3-startup moves that write.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

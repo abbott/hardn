@@ -39,7 +39,7 @@ func TestPlanBootUnit(t *testing.T) {
 			Link: "/etc/systemd/system/multi-user.target.wants/hardn-boot.service", Check: []string{"systemd-analyze", "verify", "--recursive-errors=no"},
 			Enable: []string{"systemctl", "--no-reload", "enable", "hardn-boot.service"}, Disable: []string{"systemctl", "--no-reload", "disable", "hardn-boot.service"},
 			Reload: []string{"systemctl", "daemon-reload"}},
-			[]string{"DefaultDependencies=no", "After=local-fs.target sysinit.target ufw.service", "Before=ssh.service ssh.socket shutdown.target",
+			[]string{"DefaultDependencies=no", "After=local-fs.target sysinit.target ufw.service", "Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target",
 				"Type=oneshot", "ExecStart=" + testHardn + " rollback --boot", "TimeoutStartSec=7min", "WantedBy=multi-user.target"},
 			[]string{"Requires=", "RequiredBy=", "BindsTo=", "Wants=ssh", "%"}},
 		{"OpenRC", "hardn-boot.openrc", openrc, BootUnit{Init: detect.OpenRC, Path: "/etc/init.d/hardn-boot", Mode: 0o755,

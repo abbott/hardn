@@ -20,7 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/steps"
-	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/output"
 	fwscreen "github.com/abbott/hardn/pkg/screens/firewall"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
@@ -38,12 +38,44 @@ import (
 // refused, nothing armed (enableFirewall). A plain plan ("Start ufw at
 // boot" alone, ufw already running) is applied unasked, on a terminal or
 // off, as any flag's. On Proxmox VE the control
-// refuses (UFW_NOT_APPLICABLE). Under -n, or hardn.yml's dryRun: true,
+// refuses (UFW_NOT_APPLICABLE). On Rocky Linux and AlmaLinux it is refused
+// before anything is planned, whatever hardn.yml says (FIREWALL_EL_READ_ONLY,
+// firewallEL): the firewall is the Firewall screen's there
+// (el-firewalld.md §1.7). Under -n, or hardn.yml's dryRun: true,
 // the plan alone, no question, nothing written. It returns the exit
 // status: 0 applied or nothing to change, 3 a plan with changes to make
 // (-n) or declined (0, q), 1 refused or failed.
 func configureFirewall(c *config.Config) int {
+	ctx := context.Background()
+	sys := engineHost()
+	if facts, err := engineDetect(ctx, sys); err == nil && facts.Platform.Distro.EL() {
+		return refuseControls(sys, c, firewallEL)
+	}
 	return runControls(c, []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionEnable}}, nil, &enableFirewall)
+}
+
+// firewallEL is -w's refusal on Rocky Linux and AlmaLinux (el-firewalld.md
+// §1.7; proposed words).
+var firewallEL = &steps.Refusal{
+	Code: "FIREWALL_EL_READ_ONLY",
+	Why:  "hardn doesn't configure the firewall from -w on Rocky Linux or AlmaLinux",
+	Fix:  "use the Firewall screen",
+	Err:  steps.ErrELFirewall,
+}
+
+// refuseControls is a flag's refusal before its plan, err, reported and
+// audited as runControls reports and audits the engine's refusal, nothing
+// planned or applied; it returns the exit status, 1.
+func refuseControls(sys host.System, c *config.Config, err error) int {
+	run := output.Run{Mode: output.ModeApply, Err: err}
+	if c.DryRun {
+		run.Mode = output.ModePlan
+	}
+	if err := output.Emit(output.Streams{Stdout: engineStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
+		sayError("%v", err)
+	}
+	audit(sys, c, run)
+	return endControls(run, func() bool { return false })
 }
 
 // enableFirewall is -w's confirmation of a lockout-risk plan: the
@@ -63,16 +95,23 @@ var enableFirewall = typedConfirm{
 
 // withFirewallScreen returns m with its Firewall item set to the Firewall
 // screen on c, the configuration m was given, and its description to
-// Proxmox VE's where the host is Proxmox VE, as the screen reads it
-// (mainmenu.Options.Firewall): detect's Proxmox VE installed, read through
-// engineDetect once, as the main menu is first drawn, a fact that does not
-// change while hardn runs.
+// Proxmox VE's where the host is Proxmox VE, and firewalld's where it is
+// Rocky Linux or AlmaLinux, as the screen reads them
+// (mainmenu.Options.Firewall): detect's Proxmox VE installed and its
+// distribution, read through engineDetect once, as the main menu is first
+// drawn, facts that do not change while hardn runs.
 func withFirewallScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
-	onPVE := sync.OnceValue(func() bool {
+	type kind struct{ pve, el bool }
+	read := sync.OnceValue(func() kind {
 		facts, err := engineDetect(context.Background(), statusHost())
-		return err == nil && facts.Proxmox.Installed == detect.Yes
+		if err != nil {
+			return kind{}
+		}
+		pve, el := mainmenu.FirewallOf(facts)
+		return kind{pve: pve, el: el}
 	})
-	m.Firewall, m.FirewallPVE = func() error { return runFirewallScreen(context.Background(), c) }, onPVE
+	m.Firewall = func() error { return runFirewallScreen(context.Background(), c) }
+	m.FirewallPVE, m.FirewallEL = func() bool { return read().pve }, func() bool { return read().el }
 	return m
 }
 

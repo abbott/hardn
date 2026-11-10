@@ -22,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
@@ -37,12 +38,15 @@ import (
 	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -171,6 +175,7 @@ var errorCodes = []Entry{
 	// The Auto Updates screen's refusals (refactor plan slice 7, unit (b)):
 	// before the readers' and packages' errors they wrap.
 	is("UPDATES_NOT_READ", updates.ErrNotRead),
+	is("UPDATES_DNF_CONF", dnfauto.ErrConf), // after NOT_READ: a refusal wrapping it is NOT_READ
 	is("UPDATES_PERIODIC_OFF", updates.ErrPeriodicOff),
 	is("UPDATES_TIMER_OFF", updates.ErrTimerOff),
 	is("UPDATES_JOB_MASKED", updates.ErrJobMasked),
@@ -242,6 +247,8 @@ var errorCodes = []Entry{
 	is("CONFIRM_WRONG_LISTENER", revert.ErrWrongListener),
 	is("CHANGE_APPLIED_ALREADY", revert.ErrApplied),
 	is("REVERT_NO_TIMER", revert.ErrNoTimer),
+	is("SELINUX_HARDN_NOT_RUNNABLE", selinux.ErrNotRunnable).what("SELinux types hardn's binary otherwise than bin_t, so systemd would not run it for the revert timer: install it in /usr/local/bin with install(1), or restorecon -v it there"),
+	is("SELINUX_MISLABELED", selinux.ErrMislabeled).what("SELinux labels a file otherwise than its policy, so sshd or systemd may be refused it: restorecon -v puts the policy's label back"),
 	is("HARDN_EXECUTABLE_UNSAFE", revert.ErrExecutable),
 	is("JOURNAL_CLAIM_RACE", revert.ErrClaim),
 	is("ROLLBACK_INCOMPLETE", revert.ErrIncomplete),
@@ -282,6 +289,7 @@ var errorCodes = []Entry{
 	is("RELOAD_RESTORED_LISTENERS", reload.ErrRestoredListeners),
 	is("RELOAD_NOT_IN_EFFECT", reload.ErrNotInEffect),
 	is("RELOAD_OPENRC_CONFD", reload.ErrConfd),
+	is("RELOAD_SYSCONFIG_OPTIONS", reload.ErrSysconfig),
 
 	// The Firewall control's refusals (refactor plan slice 4, unit (b)): the
 	// first three wrap ufw's ErrListenersUnknown, of which they are the more
@@ -297,6 +305,8 @@ var errorCodes = []Entry{
 	typed("UFW_ROLLBACK_FAILED", "an undo of ufw's rules failed; those after it did not run",
 		as(func(*ufw.RollbackError) bool { return true })),
 	is("UFW_NOT_APPLICABLE", ufw.ErrNotApplicable),
+	is("FIREWALL_EL_READ_ONLY", steps.ErrELFirewall),
+	is("DNS_EL_READ_ONLY", dnsctl.ErrEL),
 	is("UFW_PROXMOX_UNKNOWN", ufw.ErrProxmoxUnknown).what("ufw: whether the host runs Proxmox VE (no ufw there) is not established"),
 	is("UFW_NOT_INSTALLED", ufw.ErrNotInstalled),
 	is("UFW_LISTENERS_UNKNOWN", ufw.ErrListenersUnknown),
@@ -308,16 +318,34 @@ var errorCodes = []Entry{
 	is("UFW_BAD_PROFILE", ufw.ErrBadProfile),
 	is("UFW_BAD_INTERFACE", ufw.ErrBadInterface),
 
-	// Packages (pkg/host/packages): an OtherPackagesError is its sentinel's.
+	// Packages (pkg/host/packages): an OtherPackagesError and a KernelError
+	// are their sentinels'.
 	is("PACKAGE_NO_TOOL", packages.ErrNoTool),
 	is("PACKAGE_NOT_IN_REPOS", packages.ErrNotInRepos),
 	is("PACKAGE_OTHER_CHANGES", packages.ErrOtherPackages),
 	is("PACKAGE_VERIFY_FAILED", packages.ErrVerify),
+	is("PACKAGE_KERNEL", packages.ErrKernel),
+	is("PACKAGE_LOCKED", packages.ErrLocked),
 
 	// Proxmox VE (pkg/host/pve).
 	is("PVE_NOT_APPLICABLE", pve.ErrNotApplicable),
 	is("PVE_UNKNOWN", pve.ErrProxmoxUnknown).what("whether the host runs Proxmox VE is not established, so its rules cannot be applied"),
 	is("PVE_PORT_CHANGE_REFUSED", pve.ErrPortChange),
+	is("SELINUX_NO_SEMANAGE", selinux.ErrNoSemanage),
+	is("SELINUX_PORT_TAKEN", selinux.ErrPortTaken),
+	is("FIREWALLD_NO_SSH_PATH", firewalld.ErrNoSSHPath),
+	is("FIREWALLD_STOPPED", firewalld.ErrStartsAtBoot),
+	is("FIREWALLD_NOT_LET_THROUGH", firewalld.ErrNotLetThrough),
+	is("FIREWALLD_FAILED", firewalld.ErrFailed),
+	is("FIREWALLD_NOT_READY", firewalld.ErrNotReady),
+	is("FIREWALLD_UNKNOWN", firewalld.ErrUnknown),
+	is("FIREWALLD_OTHER_FIREWALL", firewalld.ErrOtherFirewall),
+	is("FIREWALLD_NO_CLEANUP", firewalld.ErrNoCleanup),
+	is("FIREWALLD_BOOT_BLOCKED", firewalld.ErrBootBlocked),
+	is("FIREWALLD_BOOT_UNKNOWN", firewalld.ErrBootUnknown),
+	is("FIREWALLD_ZONE_NO_SSH", firewalld.ErrZoneNoSSH),
+	is("FIREWALLD_NOT_INSTALLED", firewall.ErrFirewalldMissing),
+	is("FIREWALLD_NOT_AT_BOOT", firewall.ErrRunningNotAtBoot),
 	is("PVE_ROOT_EXCLUDED", pve.ErrRootExcluded),
 	is("PVE_ROOT_PASSWORD_KEPT", pve.ErrRootPassword),
 	is("PVE_CLUSTER_FS_DOWN", pve.ErrClusterFSDown),
@@ -544,7 +572,7 @@ var findingCodes = []Entry{
 	finding(updates.CodeOriginsUnknown, "a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established"),
 	finding(updates.CodeChangedSince, "hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone"),
 	// The header probe's own (next/p4-header): why a reboot is pending.
-	finding(header.CodeRebootRequired, "/var/run/reboot-required exists: a package asks for a reboot"),
+	finding(header.CodeRebootRequired, "/var/run/reboot-required exists, or on Rocky Linux and AlmaLinux dnf needs-restarting -r exits 1: a package asks for a reboot"),
 	finding(header.CodeNewerKernel, "a kernel newer than the one running is installed in /boot"),
 	finding(header.CodeModulesMissing, "Alpine: the running kernel's own modules are not installed, while another kernel's are"),
 	finding(header.CodeKernelReplaced, "a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running"),

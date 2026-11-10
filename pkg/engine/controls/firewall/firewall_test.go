@@ -8,8 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
@@ -482,7 +484,9 @@ func readOnly(t *testing.T, h *hostfake.System, p platform) {
 			case cmd == "ufw status verbose" && !onPVE, cmd == "systemctl is-enabled ufw.service" && !onPVE, strings.HasPrefix(cmd, p.bin+" -T -f "+sshd.MainConfig),
 				cmd == "systemctl show -p Listen ssh.socket", cmd == "ss -Htln", strings.HasPrefix(cmd, "dpkg-query --show "),
 				cmd == "apk info -e iproute2", cmd == "apt-get install -s -y iproute2", cmd == "apk add --simulate iproute2",
-				cmd == "systemctl is-active "+pve.FirewallUnit, cmd == "systemctl is-active "+pve.NFTablesUnit:
+				cmd == "systemctl is-active "+pve.FirewallUnit, cmd == "systemctl is-active "+pve.NFTablesUnit,
+				p.facts.Platform.Distro.EL() && strings.HasPrefix(cmd, "firewall-cmd ") && !strings.Contains(cmd, "-add-") && !strings.Contains(cmd, "-remove-"),
+				p.facts.Platform.Distro.EL() && (cmd == "systemctl is-active firewalld.service" || cmd == "systemctl is-enabled firewalld.service"):
 			default:
 				t.Errorf("ran %q", cmd)
 			}
@@ -750,6 +754,30 @@ const (
 )
 
 // TestProxmox: pve-firewall's state, ufw never consulted (readOnly).
+// TestRocky: on Rocky Linux (sshd.service, detect's SSHDUnits) the row
+// reads as on Debian over the same host, but an /etc/sysconfig/sshd whose
+// OPTIONS gives sshd arguments leaves the SSH ports not established.
+func TestRocky(t *testing.T) {
+	r := debian13()
+	r.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+	r.facts.SSH.SSHDUnits = true
+	noFirewalld := func(h *hostfake.System) { fwUnit(h, "inactive", "not-found") }
+	for _, row := range []row{
+		// No firewalld: ufw's line, as for EPEL's ufw.
+		{name: "no firewalld, ufw, stock sysconfig, 22 allowed", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+			noFirewalld(h)
+			h.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"\"\n"), 0o644, 0, 0)
+		}}, state: engine.Configured, want: "deny policy"},
+		{name: "no firewalld, ufw, sysconfig gives sshd a port", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+			noFirewalld(h)
+			h.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"-p 2222\"\n"), 0o644, 0, 0)
+		}}, state: engine.Unknown, want: "can't tell ssh ports", err: "RELOAD_SYSCONFIG_OPTIONS"},
+	} {
+		t.Run(row.name, func(t *testing.T) { run(t, row) })
+	}
+}
+
 func TestProxmox(t *testing.T) {
 	p := pve9()
 	for _, r := range []row{
@@ -939,6 +967,131 @@ func TestCheckBoot(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestRockyNeverUFW: on Rocky Linux applying ufw's profiles or trusted
+// interfaces is refused (FIREWALL_EL_READ_ONLY) before any call, and no
+// action runs a ufw command: Install, Enable and Disable drive firewalld
+// (el_test.go). Saving hardn.yml is not refused.
+func TestRockyNeverUFW(t *testing.T) {
+	r := debian13()
+	r.facts.OS = detect.OSRelease{ID: "rocky", VersionID: "10.2"}
+	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	r.facts.SSH.SSHDUnits = true
+	for _, a := range []firewall.Action{firewall.ActionApplyProfiles, firewall.ActionApplyInterfaces} {
+		h, facts := site{plat: r, ufw: allow22}.build(t)
+		n := len(h.Calls())
+		_, err := firewall.Incoming{Action: a}.Plan(context.Background(), h, engine.Input{Facts: facts, Config: &config.Config{}})
+		if !errors.Is(err, firewall.ErrEL) || output.CodeOf(err) != "FIREWALL_EL_READ_ONLY" {
+			t.Errorf("action %d: %v (%s), want FIREWALL_EL_READ_ONLY", a, err, output.CodeOf(err))
+		}
+		if calls := h.Calls()[n:]; len(calls) != 0 {
+			t.Errorf("action %d: calls %v before the refusal", a, calls)
+		}
+	}
+	h, facts := site{plat: r, ufw: allow22}.build(t)
+	save := firewall.Incoming{Action: firewall.ActionSaveProfiles}
+	if _, err := save.Plan(context.Background(), h, engine.Input{Facts: facts, Config: &config.Config{}}); errors.Is(err, firewall.ErrEL) {
+		t.Errorf("save profiles refused on Rocky Linux: %v", err)
+	}
+}
+
+// TestFirewalldRow: on Rocky Linux the row reads firewalld: running with no
+// zone read (active or default) accepting everything is Configured;
+// stopped, or a zone ACCEPT (the default, or docker's trusted beside it),
+// Not Configured; neither firewalld nor ufw is
+// "no firewall installed"; firewall-cmd answering otherwise, Unknown.
+func TestFirewalldRow(t *testing.T) {
+	f := debian13().facts
+	f.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	runningAt := func(target, enabled string) func(h *hostfake.System) {
+		return func(h *hostfake.System) {
+			fwUnit(h, "active", enabled)
+			h.Respond(hostfake.Response{Stdout: "running\n"}, "firewall-cmd", "--state")
+			h.Respond(hostfake.Response{Stdout: "public\n"}, "firewall-cmd", "--get-default-zone")
+			h.Respond(hostfake.Response{Stdout: "public (default)\n  interfaces: eth0\n"}, "firewall-cmd", "--get-active-zones")
+			h.Respond(hostfake.Response{Stdout: target + "\n"}, "firewall-cmd", "--permanent", "--zone=public", "--get-target")
+		}
+	}
+	running := func(target string) func(h *hostfake.System) { return runningAt(target, "enabled") }
+	for _, c := range []struct {
+		name   string
+		setup  func(h *hostfake.System)
+		state  engine.State
+		detail string
+	}{
+		{"running", running("default"), engine.Configured, firewall.DetailFirewalld},
+		{"running, not started at boot", runningAt("default", "disabled"), engine.Partial, firewall.DetailNotAtBoot},
+		{"running, the zone accepts everything", running("ACCEPT"), engine.NotConfigured, firewall.DetailZoneAccepts},
+		{"running, trusted accepts everything beside public", func(h *hostfake.System) {
+			fwUnit(h, "active", "enabled")
+			h.Respond(hostfake.Response{Stdout: "running\n"}, "firewall-cmd", "--state")
+			h.Respond(hostfake.Response{Stdout: "public\n"}, "firewall-cmd", "--get-default-zone")
+			h.Respond(hostfake.Response{Stdout: "trusted\n  interfaces: docker0\npublic (default)\n  interfaces: eth0\n"}, "firewall-cmd", "--get-active-zones")
+			h.Respond(hostfake.Response{Stdout: "ACCEPT\n"}, "firewall-cmd", "--permanent", "--zone=trusted", "--get-target")
+			h.Respond(hostfake.Response{Stdout: "default\n"}, "firewall-cmd", "--permanent", "--zone=public", "--get-target")
+		}, engine.NotConfigured, firewall.DetailZoneAccepts},
+		{"stopped", func(h *hostfake.System) { fwUnit(h, "inactive", "disabled") }, engine.NotConfigured, firewall.DetailFirewalldOff},
+		{"stopped, starting at boot", func(h *hostfake.System) { fwUnit(h, "inactive", "enabled") }, engine.NotConfigured, firewall.DetailStartsAtBoot},
+		{"stopped, static", func(h *hostfake.System) {
+			fwUnit(h, "inactive", "static")
+			h.AddFile("/usr/lib/systemd/system/firewalld.service", []byte("[Unit]\n"), 0o644, 0, 0)
+		}, engine.NotConfigured, firewall.DetailFirewalldOff},
+		{"no firewall", func(h *hostfake.System) {
+			fwUnit(h, "inactive", "not-found")
+			h.Respond(hostfake.Response{Err: host.ErrNotFound}, "ufw", "status", "verbose")
+		}, engine.NotConfigured, firewall.DetailNoFirewall},
+		{"firewall-cmd failing", func(h *hostfake.System) {
+			fwUnit(h, "active", "enabled")
+			h.Respond(hostfake.Response{ExitCode: 2, Stderr: "Error\n"}, "firewall-cmd", "--state")
+		}, engine.Unknown, "can't read"},
+		{"failed", func(h *hostfake.System) { fwUnit(h, "failed", "enabled") }, engine.Unknown, "can't read"},
+	} {
+		h := hostfake.New(host.Options{})
+		c.setup(h)
+		st, err := firewall.Incoming{}.Check(context.Background(), h, f)
+		if st.State != c.state || st.Detail != c.detail || (c.state == engine.Unknown) != (err != nil) {
+			t.Errorf("%s: %s %q, %v; want %s %q", c.name, st.State, st.Detail, err, c.state, c.detail)
+		}
+	}
+}
+
+// fwUnit scripts systemctl is-active and is-enabled of firewalld.service,
+// with systemctl's exits.
+func fwUnit(h *hostfake.System, active, enabled string) {
+	h.Respond(hostfake.Response{Stdout: active + "\n", ExitCode: map[bool]int{false: 3}[active == "active"]}, "systemctl", "is-active", "firewalld.service")
+	h.Respond(hostfake.Response{Stdout: enabled + "\n", ExitCode: map[bool]int{false: 1}[enabled == "enabled"]}, "systemctl", "is-enabled", "firewalld.service")
+}
+
+// TestStepsRefuseUFWOnRocky: steps' ufw planners refuse Rocky Linux
+// themselves (ErrELFirewall), whoever calls them, before any call.
+func TestStepsRefuseUFWOnRocky(t *testing.T) {
+	r := debian13()
+	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	ctx := context.Background()
+	for name, plan := range map[string]func(host.System, engine.Input) ([]engine.Change, error){
+		"enable": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWEnable(ctx, h, in, "t")
+		},
+		"disable": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWDisable(ctx, h, in, "t")
+		},
+		"apps": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWApps(ctx, h, in, "t", nil)
+		},
+		"interfaces": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWInterfaces(ctx, h, in, "t", []string{"eth1"})
+		},
+	} {
+		h, facts := site{plat: r, ufw: allow22}.build(t)
+		n := len(h.Calls())
+		if _, err := plan(h, engine.Input{Facts: facts}); !errors.Is(err, steps.ErrELFirewall) {
+			t.Errorf("%s: %v, want ErrELFirewall", name, err)
+		}
+		if calls := h.Calls()[n:]; len(calls) != 0 {
+			t.Errorf("%s: calls %v", name, calls)
+		}
 	}
 }
 

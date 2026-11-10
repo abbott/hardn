@@ -98,7 +98,7 @@ var (
 	// ErrTimerOff: one of apt's timers is off.
 	ErrTimerOff = errors.New("an apt timer is off")
 	// ErrJobMasked: one of apt's daily services is masked.
-	ErrJobMasked = errors.New("an apt daily service is masked")
+	ErrJobMasked = errors.New("a daily update service or timer is masked")
 	// ErrJobMissing: one of apt's daily services is not installed.
 	ErrJobMissing = errors.New("an apt daily service is missing")
 	// ErrNoOrigins: 50unattended-upgrades allows no origin.
@@ -108,10 +108,12 @@ var (
 	// ErrOtherPackages: installing or removing the package would change
 	// other packages.
 	ErrOtherPackages = errors.New("the package change would change other packages")
-	// ErrNotInRepos: unattended-upgrades is not in apt's package lists.
-	ErrNotInRepos = errors.New("unattended-upgrades is not in apt's package lists")
-	// ErrNotInEffect: apt does not read the setting back as the change set it.
-	ErrNotInEffect = errors.New("apt does not read the update setting as changed")
+	// ErrNotInRepos: the update package (unattended-upgrades,
+	// dnf-automatic) is not in the package lists.
+	ErrNotInRepos = errors.New("the update package is not in the package lists")
+	// ErrNotInEffect: the update setting does not read back as the change
+	// set it (apt's, apk-cron's, dnf-automatic's).
+	ErrNotInEffect = errors.New("the update setting does not read back as changed")
 	// ErrRecordUnreadable: hardn's record of the control cannot be read.
 	ErrRecordUnreadable = errors.New("hardn's record of the updates it turned on cannot be read")
 	// ErrChangedSince: a file hardn left changed since.

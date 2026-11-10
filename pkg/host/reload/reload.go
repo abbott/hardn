@@ -27,8 +27,9 @@ import (
 )
 
 // The service names. On systemd it is ssh.service on Debian, Ubuntu and
-// Proxmox VE (its sshd.service alias is missing on a fresh Ubuntu 24.04); on
-// OpenRC (Alpine) it is sshd.
+// Proxmox VE (its sshd.service alias is missing on a fresh Ubuntu 24.04),
+// and sshd.service on Rocky Linux and AlmaLinux (detect.SSH.ServiceUnit,
+// which the steps use); on OpenRC (Alpine) it is sshd.
 const (
 	ServiceUnit   = "ssh.service"
 	SocketUnit    = sshd.SocketUnit
@@ -241,7 +242,7 @@ func PlanFor(in Input) (Plan, error) {
 	switch s.Mode {
 	case detect.SSHSocket:
 		if !p.Listen {
-			st := reloadService()
+			st := reloadService(s) // ssh.service: sshd.socket is refused by detect
 			st.Activated = true
 			st.Why += "; when it is not up, the next connection starts sshd from the files on disk"
 			p.Steps = []Step{st}
@@ -271,9 +272,9 @@ func PlanFor(in Input) (Plan, error) {
 			restart,
 		}
 	case detect.SSHService:
-		st := reloadService()
+		st := reloadService(s)
 		if c.Rollback {
-			st.Start = []string{"systemctl", "start", ServiceUnit}
+			st.Start = []string{"systemctl", "start", s.ServiceUnit()}
 		}
 		p.Steps = []Step{st}
 	default: // detect.SSHOpenRC
@@ -314,9 +315,18 @@ func planListeners(p *Plan, c Change) error {
 	return nil
 }
 
-func reloadService() Step {
-	return Step{Kind: StepIfUp, Unit: ServiceUnit, Argv: []string{"systemctl", "reload", ServiceUnit},
-		Why: ServiceUnit + " checks the files (sshd -t) and signals sshd to reread them"}
+// reloadService reloads the unit detect found running sshd: Debian's
+// ssh.service runs sshd -t before it signals sshd; Rocky Linux's and
+// AlmaLinux's sshd.service only signals it (ExecReload=/bin/kill -HUP
+// $MAINPID), so Validate's sshd -t over the copy is the only check of the
+// files before the reload there (docs/engine/el-changes.md).
+func reloadService(s detect.SSH) Step {
+	unit := s.ServiceUnit()
+	why := unit + " checks the files (sshd -t) and signals sshd to reread them"
+	if s.SSHDUnits {
+		why = unit + " signals sshd to reread the files, which hardn checked before installing them"
+	}
+	return Step{Kind: StepIfUp, Unit: unit, Argv: []string{"systemctl", "reload", unit}, Why: why}
 }
 
 // generatorDropIn is the drop-in sshd-socket-generator writes.

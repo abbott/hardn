@@ -150,10 +150,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcommand and file is the fake's.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/ubuntu2604␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, as the VM of 2026-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic, sudo-rs␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0.2.13. lslogins is in util-linux-extra there, and answers␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mas on Debian 13 (vm-runs/s1/02-login.log).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04, as the VM of␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2026-10-21 (vmtest.md §8.5): kernel 7.0.0-38-generic,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msudo-rs 0.2.13. lslogins is in util-linux-extra there, and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manswers as on Debian 13 (vm-runs/s1/02-login.log).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

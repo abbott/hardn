@@ -41,6 +41,15 @@ var rules = []rule{
 	{"ip", ipAddr},                             // the header probe's address
 	{"apk", exactly("info", "-e", "apk-cron")}, // alpine.ReadUpdates
 	{"rc-service", exactly("crond", "status")}, // alpine.ReadUpdates
+	// The header probe's reboot source on Rocky Linux and AlmaLinux: this
+	// one dnf command, which loads no repository and doesn't wait for
+	// another dnf's lock.
+	{"dnf", exactly("--setopt=exit_on_lock=True", "needs-restarting", "-r")},
+	// The Auto Updates check there (dnfauto.Read).
+	{"rpm", exactly("-q", "dnf-automatic")},
+	// The Firewall check on Rocky Linux and AlmaLinux (firewalld.Read, and
+	// the default zone's target).
+	{"firewall-cmd", firewallCmd},
 	// The DNS check (dns.Read): systemd-resolved's servers and search
 	// domains, as resolvectl lists them.
 	{"resolvectl", either(exactly("--no-pager", "dns"), exactly("--no-pager", "domain"))},
@@ -84,14 +93,19 @@ func sshdT(args []string) bool {
 }
 
 // units are the units the checks ask systemctl about, by verb: detect's
-// (ssh.socket, ssh.service), the AppArmor check's (apparmor.service), the
-// Auto Updates check's (apt's timers and their services), Proxmox VE's
+// (ssh.socket and ssh.service, and sshd.socket and sshd.service where
+// systemd has neither ssh.* unit), the AppArmor check's (apparmor.service), the
+// Auto Updates check's (apt's timers and their services; dnf-automatic's
+// install and plain timers on Rocky Linux and AlmaLinux), the Firewall
+// row's on Rocky Linux and AlmaLinux (firewalld.service), Proxmox VE's
 // firewall's (pve.ReadFirewall) and the DNS check's (systemd-resolved).
 var units = map[string][]string{
-	"is-enabled": {"ssh.socket", "ssh.service", "ufw.service", "apparmor.service",
+	"is-enabled": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "ufw.service", "firewalld.service", "apparmor.service",
+		"dnf-automatic-install.timer", "dnf-automatic.timer",
 		"apt-daily-upgrade.timer", "apt-daily-upgrade.service", "apt-daily.timer", "apt-daily.service"},
-	"is-active": {"ssh.socket", "ssh.service", "apt-daily-upgrade.timer", "apt-daily.timer",
-		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service"},
+	"is-active": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "apt-daily-upgrade.timer", "apt-daily.timer",
+		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service", "firewalld.service",
+		"dnf-automatic-install.timer", "dnf-automatic.timer"},
 }
 
 // systemctl is is-enabled or is-active of one of units, or ssh.socket's
@@ -147,4 +161,18 @@ func ipAddr(args []string) bool {
 	}
 	dev := args[4]
 	return dev != "" && len(dev) < 16 && dev != "." && dev != ".." && !strings.ContainsAny(dev, "/: \t\n\v\f\r")
+}
+
+// firewallCmd is the Firewall check's firewall-cmd on Rocky Linux and
+// AlmaLinux: --state, --get-default-zone, --get-active-zones, or a zone's
+// permanent target (a zone name of firewalld's letters).
+func firewallCmd(args []string) bool {
+	switch {
+	case len(args) == 1:
+		return args[0] == "--state" || args[0] == "--get-default-zone" || args[0] == "--get-active-zones"
+	case len(args) == 3 && args[0] == "--permanent" && args[2] == "--get-target":
+		z, ok := strings.CutPrefix(args[1], "--zone=")
+		return ok && z != "" && strings.Trim(z, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-") == ""
+	}
+	return false
 }

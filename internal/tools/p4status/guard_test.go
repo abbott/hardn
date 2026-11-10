@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
+	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/pve"
@@ -153,6 +154,7 @@ func TestAllowed(t *testing.T) {
 		{"doas", "-C", "/etc/doas.conf"}, {"doas", "-C", "/etc/doas.d/20-wheel.conf"},
 		{"ip", "-4", "addr", "show", "dev", "eth0"}, {"ip", "-4", "addr", "show", "dev", "vmbr0"},
 		{"apk", "info", "-e", "apk-cron"}, {"rc-service", "crond", "status"},
+		{"systemctl", "is-enabled", "sshd.service"}, {"systemctl", "is-active", "sshd.socket"}, {"dnf", "--setopt=exit_on_lock=True", "needs-restarting", "-r"},
 	}
 	no := [][]string{
 		{}, {""}, {"sh", "-c", "sshd -T"}, {"uname", "-r"}, {"pveversion"}, {"aa-status"}, {"rc-status"}, {"hostname"},
@@ -164,7 +166,9 @@ func TestAllowed(t *testing.T) {
 		{"sshd", "-D", "-f", "/etc/ssh/sshd_config"}, {"/usr/sbin/sshd", "-f", "/etc/ssh/sshd_config", "-G"},
 		{"/usr/local/sbin/sshd", "-T", "-f", "/etc/ssh/sshd_config"}, {"/usr/sbin/sshd.pam", "-f", "/etc/ssh/sshd_config", "-G", "-o", "x"},
 		{"systemctl", "restart", "ssh.service"}, {"systemctl", "reload", "ssh.service"}, {"systemctl", "daemon-reload"},
-		{"systemctl", "is-enabled", "sshd.service"}, {"systemctl", "is-active", "apparmor.service", "--now"},
+		{"systemctl", "reload", "sshd.service"}, {"systemctl", "is-active", "apparmor.service", "--now"},
+		{"needs-restarting", "-r"}, {"dnf", "needs-restarting", "-r"}, {"dnf", "needs-restarting"}, {"dnf", "needs-restarting", "-s"}, {"dnf", "needs-restarting", "-r", "-x"},
+		{"dnf", "-r", "needs-restarting"}, {"dnf", "install", "yum-utils"}, {"dnf", "-y", "needs-restarting", "-r"}, {"dnf"},
 		{"systemctl", "is-active"}, {"systemctl", "enable", "apparmor.service"}, {"systemctl", "show", "ssh.socket"},
 		{"systemctl", "show", "-p", "Listen", "ssh.service"}, {"systemctl", "start", "apt-daily.timer"},
 		{"ss", "-K"}, {"ss", "-Htln", "-K"}, {"ss"},
@@ -205,6 +209,9 @@ func TestRulesMatchTheCode(t *testing.T) {
 		{alpine.Package, "apk-cron"}, {alpine.Service, "crond"},
 		{sudoers.DoasConfig, "/etc/doas.conf"}, {sudoers.DoasDir, "/etc/doas.d"}, {header.KernelPackagePrefix, "linux-image-"},
 		{hostdns.ResolvedUnit, "systemd-resolved.service"},
+		{detect.SSHSocketUnit, "ssh.socket"}, {detect.SSHServiceUnit, "ssh.service"},
+		{detect.SSHDSocketUnit, "sshd.socket"}, {detect.SSHDServiceUnit, "sshd.service"},
+		{strings.Join(header.NeedsRestarting, " "), "dnf --setopt=exit_on_lock=True needs-restarting -r"},
 	} {
 		if c.got != c.want {
 			t.Errorf("the code has %q where the rules have %q", c.got, c.want)

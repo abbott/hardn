@@ -34,8 +34,8 @@ import (
 
 // changeID is a change id as backup.NewRunID makes it: the clock's
 // second, which is the gallery's, a hyphen and a random suffix, which a
-// line may break after the hyphen, as a message wraps it, the next line
-// indented and maybe styled.
+// line may break after the hyphen, as a message wrapped it before prose
+// broke at spaces only, the next line indented and maybe styled.
 var changeID = regexp.MustCompile(`(\d{8}T\d{6}Z-)((?:\x1b\[[0-9;]*m)*(?:\n[ ]*(?:\x1b\[[0-9;]*m)*)?)[0-9a-f]{8}`)
 
 // sameIDs returns out with every change id's random suffix written

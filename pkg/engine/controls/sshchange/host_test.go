@@ -21,7 +21,9 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -79,6 +81,18 @@ func ubuntu2604() detect.Facts {
 	return f
 }
 
+// rocky102 is rocky10-test-110: Rocky Linux 10.2, sshd.service (detect
+// asked sshd.* where systemd has no ssh.* unit), sudo.
+func rocky102() detect.Facts {
+	f := debian13()
+	f.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	f.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	f.SSH = detect.SSH{Mode: detect.SSHService, Generator: detect.No, SSHDUnits: true, Source: "sshd.service enabled, active",
+		Socket:  detect.UnitState{Enabled: "disabled", Active: "inactive"},
+		Service: detect.UnitState{Enabled: "enabled", Active: "active"}}
+	return f
+}
+
 // pve9 is a Proxmox VE 9 node: Debian 13's ssh.service, pmxcfs mounted, no
 // sudo.
 func pve9() detect.Facts {
@@ -129,6 +143,128 @@ type vm struct {
 	// a path, as an unreadable legacy file.
 	sshdFail    string
 	noFollowErr map[string]error
+	// sshdUnits: systemd has sshd.socket and sshd.service, no ssh.* unit
+	// (Rocky Linux, AlmaLinux); reloads records each reload of sshd.service.
+	sshdUnits bool
+	reloads   int
+	// mislabeled: matchpathcon -V says these paths have another label than
+	// the policy's (the value); labelled: every path it was asked about.
+	mislabeled map[string]string
+	labelled   []string
+	hardnType  string // stat's type of hardn's binary; "" is bin_t
+	// sshPorts are semanage's ssh_port_t entries (nil: no semanage);
+	// otherPorts its other exact TCP entries, by type.
+	sshPorts   []uint16
+	otherPorts map[uint16]string
+	// fw is firewalld (nil: not installed).
+	fw *fwModel
+	// downAt, when set, runs between the apply and the rollback.
+	downAt func()
+}
+
+// fwModel is firewalld running with one zone, public, the default and
+// active one, its services and ports at runtime and in the permanent
+// configuration. Stopped, firewall-offline-cmd edits the permanent one,
+// and enabled is whether it starts at boot.
+type fwModel struct {
+	services         []string
+	runtime, perm    map[string]bool // "2230/tcp"
+	stopped, enabled bool
+	added, removed   []string // the --add-port/--remove-port run
+}
+
+// offline answers firewall-offline-cmd's port query and removal in public.
+func (m *fwModel) offline(argv []string) hostfake.Response {
+	switch a := strings.Join(argv[1:], " "); {
+	case strings.HasPrefix(a, "--zone=public --query-port="):
+		if m.perm[strings.TrimPrefix(a, "--zone=public --query-port=")] {
+			return hostfake.Response{Stdout: "yes\n"}
+		}
+		return hostfake.Response{Stdout: "no\n", ExitCode: 1}
+	case strings.HasPrefix(a, "--zone=public --remove-port="):
+		delete(m.perm, strings.TrimPrefix(a, "--zone=public --remove-port="))
+		m.removed = append(m.removed, strings.Join(argv, " "))
+		return hostfake.Response{Stdout: "success\n"}
+	}
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
+}
+
+func (m *fwModel) run(argv []string) hostfake.Response {
+	if m.stopped {
+		return hostfake.Response{Stdout: "not running\n", ExitCode: 252}
+	}
+	args, perm := argv[1:], false
+	if len(args) > 0 && args[0] == "--permanent" {
+		args, perm = args[1:], true
+	}
+	ports := m.runtime
+	if perm {
+		ports = m.perm
+	}
+	yesNo := func(ok bool) hostfake.Response {
+		if ok {
+			return hostfake.Response{Stdout: "yes\n"}
+		}
+		return hostfake.Response{Stdout: "no\n", ExitCode: 1}
+	}
+	switch a := strings.Join(args, " "); {
+	case a == "--state":
+		return hostfake.Response{Stdout: "running\n"}
+	case a == "--get-default-zone":
+		return hostfake.Response{Stdout: "public\n"}
+	case a == "--get-active-zones":
+		return hostfake.Response{Stdout: "public (default)\n  interfaces: eth0\n"}
+	case a == "--zone=public --get-target":
+		return hostfake.Response{Stdout: "default\n"}
+	case strings.HasPrefix(a, "--zone=public --query-port="):
+		return yesNo(ports[strings.TrimPrefix(a, "--zone=public --query-port=")])
+	case a == "--zone=public --list-services":
+		return hostfake.Response{Stdout: strings.Join(m.services, " ") + "\n"}
+	case strings.HasPrefix(a, "--service=") && strings.HasSuffix(a, " --get-ports"):
+		ports := map[string]string{"ssh": "22/tcp", "cockpit": "9090/tcp", "dhcpv6-client": "546/udp"}
+		return hostfake.Response{Stdout: ports[strings.TrimSuffix(strings.TrimPrefix(a, "--service="), " --get-ports")] + "\n"}
+	case strings.HasPrefix(a, "--zone=public --add-port="):
+		ports[strings.TrimPrefix(a, "--zone=public --add-port=")] = true
+		m.added = append(m.added, strings.Join(argv, " "))
+		return hostfake.Response{Stdout: "success\n"}
+	case strings.HasPrefix(a, "--zone=public --remove-port="):
+		delete(ports, strings.TrimPrefix(a, "--zone=public --remove-port="))
+		m.removed = append(m.removed, strings.Join(argv, " "))
+		return hostfake.Response{Stdout: "success\n"}
+	}
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
+}
+
+// semanage answers port -l, -a and -d over v.sshPorts and v.otherPorts.
+func (v *vm) semanage(argv []string) hostfake.Response {
+	if v.sshPorts == nil {
+		return hostfake.Response{Err: host.ErrNotFound}
+	}
+	switch {
+	case len(argv) == 3 && argv[1] == "port" && argv[2] == "-l":
+		var b strings.Builder
+		b.WriteString("SELinux Port Type              Proto    Port Number\n\n")
+		var ps []string
+		for _, p := range v.sshPorts {
+			ps = append(ps, strconv.Itoa(int(p)))
+		}
+		fmt.Fprintf(&b, "ssh_port_t                     tcp      %s\n", strings.Join(ps, ", "))
+		for p, t := range v.otherPorts {
+			fmt.Fprintf(&b, "%-30s tcp      %d\n", t, p)
+		}
+		b.WriteString("unreserved_port_t              tcp      61000-65535, 1024-32767\n")
+		return hostfake.Response{Stdout: b.String()}
+	case len(argv) == 8 && argv[1] == "port" && argv[3] == "-t" && argv[4] == "ssh_port_t" && argv[5] == "-p" && argv[6] == "tcp":
+		n, _ := strconv.Atoi(argv[7])
+		switch argv[2] {
+		case "-a":
+			v.sshPorts = append(v.sshPorts, uint16(n))
+		case "-d":
+			v.sshPorts = slices.DeleteFunc(v.sshPorts, func(p uint16) bool { return p == uint16(n) })
+		}
+		return hostfake.Response{}
+	}
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
 }
 
 // key is a synthetic ssh-ed25519 key line, every byte of its key seed.
@@ -226,6 +362,34 @@ func newVM(t *testing.T, facts detect.Facts, cloud bool, as ...account) *vm {
 // debianVM is the Debian 13 VM: george and alice, cloud-init's rule
 // george's.
 func debianVM(t *testing.T) *vm { return newVM(t, debian13(), true, george, alice) }
+
+// elPorts is rockyVM with SELinux enforcing, semanage's stock ssh_port_t
+// (22) and firewalld running with public's stock services (ssh, cockpit,
+// dhcpv6-client), as rocky10-test-110 would have it.
+func elPorts(t *testing.T) *vm {
+	v := rockyVM(t).enforcing()
+	v.sshPorts = []uint16{22}
+	v.fw = &fwModel{services: []string{"cockpit", "dhcpv6-client", "ssh"}, runtime: map[string]bool{}, perm: map[string]bool{}}
+	return v
+}
+
+// enforcing turns SELinux on, enforcing, as on rocky10-test-110.
+func (v *vm) enforcing() *vm {
+	v.f.AddDir("/sys/fs/selinux", 0o755, 0, 0)
+	v.f.AddFile(selinux.EnforceFile, []byte("1"), 0o644, 0, 0)
+	return v
+}
+
+// rockyVM is rocky10-test-110 as far as the SSH changes read it: Debian
+// 13's files and accounts, sshd.service in place of ssh.service, the stock
+// /etc/sysconfig/sshd, no ufw.
+func rockyVM(t *testing.T) *vm {
+	v := newVM(t, rocky102(), true, george, alice)
+	v.sshdUnits, v.noUFW = true, true
+	v.f.AddDir("/etc/sysconfig", 0o755, 0, 0)
+	v.f.AddFile(reload.SysconfigSSHD, []byte("# Configuration file for the sshd service.\nOPTIONS=\"\"\n"), 0o644, 0, 0)
+	return v
+}
 
 // logIn makes sshd's journal hold the session's login: method, user, from
 // addr on the session's port, as journalctl -o short-iso prints it.
@@ -546,6 +710,35 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 		}
 	case "ss":
 		return hostfake.Response{Stdout: ss(v.bound)}
+	case "stat": // -c %C -- <path>: hardn's binary, bin_t unless v.hardnType
+		t := v.hardnType
+		if t == "" {
+			t = "bin_t"
+		}
+		return hostfake.Response{Stdout: "system_u:object_r:" + t + ":s0\n"}
+	case "semanage":
+		return v.semanage(argv)
+	case "firewall-cmd":
+		if v.fw == nil {
+			return hostfake.Response{Err: host.ErrNotFound}
+		}
+		return v.fw.run(argv)
+	case "firewall-offline-cmd":
+		if v.fw == nil {
+			return hostfake.Response{Err: host.ErrNotFound}
+		}
+		return v.fw.offline(argv)
+	case "matchpathcon": // -V: each path verified, but those in v.mislabeled
+		var b strings.Builder
+		for _, p := range argv[2:] {
+			v.labelled = append(v.labelled, p)
+			if want, ok := v.mislabeled[p]; ok {
+				fmt.Fprintf(&b, "%s has context unconfined_u:object_r:admin_home_t:s0, should be %s\n", p, want)
+				continue
+			}
+			fmt.Fprintf(&b, "%s verified.\n", p)
+		}
+		return hostfake.Response{Stdout: b.String()}
 	case "visudo":
 		return hostfake.Response{Stdout: sudoers.MainConfig + ": parsed OK\n"}
 	case "systemd-run", "systemd-analyze", "sh":
@@ -597,6 +790,33 @@ func (v *vm) systemctl(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: no + "\n", ExitCode: code}
 	}
 	switch cmd := strings.Join(argv, " "); {
+	case v.fw == nil && cmd == "systemctl is-enabled firewalld.service":
+		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
+	case v.fw == nil && cmd == "systemctl is-active firewalld.service":
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, true
+	case cmd == "systemctl is-enabled firewalld.service":
+		return state(v.fw.enabled || !v.fw.stopped, "enabled", "disabled", 1), true
+	case cmd == "systemctl is-active firewalld.service":
+		return state(!v.fw.stopped, "active", "inactive", 3), true
+	case v.sshdUnits && (cmd == "systemctl is-enabled ssh.service" || cmd == "systemctl is-enabled ssh.socket"):
+		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
+	case v.sshdUnits && (cmd == "systemctl is-active ssh.service" || cmd == "systemctl is-active ssh.socket"):
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 4}, true
+	case v.sshdUnits && cmd == "systemctl is-active sshd.service":
+		return state(true, "active", "inactive", 3), true
+	case v.sshdUnits && cmd == "systemctl is-enabled sshd.service":
+		return state(true, "enabled", "disabled", 1), true
+	case v.sshdUnits && cmd == "systemctl is-active sshd.socket":
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, true
+	case v.sshdUnits && cmd == "systemctl is-enabled sshd.socket":
+		return hostfake.Response{Stdout: "disabled\n", ExitCode: 1}, true
+	case v.sshdUnits && (cmd == "systemctl reload sshd.service" || cmd == "systemctl start sshd.service"):
+		v.reloads++
+		v.bound = v.listening()
+		return hostfake.Response{}, true
+	case v.sshdUnits && strings.HasSuffix(cmd, " ssh.service"):
+		v.t.Errorf("ran %q on a host whose unit is sshd.service", cmd)
+		return hostfake.Response{ExitCode: 5, Stderr: "Unit ssh.service not found.\n"}, true
 	case cmd == "systemctl is-active ssh.service":
 		return state(true, "active", "inactive", 3), true
 	case cmd == "systemctl is-enabled ssh.service":

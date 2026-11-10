@@ -823,6 +823,10 @@ func (h *sshHost) answer(argv []string, _ []byte) hostfake.Response {
 		if r, ok := h.ufw(argv); ok {
 			return r
 		}
+	case "rpm", "dnf":
+		if r, ok := h.updates(argv); ok {
+			return r
+		}
 	case "apt-config", "dpkg-query", "apk":
 		if r, ok := h.opensshApk(cmd); ok {
 			return r
@@ -882,8 +886,16 @@ func (h *sshHost) systemctl(argv []string) (hostfake.Response, bool) {
 	case cmd == "systemctl --no-reload enable "+revert.BootUnitName+".service":
 		h.AddSymlink(revert.SystemdWants+"/"+revert.BootUnitName+".service", revert.SystemdUnitDir+"/"+revert.BootUnitName+".service")
 		return hostfake.Response{}, true
+	case cmd == "systemctl is-active firewalld.service": // Rocky Linux's Firewall row: firewalld not installed
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, true
+	case cmd == "systemctl is-enabled firewalld.service":
+		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
 	case cmd == "systemctl is-active pve-firewall.service": // Proxmox VE's, running as installed
 		return hostfake.Response{Stdout: "active\n"}, true
+	case cmd == "systemctl is-active dnf-automatic-install.timer", cmd == "systemctl is-active dnf-automatic.timer": // dnf-automatic not installed, as on the Rocky VM
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 4}, true
+	case cmd == "systemctl is-enabled dnf-automatic-install.timer", cmd == "systemctl is-enabled dnf-automatic.timer":
+		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
 	case strings.HasPrefix(cmd, "systemctl is-active apt-daily"): // apt's daily jobs, on as the package leaves them
 		return hostfake.Response{Stdout: "active\n"}, true
 	case strings.HasPrefix(cmd, "systemctl is-enabled apt-daily"):
@@ -918,7 +930,8 @@ func (h *sshHost) ufw(argv []string) (hostfake.Response, bool) {
 // updates answers Auto Updates' check on the VMs as the gallery's model
 // leaves them (updateshost.go, autoOn): unattended-upgrades installed, apt's
 // daily jobs on, Debian's Origins-Pattern; apk-cron not installed on
-// Alpine. Its plan is not modelled here: with aptBroken, apt's syntax
+// Alpine, nor dnf-automatic on Rocky Linux (their install simulations
+// answered). Its apply is not modelled here: with aptBroken, apt's syntax
 // error, every apt-config run fails, as an administrator's typo makes it.
 func (h *sshHost) updates(argv []string) (hostfake.Response, bool) {
 	cmd := strings.Join(argv, " ")
@@ -936,6 +949,13 @@ func (h *sshHost) updates(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: "(1/1) Installing apk-cron (1.0-r3)\nOK: 9 MiB in 42 packages\n"}, true
 	case cmd == "rc-service crond status": // crond started, as on the Alpine VM
 		return hostfake.Response{Stdout: " * status: started\n"}, true
+	case cmd == "rpm -q dnf-automatic": // not installed, as on the Rocky VM (el-updates.md §1.2)
+		return hostfake.Response{Stdout: "package dnf-automatic is not installed\n", ExitCode: 1}, true
+	case cmd == "dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic": // the Rocky VM's
+		rule := strings.Repeat("=", 80)
+		return hostfake.Response{Stdout: "Dependencies resolved.\n" + rule + "\n Package  Arch  Version  Repository  Size\n" + rule +
+			"\nInstalling:\n dnf-automatic     noarch     4.20.0-22.el10_2.rocky.0.1       baseos      37 k\n\nTransaction Summary\n" + rule + "\nInstall  1 Package\n",
+			Stderr: "Operation aborted.\n", ExitCode: 1}, true
 	}
 	return hostfake.Response{}, false
 }

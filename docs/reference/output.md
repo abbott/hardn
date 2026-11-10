@@ -33,11 +33,11 @@ detect's facts in this schema's own words (they are mapped, never written as det
 |---|---|
 | `hostname` | the host's name; `""` when not read |
 | `os.id`, `os.versionId`, `os.codename`, `os.prettyName` | `/etc/os-release`'s `ID`, `VERSION_ID`, `VERSION_CODENAME`, `PRETTY_NAME`, as written there |
-| `platform.distro` | `debian`, `ubuntu`, `alpine`, `proxmox`, `other`, `unknown` (open) |
+| `platform.distro` | `debian`, `ubuntu`, `alpine`, `proxmox`, `rocky`, `almalinux`, `other`, `unknown` (open) |
 | `platform.version` | the support matrix's key (`13`, `24.04`, `3.24`); `""` when not established |
 | `platform.support` | `supported`, `best-effort`, `out-of-scope`, `unlisted`, `unknown` |
 | `init` | `systemd`, `openrc`, `unknown` (open) |
-| `ssh` | how sshd is started: `ssh.socket`, `ssh.service`, `openrc`, `unknown` (open) |
+| `ssh` | how sshd is started: `ssh.socket`, `ssh.service` (on Rocky Linux and AlmaLinux too, whose unit is `sshd.service`), `openrc`, `unknown` (open) |
 | `proxmox.installed`, `container.detected` | `yes`, `no`, `unknown`; with `proxmox.version` (pve-manager's) and `container.manager` |
 | `elevation.sudo`, `elevation.doas` | `yes`, `no`, `unknown`; `elevation.sudoFlavor`: `sudo`, `sudo-rs`, `unknown` (open) |
 
@@ -175,6 +175,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSHD_FILE_CHANGED` | 1 | a file the SSH change writes is not as the plan read it |
 | `PVE_ROOT_LOGIN_NOT_KEPT` | 1 | the cluster's root SSH login by key would not be kept |
 | `SSH_CLEANUP_SESSION_NOT_KEPT` | 1 | the clean-up's session is not connected to a port it keeps (`hardn confirm`'s clean-up, P-40) |
+| `UPDATES_DNF_CONF` | 1 | on Rocky Linux and AlmaLinux, /etc/dnf/automatic.conf isn't in a form hardn reads or edits: no [commands], upgrade_type, apply_updates or reboot twice there or in another case, or a value dnf doesn't take; missing; or there before dnf-automatic is installed ([el-updates.md](../engine/el-updates.md)) |
 | `UPDATES_NOT_READ` | 1 | how updates run is not read, so no change is planned (the Auto Updates screen's refusals, `updates.Err*`; new in `next/s7-control`, [control-updates.md](../engine/control-updates.md)) |
 | `UPDATES_PERIODIC_OFF` | 1 | APT::Periodic::Enable turns apt's daily jobs off |
 | `UPDATES_TIMER_OFF` | 1 | an apt timer is off |
@@ -184,7 +185,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UPDATES_PROXMOX` | 1 | hardn does not change updates on Proxmox VE |
 | `UPDATES_OTHER_PACKAGES` | 1 | the package change would change other packages |
 | `UPDATES_NOT_IN_REPOS` | 1 | unattended-upgrades is not in apt's package lists |
-| `UPDATES_NOT_IN_EFFECT` | 1 | apt does not read the update setting as changed |
+| `UPDATES_NOT_IN_EFFECT` | 1 | the update setting does not read back as changed |
 | `UPDATES_RECORD_UNREADABLE` | 1 | hardn's record of the updates it turned on cannot be read |
 | `UPDATES_CHANGED_SINCE` | 1 | a file hardn left changed since |
 | `UPDATES_NOTHING_TO_UNDO` | 1 | hardn did not turn updates on |
@@ -233,6 +234,23 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `CONFIRM_WRONG_LISTENER` | 1 | this connection did not reach a listener the change added |
 | `CHANGE_APPLIED_ALREADY` | 1 | the change is applied already |
 | `REVERT_NO_TIMER` | 1 | no revert timer for this init system |
+| `SELINUX_HARDN_NOT_RUNNABLE` | 1 | where SELinux enforces, hardn's binary is not of type `bin_t`, so systemd would not run it for the revert timer: install it in `/usr/local/bin` with `install`, or `restorecon -v` it there ([el-changes.md](../engine/el-changes.md)) |
+| `SELINUX_MISLABELED` | 1 | on Rocky Linux and AlmaLinux where SELinux enforces, a file sshd rereads, a file it links to, or a host key is labelled otherwise than its policy: `restorecon -v` puts the policy's label back ([el-changes.md](../engine/el-changes.md)) |
+| `SELINUX_NO_SEMANAGE` | 1 | SELinux is on and `semanage` (policycoreutils-python-utils) isn't installed, so a new SSH port can't be labelled for sshd ([el-ports.md](../engine/el-ports.md)) |
+| `SELINUX_PORT_TAKEN` | 1 | SELinux's policy gives the new SSH port to another service by name ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_NO_SSH_PATH` | 1 | firewalld runs and no zone lets the current SSH port through by its ports or services, so hardn can't plan the new one's way through ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_STOPPED` | 1 | firewalld is stopped and starts at boot, so hardn can't read what it will let through then: start it or disable it ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_NOT_LET_THROUGH` | 1 | after hardn's steps a zone still doesn't let an SSH port through: a port change's new port, or Enable's after the start ([el-ports.md](../engine/el-ports.md), [el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_UNKNOWN` | 1 | firewalld's state, or what a zone lets through, is not established ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_FAILED` | 1 | firewalld.service failed, and its rules may still be loaded: see journalctl -u firewalld, fix it, then run systemctl reset-failed firewalld.service ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_OTHER_FIREWALL` | 1 | ufw is installed, or another firewall unit (iptables, ip6tables, ebtables, ipset, nftables, ufw) is active or starts at boot, so hardn won't install or enable firewalld beside it ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NO_CLEANUP` | 1 | firewalld's CleanupOnExit is off, so stopping it leaves its rules loaded and neither Disable nor Enable's undo would turn it off ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_BOOT_BLOCKED` | 1 | firewalld's service is masked, so Enable can't start it, and Install leaves a mask it didn't make ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_BOOT_UNKNOWN` | 1 | systemctl is-enabled firewalld.service says something other than enabled or disabled ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_ZONE_NO_SSH` | 1 | a firewalld zone other than the default that will hold an interface or a source (a zone file's binding, NetworkManager's connection.zone) doesn't let an SSH port through ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NOT_READY` | 1 | firewalld didn't reach running within a minute of Enable's start; the change is rolled back ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NOT_INSTALLED` | 1 | Enable on a host without firewalld: install it first ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NOT_AT_BOOT` | 1 | firewalld runs and doesn't start at boot; hardn won't enable it at boot, since a confirmation can't test what its saved configuration starts after a restart: Disable, then Enable ([el-firewalld.md](../engine/el-firewalld.md)) |
 | `HARDN_EXECUTABLE_UNSAFE` | 1 | not safe to run as root from the timer |
 | `JOURNAL_CLAIM_RACE` | 1 | the journal changed while it was being claimed |
 | `ROLLBACK_INCOMPLETE` | 1 | the rollback did not finish |
@@ -269,6 +287,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `RELOAD_RESTORED_LISTENERS` | 1 | the restored ssh.socket drop-ins do not give the socket the listeners it had |
 | `RELOAD_NOT_IN_EFFECT` | 1 | the configured listeners are not the ones in effect |
 | `RELOAD_OPENRC_CONFD` | 1 | conf.d sets the sshd binary, configuration file or arguments |
+| `RELOAD_SYSCONFIG_OPTIONS` | 1 | sysconfig sets sshd's arguments: `/etc/sysconfig/sshd`'s `OPTIONS` on Rocky Linux and AlmaLinux ([el-readonly.md](../engine/el-readonly.md)) |
 | `FIREWALL_SS_NOT_INSTALLED` | 1 | ss is not installed, so which ports SSH uses is not established and the firewall is not enabled |
 | `FIREWALL_SS_FAILED` | 1 | ss failed, so which ports SSH uses is not established and the firewall is not enabled |
 | `FIREWALL_SSH_NOT_IN_EFFECT` | 1 | a listener sshd is configured for is not bound, so the firewall is not enabled |
@@ -277,6 +296,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `FIREWALL_BOOT_BLOCKED` | 1 | ufw's service is masked or missing |
 | `UFW_ROLLBACK_FAILED` | 1 | an undo of ufw's rules failed; those after it did not run |
 | `UFW_NOT_APPLICABLE` | 1 | ufw is not used on Proxmox VE: pve-firewall manages its packet filter |
+| `FIREWALL_EL_READ_ONLY` | 1 | on Rocky Linux and AlmaLinux, which use firewalld: ufw's profiles and trusted interfaces aren't applied, and `-w` doesn't configure the firewall ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `DNS_EL_READ_ONLY` | 1 | hardn doesn't change DNS on Rocky Linux or AlmaLinux yet: NetworkManager manages it ([el-changes.md](../engine/el-changes.md)) |
 | `UFW_PROXMOX_UNKNOWN` | 1 | ufw: whether the host runs Proxmox VE (no ufw there) is not established |
 | `UFW_NOT_INSTALLED` | 1 | ufw is not installed |
 | `UFW_LISTENERS_UNKNOWN` | 1 | the SSH listener set is not established |
@@ -291,6 +312,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `PACKAGE_NOT_IN_REPOS` | 1 | package not found in the repositories |
 | `PACKAGE_OTHER_CHANGES` | 1 | installing it would change other packages |
 | `PACKAGE_VERIFY_FAILED` | 1 | package not installed after the install |
+| `PACKAGE_KERNEL` | 1 | dnf's transaction would install a kernel of another release than the running one: run dnf upgrade and restart first ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `PACKAGE_LOCKED` | 1 | another dnf holds its lock (exit 200) |
 | `PVE_NOT_APPLICABLE` | 1 | not a Proxmox VE host |
 | `PVE_UNKNOWN` | 1 | whether the host runs Proxmox VE is not established, so its rules cannot be applied |
 | `PVE_PORT_CHANGE_REFUSED` | 1 | the SSH port stays 22 on Proxmox VE: cluster SSH and pve-firewall's management rule use port 22 |
@@ -473,7 +496,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_ORIGINS_UNKNOWN` | a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_CHANGED_SINCE_HARDN` | hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone: "changed since hardn" ([control-updates.md](../engine/control-updates.md)) |
-| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists: a package asks for a reboot ([header.md](../engine/header.md)) |
+| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists, or on Rocky Linux and AlmaLinux `dnf needs-restarting -r` exits 1: a package asks for a reboot ([header.md](../engine/header.md)) |
 | `REBOOT_NEWER_KERNEL` | a kernel newer than the one running is installed in `/boot` ([header.md](../engine/header.md)) |
 | `REBOOT_MODULES_MISSING` | Alpine: the running kernel's own modules are not installed, while another kernel's are ([header.md](../engine/header.md)) |
 | `REBOOT_KERNEL_REPLACED` | a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running ([header.md](../engine/header.md)) |

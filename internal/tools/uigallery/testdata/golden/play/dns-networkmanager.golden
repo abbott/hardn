@@ -232,8 +232,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: dns/networkmanager␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 with NetworkManager;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file. hardn.yml␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54. Every item is refused (P-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m37 (a)).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54. Every item is refused␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(P-37 (a)).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

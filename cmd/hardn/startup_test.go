@@ -66,7 +66,7 @@ func TestConfigLine(t *testing.T) {
 }
 
 // TestHostOS: the OS check reads os-release through pkg/host/detect,
-// refuses none and an OS other than Debian, Ubuntu or Alpine, and writes nothing: no clear, no ~ line,
+// refuses none and an OS other than Debian, Ubuntu, Alpine, Rocky Linux or AlmaLinux, and writes nothing: no clear, no ~ line,
 // no "detected" line (decision 4 (a)).
 func TestHostOS(t *testing.T) {
 	was := osHost
@@ -78,6 +78,9 @@ func TestHostOS(t *testing.T) {
 		{"debian", "ID=debian\nVERSION_ID=\"13\"\nVERSION_CODENAME=trixie\n", ""},
 		{"ubuntu", "ID=ubuntu\nVERSION_ID=\"24.04\"\nVERSION_CODENAME=noble\n", ""},
 		{"alpine", "ID=alpine\nVERSION_ID=3.22.1\n", ""},
+		{"rocky", "ID=\"rocky\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"10.2\"\n", ""},
+		{"almalinux", "ID=\"almalinux\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"10.1\"\n", ""},
+		{"RHEL itself", "ID=\"rhel\"\nID_LIKE=\"fedora\"\nVERSION_ID=\"10.1\"\n", "unsupported OS type detected: rhel"},
 		{"another OS", "ID=arch\n", "unsupported OS type detected: arch"},
 		{"no os-release", "", "cannot detect OS type: "},
 	} {

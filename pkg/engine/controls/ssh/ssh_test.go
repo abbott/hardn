@@ -76,6 +76,42 @@ func alpine324() platform {
 	return p
 }
 
+// rocky102 is rocky10-test-110: sshd.service (detect's SSHDUnits), the
+// stock /etc/sysconfig/sshd; debian13's sshd and files otherwise.
+func rocky102() platform {
+	p := debian13()
+	p.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+	p.facts.SSH.SSHDUnits = true
+	return p
+}
+
+// TestRockyReadsAsDebian: on Rocky Linux with the stock sysconfig (OPTIONS
+// empty) or none, and with the vendor's drop-in that includes the crypto
+// policy, every SSH row reads what it reads on Debian over the same files;
+// sshd.service's name and the policy's crypto settings change nothing a row
+// says.
+func TestRockyReadsAsDebian(t *testing.T) {
+	stock := map[string]string{reload.SysconfigSSHD: "# Configuration file for the sshd service.\n#SSH_RSA_BITS=3072\nOPTIONS=\"\"\n",
+		"/usr/share/crypto-policies/DEFAULT/opensshserver.txt": "Ciphers aes256-gcm@openssh.com\nKexAlgorithms curve25519-sha256\nRequiredRSASize 2048\n"}
+	crypto := map[string]string{"40-redhat-crypto-policies.conf": sshd.CryptoPolicyInclude + "\n"}
+	for _, ctl := range ssh.Controls() {
+		for _, s := range []site{{plat: rocky102(), files: stock, drops: crypto, edit: nil}, {plat: rocky102()}} {
+			f, facts := site{plat: debian13()}.build(t)
+			want, wantErr := ctl.Check(context.Background(), f, facts)
+			files := s.files
+			f, facts = s.build(t)
+			if s.drops != nil {
+				f.AddSymlink(sshd.CryptoPolicyFile, "/usr/share/crypto-policies/DEFAULT/opensshserver.txt")
+			}
+			got, err := ctl.Check(context.Background(), f, facts)
+			if got.State != want.State || got.Detail != want.Detail || codeOf(err) != codeOf(wantErr) {
+				t.Errorf("%s, sysconfig %v: %s %q %v; on debian13 %s %q %v", ctl.ID(), files != nil, got.State, got.Detail, err, want.State, want.Detail, wantErr)
+			}
+		}
+	}
+}
+
 // alpineContainer is Alpine without OpenRC (the alpine image), sshd
 // started by the container's entrypoint: detect establishes neither the
 // init system nor how sshd starts, and sshd -T runs the sshd on the path,
@@ -1231,6 +1267,8 @@ func TestUnread(t *testing.T) {
 			{name: "an Include other than the stock one", site: site{plat: debian13(), main: "Include /etc/ssh/site.d/*.conf\n"}, state: engine.Unknown, want: "can't read", err: "SSHD_INCLUDE_UNSUPPORTED"},
 			{name: "alpine's conf.d naming another binary", site: site{plat: alpine324(), files: map[string]string{"/etc/conf.d/sshd": "SSHD_BINARY=/usr/local/sbin/sshd\n"}},
 				state: engine.Unknown, want: "can't read", err: "RELOAD_OPENRC_CONFD"},
+			{name: "rocky's sysconfig giving sshd options", site: site{plat: rocky102(), files: map[string]string{reload.SysconfigSSHD: "OPTIONS=\"-o PasswordAuthentication=yes\"\n"}},
+				state: engine.Unknown, want: "can't read", err: "RELOAD_SYSCONFIG_OPTIONS"},
 			{name: "a configuration sshd refuses", site: site{plat: debian13(), failT: invalid}, state: engine.Unknown, want: "sshd config invalid", err: "SSHD_CONFIG_INVALID"},
 			{name: "no sshd", site: site{plat: debian13(), failT: missing}, state: engine.Unknown, want: "sshd not installed", err: "COMMAND_NOT_FOUND"},
 			{name: "no sshd_config", site: site{plat: debian13(), noMain: true}, state: engine.Unknown, want: "no sshd_config", err: "FILE_NOT_FOUND"},

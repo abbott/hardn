@@ -27,6 +27,12 @@ var (
 		Rows: append(updTestApt[:5:5], component.KeyValue{Key: UpdatesPVEKey, Value: "Updates by hand", Note: "apt full-upgrade"}), Item: UpdatesPVE, Install: true}
 	updTestAlpine = Updates{Status: component.StatusList{Rows: []component.StatusRow{{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no apk-cron"}}},
 		Rows: []component.KeyValue{{Key: UpdatesApkCronKey, Value: "Not installed", State: component.ValueBad}, {Key: UpdatesCrondKey, Value: "Stopped", State: component.ValueBad, Note: "not at boot"}}, Apk: true}
+	updTestRocky = Updates{Status: component.StatusList{Rows: []component.StatusRow{{Label: "Auto Updates", State: component.StatusConfigured, Detail: "dnf-automatic, security"}}},
+		Rows: []component.KeyValue{{Key: UpdatesDnfAutoKey, Value: "Installed"}, {Key: UpdatesInTimerKey, Value: "On", Note: "dnf-automatic-install.timer"},
+			{Key: UpdatesTypeKey, Value: "Security only", Note: "by automatic.conf"}, {Key: UpdatesByKey, Value: "hardn", Note: "record of 2026-11-03"}},
+		Item: UpdatesDisable, Dnf: true}
+	updTestRockyNone = Updates{Status: component.StatusList{Rows: []component.StatusRow{{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no dnf-automatic"}}},
+		Rows: []component.KeyValue{{Key: UpdatesDnfAutoKey, Value: "Not installed", State: component.ValueBad}}, Dnf: true, Install: true}
 	updTestNotRead = Updates{Status: component.StatusList{Rows: []component.StatusRow{{Label: "Auto Updates", State: component.StatusUnknown, Detail: "can't read",
 		Lines: []component.StatusLine{{Text: "Counted as not configured"}}}}},
 		Rows:    []component.KeyValue{{Key: UpdatesUpgradesKey, Value: "Can't read", State: component.ValueUnknown}, {Key: UpdatesListsKey, Value: "Can't read", State: component.ValueUnknown}},
@@ -45,6 +51,7 @@ func TestUpdatesHeights(t *testing.T) {
 	}{
 		"debian13": {updTestDebian13.SubMenu(), 22}, "edited": {updTestEdited.SubMenu(), 22}, "pve9": {updTestPVE.SubMenu(), 22},
 		"alpine323": {updTestAlpine.SubMenu(), 17}, "not read": {updTestNotRead.SubMenu(), 18},
+		"by-hardn-rocky": {updTestRocky.SubMenu(), 19}, "rocky102": {updTestRockyNone.SubMenu(), 16},
 	}
 	for name, d := range draws {
 		for _, rows := range []int{24, 40} {
@@ -77,6 +84,10 @@ func TestUpdatesItem(t *testing.T) {
 		{"off", Updates{}, "1 Enable automatic updates: Daily, by unattended-upgrades"},
 		{"no package", Updates{Install: true}, "1 Enable automatic updates: Install unattended-upgrades"},
 		{"alpine", Updates{Apk: true}, "1 Enable automatic updates: Daily, by apk-cron"},
+		{"rocky", Updates{Dnf: true}, "1 Enable automatic updates: Daily security updates, by dnf-automatic"},
+		{"rocky, no package", updTestRockyNone, "1 Enable automatic updates: Install dnf-automatic"},
+		{"rocky, masked", Updates{Dnf: true, Blocked: "Install timer is masked"}, "1 Enable automatic updates: Install timer is masked"},
+		{"rocky, by hardn", updTestRocky, "1 Disable automatic updates: Undo hardn's changes"},
 		{"by hardn", Updates{Item: UpdatesDisable}, "1 Disable automatic updates: Undo hardn's changes"},
 		{"outside", updTestDebian13, "1 Disable automatic updates: Turned on outside hardn, unavailable"},
 		{"outside, blocked", Updates{Item: UpdatesOutside, Blocked: "Can't read"}, "1 Disable automatic updates: Turned on outside hardn, unavailable"},

@@ -338,7 +338,7 @@ func (w words) root(cmd string) string {
 func (w words) reload() string {
 	switch w.f.SSH.Mode {
 	case detect.SSHService:
-		return "`" + w.root("systemctl reload ssh.service") + "`"
+		return "`" + w.root("systemctl reload "+w.f.SSH.ServiceUnit()) + "`"
 	case detect.SSHSocket:
 		return "`" + w.root("systemctl daemon-reload") + "` and `" + w.root("systemctl restart ssh.socket") + "`"
 	case detect.SSHOpenRC:

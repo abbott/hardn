@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/output"
+	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/screen"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -111,9 +112,17 @@ func (r row) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 
 // mainMenu is r's main menu as hardn will draw it, rendered in env:
 // output.MainMenuOf over the main menu's mock, as the gallery's status
-// hosts draw theirs.
+// hosts draw theirs, with the items hardn's main menu draws on a host of
+// r's facts (mainmenu.MenuOf): "Configure firewalld" on Rocky Linux and
+// AlmaLinux, "View pve-firewall" on Proxmox VE, and item 5, Auto Updates,
+// which the mock has not. Its header shows no version, as hardn's does when
+// built without one: p4status is not a hardn release, and the mock's
+// version is not this build's.
 func mainMenu(env term.Env, r reading) string {
-	return output.MainMenuOf(screen.MainMenuFixture(), r.header, r.reports, r.level).Render(component.NewCtx(env))
+	base := screen.MainMenuFixture()
+	base.Menu = mainmenu.MenuOf(r.facts)
+	base.Header.Version = ""
+	return output.MainMenuOf(base, r.header, r.reports, r.level).Render(component.NewCtx(env))
 }
 
 // utf8Locale is the locale of a terminal that draws Unicode.

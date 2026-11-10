@@ -55,6 +55,16 @@ func readStatus(ctx context.Context, c *config.Config, version string) (screen.M
 		System:  statusHost(),
 		Detect:  engineDetect,
 		Config:  c,
-		Version: "v" + version,
+		Version: headerVersion(version),
 	})
+}
+
+// headerVersion is hardn's version as the main menu's header shows it,
+// "v0.4.0" for "0.4.0"; a build with no version in its ldflags shows none
+// (component.Header), not a bare "v".
+func headerVersion(version string) string {
+	if version == "" {
+		return ""
+	}
+	return "v" + version
 }

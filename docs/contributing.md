@@ -29,7 +29,7 @@ make build          # build/hardn, from ./cmd/hardn
 
 `make build`, `make linux`, `make arm` and `make darwin` build with the release's flags (`CGO_ENABLED=0`, `-trimpath`, `-tags=netgo`, the version, commit and commit date in the ldflags), so with go.mod's toolchain a rebuild of a commit is byte-identical to the release's binary.
 
-**Don't run hardn on your development machine.** Run live, it writes under `/etc` and `/var/log`, and it is made for Debian, Ubuntu and Alpine hosts. Try it on a disposable VM or container. Nothing in `make check` runs the binary.
+**Don't run hardn on your development machine.** Run live, it writes under `/etc` and `/var/log`, and it is made for Debian, Ubuntu, Alpine, Rocky Linux and AlmaLinux hosts. Try it on a disposable VM or container. Nothing in `make check` runs the binary.
 
 ## make check
 
@@ -51,7 +51,7 @@ make build          # build/hardn, from ./cmd/hardn
 
 Every check target runs with `GOTOOLCHAIN=local`, `GOWORK=off` and `GOFLAGS=-mod=readonly`.
 
-CI (`.github/workflows/ci.yml`) runs `make check` on each push to `main` and each pull request, and `go vet` and `go test` on Debian 13 and 12, Ubuntu 26.04 and 24.04, and Alpine 3.24 and 3.23 images. `.github/workflows/zizmor.yml` adds zizmor's online audits.
+CI (`.github/workflows/ci.yml`) runs `make check` on each push to `main` and each pull request, and `go vet` and `go test` on Debian 13 and 12, Ubuntu 26.04 and 24.04, Alpine 3.24 and 3.23, and Rocky Linux and AlmaLinux 10 and 9 images. `.github/workflows/zizmor.yml` adds zizmor's online audits.
 
 ## Goldens
 

@@ -406,7 +406,8 @@ func report(reports []engine.Report, id string) (engine.Report, bool) {
 	return reports[i], true
 }
 
-// pick is the row of control id: left alone; nothing asked (the openssh
+// pick is the row of control id: left alone (the Firewall on Rocky Linux
+// and AlmaLinux too); nothing asked (the openssh
 // upgrade where sshd has the fix, or where that is not established); Not
 // Applicable by its check; the port compared; pending where a change
 // waits; else its control planned alone.
@@ -416,6 +417,11 @@ func (r Reading) pick(ctx context.Context, in Input, id string, rep engine.Repor
 	switch {
 	case left[id] != "":
 		rw.Kind, rw.Words = Left, left[id]
+	case id == fwctl.ID && in.Facts.Platform.Distro.EL():
+		// The Firewall screen's on Rocky Linux and AlmaLinux, whatever
+		// enableUfwSshPolicy says (the maintainer, 2026-11-10: "Leave to
+		// the screen"; el-firewalld.md §1.7).
+		rw.Kind, rw.Words = Left, WordsStatus
 	case !a.Asked():
 		rw.Kind, rw.Words = NothingAsked, WordsNothing
 	case rep.Status.State == engine.NotApplicable:

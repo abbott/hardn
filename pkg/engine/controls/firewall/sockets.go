@@ -66,6 +66,12 @@ func ReadSockets(ctx context.Context, sys host.System, f detect.Facts) Sockets {
 		}
 		bin = b
 	}
+	if f.SSH.SSHDUnits {
+		if err := reload.CheckSysconfig(ctx, sys); err != nil {
+			s.Why, s.err = "can't tell ssh ports", err
+			return s
+		}
+	}
 	eff, _, err := sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: bin})
 	if err != nil {
 		s.Why, s.err = sshdWhy(err), fmt.Errorf("sshd's listeners: %w", err)

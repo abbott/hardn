@@ -17,10 +17,11 @@ import (
 // rows from Engine.Check's reports and their risk level l (StatusViewOf),
 // and the alert from l (AlertOf), whose factors are then no line under a
 // row. base keeps its menu items, heading, mode and prompt, which are not
-// the status model's: until the main menu goes live (slice 2) they are the
-// mock's, screen.MainMenuFixture. The gallery's status hosts and
-// internal/tools/p4status draw the main menu with it, so the two cannot
-// differ. It is pure.
+// the status model's: the gallery's status hosts pass the mock's,
+// screen.MainMenuFixture, and internal/tools/p4status the mock with the
+// items hardn's main menu draws on the host (pkg/screens/mainmenu's
+// MenuOf). Both draw the status blocks with it, so those cannot differ. It
+// is pure.
 func MainMenuOf(base screen.MainMenu, h header.Header, reports []engine.Report, l risk.Level) screen.MainMenu {
 	hv := HeaderViewOf(base.Header.Version, h)
 	alert, rest := AlertOf(l)

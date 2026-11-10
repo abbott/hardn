@@ -17,6 +17,8 @@ var distroNames = map[detect.Distro]string{
 	detect.DistroUbuntu:  "Ubuntu",
 	detect.DistroAlpine:  "Alpine",
 	detect.DistroProxmox: "Proxmox VE",
+	detect.DistroRocky:   "Rocky Linux",
+	detect.DistroAlma:    "AlmaLinux",
 }
 
 // platformFindings are the plan's findings of the platform p: on a

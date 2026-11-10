@@ -154,6 +154,9 @@ func activeWord(p ufw.Plan, after bool) string {
 // a remote session's still required, and is lockout-risk as ever (the
 // maintainer, 2026-11-07).
 func PlanUFWEnable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error) {
+	if in.Facts.Platform.Distro.EL() {
+		return nil, ErrELFirewall
+	}
 	st, err := readSSH(ctx, sys, in, "")
 	if err != nil {
 		if !sshd.NoSSHD(err) {
@@ -199,6 +202,9 @@ func (st sshState) enableUFW(ctx context.Context, sys host.System, prefix string
 // needs, so a settings or rule file that cannot be read leaves that way off
 // (ufw.PlanDisable); any other failure to read is ufw.ErrStateUnknown.
 func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error) {
+	if in.Facts.Platform.Distro.EL() {
+		return nil, ErrELFirewall
+	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil && !(st.Status.Known && st.Status.Active) {
 		return nil, ufwStateErr(err)
@@ -260,6 +266,9 @@ const profileMode fs.FileMode = 0o644
 // id prefix+"/apply", or none when the file and the rules are as they should
 // be. ufw must be active (ufw.ErrInactive).
 func PlanUFWApps(ctx context.Context, sys host.System, in engine.Input, prefix string, profiles []ufw.Profile) ([]engine.Change, error) {
+	if in.Facts.Platform.Distro.EL() {
+		return nil, ErrELFirewall
+	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil {
 		return nil, ufwStateErr(err)
@@ -308,6 +317,9 @@ func PlanUFWApps(ctx context.Context, sys host.System, in engine.Input, prefix s
 // since letting more through can lock no one out; or none when every rule is
 // there. ufw must be active (ufw.ErrInactive).
 func PlanUFWInterfaces(ctx context.Context, sys host.System, in engine.Input, prefix string, ifaces []string) ([]engine.Change, error) {
+	if in.Facts.Platform.Distro.EL() {
+		return nil, ErrELFirewall
+	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil {
 		return nil, ufwStateErr(err)

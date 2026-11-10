@@ -25,6 +25,8 @@ const (
 	updatesDescInstall = "Install unattended-upgrades"
 	updatesDescApt     = "Daily, by unattended-upgrades"
 	updatesDescApk     = "Daily, by apk-cron"
+	updatesDescDnf     = "Daily security updates, by dnf-automatic" // proposed, el-updates.md §1.4
+	updatesDescDnfInst = "Install dnf-automatic"                    // proposed, el-updates.md §1.4
 	updatesDescUndo    = "Undo hardn's changes"
 	updatesDescOutside = "Turned on outside hardn"
 	updatesDescPVE     = "Not on Proxmox VE"
@@ -50,6 +52,10 @@ const (
 	UpdatesLegacyKey   = "Old Script"
 	UpdatesOthersKey   = "Other Jobs"
 	UpdatesPVEKey      = "Proxmox VE"
+	UpdatesDnfAutoKey  = "dnf-automatic" // Rocky Linux and AlmaLinux: el-updates.md §1.4
+	UpdatesInTimerKey  = "Install Timer"
+	UpdatesTypeKey     = "Updates"
+	UpdatesRebootKey   = "Restarts"
 	UpdatesByKey       = "Turned on by"
 )
 
@@ -85,7 +91,11 @@ type Updates struct {
 	Item UpdatesItem
 	// Apk: Alpine, whose updates run by apk-cron.
 	Apk bool
-	// Install: unattended-upgrades is not installed, so Enable installs it.
+	// Dnf: Rocky Linux and AlmaLinux, whose updates run by dnf-automatic
+	// (docs/engine/el-updates.md §1.4).
+	Dnf bool
+	// Install: the package (unattended-upgrades, or dnf-automatic with
+	// Dnf) is not installed, so Enable installs it.
 	Install bool
 	// Blocked is what is in the way of the item, in the control's words
 	// (R1: updates.Reading.Blocked); "" for nothing. An unavailable item
@@ -102,6 +112,10 @@ func (u Updates) MenuItem() component.MenuItem {
 	switch {
 	case u.Apk:
 		it.Description = updatesDescApk
+	case u.Dnf && u.Install:
+		it.Description = updatesDescDnfInst
+	case u.Dnf:
+		it.Description = updatesDescDnf
 	case u.Install:
 		it.Description = updatesDescInstall
 	}

@@ -143,7 +143,7 @@ func sayFound(f config.Found) {
 var rootCmd = &cobra.Command{
 	Use:   "hardn",
 	Short: "Linux hardening tool",
-	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox and Alpine Linux.`,
+	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox, Alpine, Rocky Linux and AlmaLinux.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// -r runs alone: with -c, -d, -w, -g or -e a usage error before
 		// anything runs (runall.go; slice 9's defect 10).
@@ -190,8 +190,9 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
-		// An OS other than Debian, Ubuntu or Alpine, or none os-release
-		// names, is refused (hostOS); nothing is said of one that is not.
+		// An OS other than Debian, Ubuntu, Alpine, Rocky Linux or AlmaLinux,
+		// or none os-release names, is refused (hostOS); nothing is said of
+		// one that is not.
 		// Before hardn.yml's load, whose first-run question may write one:
 		// a host hardn refuses is never offered it.
 		if err := detectOS(); err != nil {
@@ -301,8 +302,9 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Configure firewall: the Firewall control through the engine, the hostname
-		// typed on a terminal, refused off one (firewall.go). Its status is hardn's
-		// as -g's is, composed by runStatus, once the flags after it have run.
+		// typed on a terminal, refused off one, and refused on Rocky Linux and
+		// AlmaLinux (firewall.go). Its status is hardn's as -g's is, composed by
+		// runStatus, once the flags after it have run.
 		if configureUfw {
 			status = runStatus(status, configureFirewall(cfg))
 		}

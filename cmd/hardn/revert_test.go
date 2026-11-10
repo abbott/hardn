@@ -603,16 +603,17 @@ func TestRevertSeamsAreReal(t *testing.T) {
 }
 
 // TestRevertPlansRegistered: `hardn rollback` and the timer undo the plan
-// steps of the four units whose rollback is their own
+// steps of the seven units whose rollback is their own
 // (docs/safety/revert-plans.md), and of no other.
 func TestRevertPlansRegistered(t *testing.T) {
-	for _, u := range []string{plans.UnitPVEKeys, plans.UnitSudoers, plans.UnitDNS, plans.UnitAlpine} {
+	units := []string{plans.UnitPVEKeys, plans.UnitSudoers, plans.UnitDNS, plans.UnitAlpine, plans.UnitFirewalld, plans.UnitSELinux, plans.UnitFirewalldEnable}
+	for _, u := range units {
 		if revertPlans[u] == nil {
 			t.Errorf("no rollback registered for %s", u)
 		}
 	}
-	if len(revertPlans) != 4 {
-		t.Errorf("%d units registered, want 4", len(revertPlans))
+	if len(revertPlans) != len(units) {
+		t.Errorf("%d units registered, want %d", len(revertPlans), len(units))
 	}
 }
 

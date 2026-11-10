@@ -3,13 +3,19 @@ package updates_test
 import (
 	"strings"
 	"testing"
+
+	"github.com/abbott/hardn/pkg/host/dnfauto"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 )
 
 // TestSectionRows: each state of the section the hosts' screens don't
 // draw: a job masked or missing, a timer off after restart, Enable "0", a
 // record hardn can't read, an "always" interval, crond's jobs unread; and
 // a host on but with apt's settings unread is offered Enable, saying so,
-// not shown on outside hardn.
+// not shown on outside hardn. On Rocky Linux: the install timer off after
+// restart, stopped and starting after restart (its name whole), or masked
+// for this boot; automatic.conf unread or changed since hardn; rpm unread,
+// drawing no timer row.
 func TestSectionRows(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
@@ -45,6 +51,40 @@ func TestSectionRows(t *testing.T) {
 			m.file(confDir+"/99site", "Unattended-Upgrade::Origins-Pattern:: \"origin=Debian\";\n")
 			return m
 		}, []string{"Configured unattended-upgrades", "1) Enable automatic updates"}, "Turned on outside hardn"},
+		{"dnf, off after restart", func(t *testing.T) *model {
+			m := dnfHost(t, true)
+			m.units["is-active "+dnfauto.InstallTimer], m.units["is-enabled "+dnfauto.InstallTimer] = "active", "disabled"
+			return m
+		}, []string{"Install Timer Off after restart"}, ""},
+		{"dnf, starts after restart", func(t *testing.T) *model {
+			m := dnfHost(t, true)
+			m.units["is-enabled "+dnfauto.InstallTimer] = "enabled"
+			return m
+		}, []string{"Partial starts after restart", "Install Timer Stopped " + dnfauto.InstallTimer}, ""},
+		{"dnf, masked for this boot", func(t *testing.T) *model {
+			m := dnfHost(t, true)
+			m.units["is-enabled "+dnfauto.InstallTimer] = "masked-runtime"
+			return m
+		}, []string{"Install Timer Masked"}, ""},
+		{"dnf, automatic.conf unread", func(t *testing.T) *model {
+			m := dnfHost(t, true)
+			m.file(dnfauto.Conf, strings.Replace(dnfConf, "upgrade_type = default", "upgrade_type = all", 1))
+			return m
+		}, []string{"Updates Can't read"}, "by automatic.conf"},
+		{"dnf, automatic.conf changed since hardn", func(t *testing.T) *model {
+			m := newHost(t, "by-hardn-rocky")
+			data, err := m.f.ReadFile(t.Context(), dnfauto.Conf)
+			if err != nil {
+				t.Fatal(err)
+			}
+			m.file(dnfauto.Conf, string(data)+"# an operator's line\n")
+			return m
+		}, []string{"Updates Security only changed since hardn"}, ""},
+		{"dnf, rpm unread", func(t *testing.T) *model {
+			m := dnfHost(t, true)
+			m.f.Respond(hostfake.Response{Stderr: "error: rpmdb: damaged header\n", ExitCode: 1}, "rpm", "-q", dnfauto.Package)
+			return m
+		}, []string{"dnf-automatic Can't read"}, "Install Timer"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			p := play(tt.host(t), false)

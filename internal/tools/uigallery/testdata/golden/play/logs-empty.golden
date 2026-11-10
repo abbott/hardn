@@ -99,8 +99,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstart-up has written to it by the time the screen can read␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit (cmd/hardn/main.go:57, :155, :185; config.go:246;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mosdetect.go:93-95): only if hardn's own open failed, the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile was truncated while hardn runs, or under next/p3-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mstartup.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile was truncated while hardn runs, or under␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnext/p3-startup.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLogs␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

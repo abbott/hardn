@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/screen"
@@ -40,6 +41,9 @@ const (
 	byHand       = "Updates by hand"
 	hardn        = "hardn"
 	notHardn     = "Not hardn"
+	// Rocky Linux and AlmaLinux (proposed, el-updates.md §1.4)
+	securityOnly = "Security only"
+	allUpdates   = "All updates"
 
 	noteBy        = "by "
 	noteUnset     = "unset"
@@ -89,7 +93,7 @@ func statusRow(h reading, hd header.Header) component.StatusList {
 // while on not by hardn; its description Blocked where something is in
 // the way (R1).
 func mainView(h reading) screen.Updates {
-	v := screen.Updates{Status: statusRow(h, h.header), Rows: sectionRows(h), Apk: h.Apk, Install: !h.Apk && h.Package == detect.No}
+	v := screen.Updates{Status: statusRow(h, h.header), Rows: sectionRows(h), Apk: h.Apk, Dnf: h.Dnf, Install: !h.Apk && h.Package == detect.No}
 	switch {
 	case h.PVE:
 		v.Item = screen.UpdatesPVE
@@ -109,12 +113,19 @@ func mainView(h reading) screen.Updates {
 // never hardn.yml; Can't read where the reading was cut short.
 func sectionRows(h reading) []component.KeyValue {
 	if h.err != nil {
-		return []component.KeyValue{{Key: screen.UpdatesUpgradesKey, Value: cantRead, State: component.ValueUnknown}}
+		key := screen.UpdatesUpgradesKey
+		if h.Dnf {
+			key = screen.UpdatesTypeKey
+		}
+		return []component.KeyValue{{Key: key, Value: cantRead, State: component.ValueUnknown}}
 	}
 	var rows []component.KeyValue
-	if h.Apk {
+	switch {
+	case h.Apk:
 		rows = apkRows(h)
-	} else {
+	case h.Dnf:
+		rows = dnfRows(h)
+	default:
 		rows = aptRows(h)
 	}
 	switch {
@@ -262,6 +273,57 @@ func apkRows(h reading) []component.KeyValue {
 			names = append(names, j.Name)
 		}
 		rows = append(rows, component.KeyValue{Key: screen.UpdatesOthersKey, Value: strings.Join(names, ", "), Note: noteUseCrond})
+	}
+	return rows
+}
+
+// dnfRows are Rocky Linux's and AlmaLinux's rows, from dnfauto.Read: the
+// package, then, where it is installed, the install timer, the updates
+// automatic.conf's upgrade_type asks for, and its restarts where it asks
+// for any; Can't read for each fact not read.
+func dnfRows(h reading) []component.KeyValue {
+	u := h.DnfUpdates
+	pv, ps := tri(u.Package, installed, notInstalled)
+	rows := []component.KeyValue{{Key: screen.UpdatesDnfAutoKey, Value: pv, State: ps}}
+	if u.Package != detect.Yes {
+		return rows
+	}
+	tm, ok := u.Applies() // the timer the check reads: dnf-automatic.timer where it installs updates
+	if !ok {
+		tm = u.Install
+	}
+	t := component.KeyValue{Key: screen.UpdatesInTimerKey, Note: tm.Name}
+	switch {
+	case tm.Err != nil || tm.Active == "" || tm.Enabled == "":
+		t.Value, t.State = cantRead, component.ValueUnknown
+	case tm.Enabled == "masked" || tm.Enabled == maskedRuntime:
+		t.Value, t.State = masked, component.ValueBad
+	case tm.On():
+		t.Value = on
+	case tm.Active == "active":
+		t.Value, t.State = offRestart, component.ValueWarn
+	case tm.Enabled == "enabled":
+		// Stopped, not "Starts after restart": the status row above says
+		// that, and the unit's name would not fit beside it.
+		t.Value, t.State = stopped, component.ValueWarn
+	default:
+		t.Value, t.State = off, component.ValueBad
+	}
+	typ := component.KeyValue{Key: screen.UpdatesTypeKey, Note: noteBy + path.Base(dnfauto.Conf)}
+	switch {
+	case u.ConfErr != nil:
+		typ.Value, typ.State, typ.Note = cantRead, component.ValueUnknown, ""
+	case u.UpgradeType == dnfauto.Security:
+		typ.Value = securityOnly
+	default:
+		typ.Value = allUpdates
+	}
+	if u.ConfErr == nil && h.Changed == dnfauto.Conf {
+		typ.Note, typ.State = noteChanged, component.ValueWarn // the item names the file
+	}
+	rows = append(rows, t, typ)
+	if v := updatesctl.RebootValue(u.Reboot); v != "" {
+		rows = append(rows, component.KeyValue{Key: screen.UpdatesRebootKey, Value: v, State: component.ValueWarn, Note: updatesctl.NoteByConf})
 	}
 	return rows
 }

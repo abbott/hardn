@@ -137,6 +137,20 @@ jobs:
           - name: alpine:3.23
             image: alpine:3.23@sha256:ff7f0c727dd796aa36787bfcd9a64bf35a6ce72a73451b3359fde849b6703d63
             family: alpine
+          # Rocky Linux's own images: the library's rockylinux has no 10, and its 9
+          # stopped in 2024.
+          - name: rockylinux:10
+            image: rockylinux/rockylinux:10@sha256:827d37bc128288ccf160ee318bb3cb92d591164cb217e92f8bc61e3982ae1834
+            family: el
+          - name: rockylinux:9
+            image: rockylinux/rockylinux:9@sha256:8101994123cf3d0a8fee517bee7f39e555c7d92bd2d9eb3303cc988a0eeed00f
+            family: el
+          - name: almalinux:10
+            image: almalinux:10@sha256:5a4b41a427c9717be8f4ac2a32aa22efbae5f9124fbcb79a6765394f312acfe8
+            family: el
+          - name: almalinux:9
+            image: almalinux:9@sha256:245f8aab832fe800aa42bdab5fad75ebbd8e0b4c9f24820a83c638b177857ae2
+            family: el
     container:
       image: ${{ matrix.image }}
     defaults:
@@ -162,8 +176,11 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Set up Go from go.mod (Debian, Ubuntu)
-        if: matrix.family == 'debian'
+      # The Rocky Linux and AlmaLinux images need nothing installed: they ship
+      # the CA bundle, and the tar and gzip that checkout (no git there, as on
+      # Debian) and setup-go unpack with.
+      - name: Set up Go from go.mod (Debian, Ubuntu, Rocky Linux, AlmaLinux)
+        if: matrix.family != 'alpine'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
           go-version-file: go.mod

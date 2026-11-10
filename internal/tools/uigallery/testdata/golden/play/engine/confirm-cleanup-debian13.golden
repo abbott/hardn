@@ -43,7 +43,8 @@ $
       ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
       ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
       ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
-      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service sshd.socket␛[m$
+      ␛[38;2;112;212;127m↪ shutdown.target␛[m$
       ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
       ␛[38;2;112;212;127m+␛[m$
       ␛[38;2;112;212;127m+[Service]␛[m$
@@ -111,8 +112,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
-  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
-  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice opens a new SSH connection to web-01.example.net on port␛[m$
@@ -134,16 +135,17 @@ $
 $
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22, which change 20261020T120000Z-xxxxxxxx held during␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mits confirm window, is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mits confirm window, is dropped from␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded, no␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mlonger listens on it.␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/confirm-cleanup-debian13␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -169,9 +171,9 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mConfirmed: the revert timer stopped␛[m$
       ␛[38;2;129;134;156m$ systemctl stop␛[m$
@@ -228,7 +230,8 @@ $
       | unconfirmed change$
       +DefaultDependencies=no$
       +After=local-fs.target sysinit.target ufw.service$
-      +Before=ssh.service ssh.socket shutdown.target$
+      +Before=ssh.service ssh.socket sshd.service sshd.socket$
+      | shutdown.target$
       +Conflicts=shutdown.target$
       +$
       +[Service]$
@@ -296,8 +299,8 @@ $
       $ sudo hardn confirm$
 $
   Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
-  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
-  20261020T120000Z-xxxxxxxx.$
+  back at 12:03:01 UTC. To undo it now, run$
+  `sudo hardn rollback 20261020T120000Z-xxxxxxxx`.$
 $
 # Info: hardn confirm, from a new connection to port 2230$
 # alice opens a new SSH connection to web-01.example.net on port$
@@ -319,16 +322,17 @@ $
 $
 # Operation Successful$
 # Port 22, which change 20261020T120000Z-xxxxxxxx held during$
-# its confirm window, is dropped from /etc/ssh/sshd_config.d/00-$
-# hardn.conf, and sshd, reloaded, no longer listens on it.$
+# its confirm window, is dropped from$
+# /etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded, no$
+# longer listens on it.$
 # ufw's rule for 22/tcp, which hardn added, is deleted.$
 $
   simulated system ---------------------------------------------$
 $
 # Info: engine/confirm-cleanup-debian13$
-# Recorded by the fake, not done: what each step ran on web-$
-# 01.example.net, and the files it changed, in order; hardn's$
-# own journal, run directory and backups left out.$
+# Recorded by the fake, not done: what each step ran on$
+# web-01.example.net, and the files it changed, in order;$
+# hardn's own journal, run directory and backups left out.$
 $
    -  Applied: Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$
@@ -354,9 +358,9 @@ $
       $ systemctl reload ssh.service$
 $
 # Info: hardn confirm, from a new connection to port 2230$
-# Recorded by the fake, not done: what each step ran on web-$
-# 01.example.net, and the files it changed, in order; hardn's$
-# own journal, run directory and backups left out.$
+# Recorded by the fake, not done: what each step ran on$
+# web-01.example.net, and the files it changed, in order;$
+# hardn's own journal, run directory and backups left out.$
 $
    -  Confirmed: the revert timer stopped$
       $ systemctl stop$
@@ -415,7 +419,8 @@ $
       ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
       ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
       ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
-      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service␛[m$
+      ␛[38;2;112;212;127m↪ sshd.socket shutdown.target␛[m$
       ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
       ␛[38;2;112;212;127m+␛[m$
       ␛[38;2;112;212;127m+[Service]␛[m$
@@ -489,8 +494,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
-  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
-  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice opens a new SSH connection to web-01.example.net on␛[m$
@@ -524,8 +529,8 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/confirm-cleanup-debian13␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Install hardn's boot unit␛[m$
@@ -553,8 +558,8 @@ $
       ␛[38;2;129;134;156m$ systemctl reload ssh.service␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mConfirmed: the revert timer stopped␛[m$

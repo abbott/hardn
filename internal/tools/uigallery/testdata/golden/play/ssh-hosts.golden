@@ -41,8 +41,8 @@ $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 4$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/hardened␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2). 00-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.conf sets Port 2230, PermitRootLogin no and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m00-hardn.conf sets Port 2230, PermitRootLogin no and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPasswordAuthentication no; ufw allows 2230. george's session␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis on 2230.␛[m$
 $
@@ -143,8 +143,8 @@ $
     > Enter your choice [0-19 or q]: 4$
 $
 # Info: ssh/hardened$
-# web-01.example.net runs Debian 13 (OpenSSH 10.0p2). 00-$
-# hardn.conf sets Port 2230, PermitRootLogin no and$
+# web-01.example.net runs Debian 13 (OpenSSH 10.0p2).$
+# 00-hardn.conf sets Port 2230, PermitRootLogin no and$
 # PasswordAuthentication no; ufw allows 2230. george's session$
 # is on 2230.$
 $
@@ -265,8 +265,8 @@ $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-19 or q]:␛[m 4$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: ssh/hardened␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2). 00-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.conf sets Port 2230, PermitRootLogin no and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 (OpenSSH 10.0p2).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m00-hardn.conf sets Port 2230, PermitRootLogin no and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPasswordAuthentication no; ufw allows 2230. george's␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msession is on 2230.␛[m$
 $

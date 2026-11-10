@@ -111,7 +111,11 @@ func menuOf(out string) string {
 
 // galleryMenu is the main menu of the gallery's golden file of a status
 // host, in its plain-80 cell: from the header's line to the prompt's, each
-// line's "$" taken off.
+// line's "$" taken off; with the items hardn's main menu draws in place of
+// the mock's, which the gallery draws (pkg/screens/mainmenu's
+// galleryStatus does the same): item 5, Auto Updates, above item 6 in its
+// columns, the hint "[0-10 or q]", and on Proxmox VE item 3's "View
+// pve-firewall".
 func galleryMenu(t *testing.T, name string) string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join("..", "uigallery", "testdata", "golden", "status", name+".golden"))
@@ -124,9 +128,19 @@ func galleryMenu(t *testing.T, name string) string {
 	}
 	var lines []string
 	for _, l := range strings.Split(cell, "\n")[1:] {
-		l = strings.TrimSuffix(l, "$")
+		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-10 or q]", "[0-10 or q]")
+		if name == "pve9" {
+			l = strings.Replace(l, "   3) Firewall             Configure UFW rules", "   3) Firewall             View pve-firewall", 1)
+		}
+		if strings.HasPrefix(l, "hardn ") {
+			l = strings.Replace(l, "v0.4.0", "      ", 1) // p4status shows no version: not a hardn release
+		}
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
+		}
+		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
+			item := "   5) Auto Updates"
+			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+"Configure automatic updates", l)
 		}
 		if strings.HasPrefix(l, "    > Enter selection") {
 			return strings.Join(lines, "\n")
@@ -139,7 +153,8 @@ func galleryMenu(t *testing.T, name string) string {
 // TestMainMenuAsGallery: the main menu p4status prints by default over a
 // fixture is, line for line, the gallery's main menu of the status host
 // the fixture was made from, as its golden file pins it (plain, 80
-// columns).
+// columns), with the items hardn's main menu draws on that host
+// (galleryMenu).
 func TestMainMenuAsGallery(t *testing.T) {
 	for _, name := range fixtureHosts {
 		t.Run(name, func(t *testing.T) {
@@ -149,6 +164,43 @@ func TestMainMenuAsGallery(t *testing.T) {
 			}
 			if got, want := menuOf(out), galleryMenu(t, name); got != want {
 				t.Errorf("main menu:\n%s\nthe gallery's:\n%s", got, want)
+			}
+		})
+	}
+}
+
+// TestMainMenuOnEL: on Rocky Linux and AlmaLinux, p4status draws the items
+// hardn's main menu draws there: item 3 "Configure firewalld", item 5,
+// Auto Updates, and the hint "[0-10 or q]". The hosts are the debian13
+// fixture with Rocky Linux 10.2's os-release (pkg/host/detect's test
+// file) or AlmaLinux 9.6's in place of Debian's: the items turn on
+// detect's distribution alone, and a command the fixture does not answer
+// only leaves its row Unknown.
+func TestMainMenuOnEL(t *testing.T) {
+	rocky, err := os.ReadFile(filepath.Join("..", "..", "..", "pkg", "host", "detect", "testdata", "os-release", "rocky-10.2"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	alma := "NAME=\"AlmaLinux\"\nVERSION=\"9.6 (Sage Margay)\"\nID=\"almalinux\"\nID_LIKE=\"rhel centos fedora\"\n" +
+		"VERSION_ID=\"9.6\"\nPLATFORM_ID=\"platform:el9\"\nPRETTY_NAME=\"AlmaLinux 9.6 (Sage Margay)\"\n"
+	for name, osRelease := range map[string]string{"rocky10": string(rocky), "alma9": alma} {
+		t.Run(name, func(t *testing.T) {
+			f, sys := loadHost(t, "debian13")
+			f.AddFile("/etc/os-release", []byte(osRelease), 0o644, 0, 0)
+			var o, e strings.Builder
+			run(context.Background(), nil, testEnv(sys, &o, &e))
+			menu := menuOf(o.String())
+			for _, want := range []string{
+				"\n   3) Firewall             Configure firewalld\n",
+				"\n   4) DNS                  Configure Nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
+				"\n    > Enter selection [0-10 or q]:",
+			} {
+				if !strings.Contains(menu, want) {
+					t.Errorf("no %q in the main menu:\n%s", want, menu)
+				}
+			}
+			if strings.Contains(menu, "UFW") {
+				t.Errorf("the main menu names UFW:\n%s", menu)
 			}
 		})
 	}

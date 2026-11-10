@@ -24,6 +24,8 @@ var (
 	ubuntu2404 = detect.SSH{Mode: detect.SSHSocket, Socket: unit("enabled", "active"), Service: unit("disabled", "inactive"),
 		Generator: detect.Yes, GeneratorPath: detect.SocketGenerator}
 	debian = detect.SSH{Mode: detect.SSHService, Socket: unit("disabled", "inactive"), Service: unit("enabled", "active"), Generator: detect.No}
+	// rocky is rocky10-test-110's: sshd.service.
+	rocky  = detect.SSH{Mode: detect.SSHService, SSHDUnits: true, Socket: unit("disabled", "inactive"), Service: unit("enabled", "active"), Generator: detect.No}
 	alpine = detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.Yes, InRunlevel: detect.Yes, Runlevels: []string{"default"}}}
 )
 
@@ -142,6 +144,10 @@ func TestPlanFor(t *testing.T) {
 			[]string{reloadActivated}, nil, nil, nil, 0},
 		{"debian rollback starts ssh.service", reload.Input{SSH: debian, Change: rollback(at22)},
 			[]string{reloadService + " else systemctl start ssh.service"}, at22, nil, nil, 0},
+		{"rocky other keys reload sshd.service", reload.Input{SSH: rocky, Change: reload.Change{Keywords: []string{"PermitRootLogin"}}},
+			[]string{"run-if-up(sshd.service) systemctl reload sshd.service"}, nil, nil, nil, 0},
+		{"rocky rollback starts sshd.service", reload.Input{SSH: rocky, Change: reload.Change{Keywords: []string{"PasswordAuthentication"}, Rollback: true}},
+			[]string{"run-if-up(sshd.service) systemctl reload sshd.service else systemctl start sshd.service"}, nil, nil, nil, 0},
 		{"alpine rollback starts sshd", reload.Input{SSH: alpine, Change: reload.Change{Keywords: []string{"PermitRootLogin"}, Rollback: true}},
 			[]string{reloadOpenRC + " else rc-service sshd start"}, nil, nil, nil, 0},
 		{"nothing changed", reload.Input{SSH: detect.SSH{}}, nil, nil, nil, nil, 0},

@@ -90,6 +90,11 @@ func readEffective(ctx context.Context, sys host.System, f detect.Facts) (readin
 		}
 		bin = b
 	}
+	if f.SSH.SSHDUnits {
+		if err := reload.CheckSysconfig(ctx, sys); err != nil {
+			return r, err
+		}
+	}
 	r.bin = bin
 	var err error
 	if r.eff, r.found, err = sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: f.SSH, Binary: bin}); err != nil {
