@@ -29,7 +29,7 @@ const KernelPackagePrefix = "linux-image-"
 // why a reboot is pending, one finding per source that shows it.
 const (
 	// CodeRebootRequired: /var/run/reboot-required exists, or on Rocky
-	// Linux and AlmaLinux needs-restarting -r exits 1.
+	// Linux and AlmaLinux dnf needs-restarting -r exits 1.
 	CodeRebootRequired = "REBOOT_REQUIRED"
 	// CodeNewerKernel: /boot holds a kernel newer than the one running.
 	CodeNewerKernel = "REBOOT_NEWER_KERNEL"
@@ -209,11 +209,16 @@ func readRelease(ctx context.Context, sys host.System) (string, source) {
 
 // needsRestarting is dnf-plugins-core's needs-restarting -r on Rocky Linux
 // and AlmaLinux: exit 0 when no core package was updated since boot, exit 1
-// with "Reboot is required" when one was. The plugin sets exit 1 by raising
-// dnf's own error, as any dnf failure does (needs_restarting.py, read on
-// rocky10-test-110), so exit 1 without that line, any other exit, and the
-// command missing are not established. host.System runs it with LC_ALL=C,
-// so the line is not translated.
+// with "Reboot is required" when one was. It runs as a dnf command: the
+// needs-restarting program is yum-utils' wrapper for it, which AlmaLinux 9.8
+// and 10.2 don't install. The plugin loads the installed packages only, no
+// repository. It sets exit 1 by raising dnf's own error, as any dnf failure
+// does (needs_restarting.py, read on rocky10-test-110), so exit 1 without
+// that line, and any other exit, are not established: exit 200 among them,
+// another dnf holding its lock (exit_on_lock, as packages' dnf commands
+// run, rather than a wait). dnf without the plugin says "No such command"
+// on stderr, exit 1: no source, as dnf missing is. host.System runs it
+// with LC_ALL=C, so neither line is translated.
 func needsRestarting(ctx context.Context, sys host.System) source {
 	res, err := sys.Run(ctx, NeedsRestarting[0], NeedsRestarting[1:]...)
 	var xe *host.ExitError
@@ -223,18 +228,25 @@ func needsRestarting(ctx context.Context, sys host.System) source {
 	case errors.As(err, &xe) && res.ExitCode == 1 && strings.Contains(string(res.Stdout), needsReboot):
 		return source{state: detect.Yes, evidence: needsRestartingWords + ": exit 1",
 			finding: &engine.Finding{Code: CodeRebootRequired, Detail: DetailRebootRequired, Source: needsRestartingWords}}
+	case errors.As(err, &xe) && res.ExitCode == 1 && strings.Contains(string(res.Stderr), noSuchCommand):
+		return source{err: fmt.Errorf("%s: not installed: %w", needsRestartingWords, detect.ErrNoSignal)}
 	case errors.As(err, &xe):
 		return source{err: fmt.Errorf("%s: exit %d: %w", needsRestartingWords, res.ExitCode, detect.ErrUnrecognised)}
-	case errors.Is(err, host.ErrNotFound): // dnf-plugins-core not installed: no source, as a missing dpkg-query is
+	case errors.Is(err, host.ErrNotFound): // no dnf: no source, as a missing dpkg-query is
 		return source{err: fmt.Errorf("%s: not installed: %w", needsRestartingWords, detect.ErrNoSignal)}
 	}
 	return source{err: fmt.Errorf("%s: %w", needsRestartingWords, err)}
 }
 
 // NeedsRestarting is the command needsRestarting runs.
-var NeedsRestarting = []string{"needs-restarting", "-r"}
+var NeedsRestarting = []string{"dnf", "--setopt=exit_on_lock=True", "needs-restarting", "-r"}
 
-const needsRestartingWords = "needs-restarting -r"
+const needsRestartingWords = "dnf needs-restarting -r"
+
+// noSuchCommand is what dnf says on stderr for a command no plugin of its
+// provides (dnf 4.14 and 4.20 with the plugin disabled, read on
+// alma9-test-111 and alma10-test-112).
+const noSuchCommand = "No such command: needs-restarting"
 
 // needsReboot is what needs-restarting -r prints when a reboot is needed.
 const needsReboot = "Reboot is required"

@@ -41,8 +41,10 @@ var rules = []rule{
 	{"ip", ipAddr},                             // the header probe's address
 	{"apk", exactly("info", "-e", "apk-cron")}, // alpine.ReadUpdates
 	{"rc-service", exactly("crond", "status")}, // alpine.ReadUpdates
-	// The header probe's reboot source on Rocky Linux and AlmaLinux.
-	{"needs-restarting", exactly("-r")},
+	// The header probe's reboot source on Rocky Linux and AlmaLinux: this
+	// one dnf command, which loads no repository and doesn't wait for
+	// another dnf's lock.
+	{"dnf", exactly("--setopt=exit_on_lock=True", "needs-restarting", "-r")},
 	// The Auto Updates check there (dnfauto.Read).
 	{"rpm", exactly("-q", "dnf-automatic")},
 	// The Firewall check on Rocky Linux and AlmaLinux (firewalld.Read, and

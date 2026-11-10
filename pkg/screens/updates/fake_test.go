@@ -30,9 +30,9 @@ import (
 // (pkg/engine/controls/updates/model_test.go) and the gallery's hosts
 // (internal/tools/uigallery/updates.go, updateshost.go), in the VMs'
 // shapes of 2026-11-03, values synthetic: what apt-config, dpkg-query,
-// systemctl, apt-get, apk, rc-service, rc-update, and on Rocky Linux rpm,
-// dnf and needs-restarting answer of a hostfake's files and the state
-// below. apt's files are in apt-config dump's one-line form (`Name
+// systemctl, apt-get, apk, rc-service, rc-update, and on Rocky Linux rpm
+// and dnf (needs-restarting among its commands) answer of a hostfake's
+// files and the state below. apt's files are in apt-config dump's one-line form (`Name
 // "value";`, an item `Name:: "value";`); a line in any other form is apt's
 // syntax error; a list is one line, `Name { "a"; "b"; };`. A command the
 // model does not answer fails the test.
@@ -248,10 +248,10 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			st = "enabled"
 		}
 		return hostfake.Response{Stdout: st + "\n", ExitCode: exitOf(st)}
+	case cmd == "dnf --setopt=exit_on_lock=True needs-restarting -r": // no core package updated since boot (header's reboot on Rocky Linux)
+		return hostfake.Response{Stdout: "No core libraries or services have been updated since boot-up.\nReboot should not be necessary.\n"}
 	case argv[0] == "rpm" || argv[0] == "dnf" || argv[0] == "systemctl" && len(argv) == 3:
 		return m.dnf(ctx, argv)
-	case cmd == "needs-restarting -r": // no core package updated since boot (header's reboot on Rocky Linux)
-		return hostfake.Response{Stdout: "No core libraries or services have been updated since boot-up.\nReboot should not be necessary.\n"}
 	case cmd == "dpkg-query -W -f=${Conffiles}\\n "+uuName:
 		if !m.installed {
 			return hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}
@@ -480,7 +480,7 @@ func writes(m *model, n int) []string {
 			cmd := strings.Join(c.Argv, " ")
 			if strings.HasPrefix(cmd, "apt-config dump ") || strings.HasPrefix(cmd, "dpkg-query ") || strings.HasPrefix(cmd, "systemctl is-") ||
 				strings.Contains(cmd, " -s -y ") || strings.Contains(cmd, "--simulate") || cmd == "apk info -e apk-cron" || cmd == "rc-service crond status" ||
-				strings.HasPrefix(cmd, "rpm -q ") || strings.Contains(cmd, " --assumeno ") || cmd == "needs-restarting -r" {
+				strings.HasPrefix(cmd, "rpm -q ") || strings.Contains(cmd, " --assumeno ") || cmd == "dnf --setopt=exit_on_lock=True needs-restarting -r" {
 				continue
 			}
 			out = append(out, cmd)

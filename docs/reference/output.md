@@ -496,7 +496,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_ORIGINS_UNKNOWN` | a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_CHANGED_SINCE_HARDN` | hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone: "changed since hardn" ([control-updates.md](../engine/control-updates.md)) |
-| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists, or on Rocky Linux and AlmaLinux `needs-restarting -r` exits 1: a package asks for a reboot ([header.md](../engine/header.md)) |
+| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists, or on Rocky Linux and AlmaLinux `dnf needs-restarting -r` exits 1: a package asks for a reboot ([header.md](../engine/header.md)) |
 | `REBOOT_NEWER_KERNEL` | a kernel newer than the one running is installed in `/boot` ([header.md](../engine/header.md)) |
 | `REBOOT_MODULES_MISSING` | Alpine: the running kernel's own modules are not installed, while another kernel's are ([header.md](../engine/header.md)) |
 | `REBOOT_KERNEL_REPLACED` | a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running ([header.md](../engine/header.md)) |

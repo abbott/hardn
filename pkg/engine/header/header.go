@@ -12,15 +12,15 @@
 //   - whether a reboot is pending (Reboot): /var/run/reboot-required and
 //     the running kernel against the newest in /boot on Debian, Ubuntu and
 //     Proxmox VE, with a Debian-built kernel's package version; the
-//     running kernel's modules on Alpine; needs-restarting -r on Rocky
-//     Linux and AlmaLinux.
+//     running kernel's modules on Alpine; dnf needs-restarting -r on
+//     Rocky Linux and AlmaLinux.
 //
 // A fact that cannot be read, or is read in a form the probe does not
 // know, is not established, with the reason in its Err: nothing is
 // guessed, and a zero fact is not established either. Read reads files
 // and runs `ip -4 addr show dev <interface>`, for a kernel Debian built
 // `dpkg-query --show` of its package, and on Rocky Linux and AlmaLinux
-// `needs-restarting -r`, and changes nothing. pkg/output maps a Header to the main menu's Header, ContextBar
+// `dnf needs-restarting -r`, and changes nothing. pkg/output maps a Header to the main menu's Header, ContextBar
 // and HostBlock. docs/engine/header.md has each fact's source and every
 // line the blocks can show.
 package header
