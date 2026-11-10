@@ -117,7 +117,7 @@ Done in unit 3b, as [el-firewalld.md](el-firewalld.md) describes; the brief as i
   - disable it.
 
   Its screen reads firewalld. ufw's profiles and interfaces stay refused there.
-- **CI images** (unit 6).
+- **CI images** (unit 6): done, [el-changes.md](el-changes.md) §5.
 
 ## 6. Decisions of this unit
 

@@ -5,13 +5,13 @@
 
 ## 1. API
 
-`ToolFor(facts)` gives `Apt` on Debian and Ubuntu, `Apk` on Alpine, `ErrNoTool` otherwise, Proxmox VE included. `Installed(ctx, sys, tool, name)` reads a `detect.Tri`. `PlanInstall(ctx, sys, tool, name)` returns a `Plan{Tool, Name, Argv, Undo, Adds}`; `Empty()` says there is nothing to run. `Execute(ctx, sys, plan)` returns a `Report{Undo, Installed}`.
+`ToolFor(facts)` gives `Apt` on Debian and Ubuntu, `Apk` on Alpine, `Dnf` on Rocky Linux and AlmaLinux, `ErrNoTool` otherwise, Proxmox VE included. `Installed(ctx, sys, tool, name)` reads a `detect.Tri`. `PlanInstall(ctx, sys, tool, name)` returns a `Plan{Tool, Name, Argv, Undo, Adds}`; `Empty()` says there is nothing to run. `Execute(ctx, sys, plan)` returns a `Report{Undo, Installed}`.
 
 | Tool | Read | Simulation | Install | Undo |
 |---|---|---|---|---|
 | Apt | `detect.DpkgInstalled` | `apt-get install -s -y <name>` | `apt-get install -y <name>` | `apt-get remove -y <name>` |
 | Apk | `apk info -e <name>` | `apk add --simulate <name>` | `apk add <name>` | `apk del <name>` |
-| Dnf | `rpm -q <name>` | `dnf install --assumeno --setopt=install_weak_deps=False <name>` | `dnf install -y --setopt=install_weak_deps=False <name>` | `dnf remove -y --noautoremove <name>` |
+| Dnf | `rpm -q <name>` | `dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True <name>` | `dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True <name>` | `dnf remove -y --noautoremove --setopt=exit_on_lock=True <name>` |
 
 ## 2. Guarantees
 

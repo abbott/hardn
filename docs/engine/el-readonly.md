@@ -1,7 +1,7 @@
 # Rocky Linux and AlmaLinux, read only (`next/el-readonly`)
 
-> **Unit:** the first of the Rocky/AlmaLinux units (the maintainer, 2026-11-09: "let's explore rocky/alma", then "Yes, start unit 1"). Unit 1 of six: read only; then changes that move no port; firewalld; the SELinux port label; dnf and dnf-automatic; CI and docs.
-> **Status:** built and tested on macOS against the recording fake, and on `rocky10-test-110` (Rocky Linux 10.2, x86_64) on 2026-11-09: `go vet` and `go test ./...` on Linux (71 packages, all pass), then `p4status` (§4). The platform facts it relies on were read there by a read-only probe (§3). hardn itself has not run there.
+> **Unit:** the first of the Rocky/AlmaLinux units (the maintainer, 2026-11-09: "let's explore rocky/alma", then "Yes, start unit 1"). Unit 1 of six: read only; then changes that move no port (2); SSH port changes through SELinux and firewalld (3a, which took unit 4); dnf and firewalld through the Firewall item (3b); dnf-automatic (5); CI and docs (6). All are built.
+> **Status:** built and tested on macOS against the recording fake, and on `rocky10-test-110` (Rocky Linux 10.2, x86_64) on 2026-11-09: `go vet` and `go test ./...` on Linux (71 packages, all pass), then `p4status` (§4). The platform facts it relies on were read there by a read-only probe (§3). hardn itself didn't run there until unit 2 ([el-changes.md](el-changes.md) §4).
 
 hardn now starts on Rocky Linux and AlmaLinux, reads them, and refuses every change. **Since unit 2** ([el-changes.md](el-changes.md)) 10 and 9 are Supported and the changes that move no port are made; §1.1's "no matrix row" and §1.3's refusal no longer hold. Before this unit it refused to start on them (`unsupported OS type detected: rocky`).
 
@@ -76,13 +76,14 @@ Not run: hardn itself (`hardn -n`, the main menu), and AlmaLinux.
 
 ## 5. What the next units must do
 
-- **Changes that move no port** (unit 2): matrix rows for Rocky Linux and AlmaLinux 10 and 9 (`Supported`, by the rule of `platform.go`'s matrix); the reload of `sshd.service` (`systemctl reload sshd.service`, the same `kill -HUP` as Debian's) with the refusal of §1.3 lifted, run on the VM; `reload.CheckSysconfig` in the plan's reads too (`pkg/engine/steps`). Debian's `/etc/default/ssh` `SSHD_OPTS` is the same gap, unread today: a fix for both families is the maintainer's call. Refuse port changes until units 3 and 4. Check the labels on the files hardn writes, and on restored backups, on the VM.
-- **firewalld** (unit 3) and **the SELinux port label** (unit 4): see the exploration brief. On a host with neither firewalld nor ufw, the Firewall item needs the maintainer's choice: offer firewalld, or report only.
-- **dnf-automatic** (unit 5): its reader replaces §1.4's Unknown.
+- **Changes that move no port** (unit 2): matrix rows for Rocky Linux and AlmaLinux 10 and 9 (`Supported`, by the rule of `platform.go`'s matrix); the reload of `sshd.service` (`systemctl reload sshd.service`, the same `kill -HUP` as Debian's) with the refusal of §1.3 lifted, run on the VM; `reload.CheckSysconfig` in the plan's reads too (`pkg/engine/steps`). Debian's `/etc/default/ssh` `SSHD_OPTS` is the same gap, unread today: a fix for both families is the maintainer's call. Refuse port changes until units 3 and 4. Check the labels on the files hardn writes, and on restored backups, on the VM. Built: [el-changes.md](el-changes.md).
+- **firewalld** (unit 3) and **the SELinux port label** (unit 4): see the exploration brief. On a host with neither firewalld nor ufw, the Firewall item needs the maintainer's choice: offer firewalld, or report only. Built as one unit: [el-ports.md](el-ports.md) (3a) and [el-firewalld.md](el-firewalld.md) (3b), which offers firewalld.
+- **dnf-automatic** (unit 5): its reader replaces §1.4's Unknown. Built: [el-updates.md](el-updates.md).
+- **CI images and docs** (unit 6): done ([el-changes.md](el-changes.md) §5).
 
 ## 6. Decisions of this unit
 
 - Detect `sshd.*` by the absence of both `ssh.*` units, not by the distribution: `DetectSSH`'s callers have no platform (the rollback's among them), and the Debian family is unchanged.
-- No matrix row: Unlisted until unit 2. The README says "read only".
+- No matrix row: Unlisted until unit 2. The README said "read only" until then.
 - AlmaLinux with Rocky Linux, from os-release's documented form; no VM.
 - The crypto policy's Include: that one path, followed to a file of crypto settings only (the maintainer, 2026-11-09), not any absolute Include. A Debian drop-in holding any other Include is refused as before.

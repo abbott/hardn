@@ -19,7 +19,7 @@ The legacy `pkg/osdetect` accepts only the `debian`, `ubuntu` and `alpine` IDs, 
 
    | Support | Releases |
    |---|---|
-   | Supported | Debian 13, 12; Ubuntu 26.04, 24.04; Alpine 3.24, 3.23; Proxmox VE 9 |
+   | Supported | Debian 13, 12; Ubuntu 26.04, 24.04; Alpine 3.24, 3.23; Proxmox VE 9; Rocky Linux 10, 9; AlmaLinux 10, 9 |
    | BestEffort | Ubuntu 22.04; Alpine 3.22, 3.21 (vendor support ends 2026-11-01) |
    | OutOfScope | Ubuntu interim releases (by rule: any `YY.MM` that is not April of an even year); Proxmox VE 8 (end of life 2026-08-31) |
    | Unlisted | any other version (Debian 11, Ubuntu 20.04, Debian testing/sid without `VERSION_ID`, Alpine edge, an Alpine pre-release such as `3.24.0_rc1`), and any other `ID`; a derivative reports its first known `ID_LIKE` in `Platform.Like`, never a support claim |
@@ -27,7 +27,7 @@ The legacy `pkg/osdetect` accepts only the `debian`, `ubuntu` and `alpine` IDs, 
 
    *Amended by `next/p7-surface`* (Phase 7 decision 5, adopted 2026-11-04): Alpine 3.21 moves to OutOfScope, its vendor support having ended 2026-11-01, as Proxmox VE 8 is. *Amended 2026-11-08* (the maintainer: "Out of scope + fixes"): Alpine 3.20 gets an OutOfScope row, its vendor support having ended 2026-04-01 (alpinelinux.org's releases.json; its community repository 2024-11-01), so that its refusal names why rather than "unlisted"; fixture `alpine-3.20`.
 
-   The key is `VERSION_ID` for Debian and Ubuntu, `VERSION_ID`'s major.minor for Alpine (`3.24.2` → `3.24`; only a three-number `VERSION_ID`, the form a stable branch's alpine-base writes, takes its row's support: any other form, such as edge's `3.25.0_alpha20261001` or a release candidate's `3.24.0_rc1`, is Unlisted with a `Note`, even when its major.minor is a row), and pve-manager's major version for Proxmox VE (`9.2.22` → `9`). Rows change by editing `matrix` in `platform.go`; `TestMatrix` pins the row counts.
+   The key is `VERSION_ID` for Debian and Ubuntu, `VERSION_ID`'s major.minor for Alpine (`3.24.2` → `3.24`; only a three-number `VERSION_ID`, the form a stable branch's alpine-base writes, takes its row's support: any other form, such as edge's `3.25.0_alpha20261001` or a release candidate's `3.24.0_rc1`, is Unlisted with a `Note`, even when its major.minor is a row), `VERSION_ID`'s major for Rocky Linux and AlmaLinux (`10.2` → `10`), and pve-manager's major version for Proxmox VE (`9.2.22` → `9`). Rows change by editing `matrix` in `platform.go`; `TestMatrix` pins the row counts.
 6. **Init system.** `Systemd` when `/run/systemd/system` is a directory (`Running` Yes); `OpenRC` when `/run/openrc` is (`Running` Yes) or, failing both, when `/sbin/openrc-run` is installed (`Running` No: OpenRC present but not what booted, as in a container). Both run directories present is `ErrConflict`; neither a run directory nor `openrc-run` is `ErrNoSignal`.
 7. **SSH mode.** Only an init system that booted the host starts sshd: with `Init.Kind` Unknown, or `Init.Running` not Yes (OpenRC installed in a container, say), `Mode` is `SSHUnknown` with `ErrNoSignal` (or the init error) and nothing is read or run.
    - **systemd.** One unit's boot-time state (`is-enabled`) must not contradict the other's runtime state (`is-active`); the rules apply in this order:

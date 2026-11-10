@@ -18,9 +18,9 @@
 // A fact that cannot be read, or is read in a form the probe does not
 // know, is not established, with the reason in its Err: nothing is
 // guessed, and a zero fact is not established either. Read reads files
-// and runs two commands, `ip -4 addr show dev <interface>` and, for a
-// kernel Debian built, `dpkg-query --show` of its package, and changes
-// nothing. pkg/output maps a Header to the main menu's Header, ContextBar
+// and runs `ip -4 addr show dev <interface>`, for a kernel Debian built
+// `dpkg-query --show` of its package, and on Rocky Linux and AlmaLinux
+// `needs-restarting -r`, and changes nothing. pkg/output maps a Header to the main menu's Header, ContextBar
 // and HostBlock. docs/engine/header.md has each fact's source and every
 // line the blocks can show.
 package header

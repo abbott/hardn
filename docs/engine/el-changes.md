@@ -97,10 +97,10 @@ Not run: a reboot inside the confirm window, and AlmaLinux.
 
 ## 5. What the next units must do
 
-- **firewalld** (unit 3): read the active zones; let the SSH listeners through before a port change.
-- **The SELinux port label** (unit 4): `semanage port -a` before the reload, rolled back with `-d`. With unit 3, it lifts the port refusal of §1.5.
+- **firewalld** (unit 3): read the active zones; let the SSH listeners through before a port change. Built: [el-ports.md](el-ports.md) (3a), [el-firewalld.md](el-firewalld.md) (3b).
+- **The SELinux port label** (unit 4): `semanage port -a` before the reload, rolled back with `-d`. With unit 3, it lifts the port refusal of §1.5. Built in 3a: [el-ports.md](el-ports.md).
 - **dnf-automatic** (unit 5): built, [el-updates.md](el-updates.md).
-- **CI images** (unit 6): rockylinux and almalinux 9 and 10.
+- **CI images** (unit 6): done. CI's per-distribution `go vet` and `go test` job runs on `rockylinux/rockylinux:10` and `:9`, and `almalinux:10` and `:9`. It hasn't run them yet.
 
 ## 6. Decisions of this unit
 

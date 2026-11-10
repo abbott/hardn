@@ -9,7 +9,9 @@
 // dump, never the files alone), the unattended-upgrades package, and the
 // two systemd timers that run the job (apt-daily-upgrade.timer upgrades,
 // apt-daily.timer refreshes the package lists). On Alpine it is
-// apk-cron's daily script run by crond, read by alpine.ReadUpdates. Its
+// apk-cron's daily script run by crond, read by alpine.ReadUpdates. On
+// Rocky Linux and AlmaLinux it is dnf-automatic's timer that installs
+// updates, read by dnfauto.Read (docs/engine/el-updates.md). Its
 // Plan turns updates on or off, as Action asks (control.go; slice 7, unit
 // (b), docs/engine/control-updates.md). The line describes the host now: NotConfigured when no upgrade runs,
 // Partial when upgrades run but the lists are not refreshed or the job
@@ -116,8 +118,8 @@ func (Auto) Applies(f detect.Facts) (bool, string) {
 	return true, ""
 }
 
-// Check reads apt's daily job on a host apt manages and apk-cron on
-// Alpine (check-updates.md §2). A read that fails is Unknown with the
+// Check reads apt's daily job on a host apt manages, apk-cron on Alpine,
+// and dnf-automatic on Rocky Linux and AlmaLinux (check-updates.md §2). A read that fails is Unknown with the
 // error; a documented value it does not rank is Unknown with a finding
 // and no error; a state the facts read establish is reported whatever
 // else could not be read. Where hardn's record names a file the host no

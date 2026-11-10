@@ -72,7 +72,7 @@ const (
 	DetailInvalid        = "not valid in hardn.yml" // NotConfigured: hardn.yml's list is one dns.Validate refuses here
 	DetailNotRunning     = "resolved not running"   // NotConfigured: /etc/resolv.conf is systemd-resolved's link, and it does not run
 	DetailContainer      = "container"              // NotApplicable: the container's manager provides the file
-	DetailUnsupported    = "not supported"          // NotApplicable: not Debian, Ubuntu, Alpine or Proxmox VE
+	DetailUnsupported    = "not supported"          // NotApplicable: not Debian, Ubuntu, Alpine, Proxmox VE, Rocky Linux or AlmaLinux
 	DetailNetworkManager = "NetworkManager"         // NotApplicable: reported only (P-37 (a))
 	DetailResolvconf     = "resolvconf"             // NotApplicable: reported only
 	DetailOther          = "another program"        // NotApplicable: a link hardn does not know, or a file resolved reads as another's
