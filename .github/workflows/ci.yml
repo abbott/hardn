@@ -153,6 +153,12 @@ jobs:
             family: el
     container:
       image: ${{ matrix.image }}
+      # Rocky Linux's images set no PATH (their config holds only
+      # container=oci), and the runner builds a step's PATH on the image's:
+      # once setup-go added Go's, that was all PATH held, and the next step
+      # found no sh. This is the PATH the other images set.
+      env:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     defaults:
       run:
         shell: sh
