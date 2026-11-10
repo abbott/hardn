@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -333,18 +334,15 @@ const FirstRunQuestion = "No configuration file found. Would you like to create 
 // every prompt, so that a shell running hardn in a loop or a script stops,
 // and nothing is written.
 //
-// Ask discards what was typed before the question shows (brief 1C): it
-// can follow a long step, as LoadConfig runs mid-session too
-// (getConfigForSSHKeyPath in pkg/adapter/secondary) and asks again while
-// no file exists.
+// Ask discards what was typed before the question shows (brief 1C): a key
+// pressed while hardn started is not taken for the answer.
 func ShouldCreateDefaultConfig() bool {
 	if !terminals() {
 		return false
 	}
-	response, err := input().Ask(os.Stdout, FirstRunQuestion)
+	response, err := input().Ask(stdout(), FirstRunQuestion)
 	if errors.Is(err, prompt.ErrInterrupted) {
-		reraise()
-		exit(prompt.ExitInterrupted)
+		interrupted()
 	}
 	if err != nil {
 		return false // the end of the input, or a failed read or write
@@ -371,13 +369,13 @@ func CreateDefaultConfig(path string, config *Config) error {
 	if isInteractive() {
 		// Ask for username: none by default (refactor plan §3.11, "george"
 		// dropped), so that -c asks for -u and the screens for a name.
-		fmt.Print("Enter default username (optional, press Enter to skip): ")
+		fmt.Fprint(stdout(), "Enter default username (optional, press Enter to skip): ")
 		if username := strings.TrimSpace(readAnswer()); username != "" {
 			config.Username = username
 		}
 
 		// Ask for SSH port
-		fmt.Printf("Enter SSH port [%d]: ", config.SshPort)
+		fmt.Fprintf(stdout(), "Enter SSH port [%d]: ", config.SshPort)
 		portStr := readAnswer()
 		portStr = strings.TrimSpace(portStr)
 		if portStr != "" {
@@ -388,13 +386,13 @@ func CreateDefaultConfig(path string, config *Config) error {
 		}
 
 		// Ask for automatic updates
-		fmt.Print("Enable automatic security updates? [y/N]: ")
+		fmt.Fprint(stdout(), "Enable automatic security updates? [y/N]: ")
 		autoUpdates := readAnswer()
 		autoUpdates = strings.TrimSpace(strings.ToLower(autoUpdates))
 		config.EnableUnattendedUpgrades = (autoUpdates == "y" || autoUpdates == "yes")
 
 		// Ask for SSH key
-		fmt.Print("Add SSH public key (optional, press Enter to skip): ")
+		fmt.Fprint(stdout(), "Add SSH public key (optional, press Enter to skip): ")
 		sshKey := readAnswer()
 		sshKey = strings.TrimSpace(sshKey)
 		if sshKey != "" {
@@ -407,11 +405,11 @@ func CreateDefaultConfig(path string, config *Config) error {
 		return fmt.Errorf("failed to save default config to %s: %w", path, err)
 	}
 
-	fmt.Printf("Created configuration file at %s\n", path)
+	fmt.Fprintf(stdout(), "Created configuration file at %s\n", path)
 
 	// Ensure the example config exists and tell the user about it
 	if err := ensureExample(); err == nil {
-		fmt.Printf("A complete example configuration with all options is available at %s\n", ExampleConfigPath)
+		fmt.Fprintf(stdout(), "A complete example configuration with all options is available at %s\n", ExampleConfigPath)
 	}
 
 	return nil
@@ -474,6 +472,35 @@ var (
 	reraise = prompt.Reraise
 )
 
+var (
+	// Stdout is where the first-run question, CreateDefaultConfig's
+	// prompts and its lines are written; nil is os.Stdout as it is at each
+	// write. cmd/hardn sets its own, inside its output frame.
+	Stdout io.Writer
+	// BeforeInterrupt runs when Ctrl-C at those prompts is about to end
+	// hardn by SIGINT, after which nothing runs; nil does nothing. cmd/hardn
+	// closes its output frame there.
+	BeforeInterrupt func()
+)
+
+// stdout is Stdout, or os.Stdout.
+func stdout() io.Writer {
+	if Stdout != nil {
+		return Stdout
+	}
+	return os.Stdout
+}
+
+// interrupted ends hardn after Ctrl-C at a prompt: BeforeInterrupt, then
+// SIGINT (reraise), then exit status 130 if SIGINT cannot end it.
+func interrupted() {
+	if BeforeInterrupt != nil {
+		BeforeInterrupt()
+	}
+	reraise()
+	exit(prompt.ExitInterrupted)
+}
+
 // readAnswer reads one answer line through input. As with the bufio
 // reader each prompt made before, the end of the input and a read error
 // read as an empty answer, so the default applies, and nothing more is
@@ -489,8 +516,7 @@ var (
 func readAnswer() string {
 	line, err := input().ReadLine()
 	if errors.Is(err, prompt.ErrInterrupted) {
-		reraise()
-		exit(prompt.ExitInterrupted)
+		interrupted()
 	}
 	return line
 }

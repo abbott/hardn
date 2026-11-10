@@ -73,6 +73,58 @@ func useTerminals(t *testing.T, tty bool) {
 	t.Cleanup(func() { terminals = was })
 }
 
+// TestStdoutAndInterrupt: with Stdout set (cmd/hardn's output frame), the
+// first-run question, CreateDefaultConfig's prompts and its lines are
+// written there, not to os.Stdout;
+// Ctrl-C at them runs BeforeInterrupt before SIGINT ends hardn, as nothing
+// runs after it.
+func TestStdoutAndInterrupt(t *testing.T) {
+	prevOut, prevBefore := Stdout, BeforeInterrupt
+	t.Cleanup(func() { Stdout, BeforeInterrupt = prevOut, prevBefore })
+	useTerminals(t, true)
+	useReader(t, prompt.New(strings.NewReader("n\n"), true))
+	var buf strings.Builder
+	Stdout = &buf
+	out, _, ended := ask(t, func() {
+		if ShouldCreateDefaultConfig() {
+			t.Error("n created hardn.yml")
+		}
+	})
+	if ended || out != "" || buf.String() != FirstRunQuestion+" " {
+		t.Errorf("os.Stdout %q, Stdout %q (ended %v); want the question on Stdout alone", out, buf.String(), ended)
+	}
+
+	prevInteractive, prevExample := isInteractive, ensureExample
+	isInteractive = func() bool { return true }
+	ensureExample = func() error { return nil }
+	t.Cleanup(func() { isInteractive, ensureExample = prevInteractive, prevExample })
+	useReader(t, prompt.New(strings.NewReader("\n\n\n\n"), true))
+	buf.Reset()
+	path := filepath.Join(t.TempDir(), "hardn.yml")
+	out, _, ended = ask(t, func() {
+		if err := CreateDefaultConfig(path, DefaultConfig()); err != nil {
+			t.Error(err)
+		}
+	})
+	for _, want := range []string{"Enter default username", "Enter SSH port", "Enable automatic security updates", "Add SSH public key",
+		"Created configuration file at " + path, "A complete example configuration"} {
+		if !strings.Contains(buf.String(), want) {
+			t.Errorf("Stdout lacks %q:\n%s", want, buf.String())
+		}
+	}
+	if ended || out != "" {
+		t.Errorf("os.Stdout %q (ended %v), want nothing", out, ended)
+	}
+
+	var order []string
+	BeforeInterrupt = func() { order = append(order, "before") }
+	_, code, ended := ask(t, func() { interrupted() })
+	order = append(order, "ended")
+	if !ended || code != int(sigint) || strings.Join(order, ",") != "before,ended" {
+		t.Errorf("ended %v with %d, order %v; want BeforeInterrupt, then SIGINT", ended, code, order)
+	}
+}
+
 // TestShouldCreateDefaultConfig checks the first-run question on the
 // prompt kit (Ask): on a terminal its words, then Enter, y or yes create
 // hardn.yml and any other answer does not; the end of the input is no,

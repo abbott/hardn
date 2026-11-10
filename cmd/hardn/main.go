@@ -134,6 +134,11 @@ func init() {
 	})
 	cobra.OnInitialize(func() { usageDue = true }) // past the flags: only the arguments' check fails after it
 
+	// pkg/config's first-run question and its prompts, inside the output
+	// frame too, which closes before Ctrl-C there ends hardn.
+	config.Stdout = stdStream(func() *os.File { return os.Stdout })
+	config.BeforeInterrupt = outFrame.close
+
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
 	rootCmd.PersistentFlags().BoolVarP(&createUser, "create-user", "c", false, "Create non-root user with sudo access")

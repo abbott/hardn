@@ -337,7 +337,7 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
     ❯ Enter selection [0-10 or q]:
 ```
 
-A run's output on a terminal starts after a blank line and ends with one, so that it stands apart from the shell's prompt above and below: one frame around stdout and stderr together (`cmd/hardn` `frame.go`, the maintainer, 2026-11-10). A pipe, a file or the journal gets none. The main menu keeps its own rows, system-details' JSON is one document, and hardn.yml's first-run question is outside it.
+A run's output on a terminal starts after a blank line and ends with one, so that it stands apart from the shell's prompt above and below: one frame around stdout and stderr together (`cmd/hardn` `frame.go`, the maintainer, 2026-11-10). A pipe, a file or the journal gets none. The main menu keeps its own rows, and system-details' JSON is one document; hardn.yml's first-run question is inside it.
 
 **Export spacing and sizes:**
 - `space.gutter` (17 px) and the unnamed 18 px gap are about one cell; merged (drift D1).

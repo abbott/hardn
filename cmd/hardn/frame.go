@@ -19,8 +19,8 @@ import (
 //
 // The main menu keeps its own rows (it clears the screen, and leaves two
 // rows above the prompt as it ends), and system-details' JSON is one
-// document: both disarm the frame. pkg/config's first-run question writes
-// to os.Stdout itself, outside the frame.
+// document: both disarm the frame. pkg/config's first-run question and its
+// prompts are written inside it (config.Stdout, BeforeInterrupt).
 
 // frame is the output frame's state.
 type frame struct {
