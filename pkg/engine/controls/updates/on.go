@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/revert"
 )
@@ -31,10 +32,13 @@ func unreadRefusal(ctx context.Context, sys host.System, r Reading) error {
 		return nil
 	}
 	why := "hardn can't read how updates run here"
-	cause := errors.Join(r.StatusErr, r.AptErr, r.UpdatesErr, r.Updates.Err)
+	cause := errors.Join(r.StatusErr, r.AptErr, r.UpdatesErr, r.Updates.Err, r.DnfUpdates.Err())
 	switch {
-	case r.Facts.Platform.Distro.EL():
-		why = "hardn doesn't read dnf-automatic yet" // no apt to ask
+	case r.Dnf:
+		why = "hardn can't read dnf-automatic here"
+		if err := r.DnfUpdates.Err(); err != nil {
+			why += ": " + firstLine(err.Error())
+		}
 	case !r.Apk:
 		if res, err := sys.Run(ctx, "apt-config", dumpArgs...); err != nil {
 			why = "apt can't read its settings: " + strings.TrimPrefix(firstLine(string(res.Stderr)), "E: ")
@@ -58,8 +62,8 @@ func (c Auto) planOn(ctx context.Context, sys host.System, in engine.Input, r Re
 		return nil, c.recordRefusal(r.RecordErr)
 	case r.Apk:
 		return c.planApkOn(ctx, sys, in, r)
-	case r.Facts.Platform.Distro.EL(): // Unread there (read.go): never apt's plan
-		return nil, unreadRefusal(ctx, sys, r)
+	case r.Dnf:
+		return c.planDnfOn(ctx, sys, r)
 	}
 	return c.planAptOn(ctx, sys, in, r)
 }
@@ -259,7 +263,9 @@ func (c Auto) planApkOn(_ context.Context, _ host.System, _ engine.Input, r Read
 // plan read: the steps, the packages and what existed before (R2); the
 // change adds the time, the plan's id, the state read back and each file's
 // hash after.
-func (c Auto) recordOn(planned revert.RecordEntry, before []engine.Change) (engine.Change, error) {
+// fill adds, at apply, what an earlier change of the plan did (the conf
+// change's hashes and lines there).
+func (c Auto) recordOn(planned revert.RecordEntry, before []engine.Change, fill ...func(*revert.RecordEntry)) (engine.Change, error) {
 	name, err := c.RecordPath()
 	if err != nil {
 		return engine.Change{}, err
@@ -272,6 +278,9 @@ func (c Auto) recordOn(planned revert.RecordEntry, before []engine.Change) (engi
 				return engine.Ran{}, err
 			}
 			e := planned
+			for _, f := range fill {
+				f(&e)
+			}
 			now := time.Now
 			if c.Records.Now != nil {
 				now = c.Records.Now
@@ -282,7 +291,11 @@ func (c Auto) recordOn(planned revert.RecordEntry, before []engine.Change) (engi
 			if slices.Contains(e.Steps, stepFile) {
 				files[HardnFile] = "hardn"
 			}
+			if slices.Contains(e.Steps, stepConf) {
+				files[dnfauto.Conf] = dnfauto.Package
+			}
 			switch {
+			case run.Facts.Platform.Distro.EL():
 			case run.Facts.Platform.Distro == detect.DistroAlpine && slices.Contains(e.Steps, alpine.StepInstall.String()):
 				files[alpine.Script] = alpine.Package
 			case slices.Contains(e.Steps, stepInstall):

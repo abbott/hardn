@@ -37,6 +37,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/packages"
@@ -293,6 +294,7 @@ var sentinels = map[string]error{
 	"sshchange.ErrPVENoRootKey":       sshchange.ErrPVENoRootKey,
 	"sshchange.ErrPortRestricted":     sshchange.ErrPortRestricted,
 	"updates.ErrNotRead":              updates.ErrNotRead,
+	"dnfauto.ErrConf":                 dnfauto.ErrConf,
 	"updates.ErrPeriodicOff":          updates.ErrPeriodicOff,
 	"updates.ErrTimerOff":             updates.ErrTimerOff,
 	"updates.ErrJobMasked":            updates.ErrJobMasked,

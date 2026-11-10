@@ -62,9 +62,12 @@ func (c Auto) planOff(ctx context.Context, sys host.System, in engine.Input, r R
 	}
 	done := stepsDone(r.Record)
 	add := func(ch engine.Change) { ch.After = changeIDs(cs); cs = append(cs, ch) }
-	if r.Apk {
+	switch {
+	case r.Apk:
 		err = planApkOff(ctx, sys, r, done, add, &notes)
-	} else {
+	case r.Dnf:
+		err = planDnfOff(ctx, sys, r, done, add, &notes)
+	default:
 		err = planAptOff(ctx, sys, r, done, add, &notes)
 	}
 	if err != nil {
@@ -113,7 +116,7 @@ func offReadBack(ctx context.Context, sys host.System, f detect.Facts) error {
 	}
 	if st.State == engine.Configured || st.State == engine.Partial {
 		why := "apt still reads updates as on after the change (" + st.Detail + ")"
-		if f.Platform.Distro == detect.DistroAlpine {
+		if f.Platform.Distro == detect.DistroAlpine || f.Platform.Distro.EL() {
 			why = "updates still run after the change (" + st.Detail + ")"
 		}
 		return refuse(codeNotInEffect, ErrNotInEffect, nil, why, "find what turns them on, then try again")
@@ -124,6 +127,14 @@ func offReadBack(ctx context.Context, sys host.System, f detect.Facts) error {
 // withReadBack adds mine, its last change reading the setting back after
 // its own step (offReadBack), so that an off still on fails, rolled back.
 func withReadBack(mine []engine.Change, add func(engine.Change)) {
+	withCheck(mine, add, func(ctx context.Context, sys host.System, run engine.Run) error {
+		return offReadBack(ctx, sys, run.Facts)
+	})
+}
+
+// withCheck adds mine, its last change running check after its own step,
+// so that a check that fails fails the change, rolled back.
+func withCheck(mine []engine.Change, add func(engine.Change), check func(context.Context, host.System, engine.Run) error) {
 	if len(mine) == 0 {
 		return
 	}
@@ -134,7 +145,7 @@ func withReadBack(mine []engine.Change, add func(engine.Change)) {
 		if err != nil {
 			return ran, err
 		}
-		return ran, offReadBack(ctx, sys, run.Facts)
+		return ran, check(ctx, sys, run)
 	}
 	for _, c := range mine {
 		add(c)

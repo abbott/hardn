@@ -405,6 +405,27 @@ func TestAutoUpdatesAlpine(t *testing.T) {
 	held(t, "alpine323 with updates", h, r)
 }
 
+// TestAutoUpdatesRocky: on Rocky Linux, where hardn.yml asks for updates
+// (enableUnattendedUpgrades), the Auto Updates row plans dnf-automatic on,
+// as it plans unattended-upgrades on elsewhere (el-updates.md §1.4):
+// dnf-automatic's install is in the one plan.
+func TestAutoUpdatesRocky(t *testing.T) {
+	p := debian13()
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	p.facts.SSH.SSHDUnits = true
+	h := withYML(t, vm(p), "enableUnattendedUpgrades: true\n")
+	r := h.read(t, "rocky")
+	rw, _ := r.Row(updates.ID)
+	if c, ok := rw.Control.(updates.Auto); rw.Kind != runall.Planned || rw.Words != "Turn on" || !ok || c.Action != updates.AutoOn {
+		t.Errorf("auto updates: %v %q (%v), want planned, Turn on", rw.Kind, rw.Words, rw.Err)
+	}
+	if r.Plan == nil || !slices.ContainsFunc(r.Plan.Changes, func(c engine.Change) bool { return c.ID == updates.ChangeInstall }) {
+		t.Errorf("dnf-automatic's install is not in the one plan")
+	}
+	held(t, "rocky with updates", h, r)
+	checkHost(t, "rocky", h.sshHost)
+}
+
 // noPasswd is a host whose /etc/passwd cannot be read: Read's System, the
 // engine's still the host, so Create plans (the name taken) and the users
 // read fails.

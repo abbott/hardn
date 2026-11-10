@@ -12,7 +12,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host/alpine"
-	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 )
@@ -103,8 +102,6 @@ func TestRefusals(t *testing.T) {
 		}, false, "UPDATES_NOT_IN_REPOS", updates.ErrNotInRepos, "hardn can't find unattended-upgrades in apt's package lists. run apt-get update, then try again"},
 		{"not-read on", notRead, false, "UPDATES_NOT_READ", updates.ErrNotRead, "apt can't read its settings: Syntax error /etc/apt/apt.conf.d/99site:1: Extra junk at end of file. fix that, then try again"},
 		{"not-read off", notRead, true, "UPDATES_NOT_READ", updates.ErrNotRead, "apt can't read its settings: Syntax error /etc/apt/apt.conf.d/99site:1: Extra junk at end of file. fix that, then try again"},
-		{"Rocky Linux on", func(t *testing.T) *model { return newModel(t, rocky102()) }, false, "UPDATES_NOT_READ", updates.ErrNotRead, "hardn doesn't read dnf-automatic yet. fix that, then try again"},
-		{"Rocky Linux off", func(t *testing.T) *model { return newModel(t, rocky102()) }, true, "UPDATES_NOT_READ", updates.ErrNotRead, "hardn doesn't read dnf-automatic yet. fix that, then try again"},
 		{"edited", func(t *testing.T) *model {
 			m := installer(t).applied(updates.AutoOn)
 			m.file(hardnFile, bothLines+"APT::Periodic::Enable \"1\";\n")
@@ -808,36 +805,5 @@ func TestApkOffReadBack(t *testing.T) {
 	}
 	if !m.apkCron || record(t, m) == nil {
 		t.Error("not rolled back")
-	}
-}
-
-// TestReadRocky: on Rocky Linux the screen's reading runs no apt reads:
-// apt's settings are unread with the check's reason, so the screen says
-// Can't read (not "apt's settings") and on and off are refused (Unread).
-func TestReadRocky(t *testing.T) {
-	m := newModel(t, rocky102())
-	r, err := control(updates.AutoNone).Read(context.Background(), m.f, m.facts, nil)
-	if err != nil || r.Status.State != engine.Unknown || !errors.Is(r.AptErr, detect.ErrUnrecognised) || !r.Unread() {
-		t.Fatalf("read: err %v, %s, apt %v, unread %v", err, r.Status.State, r.AptErr, r.Unread())
-	}
-	if on, off := r.Blocked(false), r.Blocked(true); on != "Can't read" || off != "Can't read" {
-		t.Errorf("blocked %q, %q", on, off)
-	}
-	if runs := m.f.Runs(); len(runs) != 0 {
-		t.Errorf("ran %q", runs)
-	}
-}
-
-// TestPlanRockyRunsNothing: on Rocky Linux neither direction runs a command
-// (no apt-config, no dpkg-query) before its refusal.
-func TestPlanRockyRunsNothing(t *testing.T) {
-	for _, a := range []updates.AutoAction{updates.AutoOn, updates.AutoOff} {
-		m := newModel(t, rocky102())
-		if _, err := control(a).Plan(context.Background(), m.f, engine.Input{Facts: m.facts, Config: &config.Config{}}); !errors.Is(err, updates.ErrNotRead) {
-			t.Errorf("action %v: %v, want ErrNotRead", a, err)
-		}
-		if runs := m.f.Runs(); len(runs) != 0 {
-			t.Errorf("action %v ran %q", a, runs)
-		}
 	}
 }

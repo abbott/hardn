@@ -81,9 +81,9 @@ var matrix = []Release{
 	{DistroAlpine, "3.24", Supported, ""},
 	{DistroAlpine, "3.23", Supported, ""},
 	{DistroProxmox, "9", Supported, ""},
-	// Rocky Linux and AlmaLinux: changes that move no SSH port, no
-	// firewall, no automatic updates and no DNS (docs/engine/el-changes.md).
-	// A VM run covered Rocky Linux 10 alone.
+	// Rocky Linux and AlmaLinux: every change but DNS (el-changes.md,
+	// el-ports.md, el-firewalld.md, el-updates.md). VM runs covered Rocky
+	// Linux 10 alone.
 	{DistroRocky, "10", Supported, ""},
 	{DistroRocky, "9", Supported, ""},
 	{DistroAlma, "10", Supported, ""},

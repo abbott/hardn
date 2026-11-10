@@ -593,3 +593,118 @@ func TestExecuteRefuses(t *testing.T) {
 		t.Errorf("done ctx ran %q", got)
 	}
 }
+
+// dnfRemoveTable is dnf remove --assumeno's table [I: the install
+// simulation's form, probe 4, with dnf's "Removing:" heading].
+func dnfRemoveTable(sections string) hostfake.Response {
+	return hostfake.Response{Stdout: dnfHead + sections + "\nTransaction Summary\n" + strings.Repeat("=", 80) + "\nRemove  1 Package\n", Stderr: dnfAborted, ExitCode: 1}
+}
+
+// TestPlanRemove: dnf alone; not installed plans nothing; the package
+// alone under "Removing:" plans its remove and, as undo, its install; a
+// dependent package removed with it, or another section, is refused; the
+// lock is ErrLocked; a simulation listing nothing ("Nothing to do.") is
+// ErrUnrecognised, and rpm -q unread plans nothing more. Each reads only:
+// rpm -q, then the simulation.
+func TestPlanRemove(t *testing.T) {
+	ctx := context.Background()
+	sim := []string{"dnf", "remove", "--assumeno", "--noautoremove", "--setopt=exit_on_lock=True", "dnf-automatic"}
+	if _, err := packages.PlanRemove(ctx, hostfake.New(host.Options{}), packages.Apt, "dnf-automatic"); !errors.Is(err, fs.ErrInvalid) {
+		t.Errorf("apt: %v", err)
+	}
+	h := absent(packages.Dnf, "dnf-automatic")
+	if r, err := packages.PlanRemove(ctx, h, packages.Dnf, "dnf-automatic"); err != nil || !r.Empty() || len(h.Runs()) != 1 {
+		t.Errorf("not installed: %+v, %v", r, err)
+	}
+	h = hostfake.New(host.Options{})
+	respond(h, hostfake.Response{Stderr: "error: rpmdb: damaged header\n", ExitCode: 1}, rpmQ("dnf-automatic"))
+	respond(h, dnfRemoveTable("Removing:\n dnf-automatic     noarch     4.20.0-22.el10_2.rocky.0.1       @baseos     79 k\n"), sim)
+	if r, err := packages.PlanRemove(ctx, h, packages.Dnf, "dnf-automatic"); !errors.Is(err, detect.ErrUnrecognised) || len(h.Runs()) != 1 {
+		t.Errorf("rpm -q unread: %+v, %v, ran %q", r, err, runs(h))
+	}
+	row := " dnf-automatic     noarch     4.20.0-22.el10_2.rocky.0.1       @baseos     79 k\n"
+	for _, c := range []struct {
+		name         string
+		r            hostfake.Response
+		changes      []string
+		locked       bool
+		unrecognised bool
+	}{
+		{name: "alone", r: dnfRemoveTable("Removing:\n" + row)},
+		{name: "a dependent package too", r: dnfRemoveTable("Removing:\n" + row + "Removing dependent packages:\n cockpit-pkg       noarch     1-1                              @appstream  10 k\n"), changes: []string{"Removing cockpit-pkg"}},
+		{name: "another package under Removing", r: dnfRemoveTable("Removing:\n" + row + " other             noarch     1-1                              @baseos     1 k\n"), changes: []string{"dnf-automatic", "other"}},
+		{name: "the lock", r: hostfake.Response{Stderr: "Error: [Errno 11] Resource temporarily unavailable\n", ExitCode: 200}, locked: true},
+		{name: "nothing listed", r: hostfake.Response{Stdout: "Dependencies resolved.\nNothing to do.\nComplete!\n"}, unrecognised: true},
+	} {
+		h := hostfake.New(host.Options{})
+		respond(h, hostfake.Response{Stdout: "dnf-automatic-4.20.0-22.el10_2.rocky.0.1.noarch\n"}, rpmQ("dnf-automatic"))
+		respond(h, c.r, sim)
+		r, err := packages.PlanRemove(ctx, h, packages.Dnf, "dnf-automatic")
+		var other *packages.OtherPackagesError
+		switch {
+		case c.locked:
+			if !errors.Is(err, packages.ErrLocked) {
+				t.Errorf("%s: %v", c.name, err)
+			}
+		case c.unrecognised:
+			if !errors.Is(err, detect.ErrUnrecognised) {
+				t.Errorf("%s: %+v, %v", c.name, r, err)
+			}
+		case c.changes != nil:
+			if !errors.As(err, &other) || !slices.Equal(other.Changes, c.changes) {
+				t.Errorf("%s: %+v, %v", c.name, r, err)
+			}
+		default:
+			if err != nil || r.Name != "dnf-automatic" || !slices.Equal(r.Argv, []string{"dnf", "remove", "-y", "--noautoremove", "--setopt=exit_on_lock=True", "dnf-automatic"}) ||
+				!slices.Equal(r.Undo, []string{"dnf", "install", "-y", "--setopt=install_weak_deps=False", "--setopt=exit_on_lock=True", "dnf-automatic"}) {
+				t.Errorf("%s: %+v, %v", c.name, r, err)
+			}
+		}
+		if got := h.Runs(); len(got) != 2 || !slices.Equal(got[1], sim) {
+			t.Errorf("%s: runs %q", c.name, runs(h))
+		}
+	}
+}
+
+// TestExecuteRemove: the remove runs, then rpm -q must say not installed
+// (unread is ErrVerify, wrapping why); a removal not PlanRemove's, or a
+// cancelled ctx, runs nothing.
+func TestExecuteRemove(t *testing.T) {
+	ctx := context.Background()
+	r := packages.Removal{Name: "dnf-automatic", Argv: []string{"dnf", "remove", "-y", "--noautoremove", "--setopt=exit_on_lock=True", "dnf-automatic"},
+		Undo: []string{"dnf", "install", "-y", "--setopt=install_weak_deps=False", "--setopt=exit_on_lock=True", "dnf-automatic"}}
+	for _, after := range []hostfake.Response{rpmAbsent("dnf-automatic"), {Stdout: "dnf-automatic-4.20.0-22.el10_2.rocky.0.1.noarch\n"}} {
+		h := hostfake.New(host.Options{})
+		respond(h, hostfake.Response{}, r.Argv)
+		respond(h, after, rpmQ("dnf-automatic"))
+		err := packages.ExecuteRemove(ctx, h, r)
+		if gone := after.ExitCode == 1; (err == nil) != gone || !gone && !errors.Is(err, packages.ErrVerify) {
+			t.Errorf("after %q: %v", after.Stdout, err)
+		}
+	}
+	h := hostfake.New(host.Options{})
+	respond(h, hostfake.Response{}, r.Argv)
+	respond(h, hostfake.Response{Stderr: "error: rpmdb: damaged header\n", ExitCode: 1}, rpmQ("dnf-automatic"))
+	if err := packages.ExecuteRemove(ctx, h, r); !errors.Is(err, packages.ErrVerify) || !errors.Is(err, detect.ErrUnrecognised) {
+		t.Errorf("rpm -q unread after: %v", err)
+	}
+	for name, edit := range map[string]func(*packages.Removal){
+		"other remove": func(b *packages.Removal) { b.Argv = []string{"dnf", "remove", "-y", "dnf-automatic"} },
+		"other undo":   func(b *packages.Removal) { b.Undo = []string{"dnf", "install", "-y", "dnf-automatic"} },
+	} {
+		bad := r
+		edit(&bad)
+		h := hostfake.New(host.Options{})
+		if err := packages.ExecuteRemove(ctx, h, bad); !errors.Is(err, fs.ErrInvalid) || len(h.Runs()) != 0 {
+			t.Errorf("%s: %v, ran %q", name, err, runs(h))
+		}
+	}
+	cctx, cancel := context.WithCancel(ctx)
+	cancel()
+	h = hostfake.New(host.Options{})
+	respond(h, hostfake.Response{}, r.Argv)
+	respond(h, rpmAbsent("dnf-automatic"), rpmQ("dnf-automatic"))
+	if err := packages.ExecuteRemove(cctx, h, r); !errors.Is(err, context.Canceled) || len(h.Runs()) != 0 {
+		t.Errorf("cancelled: %v, ran %q", err, runs(h))
+	}
+}

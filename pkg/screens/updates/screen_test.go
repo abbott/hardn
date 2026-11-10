@@ -14,6 +14,7 @@ import (
 	updatesctl "github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
 	updscreen "github.com/abbott/hardn/pkg/screens/updates"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -46,7 +47,10 @@ func TestHosts(t *testing.T) {
 		"timer-off": {"upgrade timer off", enable}, "by-hardn-debian": {"unattended-upgrades", disable}, "by-hardn-alpine": {"apk-cron", disable},
 		"edited": {"unattended-upgrades", disable}, "crond-shared": {"apk-cron", disable}, "dormant-jobs": {"no apk-cron", enable},
 		"config-files": {"no unattended-upgrades", enable}, "legacy-alpine": {"no apk-cron", enable}, "pve9": {"updated by hand", readOnly},
-		"not-read":      {"can't read", enable},
+		"not-read": {"can't read", enable},
+		"rocky102": {"no dnf-automatic", enable}, "rocky-timers-off": {"install timer off", enable}, "by-hardn-rocky": {"dnf-automatic, security", disable},
+		"rocky-all-updates": {"dnf-automatic, all updates", readOnly}, "rocky-masked": {"install timer off", enable},
+		"rocky-plain-timer": {"dnf-automatic, all updates", readOnly}, "rocky-reboot": {"install timer off", enable},
 		"edited-alpine": {"apk-cron", disable}, "enable-off": {"upgrades off", enable}, "own-file": {"unattended-upgrades", disable},
 		"masked": {"upgrades off", enable}, "missing": {"upgrades off", enable}, "no-origin": {"upgrades off", enable},
 		"extra-packages": {"no unattended-upgrades", enable}, "later-file": {"upgrades off", enable}, "no-record": {"unattended-upgrades", disable},
@@ -113,6 +117,7 @@ func TestRefusals(t *testing.T) {
 		{"corrupt-record", "hardn can't read its record of what it changed", "Can't read hardn's record"},
 		{"purge-extra", "would also change other packages", "Undo hardn's changes"},
 		{"apk-del-extra", "would also change other packages", "Undo hardn's changes"},
+		{"rocky-masked", dnfauto.InstallTimer + " is masked, and hardn leaves a mask it didn't make", "Install timer is masked"},
 	} {
 		for _, dryRun := range []bool{false, true} {
 			m := newHost(t, tt.host)
@@ -129,7 +134,7 @@ func TestRefusals(t *testing.T) {
 			}
 		}
 	}
-	for _, host := range []string{"pve9", "debian13", "ubuntu2604"} {
+	for _, host := range []string{"pve9", "debian13", "ubuntu2604", "rocky-all-updates", "rocky-plain-timer"} {
 		m := newHost(t, host)
 		n := len(m.f.Calls())
 		p := play(m, false, "1", "0")
@@ -170,6 +175,70 @@ func TestApply(t *testing.T) {
 			t.Errorf("%s: the record %v, want there %v", tt.host, err, tt.record)
 		}
 	}
+}
+
+// TestApplyRocky: on Rocky Linux, Enable then Disable through the screen
+// (el-updates.md §1.2, §1.3). Enable reviews and applies dnf-automatic's
+// install, upgrade_type = security, the install timer enabled and
+// started, then the record; Disable stops and disables the timer, puts the
+// line back, removes the package (no .rpmsave left), then deletes the
+// record. Each screen is drawn again from a fresh reading.
+func TestApplyRocky(t *testing.T) {
+	ctx := context.Background()
+	m := newHost(t, "rocky102")
+	steps := []struct {
+		question, after, row string
+		review, writes       []string
+	}{
+		{askOn, disable, "Configured dnf-automatic, security",
+			[]string{"Install dnf-automatic", "Security updates only", "$ set [commands] upgrade_type = security", "Turn on daily security updates",
+				"$ systemctl enable dnf-automatic-install.timer", "$ systemctl start dnf-automatic-install.timer", "Record hardn's changes"},
+			[]string{"dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic", "write-atomic " + dnfauto.Conf,
+				"systemctl enable " + dnfauto.InstallTimer, "systemctl start " + dnfauto.InstallTimer, "write-atomic " + recordPath}},
+		{askOff, enable, "Not Configured no dnf-automatic",
+			[]string{"Turn off daily updates", "$ systemctl stop dnf-automatic-install.timer", "$ systemctl disable dnf-automatic-install.timer",
+				"Put back the update type", "-upgrade_type = security", "+upgrade_type = default", "Remove dnf-automatic", "Delete hardn's record"},
+			[]string{"systemctl stop " + dnfauto.InstallTimer, "systemctl disable " + dnfauto.InstallTimer, "write-atomic " + dnfauto.Conf,
+				"dnf remove -y --noautoremove --setopt=exit_on_lock=True dnf-automatic", "remove " + recordPath}},
+	}
+	for i, st := range steps {
+		n := len(m.f.Calls())
+		p := play(m, false, "1", "y", "0")
+		ss := screens(p.out)
+		if p.err != nil || p.unread != 0 || p.engines != 2 || len(p.runs) != 1 || p.runs[0].Err != nil || !strings.Contains(p.out, st.question+" [y/N") {
+			t.Fatalf("step %d: Run = %v, %d engines, runs %+v:\n%s", i, p.err, p.engines, p.runs, p.out)
+		}
+		for _, w := range st.review {
+			if !strings.Contains(p.out, w) {
+				t.Errorf("step %d: %q not in the review:\n%s", i, w, p.out)
+			}
+		}
+		if wr := writes(m, n); !inOrder(wr, st.writes) {
+			t.Errorf("step %d: wrote %q, want %q in that order", i, wr, st.writes)
+		}
+		if len(ss) != 2 || !strings.Contains(ss[1], "1) "+st.after) || !strings.Contains(ss[1], st.row) {
+			t.Errorf("step %d: %d screens, the last not %s, %s:\n%s", i, len(ss), st.row, st.after, p.out)
+		}
+	}
+	if m.dnfAuto {
+		t.Errorf("dnf-automatic still installed")
+	}
+	for _, name := range []string{dnfauto.Conf, dnfauto.Conf + ".rpmsave", recordPath} {
+		if _, err := m.f.Lstat(ctx, name); !errors.Is(err, fs.ErrNotExist) {
+			t.Errorf("%s left: %v", name, err)
+		}
+	}
+}
+
+// inOrder reports whether got holds want's items in want's order.
+func inOrder(got, want []string) bool {
+	i := 0
+	for _, g := range got {
+		if i < len(want) && g == want[i] {
+			i++
+		}
+	}
+	return i == len(want)
 }
 
 // TestFailedApply: Enable on later-file fails its read-back, as a file
@@ -370,6 +439,8 @@ func TestHeights(t *testing.T) {
 		"alpine323": 17, "dormant-jobs": 18, "legacy-alpine": 18, "not-read": 18,
 		"by-hardn-alpine": 19, "debian-installer": 20, "debian-off": 20, "timer-off": 20, "crond-shared": 20, "config-files": 20, "lists-stale": 21,
 		"by-hardn-debian": 21, "debian13": 22, "ubuntu2604": 22, "edited": 22, "pve9": 22,
+		"rocky102": 16, "rocky-timers-off": 18, "rocky-masked": 18, "by-hardn-rocky": 19, "rocky-all-updates": 20, "rocky-plain-timer": 20,
+		"rocky-reboot": 19,
 	}
 	for _, rows := range []int{24, 40} {
 		for _, unicode := range []bool{true, false} {

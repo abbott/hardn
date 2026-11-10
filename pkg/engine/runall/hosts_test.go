@@ -25,7 +25,8 @@ import (
 // there says; Auto Updates' model is not copied, so hardn.yml asks it
 // nothing here but on Proxmox VE, where its check says Not Applicable
 // before anything is read, and on the refused host (the gallery holds it
-// planned and refused); TestAutoUpdatesAlpine plans it on Alpine.
+// planned and refused); TestAutoUpdatesAlpine plans it on Alpine, and
+// TestAutoUpdatesRocky on Rocky Linux.
 
 // debianMain is the Debian 13 VM's sshd_config as sshd reads it.
 const debianMain = sshd.IncludeLine + "\n\nKbdInteractiveAuthentication no\nPasswordAuthentication no\nUsePAM yes\n"

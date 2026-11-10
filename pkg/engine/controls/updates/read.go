@@ -16,6 +16,8 @@ import (
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/aptconf"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
+	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/revert"
 )
 
@@ -40,6 +42,7 @@ type Reading struct {
 	StatusErr error
 	PVE       bool // Proxmox VE (decision 7)
 	Apk       bool // Alpine: apk-cron, not apt
+	Dnf       bool // Rocky Linux, AlmaLinux: dnf-automatic, not apt
 	// apt: each value and the file that sets it (aptconf.Read over the
 	// check's roots), or AptErr; the package; the timers; whether an origin
 	// is allowed (the check's own reading); hardn's own file holding bytes
@@ -55,6 +58,9 @@ type Reading struct {
 	Own            bool
 	Present        []string
 	StayOn         string
+	// Rocky Linux and AlmaLinux: dnfauto.Read's; Package and PackageErr
+	// mirror its package, for the screen.
+	DnfUpdates dnfauto.Updates
 	// Alpine: alpine.ReadUpdates', and the other jobs crond runs.
 	Updates    alpine.Updates
 	UpdatesErr error
@@ -76,7 +82,7 @@ type Reading struct {
 // read that fails is kept beside what it would have given; Read itself
 // returns no error but ctx's.
 func (c Auto) Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Config) (Reading, error) {
-	r := Reading{Facts: f, Config: cfg, PVE: f.Platform.Distro == detect.DistroProxmox, Apk: f.Platform.Distro == detect.DistroAlpine}
+	r := Reading{Facts: f, Config: cfg, PVE: f.Platform.Distro == detect.DistroProxmox, Apk: f.Platform.Distro == detect.DistroAlpine, Dnf: f.Platform.Distro.EL()}
 	if err := ctx.Err(); err != nil {
 		return r, err
 	}
@@ -91,8 +97,11 @@ func (c Auto) Read(ctx context.Context, sys host.System, f detect.Facts, cfg *co
 		r.Jobs, r.JobsErr = alpine.OtherJobs(ctx, sys)
 		r.Changed = changedFile(ctx, sys, r.Record, alpine.Script)
 		r.PackageGone = r.Record != nil && installedBy(r.Record) && r.Updates.Package == detect.No
-	} else if f.Platform.Distro.EL() {
-		r.AptErr = errNoDnf(f) // no apt to read; the screen says Can't read, and on and off are refused (Unread)
+	} else if r.Dnf {
+		r.DnfUpdates = dnfauto.Read(ctx, sys)
+		r.Package, r.PackageErr = r.DnfUpdates.Package, r.DnfUpdates.PackageErr
+		r.Changed = changedFile(ctx, sys, r.Record, dnfauto.Conf)
+		r.PackageGone = r.Record != nil && installedBy(r.Record) && r.DnfUpdates.Package == detect.No
 	} else {
 		r.Apt, r.AptErr = aptconf.Read(ctx, sys, dumpArgs[1:]...)
 		r.Package, r.PackageErr = detect.DpkgInstalled(ctx, sys, Package)
@@ -115,7 +124,7 @@ func (c Auto) Read(ctx context.Context, sys host.System, f detect.Facts, cfg *co
 			r.StayOn = r.stayOnWithout()
 		}
 	}
-	if why, ok := staleFinding(r.Changed, r.PackageGone, r.Apk); ok && r.Status.State != engine.NotApplicable {
+	if why, ok := staleFinding(r.Changed, r.PackageGone, packageQuery(f)); ok && r.Status.State != engine.NotApplicable {
 		r.Status.Findings = append(r.Status.Findings, why)
 	}
 	return r, ctx.Err()
@@ -145,8 +154,11 @@ func (r Reading) ByHardn() bool { return r.Record != nil || r.Own || r.RecordErr
 
 // Unread is whether a fact either direction needs is not established.
 func (r Reading) Unread() bool {
-	if r.Apk {
+	switch {
+	case r.Apk:
 		return r.UpdatesErr != nil || r.Updates.Err != nil || r.Status.State == engine.Unknown
+	case r.Dnf:
+		return r.DnfUpdates.Err() != nil || r.Status.State == engine.Unknown
 	}
 	return r.AptErr != nil || r.Status.State == engine.Unknown
 }
@@ -196,6 +208,8 @@ func (r Reading) Blocked(off bool) string {
 		return path.Base(r.StayOn) + " keeps updates on"
 	case off || r.Apk:
 		return ""
+	case r.Dnf:
+		return dnfBlocked(r)
 	}
 	if _, off := r.enableOff(); off {
 		return descEnableOff
@@ -239,10 +253,15 @@ func (r Reading) stayOnWithout() string {
 
 // onNotes are Enable's review lines beyond the change: on Alpine the jobs
 // a stopped crond also starts (decision 6); on apt, the package's files
-// there before its install, which it keeps (R2).
+// there before its install, which it keeps (R2); on Rocky Linux and
+// AlmaLinux, the restarts automatic.conf asks for, which hardn leaves.
 func (r Reading) onNotes() []Note {
 	var out []Note
 	switch {
+	case r.Dnf:
+		if v := RebootValue(r.DnfUpdates.Reboot); v != "" {
+			out = append(out, Note{Key: KeyRestarts, Value: v, Note: NoteByConf, Warn: true})
+		}
 	case r.Apk && r.Updates.Crond != alpine.CrondStarted && len(r.Jobs) > 0:
 		var names []string
 		for _, j := range r.Jobs {
@@ -272,31 +291,48 @@ func (c Auto) stale(ctx context.Context, sys host.System, f detect.Facts) (engin
 	if err != nil || rec == nil {
 		return engine.Finding{}, false
 	}
-	apk := f.Platform.Distro == detect.DistroAlpine
 	name, gone := HardnFile, false
-	if apk {
+	var t detect.Tri
+	switch {
+	case f.Platform.Distro == detect.DistroAlpine:
 		name = alpine.Script
 		if installedBy(rec) {
-			t, err := alpine.Installed(ctx, sys, alpine.Package)
+			t, err = alpine.Installed(ctx, sys, alpine.Package)
 			gone = err == nil && t == detect.No
 		}
-	} else if installedBy(rec) {
-		t, err := detect.DpkgInstalled(ctx, sys, Package)
+	case f.Platform.Distro.EL():
+		name = dnfauto.Conf
+		if installedBy(rec) {
+			t, err = packages.Installed(ctx, sys, packages.Dnf, dnfauto.Package)
+			gone = err == nil && t == detect.No
+		}
+	case installedBy(rec):
+		t, err = detect.DpkgInstalled(ctx, sys, Package)
 		gone = err == nil && t == detect.No
 	}
-	return staleFinding(changedFile(ctx, sys, rec, name), gone, apk)
+	return staleFinding(changedFile(ctx, sys, rec, name), gone, packageQuery(f))
+}
+
+// packageQuery is the read that says the package hardn installed is gone:
+// apk's, rpm's or dpkg's.
+func packageQuery(f detect.Facts) string {
+	switch {
+	case f.Platform.Distro == detect.DistroAlpine:
+		return "apk info -e " + alpine.Package
+	case f.Platform.Distro.EL():
+		return "rpm -q " + dnfauto.Package
+	}
+	return "dpkg-query --show " + Package
 }
 
 // staleFinding is CodeChangedSince for a file changed (its path the
-// source) or the package gone.
-func staleFinding(changed string, gone, apk bool) (engine.Finding, bool) {
+// source) or the package gone (query the source).
+func staleFinding(changed string, gone bool, query string) (engine.Finding, bool) {
 	switch {
 	case changed != "":
 		return engine.Finding{Code: CodeChangedSince, Detail: DetailChangedSince, Source: changed}, true
-	case gone && apk:
-		return engine.Finding{Code: CodeChangedSince, Detail: DetailChangedSince, Source: "apk info -e " + alpine.Package}, true
 	case gone:
-		return engine.Finding{Code: CodeChangedSince, Detail: DetailChangedSince, Source: "dpkg-query --show " + Package}, true
+		return engine.Finding{Code: CodeChangedSince, Detail: DetailChangedSince, Source: query}, true
 	}
 	return engine.Finding{}, false
 }

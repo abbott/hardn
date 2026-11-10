@@ -175,6 +175,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SSHD_FILE_CHANGED` | 1 | a file the SSH change writes is not as the plan read it |
 | `PVE_ROOT_LOGIN_NOT_KEPT` | 1 | the cluster's root SSH login by key would not be kept |
 | `SSH_CLEANUP_SESSION_NOT_KEPT` | 1 | the clean-up's session is not connected to a port it keeps (`hardn confirm`'s clean-up, P-40) |
+| `UPDATES_DNF_CONF` | 1 | on Rocky Linux and AlmaLinux, /etc/dnf/automatic.conf isn't in a form hardn reads or edits: no [commands], upgrade_type, apply_updates or reboot twice there or in another case, or a value dnf doesn't take; missing; or there before dnf-automatic is installed ([el-updates.md](../engine/el-updates.md)) |
 | `UPDATES_NOT_READ` | 1 | how updates run is not read, so no change is planned (the Auto Updates screen's refusals, `updates.Err*`; new in `next/s7-control`, [control-updates.md](../engine/control-updates.md)) |
 | `UPDATES_PERIODIC_OFF` | 1 | APT::Periodic::Enable turns apt's daily jobs off |
 | `UPDATES_TIMER_OFF` | 1 | an apt timer is off |
@@ -184,7 +185,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UPDATES_PROXMOX` | 1 | hardn does not change updates on Proxmox VE |
 | `UPDATES_OTHER_PACKAGES` | 1 | the package change would change other packages |
 | `UPDATES_NOT_IN_REPOS` | 1 | unattended-upgrades is not in apt's package lists |
-| `UPDATES_NOT_IN_EFFECT` | 1 | apt does not read the update setting as changed |
+| `UPDATES_NOT_IN_EFFECT` | 1 | the update setting does not read back as changed |
 | `UPDATES_RECORD_UNREADABLE` | 1 | hardn's record of the updates it turned on cannot be read |
 | `UPDATES_CHANGED_SINCE` | 1 | a file hardn left changed since |
 | `UPDATES_NOTHING_TO_UNDO` | 1 | hardn did not turn updates on |

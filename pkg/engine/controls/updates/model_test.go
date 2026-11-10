@@ -77,6 +77,12 @@ type model struct {
 	notInRepos bool
 	confTail   string            // after the conffile's MD5 in dpkg-query's Conffiles, " obsolete" say
 	units      map[string]string // systemctl's state by "<verb> <unit>"
+	// Rocky Linux: dnf-automatic installed; the install's and the
+	// remove's simulations, where not dnf's table of the package alone;
+	// the systemctl verbs that don't take
+	dnfAuto               bool
+	dnfInstall, dnfRemove *hostfake.Response
+	noTake                map[string]bool
 	// Alpine
 	apkCron, crond bool
 	crashed        bool // rc-service crond status: crashed (exit 32)
@@ -200,7 +206,9 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			return hostfake.Response{Stdout: "install ok installed\t2.12\n"}
 		}
 		return hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}
-	case argv[0] == "systemctl" && len(argv) == 3:
+	case argv[0] == "systemctl" && len(argv) == 3 && (argv[1] == "is-active" || argv[1] == "is-enabled") && m.unitGone(argv[1], argv[2]):
+		return hostfake.Response{Stdout: map[string]string{"is-active": "inactive", "is-enabled": "not-found"}[argv[1]] + "\n", ExitCode: 4}
+	case argv[0] == "systemctl" && len(argv) == 3 && (argv[1] == "is-active" || argv[1] == "is-enabled"):
 		st, ok := m.units[argv[1]+" "+argv[2]]
 		switch {
 		case ok:
@@ -212,6 +220,8 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			st = "enabled"
 		}
 		return hostfake.Response{Stdout: st + "\n", ExitCode: exitOf(st)}
+	case argv[0] == "rpm" || argv[0] == "dnf" || argv[0] == "systemctl" && len(argv) == 3 && slices.Contains([]string{"enable", "disable", "start", "stop"}, argv[1]):
+		return m.dnf(ctx, argv)
 	case cmd == "dpkg-query -W -f=${Conffiles}\\n "+uuName:
 		if !m.installed {
 			return hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}
@@ -459,4 +469,106 @@ func writes(f *hostfake.System, n int) []string {
 		}
 	}
 	return out
+}
+
+// dnfConf is dnf-automatic's stock automatic.conf, cut to what the control
+// reads (testdata of pkg/host/dnfauto holds the whole of it).
+const dnfConf = "[commands]\n#  What kind of upgrade to perform:\nupgrade_type = default\nrandom_sleep = 0\ndownload_updates = yes\napply_updates = no\nreboot = never\n\n[emitters]\nemit_via = stdio\n"
+
+// dnfHost is Rocky Linux with dnf-automatic installed, its timers off, its
+// stock file; or not installed, its timers not found.
+func dnfHost(t *testing.T, installed bool) *model {
+	m := newModel(t, rocky102())
+	m.f.AddDir("/etc/dnf", 0o755, 0, 0)
+	if installed {
+		m.timersOff()
+		m.dnfAuto = true
+		m.file("/etc/dnf/automatic.conf", dnfConf)
+	}
+	return m
+}
+
+// unitGone: one of dnf-automatic's timers with the package not installed
+// and no state of its own (a mask): systemctl answers not-found and
+// inactive, exit 4 (rocky10-test-110, 2026-11-10).
+func (m *model) unitGone(verb, unit string) bool {
+	_, ok := m.units[verb+" "+unit]
+	return !ok && !m.dnfAuto && (unit == installTimer || unit == plainTimer)
+}
+
+func (m *model) timersOff() {
+	for _, tm := range []string{"dnf-automatic-install.timer", "dnf-automatic.timer"} {
+		m.units["is-active "+tm], m.units["is-enabled "+tm] = "inactive", "disabled"
+	}
+}
+
+// dnf is rpm's, dnf's and systemctl's answers there: the package, its
+// install (a file there before stays, the package's beside it as .rpmnew
+// where they differ) and remove (the file goes with a remove where it is
+// the stock one, else stays as .rpmsave; the timers go), and the timers.
+func (m *model) dnf(ctx context.Context, argv []string) hostfake.Response {
+	cmd := strings.Join(argv, " ")
+	table := func(heading, repo, summary string) hostfake.Response {
+		return hostfake.Response{Stdout: "Dependencies resolved.\n" + strings.Repeat("=", 80) + "\n Package  Arch  Version  Repository  Size\n" + strings.Repeat("=", 80) +
+			"\n" + heading + ":\n dnf-automatic     noarch     4.20.0-22.el10_2.rocky.0.1       " + repo + "      37 k\n\nTransaction Summary\n" + strings.Repeat("=", 80) + "\n" + summary + "\n",
+			Stderr: "Operation aborted.\n", ExitCode: 1}
+	}
+	switch cmd {
+	case "rpm -q dnf-automatic":
+		if m.dnfAuto {
+			return hostfake.Response{Stdout: "dnf-automatic-4.20.0-22.el10_2.rocky.0.1.noarch\n"}
+		}
+		return hostfake.Response{Stdout: "package dnf-automatic is not installed\n", ExitCode: 1}
+	case "dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic":
+		if m.dnfInstall != nil {
+			return *m.dnfInstall
+		}
+		return table("Installing", "baseos", "Install  1 Package")
+	case "dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic":
+		m.dnfAuto = true
+		switch data, err := m.f.ReadFile(ctx, dnfConfPath); {
+		case err != nil:
+			m.file(dnfConfPath, dnfConf)
+		case string(data) != dnfConf:
+			m.file(dnfConfPath+".rpmnew", dnfConf)
+		}
+		m.timersOff()
+		return hostfake.Response{}
+	case "dnf remove --assumeno --noautoremove --setopt=exit_on_lock=True dnf-automatic":
+		if m.dnfRemove != nil {
+			return *m.dnfRemove
+		}
+		return table("Removing", "@baseos", "Remove  1 Package")
+	case "dnf remove -y --noautoremove --setopt=exit_on_lock=True dnf-automatic":
+		m.dnfAuto = false
+		if data, err := m.f.ReadFile(ctx, dnfConfPath); err == nil {
+			if string(data) != dnfConf {
+				m.file(dnfConfPath+".rpmsave", string(data))
+			}
+			_ = m.f.Remove(ctx, dnfConfPath)
+		}
+		for _, tm := range []string{installTimer, plainTimer} {
+			delete(m.units, "is-active "+tm)
+			delete(m.units, "is-enabled "+tm)
+		}
+		return hostfake.Response{}
+	}
+	if argv[0] == "systemctl" && m.noTake[argv[1]] {
+		return hostfake.Response{}
+	}
+	if argv[0] == "systemctl" {
+		switch argv[1] {
+		case "enable":
+			m.units["is-enabled "+argv[2]] = "enabled"
+		case "disable":
+			m.units["is-enabled "+argv[2]] = "disabled"
+		case "start":
+			m.units["is-active "+argv[2]] = "active"
+		case "stop":
+			m.units["is-active "+argv[2]] = "inactive"
+		}
+		return hostfake.Response{}
+	}
+	m.t.Errorf("unexpected command %q", cmd)
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
 }

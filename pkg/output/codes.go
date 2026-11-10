@@ -38,6 +38,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/authkeys"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/packages"
@@ -174,6 +175,7 @@ var errorCodes = []Entry{
 	// The Auto Updates screen's refusals (refactor plan slice 7, unit (b)):
 	// before the readers' and packages' errors they wrap.
 	is("UPDATES_NOT_READ", updates.ErrNotRead),
+	is("UPDATES_DNF_CONF", dnfauto.ErrConf), // after NOT_READ: a refusal wrapping it is NOT_READ
 	is("UPDATES_PERIODIC_OFF", updates.ErrPeriodicOff),
 	is("UPDATES_TIMER_OFF", updates.ErrTimerOff),
 	is("UPDATES_JOB_MASKED", updates.ErrJobMasked),

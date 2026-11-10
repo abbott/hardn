@@ -43,6 +43,8 @@ var rules = []rule{
 	{"rc-service", exactly("crond", "status")}, // alpine.ReadUpdates
 	// The header probe's reboot source on Rocky Linux and AlmaLinux.
 	{"needs-restarting", exactly("-r")},
+	// The Auto Updates check there (dnfauto.Read).
+	{"rpm", exactly("-q", "dnf-automatic")},
 	// The Firewall check on Rocky Linux and AlmaLinux (firewalld.Read, and
 	// the default zone's target).
 	{"firewall-cmd", firewallCmd},
@@ -91,14 +93,17 @@ func sshdT(args []string) bool {
 // units are the units the checks ask systemctl about, by verb: detect's
 // (ssh.socket and ssh.service, and sshd.socket and sshd.service where
 // systemd has neither ssh.* unit), the AppArmor check's (apparmor.service), the
-// Auto Updates check's (apt's timers and their services), the Firewall
+// Auto Updates check's (apt's timers and their services; dnf-automatic's
+// install and plain timers on Rocky Linux and AlmaLinux), the Firewall
 // row's on Rocky Linux and AlmaLinux (firewalld.service), Proxmox VE's
 // firewall's (pve.ReadFirewall) and the DNS check's (systemd-resolved).
 var units = map[string][]string{
 	"is-enabled": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "ufw.service", "firewalld.service", "apparmor.service",
+		"dnf-automatic-install.timer", "dnf-automatic.timer",
 		"apt-daily-upgrade.timer", "apt-daily-upgrade.service", "apt-daily.timer", "apt-daily.service"},
 	"is-active": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "apt-daily-upgrade.timer", "apt-daily.timer",
-		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service", "firewalld.service"},
+		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service", "firewalld.service",
+		"dnf-automatic-install.timer", "dnf-automatic.timer"},
 }
 
 // systemctl is is-enabled or is-active of one of units, or ssh.socket's

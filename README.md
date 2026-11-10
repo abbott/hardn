@@ -258,7 +258,8 @@ On Rocky Linux and AlmaLinux:
 - A new SSH port is labelled for sshd in SELinux and let through firewalld before sshd moves.
 - The Firewall screen installs, enables and disables firewalld. It refuses a dnf install that brings a new kernel.
 - Run All and `-w` leave the firewall to that screen. ufw is never installed or enabled.
-- Auto Updates and DNS are only read.
+- Auto Updates turns on dnf-automatic's daily security updates; restarts stay as automatic.conf sets them (never, as shipped). Off undoes only what hardn did.
+- DNS is only read.
 
 ### Proxmox
 

@@ -550,12 +550,6 @@ func TestLines(t *testing.T) {
 			f.OS = detect.OSRelease{ID: "fedora", IDLike: nil}
 			f.Platform = detect.Platform{Distro: detect.DistroOther, Support: detect.Unlisted}
 		}}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
-		{name: "rocky102: dnf-automatic not read yet", site: site{plat: rocky102()}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
-		{name: "AlmaLinux: dnf-automatic not read yet", site: site{plat: rocky102(), facts: func(f *detect.Facts) {
-			f.OS = detect.OSRelease{ID: "almalinux", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.1"}
-			f.Platform.Distro = detect.DistroAlma
-		}}, state: engine.Unknown, detail: cantRead, err: "DETECT_UNRECOGNISED"},
-
 		// Alpine.
 		{name: "alpine324", site: site{plat: alpine324()}, state: engine.Configured, detail: apkCron},
 		{name: "alpine324, origin/main's script beside", site: site{plat: alpine324(), legacy: "hardn"}, state: engine.Configured, detail: apkCron, findings: []string{"ALPINE_LEGACY_SCRIPT"}},

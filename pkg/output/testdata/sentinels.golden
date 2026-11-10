@@ -35,6 +35,7 @@ context.DeadlineExceeded TIMED_OUT
 detect.ErrConflict DETECT_SIGNALS_DISAGREE
 detect.ErrNoSignal DETECT_NO_SIGNAL
 detect.ErrUnrecognised DETECT_UNRECOGNISED
+dnfauto.ErrConf UPDATES_DNF_CONF
 dns.ErrChanged DNS_CHANGED
 dns.ErrContainer DNS_CONTAINER
 dns.ErrDropInBlocked DNS_DROPIN_BLOCKED

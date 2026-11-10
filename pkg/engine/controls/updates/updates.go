@@ -131,12 +131,6 @@ func (c Auto) Check(ctx context.Context, sys host.System, f detect.Facts) (engin
 	return st, err
 }
 
-// errNoDnf is why Rocky Linux's and AlmaLinux's line is Unknown: hardn
-// does not read dnf-automatic yet (el-readonly.md §5).
-func errNoDnf(f detect.Facts) error {
-	return fmt.Errorf("updates: %q: no update tool hardn reads (dnf-automatic is not read yet): %w", f.OS.ID, detect.ErrUnrecognised)
-}
-
 // check is the line, without the record's finding.
 func check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	switch d := f.Platform.Distro; {
@@ -147,7 +141,7 @@ func check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status,
 		d == detect.DistroUnknown && f.OS.Known() && f.OS.ID == string(detect.DistroDebian): // Debian or Proxmox VE: apt either way
 		return checkApt(ctx, sys, f)
 	case d.EL():
-		return unread(nil, errNoDnf(f))
+		return checkDnf(ctx, sys)
 	case d == detect.DistroOther:
 		return unread(nil, fmt.Errorf("updates: %q, like %q: no update tool hardn reads: %w", f.OS.ID, f.Platform.Like, detect.ErrUnrecognised))
 	}

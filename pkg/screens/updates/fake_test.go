@@ -21,6 +21,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/alpine"
 	hostbackup "github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/revert"
 )
@@ -29,11 +30,12 @@ import (
 // (pkg/engine/controls/updates/model_test.go) and the gallery's hosts
 // (internal/tools/uigallery/updates.go, updateshost.go), in the VMs'
 // shapes of 2026-11-03, values synthetic: what apt-config, dpkg-query,
-// systemctl, apt-get, apk, rc-service and rc-update answer of a hostfake's
-// files and the state below. apt's files are in apt-config dump's one-line
-// form (`Name "value";`, an item `Name:: "value";`); a line in any other
-// form is apt's syntax error; a list is one line, `Name { "a"; "b"; };`. A
-// command the model does not answer fails the test.
+// systemctl, apt-get, apk, rc-service, rc-update, and on Rocky Linux rpm,
+// dnf and needs-restarting answer of a hostfake's files and the state
+// below. apt's files are in apt-config dump's one-line form (`Name
+// "value";`, an item `Name:: "value";`); a line in any other form is apt's
+// syntax error; a list is one line, `Name { "a"; "b"; };`. A command the
+// model does not answer fails the test.
 
 const (
 	confDir    = "/etc/apt/apt.conf.d"
@@ -95,6 +97,14 @@ func pve9() detect.Facts {
 	return f
 }
 
+// rocky102 is rocky10-test-110's facts: Rocky Linux 10.2.
+func rocky102() detect.Facts {
+	f := debian13()
+	f.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	f.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	return f
+}
+
 func alpine323() detect.Facts {
 	f := debian13()
 	f.OS = detect.OSRelease{ID: "alpine", VersionID: "3.23.0"}
@@ -115,6 +125,8 @@ type model struct {
 	extra      []string // the install simulation's other lines
 	offExtra   []string // off's simulations' other lines (apt-get purge/remove -s, apk del --simulate)
 	units      map[string]string
+	// Rocky Linux: dnf-automatic installed
+	dnfAuto bool
 	// Alpine
 	apkCron, crond bool
 }
@@ -222,7 +234,9 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			return hostfake.Response{Stdout: "install ok installed\t2.12\n"}
 		}
 		return hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}
-	case argv[0] == "systemctl" && len(argv) == 3:
+	case argv[0] == "systemctl" && len(argv) == 3 && (argv[1] == "is-active" || argv[1] == "is-enabled") && m.unitGone(argv[1], argv[2]):
+		return hostfake.Response{Stdout: map[string]string{"is-active": "inactive", "is-enabled": "not-found"}[argv[1]] + "\n", ExitCode: 4}
+	case argv[0] == "systemctl" && len(argv) == 3 && (argv[1] == "is-active" || argv[1] == "is-enabled"):
 		st, ok := m.units[argv[1]+" "+argv[2]]
 		switch {
 		case ok:
@@ -234,6 +248,10 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			st = "enabled"
 		}
 		return hostfake.Response{Stdout: st + "\n", ExitCode: exitOf(st)}
+	case argv[0] == "rpm" || argv[0] == "dnf" || argv[0] == "systemctl" && len(argv) == 3:
+		return m.dnf(ctx, argv)
+	case cmd == "needs-restarting -r": // no core package updated since boot (header's reboot on Rocky Linux)
+		return hostfake.Response{Stdout: "No core libraries or services have been updated since boot-up.\nReboot should not be necessary.\n"}
 	case cmd == "dpkg-query -W -f=${Conffiles}\\n "+uuName:
 		if !m.installed {
 			return hostfake.Response{Stderr: "dpkg-query: no packages found matching unattended-upgrades\n", ExitCode: 1}
@@ -461,7 +479,8 @@ func writes(m *model, n int) []string {
 		case "run":
 			cmd := strings.Join(c.Argv, " ")
 			if strings.HasPrefix(cmd, "apt-config dump ") || strings.HasPrefix(cmd, "dpkg-query ") || strings.HasPrefix(cmd, "systemctl is-") ||
-				strings.Contains(cmd, " -s -y ") || strings.Contains(cmd, "--simulate") || cmd == "apk info -e apk-cron" || cmd == "rc-service crond status" {
+				strings.Contains(cmd, " -s -y ") || strings.Contains(cmd, "--simulate") || cmd == "apk info -e apk-cron" || cmd == "rc-service crond status" ||
+				strings.HasPrefix(cmd, "rpm -q ") || strings.Contains(cmd, " --assumeno ") || cmd == "needs-restarting -r" {
 				continue
 			}
 			out = append(out, cmd)
@@ -475,9 +494,11 @@ func writes(m *model, n int) []string {
 }
 
 // The hosts of the gallery's menu (gallery-updates.md §2), in its order,
-// then its variants and the refusals' hosts.
+// then Rocky Linux's (el-updates.md §1.4); then the gallery's variants and
+// the refusals' hosts.
 var hosts = []string{"debian13", "ubuntu2604", "alpine323", "debian-installer", "debian-off", "lists-stale", "timer-off", "by-hardn-debian",
-	"by-hardn-alpine", "edited", "crond-shared", "dormant-jobs", "config-files", "legacy-alpine", "pve9", "not-read"}
+	"by-hardn-alpine", "edited", "crond-shared", "dormant-jobs", "config-files", "legacy-alpine", "pve9", "not-read",
+	"rocky102", "rocky-timers-off", "by-hardn-rocky", "rocky-all-updates", "rocky-masked", "rocky-plain-timer", "rocky-reboot"}
 
 var variants = []string{"edited-alpine", "enable-off", "own-file", "masked", "missing", "no-origin", "extra-packages", "later-file", "no-record",
 	"corrupt-record", "purge-extra", "apk-del-extra"}
@@ -537,6 +558,29 @@ func newHost(t *testing.T, name string) *model {
 		m := aptHost(t, debian13(), autoOn)
 		m.file(confDir+"/99site", "APT::Periodic::Verbose 1\n")
 		return m
+	case "rocky102":
+		return dnfHost(t, false)
+	case "rocky-timers-off":
+		return dnfHost(t, true)
+	case "by-hardn-rocky":
+		return newHost(t, "rocky102").applied()
+	case "rocky-all-updates": // on outside hardn: the install timer on, upgrade_type default
+		m := dnfHost(t, true)
+		m.units["is-active "+dnfauto.InstallTimer], m.units["is-enabled "+dnfauto.InstallTimer] = "active", "enabled"
+		return m
+	case "rocky-plain-timer": // on outside hardn: dnf-automatic.timer with apply_updates yes, the install timer off
+		m := dnfHost(t, true)
+		m.units["is-active "+dnfauto.PlainTimer], m.units["is-enabled "+dnfauto.PlainTimer] = "active", "enabled"
+		m.file(dnfauto.Conf, strings.Replace(dnfConf, "apply_updates = no", "apply_updates = yes", 1))
+		return m
+	case "rocky-masked":
+		m := dnfHost(t, true)
+		m.units["is-enabled "+dnfauto.InstallTimer] = "masked"
+		return m
+	case "rocky-reboot": // automatic.conf restarts the host where an update needs it
+		m := dnfHost(t, true)
+		m.file(dnfauto.Conf, strings.Replace(dnfConf, "reboot = never", "reboot = when-needed", 1))
+		return m
 	case "edited-alpine":
 		m := newHost(t, "by-hardn-alpine")
 		m.f.AddFile(alpine.Script, []byte(apkDaily+"echo done\n"), 0o755, 0, 0)
@@ -588,4 +632,101 @@ func newHost(t *testing.T, name string) *model {
 	}
 	t.Fatalf("no host %q", name)
 	return nil
+}
+
+// dnfConf is dnf-automatic's stock automatic.conf, cut to what the control
+// reads, as the control's model has it (pkg/host/dnfauto's testdata holds
+// the whole of it).
+const dnfConf = "[commands]\n#  What kind of upgrade to perform:\nupgrade_type = default\nrandom_sleep = 0\ndownload_updates = yes\napply_updates = no\nreboot = never\n\n[emitters]\nemit_via = stdio\n"
+
+// dnfHost is Rocky Linux 10.2 with dnf-automatic installed, its timers off
+// as its preset leaves them, its stock file; or not installed, its timers
+// not found.
+func dnfHost(t *testing.T, installed bool) *model {
+	m := newModel(t, rocky102())
+	m.f.AddDir("/etc/dnf", 0o755, 0, 0)
+	if installed {
+		m.timersOff()
+		m.dnfAuto = true
+		m.file(dnfauto.Conf, dnfConf)
+	}
+	return m
+}
+
+// unitGone: one of dnf-automatic's timers with the package not installed
+// and no state of its own (a mask): systemctl answers not-found and
+// inactive, exit 4 (rocky10-test-110, 2026-11-10).
+func (m *model) unitGone(verb, unit string) bool {
+	_, ok := m.units[verb+" "+unit]
+	return !ok && !m.dnfAuto && (unit == dnfauto.InstallTimer || unit == dnfauto.PlainTimer)
+}
+
+// timersOff turns dnf-automatic's two timers off, inactive and disabled.
+func (m *model) timersOff() {
+	for _, tm := range []string{dnfauto.InstallTimer, dnfauto.PlainTimer} {
+		m.units["is-active "+tm], m.units["is-enabled "+tm] = "inactive", "disabled"
+	}
+}
+
+// dnf is rpm's, dnf's and systemctl's answers on Rocky Linux, as the
+// control's model has them: the package, its install (a file there before
+// stays, the package's beside it as .rpmnew where they differ) and remove
+// (the file goes with a remove where it is the stock one, else stays as
+// .rpmsave; the timers go), and the timers.
+func (m *model) dnf(ctx context.Context, argv []string) hostfake.Response {
+	cmd := strings.Join(argv, " ")
+	table := func(heading, repo, summary string) hostfake.Response {
+		return hostfake.Response{Stdout: "Dependencies resolved.\n" + strings.Repeat("=", 80) + "\n Package  Arch  Version  Repository  Size\n" + strings.Repeat("=", 80) +
+			"\n" + heading + ":\n dnf-automatic     noarch     4.20.0-22.el10_2.rocky.0.1       " + repo + "      37 k\n\nTransaction Summary\n" + strings.Repeat("=", 80) + "\n" + summary + "\n",
+			Stderr: "Operation aborted.\n", ExitCode: 1}
+	}
+	switch cmd {
+	case "rpm -q " + dnfauto.Package:
+		if m.dnfAuto {
+			return hostfake.Response{Stdout: "dnf-automatic-4.20.0-22.el10_2.rocky.0.1.noarch\n"}
+		}
+		return hostfake.Response{Stdout: "package dnf-automatic is not installed\n", ExitCode: 1}
+	case "dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic":
+		return table("Installing", "baseos", "Install  1 Package")
+	case "dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic":
+		m.dnfAuto = true
+		switch data, err := m.f.ReadFile(ctx, dnfauto.Conf); {
+		case err != nil:
+			m.file(dnfauto.Conf, dnfConf)
+		case string(data) != dnfConf:
+			m.file(dnfauto.Conf+".rpmnew", dnfConf)
+		}
+		m.timersOff()
+		return hostfake.Response{}
+	case "dnf remove --assumeno --noautoremove --setopt=exit_on_lock=True dnf-automatic":
+		return table("Removing", "@baseos", "Remove  1 Package")
+	case "dnf remove -y --noautoremove --setopt=exit_on_lock=True dnf-automatic":
+		m.dnfAuto = false
+		if data, err := m.f.ReadFile(ctx, dnfauto.Conf); err == nil {
+			if string(data) != dnfConf {
+				m.file(dnfauto.Conf+".rpmsave", string(data))
+			}
+			_ = m.f.Remove(ctx, dnfauto.Conf)
+		}
+		for _, tm := range []string{dnfauto.InstallTimer, dnfauto.PlainTimer} {
+			delete(m.units, "is-active "+tm)
+			delete(m.units, "is-enabled "+tm)
+		}
+		return hostfake.Response{}
+	}
+	if argv[0] == "systemctl" {
+		switch argv[1] {
+		case "enable":
+			m.units["is-enabled "+argv[2]] = "enabled"
+		case "disable":
+			m.units["is-enabled "+argv[2]] = "disabled"
+		case "start":
+			m.units["is-active "+argv[2]] = "active"
+		case "stop":
+			m.units["is-active "+argv[2]] = "inactive"
+		}
+		return hostfake.Response{}
+	}
+	m.t.Errorf("unexpected command %q", cmd)
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
 }

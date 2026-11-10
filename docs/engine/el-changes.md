@@ -31,7 +31,7 @@ Rocky Linux and AlmaLinux 10 and 9 are Supported. hardn changes what moves no SS
    |---|---|---|
    | An SSH port change (SSH Port, Run All's `sshPort`) | `steps.PlanSSH` and the SSH screen: "hardn doesn't change the SSH port on Rocky Linux or AlmaLinux yet: SELinux, and firewalld where it runs, would block a new one." Run All's SSH Port row is Refused with it, rather than pointing at SSH Login (proposed words) | `SSH_PORT_EL_REFUSED`, as `pve.CheckPort` refuses one on Proxmox VE |
    | Every Firewall action that touches the host (install, enable, disable, profiles, interfaces; since unit 3b, profiles and interfaces alone) | "hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet: it drives ufw alone, not firewalld." Checked before anything else, Proxmox VE's facts included. Saving `hardn.yml`'s profiles and interfaces is not refused | `FIREWALL_EL_READ_ONLY` |
-   | Auto Updates on or off | "hardn doesn't read dnf-automatic yet"; no apt command runs | `UPDATES_NOT_READ` |
+   | Auto Updates on or off (until unit 5: [el-updates.md](el-updates.md)) | "hardn doesn't read dnf-automatic yet"; no apt command runs | `UPDATES_NOT_READ` |
    | DNS | "hardn doesn't change DNS on Rocky Linux or AlmaLinux yet: NetworkManager manages it there. Set the nameservers with nmcli." Refused whatever `resolv.conf` looks like | `DNS_EL_READ_ONLY` |
 
    Run All plans each row alone and skips the ones that refuse. So on Rocky Linux it does the user and root login, and says why it skips the rest.
@@ -99,7 +99,7 @@ Not run: a reboot inside the confirm window, and AlmaLinux.
 
 - **firewalld** (unit 3): read the active zones; let the SSH listeners through before a port change.
 - **The SELinux port label** (unit 4): `semanage port -a` before the reload, rolled back with `-d`. With unit 3, it lifts the port refusal of §1.5.
-- **dnf-automatic** (unit 5).
+- **dnf-automatic** (unit 5): built, [el-updates.md](el-updates.md).
 - **CI images** (unit 6): rockylinux and almalinux 9 and 10.
 
 ## 6. Decisions of this unit
