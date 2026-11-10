@@ -42,9 +42,8 @@ const (
 	hardn        = "hardn"
 	notHardn     = "Not hardn"
 	// Rocky Linux and AlmaLinux (proposed, el-updates.md §1.4)
-	startsRestart = "Starts after restart"
-	securityOnly  = "Security only"
-	allUpdates    = "All updates"
+	securityOnly = "Security only"
+	allUpdates   = "All updates"
 
 	noteBy        = "by "
 	noteUnset     = "unset"
@@ -304,7 +303,9 @@ func dnfRows(h reading) []component.KeyValue {
 	case tm.Active == "active":
 		t.Value, t.State = offRestart, component.ValueWarn
 	case tm.Enabled == "enabled":
-		t.Value, t.State = startsRestart, component.ValueWarn
+		// Stopped, not "Starts after restart": the status row above says
+		// that, and the unit's name would not fit beside it.
+		t.Value, t.State = stopped, component.ValueWarn
 	default:
 		t.Value, t.State = off, component.ValueBad
 	}
