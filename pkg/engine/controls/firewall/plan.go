@@ -36,7 +36,7 @@ var (
 	// ErrRefused: ufw refuses an SSH listener, and there is nothing Enable
 	// can plan: a rule hardn leaves alone, or IPV6=no.
 	ErrRefused = errors.New("ufw refuses an SSH listener, and hardn changes no rule it finds")
-	// ErrEL: Rocky Linux and AlmaLinux use firewalld, which the Firewall
+	// ErrEL: Rocky Linux, AlmaLinux and RHEL use firewalld, which the Firewall
 	// item drives there (el.go); ufw's profiles and trusted interfaces are
 	// refused, and hardn never installs or enables ufw there (the
 	// maintainer, 2026-11-09: no forced ufw installs). steps' ufw planners

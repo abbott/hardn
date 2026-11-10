@@ -120,14 +120,14 @@ type State struct {
 
 // HostOf takes from detect's facts what Read needs, refusing a
 // distribution that is not established (ErrUnknown) or not of the Debian,
-// Ubuntu, Alpine, Proxmox VE or EL family (Rocky Linux, AlmaLinux, whose
-// resolv.conf NetworkManager writes and hardn only reports) (ErrUnsupported; the release's
+// Ubuntu, Alpine, Proxmox VE or EL family (Rocky Linux, AlmaLinux and RHEL,
+// whose resolv.conf hardn only reports) (ErrUnsupported; the release's
 // support level is the engine's gate), and a container, detected
 // (ErrContainer) or not established (ErrUnknown). Systemd is Yes only for
 // a host systemd booted, No for OpenRC, else Unknown.
 func HostOf(f detect.Facts) (Host, error) {
 	switch d := f.Platform.Distro; d {
-	case detect.DistroDebian, detect.DistroUbuntu, detect.DistroAlpine, detect.DistroProxmox, detect.DistroRocky, detect.DistroAlma:
+	case detect.DistroDebian, detect.DistroUbuntu, detect.DistroAlpine, detect.DistroProxmox, detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL:
 	case detect.DistroUnknown:
 		return Host{}, fmt.Errorf("dns: distribution: %w: %w", ErrUnknown, errOr(f.Platform.Err, detect.ErrNoSignal))
 	default:

@@ -638,7 +638,7 @@ func TestHostRefusal(t *testing.T) {
 // planned, whatever resolv.conf looks like (DNS_EL_READ_ONLY), and nothing
 // is read or run before the refusal.
 func TestPlanRocky(t *testing.T) {
-	for _, d := range []detect.Distro{detect.DistroRocky, detect.DistroAlma} {
+	for _, d := range []detect.Distro{detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL} {
 		h := hostfake.New(host.Options{})
 		h.AddFile("/etc/resolv.conf", []byte("nameserver 192.0.2.1\n"), 0o644, 0, 0)
 		f := detect.Facts{Platform: detect.Platform{Distro: d, Version: "10", Support: detect.Supported},

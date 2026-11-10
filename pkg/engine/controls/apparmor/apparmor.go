@@ -68,7 +68,7 @@ const (
 	DetailOffInKernel     = "off in kernel"      // NotConfigured
 	DetailByHost          = "set by the host"    // NotApplicable
 	DetailAlpineDefault   = "Alpine default"     // NotApplicable
-	DetailSELinux         = "uses SELinux"       // NotApplicable: Rocky Linux, AlmaLinux
+	DetailSELinux         = "uses SELinux"       // NotApplicable: Rocky Linux, AlmaLinux, RHEL
 	DetailCantRead        = "can't read"         // Unknown
 )
 

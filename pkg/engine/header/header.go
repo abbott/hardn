@@ -19,8 +19,8 @@
 // know, is not established, with the reason in its Err: nothing is
 // guessed, and a zero fact is not established either. Read reads files
 // and runs `ip -4 addr show dev <interface>`, for a kernel Debian built
-// `dpkg-query --show` of its package, and on Rocky Linux and AlmaLinux
-// `dnf needs-restarting -r`, and changes nothing. pkg/output maps a Header to the main menu's Header, ContextBar
+// `dpkg-query --show` of its package, and on Rocky Linux, AlmaLinux and
+// RHEL `dnf needs-restarting -r`, and changes nothing. pkg/output maps a Header to the main menu's Header, ContextBar
 // and HostBlock. docs/engine/header.md has each fact's source and every
 // line the blocks can show.
 package header
@@ -102,7 +102,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) Header {
 
 // names are the distributions hardn names, by os-release ID.
 var names = map[string]string{"debian": "Debian", "ubuntu": "Ubuntu", "alpine": "Alpine",
-	"rocky": "Rocky Linux", "almalinux": "AlmaLinux"}
+	"rocky": "Rocky Linux", "almalinux": "AlmaLinux", "rhel": "RHEL"}
 
 // OSOf names the distribution from detect's facts: Proxmox VE when it is
 // installed (its os-release is Debian's), else by os-release's ID.

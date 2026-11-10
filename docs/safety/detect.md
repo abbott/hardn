@@ -27,7 +27,7 @@ The legacy `pkg/osdetect` accepts only the `debian`, `ubuntu` and `alpine` IDs, 
 
    *Amended by `next/p7-surface`* (Phase 7 decision 5, adopted 2026-11-04): Alpine 3.21 moves to OutOfScope, its vendor support having ended 2026-11-01, as Proxmox VE 8 is. *Amended 2026-11-08* (the maintainer: "Out of scope + fixes"): Alpine 3.20 gets an OutOfScope row, its vendor support having ended 2026-04-01 (alpinelinux.org's releases.json; its community repository 2024-11-01), so that its refusal names why rather than "unlisted"; fixture `alpine-3.20`.
 
-   The key is `VERSION_ID` for Debian and Ubuntu, `VERSION_ID`'s major.minor for Alpine (`3.24.2` → `3.24`; only a three-number `VERSION_ID`, the form a stable branch's alpine-base writes, takes its row's support: any other form, such as edge's `3.25.0_alpha20261001` or a release candidate's `3.24.0_rc1`, is Unlisted with a `Note`, even when its major.minor is a row), `VERSION_ID`'s major for Rocky Linux and AlmaLinux (`10.2` → `10`), and pve-manager's major version for Proxmox VE (`9.2.22` → `9`). Rows change by editing `matrix` in `platform.go`; `TestMatrix` pins the row counts.
+   The key is `VERSION_ID` for Debian and Ubuntu, `VERSION_ID`'s major.minor for Alpine (`3.24.2` → `3.24`; only a three-number `VERSION_ID`, the form a stable branch's alpine-base writes, takes its row's support: any other form, such as edge's `3.25.0_alpha20261001` or a release candidate's `3.24.0_rc1`, is Unlisted with a `Note`, even when its major.minor is a row), `VERSION_ID`'s major for Rocky Linux, AlmaLinux and RHEL (`10.2` → `10`), and pve-manager's major version for Proxmox VE (`9.2.22` → `9`). Rows change by editing `matrix` in `platform.go`; `TestMatrix` pins the row counts.
 6. **Init system.** `Systemd` when `/run/systemd/system` is a directory (`Running` Yes); `OpenRC` when `/run/openrc` is (`Running` Yes) or, failing both, when `/sbin/openrc-run` is installed (`Running` No: OpenRC present but not what booted, as in a container). Both run directories present is `ErrConflict`; neither a run directory nor `openrc-run` is `ErrNoSignal`.
 7. **SSH mode.** Only an init system that booted the host starts sshd: with `Init.Kind` Unknown, or `Init.Running` not Yes (OpenRC installed in a container, say), `Mode` is `SSHUnknown` with `ErrNoSignal` (or the init error) and nothing is read or run.
    - **systemd.** One unit's boot-time state (`is-enabled`) must not contradict the other's runtime state (`is-active`); the rules apply in this order:
@@ -136,7 +136,7 @@ type OSRelease struct { Path, ID string; IDLike []string; VersionID, VersionCode
 
 func Classify(osr OSRelease, pve Proxmox) Platform // pure
 func Matrix() []Release                             // a copy
-type Distro string   // DistroUnknown "", DistroDebian, DistroUbuntu, DistroAlpine, DistroProxmox, DistroRocky, DistroAlma, DistroOther (Distro.EL: Rocky, Alma; el-readonly.md)
+type Distro string   // DistroUnknown "", DistroDebian, DistroUbuntu, DistroAlpine, DistroProxmox, DistroRocky, DistroAlma, DistroRHEL, DistroOther (Distro.EL: Rocky, Alma, RHEL; el-readonly.md, el-rhel.md)
 type Support uint8   // SupportUnknown (zero), Supported, BestEffort, OutOfScope, Unlisted
 type Release struct { Distro Distro; Version string; Support Support; Note string }
 type Platform struct { Distro, Like Distro; Version string; Support Support; Note string; Err error }

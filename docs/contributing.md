@@ -51,7 +51,7 @@ make build          # build/hardn, from ./cmd/hardn
 
 Every check target runs with `GOTOOLCHAIN=local`, `GOWORK=off` and `GOFLAGS=-mod=readonly`.
 
-CI (`.github/workflows/ci.yml`) runs `make check` on each push to `main` and each pull request, and `go vet` and `go test` on Debian 13 and 12, Ubuntu 26.04 and 24.04, Alpine 3.24 and 3.23, and Rocky Linux and AlmaLinux 10 and 9 images. `.github/workflows/zizmor.yml` adds zizmor's online audits.
+CI (`.github/workflows/ci.yml`) runs `make check` on each push to `main` and each pull request, and `go vet` and `go test` on Debian 13 and 12, Ubuntu 26.04 and 24.04, Alpine 3.24 and 3.23, Rocky Linux and AlmaLinux 10 and 9, and UBI 10 and 9 (RHEL's) images. `.github/workflows/zizmor.yml` adds zizmor's online audits.
 
 ## Goldens
 

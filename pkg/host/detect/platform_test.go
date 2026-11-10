@@ -61,7 +61,11 @@ func TestClassify(t *testing.T) {
 		{"Rocky VERSION_ID with no minor", detect.OSRelease{ID: "rocky", VersionID: "10"}, notPVE, detect.DistroRocky, "", detect.Unlisted, nil},
 		{"AlmaLinux VERSION_ID of three parts", detect.OSRelease{ID: "almalinux", VersionID: "10.1.1"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
 		{"AlmaLinux VERSION_ID not numeric", detect.OSRelease{ID: "almalinux", VersionID: "10.x"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
-		{"RHEL is not Rocky", detect.OSRelease{ID: "rhel", IDLike: []string{"fedora"}, VersionID: "10.1"}, notPVE, detect.DistroOther, "", detect.Unlisted, nil},
+		// RHEL: EL, read only until the matrix names it (el-rhel.md).
+		{"RHEL 10.3 (rhel10-test-114)", read("rhel-10.3"), notPVE, detect.DistroRHEL, "10", detect.Unlisted, nil},
+		{"RHEL 9.9 (rhel9-test-115)", read("rhel-9.9"), notPVE, detect.DistroRHEL, "9", detect.Unlisted, nil},
+		{"RHEL VERSION_ID with no minor", detect.OSRelease{ID: "rhel", VersionID: "10"}, notPVE, detect.DistroRHEL, "", detect.Unlisted, nil},
+		{"CentOS Stream is not RHEL", detect.OSRelease{ID: "centos", IDLike: []string{"rhel", "fedora"}, VersionID: "10"}, notPVE, detect.DistroOther, "", detect.Unlisted, nil},
 
 		{"os-release unreadable", detect.OSRelease{Err: errFixture}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, errFixture},
 		{"empty OSRelease", detect.OSRelease{}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, detect.ErrNoSignal},
@@ -81,11 +85,11 @@ func TestClassify(t *testing.T) {
 	}
 }
 
-// EL is Rocky Linux and AlmaLinux alone.
+// EL is Rocky Linux, AlmaLinux and RHEL alone.
 func TestEL(t *testing.T) {
 	for _, d := range []detect.Distro{detect.DistroUnknown, detect.DistroDebian, detect.DistroUbuntu, detect.DistroAlpine,
-		detect.DistroProxmox, detect.DistroRocky, detect.DistroAlma, detect.DistroOther, "rhel", "centos"} {
-		if want := d == detect.DistroRocky || d == detect.DistroAlma; d.EL() != want {
+		detect.DistroProxmox, detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL, detect.DistroOther, "centos", "fedora"} {
+		if want := d == detect.DistroRocky || d == detect.DistroAlma || d == detect.DistroRHEL; d.EL() != want {
 			t.Errorf("%q.EL() = %v, want %v", d, d.EL(), want)
 		}
 	}

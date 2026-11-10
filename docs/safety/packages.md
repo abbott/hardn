@@ -5,7 +5,7 @@
 
 ## 1. API
 
-`ToolFor(facts)` gives `Apt` on Debian and Ubuntu, `Apk` on Alpine, `Dnf` on Rocky Linux and AlmaLinux, `ErrNoTool` otherwise, Proxmox VE included. `Installed(ctx, sys, tool, name)` reads a `detect.Tri`. `PlanInstall(ctx, sys, tool, name)` returns a `Plan{Tool, Name, Argv, Undo, Adds}`; `Empty()` says there is nothing to run. `Execute(ctx, sys, plan)` returns a `Report{Undo, Installed}`.
+`ToolFor(facts)` gives `Apt` on Debian and Ubuntu, `Apk` on Alpine, `Dnf` on Rocky Linux, AlmaLinux and RHEL, `ErrNoTool` otherwise, Proxmox VE included. `Installed(ctx, sys, tool, name)` reads a `detect.Tri`. `PlanInstall(ctx, sys, tool, name)` returns a `Plan{Tool, Name, Argv, Undo, Adds}`; `Empty()` says there is nothing to run. `Execute(ctx, sys, plan)` returns a `Report{Undo, Installed}`.
 
 | Tool | Read | Simulation | Install | Undo |
 |---|---|---|---|---|

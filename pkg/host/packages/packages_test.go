@@ -164,6 +164,7 @@ func TestToolFor(t *testing.T) {
 		{distro: detect.DistroAlpine, want: packages.Apk},
 		{distro: detect.DistroRocky, want: packages.Dnf},
 		{distro: detect.DistroAlma, want: packages.Dnf},
+		{distro: detect.DistroRHEL, want: packages.Dnf},
 		{distro: detect.DistroProxmox, err: packages.ErrNoTool},
 		{distro: detect.DistroOther, like: detect.DistroDebian, err: packages.ErrNoTool},
 		{distro: detect.DistroUnknown, err: packages.ErrNoTool},

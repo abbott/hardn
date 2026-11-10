@@ -91,7 +91,7 @@ func (e *OtherPackagesError) Error() string {
 func (e *OtherPackagesError) Is(target error) bool { return target == ErrOtherPackages }
 
 // ToolFor returns the tool of f's distribution: apt-get on Debian and Ubuntu,
-// apk on Alpine, dnf on Rocky Linux and AlmaLinux. Anything else is
+// apk on Alpine, dnf on Rocky Linux, AlmaLinux and RHEL. Anything else is
 // ErrNoTool, Proxmox VE and a distribution not established among them, and
 // one that is only like Debian: hardn never installs there.
 func ToolFor(f detect.Facts) (Tool, error) {
@@ -100,7 +100,7 @@ func ToolFor(f detect.Facts) (Tool, error) {
 		return Apt, nil
 	case detect.DistroAlpine:
 		return Apk, nil
-	case detect.DistroRocky, detect.DistroAlma:
+	case detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL:
 		return Dnf, nil
 	}
 	return 0, fmt.Errorf("packages: distribution %q: %w", f.Platform.Distro, ErrNoTool)

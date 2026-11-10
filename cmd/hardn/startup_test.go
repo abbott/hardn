@@ -80,7 +80,8 @@ func TestHostOS(t *testing.T) {
 		{"alpine", "ID=alpine\nVERSION_ID=3.22.1\n", ""},
 		{"rocky", "ID=\"rocky\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"10.2\"\n", ""},
 		{"almalinux", "ID=\"almalinux\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"10.1\"\n", ""},
-		{"RHEL itself", "ID=\"rhel\"\nID_LIKE=\"fedora\"\nVERSION_ID=\"10.1\"\n", "unsupported OS type detected: rhel"},
+		{"rhel", "ID=\"rhel\"\nID_LIKE=\"fedora\"\nVERSION_ID=\"9.9\"\n", ""},
+		{"CentOS Stream", "ID=\"centos\"\nID_LIKE=\"rhel fedora\"\nVERSION_ID=\"10\"\n", "unsupported OS type detected: centos"},
 		{"another OS", "ID=arch\n", "unsupported OS type detected: arch"},
 		{"no os-release", "", "cannot detect OS type: "},
 	} {

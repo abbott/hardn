@@ -572,7 +572,7 @@ var findingCodes = []Entry{
 	finding(updates.CodeOriginsUnknown, "a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established"),
 	finding(updates.CodeChangedSince, "hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone"),
 	// The header probe's own (next/p4-header): why a reboot is pending.
-	finding(header.CodeRebootRequired, "/var/run/reboot-required exists, or on Rocky Linux and AlmaLinux dnf needs-restarting -r exits 1: a package asks for a reboot"),
+	finding(header.CodeRebootRequired, "/var/run/reboot-required exists, or on Rocky Linux, AlmaLinux and RHEL dnf needs-restarting -r exits 1: a package asks for a reboot"),
 	finding(header.CodeNewerKernel, "a kernel newer than the one running is installed in /boot"),
 	finding(header.CodeModulesMissing, "Alpine: the running kernel's own modules are not installed, while another kernel's are"),
 	finding(header.CodeKernelReplaced, "a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running"),

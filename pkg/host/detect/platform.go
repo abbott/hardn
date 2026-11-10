@@ -21,12 +21,16 @@ const (
 	// reads the rest (docs/engine/el-readonly.md).
 	DistroRocky Distro = "rocky"     // os-release ID
 	DistroAlma  Distro = "almalinux" // os-release ID
-	DistroOther Distro = "other"     // an os-release ID hardn does not know
+	// Red Hat Enterprise Linux, which Rocky Linux and AlmaLinux rebuild:
+	// read only, every change refused, until the matrix names its releases
+	// (docs/engine/el-rhel.md).
+	DistroRHEL  Distro = "rhel"  // os-release ID
+	DistroOther Distro = "other" // an os-release ID hardn does not know
 )
 
-// EL reports Rocky Linux or AlmaLinux: dnf, SELinux, firewalld or none,
-// NetworkManager, sshd.service.
-func (d Distro) EL() bool { return d == DistroRocky || d == DistroAlma }
+// EL reports Rocky Linux, AlmaLinux or RHEL: dnf, SELinux, firewalld or
+// none, NetworkManager, sshd.service.
+func (d Distro) EL() bool { return d == DistroRocky || d == DistroAlma || d == DistroRHEL }
 
 // Support is a platform's place in the support matrix.
 type Support uint8
@@ -57,9 +61,9 @@ func (s Support) String() string {
 type Release struct {
 	Distro Distro
 	// Version is VERSION_ID for Debian and Ubuntu, VERSION_ID's major.minor
-	// for Alpine, VERSION_ID's major for Rocky Linux and AlmaLinux (their
-	// minor releases are updates of one major, which the vendor supports
-	// as a whole), and pve-manager's major version for Proxmox VE.
+	// for Alpine, VERSION_ID's major for Rocky Linux, AlmaLinux and RHEL
+	// (their minor releases are updates of one major, which the vendor
+	// supports as a whole), and pve-manager's major version for Proxmox VE.
 	Version string
 	Support Support
 	Note    string
@@ -142,7 +146,7 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 			p.Support, p.Note = Unlisted, "VERSION_ID "+osr.VersionID+" is not a stable release's x.y.z"
 		}
 		return p
-	case DistroRocky, DistroAlma:
+	case DistroRocky, DistroAlma, DistroRHEL:
 		return lookup(Platform{Distro: d, Version: elMajor(osr.VersionID)})
 	}
 	p := Platform{Distro: DistroOther, Support: Unlisted}
@@ -199,8 +203,9 @@ func alpineStable(v string) bool {
 	return len(parts) == 3 && digits(parts[0]) && digits(parts[1]) && digits(parts[2])
 }
 
-// elMajor is "10" for Rocky Linux's and AlmaLinux's "10.2": a VERSION_ID of
-// two numeric components, as both write it. Anything else is "".
+// elMajor is "10" for Rocky Linux's and AlmaLinux's "10.2" and RHEL's
+// "10.3": a VERSION_ID of two numeric components, as all three write it.
+// Anything else is "".
 func elMajor(v string) string {
 	major, minor, ok := strings.Cut(v, ".")
 	if !ok || !digits(major) || !digits(minor) {

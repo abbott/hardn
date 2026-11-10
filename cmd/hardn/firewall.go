@@ -21,6 +21,7 @@ import (
 	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/output"
 	fwscreen "github.com/abbott/hardn/pkg/screens/firewall"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
@@ -38,10 +39,10 @@ import (
 // refused, nothing armed (enableFirewall). A plain plan ("Start ufw at
 // boot" alone, ufw already running) is applied unasked, on a terminal or
 // off, as any flag's. On Proxmox VE the control
-// refuses (UFW_NOT_APPLICABLE). On Rocky Linux and AlmaLinux it is refused
-// before anything is planned, whatever hardn.yml says (FIREWALL_EL_READ_ONLY,
-// firewallEL): the firewall is the Firewall screen's there
-// (el-firewalld.md §1.7). Under -n, or hardn.yml's dryRun: true,
+// refuses (UFW_NOT_APPLICABLE). On Rocky Linux, AlmaLinux and RHEL it is
+// refused before anything is planned, whatever hardn.yml says
+// (FIREWALL_EL_READ_ONLY, firewallELOn): the firewall is the Firewall
+// screen's there (el-firewalld.md §1.7). Under -n, or hardn.yml's dryRun: true,
 // the plan alone, no question, nothing written. It returns the exit
 // status: 0 applied or nothing to change, 3 a plan with changes to make
 // (-n) or declined (0, q), 1 refused or failed.
@@ -49,18 +50,30 @@ func configureFirewall(c *config.Config) int {
 	ctx := context.Background()
 	sys := engineHost()
 	if facts, err := engineDetect(ctx, sys); err == nil && facts.Platform.Distro.EL() {
-		return refuseControls(sys, c, firewallEL)
+		return refuseControls(sys, c, firewallELOn(facts.Platform))
 	}
 	return runControls(c, []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionEnable}}, nil, &enableFirewall)
 }
 
-// firewallEL is -w's refusal on Rocky Linux and AlmaLinux (el-firewalld.md
-// §1.7; proposed words).
+// firewallEL is -w's refusal on Rocky Linux, AlmaLinux and RHEL
+// (el-firewalld.md §1.7; proposed words).
 var firewallEL = &steps.Refusal{
 	Code: "FIREWALL_EL_READ_ONLY",
-	Why:  "hardn doesn't configure the firewall from -w on Rocky Linux or AlmaLinux",
+	Why:  "hardn doesn't configure the firewall from -w on Rocky Linux, AlmaLinux or RHEL",
 	Fix:  "use the Firewall screen",
 	Err:  steps.ErrELFirewall,
+}
+
+// firewallELOn is firewallEL on the platform p: without its fix where the
+// matrix takes no change on p (RHEL, which it doesn't name yet), since
+// the Firewall screen refuses there too (el-rhel.md).
+func firewallELOn(p detect.Platform) *steps.Refusal {
+	if p.Support == detect.Supported || p.Support == detect.BestEffort {
+		return firewallEL
+	}
+	r := *firewallEL
+	r.Fix = ""
+	return &r
 }
 
 // refuseControls is a flag's refusal before its plan, err, reported and
@@ -96,7 +109,7 @@ var enableFirewall = typedConfirm{
 // withFirewallScreen returns m with its Firewall item set to the Firewall
 // screen on c, the configuration m was given, and its description to
 // Proxmox VE's where the host is Proxmox VE, and firewalld's where it is
-// Rocky Linux or AlmaLinux, as the screen reads them
+// Rocky Linux, AlmaLinux or RHEL, as the screen reads them
 // (mainmenu.Options.Firewall): detect's Proxmox VE installed and its
 // distribution, read through engineDetect once, as the main menu is first
 // drawn, facts that do not change while hardn runs.
