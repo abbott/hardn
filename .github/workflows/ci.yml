@@ -85,8 +85,9 @@ jobs:
           dl="$RUNNER_TEMP/dl"
           mkdir -p "$bin" "$dl"
           fetch() { # fetch <url> <sha256>: download into $dl and check the SHA-256
+            # --retry 8 backs off from 1 s to 128 s, about 4 minutes, to outlast a GitHub 5xx spell.
             f="$dl/${1##*/}"
-            curl -fsSL --retry 3 -o "$f" "$1"
+            curl -fsSL --retry 8 -o "$f" "$1"
             echo "$2  $f" | sha256sum -c -
           }
           fetch "https://github.com/golangci/golangci-lint/releases/download/v${GOLANGCI_LINT_VERSION}/golangci-lint-${GOLANGCI_LINT_VERSION}-linux-amd64.tar.gz" "$GOLANGCI_LINT_SHA256"
@@ -182,10 +183,10 @@ jobs:
           v=$(sed -n 's/^toolchain go//p' go.mod)
           [ -n "$v" ] || v=$(sed -n 's/^go //p' go.mod)
           f="go${v}.linux-amd64.tar.gz"
-          sum=$(curl -fsSL --retry 3 'https://go.dev/dl/?mode=json&include=all' |
+          sum=$(curl -fsSL --retry 8 'https://go.dev/dl/?mode=json&include=all' |
             jq -r --arg f "$f" '.[].files[] | select(.filename == $f) | .sha256')
           [ -n "$sum" ] || { echo "::error::go.dev/dl lists no SHA-256 for $f"; exit 1; }
-          curl -fsSL --retry 3 -o "$RUNNER_TEMP/$f" "https://go.dev/dl/$f"
+          curl -fsSL --retry 8 -o "$RUNNER_TEMP/$f" "https://go.dev/dl/$f"
           echo "$sum  $RUNNER_TEMP/$f" | sha256sum -c -
           tar -C /usr/local -xzf "$RUNNER_TEMP/$f"
           echo /usr/local/go/bin >> "$GITHUB_PATH"

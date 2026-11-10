@@ -125,8 +125,9 @@ sudo cp build/hardn /usr/local/bin/hardn
 
 ### Troubleshooting
 
-- **Permission Issues:** Not run as root, the script stops before downloading anything and prints the command to use, piped to `sudo sh` (or `doas sh`).
+- **Permission issues:** Not run as root, the script stops before downloading anything and prints the command to use, piped to `sudo sh` (or `doas sh`).
 - **Missing curl:** If `curl` is not installed, use your package manager to install it (e.g., `sudo apt-get install curl` on Debian/Ubuntu; `doas apk add curl` or `sudo apk add curl` on Alpine).
+- **hardn not found:** If `/bin/sh: hardn: not found` appears, `/usr/local/bin` is not in this shell's `PATH`. Run `/usr/local/bin/hardn`, or `export PATH=/usr/local/sbin:/usr/local/bin:$PATH` first.
 
 ### Updating
 
