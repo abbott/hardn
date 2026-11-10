@@ -830,9 +830,9 @@ $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through /etc/sudoers.d/90-cloud-init-␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156musers, which hardn didn't write, so hardn can't remove it.␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mChange it there.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mgeorge is an admin through␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/sudoers.d/90-cloud-init-users, which hardn didn't␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mwrite, so hardn can't remove it. Change it there.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mManage User␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

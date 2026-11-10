@@ -273,23 +273,63 @@ func (c Ctx) bar(fill lipgloss.Style, text line) string {
 	return c.shade(fill, 1).String() + " " + body + " " + c.shade(fill, w-3-lipgloss.Width(body)).String()
 }
 
-// wrap breaks plain text s into lines of at most limit cells: at spaces
-// and hyphens where it can and inside a word where it must, as
-// lipgloss.Wrap breaks it (wrap.go:12-19, x/ansi wrap.go:293-463). The
-// lines keep no trailing spaces, and empty ones are dropped. With limit
-// under 1, s is one line.
+// wrap breaks plain text s into lines of at most limit cells, at spaces
+// only, so a word with a hyphen, such as a package name in a command,
+// stays whole: lipgloss.Wrap also breaks after every hyphen (x/ansi
+// wrap.go:406-417), which split "policycoreutils-python-utils" in a
+// refusal's fix (2026-11-10). A word wider than limit, which must break
+// inside, breaks as lipgloss.Wrap breaks it with the line before it
+// (wrap.go:12-19, x/ansi wrap.go:293-463). A line break in s ends a line.
+// The lines keep no trailing spaces, and empty ones are dropped. With
+// limit under 1, s is one line.
 func wrap(s string, limit int) []string {
 	if limit < 1 {
 		return []string{s}
 	}
 	var out []string
-	for _, l := range strings.Split(lipgloss.Wrap(s, limit, ""), "\n") {
+	emit := func(l string) {
 		if l = strings.TrimRight(l, " "); l != "" {
 			out = append(out, l)
 		}
 	}
+	for _, para := range strings.Split(s, "\n") {
+		cur := ""
+		for para != "" {
+			i := strings.IndexFunc(para, notBreak)
+			if i < 0 {
+				i = len(para)
+			}
+			j := strings.IndexFunc(para[i:], isBreak)
+			if j < 0 {
+				j = len(para) - i
+			}
+			word, next := para[i:i+j], cur+para[:i+j]
+			para = para[i+j:]
+			switch {
+			case lipgloss.Width(next) <= limit:
+				cur = next
+			case lipgloss.Width(word) > limit:
+				ls := strings.Split(lipgloss.Wrap(next, limit, ""), "\n")
+				for _, l := range ls[:len(ls)-1] {
+					emit(l)
+				}
+				cur = ls[len(ls)-1]
+			default:
+				emit(cur)
+				cur = word
+			}
+		}
+		emit(cur)
+	}
 	return out
 }
+
+// isBreak reports whether wrap may break a line at r: a space as x/ansi
+// takes one, but for the no-break space (x/ansi wrap.go:348).
+func isBreak(r rune) bool { return unicode.IsSpace(r) && r != ' ' }
+
+// notBreak is isBreak negated.
+func notBreak(r rune) bool { return !isBreak(r) }
 
 // clean makes a view-model string one line of plain text: escape sequences
 // are removed, tabs and line breaks become spaces, other control

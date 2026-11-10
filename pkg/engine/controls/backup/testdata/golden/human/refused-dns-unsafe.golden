@@ -13,8 +13,8 @@ $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mbackups (UNSAFE_DIRECTORY)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/tmp/hardn-backups (UNSAFE_DIRECTORY)␛[m$
 $
   ␛[38;2;129;134;156mTo go on: choose a directory only root can change, with␛[m$
   ␛[38;2;129;134;156mBackup's item 2.␛[m$
@@ -31,8 +31,8 @@ $
   No actual changes were made to your system.$
 $
 # Operation Failed$
-# Others can change /tmp, so backups can't go in /tmp/hardn-$
-# backups (UNSAFE_DIRECTORY)$
+# Others can change /tmp, so backups can't go in$
+# /tmp/hardn-backups (UNSAFE_DIRECTORY)$
 $
   To go on: choose a directory only root can change, with$
   Backup's item 2.$
@@ -49,8 +49,8 @@ $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in /tmp/hardn-␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mbackups (UNSAFE_DIRECTORY)␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mOthers can change /tmp, so backups can't go in␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/tmp/hardn-backups (UNSAFE_DIRECTORY)␛[m$
 $
   ␛[38;2;129;134;156mTo go on: choose a directory only root can change, with␛[m$
   ␛[38;2;129;134;156mBackup's item 2.␛[m$

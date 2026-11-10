@@ -13,8 +13,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/edit-2230␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Port 2230 in hardn's drop-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min, sshd not reloaded, so still on 22, ufw inactive. What␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. Port 2230 in hardn's␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdrop-in, sshd not reloaded, so still on 22, ufw inactive. What␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156maccepts SSH is not what is configured, so Enable refuses␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 2; mock stale-listener has what the real plan does).␛[m$
 $
@@ -104,8 +104,8 @@ $
 # file is the fake's, and its record is shown when play ends.$
 $
 # Info: firewall/edit-2230$
-# web-01.example.net runs Debian 13. Port 2230 in hardn's drop-$
-# in, sshd not reloaded, so still on 22, ufw inactive. What$
+# web-01.example.net runs Debian 13. Port 2230 in hardn's$
+# drop-in, sshd not reloaded, so still on 22, ufw inactive. What$
 # accepts SSH is not what is configured, so Enable refuses$
 # (decision 2; mock stale-listener has what the real plan does).$
 $

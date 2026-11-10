@@ -13,10 +13,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/alpine323␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM: apk-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcron not installed, /etc/periodic empty, root's stock crontab,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcrond in no runlevel and stopped. Enable plans the install,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe runlevel and the start.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapk-cron not installed, /etc/periodic empty, root's stock␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcrontab, crond in no runlevel and stopped. Enable plans the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstall, the runlevel and the start.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -83,9 +83,9 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/alpine323␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
       ␛[38;2;129;134;156m$ rc-service crond status␛[m$
@@ -115,10 +115,10 @@ $
 # file is the fake's, and its record is shown when play ends.$
 $
 # Info: updates/alpine323$
-# web-01.example.net runs Alpine 3.23 (OpenRC). As the VM: apk-$
-# cron not installed, /etc/periodic empty, root's stock crontab,$
-# crond in no runlevel and stopped. Enable plans the install,$
-# the runlevel and the start.$
+# web-01.example.net runs Alpine 3.23 (OpenRC). As the VM:$
+# apk-cron not installed, /etc/periodic empty, root's stock$
+# crontab, crond in no runlevel and stopped. Enable plans the$
+# install, the runlevel and the start.$
 $
 # Auto Updates #################################################$
 $
@@ -185,9 +185,9 @@ $
   simulated system ---------------------------------------------$
 $
 # Info: updates/alpine323$
-# Recorded by the fake, not done: what each step ran on web-$
-# 01.example.net, and the files it changed, in order; hardn's$
-# own journal, run directory and backups left out.$
+# Recorded by the fake, not done: what each step ran on$
+# web-01.example.net, and the files it changed, in order;$
+# hardn's own journal, run directory and backups left out.$
 $
    -  Before the first change$
       $ rc-service crond status$
@@ -299,8 +299,8 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/alpine323␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
@@ -331,10 +331,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile is the fake's, and its record is shown when play ends.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/alpine323␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM: apk-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcron not installed, /etc/periodic empty, root's stock crontab,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcrond in no runlevel and stopped. Enable plans the install,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe runlevel and the start.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.23 (OpenRC). As the VM:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mapk-cron not installed, /etc/periodic empty, root's stock␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcrontab, crond in no runlevel and stopped. Enable plans the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstall, the runlevel and the start.␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m#################################################␛[m$
 $
@@ -401,9 +401,9 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m---------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: updates/alpine323␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBefore the first change␛[m$
       ␛[38;2;129;134;156m$ rc-service crond status␛[m$

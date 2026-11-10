@@ -23,10 +23,10 @@ $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156msets ssh.socket to port 2230, but it never took effect:␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreload since it was written, D9). Migrating it now could not␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mbe rolled back: the rollback's daemon-reload would move␛[m$
-␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket to port 2230 alone, off the port this host is␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mssh.socket is configured for [[::]:22 0.0.0.0:22] (no␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mdaemon-reload since it was written, D9). Migrating it now␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mcould not be rolled back: the rollback's daemon-reload would␛[m$
+␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mmove ssh.socket to port 2230 alone, off the port this host is␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156mreached on (P-39) (SSH_LISTEN_CONF_NOT_IN_EFFECT)␛[m$
 $
   ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
@@ -66,10 +66,10 @@ $
 # Operation Failed$
 # /etc/systemd/system/ssh.socket.d/listen.conf (hardn v0.3.x)$
 # sets ssh.socket to port 2230, but it never took effect:$
-# ssh.socket is configured for [[::]:22 0.0.0.0:22] (no daemon-$
-# reload since it was written, D9). Migrating it now could not$
-# be rolled back: the rollback's daemon-reload would move$
-# ssh.socket to port 2230 alone, off the port this host is$
+# ssh.socket is configured for [[::]:22 0.0.0.0:22] (no$
+# daemon-reload since it was written, D9). Migrating it now$
+# could not be rolled back: the rollback's daemon-reload would$
+# move ssh.socket to port 2230 alone, off the port this host is$
 # reached on (P-39) (SSH_LISTEN_CONF_NOT_IN_EFFECT)$
 $
   Check the log file at /var/log/hardn.log for details$
@@ -104,8 +104,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mv0.3.2: its manage.conf, and a listen.conf for port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten with no daemon-reload, so ssh.socket still listens␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon 22.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: hardn's v0.3.2 SSH files moved into 00-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.conf. The plan refuses it, with a report (P-39 (a)).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: hardn's v0.3.2 SSH files moved into␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m00-hardn.conf. The plan refuses it, with a report (P-39␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(a)).␛[m$
 $
 ␛[48;2;231;70;105m ␛[m ␛[1;38;2;231;70;105mOperation Failed␛[m$
 ␛[48;2;231;70;105m ␛[m ␛[38;2;129;134;156m/etc/systemd/system/ssh.socket.d/listen.conf (hardn␛[m$

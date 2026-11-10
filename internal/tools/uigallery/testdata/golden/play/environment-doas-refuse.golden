@@ -14,9 +14,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: environment/alpine324␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Alpine 3.24 after setup-alpine, doas;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice is in wheel. alice ran doas hardn. /etc/doas.d/20-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwheel.conf says permit persist :wheel. hardn has no rule for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, so item 1 refuses before asking.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice is in wheel. alice ran doas hardn.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/doas.d/20-wheel.conf says permit persist :wheel. hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhas no rule for alice, so item 1 refuses before asking.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnvironment Variable Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -75,9 +75,9 @@ $
 $
 # Info: environment/alpine324$
 # web-01.example.net runs Alpine 3.24 after setup-alpine, doas;$
-# alice is in wheel. alice ran doas hardn. /etc/doas.d/20-$
-# wheel.conf says permit persist :wheel. hardn has no rule for$
-# alice, so item 1 refuses before asking.$
+# alice is in wheel. alice ran doas hardn.$
+# /etc/doas.d/20-wheel.conf says permit persist :wheel. hardn$
+# has no rule for alice, so item 1 refuses before asking.$
 $
 # Environment Variable Settings ################################$
 $

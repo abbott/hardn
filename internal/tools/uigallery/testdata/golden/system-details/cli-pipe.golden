@@ -8,8 +8,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot to a terminal: plain mode, no colour, ASCII, whatever the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it. As a user other than root, see cli-not-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it. As a user other than root, see␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcli-not-root.␛[m$
 $
 # System Details ###############################################$
 $
@@ -56,8 +56,8 @@ $
 # Note$
 # Inferred from origin/main (unreleased). hardn system-details$
 # not to a terminal: plain mode, no colour, ASCII, whatever the$
-# terminal around it. As a user other than root, see cli-not-$
-# root.$
+# terminal around it. As a user other than root, see$
+# cli-not-root.$
 $
 # System Details ###############################################$
 $
@@ -104,8 +104,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mInferred from origin/main (unreleased). hardn system-details␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnot to a terminal: plain mode, no colour, ASCII, whatever the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it. As a user other than root, see cli-not-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mterminal around it. As a user other than root, see␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcli-not-root.␛[m$
 $
 # System Details ###############################################$
 $

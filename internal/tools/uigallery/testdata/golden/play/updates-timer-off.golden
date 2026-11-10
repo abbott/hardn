@@ -184,8 +184,8 @@ $
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer is off, and hardn leaves apt's␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtimers to you. Run systemctl enable --now apt-daily-␛[m$
-␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mupgrade.timer, then try again.␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtimers to you. Run systemctl enable --now␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt-daily-upgrade.timer, then try again.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAuto Updates␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
