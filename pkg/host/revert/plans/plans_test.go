@@ -268,6 +268,15 @@ func units() []unit {
 			},
 			"an unknown field": unknownField,
 		}},
+		{"firewalld-enable", firewalldEnableSetup, map[string]func(*testing.T, *hostfake.System){
+			"a zone file elsewhere": func(t *testing.T, f *hostfake.System) {
+				editPlan(t, f, func(u *firewalld.EnableUndo) { u.ZoneFile = "/etc/shadow" })
+			},
+			"a port at runtime": func(t *testing.T, f *hostfake.System) {
+				editPlan(t, f, func(u *firewalld.EnableUndo) { u.Ports[0].Permanent = false })
+			},
+			"an unknown field": unknownField,
+		}},
 		{"selinux-ports", selinuxSetup, map[string]func(*testing.T, *hostfake.System){
 			"port 0": func(t *testing.T, f *hostfake.System) {
 				editPlan(t, f, func(u *selinux.PortsUndo) { u.Ports = append(u.Ports, 0) })
@@ -353,7 +362,7 @@ func TestPVENodeKeyInAdded(t *testing.T) {
 	}
 }
 
-// TestRegistry: Registry names the six units, each with a rollback, and
+// TestRegistry: Registry names the seven units, each with a rollback, and
 // each step function names its unit.
 func TestRegistry(t *testing.T) {
 	r := plans.Registry()
@@ -365,7 +374,7 @@ func TestRegistry(t *testing.T) {
 		names = append(names, n)
 	}
 	slices.Sort(names)
-	if want := []string{"alpine-updates", "dns", "firewalld-ports", "pve-keys", "selinux-ports", "sudoers"}; !slices.Equal(names, want) {
+	if want := []string{"alpine-updates", "dns", "firewalld-enable", "firewalld-ports", "pve-keys", "selinux-ports", "sudoers"}; !slices.Equal(names, want) {
 		t.Errorf("Registry = %q, want %q", names, want)
 	}
 	if plans.UnitPVEKeys != pve.KeysUnit {
@@ -621,6 +630,10 @@ func firewalldSetup(t *testing.T) (*hostfake.System, revert.Step, func(), func(*
 	f := newHost(func(cmd string) (hostfake.Response, bool) {
 		perm := strings.Contains(cmd, " --permanent ")
 		switch strings.Replace(cmd, " --permanent", "", 1) {
+		case "systemctl is-active firewalld.service":
+			return hostfake.Response{Stdout: "active\n"}, true
+		case "systemctl is-enabled firewalld.service":
+			return hostfake.Response{Stdout: "enabled\n"}, true
 		case "firewall-cmd --state":
 			return hostfake.Response{Stdout: "running\n"}, true
 		case "firewall-cmd --zone=public --query-port=2230/tcp":
@@ -692,6 +705,67 @@ func selinuxSetup(t *testing.T) (*hostfake.System, revert.Step, func(), func(*te
 	restored := func(t *testing.T) {
 		if labelled {
 			t.Error("2230 still ssh_port_t")
+		}
+	}
+	return f, step, apply, restored
+}
+
+// firewalldEnableSetup: an Enable from stopped and disabled, 2230 added to
+// public offline, the zone file it created, firewalld started and enabled.
+// The rollback stops, disables, then removes the zone file.
+func firewalldEnableSetup(t *testing.T) (*hostfake.System, revert.Step, func(), func(*testing.T)) {
+	active, enabled, added := "inactive", "disabled", false
+	const zoneFile = "/etc/firewalld/zones/public.xml"
+	var f *hostfake.System
+	f = newHost(func(cmd string) (hostfake.Response, bool) {
+		switch cmd {
+		case "systemctl is-active firewalld.service":
+			return hostfake.Response{Stdout: active + "\n", ExitCode: map[bool]int{false: 3}[active == "active"]}, true
+		case "systemctl is-enabled firewalld.service":
+			return hostfake.Response{Stdout: enabled + "\n", ExitCode: map[bool]int{false: 1}[enabled == "enabled"]}, true
+		case "systemctl start firewalld.service":
+			active = "active"
+			return hostfake.Response{}, true
+		case "systemctl stop firewalld.service":
+			active = "inactive"
+			return hostfake.Response{}, true
+		case "systemctl enable firewalld.service":
+			enabled = "enabled"
+			return hostfake.Response{}, true
+		case "systemctl disable firewalld.service":
+			enabled = "disabled"
+			return hostfake.Response{}, true
+		case "firewall-offline-cmd --zone=public --add-port=2230/tcp":
+			added = true
+			f.AddFile(zoneFile, []byte("<zone/>\n"), 0o644, 0, 0)
+			return hostfake.Response{Stdout: "success\n"}, true
+		case "firewall-offline-cmd --zone=public --query-port=2230/tcp":
+			if added {
+				return hostfake.Response{Stdout: "yes\n"}, true
+			}
+			return hostfake.Response{Stdout: "no\n", ExitCode: 1}, true
+		case "firewall-offline-cmd --zone=public --remove-port=2230/tcp":
+			added = false
+			return hostfake.Response{Stdout: "success\n"}, true
+		}
+		return hostfake.Response{}, false
+	})
+	u := firewalld.EnableUndo{Start: true, Ports: []firewalld.Step{{Zone: "public", Port: 2230, Permanent: true}}, ZoneFile: zoneFile, Enable: true}
+	step, err := plans.FirewalldEnable(u, "firewalld, which hardn enabled")
+	if err != nil {
+		t.Fatal(err)
+	}
+	apply := func() {
+		for _, a := range [][]string{{"firewall-offline-cmd", "--zone=public", "--add-port=2230/tcp"}, {"systemctl", "start", "firewalld.service"}, {"systemctl", "enable", "firewalld.service"}} {
+			if _, err := f.Run(ctx, a[0], a[1:]...); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	restored := func(t *testing.T) {
+		// The zone file the add created goes, and 2230 with it.
+		if _, ok := f.Entry(zoneFile); ok || active != "inactive" || enabled != "disabled" {
+			t.Errorf("after: %s, %s, zone file left %v", active, enabled, ok)
 		}
 	}
 	return f, step, apply, restored

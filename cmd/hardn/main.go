@@ -301,8 +301,9 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Configure firewall: the Firewall control through the engine, the hostname
-		// typed on a terminal, refused off one (firewall.go). Its status is hardn's
-		// as -g's is, composed by runStatus, once the flags after it have run.
+		// typed on a terminal, refused off one, and refused on Rocky Linux and
+		// AlmaLinux (firewall.go). Its status is hardn's as -g's is, composed by
+		// runStatus, once the flags after it have run.
 		if configureUfw {
 			status = runStatus(status, configureFirewall(cfg))
 		}

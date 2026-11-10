@@ -5,8 +5,9 @@
 // Proxmox VE (pve.RollbackKeys), the sudo and doas rules
 // (sudoers.Rollback), DNS (dns.Rollback), Alpine's updates
 // (alpine.Rollback), and on Rocky Linux and AlmaLinux the SSH ports let
-// through firewalld (firewalld.Rollback) and labelled for sshd
-// (selinux.RollbackPorts).
+// through firewalld (firewalld.Rollback), labelled for sshd
+// (selinux.RollbackPorts), and firewalld's Enable
+// (firewalld.RollbackEnable).
 //
 // PVEKeys, Sudoers, DNS and Alpine make a unit's step: the plan, checked
 // by the unit's own guard (its Check method), as JSON. Registry is
@@ -50,6 +51,8 @@ const (
 	// Linux and AlmaLinux.
 	UnitFirewalld = firewalld.Unit // "firewalld-ports"
 	UnitSELinux   = selinux.Unit   // "selinux-ports"
+	// UnitFirewalldEnable is the Firewall item's Enable there.
+	UnitFirewalldEnable = firewalld.EnableUnit // "firewalld-enable"
 )
 
 // ErrPlan is a plan its unit's rollback does not accept: its JSON does not
@@ -72,6 +75,7 @@ var (
 	apkUpdates = kind[alpine.Plan]{UnitAlpine, alpine.Plan.Check, alpine.Rollback}
 	fwPorts    = kind[firewalld.Undo]{UnitFirewalld, firewalld.Undo.Check, firewalld.Rollback}
 	sePorts    = kind[selinux.PortsUndo]{UnitSELinux, selinux.PortsUndo.Check, selinux.RollbackPorts}
+	fwEnable   = kind[firewalld.EnableUndo]{UnitFirewalldEnable, firewalld.EnableUndo.Check, firewalld.RollbackEnable}
 )
 
 // Registry returns the plan rollbacks by unit, for revert.Options.Plans:
@@ -79,12 +83,13 @@ var (
 // a step's through it. Each call returns a new map.
 func Registry() map[string]revert.PlanRollback {
 	return map[string]revert.PlanRollback{
-		UnitPVEKeys:   pveKeys.rollbackJSON,
-		UnitSudoers:   sudo.rollbackJSON,
-		UnitDNS:       resolvers.rollbackJSON,
-		UnitAlpine:    apkUpdates.rollbackJSON,
-		UnitFirewalld: fwPorts.rollbackJSON,
-		UnitSELinux:   sePorts.rollbackJSON,
+		UnitPVEKeys:         pveKeys.rollbackJSON,
+		UnitSudoers:         sudo.rollbackJSON,
+		UnitDNS:             resolvers.rollbackJSON,
+		UnitAlpine:          apkUpdates.rollbackJSON,
+		UnitFirewalld:       fwPorts.rollbackJSON,
+		UnitSELinux:         sePorts.rollbackJSON,
+		UnitFirewalldEnable: fwEnable.rollbackJSON,
 	}
 }
 
@@ -116,6 +121,14 @@ func Alpine(p alpine.Plan, why string) (revert.Step, error) { return apkUpdates.
 // firewalld.Rollback takes away only a port that is there, which the plan
 // found was not.
 func Firewalld(u firewalld.Undo, why string) (revert.Step, error) { return fwPorts.step(u, why) }
+
+// FirewalldEnable journals an Enable's undo (firewalld.EnablePlan.Undo) as
+// one OpPlan step, recorded before firewalld.ExecuteEnable runs:
+// firewalld.RollbackEnable stops and disables only what the Enable started
+// and enabled, and takes away only a port that is there.
+func FirewalldEnable(u firewalld.EnableUndo, why string) (revert.Step, error) {
+	return fwEnable.step(u, why)
+}
 
 // SELinuxPorts journals the ports a change labels ssh_port_t as one OpPlan
 // step, recorded before semanage runs, under the same rule.

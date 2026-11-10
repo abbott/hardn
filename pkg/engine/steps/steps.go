@@ -79,6 +79,9 @@ const (
 	ResourceSSHD = "sshd"
 	// ResourceUFW is ufw's rules, policies and state.
 	ResourceUFW = "ufw"
+	// ResourceFirewalld: firewalld's unit and configuration (the Firewall
+	// item on Rocky Linux and AlmaLinux).
+	ResourceFirewalld = "firewalld"
 )
 
 // claim names, on each of a planner's changes, the resources every SSH
@@ -114,7 +117,7 @@ var (
 	// Linux and AlmaLinux, which use firewalld (firewall.ErrEL;
 	// el-changes.md). A port change still lets its new port through an
 	// installed, active ufw there (EPEL's), as elsewhere.
-	ErrELFirewall = errors.New("hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet")
+	ErrELFirewall = errors.New("hardn doesn't drive ufw on Rocky Linux or AlmaLinux, which use firewalld")
 	// ErrNoNewListener: a port change whose Port line reaches no listener
 	// (a ListenAddress with its own port ignores every Port line).
 	ErrNoNewListener = errors.New("the port change adds no listener")

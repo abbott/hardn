@@ -34,10 +34,6 @@ const Service = "firewalld.service"
 // Stable: a journal written by one hardn is rolled back by the next.
 const Unit = "firewalld-ports"
 
-// notRunning is firewall-cmd --state's exit when firewalld is not running
-// (firewall-cmd(1): NOT_RUNNING).
-const notRunning = 252
-
 var (
 	// ErrUnknown: firewalld's state, or what it lets through, is not
 	// established.
@@ -56,16 +52,18 @@ var (
 
 // State is what firewalld runs: whether it is installed and running; its
 // default zone and its active zones (those with an interface or a source),
-// when running; whether it starts at boot, when stopped.
+// when running; whether it starts at boot.
 type State struct {
 	Installed, Running detect.Tri
 	Default            string
 	Active             []string
 	// Enabled is No where systemctl is-enabled says "disabled" or
-	// "masked", and Yes for any other answer: "static", "indirect" and the
-	// rest may start it too. Read only where firewalld is installed and
-	// not running.
+	// "masked", Unknown where it says nothing, and Yes for any other
+	// answer: "static", "indirect" and the rest may start it too.
 	Enabled detect.Tri
+	// Unit is is-enabled's word as printed ("enabled", "disabled",
+	// "masked", "not-found", ...), which Enable and Disable plan from.
+	Unit string
 }
 
 // Zones are the zones a connection can arrive in: the active ones, and the
@@ -78,16 +76,14 @@ func (s State) Zones() []string {
 	return zs
 }
 
-// Read reads firewalld's state: firewall-cmd --state; then, running,
-// --get-default-zone and --get-active-zones, and stopped, systemctl
-// is-enabled. firewall-cmd missing is not installed. It changes nothing.
+// Read reads firewalld's state through systemd first (unit), then, where
+// firewalld.service is active, firewall-cmd --state, --get-default-zone and
+// --get-active-zones. A stopped firewalld costs no firewall-cmd, which
+// waits 10 s for D-Bus while firewalld is down (el-ports.md §4). It
+// changes nothing.
 func Read(ctx context.Context, sys host.System) (State, error) {
 	s, err := state(ctx, sys)
-	switch {
-	case err != nil || s.Installed == detect.No:
-		return s, err
-	case s.Running == detect.No:
-		s.Enabled, err = enabled(ctx, sys)
+	if err != nil || s.Running != detect.Yes {
 		return s, err
 	}
 	var res host.Result
@@ -105,37 +101,86 @@ func Read(ctx context.Context, sys host.System) (State, error) {
 	return s, nil
 }
 
-// state is firewall-cmd --state: running (exit 0), not running (exit 252),
-// or firewall-cmd missing.
-func state(ctx context.Context, sys host.System) (State, error) {
-	res, err := sys.Run(ctx, Cmd, "--state")
-	var xe *host.ExitError
-	switch out := strings.TrimSpace(string(res.Stdout)); {
-	case errors.Is(err, host.ErrNotFound):
-		return State{Installed: detect.No, Running: detect.No}, nil
-	case err == nil && out == "running":
-		return State{Installed: detect.Yes, Running: detect.Yes}, nil
-	case errors.As(err, &xe) && xe.ExitCode == notRunning:
-		return State{Installed: detect.Yes, Running: detect.No}, nil
-	default:
-		return State{Installed: detect.Yes}, fmt.Errorf("firewalld: firewall-cmd --state printed %q (exit %d): %w: %w", out, res.ExitCode, ErrUnknown, errOr(err, detect.ErrUnrecognised))
+// unit reads systemctl is-active and is-enabled of firewalld.service: the
+// words they print (stdout, whatever their exit). An is-enabled that
+// prints nothing is the word "", not an error. A systemctl that didn't
+// run is ErrUnknown.
+func unit(ctx context.Context, sys host.System) (active, enabled string, err error) {
+	for _, c := range []struct {
+		verb string
+		out  *string
+	}{{"is-active", &active}, {"is-enabled", &enabled}} {
+		res, err := sys.Run(ctx, "systemctl", c.verb, Service)
+		var xe *host.ExitError
+		if err != nil && !errors.As(err, &xe) {
+			return "", "", fmt.Errorf("firewalld: %w: %w", ErrUnknown, err)
+		}
+		*c.out = strings.TrimSpace(string(res.Stdout))
 	}
+	return active, enabled, nil
 }
 
-// enabled is systemctl is-enabled firewalld.service, as State.Enabled
-// reads it.
-func enabled(ctx context.Context, sys host.System) (detect.Tri, error) {
-	res, err := sys.Run(ctx, "systemctl", "is-enabled", Service)
-	var xe *host.ExitError
-	switch out := strings.TrimSpace(string(res.Stdout)); {
-	case err != nil && !errors.As(err, &xe):
-		return detect.Unknown, fmt.Errorf("firewalld: %w: %w", ErrUnknown, err)
-	case out == "disabled" || out == "masked":
-		return detect.No, nil
-	case out == "":
-		return detect.Unknown, fmt.Errorf("firewalld: systemctl is-enabled %s printed nothing (exit %d): %w", Service, res.ExitCode, ErrUnknown)
+// UnitFile is firewalld.service as the package installs it
+// (rocky10-test-110's rpm): a masked unit with no such file is a mask of a
+// firewalld not installed.
+const UnitFile = "/usr/lib/systemd/system/firewalld.service"
+
+// ErrFailed: firewalld.service failed. A daemon that died ran no
+// clean-up, so its rules may still be loaded.
+var ErrFailed = errors.New("firewalld.service failed, and its rules may still be loaded")
+
+// state is firewalld's unit and daemon. is-enabled "not-found", or
+// "masked" with no UnitFile, is not installed. is-active "inactive" is not running; "active" is running
+// once firewall-cmd --state says "running" (exit 0), and Unknown
+// otherwise: starting, or in its failsafe (exit 251). "failed" is Unknown:
+// a daemon that died ran no clean-up, so its rules may be loaded. Any
+// other word (activating, deactivating, reloading) is Unknown.
+func state(ctx context.Context, sys host.System) (State, error) {
+	active, word, err := unit(ctx, sys)
+	if err != nil {
+		return State{}, err
 	}
-	return detect.Yes, nil
+	s := State{Installed: detect.Yes, Unit: word, Enabled: enabledOf(word)}
+	missing := word == "not-found"
+	if word == "masked" {
+		switch _, err := sys.Stat(ctx, UnitFile); {
+		case errors.Is(err, fs.ErrNotExist):
+			missing = true
+		case err != nil:
+			return s, fmt.Errorf("firewalld: %w: %w", ErrUnknown, err)
+		}
+	}
+	switch active {
+	case "inactive":
+		if missing {
+			return State{Installed: detect.No, Running: detect.No, Unit: word, Enabled: detect.No}, nil
+		}
+		s.Running = detect.No
+		return s, nil
+	case "failed":
+		return s, fmt.Errorf("firewalld: %w: %w", ErrFailed, ErrUnknown)
+	case "active":
+	default:
+		return s, fmt.Errorf("firewalld: systemctl is-active %s printed %q: %w", Service, active, ErrUnknown)
+	}
+	res, err := sys.Run(ctx, Cmd, "--state")
+	if out := strings.TrimSpace(string(res.Stdout)); err != nil || out != "running" {
+		return s, fmt.Errorf("firewalld: %s active, firewall-cmd --state printed %q (exit %d): %w: %w", Service, out, res.ExitCode, ErrUnknown, errOr(err, detect.ErrUnrecognised))
+	}
+	s.Running = detect.Yes
+	return s, nil
+}
+
+// enabledOf is State.Enabled from is-enabled's word: No for "disabled" and
+// "masked", Unknown for none, Yes for any other.
+func enabledOf(word string) detect.Tri {
+	switch word {
+	case "disabled", "masked":
+		return detect.No
+	case "":
+		return detect.Unknown
+	}
+	return detect.Yes
 }
 
 // activeZones reads --get-active-zones: each zone's name on a line of its
@@ -290,7 +335,11 @@ func (p Plan) Undo() Undo { return Undo{Ports: slices.Clone(p.Steps)} }
 // everything needs nothing, and carries nothing either: SSH arriving
 // through some other zone by a rich rule must not be passed over because a
 // zone of containers' interfaces accepts all. firewalld disabled and not
-// running plans nothing: it filters nothing, now or after a reboot.
+// running plans nothing: it filters nothing, now or after a reboot. That
+// rests on firewalld's CleanupOnExit=yes, its default and Rocky Linux's
+// (rocky10-test-110): with it off, a firewalld stopped after running
+// leaves its rules loaded until the next boot, and confirm-or-revert
+// catches the new port they block (el-firewalld.md §2).
 // Errors: ErrStartsAtBoot where it is stopped and enabled; ErrNoSSHPath
 // where it runs, not every zone accepts everything, and no zone carries
 // SSH; ErrUnknown where a read fails.
@@ -301,6 +350,8 @@ func PlanFor(ctx context.Context, sys host.System, st State, hold, add []uint16)
 		return p, nil
 	case st.Running == detect.No && st.Enabled == detect.No:
 		return p, nil
+	case st.Running == detect.No && st.Enabled == detect.Unknown:
+		return Plan{}, fmt.Errorf("firewalld: whether %s starts at boot isn't read: %w", Service, ErrUnknown)
 	case st.Running == detect.No:
 		return Plan{}, fmt.Errorf("firewalld: systemctl is-enabled %s: %w", Service, ErrStartsAtBoot)
 	case st.Running != detect.Yes:
@@ -348,9 +399,10 @@ func PlanFor(ctx context.Context, sys host.System, st State, hold, add []uint16)
 	return p, nil
 }
 
-// ErrNotLetThrough: after its steps, a zone still doesn't let an added port
-// through at runtime.
-var ErrNotLetThrough = errors.New("firewalld doesn't let the new port through")
+// ErrNotLetThrough: after its steps, a zone still doesn't let an SSH port
+// through at runtime: a port change's new port (Execute), or one of
+// Enable's after the start (ExecuteEnable).
+var ErrNotLetThrough = errors.New("firewalld doesn't let an SSH port through")
 
 // Execute runs p's steps in order, stopping at the first that fails, then
 // checks that every zone of p lets each added port through at runtime
@@ -393,25 +445,30 @@ func (u Undo) Check() error {
 }
 
 // Rollback takes away each port of u that is there, last first: through
-// firewall-cmd where firewalld runs, at runtime and permanently as u
-// says; through firewall-offline-cmd where it doesn't (the boot unit runs
-// before firewalld starts), permanently only, there being no runtime to
-// undo. A port not there is left: PlanFor plans only ports that are not
+// firewall-cmd where firewalld.service is active, at runtime and
+// permanently as u says; through firewall-offline-cmd where it isn't (the
+// boot unit may run before firewalld starts), permanently only, there
+// being no runtime to undo. A port not there is left: PlanFor plans only ports that are not
 // there, so one there now is the change's, and a rollback taken up again,
 // or one of a step that never ran, takes away nothing else. firewall-cmd
-// missing is nothing to undo. It goes on past a port that fails, and
+// not installed is nothing to undo. It goes on past a port that fails, and
 // returns every error.
 func Rollback(ctx context.Context, sys host.System, u Undo) error {
 	if err := u.Check(); err != nil {
 		return err
 	}
-	st, err := state(ctx, sys)
-	if err != nil || st.Installed == detect.No {
+	active, word, err := unit(ctx, sys)
+	if err != nil || word == "not-found" {
 		return err
 	}
-	cmd := Cmd
-	if st.Running == detect.No {
-		cmd = OfflineCmd
+	cmd := OfflineCmd
+	if active == "active" {
+		// Active is from the fork (the unit has no Type=): firewall-cmd
+		// only once firewalld says it runs; until then the files, which a
+		// starting firewalld may have read already (el-ports.md §1.4).
+		if res, err := sys.Run(ctx, Cmd, "--state"); err == nil && strings.TrimSpace(string(res.Stdout)) == "running" {
+			cmd = Cmd
+		}
 	}
 	var errs []error
 	for _, s := range slices.Backward(u.Ports) {

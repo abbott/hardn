@@ -10,8 +10,10 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/pve"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
@@ -59,6 +61,121 @@ type fwHost struct {
 	ssFails   bool               // ss runs and fails
 	sim       *hostfake.Response // apt-get's simulation, nil aptSim
 	pveDown   bool               // pve-firewall's service stopped
+
+	fwd *fwdModel // firewalld on Rocky Linux, nil elsewhere
+}
+
+// fwdModel is firewalld on Rocky Linux 10 as the Firewall item reads and
+// changes it, after pkg/engine/controls/firewall's el_test.go (elHost):
+// installed or not, running or not, dnf's simulation without weak
+// dependencies (rocky10-test-110, probe 3b-2), NetworkManager without zones,
+// no other firewall.
+type fwdModel struct {
+	installed       bool
+	active, enabled string // what systemctl is-active and is-enabled print
+	masked          bool
+}
+
+// elSimulate is dnf's simulation of firewalld's install, el_test.go's.
+const elSimulate = "Dependencies resolved.\n" +
+	"================================================================================\n" +
+	" Package                   Arch        Version                Repository   Size\n" +
+	"================================================================================\n" +
+	"Installing:\n firewalld                 noarch      2.4.3-4.el10_2         baseos      471 k\n" +
+	"Installing dependencies:\n firewalld-filesystem      noarch      2.4.3-4.el10_2         baseos      7.7 k\n" +
+	" nftables                  x86_64      1:1.1.5-6.el10_2       baseos      447 k\n" +
+	"\nTransaction Summary\n================================================================================\nInstall  3 Packages\n"
+
+// answer is firewalld's answer to cmd, and whether it is one of its
+// commands: systemctl's of firewalld.service and of the other firewall
+// units, rpm, dnf, firewall-offline-cmd, nmcli, and firewall-cmd while it
+// runs.
+func (m *fwdModel) answer(argv []string) (hostfake.Response, bool) {
+	cmd := strings.Join(argv, " ")
+	word := func(w string, ok bool) hostfake.Response {
+		if ok {
+			return hostfake.Response{Stdout: w + "\n"}
+		}
+		return hostfake.Response{Stdout: w + "\n", ExitCode: 3}
+	}
+	running := m.installed && m.active == "active"
+	switch cmd {
+	case "systemctl is-active firewalld.service":
+		if !m.installed {
+			return word("inactive", false), true
+		}
+		return word(m.active, m.active == "active"), true
+	case "systemctl is-enabled firewalld.service":
+		switch {
+		case m.masked:
+			return word("masked", false), true
+		case !m.installed:
+			return word("not-found", false), true
+		}
+		return word(m.enabled, m.enabled == "enabled"), true
+	case "systemctl mask firewalld.service":
+		m.masked = true
+	case "systemctl unmask firewalld.service":
+		m.masked = false
+	case "systemctl start firewalld.service":
+		m.active = "active"
+	case "systemctl stop firewalld.service":
+		m.active = "inactive"
+	case "systemctl enable firewalld.service":
+		m.enabled = "enabled"
+	case "systemctl disable firewalld.service":
+		m.enabled = "disabled"
+	case "rpm -q ufw":
+		return hostfake.Response{Stdout: "package ufw is not installed\n", ExitCode: 1}, true
+	case "rpm -q firewalld":
+		if m.installed {
+			return hostfake.Response{Stdout: "firewalld-2.4.3-4.el10_2.noarch\n"}, true
+		}
+		return hostfake.Response{Stdout: "package firewalld is not installed\n", ExitCode: 1}, true
+	case "dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True firewalld":
+		return hostfake.Response{Stdout: elSimulate, Stderr: "Operation aborted.\n", ExitCode: 1}, true
+	case "dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True firewalld":
+		m.installed, m.active, m.enabled = true, "inactive", "enabled" // the preset
+		if m.masked {
+			m.enabled = "disabled"
+		}
+	case "dnf remove -y --noautoremove --setopt=exit_on_lock=True firewalld":
+		m.installed = false
+	case "firewall-offline-cmd --get-default-zone":
+		return hostfake.Response{Stdout: "public\n"}, true
+	case "firewall-offline-cmd --list-all-zones":
+		return hostfake.Response{Stdout: "public (default)\n  target: default\n  interfaces: \n  sources: \n  services: cockpit dhcpv6-client ssh\n  ports: \n\n"}, true
+	case "firewall-offline-cmd --service=ssh --get-ports":
+		return hostfake.Response{Stdout: "22/tcp\n"}, true
+	case "firewall-offline-cmd --service=cockpit --get-ports":
+		return hostfake.Response{Stdout: "9090/tcp\n"}, true
+	case "firewall-offline-cmd --service=dhcpv6-client --get-ports":
+		return hostfake.Response{Stdout: "546/udp\n"}, true
+	case "nmcli -t -f UUID,DEVICE connection show --active":
+		return hostfake.Response{Stdout: "1dd9a779-d327-56e1-8454-c65e2556c12c:eth0\n"}, true
+	case "nmcli -g connection.zone connection show 1dd9a779-d327-56e1-8454-c65e2556c12c":
+		return hostfake.Response{Stdout: "\n"}, true
+	case "firewall-cmd --state":
+		if running {
+			return hostfake.Response{Stdout: "running\n"}, true
+		}
+		return hostfake.Response{Stdout: "not running\n", ExitCode: 252}, true
+	case "firewall-cmd --get-default-zone":
+		return hostfake.Response{Stdout: "public\n"}, running
+	case "firewall-cmd --get-active-zones":
+		return hostfake.Response{Stdout: "public (default)\n  interfaces: eth0\n"}, running
+	case "firewall-cmd --permanent --zone=public --get-target":
+		return hostfake.Response{Stdout: "default\n"}, running
+	default:
+		if len(argv) == 3 && argv[0] == "systemctl" && (argv[1] == "is-active" || argv[1] == "is-enabled") {
+			if argv[1] == "is-active" {
+				return word("inactive", false), true
+			}
+			return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
+		}
+		return hostfake.Response{}, false
+	}
+	return hostfake.Response{}, true
 }
 
 // fwRule is a rule in ufw: what ufw's status prints it for, and the words a
@@ -122,6 +239,10 @@ func platformFacts(d string) (f detect.Facts, bin string, socket bool) {
 		f.Platform = detect.Platform{Distro: detect.DistroAlpine, Version: "3.23", Support: detect.Supported}
 		f.Init = detect.Init{Kind: detect.OpenRC, Running: detect.Yes}
 		f.SSH = detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.Yes, InRunlevel: detect.Yes}}
+	case "rocky":
+		f.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+		f.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+		f.SSH.SSHDUnits = true
 	case "proxmox":
 		f.Platform = detect.Platform{Distro: detect.DistroProxmox, Version: "9", Support: detect.Supported}
 		f.Proxmox = detect.Proxmox{Installed: detect.Yes, Version: "9.0.10", ClusterFS: detect.Yes, EtcPVE: detect.Yes}
@@ -150,6 +271,14 @@ func newHost(t *testing.T, d string, st start) *fwHost {
 	h.AddFile(sshd.DropInDir+"/00-hardn.conf", []byte(conf.String()), 0o644, 0, 0)
 	if f.Init.Kind == detect.OpenRC {
 		h.AddFile("/etc/init.d/ufw", []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
+	}
+	if f.Platform.Distro.EL() {
+		h.AddDir("/etc/sysconfig", 0o755, 0, 0)
+		h.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"\"\n"), 0o644, 0, 0)
+		// The package's unit, which tells a masked firewalld from a mask of
+		// none (firewalld.UnitFile); read only where is-enabled says masked.
+		h.AddFile(firewalld.UnitFile, []byte("[Unit]\n"), 0o644, 0, 0)
+		h.fwd = &fwdModel{}
 	}
 	if !h.missing {
 		h.syncFiles()
@@ -290,6 +419,11 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 			h.syncFiles()
 		}
 	}()
+	if h.fwd != nil {
+		if r, ok := h.fwd.answer(argv); ok {
+			return r
+		}
+	}
 	switch {
 	case cmd == h.fail && cmd != "":
 		return hostfake.Response{Stderr: "ERROR: failed\n", ExitCode: 1}

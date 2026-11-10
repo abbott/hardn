@@ -93,7 +93,11 @@ type Options struct {
 // typed for a lockout-risk plan, and applied; n and 0 change nothing, and a dry
 // run stops at the plan. A lockout-risk plan whose hostname can't be read says so
 // before asking; Add and Remove with no hardn.yml read say that before asking;
-// Apply says its plan's refusal before asking. On Proxmox VE, Return alone. Run
+// Apply says its plan's refusal before asking. On Proxmox VE, Return alone. On
+// Rocky Linux and AlmaLinux, firewalld's screen: item 1 Install, Install
+// iproute, Enable or Disable, its refusal said before asking, Enable's hostname
+// checked first; item 2, beside an Enable where firewalld starts at boot,
+// Disable; no profiles or interfaces (el-firewalld.md §1.6). Run
 // returns an error wrapping fs.ErrInvalid, writing nothing, without a Prompter's
 // In and Out, a System, a Config or NewEngine.
 func Run(ctx context.Context, o Options) error {
@@ -116,11 +120,12 @@ type runner struct {
 }
 
 // reading is one reading of the host: the control's, and the view of it on ufw's
-// screen, or on Proxmox VE's.
+// screen, on Proxmox VE's, or on firewalld's (Rocky Linux and AlmaLinux).
 type reading struct {
 	firewallctl.Reading
 	view screen.Firewall
 	pve  screen.FirewallPVE
+	el   screen.Firewalld
 }
 
 // read reads the host as the control reads it (firewall.Read, writing nothing,
@@ -134,6 +139,10 @@ func (r *runner) read(ctx context.Context) reading {
 		h.pve = pveView(h.Reading, status)
 		return h
 	}
+	if h.EL {
+		h.el = firewalldView(h.Reading, status)
+		return h
+	}
 	h.view = mainView(h.Reading, status, f)
 	return h
 }
@@ -145,10 +154,13 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 		sub := h.pve.SubMenu()
 		return sub.Screen(r.o.Prompter.Ctx, nav.Menu{Exit: sub.Menu.Exit})
 	}
-	sub := h.view.SubMenu()
+	sub, action := h.view.SubMenu(), r.action
+	if h.EL {
+		sub, action = h.el.SubMenu(), r.elAction
+	}
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {
-		menu.Options = append(menu.Options, nav.Option{Item: it, Action: r.action(ctx, h, it.Key)})
+		menu.Options = append(menu.Options, nav.Option{Item: it, Action: action(ctx, h, it.Key)})
 	}
 	return sub.Screen(r.o.Prompter.Ctx, menu)
 }

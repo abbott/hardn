@@ -47,13 +47,15 @@ hardn changes the SSH port on Rocky Linux and AlmaLinux, as it does elsewhere. T
    |---|---|
    | Running, no zone read with target ACCEPT | Configured, "firewalld running" |
    | Running, a zone with target ACCEPT | Not Configured, "zone accepts everything" |
-   | Installed, stopped | Not Configured, "firewalld not running" |
+   | Running, not started at boot (since 3b) | Partial, "not started at boot" |
+   | Installed, stopped | Not Configured, "firewalld not running"; "starts at boot, not running" where it does (since 3b) |
    | Not installed | ufw's line, where ufw is installed; else Not Configured, "no firewall installed" |
-   | Not read | Unknown, "can't read" |
+   | Not read, or failed | Unknown, "can't read" |
 
    - The row doesn't check which listeners firewalld lets through, as ufw's row does. Whether SSH gets through is the port change's to check.
-   - p4status allows `firewall-cmd --state`, `--get-default-zone`, `--get-active-zones`, a zone's permanent `--get-target`, and `systemctl is-enabled firewalld.service`.
-   - The Firewall screen shows only its status there. Enable, profiles and interfaces stay refused (`FIREWALL_EL_READ_ONLY`).
+   - Since 3b, "running" is `systemctl is-active firewalld.service`, and `firewall-cmd` runs only where it is active ([el-firewalld.md](el-firewalld.md) §1.5).
+   - p4status allows `firewall-cmd --state`, `--get-default-zone`, `--get-active-zones`, a zone's permanent `--get-target`, and `systemctl is-active` and `is-enabled firewalld.service`.
+   - Since 3b the Firewall screen installs, enables and disables firewalld there; profiles and interfaces stay refused (`FIREWALL_EL_READ_ONLY`).
 7. **EPEL's ufw:** where ufw is installed and active on such a host, a port change also lets its new port through ufw, as elsewhere (`steps.ErrELFirewall` refuses only the Firewall item's ufw changes).
 
 ## 2. API
@@ -105,6 +107,8 @@ Found on the way:
 - Installing firewalld's kernel made a rescue boot entry for the host's machine-id. `dnf history undo` left that entry in `/boot` and GRUB's default on it: the next boot would have been the rescue kernel. Both were put back by hand (`grubby --set-default` to the running kernel; the entry and its 107 MB removed).
 
 ## 5. What the next unit must do (3b)
+
+Done in unit 3b, as [el-firewalld.md](el-firewalld.md) describes; the brief as it was:
 
 - **dnf** as `packages.Tool` (`dnf install --assumeno` read: "Installing", "Installing dependencies", "Upgrading" sections). It must say before installing when the transaction brings a kernel (as firewalld's does on a cloud image). Its undo must not leave GRUB's default on a rescue entry (§4).
 - **The Firewall item on Rocky Linux and AlmaLinux:**

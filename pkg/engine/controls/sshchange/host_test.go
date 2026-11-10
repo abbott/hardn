@@ -790,8 +790,14 @@ func (v *vm) systemctl(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: no + "\n", ExitCode: code}
 	}
 	switch cmd := strings.Join(argv, " "); {
-	case v.fw != nil && cmd == "systemctl is-enabled firewalld.service":
-		return state(v.fw.enabled, "enabled", "disabled", 1), true
+	case v.fw == nil && cmd == "systemctl is-enabled firewalld.service":
+		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
+	case v.fw == nil && cmd == "systemctl is-active firewalld.service":
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, true
+	case cmd == "systemctl is-enabled firewalld.service":
+		return state(v.fw.enabled || !v.fw.stopped, "enabled", "disabled", 1), true
+	case cmd == "systemctl is-active firewalld.service":
+		return state(!v.fw.stopped, "active", "inactive", 3), true
 	case v.sshdUnits && (cmd == "systemctl is-enabled ssh.service" || cmd == "systemctl is-enabled ssh.socket"):
 		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
 	case v.sshdUnits && (cmd == "systemctl is-active ssh.service" || cmd == "systemctl is-active ssh.socket"):

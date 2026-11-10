@@ -316,11 +316,14 @@ var errorCodes = []Entry{
 	is("UFW_BAD_PROFILE", ufw.ErrBadProfile),
 	is("UFW_BAD_INTERFACE", ufw.ErrBadInterface),
 
-	// Packages (pkg/host/packages): an OtherPackagesError is its sentinel's.
+	// Packages (pkg/host/packages): an OtherPackagesError and a KernelError
+	// are their sentinels'.
 	is("PACKAGE_NO_TOOL", packages.ErrNoTool),
 	is("PACKAGE_NOT_IN_REPOS", packages.ErrNotInRepos),
 	is("PACKAGE_OTHER_CHANGES", packages.ErrOtherPackages),
 	is("PACKAGE_VERIFY_FAILED", packages.ErrVerify),
+	is("PACKAGE_KERNEL", packages.ErrKernel),
+	is("PACKAGE_LOCKED", packages.ErrLocked),
 
 	// Proxmox VE (pkg/host/pve).
 	is("PVE_NOT_APPLICABLE", pve.ErrNotApplicable),
@@ -331,7 +334,16 @@ var errorCodes = []Entry{
 	is("FIREWALLD_NO_SSH_PATH", firewalld.ErrNoSSHPath),
 	is("FIREWALLD_STOPPED", firewalld.ErrStartsAtBoot),
 	is("FIREWALLD_NOT_LET_THROUGH", firewalld.ErrNotLetThrough),
+	is("FIREWALLD_FAILED", firewalld.ErrFailed),
+	is("FIREWALLD_NOT_READY", firewalld.ErrNotReady),
 	is("FIREWALLD_UNKNOWN", firewalld.ErrUnknown),
+	is("FIREWALLD_OTHER_FIREWALL", firewalld.ErrOtherFirewall),
+	is("FIREWALLD_NO_CLEANUP", firewalld.ErrNoCleanup),
+	is("FIREWALLD_BOOT_BLOCKED", firewalld.ErrBootBlocked),
+	is("FIREWALLD_BOOT_UNKNOWN", firewalld.ErrBootUnknown),
+	is("FIREWALLD_ZONE_NO_SSH", firewalld.ErrZoneNoSSH),
+	is("FIREWALLD_NOT_INSTALLED", firewall.ErrFirewalldMissing),
+	is("FIREWALLD_NOT_AT_BOOT", firewall.ErrRunningNotAtBoot),
 	is("PVE_ROOT_EXCLUDED", pve.ErrRootExcluded),
 	is("PVE_ROOT_PASSWORD_KEPT", pve.ErrRootPassword),
 	is("PVE_CLUSTER_FS_DOWN", pve.ErrClusterFSDown),

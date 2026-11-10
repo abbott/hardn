@@ -142,7 +142,7 @@ To update, run the  [Install Script](#install-script) command again.
 | `-u, --username <name>` | The user `-c` creates; also the default for Create and Run All |
 | `-c, --create-user` | Create the user with admin rights, no password, and every key in hardn.yml's `sshKeys` |
 | `-d, --disable-root` | Turn root's SSH login off (key-only on Proxmox). Refused unless another admin can still log in and become root |
-| `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox |
+| `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox, Rocky Linux and AlmaLinux |
 | `-g, --configure-dns` | Set hardn.yml's nameservers |
 | `-e, --setup-sudo-env` | Keep `HARDN_CONFIG` under sudo or doas, as `setup-sudo-env` does |
 | `-r, --run-all` | Run All's plan from hardn.yml. Can't be combined with `-c`, `-d`, `-w`, `-g` or `-e` (exit 2) |
@@ -256,7 +256,9 @@ confirmTimeout: "5m"
 On Rocky Linux and AlmaLinux:
 
 - A new SSH port is labelled for sshd in SELinux and let through firewalld before sshd moves.
-- The firewall (firewalld), Auto Updates and DNS are otherwise only read. ufw is never installed or enabled.
+- The Firewall screen installs, enables and disables firewalld. It refuses a dnf install that brings a new kernel.
+- Run All and `-w` leave the firewall to that screen. ufw is never installed or enabled.
+- Auto Updates and DNS are only read.
 
 ### Proxmox
 

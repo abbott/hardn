@@ -551,3 +551,21 @@ func TestPortRocky(t *testing.T) {
 		t.Errorf("port: %v %q, err %v; want elsewhere", rw.Kind, rw.Words, rw.Err)
 	}
 }
+
+// TestFirewallRocky: on Rocky Linux the Firewall row is status only, the
+// Firewall screen's, even where hardn.yml asks for the firewall
+// (enableUfwSshPolicy): Run All plans no firewall change there
+// (el-firewalld.md §1.7).
+func TestFirewallRocky(t *testing.T) {
+	p := debian13()
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	p.facts.SSH.SSHDUnits = true
+	h := withYML(t, vm(p), "enableUfwSshPolicy: true\n")
+	r, err := runall.Read(context.Background(), h.input())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rw, _ := r.Row(fwctl.ID); rw.Kind != runall.Left || rw.Words != runall.WordsStatus || rw.Control != nil {
+		t.Errorf("firewall: %v %q, control %v; want left, status only", rw.Kind, rw.Words, rw.Control)
+	}
+}

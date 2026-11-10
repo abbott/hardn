@@ -41,7 +41,7 @@ firewall.ReadSockets(ctx, sys, facts) firewall.Sockets        // the one reading
 - Where Install, or Enable on an inactive ufw, refuses, item 1 keeps its own words, as the adopted mocks draw it; the refusal is said on selecting it.
 - A refused listener's words drop `(dual-stack)` from the address.
 - On Proxmox VE the refusal is §6's "hardn reads pve-firewall…" sentence, code `UFW_NOT_APPLICABLE`.
-- On Rocky Linux and AlmaLinux every action but saving `hardn.yml` is refused, code `FIREWALL_EL_READ_ONLY` ([el-changes.md](el-changes.md) §1.5).
+- On Rocky Linux and AlmaLinux Install, Install iproute2 (`iproute` there), Enable and Disable drive firewalld ([el-firewalld.md](el-firewalld.md)); applying ufw's profiles or interfaces is refused, code `FIREWALL_EL_READ_ONLY`.
 - `Read` also plans Install, so its refusal is said before asking. Each draw of a host with no ufw runs the simulation, which changes nothing.
 - Install's state after names the other new packages a simulation adds.
 - Install's undo is journalled before it runs, and replaced by `Report.Undo` after.

@@ -92,13 +92,13 @@ func sshdT(args []string) bool {
 // (ssh.socket and ssh.service, and sshd.socket and sshd.service where
 // systemd has neither ssh.* unit), the AppArmor check's (apparmor.service), the
 // Auto Updates check's (apt's timers and their services), the Firewall
-// row's on Rocky Linux and AlmaLinux (firewalld.service, when stopped), Proxmox VE's
+// row's on Rocky Linux and AlmaLinux (firewalld.service), Proxmox VE's
 // firewall's (pve.ReadFirewall) and the DNS check's (systemd-resolved).
 var units = map[string][]string{
 	"is-enabled": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "ufw.service", "firewalld.service", "apparmor.service",
 		"apt-daily-upgrade.timer", "apt-daily-upgrade.service", "apt-daily.timer", "apt-daily.service"},
 	"is-active": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "apt-daily-upgrade.timer", "apt-daily.timer",
-		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service"},
+		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service", "firewalld.service"},
 }
 
 // systemctl is is-enabled or is-active of one of units, or ssh.socket's

@@ -47,6 +47,62 @@ const (
 	apkOK = "(1/2) Installing python3 (3.12.13-r0)\n(2/2) Installing ufw (0.36.2-r3)\nOK: 9 MiB in 26 packages\n"
 )
 
+// dnf's transaction table, as rocky10-test-110 printed it (probe 4,
+// 2026-11-09, LC_ALL=C): dnfProbe is that output; the others are it edited
+// [I], each said.
+const (
+	dnfHead = "Last metadata expiration check: 1:54:47 ago on Mon Nov  9 23:03:35 2026.\nDependencies resolved.\n" +
+		"================================================================================\n Package                 Arch      Version                   Repository    Size\n================================================================================\n"
+	dnfInstalling = "Installing:\n firewalld               noarch    2.4.3-4.el10_2            baseos       471 k\n"
+	dnfKernel     = " kernel-core             x86_64    6.12.0-211.74.1.el10_2    baseos        19 M\n"
+	dnfDeps       = "Installing dependencies:\n" +
+		" firewalld-filesystem    noarch    2.4.3-4.el10_2            baseos       7.7 k\n" +
+		" ipset-libs              x86_64    7.22-13.el10_2            baseos        69 k\n"
+	dnfKernelDeps = " kernel-modules          x86_64    6.12.0-211.74.1.el10_2    baseos        42 M\n" +
+		" kernel-modules-core     x86_64    6.12.0-211.74.1.el10_2    baseos        30 M\n" +
+		" kernel-modules-extra    x86_64    6.12.0-211.74.1.el10_2    baseos       3.2 M\n"
+	dnfMoreDeps = " libnftnl                x86_64    1.3.0-3.el10              baseos        87 k\n" +
+		" nftables                x86_64    1:1.1.5-6.el10_2          baseos       447 k\n" +
+		" python3-firewall        noarch    2.4.3-4.el10_2            baseos       478 k\n" +
+		" python3-nftables        x86_64    1:1.1.5-6.el10_2          baseos        25 k\n"
+	dnfWeak = "Installing weak dependencies:\n" +
+		" ipset                   x86_64    7.22-13.el10_2            baseos        44 k\n" +
+		" iptables-nft            x86_64    1.8.11-13.el10            appstream    190 k\n" +
+		" libcap-ng-python3       x86_64    0.8.4-6.el10              appstream     30 k\n"
+	dnfTail = "\nTransaction Summary\n================================================================================\nInstall  14 Packages\n\nTotal download size: 96 M\nInstalled size: 145 M\n"
+	// dnfProbe is probe 4's transaction: the newest kernel comes with
+	// firewalld's kernel-modules-extra.
+	dnfProbe = dnfHead + dnfInstalling + dnfKernel + dnfDeps + dnfKernelDeps + dnfMoreDeps + dnfWeak + dnfTail
+	// [I] the same on a host that runs the newest kernel: its modules come,
+	// for the running kernel.
+	dnfRunningKernel = dnfHead + dnfInstalling + dnfDeps + " kernel-modules-extra    x86_64    6.12.0-211.74.1.el10_2    baseos       3.2 M\n" + dnfMoreDeps + dnfWeak + dnfTail
+	// [I] fmtColumns: a kernel row wrapped, its version on the line below.
+	dnfWrappedKernel = dnfHead + dnfInstalling + " kernel-core\n                         x86_64    6.12.0-211.74.1.el10_2    baseos        19 M\n" + dnfTail
+	// [I] userland headers of another release: no kernel.
+	dnfHeaders = dnfHead + dnfInstalling + "Installing dependencies:\n kernel-headers          x86_64    6.12.0-211.74.1.el10_2    baseos       2.6 M\n" + dnfTail
+	// The same without weak dependencies, as hardn simulates it
+	// (rocky10-test-110, probe 3b-2, 2026-11-10: 6 packages, no kernel).
+	dnfNoKernel = dnfHead + dnfInstalling + "Installing dependencies:\n" +
+		" firewalld-filesystem      noarch      2.4.3-4.el10_2         baseos      7.7 k\n" + dnfMoreDeps + dnfTail
+	dnfAborted = "Operation aborted.\n"
+	// [I] "Upgrading:" is probe 4's, for sudo; the rest is the table's.
+	dnfUpgrade = dnfHead + dnfInstalling + "Upgrading:\n sudo                  x86_64    1.9.17-10.p2.el10_2.7       baseos       1.3 M\n" + dnfTail
+	// [I] dnf's output.py: an obsoleting package's "replacing" line.
+	dnfReplacing = dnfHead + dnfInstalling + "     replacing  firewalld-old.noarch 0.9\n" + dnfTail
+	// [I] fmtColumns: a name wider than its column, the rest below it.
+	dnfWrapped = dnfHead + "Installing:\n firewalld-with-a-name-wider-than-its-column\n                         noarch    2.4.3-4.el10_2            baseos       471 k\n" + dnfTail
+	// rocky10-test-110, probe 3b (2026-11-10): no package of that name, the
+	// first line on stdout, the second on stderr, exit 1.
+	dnfMissingOut = "Last metadata expiration check: 3:34:12 ago on Mon Nov  9 23:03:35 2026.\nNo match for argument: hardn-no-such-package\n"
+	dnfMissing    = "Error: Unable to find a match: hardn-no-such-package\n"
+)
+
+func rpmQ(name string) []string { return []string{"rpm", "-q", name} }
+
+func rpmAbsent(name string) hostfake.Response {
+	return hostfake.Response{Stdout: "package " + name + " is not installed\n", ExitCode: 1}
+}
+
 // dpkg is detect's read of a package.
 func dpkg(name string) []string {
 	return []string{"dpkg-query", "--show", `--showformat=${Status}\t${Version}\n`, name}
@@ -67,17 +123,23 @@ func respond(h *hostfake.System, r hostfake.Response, argv []string) {
 // absent is a fake on which name reads not installed.
 func absent(t packages.Tool, name string) *hostfake.System {
 	h := hostfake.New(host.Options{})
-	if t == packages.Apt {
+	switch t {
+	case packages.Apt:
 		respond(h, dpkgAbsent, dpkg(name))
-	} else {
+	case packages.Dnf:
+		respond(h, rpmAbsent(name), rpmQ(name))
+	default:
 		respond(h, apkAbsent, apkInfo(name))
 	}
 	return h
 }
 
 func simulate(t packages.Tool, name string) []string {
-	if t == packages.Apt {
+	switch t {
+	case packages.Apt:
 		return []string{"apt-get", "install", "-s", "-y", name}
+	case packages.Dnf:
+		return []string{"dnf", "install", "--assumeno", "--setopt=install_weak_deps=False", "--setopt=exit_on_lock=True", name}
 	}
 	return []string{"apk", "add", "--simulate", name}
 }
@@ -100,6 +162,8 @@ func TestToolFor(t *testing.T) {
 		{distro: detect.DistroDebian, want: packages.Apt},
 		{distro: detect.DistroUbuntu, want: packages.Apt},
 		{distro: detect.DistroAlpine, want: packages.Apk},
+		{distro: detect.DistroRocky, want: packages.Dnf},
+		{distro: detect.DistroAlma, want: packages.Dnf},
 		{distro: detect.DistroProxmox, err: packages.ErrNoTool},
 		{distro: detect.DistroOther, like: detect.DistroDebian, err: packages.ErrNoTool},
 		{distro: detect.DistroUnknown, err: packages.ErrNoTool},
@@ -130,12 +194,21 @@ func TestInstalled(t *testing.T) {
 		{"apk other name", packages.Apk, hostfake.Response{Stdout: "ufw-extra\n"}, detect.Unknown, true},
 		{"apk exit 1 said why", packages.Apk, hostfake.Response{Stderr: "ERROR: database locked\n", ExitCode: 1}, detect.Unknown, true},
 		{"apk exit 2", packages.Apk, hostfake.Response{ExitCode: 2}, detect.Unknown, true},
+		{"rpm installed", packages.Dnf, hostfake.Response{Stdout: "ufw-0.36.2-1.el10.noarch\n"}, detect.Yes, false},
+		{"rpm two versions", packages.Dnf, hostfake.Response{Stdout: "ufw-0.36.2-1.el10.noarch\nufw-0.36.3-1.el10.noarch\n"}, detect.Yes, false},
+		{"rpm none", packages.Dnf, rpmAbsent("ufw"), detect.No, false},
+		{"rpm other name", packages.Dnf, hostfake.Response{Stdout: "ufwx-1-1.noarch\n"}, detect.Unknown, true},
+		{"rpm exit 1 said otherwise", packages.Dnf, hostfake.Response{Stderr: "error: rpmdb open failed\n", ExitCode: 1}, detect.Unknown, true},
+		{"rpm exit 0 silent", packages.Dnf, hostfake.Response{}, detect.Unknown, true},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			h := hostfake.New(host.Options{})
-			if c.tool == packages.Apt {
+			switch c.tool {
+			case packages.Apt:
 				respond(h, c.r, dpkg("ufw"))
-			} else {
+			case packages.Dnf:
+				respond(h, c.r, rpmQ("ufw"))
+			default:
 				respond(h, c.r, apkInfo("ufw"))
 			}
 			got, err := packages.Installed(context.Background(), h, c.tool, "ufw")
@@ -174,6 +247,97 @@ func TestPlanInstall(t *testing.T) {
 			}
 			// Reads only: the read and the simulation, nothing else.
 			if got := h.Runs(); len(got) != 2 || !slices.Equal(got[1], sim) {
+				t.Errorf("runs %q", runs(h))
+			}
+		})
+	}
+}
+
+// TestPlanInstallDnf: dnf's table read section by section. Only installs
+// are accepted; a kernel among them is a *KernelError (probe 4's own
+// transaction); an upgrade or a replacement is an *OtherPackagesError; no
+// such package is ErrNotInRepos. Each reads only: rpm -q, then the
+// simulation.
+func TestPlanInstallDnf(t *testing.T) {
+	aborted := func(out string) hostfake.Response {
+		return hostfake.Response{Stdout: out, Stderr: dnfAborted, ExitCode: 1}
+	}
+	ctx := context.Background()
+	for _, c := range []struct {
+		name    string
+		r       hostfake.Response
+		adds    []string
+		kernels []string
+		changes []string
+		uname   string // uname -r, where a kernel row is listed
+		repos   bool
+		locked  bool
+		other   bool // any other error
+	}{
+		{name: "no weak dependencies, no kernel", r: aborted(dnfNoKernel), adds: []string{"firewalld", "firewalld-filesystem", "libnftnl", "nftables", "python3-firewall", "python3-nftables"}},
+		{name: "probe 4: a new kernel comes too", r: aborted(dnfProbe), uname: "6.12.0-211.16.1.el10_2.0.1.x86_64", kernels: []string{"kernel-core", "kernel-modules", "kernel-modules-core", "kernel-modules-extra"}},
+		{name: "modules for the running kernel [I]", r: aborted(dnfRunningKernel), uname: "6.12.0-211.74.1.el10_2.x86_64",
+			adds: []string{"firewalld", "firewalld-filesystem", "ipset-libs", "kernel-modules-extra", "libnftnl", "nftables", "python3-firewall", "python3-nftables", "ipset", "iptables-nft", "libcap-ng-python3"}},
+		{name: "modules for another kernel [I]", r: aborted(dnfRunningKernel), uname: "6.12.0-211.16.1.el10_2.0.1.x86_64", kernels: []string{"kernel-modules-extra"}},
+		{name: "kernel-headers of another release, no kernel [I]", r: aborted(dnfHeaders), adds: []string{"firewalld", "kernel-headers"}},
+		{name: "a wrapped kernel row: another release [I]", r: aborted(dnfWrappedKernel), uname: "6.12.0-211.74.1.el10_2.x86_64", kernels: []string{"kernel-core"}},
+		{name: "another dnf holds the lock [I]", r: hostfake.Response{Stderr: "Error: [Errno 11] Resource temporarily unavailable\n", ExitCode: 200}, locked: true},
+		{name: "upgrading [I]", r: aborted(dnfUpgrade), changes: []string{"Upgrading sudo"}},
+		{name: "replacing [I]", r: aborted(dnfReplacing), changes: []string{"Replacing firewalld-old.noarch"}},
+		{name: "a wrapped row [I]", r: aborted(dnfWrapped), adds: []string{"firewalld-with-a-name-wider-than-its-column"}},
+		{name: "no such package", r: hostfake.Response{Stdout: dnfMissingOut, Stderr: dnfMissing, ExitCode: 1}, repos: true},
+		{name: "aborted without a table", r: hostfake.Response{Stderr: dnfAborted, ExitCode: 1}, other: true},
+		{name: "a repository unreachable [I]", r: hostfake.Response{Stderr: "Error: Failed to download metadata for repo 'baseos'\n", ExitCode: 1}, other: true},
+		{name: "nothing to do [I]", r: hostfake.Response{Stdout: "Dependencies resolved.\nNothing to do.\n"}, other: true},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			name := "firewalld"
+			if c.repos {
+				name = "hardn-no-such-package"
+			}
+			if len(c.adds) == 1 {
+				name = c.adds[0]
+			}
+			h := absent(packages.Dnf, name)
+			respond(h, c.r, simulate(packages.Dnf, name))
+			if c.uname != "" {
+				respond(h, hostfake.Response{Stdout: c.uname + "\n"}, []string{"uname", "-r"})
+			}
+			p, err := packages.PlanInstall(ctx, h, packages.Dnf, name)
+			var kernel *packages.KernelError
+			var other *packages.OtherPackagesError
+			switch {
+			case c.adds != nil:
+				if err != nil || !slices.Equal(p.Adds, c.adds) || !slices.Equal(p.Argv, []string{"dnf", "install", "-y", "--setopt=install_weak_deps=False", "--setopt=exit_on_lock=True", name}) ||
+					!slices.Equal(p.Undo, []string{"dnf", "remove", "-y", "--noautoremove", "--setopt=exit_on_lock=True", name}) {
+					t.Errorf("plan %+v, %v", p, err)
+				}
+			case c.kernels != nil:
+				if !errors.Is(err, packages.ErrKernel) || !errors.As(err, &kernel) || !slices.Equal(kernel.Packages, c.kernels) || !p.Empty() {
+					t.Errorf("plan %+v, %v; want the kernels %q", p, err, c.kernels)
+				}
+			case c.changes != nil:
+				if !errors.As(err, &other) || !slices.Equal(other.Changes, c.changes) {
+					t.Errorf("plan %+v, %v; want the changes %q", p, err, c.changes)
+				}
+			case c.repos:
+				if !errors.Is(err, packages.ErrNotInRepos) {
+					t.Errorf("%v, want ErrNotInRepos", err)
+				}
+			case c.locked:
+				if !errors.Is(err, packages.ErrLocked) {
+					t.Errorf("%v, want ErrLocked", err)
+				}
+			case c.other:
+				if err == nil || errors.Is(err, packages.ErrNotInRepos) || errors.Is(err, packages.ErrKernel) || errors.Is(err, packages.ErrOtherPackages) {
+					t.Errorf("plan %+v, %v; want another error", p, err)
+				}
+			}
+			want := 2
+			if c.uname != "" {
+				want = 3 // and uname -r
+			}
+			if got := h.Runs(); len(got) != want || !slices.Equal(got[0], rpmQ(name)) || !slices.Equal(got[1], simulate(packages.Dnf, name)) {
 				t.Errorf("runs %q", runs(h))
 			}
 		})
@@ -298,6 +462,9 @@ func TestBadNameRunsNothing(t *testing.T) {
 }
 
 func planFor(t packages.Tool) packages.Plan {
+	if t == packages.Dnf {
+		return packages.Plan{Tool: t, Name: "ufw", Argv: []string{"dnf", "install", "-y", "--setopt=install_weak_deps=False", "--setopt=exit_on_lock=True", "ufw"}, Undo: []string{"dnf", "remove", "-y", "--noautoremove", "--setopt=exit_on_lock=True", "ufw"}, Adds: []string{"ufw"}}
+	}
 	if t == packages.Apt {
 		return packages.Plan{Tool: t, Name: "ufw", Argv: []string{"apt-get", "install", "-y", "ufw"}, Undo: []string{"apt-get", "remove", "-y", "ufw"}, Adds: []string{"ufw"}}
 	}
@@ -319,6 +486,8 @@ func TestExecute(t *testing.T) {
 	}{
 		{name: "apt", tool: packages.Apt, after: dpkgThere, installed: true, undo: true, runs: 2},
 		{name: "apk", tool: packages.Apk, after: hostfake.Response{Stdout: "ufw\n"}, installed: true, undo: true, runs: 2},
+		{name: "dnf", tool: packages.Dnf, after: hostfake.Response{Stdout: "ufw-0.36.2-1.el10.noarch\n"}, installed: true, undo: true, runs: 2},
+		{name: "dnf, not installed after", tool: packages.Dnf, after: rpmAbsent("ufw"), undo: true, verify: true, runs: 2},
 		{name: "apt, not installed after", tool: packages.Apt, after: dpkgAbsent, undo: true, verify: true, runs: 2},
 		{name: "apk, not installed after", tool: packages.Apk, after: apkAbsent, undo: true, verify: true, runs: 2},
 		{name: "unread after", tool: packages.Apt, after: hostfake.Response{Stdout: "install ok half-installed\t1\n"}, undo: true, verify: true, runs: 2},
@@ -330,9 +499,12 @@ func TestExecute(t *testing.T) {
 			h := hostfake.New(host.Options{})
 			p := planFor(c.tool)
 			respond(h, c.install, p.Argv)
-			if c.tool == packages.Apt {
+			switch c.tool {
+			case packages.Apt:
 				respond(h, c.after, dpkg("ufw"))
-			} else {
+			case packages.Dnf:
+				respond(h, c.after, rpmQ("ufw"))
+			default:
 				respond(h, c.after, apkInfo("ufw"))
 			}
 			rep, err := packages.Execute(context.Background(), h, p)
@@ -361,6 +533,38 @@ func TestExecuteEmptyPlanOnlyReads(t *testing.T) {
 	}
 	if got := h.Runs(); len(got) != 1 {
 		t.Errorf("runs %q", runs(h))
+	}
+}
+
+// cancelling is a host whose install, once it runs, cancels its caller's
+// context, as a Ctrl-C or a dropped session would, and records whether the
+// install's own context saw it.
+type cancelling struct {
+	*hostfake.System
+	cancel  context.CancelFunc
+	sawDone bool
+}
+
+func (c *cancelling) Run(ctx context.Context, name string, args ...string) (host.Result, error) {
+	if name == "dnf" && len(args) > 1 && args[0] == "install" && args[1] == "-y" {
+		c.cancel()
+		c.sawDone = ctx.Err() != nil
+	}
+	return c.System.Run(ctx, name, args...)
+}
+
+// TestExecuteRunsToItsEnd: a context cancelled while the install runs
+// doesn't reach it (InstallTimeout's own context), and the read after it
+// still runs: a killed rpm transaction leaves the database half done.
+func TestExecuteRunsToItsEnd(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	h := &cancelling{System: hostfake.New(host.Options{}), cancel: cancel}
+	p := planFor(packages.Dnf)
+	respond(h.System, hostfake.Response{}, p.Argv)
+	respond(h.System, hostfake.Response{Stdout: "ufw-0.36.2-1.el10.noarch\n"}, rpmQ("ufw"))
+	if _, err := packages.Execute(ctx, h, p); h.sawDone || ctx.Err() == nil {
+		t.Errorf("the install saw the cancel %v (ctx %v): %v", h.sawDone, ctx.Err(), err)
 	}
 }
 

@@ -44,10 +44,14 @@ func install(ctx context.Context, sys host.System, f detect.Facts) ([]engine.Cha
 // still missing (a file removed), there is nothing to install, and saying so
 // would leave item 1 offering it again: that is a refusal naming ss.
 func installSS(ctx context.Context, sys host.System, f detect.Facts) ([]engine.Change, error) {
-	changes, err := installPackage(ctx, sys, f, ssPackage, "/iproute2", "installed", nil)
+	name := ssPackage
+	if f.Platform.Distro.EL() {
+		name = elSSPackage
+	}
+	changes, err := installPackage(ctx, sys, f, name, "/iproute2", "installed", nil)
 	if err == nil && len(changes) == 0 && ReadSockets(ctx, sys, f).NoSS {
-		return nil, &steps.Refusal{Code: codeNoSS, Why: "iproute2 is installed, but its ss isn't there",
-			Fix: "reinstall iproute2, then try again", Err: ErrNoSS}
+		return nil, &steps.Refusal{Code: codeNoSS, Why: name + " is installed, but its ss isn't there",
+			Fix: "reinstall " + name + ", then try again", Err: ErrNoSS}
 	}
 	return changes, err
 }
@@ -101,9 +105,19 @@ func installRefusal(tool packages.Tool, name string, err error) error {
 	case errors.Is(err, packages.ErrNotInRepos) && tool == packages.Apk:
 		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find " + name + " in apk's package lists",
 			Fix: "check the network, run apk update, then try again", Err: err}
+	case errors.Is(err, packages.ErrNotInRepos) && tool == packages.Dnf:
+		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find " + name + " in dnf's repositories",
+			Fix: "check the network and the repositories (dnf repolist), then try again", Err: err}
 	case errors.Is(err, packages.ErrNotInRepos):
 		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find " + name + " in apt's package lists",
 			Fix: "run apt-get update, then try again", Err: err}
+	case errors.Is(err, packages.ErrKernel):
+		var k *packages.KernelError
+		errors.As(err, &k)
+		return &steps.Refusal{Code: codeKernel, Why: "Installing " + name + " would also install a new kernel (" + strings.Join(k.Packages, ", ") + ")",
+			Fix: "run dnf upgrade and restart, then try again", Err: err}
+	case errors.Is(err, packages.ErrLocked):
+		return &steps.Refusal{Code: codeLocked, Why: "another dnf is running", Fix: "wait for it to finish, then try again", Err: err}
 	case errors.As(err, &other):
 		return &steps.Refusal{Code: codeOtherPackages, Why: "Installing " + name + " would also change other packages: " + strings.Join(changeNames(other.Changes), ", "),
 			Fix: "install it by hand, then try again", Err: err}

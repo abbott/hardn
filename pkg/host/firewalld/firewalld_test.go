@@ -21,47 +21,73 @@ var (
 	no  = hostfake.Response{Stdout: "no\n", ExitCode: 1}
 )
 
-// TestRead: --state's three answers, and the zones of a running firewalld,
-// with and without newer firewalld's " (default)".
+// unitIs scripts systemctl is-active and is-enabled of firewalld.service,
+// with systemctl's exits.
+func unitIs(h *hostfake.System, active, enabled string) {
+	respond(h, hostfake.Response{Stdout: active + "\n", ExitCode: map[bool]int{false: 3}[active == "active"]}, "systemctl", "is-active", "firewalld.service")
+	respond(h, hostfake.Response{Stdout: enabled + "\n", ExitCode: map[bool]int{false: 1}[enabled == "enabled"]}, "systemctl", "is-enabled", "firewalld.service")
+}
+
+// running scripts firewalld running, public the default zone.
+func running(h *hostfake.System, enabled, active string) {
+	unitIs(h, "active", enabled)
+	respond(h, hostfake.Response{Stdout: "running\n"}, "firewall-cmd", "--state")
+	respond(h, hostfake.Response{Stdout: "public\n"}, "firewall-cmd", "--get-default-zone")
+	respond(h, hostfake.Response{Stdout: active}, "firewall-cmd", "--get-active-zones")
+}
+
+// TestRead: systemd's words first, and firewall-cmd only where
+// firewalld.service is active; the zones of a running firewalld, with and
+// without newer firewalld's " (default)".
 func TestRead(t *testing.T) {
 	ctx := context.Background()
 	h := hostfake.New(host.Options{})
-	respond(h, hostfake.Response{Err: host.ErrNotFound}, "firewall-cmd", "--state")
-	if st, err := firewalld.Read(ctx, h); err != nil || st.Installed != detect.No || st.Running != detect.No {
-		t.Errorf("missing: %+v, %v", st, err)
-	}
-	for out, want := range map[string]detect.Tri{"disabled": detect.No, "masked": detect.No, "enabled": detect.Yes, "static": detect.Yes, "indirect": detect.Yes} {
-		h = hostfake.New(host.Options{})
-		respond(h, hostfake.Response{Stdout: "not running\n", ExitCode: 252}, "firewall-cmd", "--state")
-		exit := 0
-		if want == detect.No {
-			exit = 1
-		}
-		respond(h, hostfake.Response{Stdout: out + "\n", ExitCode: exit}, "systemctl", "is-enabled", "firewalld.service")
-		if st, err := firewalld.Read(ctx, h); err != nil || st.Installed != detect.Yes || st.Running != detect.No || st.Enabled != want {
-			t.Errorf("stopped, %s: %+v, %v", out, st, err)
-		}
+	unitIs(h, "inactive", "not-found")
+	if st, err := firewalld.Read(ctx, h); err != nil || st.Installed != detect.No || st.Running != detect.No || len(h.Runs()) != 2 {
+		t.Errorf("missing: %+v, %v, ran %q", st, err, h.Runs())
 	}
 	h = hostfake.New(host.Options{})
-	respond(h, hostfake.Response{Stdout: "not running\n", ExitCode: 252}, "firewall-cmd", "--state")
-	respond(h, hostfake.Response{ExitCode: 1}, "systemctl", "is-enabled", "firewalld.service")
-	if _, err := firewalld.Read(ctx, h); !errors.Is(err, firewalld.ErrUnknown) {
-		t.Errorf("stopped, is-enabled silent: %v", err)
+	unitIs(h, "inactive", "masked") // a mask of a firewalld not installed
+	if st, err := firewalld.Read(ctx, h); err != nil || st.Installed != detect.No || st.Unit != "masked" {
+		t.Errorf("masked, no unit file: %+v, %v", st, err)
+	}
+	for out, want := range map[string]detect.Tri{"disabled": detect.No, "masked": detect.No, "enabled": detect.Yes, "static": detect.Yes, "indirect": detect.Yes, "": detect.Unknown} {
+		h = hostfake.New(host.Options{})
+		h.AddFile(firewalld.UnitFile, []byte("[Unit]\n"), 0o644, 0, 0)
+		unitIs(h, "inactive", out)
+		if st, err := firewalld.Read(ctx, h); err != nil || st.Installed != detect.Yes || st.Running != detect.No || st.Enabled != want || st.Unit != out {
+			t.Errorf("stopped, %q: %+v, %v, ran %q", out, st, err, h.Runs())
+		}
 	}
 	for _, active := range []string{"public (default)\n  interfaces: eth0\ninternal\n  sources: 10.0.0.0/8\n", "public\n  interfaces: eth0\ninternal\n  sources: 10.0.0.0/8\n"} {
 		h = hostfake.New(host.Options{})
-		respond(h, hostfake.Response{Stdout: "running\n"}, "firewall-cmd", "--state")
-		respond(h, hostfake.Response{Stdout: "public\n"}, "firewall-cmd", "--get-default-zone")
-		respond(h, hostfake.Response{Stdout: active}, "firewall-cmd", "--get-active-zones")
+		running(h, "enabled", active)
 		st, err := firewalld.Read(ctx, h)
-		if err != nil || st.Running != detect.Yes || st.Default != "public" || !slices.Equal(st.Active, []string{"public", "internal"}) || !slices.Equal(st.Zones(), []string{"public", "internal"}) {
+		if err != nil || st.Running != detect.Yes || st.Enabled != detect.Yes || st.Default != "public" || !slices.Equal(st.Active, []string{"public", "internal"}) || !slices.Equal(st.Zones(), []string{"public", "internal"}) {
 			t.Errorf("running: %+v, %v", st, err)
 		}
 	}
 	h = hostfake.New(host.Options{})
-	respond(h, hostfake.Response{ExitCode: 251, Stdout: "running_but_failed\n"}, "firewall-cmd", "--state")
-	if _, err := firewalld.Read(ctx, h); !errors.Is(err, firewalld.ErrUnknown) {
-		t.Errorf("failed start: %v", err)
+	unitIs(h, "failed", "enabled")
+	if _, err := firewalld.Read(ctx, h); !errors.Is(err, firewalld.ErrFailed) || !errors.Is(err, firewalld.ErrUnknown) {
+		t.Errorf("failed: %v", err)
+	}
+	for name, setup := range map[string]func(h *hostfake.System){
+		"activating": func(h *hostfake.System) { unitIs(h, "activating", "enabled") },
+		"active, its failsafe": func(h *hostfake.System) {
+			unitIs(h, "active", "enabled")
+			respond(h, hostfake.Response{ExitCode: 251, Stdout: "failed\n"}, "firewall-cmd", "--state")
+		},
+		"active, not yet on D-Bus": func(h *hostfake.System) {
+			unitIs(h, "active", "enabled")
+			respond(h, hostfake.Response{ExitCode: 252, Stdout: "not running\n"}, "firewall-cmd", "--state")
+		},
+	} {
+		h = hostfake.New(host.Options{})
+		setup(h)
+		if _, err := firewalld.Read(ctx, h); !errors.Is(err, firewalld.ErrUnknown) {
+			t.Errorf("%s: %v", name, err)
+		}
 	}
 }
 
@@ -162,7 +188,7 @@ func TestPlanFor(t *testing.T) {
 	for _, c := range []struct {
 		enabled detect.Tri
 		want    error
-	}{{detect.No, nil}, {detect.Yes, firewalld.ErrStartsAtBoot}, {detect.Unknown, firewalld.ErrStartsAtBoot}} {
+	}{{detect.No, nil}, {detect.Yes, firewalld.ErrStartsAtBoot}, {detect.Unknown, firewalld.ErrUnknown}} {
 		h = hostfake.New(host.Options{})
 		p, err := firewalld.PlanFor(ctx, h, firewalld.State{Installed: detect.Yes, Running: detect.No, Enabled: c.enabled}, []uint16{22}, []uint16{2230})
 		if !errors.Is(err, c.want) || (c.want == nil) != (err == nil) || len(p.Steps) != 0 || len(h.Runs()) != 0 {
@@ -196,14 +222,16 @@ func TestExecute(t *testing.T) {
 	}
 }
 
-// TestRollback: running, each port there is taken away, at runtime and
-// permanently, last first, and one not there is left; stopped (the boot
-// unit, before firewalld starts), firewall-offline-cmd takes away the
-// permanent ones; not installed, nothing. A failure doesn't stop the rest.
+// TestRollback: firewalld.service active, each port there is taken away,
+// at runtime and permanently, last first, and one not there is left; not
+// active (the boot unit, before firewalld starts), firewall-offline-cmd
+// takes away the permanent ones, and no firewall-cmd runs; not installed,
+// nothing. A failure doesn't stop the rest.
 func TestRollback(t *testing.T) {
 	ctx := context.Background()
 	u := firewalld.Undo{Ports: []firewalld.Step{step("public", false), step("public", true), step("internal", true)}}
 	h := hostfake.New(host.Options{})
+	unitIs(h, "active", "enabled")
 	respond(h, hostfake.Response{Stdout: "running\n"}, "firewall-cmd", "--state")
 	respond(h, yes, "firewall-cmd", "--zone=public", "--query-port=2230/tcp")
 	respond(h, yes, "firewall-cmd", "--permanent", "--zone=public", "--query-port=2230/tcp")
@@ -220,18 +248,25 @@ func TestRollback(t *testing.T) {
 	if err == nil || !slices.Equal(removed, []string{"firewall-cmd --permanent --zone=public --remove-port=2230/tcp", "firewall-cmd --zone=public --remove-port=2230/tcp"}) {
 		t.Errorf("running: %v, removed %q", err, removed)
 	}
-	h = hostfake.New(host.Options{})
-	respond(h, hostfake.Response{Stdout: "not running\n", ExitCode: 252}, "firewall-cmd", "--state")
-	respond(h, yes, "firewall-offline-cmd", "--zone=public", "--query-port=2230/tcp")
-	respond(h, yes, "firewall-offline-cmd", "--zone=internal", "--query-port=2230/tcp")
-	respond(h, hostfake.Response{}, "firewall-offline-cmd", "--zone=public", "--remove-port=2230/tcp")
-	respond(h, hostfake.Response{}, "firewall-offline-cmd", "--zone=internal", "--remove-port=2230/tcp")
-	if err := firewalld.Rollback(ctx, h, u); err != nil || len(h.Runs()) != 5 {
-		t.Errorf("stopped: %v, ran %q", err, h.Runs())
+	for _, active := range []string{"inactive", "active"} { // active: forked, not yet on D-Bus (no Type=)
+		h = hostfake.New(host.Options{})
+		unitIs(h, active, "enabled")
+		respond(h, hostfake.Response{Stdout: "not running\n", ExitCode: 252}, "firewall-cmd", "--state")
+		respond(h, yes, "firewall-offline-cmd", "--zone=public", "--query-port=2230/tcp")
+		respond(h, yes, "firewall-offline-cmd", "--zone=internal", "--query-port=2230/tcp")
+		respond(h, hostfake.Response{}, "firewall-offline-cmd", "--zone=public", "--remove-port=2230/tcp")
+		respond(h, hostfake.Response{}, "firewall-offline-cmd", "--zone=internal", "--remove-port=2230/tcp")
+		want := 6
+		if active == "active" {
+			want = 7 // and firewall-cmd --state
+		}
+		if err := firewalld.Rollback(ctx, h, u); err != nil || len(h.Runs()) != want {
+			t.Errorf("%s: %v, ran %q", active, err, h.Runs())
+		}
 	}
 	h = hostfake.New(host.Options{})
-	respond(h, hostfake.Response{Err: host.ErrNotFound}, "firewall-cmd", "--state")
-	if err := firewalld.Rollback(ctx, h, u); err != nil || len(h.Runs()) != 1 {
+	unitIs(h, "inactive", "not-found")
+	if err := firewalld.Rollback(ctx, h, u); err != nil || len(h.Runs()) != 2 {
 		t.Errorf("not installed: %v, ran %q", err, h.Runs())
 	}
 	if err := firewalld.Rollback(ctx, h, firewalld.Undo{Ports: []firewalld.Step{{Zone: "a b", Port: 2230}}}); err == nil {

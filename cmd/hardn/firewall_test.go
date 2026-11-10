@@ -54,6 +54,8 @@ type fwTestHost struct {
 //     not started at boot: Enable's plan is plain, "Start ufw at boot"
 //     alone;
 //   - pve9: Proxmox VE 9, where the control refuses (UFW_NOT_APPLICABLE);
+//   - rocky: Rocky Linux 10, where -w is refused before its plan
+//     (FIREWALL_EL_READ_ONLY);
 //   - no-hostname: debian13 with no kernel hostname to read.
 func newFWHost(t *testing.T, name string) *fwTestHost {
 	t.Helper()
@@ -86,6 +88,10 @@ func newFWHost(t *testing.T, name string) *fwTestHost {
 	case "pve9":
 		h.facts.Platform = detect.Platform{Distro: detect.DistroProxmox, Version: "9", Support: detect.Supported}
 		h.facts.Proxmox = detect.Proxmox{Installed: detect.Yes, Version: "9.0.10", ClusterFS: detect.Yes, EtcPVE: detect.Yes}
+	case "rocky":
+		h.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+		h.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+		h.facts.SSH.SSHDUnits = true
 	case "no-hostname":
 		if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
 			t.Fatal(err)
@@ -310,7 +316,8 @@ func TestFirewallScreen(t *testing.T) {
 // TestFirewallHook: withFirewallScreen sets the Firewall item's screen on
 // the configuration main gives it, plan only set after the hook stopping
 // Enable at its plan, and the item's description Proxmox VE's on Proxmox
-// VE alone (decision 7), as detect reads it.
+// VE alone (decision 7), firewalld's on Rocky Linux alone, as detect reads
+// it.
 func TestFirewallHook(t *testing.T) {
 	h := newFWHost(t, "debian13")
 	s := useFWHost(t, h, "1", "0")
@@ -326,19 +333,28 @@ func TestFirewallHook(t *testing.T) {
 	if got := h.changed(); len(got) > 0 || !strings.Contains(s.out.String(), "No actual changes were made to your system.") || s.applies != 0 {
 		t.Errorf("ufw changed by %q, %d applies; screen:\n%s", got, s.applies, s.out.String())
 	}
-	if set.FirewallPVE() {
-		t.Error("Debian 13 is taken for Proxmox VE")
+	if set.FirewallPVE() || set.FirewallEL() {
+		t.Error("Debian 13 is taken for Proxmox VE, or Rocky Linux")
 	}
 	pve := newFWHost(t, "pve9")
 	useFWHost(t, pve)
-	if set := withFirewallScreen(mainmenu.Options{}, cfg); !set.FirewallPVE() {
-		t.Error("Proxmox VE 9 is not taken for Proxmox VE")
+	if set := withFirewallScreen(mainmenu.Options{}, cfg); !set.FirewallPVE() || set.FirewallEL() {
+		t.Error("Proxmox VE 9 is not taken for Proxmox VE, or is taken for Rocky Linux")
+	}
+	rocky := newFWHost(t, "rocky")
+	useFWHost(t, rocky)
+	if set := withFirewallScreen(mainmenu.Options{}, cfg); set.FirewallPVE() || !set.FirewallEL() {
+		t.Error("Rocky Linux 10 is taken for Proxmox VE, or not for Rocky Linux")
 	}
 }
 
 // fwLockoutWords are -w's refusal off a terminal (proposed, refactor plan
 // slice 4, unit (d)), as output.Human says it.
 const fwLockoutWords = "Enabling the firewall here risks a lockout (PLAN_REFUSED)"
+
+// fwELWords are -w's refusal on Rocky Linux and AlmaLinux (proposed,
+// el-firewalld.md §1.7), as output.Human says it.
+const fwELWords = "hardn doesn't configure the firewall from -w on Rocky Linux or AlmaLinux (FIREWALL_EL_READ_ONLY)"
 
 // runW runs hardn with args as root (runG) on the Firewall host h, its
 // configuration hardn's defaults, the session alice's; stdout's render
@@ -374,7 +390,8 @@ func runW(t *testing.T, h *fwTestHost, env func() term.Env, lines []string, setu
 // applied, CONFIRMATION_REQUIRED, 2.
 // -n the plan alone, no
 // question, nothing run, 3, on a terminal or off. Proxmox VE refused
-// (UFW_NOT_APPLICABLE), 1. A host already as asked: nothing to change, 0,
+// (UFW_NOT_APPLICABLE), 1. Rocky Linux refused before anything is planned
+// or run (FIREWALL_EL_READ_ONLY), 1, on a terminal or off, -n too. A host already as asked: nothing to change, 0,
 // nothing asked. Nothing goes through the legacy provider, and the
 // signals are registered for an apply alone, an empty plan's too, as
 // runControls applies any flag's.
@@ -421,6 +438,9 @@ func TestConfigureFirewallFlag(t *testing.T) {
 		{name: "-n off a terminal", host: "debian13", dryRun: true, code: 3, said: []string{"Lockout risk", "No actual changes were made to your system."}},
 		{name: "Proxmox VE", host: "pve9", tty: true, code: 1, said: []string{"UFW_NOT_APPLICABLE"}},
 		{name: "Proxmox VE off a terminal", host: "pve9", code: 1, said: []string{"UFW_NOT_APPLICABLE"}},
+		{name: "Rocky Linux", host: "rocky", tty: true, code: 1, said: []string{fwELWords, "To go on: use the Firewall screen."}, unsaid: []string{"Lockout risk", "Type the hostname"}},
+		{name: "Rocky Linux off a terminal, --yes", host: "rocky", yes: true, code: 1, said: []string{fwELWords}, unsaid: []string{"Lockout risk", fwLockoutWords}},
+		{name: "-n on Rocky Linux", host: "rocky", dryRun: true, code: 1, said: []string{fwELWords}, unsaid: []string{"Lockout risk"}},
 		{name: "nothing to change", host: "enabled", tty: true, said: []string{"Nothing needs changing."}},
 	} {
 		args := []string{"-w"}
@@ -454,6 +474,9 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			}
 			if h.armed() != tc.applied {
 				t.Errorf("the revert timer armed %t, want %t", h.armed(), tc.applied)
+			}
+			if tc.host == "rocky" && len(h.ran) > 0 {
+				t.Errorf("-w planned on Rocky Linux: ran %q", h.ran)
 			}
 			if tc.host == "boot-off" && (h.unit == "enabled") != tc.plain {
 				t.Errorf("ufw's service at boot %q, want the plain plan applied %t", h.unit, tc.plain)

@@ -239,8 +239,17 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `SELINUX_PORT_TAKEN` | 1 | SELinux's policy gives the new SSH port to another service by name ([el-ports.md](../engine/el-ports.md)) |
 | `FIREWALLD_NO_SSH_PATH` | 1 | firewalld runs and no zone lets the current SSH port through by its ports or services, so hardn can't plan the new one's way through ([el-ports.md](../engine/el-ports.md)) |
 | `FIREWALLD_STOPPED` | 1 | firewalld is stopped and starts at boot, so hardn can't read what it will let through then: start it or disable it ([el-ports.md](../engine/el-ports.md)) |
-| `FIREWALLD_NOT_LET_THROUGH` | 1 | after hardn's steps a zone still doesn't let the new SSH port through ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_NOT_LET_THROUGH` | 1 | after hardn's steps a zone still doesn't let an SSH port through: a port change's new port, or Enable's after the start ([el-ports.md](../engine/el-ports.md), [el-firewalld.md](../engine/el-firewalld.md)) |
 | `FIREWALLD_UNKNOWN` | 1 | firewalld's state, or what a zone lets through, is not established ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_FAILED` | 1 | firewalld.service failed, and its rules may still be loaded: see journalctl -u firewalld, fix it, then run systemctl reset-failed firewalld.service ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_OTHER_FIREWALL` | 1 | ufw is installed, or another firewall unit (iptables, ip6tables, ebtables, ipset, nftables, ufw) is active or starts at boot, so hardn won't install or enable firewalld beside it ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NO_CLEANUP` | 1 | firewalld's CleanupOnExit is off, so stopping it leaves its rules loaded and neither Disable nor Enable's undo would turn it off ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_BOOT_BLOCKED` | 1 | firewalld's service is masked, so Enable can't start it, and Install leaves a mask it didn't make ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_BOOT_UNKNOWN` | 1 | systemctl is-enabled firewalld.service says something other than enabled or disabled ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_ZONE_NO_SSH` | 1 | a firewalld zone other than the default that will hold an interface or a source (a zone file's binding, NetworkManager's connection.zone) doesn't let an SSH port through ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NOT_READY` | 1 | firewalld didn't reach running within a minute of Enable's start; the change is rolled back ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NOT_INSTALLED` | 1 | Enable on a host without firewalld: install it first ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `FIREWALLD_NOT_AT_BOOT` | 1 | firewalld runs and doesn't start at boot; hardn won't enable it at boot, since a confirmation can't test what its saved configuration starts after a restart: Disable, then Enable ([el-firewalld.md](../engine/el-firewalld.md)) |
 | `HARDN_EXECUTABLE_UNSAFE` | 1 | not safe to run as root from the timer |
 | `JOURNAL_CLAIM_RACE` | 1 | the journal changed while it was being claimed |
 | `ROLLBACK_INCOMPLETE` | 1 | the rollback did not finish |
@@ -286,7 +295,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `FIREWALL_BOOT_BLOCKED` | 1 | ufw's service is masked or missing |
 | `UFW_ROLLBACK_FAILED` | 1 | an undo of ufw's rules failed; those after it did not run |
 | `UFW_NOT_APPLICABLE` | 1 | ufw is not used on Proxmox VE: pve-firewall manages its packet filter |
-| `FIREWALL_EL_READ_ONLY` | 1 | hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet ([el-changes.md](../engine/el-changes.md)) |
+| `FIREWALL_EL_READ_ONLY` | 1 | on Rocky Linux and AlmaLinux, which use firewalld: ufw's profiles and trusted interfaces aren't applied, and `-w` doesn't configure the firewall ([el-firewalld.md](../engine/el-firewalld.md)) |
 | `DNS_EL_READ_ONLY` | 1 | hardn doesn't change DNS on Rocky Linux or AlmaLinux yet: NetworkManager manages it ([el-changes.md](../engine/el-changes.md)) |
 | `UFW_PROXMOX_UNKNOWN` | 1 | ufw: whether the host runs Proxmox VE (no ufw there) is not established |
 | `UFW_NOT_INSTALLED` | 1 | ufw is not installed |
@@ -302,6 +311,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `PACKAGE_NOT_IN_REPOS` | 1 | package not found in the repositories |
 | `PACKAGE_OTHER_CHANGES` | 1 | installing it would change other packages |
 | `PACKAGE_VERIFY_FAILED` | 1 | package not installed after the install |
+| `PACKAGE_KERNEL` | 1 | dnf's transaction would install a kernel of another release than the running one: run dnf upgrade and restart first ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `PACKAGE_LOCKED` | 1 | another dnf holds its lock (exit 200) |
 | `PVE_NOT_APPLICABLE` | 1 | not a Proxmox VE host |
 | `PVE_UNKNOWN` | 1 | whether the host runs Proxmox VE is not established, so its rules cannot be applied |
 | `PVE_PORT_CHANGE_REFUSED` | 1 | the SSH port stays 22 on Proxmox VE: cluster SSH and pve-firewall's management rule use port 22 |

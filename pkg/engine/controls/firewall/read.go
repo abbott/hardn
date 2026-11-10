@@ -9,6 +9,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/ufw"
@@ -19,9 +20,9 @@ type Item uint8
 
 const (
 	ItemNone      Item = iota // Proxmox VE: Return alone
-	ItemInstall               // no ufw
+	ItemInstall               // no ufw (no firewalld on Rocky Linux and AlmaLinux)
 	ItemEnable                // anything not set: Enable's plan, or its refusal
-	ItemDisable               // active and set
+	ItemDisable               // active and set (firewalld running there)
 	ItemInstallSS             // ufw installed, ss not: Install iproute2 (the maintainer, 2026-11-07)
 )
 
@@ -51,6 +52,11 @@ type Reading struct {
 	PVEErr        error
 	PVEUFWEnabled detect.Tri
 	PVEUFWErr     error
+	// On Rocky Linux and AlmaLinux: firewalld's state, read in ufw's
+	// place (el-firewalld.md); State, Boot and BootUnit are not read.
+	EL           bool
+	Firewalld    firewalld.State
+	FirewalldErr error
 	// Off Proxmox VE: ufw's state and whether its service starts at boot.
 	State    ufw.State
 	StateErr error
@@ -91,6 +97,10 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 		r.PVEUFWEnabled, r.PVEUFWErr = ufw.ReadEnabled(ctx, sys)
 		return r
 	}
+	if f.Platform.Distro.EL() {
+		r.readEL(ctx, sys, engine.Input{Facts: f, Config: cfg, Session: session})
+		return r
+	}
 	r.State, r.StateErr = ufw.Read(ctx, sys, f.Proxmox)
 	if r.State.Installed {
 		r.Boot, r.BootUnit = ufw.ReadBootUnit(ctx, sys, f)
@@ -114,6 +124,37 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 		r.Plan, r.PlanErr = Incoming{Action: ActionInstallSS}.Plan(ctx, sys, in)
 	}
 	return r
+}
+
+// readEL reads firewalld, and item 1 from it: Install where it isn't
+// installed (not planned here: dnf's simulation may refresh its metadata
+// over the network, el-firewalld.md §1.6); Disable where it runs, which
+// needs no ss; Install iproute where ss is missing, likewise not planned;
+// Enable otherwise, its plan read. Disable is beside the last two where
+// is-enabled says enabled, which is what Disable then undoes. A read that
+// fails is item 1 Enable with the refusal.
+func (r *Reading) readEL(ctx context.Context, sys host.System, in engine.Input) {
+	r.EL = true
+	r.Firewalld, r.FirewalldErr = firewalld.Read(ctx, sys)
+	switch {
+	case r.FirewalldErr != nil:
+		r.First, r.PlanErr = ItemEnable, firewalldUnknown(r.FirewalldErr)
+		return
+	case r.Firewalld.Installed == detect.No:
+		r.First = ItemInstall
+		return
+	case r.Firewalld.Running == detect.Yes:
+		r.First = ItemDisable
+		return
+	case r.Sockets.NoSS:
+		r.First, r.DisableBeside = ItemInstallSS, r.Firewalld.Unit == "enabled"
+		return
+	default:
+		r.First, r.DisableBeside = ItemEnable, r.Firewalld.Unit == "enabled"
+	}
+	if r.First == ItemEnable {
+		r.Plan, r.PlanErr = Incoming{Action: ActionEnable}.Plan(ctx, sys, in)
+	}
 }
 
 // first is item 1: Install with no ufw; Install iproute2 with ufw and no ss,

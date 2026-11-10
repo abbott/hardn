@@ -1,0 +1,12 @@
+{
+  "start": true,
+  "ports": [
+    {
+      "zone": "public",
+      "port": 2230,
+      "permanent": true
+    }
+  ],
+  "zoneFile": "/etc/firewalld/zones/public.xml",
+  "enable": true
+}

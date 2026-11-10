@@ -77,21 +77,26 @@ func TestFirewallItem(t *testing.T) {
 
 // TestFirewallItemOnPVE: the main menu's 3 reads "View pve-firewall" where
 // cmd/hardn says the host is Proxmox VE (Options.Firewall's onPVE; decision 7,
-// adopted 2026-11-01), and origin/main's "Configure UFW rules" where it
-// says not, or says nothing; its key, label and action are the same.
+// adopted 2026-11-01), "Configure firewalld" where it says Rocky Linux or
+// AlmaLinux (Options.FirewallEL; el-firewalld.md §1.6), and origin/main's
+// "Configure UFW rules" where it says neither, or says nothing; its key,
+// label and action are the same.
 func TestFirewallItemOnPVE(t *testing.T) {
+	yes, no := func() bool { return true }, func() bool { return false }
 	for _, tc := range []struct {
-		name  string
-		onPVE func() bool
-		want  string
+		name      string
+		onPVE, el func() bool
+		want      string
 	}{
-		{"Proxmox VE", func() bool { return true }, "View pve-firewall"},
-		{"another host", func() bool { return false }, "Configure UFW rules"},
-		{"not said", nil, "Configure UFW rules"},
+		{"Proxmox VE", yes, no, "View pve-firewall"},
+		{"Rocky Linux or AlmaLinux", no, yes, "Configure firewalld"},
+		{"Rocky Linux or AlmaLinux, Proxmox VE not said", nil, yes, "Configure firewalld"},
+		{"another host", no, no, "Configure UFW rules"},
+		{"not said", nil, nil, "Configure UFW rules"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := &Options{Config: config.DefaultConfig()}
-			m.Firewall, m.FirewallPVE = func() error { return nil }, tc.onPVE
+			m.Firewall, m.FirewallPVE, m.FirewallEL = func() error { return nil }, tc.onPVE, tc.el
 			for _, o := range m.items().Options {
 				if o.Item.Key == "3" {
 					if o.Item.Label != "Firewall" || o.Item.Description != tc.want {

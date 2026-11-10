@@ -53,14 +53,9 @@ func statusRow(ctx context.Context, sys host.System, f detect.Facts) component.S
 
 // mainView is r as ufw's screen draws it, under status. Whether Proxmox VE runs
 // here not established, nothing is read: item 1, which says so when selected,
-// under the row saying the same.
+// under the row saying the same. Rocky Linux and AlmaLinux have firewalld's
+// screen (firewalldView).
 func mainView(r firewallctl.Reading, status component.StatusList, f detect.Facts) screen.Firewall {
-	if f.Platform.Distro.EL() {
-		// Rocky Linux and AlmaLinux: the Firewall row, which reads firewalld,
-		// and Return; no ufw section or item, which the control refuses there
-		// until firewalld is driven (el-ports.md §5).
-		return screen.Firewall{Status: status, First: screen.FirewallNoFirst}
-	}
 	f1 := first(r)
 	v := screen.Firewall{Status: status, First: f1, Risk: risky(r.Plan) || f1 == screen.FirewallEnableSS, Installed: r.State.Installed, DisableBeside: r.DisableBeside,
 		KeepsReject: !r.Does.SetsDeny && r.State.Status.Incoming == ufw.PolicyReject}

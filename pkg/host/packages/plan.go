@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"slices"
 	"strings"
+	"time"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -31,8 +32,9 @@ func (p Plan) Empty() bool { return len(p.Argv) == 0 }
 // *OtherPackagesError, one that adds them without name too (apt reads a name
 // ending in "-" as a removal and one with "." as a pattern, and takes a virtual
 // package for its provider [I]); one that lists no change is
-// detect.ErrUnrecognised, as alpine.simulate's is. ErrNotInRepos when the tool
-// cannot find it; any other failure is the error, wrapped.
+// detect.ErrUnrecognised, as alpine.simulate's is. From dnf, one that adds a
+// kernel is a *KernelError. ErrNotInRepos when the tool cannot find it; any
+// other failure is the error, wrapped.
 func PlanInstall(ctx context.Context, sys host.System, t Tool, name string) (Plan, error) {
 	install, undo, simulate, err := commands(t, name)
 	if err != nil {
@@ -45,15 +47,28 @@ func PlanInstall(ctx context.Context, sys host.System, t Tool, name string) (Pla
 		return Plan{Tool: t, Name: name}, nil
 	}
 	res, err := sys.Run(ctx, simulate[0], simulate[1:]...)
-	if err != nil {
-		if notInRepos(t, name, res, err) {
+	if err != nil && !(t == Dnf && aborted(res, err)) {
+		var exit *host.ExitError
+		switch {
+		case notInRepos(t, name, res, err):
 			return Plan{}, fmt.Errorf("packages: %s: %w", host.FormatArgv(simulate), ErrNotInRepos)
+		case t == Dnf && errors.As(err, &exit) && exit.ExitCode == 200:
+			return Plan{}, fmt.Errorf("packages: %s: %w", host.FormatArgv(simulate), ErrLocked)
 		}
 		return Plan{}, fmt.Errorf("packages: %w", err)
 	}
-	adds, refused := aptChanges(res.Combined)
-	if t == Apk {
+	var adds, refused []string
+	var rows []dnfRow
+	switch t {
+	case Apk:
 		adds, refused = apkChanges(res.Combined)
+	case Dnf:
+		rows, refused = dnfChanges(res.Stdout)
+		for _, r := range rows {
+			adds = append(adds, r.name)
+		}
+	default:
+		adds, refused = aptChanges(res.Combined)
 	}
 	if len(refused) == 0 && !slices.Contains(adds, name) {
 		if len(adds) == 0 {
@@ -64,20 +79,77 @@ func PlanInstall(ctx context.Context, sys host.System, t Tool, name string) (Pla
 	if len(refused) > 0 {
 		return Plan{}, fmt.Errorf("packages: %s: %w", host.FormatArgv(simulate), &OtherPackagesError{Changes: refused})
 	}
+	if k, err := newKernels(ctx, sys, rows); err != nil {
+		return Plan{}, err
+	} else if len(k) > 0 {
+		return Plan{}, fmt.Errorf("packages: %s: %w", host.FormatArgv(simulate), &KernelError{Packages: k})
+	}
 	return Plan{Tool: t, Name: name, Argv: install, Undo: undo, Adds: adds}, nil
 }
 
+// aborted is dnf install --assumeno's answer to a transaction it would run:
+// the table on stdout, "Operation aborted." on stderr, exit 1
+// (rocky10-test-110, probe 4; dnf's cli.py raises it as a CliError).
+func aborted(res host.Result, err error) bool {
+	var exit *host.ExitError
+	return errors.As(err, &exit) && exit.ExitCode == 1 && slices.Contains(lines(res.Stderr), "Operation aborted.") &&
+		slices.Contains(lines(res.Stdout), "Transaction Summary")
+}
+
+func lines(b []byte) []string { return strings.Split(strings.TrimSpace(string(b)), "\n") }
+
+// notKernels are kernel-… packages that install no kernel and no modules:
+// headers and tools for userland, and the files modules are built with.
+var notKernels = []string{"kernel-headers", "kernel-tools", "kernel-tools-libs", "kernel-tools-libs-devel", "kernel-devel",
+	"kernel-devel-matched", "kernel-doc", "kernel-abi-stablelists", "kernel-srpm-macros", "kernel-cross-headers"}
+
+// newKernels are the rows that are a kernel's packages (kernel and the
+// kernel-… names, but notKernels) of another release than the running one: "<version>.<arch>"
+// against uname -r ("6.12.0-211.16.1.el10_2.0.1.x86_64" runs, the rows
+// were "6.12.0-211.74.1.el10_2" and "x86_64", probe 4). Modules for the
+// running kernel make no boot entry and are let through. A kernel row
+// whose version or arch isn't read (a wrapped row) counts as another
+// release: a refusal is the safe mistake. uname runs only where a kernel
+// row is listed.
+func newKernels(ctx context.Context, sys host.System, rows []dnfRow) ([]string, error) {
+	var running string
+	var k []string
+	for _, r := range rows {
+		if r.name != "kernel" && !strings.HasPrefix(r.name, "kernel-") || slices.Contains(notKernels, r.name) {
+			continue
+		}
+		if running == "" {
+			res, err := sys.Run(ctx, "uname", "-r")
+			if err != nil {
+				return nil, fmt.Errorf("packages: %w", err)
+			}
+			if running = strings.TrimSpace(string(res.Stdout)); running == "" {
+				return nil, fmt.Errorf("packages: uname -r printed nothing: %w", detect.ErrUnrecognised)
+			}
+		}
+		if r.version == "" || r.arch == "" || r.version+"."+r.arch != running {
+			k = append(k, r.name)
+		}
+	}
+	return k, nil
+}
+
 // notInRepos reads a failed simulation: apt-get's "E: Unable to locate package
-// x", exit 100 (deb13-vm.log, ubuntu26-vm.log), and apk's "unable to select
-// packages" with "(no such package)", exit 1 (ErrNotInRepos has the logs).
+// x", exit 100 (deb13-vm.log, ubuntu26-vm.log); apk's "unable to select
+// packages" with "(no such package)", exit 1 (ErrNotInRepos has the logs);
+// dnf's "Error: Unable to find a match: x" on stderr, exit 1
+// (rocky10-test-110, probe 3b).
 func notInRepos(t Tool, name string, res host.Result, err error) bool {
 	var exit *host.ExitError
 	if !errors.As(err, &exit) {
 		return false
 	}
 	out := string(res.Combined)
-	if t == Apt {
+	switch t {
+	case Apt:
 		return exit.ExitCode == 100 && slices.Contains(strings.Split(out, "\n"), "E: Unable to locate package "+name)
+	case Dnf:
+		return exit.ExitCode == 1 && slices.Contains(strings.Split(out, "\n"), "Error: Unable to find a match: "+name)
 	}
 	return exit.ExitCode == 1 && strings.Contains(out, "unable to select packages") && strings.Contains(out, "(no such package)")
 }
@@ -98,6 +170,53 @@ func aptChanges(out []byte) (adds, refused []string) {
 			adds = append(adds, f[1])
 		default:
 			refused = append(refused, strings.TrimSpace(l))
+		}
+	}
+	return adds, refused
+}
+
+// dnfAdds are the sections of dnf's transaction table that only add new
+// packages (dnf's output.py list_transaction headings). Any other section,
+// Upgrading, Reinstalling, Downgrading, the Removing ones, group or module
+// packages and the Skipping ones, is refused: dnf install of a package can
+// upgrade others (probe 4: "Upgrading: sudo").
+var dnfAdds = map[string]bool{"Installing:": true, "Installing dependencies:": true, "Installing weak dependencies:": true}
+
+// dnfRow is one package row of dnf's table: its name, and its arch and
+// version where they are on its line.
+type dnfRow struct{ name, arch, version string }
+
+// dnfChanges reads dnf install --assumeno's table on stdout (probe 4): a
+// heading at the margin ending in ":", then its rows, each " <name> <arch>
+// <version> <repository> <size>" with one space before the name; a row
+// whose name is too wide goes on below, indented further. A "replacing"
+// line (obsoletes) is refused. The table ends at "Transaction Summary". A
+// refusal is "<the heading's first word> <name>" ("Upgrading sudo",
+// "Replacing x.noarch"), as apk's lines read.
+func dnfChanges(out []byte) (adds []dnfRow, refused []string) {
+	section := ""
+	for _, l := range strings.Split(string(out), "\n") {
+		switch {
+		case l == "Transaction Summary":
+			return adds, refused
+		case l == "":
+		case l[0] != ' ' && strings.HasSuffix(l, ":"):
+			section = l
+		case l[0] != ' ' || section == "":
+		case strings.HasPrefix(l, "  "):
+			if f := strings.Fields(l); len(f) > 1 && f[0] == "replacing" {
+				refused = append(refused, "Replacing "+f[1])
+			}
+		case dnfAdds[section]:
+			f := strings.Fields(l)
+			r := dnfRow{name: f[0]}
+			if len(f) >= 3 {
+				r.arch, r.version = f[1], f[2]
+			}
+			adds = append(adds, r)
+		default:
+			verb, _, _ := strings.Cut(strings.TrimSuffix(section, ":"), " ")
+			refused = append(refused, verb+" "+strings.Fields(l)[0])
 		}
 	}
 	return adds, refused
@@ -129,10 +248,17 @@ type Report struct {
 	Installed bool
 }
 
+// InstallTimeout bounds an install, which runs to its end however its
+// caller's ctx ends (Execute).
+const InstallTimeout = 30 * time.Minute
+
 // Execute runs p.Argv, then reads Installed: anything but Yes is ErrVerify, and
 // an empty plan runs only that read. A failed command returns its error with no
 // read after it. A done ctx, or a plan that is not what PlanInstall makes
-// (fs.ErrInvalid), runs nothing.
+// (fs.ErrInvalid), runs nothing. Once started, the install runs under its
+// own bound (InstallTimeout), not ctx: a Ctrl-C or a dropped session would
+// kill the tool in the middle of its transaction (host.Real kills a
+// cancelled command), leaving the package database half done.
 func Execute(ctx context.Context, sys host.System, p Plan) (Report, error) {
 	var rep Report
 	if err := ctx.Err(); err != nil {
@@ -142,7 +268,9 @@ func Execute(ctx context.Context, sys host.System, p Plan) (Report, error) {
 		return rep, err
 	}
 	if !p.Empty() {
-		_, err := sys.Run(ctx, p.Argv[0], p.Argv[1:]...)
+		ictx, cancel := context.WithTimeout(context.WithoutCancel(ctx), InstallTimeout)
+		_, err := sys.Run(ictx, p.Argv[0], p.Argv[1:]...)
+		cancel()
 		if !errors.Is(err, host.ErrNotFound) {
 			rep.Undo = p.Undo
 		}

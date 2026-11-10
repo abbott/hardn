@@ -3,7 +3,7 @@
 > **Unit:** the second Rocky/AlmaLinux unit (the maintainer, 2026-11-09: "Start unit 2"), after [el-readonly.md](el-readonly.md).
 > **Status:** built and tested on macOS against the recording fake, and run on rocky10-test-110 (§3c, §4).
 
-Rocky Linux and AlmaLinux 10 and 9 are Supported. hardn changes what moves no SSH port, and refuses the rest with words that say why. **Since unit 3a** ([el-ports.md](el-ports.md)) the port changes too; §1.5's port row and `SSH_PORT_EL_REFUSED` are gone, and the Firewall row reads firewalld.
+Rocky Linux and AlmaLinux 10 and 9 are Supported. hardn changes what moves no SSH port, and refuses the rest with words that say why. **Since unit 3a** ([el-ports.md](el-ports.md)) the port changes too; §1.5's port row and `SSH_PORT_EL_REFUSED` are gone, and the Firewall row reads firewalld. **Since unit 3b** ([el-firewalld.md](el-firewalld.md)) the Firewall item installs, enables and disables firewalld; §1.5's Firewall row now holds for ufw's profiles and interfaces alone.
 
 ## 1. What it does
 
@@ -30,7 +30,7 @@ Rocky Linux and AlmaLinux 10 and 9 are Supported. hardn changes what moves no SS
    | What | Refusal | Code |
    |---|---|---|
    | An SSH port change (SSH Port, Run All's `sshPort`) | `steps.PlanSSH` and the SSH screen: "hardn doesn't change the SSH port on Rocky Linux or AlmaLinux yet: SELinux, and firewalld where it runs, would block a new one." Run All's SSH Port row is Refused with it, rather than pointing at SSH Login (proposed words) | `SSH_PORT_EL_REFUSED`, as `pve.CheckPort` refuses one on Proxmox VE |
-   | Every Firewall action that touches the host (install, enable, disable, profiles, interfaces) | "hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet: it drives ufw alone, not firewalld." Checked before anything else, Proxmox VE's facts included. Saving `hardn.yml`'s profiles and interfaces is not refused | `FIREWALL_EL_READ_ONLY` |
+   | Every Firewall action that touches the host (install, enable, disable, profiles, interfaces; since unit 3b, profiles and interfaces alone) | "hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet: it drives ufw alone, not firewalld." Checked before anything else, Proxmox VE's facts included. Saving `hardn.yml`'s profiles and interfaces is not refused | `FIREWALL_EL_READ_ONLY` |
    | Auto Updates on or off | "hardn doesn't read dnf-automatic yet"; no apt command runs | `UPDATES_NOT_READ` |
    | DNS | "hardn doesn't change DNS on Rocky Linux or AlmaLinux yet: NetworkManager manages it there. Set the nameservers with nmcli." Refused whatever `resolv.conf` looks like | `DNS_EL_READ_ONLY` |
 
