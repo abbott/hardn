@@ -23,9 +23,10 @@ Anyone managing a **privately owned** Linux server, container, or virtual machin
 > [!IMPORTANT]
 > `hardn` should be part of a broader security strategy, not a _"set it and forget it"_ solution — regular security audits, updates, and monitoring are still required.
 
-### Air Gapped
+### Air-Gapped
 
-hardn **<ins>DOES NOT</ins>** phone home: **<ins>ZERO</ins>** data collection.
+- Local installation, verification (`SHA256SUMS`, attestation), and operation. **<ins>No cloud required</ins>**.
+- **<ins>ZERO</ins>** telemetry: `hardn` never phones home.
 
 ### What It Does
 `sudo hardn` displays a **risk level** based on the current host configuration of users, SSH, firewall, DNS, automatic updates and AppArmor. Utilize the **menu options** to configure each of the following:
