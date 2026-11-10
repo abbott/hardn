@@ -9,7 +9,7 @@ Each file holds what one reading of the host by the real code (detect, `Engine.C
 - `setuid`: the files whose `Stat` shows the setuid bit (hostfake keeps none; the gallery's `statusSys` adds it on the elevation tools);
 - `users`, `groups`: the accounts of `/etc/passwd` and `/etc/group` that `LookupUser` and `LookupGroup` find.
 
-`TestMainMenuAsGallery` holds them to the gallery: p4status's main menu over each file must be, line for line, the main menu in the plain-80 cell of `internal/tools/uigallery/testdata/golden/status/<name>.golden`. When the gallery's model of these hosts or a check changes, that test (or `TestRunOverHosts`, for a command the file does not answer) fails: write the files again from the gallery with `export/export_test.go`, a test of the gallery's package `main` that only `-overlay` builds, so that neither tool imports the other. From the repository's root:
+`TestMainMenuAsGallery` holds them to the gallery: p4status's main menu over each file must be, line for line, the main menu in the plain-80 cell of `internal/tools/uigallery/testdata/golden/status/<name>.golden`, with hardn's items in place of the mock's (`galleryMenu`). When the gallery's model of these hosts or a check changes, that test (or `TestRunOverHosts`, for a command the file does not answer) fails: write the files again from the gallery with `export/export_test.go`, a test of the gallery's package `main` that only `-overlay` builds, so that neither tool imports the other. From the repository's root:
 
 ```sh
 d=$(mktemp -d)

@@ -21,7 +21,6 @@ import (
 	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
-	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/output"
 	fwscreen "github.com/abbott/hardn/pkg/screens/firewall"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
@@ -108,7 +107,8 @@ func withFirewallScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
 		if err != nil {
 			return kind{}
 		}
-		return kind{pve: facts.Proxmox.Installed == detect.Yes, el: facts.Platform.Distro.EL()}
+		pve, el := mainmenu.FirewallOf(facts)
+		return kind{pve: pve, el: el}
 	})
 	m.Firewall = func() error { return runFirewallScreen(context.Background(), c) }
 	m.FirewallPVE, m.FirewallEL = func() bool { return read().pve }, func() bool { return read().el }

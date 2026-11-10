@@ -18,7 +18,8 @@ import (
 // engineDetect's facts, its header showing hardn's version, its DNS row
 // checked against the configuration as it is on each pass (the DNS screen
 // adopts each list it saves into it); the heading, mode, items and prompt
-// are pkg/screens/mainmenu's to fill; it only reads, and nothing is written.
+// are pkg/screens/mainmenu's to fill; a build with no version shows none,
+// not a bare "v"; it only reads, and nothing is written.
 // (pkg/screens/mainmenu's tests draw the main menu with this status over the
 // gallery's hosts.)
 func TestReadStatus(t *testing.T) {
@@ -47,6 +48,9 @@ func TestReadStatus(t *testing.T) {
 	vm, err = readStatus(context.Background(), cfg, "0.4.0")
 	if err != nil || !strings.Contains(rows(vm), "  [ ] DNS                  Not Configured not hardn.yml's") {
 		t.Errorf("the DNS row does not follow the configuration (%v):\n%s", err, rows(vm))
+	}
+	if vm, err = readStatus(context.Background(), cfg, ""); err != nil || vm.Header.Version != "" {
+		t.Errorf("a build with no version (%v): the header's version %q, want none", err, vm.Header.Version)
 	}
 	if w := h.writes(); len(w) > 0 {
 		t.Errorf("the status wrote %q", w)

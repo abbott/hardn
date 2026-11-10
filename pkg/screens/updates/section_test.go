@@ -13,8 +13,9 @@ import (
 // record hardn can't read, an "always" interval, crond's jobs unread; and
 // a host on but with apt's settings unread is offered Enable, saying so,
 // not shown on outside hardn. On Rocky Linux: the install timer off after
-// restart, starting after restart, or masked for this boot; automatic.conf
-// unread or changed since hardn; rpm unread, drawing no timer row.
+// restart, stopped and starting after restart (its name whole), or masked
+// for this boot; automatic.conf unread or changed since hardn; rpm unread,
+// drawing no timer row.
 func TestSectionRows(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
@@ -59,7 +60,7 @@ func TestSectionRows(t *testing.T) {
 			m := dnfHost(t, true)
 			m.units["is-enabled "+dnfauto.InstallTimer] = "enabled"
 			return m
-		}, []string{"Install Timer Starts after restart"}, ""},
+		}, []string{"Partial starts after restart", "Install Timer Stopped " + dnfauto.InstallTimer}, ""},
 		{"dnf, masked for this boot", func(t *testing.T) *model {
 			m := dnfHost(t, true)
 			m.units["is-enabled "+dnfauto.InstallTimer] = "masked-runtime"
