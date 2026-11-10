@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -289,6 +290,36 @@ func TestMainMenuItems(t *testing.T) {
 	above := screen.MainMenu{Alert: alert}.Screen(component.OffTerminal(), m.items()).Above
 	if !strings.Contains(stripANSI(above), "# Select option: 2) SSH Login\n") {
 		t.Errorf("the alert's route:\n%s", above)
+	}
+}
+
+// TestMenuOf: the items drawn without running the main menu (MenuOf, as
+// internal/tools/p4status draws a host's) are the main menu's items on a
+// host of the same facts, its Firewall hooks answered as cmd/hardn answers
+// them (FirewallOf): item 3 "Configure UFW rules" on Debian, "View
+// pve-firewall" on Proxmox VE, "Configure firewalld" on Rocky Linux and
+// AlmaLinux; item 5, Auto Updates, and the hint "[0-10 or q]" on each.
+func TestMenuOf(t *testing.T) {
+	for _, tc := range []struct {
+		facts    detect.Facts
+		firewall string
+	}{
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}}, "Configure UFW rules"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroProxmox}, Proxmox: detect.Proxmox{Installed: detect.Yes}}, "View pve-firewall"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroRocky}}, "Configure firewalld"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlma}}, "Configure firewalld"},
+	} {
+		t.Run(string(tc.facts.Platform.Distro), func(t *testing.T) {
+			pve, el := FirewallOf(tc.facts)
+			live := (&Options{FirewallPVE: func() bool { return pve }, FirewallEL: func() bool { return el }}).items()
+			got := MenuOf(tc.facts)
+			if !reflect.DeepEqual(got, live.View()) {
+				t.Errorf("MenuOf:\n%+v\nthe main menu's:\n%+v", got, live.View())
+			}
+			if got.Items[2].Description != tc.firewall || got.Items[4] != updatesItem || live.Accepts().Hint() != "0-10 or q" {
+				t.Errorf("item 3 %+v, item 5 %+v, hint %q", got.Items[2], got.Items[4], live.Accepts().Hint())
+			}
+		})
 	}
 }
 

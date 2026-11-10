@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/keys"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -333,4 +334,21 @@ func (o Options) items() nav.Menu {
 		},
 		Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()},
 	}
+}
+
+// FirewallOf is what the Firewall item's description turns on, from
+// detect's facts f: whether the host is Proxmox VE (Options.FirewallPVE)
+// and whether it is Rocky Linux or AlmaLinux (Options.FirewallEL).
+// cmd/hardn's hooks answer with it. It is pure.
+func FirewallOf(f detect.Facts) (pve, el bool) {
+	return f.Proxmox.Installed == detect.Yes, f.Platform.Distro.EL()
+}
+
+// MenuOf is the main menu's items as Run draws them on a host with facts
+// f (items, its Firewall hooks answered by FirewallOf), for a drawing of
+// the main menu that runs no item: internal/tools/p4status draws a host's
+// main menu with it. It is pure.
+func MenuOf(f detect.Facts) component.Menu {
+	pve, el := FirewallOf(f)
+	return Options{FirewallPVE: func() bool { return pve }, FirewallEL: func() bool { return el }}.items().View()
 }

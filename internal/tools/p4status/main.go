@@ -7,7 +7,8 @@
 // header probe; the risk level), and prints
 //
 //  1. the main menu as hardn will draw it: pkg/output's MainMenuOf over the
-//     main menu's mock, as the gallery's status hosts draw it, rendered by
+//     main menu's mock, as the gallery's status hosts draw it, with the
+//     items hardn's main menu draws on the host (mainmenu.MenuOf), rendered by
 //     pkg/ui's screen (plain at 80 columns unless -profile, -width and
 //     -height say otherwise, so that it pastes into a log);
 //  2. the evidence, for a person to check each line against the host by
