@@ -49,37 +49,27 @@ release: test release-artifacts tag
 
 .PHONY: bump-major bump-minor bump-patch
 
-# Determine sed in-place editing syntax based on OS
-UNAME_S := $(shell uname -s)
-ifeq ($(UNAME_S),Darwin)
-    SED_INPLACE = sed -i ''
-else
-    SED_INPLACE = sed -i
-endif
+# The bump targets rewrite this makefile's version lines, under the name make
+# read it by: plain sed into a temporary file, then mv, as sed -i takes a
+# different argument on GNU and BSD sed and this doesn't.
+SELF := $(firstword $(MAKEFILE_LIST))
+
+# set_version writes major $(1), minor $(2) and patch $(3) into $(SELF).
+define set_version
+	sed -e 's/^VERSION_MAJOR=.*/VERSION_MAJOR=$(1)/' -e 's/^VERSION_MINOR=.*/VERSION_MINOR=$(2)/' \
+		-e 's/^VERSION_PATCH=.*/VERSION_PATCH=$(3)/' -e 's/^VERSION=.*/VERSION=$(1).$(2).$(3)/' $(SELF) >$(SELF).tmp
+	mv $(SELF).tmp $(SELF)
+	@echo "Version bumped to $(1).$(2).$(3)"
+endef
 
 bump-major:
-	$(eval VERSION_MAJOR=$(shell echo $$(($(VERSION_MAJOR)+1))))
-	$(eval VERSION_MINOR=0)
-	$(eval VERSION_PATCH=0)
-	@echo "Version bumped to $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"
-	$(SED_INPLACE) 's/^VERSION_MAJOR=.*/VERSION_MAJOR=$(VERSION_MAJOR)/' Makefile
-	$(SED_INPLACE) 's/^VERSION_MINOR=.*/VERSION_MINOR=$(VERSION_MINOR)/' Makefile
-	$(SED_INPLACE) 's/^VERSION_PATCH=.*/VERSION_PATCH=$(VERSION_PATCH)/' Makefile
-	$(SED_INPLACE) 's/^VERSION=.*/VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)/' Makefile
+	$(call set_version,$(shell echo $$(($(VERSION_MAJOR)+1))),0,0)
 
 bump-minor:
-	$(eval VERSION_MINOR=$(shell echo $$(($(VERSION_MINOR)+1))))
-	$(eval VERSION_PATCH=0)
-	@echo "Version bumped to $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"
-	sed -i '' 's/^VERSION_MINOR=.*/VERSION_MINOR=$(VERSION_MINOR)/' Makefile
-	sed -i '' 's/^VERSION_PATCH=.*/VERSION_PATCH=$(VERSION_PATCH)/' Makefile
-	sed -i '' 's/^VERSION=.*/VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)/' Makefile
+	$(call set_version,$(VERSION_MAJOR),$(shell echo $$(($(VERSION_MINOR)+1))),0)
 
 bump-patch:
-	$(eval VERSION_PATCH=$(shell echo $$(($(VERSION_PATCH)+1))))
-	@echo "Version bumped to $(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)"
-	sed -i '' 's/^VERSION_PATCH=.*/VERSION_PATCH=$(VERSION_PATCH)/' Makefile
-	sed -i '' 's/^VERSION=.*/VERSION=$(VERSION_MAJOR).$(VERSION_MINOR).$(VERSION_PATCH)/' Makefile
+	$(call set_version,$(VERSION_MAJOR),$(VERSION_MINOR),$(shell echo $$(($(VERSION_PATCH)+1))))
 
 all: clean build
 
