@@ -332,7 +332,7 @@ Constants in `pkg/ui/theme/grid.go`, in cells and lines, counted from column 0 a
 ```text
 0 2 4 6                    27
   [+] SSH Port             Configured non-default (2230)
-   1) User Management      Create, Configure
+   1) User Management      Create, configure
   10) Logs                 View log file
     ❯ Enter selection [0-10 or q]:
 ```

@@ -69,7 +69,7 @@ type MenuItem struct {
 	// Label names the choice, such as "User Management". An item with no
 	// label renders nothing and is not accepted.
 	Label string
-	// Description says what the choice does, such as "Create, Configure";
+	// Description says what the choice does, such as "Create, configure";
 	// empty shows none.
 	Description string
 	// Aside is shown in parentheses after the description, in text.faint,
@@ -91,10 +91,10 @@ type MenuItem struct {
 // short, its item 2 marked risky and its item 3 disabled:
 //
 //	0 2   6                    27
-//	   1) User Management      Create, Configure (sudo, SSH keys)
+//	   1) User Management      Create, configure (sudo, SSH keys)
 //	   2) SSH Login            Toggle root SSH access
 //	                           [ ] Lockout risk
-//	   3) DNS                  Configure Nameservers
+//	   3) DNS                  Configure nameservers
 //	                           [-] Unavailable
 //	  10) Logs                 View log file
 //

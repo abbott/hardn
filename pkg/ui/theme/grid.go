@@ -12,7 +12,7 @@ import "github.com/abbott/hardn/pkg/ui/term"
 //
 //	0 2   6                    27
 //	  [+] SSH Port             Configured non-default (2230)
-//	   1) User Management      Create, Configure
+//	   1) User Management      Create, configure
 //	  10) Logs                 View log file
 const (
 	// ContentWidth is the width of Figma's content box, 64 cells. Under

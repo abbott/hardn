@@ -55,7 +55,7 @@ const CompactMainMenu = false
 //
 //	  Select an option         Mode Live
 //
-//	   1) User Management      Create, Configure (sudo, SSH keys)
+//	   1) User Management      Create, configure (sudo, SSH keys)
 //	  10) Logs                 View log file
 //
 //	   0) Exit                 q to quit

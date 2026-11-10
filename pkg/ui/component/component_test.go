@@ -351,16 +351,16 @@ func TestLayout(t *testing.T) {
 		{"heading: under a cut title the mode's word stays whole", MenuHeading{Title: "Select an option", Mode: &ModeIndicator{DryRun: true}}, 10, false,
 			"  Selec...\n Plan only"},
 		{"menu: keys right-aligned, descriptions at the value column", Menu{Items: []MenuItem{
-			{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
+			{Key: "1", Label: "User Management", Description: "Create, configure", Aside: "sudo, SSH keys"},
 			{Key: "10", Label: "Logs", Description: "View log file"},
 		}}, from, false,
-			"   1) User Management      Create, Configure (sudo, SSH keys)\n  10) Logs                 View log file"},
+			"   1) User Management      Create, configure (sudo, SSH keys)\n  10) Logs                 View log file"},
 		{"menu: the exit item after the section gap", Menu{Items: []MenuItem{{Key: "1", Label: "DNS"}}, Exit: figmaMenu.Exit}, from, false,
 			"   1) DNS" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
 		{"menu: a risky item's note line", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, from, false,
 			"   2) SSH Login            Toggle root SSH access\n                           [ ] Lockout risk"},
-		{"menu: a disabled item's note line, and no risk", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true, Risk: true}}}, from, true,
-			"   3) DNS                  Configure Nameservers\n                           – Unavailable"},
+		{"menu: a disabled item's note line, and no risk", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure nameservers", Disabled: true, Risk: true}}}, from, true,
+			"   3) DNS                  Configure nameservers\n                           – Unavailable"},
 		{"menu: stacked below StackBelow", Menu{Items: []MenuItem{{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true}}}, below, false,
 			"   2) SSH Login\n      Toggle root SSH access\n      [ ] Lockout risk"},
 		{"menu: a note with no description sits beside the label", Menu{Items: []MenuItem{{Key: "7", Label: "Run All", Risk: true}}}, from, false,
@@ -368,24 +368,24 @@ func TestLayout(t *testing.T) {
 		{"menu: a long label stacks the item rather than being cut", Menu{Items: []MenuItem{{Key: "1", Label: "Unattended Upgrades Mail Reports", Description: "Daily"}}}, 80, false,
 			"   1) Unattended Upgrades Mail Reports\n      Daily"},
 		{"menu: a long label stacks the whole menu", Menu{Items: []MenuItem{
-			{Key: "1", Label: "Firewall", Description: "Configure UFW rules"},
+			{Key: "1", Label: "Firewall", Description: "Configure ufw rules"},
 			{Key: "2", Label: "Manage application profiles", Description: "Allow 2230/tcp"},
 		}, Exit: MenuItem{Key: "0", Label: "Return to the firewall menu"}}, 80, false,
-			"   1) Firewall\n      Configure UFW rules\n   2) Manage application profiles\n      Allow 2230/tcp" +
+			"   1) Firewall\n      Configure ufw rules\n   2) Manage application profiles\n      Allow 2230/tcp" +
 				strings.Repeat("\n", theme.SectionGap+1) + "   0) Return to the firewall menu"},
 		{"menu: a long label with nothing beside it stacks nothing", Menu{Items: []MenuItem{
-			{Key: "1", Label: "DNS", Description: "Configure Nameservers"},
+			{Key: "1", Label: "DNS", Description: "Configure nameservers"},
 		}, Exit: MenuItem{Key: "0", Label: "Return to the firewall menu"}}, 80, false,
-			"   1) DNS                  Configure Nameservers" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Return to the firewall menu"},
+			"   1) DNS                  Configure nameservers" + strings.Repeat("\n", theme.SectionGap+1) + "   0) Return to the firewall menu"},
 		// The next two hold whatever theme.StackBelow is: the menu stacks
 		// because its value column is too narrow, not only below StackBelow.
 		{"menu: no room beside for a whole note stacks the menu", Menu{Items: []MenuItem{
 			{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access", Risk: true},
-			{Key: "3", Label: "DNS", Description: "Configure Nameservers", Disabled: true},
+			{Key: "3", Label: "DNS", Description: "Configure nameservers", Disabled: true},
 		}}, 40, false,
-			"   2) SSH Login\n      Toggle root SSH access\n      [ ] Lockout risk\n   3) DNS\n      Configure Nameservers\n      [-] Unavailable"},
-		{"menu: no room beside for a letter of a description stacks the menu", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure Nameservers"}}}, 29, false,
-			"   3) DNS\n      Configure Nameservers"},
+			"   2) SSH Login\n      Toggle root SSH access\n      [ ] Lockout risk\n   3) DNS\n      Configure nameservers\n      [-] Unavailable"},
+		{"menu: no room beside for a letter of a description stacks the menu", Menu{Items: []MenuItem{{Key: "3", Label: "DNS", Description: "Configure nameservers"}}}, 29, false,
+			"   3) DNS\n      Configure nameservers"},
 		{"menu: a key of up to five cells grows into the indent", Menu{Items: []MenuItem{{Key: "100", Label: "Logs"}, {Key: "1234", Label: "DNS"}}}, 80, false,
 			" 100) Logs\n1234) DNS"},
 		{"menu: a wider key pushes its label", Menu{Items: []MenuItem{{Key: "12345", Label: "DNS"}}}, 80, false,
@@ -942,7 +942,7 @@ func TestMenuStyles(t *testing.T) {
 		{"heading", figmaHeading, []part{{"Select an option", m.Heading}}},
 		{"item", figmaMenu, []part{
 			{"1)", m.Key}, {"User Management", m.Label},
-			{"Create, Configure", m.Description}, {"(sudo, SSH keys)", m.Aside},
+			{"Create, configure", m.Description}, {"(sudo, SSH keys)", m.Aside},
 		}},
 		{"exit", figmaMenu, []part{{"0)", m.ExitKey}, {"Exit", m.Exit}, {"q to quit", m.Exit}}},
 		{"disabled", Menu{Items: []MenuItem{{Key: "1", Label: "Root SSH Login", Description: "Toggle root SSH access", Aside: "key-only", Disabled: true}}}, []part{

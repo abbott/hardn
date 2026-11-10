@@ -130,7 +130,7 @@ func galleryMenu(t *testing.T, name string) string {
 	for _, l := range strings.Split(cell, "\n")[1:] {
 		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-10 or q]", "[0-10 or q]")
 		if name == "pve9" {
-			l = strings.Replace(l, "   3) Firewall             Configure UFW rules", "   3) Firewall             View pve-firewall", 1)
+			l = strings.Replace(l, "   3) Firewall             Configure ufw rules", "   3) Firewall             View pve-firewall", 1)
 		}
 		if strings.HasPrefix(l, "hardn ") {
 			l = strings.Replace(l, "v0.4.0", "      ", 1) // p4status shows no version: not a hardn release
@@ -192,7 +192,7 @@ func TestMainMenuOnEL(t *testing.T) {
 			menu := menuOf(o.String())
 			for _, want := range []string{
 				"\n   3) Firewall             Configure firewalld\n",
-				"\n   4) DNS                  Configure Nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
+				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
 				"\n    > Enter selection [0-10 or q]:",
 			} {
 				if !strings.Contains(menu, want) {

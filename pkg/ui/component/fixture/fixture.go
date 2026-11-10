@@ -120,11 +120,11 @@ func SSHPort() component.StatusRow {
 // help of the navigation grammar's q (brief 1C).
 func FigmaMenu() component.Menu {
 	return component.Menu{Items: []component.MenuItem{
-		{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
+		{Key: "1", Label: "User Management", Description: "Create, configure", Aside: "sudo, SSH keys"},
 		{Key: "2", Label: "SSH Login", Description: "Toggle root SSH access"},
-		{Key: "3", Label: "DNS", Description: "Configure Nameservers"},
-		{Key: "4", Label: "Firewall", Description: "Configure UFW rules"},
-		{Key: "5", Label: "Backup", Description: "Configure Hardn backup settings"},
+		{Key: "3", Label: "DNS", Description: "Configure nameservers"},
+		{Key: "4", Label: "Firewall", Description: "Configure ufw rules"},
+		{Key: "5", Label: "Backup", Description: "Configure hardn backup"},
 		{Key: "6", Label: "Dry-Run", Description: "Simulate changes"},
 		{Key: "7", Label: "Run All", Description: "Execute hardening operations"},
 		{Key: "8", Label: "Environment", Description: "Configure environment variable"},

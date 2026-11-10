@@ -79,7 +79,7 @@ func TestFirewallItem(t *testing.T) {
 // cmd/hardn says the host is Proxmox VE (Options.Firewall's onPVE; decision 7,
 // adopted 2026-11-01), "Configure firewalld" where it says Rocky Linux or
 // AlmaLinux (Options.FirewallEL; el-firewalld.md §1.6), and origin/main's
-// "Configure UFW rules" where it says neither, or says nothing; its key,
+// "Configure ufw rules" where it says neither, or says nothing; its key,
 // label and action are the same.
 func TestFirewallItemOnPVE(t *testing.T) {
 	yes, no := func() bool { return true }, func() bool { return false }
@@ -91,8 +91,8 @@ func TestFirewallItemOnPVE(t *testing.T) {
 		{"Proxmox VE", yes, no, "View pve-firewall"},
 		{"Rocky Linux or AlmaLinux", no, yes, "Configure firewalld"},
 		{"Rocky Linux or AlmaLinux, Proxmox VE not said", nil, yes, "Configure firewalld"},
-		{"another host", no, no, "Configure UFW rules"},
-		{"not said", nil, nil, "Configure UFW rules"},
+		{"another host", no, no, "Configure ufw rules"},
+		{"not said", nil, nil, "Configure ufw rules"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := &Options{Config: config.DefaultConfig()}

@@ -298,7 +298,7 @@ func (o Options) firewallDescription() string {
 	case o.FirewallEL != nil && o.FirewallEL():
 		return "Configure firewalld"
 	}
-	return "Configure UFW rules"
+	return "Configure ufw rules"
 }
 
 // items is the main menu's items, each bound to the screen cmd/hardn sets
@@ -320,14 +320,14 @@ func (o Options) items() nav.Menu {
 	}
 	return nav.Menu{
 		Options: []nav.Option{
-			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, Configure", Aside: "sudo, SSH keys"},
+			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, configure", Aside: "sudo, SSH keys"},
 				Action: o.show(o.Users, "mainmenu: the User Management item has no screen (Options.Users)")},
 			{Item: item("2", "SSH Login", "Root login, passwords, port"), Action: o.show(o.SSH, "mainmenu: the SSH Login item has no screen (Options.SSH)")},
 			{Item: item("3", "Firewall", o.firewallDescription()), Action: o.show(o.Firewall, "mainmenu: the Firewall item has no screen (Options.Firewall)")},
-			{Item: item("4", "DNS", "Configure Nameservers"), Action: o.show(o.DNS, "mainmenu: the DNS item has no screen (Options.DNS)")},
+			{Item: item("4", "DNS", "Configure nameservers"), Action: o.show(o.DNS, "mainmenu: the DNS item has no screen (Options.DNS)")},
 			{Item: item("5", "Auto Updates", "Configure automatic updates"), Action: o.show(o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)")},
 			{Item: item("6", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
-			{Item: item("7", "Backup", "Configure Hardn backup settings"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
+			{Item: item("7", "Backup", "Configure hardn backup"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
 			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: o.show(o.Environment, "mainmenu: the Environment item has no screen (Options.Environment)")},
 			{Item: item("9", "System Details", "View system information"), Action: o.show(o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)")},
 			{Item: item("10", "Logs", "View log file"), Action: o.show(o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)")},

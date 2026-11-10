@@ -121,7 +121,7 @@ Both paths register `signal.NotifyContext` for SIGINT, SIGTERM and SIGHUP (`engi
 ### 2.12 The main menu's 4 (`runFirewallScreen`, `cmd/hardn/firewall.go`; slice 4, unit (d), `next/s4-replace`)
 
 - **How `pkg/menu` reaches it:** `MainMenu.SetFirewall(run func() error, onPVE func() bool)`, set by `withFirewallScreen` inside `withHooks`; `main.go` unchanged. It shares `showScreen`; with no screen set the item panics ("menu: the Firewall item has no screen (SetFirewall)", internal).
-- **Its description:** "View pve-firewall" where `onPVE` says Proxmox VE (detect's Proxmox VE installed, `engineDetect` read once, as the main menu is first drawn; decision 7, decided), "Configure UFW rules" elsewhere, as before.
+- **Its description:** "View pve-firewall" where `onPVE` says Proxmox VE (detect's Proxmox VE installed, `engineDetect` read once, as the main menu is first drawn; decision 7, decided), "Configure ufw rules" elsewhere, as before.
 - **What it runs:** `pkg/screens/firewall.Run` with `engineInput()` and `stdoutEnv()`; `engineHost()`; `Facts` per visit; `Session`, the one `engineOptions` assembled at the visit holds, so that the screen and the engine never disagree on the port Enable keeps; `Config`, the main menu's; `NewEngine` over those options; `ApplyContext` `screenApplyContext`; `DryRun` as the item is chosen; `LogPath` the legacy log; `Now` `revertNow`; `Ran` nil.
 - **What it returns:** as §2.9 (`TestFirewallItem`). **Under plan only** 4 opens, every item stopping at its plan, Add and Remove too: their refusal is lifted.
 

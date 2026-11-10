@@ -32,13 +32,13 @@ $
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure UFW rules␛[m$
-   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure ufw rules␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
@@ -189,13 +189,13 @@ $
 $
   Select an option         Mode Live$
 $
-   1) User Management      Create, Configure (sudo, SSH keys)$
+   1) User Management      Create, configure (sudo, SSH keys)$
    2) SSH Login            Root login, passwords, port$
-   3) Firewall             Configure UFW rules$
-   4) DNS                  Configure Nameservers$
+   3) Firewall             Configure ufw rules$
+   4) DNS                  Configure nameservers$
    5) Auto Updates         Configure automatic updates$
    6) Run All              Execute hardening operations$
-   7) Backup               Configure Hardn backup settings$
+   7) Backup               Configure hardn backup$
    8) Environment          Keep HARDN_CONFIG$
    9) System Details       View system information$
   10) Logs                 View log file$
@@ -358,19 +358,19 @@ $
       ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m$
-      ␛[38;2;129;134;156mCreate, Configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+      ␛[38;2;129;134;156mCreate, configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m$
-      ␛[38;2;129;134;156mConfigure UFW rules␛[m$
+      ␛[38;2;129;134;156mConfigure ufw rules␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m$
-      ␛[38;2;129;134;156mConfigure Nameservers␛[m$
+      ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
-      ␛[38;2;129;134;156mConfigure Hardn backup settings␛[m$
+      ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
       ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$

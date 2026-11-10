@@ -296,7 +296,7 @@ func TestMainMenuItems(t *testing.T) {
 // TestMenuOf: the items drawn without running the main menu (MenuOf, as
 // internal/tools/p4status draws a host's) are the main menu's items on a
 // host of the same facts, its Firewall hooks answered as cmd/hardn answers
-// them (FirewallOf): item 3 "Configure UFW rules" on Debian, "View
+// them (FirewallOf): item 3 "Configure ufw rules" on Debian, "View
 // pve-firewall" on Proxmox VE, "Configure firewalld" on Rocky Linux and
 // AlmaLinux; item 5, Auto Updates, and the hint "[0-10 or q]" on each.
 func TestMenuOf(t *testing.T) {
@@ -304,7 +304,7 @@ func TestMenuOf(t *testing.T) {
 		facts    detect.Facts
 		firewall string
 	}{
-		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}}, "Configure UFW rules"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}}, "Configure ufw rules"},
 		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroProxmox}, Proxmox: detect.Proxmox{Installed: detect.Yes}}, "View pve-firewall"},
 		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroRocky}}, "Configure firewalld"},
 		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlma}}, "Configure firewalld"},
@@ -398,7 +398,7 @@ func TestMainMenuHeights(t *testing.T) {
 	}{
 		{80, 24, 38, "SSH Port             Configured non-default (2230)"},
 		{80, 40, 38, ""}, // the blank lines under the clear, the header under them
-		{60, 24, 61, "Create, Configure (sudo, SSH keys)"},
+		{60, 24, 61, "Create, configure (sudo, SSH keys)"},
 		{60, 40, 61, "Configured non-default (2230)"},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
