@@ -247,9 +247,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno lslogins or lastlog, /var/log/wtmp and /run/utmp stay␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 0 bytes after a terminal login, and BusyBox's last -n 1␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice prints its usage and fails; sshd's own lines go to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/messages, 0640 root wheel (vm-runs/s1/01-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtools.log, 08-lslogins.log, 09-lslogins-blank.log). So one␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow says so.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/log/messages, 0640 root wheel␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(vm-runs/s1/01-tools.log, 08-lslogins.log,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m09-lslogins-blank.log). So one row says so.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

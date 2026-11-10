@@ -17,9 +17,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mto systemd-resolved's stub, and eth0 has 192.0.2.1 and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mexample.net from DHCP. hardn.yml lists 192.0.2.54,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54.␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. systemd-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mresolved reloads its files (systemd 259). y applies it; n␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdeclines.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msystemd-resolved reloads its files (systemd 259). y applies␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit; n declines.␛[m$
 $
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83meth0 still uses its own nameserver 192.0.2.1␛[m$
 $
@@ -44,9 +44,9 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-ubuntu2604␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$
       ␛[38;2;129;134;156m/etc/systemd/resolved.conf.d,␛[m$
@@ -69,9 +69,9 @@ $
 # to systemd-resolved's stub, and eth0 has 192.0.2.1 and$
 # example.net from DHCP. hardn.yml lists 192.0.2.54,$
 # 2001:db8::54.$
-# The change: Configure DNS, hardn.yml's nameservers. systemd-$
-# resolved reloads its files (systemd 259). y applies it; n$
-# declines.$
+# The change: Configure DNS, hardn.yml's nameservers.$
+# systemd-resolved reloads its files (systemd 259). y applies$
+# it; n declines.$
 $
   [ ] eth0 still uses its own nameserver 192.0.2.1$
 $
@@ -96,9 +96,9 @@ $
   simulated system ---------------------------------------------$
 $
 # Info: engine/dns-configure-ubuntu2604$
-# Recorded by the fake, not done: what each step ran on web-$
-# 01.example.net, and the files it changed, in order; hardn's$
-# own journal, run directory and backups left out.$
+# Recorded by the fake, not done: what each step ran on$
+# web-01.example.net, and the files it changed, in order;$
+# hardn's own journal, run directory and backups left out.$
 $
    -  Applied: Set the nameservers$
       /etc/systemd/resolved.conf.d,$
@@ -151,8 +151,8 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-configure-ubuntu2604␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Set the nameservers␛[m$

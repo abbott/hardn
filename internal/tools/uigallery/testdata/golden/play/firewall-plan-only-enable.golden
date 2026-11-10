@@ -297,8 +297,8 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: firewall/ubuntu2604␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Ubuntu 26.04 as shipped: ufw␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled and inactive, ENABLED=no, no rule, sshd socket-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mactivated on [::]:22 (vmtest.md §4.9).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minstalled and inactive, ENABLED=no, no rule, sshd␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msocket-activated on [::]:22 (vmtest.md §4.9).␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

@@ -246,8 +246,8 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/pve9␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net is a Proxmox VE 9 node on ZFS [I, no␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mVM]: root's dataset read from /proc/self/mounts,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrpool/ROOT/pve-1, where origin/main asks zfs for its hard-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcoded zroot/ROOT/os (details.go:85;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrpool/ROOT/pve-1, where origin/main asks zfs for its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhard-coded zroot/ROOT/os (details.go:85;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmenu/system_details_zfs_other_dataset.golden). No user but␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot. lslogins by inference from Debian 13, its base [I,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mno VM]. The CPU's name is cut at its row.␛[m$

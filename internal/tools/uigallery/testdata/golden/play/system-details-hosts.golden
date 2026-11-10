@@ -43,8 +43,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/unreadable␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDebian 13, as debian13. /proc/meminfo cannot be read.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156morigin/main's GenerateSystemStatus stops at the first␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost (details.go:91-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m117); here the rest stays and the section says which.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcollector's error and the whole report is lost␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(details.go:91-117); here the rest stays and the section says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhich.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSystem Details␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -165,8 +166,9 @@ $
 # Info: system-details/unreadable$
 # Debian 13, as debian13. /proc/meminfo cannot be read.$
 # origin/main's GenerateSystemStatus stops at the first$
-# collector's error and the whole report is lost (details.go:91-$
-# 117); here the rest stays and the section says which.$
+# collector's error and the whole report is lost$
+# (details.go:91-117); here the rest stays and the section says$
+# which.$
 $
 # System Details ###############################################$
 $

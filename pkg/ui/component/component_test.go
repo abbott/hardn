@@ -1316,6 +1316,42 @@ func TestInlineKinds(t *testing.T) {
 	}
 }
 
+// TestWrapAtSpaces: prose breaks at spaces only, so a command in a
+// refusal's fix keeps its package name whole (SELINUX_NO_SEMANAGE on
+// alma9-test-111, 2026-11-10, which split it after "policycoreutils-");
+// a word longer than the line still breaks as lipgloss.Wrap breaks it.
+func TestWrapAtSpaces(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	got := InlineResult{Kind: MessageBad, Text: "SELinux is on, and semanage isn't installed to let sshd use port 2230. " +
+		"Install it (dnf install policycoreutils-python-utils), then plan again."}.Render(c)
+	want := "  (x) SELinux is on, and semanage isn't installed to let sshd\n" +
+		"      use port 2230. Install it (dnf install\n" +
+		"      policycoreutils-python-utils), then plan again."
+	if got = ansi.Strip(got); got != want {
+		t.Errorf("got\n%s\nwant\n%s", got, want)
+	}
+	old := func(s string, n int) []string {
+		var out []string
+		for _, l := range strings.Split(lipgloss.Wrap(s, n, ""), "\n") {
+			if l = strings.TrimRight(l, " "); l != "" {
+				out = append(out, l)
+			}
+		}
+		return out
+	}
+	for _, tt := range []struct {
+		s string
+		n int
+	}{
+		{"install it now", 6}, {"a supercalifragilistic word", 8}, {"x  y   z", 3},
+		{"dnf policycoreutils-python-utils", 10}, {"see policycoreutils-python-utils now", 12},
+	} {
+		if got, want := Wrap(tt.s, tt.n), old(tt.s, tt.n); !slices.Equal(got, want) {
+			t.Errorf("%q at %d: %q, want %q as before", tt.s, tt.n, got, want)
+		}
+	}
+}
+
 // TestCalloutChoice: a callout's choice line, the main menu's alert's
 // route, draws its lead in the body's colour and the item's key and label
 // in the menu's styles, as the menu draws the item (the maintainer,

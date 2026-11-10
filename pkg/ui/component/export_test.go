@@ -10,6 +10,7 @@ var (
 	Width    = Ctx.width
 	Code     = Ctx.code
 	Marker   = marker
+	Wrap     = wrap
 )
 
 // Unexported words.

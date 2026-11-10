@@ -128,17 +128,17 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/default␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/default␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order; hardn's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mown journal, run directory and backups left out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
@@ -270,17 +270,17 @@ $
   simulated system ---------------------------------------------$
 $
 # Info: backup/default$
-# Recorded by the fake, not done: what each step ran on web-$
-# 01.example.net, and the files it changed, in order; hardn's$
-# own journal, run directory and backups left out.$
+# Recorded by the fake, not done: what each step ran on$
+# web-01.example.net, and the files it changed, in order;$
+# hardn's own journal, run directory and backups left out.$
 $
    -  Applied: Save the configuration$
       /etc/hardn/hardn.yml$
 $
 # Info: backup/default$
-# Recorded by the fake, not done: what each step ran on web-$
-# 01.example.net, and the files it changed, in order; hardn's$
-# own journal, run directory and backups left out.$
+# Recorded by the fake, not done: what each step ran on$
+# web-01.example.net, and the files it changed, in order;$
+# hardn's own journal, run directory and backups left out.$
 $
    -  Applied: Save the configuration$
       /etc/hardn/hardn.yml$
@@ -437,16 +437,16 @@ $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/default␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$
       ␛[38;2;129;134;156m/etc/hardn/hardn.yml␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: backup/default␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on web-␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m01.example.net, and the files it changed, in order;␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mRecorded by the fake, not done: what each step ran on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net, and the files it changed, in order;␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's own journal, run directory and backups left out.␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mApplied: Save the configuration␛[m$

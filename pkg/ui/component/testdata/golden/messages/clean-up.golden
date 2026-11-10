@@ -4,8 +4,9 @@
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mno longer listens on it.␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -43,8 +44,9 @@ $
 
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;112;212;127mOperation Successful␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mPort 22 is dropped from␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mno longer listens on it.␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;129;134;156mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
@@ -82,8 +84,9 @@ $
 
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mno longer listens on it.␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
@@ -121,8 +124,9 @@ $
 
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
 ␛[48;2;0;138;0m ␛[m ␛[1;38;2;26;127;55mOperation Successful␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mPort 22 is dropped from␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mno longer listens on it.␛[m$
 ␛[48;2;0;138;0m ␛[m ␛[38;2;87;92;110mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;2;184;138;0m ␛[m ␛[1;38;2;138;97;0mWarning␛[m$
@@ -160,8 +164,9 @@ $
 
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
 ␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
-␛[48;5;28m ␛[m ␛[38;5;102mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;5;28m ␛[m ␛[38;5;102mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;102mPort 22 is dropped from␛[m$
+␛[48;5;28m ␛[m ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;102mno longer listens on it.␛[m$
 ␛[48;5;28m ␛[m ␛[38;5;102mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
@@ -199,8 +204,9 @@ $
 
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
 ␛[48;5;28m ␛[m ␛[1;38;5;78mOperation Successful␛[m$
-␛[48;5;28m ␛[m ␛[38;5;102mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;5;28m ␛[m ␛[38;5;102mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;102mPort 22 is dropped from␛[m$
+␛[48;5;28m ␛[m ␛[38;5;102m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;102mno longer listens on it.␛[m$
 ␛[48;5;28m ␛[m ␛[38;5;102mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;5;178m ␛[m ␛[1;38;5;179mWarning␛[m$
@@ -238,8 +244,9 @@ $
 
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
 ␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
-␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;5;28m ␛[m ␛[38;5;59mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mno longer listens on it.␛[m$
 ␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
@@ -277,8 +284,9 @@ $
 
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
 ␛[48;5;28m ␛[m ␛[1;38;5;22mOperation Successful␛[m$
-␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[48;5;28m ␛[m ␛[38;5;59mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mPort 22 is dropped from␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[48;5;28m ␛[m ␛[38;5;59mno longer listens on it.␛[m$
 ␛[48;5;28m ␛[m ␛[38;5;59mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[48;5;136m ␛[m ␛[1;38;5;94mWarning␛[m$
@@ -316,8 +324,9 @@ $
 
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
 ␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
-␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from␛[m$
+␛[42m ␛[m ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[42m ␛[m ␛[90mno longer listens on it.␛[m$
 ␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[43m ␛[m ␛[1;33mWarning␛[m$
@@ -355,8 +364,9 @@ $
 
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
 ␛[42m ␛[m ␛[1;92mOperation Successful␛[m$
-␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from␛[m$
+␛[42m ␛[m ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[42m ␛[m ␛[90mno longer listens on it.␛[m$
 ␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[43m ␛[m ␛[1;33mWarning␛[m$
@@ -394,8 +404,9 @@ $
 
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
 ␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
-␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from␛[m$
+␛[42m ␛[m ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[42m ␛[m ␛[90mno longer listens on it.␛[m$
 ␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[43m ␛[m ␛[1;33mWarning␛[m$
@@ -433,8 +444,9 @@ $
 
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
 ␛[42m ␛[m ␛[1;32mOperation Successful␛[m$
-␛[42m ␛[m ␛[90mPort 22 is dropped from /etc/ssh/sshd_config.d/00-␛[m$
-␛[42m ␛[m ␛[90mhardn.conf, and sshd, reloaded, no longer listens on it.␛[m$
+␛[42m ␛[m ␛[90mPort 22 is dropped from␛[m$
+␛[42m ␛[m ␛[90m/etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,␛[m$
+␛[42m ␛[m ␛[90mno longer listens on it.␛[m$
 ␛[42m ␛[m ␛[90mufw's rule for 22/tcp, which hardn added, is deleted.␛[m$
 $
 ␛[43m ␛[m ␛[1;33mWarning␛[m$
@@ -472,8 +484,9 @@ $
 
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
 █ ␛[1mOperation Successful␛[m$
-█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
-█ hardn.conf, and sshd, reloaded, no longer listens on it.$
+█ Port 22 is dropped from$
+█ /etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,$
+█ no longer listens on it.$
 █ ufw's rule for 22/tcp, which hardn added, is deleted.$
 $
 █ ␛[1mWarning␛[m$
@@ -511,8 +524,9 @@ $
 
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
 # ␛[1mOperation Successful␛[m$
-# Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
-# hardn.conf, and sshd, reloaded, no longer listens on it.$
+# Port 22 is dropped from$
+# /etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,$
+# no longer listens on it.$
 # ufw's rule for 22/tcp, which hardn added, is deleted.$
 $
 # ␛[1mWarning␛[m$
@@ -550,8 +564,9 @@ $
 
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
 █ ␛[1mOperation Successful␛[m$
-█ Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
-█ hardn.conf, and sshd, reloaded, no longer listens on it.$
+█ Port 22 is dropped from$
+█ /etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,$
+█ no longer listens on it.$
 █ ufw's rule for 22/tcp, which hardn added, is deleted.$
 $
 █ ␛[1mWarning␛[m$
@@ -589,8 +604,9 @@ $
 
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
 # ␛[1mOperation Successful␛[m$
-# Port 22 is dropped from /etc/ssh/sshd_config.d/00-$
-# hardn.conf, and sshd, reloaded, no longer listens on it.$
+# Port 22 is dropped from$
+# /etc/ssh/sshd_config.d/00-hardn.conf, and sshd, reloaded,$
+# no longer listens on it.$
 # ufw's rule for 22/tcp, which hardn added, is deleted.$
 $
 # ␛[1mWarning␛[m$
