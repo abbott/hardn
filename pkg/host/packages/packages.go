@@ -47,6 +47,10 @@ var (
 	// package" for an empty index (alpine323-vm.log) and for no DNS
 	// (alpine323-vm-2.log).
 	ErrNotInRepos = errors.New("package not found in the repositories")
+	// ErrNoRepos: dnf has no enabled repository to install from, as on an
+	// unregistered RHEL host, whose repositories come with its
+	// subscription (el-rhel.md §5).
+	ErrNoRepos = errors.New("no enabled repositories to install from")
 	// ErrOtherPackages: the simulation changes more than new packages
 	// (*OtherPackagesError names the changes).
 	ErrOtherPackages = errors.New("installing it would change other packages")

@@ -230,6 +230,7 @@ var sentinels = map[string]error{
 	"sudoers.ErrVarName":              sudoers.ErrVarName,
 	"packages.ErrNoTool":              packages.ErrNoTool,
 	"packages.ErrNotInRepos":          packages.ErrNotInRepos,
+	"packages.ErrNoRepos":             packages.ErrNoRepos,
 	"packages.ErrOtherPackages":       packages.ErrOtherPackages,
 	"packages.ErrVerify":              packages.ErrVerify,
 	"packages.ErrKernel":              packages.ErrKernel,

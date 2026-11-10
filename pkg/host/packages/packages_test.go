@@ -95,6 +95,11 @@ const (
 	// first line on stdout, the second on stderr, exit 1.
 	dnfMissingOut = "Last metadata expiration check: 3:34:12 ago on Mon Nov  9 23:03:35 2026.\nNo match for argument: hardn-no-such-package\n"
 	dnfMissing    = "Error: Unable to find a match: hardn-no-such-package\n"
+	// rhel10-test-114 and rhel9-test-115, probe 3 (2026-11-10): an unregistered
+	// RHEL host, no enabled repository: the subscription plugin's notices on
+	// stdout, dnf's error on stderr, exit 1.
+	dnfUnregisteredOut = "Updating Subscription Management repositories.\nUnable to read consumer identity\n\nThis system is not registered with an entitlement server. You can use \"rhc\" or \"subscription-manager\" to register.\n\n"
+	dnfNoRepos         = "Error: There are no enabled repositories in \"/etc/yum.repos.d\", \"/etc/yum/repos.d\", \"/etc/distro.repos.d\".\n"
 )
 
 func rpmQ(name string) []string { return []string{"rpm", "-q", name} }
@@ -272,6 +277,7 @@ func TestPlanInstallDnf(t *testing.T) {
 		changes []string
 		uname   string // uname -r, where a kernel row is listed
 		repos   bool
+		noRepos bool
 		locked  bool
 		other   bool // any other error
 	}{
@@ -287,6 +293,9 @@ func TestPlanInstallDnf(t *testing.T) {
 		{name: "replacing [I]", r: aborted(dnfReplacing), changes: []string{"Replacing firewalld-old.noarch"}},
 		{name: "a wrapped row [I]", r: aborted(dnfWrapped), adds: []string{"firewalld-with-a-name-wider-than-its-column"}},
 		{name: "no such package", r: hostfake.Response{Stdout: dnfMissingOut, Stderr: dnfMissing, ExitCode: 1}, repos: true},
+		{name: "no enabled repository (an unregistered RHEL host)", r: hostfake.Response{Stdout: dnfUnregisteredOut, Stderr: dnfNoRepos, ExitCode: 1}, noRepos: true},
+		{name: "the no-repositories line, exit 0 [I]", r: hostfake.Response{Stdout: dnfUnregisteredOut, Stderr: dnfNoRepos}, other: true},
+		{name: "the no-repositories line on stdout alone [I]", r: hostfake.Response{Stdout: dnfUnregisteredOut + dnfNoRepos, ExitCode: 1}, other: true},
 		{name: "aborted without a table", r: hostfake.Response{Stderr: dnfAborted, ExitCode: 1}, other: true},
 		{name: "a repository unreachable [I]", r: hostfake.Response{Stderr: "Error: Failed to download metadata for repo 'baseos'\n", ExitCode: 1}, other: true},
 		{name: "nothing to do [I]", r: hostfake.Response{Stdout: "Dependencies resolved.\nNothing to do.\n"}, other: true},
@@ -325,12 +334,16 @@ func TestPlanInstallDnf(t *testing.T) {
 				if !errors.Is(err, packages.ErrNotInRepos) {
 					t.Errorf("%v, want ErrNotInRepos", err)
 				}
+			case c.noRepos:
+				if !errors.Is(err, packages.ErrNoRepos) || errors.Is(err, packages.ErrNotInRepos) {
+					t.Errorf("%v, want ErrNoRepos", err)
+				}
 			case c.locked:
 				if !errors.Is(err, packages.ErrLocked) {
 					t.Errorf("%v, want ErrLocked", err)
 				}
 			case c.other:
-				if err == nil || errors.Is(err, packages.ErrNotInRepos) || errors.Is(err, packages.ErrKernel) || errors.Is(err, packages.ErrOtherPackages) {
+				if err == nil || errors.Is(err, packages.ErrNotInRepos) || errors.Is(err, packages.ErrNoRepos) || errors.Is(err, packages.ErrKernel) || errors.Is(err, packages.ErrOtherPackages) {
 					t.Errorf("plan %+v, %v; want another error", p, err)
 				}
 			}

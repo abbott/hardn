@@ -55,6 +55,7 @@ const (
 	codeFirewalldZone       = "FIREWALLD_ZONE_NO_SSH"
 	codeKernel              = "PACKAGE_KERNEL"
 	codeLocked              = "PACKAGE_LOCKED"
+	codeNoRepos             = "PACKAGE_NO_REPOS"
 )
 
 // planEL is Plan on Rocky Linux and AlmaLinux: Install, Install iproute2

@@ -322,6 +322,7 @@ var errorCodes = []Entry{
 	// are their sentinels'.
 	is("PACKAGE_NO_TOOL", packages.ErrNoTool),
 	is("PACKAGE_NOT_IN_REPOS", packages.ErrNotInRepos),
+	is("PACKAGE_NO_REPOS", packages.ErrNoRepos),
 	is("PACKAGE_OTHER_CHANGES", packages.ErrOtherPackages),
 	is("PACKAGE_VERIFY_FAILED", packages.ErrVerify),
 	is("PACKAGE_KERNEL", packages.ErrKernel),

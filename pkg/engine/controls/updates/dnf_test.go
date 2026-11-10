@@ -206,6 +206,11 @@ func TestDnfOnRefusals(t *testing.T) {
 			m.dnfInstall = &hostfake.Response{Stdout: "No match for argument: dnf-automatic\n", Stderr: "Error: Unable to find a match: dnf-automatic\n", ExitCode: 1}
 			return m
 		}},
+		{"no enabled repository (an unregistered RHEL host)", "PACKAGE_NO_REPOS", "hardn can't install dnf-automatic: dnf has no enabled repositories", func(t *testing.T) *model {
+			m := dnfHost(t, false)
+			m.dnfInstall = &hostfake.Response{Stdout: "Updating Subscription Management repositories.\nUnable to read consumer identity\n\nThis system is not registered with an entitlement server. You can use \"rhc\" or \"subscription-manager\" to register.\n\n", Stderr: "Error: There are no enabled repositories in \"/etc/yum.repos.d\", \"/etc/yum/repos.d\", \"/etc/distro.repos.d\".\n", ExitCode: 1} // rhel10-test-114, probe 3
+			return m
+		}},
 		{"another package changed", "UPDATES_OTHER_PACKAGES", "Upgrading dnf", func(t *testing.T) *model {
 			m := dnfHost(t, false)
 			m.dnfInstall = &upgrading

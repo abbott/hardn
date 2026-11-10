@@ -310,6 +310,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UFW_BAD_INTERFACE` | 1 | the interface is not one ufw takes |
 | `PACKAGE_NO_TOOL` | 1 | hardn can't install packages on this system |
 | `PACKAGE_NOT_IN_REPOS` | 1 | package not found in the repositories |
+| `PACKAGE_NO_REPOS` | 1 | dnf has no enabled repository to install from, as on an unregistered RHEL host: register it (subscription-manager or rhc) or enable a repository ([el-rhel.md](../engine/el-rhel.md)) |
 | `PACKAGE_OTHER_CHANGES` | 1 | installing it would change other packages |
 | `PACKAGE_VERIFY_FAILED` | 1 | package not installed after the install |
 | `PACKAGE_KERNEL` | 1 | dnf's transaction would install a kernel of another release than the running one: run dnf upgrade and restart first ([el-firewalld.md](../engine/el-firewalld.md)) |
