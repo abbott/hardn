@@ -95,8 +95,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mdoas hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
-  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run doas hardn␛[m$
-  ␛[38;2;129;134;156mrollback 20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`doas hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -213,8 +213,8 @@ $
       $ doas hardn confirm$
 $
   Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
-  back at about 12:03:00 UTC. To undo it now, run doas hardn$
-  rollback 20261020T120000Z-xxxxxxxx.$
+  back at about 12:03:00 UTC. To undo it now, run$
+  `doas hardn rollback 20261020T120000Z-xxxxxxxx`.$
 $
   simulated system ---------------------------------------------$
 $
@@ -339,7 +339,7 @@ $
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
   ␛[38;2;129;134;156mrolled back at about 12:03:00 UTC. To undo it now, run␛[m$
-  ␛[38;2;129;134;156mdoas hardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156m`doas hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

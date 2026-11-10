@@ -219,7 +219,7 @@ func rollbackNext(rb Rollback, ae *engine.ApplyError) string {
 	var next []string
 	switch {
 	case rb.Command != "":
-		next = append(next, "The rollback did not finish: run "+rb.Command+" to finish it.")
+		next = append(next, "The rollback did not finish: run `"+rb.Command+"` to finish it.")
 	case rb.ByAnotherProcess && ae != nil && ae.Rollback.Nothing:
 		next = append(next, "Another hardn process had taken the change, so this run undid nothing: "+strings.TrimSuffix(ae.Rollback.Why, ".")+".")
 	case rb.ByAnotherProcess:
@@ -291,7 +291,7 @@ func countdown(c component.Ctx, cf Confirm, id string, now time.Time) []string {
 	if cf.Approximate {
 		about = "about "
 	}
-	when := fmt.Sprintf("Unless confirmed, change %s is rolled back at %s%s. To undo it now, run %s.",
+	when := fmt.Sprintf("Unless confirmed, change %s is rolled back at %s%s. To undo it now, run `%s`.",
 		id, about, cf.Deadline.UTC().Format("15:04:05 MST"), cf.Undo)
 	return []string{cd.Render(c), component.Message{Text: when}.Render(c)}
 }

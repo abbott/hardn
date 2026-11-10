@@ -28,9 +28,9 @@ func TestRollbackNotFinished(t *testing.T) {
 		next     string
 	}{
 		{"incomplete", fmt.Errorf("revert: %w", revert.ErrIncomplete), revert.RollbackResult{}, engine.StepApply,
-			output.OutcomeRollbackIncomplete, false, "The rollback did not finish: run sudo hardn rollback " + fixtureID + " to finish it."},
+			output.OutcomeRollbackIncomplete, false, "The rollback did not finish: run `sudo hardn rollback " + fixtureID + "` to finish it."},
 		{"interrupted, incomplete", fmt.Errorf("revert: %w", revert.ErrIncomplete), revert.RollbackResult{}, engine.StepStart,
-			output.OutcomeCancelled, false, "The rollback did not finish: run sudo hardn rollback " + fixtureID + " to finish it."},
+			output.OutcomeCancelled, false, "The rollback did not finish: run `sudo hardn rollback " + fixtureID + "` to finish it."},
 		{"another process's rollback runs", fmt.Errorf("revert: %w", revert.ErrRollingBack), revert.RollbackResult{}, engine.StepApply,
 			output.OutcomeRollbackIncomplete, false, "Another hardn process is rolling the change back; wait for it to end."},
 		{"the journal gone", fmt.Errorf("engine: nothing rolled back here: it is not journalled: confirmed, or rolled back already: %w", revert.ErrRollingBack),

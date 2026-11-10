@@ -84,9 +84,9 @@ func (c Incoming) planEL(ctx context.Context, sys host.System, in engine.Input) 
 func firewalldUnknown(err error) error {
 	if errors.Is(err, firewalld.ErrFailed) {
 		return &steps.Refusal{Code: "FIREWALLD_FAILED", Why: "firewalld's service failed, and its rules may still be loaded",
-			Fix: "see journalctl -u firewalld, fix it, then run systemctl reset-failed firewalld.service", Err: err}
+			Fix: "see `journalctl -u firewalld`, fix it, then run `systemctl reset-failed firewalld.service`", Err: err}
 	}
-	return &steps.Refusal{Code: codeFirewalldUnknown, Why: "hardn can't read firewalld here", Fix: "check that systemctl status firewalld answers, then try again", Err: err}
+	return &steps.Refusal{Code: codeFirewalldUnknown, Why: "hardn can't read firewalld here", Fix: "check that `systemctl status firewalld` answers, then try again", Err: err}
 }
 
 // installFirewalld is Install's plan there: dnf's (packages.Dnf), refused
@@ -112,7 +112,7 @@ func installFirewalld(ctx context.Context, sys host.System, f detect.Facts) ([]e
 		return nil, firewalldUnknown(err)
 	case st.Unit == "masked" || st.Unit == "masked-runtime":
 		return nil, &steps.Refusal{Code: codeFirewalldBootBlock, Why: "firewalld's service is masked here, and hardn leaves a mask it didn't make",
-			Fix: "run systemctl unmask firewalld.service, then try again, or leave firewalld out", Err: firewalld.ErrBootBlocked}
+			Fix: "run `systemctl unmask firewalld.service`, then try again, or leave firewalld out", Err: firewalld.ErrBootBlocked}
 	}
 	if err := firewalld.CheckOthers(ctx, sys); err != nil {
 		return nil, otherRefusal(err)
@@ -267,12 +267,12 @@ func enableRefusal(err error) error {
 			Fix: "set CleanupOnExit=yes in " + firewalld.ConfFile + ", then try again", Err: err}
 	case errors.Is(err, firewalld.ErrBootBlocked):
 		return &steps.Refusal{Code: codeFirewalldBootBlock, Why: "firewalld's service is masked or missing, so it can't start",
-			Fix: "run systemctl unmask firewalld.service, then try again", Err: err}
+			Fix: "run `systemctl unmask firewalld.service`, then try again", Err: err}
 	case errors.Is(err, firewalld.ErrBootUnknown):
-		return &steps.Refusal{Code: codeFirewalldBootUnread, Why: "hardn can't tell how firewalld's service starts at boot", Fix: "check systemctl is-enabled firewalld.service, then try again", Err: err}
+		return &steps.Refusal{Code: codeFirewalldBootUnread, Why: "hardn can't tell how firewalld's service starts at boot", Fix: "check `systemctl is-enabled firewalld.service`, then try again", Err: err}
 	case errors.As(err, &zone):
 		return &steps.Refusal{Code: codeFirewalldZone, Why: fmt.Sprintf("firewalld's zone %s (%s) doesn't let SSH port %d through, and hardn changes only the default zone", zone.Zone, zone.By, zone.Port),
-			Fix: fmt.Sprintf("let it through that zone (firewall-offline-cmd --zone=%s --add-port=%d/tcp), then try again", zone.Zone, zone.Port), Err: err}
+			Fix: fmt.Sprintf("let it through that zone (`firewall-offline-cmd --zone=%s --add-port=%d/tcp`), then try again", zone.Zone, zone.Port), Err: err}
 	}
 	return firewalldUnknown(err)
 }

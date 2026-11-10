@@ -1352,6 +1352,59 @@ func TestWrapAtSpaces(t *testing.T) {
 	}
 }
 
+// TestWrapKeepsCommands: a command in prose is never split, so it copies
+// as one line (the review of the EL host run, 2026-11-10): a span in
+// backticks, and a log line's "$" and the rest of the line, start the next
+// line whole where they don't fit. A command wider than the line, a
+// backtick never closed and a "$" with nothing after it wrap word by word
+// as before.
+func TestWrapKeepsCommands(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	got := InlineResult{Kind: MessageBad, Text: "SELinux is on, and semanage isn't installed to let sshd use port 2230. " +
+		"Install it (`dnf install policycoreutils-python-utils`), then plan again."}.Render(c)
+	want := "  (x) SELinux is on, and semanage isn't installed to let sshd\n" +
+		"      use port 2230. Install it\n" +
+		"      (`dnf install policycoreutils-python-utils`), then plan\n" +
+		"      again."
+	if got = ansi.Strip(got); got != want {
+		t.Errorf("got\n%s\nwant\n%s", got, want)
+	}
+	for _, tt := range []struct {
+		s    string
+		n    int
+		want []string
+	}{
+		{"run `sudo hardn rollback 20261110T160757Z-2aaea759` now", 50,
+			[]string{"run", "`sudo hardn rollback 20261110T160757Z-2aaea759`", "now"}},
+		{"run 1: $ systemctl stop hardn-revert-x.timer", 40, []string{"run 1:", "$ systemctl stop hardn-revert-x.timer"}},
+		{"`a b` and `c d`", 6, []string{"`a b`", "and", "`c d`"}},
+		{"see (`x y`), then", 9, []string{"see", "(`x y`),", "then"}},
+		// A command too wide to keep whole, then one that fits: the first's
+		// closing backtick opens nothing.
+		{"`one two three four five six` and `x y` z", 12, []string{"`one two", "three four", "five six`", "and `x y` z"}},
+	} {
+		if got := Wrap(tt.s, tt.n); !slices.Equal(got, tt.want) {
+			t.Errorf("%q at %d: %q, want %q", tt.s, tt.n, got, tt.want)
+		}
+	}
+	// Word by word: as the same text with ' and # for ` and $, which mark nothing.
+	plain, back := strings.NewReplacer("`", "'", "$", "#"), strings.NewReplacer("'", "`", "#", "$")
+	for _, tt := range []struct {
+		s string
+		n int
+	}{
+		{"see `a b c d e f` now", 5}, {"a `b c d", 3}, {"pay $", 3}, {"a $  ", 1},
+	} {
+		want := Wrap(plain.Replace(tt.s), tt.n)
+		for i := range want {
+			want[i] = back.Replace(want[i])
+		}
+		if got := Wrap(tt.s, tt.n); !slices.Equal(got, want) {
+			t.Errorf("%q at %d: %q, want it wrapped word by word, %q", tt.s, tt.n, got, want)
+		}
+	}
+}
+
 // TestCalloutChoice: a callout's choice line, the main menu's alert's
 // route, draws its lead in the body's colour and the item's key and label
 // in the menu's styles, as the menu draws the item (the maintainer,

@@ -112,8 +112,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
-  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
-  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice opens a new SSH connection to web-01.example.net on port␛[m$
@@ -299,8 +299,8 @@ $
       $ sudo hardn confirm$
 $
   Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
-  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
-  20261020T120000Z-xxxxxxxx.$
+  back at 12:03:01 UTC. To undo it now, run$
+  `sudo hardn rollback 20261020T120000Z-xxxxxxxx`.$
 $
 # Info: hardn confirm, from a new connection to port 2230$
 # alice opens a new SSH connection to web-01.example.net on port$
@@ -494,8 +494,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
-  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
-  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: hardn confirm, from a new connection to port 2230␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice opens a new SSH connection to web-01.example.net on␛[m$

@@ -377,12 +377,12 @@ $
   ␛[38;2;129;134;156mTo go on: first make sure the firewall lets port 2230␛[m$
   ␛[38;2;129;134;156mthrough: ssh.socket then listens on port 2230 alone. Then␛[m$
   ␛[38;2;129;134;156mlet listen.conf take effect while this session stays open:␛[m$
-  ␛[38;2;129;134;156mrun `systemctl daemon-reload` and `systemctl restart␛[m$
-  ␛[38;2;129;134;156mssh.socket` (established SSH sessions survive the␛[m$
-  ␛[38;2;129;134;156mrestart), check that a new SSH connection to port 2230␛[m$
-  ␛[38;2;129;134;156mworks, and run hardn again. A reboot also lets it take␛[m$
-  ␛[38;2;129;134;156meffect, but ends this session: reboot only with console␛[m$
-  ␛[38;2;129;134;156maccess, in case port 2230 is not reachable.␛[m$
+  ␛[38;2;129;134;156mrun `systemctl daemon-reload` and␛[m$
+  ␛[38;2;129;134;156m`systemctl restart ssh.socket` (established SSH sessions␛[m$
+  ␛[38;2;129;134;156msurvive the restart), check that a new SSH connection to␛[m$
+  ␛[38;2;129;134;156mport 2230 works, and run hardn again. A reboot also lets␛[m$
+  ␛[38;2;129;134;156mit take effect, but ends this session: reboot only with␛[m$
+  ␛[38;2;129;134;156mconsole access, in case port 2230 is not reachable.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEngine scenarios␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

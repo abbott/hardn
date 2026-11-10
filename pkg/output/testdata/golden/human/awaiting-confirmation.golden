@@ -23,8 +23,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261019T120000Z-1a2b3c4d is rolled␛[m$
-  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run sudo hardn␛[m$
-  ␛[38;2;129;134;156mrollback 20261019T120000Z-1a2b3c4d.␛[m$
+  ␛[38;2;129;134;156mback at about 12:03:00 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261019T120000Z-1a2b3c4d`.␛[m$
 $
   ␛[38;2;129;134;156mBackup of /etc/ssh/sshd_config.d/00-hardn.conf kept in␛[m$
   ␛[38;2;129;134;156m/var/backups/hardn/20261019T120000Z-1a2b3c4d␛[m$
@@ -56,8 +56,8 @@ $
       $ sudo hardn confirm$
 $
   Unless confirmed, change 20261019T120000Z-1a2b3c4d is rolled$
-  back at about 12:03:00 UTC. To undo it now, run sudo hardn$
-  rollback 20261019T120000Z-1a2b3c4d.$
+  back at about 12:03:00 UTC. To undo it now, run$
+  `sudo hardn rollback 20261019T120000Z-1a2b3c4d`.$
 $
   Backup of /etc/ssh/sshd_config.d/00-hardn.conf kept in$
   /var/backups/hardn/20261019T120000Z-1a2b3c4d$
@@ -90,7 +90,7 @@ $
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261019T120000Z-1a2b3c4d is␛[m$
   ␛[38;2;129;134;156mrolled back at about 12:03:00 UTC. To undo it now, run␛[m$
-  ␛[38;2;129;134;156msudo hardn rollback 20261019T120000Z-1a2b3c4d.␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261019T120000Z-1a2b3c4d`.␛[m$
 $
   ␛[38;2;129;134;156mBackup of /etc/ssh/sshd_config.d/00-hardn.conf kept in␛[m$
   ␛[38;2;129;134;156m/var/backups/hardn/20261019T120000Z-1a2b3c4d␛[m$

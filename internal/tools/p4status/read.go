@@ -115,10 +115,13 @@ func (r row) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 // hosts draw theirs, with the items hardn's main menu draws on a host of
 // r's facts (mainmenu.MenuOf): "Configure firewalld" on Rocky Linux and
 // AlmaLinux, "View pve-firewall" on Proxmox VE, and item 5, Auto Updates,
-// which the mock has not.
+// which the mock has not. Its header shows no version, as hardn's does when
+// built without one: p4status is not a hardn release, and the mock's
+// version is not this build's.
 func mainMenu(env term.Env, r reading) string {
 	base := screen.MainMenuFixture()
 	base.Menu = mainmenu.MenuOf(r.facts)
+	base.Header.Version = ""
 	return output.MainMenuOf(base, r.header, r.reports, r.level).Render(component.NewCtx(env))
 }
 

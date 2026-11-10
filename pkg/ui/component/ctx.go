@@ -282,6 +282,15 @@ func (c Ctx) bar(fill lipgloss.Style, text line) string {
 // (wrap.go:12-19, x/ansi wrap.go:293-463). A line break in s ends a line.
 // The lines keep no trailing spaces, and empty ones are dropped. With
 // limit under 1, s is one line.
+//
+// A command in the text is kept whole where it fits a line, so that it
+// copies as one line: a span in backticks, as
+// "(`dnf install policycoreutils-python-utils`),", and the rest of a line
+// from a "$" word, Glyphs.Command before a command hardn runs (DEV-038),
+// as a log's "run 1: $ systemctl stop <unit>". Either is laid out as one
+// word from the word it starts in to the word it ends in, so where it
+// doesn't fit the line it starts the next. One wider than limit wraps word
+// by word as other text does, its words starting no command of their own.
 func wrap(s string, limit int) []string {
 	if limit < 1 {
 		return []string{s}
@@ -293,7 +302,9 @@ func wrap(s string, limit int) []string {
 		}
 	}
 	for _, para := range strings.Split(s, "\n") {
-		cur := ""
+		// wide is how much of para is left after a command too wide to
+		// keep whole: until then, its words wrap as text.
+		cur, wide := "", -1
 		for para != "" {
 			i := strings.IndexFunc(para, notBreak)
 			if i < 0 {
@@ -302,6 +313,13 @@ func wrap(s string, limit int) []string {
 			j := strings.IndexFunc(para[i:], isBreak)
 			if j < 0 {
 				j = len(para) - i
+			}
+			if wide < 0 || len(para) <= wide {
+				if k := commandEnd(para, i, i+j); k > i+j && lipgloss.Width(para[i:k]) <= limit {
+					j = k - i
+				} else if k > i+j {
+					wide = len(para) - k
+				}
 			}
 			word, next := para[i:i+j], cur+para[:i+j]
 			para = para[i+j:]
@@ -322,6 +340,30 @@ func wrap(s string, limit int) []string {
 		emit(cur)
 	}
 	return out
+}
+
+// commandEnd is where the command that the word para[start:end] starts in
+// ends (wrap): the end of the word holding the backtick that closes the
+// word's open one, or, for the word "$" with text after it, the end of
+// para. A word in no command, a backtick never closed, and a "$" with
+// nothing after it end at end.
+func commandEnd(para string, start, end int) int {
+	if para[start:end] == "$" && strings.TrimSpace(para[end:]) != "" {
+		return len(para)
+	}
+	for strings.Count(para[start:end], "`")%2 == 1 {
+		k := strings.IndexByte(para[end:], '`')
+		if k < 0 {
+			break
+		}
+		end += k + 1
+		if n := strings.IndexFunc(para[end:], isBreak); n >= 0 {
+			end += n
+		} else {
+			end = len(para)
+		}
+	}
+	return end
 }
 
 // isBreak reports whether wrap may break a line at r: a space as x/ansi

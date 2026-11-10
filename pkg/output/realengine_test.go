@@ -340,7 +340,7 @@ func TestRealLockoutFlow(t *testing.T) {
 	screen := squash(out.String())
 	ok := strings.Index(screen, squash("Operation Successful"))
 	for _, want := range []string{"reverts automatically in 2:45", "sudo hardn confirm", "rolled back at about 12:03:00 UTC",
-		"To undo it now, run sudo hardn rollback " + run.Plan.ID} {
+		"To undo it now, run `sudo hardn rollback " + run.Plan.ID + "`"} {
 		if i := strings.Index(screen, squash(want)); i < 0 || i < ok {
 			t.Errorf("no %q after the flow's result:\n%s", want, out.String())
 		}

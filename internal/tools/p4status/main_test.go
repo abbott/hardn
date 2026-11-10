@@ -132,6 +132,9 @@ func galleryMenu(t *testing.T, name string) string {
 		if name == "pve9" {
 			l = strings.Replace(l, "   3) Firewall             Configure UFW rules", "   3) Firewall             View pve-firewall", 1)
 		}
+		if strings.HasPrefix(l, "hardn ") {
+			l = strings.Replace(l, "v0.4.0", "      ", 1) // p4status shows no version: not a hardn release
+		}
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}

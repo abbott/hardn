@@ -128,8 +128,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mhardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
-  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run hardn rollback␛[m$
-  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -307,8 +307,8 @@ $
       $ hardn confirm$
 $
   Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
-  back at 12:03:01 UTC. To undo it now, run hardn rollback$
-  20261020T120000Z-xxxxxxxx.$
+  back at 12:03:01 UTC. To undo it now, run$
+  `hardn rollback 20261020T120000Z-xxxxxxxx`.$
 $
 # SSH Login ####################################################$
 $
@@ -505,8 +505,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216mhardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
-  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run hardn␛[m$
-  ␛[38;2;129;134;156mrollback 20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

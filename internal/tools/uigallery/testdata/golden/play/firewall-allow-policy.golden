@@ -118,8 +118,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is rolled␛[m$
-  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run sudo hardn rollback␛[m$
-  ␛[38;2;129;134;156m20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -292,8 +292,8 @@ $
       $ sudo hardn confirm$
 $
   Unless confirmed, change 20261020T120000Z-xxxxxxxx is rolled$
-  back at 12:03:01 UTC. To undo it now, run sudo hardn rollback$
-  20261020T120000Z-xxxxxxxx.$
+  back at 12:03:01 UTC. To undo it now, run$
+  `sudo hardn rollback 20261020T120000Z-xxxxxxxx`.$
 $
 # UFW Firewall Configuration ###################################$
 $
@@ -485,8 +485,8 @@ $
       ␛[38;2;129;134;156m$ ␛[m␛[1;38;2;192;196;216msudo hardn confirm␛[m$
 $
   ␛[38;2;129;134;156mUnless confirmed, change 20261020T120000Z-xxxxxxxx is␛[m$
-  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run sudo␛[m$
-  ␛[38;2;129;134;156mhardn rollback 20261020T120000Z-xxxxxxxx.␛[m$
+  ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run␛[m$
+  ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

@@ -161,11 +161,14 @@
 //   - Message, Messages, InlineResult and Callout wrap their prose with
 //     wrap, at spaces only: lipgloss.Wrap (wrap.go:12-19), over x/ansi's
 //     Wrap, also breaks after every hyphen, splitting a package name or a
-//     path, so wrap hands it only a word wider than the line. A style's
-//     Width wraps as lipgloss.Wrap does (style.go:412-414) but then pads
-//     every line to the width (style.go:489-497, align.go:43-48):
-//     trailing spaces again. The callout's bar is painted cell by cell
-//     beside each line, so no join is needed.
+//     path, so wrap hands it only a word wider than the line. A command
+//     in the text, in backticks or from a "$" word to the end of its
+//     line, is laid out as one word unless wider than the line, so it
+//     copies as one line. A style's Width wraps as lipgloss.Wrap does
+//     (style.go:412-414) but then pads every line to the width
+//     (style.go:489-497, align.go:43-48): trailing spaces again. The
+//     callout's bar is painted cell by cell beside each line, so no join
+//     is needed.
 //   - PlanView: list could draw each change's bullet or risk glyph as its
 //     enumerator, but a change is many lines, which the tree renderer
 //     joins to the enumerator with JoinHorizontal, padding each to the

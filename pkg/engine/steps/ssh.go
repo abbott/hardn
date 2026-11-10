@@ -691,7 +691,7 @@ func sshLabels(ctx context.Context, sys host.System, f detect.Facts, rep sshd.Re
 	}
 	if err := selinux.Check(ctx, sys, paths...); err != nil {
 		return &Refusal{Code: CodeSELinuxLabels, Why: "sshd may not be able to read its files after the reload: SELinux labels them otherwise than its policy",
-			Fix: "run restorecon -v on the files named, then plan again", Err: err}
+			Fix: "run `restorecon -v` on the files named, then plan again", Err: err}
 	}
 	return nil
 }
@@ -727,7 +727,7 @@ func planELPorts(ctx context.Context, sys host.System, prefix string, hold, add 
 		switch {
 		case errors.Is(err, selinux.ErrNoSemanage):
 			return nil, &Refusal{Code: CodeNoSemanage, Why: fmt.Sprintf("SELinux is on, and semanage isn't installed to let sshd use port %d", port),
-				Fix: "install it (dnf install policycoreutils-python-utils), then plan again", Err: err}
+				Fix: "install it (`dnf install policycoreutils-python-utils`), then plan again", Err: err}
 		case errors.Is(err, selinux.ErrPortTaken):
 			return nil, &Refusal{Code: CodePortTaken, Why: fmt.Sprintf("SELinux gives port %d to another service", port), Fix: "choose another port", Err: err}
 		case err != nil:
@@ -744,20 +744,20 @@ func planELPorts(ctx context.Context, sys host.System, prefix string, hold, add 
 	switch {
 	case errors.Is(err, firewalld.ErrFailed):
 		return nil, &Refusal{Code: "FIREWALLD_FAILED", Why: "firewalld's service failed, and its rules may still be loaded",
-			Fix: "see journalctl -u firewalld, fix it, then run systemctl reset-failed firewalld.service", Err: err}
+			Fix: "see `journalctl -u firewalld`, fix it, then run `systemctl reset-failed firewalld.service`", Err: err}
 	case err != nil:
-		return nil, &Refusal{Code: CodeFirewalldMix, Why: "hardn can't read firewalld here", Fix: "check that systemctl status firewalld answers, then plan again", Err: err}
+		return nil, &Refusal{Code: CodeFirewalldMix, Why: "hardn can't read firewalld here", Fix: "check that `systemctl status firewalld` answers, then plan again", Err: err}
 	}
 	p, err := firewalld.PlanFor(ctx, sys, st, hold, add)
 	switch {
 	case errors.Is(err, firewalld.ErrStartsAtBoot):
 		return nil, &Refusal{Code: CodeFirewalldBoot, Why: "firewalld is stopped and starts at boot, so hardn can't read what it will let through then",
-			Fix: "enable it from the Firewall screen, or disable it (systemctl disable firewalld), then plan again", Err: err}
+			Fix: "enable it from the Firewall screen, or disable it (`systemctl disable firewalld`), then plan again", Err: err}
 	case errors.Is(err, firewalld.ErrNoSSHPath):
 		return nil, &Refusal{Code: CodeNoSSHPath, Why: "hardn can't tell how SSH gets through firewalld here: no zone lets the current port through by its ports or services",
-			Fix: "let SSH through a zone (firewall-cmd --permanent --add-service=ssh, then --reload), then plan again", Err: err}
+			Fix: "let SSH through a zone (`firewall-cmd --permanent --add-service=ssh`, then `firewall-cmd --reload`), then plan again", Err: err}
 	case err != nil:
-		return nil, &Refusal{Code: CodeFirewalldMix, Why: "hardn can't read firewalld here", Fix: "check that firewall-cmd --state answers, then plan again", Err: err}
+		return nil, &Refusal{Code: CodeFirewalldMix, Why: "hardn can't read firewalld here", Fix: "check that `firewall-cmd --state` answers, then plan again", Err: err}
 	case len(p.Steps) > 0:
 		c, err := firewalldChange(prefix+"/firewalld", p, add)
 		if err != nil {
