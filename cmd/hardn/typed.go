@@ -88,8 +88,9 @@ func (e typedEngine) Apply(ctx context.Context, report flow.Report) error {
 }
 
 // typedReraise ends hardn by SIGINT after Ctrl-C at the hostname's
-// prompt, as at every prompt (prompt.Reraise); a seam for the tests.
-var typedReraise = prompt.Reraise
+// prompt, as at every prompt (prompt.Reraise), the output frame closed
+// first; a seam for the tests.
+var typedReraise = endByInterrupt
 
 // runTyped is runControls on a terminal with q, for a plan runControls
 // found lockout-risk: controls planned again over c

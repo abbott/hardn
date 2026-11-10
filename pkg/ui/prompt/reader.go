@@ -184,6 +184,9 @@ func (r *Reader) Answer(w io.Writer) (string, error) {
 func (r *Reader) answer(w io.Writer) (string, error) {
 	r.asked = true
 	line, err := r.ReadLine()
+	if r.tty && err == nil && !r.unended {
+		echoed.Add(1)
+	}
 	if !r.tty || errors.Is(err, ErrAborted) || err == nil && r.unended {
 		if _, werr := io.WriteString(w, "\n"); werr != nil && err == nil {
 			return "", fmt.Errorf("prompt: write: %w", werr)
@@ -191,6 +194,15 @@ func (r *Reader) answer(w io.Writer) (string, error) {
 	}
 	return line, err
 }
+
+// echoed counts the answers whose prompt's line an echoed Enter ended on
+// the terminal (answer), where nothing written ended it.
+var echoed atomic.Uint64
+
+// Echoed is how many answers an echoed Enter has ended the prompt's line
+// of: cmd/hardn's output frame reads it, as the echo ends a line it never
+// sees written.
+func Echoed() uint64 { return echoed.Load() }
 
 // Asked reports whether Ask has written a prompt, or Answer has read the
 // answer to one, whatever the answer:

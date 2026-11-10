@@ -50,12 +50,23 @@ func main() { start(output.LegacyLogPath) }
 func start(logPath string) {
 	startLogPath, logOpened = logPath, false
 
-	// All Execute returns is a bad command line, which cobra has said on stderr with
-	// the usage: a usage error, as refuse's.
-	if err := rootCmd.Execute(); err != nil {
+	// All Execute returns is a bad command line, which cobra has said on stderr,
+	// with the usage after a bad flag or arguments (usageDue): a usage error, as
+	// refuse's.
+	usageDue = false
+	if cmd, err := rootCmd.ExecuteC(); err != nil {
+		if usageDue {
+			_, _ = fmt.Fprintln(rootCmd.ErrOrStderr(), cmd.UsageString())
+		}
 		exit(output.ExitUsage)
 	}
+	outFrame.close()
 }
+
+// usageDue is set once cobra is past finding the command: its flags failed,
+// or its arguments' check is all that can fail. cobra prints the usage then
+// unless silenced, and start prints it in its place.
+var usageDue bool
 
 // startLogPath is the log's path start was given, opened by openStartLog; ""
 // until start runs, as when cmd/hardn's tests run rootCmd without it: nothing is
@@ -102,6 +113,26 @@ func init() {
 
 	rootCmd.AddCommand(setupSudoEnvCmd)
 	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
+
+	// cobra's help on stdout, and its errors and the usage after them on
+	// stderr, inside the output frame on a terminal (frame.go). cobra prints
+	// that usage through the writer its help uses, so hardn prints it
+	// itself (start), where cobra would: after a bad flag or arguments.
+	rootCmd.SilenceUsage = true
+	rootCmd.SetErr(stdStream(func() *os.File { return os.Stderr }))
+	help := rootCmd.HelpFunc()
+	rootCmd.SetHelpFunc(func(c *cobra.Command, args []string) {
+		if c.OutOrStdout() == io.Writer(os.Stdout) {
+			c.SetOut(stdStream(func() *os.File { return os.Stdout }))
+			defer c.SetOut(nil)
+		}
+		help(c, args)
+	})
+	rootCmd.SetFlagErrorFunc(func(_ *cobra.Command, err error) error {
+		usageDue = true
+		return err
+	})
+	cobra.OnInitialize(func() { usageDue = true }) // past the flags: only the arguments' check fails after it
 
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "f", "", "Specify configuration file path")
 	rootCmd.PersistentFlags().StringVarP(&username, "username", "u", "", "Specify username to create")
@@ -261,7 +292,9 @@ var rootCmd = &cobra.Command{
 		// If no specific flags provided, show the interactive menu
 		if mainMenuRun() {
 
-			// The main menu; its screens' items and its status: hooks.go
+			// The main menu; its screens' items and its status: hooks.go.
+			// It keeps its own rows: no output frame around it (frame.go).
+			outFrame.disarm()
 			startMenu(context.Background(), menuOptions(cfg, Version))
 			return
 		}
@@ -398,7 +431,7 @@ var (
 	ensureExampleConfig           = config.EnsureExampleConfigExists
 	findConfig                    = config.FindConfigFile
 	detectOS                      = hostOS
-	exit                          = os.Exit
+	exit                          = endRun
 	stderr              io.Writer = termStderr
 )
 

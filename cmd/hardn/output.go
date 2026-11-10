@@ -95,12 +95,17 @@ var (
 // terminalWriter is f through hangup.Writer, unless f is a regular file
 // (hardn -g > report.txt): a write to a file never waits on a reader, and
 // what hardn writes there after a hangup is still read, so it is kept. A
-// pipe, a terminal or the null device goes through it.
+// pipe, a terminal or the null device goes through it. A terminal is inside
+// the output frame (frame.go) too.
 func terminalWriter(f *os.File) io.Writer {
-	if fi, err := f.Stat(); err == nil && fi.Mode().IsRegular() {
-		return f
+	var w io.Writer = f
+	if fi, err := f.Stat(); err != nil || !fi.Mode().IsRegular() {
+		w = hangup.Writer(f)
 	}
-	return hangup.Writer(f)
+	if frameTerminal(f) {
+		return framed{outFrame, w}
+	}
+	return w
 }
 
 // warnDeprecations prints the configuration's values read in a deprecated

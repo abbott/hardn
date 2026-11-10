@@ -79,6 +79,9 @@ func runSystemDetails(form SystemDetailsForm, refused error) {
 	if refuse(refused) {
 		return
 	}
+	if form.JSON {
+		outFrame.disarm() // stdout holds one document (frame.go)
+	}
 	var words component.Messages
 	for _, w := range form.Warnings {
 		words = append(words, component.Message{Kind: component.MessageWarn, Text: w})

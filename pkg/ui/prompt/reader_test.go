@@ -363,6 +363,32 @@ func TestAnswer(t *testing.T) {
 
 // TestAsked checks that a Reader reports a prompt once Ask has written
 // one, whatever the answer, and not before.
+// TestEchoed: an answer on the terminal that an echoed Enter ended counts
+// (Echoed, cmd/hardn's output frame); one off a terminal, or ended by the
+// end of the input, or aborted, ends its line with a newline written, and
+// doesn't.
+func TestEchoed(t *testing.T) {
+	for _, tt := range []struct {
+		name string
+		in   string
+		tty  bool
+		want uint64
+	}{
+		{"answered on a terminal", "yes\n", true, 1},
+		{"off a terminal", "yes\n", false, 0},
+		{"ended by the end of the input", "yes", true, 0},
+		{"aborted", "", true, 0},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			was := Echoed()
+			_, _ = New(strings.NewReader(tt.in), tt.tty).Ask(io.Discard, "Type it:")
+			if got := Echoed() - was; got != tt.want {
+				t.Errorf("Echoed grew by %d, want %d", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestAsked(t *testing.T) {
 	for _, in := range []string{"q\n", "", strings.Repeat("x", MaxLine+1)} {
 		r := New(strings.NewReader(in), false)

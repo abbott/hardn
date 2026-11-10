@@ -61,7 +61,7 @@ var (
 	revertHost        = func() host.System { return host.NewReal(host.Options{RunLog: revertLog{}}) }
 	revertGetenv      = os.Getenv
 	revertPID         = os.Getpid
-	revertExit        = os.Exit
+	revertExit        = endRun
 	revertNow         = time.Now
 	revertNoticeSeen  = stderrIsTerminal
 	revertHoldSignals = holdSignals
@@ -440,10 +440,14 @@ func revertNotice(format string, args ...any) {
 	writeConsole(component.Messages{{Kind: component.MessageWarn, Text: fmt.Sprintf(format, args...)}})
 }
 
-// stderrIsTerminal reports whether stderr is a character device other than
-// the null device: a terminal, where a person reads the notice.
-func stderrIsTerminal() bool {
-	fi, err := os.Stderr.Stat()
+// stderrIsTerminal reports whether stderr is a terminal, where a person
+// reads the notice (isTerminal).
+func stderrIsTerminal() bool { return isTerminal(os.Stderr) }
+
+// isTerminal reports whether f is a character device other than the null
+// device: a terminal.
+func isTerminal(f *os.File) bool {
+	fi, err := f.Stat()
 	if err != nil || fi.Mode()&os.ModeCharDevice == 0 {
 		return false
 	}
