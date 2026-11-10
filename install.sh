@@ -27,8 +27,9 @@
 #      (0755) if missing. Nothing
 #      else is written, and hardn is not run.
 #
-# The output keeps to 80 columns, with a blank line between its parts and
-# after the last, but for the attestation's identity: a URL can't break.
+# The output starts after a blank line and ends with one, whether it installs
+# or stops, with a blank line between its parts, and keeps to 80 columns but
+# for the attestation's identity: a URL can't break.
 #
 # HARDN_INSTALL_ROOT (default empty) is prefixed to /usr/local/bin and
 # /etc/hardn. It exists for scripts/install_test.sh, which installs into a
@@ -43,10 +44,15 @@ SCRIPT_URL=https://raw.githubusercontent.com/abbott/hardn/main/install.sh
 tmp=
 staged=
 installed=
+spoke=
 
+# die says why install.sh stops, a blank line apart from the progress above
+# it (spoke), and ends with a blank line.
 die() {
+	[ -z "$spoke" ] || printf '\n' >&2
 	printf 'install.sh: %s\n' "$*" >&2
 	[ -n "$installed" ] || printf 'install.sh: nothing was installed.\n' >&2
+	printf '\n' >&2
 	exit 1
 }
 
@@ -65,6 +71,7 @@ check_version() {
 
 # All of it runs from the last line, so a download cut short runs nothing.
 main() {
+	printf '\n'
 	root=${HARDN_INSTALL_ROOT:-}
 	bindir=$root/usr/local/bin
 	confdir=$root/etc/hardn
@@ -145,6 +152,7 @@ main() {
 
 	printf 'Installing hardn %s: %s (%s %s)\n' "$tag" "$asset" "$os" "$arch"
 	[ -z "$note" ] || printf '%s\n' "$note"
+	spoke=1
 
 	# 4. Download, and the SHA-256 against SHA256SUMS.
 	status=0

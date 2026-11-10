@@ -308,7 +308,13 @@ expect_blank_before() {
 	awk -v p="$1" 'index($0, p) == 1 { found = 1; ok = prev == ""; exit } { prev = $0 } END { exit !(found && ok) }' "$cdir/out" ||
 		fail "no blank line before: $1"
 }
-expect_blank_end() { awk 'END { exit !(NR && $0 == "") }' "$cdir/out" || fail "no blank line at the end"; }
+expect_blank_end() { awk 'END { exit !(NR && $0 == "") }' "${1:-$cdir/out}" || fail "no blank line at the end of ${1:-stdout}"; }
+# stdout starts with a blank line; $1, stderr, starts with one or not (yes/no).
+expect_blank_start() { awk 'NR == 1 { exit !($0 == "") } END { if (NR == 0) exit 1 }' "$cdir/out" || fail "stdout doesn't start with a blank line"; }
+expect_err_starts_blank() {
+	first=$(awk 'NR == 1 { print ($0 == "" ? "yes" : "no"); exit }' "$cdir/err")
+	[ "$first" = "$1" ] || fail "stderr starts with a blank line: $first, want $1"
+}
 expect_no_download() { [ ! -s "$cdir/log/curl.log" ] || fail "curl ran: $(cat "$cdir/log/curl.log")"; }
 expect_downloads() { # the URLs, one per line, in order
 	[ "$(cat "$cdir/log/curl.log" 2>/dev/null)" = "$1" ] ||
@@ -397,6 +403,9 @@ $dl/v0.4.0/$asset"
 	new_case "not root"
 	run_install FAKE_UID=1000
 	expect_nothing_installed
+	expect_blank_start
+	expect_err_starts_blank no
+	expect_blank_end "$cdir/err"
 	expect_err "run it as root"
 	expect_err "curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo sh"
 	expect_err "doas"
@@ -447,6 +456,8 @@ $dl/v0.4.0/hardn-linux-amd64"
 	run_install HARDN_VERSION=9.0.1
 	expect_nothing_installed
 	expect_err "hardn-linux-amd64's SHA-256 is"
+	expect_err_starts_blank yes
+	expect_blank_end "$cdir/err"
 	new_case "no SHA256SUMS line"
 	run_install HARDN_VERSION=9.0.2
 	expect_nothing_installed
@@ -494,6 +505,7 @@ $dl/v0.4.0/hardn-linux-amd64"
 	expect_out "--source-ref refs/tags/v0.4.0 --deny-self-hosted-runners"
 	expect_out "sh verify.sh 0.4.0 linux-amd64"
 	expect_out "Downloading hardn-linux-amd64 ..."
+	expect_blank_start
 	expect_fits
 	for part in "SHA-256 matches" "Provenance not checked" "Installed hardn" "hardn writes"; do
 		expect_blank_before "$part"
