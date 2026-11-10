@@ -14,7 +14,8 @@
 #      HARDN_VERSION (0.4.0 or v0.4.0). Its URLs are built from the tag and the
 #      exact asset name.
 #   4. The binary and SHA256SUMS, downloaded over HTTPS only (TLS 1.2 or
-#      later, redirects included) into a temporary directory. The
+#      later, redirects included) into a temporary directory, the binary
+#      with curl's progress bar where stderr is a terminal. The
 #      binary's SHA-256 must match its one line in SHA256SUMS. Releases before
 #      v0.4.0 have no SHA256SUMS and are refused.
 #   5. The provenance attestation, checked as verify.sh does when gh 2.68.0 or
@@ -25,6 +26,9 @@
 #      checked again, then mv over /usr/local/bin/hardn; /etc/hardn created
 #      (0755) if missing. Nothing
 #      else is written, and hardn is not run.
+#
+# The output keeps to 80 columns, with a blank line between its parts and
+# after the last, but for the attestation's identity: a URL can't break.
 #
 # HARDN_INSTALL_ROOT (default empty) is prefixed to /usr/local/bin and
 # /etc/hardn. It exists for scripts/install_test.sh, which installs into a
@@ -150,7 +154,10 @@ main() {
 	22) die "cannot download $base/SHA256SUMS (curl's HTTP error is above). A 404 means there is no release $tag, or it is older than v0.4.0: v0.3.2 and earlier have no SHA256SUMS, and install.sh installs only a release it can check" ;;
 	*) die "cannot download $base/SHA256SUMS" ;;
 	esac
-	curl -fsSL --proto '=https' --tlsv1.2 -o "$tmp/$asset" "$base/$asset" || die "cannot download $base/$asset"
+	printf 'Downloading %s ...\n' "$asset"
+	meter=--silent
+	[ ! -t 2 ] || meter=--progress-bar
+	curl -fSL "$meter" --proto '=https' --tlsv1.2 -o "$tmp/$asset" "$base/$asset" || die "cannot download $base/$asset"
 
 	lines=$(awk -v f="$asset" '$2 == f || $2 == "*" f' "$tmp/SHA256SUMS" | wc -l | tr -d ' ')
 	[ "$lines" = 1 ] || die "SHA256SUMS has $lines lines for $asset, not 1"
@@ -161,7 +168,7 @@ main() {
 	[ "${#want}" -eq 64 ] || die "SHA256SUMS's entry for $asset is not a SHA-256"
 	got=$(sha256 "$tmp/$asset" | tr 'A-F' 'a-f')
 	[ "$got" = "$want" ] || die "$asset's SHA-256 is $got; SHA256SUMS says $want"
-	printf 'SHA-256 matches SHA256SUMS: %s\n' "$got"
+	printf '\nSHA-256 matches SHA256SUMS:\n  %s\n\n' "$got"
 
 	# 5. Provenance: verify.sh's check, when gh can make it.
 	identity=$SIGNER_WORKFLOW@refs/tags/$tag
@@ -181,12 +188,14 @@ main() {
 			--source-ref "refs/tags/$tag" \
 			--deny-self-hosted-runners ||
 			die "gh attestation verify failed for $asset at $tag"
-		printf 'Provenance verified: built by %s.\n' "$identity"
+		printf 'Provenance verified: built by\n  %s\n' "$identity"
 	else
-		printf 'Provenance not checked: it needs gh 2.68.0 or later, signed in (gh auth login). To check it:\n'
+		printf 'Provenance not checked: it needs gh 2.68.0 or later, signed in\n'
+		printf '(gh auth login). To check it:\n'
 		printf '  gh attestation verify /usr/local/bin/hardn --repo %s \\\n' "$REPO"
-		printf '    --cert-identity %s \\\n' "$identity"
-		printf '    --source-ref refs/tags/%s --deny-self-hosted-runners\n' "$tag"
+		printf '    --source-ref refs/tags/%s --deny-self-hosted-runners \\\n' "$tag"
+		printf '    --cert-identity \\\n'
+		printf '    %s\n' "$identity"
 		printf 'or, on another machine: sh verify.sh %s %s\n' "$version" "${asset#hardn-}"
 	fi
 
@@ -205,12 +214,13 @@ main() {
 	mv -f "$staged" "$dest" || die "cannot move $staged to $dest"
 	staged=
 	installed=1
-	printf 'Installed hardn %s as /usr/local/bin/hardn.\n' "$tag"
+	printf '\nInstalled hardn %s as /usr/local/bin/hardn.\n' "$tag"
 	if [ ! -d "$confdir" ]; then
 		mkdir -m 0755 "$confdir" || die "cannot create $confdir"
 		printf 'Created /etc/hardn.\n'
 	fi
-	printf 'hardn writes /etc/hardn/hardn.yml.example the first time it runs. Run hardn --help.\n'
+	printf '\nhardn writes /etc/hardn/hardn.yml.example the first time it runs.\n'
+	printf 'Run hardn --help.\n\n'
 }
 
 main "$@"

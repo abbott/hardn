@@ -298,6 +298,17 @@ mode() { ls -ld "$1" | cut -c1-10; }
 expect_status() { [ "$status" = "$1" ] || fail "exit $status, want $1"; }
 expect_out() { grep -qF -- "$1" "$cdir/out" || fail "stdout lacks: $1"; }
 expect_err() { grep -qF -- "$1" "$cdir/err" || fail "stderr lacks: $1"; }
+# The layout: every stdout line within 80 columns but the identity URL, a
+# blank line before the line that starts with $1, and one at the end.
+expect_fits() {
+	w=$(awk -v id="$identity" 'length > 80 && index($0, id) == 0' "$cdir/out")
+	[ -z "$w" ] || fail "wider than 80 columns: $w"
+}
+expect_blank_before() {
+	awk -v p="$1" 'index($0, p) == 1 { found = 1; ok = prev == ""; exit } { prev = $0 } END { exit !(found && ok) }' "$cdir/out" ||
+		fail "no blank line before: $1"
+}
+expect_blank_end() { awk 'END { exit !(NR && $0 == "") }' "$cdir/out" || fail "no blank line at the end"; }
 expect_no_download() { [ ! -s "$cdir/log/curl.log" ] || fail "curl ran: $(cat "$cdir/log/curl.log")"; }
 expect_downloads() { # the URLs, one per line, in order
 	[ "$(cat "$cdir/log/curl.log" 2>/dev/null)" = "$1" ] ||
@@ -478,13 +489,24 @@ $dl/v0.4.0/hardn-linux-amd64"
 	expect_installed hardn-linux-amd64
 	expect_out "Provenance not checked"
 	expect_out "gh attestation verify /usr/local/bin/hardn --repo abbott/hardn"
-	expect_out "--cert-identity $identity"
+	expect_out "    --cert-identity \\"
+	expect_out "    $identity"
 	expect_out "--source-ref refs/tags/v0.4.0 --deny-self-hosted-runners"
 	expect_out "sh verify.sh 0.4.0 linux-amd64"
+	expect_out "Downloading hardn-linux-amd64 ..."
+	expect_fits
+	for part in "SHA-256 matches" "Provenance not checked" "Installed hardn" "hardn writes"; do
+		expect_blank_before "$part"
+	done
+	expect_blank_end
 	new_case "gh verifies"
 	run_install GH=1
 	expect_installed hardn-linux-amd64
-	expect_out "Provenance verified"
+	expect_out "Provenance verified: built by"
+	expect_out "  $identity"
+	expect_fits
+	expect_blank_before "Verifying the provenance"
+	expect_blank_end
 	grep -q "^attestation verify $cdir/tmp/hardn-install\.[^/]*/hardn-linux-amd64 --repo abbott/hardn --cert-identity $identity --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners\$" "$cdir/log/gh.log" ||
 		fail "gh's arguments: $(cat "$cdir/log/gh.log")"
 	new_case "gh fails"
