@@ -8,8 +8,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
@@ -959,6 +961,65 @@ func TestCheckBoot(t *testing.T) {
 				}
 			}
 		})
+	}
+}
+
+// TestRockyChangesNothing: on Rocky Linux every action that would change
+// the host's firewall is refused (FIREWALL_EL_READ_ONLY) before any call:
+// ufw is never installed, enabled or ruled there. Saving hardn.yml is not
+// refused.
+func TestRockyChangesNothing(t *testing.T) {
+	r := debian13()
+	r.facts.OS = detect.OSRelease{ID: "rocky", VersionID: "10.2"}
+	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	r.facts.SSH.SSHDUnits = true
+	for _, a := range []firewall.Action{firewall.ActionInstall, firewall.ActionInstallSS, firewall.ActionEnable, firewall.ActionDisable,
+		firewall.ActionApplyProfiles, firewall.ActionApplyInterfaces} {
+		h, facts := site{plat: r, ufw: allow22}.build(t)
+		n := len(h.Calls())
+		_, err := firewall.Incoming{Action: a}.Plan(context.Background(), h, engine.Input{Facts: facts, Config: &config.Config{}})
+		if !errors.Is(err, firewall.ErrEL) || output.CodeOf(err) != "FIREWALL_EL_READ_ONLY" {
+			t.Errorf("action %d: %v (%s), want FIREWALL_EL_READ_ONLY", a, err, output.CodeOf(err))
+		}
+		if calls := h.Calls()[n:]; len(calls) != 0 {
+			t.Errorf("action %d: calls %v before the refusal", a, calls)
+		}
+	}
+	h, facts := site{plat: r, ufw: allow22}.build(t)
+	save := firewall.Incoming{Action: firewall.ActionSaveProfiles}
+	if _, err := save.Plan(context.Background(), h, engine.Input{Facts: facts, Config: &config.Config{}}); errors.Is(err, firewall.ErrEL) {
+		t.Errorf("save profiles refused on Rocky Linux: %v", err)
+	}
+}
+
+// TestStepsRefuseUFWOnRocky: steps' ufw planners refuse Rocky Linux
+// themselves (ErrELFirewall), whoever calls them, before any call.
+func TestStepsRefuseUFWOnRocky(t *testing.T) {
+	r := debian13()
+	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	ctx := context.Background()
+	for name, plan := range map[string]func(host.System, engine.Input) ([]engine.Change, error){
+		"enable": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWEnable(ctx, h, in, "t")
+		},
+		"disable": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWDisable(ctx, h, in, "t")
+		},
+		"apps": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWApps(ctx, h, in, "t", nil)
+		},
+		"interfaces": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWInterfaces(ctx, h, in, "t", []string{"eth1"})
+		},
+	} {
+		h, facts := site{plat: r, ufw: allow22}.build(t)
+		n := len(h.Calls())
+		if _, err := plan(h, engine.Input{Facts: facts}); !errors.Is(err, steps.ErrELFirewall) {
+			t.Errorf("%s: %v, want ErrELFirewall", name, err)
+		}
+		if calls := h.Calls()[n:]; len(calls) != 0 {
+			t.Errorf("%s: calls %v", name, calls)
+		}
 	}
 }
 

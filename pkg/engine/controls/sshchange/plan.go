@@ -39,6 +39,7 @@ const (
 	wordsPVENoKey    = "Root would lose SSH login: %s. Add a key for root first."
 	wordsListenConf  = "hardn v0.3.x's listen.conf (port %s for ssh.socket) never took effect: ssh.socket listens on %s. Moving it now couldn't be undone. Let %s through the firewall, run systemctl daemon-reload and systemctl restart ssh.socket, check a new connection to %s works, then try again."
 	wordsPVEPort     = "The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it."
+	wordsELPort      = "hardn doesn't change the SSH port on Rocky Linux or AlmaLinux yet: SELinux, and firewalld where it runs, would block a new one."
 	wordsRestricted  = "ufw lets port %d in from %s alone. A new port would be open to anyone. Move that rule to the new port by hand first."
 	wordsMigrate     = "hardn's old SSH files are still here (%s). Move them into 00-hardn.conf first: item 4."
 	wordsIncludeNot  = "sshd_config doesn't start with \"" + sshd.IncludeLine + "\", so hardn's settings wouldn't be read first. Put that line first, then try again."
@@ -94,6 +95,7 @@ const (
 	codeMigrateFirst       = "SSH_MIGRATE_FIRST"
 	codeIncludeNot         = "SSHD_NO_WRITE_STRATEGY"
 	codePVEPort            = "PVE_PORT_CHANGE_REFUSED"
+	codeELPort             = "SSH_PORT_EL_REFUSED"
 )
 
 // MigrateID is Migrate's ID, and its changes' prefix.
@@ -268,6 +270,8 @@ func (r Reading) portRefusal() error {
 	switch {
 	case r.PVE:
 		return refuse(codePVEPort, pve.ErrPortChange, nil, wordsPVEPort)
+	case r.Facts.Platform.Distro.EL():
+		return refuse(codeELPort, steps.ErrELPort, nil, wordsELPort)
 	case len(r.OnlyFrom) > 0:
 		return refuse(codePortRestricted, ErrPortRestricted, nil, fmt.Sprintf(wordsRestricted, r.OnlyFromPort, strings.Join(r.OnlyFrom, ", ")))
 	}

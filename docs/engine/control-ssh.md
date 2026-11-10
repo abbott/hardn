@@ -33,7 +33,7 @@ The SSH Login control is every change the SSH Login screen makes: root login, pa
 - A change already in effect is an empty plan; `Migrate`'s zero value plans, as it has no field to make it check-only.
 - From a console sshd is asked about `0.0.0.0` [I], and any `DenyUsers` entry naming the admin counts whatever its host.
 - With `StrictModes no` the StrictModes check is skipped.
-- Refusals reuse `SSHD_ENV_NO_RUNDIR`, `SSH_MIGRATE_FIRST`, `SSHD_NO_WRITE_STRATEGY`, `PVE_PORT_CHANGE_REFUSED`; the listen.conf refusal keeps `SSH_LISTEN_CONF_NOT_IN_EFFECT`.
+- Refusals reuse `SSHD_ENV_NO_RUNDIR`, `SSH_MIGRATE_FIRST`, `SSHD_NO_WRITE_STRATEGY`, `PVE_PORT_CHANGE_REFUSED`, and `SSH_PORT_EL_REFUSED` on Rocky Linux and AlmaLinux ([el-changes.md](el-changes.md)); the listen.conf refusal keeps `SSH_LISTEN_CONF_NOT_IN_EFFECT`.
 - Each refusal's words are split at the last ". " into `Why` and `Fix`, which `screenkit.RefusalWords` joins back exactly.
 - The gallery refuses Change SSH port before its field by planning the port sshd has, which plans nothing but the port's refusals.
 - The gallery's engine sees the tools' setuid bit as `Read` does (`engineSys.Stat`), and its record counts `journalctl -u` as a read.

@@ -5,11 +5,13 @@ import (
 	"errors"
 	"io/fs"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/selinux"
 )
 
 func TestTimerFor(t *testing.T) {
@@ -70,6 +72,22 @@ func TestCheckExecutable(t *testing.T) {
 		{"a directory on the way is a symlink", func(f *hostfake.System) {
 			f.AddSymlink("/opt/hardn", "/usr/local/bin")
 		}, "/opt/hardn/hardn", false},
+		// Where SELinux enforces, systemd runs only a binary of the policy's
+		// label (rocky10-test-110: exit 203 for user_tmp_t, admin_home_t).
+		{"SELinux enforcing, bin_t", func(f *hostfake.System) {
+			f.AddFile(selinux.EnforceFile, []byte("1"), 0o644, 0, 0)
+			f.Respond(hostfake.Response{Stdout: "system_u:object_r:bin_t:s0\n"}, "stat", "-c", "%C", "--", testHardn)
+		}, testHardn, true},
+		{"SELinux enforcing, moved in from /tmp", func(f *hostfake.System) {
+			f.AddFile(selinux.EnforceFile, []byte("1"), 0o644, 0, 0)
+			f.Respond(hostfake.Response{Stdout: "unconfined_u:object_r:user_tmp_t:s0\n"}, "stat", "-c", "%C", "--", testHardn)
+		}, testHardn, false},
+		{"SELinux enforcing, in /root, as the policy labels it", func(f *hostfake.System) {
+			f.AddFile(selinux.EnforceFile, []byte("1"), 0o644, 0, 0)
+			f.AddFile("/root/hardn", nil, 0o755, 0, 0)
+			f.Respond(hostfake.Response{Stdout: "unconfined_u:object_r:admin_home_t:s0\n"}, "stat", "-c", "%C", "--", "/root/hardn")
+		}, "/root/hardn", false},
+		{"SELinux permissive: not asked", func(f *hostfake.System) { f.AddFile(selinux.EnforceFile, []byte("0"), 0o644, 0, 0) }, testHardn, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -78,6 +96,9 @@ func TestCheckExecutable(t *testing.T) {
 				tt.setup(f)
 			}
 			err := CheckExecutable(context.Background(), f, tt.path)
+			if strings.HasPrefix(tt.name, "SELinux") && !tt.ok && !errors.Is(err, selinux.ErrNotRunnable) {
+				t.Errorf("err %v, want ErrNotRunnable", err)
+			}
 			if tt.ok != (err == nil) || err != nil && !errors.Is(err, ErrExecutable) && !errors.Is(err, fs.ErrNotExist) {
 				t.Fatalf("CheckExecutable(%s) = %v; want ok %v", tt.path, err, tt.ok)
 			}

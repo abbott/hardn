@@ -21,7 +21,9 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -79,6 +81,18 @@ func ubuntu2604() detect.Facts {
 	return f
 }
 
+// rocky102 is rocky10-test-110: Rocky Linux 10.2, sshd.service (detect
+// asked sshd.* where systemd has no ssh.* unit), sudo.
+func rocky102() detect.Facts {
+	f := debian13()
+	f.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
+	f.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	f.SSH = detect.SSH{Mode: detect.SSHService, Generator: detect.No, SSHDUnits: true, Source: "sshd.service enabled, active",
+		Socket:  detect.UnitState{Enabled: "disabled", Active: "inactive"},
+		Service: detect.UnitState{Enabled: "enabled", Active: "active"}}
+	return f
+}
+
 // pve9 is a Proxmox VE 9 node: Debian 13's ssh.service, pmxcfs mounted, no
 // sudo.
 func pve9() detect.Facts {
@@ -129,6 +143,15 @@ type vm struct {
 	// a path, as an unreadable legacy file.
 	sshdFail    string
 	noFollowErr map[string]error
+	// sshdUnits: systemd has sshd.socket and sshd.service, no ssh.* unit
+	// (Rocky Linux, AlmaLinux); reloads records each reload of sshd.service.
+	sshdUnits bool
+	reloads   int
+	// mislabeled: matchpathcon -V says these paths have another label than
+	// the policy's (the value); labelled: every path it was asked about.
+	mislabeled map[string]string
+	labelled   []string
+	hardnType  string // stat's type of hardn's binary; "" is bin_t
 }
 
 // key is a synthetic ssh-ed25519 key line, every byte of its key seed.
@@ -226,6 +249,24 @@ func newVM(t *testing.T, facts detect.Facts, cloud bool, as ...account) *vm {
 // debianVM is the Debian 13 VM: george and alice, cloud-init's rule
 // george's.
 func debianVM(t *testing.T) *vm { return newVM(t, debian13(), true, george, alice) }
+
+// enforcing turns SELinux on, enforcing, as on rocky10-test-110.
+func (v *vm) enforcing() *vm {
+	v.f.AddDir("/sys/fs/selinux", 0o755, 0, 0)
+	v.f.AddFile(selinux.EnforceFile, []byte("1"), 0o644, 0, 0)
+	return v
+}
+
+// rockyVM is rocky10-test-110 as far as the SSH changes read it: Debian
+// 13's files and accounts, sshd.service in place of ssh.service, the stock
+// /etc/sysconfig/sshd, no ufw.
+func rockyVM(t *testing.T) *vm {
+	v := newVM(t, rocky102(), true, george, alice)
+	v.sshdUnits, v.noUFW = true, true
+	v.f.AddDir("/etc/sysconfig", 0o755, 0, 0)
+	v.f.AddFile(reload.SysconfigSSHD, []byte("# Configuration file for the sshd service.\nOPTIONS=\"\"\n"), 0o644, 0, 0)
+	return v
+}
 
 // logIn makes sshd's journal hold the session's login: method, user, from
 // addr on the session's port, as journalctl -o short-iso prints it.
@@ -546,6 +587,23 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 		}
 	case "ss":
 		return hostfake.Response{Stdout: ss(v.bound)}
+	case "stat": // -c %C -- <path>: hardn's binary, bin_t unless v.hardnType
+		t := v.hardnType
+		if t == "" {
+			t = "bin_t"
+		}
+		return hostfake.Response{Stdout: "system_u:object_r:" + t + ":s0\n"}
+	case "matchpathcon": // -V: each path verified, but those in v.mislabeled
+		var b strings.Builder
+		for _, p := range argv[2:] {
+			v.labelled = append(v.labelled, p)
+			if want, ok := v.mislabeled[p]; ok {
+				fmt.Fprintf(&b, "%s has context unconfined_u:object_r:admin_home_t:s0, should be %s\n", p, want)
+				continue
+			}
+			fmt.Fprintf(&b, "%s verified.\n", p)
+		}
+		return hostfake.Response{Stdout: b.String()}
 	case "visudo":
 		return hostfake.Response{Stdout: sudoers.MainConfig + ": parsed OK\n"}
 	case "systemd-run", "systemd-analyze", "sh":
@@ -597,6 +655,25 @@ func (v *vm) systemctl(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: no + "\n", ExitCode: code}
 	}
 	switch cmd := strings.Join(argv, " "); {
+	case v.sshdUnits && (cmd == "systemctl is-enabled ssh.service" || cmd == "systemctl is-enabled ssh.socket"):
+		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
+	case v.sshdUnits && (cmd == "systemctl is-active ssh.service" || cmd == "systemctl is-active ssh.socket"):
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 4}, true
+	case v.sshdUnits && cmd == "systemctl is-active sshd.service":
+		return state(true, "active", "inactive", 3), true
+	case v.sshdUnits && cmd == "systemctl is-enabled sshd.service":
+		return state(true, "enabled", "disabled", 1), true
+	case v.sshdUnits && cmd == "systemctl is-active sshd.socket":
+		return hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, true
+	case v.sshdUnits && cmd == "systemctl is-enabled sshd.socket":
+		return hostfake.Response{Stdout: "disabled\n", ExitCode: 1}, true
+	case v.sshdUnits && (cmd == "systemctl reload sshd.service" || cmd == "systemctl start sshd.service"):
+		v.reloads++
+		v.bound = v.listening()
+		return hostfake.Response{}, true
+	case v.sshdUnits && strings.HasSuffix(cmd, " ssh.service"):
+		v.t.Errorf("ran %q on a host whose unit is sshd.service", cmd)
+		return hostfake.Response{ExitCode: 5, Stderr: "Unit ssh.service not found.\n"}, true
 	case cmd == "systemctl is-active ssh.service":
 		return state(true, "active", "inactive", 3), true
 	case cmd == "systemctl is-enabled ssh.service":

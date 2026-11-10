@@ -240,15 +240,23 @@ confirmTimeout: "5m"
 | Ubuntu | 26.04, 24.04 | 22.04 | interim (non-LTS) releases |
 | Alpine | 3.24, 3.23 | 3.22 | 3.21 (vendor support ended 2026-11-01), 3.20 (2026-04-01) |
 | Proxmox | 9 | | 8 (end of life since 2026-08-31) |
+| Rocky Linux | 10, 9 | | |
+| AlmaLinux | 10, 9 | | |
 
 - **Supported**: hardn changes it.
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
 - **Out of scope**, and any version not in the table: hardn shows the screens and refuses every change.
-- **Rocky Linux, AlmaLinux**: read only for now. hardn shows the screens and refuses every change.
 - **Any other distribution**: hardn doesn't start.
 
 > [!NOTE]
 > On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.
+
+### Rocky Linux and AlmaLinux
+
+On Rocky Linux and AlmaLinux:
+
+- SSH stays on its port: hardn doesn't open a new one in firewalld or SELinux yet.
+- The firewall, Auto Updates and DNS are only read. ufw is never installed or enabled.
 
 ### Proxmox
 

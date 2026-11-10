@@ -22,6 +22,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
+	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
@@ -43,6 +44,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -242,6 +244,8 @@ var errorCodes = []Entry{
 	is("CONFIRM_WRONG_LISTENER", revert.ErrWrongListener),
 	is("CHANGE_APPLIED_ALREADY", revert.ErrApplied),
 	is("REVERT_NO_TIMER", revert.ErrNoTimer),
+	is("SELINUX_HARDN_NOT_RUNNABLE", selinux.ErrNotRunnable).what("SELinux types hardn's binary otherwise than bin_t, so systemd would not run it for the revert timer: install it in /usr/local/bin with install(1), or restorecon -v it there"),
+	is("SELINUX_MISLABELED", selinux.ErrMislabeled).what("SELinux labels a file otherwise than its policy, so sshd or systemd may be refused it: restorecon -v puts the policy's label back"),
 	is("HARDN_EXECUTABLE_UNSAFE", revert.ErrExecutable),
 	is("JOURNAL_CLAIM_RACE", revert.ErrClaim),
 	is("ROLLBACK_INCOMPLETE", revert.ErrIncomplete),
@@ -298,6 +302,8 @@ var errorCodes = []Entry{
 	typed("UFW_ROLLBACK_FAILED", "an undo of ufw's rules failed; those after it did not run",
 		as(func(*ufw.RollbackError) bool { return true })),
 	is("UFW_NOT_APPLICABLE", ufw.ErrNotApplicable),
+	is("FIREWALL_EL_READ_ONLY", steps.ErrELFirewall),
+	is("DNS_EL_READ_ONLY", dnsctl.ErrEL),
 	is("UFW_PROXMOX_UNKNOWN", ufw.ErrProxmoxUnknown).what("ufw: whether the host runs Proxmox VE (no ufw there) is not established"),
 	is("UFW_NOT_INSTALLED", ufw.ErrNotInstalled),
 	is("UFW_LISTENERS_UNKNOWN", ufw.ErrListenersUnknown),
@@ -319,6 +325,7 @@ var errorCodes = []Entry{
 	is("PVE_NOT_APPLICABLE", pve.ErrNotApplicable),
 	is("PVE_UNKNOWN", pve.ErrProxmoxUnknown).what("whether the host runs Proxmox VE is not established, so its rules cannot be applied"),
 	is("PVE_PORT_CHANGE_REFUSED", pve.ErrPortChange),
+	is("SSH_PORT_EL_REFUSED", steps.ErrELPort),
 	is("PVE_ROOT_EXCLUDED", pve.ErrRootExcluded),
 	is("PVE_ROOT_PASSWORD_KEPT", pve.ErrRootPassword),
 	is("PVE_CLUSTER_FS_DOWN", pve.ErrClusterFSDown),

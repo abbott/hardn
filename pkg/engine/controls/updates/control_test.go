@@ -103,6 +103,8 @@ func TestRefusals(t *testing.T) {
 		}, false, "UPDATES_NOT_IN_REPOS", updates.ErrNotInRepos, "hardn can't find unattended-upgrades in apt's package lists. run apt-get update, then try again"},
 		{"not-read on", notRead, false, "UPDATES_NOT_READ", updates.ErrNotRead, "apt can't read its settings: Syntax error /etc/apt/apt.conf.d/99site:1: Extra junk at end of file. fix that, then try again"},
 		{"not-read off", notRead, true, "UPDATES_NOT_READ", updates.ErrNotRead, "apt can't read its settings: Syntax error /etc/apt/apt.conf.d/99site:1: Extra junk at end of file. fix that, then try again"},
+		{"Rocky Linux on", func(t *testing.T) *model { return newModel(t, rocky102()) }, false, "UPDATES_NOT_READ", updates.ErrNotRead, "hardn doesn't read dnf-automatic yet. fix that, then try again"},
+		{"Rocky Linux off", func(t *testing.T) *model { return newModel(t, rocky102()) }, true, "UPDATES_NOT_READ", updates.ErrNotRead, "hardn doesn't read dnf-automatic yet. fix that, then try again"},
 		{"edited", func(t *testing.T) *model {
 			m := installer(t).applied(updates.AutoOn)
 			m.file(hardnFile, bothLines+"APT::Periodic::Enable \"1\";\n")
@@ -823,5 +825,19 @@ func TestReadRocky(t *testing.T) {
 	}
 	if runs := m.f.Runs(); len(runs) != 0 {
 		t.Errorf("ran %q", runs)
+	}
+}
+
+// TestPlanRockyRunsNothing: on Rocky Linux neither direction runs a command
+// (no apt-config, no dpkg-query) before its refusal.
+func TestPlanRockyRunsNothing(t *testing.T) {
+	for _, a := range []updates.AutoAction{updates.AutoOn, updates.AutoOff} {
+		m := newModel(t, rocky102())
+		if _, err := control(a).Plan(context.Background(), m.f, engine.Input{Facts: m.facts, Config: &config.Config{}}); !errors.Is(err, updates.ErrNotRead) {
+			t.Errorf("action %v: %v, want ErrNotRead", a, err)
+		}
+		if runs := m.f.Runs(); len(runs) != 0 {
+			t.Errorf("action %v ran %q", a, runs)
+		}
 	}
 }

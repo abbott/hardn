@@ -16,6 +16,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/selinux"
 )
 
 // TimerKind is how the revert timer runs.
@@ -204,9 +205,17 @@ func CheckExecutable(ctx context.Context, sys host.System, path string) error {
 			return fmt.Errorf("revert: %s: %w: %w", p, ErrUnsafe, ErrExecutable)
 		}
 		if p == "/" {
-			return nil
+			break
 		}
 	}
+	// Where SELinux enforces, systemd refuses to run a binary of a home's or
+	// /tmp's type (exit 203: rocky10-test-110, a copy of /usr/bin/true in
+	// /root, or moved there from /tmp), so the timer and the boot unit
+	// would never roll anything back: only bin_t is let through.
+	if err := selinux.CheckRunnable(ctx, sys, path); err != nil {
+		return fmt.Errorf("revert: %s: %w: %w", path, err, ErrExecutable)
+	}
+	return nil
 }
 
 // startTimer starts t; for the setsid timer it writes the pidfile.

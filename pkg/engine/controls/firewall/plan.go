@@ -36,6 +36,10 @@ var (
 	// ErrRefused: ufw refuses an SSH listener, and there is nothing Enable
 	// can plan: a rule hardn leaves alone, or IPV6=no.
 	ErrRefused = errors.New("ufw refuses an SSH listener, and hardn changes no rule it finds")
+	// ErrEL: Rocky Linux and AlmaLinux use firewalld, which hardn doesn't
+	// change yet; it never installs or enables ufw there (the maintainer,
+	// 2026-11-09: no forced ufw installs). steps' ufw planners refuse it too.
+	ErrEL = steps.ErrELFirewall
 	// ErrBootUnknown: whether ufw starts at boot is not read.
 	ErrBootUnknown = errors.New("whether ufw starts at boot is not established")
 	// ErrBootBlocked: ufw's service is masked or missing, so "systemctl enable"
@@ -53,6 +57,7 @@ const (
 	codeBootUnknown   = "FIREWALL_BOOT_UNKNOWN"
 	codeBootBlocked   = "FIREWALL_BOOT_BLOCKED"
 	codeNotApplicable = "UFW_NOT_APPLICABLE"
+	codeEL            = "FIREWALL_EL_READ_ONLY"
 	codeProxmox       = "UFW_PROXMOX_UNKNOWN"
 	codeListeners     = "UFW_LISTENERS_UNKNOWN"
 	codeState         = "UFW_STATE_UNKNOWN"
@@ -74,6 +79,9 @@ const (
 func (c Incoming) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	if c.Action == ActionNone {
 		return nil, engine.ErrNotMigrated
+	}
+	if in.Facts.Platform.Distro.EL() && c.Action != ActionSaveProfiles && c.Action != ActionSaveInterfaces {
+		return nil, &steps.Refusal{Code: codeEL, Why: "hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet: it drives ufw alone, not firewalld", Err: ErrEL}
 	}
 	if err := applies(in.Facts.Proxmox); err != nil {
 		return nil, err

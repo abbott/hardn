@@ -16,9 +16,9 @@ const (
 	DistroUbuntu  Distro = "ubuntu"  // os-release ID
 	DistroAlpine  Distro = "alpine"  // os-release ID
 	DistroProxmox Distro = "proxmox" // Proxmox VE: pve-manager installed; os-release says debian
-	// Rocky Linux and AlmaLinux, Enterprise Linux (EL) rebuilds. The matrix
-	// has no row for either yet, so both are Unlisted: hardn reads them and
-	// refuses every change (docs/engine/el-readonly.md).
+	// Rocky Linux and AlmaLinux, Enterprise Linux (EL) rebuilds: 10 and 9
+	// are supported for the changes docs/engine/el-changes.md lists; hardn
+	// reads the rest (docs/engine/el-readonly.md).
 	DistroRocky Distro = "rocky"     // os-release ID
 	DistroAlma  Distro = "almalinux" // os-release ID
 	DistroOther Distro = "other"     // an os-release ID hardn does not know
@@ -81,6 +81,13 @@ var matrix = []Release{
 	{DistroAlpine, "3.24", Supported, ""},
 	{DistroAlpine, "3.23", Supported, ""},
 	{DistroProxmox, "9", Supported, ""},
+	// Rocky Linux and AlmaLinux: changes that move no SSH port, no
+	// firewall, no automatic updates and no DNS (docs/engine/el-changes.md).
+	// A VM run covered Rocky Linux 10 alone.
+	{DistroRocky, "10", Supported, ""},
+	{DistroRocky, "9", Supported, ""},
+	{DistroAlma, "10", Supported, ""},
+	{DistroAlma, "9", Supported, ""},
 	{DistroUbuntu, "22.04", BestEffort, ""},
 	{DistroAlpine, "3.22", BestEffort, ""},
 	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01"},

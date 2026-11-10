@@ -12,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/steps"
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
@@ -629,6 +630,26 @@ func TestHostRefusal(t *testing.T) {
 		h, _ := newHost(t, name, configured)
 		if s, err := hostdns.Read(ctx, h, h.facts); dns.HostRefusal(s, err) != nil {
 			t.Errorf("%s: HostRefusal = %v; want nil", name, dns.HostRefusal(s, err))
+		}
+	}
+}
+
+// TestPlanRocky: on Rocky Linux and AlmaLinux the nameservers are never
+// planned, whatever resolv.conf looks like (DNS_EL_READ_ONLY), and nothing
+// is read or run before the refusal.
+func TestPlanRocky(t *testing.T) {
+	for _, d := range []detect.Distro{detect.DistroRocky, detect.DistroAlma} {
+		h := hostfake.New(host.Options{})
+		h.AddFile("/etc/resolv.conf", []byte("nameserver 192.0.2.1\n"), 0o644, 0, 0)
+		f := detect.Facts{Platform: detect.Platform{Distro: d, Version: "10", Support: detect.Supported},
+			Init: detect.Init{Kind: detect.Systemd, Running: detect.Yes}, Container: detect.Container{Detected: detect.No}}
+		n := len(h.Calls())
+		_, err := dns.Nameservers{}.Plan(context.Background(), h, engine.Input{Facts: f, Config: &config.Config{}})
+		if !errors.Is(err, dns.ErrEL) || output.CodeOf(err) != "DNS_EL_READ_ONLY" {
+			t.Errorf("%s: %v (%s), want DNS_EL_READ_ONLY", d, err, output.CodeOf(err))
+		}
+		if calls := h.Calls()[n:]; len(calls) != 0 {
+			t.Errorf("%s: calls %v", d, calls)
 		}
 	}
 }

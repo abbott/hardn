@@ -69,7 +69,8 @@ $
       ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
       ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
       ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
-      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service sshd.socket␛[m$
+      ␛[38;2;112;212;127m↪ shutdown.target␛[m$
       ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
       ␛[38;2;112;212;127m+␛[m$
       ␛[38;2;112;212;127m+[Service]␛[m$
@@ -279,7 +280,8 @@ $
       | unconfirmed change$
       +DefaultDependencies=no$
       +After=local-fs.target sysinit.target ufw.service$
-      +Before=ssh.service ssh.socket shutdown.target$
+      +Before=ssh.service ssh.socket sshd.service sshd.socket$
+      | shutdown.target$
       +Conflicts=shutdown.target$
       +$
       +[Service]$
@@ -505,7 +507,8 @@ $
       ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
       ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
       ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
-      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service␛[m$
+      ␛[38;2;112;212;127m↪ sshd.socket shutdown.target␛[m$
       ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
       ␛[38;2;112;212;127m+␛[m$
       ␛[38;2;112;212;127m+[Service]␛[m$
@@ -735,7 +738,8 @@ $
       ␛[38;2;112;212;127m| unconfirmed change␛[m$
       ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
       ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
-      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service sshd.socket␛[m$
+      ␛[38;2;112;212;127m| shutdown.target␛[m$
       ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
       ␛[38;2;112;212;127m+␛[m$
       ␛[38;2;112;212;127m+[Service]␛[m$
@@ -945,7 +949,8 @@ $
       ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
       ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
       ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
-      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service sshd.socket␛[m$
+      ␛[38;2;112;212;127m↪ shutdown.target␛[m$
       ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
       ␛[38;2;112;212;127m+␛[m$
       ␛[38;2;112;212;127m+[Service]␛[m$
@@ -1155,7 +1160,8 @@ $
       ␛[38;2;112;212;127m| unconfirmed change␛[m$
       ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
       ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
-      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service sshd.socket␛[m$
+      ␛[38;2;112;212;127m| shutdown.target␛[m$
       ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
       ␛[38;2;112;212;127m+␛[m$
       ␛[38;2;112;212;127m+[Service]␛[m$

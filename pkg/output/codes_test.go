@@ -21,6 +21,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
+	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
@@ -42,6 +43,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -137,6 +139,12 @@ var sentinels = map[string]error{
 	"reload.ErrAddsListener":          reload.ErrAddsListener,
 	"reload.ErrConfd":                 reload.ErrConfd,
 	"reload.ErrSysconfig":             reload.ErrSysconfig,
+	"steps.ErrELPort":                 steps.ErrELPort,
+	"steps.ErrELFirewall":             steps.ErrELFirewall,
+	"selinux.ErrMislabeled":           selinux.ErrMislabeled,
+	"selinux.ErrNotRunnable":          selinux.ErrNotRunnable,
+	"firewall.ErrEL":                  firewall.ErrEL,
+	"dns.ErrEL":                       dnsctl.ErrEL,
 	"reload.ErrDropsListener":         reload.ErrDropsListener,
 	"reload.ErrFlavour":               reload.ErrFlavour,
 	"reload.ErrInUse":                 reload.ErrInUse,

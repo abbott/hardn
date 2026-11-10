@@ -274,7 +274,21 @@ func isUp(ctx context.Context, sys host.System, st Step) (bool, string, error) {
 	case detect.No:
 		return false, st.Unit + " is " + state, nil
 	}
+	if state == "activating" && waitingToRestart(ctx, sys, st.Unit) {
+		// sshd exited and systemd restarts it after RestartSec (42 s on
+		// Rocky Linux): down now. systemctl start runs it at once
+		// (rocky10-test-110), so a rollback's Start brings it back.
+		return false, st.Unit + " is waiting to restart", nil
+	}
 	return false, "", fmt.Errorf("reload: systemctl is-active %s printed %q (exit %d): %w", st.Unit, state, res.ExitCode, ErrUnitState)
+}
+
+// waitingToRestart: systemd shows unit's SubState auto-restart, the wait
+// between its main process exiting and Restart= starting it again. Any
+// other answer, or none, is false.
+func waitingToRestart(ctx context.Context, sys host.System, unit string) bool {
+	res, err := sys.Run(ctx, "systemctl", "show", "-p", "SubState", "--value", unit)
+	return err == nil && strings.TrimSpace(string(res.Stdout)) == "auto-restart"
 }
 
 func verify(ctx context.Context, sys host.System, want []sshd.Listener, opts Options, rep Report) (Report, error) {

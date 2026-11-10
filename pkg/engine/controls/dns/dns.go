@@ -79,6 +79,10 @@ const (
 	DetailCantRead       = "can't read"             // Unknown
 )
 
+// ErrEL: hardn doesn't change DNS on Rocky Linux or AlmaLinux yet; their
+// NetworkManager manages resolv.conf (docs/engine/el-changes.md).
+var ErrEL = errors.New("hardn doesn't change DNS on Rocky Linux or AlmaLinux yet")
+
 // The codes of the refusals, the registry's for the sentinels they wrap
 // (pkg/output; pinned by the tests): a Refusal's Code is informative, its
 // code is its sentinel's.
@@ -86,6 +90,7 @@ const (
 	codeContainer   = "DNS_CONTAINER"
 	codeUnsupported = "DNS_UNSUPPORTED"
 	codeManaged     = "DNS_MANAGED"
+	codeEL          = "DNS_EL_READ_ONLY"
 	codeNotRunning  = "DNS_RESOLVED_NOT_RUNNING"
 	codeOverridden  = "DNS_OVERRIDDEN"
 	codeBlocked     = "DNS_DROPIN_BLOCKED"
@@ -309,6 +314,10 @@ func evidence(s hostdns.State) []string {
 // hardn.yml listing none or one dns.Validate refuses (refusal), hardn.yml
 // changed since it was read (steps.Changed), and the save's.
 func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
+	if in.Facts.Platform.Distro.EL() {
+		return nil, &steps.Refusal{Code: codeEL, Why: "hardn doesn't change DNS on Rocky Linux or AlmaLinux yet: NetworkManager manages it there",
+			Fix: "set the nameservers with nmcli", Err: ErrEL}
+	}
 	want := list(in.Config)
 	s, err := hostdns.Read(ctx, sys, in.Facts)
 	if err != nil {

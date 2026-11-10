@@ -49,11 +49,11 @@ type platform struct {
 	facts detect.Facts
 }
 
-// rocky102 is rocky10-test-110's facts: Rocky Linux 10.2, read only.
+// rocky102 is rocky10-test-110's facts: Rocky Linux 10.2.
 func rocky102() platform {
 	p := debian13()
 	p.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
-	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
+	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
 	return p
 }
 

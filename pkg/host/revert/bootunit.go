@@ -64,7 +64,9 @@ type BootUnit struct {
 
 // systemdBootUnit is hardn-boot.service; %s is hardn's path. It runs early,
 // before sshd reads its files, so that a rollback at boot restores them
-// first: ordered before ssh.service and ssh.socket, with no default
+// first: ordered before ssh.service and ssh.socket, and Rocky Linux's and
+// AlmaLinux's sshd.service and sshd.socket (a unit that doesn't exist
+// orders nothing: rocky10-test-110 has no ssh.*), with no default
 // dependencies (they would order it after basic.target, so after
 // sockets.target and ssh.socket: a cycle with Before=ssh.socket), after the
 // local file systems, sysinit.target (the transient timer a re-arm makes
@@ -85,7 +87,7 @@ const systemdBootUnit = `# hardn's boot unit (P-34 (c); docs/safety/revert-boot.
 Description=hardn: re-arm or run the revert timer of an unconfirmed change
 DefaultDependencies=no
 After=local-fs.target sysinit.target ufw.service
-Before=ssh.service ssh.socket shutdown.target
+Before=ssh.service ssh.socket sshd.service sshd.socket shutdown.target
 Conflicts=shutdown.target
 
 [Service]

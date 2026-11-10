@@ -233,6 +233,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `CONFIRM_WRONG_LISTENER` | 1 | this connection did not reach a listener the change added |
 | `CHANGE_APPLIED_ALREADY` | 1 | the change is applied already |
 | `REVERT_NO_TIMER` | 1 | no revert timer for this init system |
+| `SELINUX_HARDN_NOT_RUNNABLE` | 1 | where SELinux enforces, hardn's binary is not of type `bin_t`, so systemd would not run it for the revert timer: install it in `/usr/local/bin` with `install`, or `restorecon -v` it there ([el-changes.md](../engine/el-changes.md)) |
+| `SELINUX_MISLABELED` | 1 | on Rocky Linux and AlmaLinux where SELinux enforces, a file sshd rereads, a file it links to, or a host key is labelled otherwise than its policy: `restorecon -v` puts the policy's label back ([el-changes.md](../engine/el-changes.md)) |
 | `HARDN_EXECUTABLE_UNSAFE` | 1 | not safe to run as root from the timer |
 | `JOURNAL_CLAIM_RACE` | 1 | the journal changed while it was being claimed |
 | `ROLLBACK_INCOMPLETE` | 1 | the rollback did not finish |
@@ -278,6 +280,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `FIREWALL_BOOT_BLOCKED` | 1 | ufw's service is masked or missing |
 | `UFW_ROLLBACK_FAILED` | 1 | an undo of ufw's rules failed; those after it did not run |
 | `UFW_NOT_APPLICABLE` | 1 | ufw is not used on Proxmox VE: pve-firewall manages its packet filter |
+| `FIREWALL_EL_READ_ONLY` | 1 | hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet ([el-changes.md](../engine/el-changes.md)) |
+| `DNS_EL_READ_ONLY` | 1 | hardn doesn't change DNS on Rocky Linux or AlmaLinux yet: NetworkManager manages it ([el-changes.md](../engine/el-changes.md)) |
 | `UFW_PROXMOX_UNKNOWN` | 1 | ufw: whether the host runs Proxmox VE (no ufw there) is not established |
 | `UFW_NOT_INSTALLED` | 1 | ufw is not installed |
 | `UFW_LISTENERS_UNKNOWN` | 1 | the SSH listener set is not established |
@@ -295,6 +299,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `PVE_NOT_APPLICABLE` | 1 | not a Proxmox VE host |
 | `PVE_UNKNOWN` | 1 | whether the host runs Proxmox VE is not established, so its rules cannot be applied |
 | `PVE_PORT_CHANGE_REFUSED` | 1 | the SSH port stays 22 on Proxmox VE: cluster SSH and pve-firewall's management rule use port 22 |
+| `SSH_PORT_EL_REFUSED` | 1 | hardn doesn't change the SSH port on Rocky Linux or AlmaLinux yet ([el-changes.md](../engine/el-changes.md)) |
 | `PVE_ROOT_EXCLUDED` | 1 | root must stay reachable by key on Proxmox VE: cluster nodes log in to each other as root |
 | `PVE_ROOT_PASSWORD_KEPT` | 1 | root's password stays usable on Proxmox VE: the web UI's root@pam login and the cluster join use it |
 | `PVE_CLUSTER_FS_DOWN` | 1 | pmxcfs is not mounted at /etc/pve |

@@ -51,11 +51,13 @@ func TestClassify(t *testing.T) {
 		{"Alpine VERSION_ID not numeric", detect.OSRelease{ID: "alpine", VersionID: "edge"}, notPVE, detect.DistroAlpine, "", detect.Unlisted, nil},
 		{"Ubuntu VERSION_ID not YY.MM", detect.OSRelease{ID: "ubuntu", VersionID: "24.04.1"}, notPVE, detect.DistroUbuntu, "24.04.1", detect.Unlisted, nil},
 		{"Proxmox on Ubuntu not established is still Ubuntu", read("ubuntu-24.04"), detect.Proxmox{}, detect.DistroUbuntu, "24.04", detect.Supported, nil},
-		// Rocky Linux and AlmaLinux: no matrix row yet, so read only.
-		{"Rocky Linux 10.2 (rocky10-test-110)", read("rocky-10.2"), notPVE, detect.DistroRocky, "10", detect.Unlisted, nil},
-		{"Rocky Linux 9.8", detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "9.8"}, notPVE, detect.DistroRocky, "9", detect.Unlisted, nil},
-		{"AlmaLinux 10.1", detect.OSRelease{ID: "almalinux", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.1"}, notPVE, detect.DistroAlma, "10", detect.Unlisted, nil},
-		{"Rocky Linux with Proxmox not established", read("rocky-10.2"), detect.Proxmox{Err: errFixture}, detect.DistroRocky, "10", detect.Unlisted, nil},
+		// Rocky Linux and AlmaLinux: 10 and 9 (el-changes.md).
+		{"Rocky Linux 10.2 (rocky10-test-110)", read("rocky-10.2"), notPVE, detect.DistroRocky, "10", detect.Supported, nil},
+		{"Rocky Linux 9.8", detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "9.8"}, notPVE, detect.DistroRocky, "9", detect.Supported, nil},
+		{"AlmaLinux 10.1", detect.OSRelease{ID: "almalinux", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.1"}, notPVE, detect.DistroAlma, "10", detect.Supported, nil},
+		{"AlmaLinux 9.7", detect.OSRelease{ID: "almalinux", VersionID: "9.7"}, notPVE, detect.DistroAlma, "9", detect.Supported, nil},
+		{"Rocky Linux 8.10", detect.OSRelease{ID: "rocky", VersionID: "8.10"}, notPVE, detect.DistroRocky, "8", detect.Unlisted, nil},
+		{"Rocky Linux with Proxmox not established", read("rocky-10.2"), detect.Proxmox{Err: errFixture}, detect.DistroRocky, "10", detect.Supported, nil},
 		{"Rocky VERSION_ID with no minor", detect.OSRelease{ID: "rocky", VersionID: "10"}, notPVE, detect.DistroRocky, "", detect.Unlisted, nil},
 		{"AlmaLinux VERSION_ID of three parts", detect.OSRelease{ID: "almalinux", VersionID: "10.1.1"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
 		{"AlmaLinux VERSION_ID not numeric", detect.OSRelease{ID: "almalinux", VersionID: "10.x"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
@@ -105,8 +107,8 @@ func TestMatrix(t *testing.T) {
 	for _, r := range m {
 		count[r.Support]++
 	}
-	if count[detect.Supported] != 7 || count[detect.BestEffort] != 2 || count[detect.OutOfScope] != 3 {
-		t.Errorf("matrix rows by support = %v, want 7 supported, 2 best effort, 3 out of scope", count)
+	if count[detect.Supported] != 11 || count[detect.BestEffort] != 2 || count[detect.OutOfScope] != 3 {
+		t.Errorf("matrix rows by support = %v, want 11 supported, 2 best effort, 3 out of scope", count)
 	}
 	m[0].Support = detect.Unlisted
 	if detect.Matrix()[0].Support == detect.Unlisted {

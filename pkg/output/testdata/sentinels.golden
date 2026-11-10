@@ -38,6 +38,7 @@ detect.ErrUnrecognised DETECT_UNRECOGNISED
 dns.ErrChanged DNS_CHANGED
 dns.ErrContainer DNS_CONTAINER
 dns.ErrDropInBlocked DNS_DROPIN_BLOCKED
+dns.ErrEL DNS_EL_READ_ONLY
 dns.ErrInvalid DNS_INVALID
 dns.ErrManaged DNS_MANAGED
 dns.ErrNoBackup DNS_NO_BACKUP
@@ -64,6 +65,7 @@ engine.ErrWindow CONFIRM_WINDOW_CLOSING
 environment.ErrNoUser ENVIRONMENT_NO_USER
 firewall.ErrBootBlocked FIREWALL_BOOT_BLOCKED
 firewall.ErrBootUnknown FIREWALL_BOOT_UNKNOWN
+firewall.ErrEL FIREWALL_EL_READ_ONLY
 firewall.ErrNoSS FIREWALL_SS_NOT_INSTALLED
 firewall.ErrNotInEffect FIREWALL_SSH_NOT_IN_EFFECT
 firewall.ErrRefused FIREWALL_SSH_REFUSED
@@ -144,6 +146,8 @@ revert.ErrSessionUnknown SESSION_UNKNOWN
 revert.ErrTimeout CONFIRM_TIMEOUT_INVALID
 revert.ErrUnsafe JOURNAL_UNSAFE
 revert.ErrWrongListener CONFIRM_WRONG_LISTENER
+selinux.ErrMislabeled SELINUX_MISLABELED
+selinux.ErrNotRunnable SELINUX_HARDN_NOT_RUNNABLE
 sshchange.ErrMatchMore SSH_MATCH_LETS_MORE
 sshchange.ErrNoAdmin SSH_NO_ADMIN_LOGIN
 sshchange.ErrNoSession SSH_SESSION_NOT_LOGGED
@@ -167,6 +171,8 @@ sshd.ErrUnsafeRunDir UNSAFE_DIRECTORY
 sshd.ErrUnsupportedInclude SSHD_INCLUDE_UNSUPPORTED
 steps.ErrChanged SSHD_FILE_CHANGED
 steps.ErrConfigChanged CONFIG_CHANGED
+steps.ErrELFirewall FIREWALL_EL_READ_ONLY
+steps.ErrELPort SSH_PORT_EL_REFUSED
 steps.ErrListenConfNotInEffect SSH_LISTEN_CONF_NOT_IN_EFFECT
 steps.ErrMigrateFirst SSH_MIGRATE_FIRST
 steps.ErrNoNewListener SSH_PORT_NO_NEW_LISTENER

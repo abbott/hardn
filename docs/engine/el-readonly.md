@@ -3,7 +3,7 @@
 > **Unit:** the first of the Rocky/AlmaLinux units (the maintainer, 2026-11-09: "let's explore rocky/alma", then "Yes, start unit 1"). Unit 1 of six: read only; then changes that move no port; firewalld; the SELinux port label; dnf and dnf-automatic; CI and docs.
 > **Status:** built and tested on macOS against the recording fake, and on `rocky10-test-110` (Rocky Linux 10.2, x86_64) on 2026-11-09: `go vet` and `go test ./...` on Linux (71 packages, all pass), then `p4status` (§4). The platform facts it relies on were read there by a read-only probe (§3). hardn itself has not run there.
 
-hardn now starts on Rocky Linux and AlmaLinux, reads them, and refuses every change. Before this unit it refused to start on them (`unsupported OS type detected: rocky`).
+hardn now starts on Rocky Linux and AlmaLinux, reads them, and refuses every change. **Since unit 2** ([el-changes.md](el-changes.md)) 10 and 9 are Supported and the changes that move no port are made; §1.1's "no matrix row" and §1.3's refusal no longer hold. Before this unit it refused to start on them (`unsupported OS type detected: rocky`).
 
 ## 1. What it does
 

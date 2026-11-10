@@ -278,6 +278,12 @@ func TestExecuteRollback(t *testing.T) {
 			respond(h, ok, "systemctl", "start", "ssh.service")
 			respond(h, hostfake.Response{Stdout: ss22}, ssArgv...)
 		}, []string{"systemctl is-active ssh.service", "systemctl start ssh.service", "systemctl is-active ssh.service", "ss -Htln"}},
+		{"rocky: sshd.service waiting to restart is started", reload.Input{SSH: rocky, Change: permit}, func(h *hostfake.System) {
+			respond(h, hostfake.Response{Stdout: "activating\n", ExitCode: 3}, isActive("sshd.service")...)
+			respond(h, hostfake.Response{Stdout: "auto-restart\n"}, "systemctl", "show", "-p", "SubState", "--value", "sshd.service")
+			respond(h, active, isActive("sshd.service")...)
+			respond(h, ok, "systemctl", "start", "sshd.service")
+		}, []string{"systemctl is-active sshd.service", "systemctl show -p SubState --value sshd.service", "systemctl start sshd.service", "systemctl is-active sshd.service"}},
 		{"alpine: sshd is started", reload.Input{SSH: alpine, Change: permit}, func(h *hostfake.System) {
 			h.Handler = func(argv []string, _ []byte) hostfake.Response {
 				h.AddFile(detect.OpenRCStarted+"/sshd", nil, 0o644, 0, 0)
@@ -463,6 +469,24 @@ func TestExecuteFails(t *testing.T) {
 		{"unit state not established", debianPort, func(h *hostfake.System) {
 			before(h)
 			respond(h, hostfake.Response{Stdout: "activating\n", ExitCode: 3}, isActive("ssh.service")...)
+		}, func(t *testing.T, _ reload.Report, err error) {
+			if !errors.Is(err, reload.ErrUnitState) {
+				t.Errorf("err = %v, want ErrUnitState", err)
+			}
+		}},
+		{"after the reload, sshd.service waiting to restart: down", reload.Input{SSH: rocky, Change: reload.Change{Keywords: []string{"PermitRootLogin"}}}, func(h *hostfake.System) {
+			respond(h, active, isActive("sshd.service")...)
+			respond(h, hostfake.Response{Stdout: "activating\n", ExitCode: 3}, isActive("sshd.service")...)
+			respond(h, ok, "systemctl", "reload", "sshd.service")
+			respond(h, hostfake.Response{Stdout: "auto-restart\n"}, "systemctl", "show", "-p", "SubState", "--value", "sshd.service")
+		}, func(t *testing.T, rep reload.Report, err error) {
+			if !errors.Is(err, reload.ErrUnitDown) || errors.Is(err, reload.ErrUnitState) || len(rep.Steps) != 1 || !rep.Steps[0].Ran {
+				t.Errorf("err = %v, want ErrUnitDown after the reload ran", err)
+			}
+		}},
+		{"activating, not waiting to restart: not established", reload.Input{SSH: rocky, Change: reload.Change{Keywords: []string{"PermitRootLogin"}}}, func(h *hostfake.System) {
+			respond(h, hostfake.Response{Stdout: "activating\n", ExitCode: 3}, isActive("sshd.service")...)
+			respond(h, hostfake.Response{Stdout: "start\n"}, "systemctl", "show", "-p", "SubState", "--value", "sshd.service")
 		}, func(t *testing.T, _ reload.Report, err error) {
 			if !errors.Is(err, reload.ErrUnitState) {
 				t.Errorf("err = %v, want ErrUnitState", err)

@@ -32,7 +32,10 @@ func unreadRefusal(ctx context.Context, sys host.System, r Reading) error {
 	}
 	why := "hardn can't read how updates run here"
 	cause := errors.Join(r.StatusErr, r.AptErr, r.UpdatesErr, r.Updates.Err)
-	if !r.Apk {
+	switch {
+	case r.Facts.Platform.Distro.EL():
+		why = "hardn doesn't read dnf-automatic yet" // no apt to ask
+	case !r.Apk:
 		if res, err := sys.Run(ctx, "apt-config", dumpArgs...); err != nil {
 			why = "apt can't read its settings: " + strings.TrimPrefix(firstLine(string(res.Stderr)), "E: ")
 		} else if r.AptErr != nil {
@@ -55,6 +58,8 @@ func (c Auto) planOn(ctx context.Context, sys host.System, in engine.Input, r Re
 		return nil, c.recordRefusal(r.RecordErr)
 	case r.Apk:
 		return c.planApkOn(ctx, sys, in, r)
+	case r.Facts.Platform.Distro.EL(): // Unread there (read.go): never apt's plan
+		return nil, unreadRefusal(ctx, sys, r)
 	}
 	return c.planAptOn(ctx, sys, in, r)
 }

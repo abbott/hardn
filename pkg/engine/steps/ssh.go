@@ -6,6 +6,8 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"io/fs"
+	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
@@ -16,6 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 )
@@ -83,6 +86,9 @@ func PlanSSH(ctx context.Context, sys host.System, in engine.Input, s SSH) ([]en
 	if port != 0 {
 		if err := pve.CheckPort(in.Facts.Proxmox, []uint16{port}); err != nil {
 			return nil, err
+		}
+		if in.Facts.Platform.Distro.EL() {
+			return nil, fmt.Errorf("port %d: %w", port, ErrELPort)
 		}
 		if !st.before.Listeners.Known {
 			return nil, fmt.Errorf("the listeners sshd configures now: %w", reload.ErrListenersUnknown)
@@ -260,6 +266,9 @@ func (st sshState) edit(ctx context.Context, sys host.System, prefix string, set
 	if err != nil {
 		return nil, noRunDir(st.in.Facts.SSH, fmt.Errorf("validation in context: %w", err))
 	}
+	if err := sshLabels(ctx, sys, st.in.Facts, rep); err != nil {
+		return nil, err
+	}
 	e.cand, _ = sshd.Evaluate(sshd.EffectiveInputs{Effective: rep.Effective})
 	e.findings = append(e.findings, sshdFindings(rep.Findings)...)
 	if st.pve {
@@ -356,8 +365,12 @@ func reloadChange(prefix string, r revert.Reload, rp reload.Plan, replan func(ct
 	for _, s := range rp.Steps {
 		cmds = append(cmds, host.FormatArgv(s.Argv))
 	}
+	unit := rp.Mode.String()
+	if rp.Mode == detect.SSHService {
+		unit = unitOf(rp) // sshd.service on Rocky Linux and AlmaLinux
+	}
 	c := engine.Change{
-		ID: prefix + "/reload", Summary: "Reload sshd (" + rp.Mode.String() + ")", Title: engine.FitTitle("Reload sshd ("+rp.Mode.String()+")", "Reload sshd"), Target: unitOf(rp), Commands: cmds,
+		ID: prefix + "/reload", Summary: "Reload sshd (" + unit + ")", Title: engine.FitTitle("Reload sshd ("+unit+")", "Reload sshd"), Target: unitOf(rp), Commands: cmds,
 		Risk: engine.RiskLockout, Stage: engine.StageReload, After: []string{prefix + "/files"},
 		Rollback: engine.Undo{Reloads: []revert.Reload{r}}, ConfirmVia: revert.ListenersOf(rp.Adds),
 	}
@@ -616,6 +629,62 @@ func (st sshState) checkPVE(ctx context.Context, sys host.System, after sshd.Eff
 	}
 	if chk.RootKeyOnly != detect.Yes || chk.RootByKey != detect.Yes || chk.Port22 != detect.Yes {
 		return fmt.Errorf("Proxmox VE: root key-only %v, root by key %v, port 22 %v; each must be yes: %w", chk.RootKeyOnly, chk.RootByKey, chk.Port22, ErrNotInEffect)
+	}
+	return nil
+}
+
+// sshLabels refuses, on Rocky Linux and AlmaLinux where SELinux enforces,
+// a change after which sshd would reread a file its own context may be
+// refused: one of the files Validate checked, the file each of them links
+// to (followed to the end), or a host key sshd -T names that exists, whose
+// label is not the policy's (selinux.Check). hardn checks the files as root
+// outside sshd's context, and their reload has no sshd -t of its own, so
+// the reload is where sshd would exit (Debian's ssh.service runs sshd -t
+// first). 00-hardn.conf is left out: hardn writes it new, in a directory
+// whose default label it takes. A link that can't be followed is refused;
+// a host key that doesn't exist is left out (sshd only warns). Elsewhere
+// it reads nothing.
+func sshLabels(ctx context.Context, sys host.System, f detect.Facts, rep sshd.Report) error {
+	if !f.Platform.Distro.EL() {
+		return nil
+	}
+	var paths []string
+	add := func(p string) error {
+		for range 8 { // a chain of links; sshd's fopen follows it
+			paths = append(paths, p)
+			fi, err := sys.Lstat(ctx, p)
+			if err != nil {
+				return err
+			}
+			if fi.Mode()&fs.ModeSymlink == 0 {
+				return nil
+			}
+			if _, p, err = sys.ResolveSymlink(ctx, p); err != nil {
+				return err
+			}
+		}
+		return fmt.Errorf("%s: too many links: %w", paths[len(paths)-1], fs.ErrInvalid)
+	}
+	for _, p := range rep.Files {
+		if p == sshd.HardnDropIn {
+			continue
+		}
+		if err := add(p); err != nil {
+			return &Refusal{Code: CodeSELinuxLabels, Why: "hardn can't tell what sshd reads through " + p, Fix: "check that link, then plan again", Err: err}
+		}
+	}
+	for _, l := range strings.Split(string(rep.Effective), "\n") {
+		if k, v, ok := strings.Cut(l, " "); ok && k == "hostkey" && filepath.IsAbs(v) {
+			if _, err := sys.Lstat(ctx, v); err == nil {
+				if err := add(v); err != nil {
+					return &Refusal{Code: CodeSELinuxLabels, Why: "hardn can't tell what sshd reads through " + v, Fix: "check that link, then plan again", Err: err}
+				}
+			}
+		}
+	}
+	if err := selinux.Check(ctx, sys, paths...); err != nil {
+		return &Refusal{Code: CodeSELinuxLabels, Why: "sshd may not be able to read its files after the reload: SELinux labels them otherwise than its policy",
+			Fix: "run restorecon -v on the files named, then plan again", Err: err}
 	}
 	return nil
 }
