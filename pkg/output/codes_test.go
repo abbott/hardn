@@ -38,6 +38,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -139,7 +140,12 @@ var sentinels = map[string]error{
 	"reload.ErrAddsListener":          reload.ErrAddsListener,
 	"reload.ErrConfd":                 reload.ErrConfd,
 	"reload.ErrSysconfig":             reload.ErrSysconfig,
-	"steps.ErrELPort":                 steps.ErrELPort,
+	"selinux.ErrNoSemanage":           selinux.ErrNoSemanage,
+	"selinux.ErrPortTaken":            selinux.ErrPortTaken,
+	"firewalld.ErrNoSSHPath":          firewalld.ErrNoSSHPath,
+	"firewalld.ErrStartsAtBoot":       firewalld.ErrStartsAtBoot,
+	"firewalld.ErrNotLetThrough":      firewalld.ErrNotLetThrough,
+	"firewalld.ErrUnknown":            firewalld.ErrUnknown,
 	"steps.ErrELFirewall":             steps.ErrELFirewall,
 	"selinux.ErrMislabeled":           selinux.ErrMislabeled,
 	"selinux.ErrNotRunnable":          selinux.ErrNotRunnable,

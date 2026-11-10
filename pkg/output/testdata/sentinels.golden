@@ -70,6 +70,10 @@ firewall.ErrNoSS FIREWALL_SS_NOT_INSTALLED
 firewall.ErrNotInEffect FIREWALL_SSH_NOT_IN_EFFECT
 firewall.ErrRefused FIREWALL_SSH_REFUSED
 firewall.ErrSSFailed FIREWALL_SS_FAILED
+firewalld.ErrNoSSHPath FIREWALLD_NO_SSH_PATH
+firewalld.ErrNotLetThrough FIREWALLD_NOT_LET_THROUGH
+firewalld.ErrStartsAtBoot FIREWALLD_STOPPED
+firewalld.ErrUnknown FIREWALLD_UNKNOWN
 fs.ErrNotExist FILE_NOT_FOUND
 fs.ErrPermission PERMISSION_DENIED
 host.ErrHardLink HARD_LINK_REFUSED
@@ -147,7 +151,9 @@ revert.ErrTimeout CONFIRM_TIMEOUT_INVALID
 revert.ErrUnsafe JOURNAL_UNSAFE
 revert.ErrWrongListener CONFIRM_WRONG_LISTENER
 selinux.ErrMislabeled SELINUX_MISLABELED
+selinux.ErrNoSemanage SELINUX_NO_SEMANAGE
 selinux.ErrNotRunnable SELINUX_HARDN_NOT_RUNNABLE
+selinux.ErrPortTaken SELINUX_PORT_TAKEN
 sshchange.ErrMatchMore SSH_MATCH_LETS_MORE
 sshchange.ErrNoAdmin SSH_NO_ADMIN_LOGIN
 sshchange.ErrNoSession SSH_SESSION_NOT_LOGGED
@@ -172,7 +178,6 @@ sshd.ErrUnsupportedInclude SSHD_INCLUDE_UNSUPPORTED
 steps.ErrChanged SSHD_FILE_CHANGED
 steps.ErrConfigChanged CONFIG_CHANGED
 steps.ErrELFirewall FIREWALL_EL_READ_ONLY
-steps.ErrELPort SSH_PORT_EL_REFUSED
 steps.ErrListenConfNotInEffect SSH_LISTEN_CONF_NOT_IN_EFFECT
 steps.ErrMigrateFirst SSH_MIGRATE_FIRST
 steps.ErrNoNewListener SSH_PORT_NO_NEW_LISTENER

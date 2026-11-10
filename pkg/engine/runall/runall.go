@@ -443,8 +443,7 @@ func refused(rw *Row, err error) {
 }
 
 // port is the SSH Port row: as asked where sshd listens on sshPort, else
-// SSH Login's to change (decision 3), but refused on Rocky Linux and
-// AlmaLinux, where SSH Login refuses it; refused where sshd cannot be read
+// SSH Login's to change (decision 3); refused where sshd cannot be read
 // (sshd -T's error, the reading's EffErr).
 func (r Reading) port(ctx context.Context, in Input, want uint16, rw *Row) {
 	sr, err := sshchange.Read(ctx, in.System, in.Facts, in.Config, in.Session, in.Getenv)
@@ -456,8 +455,6 @@ func (r Reading) port(ctx context.Context, in Input, want uint16, rw *Row) {
 		refused(rw, err)
 	case slices.Contains(sr.Effective.Listeners.Ports(), want):
 		rw.Kind, rw.Words = AsAsked, WordsAsked
-	case in.Facts.Platform.Distro.EL(): // SSH Login refuses the change there (el-changes.md)
-		refused(rw, &steps.Refusal{Why: "hardn doesn't change the SSH port on Rocky Linux or AlmaLinux yet", Err: steps.ErrELPort})
 	default:
 		rw.Kind, rw.Words = Elsewhere, fmt.Sprintf("%s%d", sshLogin, want)
 	}

@@ -81,7 +81,7 @@ func (c Incoming) Plan(ctx context.Context, sys host.System, in engine.Input) ([
 		return nil, engine.ErrNotMigrated
 	}
 	if in.Facts.Platform.Distro.EL() && c.Action != ActionSaveProfiles && c.Action != ActionSaveInterfaces {
-		return nil, &steps.Refusal{Code: codeEL, Why: "hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet: it drives ufw alone, not firewalld", Err: ErrEL}
+		return nil, &steps.Refusal{Code: codeEL, Why: "hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet: the Firewall item doesn't change firewalld yet", Err: ErrEL}
 	}
 	if err := applies(in.Facts.Proxmox); err != nil {
 		return nil, err

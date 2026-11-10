@@ -117,7 +117,8 @@ func (Incoming) Title() string { return "Firewall" }
 // risk level (docs/engine/checks.md §1.6).
 func (Incoming) Applies(detect.Facts) (bool, string) { return true, "" }
 
-// Check reads pve-firewall on Proxmox VE and ufw elsewhere; whether the
+// Check reads pve-firewall on Proxmox VE, firewalld on Rocky Linux and
+// AlmaLinux, and ufw elsewhere; whether the
 // host runs Proxmox VE must be established first, since which firewall is
 // read depends on it. docs/engine/check-firewall.md lists each status line.
 func (Incoming) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
@@ -127,6 +128,8 @@ func (Incoming) Check(ctx context.Context, sys host.System, f detect.Facts) (eng
 		return engine.Status{State: engine.Unknown, Detail: "can't tell if Proxmox"}, err
 	case onPVE:
 		return checkPVE(ctx, sys, f)
+	case f.Platform.Distro.EL():
+		return checkFirewalld(ctx, sys, f)
 	}
 	return checkUFW(ctx, sys, f)
 }

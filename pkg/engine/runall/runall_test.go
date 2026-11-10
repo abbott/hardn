@@ -20,7 +20,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/runall"
-	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -537,8 +536,8 @@ func TestReadInvalid(t *testing.T) {
 }
 
 // TestPortRocky: on Rocky Linux the SSH Port row whose sshPort sshd doesn't
-// listen on is Refused with SSH Login's refusal (steps.ErrELPort), not
-// SSH Login's to change, which SSH Login would refuse.
+// listen on is SSH Login's to change, as on Debian: SSH Login changes the
+// port there too (el-ports.md).
 func TestPortRocky(t *testing.T) {
 	p := debian13()
 	p.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
@@ -548,7 +547,7 @@ func TestPortRocky(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if rw, _ := r.Row(port); rw.Kind != runall.Refused || !errors.Is(rw.Err, steps.ErrELPort) {
-		t.Errorf("port: %v %q, err %v; want refused, ErrELPort", rw.Kind, rw.Words, rw.Err)
+	if rw, _ := r.Row(port); rw.Kind != runall.Elsewhere {
+		t.Errorf("port: %v %q, err %v; want elsewhere", rw.Kind, rw.Words, rw.Err)
 	}
 }

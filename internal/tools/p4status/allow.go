@@ -43,6 +43,9 @@ var rules = []rule{
 	{"rc-service", exactly("crond", "status")}, // alpine.ReadUpdates
 	// The header probe's reboot source on Rocky Linux and AlmaLinux.
 	{"needs-restarting", exactly("-r")},
+	// The Firewall check on Rocky Linux and AlmaLinux (firewalld.Read, and
+	// the default zone's target).
+	{"firewall-cmd", firewallCmd},
 	// The DNS check (dns.Read): systemd-resolved's servers and search
 	// domains, as resolvectl lists them.
 	{"resolvectl", either(exactly("--no-pager", "dns"), exactly("--no-pager", "domain"))},
@@ -88,10 +91,11 @@ func sshdT(args []string) bool {
 // units are the units the checks ask systemctl about, by verb: detect's
 // (ssh.socket and ssh.service, and sshd.socket and sshd.service where
 // systemd has neither ssh.* unit), the AppArmor check's (apparmor.service), the
-// Auto Updates check's (apt's timers and their services), Proxmox VE's
+// Auto Updates check's (apt's timers and their services), the Firewall
+// row's on Rocky Linux and AlmaLinux (firewalld.service, when stopped), Proxmox VE's
 // firewall's (pve.ReadFirewall) and the DNS check's (systemd-resolved).
 var units = map[string][]string{
-	"is-enabled": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "ufw.service", "apparmor.service",
+	"is-enabled": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "ufw.service", "firewalld.service", "apparmor.service",
 		"apt-daily-upgrade.timer", "apt-daily-upgrade.service", "apt-daily.timer", "apt-daily.service"},
 	"is-active": {"ssh.socket", "ssh.service", "sshd.socket", "sshd.service", "apt-daily-upgrade.timer", "apt-daily.timer",
 		"pve-firewall.service", "proxmox-firewall.service", "systemd-resolved.service"},
@@ -150,4 +154,18 @@ func ipAddr(args []string) bool {
 	}
 	dev := args[4]
 	return dev != "" && len(dev) < 16 && dev != "." && dev != ".." && !strings.ContainsAny(dev, "/: \t\n\v\f\r")
+}
+
+// firewallCmd is the Firewall check's firewall-cmd on Rocky Linux and
+// AlmaLinux: --state, --get-default-zone, --get-active-zones, or a zone's
+// permanent target (a zone name of firewalld's letters).
+func firewallCmd(args []string) bool {
+	switch {
+	case len(args) == 1:
+		return args[0] == "--state" || args[0] == "--get-default-zone" || args[0] == "--get-active-zones"
+	case len(args) == 3 && args[0] == "--permanent" && args[2] == "--get-target":
+		z, ok := strings.CutPrefix(args[1], "--zone=")
+		return ok && z != "" && strings.Trim(z, "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-") == ""
+	}
+	return false
 }

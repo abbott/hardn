@@ -255,8 +255,8 @@ confirmTimeout: "5m"
 
 On Rocky Linux and AlmaLinux:
 
-- SSH stays on its port: hardn doesn't open a new one in firewalld or SELinux yet.
-- The firewall, Auto Updates and DNS are only read. ufw is never installed or enabled.
+- A new SSH port is labelled for sshd in SELinux and let through firewalld before sshd moves.
+- The firewall (firewalld), Auto Updates and DNS are otherwise only read. ufw is never installed or enabled.
 
 ### Proxmox
 

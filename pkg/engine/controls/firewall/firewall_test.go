@@ -484,7 +484,8 @@ func readOnly(t *testing.T, h *hostfake.System, p platform) {
 			case cmd == "ufw status verbose" && !onPVE, cmd == "systemctl is-enabled ufw.service" && !onPVE, strings.HasPrefix(cmd, p.bin+" -T -f "+sshd.MainConfig),
 				cmd == "systemctl show -p Listen ssh.socket", cmd == "ss -Htln", strings.HasPrefix(cmd, "dpkg-query --show "),
 				cmd == "apk info -e iproute2", cmd == "apt-get install -s -y iproute2", cmd == "apk add --simulate iproute2",
-				cmd == "systemctl is-active "+pve.FirewallUnit, cmd == "systemctl is-active "+pve.NFTablesUnit:
+				cmd == "systemctl is-active "+pve.FirewallUnit, cmd == "systemctl is-active "+pve.NFTablesUnit,
+				p.facts.Platform.Distro.EL() && strings.HasPrefix(cmd, "firewall-cmd ") && !strings.Contains(cmd, "-add-") && !strings.Contains(cmd, "-remove-"):
 			default:
 				t.Errorf("ran %q", cmd)
 			}
@@ -760,11 +761,17 @@ func TestRocky(t *testing.T) {
 	r.facts.OS = detect.OSRelease{ID: "rocky", IDLike: []string{"rhel", "centos", "fedora"}, VersionID: "10.2"}
 	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Unlisted}
 	r.facts.SSH.SSHDUnits = true
+	noFirewalld := func(h *hostfake.System) {
+		h.Respond(hostfake.Response{Err: host.ErrNotFound}, "firewall-cmd", "--state")
+	}
 	for _, row := range []row{
-		{name: "stock sysconfig, 22 allowed", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+		// No firewalld: ufw's line, as for EPEL's ufw.
+		{name: "no firewalld, ufw, stock sysconfig, 22 allowed", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+			noFirewalld(h)
 			h.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"\"\n"), 0o644, 0, 0)
 		}}, state: engine.Configured, want: "deny policy"},
-		{name: "sysconfig gives sshd a port", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+		{name: "no firewalld, ufw, sysconfig gives sshd a port", site: site{plat: r, ufw: allow22, edit: func(h *hostfake.System) {
+			noFirewalld(h)
 			h.AddFile(reload.SysconfigSSHD, []byte("OPTIONS=\"-p 2222\"\n"), 0o644, 0, 0)
 		}}, state: engine.Unknown, want: "can't tell ssh ports", err: "RELOAD_SYSCONFIG_OPTIONS"},
 	} {
@@ -989,6 +996,58 @@ func TestRockyChangesNothing(t *testing.T) {
 	save := firewall.Incoming{Action: firewall.ActionSaveProfiles}
 	if _, err := save.Plan(context.Background(), h, engine.Input{Facts: facts, Config: &config.Config{}}); errors.Is(err, firewall.ErrEL) {
 		t.Errorf("save profiles refused on Rocky Linux: %v", err)
+	}
+}
+
+// TestFirewalldRow: on Rocky Linux the row reads firewalld: running with no
+// zone read (active or default) accepting everything is Configured;
+// stopped, or a zone ACCEPT (the default, or docker's trusted beside it),
+// Not Configured; neither firewalld nor ufw is
+// "no firewall installed"; firewall-cmd answering otherwise, Unknown.
+func TestFirewalldRow(t *testing.T) {
+	f := debian13().facts
+	f.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
+	running := func(target string) func(h *hostfake.System) {
+		return func(h *hostfake.System) {
+			h.Respond(hostfake.Response{Stdout: "running\n"}, "firewall-cmd", "--state")
+			h.Respond(hostfake.Response{Stdout: "public\n"}, "firewall-cmd", "--get-default-zone")
+			h.Respond(hostfake.Response{Stdout: "public (default)\n  interfaces: eth0\n"}, "firewall-cmd", "--get-active-zones")
+			h.Respond(hostfake.Response{Stdout: target + "\n"}, "firewall-cmd", "--permanent", "--zone=public", "--get-target")
+		}
+	}
+	for _, c := range []struct {
+		name   string
+		setup  func(h *hostfake.System)
+		state  engine.State
+		detail string
+	}{
+		{"running", running("default"), engine.Configured, firewall.DetailFirewalld},
+		{"running, the zone accepts everything", running("ACCEPT"), engine.NotConfigured, firewall.DetailZoneAccepts},
+		{"running, trusted accepts everything beside public", func(h *hostfake.System) {
+			h.Respond(hostfake.Response{Stdout: "running\n"}, "firewall-cmd", "--state")
+			h.Respond(hostfake.Response{Stdout: "public\n"}, "firewall-cmd", "--get-default-zone")
+			h.Respond(hostfake.Response{Stdout: "trusted\n  interfaces: docker0\npublic (default)\n  interfaces: eth0\n"}, "firewall-cmd", "--get-active-zones")
+			h.Respond(hostfake.Response{Stdout: "ACCEPT\n"}, "firewall-cmd", "--permanent", "--zone=trusted", "--get-target")
+			h.Respond(hostfake.Response{Stdout: "default\n"}, "firewall-cmd", "--permanent", "--zone=public", "--get-target")
+		}, engine.NotConfigured, firewall.DetailZoneAccepts},
+		{"stopped", func(h *hostfake.System) {
+			h.Respond(hostfake.Response{Stdout: "not running\n", ExitCode: 252}, "firewall-cmd", "--state")
+			h.Respond(hostfake.Response{Stdout: "enabled\n"}, "systemctl", "is-enabled", "firewalld.service")
+		}, engine.NotConfigured, firewall.DetailFirewalldOff},
+		{"no firewall", func(h *hostfake.System) {
+			h.Respond(hostfake.Response{Err: host.ErrNotFound}, "firewall-cmd", "--state")
+			h.Respond(hostfake.Response{Err: host.ErrNotFound}, "ufw", "status", "verbose")
+		}, engine.NotConfigured, firewall.DetailNoFirewall},
+		{"firewall-cmd failing", func(h *hostfake.System) {
+			h.Respond(hostfake.Response{ExitCode: 2, Stderr: "Error\n"}, "firewall-cmd", "--state")
+		}, engine.Unknown, "can't read"},
+	} {
+		h := hostfake.New(host.Options{})
+		c.setup(h)
+		st, err := firewall.Incoming{}.Check(context.Background(), h, f)
+		if st.State != c.state || st.Detail != c.detail || (c.state == engine.Unknown) != (err != nil) {
+			t.Errorf("%s: %s %q, %v; want %s %q", c.name, st.State, st.Detail, err, c.state, c.detail)
+		}
 	}
 }
 

@@ -73,6 +73,13 @@ func PlanMigration(ctx context.Context, sys host.System, in engine.Input, prefix
 	files := migrationChange(prefix, plan, opts, r)
 	files.Findings = append(droppedFindings(plan.Dropped), sshdFindings(checked)...)
 	var out []engine.Change
+	if in.Facts.Platform.Distro.EL() { // a migration that adds a listener: its label and firewalld first, as a port change's
+		el, err := planELPorts(ctx, sys, prefix, portsOf(plan.Listening.All), portsOf(rp.Adds))
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, el...)
+	}
 	switch {
 	case fw != nil && !fw.Empty():
 		out = append(out, firewallChange(prefix+"/firewall", *fw))

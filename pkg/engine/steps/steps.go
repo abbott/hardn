@@ -110,12 +110,10 @@ var (
 	// ErrMigrateFirst: hardn's legacy SSH files are on the host; their
 	// migration (PlanMigration) is a change of its own, made first.
 	ErrMigrateFirst = errors.New("legacy hardn SSH files: migrate them first")
-	// ErrELPort: hardn doesn't change the SSH port on Rocky Linux or
-	// AlmaLinux yet; firewalld and SELinux's ssh_port_t would block a new
-	// one (docs/engine/el-changes.md).
-	ErrELPort = errors.New("hardn doesn't change the SSH port on Rocky Linux or AlmaLinux yet")
-	// ErrELFirewall: hardn doesn't drive ufw on Rocky Linux or AlmaLinux,
-	// which use firewalld (firewall.ErrEL; docs/engine/el-changes.md).
+	// ErrELFirewall: the Firewall item's ufw changes are refused on Rocky
+	// Linux and AlmaLinux, which use firewalld (firewall.ErrEL;
+	// el-changes.md). A port change still lets its new port through an
+	// installed, active ufw there (EPEL's), as elsewhere.
 	ErrELFirewall = errors.New("hardn doesn't change the firewall on Rocky Linux or AlmaLinux yet")
 	// ErrNoNewListener: a port change whose Port line reaches no listener
 	// (a ListenAddress with its own port ignores every Port line).

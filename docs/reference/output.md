@@ -235,6 +235,12 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `REVERT_NO_TIMER` | 1 | no revert timer for this init system |
 | `SELINUX_HARDN_NOT_RUNNABLE` | 1 | where SELinux enforces, hardn's binary is not of type `bin_t`, so systemd would not run it for the revert timer: install it in `/usr/local/bin` with `install`, or `restorecon -v` it there ([el-changes.md](../engine/el-changes.md)) |
 | `SELINUX_MISLABELED` | 1 | on Rocky Linux and AlmaLinux where SELinux enforces, a file sshd rereads, a file it links to, or a host key is labelled otherwise than its policy: `restorecon -v` puts the policy's label back ([el-changes.md](../engine/el-changes.md)) |
+| `SELINUX_NO_SEMANAGE` | 1 | SELinux is on and `semanage` (policycoreutils-python-utils) isn't installed, so a new SSH port can't be labelled for sshd ([el-ports.md](../engine/el-ports.md)) |
+| `SELINUX_PORT_TAKEN` | 1 | SELinux's policy gives the new SSH port to another service by name ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_NO_SSH_PATH` | 1 | firewalld runs and no zone lets the current SSH port through by its ports or services, so hardn can't plan the new one's way through ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_STOPPED` | 1 | firewalld is stopped and starts at boot, so hardn can't read what it will let through then: start it or disable it ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_NOT_LET_THROUGH` | 1 | after hardn's steps a zone still doesn't let the new SSH port through ([el-ports.md](../engine/el-ports.md)) |
+| `FIREWALLD_UNKNOWN` | 1 | firewalld's state, or what a zone lets through, is not established ([el-ports.md](../engine/el-ports.md)) |
 | `HARDN_EXECUTABLE_UNSAFE` | 1 | not safe to run as root from the timer |
 | `JOURNAL_CLAIM_RACE` | 1 | the journal changed while it was being claimed |
 | `ROLLBACK_INCOMPLETE` | 1 | the rollback did not finish |
@@ -299,7 +305,6 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `PVE_NOT_APPLICABLE` | 1 | not a Proxmox VE host |
 | `PVE_UNKNOWN` | 1 | whether the host runs Proxmox VE is not established, so its rules cannot be applied |
 | `PVE_PORT_CHANGE_REFUSED` | 1 | the SSH port stays 22 on Proxmox VE: cluster SSH and pve-firewall's management rule use port 22 |
-| `SSH_PORT_EL_REFUSED` | 1 | hardn doesn't change the SSH port on Rocky Linux or AlmaLinux yet ([el-changes.md](../engine/el-changes.md)) |
 | `PVE_ROOT_EXCLUDED` | 1 | root must stay reachable by key on Proxmox VE: cluster nodes log in to each other as root |
 | `PVE_ROOT_PASSWORD_KEPT` | 1 | root's password stays usable on Proxmox VE: the web UI's root@pam login and the cluster join use it |
 | `PVE_CLUSTER_FS_DOWN` | 1 | pmxcfs is not mounted at /etc/pve |

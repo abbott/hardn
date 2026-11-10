@@ -152,6 +152,119 @@ type vm struct {
 	mislabeled map[string]string
 	labelled   []string
 	hardnType  string // stat's type of hardn's binary; "" is bin_t
+	// sshPorts are semanage's ssh_port_t entries (nil: no semanage);
+	// otherPorts its other exact TCP entries, by type.
+	sshPorts   []uint16
+	otherPorts map[uint16]string
+	// fw is firewalld (nil: not installed).
+	fw *fwModel
+	// downAt, when set, runs between the apply and the rollback.
+	downAt func()
+}
+
+// fwModel is firewalld running with one zone, public, the default and
+// active one, its services and ports at runtime and in the permanent
+// configuration. Stopped, firewall-offline-cmd edits the permanent one,
+// and enabled is whether it starts at boot.
+type fwModel struct {
+	services         []string
+	runtime, perm    map[string]bool // "2230/tcp"
+	stopped, enabled bool
+	added, removed   []string // the --add-port/--remove-port run
+}
+
+// offline answers firewall-offline-cmd's port query and removal in public.
+func (m *fwModel) offline(argv []string) hostfake.Response {
+	switch a := strings.Join(argv[1:], " "); {
+	case strings.HasPrefix(a, "--zone=public --query-port="):
+		if m.perm[strings.TrimPrefix(a, "--zone=public --query-port=")] {
+			return hostfake.Response{Stdout: "yes\n"}
+		}
+		return hostfake.Response{Stdout: "no\n", ExitCode: 1}
+	case strings.HasPrefix(a, "--zone=public --remove-port="):
+		delete(m.perm, strings.TrimPrefix(a, "--zone=public --remove-port="))
+		m.removed = append(m.removed, strings.Join(argv, " "))
+		return hostfake.Response{Stdout: "success\n"}
+	}
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
+}
+
+func (m *fwModel) run(argv []string) hostfake.Response {
+	if m.stopped {
+		return hostfake.Response{Stdout: "not running\n", ExitCode: 252}
+	}
+	args, perm := argv[1:], false
+	if len(args) > 0 && args[0] == "--permanent" {
+		args, perm = args[1:], true
+	}
+	ports := m.runtime
+	if perm {
+		ports = m.perm
+	}
+	yesNo := func(ok bool) hostfake.Response {
+		if ok {
+			return hostfake.Response{Stdout: "yes\n"}
+		}
+		return hostfake.Response{Stdout: "no\n", ExitCode: 1}
+	}
+	switch a := strings.Join(args, " "); {
+	case a == "--state":
+		return hostfake.Response{Stdout: "running\n"}
+	case a == "--get-default-zone":
+		return hostfake.Response{Stdout: "public\n"}
+	case a == "--get-active-zones":
+		return hostfake.Response{Stdout: "public (default)\n  interfaces: eth0\n"}
+	case a == "--zone=public --get-target":
+		return hostfake.Response{Stdout: "default\n"}
+	case strings.HasPrefix(a, "--zone=public --query-port="):
+		return yesNo(ports[strings.TrimPrefix(a, "--zone=public --query-port=")])
+	case a == "--zone=public --list-services":
+		return hostfake.Response{Stdout: strings.Join(m.services, " ") + "\n"}
+	case strings.HasPrefix(a, "--service=") && strings.HasSuffix(a, " --get-ports"):
+		ports := map[string]string{"ssh": "22/tcp", "cockpit": "9090/tcp", "dhcpv6-client": "546/udp"}
+		return hostfake.Response{Stdout: ports[strings.TrimSuffix(strings.TrimPrefix(a, "--service="), " --get-ports")] + "\n"}
+	case strings.HasPrefix(a, "--zone=public --add-port="):
+		ports[strings.TrimPrefix(a, "--zone=public --add-port=")] = true
+		m.added = append(m.added, strings.Join(argv, " "))
+		return hostfake.Response{Stdout: "success\n"}
+	case strings.HasPrefix(a, "--zone=public --remove-port="):
+		delete(ports, strings.TrimPrefix(a, "--zone=public --remove-port="))
+		m.removed = append(m.removed, strings.Join(argv, " "))
+		return hostfake.Response{Stdout: "success\n"}
+	}
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
+}
+
+// semanage answers port -l, -a and -d over v.sshPorts and v.otherPorts.
+func (v *vm) semanage(argv []string) hostfake.Response {
+	if v.sshPorts == nil {
+		return hostfake.Response{Err: host.ErrNotFound}
+	}
+	switch {
+	case len(argv) == 3 && argv[1] == "port" && argv[2] == "-l":
+		var b strings.Builder
+		b.WriteString("SELinux Port Type              Proto    Port Number\n\n")
+		var ps []string
+		for _, p := range v.sshPorts {
+			ps = append(ps, strconv.Itoa(int(p)))
+		}
+		fmt.Fprintf(&b, "ssh_port_t                     tcp      %s\n", strings.Join(ps, ", "))
+		for p, t := range v.otherPorts {
+			fmt.Fprintf(&b, "%-30s tcp      %d\n", t, p)
+		}
+		b.WriteString("unreserved_port_t              tcp      61000-65535, 1024-32767\n")
+		return hostfake.Response{Stdout: b.String()}
+	case len(argv) == 8 && argv[1] == "port" && argv[3] == "-t" && argv[4] == "ssh_port_t" && argv[5] == "-p" && argv[6] == "tcp":
+		n, _ := strconv.Atoi(argv[7])
+		switch argv[2] {
+		case "-a":
+			v.sshPorts = append(v.sshPorts, uint16(n))
+		case "-d":
+			v.sshPorts = slices.DeleteFunc(v.sshPorts, func(p uint16) bool { return p == uint16(n) })
+		}
+		return hostfake.Response{}
+	}
+	return hostfake.Response{Err: hostfake.ErrUnscripted}
 }
 
 // key is a synthetic ssh-ed25519 key line, every byte of its key seed.
@@ -249,6 +362,16 @@ func newVM(t *testing.T, facts detect.Facts, cloud bool, as ...account) *vm {
 // debianVM is the Debian 13 VM: george and alice, cloud-init's rule
 // george's.
 func debianVM(t *testing.T) *vm { return newVM(t, debian13(), true, george, alice) }
+
+// elPorts is rockyVM with SELinux enforcing, semanage's stock ssh_port_t
+// (22) and firewalld running with public's stock services (ssh, cockpit,
+// dhcpv6-client), as rocky10-test-110 would have it.
+func elPorts(t *testing.T) *vm {
+	v := rockyVM(t).enforcing()
+	v.sshPorts = []uint16{22}
+	v.fw = &fwModel{services: []string{"cockpit", "dhcpv6-client", "ssh"}, runtime: map[string]bool{}, perm: map[string]bool{}}
+	return v
+}
 
 // enforcing turns SELinux on, enforcing, as on rocky10-test-110.
 func (v *vm) enforcing() *vm {
@@ -593,6 +716,18 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 			t = "bin_t"
 		}
 		return hostfake.Response{Stdout: "system_u:object_r:" + t + ":s0\n"}
+	case "semanage":
+		return v.semanage(argv)
+	case "firewall-cmd":
+		if v.fw == nil {
+			return hostfake.Response{Err: host.ErrNotFound}
+		}
+		return v.fw.run(argv)
+	case "firewall-offline-cmd":
+		if v.fw == nil {
+			return hostfake.Response{Err: host.ErrNotFound}
+		}
+		return v.fw.offline(argv)
 	case "matchpathcon": // -V: each path verified, but those in v.mislabeled
 		var b strings.Builder
 		for _, p := range argv[2:] {
@@ -655,6 +790,8 @@ func (v *vm) systemctl(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: no + "\n", ExitCode: code}
 	}
 	switch cmd := strings.Join(argv, " "); {
+	case v.fw != nil && cmd == "systemctl is-enabled firewalld.service":
+		return state(v.fw.enabled, "enabled", "disabled", 1), true
 	case v.sshdUnits && (cmd == "systemctl is-enabled ssh.service" || cmd == "systemctl is-enabled ssh.socket"):
 		return hostfake.Response{Stdout: "not-found\n", ExitCode: 4}, true
 	case v.sshdUnits && (cmd == "systemctl is-active ssh.service" || cmd == "systemctl is-active ssh.socket"):

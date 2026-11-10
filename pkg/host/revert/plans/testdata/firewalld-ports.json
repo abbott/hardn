@@ -1,0 +1,13 @@
+{
+  "ports": [
+    {
+      "zone": "public",
+      "port": 2230
+    },
+    {
+      "zone": "public",
+      "port": 2230,
+      "permanent": true
+    }
+  ]
+}

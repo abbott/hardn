@@ -3,7 +3,7 @@
 > **Unit:** the second Rocky/AlmaLinux unit (the maintainer, 2026-11-09: "Start unit 2"), after [el-readonly.md](el-readonly.md).
 > **Status:** built and tested on macOS against the recording fake, and run on rocky10-test-110 (§3c, §4).
 
-Rocky Linux and AlmaLinux 10 and 9 are Supported. hardn changes what moves no SSH port, and refuses the rest with words that say why.
+Rocky Linux and AlmaLinux 10 and 9 are Supported. hardn changes what moves no SSH port, and refuses the rest with words that say why. **Since unit 3a** ([el-ports.md](el-ports.md)) the port changes too; §1.5's port row and `SSH_PORT_EL_REFUSED` are gone, and the Firewall row reads firewalld.
 
 ## 1. What it does
 

@@ -20,10 +20,12 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/host/selinux"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 )
 
@@ -257,6 +259,21 @@ func units() []unit {
 			},
 			"an unknown field": unknownField,
 		}},
+		{"firewalld-ports", firewalldSetup, map[string]func(*testing.T, *hostfake.System){
+			"an argument for a zone": func(t *testing.T, f *hostfake.System) {
+				editPlan(t, f, func(u *firewalld.Undo) { u.Ports[0].Zone = "public --reload" })
+			},
+			"port 0": func(t *testing.T, f *hostfake.System) {
+				editPlan(t, f, func(u *firewalld.Undo) { u.Ports[1].Port = 0 })
+			},
+			"an unknown field": unknownField,
+		}},
+		{"selinux-ports", selinuxSetup, map[string]func(*testing.T, *hostfake.System){
+			"port 0": func(t *testing.T, f *hostfake.System) {
+				editPlan(t, f, func(u *selinux.PortsUndo) { u.Ports = append(u.Ports, 0) })
+			},
+			"an unknown field": unknownField,
+		}},
 	}
 }
 
@@ -336,7 +353,7 @@ func TestPVENodeKeyInAdded(t *testing.T) {
 	}
 }
 
-// TestRegistry: Registry names the four units, each with a rollback, and
+// TestRegistry: Registry names the six units, each with a rollback, and
 // each step function names its unit.
 func TestRegistry(t *testing.T) {
 	r := plans.Registry()
@@ -348,7 +365,7 @@ func TestRegistry(t *testing.T) {
 		names = append(names, n)
 	}
 	slices.Sort(names)
-	if want := []string{"alpine-updates", "dns", "pve-keys", "sudoers"}; !slices.Equal(names, want) {
+	if want := []string{"alpine-updates", "dns", "firewalld-ports", "pve-keys", "selinux-ports", "sudoers"}; !slices.Equal(names, want) {
 		t.Errorf("Registry = %q, want %q", names, want)
 	}
 	if plans.UnitPVEKeys != pve.KeysUnit {
@@ -592,6 +609,89 @@ func pveSetup(t *testing.T) (*hostfake.System, revert.Step, func(), func(*testin
 		l, ok := f.Entry(pve.RootKeys)
 		if string(e.Data) != keyWeb01+"\n" || !ok || l.Mode&fs.ModeSymlink == 0 {
 			t.Errorf("keys %q, %s a link %v; want root@web-01's alone, through the link", e.Data, pve.RootKeys, ok && l.Mode&fs.ModeSymlink != 0)
+		}
+	}
+	return f, step, apply, restored
+}
+
+// firewalldSetup: port 2230 let through public at runtime and
+// permanently, firewalld running.
+func firewalldSetup(t *testing.T) (*hostfake.System, revert.Step, func(), func(*testing.T)) {
+	there := map[bool]bool{} // permanent: 2230/tcp added
+	f := newHost(func(cmd string) (hostfake.Response, bool) {
+		perm := strings.Contains(cmd, " --permanent ")
+		switch strings.Replace(cmd, " --permanent", "", 1) {
+		case "firewall-cmd --state":
+			return hostfake.Response{Stdout: "running\n"}, true
+		case "firewall-cmd --zone=public --query-port=2230/tcp":
+			if there[perm] {
+				return hostfake.Response{Stdout: "yes\n"}, true
+			}
+			return hostfake.Response{Stdout: "no\n", ExitCode: 1}, true
+		case "firewall-cmd --zone=public --add-port=2230/tcp":
+			there[perm] = true
+			return hostfake.Response{Stdout: "success\n"}, true
+		case "firewall-cmd --zone=public --remove-port=2230/tcp":
+			there[perm] = false
+			return hostfake.Response{Stdout: "success\n"}, true
+		}
+		return hostfake.Response{}, false
+	})
+	p := firewalld.Plan{Zones: []string{"public"}, Steps: []firewalld.Step{{Zone: "public", Port: 2230}, {Zone: "public", Port: 2230, Permanent: true}}}
+	step, err := plans.Firewalld(p.Undo(), "the SSH port hardn let through firewalld")
+	if err != nil {
+		t.Fatal(err)
+	}
+	apply := func() {
+		for _, s := range p.Steps {
+			a := s.Argv()
+			if _, err := f.Run(ctx, a[0], a[1:]...); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if !there[false] || !there[true] {
+			t.Fatalf("not added: %v", there)
+		}
+	}
+	restored := func(t *testing.T) {
+		if there[false] || there[true] {
+			t.Errorf("2230/tcp still let through: %v", there)
+		}
+	}
+	return f, step, apply, restored
+}
+
+// selinuxSetup: port 2230 labelled ssh_port_t beside the policy's 22.
+func selinuxSetup(t *testing.T) (*hostfake.System, revert.Step, func(), func(*testing.T)) {
+	labelled := false
+	f := newHost(func(cmd string) (hostfake.Response, bool) {
+		switch cmd {
+		case "semanage port -l":
+			if labelled {
+				return hostfake.Response{Stdout: "ssh_port_t tcp 2230, 22\n"}, true
+			}
+			return hostfake.Response{Stdout: "ssh_port_t tcp 22\n"}, true
+		case "semanage port -a -t ssh_port_t -p tcp 2230":
+			labelled = true
+			return hostfake.Response{}, true
+		case "semanage port -d -t ssh_port_t -p tcp 2230":
+			labelled = false
+			return hostfake.Response{}, true
+		}
+		return hostfake.Response{}, false
+	})
+	step, err := plans.SELinuxPorts(selinux.PortsUndo{Ports: []uint16{2230}}, "the SSH port's SELinux label hardn added")
+	if err != nil {
+		t.Fatal(err)
+	}
+	apply := func() {
+		if _, err := f.Run(ctx, "semanage", "port", "-a", "-t", "ssh_port_t", "-p", "tcp", "2230"); err != nil || !labelled {
+			t.Fatalf("label: %v", err)
+		}
+	}
+	restored := func(t *testing.T) {
+		if labelled {
+			t.Error("2230 still ssh_port_t")
 		}
 	}
 	return f, step, apply, restored

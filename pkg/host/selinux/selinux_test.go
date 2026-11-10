@@ -106,3 +106,56 @@ func TestCheckRunnable(t *testing.T) {
 		t.Errorf("permissive: %v, ran %q", err, f.Runs())
 	}
 }
+
+const portList = "SELinux Port Type              Proto    Port Number\n\n" +
+	"http_port_t                    tcp      80, 81, 443, 488, 8008, 8009, 8443, 9000\n" +
+	"ssh_port_t                     tcp      22\n" +
+	"unreserved_port_t              tcp      61000-65535, 1024-32767\n"
+
+// TestPlanSSHPort: a port only a range holds is labelled, and its undo
+// takes the label away; one ssh_port_t names already needs nothing; one
+// another type names alone is ErrPortTaken; no semanage is ErrNoSemanage;
+// SELinux disabled asks nothing.
+func TestPlanSSHPort(t *testing.T) {
+	ctx := context.Background()
+	for _, c := range []struct {
+		port uint16
+		want error
+		step bool
+	}{{2230, nil, true}, {22, nil, false}, {8443, selinux.ErrPortTaken, false}} {
+		f := host1("1")
+		f.Respond(hostfake.Response{Stdout: portList}, "semanage", "port", "-l")
+		s, err := selinux.PlanSSHPort(ctx, f, c.port)
+		if !errors.Is(err, c.want) || (c.want == nil) != (err == nil) || (s != nil) != c.step {
+			t.Errorf("%d: %+v, %v", c.port, s, err)
+		}
+		if s != nil && (s.Argv[2] != "-a" || s.Port != 2230 || s.Argv[7] != "2230") {
+			t.Errorf("%d: %+v", c.port, s)
+		}
+	}
+	f := host1("0")
+	f.Respond(hostfake.Response{Err: host.ErrNotFound}, "semanage", "port", "-l")
+	if _, err := selinux.PlanSSHPort(ctx, f, 2230); !errors.Is(err, selinux.ErrNoSemanage) {
+		t.Errorf("permissive, no semanage: %v", err)
+	}
+	f = host1("")
+	if s, err := selinux.PlanSSHPort(ctx, f, 2230); s != nil || err != nil || len(f.Runs()) != 0 {
+		t.Errorf("disabled: %+v, %v, ran %q", s, err, f.Runs())
+	}
+}
+
+// TestRollbackPorts: a port semanage lists as ssh_port_t on its own is
+// taken away; one it doesn't (never labelled, or taken away already), or
+// the policy's 22 when not asked, is left.
+func TestRollbackPorts(t *testing.T) {
+	ctx := context.Background()
+	f := host1("1")
+	f.Respond(hostfake.Response{Stdout: portList + "ssh_port_t tcp 2240, 22\n"}, "semanage", "port", "-l")
+	f.Respond(hostfake.Response{}, "semanage", "port", "-d", "-t", "ssh_port_t", "-p", "tcp", "2240")
+	if err := selinux.RollbackPorts(ctx, f, selinux.PortsUndo{Ports: []uint16{2230, 2240}}); err != nil || len(f.Runs()) != 2 {
+		t.Errorf("rollback: %v, ran %q", err, f.Runs())
+	}
+	if err := selinux.RollbackPorts(ctx, f, selinux.PortsUndo{Ports: []uint16{0}}); err == nil {
+		t.Errorf("port 0: nil")
+	}
+}

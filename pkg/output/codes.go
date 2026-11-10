@@ -39,6 +39,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/dns"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -325,7 +326,12 @@ var errorCodes = []Entry{
 	is("PVE_NOT_APPLICABLE", pve.ErrNotApplicable),
 	is("PVE_UNKNOWN", pve.ErrProxmoxUnknown).what("whether the host runs Proxmox VE is not established, so its rules cannot be applied"),
 	is("PVE_PORT_CHANGE_REFUSED", pve.ErrPortChange),
-	is("SSH_PORT_EL_REFUSED", steps.ErrELPort),
+	is("SELINUX_NO_SEMANAGE", selinux.ErrNoSemanage),
+	is("SELINUX_PORT_TAKEN", selinux.ErrPortTaken),
+	is("FIREWALLD_NO_SSH_PATH", firewalld.ErrNoSSHPath),
+	is("FIREWALLD_STOPPED", firewalld.ErrStartsAtBoot),
+	is("FIREWALLD_NOT_LET_THROUGH", firewalld.ErrNotLetThrough),
+	is("FIREWALLD_UNKNOWN", firewalld.ErrUnknown),
 	is("PVE_ROOT_EXCLUDED", pve.ErrRootExcluded),
 	is("PVE_ROOT_PASSWORD_KEPT", pve.ErrRootPassword),
 	is("PVE_CLUSTER_FS_DOWN", pve.ErrClusterFSDown),
