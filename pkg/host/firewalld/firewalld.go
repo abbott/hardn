@@ -102,9 +102,10 @@ func Read(ctx context.Context, sys host.System) (State, error) {
 }
 
 // unit reads systemctl is-active and is-enabled of firewalld.service: the
-// words they print (stdout, whatever their exit). An is-enabled that
-// prints nothing is the word "", not an error. A systemctl that didn't
-// run is ErrUnknown.
+// words they print (stdout, whatever their exit). systemd 252's is-enabled
+// answer for a unit it knows no file of is "not-found" (detect.MissingUnit:
+// EL9, firewalld not installed); any other is-enabled that prints nothing
+// is the word "", not an error. A systemctl that didn't run is ErrUnknown.
 func unit(ctx context.Context, sys host.System) (active, enabled string, err error) {
 	for _, c := range []struct {
 		verb string
@@ -116,6 +117,9 @@ func unit(ctx context.Context, sys host.System) (active, enabled string, err err
 			return "", "", fmt.Errorf("firewalld: %w: %w", ErrUnknown, err)
 		}
 		*c.out = strings.TrimSpace(string(res.Stdout))
+		if c.verb == "is-enabled" && detect.MissingUnit(res, Service) {
+			*c.out = "not-found"
+		}
 	}
 	return active, enabled, nil
 }

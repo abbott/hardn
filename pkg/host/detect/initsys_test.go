@@ -441,6 +441,63 @@ func matches(err, want error) bool {
 	return errors.Is(err, want)
 }
 
+// TestSystemctlSystemd252: systemd 252's is-enabled answer for a unit it
+// knows no file of (nothing on stdout, exit 1, the line on stderr:
+// alma9-test-111, rocky9-test-113) is not-found, as systemd 257 prints it;
+// the line with another unit's name, another error, another exit or a second
+// line, nothing on stderr, or from is-active, is not.
+func TestSystemctlSystemd252(t *testing.T) {
+	ctx := context.Background()
+	const unit = "dnf-automatic.timer"
+	line := "Failed to get unit file state for dnf-automatic.timer: No such file or directory\n"
+	for _, tt := range []struct {
+		name, verb string
+		res        hostfake.Response
+		state      string
+		err        error
+	}{
+		{"systemd 252, no such unit", "is-enabled", hostfake.Response{Stderr: line, ExitCode: 1}, "not-found", nil},
+		{"systemd 257, no such unit", "is-enabled", out("not-found\n", 4), "not-found", nil},
+		{"another unit's name", "is-enabled", hostfake.Response{Stderr: "Failed to get unit file state for dnf-automatic-install.timer: No such file or directory\n", ExitCode: 1}, "", detect.ErrUnrecognised},
+		{"another error", "is-enabled", hostfake.Response{Stderr: "Failed to get unit file state for dnf-automatic.timer: Access denied\n", ExitCode: 1}, "", detect.ErrUnrecognised},
+		{"another exit", "is-enabled", hostfake.Response{Stderr: line, ExitCode: 4}, "", detect.ErrUnrecognised},
+		{"a second line", "is-enabled", hostfake.Response{Stderr: line + "Failed to connect to bus\n", ExitCode: 1}, "", detect.ErrUnrecognised},
+		{"nothing on stderr", "is-enabled", out("", 1), "", detect.ErrUnrecognised},
+		{"is-active", "is-active", hostfake.Response{Stderr: line, ExitCode: 1}, "", detect.ErrUnrecognised},
+	} {
+		f := newFake(t, "")
+		f.Respond(tt.res, "systemctl", tt.verb, unit)
+		get := detect.SystemctlIsEnabled
+		if tt.verb == "is-active" {
+			get = detect.SystemctlIsActive
+		}
+		if got, err := get(ctx, f, unit); got != tt.state || !matches(err, tt.err) {
+			t.Errorf("%s: %q, %v; want %q, %v", tt.name, got, err, tt.state, tt.err)
+		}
+	}
+}
+
+// TestDetectSSHSystemd252: Rocky Linux and AlmaLinux 9 (systemd 252) answer
+// is-enabled for ssh.socket and ssh.service, which they don't have, with
+// nothing on stdout and exit 1 (alma9-test-111): detection goes on to
+// sshd.socket and sshd.service, as on EL10.
+func TestDetectSSHSystemd252(t *testing.T) {
+	f := newFake(t, "")
+	for _, u := range []string{"ssh.socket", "ssh.service"} {
+		f.Respond(hostfake.Response{Stderr: "Failed to get unit file state for " + u + ": No such file or directory\n", ExitCode: 1}, "systemctl", "is-enabled", u)
+		f.Respond(out("inactive\n", 3), "systemctl", "is-active", u)
+	}
+	f.Respond(out("disabled\n", 1), "systemctl", "is-enabled", "sshd.socket")
+	f.Respond(out("inactive\n", 3), "systemctl", "is-active", "sshd.socket")
+	f.Respond(out("enabled\n", 0), "systemctl", "is-enabled", "sshd.service")
+	f.Respond(out("active\n", 0), "systemctl", "is-active", "sshd.service")
+	got := detect.DetectSSH(context.Background(), f, systemdBooted)
+	if got.Mode != detect.SSHService || !got.SSHDUnits || got.Source != "sshd.service enabled, active" || got.Err != nil {
+		t.Errorf("DetectSSH = %s sshd units %v source %q err %v; want ssh.service, true, \"sshd.service enabled, active\", nil", got.Mode, got.SSHDUnits, got.Source, got.Err)
+	}
+	readOnly(t, f)
+}
+
 // TestSystemctlIsActive: is-active only, the state printed whatever the
 // exit status, and a state systemctl(1) does not list ErrUnrecognised
 // (next/p4-check-updates).

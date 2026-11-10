@@ -192,6 +192,12 @@ func (m *model) answer(argv []string, _ []byte) hostfake.Response {
 			return word("active", true)
 		}
 		if argv[1] == "is-enabled" && ok && w != "active" {
+			switch w { // systemd 252: nothing on stdout, exit 1, why on stderr
+			case "missing (252)":
+				return hostfake.Response{Stderr: "Failed to get unit file state for " + argv[2] + ": No such file or directory\n", ExitCode: 1}
+			case "access denied (252)":
+				return hostfake.Response{Stderr: "Failed to get unit file state for " + argv[2] + ": Access denied\n", ExitCode: 1}
+			}
 			return word(w, w == "enabled")
 		}
 	}
@@ -293,6 +299,9 @@ func TestPlanEnable(t *testing.T) {
 		}, firewalld.ErrNoCleanup},
 		{"iptables active", stopped, func(m *model) { m.others = map[string]string{"iptables.service": "active"} }, firewalld.ErrOtherFirewall},
 		{"nftables enabled", stopped, func(m *model) { m.others = map[string]string{"nftables.service": "enabled"} }, firewalld.ErrOtherFirewall},
+		{"iptables missing, systemd 252", stopped, func(m *model) { m.others = map[string]string{"iptables.service": "missing (252)"} }, nil},
+		{"iptables unread, systemd 252", stopped, func(m *model) { m.others = map[string]string{"iptables.service": "access denied (252)"} }, firewalld.ErrUnknown},
+		{"iptables prints nothing", stopped, func(m *model) { m.others = map[string]string{"iptables.service": ""} }, firewalld.ErrUnknown},
 		{"NetworkManager binds eth0 to drop", stopped, func(m *model) { m.nm = "drop" }, firewalld.ErrZoneNoSSH},
 		{"a zone file binds a source to internal, no 2230", stopped, func(m *model) { m.zones["internal"].source = []string{"10.0.0.0/8"} }, firewalld.ErrZoneNoSSH},
 	} {

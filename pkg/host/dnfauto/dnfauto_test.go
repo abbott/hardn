@@ -121,6 +121,17 @@ func TestRead(t *testing.T) {
 			t.Errorf("not installed: %s", c)
 		}
 	}
+	// Not installed on systemd 252 (alma9-test-111): each timer's is-active
+	// inactive, exit 3, and is-enabled nothing on stdout, exit 1.
+	h = hostfake.New(host.Options{})
+	h.Respond(hostfake.Response{Stdout: "package dnf-automatic is not installed\n", ExitCode: 1}, "rpm", "-q", "dnf-automatic")
+	for _, tm := range []string{dnfauto.InstallTimer, dnfauto.PlainTimer} {
+		h.Respond(hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, "systemctl", "is-active", tm)
+		h.Respond(hostfake.Response{Stderr: "Failed to get unit file state for " + tm + ": No such file or directory\n", ExitCode: 1}, "systemctl", "is-enabled", tm)
+	}
+	if u = dnfauto.Read(ctx, h); u.Package != detect.No || u.Err() != nil || u.Install.Enabled != "not-found" || u.Plain.Enabled != "not-found" {
+		t.Errorf("not installed, systemd 252: %+v, ran %q", u, h.Runs())
+	}
 	h = hostfake.New(host.Options{})
 	h.Respond(hostfake.Response{Stdout: "dnf-automatic-4.20.0-22.el10_2.rocky.0.1.noarch\n"}, "rpm", "-q", "dnf-automatic")
 	unit(h, dnfauto.InstallTimer, "inactive", "disabled")

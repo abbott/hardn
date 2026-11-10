@@ -8,7 +8,7 @@ hardn now starts on Rocky Linux and AlmaLinux, reads them, and refuses every cha
 ## 1. What it does
 
 1. **Two distributions, no matrix row.** `detect.DistroRocky` (`rocky`) and `detect.DistroAlma` (`almalinux`) are told apart by os-release's `ID`. `Distro.EL` is true for both and nothing else. `Platform.Version` is `VERSION_ID`'s major (`10.2` gives `10`); a `VERSION_ID` that is not two numbers gives `""`. The matrix has no row for either, so both are `Unlisted`: the support gate refuses every plan with changes (`engine.ErrUnsupported`, [engine.md](engine.md) §2.6). RHEL itself (`rhel`), CentOS Stream and the other rebuilds stay `DistroOther`, so hardn still won't start on them.
-2. **sshd.service.** Where systemd knows neither `ssh.socket` nor `ssh.service` (both `not-found` and inactive), `DetectSSH` asks about `sshd.socket` and `sshd.service` (`SSH.SSHDUnits`; `SSH.SocketUnit()`, `ServiceUnit()`). An enabled or active `sshd.service` is `SSHService`. An enabled or active `sshd.socket` is `ErrUnrecognised`: it starts one sshd per connection (`Accept=yes`, `sshd@.service`), unlike the Debian family's `ssh.socket`, which hardn reads. A host with either `ssh.*` unit found, or running though its file is gone (a Debian sshd removed but not restarted), is decided as before and never asked about `sshd.*`.
+2. **sshd.service.** Where systemd knows neither `ssh.socket` nor `ssh.service` (both `not-found` and inactive; systemd 252, on EL9, prints nothing for them, exit 1, with `Failed to get unit file state` on stderr, which `detect.MissingUnit` reads as `not-found`), `DetectSSH` asks about `sshd.socket` and `sshd.service` (`SSH.SSHDUnits`; `SSH.SocketUnit()`, `ServiceUnit()`). An enabled or active `sshd.service` is `SSHService`. An enabled or active `sshd.socket` is `ErrUnrecognised`: it starts one sshd per connection (`Accept=yes`, `sshd@.service`), unlike the Debian family's `ssh.socket`, which hardn reads. A host with either `ssh.*` unit found, or running though its file is gone (a Debian sshd removed but not restarted), is decided as before and never asked about `sshd.*`.
 3. **No reload yet.** `reload.PlanFor` refuses `SSHDUnits` (`ErrModeUnknown`, "hardn does not reload sshd.service yet"). The support gate already refuses first. This refusal is there in case a later row lifts the gate before a reload has run on a VM.
 4. **The status rows.**
    - AppArmor: with the kernel's AppArmor off, Not Applicable, "uses SELinux" (proposed words) while SELinux enforces (`/sys/fs/selinux/enforce` is `1`); "off in kernel" (Not Configured, in the risk level) when it is permissive (`0`) or disabled (no selinuxfs); Unknown otherwise.
@@ -72,7 +72,7 @@ AlmaLinux is not read from a host: its `ID` and `VERSION_ID` form are the vendor
 
 The User row's `USERS_NOPASSWD` names cloud-init's `90-cloud-init-users`. The probe's facts agree with each row.
 
-Not run: hardn itself (`hardn -n`, the main menu), and AlmaLinux.
+Not run: hardn itself (`hardn -n`, the main menu), and AlmaLinux. Both ran later (§7).
 
 ## 5. What the next units must do
 
@@ -87,3 +87,12 @@ Not run: hardn itself (`hardn -n`, the main menu), and AlmaLinux.
 - No matrix row: Unlisted until unit 2. The README said "read only" until then.
 - AlmaLinux with Rocky Linux, from os-release's documented form; no VM.
 - The crypto policy's Include: that one path, followed to a file of crypto settings only (the maintainer, 2026-11-09), not any absolute Include. A Debian drop-in holding any other Include is refused as before.
+
+## 7. Run on AlmaLinux 9 and 10 and Rocky Linux 9 (2026-11-10)
+
+`alma9-test-111` (AlmaLinux 9.8, systemd 252), `alma10-test-112` (AlmaLinux 10.2, systemd 257) and `rocky9-test-113` (Rocky Linux 9.8, systemd 252): x86_64, SELinux enforcing, no firewalld or dnf-automatic.
+
+- `go vet`, `go test` and p4status on Linux pass on all three.
+- The changes run on rocky10-test-110 ran on each: root login off ([el-changes.md](el-changes.md)); the SSH port to 2230 and back, refused on the Alma hosts until semanage was installed ([el-ports.md](el-ports.md)); the Firewall screen's Install, Enable, Disable and a port move with firewalld running ([el-firewalld.md](el-firewalld.md)); Auto Updates ([el-updates.md](el-updates.md)). Each host matched its snapshot after.
+- **EL9 found one defect, fixed since.** systemd 252 answers `is-enabled` for a unit it has no file of with nothing, exit 1 and `Failed to get unit file state` on stderr, not `not-found`. hardn read that as unrecognised and refused root login off, the run's first change (`detect.MissingUnit`, [detect.md](../safety/detect.md)).
+- **AlmaLinux reads the pending reboot as Unknown.** It has no `needs-restarting` command, which comes from yum-utils; `dnf needs-restarting -r` answers on all three.

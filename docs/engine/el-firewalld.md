@@ -33,8 +33,8 @@
 
 Item 1 where firewalld isn't installed.
 
-- **Refused** (`FIREWALLD_OTHER_FIREWALL`) where ufw is installed, or another firewall unit is active or enabled: `iptables`, `ip6tables`, `ebtables` and `ipset` (firewalld's `Conflicts=`), and `nftables`.
-- **Refused** (`FIREWALLD_BOOT_BLOCKED`) where `firewalld.service` is masked already: hardn leaves a mask it didn't make. A mask with no unit file (`firewalld.UnitFile`) reads as firewalld not installed.
+- **Refused** (`FIREWALLD_OTHER_FIREWALL`) where ufw is installed, or another firewall unit is active or enabled: `iptables`, `ip6tables`, `ebtables` and `ipset` (firewalld's `Conflicts=`), and `nftables`. An `is-enabled` that prints nothing, but for systemd 252's answer for a missing unit, refuses as unread (`FIREWALLD_UNKNOWN`).
+- **Refused** (`FIREWALLD_BOOT_BLOCKED`) where `firewalld.service` is masked already: hardn leaves a mask it didn't make. A mask with no unit file (`firewalld.UnitFile`) reads as firewalld not installed, as does `not-found`, which systemd 252 (EL9) prints as nothing, exit 1, with `Failed to get unit file state` on stderr (`detect.MissingUnit`).
 - **The preset is kept from enabling it.** Rocky's `90-default.preset` enables `firewalld.service`, so the package would start at the next boot. The change runs:
   1. `systemctl mask firewalld.service` (a link to /dev/null, which the package's preset can't enable);
   2. the install;

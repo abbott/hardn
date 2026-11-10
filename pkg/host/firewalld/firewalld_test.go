@@ -28,6 +28,14 @@ func unitIs(h *hostfake.System, active, enabled string) {
 	respond(h, hostfake.Response{Stdout: enabled + "\n", ExitCode: map[bool]int{false: 1}[enabled == "enabled"]}, "systemctl", "is-enabled", "firewalld.service")
 }
 
+// missing252 scripts firewalld.service as systemd 252 answers for a unit it
+// knows no file of (alma9-test-111, firewalld not installed): is-active
+// inactive, exit 3; is-enabled nothing on stdout, exit 1, the line on stderr.
+func missing252(h *hostfake.System) {
+	respond(h, hostfake.Response{Stdout: "inactive\n", ExitCode: 3}, "systemctl", "is-active", "firewalld.service")
+	respond(h, hostfake.Response{Stderr: "Failed to get unit file state for firewalld.service: No such file or directory\n", ExitCode: 1}, "systemctl", "is-enabled", "firewalld.service")
+}
+
 // running scripts firewalld running, public the default zone.
 func running(h *hostfake.System, enabled, active string) {
 	unitIs(h, "active", enabled)
@@ -45,6 +53,11 @@ func TestRead(t *testing.T) {
 	unitIs(h, "inactive", "not-found")
 	if st, err := firewalld.Read(ctx, h); err != nil || st.Installed != detect.No || st.Running != detect.No || len(h.Runs()) != 2 {
 		t.Errorf("missing: %+v, %v, ran %q", st, err, h.Runs())
+	}
+	h = hostfake.New(host.Options{})
+	missing252(h)
+	if st, err := firewalld.Read(ctx, h); err != nil || st.Installed != detect.No || st.Running != detect.No || st.Unit != "not-found" || len(h.Runs()) != 2 {
+		t.Errorf("missing, systemd 252: %+v, %v, ran %q", st, err, h.Runs())
 	}
 	h = hostfake.New(host.Options{})
 	unitIs(h, "inactive", "masked") // a mask of a firewalld not installed
@@ -268,6 +281,11 @@ func TestRollback(t *testing.T) {
 	unitIs(h, "inactive", "not-found")
 	if err := firewalld.Rollback(ctx, h, u); err != nil || len(h.Runs()) != 2 {
 		t.Errorf("not installed: %v, ran %q", err, h.Runs())
+	}
+	h = hostfake.New(host.Options{})
+	missing252(h)
+	if err := firewalld.Rollback(ctx, h, u); err != nil || len(h.Runs()) != 2 {
+		t.Errorf("not installed, systemd 252: %v, ran %q", err, h.Runs())
 	}
 	if err := firewalld.Rollback(ctx, h, firewalld.Undo{Ports: []firewalld.Step{{Zone: "a b", Port: 2230}}}); err == nil {
 		t.Errorf("a zone with a space: nil")

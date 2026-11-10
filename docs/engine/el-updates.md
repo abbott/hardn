@@ -9,7 +9,7 @@
 
 ### 1.1 The row
 
-`dnf-automatic` (rpm -q); its install and plain timers (`systemctl is-active`, `is-enabled`) wherever rpm answered (not installed: `not-found` and `inactive`, exit 4, on rocky10-test-110); where installed, `/etc/dnf/automatic.conf`'s `[commands]` `upgrade_type`, `apply_updates` and `reboot`. dnf matches a key's name case-sensitively and ignores one it doesn't know (VM-read 2026-11-10), so one of these three in another case is `UPDATES_DNF_CONF`, as is a key twice; `upgrade_type` and `reboot` take their values exactly, `apply_updates` a boolean in any case. The words are proposed.
+`dnf-automatic` (rpm -q); its install and plain timers (`systemctl is-active`, `is-enabled`) wherever rpm answered (not installed: `not-found` and `inactive`, exit 4, on rocky10-test-110; on EL9's systemd 252, `is-enabled` prints nothing, exit 1, with `Failed to get unit file state` on stderr, read as `not-found` (`detect.MissingUnit`), and `is-active` `inactive`, exit 3); where installed, `/etc/dnf/automatic.conf`'s `[commands]` `upgrade_type`, `apply_updates` and `reboot`. dnf matches a key's name case-sensitively and ignores one it doesn't know (VM-read 2026-11-10), so one of these three in another case is `UPDATES_DNF_CONF`, as is a key twice; `upgrade_type` and `reboot` take their values exactly, `apply_updates` a boolean in any case. The words are proposed.
 
 | Host | Row |
 |---|---|

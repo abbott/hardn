@@ -83,7 +83,9 @@ func (e *ZoneError) Is(target error) bool { return target == ErrZoneNoSSH }
 
 // CheckOthers refuses where a unit of OtherFirewalls is active, or where
 // is-enabled says "enabled" (or another word that starts it at boot);
-// "not-found", "disabled", "masked" and nothing are fine.
+// "not-found" (systemd 252's answer for a unit it knows no file of too,
+// detect.MissingUnit), "disabled", "masked" and "static" are fine. An
+// is-enabled that prints nothing else is ErrUnknown.
 func CheckOthers(ctx context.Context, sys host.System) error {
 	var on []string
 	for _, u := range OtherFirewalls {
@@ -93,10 +95,16 @@ func CheckOthers(ctx context.Context, sys host.System) error {
 			if err != nil && !errors.As(err, &xe) {
 				return fmt.Errorf("firewalld: %w: %w", ErrUnknown, err)
 			}
-			switch w := strings.TrimSpace(string(res.Stdout)); {
+			w := strings.TrimSpace(string(res.Stdout))
+			if verb == "is-enabled" && detect.MissingUnit(res, u) {
+				w = "not-found"
+			}
+			switch {
 			case verb == "is-active" && (w == "active" || w == "activating" || w == "reloading"):
 				on = append(on, u+" "+w)
-			case verb == "is-enabled" && w != "" && w != "not-found" && w != "disabled" && w != "masked" && w != "static":
+			case verb == "is-enabled" && w == "":
+				return fmt.Errorf("firewalld: systemctl is-enabled %s printed nothing (exit %d): %w", u, res.ExitCode, ErrUnknown)
+			case verb == "is-enabled" && w != "not-found" && w != "disabled" && w != "masked" && w != "static":
 				on = append(on, u+" "+w)
 			}
 		}

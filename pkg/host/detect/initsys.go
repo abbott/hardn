@@ -288,6 +288,22 @@ func (s SSH) ServiceUnit() string {
 // notFound: systemctl knows no unit of that name.
 const notFound = "not-found"
 
+// missingUnit is how systemd 252 answers is-enabled for a unit it knows no
+// file of: nothing on stdout, exit 1, and this line on stderr, LC_ALL=C
+// being host.Real's (seen on Rocky Linux and AlmaLinux 9, alma9-test-111
+// and rocky9-test-113, 2026-11-10; Debian 12 ships 252 too, not run).
+// systemd 257 prints not-found, exit 4 (Rocky Linux and AlmaLinux 10).
+const missingUnit = "Failed to get unit file state for %s: No such file or directory"
+
+// MissingUnit reports whether res is systemd 252's is-enabled answer for a
+// unit it knows no file of (missingUnit), which later systemd prints as
+// not-found. Only that form, for that unit: any other answer that prints
+// nothing is not one.
+func MissingUnit(res host.Result, unit string) bool {
+	return firstLine(res.Stdout) == "" && res.ExitCode == 1 &&
+		strings.TrimSpace(string(res.Stderr)) == fmt.Sprintf(missingUnit, unit)
+}
+
 // sshdUnits tells sshd.service from sshd.socket where systemd has neither
 // ssh.socket nor ssh.service. Rocky Linux's and AlmaLinux's sshd.socket
 // starts one sshd per connection (Accept=yes, sshd@.service), which is not
@@ -435,12 +451,16 @@ var unitStates = map[string]map[string]Tri{
 
 // systemctl runs systemctl verb unit and returns the state it printed. Both
 // verbs exit non-zero for a state that is not "on", so an exit error with a
-// documented state is an answer, not a failure.
+// documented state is an answer, not a failure. systemd 252's is-enabled
+// answer for a unit it knows no file of is not-found (MissingUnit).
 func systemctl(ctx context.Context, sys host.System, verb, unit string) (string, error) {
 	res, err := sys.Run(ctx, "systemctl", verb, unit)
 	var xe *host.ExitError
 	if err != nil && !errors.As(err, &xe) {
 		return "", err
+	}
+	if verb == "is-enabled" && MissingUnit(res, unit) {
+		return notFound, nil
 	}
 	state := firstLine(res.Stdout)
 	if _, ok := unitStates[verb][state]; !ok {

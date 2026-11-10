@@ -93,7 +93,7 @@ It found two defects, both fixed since:
 - **The boot unit ordered itself `Before=ssh.service ssh.socket`,** units Rocky Linux doesn't have, so nothing put its boot-time rollback before sshd. It now names `sshd.service` and `sshd.socket` too, on every host: a unit that doesn't exist orders nothing ([revert-boot.md](../safety/revert-boot.md) §2).
 - **The reload step was titled "Reload sshd (ssh.service)".** It now says `sshd.service`.
 
-Not run: a reboot inside the confirm window, and AlmaLinux.
+Not run: a reboot inside the confirm window, and AlmaLinux (run since: [el-readonly.md](el-readonly.md) §7).
 
 ## 5. What the next units must do
 
