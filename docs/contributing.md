@@ -78,7 +78,7 @@ Use synthetic values only, in tests, goldens and docs: user names such as `georg
 hardn uses semantic versioning. A release is cut from a tag `v<major>.<minor>.<patch>`; a tag with a suffix (`v1.2.3-rc1`) is not released.
 
 1. **Release notes.** `docs/releases/unreleased.md` becomes `docs/releases/v<x.y.z>.md`. The release's body is that file at the tagged commit; the release fails before building anything when it is missing or empty.
-2. **The version.** Set `VERSION` (and `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`) in the makefile, and commit.
+2. **The version.** Set `VERSION` (and `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`) in the makefile, point the README's `verify.sh` and release-notes links at the new tag, and commit.
 3. **The tag.** `make tag` makes the annotated tag `v$(VERSION)` locally and prints the command that pushes it, `git push origin refs/tags/v<x.y.z>`. `make release` runs `go test`, builds the three binaries with archives and `.sha256` files under `build/` for a local look, then makes the tag the same way. **Neither pushes anything.**
 4. **Pushing the tag** is the maintainer's step, and it starts `.github/workflows/release.yml`:
    - checks the tag's form and the release notes;

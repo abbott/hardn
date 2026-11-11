@@ -14,7 +14,7 @@ A simple hardening tool for Linux.
 Anyone managing a **privately owned** Linux server, container, or virtual machine, such as Homelab enthusiasts and Students.
 
 > [!NOTE]
-> While the binary distributions are [SLSA3](https://slsa.dev) and [Sigstore](https://www.sigstore.dev/) compliant, hardn is **<ins>not intended for enterprise use</ins>**.
+> While the binaries carry [SLSA](https://slsa.dev) Build Level 3 provenance and are signed with [Sigstore](https://www.sigstore.dev/), hardn is **<ins>not intended for enterprise use</ins>**.
 
 ## Overview
 
@@ -29,7 +29,7 @@ Anyone managing a **privately owned** Linux server, container, or virtual machin
 - **<ins>ZERO</ins>** telemetry: `hardn` never phones home.
 
 ### What It Does
-`sudo hardn` displays a **risk level** based on the current host configuration of users, SSH, firewall, DNS, automatic updates and AppArmor. Utilize the **menu options** to configure each of the following:
+`sudo hardn` displays a [**risk level**](docs/engine/risk.md) based on the current host configuration of users, SSH, firewall, DNS, automatic updates and AppArmor. Utilize the **menu options** to configure each of the following:
 
 | Option | Displays | Configures |
 |---|---|---|
@@ -55,7 +55,7 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 
 ### Safety
 
-- **Refused before anything changes.** hardn won't make a change it can't show to be safe:
+- **Refused before anything changes.** hardn refuses these changes when it can't show them to be safe:
   - **Root login.** Turning root's SSH login off is refused unless another admin can still log in and become root (by key, or by password while password login is on). It is also refused while you are logged in as root over SSH.
   - **Password login.** Turning password login off is refused if you logged in with a password, if an admin has a password and no key, or if no admin could log in by key.
   - **Firewall.** Enabling `ufw` first lets through every port sshd listens on. It is refused if hardn can't tell which ports those are, or if a rule already there would block SSH.
@@ -82,7 +82,7 @@ _When a host uses `doas` (Alpine), pipe to `doas sh` instead of `sudo sh`._
 **The script will**:
 
 - Find the latest release through the GitHub API (or take `HARDN_VERSION`, below), and its asset for the system: `hardn-linux-amd64`, `hardn-linux-arm64` or `hardn-darwin-amd64`. There is no armv7 build, so on armv7 it stops.
-- Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing. Without gh, it installs on the SHA-256 alone and prints the commands that check the attestation.
+- Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing. Without gh, it installs on the SHA-256 alone and prints the commands that check the attestation. The SHA-256 shows the download matches the release; only the attestation shows the release was built by hardn's workflow from its tag.
 - Install `/usr/local/bin/hardn` and create `/etc/hardn`.
 
 To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have no `SHA256SUMS`):
@@ -250,6 +250,7 @@ confirmTimeout: "5m"
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
 - **Out of scope**, and any version not in the table: hardn shows the screens and refuses every change.
 - **Any other distribution**: hardn doesn't start.
+- **Tested**: CI runs the tests on the container image of each Supported release but Proxmox (Debian, Ubuntu, Alpine, Rocky, Alma, and Red Hat's UBI for RHEL), and a release waits for them. Proxmox VE has no image: its support is tested against synthetic Proxmox VE 9 files. The release notes name the real hosts each release since v0.6.0 was tested on.
 
 > [!NOTE]
 > On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.
@@ -288,8 +289,8 @@ The default cluster join (`pvecm add`, or the web UI) logs in to the other node'
 > `hardn` doesn’t write its own patches. For each CVE below, it checks whether the host has the vendor’s fix, alerts when the fix is missing, refuses any change the vulnerability would make unsafe, and installs the fix where it can.
 
 ### CVE-2026-123158, Alpine (aka "*sshole") 
-OpenSSH before 10.6p2, on musl without PAM, lets a password of 257 to 1024 bytes into an account whose password field is `*`, as a key-only account's is. hardn compares the installed `openssh-server` with each Alpine branch's first fixed release:
-  - **SSH Auth** reports an unfixed sshd (`SSH_SSHD_UNFIXED`, or `SSH_SSHD_UNFIXED_LATENT` with password login off), or an exposed host (`SSH_PASSWORD_BYPASS`, risk level Critical) where such an account can be reached by password. The main menu shows an alert for either.
+OpenSSH before 10.6p2 ([Alpine's advisory](https://alpinelinux.org/posts/2026-11-05-openssh-password-authentication-bypass/)), on musl without PAM, lets a password of 257 to 1024 bytes into an account whose password field is `*`, as a key-only account's is. hardn compares the installed `openssh-server` with each Alpine branch's first fixed release:
+  - **The main menu's SSH Auth row** reports an unfixed sshd (`SSH_SSHD_UNFIXED`, or `SSH_SSHD_UNFIXED_LATENT` with password login off), or an exposed host (`SSH_PASSWORD_BYPASS`, risk level Critical) where such an account can be reached by password. The main menu shows an alert for either.
   - **Creating a user is refused** (`USERS_PASSWORD_BYPASS`) on an unfixed sshd with password login on, since a new user's field is `*`.
   - **Turning password login on is refused** (`SSH_PASSWORDS_UNFIXED`) on an unfixed sshd, for the same reason.
   - **To fix it,** select `2) SSH Login`, then `5) Upgrade openssh`, or select `6) Run All`: hardn upgrades every openssh package, then reloads sshd. Or turn password login off: select `2) SSH Login`, then `2) Key-only login`.
@@ -300,12 +301,12 @@ Learn more: [alpine.md](docs/safety/alpine.md) (the fixed releases by branch) an
 
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](https://slsa.dev) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](https://www.sigstore.dev/) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/)
 
-A `hardn` binary has a GitHub artifact attestation [SLSA](https://slsa.dev) Level 3 supply-chain security inclusive of the following security guarantees:
+Each `hardn` binary has [SLSA](https://slsa.dev) Build Level 3 provenance: a GitHub artifact attestation, signed by `build.yml`, the reusable workflow that builds it, as GitHub's guide to Level 3 has it. It gives:
 
 - **Tamper Protection**: Each binary is signed and includes a provenance attestation
 - **Build Integrity**: Builds are performed in GitHub's trusted environment
 - **Source Verification**: Binaries are traceable back to their source commit
-- **Reproducible**: The build process is fully documented in the provenance
+- **Reproducible**: Rebuilding a tag with go.mod's toolchain gives byte-identical binaries ([docs/contributing.md](docs/contributing.md)); v0.7.0's three were rebuilt and matched
 
 In addition to SLSA provenance, all artifacts are signed using [Sigstore](https://www.sigstore.dev/):
 
@@ -359,7 +360,7 @@ Planned features are in [ROADMAP.md](ROADMAP.md). The release notes are in [docs
 
 ## Origin
 
-After hardening Debian-based containers and VMs by hand for years, I wrote a script to automate the essentials from a config file and command-line arguments. Within a year a CLI menu was bolted on, the code needed a rewrite to stay maintainable, so I adopted Go and published `hardn`. Enjoy! :tumbler_glass:
+After hardening Debian-based containers and VMs by hand for years, I wrote a script to automate the essentials from a config file and command-line arguments. The code needed a rewrite to stay maintainable, so I adopted Go and published `hardn`. Enjoy! :tumbler_glass:
 
 ## Acknowledgments
 
