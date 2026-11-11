@@ -378,14 +378,18 @@ func TestHostname(t *testing.T) {
 
 // TestHostnameAtTheQuestion: a plan read as plain that is lockout-risk by the
 // key, the hostname gone meanwhile, says so in place of the question: unit-off's
-// item 1 is read as Start at boot alone, and ufw stops before the change's
-// engine plans, so the engine's plan is typed. Nothing is applied.
+// item 1 is read as Start at boot alone, and ufw stops after the draw, as the
+// key's first engine (the plan before asking) is made, so the change's plan
+// is typed. Nothing is applied.
 func TestHostnameAtTheQuestion(t *testing.T) {
 	h, cfg := screenHost(t, "unit-off")
 	var n int
 	p := playWith(h, h, cfg, false, func(o *fwscreen.Options) {
 		build := o.NewEngine
 		o.NewEngine = func(progress func(engine.Event)) *engine.Engine {
+			if n > 0 {
+				return build(progress)
+			}
 			h.active = false
 			h.syncFiles()
 			if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
@@ -395,7 +399,7 @@ func TestHostnameAtTheQuestion(t *testing.T) {
 			return build(progress)
 		}
 	}, "1", "0")
-	if p.err != nil || p.engines != 1 || !strings.Contains(flat(p.out), cantConfirm) || strings.Contains(p.out, "[y/N") || len(p.runs) != 1 || h.active {
+	if p.err != nil || p.engines != 2 || !strings.Contains(flat(p.out), cantConfirm) || strings.Contains(p.out, "[y/N") || len(p.runs) != 1 || h.active {
 		t.Errorf("Run = %v, %d engines, %d runs, active %t:\n%s", p.err, p.engines, len(p.runs), h.active, p.out)
 	}
 	if w := inOrder(p.out, "Start at Boot #", cantConfirm, "UFW Firewall Configuration #"); w != "" {
@@ -496,7 +500,8 @@ func TestRemove(t *testing.T) {
 }
 
 // TestApply: Apply's plan, y/N: a rule for each profile; on an inactive ufw its
-// refusal said before asking, no engine made.
+// refusal said before asking, from the engine's plan before asking alone:
+// no question, nothing run.
 func TestApply(t *testing.T) {
 	h, cfg := screenHost(t, "profiles")
 	p := play(h, h, cfg, false, "2", "3", "y", "0", "0")
@@ -511,7 +516,7 @@ func TestApply(t *testing.T) {
 	}
 	h, cfg = screenHost(t, "profiles-inactive")
 	n := len(h.Calls())
-	if p := play(h, h, cfg, false, "2", "3", "0", "0"); p.err != nil || p.engines != 0 || !strings.Contains(flat(p.out), applyInactive) || len(writes(h, n)) > 0 ||
+	if p := play(h, h, cfg, false, "2", "3", "0", "0"); p.err != nil || p.engines != 1 || len(p.runs) != 0 || strings.Contains(p.out, "[y/N") || !strings.Contains(flat(p.out), applyInactive) || len(writes(h, n)) > 0 ||
 		!strings.Contains(flat(p.out), "3) Apply profiles Enable the firewall first") {
 		t.Errorf("inactive: Run = %v, %d engines:\n%s", p.err, p.engines, p.out)
 	}

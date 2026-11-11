@@ -59,9 +59,9 @@ const (
 )
 
 // action returns what choosing the item keyed key does with the reading h: item 1
-// says its plan's refusal before asking, or runs its change, a Disable, which the
-// reading doesn't plan, planned first; item 2 opens the application profiles;
-// item 3 the trusted interfaces; item 4 is Disable, planned first.
+// says its plan's refusal before asking, or runs its change, planned on the
+// engine first (planned); item 2 opens the application profiles; item 3 the
+// trusted interfaces; item 4 is Disable, planned first.
 func (r *runner) action(ctx context.Context, h reading, key string) func() error {
 	switch key {
 	case screen.FirewallFirstItem:
@@ -71,25 +71,22 @@ func (r *runner) action(ctx context.Context, h reading, key string) func() error
 		if h.view.First == screen.FirewallEnableSS {
 			return r.enableWithSS(ctx, h)
 		}
-		if h.First == firewallctl.ItemDisable {
-			return r.planned(ctx, firewallctl.ActionDisable, h.view.FirstChange())
-		}
-		return r.plain(ctx, firstAction(h.First), h.view.FirstChange(), risky(h.Plan))
+		return r.planned(ctx, firstAction(h.First), h.view.FirstChange(), risky(h.Plan))
 	case screen.FirewallProfilesItem:
 		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawProfiles(ctx) }) }
 	case screen.FirewallInterfacesItem:
 		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawInterfaces(ctx) }) }
 	case screen.FirewallDisableItem:
-		return r.planned(ctx, firewallctl.ActionDisable, screen.FirewallDisableChange())
+		return r.planned(ctx, firewallctl.ActionDisable, screen.FirewallDisableChange(), false)
 	}
 	return func() error { return fmt.Errorf("firewall screen: item %s has no action", key) } // not reached: SubMenu's items are those above
 }
 
 // enableWithSS is item 1 where ufw is not running and ss is missing, "Enable
 // firewall" (the maintainer, 2026-11-07): the hostname, which Enable will ask,
-// checked first, live; then iproute2's install, its review saying why, y/N;
-// then, the host read again with ss there, Enable's own change, as item 1 runs
-// it. Declined, under plan only (the install stops at its plan), or with ss
+// checked first, live; then iproute2's install, planned on the engine first
+// (planned), its review saying why, y/N; then, the host read again with ss
+// there, Enable's own change. Declined, under plan only (the install stops at its plan), or with ss
 // still missing, it ends there, the screen drawn again.
 func (r *runner) enableWithSS(ctx context.Context, h reading) func() error {
 	return func() error {
@@ -98,7 +95,7 @@ func (r *runner) enableWithSS(ctx context.Context, h reading) func() error {
 				return r.s.CantConfirm(err)
 			}
 		}
-		if err := r.plain(ctx, firewallctl.ActionInstallSS, h.view.FirstChange(), false)(); err != nil {
+		if err := r.planned(ctx, firewallctl.ActionInstallSS, h.view.FirstChange(), false)(); err != nil {
 			return err
 		}
 		after := r.read(ctx)
@@ -125,13 +122,20 @@ func firstAction(first firewallctl.Item) firewallctl.Action {
 	return firewallctl.ActionEnable
 }
 
-// planned is plain's action, a change the reading doesn't plan (Disable;
-// Install and Install iproute on Rocky Linux, AlmaLinux and RHEL): planned on the
-// engine first, its refusal said before asking (screenkit.Session.Preplan), as
-// item 1 says the reading's. Its plan is plain, so no hostname is checked.
-func (r *runner) planned(ctx context.Context, action firewallctl.Action, c screen.FirewallChange) func() error {
+// planned is plain's action planned on the engine first, its refusal said
+// before asking (screenkit.Session.Preplan): the control's, and the engine's
+// (a change waiting for hardn confirm among them), which a reading's plan,
+// the control's alone, cannot see. Every change with no form takes it. A
+// lockout-risk one, live, checks the hostname before anything is planned, as
+// change does.
+func (r *runner) planned(ctx context.Context, action firewallctl.Action, c screen.FirewallChange, lockout bool) func() error {
 	run := r.plain(ctx, action, c, false)
 	return func() error {
+		if lockout && !r.o.DryRun {
+			if _, _, err := screenkit.Hostname(ctx, r.o.System); err != nil {
+				return r.s.CantConfirm(err)
+			}
+		}
 		switch words, err := r.s.Preplan(ctx, r.s.Config, firewallctl.Incoming{Action: action}); {
 		case err != nil:
 			return err
@@ -214,17 +218,12 @@ func (r *runner) drawProfiles(ctx context.Context) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, menu)
 }
 
-// apply is Apply: its plan's refusal, the control's, said before asking, as
-// Reading does not hold it; else its change. Its plan is plain
+// apply is Apply: planned on the engine first, its refusal said before asking
+// (planned), as Reading does not hold it; else its change. Its plan is plain
 // (steps.PlanUFWApps), so no hostname is checked before asking; one that turned
 // lockout-risk would be confirmed as change confirms any plan.
 func (r *runner) apply(ctx context.Context, view screen.FirewallProfiles) error {
-	in := engine.Input{Facts: r.o.Facts, Config: r.o.Config, Session: r.o.Session}
-	apply := firewallctl.Incoming{Action: firewallctl.ActionApplyProfiles}
-	if _, err := apply.Plan(ctx, r.o.System, in); err != nil {
-		return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(err)))()
-	}
-	return r.plain(ctx, firewallctl.ActionApplyProfiles, view.ApplyChange(), false)()
+	return r.planned(ctx, firewallctl.ActionApplyProfiles, view.ApplyChange(), false)()
 }
 
 // add is Add: origin/main's four questions, each refused at its field by the
@@ -351,14 +350,10 @@ func (r *runner) drawInterfaces(ctx context.Context) nav.Screen {
 }
 
 // applyInterfaces is the trusted interfaces' Apply, as apply is the
-// profiles': its plan's refusal said before asking; else its plain change.
+// profiles': planned first, its refusal said before asking; else its plain
+// change.
 func (r *runner) applyInterfaces(ctx context.Context, view screen.FirewallInterfaces) error {
-	in := engine.Input{Facts: r.o.Facts, Config: r.o.Config, Session: r.o.Session}
-	apply := firewallctl.Incoming{Action: firewallctl.ActionApplyInterfaces}
-	if _, err := apply.Plan(ctx, r.o.System, in); err != nil {
-		return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(err)))()
-	}
-	return r.plain(ctx, firewallctl.ActionApplyInterfaces, view.ApplyChange(), false)()
+	return r.planned(ctx, firewallctl.ActionApplyInterfaces, view.ApplyChange(), false)()
 }
 
 // trust is the trusted interfaces' Add: the interface, refused where ufw would
