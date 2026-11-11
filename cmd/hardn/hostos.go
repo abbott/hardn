@@ -17,8 +17,7 @@ var osHost = func() host.System { return host.NewReal(host.Options{}) }
 // Classify. No os-release, or one naming an OS other than Debian, Ubuntu,
 // Alpine, Rocky Linux, AlmaLinux or RHEL (detect.DistroOther), is refused;
 // Proxmox VE is Debian's. Rocky Linux, AlmaLinux and RHEL are placed by
-// the matrix as the others are (docs/engine/el-changes.md; RHEL, which it
-// doesn't name yet, is read only: docs/engine/el-rhel.md). It
+// the matrix as the others are (docs/engine/el-changes.md, el-rhel.md). It
 // says nothing of an OS it accepts, and clears nothing: the OS is on the
 // main menu's context bar.
 func hostOS() error {

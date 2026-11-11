@@ -56,7 +56,8 @@ type fwTestHost struct {
 //   - pve9: Proxmox VE 9, where the control refuses (UFW_NOT_APPLICABLE);
 //   - rocky: Rocky Linux 10, where -w is refused before its plan
 //     (FIREWALL_EL_READ_ONLY);
-//   - rhel: RHEL 10, which the matrix doesn't name: refused as on Rocky
+//   - rhel: RHEL 10, Supported: refused as on Rocky Linux, with its fix;
+//   - rhel8: RHEL 8, which the matrix doesn't name: refused as on Rocky
 //     Linux, with no fix (the Firewall screen refuses there too);
 //   - no-hostname: debian13 with no kernel hostname to read.
 func newFWHost(t *testing.T, name string) *fwTestHost {
@@ -96,7 +97,11 @@ func newFWHost(t *testing.T, name string) *fwTestHost {
 		h.facts.SSH.SSHDUnits = true
 	case "rhel":
 		h.facts.OS = detect.OSRelease{ID: "rhel", IDLike: []string{"centos", "fedora"}, VersionID: "10.3"}
-		h.facts.Platform = detect.Platform{Distro: detect.DistroRHEL, Version: "10", Support: detect.Unlisted}
+		h.facts.Platform = detect.Platform{Distro: detect.DistroRHEL, Version: "10", Support: detect.Supported}
+		h.facts.SSH.SSHDUnits = true
+	case "rhel8":
+		h.facts.OS = detect.OSRelease{ID: "rhel", IDLike: []string{"fedora"}, VersionID: "8.10"}
+		h.facts.Platform = detect.Platform{Distro: detect.DistroRHEL, Version: "8", Support: detect.Unlisted}
 		h.facts.SSH.SSHDUnits = true
 	case "no-hostname":
 		if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
@@ -447,7 +452,8 @@ func TestConfigureFirewallFlag(t *testing.T) {
 		{name: "Rocky Linux", host: "rocky", tty: true, code: 1, said: []string{fwELWords, "To go on: use the Firewall screen."}, unsaid: []string{"Lockout risk", "Type the hostname"}},
 		{name: "Rocky Linux off a terminal, --yes", host: "rocky", yes: true, code: 1, said: []string{fwELWords}, unsaid: []string{"Lockout risk", fwLockoutWords}},
 		{name: "-n on Rocky Linux", host: "rocky", dryRun: true, code: 1, said: []string{fwELWords}, unsaid: []string{"Lockout risk"}},
-		{name: "RHEL", host: "rhel", tty: true, code: 1, said: []string{fwELWords}, unsaid: []string{"To go on: use the Firewall screen.", "Lockout risk", "Type the hostname"}},
+		{name: "RHEL 10, supported", host: "rhel", tty: true, code: 1, said: []string{fwELWords, "To go on: use the Firewall screen."}, unsaid: []string{"Lockout risk", "Type the hostname"}},
+		{name: "RHEL 8, unlisted", host: "rhel8", tty: true, code: 1, said: []string{fwELWords}, unsaid: []string{"To go on: use the Firewall screen.", "Lockout risk", "Type the hostname"}},
 		{name: "nothing to change", host: "enabled", tty: true, said: []string{"Nothing needs changing."}},
 	} {
 		args := []string{"-w"}
@@ -482,7 +488,7 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			if h.armed() != tc.applied {
 				t.Errorf("the revert timer armed %t, want %t", h.armed(), tc.applied)
 			}
-			if (tc.host == "rocky" || tc.host == "rhel") && len(h.ran) > 0 {
+			if (tc.host == "rocky" || strings.HasPrefix(tc.host, "rhel")) && len(h.ran) > 0 {
 				t.Errorf("-w planned on %s: ran %q", tc.host, h.ran)
 			}
 			if tc.host == "boot-off" && (h.unit == "enabled") != tc.plain {

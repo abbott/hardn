@@ -61,9 +61,10 @@ func TestClassify(t *testing.T) {
 		{"Rocky VERSION_ID with no minor", detect.OSRelease{ID: "rocky", VersionID: "10"}, notPVE, detect.DistroRocky, "", detect.Unlisted, nil},
 		{"AlmaLinux VERSION_ID of three parts", detect.OSRelease{ID: "almalinux", VersionID: "10.1.1"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
 		{"AlmaLinux VERSION_ID not numeric", detect.OSRelease{ID: "almalinux", VersionID: "10.x"}, notPVE, detect.DistroAlma, "", detect.Unlisted, nil},
-		// RHEL: EL, read only until the matrix names it (el-rhel.md).
-		{"RHEL 10.3 (rhel10-test-114)", read("rhel-10.3"), notPVE, detect.DistroRHEL, "10", detect.Unlisted, nil},
-		{"RHEL 9.9 (rhel9-test-115)", read("rhel-9.9"), notPVE, detect.DistroRHEL, "9", detect.Unlisted, nil},
+		// RHEL: EL, 10 and 9 (el-rhel.md).
+		{"RHEL 10.3 (rhel10-test-114)", read("rhel-10.3"), notPVE, detect.DistroRHEL, "10", detect.Supported, nil},
+		{"RHEL 9.9 (rhel9-test-115)", read("rhel-9.9"), notPVE, detect.DistroRHEL, "9", detect.Supported, nil},
+		{"RHEL 8.10", detect.OSRelease{ID: "rhel", IDLike: []string{"fedora"}, VersionID: "8.10"}, notPVE, detect.DistroRHEL, "8", detect.Unlisted, nil},
 		{"RHEL VERSION_ID with no minor", detect.OSRelease{ID: "rhel", VersionID: "10"}, notPVE, detect.DistroRHEL, "", detect.Unlisted, nil},
 		{"CentOS Stream is not RHEL", detect.OSRelease{ID: "centos", IDLike: []string{"rhel", "fedora"}, VersionID: "10"}, notPVE, detect.DistroOther, "", detect.Unlisted, nil},
 
@@ -111,8 +112,8 @@ func TestMatrix(t *testing.T) {
 	for _, r := range m {
 		count[r.Support]++
 	}
-	if count[detect.Supported] != 11 || count[detect.BestEffort] != 2 || count[detect.OutOfScope] != 3 {
-		t.Errorf("matrix rows by support = %v, want 11 supported, 2 best effort, 3 out of scope", count)
+	if count[detect.Supported] != 13 || count[detect.BestEffort] != 2 || count[detect.OutOfScope] != 3 {
+		t.Errorf("matrix rows by support = %v, want 13 supported, 2 best effort, 3 out of scope", count)
 	}
 	m[0].Support = detect.Unlisted
 	if detect.Matrix()[0].Support == detect.Unlisted {

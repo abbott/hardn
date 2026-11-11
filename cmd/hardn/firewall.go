@@ -65,8 +65,8 @@ var firewallEL = &steps.Refusal{
 }
 
 // firewallELOn is firewallEL on the platform p: without its fix where the
-// matrix takes no change on p (RHEL, which it doesn't name yet), since
-// the Firewall screen refuses there too (el-rhel.md).
+// matrix takes no change on p (an EL release it doesn't name, such as
+// RHEL 8), since the Firewall screen refuses there too (el-rhel.md).
 func firewallELOn(p detect.Platform) *steps.Refusal {
 	if p.Support == detect.Supported || p.Support == detect.BestEffort {
 		return firewallEL

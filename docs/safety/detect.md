@@ -19,7 +19,7 @@ The legacy `pkg/osdetect` accepts only the `debian`, `ubuntu` and `alpine` IDs, 
 
    | Support | Releases |
    |---|---|
-   | Supported | Debian 13, 12; Ubuntu 26.04, 24.04; Alpine 3.24, 3.23; Proxmox VE 9; Rocky Linux 10, 9; AlmaLinux 10, 9 |
+   | Supported | Debian 13, 12; Ubuntu 26.04, 24.04; Alpine 3.24, 3.23; Proxmox VE 9; Rocky Linux 10, 9; AlmaLinux 10, 9; RHEL 10, 9 |
    | BestEffort | Ubuntu 22.04; Alpine 3.22, 3.21 (vendor support ends 2026-11-01) |
    | OutOfScope | Ubuntu interim releases (by rule: any `YY.MM` that is not April of an even year); Proxmox VE 8 (end of life 2026-08-31) |
    | Unlisted | any other version (Debian 11, Ubuntu 20.04, Debian testing/sid without `VERSION_ID`, Alpine edge, an Alpine pre-release such as `3.24.0_rc1`), and any other `ID`; a derivative reports its first known `ID_LIKE` in `Platform.Like`, never a support claim |

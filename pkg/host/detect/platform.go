@@ -22,8 +22,7 @@ const (
 	DistroRocky Distro = "rocky"     // os-release ID
 	DistroAlma  Distro = "almalinux" // os-release ID
 	// Red Hat Enterprise Linux, which Rocky Linux and AlmaLinux rebuild:
-	// read only, every change refused, until the matrix names its releases
-	// (docs/engine/el-rhel.md).
+	// 10 and 9 supported for the same changes (docs/engine/el-rhel.md).
 	DistroRHEL  Distro = "rhel"  // os-release ID
 	DistroOther Distro = "other" // an os-release ID hardn does not know
 )
@@ -92,6 +91,10 @@ var matrix = []Release{
 	{DistroRocky, "9", Supported, ""},
 	{DistroAlma, "10", Supported, ""},
 	{DistroAlma, "9", Supported, ""},
+	// RHEL: as Rocky Linux and AlmaLinux; the host kit ran on RHEL 10.3 and
+	// 9.9 (el-rhel.md §7).
+	{DistroRHEL, "10", Supported, ""},
+	{DistroRHEL, "9", Supported, ""},
 	{DistroUbuntu, "22.04", BestEffort, ""},
 	{DistroAlpine, "3.22", BestEffort, ""},
 	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01"},

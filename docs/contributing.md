@@ -29,7 +29,7 @@ make build          # build/hardn, from ./cmd/hardn
 
 `make build`, `make linux`, `make arm` and `make darwin` build with the release's flags (`CGO_ENABLED=0`, `-trimpath`, `-tags=netgo`, the version, commit and commit date in the ldflags), so with go.mod's toolchain a rebuild of a commit is byte-identical to the release's binary.
 
-**Don't run hardn on your development machine.** Run live, it writes under `/etc` and `/var/log`, and it is made for Debian, Ubuntu, Alpine, Rocky Linux and AlmaLinux hosts. Try it on a disposable VM or container. Nothing in `make check` runs the binary.
+**Don't run hardn on your development machine.** Run live, it writes under `/etc` and `/var/log`, and it is made for Debian, Ubuntu, Alpine, Rocky Linux, AlmaLinux and RHEL hosts. Try it on a disposable VM or container. Nothing in `make check` runs the binary.
 
 ## make check
 

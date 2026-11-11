@@ -1,15 +1,15 @@
-# RHEL, read only (`next/rhel`, units (a) to (c))
+# RHEL 10 and 9 (`next/rhel`, units (a) to (d))
 
-> **Units:** the RHEL units (the maintainer, 2026-11-10: "RHEL 10 and 9", then "Yes, start (a)", "Yes, start (b)", "Report it, everywhere"). (a) detection, read only, CI; (b) a host with no repositories (§5); (c) RHEL 9's cloud-init `resolv.conf` (§6); then the host runs and the matrix rows.
-> **Status:** (a), (b) and (c) built and tested on macOS (`go test ./...`, the recording fake). The facts they rely on were read on `rhel10-test-114` (RHEL 10.3) and `rhel9-test-115` (RHEL 9.9), x86_64, by read-only probes (§2, §5), and hardn's status reads ran on both through `p4status` (§4). (b)'s refusal has not run on a host: there, only dnf's output was read. (c)'s reading ran on `rhel9-test-115` through `p4status` (§6).
+> **Units:** the RHEL units (the maintainer, 2026-11-10: "RHEL 10 and 9", then "Yes, start (a)", "Yes, start (b)", "Report it, everywhere", "Yes, run both"). (a) detection, read only, CI; (b) a host with no repositories (§5); (c) RHEL 9's cloud-init `resolv.conf` (§6); (d) the host runs and the matrix rows (§7).
+> **Status:** (a) to (d) built and tested on macOS (`go test ./...`, the recording fake), and (d)'s host kit ran on both VMs, registered (§7). The facts they rely on were read on `rhel10-test-114` (RHEL 10.3) and `rhel9-test-115` (RHEL 9.9), x86_64, by read-only probes (§2, §5), and hardn's status reads ran on both through `p4status` (§4). (b)'s refusal has not run on a host: there, only dnf's output was read. (c)'s reading ran on `rhel9-test-115` through `p4status` (§6).
 
-hardn now starts on RHEL, reads it as it reads Rocky Linux and AlmaLinux, and refuses every change: the matrix names no RHEL release yet, so 10 and 9 are Unlisted ([detect.md](../safety/detect.md)). Before this unit it refused to start there ("unsupported OS type detected: rhel").
+hardn starts on RHEL and reads it as it reads Rocky Linux and AlmaLinux. Since unit (d), RHEL 10 and 9 are Supported, for the same changes as there ([detect.md](../safety/detect.md), §7); from (a) to (c) they were Unlisted, every change refused. Before (a) hardn refused to start there ("unsupported OS type detected: rhel").
 
 ## 1. What it does
 
-1. **One distribution, EL, no matrix row.** `detect.DistroRHEL` (`rhel`, os-release's `ID`). `Distro.EL` is true for it, so every EL reading applies: sshd.service, SELinux, firewalld or none, dnf-automatic, `dnf needs-restarting -r`, NetworkManager ([el-readonly.md](el-readonly.md), [el-changes.md](el-changes.md)). `Platform.Version` is `VERSION_ID`'s major, as for Rocky Linux and AlmaLinux (`10.3` gives `10`). CentOS Stream (`centos`) stays `DistroOther`: hardn doesn't start there.
+1. **One distribution, EL** (no matrix row until unit (d), §7). `detect.DistroRHEL` (`rhel`, os-release's `ID`). `Distro.EL` is true for it, so every EL reading applies: sshd.service, SELinux, firewalld or none, dnf-automatic, `dnf needs-restarting -r`, NetworkManager ([el-readonly.md](el-readonly.md), [el-changes.md](el-changes.md)). `Platform.Version` is `VERSION_ID`'s major, as for Rocky Linux and AlmaLinux (`10.3` gives `10`). CentOS Stream (`centos`) stays `DistroOther`: hardn doesn't start there.
 2. **The tools.** `packages.ToolFor` gives dnf; `dns.HostOf` accepts it.
-3. **The words.** The header's bar reads "RHEL 10.3". The JSON's `platform.distro` adds `rhel` ([output.md](../reference/output.md)). The engine's name is "RHEL". The EL refusals name it: "hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet" (`DNS_EL_READ_ONLY`), and the firewall's three, all `FIREWALL_EL_READ_ONLY`: `-w`'s (cmd/hardn's `firewallEL`), the profiles' and interfaces' (firewall's `el.go`), and steps' `ErrELFirewall`. `REBOOT_REQUIRED`'s description names it too. On RHEL, `-w`'s refusal carries no fix: the Firewall screen it points to refuses there as well (`firewallELOn`). The docs of the EL reads (header.md, check-*.md, screen-firewall.md, vmcheck.md, dns.md, packages.md, detect.md, output.md) name RHEL; those of the EL changes (configuration.md, el-*.md) name Rocky Linux and AlmaLinux until RHEL's rows land.
+3. **The words.** The header's bar reads "RHEL 10.3". The JSON's `platform.distro` adds `rhel` ([output.md](../reference/output.md)). The engine's name is "RHEL". The EL refusals name it: "hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet" (`DNS_EL_READ_ONLY`), and the firewall's three, all `FIREWALL_EL_READ_ONLY`: `-w`'s (cmd/hardn's `firewallEL`), the profiles' and interfaces' (firewall's `el.go`), and steps' `ErrELFirewall`. `REBOOT_REQUIRED`'s description names it too. On an EL release the matrix doesn't name (RHEL 10 and 9 until unit (d); RHEL 8 now), `-w`'s refusal carries no fix: the Firewall screen it points to refuses there as well (`firewallELOn`). The docs of the EL reads (header.md, check-*.md, screen-firewall.md, vmcheck.md, dns.md, packages.md, detect.md, output.md) name RHEL; since unit (d), configuration.md's EL changes name it too; the earlier units' el-*.md pages keep their Rocky Linux and AlmaLinux records.
 4. **CI.** `go vet` and `go test` on Red Hat's Universal Base Images, `redhat/ubi10:10.2` and `redhat/ubi9:9.8`, pinned by digest. They are freely redistributable, need no subscription, set PATH, and carry tar, gzip and the CA bundle (Red Hat's rpm manifest), so they need nothing installed.
 
 ## 2. What the VMs show (2026-11-10)
@@ -75,3 +75,20 @@ The maintainer, 2026-11-10: "Report it, everywhere". On `rhel9-test-115` cloud-i
 - **Not done:** the UI gallery has no cloud-init host (nor any EL host).
 
 Tests: `TestReadCloudInit` (the RHEL 9 file: `ManagerCloudInit`, no nameservers, no findings, `ErrManaged`), `TestCodes` (`cloud-init`, 7), `TestCheckJournalledCloudInit` (v0.6.0's journal still rolled back; NetworkManager's file claimed as `file` still refused), the DNS control's check and refusal tables (a cloud-init file on Debian 13: "cloud-init", `DNS_MANAGED`), `TestPlanRocky` (the EL refusal's seven forms, only reads before it), and the screen's "cloud-init, reported only".
+
+## 7. Unit (d): the host runs, and RHEL 10 and 9 supported
+
+The maintainer registered both VMs, then, 2026-11-10: "Yes, run both". The Rocky Linux and AlmaLinux host kit (`/private/tmp/el-hostkit`), copied to `/private/tmp/rhel-hostkit` with its paths and its header check (v0.6.0) changed, ran on `rhel10-test-114` and `rhel9-test-115` at once, from the maintainer's Terminal panel, with hardn and `p4status` built from `next/rhel` at `6f14c274` plus this unit's two matrix rows and their tests in detect (uncommitted then; cmd/hardn's two RHEL `-w` tests came after, and ran on macOS alone). Every step passed on both, and the clean-up left each `SAME AS BEFORE` (the snapshot's diff), a new login on 22 working.
+
+| Step | Both VMs |
+|---|---|
+| Linux tests | `go vet` clean; `go test ./...`: 74 packages ok, none failed (Go 1.27.3); `p4status` exit 0 |
+| Users, root login (`-u -c`, `-d`) | the test user logs in by key; root login off rolled back by its 1-minute timer, then confirmed from the Mac |
+| SSH port | semanage installed already, so the refusal and its install were skipped; 22 to 2230 labelled `ssh_port_t`, both ports reached, confirmed on 2230; back to 22, confirmed |
+| Firewall | Install: transaction 1, no kernel (RHEL 10: firewalld and 3 packages; RHEL 9: and 8), not active, not enabled, not masked; Enable confirmed, ssh let through; a port move with firewalld running rolled back by its timer; Disable; Enable rolled back by its timer |
+| Auto Updates | a dry run changes nothing; On (security updates, the install timer); Off; dnf-automatic installed by hand, then On and Off ("Stay on") |
+| The screens | the header shows hardn v0.6.0; the Install Timer row reads Stopped dnf-automatic-install.timer; no unit name cut short |
+
+**Not run on RHEL:** Run All, `-w` and `-r` (the kit has no step for them; they take the EL paths `Distro.EL` gives, run on Rocky Linux and in the unit tests); the boot unit's rollback after a reboot (the kit never reboots); `SELINUX_NO_SEMANAGE` (semanage was installed on both); `PACKAGE_NO_REPOS` on a host (§5: only dnf's output was read); Auto Updates' Off with no repository (§5).
+
+So RHEL 10 and 9 join the matrix as Supported (`platform.go`; `TestMatrix`: 13 Supported), with the README's support table and its "Rocky, Alma and RHEL" section, which says installs are refused on a host with no enabled repository. RHEL 8 is Unlisted.
