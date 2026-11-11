@@ -112,7 +112,7 @@ The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _O
 
 ### Build from Source
 
-You need Go 1.26 or later ([install Go](https://go.dev/doc/install)), git and make. If your Go is older than 1.27.3, `go` fetches 1.27.3 by default, because releases are built with it (the `toolchain` line in go.mod).
+You need Go 1.26 or later ([install Go](https://go.dev/doc/install)), git and make. If your Go is older than 1.27.4, `go` fetches 1.27.4 by default, because releases are built with it (the `toolchain` line in go.mod).
 
 ```sh
 git clone https://github.com/abbott/hardn.git

@@ -4,7 +4,7 @@ How to build hardn, run its checks, update its goldens and cut a release. For a 
 
 ## Go and the tools
 
-- **Go 1.26 or later** (go.mod's `go 1.26.0`). Release binaries are built with **Go 1.27.3**, go.mod's `toolchain` line; with Go's default `GOTOOLCHAIN`, `go` fetches it for you. `make check` sets `GOTOOLCHAIN=local` and uses the Go on your `PATH`, so install 1.27.3 to check with the release's Go. CI's checks fail if their Go is not the `toolchain` line's.
+- **Go 1.26 or later** (go.mod's `go 1.26.0`). Release binaries are built with **Go 1.27.4**, go.mod's `toolchain` line; with Go's default `GOTOOLCHAIN`, `go` fetches it for you. `make check` sets `GOTOOLCHAIN=local` and uses the Go on your `PATH`, so install 1.27.4 to check with the release's Go. CI's checks fail if their Go is not the `toolchain` line's.
 - **The check tools**, at the makefile's `CHECK_*_VERSION` values, which CI installs too:
 
   | Tool | Version |
