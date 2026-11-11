@@ -52,6 +52,13 @@ const (
 	usersKeysOne      = "1 key"
 	usersKeysMany     = "%d keys"
 	usersPasswordNone = "None"
+
+	// Install shadow first (the maintainer, 2026-11-11; proposed words,
+	// screen-users.md §5), as Firewall's Install iproute2 words its.
+	usersShadowAbout    = "Installs shadow first"
+	usersShadowNotice   = "hardn needs useradd, from shadow, to create users."
+	usersShadowQuestion = "Install shadow?"
+	usersPackageKey     = "Package"
 )
 
 // The keys a review shares with the screen's rows (pkg/screens/users'
@@ -104,12 +111,16 @@ type Users struct {
 	// NotRead, with no user, is why none is read, in the control's words;
 	// "" with none says there is no user besides root.
 	NotRead string
+	// NoUseradd: useradd is not installed (Alpine without shadow), so Create
+	// User installs shadow first (UsersShadowChange).
+	NoUseradd bool
 }
 
 // SubMenu returns the users' screen (01-USER): the title bar; the User row;
 // a section per user, or the line that there is none; Manage User with a
-// user to manage, Create User; Return; "Select an option"; "Enter your
-// choice". Every section at every height (Firewall's decision 9).
+// user to manage, Create User, which says it installs shadow first where
+// useradd is missing; Return; "Select an option"; "Enter your choice".
+// Every section at every height (Firewall's decision 9).
 func (u Users) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(usersTitle), Status: u.Status, Heading: fixtureHeading, Prompt: figmaPrompt, Menu: component.Menu{Exit: returnItem()}}
 	for _, s := range u.Users {
@@ -120,7 +131,11 @@ func (u Users) SubMenu() SubMenu {
 	} else {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: UsersManageItem, Label: usersManageLabel, Description: fmt.Sprintf(usersManageAbout, u.Tool)})
 	}
-	vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: UsersCreateItem, Label: usersCreateLabel, Description: usersCreateAbout})
+	create := component.MenuItem{Key: UsersCreateItem, Label: usersCreateLabel, Description: usersCreateAbout}
+	if u.NoUseradd {
+		create.Description = usersShadowAbout
+	}
+	vm.Menu.Items = append(vm.Menu.Items, create)
 	return vm
 }
 
@@ -298,6 +313,15 @@ func UsersAddKeyChange(name string, n int) UsersChange {
 func UsersRemoveKeyChange(name string, n int) UsersChange {
 	return UsersChange{Step: usersStep(usersDelKeyLabel), Question: "Remove the key from " + name + "?",
 		Review: flow.Review{Title: usersKeysSection, Items: []component.KeyValue{UsersKeysRow(n - 1)}}}
+}
+
+// UsersShadowChange is Create User's install of shadow, before its form,
+// where useradd is missing: the notice saying why above the package, y/N,
+// under Create's title bar.
+func UsersShadowChange() UsersChange {
+	return UsersChange{Step: UsersCreateStep(), Question: usersShadowQuestion, Review: flow.Review{
+		Notice: &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{usersShadowNotice}}},
+		Title:  usersConfigSection, Items: []component.KeyValue{{Key: usersPackageKey, Value: "shadow"}}}}
 }
 
 // UsersCreateStep is the title bar over Create's form and flow.

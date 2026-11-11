@@ -27,10 +27,13 @@ const (
 
 // draw reads the host and returns the users' screen, its items bound: 1
 // opens Select a user, 2 Create's form, which says first why the users were
-// not read where they were not.
+// not read where they were not, and installs shadow first where useradd is
+// missing (the control's UseraddRefusal, looked up live).
 func (r *runner) draw(ctx context.Context) nav.Screen {
 	h := r.read(ctx)
-	sub := mainView(h).SubMenu()
+	view := mainView(h)
+	view.NoUseradd = errors.Is(h.UseraddRefusal(ctx, r.o.System), usersctl.ErrNoUseradd)
+	sub := view.SubMenu()
 	create := func() error { return r.create(ctx, h) }
 	if h.err != nil {
 		create = r.refuse(h.err)
@@ -292,13 +295,58 @@ func (r *runner) removeKey(ctx context.Context, h reading, u usersctl.User) erro
 // admin rights?" no as the mocks drew it: sudoNoPassword is about a
 // password for admin rights, and a new user has none to ask (decision 3),
 // so the form never uses it; one plan for the account, the grant and the key, the control's.
-// Where useradd is not installed (Alpine without shadow), the control's
-// refusal before asking anything (UseraddRefusal), as Add key's.
+// Where useradd is not installed (Alpine without shadow), shadow's install
+// first (installShadow); where the lookup fails, its error before asking
+// anything, as Add key's refusal.
 func (r *runner) create(ctx context.Context, h reading) error {
-	sys := r.o.System
-	if err := h.UseraddRefusal(ctx, sys); err != nil {
+	switch err := h.UseraddRefusal(ctx, r.o.System); {
+	case errors.Is(err, usersctl.ErrNoUseradd):
+		return r.installShadow(ctx)
+	case err != nil:
 		return r.refuse(err)()
 	}
+	return r.createForm(ctx, h)
+}
+
+// installShadow is Create User where useradd is not installed (the
+// maintainer, 2026-11-11), as Firewall's Enable firewall installs iproute2
+// first: shadow's install planned first, its refusal said before asking;
+// its review saying why, y/N; then, the host read again with useradd there,
+// Create's own questions and plan. Declined, under plan only (the install
+// stops at its plan), or with useradd still missing, it ends there, the
+// screen drawn again. -c, -u and Run All refuse instead (UseraddRefusal).
+func (r *runner) installShadow(ctx context.Context) error {
+	sys := r.o.System
+	a := r.control(usersctl.Admin{Action: usersctl.ActionInstallShadow})
+	cs, err := a.Plan(ctx, sys, engine.Input{Facts: r.o.Facts})
+	if err != nil {
+		return r.refuse(err)()
+	}
+	if len(cs) > 0 {
+		c := screen.UsersShadowChange()
+		if err := r.change(ctx, false, func() string { return c.Question }, screenkit.Change{
+			Step:     c.Step,
+			Flow:     flow.Flow{Review: func() flow.Review { return c.Review }},
+			Controls: func(*config.Config) []engine.Control { return []engine.Control{a} },
+		}); err != nil {
+			return err
+		}
+	}
+	after := r.read(ctx)
+	switch err := after.UseraddRefusal(ctx, sys); {
+	case errors.Is(err, usersctl.ErrNoUseradd):
+		return nil
+	case err != nil:
+		return r.refuse(err)()
+	case after.err != nil:
+		return r.refuse(after.err)()
+	}
+	return r.createForm(ctx, after)
+}
+
+// createForm is Create's form and plan, useradd there.
+func (r *runner) createForm(ctx context.Context, h reading) error {
+	sys := r.o.System
 	var name, key, nameDef, nameAbout, keyDef, keyAbout string
 	var admin, password, addKey bool
 	if cfg := r.o.Config; cfg != nil {

@@ -10,6 +10,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -70,7 +71,9 @@ func (r Reading) CheckName(ctx context.Context, sys host.System, name string) er
 }
 
 // CheckNew is why Plan refuses Create of n, in its order: CheckName's;
-// Password (decision 3 (a)); UseraddRefusal's; with Admin, ToolRefusal's;
+// Password (decision 3 (a)); UseraddRefusal's, one refusal naming shadow
+// and doas where, with Admin, ToolRefusal's is no tool too; with Admin,
+// ToolRefusal's;
 // with Keys, KeysRefusal's and newKeys'; then bypassRefusal's, the host's.
 // nil where Create may go on. Create without admin rights works with no
 // tool, as on Proxmox VE.
@@ -89,6 +92,12 @@ func (r Reading) checkNew(ctx context.Context, sys host.System, n New) (*engine.
 		return nil, refuse(codeNewPassword, ErrNewPassword, nil, "A new user has no password, so "+r.toolWord()+" couldn't ask for one", "")
 	}
 	if err := r.UseraddRefusal(ctx, sys); err != nil {
+		if tool := r.ToolRefusal(); n.Admin && errors.Is(err, ErrNoUseradd) && errors.Is(tool, ErrNoTool) {
+			// Both missing on Alpine (doas, ToolRefusal's word there): one
+			// refusal naming both packages (proposed words), so that -c, -u
+			// and Run All don't say the second only on the next run.
+			return nil, refuse(codeNoUseradd, ErrNoUseradd, r.Choice.Err, "useradd and doas aren't installed, so hardn can't create an admin", "run apk add shadow doas, then try again")
+		}
 		return nil, err
 	}
 	if n.Admin {
@@ -114,7 +123,8 @@ func (r Reading) checkNew(ctx context.Context, sys host.System, n New) (*engine.
 // shadow planned useradd, 2026-11-07). Looked for as host.Real
 // finds a command (detect.FindTool); a lookup that fails is its error.
 // Off Alpine it is not looked for. The User Management screen asks it
-// before Create's first question.
+// before Create's first question, and offers Install shadow in its place
+// (installShadow; the maintainer, 2026-11-11); -c, -u and Run All refuse.
 func (r Reading) UseraddRefusal(ctx context.Context, sys host.System) error {
 	if r.facts.Platform.Distro != detect.DistroAlpine {
 		return nil
@@ -127,6 +137,32 @@ func (r Reading) UseraddRefusal(ctx context.Context, sys host.System) error {
 	default:
 		return fmt.Errorf("users: %w", t.Err)
 	}
+}
+
+// shadowPackage is the package that brings useradd on Alpine, in its
+// community repository (apk policy shadow on the Alpine 3.23 VM,
+// 2026-11-11).
+const shadowPackage = "shadow"
+
+// installShadow is Install shadow's plan (the maintainer, 2026-11-11), the
+// User Management screen's alone, modelled on Firewall's Install iproute2:
+// on Alpine where useradd is not installed (UseraddRefusal), the shadow
+// package as one change (steps.PlanPackage: simulated first, RiskPackageInstall,
+// y/N, its undo apk del shadow, run as it is), its state after naming the
+// other new packages the simulation lists. Where useradd is there, and off
+// Alpine, where Create does not look for it, nothing to do. Where shadow is
+// installed and useradd still missing (a file removed), there is nothing to
+// install, and saying so would leave Create offering it again: that is a
+// refusal naming useradd.
+func installShadow(ctx context.Context, sys host.System, f detect.Facts) ([]engine.Change, error) {
+	if err := (Reading{facts: f}).UseraddRefusal(ctx, sys); !errors.Is(err, ErrNoUseradd) {
+		return nil, err
+	}
+	changes, err := steps.PlanPackage(ctx, sys, f, steps.Package{ID: ChangeShadow, Name: shadowPackage, After: "installed", Why: "accounts", Community: true})
+	if err == nil && len(changes) == 0 {
+		return nil, refuse(codeNoUseradd, ErrNoUseradd, nil, "shadow is installed, but its useradd isn't there", "reinstall shadow, then try again")
+	}
+	return changes, err
 }
 
 // bypassRefusal is CVE-2026-123158's refusal of Create (docs/engine/

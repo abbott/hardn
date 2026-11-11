@@ -320,6 +320,12 @@ var ErrConfigChanged error
 func PlanSave(ctx context.Context, sys host.System, id string, cfg *config.Config, settings []string, after ...string) ([]engine.Change, error) // next/s2-control; a slice, and settings, since next/s2-config-edit
 func Alpine(id string, p alpine.Plan, summary string) (engine.Change, error)
 func PVEKeys(id string, px detect.Proxmox, p pve.KeysPlan, summary string) (engine.Change, error)
+                                                                      // next/alpine-lxc-users: one package's install, moved from Firewall's install.go, its codes and words unchanged
+type Package struct { ID, Name, After, Why string; Resources []string; Community bool }
+func PlanPackage(ctx context.Context, sys host.System, f detect.Facts, p Package) ([]engine.Change, error) // Firewall's Install, Install iproute2; the User control's Install shadow
+func PackageRefusal(tool packages.Tool, name string, community bool, err error) error // PACKAGE_*; community names Alpine's community repository
+func PackageToolRefusal(err error) error                              // PACKAGE_NO_TOOL
+func PackageUndo(argv []string, why string) []revert.Step
 
 package engine  // added: Input.Session revert.Session; Change.Resources []string; Change.Findings []Finding
                 //   var ErrConflict error

@@ -356,10 +356,13 @@ func TestCreateRefusals(t *testing.T) {
 		{"a password", keyed(sshdKeys, nil), users.New{Name: "carol", Admin: true, Password: true}, "USERS_NEW_PASSWORD", "A new user has no password, so sudo couldn't ask for one."},
 		{"admin, no tool", site{plat: pve9(), users: []string{georgeLine}}, users.New{Name: "carol", Admin: true}, "USERS_NO_TOOL", "sudo isn't installed, so hardn can't grant admin rights. Install sudo, then try again."},
 		// Alpine (the LXC of 2026-11-07): doas named, Alpine's default (sudoers.md);
-		// useradd, shadow's, looked for before the tool.
+		// useradd, shadow's, looked for before the tool; both missing, with
+		// admin rights asked, one refusal naming both packages.
 		{"alpine, admin, no tool", site{plat: alpineNoTool}, users.New{Name: "carol", Admin: true}, "USERS_NO_TOOL", "doas isn't installed, so hardn can't grant admin rights. Install doas, then try again."},
 		{"alpine, no useradd", site{plat: alpine324(), noUseradd: true}, users.New{Name: "carol"}, "USERS_NO_USERADD", "useradd isn't installed, so hardn can't create users. Run apk add shadow, then try again."},
-		{"alpine, no useradd, no tool", site{plat: alpineNoTool, noUseradd: true}, users.New{Name: "carol", Admin: true}, "USERS_NO_USERADD", "useradd isn't installed, so hardn can't create users. Run apk add shadow, then try again."},
+		{"alpine, no useradd, admin", site{plat: alpine324(), noUseradd: true}, users.New{Name: "carol", Admin: true}, "USERS_NO_USERADD", "useradd isn't installed, so hardn can't create users. Run apk add shadow, then try again."},
+		{"alpine, no useradd, no tool", site{plat: alpineNoTool, noUseradd: true}, users.New{Name: "carol", Admin: true}, "USERS_NO_USERADD", "useradd and doas aren't installed, so hardn can't create an admin. Run apk add shadow doas, then try again."},
+		{"alpine, no useradd, no tool, no admin", site{plat: alpineNoTool, noUseradd: true}, users.New{Name: "carol"}, "USERS_NO_USERADD", "useradd isn't installed, so hardn can't create users. Run apk add shadow, then try again."},
 		{"not a key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 		{"a bad second key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{key4, "ssh-rsa AAAA"}}, "AUTHKEYS_NOT_KEY", "Key 2 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},
 		{"an empty key", keyed(sshdKeys, nil), users.New{Name: "carol", Keys: []string{"", key4}}, "AUTHKEYS_NOT_KEY", "Key 1 isn't an OpenSSH public key, such as ssh-ed25519 AAAA… name."},

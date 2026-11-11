@@ -72,6 +72,7 @@ func TestUsersItems(t *testing.T) {
 		{"two users", usrTestTwo.SubMenu(), "1 Manage User (Configure sudo, SSH keys), 2 Create User (Configure a new user)"},
 		{"doas", Users{Tool: "doas", Users: usrTestTwo.Users}.SubMenu(), "1 Manage User (Configure doas, SSH keys), 2 Create User (Configure a new user)"},
 		{"root only", usrTestNone.SubMenu(), "2 Create User (Configure a new user)"},
+		{"no useradd", Users{Tool: "doas", Users: usrTestTwo.Users, NoUseradd: true}.SubMenu(), "1 Manage User (Configure doas, SSH keys), 2 Create User (Installs shadow first)"},
 		{"admin, no password", usrTestManage.SubMenu(), "1 Remove admin rights (Take them away), 2 Ask for password (For admin rights), 3 SSH Keys (Add or remove SSH keys)"},
 		{"admin, a password", UsersManage{Name: "alice", Admin: true}.SubMenu(), "1 Remove admin rights (Take them away), 2 Don't ask password (For admin rights), 3 SSH Keys (Add or remove SSH keys)"},
 		{"not an admin", UsersManage{Name: "alice"}.SubMenu(), "1 Grant admin rights (Let alice become root), 3 SSH Keys (Add or remove SSH keys)"},
@@ -101,6 +102,7 @@ func TestUsersChanges(t *testing.T) {
 		{UsersAddKeyChange("alice", 0), "Add SSH key", "Add the key for alice?", "SSH Keys 1 key"},
 		{UsersRemoveKeyChange("george", 2), "Remove SSH key", "Remove the key from george?", "SSH Keys 1 key"},
 		{UsersRemoveKeyChange("george", 1), "Remove SSH key", "Remove the key from george?", "SSH Keys None"},
+		{UsersShadowChange(), "Create User", "Install shadow?", "Package shadow"},
 	} {
 		var rows []string
 		for _, kv := range tt.c.Review.Items {
@@ -109,6 +111,9 @@ func TestUsersChanges(t *testing.T) {
 		if tt.c.Step.Title.Title != tt.title || tt.c.Step.Title.Parents[0] != usersTitle || tt.c.Question != tt.question || strings.Join(rows, ", ") != tt.rows {
 			t.Errorf("%+v: want %q, %q, %q", tt.c, tt.title, tt.question, tt.rows)
 		}
+	}
+	if n := UsersShadowChange().Review.Notice; n == nil || n.Callout.Kind != component.MessageInfo || n.Callout.Body[0] != "hardn needs useradd, from shadow, to create users." {
+		t.Errorf("Install shadow's notice: %+v", n)
 	}
 	if rv := UsersCreateReview(sudo, false); len(rv.Items) != 3 || rv.Items[1].Value != "None" || rv.Items[2].Key != UsersPasswordKey || UsersCreateQuestion("carol") != "Create user 'carol'?" {
 		t.Errorf("Create: %+v", rv)

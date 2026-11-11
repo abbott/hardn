@@ -25,22 +25,25 @@ const (
 	// engine.ErrNotMigrated with no change, as a check-only control's, so
 	// that nothing that plans over the main menu's rows plans a lockout
 	// change.
-	ActionNone        Action = iota
-	ActionGrant              // hardn's grant: the user's password asked where it has a usable one, none where not (Made here)
-	ActionRemove             // hardn's grant removed, where no other rule grants (decision 2 (a)), and not the last way to root (decision 4)
-	ActionAskPassword        // hardn's grant asks the user's password (decision 3 (a))
-	ActionNoPassword         // hardn's grant asks no password
-	ActionCreate             // a new user, New: the account, then the grant and the key (create.go)
-	ActionAddKey             // Key added to User's ~/.ssh/authorized_keys (keys.go)
-	ActionRemoveKey          // the key of Fingerprint removed from User's ~/.ssh/authorized_keys (keys.go)
+	ActionNone          Action = iota
+	ActionGrant                // hardn's grant: the user's password asked where it has a usable one, none where not (Made here)
+	ActionRemove               // hardn's grant removed, where no other rule grants (decision 2 (a)), and not the last way to root (decision 4)
+	ActionAskPassword          // hardn's grant asks the user's password (decision 3 (a))
+	ActionNoPassword           // hardn's grant asks no password
+	ActionCreate               // a new user, New: the account, then the grant and the key (create.go)
+	ActionAddKey               // Key added to User's ~/.ssh/authorized_keys (keys.go)
+	ActionRemoveKey            // the key of Fingerprint removed from User's ~/.ssh/authorized_keys (keys.go)
+	ActionInstallShadow        // the shadow package, which brings useradd, on Alpine (create.go; the screen's alone)
 )
 
 // The changes' ids: hardn's grant, every grant action's and Create's; the
-// new account, Create's; the keys file, the key actions' and Create's.
+// new account, Create's; the keys file, the key actions' and Create's; the
+// shadow package, Install shadow's.
 const (
 	ChangeGrant  = ID + "/grant"
 	ChangeCreate = ID + "/create"
 	ChangeKeys   = ID + "/keys"
+	ChangeShadow = ID + "/shadow"
 )
 
 // Errors of the refusals, testable with errors.Is, each the Err of a
@@ -145,12 +148,15 @@ func refuse(code string, sentinel, cause error, why, fix string) error {
 // before anything is written, in the order of the mock (gallery-users.md
 // §5): Refusal's, then what the action's input adds (the key's form, the
 // new user's: create.go, keys.go). Nothing to do is no change. ActionNone
-// is engine.ErrNotMigrated, reading nothing.
+// is engine.ErrNotMigrated, reading nothing; ActionInstallShadow reads only
+// whether useradd is there and the package (installShadow).
 func (a Admin) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	keys := false
 	switch a.Action {
 	case ActionNone:
 		return nil, engine.ErrNotMigrated
+	case ActionInstallShadow:
+		return installShadow(ctx, sys, in.Facts)
 	case ActionGrant, ActionRemove, ActionAskPassword, ActionNoPassword:
 	case ActionCreate, ActionAddKey, ActionRemoveKey:
 		keys = true

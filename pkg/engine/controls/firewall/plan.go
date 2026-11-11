@@ -69,9 +69,6 @@ const (
 	codeInactive      = "UFW_INACTIVE"
 	codeBadProfile    = "UFW_BAD_PROFILE"
 	codeBadInterface  = "UFW_BAD_INTERFACE"
-	codeNoTool        = "PACKAGE_NO_TOOL"
-	codeNotInRepos    = "PACKAGE_NOT_IN_REPOS"
-	codeOtherPackages = "PACKAGE_OTHER_CHANGES"
 )
 
 // Plan is what Action does on the host in.Facts describe. ActionNone, the
