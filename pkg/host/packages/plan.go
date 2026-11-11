@@ -33,7 +33,8 @@ func (p Plan) Empty() bool { return len(p.Argv) == 0 }
 // ending in "-" as a removal and one with "." as a pattern, and takes a virtual
 // package for its provider [I]); one that lists no change is
 // detect.ErrUnrecognised, as alpine.simulate's is. From dnf, one that adds a
-// kernel is a *KernelError. ErrNotInRepos when the tool cannot find it; any
+// kernel is a *KernelError, and one dnf can't make for want of any enabled
+// repository is ErrNoRepos. ErrNotInRepos when the tool cannot find it; any
 // other failure is the error, wrapped.
 func PlanInstall(ctx context.Context, sys host.System, t Tool, name string) (Plan, error) {
 	install, undo, simulate, err := commands(t, name)
@@ -50,6 +51,8 @@ func PlanInstall(ctx context.Context, sys host.System, t Tool, name string) (Pla
 	if err != nil && !(t == Dnf && aborted(res, err)) {
 		var exit *host.ExitError
 		switch {
+		case noRepos(t, res, err):
+			return Plan{}, fmt.Errorf("packages: %s: %w", host.FormatArgv(simulate), ErrNoRepos)
 		case notInRepos(t, name, res, err):
 			return Plan{}, fmt.Errorf("packages: %s: %w", host.FormatArgv(simulate), ErrNotInRepos)
 		case t == Dnf && errors.As(err, &exit) && exit.ExitCode == 200:
@@ -132,6 +135,24 @@ func newKernels(ctx context.Context, sys host.System, rows []dnfRow) ([]string, 
 		}
 	}
 	return k, nil
+}
+
+// noReposPrefix starts dnf's line for a host with no enabled repository;
+// the repository directories follow, dnf.conf's reposdir (dnf.conf(5)), so
+// only the start is matched.
+const noReposPrefix = "Error: There are no enabled repositories in "
+
+// noRepos reads dnf's failed simulation on a host with no enabled
+// repository, as an unregistered RHEL host is: noReposPrefix's line on
+// stderr, exit 1; the subscription plugin's notices ("This system is not
+// registered with an entitlement server") are on stdout (rhel10-test-114
+// and rhel9-test-115, probe 3, 2026-11-10).
+func noRepos(t Tool, res host.Result, err error) bool {
+	var exit *host.ExitError
+	if t != Dnf || !errors.As(err, &exit) || exit.ExitCode != 1 {
+		return false
+	}
+	return slices.ContainsFunc(lines(res.Stderr), func(l string) bool { return strings.HasPrefix(l, noReposPrefix) })
 }
 
 // notInRepos reads a failed simulation: apt-get's "E: Unable to locate package

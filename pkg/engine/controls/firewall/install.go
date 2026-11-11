@@ -99,6 +99,9 @@ func undoSteps(argv []string) []revert.Step {
 func installRefusal(tool packages.Tool, name string, err error) error {
 	var other *packages.OtherPackagesError
 	switch {
+	case errors.Is(err, packages.ErrNoRepos):
+		return &steps.Refusal{Code: codeNoRepos, Why: "hardn can't install " + name + ": dnf has no enabled repositories",
+			Fix: "register the host (RHEL: subscription-manager or rhc) or enable a repository, then try again", Err: err}
 	case errors.Is(err, packages.ErrNotInRepos) && tool == packages.Apk && name == ufwPackage:
 		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find ufw in apk's package lists",
 			Fix: "check the network and the community repository, run apk update, then try again", Err: err}

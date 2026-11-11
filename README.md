@@ -3,7 +3,7 @@
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](#verify-a-release) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](#verify-a-release) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](LICENSE)
 
 A simple hardening tool for Linux.
-> Implement fundamental security measures on Debian, Ubuntu, Proxmox, Alpine, Rocky, and Alma Linux servers.
+> Implement fundamental security measures on Debian, Ubuntu, Proxmox, Alpine, Rocky, Alma, and RHEL servers.
 
 <p align="center">
 <img width="1327" height="1803" alt="hardn v0.4.0" src="https://github.com/user-attachments/assets/e7b53b65-47f7-4283-aeda-1c3ec7b3d352" />
@@ -35,9 +35,9 @@ Anyone managing a **privately owned** Linux server, container, or virtual machin
 |---|---|---|
 | 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
 | 2) SSH Login | root login, password login, the port, allowed users, as sshd reads them | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
-| 3) Firewall | `ufw` state, policy, rules, application profiles | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Rocky and Alma: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
+| 3) Firewall | `ufw` state, policy, rules, application profiles | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
-| 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma); turns off only what hardn turned on. Read only on Proxmox |
+| 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL); turns off only what hardn turned on. Read only on Proxmox |
 | 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS and automatic updates. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
 | 8) Environment | whether `HARDN_CONFIG` is kept under `sudo` or `doas` | keeps it in `/etc/sudoers.d/hardn-env-<user>`; under doas, adds it to hardn's own rule for the user, or, where hardn has none, says what to add |
@@ -144,7 +144,7 @@ To update, run the  [Install Script](#install-script) command again.
 | `-u, --username <name>` | The user `-c` creates; also the default for Create and Run All |
 | `-c, --create-user` | Create the user with admin rights, no password, and every key in hardn.yml's `sshKeys` |
 | `-d, --disable-root` | Turn root's SSH login off (key-only on Proxmox). Refused unless another admin can still log in and become root |
-| `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox, Rocky and Alma |
+| `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox, Rocky, Alma and RHEL |
 | `-g, --configure-dns` | Set hardn.yml's nameservers |
 | `-e, --setup-sudo-env` | Keep `HARDN_CONFIG` under sudo or doas, as `setup-sudo-env` does |
 | `-r, --run-all` | Run All's plan from hardn.yml. Can't be combined with `-c`, `-d`, `-w`, `-g` or `-e` (exit 2) |
@@ -244,6 +244,7 @@ confirmTimeout: "5m"
 | Proxmox | 9 | | 8 (end of life since 2026-08-31) |
 | Rocky | 10, 9 | | |
 | Alma | 10, 9 | | |
+| RHEL | 10, 9 | | |
 
 - **Supported**: hardn changes it.
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
@@ -253,15 +254,16 @@ confirmTimeout: "5m"
 > [!NOTE]
 > On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.
 
-### Rocky and Alma
+### Rocky, Alma and RHEL
 
-On Rocky and Alma:
+On Rocky, Alma and RHEL:
 
 - A new SSH port is labelled for sshd in SELinux and let through firewalld before sshd moves.
 - The Firewall screen installs, enables and disables firewalld. It refuses a dnf install that brings a new kernel.
 - Run All and `-w` leave the firewall to that screen. ufw is never installed or enabled.
 - Auto Updates turns on dnf-automatic's daily security updates; restarts stay as automatic.conf sets them (never, as shipped). Off undoes only what hardn did.
 - DNS is only read.
+- RHEL's repositories come with its subscription: on a host with none enabled, such as one that isn't registered, hardn refuses to install firewalld or dnf-automatic.
 
 ### Proxmox
 

@@ -47,8 +47,9 @@ const (
 // The codes of the dnf refusals packages names (pkg/output registers them
 // for packages' sentinels).
 const (
-	codeKernel = "PACKAGE_KERNEL"
-	codeLocked = "PACKAGE_LOCKED"
+	codeKernel  = "PACKAGE_KERNEL"
+	codeLocked  = "PACKAGE_LOCKED"
+	codeNoRepos = "PACKAGE_NO_REPOS"
 )
 
 // codeDnfConf is dnfauto.ErrConf's: automatic.conf not in a form hardn
@@ -320,6 +321,9 @@ func dnfInstallWords(err error) error {
 	var other *packages.OtherPackagesError
 	var kernel *packages.KernelError
 	switch {
+	case errors.Is(err, packages.ErrNoRepos):
+		return refuse(codeNoRepos, packages.ErrNoRepos, err, "hardn can't install dnf-automatic: dnf has no enabled repositories",
+			"register the host (RHEL: subscription-manager or rhc) or enable a repository, then try again")
 	case errors.Is(err, packages.ErrNotInRepos):
 		return refuse(codeNotInRepos, ErrNotInRepos, err, "hardn can't find dnf-automatic in dnf's repositories", "check the network and the repositories (dnf repolist), then try again")
 	case errors.As(err, &other):

@@ -72,16 +72,18 @@ const (
 	DetailInvalid        = "not valid in hardn.yml" // NotConfigured: hardn.yml's list is one dns.Validate refuses here
 	DetailNotRunning     = "resolved not running"   // NotConfigured: /etc/resolv.conf is systemd-resolved's link, and it does not run
 	DetailContainer      = "container"              // NotApplicable: the container's manager provides the file
-	DetailUnsupported    = "not supported"          // NotApplicable: not Debian, Ubuntu, Alpine, Proxmox VE, Rocky Linux or AlmaLinux
+	DetailUnsupported    = "not supported"          // NotApplicable: not Debian, Ubuntu, Alpine, Proxmox VE, Rocky Linux, AlmaLinux or RHEL
 	DetailNetworkManager = "NetworkManager"         // NotApplicable: reported only (P-37 (a))
 	DetailResolvconf     = "resolvconf"             // NotApplicable: reported only
+	DetailCloudInit      = "cloud-init"             // NotApplicable: reported only
 	DetailOther          = "another program"        // NotApplicable: a link hardn does not know, or a file resolved reads as another's
 	DetailCantRead       = "can't read"             // Unknown
 )
 
-// ErrEL: hardn doesn't change DNS on Rocky Linux or AlmaLinux yet; their
-// NetworkManager manages resolv.conf (docs/engine/el-changes.md).
-var ErrEL = errors.New("hardn doesn't change DNS on Rocky Linux or AlmaLinux yet")
+// ErrEL: hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet;
+// NetworkManager or cloud-init manages resolv.conf there
+// (docs/engine/el-changes.md, el-rhel.md §6).
+var ErrEL = errors.New("hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet")
 
 // The codes of the refusals, the registry's for the sentinels they wrap
 // (pkg/output; pinned by the tests): a Refusal's Code is informative, its
@@ -103,7 +105,7 @@ const (
 // reportedOnly are the managers hardn reports and does not write, with the
 // row's detail (P-37 (a), decided; slice 2 decision 8: Not Applicable).
 var reportedOnly = map[hostdns.Manager]string{hostdns.ManagerNetworkManager: DetailNetworkManager,
-	hostdns.ManagerResolvconf: DetailResolvconf, hostdns.ManagerForeign: DetailOther}
+	hostdns.ManagerResolvconf: DetailResolvconf, hostdns.ManagerForeign: DetailOther, hostdns.ManagerCloudInit: DetailCloudInit}
 
 // Controls is the DNS row, checked against cfg, hardn.yml as loaded.
 func Controls(cfg *config.Config) []engine.Control { return []engine.Control{Nameservers{Config: cfg}} }
@@ -315,8 +317,7 @@ func evidence(s hostdns.State) []string {
 // changed since it was read (steps.Changed), and the save's.
 func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	if in.Facts.Platform.Distro.EL() {
-		return nil, &steps.Refusal{Code: codeEL, Why: "hardn doesn't change DNS on Rocky Linux or AlmaLinux yet: NetworkManager manages it there",
-			Fix: "set the nameservers with nmcli", Err: ErrEL}
+		return nil, elRefusal(hostdns.Read(ctx, sys, in.Facts))
 	}
 	want := list(in.Config)
 	s, err := hostdns.Read(ctx, sys, in.Facts)
@@ -353,6 +354,29 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 		return nil, err
 	}
 	return append(cs, save...), nil
+}
+
+// elRefusal is a DNS change's refusal on Rocky Linux, AlmaLinux and RHEL,
+// whatever is asked, made on the read s alone, before anything is planned:
+// what manages resolv.conf there and how to change it by hand
+// (el-rhel.md §6). systemd-resolved's link: its DNS= setting. A file hardn
+// would write elsewhere, none, or one a running systemd-resolved reads as
+// another program's (it then reads its servers from the file): the file by
+// hand. A link to another program's file, NetworkManager's, resolvconf's
+// or cloud-init's: managed's words. A read that failed: by hand.
+func elRefusal(s hostdns.State, err error) error {
+	why, fix := "hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet", "set the nameservers by hand"
+	switch {
+	case err != nil || s.Manager == hostdns.ManagerUnknown:
+	case s.Manager == hostdns.ManagerResolved:
+		why, fix = why+": systemd-resolved manages DNS here", "set DNS= in /etc/systemd/resolved.conf, then restart systemd-resolved"
+	case s.Manager == hostdns.ManagerFile, s.Manager == hostdns.ManagerForeign && s.ResolvConf.Kind != hostdns.EntrySymlink:
+		fix = "set the nameservers in " + hostdns.ResolvConf + " by hand"
+	default:
+		mwhy, mfix := managed(s)
+		why, fix = why+": "+mwhy, mfix
+	}
+	return &steps.Refusal{Code: codeEL, Why: why, Fix: fix, Err: ErrEL}
 }
 
 // heading is the change's title and summary, from the steps p holds: the
@@ -494,6 +518,8 @@ func managed(s hostdns.State) (why, fix string) {
 		return "NetworkManager manages DNS here", "set the nameservers with nmcli"
 	case s.Manager == hostdns.ManagerResolvconf:
 		return "resolvconf manages DNS here", "set the nameservers through resolvconf"
+	case s.Manager == hostdns.ManagerCloudInit:
+		return "cloud-init manages DNS here", "set the nameservers in cloud-init's network configuration, or in " + hostdns.ResolvConf + " by hand"
 	case s.ResolvConf.Kind == hostdns.EntrySymlink:
 		return hostdns.ResolvConf + " links to " + s.ResolvConf.Target + ", which another program writes", "set the nameservers with that program"
 	}

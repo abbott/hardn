@@ -2,6 +2,7 @@ package firewall_test
 
 import (
 	"context"
+	"errors"
 	"slices"
 	"strings"
 	"testing"
@@ -12,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/firewalld"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
@@ -29,6 +31,7 @@ type elHost struct {
 	nmZone          string // eth0's connection.zone
 	noCleanup       bool   // CleanupOnExit=no
 	failInstall     bool
+	noRepos         bool // dnf has no enabled repository (an unregistered RHEL host)
 	ran             []string
 }
 
@@ -40,6 +43,13 @@ const elSimulate = "Dependencies resolved.\n" +
 	"Installing dependencies:\n firewalld-filesystem      noarch      2.4.3-4.el10_2         baseos      7.7 k\n" +
 	" nftables                  x86_64      1:1.1.5-6.el10_2       baseos      447 k\n" +
 	"\nTransaction Summary\n================================================================================\nInstall  3 Packages\n"
+
+// elUnregistered and elNoRepos are dnf's simulation on an unregistered
+// RHEL host (rhel10-test-114 and rhel9-test-115, probe 3, 2026-11-10).
+const (
+	elUnregistered = "Updating Subscription Management repositories.\nUnable to read consumer identity\n\nThis system is not registered with an entitlement server. You can use \"rhc\" or \"subscription-manager\" to register.\n\n"
+	elNoRepos      = "Error: There are no enabled repositories in \"/etc/yum.repos.d\", \"/etc/yum/repos.d\", \"/etc/distro.repos.d\".\n"
+)
 
 func (e *elHost) answer(argv []string) (hostfake.Response, bool) {
 	cmd := strings.Join(argv, " ")
@@ -86,6 +96,9 @@ func (e *elHost) answer(argv []string) (hostfake.Response, bool) {
 		}
 		return hostfake.Response{Stdout: "package firewalld is not installed\n", ExitCode: 1}, true
 	case "dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True firewalld":
+		if e.noRepos { // rhel10-test-114, probe 3
+			return hostfake.Response{Stdout: elUnregistered, Stderr: elNoRepos, ExitCode: 1}, true
+		}
 		return hostfake.Response{Stdout: elSimulate, Stderr: "Operation aborted.\n", ExitCode: 1}, true
 	case "dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True firewalld":
 		if e.failInstall {
@@ -205,6 +218,18 @@ func TestELInstall(t *testing.T) {
 		if slices.ContainsFunc(e.ran, func(r string) bool { return strings.HasPrefix(r, "dnf ") || strings.Contains(r, "mask ") }) {
 			t.Errorf("%s: ran %q before the refusal", c.name, e.ran)
 		}
+	}
+	// No enabled repository: refused in its words after the simulation,
+	// nothing masked or installed.
+	e = &elHost{noRepos: true}
+	h, facts = e.site().build(t)
+	_, err = firewall.Incoming{Action: firewall.ActionInstall}.Plan(ctx, h, engine.Input{Facts: facts, Config: &config.Config{}})
+	if output.CodeOf(err) != "PACKAGE_NO_REPOS" || !errors.Is(err, packages.ErrNoRepos) ||
+		!strings.Contains(err.Error(), "hardn can't install firewalld: dnf has no enabled repositories") {
+		t.Errorf("no repositories: %v (%s)", err, output.CodeOf(err))
+	}
+	if slices.ContainsFunc(e.ran, func(r string) bool { return strings.HasPrefix(r, "dnf install -y") || strings.Contains(r, "mask ") }) {
+		t.Errorf("no repositories: ran %q", e.ran)
 	}
 	// dnf fails: the unit is unmasked all the same, and the undo holds the
 	// unmask and the remove.

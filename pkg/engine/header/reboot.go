@@ -29,7 +29,7 @@ const KernelPackagePrefix = "linux-image-"
 // why a reboot is pending, one finding per source that shows it.
 const (
 	// CodeRebootRequired: /var/run/reboot-required exists, or on Rocky
-	// Linux and AlmaLinux dnf needs-restarting -r exits 1.
+	// Linux, AlmaLinux and RHEL dnf needs-restarting -r exits 1.
 	CodeRebootRequired = "REBOOT_REQUIRED"
 	// CodeNewerKernel: /boot holds a kernel newer than the one running.
 	CodeNewerKernel = "REBOOT_NEWER_KERNEL"
@@ -87,7 +87,7 @@ const (
 	familyUnknown family = iota
 	familyDebian         // Debian, Ubuntu, Proxmox VE and their derivatives
 	familyAlpine
-	familyEL // Rocky Linux, AlmaLinux
+	familyEL // Rocky Linux, AlmaLinux, RHEL
 )
 
 // familyOf is the first of detect's platform, the platform's ID_LIKE,
@@ -207,8 +207,8 @@ func readRelease(ctx context.Context, sys host.System) (string, source) {
 	return release, source{state: detect.No, evidence: KernelReleaseFile + ": " + release}
 }
 
-// needsRestarting is dnf-plugins-core's needs-restarting -r on Rocky Linux
-// and AlmaLinux: exit 0 when no core package was updated since boot, exit 1
+// needsRestarting is dnf-plugins-core's needs-restarting -r on Rocky Linux,
+// AlmaLinux and RHEL: exit 0 when no core package was updated since boot, exit 1
 // with "Reboot is required" when one was. It runs as a dnf command: the
 // needs-restarting program is yum-utils' wrapper for it, which AlmaLinux 9.8
 // and 10.2 don't install. The plugin loads the installed packages only, no

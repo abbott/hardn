@@ -84,7 +84,7 @@ func PlanDNS(s State, c Config) (Plan, error) {
 	switch s.Manager {
 	case ManagerUnknown:
 		return Plan{}, fmt.Errorf("dns: plan: %s: %w: %w", ResolvConf, ErrUnknown, errOr(s.Err, detect.ErrNoSignal))
-	case ManagerResolvconf, ManagerNetworkManager, ManagerForeign:
+	case ManagerResolvconf, ManagerNetworkManager, ManagerForeign, ManagerCloudInit:
 		return Plan{}, fmt.Errorf("dns: plan: %s (%s): %s: %w", ResolvConf, describe(s.ResolvConf), s.Manager, ErrManaged)
 	}
 	if s.Err != nil {

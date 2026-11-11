@@ -95,6 +95,18 @@ const (
 	// first line on stdout, the second on stderr, exit 1.
 	dnfMissingOut = "Last metadata expiration check: 3:34:12 ago on Mon Nov  9 23:03:35 2026.\nNo match for argument: hardn-no-such-package\n"
 	dnfMissing    = "Error: Unable to find a match: hardn-no-such-package\n"
+	// rhel10-test-114 and rhel9-test-115, probe 3 (2026-11-10): an unregistered
+	// RHEL host, no enabled repository: the subscription plugin's notices on
+	// stdout, dnf's error on stderr, exit 1.
+	dnfUnregisteredOut = "Updating Subscription Management repositories.\nUnable to read consumer identity\n\nThis system is not registered with an entitlement server. You can use \"rhc\" or \"subscription-manager\" to register.\n\n"
+	dnfNoRepos         = "Error: There are no enabled repositories in \"/etc/yum.repos.d\", \"/etc/yum/repos.d\", \"/etc/distro.repos.d\".\n"
+	// rhel9-test-115 (probe 4) and rhel10-test-114 (probe 5), registered
+	// (2026-11-10): the subscription plugin's line and, on RHEL 9, the
+	// metadata downloads above the table; stderr "Operation aborted.", exit 1.
+	dnfRHEL9Firewalld  = "Updating Subscription Management repositories.\nRed Hat Enterprise Linux 9 for x86_64 - BaseOS  9.2 MB/s | 168 MB     00:18    \nRed Hat Enterprise Linux 9 for x86_64 - AppStre 9.6 MB/s | 122 MB     00:12    \nLast metadata expiration check: 0:00:01 ago on Tue Nov 10 19:38:10 2026.\nDependencies resolved.\n================================================================================\n Package             Arch   Version         Repository                     Size\n================================================================================\nInstalling:\n firewalld           noarch 1.3.4-20.el9_8  rhel-9-for-x86_64-baseos-rpms 542 k\nInstalling dependencies:\n firewalld-filesystem\n                     noarch 1.3.4-20.el9_8  rhel-9-for-x86_64-baseos-rpms  15 k\n ipset               x86_64 7.11-11.el9_5   rhel-9-for-x86_64-baseos-rpms  45 k\n ipset-libs          x86_64 7.11-11.el9_5   rhel-9-for-x86_64-baseos-rpms  71 k\n iptables-nft        x86_64 1.8.10-11.el9_5 rhel-9-for-x86_64-baseos-rpms 209 k\n libnftnl            x86_64 1.2.6-4.el9_4   rhel-9-for-x86_64-baseos-rpms  89 k\n nftables            x86_64 1:1.0.9-9.el9_8 rhel-9-for-x86_64-baseos-rpms 462 k\n python3-firewall    noarch 1.3.4-20.el9_8  rhel-9-for-x86_64-baseos-rpms 400 k\n python3-nftables    x86_64 1:1.0.9-9.el9_8 rhel-9-for-x86_64-baseos-rpms  49 k\n\nTransaction Summary\n================================================================================\nInstall  9 Packages\n\nTotal download size: 1.8 M\nInstalled size: 6.3 M\n"
+	dnfRHEL9Automatic  = "Updating Subscription Management repositories.\nLast metadata expiration check: 0:00:26 ago on Tue Nov 10 19:38:10 2026.\nDependencies resolved.\n================================================================================\n Package         Arch     Version         Repository                       Size\n================================================================================\nInstalling:\n dnf-automatic   noarch   4.14.0-37.el9   rhel-9-for-x86_64-baseos-rpms    39 k\n\nTransaction Summary\n================================================================================\nInstall  1 Package\n\nTotal download size: 39 k\nInstalled size: 58 k\n"
+	dnfRHEL10Firewalld = "Updating Subscription Management repositories.\nLast metadata expiration check: 0:01:51 ago on Wed Nov 11 00:37:41 2026.\nDependencies resolved.\n======================================================================================\n Package                Arch    Version          Repository                       Size\n======================================================================================\nInstalling:\n firewalld              noarch  2.4.3-4.el10_2   rhel-10-for-x86_64-baseos-rpms  573 k\nInstalling dependencies:\n firewalld-filesystem   noarch  2.4.3-4.el10_2   rhel-10-for-x86_64-baseos-rpms   14 k\n python3-firewall       noarch  2.4.3-4.el10_2   rhel-10-for-x86_64-baseos-rpms  522 k\n python3-nftables       x86_64  1:1.1.5-6.el10_2 rhel-10-for-x86_64-baseos-rpms   32 k\n\nTransaction Summary\n======================================================================================\nInstall  4 Packages\n\nTotal download size: 1.1 M\nInstalled size: 5.1 M\n"
+	dnfRHEL10Automatic = "Updating Subscription Management repositories.\nLast metadata expiration check: 0:01:53 ago on Wed Nov 11 00:37:41 2026.\nDependencies resolved.\n================================================================================\n Package        Arch    Version           Repository                       Size\n================================================================================\nInstalling:\n dnf-automatic  noarch  4.20.0-28.el10    rhel-10-for-x86_64-baseos-rpms   46 k\n\nTransaction Summary\n================================================================================\nInstall  1 Package\n\nTotal download size: 46 k\nInstalled size: 82 k\n"
 )
 
 func rpmQ(name string) []string { return []string{"rpm", "-q", name} }
@@ -164,6 +176,7 @@ func TestToolFor(t *testing.T) {
 		{distro: detect.DistroAlpine, want: packages.Apk},
 		{distro: detect.DistroRocky, want: packages.Dnf},
 		{distro: detect.DistroAlma, want: packages.Dnf},
+		{distro: detect.DistroRHEL, want: packages.Dnf},
 		{distro: detect.DistroProxmox, err: packages.ErrNoTool},
 		{distro: detect.DistroOther, like: detect.DistroDebian, err: packages.ErrNoTool},
 		{distro: detect.DistroUnknown, err: packages.ErrNoTool},
@@ -271,6 +284,7 @@ func TestPlanInstallDnf(t *testing.T) {
 		changes []string
 		uname   string // uname -r, where a kernel row is listed
 		repos   bool
+		noRepos bool
 		locked  bool
 		other   bool // any other error
 	}{
@@ -286,6 +300,13 @@ func TestPlanInstallDnf(t *testing.T) {
 		{name: "replacing [I]", r: aborted(dnfReplacing), changes: []string{"Replacing firewalld-old.noarch"}},
 		{name: "a wrapped row [I]", r: aborted(dnfWrapped), adds: []string{"firewalld-with-a-name-wider-than-its-column"}},
 		{name: "no such package", r: hostfake.Response{Stdout: dnfMissingOut, Stderr: dnfMissing, ExitCode: 1}, repos: true},
+		{name: "registered RHEL 9: firewalld, a wrapped row", r: aborted(dnfRHEL9Firewalld), adds: []string{"firewalld", "firewalld-filesystem", "ipset", "ipset-libs", "iptables-nft", "libnftnl", "nftables", "python3-firewall", "python3-nftables"}},
+		{name: "registered RHEL 9: dnf-automatic", r: aborted(dnfRHEL9Automatic), adds: []string{"dnf-automatic"}},
+		{name: "registered RHEL 10: firewalld", r: aborted(dnfRHEL10Firewalld), adds: []string{"firewalld", "firewalld-filesystem", "python3-firewall", "python3-nftables"}},
+		{name: "registered RHEL 10: dnf-automatic", r: aborted(dnfRHEL10Automatic), adds: []string{"dnf-automatic"}},
+		{name: "no enabled repository (an unregistered RHEL host)", r: hostfake.Response{Stdout: dnfUnregisteredOut, Stderr: dnfNoRepos, ExitCode: 1}, noRepos: true},
+		{name: "the no-repositories line, exit 0 [I]", r: hostfake.Response{Stdout: dnfUnregisteredOut, Stderr: dnfNoRepos}, other: true},
+		{name: "the no-repositories line on stdout alone [I]", r: hostfake.Response{Stdout: dnfUnregisteredOut + dnfNoRepos, ExitCode: 1}, other: true},
 		{name: "aborted without a table", r: hostfake.Response{Stderr: dnfAborted, ExitCode: 1}, other: true},
 		{name: "a repository unreachable [I]", r: hostfake.Response{Stderr: "Error: Failed to download metadata for repo 'baseos'\n", ExitCode: 1}, other: true},
 		{name: "nothing to do [I]", r: hostfake.Response{Stdout: "Dependencies resolved.\nNothing to do.\n"}, other: true},
@@ -324,12 +345,16 @@ func TestPlanInstallDnf(t *testing.T) {
 				if !errors.Is(err, packages.ErrNotInRepos) {
 					t.Errorf("%v, want ErrNotInRepos", err)
 				}
+			case c.noRepos:
+				if !errors.Is(err, packages.ErrNoRepos) || errors.Is(err, packages.ErrNotInRepos) {
+					t.Errorf("%v, want ErrNoRepos", err)
+				}
 			case c.locked:
 				if !errors.Is(err, packages.ErrLocked) {
 					t.Errorf("%v, want ErrLocked", err)
 				}
 			case c.other:
-				if err == nil || errors.Is(err, packages.ErrNotInRepos) || errors.Is(err, packages.ErrKernel) || errors.Is(err, packages.ErrOtherPackages) {
+				if err == nil || errors.Is(err, packages.ErrNotInRepos) || errors.Is(err, packages.ErrNoRepos) || errors.Is(err, packages.ErrKernel) || errors.Is(err, packages.ErrOtherPackages) {
 					t.Errorf("plan %+v, %v; want another error", p, err)
 				}
 			}

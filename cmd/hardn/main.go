@@ -179,7 +179,7 @@ func sayFound(f config.Found) {
 var rootCmd = &cobra.Command{
 	Use:   "hardn",
 	Short: "Linux hardening tool",
-	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox, Alpine, Rocky Linux and AlmaLinux.`,
+	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox, Alpine, Rocky Linux, AlmaLinux and RHEL.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// -r runs alone: with -c, -d, -w, -g or -e a usage error before
 		// anything runs (runall.go; slice 9's defect 10).
@@ -226,8 +226,8 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
-		// An OS other than Debian, Ubuntu, Alpine, Rocky Linux or AlmaLinux,
-		// or none os-release names, is refused (hostOS); nothing is said of
+		// An OS other than Debian, Ubuntu, Alpine, Rocky Linux, AlmaLinux or
+		// RHEL, or none os-release names, is refused (hostOS); nothing is said of
 		// one that is not.
 		// Before hardn.yml's load, whose first-run question may write one:
 		// a host hardn refuses is never offered it.

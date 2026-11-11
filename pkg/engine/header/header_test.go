@@ -508,6 +508,8 @@ func TestOS(t *testing.T) {
 		{name: "Rocky Linux 10.2", f: rocky102().facts, want: header.OS{Name: "Rocky Linux", Version: "10.2"}},
 		{name: "AlmaLinux 10.1", f: detect.Facts{OS: detect.OSRelease{ID: "almalinux", VersionID: "10.1", PrettyName: "AlmaLinux 10.1"}},
 			want: header.OS{Name: "AlmaLinux", Version: "10.1"}},
+		{name: "RHEL 10.3", f: detect.Facts{OS: detect.OSRelease{ID: "rhel", VersionID: "10.3", PrettyName: "Red Hat Enterprise Linux 10.3 (Coughlan)"}},
+			want: header.OS{Name: "RHEL", Version: "10.3"}},
 	} {
 		t.Run(c.name, func(t *testing.T) {
 			s := debian13()

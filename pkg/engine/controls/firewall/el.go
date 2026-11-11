@@ -55,6 +55,7 @@ const (
 	codeFirewalldZone       = "FIREWALLD_ZONE_NO_SSH"
 	codeKernel              = "PACKAGE_KERNEL"
 	codeLocked              = "PACKAGE_LOCKED"
+	codeNoRepos             = "PACKAGE_NO_REPOS"
 )
 
 // planEL is Plan on Rocky Linux and AlmaLinux: Install, Install iproute2
@@ -75,7 +76,7 @@ func (c Incoming) planEL(ctx context.Context, sys host.System, in engine.Input) 
 		cs, err := disableFirewalld(ctx, sys)
 		return cs, true, err
 	case ActionApplyProfiles, ActionApplyInterfaces:
-		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn doesn't apply ufw's profiles or trusted interfaces on Rocky Linux or AlmaLinux, which use firewalld", Err: ErrEL}
+		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn doesn't apply ufw's profiles or trusted interfaces on Rocky Linux, AlmaLinux or RHEL, which use firewalld", Err: ErrEL}
 	}
 	return nil, false, nil
 }

@@ -234,7 +234,7 @@ The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 - **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
 - **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.
 - **`disableRoot`**, its old name, is read as `disableRootSSH`, with a warning that it is deprecated. Rename it.
-- **`enableUfwSshPolicy: true`:** enables the firewall. On Rocky Linux and AlmaLinux the firewall is left to the Firewall screen.
+- **`enableUfwSshPolicy: true`:** enables the firewall. On Rocky Linux, AlmaLinux and RHEL the firewall is left to the Firewall screen.
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
 - **`sshPort`:** compared with the port sshd listens on; never changed.
@@ -249,11 +249,11 @@ The main menu's Auto Updates (5) reads the host, never `enableUnattendedUpgrades
 
 ### Firewall Configuration with UFW Application Profiles
 
-The main menu's Firewall (3) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing. On Rocky Linux and AlmaLinux it installs, enables and disables firewalld; profiles and interfaces are refused.
+The main menu's Firewall (3) installs, enables and disables ufw, and keeps your application profiles. On Proxmox VE it reads "View pve-firewall": it shows pve-firewall and changes nothing. On Rocky Linux, AlmaLinux and RHEL it installs, enables and disables firewalld; profiles and interfaces are refused.
 
 - **Where `ss` is missing** (stock Alpine), "Enable firewall" installs iproute2 first, with apk or apt, after showing the change, then enables ufw. If ufw already runs, the first item is "Install iproute2". `-w` refuses without it.
 - **Enabling asks you to type the hostname**, since a wrong rule could lock you out. It lets SSH through, denies incoming by default, starts ufw and starts it at boot. On a host with no SSH server, where `ss` shows nothing on port 22, it lets no SSH port through. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
-- **`hardn -w` enables it the same way.** On a terminal, a change that could lock you out asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out, such as starting ufw at boot when it already runs, is applied without asking on a terminal; off one only with `--yes`, otherwise hardn shows the plan and exits 2. With `-n` it shows the plan. On Proxmox VE, Rocky Linux and AlmaLinux `-w` is refused, exit status 1.
+- **`hardn -w` enables it the same way.** On a terminal, a change that could lock you out asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -w` from a terminal. A change that can't lock you out, such as starting ufw at boot when it already runs, is applied without asking on a terminal; off one only with `--yes`, otherwise hardn shows the plan and exits 2. With `-n` it shows the plan. On Proxmox VE, Rocky Linux, AlmaLinux and RHEL `-w` is refused, exit status 1.
 - **Application Profiles (2)** adds a profile to hardn.yml, removes one, and applies them: Apply writes `/etc/ufw/applications.d/hardn` and lets their ports through ufw.
 - **Trusted Interfaces (3)** adds an interface to hardn.yml, removes one, and applies them: Apply lets everything arriving on each through ufw, every port, as `ufw allow in on <interface>` does.
 
@@ -286,7 +286,7 @@ ufwTrustedInterfaces:
 - **Removing an interface leaves its rule in ufw**, as for a profile. Delete it with `ufw delete allow in on <interface>`.
 - **Apply needs ufw running**, for profiles and interfaces alike.
 
-Enabling, from main menu 3 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` enable it the same way, except on Rocky Linux and AlmaLinux. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
+Enabling, from main menu 3 or `-w`, denies incoming by default and leaves the outgoing policy as it is. Run All and `-r` enable it the same way, except on Rocky Linux, AlmaLinux and RHEL. `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` are not used: where hardn.yml sets them, hardn warns, such as "hardn.yml's ufwDefaultIncomingPolicy isn't used". The file is still accepted.
 
 ## Configuration Recommendations
 <!-- 

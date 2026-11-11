@@ -106,6 +106,7 @@ output.ErrConfirmationRequired CONFIRMATION_REQUIRED
 output.ErrUsage USAGE
 packages.ErrKernel PACKAGE_KERNEL
 packages.ErrLocked PACKAGE_LOCKED
+packages.ErrNoRepos PACKAGE_NO_REPOS
 packages.ErrNoTool PACKAGE_NO_TOOL
 packages.ErrNotInRepos PACKAGE_NOT_IN_REPOS
 packages.ErrOtherPackages PACKAGE_OTHER_CHANGES

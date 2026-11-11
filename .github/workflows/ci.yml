@@ -151,6 +151,14 @@ jobs:
           - name: almalinux:9
             image: almalinux:9@sha256:245f8aab832fe800aa42bdab5fad75ebbd8e0b4c9f24820a83c638b177857ae2
             family: el
+          # Red Hat's Universal Base Images, freely redistributable: RHEL's
+          # userland (at 10.2 and 9.8) with no subscription.
+          - name: ubi10
+            image: redhat/ubi10:10.2@sha256:65201965dbdf33aecf3796ba454684be29083708fadb6335507b86a56d2df06c
+            family: el
+          - name: ubi9
+            image: redhat/ubi9:9.8@sha256:87f66688da4e206d5a1877088626c542288a5ccd97898cf363b588d57817e6be
+            family: el
     container:
       image: ${{ matrix.image }}
       # Rocky Linux's images set no PATH (their config holds only
@@ -182,10 +190,10 @@ jobs:
         with:
           persist-credentials: false
 
-      # The Rocky Linux and AlmaLinux images need nothing installed: they ship
-      # the CA bundle, and the tar and gzip that checkout (no git there, as on
-      # Debian) and setup-go unpack with.
-      - name: Set up Go from go.mod (Debian, Ubuntu, Rocky Linux, AlmaLinux)
+      # The Rocky Linux, AlmaLinux and UBI images need nothing installed: they
+      # ship the CA bundle, and the tar and gzip that checkout (no git there,
+      # as on Debian) and setup-go unpack with (UBI's: Red Hat's rpm manifest).
+      - name: Set up Go from go.mod (Debian, Ubuntu, Rocky Linux, AlmaLinux, UBI)
         if: matrix.family != 'alpine'
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:

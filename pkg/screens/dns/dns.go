@@ -167,6 +167,7 @@ type reading struct {
 var managers = map[hostdns.Manager]screen.DNSManager{
 	hostdns.ManagerFile: screen.DNSFile, hostdns.ManagerProxmox: screen.DNSProxmox, hostdns.ManagerResolved: screen.DNSResolved,
 	hostdns.ManagerNetworkManager: screen.DNSNetworkManager, hostdns.ManagerResolvconf: screen.DNSResolvconf, hostdns.ManagerForeign: screen.DNSOther,
+	hostdns.ManagerCloudInit: screen.DNSCloudInit,
 }
 
 // read reads the host's DNS (dns.Read) and its status (the control's

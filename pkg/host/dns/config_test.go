@@ -83,7 +83,7 @@ func TestCodes(t *testing.T) {
 	for _, tt := range []struct{ got, want string }{
 		{dns.ManagerUnknown.String(), "unknown"}, {dns.ManagerFile.String(), "file"}, {dns.ManagerProxmox.String(), "proxmox"},
 		{dns.ManagerResolved.String(), "systemd-resolved"}, {dns.ManagerResolvconf.String(), "resolvconf"},
-		{dns.ManagerNetworkManager.String(), "networkmanager"}, {dns.ManagerForeign.String(), "foreign"},
+		{dns.ManagerNetworkManager.String(), "networkmanager"}, {dns.ManagerForeign.String(), "foreign"}, {dns.ManagerCloudInit.String(), "cloud-init"},
 		{dns.StepUDHCPC.String(), "udhcpc-no-resolv"}, {dns.StepResolvConf.String(), "write-resolv-conf"},
 		{dns.StepDropIn.String(), "write-drop-in"}, {dns.StepReload.String(), "reload-resolved"}, {dns.Step(0).String(), "unknown"},
 		{dns.FindingPerLink.String(), "dns-per-link"}, {dns.FindingDHCPClient.String(), "dns-dhcp-client"},
@@ -96,7 +96,7 @@ func TestCodes(t *testing.T) {
 	}
 	for _, tt := range []struct{ got, want int }{
 		{int(dns.ManagerUnknown), 0}, {int(dns.ManagerFile), 1}, {int(dns.ManagerProxmox), 2}, {int(dns.ManagerResolved), 3},
-		{int(dns.ManagerResolvconf), 4}, {int(dns.ManagerNetworkManager), 5}, {int(dns.ManagerForeign), 6},
+		{int(dns.ManagerResolvconf), 4}, {int(dns.ManagerNetworkManager), 5}, {int(dns.ManagerForeign), 6}, {int(dns.ManagerCloudInit), 7},
 		{int(dns.StepUDHCPC), 1}, {int(dns.StepResolvConf), 2}, {int(dns.StepDropIn), 3}, {int(dns.StepReload), 4},
 		{int(dns.FindingPerLink), 1}, {int(dns.FindingDHCPClient), 2}, {int(dns.FindingUDHCPC), 3}, {int(dns.FindingProxmox), 4},
 		{int(dns.FindingUDHCPCUnknown), 5},

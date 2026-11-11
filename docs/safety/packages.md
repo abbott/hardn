@@ -5,7 +5,7 @@
 
 ## 1. API
 
-`ToolFor(facts)` gives `Apt` on Debian and Ubuntu, `Apk` on Alpine, `Dnf` on Rocky Linux and AlmaLinux, `ErrNoTool` otherwise, Proxmox VE included. `Installed(ctx, sys, tool, name)` reads a `detect.Tri`. `PlanInstall(ctx, sys, tool, name)` returns a `Plan{Tool, Name, Argv, Undo, Adds}`; `Empty()` says there is nothing to run. `Execute(ctx, sys, plan)` returns a `Report{Undo, Installed}`.
+`ToolFor(facts)` gives `Apt` on Debian and Ubuntu, `Apk` on Alpine, `Dnf` on Rocky Linux, AlmaLinux and RHEL, `ErrNoTool` otherwise, Proxmox VE included. `Installed(ctx, sys, tool, name)` reads a `detect.Tri`. `PlanInstall(ctx, sys, tool, name)` returns a `Plan{Tool, Name, Argv, Undo, Adds}`; `Empty()` says there is nothing to run. `Execute(ctx, sys, plan)` returns a `Report{Undo, Installed}`.
 
 | Tool | Read | Simulation | Install | Undo |
 |---|---|---|---|---|
@@ -37,6 +37,7 @@
 | dnf: any other section, or a `replacing` line | refused | [I] dnf's `output.py` headings; probe 4 showed `Upgrading:` for an installed sudo |
 | dnf: a `kernel` or `kernel-…` row of another release than `uname -r` | `ErrKernel` (the maintainer, 2026-11-10: "Refuse") | probe 4: firewalld's weak dependencies brought kernel 211.74 to a host on 211.16 |
 | dnf: `Error: Unable to find a match: x`, exit 1 | `ErrNotInRepos` | probe 3b |
+| dnf: a stderr line starting `Error: There are no enabled repositories in `, exit 1 | `ErrNoRepos` | rhel10-test-114 and rhel9-test-115, probe 3: unregistered RHEL ([el-rhel.md](../engine/el-rhel.md) §5) |
 | dnf: exit 200 | `ErrLocked` | [I] dnf's `main.py` (a lock) |
 | `rpm -q x`: exit 0, `x-…` lines; exit 1, `package x is not installed` on stdout | installed; not installed | probes 4 and 3b |
 
