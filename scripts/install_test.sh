@@ -178,6 +178,12 @@ make_release() { # <tag>: the three binaries and a good SHA256SUMS
 		printf 'fake %s %s\n' "$a" "$1" >"$rel/$1/$a"
 		printf '%s  %s\n' "$(hash "$rel/$1/$a")" "$a" >>"$rel/$1/SHA256SUMS"
 	done
+	# Each binary's attestation bundle, from v0.7.0, whose name begins with
+	# the binary's: SHA256SUMS in release.yml's order.
+	for a in $assets; do
+		printf '{}\n' >"$rel/$1/$a.sigstore.json"
+		printf '%s  %s\n' "$(hash "$rel/$1/$a.sigstore.json")" "$a.sigstore.json" >>"$rel/$1/SHA256SUMS"
+	done
 	printf '{}\n' >"$rel/$1/hardn-sbom.spdx.json"
 	printf '%s  %s\n' "$(hash "$rel/$1/hardn-sbom.spdx.json")" hardn-sbom.spdx.json >>"$rel/$1/SHA256SUMS"
 }

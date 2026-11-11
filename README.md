@@ -316,7 +316,7 @@ The workflows that build and sign a release are audited by 🌈 [zizmor](https:/
 
 ### Verify a Release
 
-Verification is a separate step, and recommended. From v0.4.0, each release has `SHA256SUMS`, an SPDX SBOM (`hardn-sbom.spdx.json`), and the attestation for each binary.
+Verification is a separate step, and recommended. From v0.4.0, each release has `SHA256SUMS`, an SPDX SBOM (`hardn-sbom.spdx.json`), and the attestation for each binary. From v0.7.0, each attestation's bundle is a file of the release too, such as `hardn-linux-amd64.sigstore.json`.
 
 [verify.sh](verify.sh) downloads a binary and `SHA256SUMS`, checks the SHA-256, and then checks the attestation. It needs curl, sha256sum or shasum, and [gh](https://cli.github.com) 2.68.0 or later, signed in (`gh auth login`):
 
@@ -332,6 +332,19 @@ gh attestation verify /usr/local/bin/hardn --repo abbott/hardn \
   --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.7.0 \
   --source-ref refs/tags/v0.7.0 --deny-self-hosted-runners
 ```
+
+To check a binary on a host with no network, bring three files from a machine that has one: the binary, its bundle from the same release, and Sigstore's trusted root, from `gh attestation trusted-root > trusted_root.jsonl`. Then, with gh 2.68.0 or later, signed in or not:
+
+```sh
+gh attestation verify hardn-linux-amd64 --repo abbott/hardn \
+  --bundle hardn-linux-amd64.sigstore.json --custom-trusted-root trusted_root.jsonl \
+  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.7.0 \
+  --source-ref refs/tags/v0.7.0 --deny-self-hosted-runners \
+  --format json --jq '.[].verificationResult.signature.certificate.sourceRepositoryIdentifier'
+```
+
+It prints the ID of the repository that signed the bundle, which must be `941701082`, abbott/hardn's. Offline, `--repo` is checked only against the names in the bundle, so a bundle from another repository that has had the name would pass; its ID would differ. Online, `gh api repos/abbott/hardn --jq .id` shows the ID.
+
 > [!NOTE]
 > To check the SHA-256 alone, download `SHA256SUMS` from the same release, then run `grep ' hardn-linux-amd64$' SHA256SUMS | sha256sum -c -`.
 

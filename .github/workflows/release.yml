@@ -47,9 +47,17 @@ concurrency:
 env:
   GOWORK: "off"
   GOFLAGS: -mod=readonly
-  # Every asset of a release, SHA256SUMS aside. install.sh's table names the
-  # binaries; the build matrix below must produce exactly these.
-  ASSETS: hardn-linux-amd64 hardn-linux-arm64 hardn-darwin-amd64 hardn-sbom.spdx.json
+  # Every asset of a release, SHA256SUMS aside: the binaries, each one's
+  # attestation bundle, and the SBOM. install.sh's table names the binaries;
+  # build.yml's matrix must produce exactly these.
+  ASSETS: >-
+    hardn-linux-amd64 hardn-linux-arm64 hardn-darwin-amd64
+    hardn-linux-amd64.sigstore.json hardn-linux-arm64.sigstore.json
+    hardn-darwin-amd64.sigstore.json hardn-sbom.spdx.json
+  # abbott/hardn's repository ID, as the README gives it for the offline
+  # check. A repository keeps its ID when renamed; another that takes the
+  # name gets a new one (GitHub's "Verifying attestations offline").
+  REPO_ID: "941701082"
 
 jobs:
   prepare:
@@ -309,23 +317,46 @@ jobs:
       # called with ./, runs at this run's ref and commit, so the identity
       # ends @GITHUB_REF and its digest is GITHUB_SHA. A binary that fails
       # leaves the release a draft.
+      #
+      # Then the README's offline check, against each binary's bundle on the
+      # draft: Sigstore's trusted root from gh attestation trusted-root, the
+      # same policy, and the certificate's repository ID, which must be
+      # REPO_ID. Offline, --repo is compared only with the names in the
+      # certificate, so the ID is what tells a bundle from another repository
+      # that had the name.
       - name: Verify each binary's provenance
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
           gh version
+          [ "$GITHUB_REPOSITORY_ID" = "$REPO_ID" ] || {
+            echo "::error::this repository's ID is $GITHUB_REPOSITORY_ID, not REPO_ID ($REPO_ID)"
+            exit 1
+          }
+          policy=(
+            --repo abbott/hardn
+            --cert-identity "https://github.com/abbott/hardn/.github/workflows/build.yml@$GITHUB_REF"
+            --source-ref "$GITHUB_REF"
+            --source-digest "$GITHUB_SHA"
+            --signer-digest "$GITHUB_SHA"
+            --deny-self-hosted-runners
+          )
+          gh attestation trusted-root > trusted_root.jsonl
           read -ra assets <<< "$ASSETS"
           n=0
           for f in "${assets[@]}"; do
-            case "$f" in hardn-*.spdx.json) continue ;; esac
-            gh attestation verify "back/$f" \
-              --repo abbott/hardn \
-              --cert-identity "https://github.com/abbott/hardn/.github/workflows/build.yml@$GITHUB_REF" \
-              --source-ref "$GITHUB_REF" \
-              --source-digest "$GITHUB_SHA" \
-              --signer-digest "$GITHUB_SHA" \
-              --deny-self-hosted-runners
+            case "$f" in hardn-*.spdx.json | *.sigstore.json) continue ;; esac
+            gh attestation verify "back/$f" "${policy[@]}"
+            ids=$(gh attestation verify "back/$f" "${policy[@]}" \
+              --bundle "back/$f.sigstore.json" \
+              --custom-trusted-root trusted_root.jsonl \
+              --format json \
+              --jq '.[].verificationResult.signature.certificate.sourceRepositoryIdentifier')
+            [ "$ids" = "$REPO_ID" ] || {
+              echo "::error::$f.sigstore.json's repository ID is '$ids', not $REPO_ID"
+              exit 1
+            }
             n=$((n + 1))
           done
           [ "$n" -eq 3 ] || { echo "::error::verified $n binaries, not 3"; exit 1; }
