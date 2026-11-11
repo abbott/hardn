@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -424,6 +425,14 @@ func fwNoUFWSim(p platform, sim hostfake.Response) func() *fakeHost {
 // and apk's index empty.
 func fwAlpineStock() *fakeHost {
 	return fwWithoutSS(fwNoUFWSim(alpine323Platform, fwAPKNoIndex)())
+}
+
+// fwAlpineLXC is fwAlpineStock in an LXC container, as PID 1's environment
+// says it (container=lxc), with no /run/systemd/container: OpenRC writes none.
+func fwAlpineLXC() *fakeHost {
+	h := fwAlpineStock()
+	h.f.AddFile(detect.InitEnviron, []byte("container=lxc\x00HOME=/\x00TERM=linux\x00"), 0o400, 0, 0)
+	return h
 }
 
 // fwProfilesInactive is Debian 13 with two profiles in hardn.yml, ufw inactive.

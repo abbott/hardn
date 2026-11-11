@@ -65,6 +65,9 @@ type Reading struct {
 	// read: masked and not-found are what Enable refuses (ufw.ReadBootUnit).
 	BootUnit string
 	Sockets  Sockets
+	// Container: off Proxmox VE, detect establishes a container (inContainer),
+	// whose host may filter traffic too, which the screen says.
+	Container bool
 	// First is what item 1 does; DisableBeside, that Disable has an item of its
 	// own: ufw is active, and item 1 is Enable or Install iproute2.
 	First         Item
@@ -97,6 +100,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 		r.PVEUFWEnabled, r.PVEUFWErr = ufw.ReadEnabled(ctx, sys)
 		return r
 	}
+	r.Container = inContainer(f)
 	if f.Platform.Distro.EL() {
 		r.readEL(ctx, sys, engine.Input{Facts: f, Config: cfg, Session: session})
 		return r
