@@ -60,6 +60,7 @@ type fwHost struct {
 	statusOut string             // what ufw status verbose prints, "" the model's
 	ssFails   bool               // ss runs and fails
 	sim       *hostfake.Response // apt-get's simulation, nil aptSim
+	ssSim     *hostfake.Response // apt-get's simulation of iproute2's install, nil the stock one
 	pveDown   bool               // pve-firewall's service stopped
 
 	fwd *fwdModel // firewalld on Rocky Linux, nil elsewhere
@@ -74,6 +75,7 @@ type fwdModel struct {
 	installed       bool
 	active, enabled string // what systemctl is-active and is-enabled print
 	masked          bool
+	noRepos         bool // dnf has no enabled repository (an unregistered RHEL host)
 }
 
 // elSimulate is dnf's simulation of firewalld's install, el_test.go's.
@@ -85,6 +87,10 @@ const elSimulate = "Dependencies resolved.\n" +
 	"Installing dependencies:\n firewalld-filesystem      noarch      2.4.3-4.el10_2         baseos      7.7 k\n" +
 	" nftables                  x86_64      1:1.1.5-6.el10_2       baseos      447 k\n" +
 	"\nTransaction Summary\n================================================================================\nInstall  3 Packages\n"
+
+// elNoRepos is dnf's line where it has no enabled repository
+// (rhel10-test-114, el-rhel.md §5).
+const elNoRepos = "Error: There are no enabled repositories in \"/etc/yum.repos.d\", \"/etc/yum/repos.d\", \"/etc/distro.repos.d\".\n"
 
 // answer is firewalld's answer to cmd, and whether it is one of its
 // commands: systemctl's of firewalld.service and of the other firewall
@@ -133,6 +139,9 @@ func (m *fwdModel) answer(argv []string) (hostfake.Response, bool) {
 		}
 		return hostfake.Response{Stdout: "package firewalld is not installed\n", ExitCode: 1}, true
 	case "dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True firewalld":
+		if m.noRepos {
+			return hostfake.Response{Stderr: elNoRepos, ExitCode: 1}, true
+		}
 		return hostfake.Response{Stdout: elSimulate, Stderr: "Operation aborted.\n", ExitCode: 1}, true
 	case "dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True firewalld":
 		m.installed, m.active, m.enabled = true, "inactive", "enabled" // the preset
@@ -497,6 +506,8 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 		return hostfake.Response{ExitCode: 1}
 	case cmd == "apk info -e iproute2":
 		return hostfake.Response{Stdout: "iproute2\n"}
+	case cmd == "apt-get install -s -y iproute2" && h.ssSim != nil:
+		return *h.ssSim
 	case cmd == "apt-get install -s -y iproute2":
 		return hostfake.Response{Stdout: "Reading package lists...\nThe following NEW packages will be installed:\n  iproute2\nInst iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\nConf iproute2 (6.15.0-1 Debian:13.7/stable [amd64])\n"}
 	case cmd == "apk add --simulate iproute2":

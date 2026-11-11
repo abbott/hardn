@@ -13,6 +13,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	fwscreen "github.com/abbott/hardn/pkg/screens/firewall"
 	"github.com/abbott/hardn/pkg/ui/component"
@@ -243,7 +244,10 @@ func TestInstall(t *testing.T) {
 // firewall", "Installs iproute2, then starts ufw", marked lockout-risk;
 // chosen, it installs iproute2, its review saying why, y/N, then goes on to
 // Enable's own change, the hostname typed, the timer armed. Declined at the
-// install, nothing changes and Enable is not asked.
+// install, nothing changes and Enable is not asked. The install refused (no
+// iproute2 in apt's package lists): said as a warning before anything is
+// asked, from the reading's plan of it, as Install iproute's is on Rocky
+// Linux, AlmaLinux and RHEL: no review, no question, nothing installed.
 func TestEnableSS(t *testing.T) {
 	h, cfg := screenHost(t, "no-ss")
 	p := play(h, h, cfg, false, "1", "y", hostName, "0")
@@ -262,6 +266,21 @@ func TestEnableSS(t *testing.T) {
 	n := len(h.Calls())
 	if p := play(h, h, cfg, false, "1", "n", "0"); p.err != nil || !h.noSS || h.active || len(writes(h, n)) > 0 || strings.Contains(p.out, "Enable the firewall?") {
 		t.Errorf("declined: Run = %v, ss missing %t, active %t, wrote %v:\n%s", p.err, h.noSS, h.active, writes(h, n), p.out)
+	}
+	h, cfg = screenHost(t, "no-ss")
+	h.ssSim = &hostfake.Response{Stdout: "Reading package lists...\n", Stderr: "E: Unable to locate package iproute2\n", ExitCode: 100}
+	n = len(h.Calls())
+	p = play(h, h, cfg, false, "1", "0")
+	if p.err != nil || p.unread != 0 || len(p.runs) != 0 || !h.noSS || h.active || len(writes(h, n)) > 0 {
+		t.Errorf("not in apt's lists: Run = %v, %d unread, runs %+v, ss missing %t, active %t, wrote %v:\n%s", p.err, p.unread, p.runs, h.noSS, h.active, writes(h, n), p.out)
+	}
+	if w := inOrder(p.out, "Enter selection", "Warning", "hardn can't find iproute2 in apt's package lists", "UFW Firewall Configuration #"); w != "" {
+		t.Errorf("not in apt's lists: %q not shown after what came before it:\n%s", w, p.out)
+	}
+	for _, not := range []string{"Install iproute2? [y/N", "Operation Failed", "To go on", "Enable the firewall?"} {
+		if strings.Contains(p.out, not) {
+			t.Errorf("not in apt's lists: %q shown:\n%s", not, p.out)
+		}
 	}
 	// The hostname Enable will ask can't be read: said before the install, nothing installed.
 	h, cfg = screenHost(t, "no-ss")

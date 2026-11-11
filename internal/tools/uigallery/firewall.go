@@ -199,9 +199,6 @@ func (s *session) fwScreen(ctx context.Context, fh fwHost, h *fakeHost) error {
 		NewEngine: func(progress func(engine.Event)) *engine.Engine {
 			r := &recorder{host: h, f: h.f, title: title}
 			rec = r
-			s.mu.Lock()
-			s.engineRuns = append(s.engineRuns, r)
-			s.mu.Unlock()
 			r.begin()
 			return engine.New(sys, engine.Options{
 				Revert:   revert.Options{Now: clock, Hardn: galleryHardn},
@@ -212,10 +209,16 @@ func (s *session) fwScreen(ctx context.Context, fh fwHost, h *fakeHost) error {
 				Progress: func(ev engine.Event) { r.event(ev); progress(ev) },
 			})
 		},
+		// Recorded once its change has run, as Auto Updates' and SSH's are:
+		// the engine an item plans with before asking (Session.Preplan) runs
+		// nothing, and is not.
 		Ran: func(run output.Run) {
 			rec.end()
 			rec.setPlan(run.Plan)
 			rec.failedWith(run.Err)
+			s.mu.Lock()
+			s.engineRuns = append(s.engineRuns, rec)
+			s.mu.Unlock()
 		},
 	})
 }

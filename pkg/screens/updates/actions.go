@@ -37,30 +37,12 @@ func edit(action updatesctl.AutoAction, cfg *config.Config) {
 	}
 }
 
-// preplan plans c on the engine with cfg, from a fresh reading of the
-// host, writing nothing outside the engine's run directory, which it
-// removes, and returns its first refusal in the screen's words
-// (screenkit.RefusalWords), "" for none: the control's refusals and the
-// engine's (a change waiting for hardn confirm among them) are said before
-// asking.
-func (r *runner) preplan(ctx context.Context, c engine.Control, cfg *config.Config) (string, error) {
-	p, err := r.o.NewEngine(func(engine.Event) {}).Plan(ctx, []engine.Control{c}, cfg)
-	switch {
-	case err != nil && ctx.Err() != nil:
-		return "", err
-	case err != nil:
-		return screenkit.RefusalWords(err), nil
-	case len(p.Refused) > 0:
-		return screenkit.RefusalWords(p.Refused[0]), nil
-	}
-	return "", nil
-}
-
 // change runs the item, on or off as v draws it, through the flow
-// (screenkit.Session.Change), plain y/N: planned first (preplan) and
-// refused before asking; its review, the row as the change leaves it and
-// the control's notes; its plan from a fresh reading; the question. Each
-// plans with a copy of hardn.yml edited as the change saves it (edit).
+// (screenkit.Session.Change), plain y/N: planned first
+// (screenkit.Session.Preplan) and refused before asking; its review, the
+// row as the change leaves it and the control's notes; its plan from a
+// fresh reading; the question. Each plans with a copy of hardn.yml edited
+// as the change saves it (edit).
 func (r *runner) change(ctx context.Context, v screen.Updates) error {
 	action := updatesctl.AutoOn
 	if v.Off() {
@@ -69,7 +51,7 @@ func (r *runner) change(ctx context.Context, v screen.Updates) error {
 	c := r.control(action)
 	edited := *r.cfg // as screenkit.Session.Change edits its copy
 	edit(action, &edited)
-	switch words, err := r.preplan(ctx, c, &edited); {
+	switch words, err := r.s.Preplan(ctx, &edited, c); {
 	case err != nil:
 		return err
 	case words != "":

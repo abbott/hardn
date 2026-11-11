@@ -59,8 +59,9 @@ const (
 )
 
 // action returns what choosing the item keyed key does with the reading h: item 1
-// says its plan's refusal before asking, or runs its change; item 2 opens the
-// application profiles; item 3 the trusted interfaces; item 4 is Disable.
+// says its plan's refusal before asking, or runs its change, a Disable, which the
+// reading doesn't plan, planned first; item 2 opens the application profiles;
+// item 3 the trusted interfaces; item 4 is Disable, planned first.
 func (r *runner) action(ctx context.Context, h reading, key string) func() error {
 	switch key {
 	case screen.FirewallFirstItem:
@@ -70,13 +71,16 @@ func (r *runner) action(ctx context.Context, h reading, key string) func() error
 		if h.view.First == screen.FirewallEnableSS {
 			return r.enableWithSS(ctx, h)
 		}
+		if h.First == firewallctl.ItemDisable {
+			return r.planned(ctx, firewallctl.ActionDisable, h.view.FirstChange())
+		}
 		return r.plain(ctx, firstAction(h.First), h.view.FirstChange(), risky(h.Plan))
 	case screen.FirewallProfilesItem:
 		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawProfiles(ctx) }) }
 	case screen.FirewallInterfacesItem:
 		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawInterfaces(ctx) }) }
 	case screen.FirewallDisableItem:
-		return r.plain(ctx, firewallctl.ActionDisable, screen.FirewallDisableChange(), false)
+		return r.planned(ctx, firewallctl.ActionDisable, screen.FirewallDisableChange())
 	}
 	return func() error { return fmt.Errorf("firewall screen: item %s has no action", key) } // not reached: SubMenu's items are those above
 }
@@ -119,6 +123,23 @@ func firstAction(first firewallctl.Item) firewallctl.Action {
 		return firewallctl.ActionDisable
 	}
 	return firewallctl.ActionEnable
+}
+
+// planned is plain's action, a change the reading doesn't plan (Disable;
+// Install and Install iproute on Rocky Linux, AlmaLinux and RHEL): planned on the
+// engine first, its refusal said before asking (screenkit.Session.Preplan), as
+// item 1 says the reading's. Its plan is plain, so no hostname is checked.
+func (r *runner) planned(ctx context.Context, action firewallctl.Action, c screen.FirewallChange) func() error {
+	run := r.plain(ctx, action, c, false)
+	return func() error {
+		switch words, err := r.s.Preplan(ctx, r.s.Config, firewallctl.Incoming{Action: action}); {
+		case err != nil:
+			return err
+		case words != "":
+			return r.s.Say(screenkit.Warnings(words))()
+		}
+		return run()
+	}
 }
 
 // plain returns the action of one change with no form: action planned under c's
