@@ -561,6 +561,8 @@ var findingCodes = []Entry{
 	finding(firewall.CodeSSHBlocked, "an active firewall refuses new connections to an SSH listener, other than one refused on IPv6 alone while IPv4 gets in: lockout risk, scored critical"),
 	finding(firewall.CodeSSHUnchecked, "the SSH listeners are not established, so whether the firewall lets them through is not either"),
 	finding(firewall.CodeBootUnchecked, "whether an active ufw starts at the next boot is not read, so the row is not Configured"),
+	finding(firewall.CodePortsBlocked, "Enable's firewall would block listening ports other than SSH's, which it lets through now: their ports, programs and how to keep one open; hardn adds no rule for them"),
+	finding(firewall.CodePortsUnread, "the listening sockets were not all read, so which other ports Enable's firewall would block is not established"),
 	finding(firewall.CodeLocalOnly, "on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only"),
 	// The users control's own (next/p4-check-users).
 	finding(users.CodeNoPassword, "a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass)"),

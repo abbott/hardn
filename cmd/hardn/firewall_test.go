@@ -163,8 +163,10 @@ func (h *fwTestHost) answer(argv []string, _ []byte) hostfake.Response {
 	switch {
 	case argv[0] == "sshd" && slices.Contains(argv, "-T"):
 		return hostfake.Response{Stdout: "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin without-password\npubkeyauthentication yes\npasswordauthentication yes\nusepam yes\n"}
-	case cmd == "ss -Htln":
+	case cmd == "ss -Htln", cmd == "ss -Htlnp":
 		return hostfake.Response{Stdout: "LISTEN 0      4096                  [::]:22   [::]:*\nLISTEN 0      4096               0.0.0.0:22   0.0.0.0:*\n"}
+	case cmd == "ss -Hulnp":
+		return hostfake.Response{}
 	case cmd == "ufw status verbose":
 		return hostfake.Response{Stdout: h.status()}
 	case cmd == "ufw default deny incoming":

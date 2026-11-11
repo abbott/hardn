@@ -14,6 +14,8 @@ import (
 type Need struct {
 	Port   uint16
 	Family Family
+	// Proto is "tcp" or "udp"; "" is tcp, as every SSH need is.
+	Proto string
 	// Addr is the listener's address; an unspecified one is every address
 	// of Family.
 	Addr netip.Addr
@@ -134,9 +136,14 @@ const (
 	unreadable
 )
 
-// matches says which of n's connections (TCP from anywhere) r matches.
+// matches says which of n's connections (n.Proto's, TCP where "", from
+// anywhere) r matches.
 func matches(r Rule, n Need) match {
-	if r.Family != n.Family || r.Dir != "in" || r.Proto != "tcp" && r.Proto != "any" {
+	proto := n.Proto
+	if proto == "" {
+		proto = "tcp"
+	}
+	if r.Family != n.Family || r.Dir != "in" || r.Proto != proto && r.Proto != "any" {
 		return noMatch
 	}
 	if in, ok := portIn(r.DPort, n.Port); !ok {

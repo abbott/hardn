@@ -319,8 +319,8 @@ func (e *Engine) removeRunDir(ctx context.Context, id string) {
 
 // samePlan reports whether fresh, made under the run lock, is the plan p
 // that was shown: the same changes in the same order, field by field (Apply
-// aside, a function), the same risk, and its backups under the same
-// settings.
+// aside, a function, and Volatile findings), the same risk, and its backups
+// under the same settings.
 func samePlan(p, fresh *Plan) bool {
 	if len(p.Changes) != len(fresh.Changes) || p.Risk != fresh.Risk || p.Backups != fresh.Backups {
 		return false
@@ -328,11 +328,23 @@ func samePlan(p, fresh *Plan) bool {
 	for i := range p.Changes {
 		a, b := p.Changes[i], fresh.Changes[i]
 		a.Apply, b.Apply = nil, nil
+		a.Findings, b.Findings = lasting(a.Findings), lasting(b.Findings)
 		if !reflect.DeepEqual(a, b) {
 			return false
 		}
 	}
 	return true
+}
+
+// lasting is fs without its Volatile findings, nil for none.
+func lasting(fs []Finding) []Finding {
+	var out []Finding
+	for _, f := range fs {
+		if !f.Volatile {
+			out = append(out, f)
+		}
+	}
+	return out
 }
 
 // confirmVia is the listeners a confirmation must reach: every lockout-risk

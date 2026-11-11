@@ -145,6 +145,8 @@ func applies(p detect.Proxmox) error {
 // change alone is plain, and its undo runs last. A listener ufw would still
 // refuse once the plan ran is refused, as is ufw's service masked, missing or
 // not read, each before anything changes; on a host that is set, an empty plan.
+// ufw's change carries the other listening ports ufw would block (ufwOthers),
+// which refuse nothing.
 func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	sk := ReadSockets(ctx, sys, in.Facts)
 	switch {
@@ -189,6 +191,7 @@ func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Cha
 		if err := stillRefused(st, sk, changes, false); err != nil {
 			return nil, err
 		}
+		changes = withFindings(changes, ID+"/firewall", func() []engine.Finding { return ufwOthers(ctx, sys, st, sk, changes) })
 	}
 	return changes, nil
 }

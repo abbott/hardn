@@ -283,10 +283,13 @@ func query(ctx context.Context, sys host.System, cmd string, args ...string) (bo
 
 // covers reports whether a service's ports ("22/tcp", "60000-61000/udp")
 // hold TCP port.
-func covers(specs []string, port uint16) bool {
+func covers(specs []string, port uint16) bool { return coversProto(specs, port, "tcp") }
+
+// coversProto reports whether specs hold port of proto ("tcp", "udp").
+func coversProto(specs []string, port uint16, want string) bool {
 	for _, s := range specs {
 		ports, proto, ok := strings.Cut(s, "/")
-		if !ok || proto != "tcp" {
+		if !ok || proto != want {
 			continue
 		}
 		lo, hi, rng := strings.Cut(ports, "-")

@@ -63,6 +63,14 @@ const (
 	// pve-firewall's management rule accepts SSH and the web UI from the
 	// cluster's local network only, which is not read.
 	CodeLocalOnly = "FIREWALL_PVE_LOCAL_ONLY"
+	// CodePortsBlocked: Enable's firewall would block listening ports
+	// other than SSH's, which it lets through now (others.go); the
+	// finding names them and how to keep one open, and refuses nothing.
+	CodePortsBlocked = "FIREWALL_PORTS_BLOCKED"
+	// CodePortsUnread: the listening sockets were not all read (ss -Htlnp
+	// or ss -Hulnp failed, or printed a line hardn can't read), so which
+	// other ports Enable's firewall would block is not established.
+	CodePortsUnread = "FIREWALL_PORTS_UNREAD"
 )
 
 // Three of the row's Partial details (proposed wording,

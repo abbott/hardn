@@ -1134,7 +1134,7 @@ func TestReadChangesNothing(t *testing.T) {
 				case "read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group":
 				case "run":
 					switch cmd := strings.Join(c.Argv, " "); {
-					case cmd == "ufw status verbose", cmd == "ss -Htln", cmd == "systemctl is-enabled ufw.service",
+					case cmd == "ufw status verbose", cmd == "ss -Htln", cmd == "ss -Htlnp", cmd == "ss -Hulnp", cmd == "systemctl is-enabled ufw.service",
 						c.Argv[0] == "dpkg-query", cmd == "apt-get install -s -y ufw", cmd == "apk info -e ufw", cmd == "apk add --simulate ufw",
 						cmd == "systemctl show -p Listen ssh.socket", strings.Contains(cmd, "sshd -T") || strings.HasSuffix(c.Argv[0], "sshd"),
 						strings.HasPrefix(cmd, "systemctl is-active "):

@@ -52,6 +52,11 @@ type Finding struct {
 	Code   string
 	Detail string // one line
 	Source string // where it was seen (a file and line, a command), when known
+	// Volatile marks a finding read from state the change does not act on,
+	// such as other programs' listening sockets: Apply's comparison with
+	// the plan made again under the run lock leaves it out (samePlan), so
+	// its coming or going in between is not a changed plan.
+	Volatile bool `json:"-"`
 }
 
 // Status is what a control's Check established.

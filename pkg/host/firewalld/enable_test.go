@@ -325,6 +325,43 @@ func TestPlanEnable(t *testing.T) {
 	}
 }
 
+// TestLets: what a planned Enable lets through besides SSH, for the
+// ports it will block: the default zone's services (cockpit's 9090/tcp,
+// dhcpv6-client's 546/udp) and ports by protocol, a port the plan adds, a
+// bound zone that accepts everything; nothing for a plan PlanEnable did
+// not return.
+func TestLets(t *testing.T) {
+	ctx := context.Background()
+	m := newModel(t)
+	m.zones["public"].ports = []string{"3478/udp", "8000-8010/tcp"}
+	p, err := firewalld.PlanEnable(ctx, m.h, stopped, []uint16{22, 2230})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		port  uint16
+		proto string
+		want  bool
+	}{
+		{9090, "tcp", true}, {546, "udp", true}, {546, "tcp", false}, {3478, "udp", true}, {3478, "tcp", false},
+		{8005, "tcp", true}, {8005, "udp", false}, {2230, "tcp", true}, {5432, "tcp", false},
+	} {
+		if got, err := p.Lets(ctx, m.h, c.port, c.proto); got != c.want || err != nil {
+			t.Errorf("%d/%s: %t, %v; want %t", c.port, c.proto, got, err, c.want)
+		}
+	}
+	m = newModel(t)
+	m.nm = "trusted"
+	if p, err := firewalld.PlanEnable(ctx, m.h, stopped, []uint16{22}); err != nil {
+		t.Fatal(err)
+	} else if got, err := p.Lets(ctx, m.h, 5432, "tcp"); !got || err != nil {
+		t.Errorf("a bound zone with target ACCEPT: %t, %v", got, err)
+	}
+	if got, err := (firewalld.EnablePlan{Zones: []string{"public"}}).Lets(ctx, m.h, 9090, "tcp"); got || err != nil {
+		t.Errorf("not PlanEnable's: %t, %v", got, err)
+	}
+}
+
 // TestExecuteEnable: the adds, the start, a wait while firewalld comes up,
 // the runtime check of every zone, the enable; never up is ErrNotReady,
 // and a failed start ends the wait at once; a zone not letting SSH

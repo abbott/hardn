@@ -267,6 +267,11 @@ type site struct {
 	dpkg map[string]string
 	// iproute2: its package is installed though ss is missing (plat.noSS).
 	iproute2 bool
+	// tcp and udp are the lines ss -Htlnp and ss -Hulnp print besides
+	// bound's (sshd's): the other listeners Enable may block. listenErr is
+	// ss -Hulnp's answer instead.
+	tcp, udp  string
+	listenErr *hostfake.Response
 }
 
 const stockMain = "Include /etc/ssh/sshd_config.d/*.conf\n\nKbdInteractiveAuthentication no\nUsePAM yes\n"
@@ -402,6 +407,12 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 			return *s.ssErr
 		case cmd == "ss -Htln":
 			return hostfake.Response{Stdout: ss(bound, s.plat.socket)}
+		case cmd == "ss -Htlnp":
+			return hostfake.Response{Stdout: ss(bound, s.plat.socket) + s.tcp}
+		case cmd == "ss -Hulnp" && s.listenErr != nil:
+			return *s.listenErr
+		case cmd == "ss -Hulnp":
+			return hostfake.Response{Stdout: s.udp}
 		case cmd == "systemctl is-active "+unit && s.pve.fail:
 			return hostfake.Response{Err: errors.New("host: run systemctl: connection to the bus refused")}
 		case cmd == "systemctl is-active "+unit:

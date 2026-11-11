@@ -62,6 +62,9 @@ type fwHost struct {
 	sim       *hostfake.Response // apt-get's simulation, nil aptSim
 	ssSim     *hostfake.Response // apt-get's simulation of iproute2's install, nil the stock one
 	pveDown   bool               // pve-firewall's service stopped
+	// tcp and udp are the lines ss -Htlnp and ss -Hulnp print besides
+	// sshd's: the other listeners Enable may block.
+	tcp, udp string
 
 	fwd *fwdModel // firewalld on Rocky Linux, nil elsewhere
 }
@@ -478,12 +481,16 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 			fmt.Fprintf(&b, "Listen=[::]:%d (Stream)\n", p)
 		}
 		return hostfake.Response{Stdout: b.String()}
-	case cmd == "ss -Htln" && h.noSS:
+	case argv[0] == "ss" && h.noSS:
 		return hostfake.Response{Err: fmt.Errorf("host: run ss: %w", host.ErrNotFound)}
-	case cmd == "ss -Htln" && h.ssFails:
+	case argv[0] == "ss" && h.ssFails:
 		return hostfake.Response{Stderr: "ss: netlink error\n", ExitCode: 1}
 	case cmd == "ss -Htln":
 		return hostfake.Response{Stdout: h.ss()}
+	case cmd == "ss -Htlnp": // sshd's sockets, then the other listeners Enable may block
+		return hostfake.Response{Stdout: h.ss() + h.tcp}
+	case cmd == "ss -Hulnp":
+		return hostfake.Response{Stdout: h.udp}
 	case cmd == "systemctl is-enabled ufw.service" && h.missing:
 		return hostfake.Response{Stdout: "not-found\n", ExitCode: 1}
 	case cmd == "systemctl is-enabled ufw.service" && h.unit == "fails":

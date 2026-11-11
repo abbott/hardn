@@ -702,6 +702,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, output.CodeDetailsUnreadable)                                                                            // next/s1-readers
 	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158
 	want = append(want, ssh.CodeSSHDUnfixedLatent)                                                                               // its line with no password path
+	want = append(want, firewall.CodePortsBlocked, firewall.CodePortsUnread)                                                     // the other listeners Enable blocks
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

@@ -74,6 +74,7 @@ Item 1 where firewalld is installed and stopped: one lockout-risk change of `Sta
   - A unit left `failed` (by the Enable's own start, or a kill at the stop) is cleared with `systemctl reset-failed` before the check: whatever it left loaded came after the Enable's adds, so it lets the SSH ports through.
   - It returns every error, never starts a unit, and never runs `firewall-cmd`. It works the same from the timer and from the boot unit, which isn't ordered against firewalld on Rocky Linux (its `Before=sshd.socket` names a disabled unit).
 - **Running and not started at boot** is not enabled. A confirmation tests what runs now, not what the saved configuration starts at the next boot. Item 1 is Disable there. Disable, then Enable, proves the saved configuration with a start under confirm-or-revert.
+- *Since 2026-11-11 (the maintainer: option (a), "List what Enable will block, add no rules"; [control-firewall.md](control-firewall.md#other-listeners-enable-blocks)):* **the other ports it will block.** The change carries `FIREWALL_PORTS_BLOCKED`, a warning in its review: each listening port (`ss -Htlnp`, `ss -Hulnp`) that no zone of the plan lets through (`EnablePlan.Lets`: a target `ACCEPT`, a port, a service's ports, by protocol, or a port the plan adds), with the program `ss` names, and `firewall-offline-cmd --add-port=<port>/<proto>` to keep the first open. Loopback's sockets and the SSH ports are not listed. A read that fails is `FIREWALL_PORTS_UNREAD`. Neither refuses, and hardn adds no rule. Rich rules, protocols and source ports are not read, so a port a rich rule accepts is listed **[I]**; a zone bound to an interface or a source counts as letting its ports through everywhere.
 
 ### 1.4 Disable firewalld
 
@@ -145,6 +146,7 @@ func CleanupOnExit(ctx, sys) (bool, error)
 func ReadOffline(ctx, sys) (Offline, error)             // firewall-offline-cmd
 func NMZones(ctx, sys) (map[string]string, error)
 func PlanEnable(ctx, sys, st State, ports []uint16) (EnablePlan, error)
+func (p EnablePlan) Lets(ctx, sys, port uint16, proto string) (bool, error) // since 2026-11-11: the other ports
 func ExecuteEnable(ctx, sys, p EnablePlan) error
 func RollbackEnable(ctx, sys, u EnableUndo) error      // plans unit "firewalld-enable"
 func PlanDisable(ctx, sys, st State) (DisablePlan, error)
