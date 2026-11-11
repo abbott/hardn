@@ -47,8 +47,8 @@ func copyDir(t *testing.T, from, to *fwHost, dir string) {
 // TestPendingBeforeAsking: with a change waiting for hardn confirm, every
 // change with no form, the ones the reading planned with the control alone
 // among them, is refused by the engine before anything is asked, as a
-// warning (planned, screenkit.Session.Preplan): no review, no question,
-// nothing run or changed. Before, those drew their review and then said
+// warning in the screens' words (screenkit.WordsPending; planned,
+// screenkit.Session.Preplan): no review, no question, nothing run or changed. Before, those drew their review and then said
 // Operation Failed (CHANGE_PENDING).
 func TestPendingBeforeAsking(t *testing.T) {
 	for _, tc := range []struct {
@@ -75,10 +75,10 @@ func TestPendingBeforeAsking(t *testing.T) {
 			t.Errorf("%s: Run = %v, %d unread, runs %+v, changed %v:\n%s", tc.name, p.err, p.unread, p.runs, changed(), p.out)
 			continue
 		}
-		if w := inOrder(p.out, "Enter selection", "Checking the host", "Warning", "is waiting for confirmation", "hardn confirm", tc.title); w != "" {
+		if w := inOrder(p.out, "Enter selection", "Checking the host", "Warning", "A change is waiting for hardn confirm.", "or let it roll back, then try again.", tc.title); w != "" {
 			t.Errorf("%s: %q not shown after what came before it:\n%s", tc.name, w, p.out)
 		}
-		for _, not := range []string{"[y/N", "Type the hostname", "Operation Failed", "CHANGE_PENDING"} {
+		for _, not := range []string{"[y/N", "Type the hostname", "Operation Failed", "CHANGE_PENDING", "is already journalled"} {
 			if strings.Contains(p.out, not) {
 				t.Errorf("%s: %q shown:\n%s", tc.name, not, p.out)
 			}

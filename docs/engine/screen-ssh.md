@@ -35,7 +35,7 @@ Required: the Prompter's In and Out, System, Getenv, NewEngine; else an error wr
 
 ## Decisions
 
-- Every refusal is a control's or the engine's plan; none is decided here. The engine's pending and in-use refusals are said in the screen's words (`planWords`), the rest as the control words them.
+- Every refusal is a control's or the engine's plan; none is decided here. The engine's in-use refusal is said in the screen's words (`planWords`), a pending one in `screenkit.WordsPending` (these words, in `RefusalWords` for every screen since 2026-11-11), the rest as the control words them.
 - Items are planned by the engine, not the control alone, before asking: the pending change is the engine's refusal (`revert.ErrPending`), which a control's `Plan` never makes.
 - The rows' assessment is `risk.Assess` over the three reports with a zero header: an Unknown row's "Counted as not configured" as the main menu draws it; the header's factors belong to other rows.
 - The port's review holds the ports sshd listens on now, as `steps.PlanSSH` holds them (`reload.HoldPorts`): the mock's "22 held until confirmed" was 22 on every host.

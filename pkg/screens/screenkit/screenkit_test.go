@@ -388,6 +388,32 @@ func TestRefusalWords(t *testing.T) {
 			t.Errorf("RefusalWords(%v) = %q, want %q", tt.err, got, tt.want)
 		}
 	}
+	// A change journalled: waiting for hardn confirm in the screens' words
+	// (WordsPending), however wrapped; anything else in revert's, naming its
+	// hardn rollback.
+	journal := func(risk revert.Risk, applied bool) *revert.Journal {
+		j := &revert.Journal{ID: "c-0001", Summary: "Firewall: ufw --force enable", Risk: risk, Rollback: &revert.Progress{}}
+		if applied {
+			j.Applied = &revert.Applied{}
+		}
+		return j
+	}
+	for _, tt := range []struct {
+		name    string
+		st      revert.State
+		pending bool
+	}{
+		{"waiting for confirm", revert.State{Pending: journal(revert.RiskLockout, true)}, true},
+		{"lockout-risk, not applied", revert.State{Pending: journal(revert.RiskLockout, false)}, false},
+		{"did not finish", revert.State{Pending: journal(revert.RiskOther, true)}, false},
+		{"rollback unfinished", revert.State{RollingBack: journal(revert.RiskLockout, true)}, false},
+	} {
+		err := fmt.Errorf("engine: %w", &revert.PendingError{State: tt.st})
+		got := screenkit.RefusalWords(err)
+		if tt.pending && got != screenkit.WordsPending || !tt.pending && (got == screenkit.WordsPending || !strings.Contains(got, "hardn rollback c-0001")) {
+			t.Errorf("%s: %q", tt.name, got)
+		}
+	}
 	for in, want := range map[string]string{"done": "done.", "done.": "done.", " done. ": "done.", "": "."} {
 		if got := screenkit.FullStop(in); got != want {
 			t.Errorf("FullStop(%q) = %q, want %q", in, got, want)

@@ -32,6 +32,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
@@ -319,14 +320,27 @@ func NotLoaded(ctx context.Context, sys host.System, cfg *config.Config, id, set
 	return []string{RefusalWords(err)}
 }
 
+// WordsPending is a change waiting for hardn confirm (an applied
+// lockout-risk change, revert.State.Waiting) in a screen's words, as SSH's
+// screen decided them (gallery-ssh.md §6); RefusalWords says it for every
+// screen.
+const WordsPending = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
+
 // RefusalWords are a refusal's words on a screen: its Why, then its Fix,
 // each a sentence ("NetworkManager manages DNS here. Set the nameservers
 // with nmcli."), as the adopted DNS mock words NetworkManager's
 // (gallery-dns.md decision 4); its code is left to what shows a run in
 // full. The Why is written as it starts, a program's name in its own case
 // ("resolvconf manages DNS here."); the Fix, written to follow "To go on: ",
-// starts with a capital. An error that is no refusal says itself.
+// starts with a capital. A change waiting for hardn confirm is
+// WordsPending; any other change journalled (an unfinished rollback, a
+// change that did not finish) says itself, revert's words naming its hardn
+// rollback. An error that is no refusal says itself.
 func RefusalWords(err error) string {
+	var pe *revert.PendingError
+	if errors.As(err, &pe) && pe.State.Waiting() {
+		return WordsPending
+	}
 	var rf *steps.Refusal
 	if !errors.As(err, &rf) || rf.Why == "" {
 		return FullStop(err.Error())
