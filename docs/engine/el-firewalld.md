@@ -102,7 +102,7 @@ On Rocky Linux and AlmaLinux:
 - item 1 is Disable wherever firewalld runs, `ss` or not: Disable reads no sockets;
 - no profiles or interfaces items: those stay ufw's, refused (`FIREWALL_EL_READ_ONLY`, worded for them alone).
 - The main menu says "Configure firewalld" there (proposed words).
-- `Read` pre-plans Enable, whose refusal item 1 then says before anything is asked. Install and Install iproute aren't pre-planned, since dnf's simulation may refresh metadata (6 h expiry) over the network, and Disable isn't either. Each of those is planned on the engine when it is chosen, and a refusal said as a warning before anything is asked (since 2026-11-10, [screen-firewall.md](screen-firewall.md); it was an Operation Failed report after the review).
+- `Read` pre-plans Enable, whose refusal item 1 then says before anything is asked. Install and Install iproute aren't pre-planned, since dnf's simulation may refresh metadata (6 h expiry) over the network, and Disable isn't either. Each of those is planned on the engine when it is chosen, and a refusal said as a warning before anything is asked (since 2026-11-10, [screen-firewall.md](screen-firewall.md); it was an Operation Failed report after the review). *Since 2026-11-11*, Enable is planned on the engine when chosen too, for the engine's own refusals (a change waiting for hardn confirm).
 
 ### 1.7 Run All and `-w`
 

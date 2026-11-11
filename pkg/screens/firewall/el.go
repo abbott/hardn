@@ -106,21 +106,18 @@ func bootRowOf(st firewalld.State) component.KeyValue {
 
 // elAction returns what choosing the item keyed key does on the screen on
 // Rocky Linux and AlmaLinux: item 1 says its plan's refusal before asking,
-// or runs its change, an Enable lockout-risk, the hostname checked first;
-// Install, Install iproute and Disable, which the reading doesn't plan,
-// planned first (planned); item 2 is Disable, likewise.
+// or runs its change, planned on the engine first (planned), an Enable
+// lockout-risk, the hostname checked before that; item 2 is Disable,
+// planned first.
 func (r *runner) elAction(ctx context.Context, h reading, key string) func() error {
 	switch key {
 	case screen.FirewalldFirstItem:
 		if h.PlanErr != nil {
 			return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(h.PlanErr)))
 		}
-		if h.First != firewallctl.ItemEnable {
-			return r.planned(ctx, firstAction(h.First), h.el.FirstChange())
-		}
-		return r.plain(ctx, firstAction(h.First), h.el.FirstChange(), risky(h.Plan))
+		return r.planned(ctx, firstAction(h.First), h.el.FirstChange(), risky(h.Plan))
 	case screen.FirewalldDisableItem:
-		return r.planned(ctx, firewallctl.ActionDisable, screen.FirewalldDisableChange(false))
+		return r.planned(ctx, firewallctl.ActionDisable, screen.FirewalldDisableChange(false), false)
 	}
 	return func() error { return fmt.Errorf("firewall screen: item %s has no action", key) } // not reached: SubMenu's items are those above
 }
