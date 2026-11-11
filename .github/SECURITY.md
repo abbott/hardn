@@ -4,10 +4,10 @@
 
 | Version | Supported |
 |---|---|
-| 0.6.x | yes |
-| 0.5.x and older | no |
+| 0.7.x | yes |
+| 0.6.x and older | no |
 
-Only the latest minor version gets security fixes, in a new patch release. When 0.7.0 is out, 0.6.x is no longer supported. Update to the latest release.
+Only the latest minor version gets security fixes, in a new patch release. When 0.8.0 is out, 0.7.x is no longer supported. Update to the latest release.
 
 ## Reporting a vulnerability
 

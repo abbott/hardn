@@ -321,16 +321,16 @@ Verification is a separate step, and recommended. From v0.4.0, each release has 
 [verify.sh](verify.sh) downloads a binary and `SHA256SUMS`, checks the SHA-256, and then checks the attestation. It needs curl, sha256sum or shasum, and [gh](https://cli.github.com) 2.68.0 or later, signed in (`gh auth login`):
 
 ```sh
-curl -fsSLO https://raw.githubusercontent.com/abbott/hardn/v0.6.0/verify.sh
-sh verify.sh 0.6.0 linux-amd64      # leaves ./hardn-linux-amd64 only if both checks pass
+curl -fsSLO https://raw.githubusercontent.com/abbott/hardn/v0.7.0/verify.sh
+sh verify.sh 0.7.0 linux-amd64      # leaves ./hardn-linux-amd64 only if both checks pass
 ```
 
 To check a binary you already have, such as one installed using [install.sh](install.sh), use `gh`:
 
 ```sh
 gh attestation verify /usr/local/bin/hardn --repo abbott/hardn \
-  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.6.0 \
-  --source-ref refs/tags/v0.6.0 --deny-self-hosted-runners
+  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.7.0 \
+  --source-ref refs/tags/v0.7.0 --deny-self-hosted-runners
 ```
 > [!NOTE]
 > To check the SHA-256 alone, download `SHA256SUMS` from the same release, then run `grep ' hardn-linux-amd64$' SHA256SUMS | sha256sum -c -`.
@@ -342,7 +342,7 @@ gh attestation verify /usr/local/bin/hardn --repo abbott/hardn \
 
 Report bugs in the GitHub issue tracker, with your OS and version and the steps to reproduce. 
 
-Planned features are in [ROADMAP.md](ROADMAP.md). The release notes are in [docs/releases/v0.6.0.md](docs/releases/v0.6.0.md). 
+Planned features are in [ROADMAP.md](ROADMAP.md). The release notes are in [docs/releases/v0.7.0.md](docs/releases/v0.7.0.md). 
 
 ## Origin
 
