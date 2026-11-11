@@ -34,6 +34,7 @@ Each release from v0.4.0 has these files:
 - `hardn-linux-amd64`, `hardn-linux-arm64`, `hardn-darwin-amd64`: the binaries.
 - `SHA256SUMS`: the SHA-256 of each file.
 - `hardn-sbom.spdx.json`: an SBOM, in SPDX JSON.
+- `hardn-linux-amd64.sigstore.json` and the other two, from v0.7.0: each binary's attestation, as a Sigstore bundle.
 
 Each binary also has **SLSA Build Level 3 build provenance**: a GitHub artifact attestation, signed for the repository's build workflow (`.github/workflows/build.yml`) at the release's tag, built on a GitHub-hosted runner. It shows the binary was built by that workflow from that tag. The binaries are not signed with cosign, and there are no `.sig`, `.crt` or `.intoto.jsonl` files.
 
@@ -54,5 +55,7 @@ gh attestation verify hardn-linux-amd64 --repo abbott/hardn \
   --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.4.0 \
   --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners
 ```
+
+**Offline**, with the binary's bundle and its repository ID, as the README's [Verify a Release](../README.md#verify-a-release) says.
 
 Releases v0.3.x and older had no `SHA256SUMS` and no GitHub artifact attestation; `verify.sh` does not check them.

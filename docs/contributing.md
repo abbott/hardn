@@ -82,15 +82,16 @@ hardn uses semantic versioning. A release is cut from a tag `v<major>.<minor>.<p
 3. **The tag.** `make tag` makes the annotated tag `v$(VERSION)` locally and prints the command that pushes it, `git push origin refs/tags/v<x.y.z>`. `make release` runs `go test`, builds the three binaries with archives and `.sha256` files under `build/` for a local look, then makes the tag the same way. **Neither pushes anything.**
 4. **Pushing the tag** is the maintainer's step, and it starts `.github/workflows/release.yml`:
    - checks the tag's form and the release notes;
-   - builds the three binaries in `.github/workflows/build.yml`, and attests each one's build provenance (SLSA Build Level 3, a GitHub artifact attestation);
+   - runs CI's checks at the tagged commit, `make check` and `go test` on each supported distribution's image, and builds nothing if one fails;
+   - builds the three binaries in `.github/workflows/build.yml`, and attests each one's build provenance (SLSA Build Level 3, a GitHub artifact attestation), keeping the attestation's bundle;
    - writes an SPDX SBOM and `SHA256SUMS`;
    - creates the release as a draft, with the notes as its body, and uploads every file;
-   - downloads them back from the draft, checks them against `SHA256SUMS`, and verifies each binary's attestation;
+   - downloads them back from the draft, checks them against `SHA256SUMS`, and verifies each binary's attestation, from GitHub's API and then from its bundle as the README's offline check does;
    - only then publishes it, as the latest release unless a newer version is already out.
 
    A failure anywhere leaves at most a draft. A draft left by a failed run is deleted by hand before the run is retried.
 
-The release files are `hardn-linux-amd64`, `hardn-linux-arm64`, `hardn-darwin-amd64`, `hardn-sbom.spdx.json` and `SHA256SUMS`. `verify.sh` (or `make verify-release PLATFORM=linux-amd64`) checks a binary against them; [SECURITY.md](../.github/SECURITY.md) says how.
+The release files are `hardn-linux-amd64`, `hardn-linux-arm64`, `hardn-darwin-amd64`, each one's attestation bundle (`hardn-linux-amd64.sigstore.json` and so on), `hardn-sbom.spdx.json` and `SHA256SUMS`. `verify.sh` (or `make verify-release PLATFORM=linux-amd64`) checks a binary against them; [SECURITY.md](../.github/SECURITY.md) says how.
 
 ## Issues
 

@@ -2,6 +2,11 @@ name: CI
 
 # p7-actions. Static checks only on the maintainer's machine (actionlint and
 # zizmor, make check-actions): this workflow runs on GitHub's runners.
+#
+# release.yml calls it too (workflow_call), at the tagged commit, before it
+# builds: a push of main runs it and a tag push doesn't, so nothing made a
+# release wait for it (v0.4.0's was built while main's run was still going).
+# Called, it runs as the caller's event, the tag's push.
 
 on:
   push:
@@ -9,6 +14,7 @@ on:
   pull_request:
     branches: [main]
   workflow_dispatch:
+  workflow_call:
 
 permissions: {}
 
