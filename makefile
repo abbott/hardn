@@ -27,11 +27,15 @@ tag:
 	@echo "Tagged v$(VERSION) locally. To release it:"
 	@echo "  git push origin refs/tags/v$(VERSION)"
 
-# Generate checksums
+# Generate checksums: one .sha256 for each binary and each of this version's
+# archives, by name, so that an earlier run's archives and .sha256 files are
+# not hashed again; a file missing fails the target.
 checksums:
 	cd $(BUILD_DIR) && \
-	for file in *; do \
-		sha256sum $$file > $$file.sha256; \
+	for file in $(BINARY_NAME)-linux-amd64 $(BINARY_NAME)-darwin-amd64 $(BINARY_NAME)-linux-arm64 \
+		$(BINARY_NAME)-$(VERSION)-linux-amd64.tar.gz $(BINARY_NAME)-$(VERSION)-darwin-amd64.tar.gz \
+		$(BINARY_NAME)-$(VERSION)-linux-arm64.tar.gz; do \
+		sha256sum "$$file" > "$$file.sha256" || exit 1; \
 	done
 
 # Create release archives
