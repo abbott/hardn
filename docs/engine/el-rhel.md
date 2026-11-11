@@ -1,7 +1,7 @@
-# RHEL, read only (`next/rhel`, units (a) and (b))
+# RHEL, read only (`next/rhel`, units (a) to (c))
 
-> **Units:** the RHEL units (the maintainer, 2026-11-10: "RHEL 10 and 9", then "Yes, start (a)", "Yes, start (b)"). (a) detection, read only, CI; (b) a host with no repositories (§5); (c) RHEL 9's cloud-init `resolv.conf`; then the host runs and the matrix rows.
-> **Status:** (a) and (b) built and tested on macOS (`go test ./...`, the recording fake). The facts they rely on were read on `rhel10-test-114` (RHEL 10.3) and `rhel9-test-115` (RHEL 9.9), x86_64, by read-only probes (§2, §5), and hardn's status reads ran on both through `p4status` (§4). (b)'s refusal has not run on a host: there, only dnf's output was read.
+> **Units:** the RHEL units (the maintainer, 2026-11-10: "RHEL 10 and 9", then "Yes, start (a)", "Yes, start (b)", "Report it, everywhere"). (a) detection, read only, CI; (b) a host with no repositories (§5); (c) RHEL 9's cloud-init `resolv.conf` (§6); then the host runs and the matrix rows.
+> **Status:** (a), (b) and (c) built and tested on macOS (`go test ./...`, the recording fake). The facts they rely on were read on `rhel10-test-114` (RHEL 10.3) and `rhel9-test-115` (RHEL 9.9), x86_64, by read-only probes (§2, §5), and hardn's status reads ran on both through `p4status` (§4). (b)'s refusal has not run on a host: there, only dnf's output was read. (c)'s reading ran on `rhel9-test-115` through `p4status` (§6).
 
 hardn now starts on RHEL, reads it as it reads Rocky Linux and AlmaLinux, and refuses every change: the matrix names no RHEL release yet, so 10 and 9 are Unlisted ([detect.md](../safety/detect.md)). Before this unit it refused to start there ("unsupported OS type detected: rhel").
 
@@ -21,7 +21,7 @@ Read-only probes, run over ssh from the maintainer's Mac; the full table is in t
 | os-release | `ID="rhel"`; `ID_LIKE` "centos fedora" (10), "fedora" (9); `VERSION_ID` 10.3, 9.9 | `ID_LIKE` doesn't name rhel, so only `ID` places it |
 | sshd, SELinux, sudo, users, firewall, updates | as on Rocky Linux and AlmaLinux 10 and 9: sshd 9.9p1 on sshd.service, Include first; RHEL 9's crypto-policy Include in `50-redhat.conf`, which `CryptoPolicyInclude` already allows; enforcing; `@includedir` (10), `#includedir` (9); no firewalld; dnf 4, no dnf-automatic | same |
 | Registration | neither VM is registered: no repositories; every dnf run says "This system is not registered with an entitlement server"; `dnf install --assumeno` fails, "There are no enabled repositories" | new: unit (b). Today such a simulation fails before any change with the generic `packages:` error. Not yet read: dnf's exit codes there, and whether hardn's dnf reads on a registered host make the plugin refresh `redhat.repo` |
-| DNS | RHEL 10: NetworkManager's file. RHEL 9: "; Created by cloud-init automatically, do not edit.", with cloud-init's `99-cloud-init.conf` setting NetworkManager's `dns = none` | RHEL 9: `classify` reads `ManagerFile`. No write follows (`DNS_EL_READ_ONLY` refuses every EL plan), but that refusal's reason and fix ("NetworkManager manages it there", "set the nameservers with nmcli") don't hold there: unit (c) |
+| DNS | RHEL 10: NetworkManager's file. RHEL 9: "; Created by cloud-init automatically, do not edit.", with cloud-init's `99-cloud-init.conf` setting NetworkManager's `dns = none` | RHEL 9: `classify` read `ManagerFile` (before unit (c)). No write followed (`DNS_EL_READ_ONLY` refuses every EL plan), but that refusal's reason and fix ("NetworkManager manages it there", "set the nameservers with nmcli") didn't hold there. Since unit (c), cloud-init's, reported (§6) |
 
 The probe's `subscription-manager status` re-enabled the dnf plugins `subscription-manager.conf` and `product-id.conf` on both VMs (rhsm's `auto_enable_yum_plugins`). hardn never runs subscription-manager.
 
@@ -42,7 +42,7 @@ The probe's `subscription-manager status` re-enabled the dnf plugins `subscripti
 | Firewall | Not Configured, "no firewall installed" | firewalld.service not found, no ufw |
 | Auto Updates | Not Configured, "no dnf-automatic" | `rpm -q dnf-automatic` |
 | AppArmor | Not Applicable, "uses SELinux" | `/sys/fs/selinux/enforce` `"1"` |
-| DNS | RHEL 10: Not Applicable, "NetworkManager". **RHEL 9: Not Applicable, "no hardn.yml"**, with `DNS_DHCP_CLIENT` ("dhclient may rewrite /etc/resolv.conf on a lease") | RHEL 9: cloud-init's file read as one hardn writes, dhclient installed. Which DHCP client NetworkManager runs there is not read. Unit (c) |
+| DNS | RHEL 10: Not Applicable, "NetworkManager". **RHEL 9: Not Applicable, "no hardn.yml"**, with `DNS_DHCP_CLIENT` ("dhclient may rewrite /etc/resolv.conf on a lease") | RHEL 9: cloud-init's file read as one hardn writes, dhclient installed. Which DHCP client NetworkManager runs there is not read. Since unit (c) the row reads "cloud-init" (§6) |
 | Reboot | pending No | `dnf needs-restarting -r`: exit 0 |
 
 The risk level is High on both (score 36.7), from the passwordless sudo alone. systemd 252 on RHEL 9 answers a missing unit's `is-enabled` with exit 1 and `is-active` with exit 3, RHEL 10's systemd with exit 4: both read as not found.
@@ -57,3 +57,20 @@ The maintainer, 2026-11-10: "Yes, start (b)". An unregistered RHEL host has no r
 - **Not read yet: a registered host.** There the plugin prints "Updating Subscription Management repositories." on stdout before dnf's table, which `dnfChanges` must skip; whether it rewrites `redhat.repo` on each dnf run is not known. That needs the maintainer to register a VM. Nor is `dnf remove --assumeno` with no repository (`packages.PlanRemove`, Auto Updates' Off), which only a host that had one when hardn installed dnf-automatic can reach: there a failure would be the generic `packages:` error.
 
 Tests: `TestPlanInstallDnf` (the VMs' output is `ErrNoRepos`; the line with exit 0, or on stdout alone, is not), `TestELInstall` (firewalld: `PACKAGE_NO_REPOS`, nothing masked or installed), `TestDnfOnRefusals` (dnf-automatic: `PACKAGE_NO_REPOS`), and the registry's goldens (`codes.golden`, `sentinels.golden`).
+
+## 6. Unit (c): cloud-init's resolv.conf
+
+The maintainer, 2026-11-10: "Report it, everywhere". On `rhel9-test-115` cloud-init wrote `/etc/resolv.conf` as the VM booted (`/var/log/cloud-init.log`: "Writing to /etc/resolv.conf", at 16:56:38 local, eight seconds after `uptime -s`'s 16:56:30) and `/etc/NetworkManager/conf.d/99-cloud-init.conf` with `dns = none`, so NetworkManager leaves the file alone (its journal: `dns=none … rc-manager=unmanaged`).
+
+- **The reading, on every distribution.** A regular `resolv.conf` whose first line is `; Created by cloud-init automatically, do not edit.` is `dns.ManagerCloudInit` (`cloud-init`), a manager hardn reports and never writes, as NetworkManager's and resolvconf's: the DNS row is Not Applicable, "cloud-init"; the screen's "DNS Implementation" is "cloud-init, reported only"; no nameservers are read from the file and no DHCP client finding is made; a plan is `DNS_MANAGED`: "cloud-init manages DNS here", "set the nameservers in cloud-init's network configuration, or in /etc/resolv.conf by hand" (proposed words: when cloud-init renders the network again isn't read, and nothing else rewrites the file there). A plan v0.6.0 journalled for such a file, read then as `file`, is still rolled back (`dns.valid`, `TestCheckJournalledCloudInit`). The header is cloud-init 24.4's sysconfig renderer's (`cloudinit/net/sysconfig.py:43` on both VMs, behind resolv.conf's `;`), the only form read; older cloud-init releases' headers are not.
+- **The EL refusal** (`DNS_EL_READ_ONLY`) is made after `dns.Read` alone, before anything is planned (only reads run: `TestPlanRocky`), and names what the read finds (proposed words; `elRefusal`). "hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet", then:
+  - NetworkManager's, resolvconf's or cloud-init's file, or another program's link: `DNS_MANAGED`'s words after a colon, and its fix ("…: NetworkManager manages DNS here", "set the nameservers with nmcli");
+  - systemd-resolved's link: "…: systemd-resolved manages DNS here", "set DNS= in /etc/systemd/resolved.conf, then restart systemd-resolved";
+  - a file with no header, none, or one a running systemd-resolved reads as another program's (it then reads its servers from the file): the first clause alone, "set the nameservers in /etc/resolv.conf by hand";
+  - a read that failed: the first clause alone, "set the nameservers by hand".
+
+  Before, it was made before any read and always named NetworkManager.
+- **On the VM** (`p4status` built from `f8dbaa03`, 2026-11-10): 29 commands, none refused; the DNS row reads Not Applicable, "cloud-init", from `/etc/resolv.conf`'s first line, with no nameservers read and no `DNS_DHCP_CLIENT` (before: "no hardn.yml", and the dhclient finding); every other row as in §4.
+- **Not done:** the UI gallery has no cloud-init host (nor any EL host).
+
+Tests: `TestReadCloudInit` (the RHEL 9 file: `ManagerCloudInit`, no nameservers, no findings, `ErrManaged`), `TestCodes` (`cloud-init`, 7), `TestCheckJournalledCloudInit` (v0.6.0's journal still rolled back; NetworkManager's file claimed as `file` still refused), the DNS control's check and refusal tables (a cloud-init file on Debian 13: "cloud-init", `DNS_MANAGED`), `TestPlanRocky` (the EL refusal's seven forms, only reads before it), and the screen's "cloud-init, reported only".

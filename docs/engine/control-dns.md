@@ -21,7 +21,7 @@ origin/main's DNS screen applies on selection, with no confirmation and no backu
 4. **The line**, decided in this order (§5 lists every one):
    - a container (`dns.ErrContainer`): Not Applicable, "container";
    - a family other than Debian, Ubuntu, Alpine, Proxmox VE, Rocky Linux, AlmaLinux and RHEL (`dns.ErrUnsupported`, from detect's established `Distro` `other`): Not Applicable, "not supported" (a review finding of this unit: it read Unknown, "can't read", though nothing failed to be read);
-   - a manager hardn only reports (`resolvconf`, `networkmanager`, `foreign`): Not Applicable, naming it;
+   - a manager hardn only reports (`resolvconf`, `networkmanager`, `foreign`, `cloud-init`): Not Applicable, naming it;
    - *since `next/s2-menu-live`'s amendment*, the configuration lists no nameserver: Not Applicable, "none configured" where a `hardn.yml` was read (`Config.Path()` set), "no hardn.yml" where none was (hardn on its defaults, `Config.Path()` empty, or no configuration), both **adopted** (the maintainer, 2026-10-23). After the host's own reasons, which hold whatever the list and keep their detail; before Unknown (decision 13), so a host not read reads "none configured" too; it was Not Configured, "none in hardn.yml", after Unknown;
    - anything `dns.Read` could not establish (`ErrUnknown`, the manager, or any fact in `State.Err`), with a list configured: Unknown, "can't read", with the error, whose code is the read's own (`DNS_UNKNOWN`, `COMMAND_FAILED`, `PERMISSION_DENIED`, ...); never a pass;
    - `hardn.yml`'s list is one `dns.Validate` refuses for the manager (an entry that is no address, a duplicate, four for a file, resolved's own stub): Not Configured, "not valid in hardn.yml";
@@ -80,10 +80,11 @@ Every line the DNS row can show, in Figma's grammar (marker, label, the state's 
 | `/etc/resolv.conf` is systemd-resolved's link, and it does not run, with a list configured | Not Configured | `resolved not running` | none |
 | NetworkManager's link or file | Not Applicable | `NetworkManager` | none |
 | resolvconf's link or file | Not Applicable | `resolvconf` | none |
+| cloud-init's file (its header: [el-rhel.md](el-rhel.md) §6) | Not Applicable | `cloud-init` | none |
 | a link hardn does not know, or a plain file a running resolved reads as another's | Not Applicable | `another program` | none |
 | a container (detect's `Container.Detected` Yes) | Not Applicable | `container` | none |
 | a family other than Debian, Ubuntu, Alpine, Proxmox VE, Rocky Linux, AlmaLinux and RHEL (detect's `Distro` `other`) | Not Applicable | `not supported` | none |
-| `hardn.yml` lists none, on a host with none of the Not Applicable reasons above (NetworkManager, resolvconf, another program, a container, not supported), whatever else it reads (resolved stopped, a fact not established) (*since `next/s2-menu-live`'s amendment*; it was Not Configured, `none in hardn.yml`) | Not Applicable | `none configured` (**adopted**, the maintainer, 2026-10-23) | the host's; none where the host was not read |
+| `hardn.yml` lists none, on a host with none of the Not Applicable reasons above (NetworkManager, resolvconf, cloud-init, another program, a container, not supported), whatever else it reads (resolved stopped, a fact not established) (*since `next/s2-menu-live`'s amendment*; it was Not Configured, `none in hardn.yml`) | Not Applicable | `none configured` (**adopted**, the maintainer, 2026-10-23) | the host's; none where the host was not read |
 | no `hardn.yml` read: hardn on its defaults (`Config.Path()` empty), or no configuration, on such a host (*the same*) | Not Applicable | `no hardn.yml` (**adopted**, the maintainer, 2026-10-23) | the host's; none where the host was not read |
 | anything not established (the container, the manager, a file or command read), with a list configured | Unknown | `can't read` | none; the error, with its code |
 
@@ -99,11 +100,12 @@ Each is a `steps.Refusal`; `pkg/output` shows the Why with the code, then "To go
 |---|---|---|---|
 | `DNS_MANAGED` | NetworkManager | NetworkManager manages DNS here | set the nameservers with nmcli |
 | `DNS_MANAGED` | resolvconf | resolvconf manages DNS here | set the nameservers through resolvconf |
+| `DNS_MANAGED` | cloud-init's file | cloud-init manages DNS here | set the nameservers in cloud-init's network configuration, or in /etc/resolv.conf by hand |
 | `DNS_MANAGED` | a link hardn does not know | /etc/resolv.conf links to `<target>`, which another program writes | set the nameservers with that program |
 | `DNS_MANAGED` | a plain file beside a running resolved (a copy of its stub file among them) | systemd-resolved runs, and /etc/resolv.conf is not its link | link /etc/resolv.conf to /run/systemd/resolve/stub-resolv.conf (not "or stop systemd-resolved": a copy listing 127.0.0.53 alone would then answer nothing; §3) |
 | `DNS_CONTAINER` | a container | This is a container: its manager provides /etc/resolv.conf | set the nameservers in the container's settings on its host |
 | `DNS_UNSUPPORTED` | not of the five families (the engine refuses the platform too, `PLATFORM_UNSUPPORTED`) | This host is not Debian, Ubuntu, Alpine or Proxmox VE | set the nameservers by hand |
-| `DNS_EL_READ_ONLY` | Rocky Linux, AlmaLinux or RHEL, before anything is read | hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet: NetworkManager manages it there | set the nameservers with nmcli |
+| `DNS_EL_READ_ONLY` | Rocky Linux, AlmaLinux or RHEL, after the read alone ([el-rhel.md](el-rhel.md) §6) | hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet; then, for NetworkManager, resolvconf, cloud-init or another program's link, `DNS_MANAGED`'s words after a colon; for systemd-resolved's link, ": systemd-resolved manages DNS here" | that manager's `DNS_MANAGED` fix; systemd-resolved's link: set DNS= in /etc/systemd/resolved.conf, then restart systemd-resolved; a file (or none, or one a running resolved reads as another's): set the nameservers in /etc/resolv.conf by hand; a read that failed: set the nameservers by hand |
 | `DNS_UNKNOWN` | a fact not established | The host's DNS settings could not all be read | see the log for what failed, then try again |
 | `DNS_RESOLVED_NOT_RUNNING` | resolved's link, resolved stopped | systemd-resolved is not running | start it with systemctl start systemd-resolved, then try again |
 | `DNS_OVERRIDDEN` | a drop-in after hardn's sets `DNS=` | `<path>` sets DNS= after zz-hardn.conf; for several, `<path>, <path>` set DNS= after zz-hardn.conf | remove DNS= from it (them), then try again |

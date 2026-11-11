@@ -152,7 +152,9 @@ func Rollback(ctx context.Context, sys host.System, p Plan) error {
 // makes and whose Rollback it registers). Stable: a journal written by one
 // hardn is rolled back by the next, but for a plan stopping udhcpc
 // journalled before next/s2-udhcpc, whose UDHCPC.InUse decodes Unknown,
-// so that PlanDNS, and the rollback, refuse it (docs/safety/dns.md §5).
+// so that PlanDNS, and the rollback, refuse it (docs/safety/dns.md §5). A
+// plan journalled as ManagerFile for a file cloud-init wrote is still
+// rolled back (valid).
 const Unit = "dns"
 
 // Check is the guard Apply and Rollback run first (fs.ErrInvalid): p must
@@ -164,9 +166,13 @@ func (p Plan) Check() error { return valid(p) }
 
 // valid refuses a plan that is not what PlanDNS makes from its From and
 // Want, or whose From names a manager its own entries do not give: a
-// journal edited by hand must not write what it names.
+// journal edited by hand must not write what it names. One exception: a
+// file cloud-init wrote was ManagerFile before its header was read (v0.6.0
+// and earlier, el-rhel.md §6), so a plan journalled then for such a file
+// is still rolled back, its file restored as it was.
 func valid(p Plan) error {
-	if m, _ := classify(p.From.ResolvConf, p.From.Resolved.Active, p.From.Host); m != p.From.Manager {
+	if m, _ := classify(p.From.ResolvConf, p.From.Resolved.Active, p.From.Host); m != p.From.Manager &&
+		!(m == ManagerCloudInit && p.From.Manager == ManagerFile) {
 		return fmt.Errorf("dns: plan's manager %s does not follow from its state: %w", p.From.Manager, fs.ErrInvalid)
 	}
 	want, err := PlanDNS(p.From, p.Want)

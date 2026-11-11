@@ -123,6 +123,9 @@ const (
 	// ManagerForeign: a link hardn does not recognise, or a file that a
 	// running systemd-resolved reads as another package's: reported.
 	ManagerForeign
+	// ManagerCloudInit: a file cloud-init wrote (its header): reported, not
+	// written.
+	ManagerCloudInit
 )
 
 func (m Manager) String() string {
@@ -139,6 +142,8 @@ func (m Manager) String() string {
 		return "networkmanager"
 	case ManagerForeign:
 		return "foreign"
+	case ManagerCloudInit:
+		return "cloud-init"
 	}
 	return "unknown"
 }

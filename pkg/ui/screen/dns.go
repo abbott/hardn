@@ -71,6 +71,7 @@ const (
 	DNSResolvconf                       // "resolvconf, reported only"
 	DNSOther                            // a program hardn does not know: "another program, reported only"
 	DNSContainer                        // the container's manager: "container, reported only"
+	DNSCloudInit                        // "cloud-init, reported only"
 )
 
 // managerWords are each manager's words, and whether hardn only reports
@@ -82,6 +83,7 @@ var managerWords = map[DNSManager]struct {
 	DNSFile: {"direct (/etc/resolv.conf)", false}, DNSProxmox: {"Proxmox VE (/etc/resolv.conf)", false},
 	DNSResolved: {"systemd-resolved", false}, DNSNetworkManager: {"NetworkManager", true},
 	DNSResolvconf: {"resolvconf", true}, DNSOther: {"another program", true}, DNSContainer: {"container", true},
+	DNSCloudInit: {"cloud-init", true},
 }
 
 // DNSEntry is one nameserver or search domain the host uses: Value, and

@@ -297,7 +297,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UFW_ROLLBACK_FAILED` | 1 | an undo of ufw's rules failed; those after it did not run |
 | `UFW_NOT_APPLICABLE` | 1 | ufw is not used on Proxmox VE: pve-firewall manages its packet filter |
 | `FIREWALL_EL_READ_ONLY` | 1 | on Rocky Linux, AlmaLinux and RHEL, which use firewalld: ufw's profiles and trusted interfaces aren't applied, and `-w` doesn't configure the firewall ([el-firewalld.md](../engine/el-firewalld.md)) |
-| `DNS_EL_READ_ONLY` | 1 | hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet: NetworkManager manages it ([el-changes.md](../engine/el-changes.md)) |
+| `DNS_EL_READ_ONLY` | 1 | hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet; the refusal names what its read finds manages /etc/resolv.conf there, and how to set the nameservers by hand ([el-changes.md](../engine/el-changes.md), [el-rhel.md](../engine/el-rhel.md) §6) |
 | `UFW_PROXMOX_UNKNOWN` | 1 | ufw: whether the host runs Proxmox VE (no ufw there) is not established |
 | `UFW_NOT_INSTALLED` | 1 | ufw is not installed |
 | `UFW_LISTENERS_UNKNOWN` | 1 | the SSH listener set is not established |
