@@ -51,7 +51,7 @@
 //     a menu's rows, set apart by a blank line), then theme.PromptGap
 //     blank lines, then a PromptLine of its own. A Select's asks "Enter
 //     your choice", Figma's words for a numbered choice, as a menu's
-//     prompt does: "> Enter your choice [1-2, 0 or q]:". A text or y/N
+//     prompt does: "> Option [1-2, 0 or q]:". A text or y/N
 //     field's has no label, since the title right above is the question:
 //     "> [0 or q]:". The head's title has its line to itself, so it
 //     shows whole at widths where the one line would not; it is still one

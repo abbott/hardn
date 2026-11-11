@@ -76,7 +76,7 @@ The decided words used exactly: gallery-system-details.md §6, decided with deci
 | Where | Words | Source |
 |---|---|---|
 | Title bars | "System Details"; "Logs" | **decided**; the main menu's labels |
-| Heading, prompt | "Select an option"; "Enter selection" | **decided**, Backup's |
+| Heading, prompt | "Select an option"; "Option" | **decided**, Backup's |
 | System Details sections | "OS and Kernel", "Host and IPs", "Users", "CPU and Load", "Disk", "Memory", "Last Login" | **decided**, P-17's, capitalised |
 | Rows | "OS", "Kernel", "Uptime", "Hostname", `<interface>`, "Model", "CPUs" ("4, 1 socket", "48, 2 sockets", "4"), "Load (1, 5, 15 min)", "/" ("/dev/vda1 ext4"; *since 2026-11-08,* the type left out where it does not fit beside the device, not the device cut), "Used" ("4.2 of 38.6 GiB (11%)"; *since 2026-11-08,* whole MiB under 1 GiB, "87 of 256 MiB (34%)"), "Pool rpool" (ONLINE, DEGRADED), `<user>` (sudo, doas, "No sudo", "No doas"), `<account>` ("Oct 20 11:42 from 192.0.2.10", "Oct 20 11:42 on tty1", "Oct 20 2025 from 192.0.2.10", "None recorded", "Not known"), "Logins" | **decided** (§6) |
 | States | "No addresses", "None but root", "None recorded", "Not known", "Not known: lslogins isn't installed", "Can't read <source>", "Not root: <file>, <file> not read"; *since 2026-11-08, approved as built by the maintainer ("Approve as built"),* in Users "sudo rejects its rules" where `visudo -c` rejects them (it checks the main file and each it includes, under the main file's name), "doas rejects <file>" where `doas -C` or doas's ownership rule rejects the file, and "<file> is missing" | **decided** (§6; readers §9) |
@@ -90,7 +90,7 @@ The decided words used exactly: gallery-system-details.md §6, decided with deci
 | A failed write of `-p` or the report | "hardn: <error>", as "hardn: logs print: write: no space left on device" | **decided** 2026-10-31 (`cmd/hardn/readers.go`) |
 | A line past the cap; a reason | `<cut>`; "not a regular file", "refusing a symlink", ... | **decided** (readers §9) |
 | Invalid key | "Invalid option. Please try again." | origin/main's, nav's (P-25 (c), proposed there) |
-| The gallery's, dev-only | "System Details hosts", "Logs hosts", "Select a host", "Enter your choice", each host's label, about and note; "The gallery runs no pager. hardn would run ..." | the gallery's |
+| The gallery's, dev-only | "System Details hosts", "Logs hosts", "Select an option", "Option", each host's label, about and note; "The gallery runs no pager. hardn would run ..." | the gallery's |
 
 ## 6. API
 

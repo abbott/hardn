@@ -1099,6 +1099,7 @@ func table() []tie {
 		d11   = "decision 11"
 		w6    = "gallery-system-details.md §6"
 		made  = "gallery-system-details.md §5, Made here"
+		p29   = "P-29 (a)"
 	)
 	return slices.Concat(
 		// System Details: the rows.
@@ -1149,7 +1150,8 @@ func table() []tie {
 		every(slices.Concat(reportAll, []string{"sd-error"}), rowSections, d2+"; "+w6+", System Details sections", "no headings, blank lines alone part the report; now P-17's seven"),
 		every(screenRuns, rowItems, d5+"; "+w6+", Items", "Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item"),
 		every([]string{"sd-error"}, rowItems, w6+", Items", "Refresh Information, in its words; now Refresh, as on every draw"),
-		every(screenRuns, rowPrompt, d5, "0-2, with Export; now 0-1, no Export item"),
+		every(screenRuns, rowPrompt, d5+"; "+p29, "Enter selection, 0-2, with Export; now Option, 0-1, no Export item"),
+		every([]string{"sd-error"}, rowPrompt, p29, "Enter selection; now Option, every menu's prompt"),
 		every(slices.Concat(screenRuns, []string{"sd-error"}), rowReadsADraw, "defect 20", "each of the host-info service's files read four times a draw, three where memory fails; now one read"),
 		every([]string{"sd-invalid"}, rowDraws, "defect 20", "an invalid key reads and draws again; now refused under the prompt and asked again"),
 		every([]string{"sd-invalid"}, rowPause, made+", No pause", "a pause before the draw; now the prompt asks again"),

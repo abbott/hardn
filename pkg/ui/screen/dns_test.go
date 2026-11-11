@@ -66,7 +66,7 @@ func TestDNSScreen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			vm := tt.d.SubMenu()
 			if vm.Title.Title != "DNS Configuration" || len(vm.Sections) != 2 || vm.Sections[0].Header.Title != "Current DNS Configuration" ||
-				vm.Sections[1].Header.Title != "Configured Nameservers" || vm.Prompt != "Enter selection" || vm.Menu.Exit.Label != "Return" {
+				vm.Sections[1].Header.Title != "Configured Nameservers" || vm.Prompt != "Option" || vm.Menu.Exit.Label != "Return" {
 				t.Fatalf("the screen's frame: %+v", vm)
 			}
 			if got, want := vm.Sections[0].Rows.Items, []component.KeyValue{tt.manager, tt.inUse, tt.search}; !slices.Equal(got, want) {
@@ -95,7 +95,7 @@ func TestDNSWords(t *testing.T) {
 	for _, w := range []string{"1) Configure DNS        Apply nameserver settings from con...", "2) Add nameserver       Add a new DNS server to configuration",
 		"3) Remove nameserver    Remove a DNS server from configura...", "4) Use Cloudflare DNS   Set nameservers to 1.1.1.1, 1.0.0.1",
 		"5) Use Google DNS       Set nameservers to 8.8.8.8, 8.8.4.4", "6) Use Quad9 DNS        Set nameservers to 9.9.9.9, 149.11...",
-		"0) Return", "> Enter selection [0-6 or q]:"} {
+		"0) Return", "> Option [0-6 or q]:"} {
 		if !strings.Contains(got, w) {
 			t.Errorf("%q not drawn:\n%s", w, got)
 		}

@@ -204,7 +204,7 @@ func (d DNS) SubMenu() SubMenu {
 		}},
 		Heading: fixtureHeading,
 		Menu:    component.Menu{Items: items, Exit: returnItem()},
-		Prompt:  mainPrompt,
+		Prompt:  menuPrompt,
 	}
 }
 

@@ -61,7 +61,7 @@ func sshMenu(ran *[]string) Menu {
 // origin/main's (pkg/menu user_options.go), and the typed confirmation's
 // label is a stand-in for next/p1c-flow's (P-10).
 const (
-	choice   = "Enter your choice"
+	choice   = "Option"
 	hostname = "bos-san-l01" // Figma's mock host
 )
 
@@ -275,9 +275,9 @@ func TestChoose(t *testing.T) {
 		chosen, err = p.Choose(mainMenu(&ran), choice)
 		return err
 	})
-	want := "    > Enter your choice [0-10 or q]: 11\n" +
+	want := "    > Option [0-10 or q]: 11\n" +
 		"  (x) Invalid option. Please try again.\n" +
-		"    > Enter your choice [0-10 or q]: 3\n"
+		"    > Option [0-10 or q]: 3\n"
 	if err != nil || chosen.Item.Label != "DNS" || out != want {
 		t.Errorf("Choose() = %q, %v, transcript\n%s\nwant DNS, nil, transcript\n%s", chosen.Item.Label, err, out, want)
 	}
@@ -336,7 +336,7 @@ func TestRefusal(t *testing.T) {
 				return Screen{Above: "Select an option", Menu: m, Label: choice}
 			})
 		})
-		asked := "    > Enter your choice [0-10 or q]: "
+		asked := "    > Option [0-10 or q]: "
 		if err != nil || strings.Join(ran, " ") != tt.ran || mains != tt.mains ||
 			strings.Count(out, "\n  (x) "+why+"\n"+asked) != tt.refused {
 			t.Errorf("%s: Run() = %v, ran %q, drawn %d times; want nil, %q, %d, %d refusals under %q:\n%s",
@@ -639,8 +639,8 @@ func TestRunGap(t *testing.T) {
 		}}}}
 		return p.Run(func() Screen { return Screen{Above: "  Main", Menu: top, Label: choice} })
 	})
-	main := "  Main\n\n   1) Firewall\n\n    > Enter your choice [1, 0 or q]: "
-	firewall := "  Firewall\n\n   1) DNS\n   2) Logs\n\n    > Enter your choice [1-2, 0 or q]: "
+	main := "  Main\n\n   1) Firewall\n\n    > Option [1, 0 or q]: "
+	firewall := "  Firewall\n\n   1) DNS\n   2) Logs\n\n    > Option [1-2, 0 or q]: "
 	want := main + "1\n\n" + firewall + "2\n\n  done\n\n" + firewall + "0\n\n" + main + "0\n"
 	if err != nil || out != want {
 		t.Errorf("Run() = %v, transcript\n%s\nwant\n%s", err, out, want)
@@ -660,7 +660,7 @@ func TestRunCompact(t *testing.T) {
 	view := mainMenu(nil).View()
 	view.Compact = true
 	drawing := ansi.Strip(view.Render(component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))))
-	want := "  Select an option\n" + drawing + "\n\n    > Enter your choice [0-10 or q]: "
+	want := "  Select an option\n" + drawing + "\n\n    > Option [0-10 or q]: "
 	if err != nil || !strings.HasPrefix(out, want+"10\n") || strings.Join(ran, " ") != "10" ||
 		!strings.Contains(drawing, "   5) Backup               10) Logs") {
 		t.Errorf("Run() = %v, ran %q, transcript\n%s\nwant it to start\n%s", err, ran, out, want)

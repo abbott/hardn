@@ -76,7 +76,7 @@ func TestEnvironmentScreen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			vm := tt.e.SubMenu()
 			if vm.Title.Title != "Environment Variable Settings" || len(vm.Title.Parents) != 0 || len(vm.Status.Rows) != 0 || len(vm.Sections) != 1 ||
-				vm.Sections[0].Header.Title != "HARDN_CONFIG" || vm.Heading != "Select an option" || vm.Prompt != "Enter selection" ||
+				vm.Sections[0].Header.Title != "HARDN_CONFIG" || vm.Heading != "Select an option" || vm.Prompt != "Option" ||
 				vm.Menu.Exit != (component.MenuItem{Key: "0", Label: "Return"}) {
 				t.Fatalf("the screen's frame: %+v", vm)
 			}

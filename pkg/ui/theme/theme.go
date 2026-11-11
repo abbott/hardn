@@ -170,7 +170,7 @@ type MenuStyles struct {
 	Risk        lipgloss.Style // the lockout-risk marker under an item, bold
 }
 
-// PromptStyles style the prompt line: "❯ Enter your choice [0-10 or q]:".
+// PromptStyles style the prompt line: "❯ Option [0-10 or q]:".
 type PromptStyles struct {
 	Glyph lipgloss.Style // bold
 	Label lipgloss.Style // bold

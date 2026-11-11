@@ -19,12 +19,12 @@ import (
 // these with its rows, and runs the items (docs/engine/screen-users.md).
 
 // The screen's words: decided (gallery-users.md §6), Figma's where it has
-// them; the heading and the prompt Figma's (fixtureHeading, figmaPrompt).
+// them; the heading and the prompt every menu's (fixtureHeading,
+// menuPrompt; P-29 (a)), the user list's too.
 const (
 	usersTitle         = "User Management"
 	usersManageTitle   = "Manage User"
 	usersCreateTitle   = "Create User"
-	usersSelectHeading = "Select a user"
 	usersSection       = "Users"
 	usersConfigSection = "User Configuration"
 	usersKeysSection   = "SSH Keys"
@@ -119,10 +119,10 @@ type Users struct {
 // SubMenu returns the users' screen (01-USER): the title bar; the User row;
 // a section per user, or the line that there is none; Manage User with a
 // user to manage, Create User, which says it installs shadow first where
-// useradd is missing; Return; "Select an option"; "Enter your choice".
+// useradd is missing; Return; "Select an option"; "Option".
 // Every section at every height (Firewall's decision 9).
 func (u Users) SubMenu() SubMenu {
-	vm := SubMenu{Title: trail(usersTitle), Status: u.Status, Heading: fixtureHeading, Prompt: figmaPrompt, Menu: component.Menu{Exit: returnItem()}}
+	vm := SubMenu{Title: trail(usersTitle), Status: u.Status, Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	for _, s := range u.Users {
 		vm.Sections = append(vm.Sections, usersRows(s.Name, s.Rows))
 	}
@@ -161,10 +161,10 @@ type UsersSelect struct {
 	NotRead string
 }
 
-// SubMenu returns Manage User's Select a user: an item per user; Return.
+// SubMenu returns Manage User's user list: an item per user; Return.
 // With the users not read, the line saying why, and Return alone.
 func (s UsersSelect) SubMenu() SubMenu {
-	vm := SubMenu{Title: trail(usersTitle, usersManageTitle), Heading: usersSelectHeading, Prompt: figmaPrompt, Menu: component.Menu{Exit: returnItem()}}
+	vm := SubMenu{Title: trail(usersTitle, usersManageTitle), Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	if s.NotRead != "" {
 		vm.Sections = []Section{usersRows(usersSection, []component.KeyValue{usersNone(s.NotRead, "")})}
 	}
@@ -195,7 +195,7 @@ type UsersManage struct {
 // Don't ask password, then SSH Keys, each named by its result; Return.
 func (m UsersManage) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(usersTitle, usersManageTitle), Subject: component.SubjectLine{Label: usersManaging, Subject: m.Name},
-		Heading: fixtureHeading, Prompt: figmaPrompt, Menu: component.Menu{Exit: returnItem()}}
+		Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	if m.NotRead != "" {
 		vm.Sections = []Section{usersRows(usersConfigSection, []component.KeyValue{usersNone(m.NotRead, "")})}
 		return vm
@@ -233,7 +233,7 @@ type UsersKeys struct {
 // key, and with any Remove SSH key; Return.
 func (k UsersKeys) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(usersTitle, usersManageTitle), Subject: component.SubjectLine{Label: usersManagingKeys, Subject: k.Name},
-		Heading: fixtureHeading, Prompt: figmaPrompt, Menu: component.Menu{Exit: returnItem()}}
+		Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	if k.NotRead != "" {
 		vm.Sections = []Section{usersRows(usersKeysSection, []component.KeyValue{usersNone(k.NotRead, "")})}
 		return vm

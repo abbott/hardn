@@ -245,7 +245,7 @@ func TestRefusedBeforeAsking(t *testing.T) {
 		if n := strings.Count(flat(p.out), " Warning "+tt.say); n != 2 {
 			t.Errorf("%s: %q said %d times, want 2:\n%s", tt.host, tt.say, n, p.out)
 		}
-		if strings.Contains(p.out, "[y/N") || strings.Contains(p.out, "Select a run") {
+		if strings.Contains(p.out, "[y/N") || strings.Contains(p.out, "Backup Runs #") {
 			t.Errorf("%s: an item asked something:\n%s", tt.host, p.out)
 		}
 		if w := writes(h.System, 0); len(w) > 0 {
@@ -303,7 +303,7 @@ func TestRuns(t *testing.T) {
 	if p.err != nil || p.unread != 0 || p.engines != 0 {
 		t.Fatalf("Run = %v, %d unread, %d engines:\n%s", p.err, p.unread, p.engines, p.out)
 	}
-	if w := inOrder(p.out, "Backup Runs #", "Select a run", "1) 2026-10-19 14:30 1 file, taken anyway", "2) 2026-10-18 09:15 2 files",
+	if w := inOrder(p.out, "Backup Runs #", "Select an option", "1) 2026-10-19 14:30 1 file, taken anyway", "2) 2026-10-18 09:15 2 files",
 		"3) 2026-10-17 08:30 1 file", "[0-3 or q]: 2", "Backup Run #", "Run 20261018T091500Z-1a2b3c4d", "/etc/resolv.conf 58 bytes", "/etc/hardn/hardn.yml",
 		"[0 or q]: 0", "Backup Runs #", "[0-3 or q]: 1", "Run 20261019T143000Z-5e6f7a8b", "taken anyway", "Backup Runs #", "Backup Settings #"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
@@ -321,11 +321,11 @@ func TestRuns(t *testing.T) {
 	}
 	h, cfg = newHost(t, hostNoRuns)
 	p = play(noReadDir{h, backupPath}, cfg, false, "4", "0")
-	if !strings.Contains(flat(p.out), "Warning Can't read the runs in /var/backups/hardn: backup: open /var/backups/hardn: permission denied.") || strings.Contains(p.out, "Select a run") {
+	if !strings.Contains(flat(p.out), "Warning Can't read the runs in /var/backups/hardn: backup: open /var/backups/hardn: permission denied.") || strings.Contains(p.out, "Backup Runs #") {
 		t.Errorf("no runs listable:\n%s", p.out)
 	}
 	h, cfg = newHost(t, hostMade)
-	if p = play(h, cfg, false, "4", "0"); !strings.Contains(p.out, "No change has been backed up yet.") || strings.Contains(p.out, "Select a run") {
+	if p = play(h, cfg, false, "4", "0"); !strings.Contains(p.out, "No change has been backed up yet.") || strings.Contains(p.out, "Backup Runs #") {
 		t.Errorf("no runs:\n%s", p.out)
 	}
 }

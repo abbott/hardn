@@ -74,8 +74,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -156,8 +156,8 @@ differ From: 192.0.2.10 | none
        decision 3 (a): lastlog's stand-in; now none: no lslogins on this host
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -235,8 +235,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ draws: 2 | 1
        defect 20: an invalid key reads and draws again; now refused under the prompt and asked again
 differ pause: Press Enter to continue... | none
@@ -318,8 +318,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -397,8 +397,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -478,8 +478,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -656,7 +656,6 @@ agree  commands: none
 agree  findings: none
 agree  hardn.yml: not saved
 agree  menu heading: Select an option
-agree  prompt: Enter selection [0-1 or q]
 agree  draws: 1
 differ report: lost: failed to collect memory info: failed to get memory info: exec: "free": executable file not found in $PATH | kept OS, Kernel, Hostname, IP Addresses, Non-System Users, Processor, Cores, Load 1m, Load 5m, Load 15m, /, Volume, Last Login, From, Uptime; Memory: Can't read /proc/meminfo
        defect 7; KNOWN-DEFECT (One collector's error loses the report): the first failed collector loses the report; now the section says what it could not read, and the rest is kept
@@ -664,6 +663,8 @@ differ title: System Details Error | System Details
        gallery-system-details.md §6, Title bars; gallery-system-details.md §5, Made here, A section that cannot be read: a title of its own for the failure; now the report's
 differ items: 1) Refresh Information: Reload system status from system; 0) Return | 1) Refresh: Read the host again; 0) Return
        gallery-system-details.md §6, Items: Refresh Information, in its words; now Refresh, as on every draw
+differ prompt: Enter selection [0-1 or q] | Option [0-1 or q]
+       P-29 (a): Enter selection; now Option, every menu's prompt
 differ failure words: Failed to retrieve system status information.; Please check system permissions and try again. | Can't read /proc/meminfo
        defect 7; gallery-system-details.md §6, Can't read <source>: "check permissions" whatever it was; now what it could not read
 differ reads a draw: 3 | 1
@@ -734,8 +735,8 @@ differ Last Login: blank | root None recorded, alice Oct 29 08:12 from 192.0.2.1
        decision 3 (a); defect 14; KNOWN-DEFECT (left blank): blank; now each login by lslogins
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -813,8 +814,8 @@ differ Last Login: Never logged in | root None recorded, alice None recorded
        decision 3 (a); gallery-system-details.md §6, None recorded: Never logged in, for whoever ran it; now each account's row, a blank guarded
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -890,8 +891,8 @@ differ Last Login: blank | root None recorded, alice Oct 29 08:12 from laptop
        decision 3 (a); defect 14; KNOWN-DEFECT (left blank): blank; now each login by lslogins
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -972,8 +973,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -1053,8 +1054,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -1138,8 +1139,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -1221,8 +1222,8 @@ differ From: 192.0.2.10 | alice 192.0.2.10
        decision 3 (a): one address; now each account's
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ reads a draw: 4 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
 differ CPUs: none | 2, 1 socket
@@ -1357,8 +1358,8 @@ differ export: Machine status exported to system_status.txt | none
        decision 5 (a): the export's message; no item
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ draws: 2 | 1
        decision 5 (a): drawn again after the export; now the key refused and asked again
 differ export prompt: Enter filename to export system status (default: system_status.txt): | none
@@ -1503,8 +1504,8 @@ differ export: Machine status exported to reports/web-01.txt | none
        decision 5 (a): the export's message; no item
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ draws: 2 | 1
        decision 5 (a): drawn again after the export; now the key refused and asked again
 differ export prompt: Enter filename to export system status (default: system_status.txt): | none
@@ -1647,8 +1648,8 @@ differ export: Machine status exported to system_status.txt | none
        decision 5 (a): the export's message; no item
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ draws: 2 | 1
        decision 5 (a): drawn again after the export; now the key refused and asked again
 differ export prompt: Enter filename to export system status (default: system_status.txt): | none
@@ -1735,8 +1736,8 @@ differ export: Failed to write file: failed to create directory reports: mkdir r
        decision 5 (a); defect 18: the failure said, the name not asked again; no item
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ draws: 2 | 1
        decision 5 (a): drawn again after the export; now the key refused and asked again
 differ export prompt: Enter filename to export system status (default: system_status.txt): | none
@@ -1823,8 +1824,8 @@ differ export: [DRY-RUN] Would write system status to system_status.txt | none
        decision 5 (a): dry run's line; no item
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ draws: 2 | 1
        decision 5 (a): drawn again after the export; now the key refused and asked again
 differ export prompt: Enter filename to export system status (default: system_status.txt): | none
@@ -1971,8 +1972,8 @@ differ export: Machine status exported to system_status.txt | none
        decision 5 (a): the export's message; no item
 differ items: 1) Refresh Information: Reload system status from system; 2) Export Information: Export system status to file; 0) Return | 1) Refresh: Read the host again; 0) Return
        decision 5 (a); gallery-system-details.md §6, Items: Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item
-differ prompt: Enter selection [0-2 or q] | Enter selection [0-1 or q]
-       decision 5 (a): 0-2, with Export; now 0-1, no Export item
+differ prompt: Enter selection [0-2 or q] | Option [0-1 or q]
+       decision 5 (a); P-29 (a): Enter selection, 0-2, with Export; now Option, 0-1, no Export item
 differ draws: 2 | 1
        decision 5 (a): drawn again after the export; now the key refused and asked again
 differ export prompt: Enter filename to export system status (default: system_status.txt): | none
@@ -2030,7 +2031,7 @@ differ items: none | 1) Open: The whole log in less; 2) Refresh: Read the log ag
        gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open where logview.Pager says, and Refresh
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-2 or q]
+differ prompt: none | Option [0-2 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2069,7 +2070,7 @@ differ items: none | 1) Refresh: Read the log again; 0) Return
        gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open where logview.Pager says, and Refresh
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-1 or q]
+differ prompt: none | Option [0-1 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2109,7 +2110,7 @@ differ items: none | 1) Open: The whole log in less; 2) Refresh: Read the log ag
        gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open, as logview.Pager says, and Refresh
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-2 or q]
+differ prompt: none | Option [0-2 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2144,7 +2145,7 @@ differ items: none | 1) Refresh: Read the log again; 0) Return
        gallery-system-details.md §5, Made here, Refresh stays; decision 8 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Refresh alone: nothing to open
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-1 or q]
+differ prompt: none | Option [0-1 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2177,7 +2178,7 @@ differ items: none | 1) Refresh: Read the log again; 0) Return
        gallery-system-details.md §5, Made here, Refresh stays; decision 8 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Refresh alone: nothing to open
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-1 or q]
+differ prompt: none | Option [0-1 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2211,7 +2212,7 @@ differ items: none | 1) Refresh: Read the log again; 0) Return
        gallery-system-details.md §5, Made here, Refresh stays; decision 8 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Refresh alone: nothing to open
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-1 or q]
+differ prompt: none | Option [0-1 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2252,7 +2253,7 @@ differ items: none | 1) Open: The whole log in less; 2) Refresh: Read the log ag
        gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open, as logview.Pager says, and Refresh
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-2 or q]
+differ prompt: none | Option [0-2 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2297,7 +2298,7 @@ differ items: none | 1) Open: The whole log in less; 2) Refresh: Read the log ag
        gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open, as logview.Pager says, and Refresh
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-2 or q]
+differ prompt: none | Option [0-2 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 
@@ -2342,7 +2343,7 @@ differ items: none | 1) Open: The whole log in less; 2) Refresh: Read the log ag
        gallery-system-details.md §5, Made here, Refresh stays; decision 7 (a); gallery-system-details.md §6, Logs items: no items, a pause; now Open, as logview.Pager says, and Refresh
 differ menu heading: none | Select an option
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's heading
-differ prompt: none | Enter selection [0-2 or q]
+differ prompt: none | Option [0-2 or q]
        gallery-system-details.md §5, Made here, No pause: no menu; now Backup's prompt
 v0.3.2: as here: the whole file after # Contents of, from cfg.LogFile, with the log's path hard-coded (gallery-system-details.md §2.11; read)
 

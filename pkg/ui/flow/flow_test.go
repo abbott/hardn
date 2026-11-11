@@ -684,7 +684,7 @@ func TestReturn(t *testing.T) {
 		holds []string
 	}{
 		{"applied", plain80, createUser(Fixture{Planned: createUserPlan}), "Create User", slices.Concat(answers, []string{"y"}), []string{
-			"    > Enter your choice [0-1 or q]: 1\n\n   1. Username [0 or q]: george\n",
+			"    > Option [0-1 or q]: 1\n\n   1. Username [0 or q]: george\n",
 			"# Operation Successful\n\n   1) Create User\n",
 		}},
 		{"too narrow to confirm", term.Fixed(28, colorprofile.NoTTY, false, true), disableRoot(Fixture{Planned: planOf(RiskLockout, rootLogin)}), "Root SSH Login", nil, []string{
@@ -702,7 +702,7 @@ func TestReturn(t *testing.T) {
 				return err
 			},
 		}}, Exit: component.MenuItem{Key: "0", Label: "Return"}}
-		err := p.Run(func() nav.Screen { return nav.Screen{Menu: menu, Label: "Enter your choice"} })
+		err := p.Run(func() nav.Screen { return nav.Screen{Menu: menu, Label: "Option"} })
 		for _, want := range tt.holds {
 			if !errors.Is(err, nav.ErrQuit) || !strings.Contains(out.String(), want) {
 				t.Errorf("%s: Run: %v; transcript\n%s\nwant it to hold\n%s", tt.name, err, out, want)

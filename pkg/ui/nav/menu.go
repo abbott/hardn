@@ -133,7 +133,7 @@ func (m Menu) resolve(line string) (int, error) {
 	return -1, Refuse(InvalidOption)
 }
 
-// Choose asks label, such as Figma's "Enter your choice", as a PromptLine
+// Choose asks label, such as "Option", as a PromptLine
 // whose hint is generated from Accepts, and returns the option chosen;
 // the caller runs its Action, or Run does. It returns ErrBack for 0 and
 // ErrQuit for q, and asks again for any other line, b included: "Invalid
@@ -166,7 +166,7 @@ type Screen struct {
 	Above string
 	// Menu is the screen's menu, rendered under Above and asked.
 	Menu Menu
-	// Label is the prompt's question, such as "Enter your choice".
+	// Label is the prompt's question, such as "Option".
 	Label string
 	// Compact lays the menu out in two columns (component.Menu.Compact),
 	// on the line under Above, with no blank line between them, as the

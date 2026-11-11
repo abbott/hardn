@@ -226,7 +226,7 @@ func (s *session) openRunAll(name string) func() error {
 	}
 	return func() error {
 		exit := component.MenuItem{Key: "0", Label: "Return"}
-		vm := screen.SubMenu{Title: component.TitleBar{Title: "Run All hosts"}, Heading: "Select a host", Prompt: "Enter your choice", Menu: component.Menu{Exit: exit}}
+		vm := screen.SubMenu{Title: component.TitleBar{Title: "Run All hosts"}, Heading: "Select an option", Prompt: "Option", Menu: component.Menu{Exit: exit}}
 		menu := nav.Menu{Exit: exit}
 		for i, rh := range raHosts() {
 			it := component.MenuItem{Key: fmt.Sprint(i + 1), Label: rh.label, Description: rh.about}

@@ -46,7 +46,7 @@ func TestBackupScreen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			vm := tt.b.SubMenu()
 			if vm.Title.Title != "Backup Settings" || len(vm.Status.Rows) != 0 || len(vm.Sections) != 1 || vm.Sections[0].Header.Title != "Backup Configuration" ||
-				vm.Heading != "Select an option" || vm.Prompt != "Enter selection" || vm.Menu.Exit.Label != "Return" {
+				vm.Heading != "Select an option" || vm.Prompt != "Option" || vm.Menu.Exit.Label != "Return" {
 				t.Fatalf("the screen's frame: %+v", vm)
 			}
 			if got := vm.Sections[0].Rows.Items; !slices.Equal(got, tt.rows) {
@@ -134,7 +134,7 @@ func TestBackupRuns(t *testing.T) {
 	}
 	list := BackupRunsMenu(runs)
 	want := []component.MenuItem{{Key: "1", Label: "2026-10-19 14:30", Description: "3 files, taken anyway"}, {Key: "2", Label: "elsewhere", Description: "1 file"}}
-	if list.Title.Title != "Backup Runs" || list.Heading != "Select a run" || !slices.Equal(list.Menu.Items, want) || list.Menu.Exit.Label != "Return" {
+	if list.Title.Title != "Backup Runs" || list.Heading != "Select an option" || !slices.Equal(list.Menu.Items, want) || list.Menu.Exit.Label != "Return" {
 		t.Errorf("the list: %+v", list)
 	}
 	run := runs[0].SubMenu()
@@ -145,7 +145,7 @@ func TestBackupRuns(t *testing.T) {
 		t.Errorf("the run: %+v", run)
 	}
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
-	if got := ansi.Strip(run.Render(c)); !strings.HasSuffix(got, "0) Return\n\n    > Enter selection [0 or q]:") {
+	if got := ansi.Strip(run.Render(c)); !strings.HasSuffix(got, "0) Return\n\n    > Option [0 or q]:") {
 		t.Errorf("the run's menu:\n%s", got)
 	}
 }

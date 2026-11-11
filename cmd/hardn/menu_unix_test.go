@@ -79,7 +79,7 @@ func TestInterruptChild(t *testing.T) {
 	if ws, ok := ended.Sys().(syscall.WaitStatus); !ok || !ws.Signaled() || ws.Signal() != syscall.SIGINT {
 		t.Errorf("child: %v (exit status %d); want it killed by SIGINT", err, ended.ExitCode())
 	}
-	if !strings.HasSuffix(string(rest), "Enter selection [0-10 or q]: \n") {
+	if !strings.HasSuffix(string(rest), "Option [0-10 or q]: \n") {
 		t.Errorf("child printed %q after ready, want the main menu, its prompt's line ended", rest)
 	}
 }

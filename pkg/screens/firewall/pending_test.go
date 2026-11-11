@@ -75,7 +75,7 @@ func TestPendingBeforeAsking(t *testing.T) {
 			t.Errorf("%s: Run = %v, %d unread, runs %+v, changed %v:\n%s", tc.name, p.err, p.unread, p.runs, changed(), p.out)
 			continue
 		}
-		if w := inOrder(p.out, "Enter selection", "Checking the host", "Warning", "A change is waiting for hardn confirm.", "or let it roll back, then try again.", tc.title); w != "" {
+		if w := inOrder(p.out, "Option [", "Checking the host", "Warning", "A change is waiting for hardn confirm.", "or let it roll back, then try again.", tc.title); w != "" {
 			t.Errorf("%s: %q not shown after what came before it:\n%s", tc.name, w, p.out)
 		}
 		for _, not := range []string{"[y/N", "Type the hostname", "Operation Failed", "CHANGE_PENDING", "is already journalled"} {

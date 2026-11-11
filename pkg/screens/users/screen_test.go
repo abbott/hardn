@@ -444,7 +444,7 @@ func TestRemoveKeyElsewhere(t *testing.T) {
 	p := play(h, false, "1", "1", "3", "2", "1", "q")
 	words := fmt.Sprintf(wordsElsewhere, "george", two)
 	if !errors.Is(p.err, nav.ErrQuit) || !shows(p.out, words) || !strings.Contains(p.out, screen.UsersWhichKeyField) ||
-		strings.Count(p.out, "Enter your choice [1-2, 0 or q]") != 2 || p.engines != 0 || asked(p.out) {
+		strings.Count(p.out, "Option [1-2, 0 or q]") != 2 || p.engines != 0 || asked(p.out) {
 		t.Errorf("Run = %v, %d engines:\n%s", p.err, p.engines, p.out)
 	}
 	if w := writes(h, n); len(w) > 0 {
@@ -763,7 +763,7 @@ func TestHeights(t *testing.T) {
 	want := map[string]int{"debian13": 26, "ubuntu2604": 26, "alpine323": 26, "legacy": 19, "hardn": 19, "second-admin": 26, "one-key": 26,
 		"sudo-password": 19, "alpine-no-rule": 18, "alpine-locked": 33, "yml-missing": 26, "not-read": 24, "pve9": 15, "no-sudo": 18,
 		"root-login": 19, "debian-nopam": 26, "alpine-stray": 26, "group-home": 26}
-	// Select a user, george's screen and george's keys, drawn second,
+	// The user list, george's screen and george's keys, drawn second,
 	// third and fourth.
 	draws := map[string][]string{"select": {"1", "0", "0"}, "manage": {"1", "1", "0", "0", "0"}, "keys": {"1", "1", "3", "0", "0", "0", "0"}}
 	sub := map[string]struct{ at, lines int }{"select": {1, 10}, "manage": {2, 20}, "keys": {3, 19}}
@@ -802,7 +802,7 @@ func drawn(out string) []int {
 	start := 0
 	lines := strings.Split(out, "\n")
 	for i, l := range lines {
-		if strings.Contains(l, " or q]:") && strings.Contains(l, "Enter your choice") {
+		if strings.Contains(l, " or q]:") && strings.Contains(l, "Option [") {
 			for start < i && strings.TrimSpace(lines[start]) == "" {
 				start++
 			}
@@ -905,7 +905,7 @@ func TestNotRead(t *testing.T) {
 		}
 	}, "1", "2", "1", "0", "0", "0")
 	last := p.out[strings.LastIndex(p.out, "Managing: "):]
-	last = last[:strings.Index(last, "> Enter")]
+	last = last[:strings.Index(last, "> Option")]
 	if p.err != nil || !shows(last, "alice isn't a user hardn manages here.") || strings.Contains(last, "1) ") || asked(p.out) {
 		t.Errorf("alice gone: Run = %v:\n%s", p.err, p.out)
 	}

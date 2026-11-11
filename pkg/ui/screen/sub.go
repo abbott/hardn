@@ -32,7 +32,7 @@ import (
 //
 //	   0) Return
 //
-//	    > Enter your choice [0-2 or q]:
+//	    > Option [0-2 or q]:
 //
 // The blocks: the TitleBar, SubjectLine, StatusList, each Section, the
 // MenuHeading, the Menu, then the PromptLine after theme.PromptGap blank
@@ -68,7 +68,7 @@ type SubMenu struct {
 	// Menu is the numbered menu and its Return item. Its Compact is
 	// ignored: a sub-menu has no compact form.
 	Menu component.Menu
-	// Prompt is the prompt's label, such as "Enter your choice".
+	// Prompt is the prompt's label, such as "Option".
 	Prompt string
 }
 

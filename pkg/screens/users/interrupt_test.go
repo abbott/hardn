@@ -19,7 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// TestInterrupt: Ctrl-C at the screen, at Select a user, at a user's screen
+// TestInterrupt: Ctrl-C at the screen, at the user list, at a user's screen
 // and its keys, at a y/N question, at the typed hostname, at Create's form
 // and at Remove SSH key's Select aborts (prompt.ErrInterrupted, wrapping
 // prompt.ErrAborted), writing nothing, as the end of the input does
@@ -32,10 +32,10 @@ func TestInterrupt(t *testing.T) {
 	for _, tt := range []struct {
 		host, lines, at string
 	}{
-		{"debian13", "", "Enter your choice"}, {"debian13", "1\n", "Select a user"}, {"debian13", "1\n1\n", "Managing"},
+		{"debian13", "", "Option ["}, {"debian13", "1\n", "1) george"}, {"debian13", "1\n1\n", "Managing"},
 		{"debian13", "1\n1\n3\n", "Managing SSH keys for"}, {"sudo-password", "1\n1\n2\n", "Stop asking george's password for admin rights?"},
 		{"second-admin", "1\n2\n1\n", "Type the hostname"}, {"debian13", "2\n", "Username"}, {"debian13", "1\n1\n3\n2\n", "Remove which key?"},
-		{"pve9", "", "Enter your choice"},
+		{"pve9", "", "Option ["},
 	} {
 		h := newHost(t, tt.host)
 		in, typed, err := os.Pipe()

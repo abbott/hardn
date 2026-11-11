@@ -327,7 +327,7 @@ func entry(h *testHost, name string) (fs.FileMode, int, int) {
 func screens(out string) []string {
 	var got []string
 	for _, part := range strings.Split(out, "# Environment Variable Settings #")[1:] {
-		end := strings.Index(part, "> Enter selection")
+		end := strings.Index(part, "> Option")
 		if end < 0 {
 			end = len(part)
 		}

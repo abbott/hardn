@@ -100,7 +100,7 @@ var (
 	drawnHeader  = regexp.MustCompile(`^  (\S.*?) -+$`)
 	drawnBullet  = regexp.MustCompile(`^(?: {3}- {2}| {2}\[.\] )(\S.*)$`)
 	drawnItem    = regexp.MustCompile(`^ {3}(\d+)\) (\S+)(?: {2,}(\S.*))?$`)
-	drawnPrompt  = regexp.MustCompile(`^ {4}> (Enter selection \[0-\d+ or q\]):(?: .*)?$`)
+	drawnPrompt  = regexp.MustCompile(`^ {4}> (Option \[0-\d+ or q\]):(?: .*)?$`)
 	drawnRefused = regexp.MustCompile(`^ {2}\(x\) (.+)$`)
 )
 
@@ -183,7 +183,7 @@ func readDrawn(out string) (screenRead, error) {
 // TestDrawnReaderRefuses: what readDrawn does not know fails, as the reader of
 // origin/main's goldens does.
 func TestDrawnReaderRefuses(t *testing.T) {
-	const screen = "# Logs #####\n\n  File -----\n\n   -  Path                 /var/log/hardn.log\n\n  Select an option\n\n   1) Refresh              Read the log again\n\n   0) Return\n\n    > Enter selection [0-1 or q]: 0\n"
+	const screen = "# Logs #####\n\n  File -----\n\n   -  Path                 /var/log/hardn.log\n\n  Select an option\n\n   1) Refresh              Read the log again\n\n   0) Return\n\n    > Option [0-1 or q]: 0\n"
 	if _, err := readDrawn(screen); err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func TestDrawnReaderRefuses(t *testing.T) {
 		{"nothing", "", "no draw"},
 		{"a line before the title", "a line\n" + screen, "before the title"},
 		{"a line it does not know", strings.Replace(screen, "  Select an option", "  Choose one", 1), "does not know"},
-		{"another prompt", strings.Replace(screen, "Enter selection", "Enter a key", 1), "does not know"},
+		{"another prompt", strings.Replace(screen, "Option", "Enter a key", 1), "does not know"},
 		{"a pause", strings.Replace(screen, "   0) Return", "   0) Return\n  - Press Enter to continue...", 1), "does not know"},
 		{"an escape", strings.Replace(screen, "/var/log/hardn.log", "\x1b[31m/var/log/hardn.log", 1), "an escape"},
 		{"a row before a section", strings.Replace(screen, "  File -----\n", "", 1), "does not know"},

@@ -572,7 +572,7 @@ func drawn(out string) []int {
 	start := 0
 	lines := strings.Split(out, "\n")
 	for i, l := range lines {
-		if strings.Contains(l, " or q]:") && strings.Contains(l, "Enter your choice") {
+		if strings.Contains(l, " or q]:") && strings.Contains(l, "Option [") {
 			for start < i && strings.TrimSpace(lines[start]) == "" {
 				start++
 			}

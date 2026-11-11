@@ -133,7 +133,7 @@ func frameMocks() []Mock {
 				"package screens and Help among them, and \"Enter your choice [0-12 or q]\". origin/main has this "+
 				"layout and ten items: the package screens and Help gone, User Management, SSH Login, Environment "+
 				"and System Details new.",
-			"Item 2 and the prompt say origin/main's words, pending P-07 (a), P-12 and P-29 (a). "+
+			"Item 2 says origin/main's words, pending P-07 (a) and P-12, and the prompt hardn's, \"Option\" (P-29 (a)). "+
 				"The mode indicator says \"Mode Live\" where Figma's says \"Dry-run Mode Disabled\" (decisions 2 and 3, DEV-065). "+
 				"Dry-Run is left out, as hardn removed it (slice 2b, decision 1). "+
 				"The rows and items are in hardn's order, the maintainer's (2026-11-07), not the PNG's; Auto Updates (5) is not drawn yet. "+
@@ -154,9 +154,9 @@ func frameMocks() []Mock {
 				"directory (pkg/menu/backup_menu.go).",
 			figmaWords)},
 		{Name: "sub-menu/user-manage-user-management", Screen: manageUserFixture(),
-			Source: figma("USER-MANAGE_USER-MANAGEMENT", unreleased, "The prompt, Figma's, pending P-29 (a).")},
+			Source: figma("USER-MANAGE_USER-MANAGEMENT", unreleased, "The prompt, Figma's, as the frame draws it (P-29 (a)).")},
 		{Name: "sub-menu/user-manage-user-select-user", Screen: selectUserFixture(),
-			Source: figma("USER-MANAGE_USER-SELECT_USER", unreleased, "The prompt, Figma's, pending P-29 (a).")},
+			Source: figma("USER-MANAGE_USER-SELECT_USER", unreleased, "The prompt, Figma's, as the frame draws it (P-29 (a)).")},
 		{Name: "sub-menu/user-ssh-keys", Screen: sshKeysFixture(), Source: figma("USER-SSH_KEYS", unreleased, figmaWords)},
 		{Name: "workflow-step/ssh-login-toggle-confirmation", Source: figma("SSH_LOGIN-TOGGLE_CONFIRMATION",
 			"v0.3.2 warns, asks \"Do you want to continue? (y/n)\" and restarts ssh (pkg/menu/menu.go:352-381). "+

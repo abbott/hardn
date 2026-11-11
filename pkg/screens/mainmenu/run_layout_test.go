@@ -167,7 +167,7 @@ func TestMainMenuKeys(t *testing.T) {
 // the main menu is not read or drawn again, where origin/main cleared the
 // screen, printed its header and paused (main_menu.go:538-544).
 func TestMainMenuInvalid(t *testing.T) {
-	const prompt = "    > Enter selection [0-10 or q]: "
+	const prompt = "    > Option [0-10 or q]: "
 	for _, tc := range []struct {
 		name string
 		env  term.Env
@@ -349,7 +349,7 @@ func TestMainMenuTopRows(t *testing.T) {
 		m.RunAll = func() error {
 			p := nav.Prompter{Ctx: component.NewCtx(env), In: m.Input(), Out: env.Writer(stdout{})}
 			return p.Run(func() nav.Screen {
-				return nav.Screen{Above: "RUN ALL", Label: "Enter your choice", Menu: nav.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}}}
+				return nav.Screen{Above: "RUN ALL", Label: "Option", Menu: nav.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}}}
 			})
 		}
 		if asked {
@@ -418,7 +418,7 @@ func TestMainMenuHeights(t *testing.T) {
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
 			risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
 			if len(ls) != tc.lines || first != tc.visible || ls[0] != "" || ls[1] != "" || (risk >= len(ls)-tc.h) != (len(ls) <= tc.h) ||
-				!strings.HasPrefix(ls[len(ls)-1], strings.Repeat(" ", theme.PromptCol)+component.NewCtx(env).Theme.Glyphs.Prompt+" Enter selection") {
+				!strings.HasPrefix(ls[len(ls)-1], strings.Repeat(" ", theme.PromptCol)+component.NewCtx(env).Theme.Glyphs.Prompt+" Option") {
 				t.Errorf("%dx%d, %s: %d lines, the first on screen %q, the risk level on line %d; want %d, %q:\n%s",
 					tc.w, tc.h, lang, len(ls), first, risk+1, tc.lines, tc.visible, strings.Join(ls, "\n"))
 			}

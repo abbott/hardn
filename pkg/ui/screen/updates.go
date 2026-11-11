@@ -134,7 +134,7 @@ func (u Updates) MenuItem() component.MenuItem {
 }
 
 // SubMenu returns the Auto Updates screen: the title bar; the row; the
-// section; the item; Return; "Select an option"; "Enter your choice". Every
+// section; the item; Return; "Select an option"; "Option". Every
 // section at every height (Firewall's decision 9).
 func (u Updates) SubMenu() SubMenu {
 	return SubMenu{
@@ -143,7 +143,7 @@ func (u Updates) SubMenu() SubMenu {
 		Sections: []Section{{Header: component.SectionHeader{Title: updatesSection}, Rows: component.BulletList{Items: u.Rows}}},
 		Heading:  fixtureHeading,
 		Menu:     component.Menu{Items: []component.MenuItem{u.MenuItem()}, Exit: returnItem()},
-		Prompt:   figmaPrompt,
+		Prompt:   menuPrompt,
 	}
 }
 

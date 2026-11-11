@@ -18,7 +18,8 @@ import (
 // items (docs/engine/screen-ssh.md).
 
 // The screen's words: decided (gallery-ssh.md §6), Figma's where it has
-// them; the heading and the prompt Figma's (fixtureHeading, figmaPrompt). The
+// them; the heading and the prompt every menu's (fixtureHeading,
+// menuPrompt; P-29 (a)). The
 // questions, "Now not read" and "held until confirmed" are the adopted
 // mocks'.
 const (
@@ -128,7 +129,7 @@ type SSH struct {
 // named by its result, Move old settings with hardn's old files, and
 // Upgrade openssh where sshd lacks CVE-2026-123158's fix, which the alert
 // over the section points to (the maintainer, 2026-11-08);
-// Return; "Select an option"; "Enter your choice". Every section at every
+// Return; "Select an option"; "Option". Every section at every
 // height (Firewall's decision 9).
 func (s SSH) SubMenu() SubMenu {
 	root := component.MenuItem{Key: SSHRootItem, Label: sshDisallowLabel, Description: sshDisallowAbout}
@@ -167,7 +168,7 @@ func (s SSH) SubMenu() SubMenu {
 		Sections: []Section{{Header: component.SectionHeader{Title: sshSection}, Rows: component.BulletList{Items: s.Rows}}},
 		Heading:  fixtureHeading,
 		Menu:     component.Menu{Items: items, Exit: returnItem()},
-		Prompt:   figmaPrompt,
+		Prompt:   menuPrompt,
 	}
 }
 

@@ -1093,7 +1093,7 @@ func TestNotRowKeys(t *testing.T) {
 		if tt.st.missing && strings.Count(out, tt.refused) != 1 {
 			t.Errorf("%q: not refused as no item:\n%s", tt.lines, out)
 		}
-		if tt.st.profiles > 0 && (inOrder(out, "Remove which profile?", "Enter your choice [1-2, 0 or q]: 9", tt.refused, "Enter your choice") != "" || strings.Contains(out, "[y/N")) {
+		if tt.st.profiles > 0 && (inOrder(out, "Remove which profile?", "Option [1-2, 0 or q]: 9", tt.refused, "Option [") != "" || strings.Contains(out, "[y/N")) {
 			t.Errorf("%q: 9 not refused at the Select:\n%s", tt.lines, out)
 		}
 	}

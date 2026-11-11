@@ -151,9 +151,9 @@ func fwHostMenu() screen.SubMenu {
 	}
 	return screen.SubMenu{
 		Title:   component.TitleBar{Title: "Firewall hosts"},
-		Heading: "Select a host",
+		Heading: "Select an option",
 		Menu:    component.Menu{Items: items, Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt:  "Enter your choice",
+		Prompt:  "Option",
 	}
 }
 

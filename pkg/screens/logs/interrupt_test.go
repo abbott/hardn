@@ -42,7 +42,7 @@ func TestInterrupt(t *testing.T) {
 			System:   h,
 		})
 	}()
-	got := interrupt(t, sig, &out, "Enter selection", done)
+	got := interrupt(t, sig, &out, "Option [", done)
 	if !errors.Is(got, prompt.ErrInterrupted) || !errors.Is(got, prompt.ErrAborted) {
 		t.Errorf("Run = %v, want Ctrl-C's abort:\n%s", got, out.String())
 	}

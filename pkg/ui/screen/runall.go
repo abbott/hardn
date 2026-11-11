@@ -94,7 +94,7 @@ func runAllRows(rows []RunAllRow) component.BulletList {
 
 // SubMenu returns the Run All screen: the title bar; the "Controls"
 // section; 1) Apply all, described by its state and marked at lockout
-// risk; Return; "Select an option"; "Enter your choice".
+// risk; Return; "Select an option"; "Option".
 func (r RunAll) SubMenu() SubMenu {
 	it := component.MenuItem{Key: RunAllItem, Label: runAllApply, Description: runAllPlan}
 	switch r.State {
@@ -114,7 +114,7 @@ func (r RunAll) SubMenu() SubMenu {
 		Sections: []Section{{Header: component.SectionHeader{Title: runAllSection}, Rows: runAllRows(r.Rows)}},
 		Heading:  fixtureHeading,
 		Menu:     component.Menu{Items: []component.MenuItem{it}, Exit: returnItem()},
-		Prompt:   figmaPrompt,
+		Prompt:   menuPrompt,
 	}
 }
 

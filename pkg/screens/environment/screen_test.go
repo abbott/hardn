@@ -400,7 +400,7 @@ func TestGuide(t *testing.T) {
 		if p.err != nil || p.engines != 0 || len(screens(p.out)) != 2 || len(writes(h, 0)) > 0 {
 			t.Fatalf("Run = %v, %d engines:\n%s", p.err, p.engines, p.out)
 		}
-		if w := inOrder(p.out, "Enter selection [0-2 or q]: 2", "HARDN_CONFIG names the hardn.yml hardn reads. Set it in your shell profile:",
+		if w := inOrder(p.out, "Option [0-2 or q]: 2", "HARDN_CONFIG names the hardn.yml hardn reads. Set it in your shell profile:",
 			"export HARDN_CONFIG=/path/to/hardn.yml", "Then keep it with item 1.", "Environment Variable Settings #"); w != "" {
 			t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 		}

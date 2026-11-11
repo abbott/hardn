@@ -578,7 +578,7 @@ func TestCompactForm(t *testing.T) {
 
    0) Exit                 q to quit
 
-    > Enter selection [0-4, 6-10 or q]:`
+    > Option [0-4, 6-10 or q]:`
 	if out != want || lines(out) != theme.CompactBudget {
 		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
 	}
@@ -599,9 +599,9 @@ func TestEmptyBlocks(t *testing.T) {
 		Subject:  component.SubjectLine{Label: "Managing"},
 		Sections: []Section{{Header: component.SectionHeader{Title: "Rules"}}},
 		Menu:     component.Menu{Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt:   "Enter your choice",
+		Prompt:   "Option",
 	}
-	want := ansi.Strip(trail("Firewall").Render(c)) + "\n\n   0) Return\n\n    > Enter your choice [0 or q]:"
+	want := ansi.Strip(trail("Firewall").Render(c)) + "\n\n   0) Return\n\n    > Option [0 or q]:"
 	if out := ansi.Strip(sub.Render(c)); out != want {
 		t.Errorf("sub-menu with empty blocks:\n%s\nwant\n%s", out, want)
 	}

@@ -358,7 +358,7 @@ func TestScreenHosts(t *testing.T) {
 			t.Errorf("%s: Run = %v, %d lines unread", tt.host, p.err, p.unread)
 		}
 		lines := strings.Split(strings.TrimRight(p.out, "\n"), "\n")
-		if got := slices.Index(lines, "    > Enter selection [0-1 or q]: 0"); got != tt.lines-1 {
+		if got := slices.Index(lines, "    > Option [0-1 or q]: 0"); got != tt.lines-1 {
 			t.Errorf("%s: the prompt at line %d, want %d:\n%s", tt.host, got+1, tt.lines, p.out)
 		}
 		for _, w := range tt.want {
@@ -508,7 +508,7 @@ func TestPrint(t *testing.T) {
 		h := mk()
 		on, off := printed(t, h, terminalEnv()), printed(t, h, offEnv())
 		for _, s := range []string{on, off} {
-			if strings.Contains(s, "Enter selection") || strings.Contains(s, "Refresh") || strings.Contains(s, "\x1b[2J") || !strings.HasSuffix(s, "\n") {
+			if strings.Contains(s, "Option [") || strings.Contains(s, "Refresh") || strings.Contains(s, "\x1b[2J") || !strings.HasSuffix(s, "\n") {
 				t.Errorf("%s: %q", name, s)
 			}
 		}

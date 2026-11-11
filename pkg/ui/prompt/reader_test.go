@@ -252,7 +252,7 @@ func (failing) Write([]byte) (int, error) { return 0, errors.New("closed") }
 func mainPrompt() string {
 	accepts := keys.Set{{Keys: []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}}, keys.Quit()}
 	env := term.Fixed(80, colorprofile.TrueColor, true, true)
-	return component.PromptLine{Label: "Enter your choice", Accepts: accepts}.Render(component.NewCtx(env))
+	return component.PromptLine{Label: "Option", Accepts: accepts}.Render(component.NewCtx(env))
 }
 
 func TestAsk(t *testing.T) {

@@ -156,11 +156,11 @@ func (f *YesNo) save() error {
 	return save(f.Value, &f.before)
 }
 
-// choice is the label of a Select's prompt line, Figma's words for a
-// numbered choice ("Enter your choice", USER-MANAGE_USER-SELECT_USER and
-// 00-TUI-MAIN), which a menu's prompt says too (nav.Prompter.Choose), so
-// that a numbered choice is asked alike wherever it is asked.
-const choice = "Enter your choice"
+// choice is the label of a Select's prompt line, "Option", which every
+// menu's prompt says too (P-29 (a); nav.Prompter.Choose), so that a
+// numbered choice is asked alike wherever it is asked. Figma's frames say
+// "Enter your choice".
+const choice = "Option"
 
 // Option is one choice of a Select: the label shown, an optional
 // description beside it, as a menu item's, and the value it gives.

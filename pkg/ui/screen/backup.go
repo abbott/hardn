@@ -34,7 +34,6 @@ const (
 	backupRollback    = "Rollback backups are still taken"
 	backupRunsTitle   = "Backup Runs"
 	backupRunTitle    = "Backup Run"
-	backupSelectRun   = "Select a run"
 	backupTakenAnyway = "taken anyway"
 )
 
@@ -83,7 +82,7 @@ type Backup struct {
 // that rollback backups are still taken (decision 8), and Backup Path with
 // its note (decision 3); then items 1 to 4 and Return, item 1 naming the
 // way it turns (decision 4), item 4 the runs (decision 9); "Select an
-// option"; origin/main's prompt, "Enter selection" (P-29 (a)).
+// option"; the prompt, "Option" (P-29 (a)).
 func (b Backup) SubMenu() SubMenu {
 	rows := []component.KeyValue{{Key: backupStateKey, Value: backupEnabled, State: component.ValueOK}}
 	turn := "Turn backups off"
@@ -112,7 +111,7 @@ func (b Backup) SubMenu() SubMenu {
 			{Key: BackupVerifyItem, Label: "Verify Directory", Description: "Check the path, writing nothing"},
 			{Key: BackupRunsItem, Label: backupRunsTitle, Description: runs},
 		}, Exit: returnItem()},
-		Prompt: mainPrompt,
+		Prompt: menuPrompt,
 	}
 }
 
@@ -211,7 +210,7 @@ func (r BackupRun) about() string {
 }
 
 // BackupRunsMenu returns Backup Runs (decision 9): the title bar "Backup
-// Runs", "Select a run", one item per run of runs, in their order (newest
+// Runs", "Select an option", one item per run of runs, in their order (newest
 // first, as pkg/screens/backup lists them), each when it was taken and
 // its files; Return; the prompt.
 func BackupRunsMenu(runs []BackupRun) SubMenu {
@@ -221,9 +220,9 @@ func BackupRunsMenu(runs []BackupRun) SubMenu {
 	}
 	return SubMenu{
 		Title:   trail(backupTitle, backupRunsTitle),
-		Heading: backupSelectRun,
+		Heading: fixtureHeading,
 		Menu:    component.Menu{Items: items, Exit: returnItem()},
-		Prompt:  mainPrompt,
+		Prompt:  menuPrompt,
 	}
 }
 
@@ -253,6 +252,6 @@ func (r BackupRun) SubMenu() SubMenu {
 		Title:    trail(backupTitle, backupRunsTitle, backupRunTitle),
 		Sections: []Section{{Header: component.SectionHeader{Title: "Run " + r.ID}, Rows: component.BulletList{Items: rows}}},
 		Menu:     component.Menu{Exit: returnItem()},
-		Prompt:   mainPrompt,
+		Prompt:   menuPrompt,
 	}
 }

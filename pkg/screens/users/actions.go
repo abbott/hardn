@@ -26,7 +26,7 @@ const (
 )
 
 // draw reads the host and returns the users' screen, its items bound: 1
-// opens Select a user, 2 Create's form, which says first why the users were
+// opens the user list, 2 Create's form, which says first why the users were
 // not read where they were not, and installs shadow first where useradd is
 // missing (the control's UseraddRefusal, looked up live).
 func (r *runner) draw(ctx context.Context) nav.Screen {
@@ -50,7 +50,7 @@ func (r *runner) refuse(err error) func() error {
 	return r.s.Say(screenkit.Warnings(screenkit.RefusalWords(err)))
 }
 
-// drawSelect reads the host and returns Select a user: an item per user,
+// drawSelect reads the host and returns the user list: an item per user,
 // each opening its screen by name.
 func (r *runner) drawSelect(ctx context.Context) nav.Screen {
 	h := r.read(ctx)

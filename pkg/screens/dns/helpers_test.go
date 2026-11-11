@@ -365,7 +365,7 @@ func playWith(h *fakeHost, cfg *config.Config, width int, dryRun bool, set func(
 func screens(out string) []string {
 	var got []string
 	for _, part := range strings.Split(out, "# DNS Configuration #")[1:] {
-		end := strings.Index(part, "> Enter selection")
+		end := strings.Index(part, "> Option")
 		if end < 0 {
 			end = len(part)
 		}

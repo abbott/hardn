@@ -60,7 +60,7 @@ const CompactMainMenu = false
 //
 //	   0) Exit                 q to quit
 //
-//	    > Enter selection [0-10 or q]:
+//	    > Option [0-10 or q]:
 //
 // The blocks follow Figma's order: Header, ContextBar, HostBlock,
 // RiskSummary, StatusList, Divider, the MenuHeading with the
@@ -104,7 +104,7 @@ const CompactMainMenu = false
 //
 //	   0) Exit                 q to quit
 //
-//	    > Enter selection [0-10 or q]:
+//	    > Option [0-10 or q]:
 //
 // The host, the risk, every status row, the mode and every item stay on
 // screen, Figma's content in theme.CompactBudget lines: the blank line
@@ -141,7 +141,7 @@ type MainMenu struct {
 	// the layout, from the terminal's height, where CompactMainMenu allows
 	// the compact form.
 	Menu component.Menu
-	// Prompt is the prompt's label, such as "Enter selection".
+	// Prompt is the prompt's label, such as "Option".
 	Prompt string
 }
 

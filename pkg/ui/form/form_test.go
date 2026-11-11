@@ -241,7 +241,7 @@ func TestDefaults(t *testing.T) {
 // TestLayout checks when a field is asked on one line and when under a
 // head of its own: a description that shows nothing leaves it on one
 // line; a choice's options go under its head, and its prompt line asks
-// "Enter your choice"; and a question the one line would cut goes under a
+// "Option ["; and a question the one line would cut goes under a
 // head, whose title has the line to itself, with the hint on the prompt
 // line.
 func TestLayout(t *testing.T) {
@@ -276,7 +276,7 @@ func TestLayout(t *testing.T) {
 		{"a choice", 80, Form{Fields: []Field{
 			&Select[string]{Title: "Select a user", Options: users(), Value: &name},
 		}}, []string{"2"},
-			"  Select a user\n\n   1) george\n   2) alice\n\n    > Enter your choice [1-2, 0 or q]: 2\n  Select a user: alice\n"},
+			"  Select a user\n\n   1) george\n   2) alice\n\n    > Option [1-2, 0 or q]: 2\n  Select a user: alice\n"},
 		{"a narrow terminal", 40, Form{Fields: []Field{
 			&YesNo{Title: "Grant sudo privilege?", Value: &sudo},
 			&YesNo{Title: "Require sudo password?", Value: &password},
