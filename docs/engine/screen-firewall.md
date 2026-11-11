@@ -13,6 +13,7 @@ Main menu 4 as adopted on 2026-11-01 ([gallery-firewall.md](gallery-firewall.md)
 - **Proxmox VE:** "Firewall Configuration", read only, Return alone. No ufw call, and no item offered, so hardn.yml plays no part. Decision 7's row, from `PVEUFWEnabled`.
 - **Rocky Linux, AlmaLinux and RHEL:** the firewalld screen, with no profiles or interfaces items ([el-firewalld.md](el-firewalld.md) §1.6).
 - **Each change** runs through `screenkit.Session.Change`: the review, y/N, or the hostname typed for a lockout-risk plan (`p.Typed()`), the apply, the screen read again. A lockout-risk item 1, live, whose hostname can't be read, says so before asking; a plan that turns lockout-risk by the key says so in place of the question. The question's words are the draw's; only the confirmation follows the plan made at the key. Plan only stops every item at its plan, Add and Remove too, and needs no hostname.
+- *Since 2026-11-10 (the maintainer: "A: Warning, before asking"; [el-rhel.md](el-rhel.md) §8):* **a control's refusal is a warning before asking, on item 1 and Disable.** The reading plans item 1 where it can (Install ufw, Enable, Install iproute2, also behind Enable firewall where `ss` is missing: `TestEnableSS`). What it doesn't plan (Disable; Install firewalld and Install iproute on Rocky Linux, AlmaLinux and RHEL) is planned on the engine when chosen (`screenkit.Session.Preplan`), as Auto Updates' item is, and its refusal said in `screenkit.RefusalWords`, with no review or question. Those were refused at the flow's plan, after the review, as an Operation Failed report. The engine plans again for the change, so dnf simulates firewalld's install twice. *Since 2026-11-11 (the maintainer: "A line before the check"):* "Checking the host…", muted, is said before that plan, which may wait on dnf's network. *Not yet:* the engine's own refusals (a change waiting for hardn confirm, the change journal) of an item the reading planned with its control alone (Install ufw, Enable and Install iproute2 on ufw; Enable on Rocky Linux, AlmaLinux and RHEL) still come at the flow's plan, after the review, as an Operation Failed report; `Preplan` says them for the rest. Tested: `TestELRefusedBeforeAsking`, `TestRefusalGolden` (`refusal/no-repos.golden`), `TestEnableSS`.
 - **0** returns (nil), **q** quits (`nav.ErrQuit`), the end of the input and Ctrl-C abort (`prompt.ErrAborted`), from every screen, question and the form.
 
 ## API
@@ -25,12 +26,12 @@ firewall.Run(ctx, firewall.Options{
 ```
 
 - `pkg/ui/screen`: `Firewall` (`SubMenu`, `FirstChange`), `FirewallPVE`, `FirewallProfiles` (`SubMenu`, `ApplyChange`); `FirewallFirst` and its values; `FirewallDisableChange`, `FirewallAdd*`, `FirewallRemove*`; the item keys; `FirewallStatusKey`, `FirewallPolicyKey`, `FirewallBootKey`. No host type enters `pkg/ui`: `rows.go` maps them.
-- `pkg/screens/screenkit` (its own commit): `Hostname`, `TypeTheHostname`, `Session.CantConfirm`, moved from Environment, whose goldens are unchanged.
+- `pkg/screens/screenkit` (its own commit): `Hostname`, `TypeTheHostname`, `Session.CantConfirm`, moved from Environment, whose goldens are unchanged. *Since 2026-11-10:* `Session.Preplan`, moved from Auto Updates' `preplan`.
 
 ## The gallery stage: done
 
 - **`TestParity`** drives `Run` through `screenRun` (00aa7015; [parity-firewall.md](parity-firewall.md) §7).
-- **The gallery** plays `Run` from `fwScreen` on the mocks' hosts, with `detect.Detect`'s facts, `fwSession(h)`, `statusConfig` and the gallery's engine (5a059f44; [gallery-firewall.md](gallery-firewall.md)). The mocks, their copies of the screen's code and the tests moved here are retired.
+- **The gallery** plays `Run` from `fwScreen` on the mocks' hosts, with `detect.Detect`'s facts, `fwSession(h)`, `statusConfig` and the gallery's engine (5a059f44; [gallery-firewall.md](gallery-firewall.md)). The mocks, their copies of the screen's code and the tests moved here are retired. *Since 2026-11-10,* a change's engine is recorded at `Ran`, as Auto Updates' and SSH's are, so the plan before asking records nothing.
 
 ## Built in `next/s4-replace`
 

@@ -40,6 +40,8 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
 $
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades changed␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msince hardn wrote it. Put it back as it was or undo the rest␛[m$
@@ -111,6 +113,8 @@ $
    0) Return$
 $
     > Enter your choice [0-1 or q]: 1$
+$
+  Checking the host...$
 $
 # Warning$
 # Not undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades changed$
@@ -191,6 +195,8 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNot undone: /etc/apt/apt.conf.d/52hardn-auto-upgrades␛[m$

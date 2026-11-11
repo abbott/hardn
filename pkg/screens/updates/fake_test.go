@@ -125,8 +125,9 @@ type model struct {
 	extra      []string // the install simulation's other lines
 	offExtra   []string // off's simulations' other lines (apt-get purge/remove -s, apk del --simulate)
 	units      map[string]string
-	// Rocky Linux: dnf-automatic installed
-	dnfAuto bool
+	// Rocky Linux: dnf-automatic installed; dnf has no enabled repository
+	// (an unregistered RHEL host)
+	dnfAuto, noRepos bool
 	// Alpine
 	apkCron, crond bool
 }
@@ -687,6 +688,9 @@ func (m *model) dnf(ctx context.Context, argv []string) hostfake.Response {
 		}
 		return hostfake.Response{Stdout: "package dnf-automatic is not installed\n", ExitCode: 1}
 	case "dnf install --assumeno --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic":
+		if m.noRepos { // dnf's line on rhel10-test-114 (el-rhel.md §5)
+			return hostfake.Response{Stderr: "Error: There are no enabled repositories in \"/etc/yum.repos.d\", \"/etc/yum/repos.d\", \"/etc/distro.repos.d\".\n", ExitCode: 1}
+		}
 		return table("Installing", "baseos", "Install  1 Package")
 	case "dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic":
 		m.dnfAuto = true

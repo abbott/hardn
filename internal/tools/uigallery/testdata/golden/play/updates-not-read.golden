@@ -36,6 +36,8 @@ $
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
 $
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/etc/apt/apt.conf.d/99site:1: Extra junk at end of file. Fix␛[m$
@@ -99,6 +101,8 @@ $
    0) Return$
 $
     > Enter your choice [0-1 or q]: 1$
+$
+  Checking the host...$
 $
 # Warning$
 # apt can't read its settings: Syntax error$
@@ -167,6 +171,8 @@ $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter your choice␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mapt can't read its settings: Syntax error␛[m$

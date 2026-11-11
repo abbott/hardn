@@ -53,6 +53,12 @@ const (
 	cantAsk     = "the prompt can't ask for %q"
 )
 
+// checking is the line Preplan writes before it plans, so that the key
+// pressed answers at once while dnf's simulation may wait on the network;
+// the theme's ellipsis follows it. The maintainer, 2026-11-11 ("A line
+// before the check").
+const checking = "Checking the host"
+
 // Session is one run of a screen: what its caller gave it (pkg/screens/dns's
 // Options), which each of its changes runs with.
 type Session struct {
@@ -98,6 +104,30 @@ func (s Session) Write(text string) error {
 // is (Apart), and goes back to the screen.
 func (s Session) Say(msgs component.Messages) func() error {
 	return func() error { return s.Write(Apart(s.Prompter.Ctx, msgs)) }
+}
+
+// Preplan says it is checking (checking, muted, set apart as Say sets it),
+// then plans controls on an engine of NewEngine's with cfg, from a fresh
+// reading of the host, writing nothing outside the engine's run directory,
+// which it removes, and returns its first refusal in a screen's words
+// (RefusalWords), "" for none: the controls' refusals and the engine's (a
+// change waiting for hardn confirm among them), which an item says before
+// asking (Say, Warnings), as a refusal its screen read with the host is
+// said. An error is a failed write's, or the context's once it is done.
+func (s Session) Preplan(ctx context.Context, cfg *config.Config, controls ...engine.Control) (string, error) {
+	if err := s.Say(component.Messages{{Text: checking + s.Prompter.Ctx.Theme.Glyphs.Ellipsis}})(); err != nil {
+		return "", err
+	}
+	p, err := s.NewEngine(func(engine.Event) {}).Plan(ctx, controls, cfg)
+	switch {
+	case err != nil && ctx.Err() != nil:
+		return "", err
+	case err != nil:
+		return RefusalWords(err), nil
+	case len(p.Refused) > 0:
+		return RefusalWords(p.Refused[0]), nil
+	}
+	return "", nil
 }
 
 // CantConfirm says, as a warning, that a lockout-risk change cannot be

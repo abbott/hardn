@@ -50,3 +50,23 @@ func TestReviewGolden(t *testing.T) {
 		return out.String()
 	})
 }
+
+// TestRefusalGolden pins a refusal said before asking, on the core set:
+// Rocky Linux with no enabled repository, Enable chosen, refused as a
+// warning in screenkit.RefusalWords, no review or question; the Firewall
+// screen's Install firewalld says it alike. The file is
+// testdata/golden/refusal/no-repos.golden.
+func TestRefusalGolden(t *testing.T) {
+	uitest.Golden(t, "refusal/no-repos", uitest.Core(), func(env term.Env) string {
+		m := newHost(t, "rocky102")
+		m.noRepos = true
+		var out bytes.Buffer
+		p := playWith(m, false, func(o *updscreen.Options) {
+			o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, "1", "0"), false), Out: env.Writer(&out)}
+		})
+		if p.err != nil || asked(out.String()) {
+			t.Errorf("Run = %v, asked:\n%s", p.err, out.String())
+		}
+		return out.String()
+	})
+}

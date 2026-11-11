@@ -73,6 +73,31 @@ func (saveControl) Plan(ctx context.Context, sys host.System, in engine.Input) (
 	return steps.PlanSave(ctx, sys, "kit/save", in.Config, []string{"nameservers"})
 }
 
+// newEngine is an engine on h, progress its Options.Progress.
+func newEngine(h *hostfake.System, progress func(engine.Event)) *engine.Engine {
+	return engine.New(h, engine.Options{
+		Revert:   revert.Options{Now: func() time.Time { return now }, Hardn: "/usr/local/bin/hardn"},
+		Detect:   func(context.Context, host.System) (detect.Facts, error) { return facts, nil },
+		Hold:     func() func() { return func() {} },
+		PID:      5000,
+		Backups:  backup.Settings{Path: backup.DefaultPath, Enabled: true},
+		Progress: progress,
+	})
+}
+
+// refusingControl's plan is refused with err.
+type refusingControl struct{ err error }
+
+func (refusingControl) ID() string                          { return "kit" }
+func (refusingControl) Title() string                       { return "Kit" }
+func (refusingControl) Applies(detect.Facts) (bool, string) { return true, "" }
+func (refusingControl) Check(context.Context, host.System, detect.Facts) (engine.Status, error) {
+	return engine.Status{State: engine.NotApplicable}, nil
+}
+func (c refusingControl) Plan(context.Context, host.System, engine.Input) ([]engine.Change, error) {
+	return nil, c.err
+}
+
 // run is one Session.Change on h with cfg: what it wrote, the runs Ran was
 // given, how many engines it made and what Controls saw.
 type run struct {
@@ -103,14 +128,7 @@ func changeWith(h *hostfake.System, cfg *config.Config, dryRun bool, set func(*s
 		Now: func() time.Time { return now },
 		NewEngine: func(progress func(engine.Event)) *engine.Engine {
 			r.engines++
-			return engine.New(h, engine.Options{
-				Revert:   revert.Options{Now: func() time.Time { return now }, Hardn: "/usr/local/bin/hardn"},
-				Detect:   func(context.Context, host.System) (detect.Facts, error) { return facts, nil },
-				Hold:     func() func() { return func() {} },
-				PID:      5000,
-				Backups:  backup.Settings{Path: backup.DefaultPath, Enabled: true},
-				Progress: progress,
-			})
+			return newEngine(h, progress)
 		},
 		Ran: func(run output.Run) { r.runs = append(r.runs, run) },
 	}
@@ -397,6 +415,64 @@ func TestSay(t *testing.T) {
 	s.Prompter.Out = failing{}
 	if err := s.Say(msgs)(); err == nil || !strings.HasPrefix(err.Error(), "kit screen: write: ") || !errors.Is(err, errBroken) {
 		t.Errorf("a failed write: %v", err)
+	}
+}
+
+// TestPreplan: Preplan says it is checking, set apart, before it plans on
+// an engine of the session's, writing nothing on the host: "" where nothing
+// is refused; a control's refusal, and the save's of a hardn.yml read from
+// no file, in RefusalWords'; a done context its error; a write that fails
+// its error, nothing planned.
+func TestPreplan(t *testing.T) {
+	h, cfg := newHost(t)
+	before, _, err := h.ReadFileNoFollow(context.Background(), hardnYML)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	c := component.NewCtx(term.Resolve(term.Options{}, term.Facts{Width: 80}))
+	engines := 0
+	s := screenkit.Session{Name: "kit screen", Prompter: nav.Prompter{Ctx: c, Out: &out}, System: h, Config: cfg, NewEngine: func(progress func(engine.Event)) *engine.Engine {
+		engines++
+		return newEngine(h, progress)
+	}}
+	line := "\n" + component.Message{Text: "Checking the host" + c.Theme.Glyphs.Ellipsis}.Render(c) + "\n"
+	if !strings.Contains(line, "Checking the host") {
+		t.Fatalf("the line renders as %q", line)
+	}
+	refused := &steps.Refusal{Code: "KIT_REFUSED", Why: "hardn can't install kit: dnf has no enabled repositories", Fix: "enable a repository, then try again"}
+	for _, tc := range []struct {
+		name    string
+		cfg     *config.Config
+		control engine.Control
+		want    string
+	}{
+		{"none", cfg, saveControl{}, ""},
+		{"control", cfg, refusingControl{refused}, "hardn can't install kit: dnf has no enabled repositories. Enable a repository, then try again."},
+		{"not loaded", &config.Config{}, saveControl{}, screenkit.NotLoaded(context.Background(), h, &config.Config{}, "kit/save", "nameservers")[0]},
+	} {
+		out.Reset()
+		if got, err := s.Preplan(context.Background(), tc.cfg, tc.control); err != nil || got != tc.want {
+			t.Errorf("%s: Preplan = %q, %v; want %q", tc.name, got, err, tc.want)
+		}
+		if out.String() != line {
+			t.Errorf("%s: wrote %q, want %q", tc.name, out.String(), line)
+		}
+	}
+	if engines != 3 {
+		t.Errorf("made %d engines, want 3", engines)
+	}
+	if after, _, err := h.ReadFileNoFollow(context.Background(), hardnYML); err != nil || !bytes.Equal(after, before) {
+		t.Errorf("hardn.yml now %q, %v", after, err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if got, err := s.Preplan(ctx, cfg, refusingControl{refused}); got != "" || !errors.Is(err, context.Canceled) {
+		t.Errorf("done: Preplan = %q, %v", got, err)
+	}
+	s.Prompter.Out = failing{}
+	if got, err := s.Preplan(context.Background(), cfg, refusingControl{refused}); got != "" || !errors.Is(err, errBroken) || engines != 4 {
+		t.Errorf("a failed write: Preplan = %q, %v, %d engines", got, err, engines)
 	}
 }
 

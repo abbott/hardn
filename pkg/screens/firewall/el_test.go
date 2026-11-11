@@ -8,6 +8,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/firewalld"
 )
 
 // elChanges are the commands run on h from the nth call on that change
@@ -125,5 +126,41 @@ func TestELEnableBeforeAsking(t *testing.T) {
 	}
 	if w := inOrder(p.out, "At boot Masked", "1) Enable firewalld"); w != "" {
 		t.Errorf("masked: %q not shown:\n%s", w, p.out)
+	}
+}
+
+// TestELRefusedBeforeAsking: Install and Disable, which the reading doesn't
+// plan, are planned when chosen, and a refusal is said as a warning before
+// anything is asked, as Enable's is: no review, no question, no run, nothing
+// changed. Install with no enabled repository (an unregistered RHEL host);
+// Disable of a running firewalld that leaves its rules loaded when it stops.
+func TestELRefusedBeforeAsking(t *testing.T) {
+	for _, tc := range []struct {
+		host, review string
+		set          func(h *fwHost)
+		words        string
+	}{
+		{"rocky-missing", "Install firewalld #", func(h *fwHost) { h.fwd.noRepos = true },
+			"hardn can't install firewalld: dnf has no enabled repositories. Register the host (RHEL: subscription-manager or rhc) or enable a repository, then try again."},
+		{"rocky-running", "Disable firewalld #", func(h *fwHost) {
+			h.AddDir("/etc/firewalld", 0o755, 0, 0)
+			h.AddFile(firewalld.ConfFile, []byte("CleanupOnExit=no\n"), 0o644, 0, 0)
+		}, "firewalld is set to leave its rules loaded when it stops, so stopping it wouldn't turn it off. Set CleanupOnExit=yes in " + firewalld.ConfFile + ", then try again."},
+	} {
+		h, cfg := screenHost(t, tc.host)
+		tc.set(h)
+		n := len(h.Calls())
+		p := play(h, h, cfg, false, "1", "0")
+		if p.err != nil || p.unread != 0 || len(p.runs) != 0 || len(elChanges(h, n)) > 0 {
+			t.Fatalf("%s: Run = %v, %d unread, runs %+v, ran %q:\n%s", tc.host, p.err, p.unread, p.runs, elChanges(h, n), p.out)
+		}
+		if w := inOrder(p.out, "Enter selection", "Warning", tc.words, "Firewall Configuration #"); w != "" {
+			t.Errorf("%s: %q not shown after what came before it:\n%s", tc.host, w, p.out)
+		}
+		for _, not := range []string{tc.review, "[y/N", "Operation Failed", "To go on"} {
+			if strings.Contains(p.out, not) {
+				t.Errorf("%s: %q shown:\n%s", tc.host, not, p.out)
+			}
+		}
 	}
 }

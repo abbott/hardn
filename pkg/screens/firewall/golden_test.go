@@ -43,3 +43,23 @@ func TestScreenGoldens(t *testing.T) {
 		})
 	}
 }
+
+// TestRefusalGolden pins a refusal said before asking, on the core set:
+// Rocky Linux without firewalld and with no enabled repository, Install
+// firewalld chosen, refused as a warning in screenkit.RefusalWords, no
+// review or question; the Auto Updates screen's Enable says it alike. The
+// file is testdata/golden/refusal/no-repos.golden.
+func TestRefusalGolden(t *testing.T) {
+	uitest.Golden(t, "refusal/no-repos", uitest.Core(), func(env term.Env) string {
+		h, cfg := screenHost(t, "rocky-missing")
+		h.fwd.noRepos = true
+		var out bytes.Buffer
+		p := playWith(h, h, cfg, false, func(o *fwscreen.Options) {
+			o.Prompter = nav.Prompter{Ctx: component.NewCtx(env), In: prompt.New(uitest.NewTypist(&out, "1", "0"), false), Out: env.Writer(&out)}
+		})
+		if p.err != nil || len(p.runs) != 0 {
+			t.Errorf("Run = %v, runs %+v", p.err, p.runs)
+		}
+		return out.String()
+	})
+}
