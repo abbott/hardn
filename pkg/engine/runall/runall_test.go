@@ -216,7 +216,7 @@ func TestAsked(t *testing.T) {
 		{"user", users.ID, debian, nil, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key}}}, "Create george, 1 key", 0},
 		{"user, two keys", users.ID, debian, func(c *config.Config) { c.SshKeys = []string{key, key} }, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key, key}}}, "Create george, 2 keys", 0},
 		{"no username", users.ID, debian, func(c *config.Config) { c.Username = "" }, nil, "", 0},
-		{"sudoNoPassword false", users.ID, debian, func(c *config.Config) { c.SudoNoPassword = false }, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, Keys: []string{key}}}, "Create george, 1 key", 0},
+		{"adminNoPassword true", users.ID, debian, func(c *config.Config) { c.AdminNoPassword = true }, users.Admin{Action: users.ActionCreate, New: users.New{Name: "george", Admin: true, NoPassword: true, Keys: []string{key}}}, "Create george, 1 key", 0},
 		{"root login off", login, debian, nil, sshchange.Disallow{Root: sshchange.Root{Want: "no"}}, "Root login off", 0},
 		{"root key-only", login, pve, nil, sshchange.Disallow{Root: sshchange.Root{Want: "no"}}, "Root key-only", 0},
 		{"disableRootSSH false", login, debian, func(c *config.Config) { c.DisableRootSSH = false }, nil, "", 0},
@@ -261,7 +261,7 @@ func sameControl(got, want engine.Control, cfg *config.Config) bool {
 		return got == nil
 	case users.Admin:
 		g, ok := got.(users.Admin)
-		return ok && g.Getenv != nil && g.Action == w.Action && g.New.Name == w.New.Name && g.New.Admin && !g.New.Password && slices.Equal(g.New.Keys, w.New.Keys)
+		return ok && g.Getenv != nil && g.Action == w.Action && g.New.Name == w.New.Name && g.New.Admin && g.New.NoPassword == w.New.NoPassword && slices.Equal(g.New.Keys, w.New.Keys)
 	case sshchange.Disallow:
 		g, ok := got.(sshchange.Disallow)
 		return ok && g.Getenv != nil && g.Want == w.Want

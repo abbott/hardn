@@ -59,7 +59,7 @@ const (
 	wordsName         = "Use lower-case letters, digits, - and _, starting with a letter or _, up to 32."
 	wordsTaken        = "%s already exists."
 	wordsKey          = "Paste one OpenSSH public key, such as ssh-ed25519 AAAA… name."
-	wordsNewNoPW      = "A new user has no password, so %s couldn't ask for one."
+	wordsNotSet       = "%s can't use %s until a password is set: run passwd %s"
 	wordsNoKeyNotice  = "Without a key, %s can't log in: there's no password."
 	wordsEdited       = "%s holds a rule hardn didn't write. Change it there, then try again."
 	wordsLocked       = "sshd refuses %s's keys: the account is locked (!) and sshd doesn't use PAM"
@@ -328,12 +328,15 @@ func TestRows(t *testing.T) {
 
 // TestDoasFile: a doas grant is hardn's zz-hardn-<stem>.conf, which sorts
 // after wheel.conf (decision 2 (a) (i)), so its plan names no file that
-// overrides it; y/N.
+// overrides it; y/N. It asks george's password, which george has not got:
+// the review's row and the plan's finding say so (the maintainer,
+// 2026-11-11).
 func TestDoasFile(t *testing.T) {
 	h := newHost(t, "alpine-no-rule")
 	p := play(h, false, "1", "1", "1", "y", "0", "0", "0")
 	data, err := h.ReadFile(context.Background(), sudoers.DoasDir+"/zz-hardn-george.conf")
-	if p.err != nil || err != nil || !strings.Contains(string(data), "permit nopass george") || strings.Contains(p.out, "wheel.conf") || strings.Contains(p.out, typeIt) {
+	if p.err != nil || err != nil || !strings.Contains(string(data), "permit persist george") || strings.Contains(string(data), "nopass") ||
+		!shows(p.out, "Enabled, No password set") || !shows(p.out, fmt.Sprintf(wordsNotSet, "george", "doas", "george")) || strings.Contains(p.out, "wheel.conf") || strings.Contains(p.out, typeIt) {
 		t.Errorf("Run = %v, %q, %v:\n%s", p.err, data, err, p.out)
 	}
 }
@@ -531,8 +534,7 @@ func TestCreateNoAdmin(t *testing.T) {
 }
 
 // TestCreateForm: each field refused at the field in the control's words,
-// asked again: a name useradd refuses, one the host has, yes to a password
-// (decision 3), yes to admin rights with no tool, yes to a key where sshd
+// asked again: a name useradd refuses, one the host has, yes to admin rights with no tool, yes to a key where sshd
 // reads no ~/.ssh/authorized_keys, a key that is not one; the password asked
 // only after yes to admin rights. Nothing is planned until it is answered.
 func TestCreateForm(t *testing.T) {
@@ -543,7 +545,6 @@ func TestCreateForm(t *testing.T) {
 	}{
 		{"debian13", []string{"2", "Carol", "carol", "q"}, wordsName},
 		{"debian13", []string{"2", "george", "carol", "q"}, fmt.Sprintf(wordsTaken, "george")},
-		{"debian13", []string{"2", "carol", "y", "y", "n", "q"}, fmt.Sprintf(wordsNewNoPW, "sudo")},
 		{"no-sudo", []string{"2", "carol", "y", "n", "q"}, wordsNoTool},
 		{"debian13", []string{"2", "carol", "n", "y", "nope", "q"}, "Paste one OpenSSH public key, such as ssh-ed25519"},
 	} {
@@ -563,8 +564,7 @@ func TestCreateForm(t *testing.T) {
 
 // TestCreateDefaults: Create's defaults are hardn.yml's username and first
 // key, never a user the rows are about (decision 7), each an empty line's
-// answer; "Grant admin rights?" is no, sudoNoPassword set or not: a new user
-// has no password to ask (decision 3). With no hardn.yml, none: an empty
+// answer; "Grant admin rights?" is no. With no hardn.yml, none: an empty
 // name is refused.
 func TestCreateDefaults(t *testing.T) {
 	h := newHost(t, "yml-missing")
@@ -580,6 +580,96 @@ func TestCreateDefaults(t *testing.T) {
 	p = play(newHost(t, "debian13"), false, "2", "", "carol", "n", "n", "q")
 	if !errors.Is(p.err, nav.ErrQuit) || !shows(p.out, wordsName) || shows(p.out, "Default:") || !shows(p.out, "Grant admin rights? [y/N") {
 		t.Errorf("no hardn.yml: Run = %v:\n%s", p.err, p.out)
+	}
+}
+
+// TestCreateSetsPassword: Create answered yes to admin rights asks whether
+// to require a password, yes by default, no where hardn.yml's
+// adminNoPassword is true (the maintainer, 2026-11-11: admin rights
+// without a password are opt-in); after yes, whether to set it now, yes by
+// default. Applied, hardn's grant asks the password, and passwd carol is
+// run with the terminal, once, after the plan; carol reads back able to
+// become root. Answered no to setting it, declined at the plan, and under
+// plan only, passwd is not run. passwd failing is said, carol left as she
+// is. No to requiring one writes the grant asking none, and asks nothing
+// more.
+func TestCreateSetsPassword(t *testing.T) {
+	passwd := func(h *usrHost) (n int) {
+		for _, c := range h.Calls() {
+			if c.Op == "run-interactive" && slices.Equal(c.Argv, []string{"passwd", "carol"}) {
+				n++
+			}
+		}
+		return n
+	}
+	grant := func(h *usrHost) string {
+		data, _ := h.ReadFile(context.Background(), sudoers.DropInDir+"/hardn-grant-carol")
+		return string(data)
+	}
+	const notSet = "carol's password isn't set. Run passwd carol."
+	for _, tc := range []struct {
+		name    string
+		lines   []string
+		dryRun  bool
+		fails   bool
+		ran     int
+		rule    string // carol's rule; "" for no grant
+		pw      accounts.Password
+		said    []string
+		notSaid []string
+	}{
+		{name: "the defaults", lines: []string{"2", "carol", "y", "", "", "n", "y", "0"}, ran: 1, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordSet,
+			said:    []string{"Require password for admin rights? [Y/n", "Set carol's password now? [Y/n", "Enabled, No password set", fmt.Sprintf(wordsNotSet, "carol", "sudo", "carol"), applied, "Setting carol's password"},
+			notSaid: []string{notSet}},
+		{name: "not now", lines: []string{"2", "carol", "y", "y", "n", "n", "y", "0"}, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordNone, said: []string{applied}, notSaid: []string{"Setting carol's password"}},
+		{name: "declined", lines: []string{"2", "carol", "y", "y", "y", "n", "n", "0"}, pw: accounts.PasswordNotRead, notSaid: []string{applied, "Setting carol's password"}},
+		{name: "plan only", lines: []string{"2", "carol", "y", "y", "n", "0"}, dryRun: true, pw: accounts.PasswordNotRead, said: []string{planned}, notSaid: []string{"Set carol's password now?"}},
+		{name: "passwd fails", lines: []string{"2", "carol", "y", "y", "y", "n", "y", "0"}, fails: true, ran: 1, rule: "carol ALL=(ALL) ALL", pw: accounts.PasswordNone, said: []string{applied, notSet}},
+		{name: "no password", lines: []string{"2", "carol", "y", "n", "n", "y", "0"}, rule: "carol ALL=(ALL) NOPASSWD: ALL", pw: accounts.PasswordNone,
+			said: []string{"Enabled, No password to ask for", applied}, notSaid: []string{"Set carol's password now?", "until a password is set"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := newHost(t, "debian13")
+			h.passwdFails = tc.fails
+			p := play(h, tc.dryRun, tc.lines...)
+			if p.err != nil || p.unread != 0 {
+				t.Fatalf("Run = %v, %d lines unread:\n%s", p.err, p.unread, p.out)
+			}
+			for _, w := range tc.said {
+				if !shows(p.out, w) {
+					t.Errorf("lacks %q:\n%s", w, p.out)
+				}
+			}
+			for _, w := range tc.notSaid {
+				if shows(p.out, w) {
+					t.Errorf("says %q:\n%s", w, p.out)
+				}
+			}
+			if got := passwd(h); got != tc.ran {
+				t.Errorf("passwd carol run %d times, want %d", got, tc.ran)
+			}
+			if g := grant(h); (tc.rule == "") != (g == "") || !strings.Contains(g, tc.rule) {
+				t.Errorf("grant %q, want %q", g, tc.rule)
+			}
+			us := readHost(t, h).Users
+			i := slices.IndexFunc(us, func(u users.User) bool { return u.Name == "carol" })
+			pw := accounts.PasswordNotRead
+			if i >= 0 {
+				pw = us[i].Password
+			}
+			if (tc.rule != "") != (i >= 0) || pw != tc.pw {
+				t.Errorf("carol there %v, password %v, want %v", i >= 0, pw, tc.pw)
+			}
+			if tc.pw == accounts.PasswordSet && (us[i].Admin != detect.Yes || us[i].NoPassword) {
+				t.Errorf("carol read back %+v, want an admin whose password is asked", us[i])
+			}
+		})
+	}
+	h := newHost(t, "yml-missing")
+	cfg := loadYML(t, h, "username: deploy\nadminNoPassword: true\n")
+	if p := playWith(h, true, func(o *usrscreen.Options) { o.Config = cfg }, "2", "", "y", "", "n", "0"); p.err != nil || !shows(p.out, "Require password for admin rights? [y/N") ||
+		!shows(p.out, "Enabled, No password to ask for") || !shows(p.out, planned) {
+		t.Errorf("adminNoPassword: true: Run = %v:\n%s", p.err, p.out)
 	}
 }
 

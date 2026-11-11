@@ -39,6 +39,11 @@ func TestRetired(t *testing.T) {
 		{"tz: [UTC]\nuseUvPackageManager: maybe\n", []string{"useUvPackageManager", "tz"}},
 		{"sshKeyPath: .ssh_%u\nlogsconfig:\n  logfilepath: /var/log/hardn.log\n", nil},
 		{"logsconfig: {}\n", nil},
+		// sudoNoPassword's old default is true, which every saved file
+		// holds: only false is the file's own.
+		{"sudoNoPassword: true\n", nil},
+		{"sudoNoPassword:\n", nil},
+		{"sudoNoPassword: false\n", []string{"sudoNoPassword"}},
 		{"sshKeyPath: .ssh/authorized_keys\nlogsconfig:\n  logfilepath: /srv/log/hardn.log\n", []string{"sshKeyPath", "logsconfig"}},
 	} {
 		if keys := load(t, tt.yml).Retired(); !slices.Equal(keys, tt.want) {
@@ -91,5 +96,35 @@ func TestSaveConfigWritesNoRetired(t *testing.T) {
 	}
 	if !strings.Contains(string(out), "\nsshPort: 22\n") {
 		t.Errorf("the save lost the other keys:\n%s", out)
+	}
+}
+
+// TestAdminNoPassword: admin rights without a password are opt-in (the
+// maintainer, 2026-11-11). adminNoPassword is false by default and loads
+// as the file has it; sudoNoPassword: true, retired, is never taken for
+// it; a save writes the key only when it is true.
+func TestAdminNoPassword(t *testing.T) {
+	if DefaultConfig().AdminNoPassword {
+		t.Error("the defaults opt in")
+	}
+	for yml, want := range map[string]bool{
+		"username: alice\n": false, "sudoNoPassword: true\n": false, "adminNoPassword: false\n": false,
+		"adminNoPassword: true\n": true, "sudoNoPassword: false\nadminNoPassword: true\n": true,
+	} {
+		if got := load(t, yml).AdminNoPassword; got != want {
+			t.Errorf("%q: AdminNoPassword %v, want %v", yml, got, want)
+		}
+	}
+	for _, on := range []bool{false, true} {
+		name := filepath.Join(t.TempDir(), "hardn.yml")
+		c := DefaultConfig()
+		c.AdminNoPassword = on
+		if err := SaveConfig(c, name); err != nil {
+			t.Fatal(err)
+		}
+		out, _ := os.ReadFile(name)
+		if got := strings.Contains("\n"+string(out), "\nadminNoPassword: true\n"); got != on || strings.Contains(string(out), "adminNoPassword: false") {
+			t.Errorf("AdminNoPassword %v saved:\n%s", on, out)
+		}
 	}
 }

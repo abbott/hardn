@@ -17,6 +17,9 @@ func TestPlayUsersGolden(t *testing.T) {
 	// A pasted key's echo is wider than the screen, so the transcripts
 	// answer no to Add SSH key; TestUsersLockoutRisk and
 	// TestUsersCreateAlpine paste one.
+	// users-create takes the defaults: a password required for admin rights
+	// and set now, by passwd. create answers no to requiring one, the
+	// opt-in; under plan only nothing is set, so that is not asked.
 	create := []string{"2", "carol", "y", "n", "n", "y", "0"}
 	tests := []struct {
 		name  string
@@ -38,11 +41,11 @@ func TestPlayUsersGolden(t *testing.T) {
 		{"users-add-key", []string{"users/debian13"}, []string{"1", "2", "3", "1", "nope", "0", "0", "0", "0", "0"}, nil},
 		{"users-remove-key", []string{"users/debian13"}, []string{"1", "1", "3", "2", "2", hostName, "0", "0", "0", "0"}, nil},
 		{"users-last-key", []string{"users/one-key"}, []string{"1", "1", "3", "2", "0", "0", "0", "0"}, nil},
-		{"users-create", []string{"users/debian13"}, []string{"2", "George", "george", "carol", "y", "y", "n", "n", "y", "0"}, append(uitest.Core(), asciiColour)},
+		{"users-create", []string{"users/debian13"}, []string{"2", "George", "george", "carol", "y", "", "", "n", "y", "0"}, append(uitest.Core(), asciiColour)},
 		{"users-create-alpine", []string{"users/alpine323"}, create, nil},
 		{"users-create-pve", []string{"users/pve9"}, []string{"2", "carol", "y", "n", "n", "y", "0"}, nil},
 		{"users-create-no-admin", []string{"users/debian13"}, []string{"2", "carol", "n", "n", "y", "0"}, nil},
-		{"users-plan-only-create", []string{"-sequence", "dry-run", "users/debian13"}, []string{"2", "carol", "y", "n", "n", "0"}, nil},
+		{"users-plan-only-create", []string{"-sequence", "dry-run", "users/debian13"}, []string{"2", "carol", "y", "", "n", "0"}, nil},
 		{"users-plan-only-remove", []string{"-sequence", "dry-run", "users/second-admin"}, []string{"1", "2", "1", "0", "0", "0"}, nil},
 		{"users-hosts", []string{"users"}, []string{"3", "0", "0"}, nil},
 	}

@@ -55,8 +55,14 @@ type Config struct {
 	SshConfigFile   string `yaml:"sshConfigFile"`
 
 	// User Configuration
-	SudoNoPassword bool     `yaml:"sudoNoPassword"`
-	SshKeys        []string `yaml:"sshKeys"`
+	// AdminNoPassword is the opt-in to admin rights that ask no password
+	// (sudo's NOPASSWD, doas's nopass) for the user Create makes: -c's and
+	// Run All's grant, and the default of the screen's question. False,
+	// the default, hardn's grant asks the user's password (the maintainer,
+	// 2026-11-11). It replaces sudoNoPassword, retired (retired.go). Not
+	// written when false.
+	AdminNoPassword bool     `yaml:"adminNoPassword,omitempty"`
+	SshKeys         []string `yaml:"sshKeys"`
 
 	// Firewall Configuration
 	// UfwAppProfiles represents UFW application profiles
@@ -96,8 +102,7 @@ func DefaultConfig() *Config {
 		SshConfigFile:   "/etc/ssh/sshd_config.d/hardn.conf",
 
 		// User Configuration
-		SudoNoPassword: true,
-		SshKeys:        []string{},
+		SshKeys: []string{},
 
 		// Firewall Configuration
 		UfwAppProfiles: []UfwAppProfile{},

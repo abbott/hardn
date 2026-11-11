@@ -15,7 +15,7 @@
   "SshPort": 22,
   "PermitRootLogin": false,
   "SshConfigFile": "/etc/ssh/sshd_config.d/hardn.conf",
-  "SudoNoPassword": true,
+  "AdminNoPassword": false,
   "SshKeys": [],
   "UfwAppProfiles": [],
   "UfwTrustedInterfaces": null,

@@ -5,6 +5,8 @@ Status: built and tested on macOS in process (`go test ./internal/tools/uigaller
 *Since `next/s5-screen` ([screen-users.md](screen-users.md)): the listing and its mocks are gone; git keeps them at `next/s5-control`, and §3 records what they showed. `play users` and `play users/<host>` run hardn's own screen on the same eighteen hosts, as does main menu 1; each `play/users-*` golden differs from `9ac4bfa0` in its opening note alone. "Grant admin rights?" stays [y/N], as the mocks drew it: the form never uses hardn.yml's `sudoNoPassword`, a new user having no password to ask (decision 3).*
 *Since `next/s5-replace` (unit (d), [cmd-engine.md](cmd-engine.md) §2.14, §2.15): main menu 1 runs that screen, under plan only too; `-c [-u <name>]` plans Create with admin rights and hardn.yml's `sshKeys` (§5, decision 6, changed 2026-11-03), applied unasked, `-n` its plan (decision 6 (a)); `sudoNoPassword: false` warns once (decision 7 (a)); the legacy screen and its record are deleted, so §2's file references are origin/main's.*
 
+*Since `next/sudo-password-opt-in` (2026-11-11, [control-users.md](control-users.md) §8): admin rights without a password are opt-in. Decision 3 (a)'s refusal of yes to "Require password for admin rights?" and P-11's default no are reversed: the default is yes, then "Set carol's password now?", which runs `passwd`; Grant asks the password of a user with none too. `play users/debian13` shows it (`play/users-create`); `users-create-alpine` answers no, the opt-in.*
+
 ## 1. What to run
 
 ```

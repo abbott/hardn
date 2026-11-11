@@ -29,7 +29,8 @@ import (
 // createAdmin is -c: the User control's Create of c.Username, -u's when
 // given, else hardn.yml's username (Create's default, decision 7 (a); the
 // root command refuses -c with neither), with admin rights, hardn's grant
-// asking no password, no password, and every key in hardn.yml's sshKeys
+// asking the user's password, or none where hardn.yml's adminNoPassword
+// is true (the maintainer, 2026-11-11), no password, and every key in hardn.yml's sshKeys
 // (the maintainer, 2026-11-03: "(a) Add sshKeys", replacing decision 6
 // (a)'s no key; with none, the plan's own finding, USERS_NO_KEY, says the
 // user can't log in until one is added); planned and applied as runControls
@@ -39,8 +40,8 @@ import (
 // anything is written (a name useradd would refuse, a name a user or
 // group has, /home/<name> already there, no elevation tool, a key that is
 // not one, ...), are reported with their code and how to go on, and not
-// applied. hardn.yml's sudoNoPassword is not read (loadWarnings says so of
-// sudoNoPassword: false). It no longer configures sshd after the user, as
+// applied. It sets no password: the plan's finding, USERS_PASSWORD_NOT_SET,
+// says the user can't use sudo until one is set. It no longer configures sshd after the user, as
 // origin/main's -c did (SSHManager.ConfigureSSH): sshd is slice 6's. It
 // returns the exit status: 0 applied or nothing to change, 3 a plan with
 // changes to make, 1 refused or failed.
@@ -53,7 +54,7 @@ func createAdmin(c *config.Config) int {
 // c.SshKeys as loaded, every one (the maintainer, 2026-11-03: "(a) Add
 // sshKeys"), an empty entry refused by the control as not a key.
 func createNew(c *config.Config) usersctl.New {
-	return usersctl.New{Name: c.Username, Admin: true, Keys: c.SshKeys}
+	return usersctl.New{Name: c.Username, Admin: true, NoPassword: c.AdminNoPassword, Keys: c.SshKeys}
 }
 
 // createRefuse is -c's refusal of a plan, refuseCreateLockoutRisk; a seam,

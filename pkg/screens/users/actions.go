@@ -8,9 +8,10 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
-	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
+	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/form"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -118,15 +119,15 @@ func (r *runner) control(a usersctl.Admin) usersctl.Admin {
 }
 
 // admin is item 1: Grant admin rights for a user who is not an admin, its
-// review's row the grant the control plans (User.NewGrant); Remove for one
-// who is.
+// review's row the grant the control plans, which asks the user's password,
+// set or not (the maintainer, 2026-11-11); Remove for one who is.
 func (r *runner) admin(ctx context.Context, h reading, u usersctl.User) func() error {
 	if u.Admin == detect.Yes {
 		return r.grant(ctx, usersctl.ActionRemove, u, screen.UsersRemoveChange(u.Name, disabledRow(h.Reading)))
 	}
 	row := enabledRow(h.Reading)
-	if u.NewGrant() == sudoers.GrantNoPassword {
-		row = nopassRow(h.Reading, noPasswordToAsk(u))
+	if u.Password != accounts.PasswordSet {
+		row = notSetRow(h.Reading)
 	}
 	return r.grant(ctx, usersctl.ActionGrant, u, screen.UsersGrantChange(u.Name, row))
 }
@@ -288,13 +289,15 @@ func (r *runner) removeKey(ctx context.Context, h reading, u usersctl.User) erro
 }
 
 // create is Create User: Figma's questions, the password one in Figma's
-// polarity (P-11), asked only after yes to admin rights and refused at yes
-// (decision 3), each answer refused at its field by the control
-// (CheckName, ToolRefusal, CheckNew, KeysRefusal, ParseKey); the defaults
-// hardn.yml's username and first of sshKeys alone (decision 7), "Grant
-// admin rights?" no as the mocks drew it: sudoNoPassword is about a
-// password for admin rights, and a new user has none to ask (decision 3),
-// so the form never uses it; one plan for the account, the grant and the key, the control's.
+// polarity (P-11), asked only after yes to admin rights, its default yes,
+// or no where hardn.yml's adminNoPassword is true (the maintainer,
+// 2026-11-11: admin rights without a password are opt-in); after yes,
+// whether to set the password now, default yes, which runs passwd once the
+// plan is applied (setPassword); each answer refused at its field by the
+// control (CheckName, ToolRefusal, CheckNew, KeysRefusal, ParseKey); the
+// defaults hardn.yml's username and first of sshKeys (decision 7), "Grant
+// admin rights?" no as the mocks drew it; one plan for the account, the
+// grant and the key, the control's.
 // Where useradd is not installed (Alpine without shadow), shadow's install
 // first (installShadow); where the lookup fails, its error before asking
 // anything, as Add key's refusal.
@@ -348,8 +351,10 @@ func (r *runner) installShadow(ctx context.Context) error {
 func (r *runner) createForm(ctx context.Context, h reading) error {
 	sys := r.o.System
 	var name, key, nameDef, nameAbout, keyDef, keyAbout string
-	var admin, password, addKey bool
+	var admin, password, setNow, addKey bool
+	askDef := true
 	if cfg := r.o.Config; cfg != nil {
+		askDef = !cfg.AdminNoPassword
 		nameDef = cfg.Username
 		if nameDef != "" {
 			nameAbout = fmt.Sprintf(nameDefault, nameDef)
@@ -366,9 +371,12 @@ func (r *runner) createForm(ctx context.Context, h reading) error {
 			}
 			return nil
 		}},
-		&form.YesNo{Title: screen.UsersPasswordField, Value: &password, Skip: func() bool { return !admin }, Validate: func(yes bool) error {
-			return refusal(h.CheckNew(ctx, sys, usersctl.New{Name: name, Admin: admin, Password: yes}))
+		&form.YesNo{Title: screen.UsersPasswordField, Default: askDef, Value: &password, Skip: func() bool { return !admin }, Validate: func(yes bool) error {
+			return refusal(h.CheckNew(ctx, sys, usersctl.New{Name: name, Admin: admin, NoPassword: !yes}))
 		}},
+		// Plan only applies nothing, so there is no user to set one for.
+		&form.YesNo{TitleFunc: func() string { return screen.UsersSetPasswordField(name) }, Default: true, Value: &setNow,
+			Skip: func() bool { return !admin || !password || r.o.DryRun }},
 		&form.YesNo{Title: screen.UsersAddKeyField, Default: keyDef != "", Value: &addKey, Validate: func(yes bool) error {
 			if yes {
 				return refusal(h.KeysRefusal())
@@ -378,24 +386,56 @@ func (r *runner) createForm(ctx context.Context, h reading) error {
 		keyField(&key, keyDef, keyAbout, func() bool { return !addKey }, parseKey),
 	}
 	tool := disabledRow(h.Reading)
-	return r.change(ctx, false, func() string { return screen.UsersCreateQuestion(name) }, screenkit.Change{
+	err := r.change(ctx, false, func() string { return screen.UsersCreateQuestion(name) }, screenkit.Change{
 		Step: screen.UsersCreateStep(),
 		Flow: flow.Flow{
 			Form: form.Form{Fields: fields},
 			Review: func() flow.Review {
 				t := tool
-				if admin {
-					t = nopassRow(h.Reading, true) // a new user has no password (decision 3)
+				switch {
+				case admin && password:
+					t = notSetRow(h.Reading) // a new user has no password yet
+				case admin:
+					t = nopassRow(h.Reading, true) // nor one to ask (decision 3)
 				}
 				return screen.UsersCreateReview(t, addKey)
 			},
 		},
 		Controls: func(*config.Config) []engine.Control {
-			n := usersctl.New{Name: name, Admin: admin}
+			n := usersctl.New{Name: name, Admin: admin, NoPassword: admin && !password}
 			if addKey {
 				n.Keys = []string{key}
 			}
 			return []engine.Control{r.control(usersctl.Admin{Action: usersctl.ActionCreate, New: n})}
 		},
 	})
+	if err != nil || !admin || !password || !setNow || r.o.DryRun {
+		return err
+	}
+	return r.setPassword(ctx, name)
+}
+
+// setPassword is Create's last step, where a password is to be set now
+// (the maintainer, 2026-11-11): the host's own passwd for name has the
+// terminal until it ends (host.System.RunInteractive, as the Logs screen's
+// pager), so the password is typed to passwd, never to hardn, and no log
+// of hardn's can hold it. Only for a user Create made, read again: one
+// there, with no password. Create declined or failed leaves none, and
+// nothing runs. passwd failing, or no terminal, is said with how to set it
+// later; the user stays, its admin rights waiting for the password.
+func (r *runner) setPassword(ctx context.Context, name string) error {
+	u, ok := r.read(ctx).user(name)
+	if !ok || u.Password != accounts.PasswordNone {
+		return nil
+	}
+	if err := r.s.Say(component.Messages{{Text: screen.UsersSettingPassword(name)}})(); err != nil {
+		return err
+	}
+	if err := r.o.System.RunInteractive(ctx, nil, "passwd", name); err != nil {
+		if ctx.Err() != nil {
+			return err
+		}
+		return r.s.Say(screenkit.Warnings(screen.UsersPasswordNotSet(name)))()
+	}
+	return nil
 }

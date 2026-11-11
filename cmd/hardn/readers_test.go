@@ -300,13 +300,13 @@ func TestUfwPolicyWarning(t *testing.T) {
 	}
 }
 
-// TestSudoNoPasswordWarning: where hardn.yml loads, sudoNoPassword: false
-// warns once, in slice 5's decision 7 (a) words, the file still accepted
-// (since slice 8, Run All's decision 4 (a) too);
-// true, set or left out (the default), never warns, and neither do
-// username and sshKeys, Create's defaults.
+// TestSudoNoPasswordWarning: where hardn.yml loads, sudoNoPassword, retired
+// for adminNoPassword (the maintainer, 2026-11-11), warns once at false as
+// a key nothing reads, the file still accepted; true, the old default
+// every saved file holds, or left out, never warns, and neither do
+// adminNoPassword, username and sshKeys.
 func TestSudoNoPasswordWarning(t *testing.T) {
-	const words = "hardn.yml's sudoNoPassword: false isn't used"
+	const words = "hardn.yml's sudoNoPassword isn't used"
 	for _, tc := range []struct {
 		name, yml string
 		warned    bool
@@ -314,6 +314,7 @@ func TestSudoNoPasswordWarning(t *testing.T) {
 		{"left out", "username: alice\n", false},
 		{"true", "username: alice\nsudoNoPassword: true\n", false},
 		{"false", "username: alice\nsudoNoPassword: false\n", true},
+		{"adminNoPassword", "username: alice\nadminNoPassword: true\n", false},
 		{"username and sshKeys", "username: deploy\nsshKeys:\n  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEB deploy@ci\n", false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

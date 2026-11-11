@@ -164,11 +164,11 @@ The main menu's Backup (7) shows and changes these two settings.
 
 **`logFile` is retired.** hardn always writes and reads `/var/log/hardn.log`. A file that sets `logFile` to another path is still accepted, and hardn warns: "hardn.yml's logFile, <path>, isn't used".
 
-#### `username`, `sudoNoPassword` and `sshKeys`: User Management
+#### `username`, `adminNoPassword` and `sshKeys`: User Management
 
 ```yaml
 username: "george"                  # Create's default name; -c's user
-sudoNoPassword: true                # not used
+adminNoPassword: false              # true: the new user's admin rights ask no password
 sshKeys:                            # -c adds them all; Create's default is the first
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
 ```
@@ -176,9 +176,13 @@ sshKeys:                            # -c adds them all; Create's default is the 
 The main menu's User Management (1) shows the users, their admin rights and SSH keys, and changes them.
 
 - **In User Management, `username` and `sshKeys` are only Create's defaults:** they never choose which user a change is about, and no change saves them.
-- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing on a terminal; off one it needs `--yes`, otherwise it shows the plan and exits 2. The user has no password, and every key in `sshKeys`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`, which goes on if the new user, or another admin, can still log in.
+- **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing on a terminal; off one it needs `--yes`, otherwise it shows the plan and exits 2. The user has no password, and every key in `sshKeys`. Their admin rights ask their password, so they can't use sudo (or doas) until root runs `passwd <name>`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`, which goes on if another admin can still log in and become root; the new user counts only with `adminNoPassword: true`.
 - **`-c` no longer changes sshd_config.**
-- **`sudoNoPassword` isn't used.** A new user has no password, so their admin rights never ask one, from User Management, `-c` or Run All. Where hardn.yml sets it to `false`, hardn warns: "hardn.yml's sudoNoPassword: false isn't used".
+- **Admin rights without a password are opt-in.** By default the rule hardn writes for a new admin asks their password (sudo's plain rule, doas's `persist`). `adminNoPassword: true` makes `-c` and Run All write the no-password rule (`NOPASSWD`, `nopass`), and makes no the default of Create User's "Require password for admin rights?".
+- **Create User offers to set the password.** After yes to "Require password for admin rights?" it asks "Set <name>'s password now?" and runs `passwd <name>` on your terminal once the user is created. The password is typed to `passwd`, never to hardn. `-c` and Run All set none.
+- **Grant admin rights asks the user's password too.** For a user with none, the rights wait until `passwd <name>` sets one. Manage User's "Don't ask password" removes the question for one user.
+- **`sudoNoPassword` is retired.** Every hardn.yml an older hardn saved holds `sudoNoPassword: true`, so hardn never takes it as the opt-in. `false` warns: "hardn.yml's sudoNoPassword isn't used".
+- **Users hardn already created keep their no-password rule.** To tighten one, run `passwd <name>`, then choose Manage User's "Ask for password".
 
 ### Network Configuration
 

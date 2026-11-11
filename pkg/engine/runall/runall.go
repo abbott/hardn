@@ -178,7 +178,8 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 
 // Asked is the mapping, hardn.yml's keys to the controls, key by key
 // (decision 4 (a)): username and sshKeys, Create with admin rights and the
-// keys, its grant asking no password, as -c's; disableRootSSH true, root
+// keys, its grant asking the user's password, or none with
+// adminNoPassword true, as -c's; disableRootSSH true, root
 // login off, key-only on Proxmox VE, never loosened (sshchange.Disallow,
 // as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
@@ -193,7 +194,7 @@ func Asked(in Input, id string) Ask {
 		if cfg.Username == "" {
 			return Ask{}
 		}
-		return Ask{Control: users.Admin{Action: users.ActionCreate, New: users.New{Name: cfg.Username, Admin: true, Keys: cfg.SshKeys}, Getenv: in.getenv},
+		return Ask{Control: users.Admin{Action: users.ActionCreate, New: users.New{Name: cfg.Username, Admin: true, NoPassword: cfg.AdminNoPassword, Keys: cfg.SshKeys}, Getenv: in.getenv},
 			Words: fmt.Sprintf("Create %s, %s", cfg.Username, keys(len(cfg.SshKeys)))}
 	case ssh.Login{}.ID():
 		if !cfg.DisableRootSSH {

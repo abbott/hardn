@@ -142,7 +142,7 @@ To update, run the  [Install Script](#install-script) command again.
 |---|---|
 | `-f, --config <path>` | Read this hardn.yml (otherwise `HARDN_CONFIG`, then the search path in [docs/configuration.md](docs/configuration.md)) |
 | `-u, --username <name>` | The user `-c` creates; also the default for Create and Run All |
-| `-c, --create-user` | Create the user with admin rights, no password, and every key in hardn.yml's `sshKeys` |
+| `-c, --create-user` | Create the user with admin rights and every key in hardn.yml's `sshKeys`. Their admin rights ask a password: set one with `passwd <name>` |
 | `-d, --disable-root` | Turn root's SSH login off (key-only on Proxmox). Refused unless another admin can still log in and become root |
 | `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox, Rocky, Alma and RHEL |
 | `-g, --configure-dns` | Set hardn.yml's nameservers |

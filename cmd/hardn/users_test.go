@@ -301,8 +301,10 @@ func runC(t *testing.T, h *usrTestHost, cfg *config.Config, setup func(*dnsSeams
 // through the engine, without a question, as -g applies DNS's (refactor
 // plan slice 5, unit (d); gallery-users.md §5, decision 6 (a), adopted
 // 2026-11-03): the user -u names, else hardn.yml's username (decision 7
-// (a)), with admin rights asking no password and no key, the plan's
-// USERS_NO_KEY finding said; useradd run, hardn's grant written, exit
+// (a)), with admin rights asking the user's password and no key, the
+// plan's USERS_NO_KEY and USERS_PASSWORD_NOT_SET findings said; with
+// hardn.yml's adminNoPassword true, the opt-in, asking none (the
+// maintainer, 2026-11-11); useradd run, hardn's grant written, exit
 // status 0. -n -c the plan alone, nothing run or written, 3. A name taken,
 // one useradd would refuse, or one whose home is there: the control's
 // refusal, its code, nothing run or written, 1, under -n too. sshd's
@@ -314,12 +316,15 @@ func TestCreateUserFlag(t *testing.T) {
 		name    string
 		args    []string
 		home    bool // /home/carol already there
+		nopass  bool // hardn.yml's adminNoPassword: true
 		code    int  // the exit status; 0: hardn did not exit
 		said    []string
 		applied string // the user created; "" none
 	}{
 		{name: "-c -u carol", args: []string{"--yes", "-c", "-u", "carol"}, applied: "carol",
-			said: []string{"Create user carol", "Let carol use sudo", "Operation Successful", "Without a key, carol can't log in", "USERS_NO_KEY"}},
+			said: []string{"Create user carol", "Let carol use sudo", "Operation Successful", "Without a key, carol can't log in", "USERS_NO_KEY", "carol can't use sudo until a password is set: run passwd carol", "USERS_PASSWORD_NOT_SET"}},
+		{name: "-c -u carol, adminNoPassword", args: []string{"--yes", "-c", "-u", "carol"}, applied: "carol", nopass: true,
+			said: []string{"Create user carol", "Let carol use sudo", "Operation Successful"}},
 		{name: "-c: hardn.yml's username", args: []string{"--yes", "-c"}, applied: "alice",
 			said: []string{"Create user alice", "Let alice use sudo", "Operation Successful"}},
 		{name: "-n -c -u carol", args: []string{"-n", "-c", "-u", "carol"}, code: 3,
@@ -334,6 +339,7 @@ func TestCreateUserFlag(t *testing.T) {
 			if tc.home {
 				h.AddDir("/home/carol", 0o755, 0, 0)
 			}
+			cfg.AdminNoPassword = tc.nopass
 			yml, sshdConfig := h.content(dnsTestYML), h.content(sshd.MainConfig)
 			r, s := runC(t, h, cfg, nil, tc.args...)
 			report := stripANSI(s.out.String())
@@ -356,8 +362,12 @@ func TestCreateUserFlag(t *testing.T) {
 			} else {
 				want := "useradd --home-dir /home/" + tc.applied + " --create-home --shell /bin/bash " + tc.applied
 				grant := sudoers.DropInDir + "/hardn-grant-" + tc.applied
-				if !slices.Equal(ran, []string{want}) || !strings.Contains(h.content(grant), tc.applied+" ALL=(ALL) NOPASSWD: ALL") {
-					t.Errorf("ran %q, %s:\n%s\nwant %q and hardn's grant asking no password", ran, grant, h.content(grant), want)
+				rule := tc.applied + " ALL=(ALL) ALL\n"
+				if tc.nopass {
+					rule = tc.applied + " ALL=(ALL) NOPASSWD: ALL\n"
+				}
+				if !slices.Equal(ran, []string{want}) || !strings.HasSuffix(h.content(grant), "\n"+rule) || strings.Contains(report, "USERS_PASSWORD_NOT_SET") == tc.nopass {
+					t.Errorf("ran %q, %s:\n%s\nwant %q and hardn's grant %q; report:\n%s", ran, grant, h.content(grant), want, rule, report)
 				}
 				if _, ok := h.Entry("/home/" + tc.applied + "/.ssh"); ok {
 					t.Error("-c added a key")

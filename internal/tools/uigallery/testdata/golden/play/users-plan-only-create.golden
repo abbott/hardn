@@ -51,16 +51,19 @@ $
 $
    ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m $
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[Y/n]:␛[m ␛[38;2;129;134;156my␛[m$
 $
    ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
   ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m                 ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password set␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m             ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m             ␛[38;2;129;134;156mNone␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mWithout a key, carol can't log in: there's no password␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mcarol can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mcarol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCreate user carol␛[m$
       ␛[38;2;129;134;156m/etc/passwd␛[m$
@@ -73,7 +76,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+carol ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+carol ALL=(ALL) ALL␛[m$
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
@@ -159,16 +162,19 @@ $
 $
    2. Grant admin rights? [y/N, 0 or q]: y$
 $
-   3. Require password for admin rights? [y/N, 0 or q]: n$
+   3. Require password for admin rights? [Y/n, 0 or q]: $
+   3. Require password for admin rights? [Y/n]: y$
 $
    4. Add SSH key? [y/N, 0 or q]: n$
 $
   User Configuration -------------------------------------------$
 $
-  [ ] Sudo                 Enabled, No password to ask for$
+  [ ] Sudo                 Enabled, No password set$
   [ ] SSH Keys             None$
    -  Password             None$
   [ ] Without a key, carol can't log in: there's no password$
+  [ ] carol can't use sudo until a password is set: run passwd$
+      carol$
 $
    -  Create user carol$
       /etc/passwd$
@@ -181,7 +187,7 @@ $
       /etc/sudoers.d/hardn-grant-carol$
       @@ -0,0 +1,2 @@$
       +# Managed by hardn$
-      +carol ALL=(ALL) NOPASSWD: ALL$
+      +carol ALL=(ALL) ALL$
 $
   No actual changes were made to your system.$
 $
@@ -280,19 +286,22 @@ $
 $
    ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m $
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[Y/n]:␛[m ␛[38;2;129;134;156my␛[m$
 $
    ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
   ␛[1;38;2;129;134;156mUser Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSudo␛[m$
-      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password to ask for␛[m$
+      ␛[38;2;129;134;156mEnabled,␛[m ␛[38;2;219;184;83mNo password set␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Keys␛[m$
       ␛[38;2;219;184;83mNone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword␛[m$
       ␛[38;2;129;134;156mNone␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mWithout a key, carol can't log in: there's no password␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mcarol can't use sudo until a password is set: run␛[m$
+      ␛[38;2;219;184;83mpasswd carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mCreate user carol␛[m$
       ␛[38;2;129;134;156m/etc/passwd␛[m$
@@ -305,7 +314,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+carol ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+carol ALL=(ALL) ALL␛[m$
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $

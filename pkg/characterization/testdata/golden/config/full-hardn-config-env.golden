@@ -18,7 +18,7 @@
   "SshPort": 2230,
   "PermitRootLogin": false,
   "SshConfigFile": "/etc/ssh/sshd_config.d/hardn.conf",
-  "SudoNoPassword": false,
+  "AdminNoPassword": false,
   "SshKeys": [
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLEKEYEXAMPLEKEYEXAMPLEKEYEXAMPLEKEY0 alice-example"
   ],

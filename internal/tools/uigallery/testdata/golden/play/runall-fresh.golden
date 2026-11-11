@@ -57,6 +57,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate george, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mgeorge can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mgeorge␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall unattended-upgrades␛[m$
@@ -76,7 +78,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-george␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+george ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd george's key␛[m$
       ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
@@ -261,6 +263,8 @@ $
    -  User                 Create george, 1 key$
    -  DNS                  Set 2 nameservers$
    -  Auto Updates         Turn on$
+  [ ] george can't use sudo until a password is set: run passwd$
+      george$
   [ ] dhcpcd may rewrite /etc/resolv.conf on a lease$
 $
    -  Install unattended-upgrades$
@@ -280,7 +284,7 @@ $
       /etc/sudoers.d/hardn-grant-george$
       @@ -0,0 +1,2 @@$
       +# Managed by hardn$
-      +george ALL=(ALL) NOPASSWD: ALL$
+      +george ALL=(ALL) ALL$
 $
    -  Add george's key$
       /home/george/.ssh/authorized_keys$
@@ -480,6 +484,8 @@ $
       ␛[38;2;129;134;156mSet 2 nameservers␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
       ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mgeorge can't use sudo until a password is set: run␛[m$
+      ␛[38;2;219;184;83mpasswd george␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall unattended-upgrades␛[m$
@@ -499,7 +505,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-george␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+george ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd george's key␛[m$
       ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
@@ -704,6 +710,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate george, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mgeorge can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mgeorge␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall unattended-upgrades␛[m$
@@ -723,7 +731,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-george␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+george ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd george's key␛[m$
       ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
@@ -908,6 +916,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate george, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mgeorge can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mgeorge␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall unattended-upgrades␛[m$
@@ -927,7 +937,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-george␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+george ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd george's key␛[m$
       ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
@@ -1112,6 +1122,8 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate george, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mTurn on␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mgeorge can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mgeorge␛[m$
    ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mdhcpcd may rewrite /etc/resolv.conf on a lease␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall unattended-upgrades␛[m$
@@ -1131,7 +1143,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-george␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+george ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+george ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd george's key␛[m$
       ␛[38;2;129;134;156m/home/george/.ssh/authorized_keys␛[m$
