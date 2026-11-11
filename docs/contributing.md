@@ -82,6 +82,7 @@ hardn uses semantic versioning. A release is cut from a tag `v<major>.<minor>.<p
 3. **The tag.** `make tag` makes the annotated tag `v$(VERSION)` locally and prints the command that pushes it, `git push origin refs/tags/v<x.y.z>`. `make release` runs `go test`, builds the three binaries with archives and `.sha256` files under `build/` for a local look, then makes the tag the same way. **Neither pushes anything.**
 4. **Pushing the tag** is the maintainer's step, and it starts `.github/workflows/release.yml`:
    - checks the tag's form and the release notes;
+   - runs CI's checks at the tagged commit, `make check` and `go test` on each supported distribution's image, and builds nothing if one fails;
    - builds the three binaries in `.github/workflows/build.yml`, and attests each one's build provenance (SLSA Build Level 3, a GitHub artifact attestation);
    - writes an SPDX SBOM and `SHA256SUMS`;
    - creates the release as a draft, with the notes as its body, and uploads every file;

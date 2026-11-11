@@ -2,12 +2,12 @@ name: Release
 
 # p7-release. The one workflow for a release (refactor plan, Phase 7).
 #
-# On a push of a v* tag: build the binaries, the SBOM and SHA256SUMS; create
-# the release as a draft, its body docs/releases/<tag>.md at the tagged
-# commit; upload every asset; download them back from the draft and check
-# them against SHA256SUMS; only then publish it. A failure anywhere leaves at
-# most a draft, never a published release without its assets (install.sh
-# takes /releases/latest).
+# On a push of a v* tag: run ci.yml's checks at the tagged commit; build the
+# binaries, the SBOM and SHA256SUMS; create the release as a draft, its body
+# docs/releases/<tag>.md at the tagged commit; upload every asset; download
+# them back from the draft and check them against SHA256SUMS; only then
+# publish it. A failure anywhere leaves at most a draft, never a published
+# release without its assets (install.sh takes /releases/latest).
 #
 # Tags are v<major>.<minor>.<patch> only: a pre-release tag (v1.2.3-rc1)
 # fails prepare, before anything is built. Which release becomes latest: a tag
@@ -100,13 +100,25 @@ jobs:
             exit 1
           fi
 
+  # ci.yml's two jobs, make check and go test on each supported
+  # distribution's image, at the tagged commit. ci.yml runs on a push of main,
+  # not of a tag, so without this a release didn't wait for it. A failure
+  # stops the release before the build. Its jobs ask for contents: read only.
+  ci:
+    name: CI
+    needs: prepare
+    permissions:
+      contents: read
+    # As build's call below: ./, not $/, for actionlint.
+    uses: ./.github/workflows/ci.yml  # zizmor: ignore[self-repository]
+
   # The build and its provenance are in the reusable workflow build.yml
   # (SLSA Build Level 3: the attestation is signed by build.yml, not by this
   # file). GitHub's guide gives this job and build.yml's job the same three
   # permissions; a called workflow gets no more than its caller's job.
   build:
     name: Build
-    needs: prepare
+    needs: [prepare, ci]
     permissions:
       attestations: write
       contents: read
