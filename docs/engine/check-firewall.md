@@ -51,6 +51,7 @@ origin/main's firewall row counts the firewall twice (enabled, and configured) a
 13. **`Applies` is true everywhere**: detect's facts do not establish a host without a packet filter, and `NotApplicable` would leave the row out of the risk level ([checks.md](checks.md) §1.6).
 14. **The status list plans nothing.** `Controls()` is `Incoming{}`, `ActionNone`, whose `Plan` returns `engine.ErrNotMigrated`, and `Engine.Plan` over it is refused, the item's error coded `CONTROL_NOT_MIGRATED`, with no change and no call but the run directory's (`TestActionNone`). The package no longer only checks: a screen plans `Incoming` with the `Action` it was asked for (slice 4, unit (b); [gallery-firewall.md](gallery-firewall.md) §5 to §7). `Check` is the same for every `Action`.
 15. **Through `host.System` only:** depguard rule `controls-through-host` ([checks.md](checks.md) §1.11) covers this package; checked to report `os` and `pkg/ui` imports in a throwaway file of the package (in a temporary copy of the tree; nothing committed).
+16. **In a container, the row is as anywhere else** (*decided by the maintainer, 2026-11-11*). Where detect establishes a container (`Container.Detected` Yes), off Proxmox VE, ufw's and firewalld's statuses keep their state, detail and findings, and their evidence ends with `container: <signal>`, the check that fired (`/proc/1/environ`, `/run/systemd/container`, ...), in DNS's form. The host may filter the container's traffic too (Proxmox VE's CT firewall, for example), which hardn inside can't read, so the score and the main menu don't change; the Firewall screen says it in one muted line ([screen-firewall.md](screen-firewall.md)). `Applies` stays true (item 13). A container not established (Unknown) adds nothing. Tested: `TestContainer`.
 
 ## 3. Facts relied on
 
@@ -101,6 +102,8 @@ Every line the row can show, in Figma's grammar (marker, label, the state's word
 | inactive, `ENABLED=no` (Ubuntu's stock state) | Not Configured | inactive |
 | inactive, `ENABLED=yes` | Not Configured | enabled, not running |
 | ufw not installed (a stock Alpine; other packet filters are not read) | Not Configured | ufw not installed |
+
+In a container, each line above and firewalld's stand as they are; only the evidence gains `container: <signal>` (§2.16).
 
 **Proxmox VE (`pve-firewall`; ufw not read)**
 

@@ -143,6 +143,9 @@ type vm struct {
 	// a path, as an unreadable legacy file.
 	sshdFail    string
 	noFollowErr map[string]error
+	// noKeys: sshd loads no host key, so -t and -T exit 1 ("no hostkeys
+	// available") before they look for /run/sshd.
+	noKeys bool
 	// sshdUnits: systemd has sshd.socket and sshd.service, no ssh.* unit
 	// (Rocky Linux, AlmaLinux); reloads records each reload of sshd.service.
 	sshdUnits bool
@@ -760,6 +763,9 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 func (v *vm) sshd(argv []string) hostfake.Response {
 	if v.sshdFail != "" {
 		return hostfake.Response{Stderr: v.sshdFail, ExitCode: 255}
+	}
+	if v.noKeys {
+		return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\r\n", ExitCode: 1}
 	}
 	if _, ok := v.f.Entry("/run/sshd"); !ok {
 		return hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255}

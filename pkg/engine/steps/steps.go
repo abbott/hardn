@@ -40,6 +40,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/backup"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/pve"
@@ -51,9 +52,9 @@ import (
 
 // The stable codes of the refusals that come with a report (Refusal):
 // p3-output's registry holds them, and they do not change once released.
-// Each has its sentinel (ErrListenConfNotInEffect, ErrNoRunDir), which a
-// Refusal matches with errors.Is, so that the registry codes every error
-// by errors.Is alone.
+// Each has its sentinel (ErrListenConfNotInEffect, ErrNoRunDir,
+// ErrNoHostKeys), which a Refusal matches with errors.Is, so that the
+// registry codes every error by errors.Is alone.
 const (
 	// CodeListenConfNotInEffect: v0.3.x's listen.conf on an ssh.socket host
 	// where it never took effect (D9), whose migration could not be rolled
@@ -63,6 +64,10 @@ const (
 	// Ubuntu, before the first SSH connection since boot), so sshd's
 	// listeners are not established (sshd-validate.md §6's code).
 	CodeNoRunDir = "SSHD_ENV_NO_RUNDIR"
+	// CodeNoHostKeys: sshd -T cannot run because sshd loads no host key
+	// (none made yet, or the configuration's HostKey files missing), so
+	// sshd's settings are not read (sshd-validate.md §6's code).
+	CodeNoHostKeys = "SSHD_ENV_NO_HOSTKEYS"
 	// CodeSELinuxLabels: where SELinux enforces, a file sshd rereads at the
 	// reload is labelled otherwise than its policy (selinux.ErrMislabeled).
 	CodeSELinuxLabels = "SELINUX_MISLABELED"
@@ -106,6 +111,11 @@ var (
 	// CodeNoRunDir). It wraps sshd's *EnvError (EnvPrivsepDir), to which
 	// sshd-validate.md §6 gives the same code.
 	ErrNoRunDir = errors.New("sshd -T cannot run without its privilege separation directory")
+	// ErrNoHostKeys is the refusal of sshd -T failing for want of a host
+	// key, with its report (Refusal, CodeNoHostKeys). It wraps sshd's
+	// *EnvError (EnvHostKeys), to which sshd-validate.md §6 gives the same
+	// code.
+	ErrNoHostKeys = errors.New("sshd -T cannot run without a host key")
 	// ErrNoWriteStrategy: sshd_config's first directive is not exactly the
 	// stock Include (P-38), or there is none: hardn's block at the top of
 	// sshd_config is not written yet.
@@ -138,7 +148,7 @@ var (
 // host is refused, and how it becomes one hardn can change. Err is the
 // primitive's own refusal.
 type Refusal struct {
-	Code string // CodeListenConfNotInEffect, CodeNoRunDir
+	Code string // CodeListenConfNotInEffect, CodeNoRunDir, CodeNoHostKeys
 	Why  string
 	Fix  string
 	Err  error
@@ -152,7 +162,7 @@ func (r *Refusal) Error() string {
 func (r *Refusal) Unwrap() error { return r.Err }
 
 // refusalErrs are each code's sentinel.
-var refusalErrs = map[string]error{CodeListenConfNotInEffect: ErrListenConfNotInEffect, CodeNoRunDir: ErrNoRunDir}
+var refusalErrs = map[string]error{CodeListenConfNotInEffect: ErrListenConfNotInEffect, CodeNoRunDir: ErrNoRunDir, CodeNoHostKeys: ErrNoHostKeys}
 
 // Is makes errors.Is(r, target) true for the sentinel of r's Code, so that
 // the more specific code is the one a registry matches first.
@@ -195,7 +205,8 @@ type sshState struct {
 }
 
 // readSSH reads sshd's installed configuration and hardn's legacy files.
-// sshd -T failing for a missing /run/sshd is a Refusal (CodeNoRunDir).
+// sshd -T failing for a missing /run/sshd is a Refusal (CodeNoRunDir), for
+// want of a host key another (CodeNoHostKeys).
 func readSSH(ctx context.Context, sys host.System, in engine.Input, configFile string) (sshState, error) {
 	st := sshState{in: in}
 	var err error
@@ -210,7 +221,11 @@ func readSSH(ctx context.Context, sys host.System, in engine.Input, configFile s
 		}
 	}
 	if st.before, _, err = sshd.ReadEffective(ctx, sys, sshd.EffectiveRequest{SSH: in.Facts.SSH, Binary: st.binary}); err != nil {
-		return st, noRunDir(in.Facts.SSH, fmt.Errorf("sshd's effective configuration: %w", err))
+		err = fmt.Errorf("sshd's effective configuration: %w", err)
+		if hostKeys(err) != nil {
+			return st, NoHostKeys(in.Facts, ServerWorld(ctx, sys, in.Facts, err), err)
+		}
+		return st, noRunDir(in.Facts.SSH, err)
 	}
 	if st.found, err = migrate.Find(ctx, sys, migrate.FindRequest{ConfigFile: configFile}); err != nil {
 		return st, err
@@ -255,6 +270,96 @@ func noRunDir(ssh detect.SSH, err error) error {
 		r.Fix = "start " + unit + " from the console (`systemctl start " + unit + "`), check that it is active, then plan again"
 	}
 	return r
+}
+
+// The words of the host-key refusal (NoHostKeys), each a Refusal's Why
+// and Fix as screenkit.RefusalWords joins them: proposed, for approval
+// (check-ssh.md §5).
+const (
+	whyNoHostKeys   = "sshd has no host keys, so hardn can't read its settings"
+	whyHostKeyFiles = "sshd's HostKey files aren't there, so hardn can't read its settings"
+	fixHostKeyFiles = "fix the HostKey lines, then try again"
+	fixKeygen       = "run ssh-keygen -A, then try again"
+	fixOffOpenRC    = "run rc-service sshd start"
+	fixOffSystemd   = "run ssh-keygen -A and systemctl start %s"
+	fixRemoveApt    = "apt remove openssh-server"
+	fixRemoveDnf    = "dnf remove openssh-server"
+	fixRemoveApk    = "apk del %s"
+	fixThenTryAgain = ", then try again"
+	fixOrRemove     = ", or "
+)
+
+// hostKeys is sshd's *EnvError in err where sshd loaded no host key; nil
+// otherwise.
+func hostKeys(err error) *sshd.EnvError {
+	var ee *sshd.EnvError
+	if errors.As(err, &ee) && ee.Kind == sshd.EnvHostKeys {
+		return ee
+	}
+	return nil
+}
+
+// NoHostKeys reports sshd -T failing because sshd loaded no host key as a
+// Refusal (CodeNoHostKeys): without sshd -T, sshd's settings are not read,
+// so nothing is planned. err is returned as it is otherwise, nil too. hardn
+// runs as root, so the keys are missing, not unreadable. The fix fits the
+// host:
+//   - the configuration's own HostKey lines (HostKeysSet): fix them;
+//   - sshd off (detect.SSH.Off): keys alone leave sshd's mode unknown, so
+//     no change plans (reload.ErrModeUnknown), and on Debian and Ubuntu
+//     /run/sshd missing; so sshd is started too. On OpenRC, rc-service
+//     sshd start, whose init script makes the missing keys (ssh-keygen -A
+//     in checkconfig, before sshd -t: the Alpine 3.23 VM's
+//     /etc/init.d/sshd, 2026-11-11); on systemd, ssh-keygen -A and
+//     systemctl start, as neither Debian's ssh.service (ExecStartPre sshd
+//     -t; sshd-keygen.service only on the first boot) nor, where cloud-init
+//     is active, EL's sshd-keygen@.service (its drop-in's condition) makes
+//     them (the Debian 13, Ubuntu 26.04 and Rocky 10.2 VMs' units,
+//     2026-11-11). Or
+//     removing the server: apt remove or dnf remove openssh-server; on
+//     Alpine apk del with remove, World's entries that keep it installed
+//     (alpine.ParseServerWorld), none offered without them; on Proxmox VE,
+//     whose cluster logs in over SSH, none;
+//   - else (sshd running, or set to start, without its keys): ssh-keygen -A.
+func NoHostKeys(f detect.Facts, remove []string, err error) error {
+	ee := hostKeys(err)
+	if ee == nil {
+		return err
+	}
+	r := &Refusal{Code: CodeNoHostKeys, Why: whyNoHostKeys, Fix: fixKeygen, Err: err}
+	switch {
+	case ee.HostKeysSet:
+		r.Why, r.Fix = whyHostKeyFiles, fixHostKeyFiles
+	case !f.SSH.Off():
+	case f.Init.Kind == detect.OpenRC:
+		r.Fix = fixOffOpenRC
+		if f.Platform.Distro == detect.DistroAlpine && len(remove) > 0 {
+			r.Fix += fixOrRemove + fmt.Sprintf(fixRemoveApk, strings.Join(remove, " "))
+		}
+		r.Fix += fixThenTryAgain
+	default:
+		r.Fix = fmt.Sprintf(fixOffSystemd, strings.TrimSuffix(f.SSH.ServiceUnit(), ".service"))
+		switch d := f.Platform.Distro; {
+		case d == detect.DistroDebian, d == detect.DistroUbuntu:
+			r.Fix += fixOrRemove + fixRemoveApt
+		case d.EL():
+			r.Fix += fixOrRemove + fixRemoveDnf
+		}
+		r.Fix += fixThenTryAgain
+	}
+	return r
+}
+
+// ServerWorld is what NoHostKeys names for apk del: on Alpine, where err
+// is sshd off without its host keys, World's entries that keep an OpenSSH
+// server installed (alpine.ServerWorld); nil elsewhere, and where World
+// is not read. It changes nothing.
+func ServerWorld(ctx context.Context, sys host.System, f detect.Facts, err error) []string {
+	if ee := hostKeys(err); ee == nil || ee.HostKeysSet || !f.SSH.Off() || f.Platform.Distro != detect.DistroAlpine {
+		return nil
+	}
+	remove, _ := alpine.ServerWorld(ctx, sys)
+	return remove
 }
 
 // checkInclude refuses an sshd_config hardn has no write strategy for.

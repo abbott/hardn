@@ -55,6 +55,89 @@ func ReadBound(ctx context.Context, sys host.System) (bound []Bound, bad []strin
 	return bound, bad, nil
 }
 
+// ListenTCPArgv and ListenUDPArgv are how ReadListening lists every
+// listening socket with its program: TCP in the LISTEN state, UDP not
+// connected (ss -l prints it UNCONN), numeric, with the process (-p),
+// without the header. One table per run, so that ss prints no Netid column
+// and ParseBound's layout holds (reload.md §2.10).
+var (
+	ListenTCPArgv = []string{"ss", "-Htlnp"}
+	ListenUDPArgv = []string{"ss", "-Hulnp"}
+)
+
+// Socket is a listening socket, TCP or UDP, and the program ss names for it.
+type Socket struct {
+	Bound
+	Proto string // "tcp" or "udp"
+	// Process is the first program of ss -p's Process column
+	// (users:(("<name>",pid=N,fd=M),...)); "" where ss gives none.
+	Process string
+}
+
+// ReadListening lists the TCP sockets in the LISTEN state and the UDP
+// sockets not connected, with their programs (ListenTCPArgv, then
+// ListenUDPArgv). bad lists the lines it cannot read. ss missing is
+// host.ErrNotFound. It only reads; ReadBound stays what SSH's checks use.
+func ReadListening(ctx context.Context, sys host.System) (socks []Socket, bad []string, err error) {
+	for _, t := range []struct {
+		argv  []string
+		proto string
+	}{{ListenTCPArgv, "tcp"}, {ListenUDPArgv, "udp"}} {
+		res, err := sys.Run(ctx, t.argv[0], t.argv[1:]...)
+		if err != nil {
+			return nil, nil, fmt.Errorf("reload: %s: %w", host.FormatArgv(t.argv), err)
+		}
+		s, b := ParseListening(res.Stdout, t.proto)
+		socks, bad = append(socks, s...), append(bad, b...)
+	}
+	return socks, bad, nil
+}
+
+// ParseListening reads one table of ss -Hlnp's lines for proto: State,
+// Recv-Q, Send-Q, local address:port, peer address:port, then the Process
+// column where ss gives one. The state is LISTEN for tcp and UNCONN for
+// udp (deb13-vm, ubuntu26-vm, rocky10-test-110, 2026-11-11); a line in
+// another state is skipped, and one of that state it cannot read is in bad.
+// The local address is read as ParseBound reads it.
+func ParseListening(out []byte, proto string) (socks []Socket, bad []string) {
+	state := "LISTEN"
+	if proto == "udp" {
+		state = "UNCONN"
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		f := strings.Fields(line)
+		if len(f) == 0 || f[0] != state {
+			continue
+		}
+		b, ok := Bound{}, len(f) >= 5
+		if ok {
+			b, ok = parseLocal(f[3])
+		}
+		if !ok {
+			bad = append(bad, strings.TrimSpace(line))
+			continue
+		}
+		socks = append(socks, Socket{Bound: b, Proto: proto, Process: process(line)})
+	}
+	return socks, bad
+}
+
+// process is the first program's name in a line's users:(("<name>",...))
+// column, "" for none. The name is the program's comm, which may hold a
+// space, so the line is searched rather than split.
+func process(line string) string {
+	const open = `users:(("`
+	_, rest, ok := strings.Cut(line, open)
+	if !ok {
+		return ""
+	}
+	name, _, ok := strings.Cut(rest, `",`)
+	if !ok {
+		return ""
+	}
+	return name
+}
+
 // ParseBound reads ss -Htln's lines: State, Recv-Q, Send-Q, local
 // address:port, peer address:port (no Netid column for one table, no
 // Process column without -p). The local address is "0.0.0.0", "[::]", "*"

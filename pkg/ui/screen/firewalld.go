@@ -71,15 +71,19 @@ type Firewalld struct {
 	// DisableBeside: item 1 is Enable and firewalld starts at boot: item 2
 	// is Disable.
 	DisableBeside bool
+	// Container: hardn runs in a container, so the section firewalld ends
+	// with the muted line that its host may filter traffic too.
+	Container bool
 }
 
 // SubMenu returns firewalld's screen: the title bar; the Firewall row; the
-// section firewalld; item 1 by First, item 2 where Disable is beside it;
-// Return; "Select an option"; "Enter selection".
+// section firewalld, ending with the container line where Container holds;
+// item 1 by First, item 2 where Disable is beside it; Return; "Select an
+// option"; "Enter selection".
 func (f Firewalld) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(firewalldTitle), Status: f.Status, Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem()}}
 	if len(f.Rows) > 0 {
-		vm.Sections = append(vm.Sections, firewallSection(firewalldSection, f.Rows))
+		vm.Sections = append(vm.Sections, firewallSection(firewalldSection, containerRows(f.Rows, f.Container)))
 	}
 	if w, ok := firewalldFirsts[f.First]; ok {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewalldFirstItem, Label: w.label, Description: w.about, Risk: f.Risk})

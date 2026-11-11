@@ -1,0 +1,353 @@
+# Golden file of TestEnableOtherPortGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mfirewalld not running␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRunning␛[m              ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDefault zone␛[m         ␛[38;2;129;134;156m-␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mActive zones␛[m         ␛[38;2;129;134;156m-␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewalld␛[m     ␛[38;2;129;134;156mLet SSH through, then start firewalld␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable firewalld␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m               ␛[38;2;112;212;127mRunning␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127mLet through␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mfirewalld will block 8000/tcp (vaultwarden). To keep it␛[m$
+      ␛[38;2;219;184;83mopen, run firewall-offline-cmd --add-port=8000/tcp first.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the revert␛[m$
+      ␛[38;2;112;212;127m↪ timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of its␛[m$
+      ␛[38;2;112;212;127m↪ window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of an␛[m$
+      ␛[38;2;112;212;127m↪ unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service sshd.socket␛[m$
+      ␛[38;2;112;212;127m↪ shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261102T120000Z-00000000/hardn-boot.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mEnable firewalld␛[m$
+$
+      ␛[38;2;129;134;156mfirewalld␛[m$
+      ␛[38;2;231;70;105m-not running␛[m$
+      ␛[38;2;112;212;127m+running, at boot␛[m$
+      ␛[38;2;129;134;156m$ systemctl start firewalld.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl enable firewalld.service␛[m$
+$
+  ␛[38;2;192;196;216mEnable firewalld?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[host-01, 0 or q]:␛[m 0$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mfirewalld not running␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRunning␛[m              ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDefault zone␛[m         ␛[38;2;129;134;156m-␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mActive zones␛[m         ␛[38;2;129;134;156m-␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewalld␛[m     ␛[38;2;129;134;156mLet SSH through, then start firewalld␛[m$
+                           ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Firewall Configuration #######################################$
+$
+  [ ] Firewall             Not Configured firewalld not running$
+$
+  firewalld ----------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [ ] Running              No$
+  [ ] At boot              No$
+   -  Default zone         -$
+   -  Active zones         -$
+$
+  Select an option$
+$
+   1) Enable firewalld     Let SSH through, then start firewalld$
+                           [ ] Lockout risk$
+$
+   0) Return$
+$
+    > Enter selection [0-1 or q]: 1$
+$
+  Checking the host...$
+$
+# Enable firewalld #############################################$
+$
+  firewalld ----------------------------------------------------$
+$
+  [+] Status               Running$
+  [+] At boot              Yes$
+  [+] SSH                  Let through$
+  [ ] firewalld will block 8000/tcp (vaultwarden). To keep it$
+      open, run firewall-offline-cmd --add-port=8000/tcp first.$
+$
+   -  Install hardn's boot unit$
+      /etc/systemd/system/hardn-boot.service$
+      @@ -0,0 +1,23 @@$
+      +# hardn's boot unit (P-34 (c);$
+      | docs/safety/revert-boot.md). hardn installs$
+      +# it before it arms the revert timer of a change that$
+      | could lock you out, and$
+      +# removes it at a boot that finds no change journalled.$
+      +#$
+      +# At boot, before sshd reads its files: re-arm the revert$
+      | timer of a change$
+      +# waiting for "hardn confirm", for what remains of its$
+      | window, or roll the$
+      +# change back when its deadline has passed. Ordering$
+      | only: sshd starts$
+      +# whatever this unit does.$
+      +[Unit]$
+      +Description=hardn: re-arm or run the revert timer of an$
+      | unconfirmed change$
+      +DefaultDependencies=no$
+      +After=local-fs.target sysinit.target ufw.service$
+      +Before=ssh.service ssh.socket sshd.service sshd.socket$
+      | shutdown.target$
+      +Conflicts=shutdown.target$
+      +$
+      +[Service]$
+      +Type=oneshot$
+      +RemainAfterExit=yes$
+      +ExecStart=/usr/local/bin/hardn rollback --boot$
+      +TimeoutStartSec=7min$
+      +$
+      +[Install]$
+      +WantedBy=multi-user.target$
+      -not installed$
+      +installed and enabled$
+      $ systemd-analyze verify --recursive-errors=no$
+      | /run/hardn/20261102T120000Z-00000000/hardn-boot.service$
+      $ systemctl --no-reload enable hardn-boot.service$
+$
+  [ ] Lockout risk$
+      Enable firewalld$
+$
+      firewalld$
+      -not running$
+      +running, at boot$
+      $ systemctl start firewalld.service$
+      $ systemctl enable firewalld.service$
+$
+  Enable firewalld?$
+$
+  Type the hostname [host-01, 0 or q]: 0$
+$
+# Operation Cancelled$
+$
+# Firewall Configuration #######################################$
+$
+  [ ] Firewall             Not Configured firewalld not running$
+$
+  firewalld ----------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [ ] Running              No$
+  [ ] At boot              No$
+   -  Default zone         -$
+   -  Active zones         -$
+$
+  Select an option$
+$
+   1) Enable firewalld     Let SSH through, then start firewalld$
+                           [ ] Lockout risk$
+$
+   0) Return$
+$
+    > Enter selection [0-1 or q]: 0$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mfirewalld not running␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRunning␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDefault zone␛[m$
+      ␛[38;2;129;134;156m-␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mActive zones␛[m$
+      ␛[38;2;129;134;156m-␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewalld␛[m$
+      ␛[38;2;129;134;156mLet SSH through, then start firewalld␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 1$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEnable firewalld␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mStatus␛[m$
+      ␛[38;2;112;212;127mRunning␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;112;212;127mLet through␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mfirewalld will block 8000/tcp (vaultwarden). To keep␛[m$
+      ␛[38;2;219;184;83mit open, run firewall-offline-cmd --add-port=8000/tcp␛[m$
+      ␛[38;2;219;184;83mfirst.␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
+      ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,23 @@␛[m$
+      ␛[38;2;112;212;127m+# hardn's boot unit (P-34 (c);␛[m$
+      ␛[38;2;112;212;127m↪ docs/safety/revert-boot.md). hardn installs␛[m$
+      ␛[38;2;112;212;127m+# it before it arms the revert timer of a change that␛[m$
+      ␛[38;2;112;212;127m↪ could lock you out, and␛[m$
+      ␛[38;2;112;212;127m+# removes it at a boot that finds no change␛[m$
+      ␛[38;2;112;212;127m↪ journalled.␛[m$
+      ␛[38;2;112;212;127m+#␛[m$
+      ␛[38;2;112;212;127m+# At boot, before sshd reads its files: re-arm the␛[m$
+      ␛[38;2;112;212;127m↪ revert timer of a change␛[m$
+      ␛[38;2;112;212;127m+# waiting for "hardn confirm", for what remains of␛[m$
+      ␛[38;2;112;212;127m↪ its window, or roll the␛[m$
+      ␛[38;2;112;212;127m+# change back when its deadline has passed. Ordering␛[m$
+      ␛[38;2;112;212;127m↪ only: sshd starts␛[m$
+      ␛[38;2;112;212;127m+# whatever this unit does.␛[m$
+      ␛[38;2;112;212;127m+[Unit]␛[m$
+      ␛[38;2;112;212;127m+Description=hardn: re-arm or run the revert timer of␛[m$
+      ␛[38;2;112;212;127m↪ an unconfirmed change␛[m$
+      ␛[38;2;112;212;127m+DefaultDependencies=no␛[m$
+      ␛[38;2;112;212;127m+After=local-fs.target sysinit.target ufw.service␛[m$
+      ␛[38;2;112;212;127m+Before=ssh.service ssh.socket sshd.service␛[m$
+      ␛[38;2;112;212;127m↪ sshd.socket shutdown.target␛[m$
+      ␛[38;2;112;212;127m+Conflicts=shutdown.target␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Service]␛[m$
+      ␛[38;2;112;212;127m+Type=oneshot␛[m$
+      ␛[38;2;112;212;127m+RemainAfterExit=yes␛[m$
+      ␛[38;2;112;212;127m+ExecStart=/usr/local/bin/hardn rollback --boot␛[m$
+      ␛[38;2;112;212;127m+TimeoutStartSec=7min␛[m$
+      ␛[38;2;112;212;127m+␛[m$
+      ␛[38;2;112;212;127m+[Install]␛[m$
+      ␛[38;2;112;212;127m+WantedBy=multi-user.target␛[m$
+      ␛[38;2;231;70;105m-not installed␛[m$
+      ␛[38;2;112;212;127m+installed and enabled␛[m$
+      ␛[38;2;129;134;156m$ systemd-analyze verify --recursive-errors=no␛[m$
+      ␛[38;2;129;134;156m↪ /run/hardn/20261102T120000Z-00000000/hardn-boot.serv␛[m$
+      ␛[38;2;129;134;156m↪ice␛[m$
+      ␛[38;2;129;134;156m$ systemctl --no-reload enable hardn-boot.service␛[m$
+$
+   ␛[1;38;2;219;184;83m⭘␛[m  ␛[1;38;2;219;184;83mLockout risk␛[m$
+      ␛[38;2;192;196;216mEnable firewalld␛[m$
+$
+      ␛[38;2;129;134;156mfirewalld␛[m$
+      ␛[38;2;231;70;105m-not running␛[m$
+      ␛[38;2;112;212;127m+running, at boot␛[m$
+      ␛[38;2;129;134;156m$ systemctl start firewalld.service␛[m$
+      ␛[38;2;129;134;156m$ systemctl enable firewalld.service␛[m$
+$
+  ␛[38;2;192;196;216mEnable firewalld?␛[m$
+$
+  ␛[38;2;192;196;216mType the hostname␛[m ␛[38;2;192;196;216m[host-01, 0 or q]:␛[m 0$
+$
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mOperation Cancelled␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mfirewalld not running␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRunning␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;219;184;83mNo␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDefault zone␛[m$
+      ␛[38;2;129;134;156m-␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mActive zones␛[m$
+      ␛[38;2;129;134;156m-␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEnable firewalld␛[m$
+      ␛[38;2;129;134;156mLet SSH through, then start firewalld␛[m$
+      ␛[1;38;2;219;184;83m⭘ Lockout risk␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+$

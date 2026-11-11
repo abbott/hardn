@@ -20,12 +20,14 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/runall"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 )
 
@@ -387,6 +389,23 @@ func TestPortRow(t *testing.T) {
 	}
 	if with, without := logs(applySession), logs(revert.Session{}); with == 0 || without != 0 {
 		t.Errorf("sshd's log read %d times with the session, %d without; want some, none", with, without)
+	}
+}
+
+// TestNoHostKeys: where sshd has no host keys, Run All's SSH parts are
+// Refused in SSH Login's words for it (steps.NoHostKeys), its code
+// SSHD_ENV_NO_HOSTKEYS: root login off, the port compared, and the
+// firewall's Enable, which reads sshd's listeners.
+func TestNoHostKeys(t *testing.T) {
+	const words = "sshd has no host keys, so hardn can't read its settings. Run ssh-keygen -A, then try again."
+	h := newHost(t, "port")
+	h.noKeys = true
+	r := h.read(t, "port")
+	for _, id := range []string{login, port, fwctl.ID} {
+		rw, _ := r.Row(id)
+		if rw.Kind != runall.Refused || rw.Refusal != words || !errors.Is(rw.Err, steps.ErrNoHostKeys) || output.CodeOf(rw.Err) != steps.CodeNoHostKeys {
+			t.Errorf("%s: %v %q, refusal %q, err %v; want refused in the host-key words", id, rw.Kind, rw.Words, rw.Refusal, rw.Err)
+		}
 	}
 }
 

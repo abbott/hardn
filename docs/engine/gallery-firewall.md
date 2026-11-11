@@ -57,6 +57,7 @@ Every host's rows come from real readers, never hardn.yml's `sshPort`: the Firew
 | `denied` | active, `deny 22/tcp` | Partial, ssh blocked | Refuses: nothing it can plan |
 | `alpine-runlevel`, `unit-off` | active, in no runlevel; `ufw.service` disabled | Configured, deny policy | Start ufw at boot: `rc-update add ufw default`; `systemctl enable ufw.service` |
 | `pve9`, `pve9-drop` | Proxmox VE 9: pve-firewall disabled; DROP, management IP set | Not Configured, disabled; Configured, drop policy | Return alone |
+| `alpine-lxc` (*since 2026-11-11*) | Alpine 3.23 in an LXC container (PID 1's `container=lxc`), otherwise as `alpine-stock`: no ufw, no `ss`, apk's index empty; the ufw section ends with the container line ([screen-firewall.md](screen-firewall.md)) | Not Configured, ufw not installed | Install, refused (`packages.ErrNotInRepos`) |
 
 Item 2 is Application Profiles wherever ufw is installed; item 3, Disable, on any active ufw whose item 1 is not. The listing also draws the profiles' sub-screen with two and with none, `no-install` (decision 1's alternative), `refusals` (all of §6's), `pve-states` (stopped, sshd elsewhere, a blacklist, ufw left active), and `stale-listener`. `lockout`, plain and ASCII, 31 lines drawn, here its blank lines and the ufw and Rules sections left out:
 

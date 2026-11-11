@@ -502,6 +502,22 @@ func TestRefusals(t *testing.T) {
 			return v
 		}, disallow, steps.CodeNoRunDir, steps.ErrNoRunDir,
 			"/run/sshd isn't there yet, so sshd -T can't run. Open one SSH connection, then try again.", false},
+		{"no host keys, sshd running", func(t *testing.T) *vm { return noKeys(debianVM(t), false) }, disallow, steps.CodeNoHostKeys, steps.ErrNoHostKeys,
+			"sshd has no host keys, so hardn can't read its settings. Run ssh-keygen -A, then try again.", false},
+		{"no host keys, sshd off", func(t *testing.T) *vm { return noKeys(debianVM(t), true) }, keyOnly, steps.CodeNoHostKeys, steps.ErrNoHostKeys,
+			"sshd has no host keys, so hardn can't read its settings. Run ssh-keygen -A and systemctl start ssh, or apt remove openssh-server, then try again.", false},
+		{"no host keys, sshd off, the port", func(t *testing.T) *vm { return noKeys(debianVM(t), true) }, port2230, steps.CodeNoHostKeys, steps.ErrNoHostKeys,
+			"sshd has no host keys, so hardn can't read its settings. Run ssh-keygen -A and systemctl start ssh, or apt remove openssh-server, then try again.", false},
+		{"no host keys, sshd off on Rocky Linux", func(t *testing.T) *vm { return noKeys(rockyVM(t), true) }, disallow, steps.CodeNoHostKeys, steps.ErrNoHostKeys,
+			"sshd has no host keys, so hardn can't read its settings. Run ssh-keygen -A and systemctl start sshd, or dnf remove openssh-server, then try again.", false},
+		{"a HostKey line whose file is missing", func(t *testing.T) *vm {
+			return noKeys(debianVM(t).file(sshd.DropInDir+"/10-site.conf", "HostKey /etc/ssh/site_host_ed25519_key\n"), true)
+		}, disallow, steps.CodeNoHostKeys, steps.ErrNoHostKeys,
+			"sshd's HostKey files aren't there, so hardn can't read its settings. Fix the HostKey lines, then try again.", false},
+		{"no host keys, moving old files", func(t *testing.T) *vm {
+			return noKeys(passwordLogin(t).file(sshd.DropInDir+"/hardn.conf", legacyMain), false)
+		}, sshchange.Migrate{}, steps.CodeNoHostKeys, steps.ErrNoHostKeys,
+			"sshd has no host keys, so hardn can't read its settings. Run ssh-keygen -A, then try again.", false},
 		{"origin/main's hardn.conf", func(t *testing.T) *vm {
 			return passwordLogin(t).file(sshd.DropInDir+"/hardn.conf", legacyMain)
 		}, disallow, "SSH_MIGRATE_FIRST", steps.ErrMigrateFirst,
@@ -622,6 +638,17 @@ func TestRefusals(t *testing.T) {
 			}
 		})
 	}
+}
+
+// noKeys makes v's sshd load no host key, and with off detect's facts say
+// sshd is neither enabled nor active (Mode Unknown).
+func noKeys(v *vm, off bool) *vm {
+	v.noKeys = true
+	if off {
+		down := detect.UnitState{Enabled: "disabled", Active: "inactive"}
+		v.facts.SSH = detect.SSH{SSHDUnits: v.facts.SSH.SSHDUnits, Generator: detect.No, Socket: down, Service: down, Err: detect.ErrNoSignal}
+	}
+	return v
 }
 
 // TestPlans: what each change plans on the gallery's hosts, every change

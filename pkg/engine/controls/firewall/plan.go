@@ -69,9 +69,6 @@ const (
 	codeInactive      = "UFW_INACTIVE"
 	codeBadProfile    = "UFW_BAD_PROFILE"
 	codeBadInterface  = "UFW_BAD_INTERFACE"
-	codeNoTool        = "PACKAGE_NO_TOOL"
-	codeNotInRepos    = "PACKAGE_NOT_IN_REPOS"
-	codeOtherPackages = "PACKAGE_OTHER_CHANGES"
 )
 
 // Plan is what Action does on the host in.Facts describe. ActionNone, the
@@ -148,6 +145,8 @@ func applies(p detect.Proxmox) error {
 // change alone is plain, and its undo runs last. A listener ufw would still
 // refuse once the plan ran is refused, as is ufw's service masked, missing or
 // not read, each before anything changes; on a host that is set, an empty plan.
+// ufw's change carries the other listening ports ufw would block (ufwOthers),
+// which refuse nothing.
 func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	sk := ReadSockets(ctx, sys, in.Facts)
 	switch {
@@ -192,6 +191,7 @@ func enable(ctx context.Context, sys host.System, in engine.Input) ([]engine.Cha
 		if err := stillRefused(st, sk, changes, false); err != nil {
 			return nil, err
 		}
+		changes = withFindings(changes, ID+"/firewall", func() []engine.Finding { return ufwOthers(ctx, sys, st, sk, changes) })
 	}
 	return changes, nil
 }

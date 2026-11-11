@@ -59,6 +59,12 @@ func TestVerdict(t *testing.T) {
 	on := func(p ufw.Policy) ufw.Firewall { return ufw.Firewall{Active: true, IPv6: true, Incoming: p} }
 	lo := ufw.Need{Port: 22, Family: v4, Addr: netip.MustParseAddr("127.0.0.1")}
 	lo6 := ufw.Need{Port: 22, Family: v6, Addr: netip.IPv6Loopback()}
+	// udp is a UDP need (coturn's 3478), against ufw allow 3478/udp, 3478
+	// (any protocol) and 3478/tcp.
+	udp := ufw.Need{Port: 3478, Family: v4, Addr: netip.IPv4Unspecified(), Proto: "udp"}
+	proto := func(p string) ufw.Rule {
+		return ufw.Rule{Action: "allow", Dir: "in", Proto: p, DPort: "3478", Family: v4}
+	}
 	for _, tc := range []struct {
 		name  string
 		rules []ufw.Rule
@@ -100,6 +106,11 @@ func TestVerdict(t *testing.T) {
 		{"loopback: before.rules accepts lo", []ufw.Rule{rule(v4, "deny", "22", "", "", "")}, on(ufw.PolicyDeny), lo, ufw.Allowed},
 		{"IPv6 loopback, IPv6 off", nil, ufw.Firewall{Active: true, Incoming: ufw.PolicyDeny}, lo6, ufw.Allowed},
 		{"an unreadable port", []ufw.Rule{rule(v4, "allow", "ssh", "", "", ""), allow22}, on(ufw.PolicyDeny), n22, ufw.VerdictUnknown},
+		{"udp: allow 3478/udp", []ufw.Rule{proto("udp")}, on(ufw.PolicyDeny), udp, ufw.Allowed},
+		{"udp: allow 3478, any protocol", []ufw.Rule{proto("any")}, on(ufw.PolicyDeny), udp, ufw.Allowed},
+		{"udp: allow 3478/tcp does not match", []ufw.Rule{proto("tcp")}, on(ufw.PolicyDeny), udp, ufw.Blocked},
+		{"tcp, Proto empty: allow 3478/udp does not match", []ufw.Rule{proto("udp")}, on(ufw.PolicyDeny),
+			ufw.Need{Port: 3478, Family: v4, Addr: netip.IPv4Unspecified()}, ufw.Blocked},
 		{"an unreadable address", []ufw.Rule{rule(v4, "allow", "2230", "nowhere", "", "")}, on(ufw.PolicyDeny), at, ufw.VerdictUnknown},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

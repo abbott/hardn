@@ -181,6 +181,9 @@ type sshHost struct {
 	// no database (unfixedSSH sets them).
 	openssh, offer string
 	pid            int // sshd's listener, in /run/sshd.pid
+	// noKeys: sshd loads no host key, so -t and -T exit 1 ("no hostkeys
+	// available") before they look for /run/sshd.
+	noKeys bool
 }
 
 // opensshPackages are the Alpine VM's openssh packages
@@ -651,11 +654,15 @@ func addrMatch(s, p string) bool {
 	return ok
 }
 
-// sshd answers sshd -t, -T and -T -C over the files -f names: sshd.c's
-// fatal() where /run/sshd is missing (reload.md §2.4); -C with the Match
+// sshd answers sshd -t, -T and -T -C over the files -f names: exit 1
+// without host keys (noKeys); sshd.c's fatal() where /run/sshd is missing
+// (reload.md §2.4); -C with the Match
 // blocks applied and requiredrsasize, the first value, OpenSSH 9.1's
 // default 1024 where none is set.
 func (h *sshHost) sshd(argv []string) hostfake.Response {
+	if h.noKeys && (slices.Contains(argv, "-T") || slices.Contains(argv, "-t")) {
+		return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\r\n", ExitCode: 1}
+	}
 	if _, err := h.System.Stat(context.Background(), "/run/sshd"); err != nil {
 		return hostfake.Response{Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255}
 	}

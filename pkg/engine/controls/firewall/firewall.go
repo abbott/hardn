@@ -63,6 +63,14 @@ const (
 	// pve-firewall's management rule accepts SSH and the web UI from the
 	// cluster's local network only, which is not read.
 	CodeLocalOnly = "FIREWALL_PVE_LOCAL_ONLY"
+	// CodePortsBlocked: Enable's firewall would block listening ports
+	// other than SSH's, which it lets through now (others.go); the
+	// finding names them and how to keep one open, and refuses nothing.
+	CodePortsBlocked = "FIREWALL_PORTS_BLOCKED"
+	// CodePortsUnread: the listening sockets were not all read (ss -Htlnp
+	// or ss -Hulnp failed, or printed a line hardn can't read), so which
+	// other ports Enable's firewall would block is not established.
+	CodePortsUnread = "FIREWALL_PORTS_UNREAD"
 )
 
 // Three of the row's Partial details (proposed wording,
@@ -120,7 +128,9 @@ func (Incoming) Applies(detect.Facts) (bool, string) { return true, "" }
 // Check reads pve-firewall on Proxmox VE, firewalld on Rocky Linux and
 // AlmaLinux, and ufw elsewhere; whether the
 // host runs Proxmox VE must be established first, since which firewall is
-// read depends on it. docs/engine/check-firewall.md lists each status line.
+// read depends on it. Off Proxmox VE, in a container, the evidence names the
+// signal that established it (contained). docs/engine/check-firewall.md
+// lists each status line.
 func (Incoming) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
 	onPVE, err := pve.Applies(f.Proxmox)
 	switch {
@@ -129,9 +139,26 @@ func (Incoming) Check(ctx context.Context, sys host.System, f detect.Facts) (eng
 	case onPVE:
 		return checkPVE(ctx, sys, f)
 	case f.Platform.Distro.EL():
-		return checkFirewalld(ctx, sys, f)
+		return contained(f)(checkFirewalld(ctx, sys, f))
 	}
-	return checkUFW(ctx, sys, f)
+	return contained(f)(checkUFW(ctx, sys, f))
+}
+
+// inContainer is whether detect establishes that hardn runs in a container,
+// whose host may filter its traffic too, out of hardn's sight (the
+// maintainer, 2026-11-11; check-firewall.md §2.16). Unknown is not.
+func inContainer(f detect.Facts) bool { return f.Container.Detected == detect.Yes }
+
+// contained returns a status as it is, its evidence ending with "container: "
+// and the signal that fired, in DNS's form, where inContainer holds. The
+// state, detail and findings stay as read: the host's filtering is not read.
+func contained(f detect.Facts) func(engine.Status, error) (engine.Status, error) {
+	return func(st engine.Status, err error) (engine.Status, error) {
+		if inContainer(f) {
+			st.Evidence = append(slices.Clip(st.Evidence), "container: "+f.Container.Signal)
+		}
+		return st, err
+	}
 }
 
 // blocked is CodeSSHBlocked's finding for the listeners of cs.

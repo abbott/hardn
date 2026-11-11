@@ -171,6 +171,8 @@
 
     **`pve.CheckAccount` is not wired:** no change kind of this unit, nor the engine, locks, deletes or expires a password. The first one is the user-management slice's, which pve.md §6 already names; that README item stays open.
 15. **`sshd -T` without `/run/sshd`** (Ubuntu before its first SSH connection since boot) **is refused with the reason** (`Refusal`, code `SSHD_ENV_NO_RUNDIR`, sshd-validate.md §6's code; sentinel `ErrNoRunDir`). `sshd.ReadEffective` and `sshd.Validate` fail with `*sshd.EnvError{EnvPrivsepDir}`. The report says that sshd's listeners are not established without it, and its fix fits how sshd is started: where `ssh.socket` listens, an SSH connection to the host, which starts `ssh.service`, which creates the directory; on `ssh.service`, where the directory is gone while the service is stopped and a connection starts nothing, `systemctl start ssh.service` from the console; on OpenRC, the directory sshd names, made root's and writable by root alone, as sshd requires (sshd-validate.md §3). No other source of the listeners is used: `ss` does not say whose a socket is ([reload.md](../safety/reload.md) §6). Tested: `TestNoRunDir` (each mode), and `TestEngineRefusedBeforeArm`'s row on Ubuntu.
+
+    **`sshd -T` without a host key** (sshd installed and never started, or its keys deleted; exit 1, "no hostkeys available") **is refused with the reason too** (`Refusal`, code `SSHD_ENV_NO_HOSTKEYS`, sentinel `ErrNoHostKeys`; `NoHostKeys`, exported so that `sshchange`'s screen refusal and Run All's port row say the same): `readSSH` wraps `*sshd.EnvError{EnvHostKeys}` in it, so every planner that reads sshd (the SSH changes, ufw's Enable, the clean-up, the migration) refuses in its words. Why: "sshd has no host keys, so hardn can't read its settings" ("sshd's HostKey files aren't there, …" where the configuration has `HostKey` lines, fixed "fix the HostKey lines"). Fix: where detect establishes sshd off (`detect.SSH.Off`), starting it, since keys alone leave its mode unknown (`reload.ErrModeUnknown`) and, on Debian and Ubuntu, `/run/sshd` missing: on OpenRC "run rc-service sshd start", whose init script runs `ssh-keygen -A` before `sshd -t` (the Alpine 3.23 VM's `/etc/init.d/sshd`, lines 39-50, 105, 118); on systemd "run ssh-keygen -A and systemctl start ssh" (`sshd` with `SSHDUnits`), since Debian's and Ubuntu's `ssh.service` makes no keys (its `sshd-keygen.service` is `ConditionFirstBoot=yes`) and EL's `sshd-keygen@.service` is skipped where cloud-init is active (its drop-in), read on the Debian 13, Ubuntu 26.04 and Rocky 10.2 VMs, 2026-11-11; then ", or" removing the server: `apt remove openssh-server` (Debian, Ubuntu), `dnf remove openssh-server` (EL), on Alpine `apk del` with `/etc/apk/world`'s entries that keep sshd installed (`alpine.ServerWorld`: with `openssh` in world, `apk del openssh-server` removes nothing, `apk del --simulate` on the Alpine 3.23 VM), none on Proxmox VE or where world is not read. Elsewhere "run ssh-keygen -A". The words were approved by the maintainer on 2026-11-11 ([check-ssh.md](check-ssh.md) §5). Not run on a VM: whether each fix leaves `sshd -T` readable. Tested: `TestNoHostKeys`, `TestServerWorld`, and `TestEngineRefusedBeforeArm`'s two rows (a change and ufw's Enable).
 16. **The support level** (`detect.Support`) is the engine's gate for every plan, the DNS plans included: closed by `next/p3-engine` (engine.md §2.6).
 
 ### Inputs
@@ -288,10 +290,12 @@ Nothing here has run on Linux or as root, and no change has gone through the eng
 ```go
 package steps // pkg/engine/steps (new)
 
-const CodeListenConfNotInEffect = "SSH_LISTEN_CONF_NOT_IN_EFFECT"; const CodeNoRunDir = "SSHD_ENV_NO_RUNDIR"
+const CodeListenConfNotInEffect = "SSH_LISTEN_CONF_NOT_IN_EFFECT"; const CodeNoRunDir = "SSHD_ENV_NO_RUNDIR"; const CodeNoHostKeys = "SSHD_ENV_NO_HOSTKEYS"
 const CodeMigrateDropped = "SSH_MIGRATE_LINE_DROPPED"                // a finding's
 const ResourceSSHD = "sshd"; const ResourceUFW = "ufw"                // engine.Change.Resources
-var ErrListenConfNotInEffect, ErrNoRunDir error                       // Refusal's, by Code
+var ErrListenConfNotInEffect, ErrNoRunDir, ErrNoHostKeys error        // Refusal's, by Code
+func NoHostKeys(f detect.Facts, remove []string, err error) error      // err, or its host-key Refusal
+func ServerWorld(ctx context.Context, sys host.System, f detect.Facts, err error) []string // what NoHostKeys names for apk del
 var ErrNoWriteStrategy, ErrMigrateFirst, ErrNoNewListener, ErrNotInEffect, ErrChanged, ErrProxmoxRoot error
 type Refusal struct { Code, Why, Fix string; Err error } // Error, Unwrap, Is
 
@@ -316,6 +320,12 @@ var ErrConfigChanged error
 func PlanSave(ctx context.Context, sys host.System, id string, cfg *config.Config, settings []string, after ...string) ([]engine.Change, error) // next/s2-control; a slice, and settings, since next/s2-config-edit
 func Alpine(id string, p alpine.Plan, summary string) (engine.Change, error)
 func PVEKeys(id string, px detect.Proxmox, p pve.KeysPlan, summary string) (engine.Change, error)
+                                                                      // next/alpine-lxc-users: one package's install, moved from Firewall's install.go, its codes and words unchanged
+type Package struct { ID, Name, After, Why string; Resources []string; Community bool }
+func PlanPackage(ctx context.Context, sys host.System, f detect.Facts, p Package) ([]engine.Change, error) // Firewall's Install, Install iproute2; the User control's Install shadow
+func PackageRefusal(tool packages.Tool, name string, community bool, err error) error // PACKAGE_*; community names Alpine's community repository
+func PackageToolRefusal(err error) error                              // PACKAGE_NO_TOOL
+func PackageUndo(argv []string, why string) []revert.Step
 
 package engine  // added: Input.Session revert.Session; Change.Resources []string; Change.Findings []Finding
                 //   var ErrConflict error
@@ -339,7 +349,7 @@ The ids of a planner's changes are `<prefix>/firewall`, `/files`, `/reload` and 
   - a package install (ufw itself) before a lockout-risk change goes in a plan of its own (engine.md §7);
   - hardn's block at the top of an `sshd_config` without an Include, and P-38.
 - **`p3-output`:**
-  - the codes: `ErrListenConfNotInEffect` (`SSH_LISTEN_CONF_NOT_IN_EFFECT`) and `ErrNoRunDir` (`SSHD_ENV_NO_RUNDIR`), which a `Refusal` matches by `errors.Is`, so the registry keeps one mechanism; `ErrNoWriteStrategy`, `ErrMigrateFirst`, `ErrNoNewListener`, `ErrNotInEffect`, `ErrChanged`, `ErrProxmoxRoot`, `engine.ErrConflict`, and `reload.ErrInUse` from `CheckFree`. **Precedence:** a `Refusal` wraps the primitive's refusal (`reload.ErrRestoredListeners`, sshd's `*EnvError`), so one error matches two entries; the registry matches the steps sentinels first, as the more specific (for `/run/sshd` both give `SSHD_ENV_NO_RUNDIR`);
+  - the codes: `ErrListenConfNotInEffect` (`SSH_LISTEN_CONF_NOT_IN_EFFECT`) `ErrNoRunDir` (`SSHD_ENV_NO_RUNDIR`) and `ErrNoHostKeys` (`SSHD_ENV_NO_HOSTKEYS`), which a `Refusal` matches by `errors.Is`, so the registry keeps one mechanism; `ErrNoWriteStrategy`, `ErrMigrateFirst`, `ErrNoNewListener`, `ErrNotInEffect`, `ErrChanged`, `ErrProxmoxRoot`, `engine.ErrConflict`, and `reload.ErrInUse` from `CheckFree`. **Precedence:** a `Refusal` wraps the primitive's refusal (`reload.ErrRestoredListeners`, sshd's `*EnvError`), so one error matches two entries; the registry matches the steps sentinels first, as the more specific (for `/run/sshd` both give `SSHD_ENV_NO_RUNDIR`);
   - `Refusal.Why` and `Fix` shown as the report;
   - the planners' findings, now on `engine.Change.Findings` (§2.23): the renderer, and the codes in the registry;
   - the `--confirm-timeout` flag, through `engine.ConfirmTimeout` (§2.17).

@@ -91,6 +91,8 @@ func fwHosts() []fwHost {
 			note: alp + "ufw is not installed (community repository, ufw.md §3)."},
 		{name: "alpine-stock", label: "Alpine 3.23, stock", about: "No ufw, no ss, no index", host: fwAlpineStock,
 			note: hostFQDN + " runs Alpine 3.23 as a stock VM does (alpine323-vm.log): no ufw, no ss, apk's index empty, so Install refuses."},
+		{name: "alpine-lxc", label: "Alpine 3.23 in LXC", about: "No ufw, in a container", host: fwAlpineLXC,
+			note: hostFQDN + " runs Alpine 3.23 in an LXC container (PID 1's container=lxc), otherwise as alpine-stock: the ufw section ends with the container line (the maintainer, 2026-11-11)."},
 		{name: "alpine-runlevel", label: "Alpine, no runlevel", about: "Active, gone after a reboot", host: fwAlpineActive,
 			note: alp + "ufw active, deny incoming, allowing 22, ENABLED=yes, in no runlevel, so it does not come back after a reboot (ufw.md §6, [I]). v0.3.2 ran rc-update add ufw default. The Firewall row says off after restart."},
 		{name: "unit-off", label: "Service off", about: "Active, gone after a reboot", host: fwWith(ufwSim{incoming: "deny", active: true, enabled: true, unitOff: true, rules: []simRule{{action: "allow", port: "22"}}}),

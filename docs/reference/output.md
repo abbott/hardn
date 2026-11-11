@@ -259,7 +259,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `LOCK_UNAVAILABLE` | 1 | a lock cannot be taken: its directory is not root's alone, the file is not a regular file, or the disk is full |
 | `PLAN_INVALID` | 1 | not a plan its unit's rollback accepts |
 | `SSHD_CONFIG_INVALID` | 1 | sshd rejects the configuration |
-| `SSHD_ENV_NO_HOSTKEYS` | 1 | sshd -t loaded no host key (as without root, or from the configuration's HostKey files) |
+| `SSHD_ENV_NO_HOSTKEYS` | 1 | sshd -t or -T loaded no host key: none made yet, the configuration's HostKey files missing, or run without root |
 | `SSHD_ENV_NO_PRIVSEP_USER` | 1 | sshd's privilege separation user does not exist |
 | `SSHD_ENVIRONMENT` | 1 | sshd cannot check the configuration on this host |
 | `SSHD_UNEXPECTED` | 1 | unexpected sshd result |
@@ -486,6 +486,8 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `FIREWALL_SSH_BLOCKED` | an active firewall refuses new connections to an SSH listener, other than one refused on IPv6 alone while IPv4 gets in: lockout risk, scored critical ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_SSH_UNCHECKED` | the SSH listeners are not established, so whether the firewall lets them through is not either ([check-firewall.md](../engine/check-firewall.md)) |
 | `FIREWALL_BOOT_UNCHECKED` | whether an active ufw starts at the next boot is not read, so the row is not Configured ([check-firewall.md](../engine/check-firewall.md)) |
+| `FIREWALL_PORTS_BLOCKED` | Enable's firewall would block listening ports other than SSH's, which it lets through now: their ports, programs and how to keep one open; hardn adds no rule for them ([control-firewall.md](../engine/control-firewall.md)) |
+| `FIREWALL_PORTS_UNREAD` | the listening sockets were not all read, so which other ports Enable's firewall would block is not established ([control-firewall.md](../engine/control-firewall.md)) |
 | `FIREWALL_PVE_LOCAL_ONLY` | on Proxmox VE no management IP set is written: pve-firewall's management rule accepts SSH and the web UI from the local network only ([check-firewall.md](../engine/check-firewall.md)) |
 | `USERS_NOPASSWD` | a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass) ([check-users.md](../engine/check-users.md)) |
 | `USERS_RULE_NOT_READ` | an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root ([check-users.md](../engine/check-users.md)) |

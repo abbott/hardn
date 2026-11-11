@@ -53,9 +53,6 @@ const (
 	codeFirewalldBootBlock  = "FIREWALLD_BOOT_BLOCKED"
 	codeFirewalldBootUnread = "FIREWALLD_BOOT_UNKNOWN"
 	codeFirewalldZone       = "FIREWALLD_ZONE_NO_SSH"
-	codeKernel              = "PACKAGE_KERNEL"
-	codeLocked              = "PACKAGE_LOCKED"
-	codeNoRepos             = "PACKAGE_NO_REPOS"
 )
 
 // planEL is Plan on Rocky Linux and AlmaLinux: Install, Install iproute2
@@ -99,7 +96,7 @@ func firewalldUnknown(err error) error {
 func installFirewalld(ctx context.Context, sys host.System, f detect.Facts) ([]engine.Change, error) {
 	tool, err := packages.ToolFor(f)
 	if err != nil {
-		return nil, &steps.Refusal{Code: codeNoTool, Why: packages.ErrNoTool.Error(), Err: err}
+		return nil, steps.PackageToolRefusal(err)
 	}
 	switch tri, err := packages.Installed(ctx, sys, tool, ufwPackage); {
 	case err != nil:
@@ -213,7 +210,8 @@ func sshPorts(ctx context.Context, sys host.System, in engine.Input) ([]uint16, 
 // stopped firewalld, one lockout-risk change, its undo a checked plan
 // (plans.FirewalldEnable) journalled before. Running and starting at boot
 // is set: nothing. Running and not starting at boot is refused
-// (ErrRunningNotAtBoot).
+// (ErrRunningNotAtBoot). The change carries the other listening ports
+// firewalld would block (firewalldOthers), which refuse nothing.
 func enableFirewalld(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	st, err := firewalld.Read(ctx, sys)
 	switch {
@@ -248,7 +246,7 @@ func enableFirewalld(ctx context.Context, sys host.System, in engine.Input) ([]e
 		after = "running"
 	}
 	return []engine.Change{{ID: ID + "/firewalld", Summary: "Enable firewalld", Title: "Enable firewalld", Target: "firewalld",
-		StateBefore: "not running", StateAfter: after, Commands: cmds,
+		StateBefore: "not running", StateAfter: after, Commands: cmds, Findings: firewalldOthers(ctx, sys, p, ports),
 		Risk: engine.RiskLockout, Stage: engine.StageFirewall, Resources: []string{steps.ResourceSSHD, steps.ResourceFirewalld},
 		Rollback: engine.Undo{Steps: []revert.Step{step}},
 		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {

@@ -253,6 +253,8 @@ confirmTimeout: "5m"
 
 > [!NOTE]
 > On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.
+>
+> On Alpine, Auto Updates restarts no service. An upgraded service keeps running its old version until it restarts, unless its package restarts it.
 
 ### Rocky, Alma and RHEL
 

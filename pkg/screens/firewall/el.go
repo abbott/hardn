@@ -25,7 +25,7 @@ const (
 // plan is lockout-risk; Disable beside an Enable where firewalld starts at
 // boot.
 func firewalldView(r firewallctl.Reading, status component.StatusList) screen.Firewalld {
-	return screen.Firewalld{Status: status, Rows: firewalldRows(r), First: firewalldFirst(r.First), Risk: risky(r.Plan), DisableBeside: r.DisableBeside}
+	return screen.Firewalld{Status: status, Rows: firewalldRows(r), First: firewalldFirst(r.First), Risk: risky(r.Plan), DisableBeside: r.DisableBeside, Container: r.Container}
 }
 
 // firewalldFirst is item 1's kind from the control's.

@@ -332,6 +332,8 @@ func failed(s detect.SSH, err error) (engine.Status, error) {
 		d = "no sshd_config"
 	case errors.As(err, &env) && env.Kind == sshd.EnvPrivsepDir:
 		d = noRunDir(s, env)
+	case errors.As(err, &env) && env.Kind == sshd.EnvHostKeys:
+		d = noHostKeys(s, env)
 	case errors.Is(err, sshd.ErrConfig):
 		d = "sshd config invalid"
 	}
@@ -364,6 +366,21 @@ func noRunDir(s detect.SSH, env *sshd.EnvError) string {
 		return "sshd not running"
 	}
 	return "can't read"
+}
+
+// noHostKeys is the detail of sshd -T loading no host key (exit 1, "no
+// hostkeys available"; hardn runs as root, so not for want of root): the
+// configuration's own HostKey files missing where it has HostKey lines;
+// sshd off besides where detect establishes it neither started nor set to
+// start (detect.SSH.Off); else no host keys.
+func noHostKeys(s detect.SSH, env *sshd.EnvError) string {
+	switch {
+	case env.HostKeysSet:
+		return "host key files missing"
+	case s.Off():
+		return "sshd off, no host keys"
+	}
+	return "no host keys"
 }
 
 // unknown is an Unknown status with detail, evidence and findings.

@@ -1255,8 +1255,24 @@ func TestUnread(t *testing.T) {
 	missing := &hostfake.Response{Err: fmt.Errorf("host: run sshd: %w", host.ErrNotFound)}
 	stopped := func(f *detect.Facts) { f.SSH.Service.Active = "inactive" }
 	bothDown := func(f *detect.Facts) { f.SSH.Service.Active, f.SSH.Socket.Active = "inactive", "failed" }
+	noKeys := &hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\r\n", ExitCode: 1}
+	offRC := func(f *detect.Facts) { // detect's facts: neither started nor in a runlevel, Mode Unknown
+		f.SSH = detect.SSH{OpenRC: detect.OpenRCService{Started: detect.No, InRunlevel: detect.No}, Err: detect.ErrNoSignal}
+	}
+	offUnits := func(f *detect.Facts) {
+		off := detect.UnitState{Enabled: "disabled", Active: "inactive"}
+		f.SSH = detect.SSH{SSHDUnits: f.SSH.SSHDUnits, Generator: detect.No, Socket: off, Service: off, Err: detect.ErrNoSignal}
+	}
+	enabledDown := func(f *detect.Facts) { f.SSH.Service = detect.UnitState{Enabled: "enabled", Active: "failed"} }
+	hostKey := drops("10-site.conf", "HostKey /etc/ssh/site_host_ed25519_key\n")
 	for _, ctl := range ssh.Controls() {
 		for _, r := range []row{
+			{name: "alpine with sshd off and no host keys", site: site{plat: alpine324(), failT: noKeys, facts: offRC}, state: engine.Unknown, want: "sshd off, no host keys", err: "SSHD_ENV_NO_HOSTKEYS"},
+			{name: "alpine with sshd started and no host keys", site: site{plat: alpine324(), failT: noKeys}, state: engine.Unknown, want: "no host keys", err: "SSHD_ENV_NO_HOSTKEYS"},
+			{name: "debian with both units off and no host keys", site: site{plat: debian13(), failT: noKeys, facts: offUnits}, state: engine.Unknown, want: "sshd off, no host keys", err: "SSHD_ENV_NO_HOSTKEYS"},
+			{name: "debian with ssh.service enabled, failed, and no host keys", site: site{plat: debian13(), failT: noKeys, facts: enabledDown}, state: engine.Unknown, want: "no host keys", err: "SSHD_ENV_NO_HOSTKEYS"},
+			{name: "rocky with the sshd units off and no host keys", site: site{plat: rocky102(), failT: noKeys, facts: offUnits}, state: engine.Unknown, want: "sshd off, no host keys", err: "SSHD_ENV_NO_HOSTKEYS"},
+			{name: "a HostKey line whose file is missing", site: site{plat: debian13(), drops: hostKey, failT: noKeys, facts: offUnits}, state: engine.Unknown, want: "host key files missing", err: "SSHD_ENV_NO_HOSTKEYS"},
 			{name: "ubuntu before its first connection", site: site{plat: ubuntu2604(), failT: noRunDir, facts: stopped}, state: engine.Unknown, want: "sshd not started yet", err: "SSHD_ENV_NO_RUNDIR"},
 			{name: "ubuntu with ssh.socket down too", site: site{plat: ubuntu2604(), failT: noRunDir, facts: bothDown}, state: engine.Unknown, want: "sshd not running", err: "SSHD_ENV_NO_RUNDIR"},
 			{name: "debian with ssh.service stopped", site: site{plat: debian13(), failT: noRunDir, facts: stopped}, state: engine.Unknown, want: "sshd not running", err: "SSHD_ENV_NO_RUNDIR"},

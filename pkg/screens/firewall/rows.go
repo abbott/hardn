@@ -62,7 +62,7 @@ func mainView(r firewallctl.Reading, status component.StatusList, f detect.Facts
 	if r.Proxmox != nil {
 		return v
 	}
-	v.UFW, v.SSH = ufwRows(r, f), sshRows(r)
+	v.UFW, v.SSH, v.Container = ufwRows(r, f), sshRows(r), r.Container
 	if r.State.Installed {
 		v.Rules = ruleRows(r)
 		if len(r.Profiles) > 0 {

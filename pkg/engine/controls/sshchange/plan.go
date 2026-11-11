@@ -50,7 +50,8 @@ const (
 // there is one. Hardn's old files, an Include not first, Proxmox VE's port
 // and the D9 listen.conf are the planner's own sentinels and codes
 // (steps.ErrMigrateFirst, steps.ErrNoWriteStrategy, pve.ErrPortChange,
-// steps.ErrListenConfNotInEffect), /run/sshd missing steps.ErrNoRunDir's.
+// steps.ErrListenConfNotInEffect), /run/sshd missing steps.ErrNoRunDir's,
+// no host keys steps.ErrNoHostKeys's.
 var (
 	// ErrNotRead: sshd -T, or sshd's files, are not read.
 	ErrNotRead = errors.New("sshd's settings are not read, so no SSH change is planned")
@@ -115,13 +116,16 @@ func refuse(code string, sentinel, cause error, words string) error {
 }
 
 // common is why no change can be planned: sshd -T or the files not read
-// (/run/sshd missing in its own words); hardn's old files, but for moving
+// (/run/sshd missing and no host keys in their own words, the latter
+// steps.NoHostKeys'); hardn's old files, but for moving
 // them (migrating); an Include not first. nil when none.
 func (r Reading) common(migrating bool) error {
 	var env *sshd.EnvError
 	switch {
 	case errors.As(r.EffErr, &env) && env.Kind == sshd.EnvPrivsepDir:
 		return refuse(steps.CodeNoRunDir, steps.ErrNoRunDir, r.EffErr, wordsNoRunDir)
+	case errors.As(r.EffErr, &env) && env.Kind == sshd.EnvHostKeys:
+		return steps.NoHostKeys(r.Facts, r.ServerWorld, r.EffErr)
 	case r.EffErr != nil:
 		return refuse(codeNotRead, ErrNotRead, r.EffErr, fmt.Sprintf(wordsNotRead, r.EffErr))
 	case r.FoundErr != nil:

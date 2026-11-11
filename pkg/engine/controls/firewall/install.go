@@ -2,10 +2,6 @@ package firewall
 
 import (
 	"context"
-	"errors"
-	"fmt"
-	"slices"
-	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/steps"
@@ -57,94 +53,19 @@ func installSS(ctx context.Context, sys host.System, f detect.Facts) ([]engine.C
 }
 
 // installPackage is name's install, id ID+suffix, its state after named
-// after, the other new packages after it.
+// after, the other new packages after it (steps.PlanPackage). Alpine keeps
+// ufw in its community repository, iproute2 in main.
 func installPackage(ctx context.Context, sys host.System, f detect.Facts, name, suffix, after string, resources []string) ([]engine.Change, error) {
-	tool, err := packages.ToolFor(f)
-	if err != nil {
-		return nil, &steps.Refusal{Code: codeNoTool, Why: packages.ErrNoTool.Error(), Err: err}
-	}
-	p, err := packages.PlanInstall(ctx, sys, tool, name)
-	if err != nil {
-		return nil, installRefusal(tool, name, err)
-	}
-	if p.Empty() {
-		return nil, nil
-	}
-	title := "Install " + name
-	if also := slices.DeleteFunc(slices.Clone(p.Adds), func(n string) bool { return n == name }); len(also) > 0 {
-		after += ", with " + strings.Join(also, ", ")
-	}
-	return []engine.Change{{ID: ID + suffix, Summary: title, Title: title, Target: name,
-		StateBefore: "not installed", StateAfter: after, Commands: []string{host.FormatArgv(p.Argv)},
-		Risk: engine.RiskPackageInstall, Stage: engine.StagePackages, Resources: resources,
-		Rollback: engine.Undo{Steps: undoSteps(p.Undo)},
-		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			rep, err := packages.Execute(ctx, sys, p)
-			u := engine.Undo{Steps: undoSteps(rep.Undo)}
-			return engine.Ran{Rollback: &u, Detail: fmt.Sprintf("install: verified %v", rep.Installed)}, err
-		}}}, nil
+	return steps.PlanPackage(ctx, sys, f, steps.Package{ID: ID + suffix, Name: name, After: after, Why: installWhy,
+		Resources: resources, Community: name == ufwPackage})
 }
 
 // undoSteps is argv as the journal's step, none for none.
-func undoSteps(argv []string) []revert.Step {
-	if len(argv) == 0 {
-		return nil
-	}
-	return []revert.Step{{Op: revert.OpRun, Argv: slices.Clone(argv), Why: installWhy}}
-}
+func undoSteps(argv []string) []revert.Step { return steps.PackageUndo(argv, installWhy) }
 
 // installRefusal is err, packages.PlanInstall's of package name, as a
-// *steps.Refusal where it has words; any other error as it is. Alpine keeps
-// ufw in its community repository, iproute2 in main.
+// *steps.Refusal where it has words (steps.PackageRefusal); any other error
+// as it is.
 func installRefusal(tool packages.Tool, name string, err error) error {
-	var other *packages.OtherPackagesError
-	switch {
-	case errors.Is(err, packages.ErrNoRepos):
-		return &steps.Refusal{Code: codeNoRepos, Why: "hardn can't install " + name + ": dnf has no enabled repositories",
-			Fix: "register the host (RHEL: subscription-manager or rhc) or enable a repository, then try again", Err: err}
-	case errors.Is(err, packages.ErrNotInRepos) && tool == packages.Apk && name == ufwPackage:
-		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find ufw in apk's package lists",
-			Fix: "check the network and the community repository, run apk update, then try again", Err: err}
-	case errors.Is(err, packages.ErrNotInRepos) && tool == packages.Apk:
-		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find " + name + " in apk's package lists",
-			Fix: "check the network, run apk update, then try again", Err: err}
-	case errors.Is(err, packages.ErrNotInRepos) && tool == packages.Dnf:
-		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find " + name + " in dnf's repositories",
-			Fix: "check the network and the repositories (dnf repolist), then try again", Err: err}
-	case errors.Is(err, packages.ErrNotInRepos):
-		return &steps.Refusal{Code: codeNotInRepos, Why: "hardn can't find " + name + " in apt's package lists",
-			Fix: "run apt-get update, then try again", Err: err}
-	case errors.Is(err, packages.ErrKernel):
-		var k *packages.KernelError
-		errors.As(err, &k)
-		return &steps.Refusal{Code: codeKernel, Why: "Installing " + name + " would also install a new kernel (" + strings.Join(k.Packages, ", ") + ")",
-			Fix: "run dnf upgrade and restart, then try again", Err: err}
-	case errors.Is(err, packages.ErrLocked):
-		return &steps.Refusal{Code: codeLocked, Why: "another dnf is running", Fix: "wait for it to finish, then try again", Err: err}
-	case errors.As(err, &other):
-		return &steps.Refusal{Code: codeOtherPackages, Why: "Installing " + name + " would also change other packages: " + strings.Join(changeNames(other.Changes), ", "),
-			Fix: "install it by hand, then try again", Err: err}
-	}
-	return err
-}
-
-// changeNames are the packages of a simulation's changes, each once: the second
-// word of "Remv x [ver]" and "Upgrading x (ver)", or a change that is a name
-// alone.
-func changeNames(changes []string) []string {
-	var out []string
-	for _, c := range changes {
-		f := strings.Fields(c)
-		if len(f) == 0 {
-			continue
-		}
-		name := f[0]
-		if len(f) > 1 {
-			name = f[1]
-		}
-		if !slices.Contains(out, name) {
-			out = append(out, name)
-		}
-	}
-	return out
+	return steps.PackageRefusal(tool, name, name == ufwPackage, err)
 }

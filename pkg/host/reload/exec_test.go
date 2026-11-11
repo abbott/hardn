@@ -648,6 +648,74 @@ func TestParseBound(t *testing.T) {
 	}
 }
 
+// TestParseListening reads ss -Htlnp's and ss -Hulnp's lines in the form
+// deb13-vm (iproute2 6.15.0), ubuntu26-vm (6.19.0) and rocky10-test-110
+// (6.17.0) printed them on 2026-11-11, the addresses made synthetic: TCP
+// LISTEN and UDP UNCONN, the Process column's users:(("<name>",pid=N,fd=M)),
+// two programs on one socket (ssh.socket's), a padded trailing space, "*",
+// "[::]", "%lo" and "%eth0", a line with no Process column (ss run without
+// root), and lines of another state or that it cannot read.
+func TestParseListening(t *testing.T) {
+	tcp := "LISTEN 0      4096         0.0.0.0:5355 0.0.0.0:* users:((\"systemd-resolve\",pid=62455,fd=12))\n" +
+		"LISTEN 0      4096   127.0.0.53%lo:53   0.0.0.0:* users:((\"systemd-resolve\",pid=62455,fd=21))\n" +
+		"LISTEN 0      4096         0.0.0.0:22 0.0.0.0:* users:((\"sshd\",pid=347637,fd=3),(\"systemd\",pid=1,fd=244))\n" +
+		"LISTEN 0      128             [::]:22      [::]:* users:((\"sshd\",pid=62444,fd=7))            \n" +
+		"LISTEN 0      4096               *:9090       *:* users:((\"systemd\",pid=1,fd=86))\n" +
+		"LISTEN 0      4096         0.0.0.0:8000 0.0.0.0:* users:((\"web server\",pid=4242,fd=5))\n" +
+		"LISTEN 0      4096         0.0.0.0:8080 0.0.0.0:*\n" +
+		"UNCONN 0      0            0.0.0.0:68   0.0.0.0:*\n" +
+		"LISTEN 0      128       [::1:2230           [::]:* users:((\"sshd\",pid=1,fd=3))\n"
+	udp := "UNCONN 0      0              0.0.0.0:5355 0.0.0.0:* users:((\"systemd-resolve\",pid=62455,fd=11))\n" +
+		"UNCONN 0      0      192.0.2.20%eth0:68   0.0.0.0:* users:((\"systemd-network\",pid=593,fd=34))  \n" +
+		"UNCONN 0      0                [::1]:323    [::]:* users:((\"chronyd\",pid=853,fd=5))\n" +
+		"LISTEN 0      4096         0.0.0.0:22 0.0.0.0:*\n" +
+		"UNCONN 0      0              0.0.0.0:0 0.0.0.0:*\n"
+	for _, tc := range []struct {
+		proto, out string
+		want       []string
+		bad        int
+	}{
+		{"tcp", tcp, []string{"tcp 0.0.0.0:5355 systemd-resolve", "tcp 127.0.0.53%lo:53 systemd-resolve", "tcp 0.0.0.0:22 sshd", "tcp [::]:22 sshd",
+			"tcp *:9090 systemd", "tcp 0.0.0.0:8000 web server", "tcp 0.0.0.0:8080 "}, 1},
+		{"udp", udp, []string{"udp 0.0.0.0:5355 systemd-resolve", "udp 192.0.2.20%eth0:68 systemd-network", "udp [::1]:323 chronyd"}, 1},
+	} {
+		socks, bad := reload.ParseListening([]byte(tc.out), tc.proto)
+		var got []string
+		for _, s := range socks {
+			got = append(got, s.Proto+" "+s.String()+" "+s.Process)
+		}
+		if !slices.Equal(got, tc.want) || len(bad) != tc.bad {
+			t.Errorf("%s: %q, bad %q\nwant %q", tc.proto, got, bad, tc.want)
+		}
+	}
+}
+
+// TestReadListening: TCP's table, then UDP's, each its own run; a run
+// that fails is the error, and ss missing is host.ErrNotFound.
+func TestReadListening(t *testing.T) {
+	ctx := context.Background()
+	h := hostfake.New(host.Options{})
+	respond(h, hostfake.Response{Stdout: "LISTEN 0 4096 0.0.0.0:8000 0.0.0.0:* users:((\"vaultwarden\",pid=7,fd=9))\n"}, reload.ListenTCPArgv...)
+	respond(h, hostfake.Response{Stdout: "UNCONN 0 0 0.0.0.0:3478 0.0.0.0:* users:((\"turnserver\",pid=8,fd=3))\nUNCONN 0 0 nowhere 0.0.0.0:*\n"}, reload.ListenUDPArgv...)
+	socks, bad, err := reload.ReadListening(ctx, h)
+	if err != nil || len(socks) != 2 || socks[0].Proto != "tcp" || socks[0].Process != "vaultwarden" || socks[1].Proto != "udp" || socks[1].Port != 3478 || len(bad) != 1 {
+		t.Errorf("%+v, bad %q, %v", socks, bad, err)
+	}
+	checkRuns(t, h, "ss -Htlnp", "ss -Hulnp")
+
+	h = hostfake.New(host.Options{})
+	respond(h, hostfake.Response{}, reload.ListenTCPArgv...)
+	respond(h, hostfake.Response{Stderr: "ss: netlink error\n", ExitCode: 1}, reload.ListenUDPArgv...)
+	if socks, _, err := reload.ReadListening(ctx, h); err == nil || socks != nil {
+		t.Errorf("a failed run: %+v, %v", socks, err)
+	}
+	h = hostfake.New(host.Options{})
+	respond(h, hostfake.Response{Err: host.ErrNotFound}, reload.ListenTCPArgv...)
+	if _, _, err := reload.ReadListening(ctx, h); !errors.Is(err, host.ErrNotFound) {
+		t.Errorf("ss missing: %v", err)
+	}
+}
+
 // TestCovers: the address rules of the hold check (sshd's own lines, which
 // bind :: IPv6-only) and of the bound check (ss's "*" is dual-stack).
 func TestCovers(t *testing.T) {

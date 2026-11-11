@@ -24,7 +24,7 @@ $
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPartly done␛[m          ␛[38;2;129;134;156mSome controls done␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mPort asked␛[m           ␛[38;2;129;134;156msshPort 2230␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mRoot key-only␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m        ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m        ␛[38;2;129;134;156mDNS N/A␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m    ␛[38;2;129;134;156mNothing asked␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m          ␛[38;2;129;134;156mAuto Updates refuses␛[m$
   ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mConfirm pending␛[m      ␛[38;2;129;134;156mA change waits␛[m$
@@ -79,7 +79,7 @@ $
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mPartly done␛[m          ␛[38;2;129;134;156mSome controls done␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mPort asked␛[m           ␛[38;2;129;134;156msshPort 2230␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m         ␛[38;2;129;134;156mRoot key-only␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m        ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m        ␛[38;2;129;134;156mDNS N/A␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m    ␛[38;2;129;134;156mNothing asked␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m          ␛[38;2;129;134;156mAuto Updates refuses␛[m$
   ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mConfirm pending␛[m      ␛[38;2;129;134;156mA change waits␛[m$
@@ -119,7 +119,7 @@ $
    6) Partly done          Some controls done$
    7) Port asked           sshPort 2230$
    8) Proxmox VE 9         Root key-only$
-   9) LXC container        DNS, firewall N/A$
+   9) LXC container        DNS N/A$
   10) Default hardn.yml    Nothing asked$
   11) One refuses          Auto Updates refuses$
   12) Confirm pending      A change waits$
@@ -174,7 +174,7 @@ $
    6) Partly done          Some controls done$
    7) Port asked           sshPort 2230$
    8) Proxmox VE 9         Root key-only$
-   9) LXC container        DNS, firewall N/A$
+   9) LXC container        DNS N/A$
   10) Default hardn.yml    Nothing asked$
   11) One refuses          Auto Updates refuses$
   12) Confirm pending      A change waits$
@@ -224,7 +224,7 @@ $
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mRoot key-only␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m$
-      ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+      ␛[38;2;129;134;156mDNS N/A␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m$
@@ -305,7 +305,7 @@ $
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mProxmox VE 9␛[m$
       ␛[38;2;129;134;156mRoot key-only␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mLXC container␛[m$
-      ␛[38;2;129;134;156mDNS, firewall N/A␛[m$
+      ␛[38;2;129;134;156mDNS N/A␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mDefault hardn.yml␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
   ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mOne refuses␛[m$

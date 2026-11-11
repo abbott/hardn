@@ -37,6 +37,9 @@ const (
 	firewallSectionIfaces   = "Trusted Interfaces"
 
 	firewallNoChange = "hardn reads pve-firewall and doesn't change it: a wrong rule can cut off the web UI and the cluster."
+	// In a container, the last line of ufw's section and firewalld's (the
+	// maintainer, 2026-11-11; proposed words, screen-firewall.md).
+	firewallContainerNote = "The container's host may filter too; hardn can't see it."
 
 	firewallDisableLabel  = "Disable firewall"
 	firewallDisableAbout  = "Stop ufw (not recommended)"
@@ -158,19 +161,23 @@ type Firewall struct {
 	// KeepsReject: Enable leaves the default incoming policy reject, which its
 	// review says.
 	KeepsReject bool
+	// Container: hardn runs in a container, so the section ufw ends with the
+	// muted line that its host may filter traffic too.
+	Container bool
 }
 
 // SubMenu returns ufw's screen: the title bar; the Firewall row; the sections
-// ufw, SSH, Rules, Application Profiles, Trusted Interfaces; item 1 by First,
-// items 2 and 3 where ufw is installed, item 4 where Disable is beside item 1;
-// Return; "Select an option"; "Enter selection". Every section at every height
+// ufw, SSH, Rules, Application Profiles, Trusted Interfaces, ufw's ending with
+// the container line where Container holds; item 1 by First, items 2 and 3
+// where ufw is installed, item 4 where Disable is beside item 1; Return;
+// "Select an option"; "Enter selection". Every section at every height
 // (decision 9).
 func (f Firewall) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(firewallTitle), Status: f.Status, Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem()}}
 	for _, s := range []struct {
 		title string
 		rows  []component.KeyValue
-	}{{firewallSectionUFW, f.UFW}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {firewallSectionProfiles, f.Profiles}, {firewallSectionIfaces, f.Interfaces}} {
+	}{{firewallSectionUFW, containerRows(f.UFW, f.Container)}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {firewallSectionProfiles, f.Profiles}, {firewallSectionIfaces, f.Interfaces}} {
 		if len(s.rows) > 0 {
 			vm.Sections = append(vm.Sections, firewallSection(s.title, s.rows))
 		}
@@ -186,6 +193,15 @@ func (f Firewall) SubMenu() SubMenu {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallDisableItem, Label: firewallDisableLabel, Description: firewallDisableAbout})
 	}
 	return vm
+}
+
+// containerRows are rows, a section's, with the container line, muted, after
+// them where in holds and there are any; a copy, rows unchanged.
+func containerRows(rows []component.KeyValue, in bool) []component.KeyValue {
+	if !in || len(rows) == 0 {
+		return rows
+	}
+	return append(append([]component.KeyValue(nil), rows...), component.KeyValue{Key: firewallContainerNote, State: component.ValueNone})
 }
 
 // firewallSection is a section of rows.

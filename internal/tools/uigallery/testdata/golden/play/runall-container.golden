@@ -14,10 +14,10 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/container␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian13 in an LXC␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontainer: DNS and the firewall are the host's. hardn.yml:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgeorge with a key, port 22, two nameservers, backups on, and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUnattendedUpgrades, enableUfwSshPolicy, configureDns and␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdisableRootSSH true.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontainer: DNS is the host's; the firewall is checked here.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml: george with a key, port 22, two nameservers,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbackups on, and enableUnattendedUpgrades, enableUfwSshPolicy,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigureDns and disableRootSSH true.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -191,10 +191,10 @@ $
 $
 # Info: runall/container$
 # web-01.example.net runs Debian 13. debian13 in an LXC$
-# container: DNS and the firewall are the host's. hardn.yml:$
-# george with a key, port 22, two nameservers, backups on, and$
-# enableUnattendedUpgrades, enableUfwSshPolicy, configureDns and$
-# disableRootSSH true.$
+# container: DNS is the host's; the firewall is checked here.$
+# hardn.yml: george with a key, port 22, two nameservers,$
+# backups on, and enableUnattendedUpgrades, enableUfwSshPolicy,$
+# configureDns and disableRootSSH true.$
 $
 # Run All ######################################################$
 $
@@ -369,10 +369,10 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: runall/container␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. debian13 in an LXC␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontainer: DNS and the firewall are the host's. hardn.yml:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mgeorge with a key, port 22, two nameservers, backups on,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand enableUnattendedUpgrades, enableUfwSshPolicy,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigureDns and disableRootSSH true.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcontainer: DNS is the host's; the firewall is checked␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhere. hardn.yml: george with a key, port 22, two␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnameservers, backups on, and enableUnattendedUpgrades,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156menableUfwSshPolicy, configureDns and disableRootSSH true.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRun All␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $

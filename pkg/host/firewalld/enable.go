@@ -279,6 +279,10 @@ type EnablePlan struct {
 	// its .old (firewalld's writer's copy) wasn't there either.
 	ZoneFile string
 	ZoneOld  bool
+	// zones are Zones' permanent configurations as PlanEnable read them,
+	// and services the ports of each service it read, for Lets.
+	zones    map[string]Zone
+	services map[string][]string
 }
 
 // PlanEnable plans an Enable of firewalld st, stopped, with ports let
@@ -348,11 +352,13 @@ func PlanEnable(ctx context.Context, sys host.System, st State, ports []uint16) 
 		add(nm[c], c)
 	}
 	services := map[string][]string{}
+	p.zones, p.services = map[string]Zone{}, services
 	for _, z := range p.Zones {
 		zc, ok := o.Zones[z]
 		if !ok {
 			return EnablePlan{}, fmt.Errorf("firewalld: zone %s (%s) not listed: %w", z, by[z], ErrUnknown)
 		}
+		p.zones[z] = zc
 		if zc.Target == "ACCEPT" {
 			continue
 		}
@@ -387,11 +393,43 @@ func PlanEnable(ctx context.Context, sys host.System, st State, ports []uint16) 
 	return p, nil
 }
 
+// Lets reports whether firewalld, started as p plans, lets new connections
+// to port of proto ("tcp", "udp") through in some zone of p.Zones: a zone
+// whose target is ACCEPT, a port p adds, or a zone's port or a service's
+// (firewall-offline-cmd --service=<s> --get-ports, each service read once).
+// A zone holding an interface or a source counts, though it lets the port
+// through on those alone. Rich rules, protocols and source ports are not
+// read. A p PlanEnable did not return lets nothing through.
+func (p EnablePlan) Lets(ctx context.Context, sys host.System, port uint16, proto string) (bool, error) {
+	if proto == "tcp" && slices.ContainsFunc(p.Steps, func(s Step) bool { return s.Port == port }) {
+		return true, nil
+	}
+	for _, name := range p.Zones {
+		z, ok := p.zones[name]
+		if !ok {
+			continue
+		}
+		if z.Target == "ACCEPT" {
+			return true, nil
+		}
+		ok, err := offlineAllowsProto(ctx, sys, z, port, proto, p.services)
+		if err != nil || ok {
+			return ok, err
+		}
+	}
+	return false, nil
+}
+
 // offlineAllows reports whether zone z's permanent configuration lets TCP
 // port through by a port or a service's ports (firewall-offline-cmd
 // --service=<s> --get-ports, read once per service into services).
 func offlineAllows(ctx context.Context, sys host.System, z Zone, port uint16, services map[string][]string) (bool, error) {
-	if covers(z.Ports, port) {
+	return offlineAllowsProto(ctx, sys, z, port, "tcp", services)
+}
+
+// offlineAllowsProto is offlineAllows for proto's port.
+func offlineAllowsProto(ctx context.Context, sys host.System, z Zone, port uint16, proto string, services map[string][]string) (bool, error) {
+	if coversProto(z.Ports, port, proto) {
 		return true, nil
 	}
 	for _, svc := range z.Services {
@@ -407,7 +445,7 @@ func offlineAllows(ctx context.Context, sys host.System, z Zone, port uint16, se
 			specs = strings.Fields(string(res.Stdout))
 			services[svc] = specs
 		}
-		if covers(specs, port) {
+		if coversProto(specs, port, proto) {
 			return true, nil
 		}
 	}

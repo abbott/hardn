@@ -285,6 +285,19 @@ func (s SSH) ServiceUnit() string {
 	return SSHServiceUnit
 }
 
+// Off reports whether detect establishes that sshd is neither running nor
+// set to start: on OpenRC, sshd neither started nor in a runlevel; on
+// systemd, the socket and service units (ssh.* or, with SSHDUnits,
+// sshd.*) each neither enabled nor active. Mode is Unknown on such a host
+// (ErrNoSignal), so Off reads these facts, not Mode. A fact not
+// established is not off.
+func (s SSH) Off() bool {
+	if o := s.OpenRC; o.Started == No && o.InRunlevel == No {
+		return true
+	}
+	return s.Socket.IsEnabled() == No && s.Socket.IsActive() == No && s.Service.IsEnabled() == No && s.Service.IsActive() == No
+}
+
 // notFound: systemctl knows no unit of that name.
 const notFound = "not-found"
 
