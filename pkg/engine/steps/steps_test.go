@@ -262,6 +262,99 @@ func TestNoRunDir(t *testing.T) {
 	}
 }
 
+// TestNoHostKeys: sshd -T failing for want of a host key is a report
+// whose fix fits the host: the HostKey lines where the configuration has
+// its own; where sshd is off, starting it in the init system's words (on
+// systemd with ssh-keygen -A first), or removing the server, by World's
+// entries on Alpine and never on Proxmox VE; else ssh-keygen -A. Another
+// error, and none, are as they were.
+func TestNoHostKeys(t *testing.T) {
+	const why = "sshd has no host keys, so hardn can't read its settings"
+	ee := &sshd.EnvError{Kind: sshd.EnvHostKeys, Err: sshd.ErrEnvironment}
+	set := &sshd.EnvError{Kind: sshd.EnvHostKeys, HostKeysSet: true, Err: sshd.ErrEnvironment}
+	off := detect.UnitState{Enabled: "disabled", Active: "inactive"}
+	openRC := func(started, inRunlevel detect.Tri) detect.Facts {
+		return detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlpine}, Init: detect.Init{Kind: detect.OpenRC, Running: detect.Yes},
+			SSH: detect.SSH{OpenRC: detect.OpenRCService{Started: started, InRunlevel: inRunlevel}}}
+	}
+	systemd := func(d detect.Distro, sshdUnits bool, svc detect.UnitState) detect.Facts {
+		return detect.Facts{Platform: detect.Platform{Distro: d}, Init: detect.Init{Kind: detect.Systemd, Running: detect.Yes},
+			SSH: detect.SSH{SSHDUnits: sshdUnits, Socket: off, Service: svc}}
+	}
+	on := detect.UnitState{Enabled: "enabled", Active: "active"}
+	for _, tc := range []struct {
+		name   string
+		f      detect.Facts
+		remove []string
+		err    *sshd.EnvError
+		why    string
+		fix    string
+	}{
+		{"alpine off, openssh in World", openRC(detect.No, detect.No), []string{"openssh", "openssh-server-pam"}, ee, why,
+			"run rc-service sshd start, or apk del openssh openssh-server-pam, then try again"},
+		{"alpine off, World not read", openRC(detect.No, detect.No), nil, ee, why, "run rc-service sshd start, then try again"},
+		{"alpine started", openRC(detect.Yes, detect.Yes), []string{"openssh"}, ee, why, "run ssh-keygen -A, then try again"},
+		{"alpine runlevels not read", openRC(detect.No, detect.Unknown), []string{"openssh"}, ee, why, "run ssh-keygen -A, then try again"},
+		{"debian off", systemd(detect.DistroDebian, false, off), nil, ee, why, "run ssh-keygen -A and systemctl start ssh, or apt remove openssh-server, then try again"},
+		{"ubuntu off", systemd(detect.DistroUbuntu, false, off), nil, ee, why, "run ssh-keygen -A and systemctl start ssh, or apt remove openssh-server, then try again"},
+		{"rocky off", systemd(detect.DistroRocky, true, off), nil, ee, why, "run ssh-keygen -A and systemctl start sshd, or dnf remove openssh-server, then try again"},
+		{"proxmox off: no removal", systemd(detect.DistroProxmox, false, off), nil, ee, why, "run ssh-keygen -A and systemctl start ssh, then try again"},
+		{"debian running", systemd(detect.DistroDebian, false, on), nil, ee, why, "run ssh-keygen -A, then try again"},
+		{"HostKey lines", systemd(detect.DistroDebian, false, off), nil, set, "sshd's HostKey files aren't there, so hardn can't read its settings", "fix the HostKey lines, then try again"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			err := NoHostKeys(tc.f, tc.remove, fmt.Errorf("sshd's effective configuration: %w", tc.err))
+			var r *Refusal
+			if !errors.As(err, &r) || r.Code != CodeNoHostKeys || !errors.Is(err, ErrNoHostKeys) || !errors.Is(err, sshd.ErrEnvironment) ||
+				!strings.Contains(err.Error(), CodeNoHostKeys) || r.Why != tc.why || r.Fix != tc.fix {
+				t.Errorf("NoHostKeys = %#v; want why %q, fix %q", err, tc.why, tc.fix)
+			}
+			if errors.Is(err, ErrNoRunDir) || errors.Is(err, ErrListenConfNotInEffect) {
+				t.Errorf("NoHostKeys = %v: another code's sentinel", err)
+			}
+		})
+	}
+	other := &sshd.EnvError{Kind: sshd.EnvPrivsepDir, Path: sshd.PrivsepDir, Err: sshd.ErrEnvironment}
+	if err := NoHostKeys(openRC(detect.No, detect.No), nil, other); err != error(other) {
+		t.Errorf("another environment error: %v, want it as it was", err)
+	}
+	if err := NoHostKeys(openRC(detect.No, detect.No), nil, nil); err != nil {
+		t.Errorf("no error: %v", err)
+	}
+}
+
+// TestServerWorld: World is read on Alpine alone, and only where sshd is
+// off without host keys of its own configuration's.
+func TestServerWorld(t *testing.T) {
+	ctx := context.Background()
+	h := hostfake.New(host.Options{})
+	h.AddFile(alpine.World, []byte("alpine-base\nopenssh\nopenssh-server-pam\n"), 0o644, 0, 0)
+	f := detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlpine}, Init: detect.Init{Kind: detect.OpenRC, Running: detect.Yes},
+		SSH: detect.SSH{OpenRC: detect.OpenRCService{Started: detect.No, InRunlevel: detect.No}}}
+	ee := &sshd.EnvError{Kind: sshd.EnvHostKeys}
+	if got := ServerWorld(ctx, h, f, fmt.Errorf("x: %w", ee)); !slices.Equal(got, []string{"openssh", "openssh-server-pam"}) {
+		t.Errorf("alpine off: %q", got)
+	}
+	started := f
+	started.SSH.OpenRC.Started = detect.Yes
+	debian := f
+	debian.Platform.Distro = detect.DistroDebian
+	for name, tc := range map[string]struct {
+		f   detect.Facts
+		err error
+	}{
+		"started":       {started, ee},
+		"debian":        {debian, ee},
+		"HostKey lines": {f, &sshd.EnvError{Kind: sshd.EnvHostKeys, HostKeysSet: true}},
+		"another error": {f, &sshd.EnvError{Kind: sshd.EnvPrivsepDir}},
+		"none":          {f, nil},
+	} {
+		if got := ServerWorld(ctx, h, tc.f, tc.err); got != nil {
+			t.Errorf("%s: %q, want nil", name, got)
+		}
+	}
+}
+
 // runOn is what the engine gives a change's Apply: a backup run on sys.
 func runOn(t *testing.T, sys host.System) engine.Run {
 	t.Helper()

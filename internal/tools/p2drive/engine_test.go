@@ -468,6 +468,8 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 					strings.HasPrefix(cmd, "sshd -T")
 			}
 		}, keyOnly(), "open an SSH connection to this host", steps.CodeNoRunDir, steps.ErrNoRunDir},
+		{"sshd -T without host keys", debian13, noHostKeys, keyOnly(), "run ssh-keygen -A, then try again", steps.CodeNoHostKeys, steps.ErrNoHostKeys},
+		{"ufw's enable without host keys", debian13, noHostKeys, ufwEnableControl(), "run ssh-keygen -A, then try again", steps.CodeNoHostKeys, steps.ErrNoHostKeys},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			v := newVM(t)
@@ -494,6 +496,14 @@ func TestEngineRefusedBeforeArm(t *testing.T) {
 				t.Error("the run lock was taken for a refused plan")
 			}
 		})
+	}
+}
+
+// noHostKeys makes sshd -T fail as sshd does without a host key: exit 1,
+// "no hostkeys available".
+func noHostKeys(v *vm) {
+	v.hook = func(cmd string) (hostfake.Response, bool) {
+		return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\r\n", ExitCode: 1}, strings.HasPrefix(cmd, "sshd -T")
 	}
 }
 

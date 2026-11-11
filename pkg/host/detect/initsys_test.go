@@ -433,6 +433,34 @@ func TestUnitState(t *testing.T) {
 	}
 }
 
+// TestSSHOff: sshd is off only where detect establishes it neither started
+// nor set to start: OpenRC's sshd neither started nor in a runlevel, or
+// both systemd units neither enabled nor active; any fact not established,
+// or a unit on, is not off.
+func TestSSHOff(t *testing.T) {
+	off := detect.UnitState{Enabled: "disabled", Active: "inactive"}
+	for _, tt := range []struct {
+		name string
+		ssh  detect.SSH
+		want bool
+	}{
+		{"openrc neither started nor in a runlevel", detect.SSH{OpenRC: detect.OpenRCService{Started: detect.No, InRunlevel: detect.No}}, true},
+		{"openrc started", detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.Yes, InRunlevel: detect.No}}, false},
+		{"openrc in a runlevel", detect.SSH{Mode: detect.SSHOpenRC, OpenRC: detect.OpenRCService{Started: detect.No, InRunlevel: detect.Yes}}, false},
+		{"openrc runlevels not read", detect.SSH{OpenRC: detect.OpenRCService{Started: detect.No}}, false},
+		{"both ssh units off", detect.SSH{Socket: off, Service: off}, true},
+		{"sshd.* units off, ssh.socket not found", detect.SSH{SSHDUnits: true, Socket: detect.UnitState{Enabled: "not-found", Active: "inactive"}, Service: off}, true},
+		{"ssh.service enabled", detect.SSH{Mode: detect.SSHService, Socket: off, Service: detect.UnitState{Enabled: "enabled", Active: "inactive"}}, false},
+		{"ssh.socket active", detect.SSH{Mode: detect.SSHSocket, Socket: detect.UnitState{Enabled: "disabled", Active: "active"}, Service: off}, false},
+		{"ssh.service activating", detect.SSH{Socket: off, Service: detect.UnitState{Enabled: "disabled", Active: "activating"}}, false},
+		{"nothing read", detect.SSH{}, false},
+	} {
+		if got := tt.ssh.Off(); got != tt.want {
+			t.Errorf("%s: Off() = %v, want %v", tt.name, got, tt.want)
+		}
+	}
+}
+
 // matches is errors.Is, with a nil want meaning no error.
 func matches(err, want error) bool {
 	if want == nil {

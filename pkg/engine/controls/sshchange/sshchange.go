@@ -33,6 +33,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/alpine"
@@ -56,6 +57,10 @@ type Reading struct {
 	// (sshd.ReadEffective).
 	Effective sshd.Effective
 	EffErr    error
+	// ServerWorld is, on Alpine where sshd is off without its host keys,
+	// /etc/apk/world's entries that keep sshd installed
+	// (steps.ServerWorld), which the host-key refusal names; nil elsewhere.
+	ServerWorld []string
 	// Found are sshd's files and hardn's old ones (migrate.Find, with
 	// hardn.yml's sshConfigFile); FoundErr why they are not read.
 	Found    migrate.Found
@@ -103,8 +108,10 @@ type Reading struct {
 // (OpenRC's binary on OpenRC), the files (migrate.Find with cfg's
 // sshConfigFile; cfg nil is none), users.Read with getenv (os.Getenv in
 // hardn), the session's line in sshd's log where sess is remote, root's
-// account, on Alpine apk's installed database (Fix), listen.conf and ufw. A read that fails is kept beside what it
-// would have given; Read itself returns no error but ctx's.
+// account, on Alpine apk's installed database (Fix) and, where sshd is off
+// without its host keys, its world file (ServerWorld), listen.conf and ufw.
+// A read that fails is kept beside what it would have given; Read itself
+// returns no error but ctx's.
 func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Config, sess revert.Session, getenv func(string) string) (Reading, error) {
 	r := Reading{Facts: f, Session: sess}
 	if err := ctx.Err(); err != nil {
@@ -117,6 +124,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	if f.SSH.SSHDUnits && r.EffErr == nil {
 		r.EffErr = reload.CheckSysconfig(ctx, sys) // sshd's command line, which sshd -T does not see
 	}
+	r.ServerWorld = steps.ServerWorld(ctx, sys, f, r.EffErr)
 	var file string
 	if cfg != nil {
 		file = cfg.SshConfigFile

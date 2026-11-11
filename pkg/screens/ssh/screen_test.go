@@ -156,6 +156,42 @@ func TestRefusals(t *testing.T) {
 	}
 }
 
+// TestNoHostKeys: where sshd is installed but has no host keys, the three
+// rows say so, Unknown, and items 1, 2 and 3 are refused before asking
+// anything, in the refusal's words for the host (on Alpine, apk del with
+// World's entries that keep sshd installed), writing nothing, live and
+// under plan only.
+func TestNoHostKeys(t *testing.T) {
+	const why = "sshd has no host keys, so hardn can't read its settings. "
+	for host, words := range map[string]string{
+		"no-hostkeys-alpine": why + "Run rc-service sshd start, or apk del openssh openssh-server-pam, then try again.",
+		"no-hostkeys-debian": why + "Run ssh-keygen -A and systemctl start ssh, or apt remove openssh-server, then try again.",
+	} {
+		for _, dryRun := range []bool{false, true} {
+			h := ready(t, host)
+			p := play(h, dryRun, "0")
+			for _, row := range []string{"SSH Login", "SSH Auth", "SSH Port"} {
+				if got := line(p.out, true, row); !strings.HasSuffix(got, " sshd off, no host keys") {
+					t.Errorf("%s: %s row %q, want sshd off, no host keys", host, row, got)
+				}
+			}
+			checkHost(t, host, h)
+			for _, item := range []string{"1", "2", "3"} {
+				h := ready(t, host)
+				n := len(h.Calls())
+				p := play(h, dryRun, item, "0")
+				if p.err != nil || !shows(p.out, words) || asked(p.out) || strings.Contains(p.out, "New SSH port") || p.engines != 1 || len(p.runs) != 0 {
+					t.Errorf("%s on %s, plan only %v: Run = %v, %d engines, %d runs:\n%s", item, host, dryRun, p.err, p.engines, len(p.runs), p.out)
+				}
+				if w := writes(h, n); len(w) > 0 {
+					t.Errorf("%s on %s: wrote %v", item, host, w)
+				}
+				checkHost(t, host, h)
+			}
+		}
+	}
+}
+
 // TestDisallow: Disallow root login on debian13, typed and applied, writes
 // PermitRootLogin no to 00-hardn.conf, and the screen drawn again from a
 // fresh reading offers Allow root key-only; under plan only it stops at

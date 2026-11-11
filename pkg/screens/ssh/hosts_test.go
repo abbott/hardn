@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/alpine"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 )
@@ -105,6 +107,19 @@ func newHost(t *testing.T, name string) *sshHost {
 	case "not-read":
 		h := vm(ubu).sshFile(sshd.DropInDir+"/60-cloudimg-settings.conf", "PasswordAuthentication no\n", 0o644).withLog("publickey", "george", 1)
 		_ = h.Remove(ctx, "/run/sshd")
+		return h
+	case "no-hostkeys-alpine": // sshd installed, never started: OpenRC's sshd neither started nor in a runlevel, no host keys
+		h := alpineVM().withLog("publickey", "george", 1)
+		h.noKeys = true
+		h.plat.facts.SSH = detect.SSH{OpenRC: detect.OpenRCService{Started: detect.No, InRunlevel: detect.No}, Err: detect.ErrNoSignal}
+		h.AddDir("/etc/apk", 0o755, 0, 0)
+		h.AddFile(alpine.World, []byte("alpine-base\ndoas\nopenssh\nopenssh-server-pam\n"), 0o644, 0, 0)
+		return h
+	case "no-hostkeys-debian": // ssh.service and ssh.socket disabled and inactive, no host keys
+		h := vm(deb).withLog("publickey", "george", 1)
+		h.noKeys = true
+		down := detect.UnitState{Enabled: "disabled", Active: "inactive"}
+		h.plat.facts.SSH = detect.SSH{Generator: detect.No, Socket: down, Service: down, Err: detect.ErrNoSignal}
 		return h
 	case "alpine-unfixed":
 		return alpineVM().unfixedSSH().withLog("publickey", "george", 1)

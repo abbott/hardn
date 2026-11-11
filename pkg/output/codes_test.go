@@ -209,6 +209,7 @@ var sentinels = map[string]error{
 	"steps.ErrConfigChanged":          steps.ErrConfigChanged,
 	"steps.ErrListenConfNotInEffect":  steps.ErrListenConfNotInEffect,
 	"steps.ErrMigrateFirst":           steps.ErrMigrateFirst,
+	"steps.ErrNoHostKeys":             steps.ErrNoHostKeys,
 	"steps.ErrNoNewListener":          steps.ErrNoNewListener,
 	"steps.ErrNoRunDir":               steps.ErrNoRunDir,
 	"steps.ErrNoWriteStrategy":        steps.ErrNoWriteStrategy,
@@ -508,6 +509,8 @@ func TestPrecedence(t *testing.T) {
 	privsep := &sshd.EnvError{Kind: sshd.EnvPrivsepDir, Path: "/run/sshd", Err: errors.New("exit status 255")}
 	refusalD9 := &steps.Refusal{Code: steps.CodeListenConfNotInEffect, Why: "why", Fix: "fix", Err: fmt.Errorf("x: %w", reload.ErrRestoredListeners)}
 	refusalRunDir := &steps.Refusal{Code: steps.CodeNoRunDir, Why: "why", Fix: "fix", Err: privsep}
+	noKeys := &sshd.EnvError{Kind: sshd.EnvHostKeys, Err: errors.New("exit status 1")}
+	refusalNoKeys := &steps.Refusal{Code: steps.CodeNoHostKeys, Why: "why", Fix: "fix", Err: fmt.Errorf("sshd's effective configuration: %w", noKeys)}
 	window := fmt.Errorf("%w (stopped): %w", engine.ErrWindow, context.DeadlineExceeded)
 	planErr := (&engine.Plan{Refused: []error{fmt.Errorf("engine: %w", engine.ErrUnsupported), refusalD9}}).Err()
 	for _, tc := range []struct {
@@ -520,6 +523,8 @@ func TestPrecedence(t *testing.T) {
 		{"/run/sshd through steps", refusalRunDir, "SSHD_ENV_NO_RUNDIR"},
 		{"/run/sshd from sshd.Validate", privsep, "SSHD_ENV_NO_RUNDIR"},
 		{"no host keys", &sshd.EnvError{Kind: sshd.EnvHostKeys, HostKeysSet: true}, "SSHD_ENV_NO_HOSTKEYS"},
+		{"no host keys through steps", refusalNoKeys, "SSHD_ENV_NO_HOSTKEYS"},
+		{"no host keys, the refusal alone", &steps.Refusal{Code: steps.CodeNoHostKeys, Why: "why"}, "SSHD_ENV_NO_HOSTKEYS"},
 		{"no privsep user", &sshd.EnvError{Kind: sshd.EnvPrivsepUser, User: "sshd"}, "SSHD_ENV_NO_PRIVSEP_USER"},
 		{"another environment error", &sshd.EnvError{Err: errors.New("x")}, "SSHD_ENVIRONMENT"},
 		{"a config sshd rejects", &sshd.ConfigError{Err: errors.New("exit status 255")}, "SSHD_CONFIG_INVALID"},
@@ -773,7 +778,7 @@ func TestExitStatuses(t *testing.T) {
 	if prompt.ExitInterrupted != output.ExitInterrupted {
 		t.Errorf("pkg/ui/prompt ExitInterrupted %d", prompt.ExitInterrupted)
 	}
-	if steps.CodeNoRunDir != "SSHD_ENV_NO_RUNDIR" || steps.CodeListenConfNotInEffect != "SSH_LISTEN_CONF_NOT_IN_EFFECT" {
+	if steps.CodeNoRunDir != "SSHD_ENV_NO_RUNDIR" || steps.CodeListenConfNotInEffect != "SSH_LISTEN_CONF_NOT_IN_EFFECT" || steps.CodeNoHostKeys != "SSHD_ENV_NO_HOSTKEYS" {
 		t.Error("steps' codes changed")
 	}
 }

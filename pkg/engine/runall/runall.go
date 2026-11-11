@@ -450,11 +450,12 @@ func refused(rw *Row, err error) {
 
 // port is the SSH Port row: as asked where sshd listens on sshPort, else
 // SSH Login's to change (decision 3); refused where sshd cannot be read
-// (sshd -T's error, the reading's EffErr).
+// (sshd -T's error, the reading's EffErr; no host keys in the words of
+// SSH Login's refusal, steps.NoHostKeys).
 func (r Reading) port(ctx context.Context, in Input, want uint16, rw *Row) {
 	sr, err := sshchange.Read(ctx, in.System, in.Facts, in.Config, in.Session, in.Getenv)
 	if err == nil {
-		err = sr.EffErr
+		err = steps.NoHostKeys(in.Facts, sr.ServerWorld, sr.EffErr)
 	}
 	switch {
 	case err != nil:

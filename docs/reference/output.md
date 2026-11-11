@@ -259,7 +259,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `LOCK_UNAVAILABLE` | 1 | a lock cannot be taken: its directory is not root's alone, the file is not a regular file, or the disk is full |
 | `PLAN_INVALID` | 1 | not a plan its unit's rollback accepts |
 | `SSHD_CONFIG_INVALID` | 1 | sshd rejects the configuration |
-| `SSHD_ENV_NO_HOSTKEYS` | 1 | sshd -t loaded no host key (as without root, or from the configuration's HostKey files) |
+| `SSHD_ENV_NO_HOSTKEYS` | 1 | sshd -t or -T loaded no host key: none made yet, the configuration's HostKey files missing, or run without root |
 | `SSHD_ENV_NO_PRIVSEP_USER` | 1 | sshd's privilege separation user does not exist |
 | `SSHD_ENVIRONMENT` | 1 | sshd cannot check the configuration on this host |
 | `SSHD_UNEXPECTED` | 1 | unexpected sshd result |

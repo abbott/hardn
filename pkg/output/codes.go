@@ -259,7 +259,10 @@ var errorCodes = []Entry{
 
 	// sshd (pkg/host/sshd, pkg/host/sshd/migrate).
 	is("SSHD_CONFIG_INVALID", sshd.ErrConfig),
-	typed("SSHD_ENV_NO_HOSTKEYS", "sshd -t loaded no host key (as without root, or from the configuration's HostKey files)", envKind(sshd.EnvHostKeys)),
+	typed(steps.CodeNoHostKeys, "sshd -t or -T loaded no host key: none made yet, the configuration's HostKey files missing, or run without root",
+		func(err error) bool {
+			return errors.Is(err, steps.ErrNoHostKeys) || envKind(sshd.EnvHostKeys)(err)
+		}),
 	typed("SSHD_ENV_NO_PRIVSEP_USER", "sshd's privilege separation user does not exist", envKind(sshd.EnvPrivsepUser)),
 	is("SSHD_ENVIRONMENT", sshd.ErrEnvironment),
 	is("SSHD_UNEXPECTED", sshd.ErrUnexpected),
