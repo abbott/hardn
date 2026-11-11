@@ -138,7 +138,7 @@ func TestRefusals(t *testing.T) {
 		m := newHost(t, host)
 		n := len(m.f.Calls())
 		p := play(m, false, "1", "0")
-		if p.err != nil || p.engines != 0 || asked(p.out) || !strings.Contains(p.out[strings.Index(p.out, "Enter your choice"):], "is unavailable.") {
+		if p.err != nil || p.engines != 0 || asked(p.out) || !strings.Contains(p.out[strings.Index(p.out, "Option ["):], "is unavailable.") {
 			t.Errorf("%s: Run = %v, %d engines:\n%s", host, p.err, p.engines, p.out)
 		}
 		if wr := writes(m, n); len(wr) > 0 {
@@ -473,7 +473,7 @@ func drawn(out string) []int {
 	start := 0
 	lines := strings.Split(out, "\n")
 	for i, l := range lines {
-		if strings.Contains(l, " or q]:") && strings.Contains(l, "Enter your choice") {
+		if strings.Contains(l, " or q]:") && strings.Contains(l, "Option [") {
 			for start < i && strings.TrimSpace(lines[start]) == "" {
 				start++
 			}

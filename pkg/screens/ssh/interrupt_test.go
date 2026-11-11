@@ -31,7 +31,7 @@ func TestInterrupt(t *testing.T) {
 	for _, tt := range []struct {
 		host, lines, at string
 	}{
-		{"debian13", "", "Enter your choice"}, {"debian13", "3\n", "New SSH port"}, {"debian13", "1\n", "Type the hostname"},
+		{"debian13", "", "Option ["}, {"debian13", "3\n", "New SSH port"}, {"debian13", "1\n", "Type the hostname"},
 		{"pve9", "2\n", "Type the hostname"}, {"legacy-main", "4\n", "Type the hostname"},
 	} {
 		h := ready(t, tt.host)

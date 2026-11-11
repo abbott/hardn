@@ -17,7 +17,7 @@ import (
 // and runs the items (docs/engine/screen-firewall.md).
 
 // The screen's words: origin/main's titles, labels and "Install UFW"; Backup's
-// heading and prompt (fixtureHeading, mainPrompt); the rest decided with
+// heading and prompt (fixtureHeading, menuPrompt); the rest decided with
 // decision 10 (gallery-firewall.md §6), but the sub-screen's item descriptions
 // and the review's "Package", which are the adopted mocks' and proposed
 // (screen-firewall.md).
@@ -170,10 +170,10 @@ type Firewall struct {
 // ufw, SSH, Rules, Application Profiles, Trusted Interfaces, ufw's ending with
 // the container line where Container holds; item 1 by First, items 2 and 3
 // where ufw is installed, item 4 where Disable is beside item 1; Return;
-// "Select an option"; "Enter selection". Every section at every height
+// "Select an option"; "Option". Every section at every height
 // (decision 9).
 func (f Firewall) SubMenu() SubMenu {
-	vm := SubMenu{Title: trail(firewallTitle), Status: f.Status, Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem()}}
+	vm := SubMenu{Title: trail(firewallTitle), Status: f.Status, Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	for _, s := range []struct {
 		title string
 		rows  []component.KeyValue
@@ -283,7 +283,7 @@ type FirewallPVE struct {
 func (f FirewallPVE) SubMenu() SubMenu {
 	rows := append(append([]component.KeyValue(nil), f.Rows...), component.KeyValue{Key: firewallNoChange, State: component.ValueNone})
 	return SubMenu{Title: trail(firewallPVETitle), Status: f.Status, Sections: []Section{firewallSection(firewallSectionPVE, rows)},
-		Menu: component.Menu{Exit: returnItem()}, Prompt: mainPrompt}
+		Menu: component.Menu{Exit: returnItem()}, Prompt: menuPrompt}
 }
 
 // FirewallProfiles is the application profiles' screen's reading of hardn.yml
@@ -303,7 +303,7 @@ type FirewallProfiles struct {
 // any profile Remove and Apply; Return.
 func (f FirewallProfiles) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(firewallTitle, firewallProfilesTitle), Sections: []Section{firewallSection(firewallSectionProfiles, f.Rows)},
-		Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem(),
+		Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem(),
 			Items: []component.MenuItem{{Key: FirewallAddItem, Label: firewallAddLabel, Description: firewallAddAbout}}}}
 	if f.Any {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallRemoveItem, Label: firewallRemoveLabel, Description: firewallRemoveAbout},
@@ -376,7 +376,7 @@ type FirewallInterfaces struct {
 // profiles' screen's.
 func (f FirewallInterfaces) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(firewallTitle, firewallInterfacesTitle), Sections: []Section{firewallSection(firewallSectionIfaces, f.Rows)},
-		Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem(),
+		Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem(),
 			Items: []component.MenuItem{{Key: FirewallAddItem, Label: firewallAddIfaceLabel, Description: firewallAddIfaceAbout}}}}
 	if f.Any {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallRemoveItem, Label: firewallRemoveIfaceLabel, Description: firewallRemoveIfaceAbout},

@@ -303,7 +303,7 @@ var sectionHeader = regexp.MustCompile(`(?m)^  \S.*? -+$`)
 func screens(out, title string) []string {
 	var got []string
 	for _, part := range strings.Split(out, "# "+title+" #")[1:] {
-		end := strings.Index(part, "> Enter selection")
+		end := strings.Index(part, "> Option")
 		if end < 0 {
 			end = len(part)
 		}

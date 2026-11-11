@@ -226,7 +226,7 @@ func TestHostname(t *testing.T) {
 			t.Errorf("%s: Run = %v:\n%s", name, p.err, p.out)
 		}
 		if name == "debian13" {
-			chosen := p.out[strings.Index(p.out, "Enter your choice"):]
+			chosen := p.out[strings.Index(p.out, "Option ["):]
 			i := strings.Index(chosen, cantConfirm)
 			if i < 0 {
 				i = len(chosen)

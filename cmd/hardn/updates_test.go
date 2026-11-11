@@ -142,7 +142,7 @@ func TestUpdatesHook(t *testing.T) {
 		t.Fatalf("the Auto Updates item, Disable = %v; screen:\n%s", err, s.out.String())
 	}
 	out := stripANSI(s.out.String())
-	if first, _, _ := strings.Cut(out, "Enter your choice"); !strings.Contains(first, "apk-cron") || !strings.Contains(first, "crond") {
+	if first, _, _ := strings.Cut(out, "Option ["); !strings.Contains(first, "apk-cron") || !strings.Contains(first, "crond") {
 		t.Errorf("the first screen does not draw Alpine's rows from the facts detected:\n%s", first)
 	}
 	if w := inOrder(out, "Auto Updates", "Enable automatic updates", "Turn automatic updates on?", "Operation Successful",

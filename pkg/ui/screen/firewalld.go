@@ -79,9 +79,9 @@ type Firewalld struct {
 // SubMenu returns firewalld's screen: the title bar; the Firewall row; the
 // section firewalld, ending with the container line where Container holds;
 // item 1 by First, item 2 where Disable is beside it; Return; "Select an
-// option"; "Enter selection".
+// option"; "Option".
 func (f Firewalld) SubMenu() SubMenu {
-	vm := SubMenu{Title: trail(firewalldTitle), Status: f.Status, Heading: fixtureHeading, Prompt: mainPrompt, Menu: component.Menu{Exit: returnItem()}}
+	vm := SubMenu{Title: trail(firewalldTitle), Status: f.Status, Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	if len(f.Rows) > 0 {
 		vm.Sections = append(vm.Sections, firewallSection(firewalldSection, containerRows(f.Rows, f.Container)))
 	}

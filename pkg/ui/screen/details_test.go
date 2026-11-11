@@ -59,7 +59,7 @@ func TestSystemDetailsScreen(t *testing.T) {
 	for _, s := range sub.Sections {
 		got = append(got, s.Header.Title)
 	}
-	if !slices.Equal(got, titles) || sub.Title.Title != "System Details" || sub.Heading != "Select an option" || sub.Prompt != "Enter selection" {
+	if !slices.Equal(got, titles) || sub.Title.Title != "System Details" || sub.Heading != "Select an option" || sub.Prompt != "Option" {
 		t.Errorf("sections %q, title %q, heading %q, prompt %q", got, sub.Title.Title, sub.Heading, sub.Prompt)
 	}
 	want := []component.MenuItem{{Key: SystemDetailsRefreshItem, Label: "Refresh", Description: "Read the host again"}}
@@ -74,7 +74,7 @@ func TestSystemDetailsScreen(t *testing.T) {
 				t.Errorf("80x%d, unicode %t: %d lines, the last %q", rows, unicode, len(lines), lines[len(lines)-1])
 			}
 			report := sdDebian.Report(c)
-			if l := drawn(report); len(l) != 36 || strings.Contains(report, "Refresh") || strings.Contains(report, "Enter selection") {
+			if l := drawn(report); len(l) != 36 || strings.Contains(report, "Refresh") || strings.Contains(report, "Option [") {
 				t.Errorf("80x%d, unicode %t: the report, %d lines:\n%s", rows, unicode, len(l), ansi.Strip(report))
 			}
 		}
@@ -148,7 +148,7 @@ func TestLogsStates(t *testing.T) {
 			[]component.KeyValue{path, {Key: "Can't read it: is a directory", State: component.ValueWarn}}, []component.MenuItem{refresh("1")}, ""},
 	} {
 		sub := tt.l.SubMenu(plainAt(40, true))
-		if sub.Title.Title != "Logs" || sub.Heading != "Select an option" || sub.Prompt != "Enter selection" || sub.Menu.Exit.Label != "Return" {
+		if sub.Title.Title != "Logs" || sub.Heading != "Select an option" || sub.Prompt != "Option" || sub.Menu.Exit.Label != "Return" {
 			t.Errorf("%s: %+v", tt.name, sub)
 		}
 		if got := sub.Sections[0]; got.Header.Title != "File" || !slices.Equal(got.Rows.Items, tt.rows) {
@@ -248,7 +248,7 @@ func TestLogsTerminal(t *testing.T) {
 			if got := len(drawn(s)); got != rows-logsShellRows {
 				t.Errorf("%dx%d: %d lines, want %d", width, rows, got, rows-logsShellRows)
 			}
-			if strings.Contains(s, "Open") || strings.Contains(s, "Enter selection") {
+			if strings.Contains(s, "Open") || strings.Contains(s, "Option [") {
 				t.Errorf("%dx%d: a menu:\n%s", width, rows, ansi.Strip(s))
 			}
 		}

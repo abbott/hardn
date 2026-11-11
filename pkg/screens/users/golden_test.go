@@ -14,7 +14,7 @@ import (
 
 // TestScreenGoldens pins the screen on every host of usrHosts, opened and
 // left with 0, on the core set: its drawn rows, its words and its items;
-// and on debian13 Select a user, george's screen and george's keys. The
+// and on debian13 the user list, george's screen and george's keys. The
 // files are testdata/golden/screen/<host>.golden.
 func TestScreenGoldens(t *testing.T) {
 	type golden struct {

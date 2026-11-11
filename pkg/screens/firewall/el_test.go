@@ -154,7 +154,7 @@ func TestELRefusedBeforeAsking(t *testing.T) {
 		if p.err != nil || p.unread != 0 || len(p.runs) != 0 || len(elChanges(h, n)) > 0 {
 			t.Fatalf("%s: Run = %v, %d unread, runs %+v, ran %q:\n%s", tc.host, p.err, p.unread, p.runs, elChanges(h, n), p.out)
 		}
-		if w := inOrder(p.out, "Enter selection", "Warning", tc.words, "Firewall Configuration #"); w != "" {
+		if w := inOrder(p.out, "Option [", "Warning", tc.words, "Firewall Configuration #"); w != "" {
 			t.Errorf("%s: %q not shown after what came before it:\n%s", tc.host, w, p.out)
 		}
 		for _, not := range []string{tc.review, "[y/N", "Operation Failed", "To go on"} {

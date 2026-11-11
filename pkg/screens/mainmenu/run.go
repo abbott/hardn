@@ -91,11 +91,11 @@ type Options struct {
 	Out io.Writer
 }
 
-// The main menu's words on its layout: origin/main's heading and prompt,
-// unchanged (refactor plan slice 2b, decision 5; P-29 (a) still open).
+// The main menu's words on its layout: origin/main's heading (refactor
+// plan slice 2b, decision 5) and every menu's prompt (P-29 (a)).
 const (
 	mainHeading = "Select an option"
-	mainPrompt  = "Enter selection"
+	mainPrompt  = "Option"
 )
 
 // errAgain ends a pass of the main menu once an item's screen has
@@ -106,7 +106,7 @@ var errAgain = errors.New("mainmenu: the main menu again")
 // Run runs the main menu until the user leaves it. The main menu is
 // pkg/ui/screen's main-menu layout in its full form (refactor plan slice
 // 2b): the status blocks (Options.Status), "Select an option" with the mode
-// indicator, the items (items), and "Enter selection" with its hint
+// indicator, the items (items), and "Option" with its hint
 // generated from them, asked through Options.Input. The screen is cleared
 // as the main menu starts, on a terminal alone (term.Env.Clear), and not
 // when hardn.yml warned (Options.Warned); each item's screen opens on a

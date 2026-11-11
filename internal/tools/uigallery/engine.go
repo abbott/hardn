@@ -384,7 +384,7 @@ func scenarioMenu() screen.SubMenu {
 		Title:   component.TitleBar{Title: "Engine scenarios"},
 		Heading: "Select a scenario",
 		Menu:    component.Menu{Items: items, Exit: component.MenuItem{Key: "0", Label: "Return"}},
-		Prompt:  "Enter your choice",
+		Prompt:  "Option",
 	}
 }
 

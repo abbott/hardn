@@ -433,7 +433,7 @@ type boundHosts struct {
 // hostsMenu is the sub-menu layout, an item per host fill adds, bound to
 // its action, as the menus of the Environment and Backup hosts are.
 func hostsMenu(title string, fill func(add func(label, about string, action func() error))) boundHosts {
-	m := boundHosts{vm: screen.SubMenu{Title: component.TitleBar{Title: title}, Heading: "Select a host", Prompt: "Enter your choice"}}
+	m := boundHosts{vm: screen.SubMenu{Title: component.TitleBar{Title: title}, Heading: "Select an option", Prompt: "Option"}}
 	exit := component.MenuItem{Key: "0", Label: "Return"}
 	m.menu.Exit = exit
 	var items []component.MenuItem

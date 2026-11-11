@@ -250,7 +250,7 @@ func TestBackupScreenSignals(t *testing.T) {
 			if strings.Count(out, "Check the log file at "+output.LegacyLogPath) != 2 {
 				t.Errorf("the failures' reports do not each name %s:\n%s", output.LegacyLogPath, out)
 			}
-			if last := out[strings.LastIndex(out, "# Backup Settings #"):]; !strings.Contains(last, "Backup State         Enabled") || !strings.HasSuffix(strings.TrimRight(last, " \n"), "Enter selection [0-4 or q]: 0") {
+			if last := out[strings.LastIndex(out, "# Backup Settings #"):]; !strings.Contains(last, "Backup State         Enabled") || !strings.HasSuffix(strings.TrimRight(last, " \n"), "Option [0-4 or q]: 0") {
 				t.Errorf("the screen did not go on after the signal, backups on:\n%s", last)
 			}
 			if got := h.content(dnsTestYML); got != yml || !cfg.EnableBackups {

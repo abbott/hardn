@@ -31,7 +31,7 @@ func TestInterrupt(t *testing.T) {
 	for _, tt := range []struct {
 		host, lines, at string
 	}{
-		{hostDefault, "", "Enter selection"}, {hostDefault, "2\n", "Enter new backup path"}, {hostRuns, "4\n", "Select a run"},
+		{hostDefault, "", "Option ["}, {hostDefault, "2\n", "Enter new backup path"}, {hostRuns, "4\n", "1) 2026-10-19 14:30"},
 	} {
 		h, cfg := newHost(t, tt.host)
 		n := len(h.Calls())

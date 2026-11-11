@@ -41,4 +41,4 @@ $
 $
    \x1b[1;38;5;102m0)\x1b[m \x1b[38;5;102mExit\x1b[m                 \x1b[38;5;102mq to quit\x1b[m$
 $
-    \x1b[1;38;5;102m❯\x1b[m \x1b[1;38;5;102mEnter selection\x1b[m \x1b[38;5;102m[0-10 or q]:\x1b[m $
+    \x1b[1;38;5;102m❯\x1b[m \x1b[1;38;5;102mOption\x1b[m \x1b[38;5;102m[0-10 or q]:\x1b[m $

@@ -46,7 +46,7 @@ func (d SystemDetails) sections() []Section {
 
 // SubMenu returns the screen: the title bar, the report whole, its top scrolling
 // off a short terminal (decision 4 (a)), one form at every height; item 1,
-// Refresh; Return; "Select an option"; "Enter selection". No Export item
+// Refresh; Return; "Select an option"; "Option". No Export item
 // (decision 5 (a)), and no pause: the screen ends at a menu (P-28 (a), for this
 // screen alone). Plan only draws the same: no sub-menu shows the mode.
 func (d SystemDetails) SubMenu() SubMenu {
@@ -57,7 +57,7 @@ func (d SystemDetails) SubMenu() SubMenu {
 		Menu: component.Menu{Items: []component.MenuItem{
 			{Key: SystemDetailsRefreshItem, Label: sdRefresh, Description: sdRefreshAbout},
 		}, Exit: returnItem()},
-		Prompt: mainPrompt,
+		Prompt: menuPrompt,
 	}
 }
 

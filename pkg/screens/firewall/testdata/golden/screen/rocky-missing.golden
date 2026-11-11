@@ -17,7 +17,7 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -35,7 +35,7 @@ $
 $
    0) Return$
 $
-    > Enter selection [0-1 or q]: 0$
+    > Option [0-1 or q]: 0$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -56,5 +56,5 @@ $
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mEnter selection␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $

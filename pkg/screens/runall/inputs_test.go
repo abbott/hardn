@@ -20,7 +20,7 @@ import (
 )
 
 // drawn is what out showed before the first choice was read.
-func drawn(out string) string { return out[:strings.Index(out, "Enter your choice")] }
+func drawn(out string) string { return out[:strings.Index(out, "Option [")] }
 
 // TestReadAtTheChoice: Apply all acts on the host as it is when 1 is read,
 // not as it was drawn. A change journalled since says the planner's

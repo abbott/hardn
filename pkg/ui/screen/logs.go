@@ -170,7 +170,7 @@ func (l Logs) items() []component.MenuItem {
 // SubMenu returns the screen for c: the title bar; "File", its rows by State; with
 // lines, "Last N of M lines", "All N lines" or "1 line" over as many of the last
 // lines as c's height holds under the screen's other blocks (decision 8 (a)); Open
-// where a pager was found, Refresh; Return; "Select an option"; "Enter selection".
+// where a pager was found, Refresh; Return; "Select an option"; "Option".
 // No pause: the screen ends at a menu (P-28 (a), for this screen alone). Plan only
 // draws the same: no sub-menu shows the mode.
 func (l Logs) SubMenu(c component.Ctx) SubMenu {
@@ -179,7 +179,7 @@ func (l Logs) SubMenu(c component.Ctx) SubMenu {
 		Sections: []Section{l.fileSection()},
 		Heading:  fixtureHeading,
 		Menu:     component.Menu{Items: l.items(), Exit: returnItem()},
-		Prompt:   mainPrompt,
+		Prompt:   menuPrompt,
 	}
 	if l.State == LogsLines {
 		vm.Sections = append(vm.Sections, l.tail(c, c.Env.Height-lines(vm.Render(c))-tailChrome))

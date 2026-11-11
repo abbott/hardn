@@ -10,16 +10,17 @@ import (
 )
 
 // The fixtures' shared words: the header's, the menu heading and the two
-// menu prompts, whose choice P-29 (a) puts to the maintainer.
+// menu prompts, hardn's and Figma's frames' (P-29 (a)).
 const (
 	fixtureVersion = "v0.4.0"
 	fixtureURL     = "https://github.com/abbott/hardn"
 	fixtureHeading = "Select an option"
-	// mainPrompt is origin/main's menu prompt (pkg/style style.go:668),
-	// the baseline for the main menu's words.
-	mainPrompt = "Enter selection"
+	// menuPrompt is every menu's prompt label, and a form choice's (P-29
+	// (a), decided 2026-11-11): "Option", under a heading that is
+	// fixtureHeading wherever hardn draws a menu.
+	menuPrompt = "Option"
 	// figmaPrompt is the prompt Figma's menu frames end with, kept where
-	// a fixture draws a sub-menu frame as Figma fills it.
+	// a fixture draws a frame as Figma fills it (frames.go).
 	figmaPrompt = "Enter your choice"
 )
 
@@ -43,8 +44,8 @@ func fixtureHeader() component.Header {
 // in Dry-Run, which hardn removed (refactor plan slice 2b, decision 1),
 // and in item 8, "Keep HARDN_CONFIG" where Figma and origin/main have
 // "Configure environment variable" (slice 9, decision 7 (a), P-07 (c)). The Exit item says "q to quit" (DEV-030),
-// and the prompt is origin/main's "Enter selection" where Figma's says
-// "Enter your choice" (P-29 (a)).
+// and the prompt is "Option" where Figma's says "Enter your choice"
+// (P-29 (a)).
 func MainMenuFixture() MainMenu {
 	configured := func(label, detail string) component.StatusRow {
 		return component.StatusRow{Label: label, State: component.StatusConfigured, Detail: detail}
@@ -75,7 +76,7 @@ func MainMenuFixture() MainMenu {
 			{Key: "9", Label: "System Details", Description: "View system information"},
 			{Key: "10", Label: "Logs", Description: "View log file"},
 		}, Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}},
-		Prompt: mainPrompt,
+		Prompt: menuPrompt,
 	}
 }
 

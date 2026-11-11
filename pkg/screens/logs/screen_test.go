@@ -107,7 +107,7 @@ func TestHeights(t *testing.T) {
 			t.Errorf("80x%d: %d lines:\n%s", tt.rows, len(lines), p.out)
 		}
 		for _, l := range lines {
-			if len([]rune(l)) > 64 && !strings.Contains(l, "Enter selection") {
+			if len([]rune(l)) > 64 && !strings.Contains(l, "Option [") {
 				t.Errorf("80x%d: a line past the content width: %q", tt.rows, l)
 			}
 		}
@@ -250,7 +250,7 @@ func TestOpenWordsStayVisible(t *testing.T) {
 		}
 		p := playWith(h, terminal(rows), logs.Options{Term: "xterm-256color"}, "1", "0")
 		out := strip(p.out)
-		prompts := strings.LastIndex(out, "Enter selection")
+		prompts := strings.LastIndex(out, "Option [")
 		words := strings.LastIndex(out, "exit status 2")
 		if p.err != nil || prompts < 0 || words < 0 {
 			t.Fatalf("%d rows: Run = %v:\n%s", rows, p.err, out)
@@ -506,7 +506,7 @@ func TestPrintTerminal(t *testing.T) {
 		if got := strings.Count(plain, "\n"); got > rows-2 {
 			t.Errorf("%d rows: %d lines, no room for the shell:\n%s", rows, got, plain)
 		}
-		if !strings.Contains(s, "\x1b[") || !strings.Contains(plain, "File") || strings.Contains(plain, "Enter selection") || strings.Contains(plain, "Open") {
+		if !strings.Contains(s, "\x1b[") || !strings.Contains(plain, "File") || strings.Contains(plain, "Option [") || strings.Contains(plain, "Open") {
 			t.Errorf("%d rows:\n%s", rows, plain)
 		}
 		if got := countOn(h); got != (counts{scans: 1}) {

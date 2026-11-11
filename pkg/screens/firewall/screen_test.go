@@ -274,7 +274,7 @@ func TestEnableSS(t *testing.T) {
 	if p.err != nil || p.unread != 0 || len(p.runs) != 0 || !h.noSS || h.active || len(writes(h, n)) > 0 {
 		t.Errorf("not in apt's lists: Run = %v, %d unread, runs %+v, ss missing %t, active %t, wrote %v:\n%s", p.err, p.unread, p.runs, h.noSS, h.active, writes(h, n), p.out)
 	}
-	if w := inOrder(p.out, "Enter selection", "Warning", "hardn can't find iproute2 in apt's package lists", "UFW Firewall Configuration #"); w != "" {
+	if w := inOrder(p.out, "Option [", "Warning", "hardn can't find iproute2 in apt's package lists", "UFW Firewall Configuration #"); w != "" {
 		t.Errorf("not in apt's lists: %q not shown after what came before it:\n%s", w, p.out)
 	}
 	for _, not := range []string{"Install iproute2? [y/N", "Operation Failed", "To go on", "Enable the firewall?"} {

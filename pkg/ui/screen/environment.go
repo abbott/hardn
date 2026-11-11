@@ -125,7 +125,7 @@ func (e Environment) underKey() string { return "Under " + e.Tool }
 // HARDN_CONFIG as hardn sees it, or "Not set". Then item 1, labelled by
 // the tool, keeping HARDN_CONFIG or, once hardn's files keep it, stopping,
 // marked Lockout risk where it asks and its change is; item 2, the guide;
-// Return; "Select an option"; origin/main's prompt, "Enter selection".
+// Return; "Select an option"; "Option".
 func (e Environment) SubMenu() SubMenu {
 	about := envKeep
 	if e.State == EnvironmentKept {
@@ -139,7 +139,7 @@ func (e Environment) SubMenu() SubMenu {
 			{Key: EnvironmentKeepItem, Label: e.underKey(), Description: about, Risk: !e.Refused && e.Risk},
 			{Key: EnvironmentGuideItem, Label: envGuideLabel, Description: envGuideAbout},
 		}, Exit: returnItem()},
-		Prompt: mainPrompt,
+		Prompt: menuPrompt,
 	}
 }
 

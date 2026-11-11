@@ -31,9 +31,9 @@ func TestInterrupt(t *testing.T) {
 	for _, tt := range []struct {
 		host, lines, at string
 	}{
-		{"debian13", "", "Enter selection"}, {"debian13", "1\n", "Install ufw?"}, {"ubuntu2604", "1\n", "Type the hostname"},
+		{"debian13", "", "Option ["}, {"debian13", "1\n", "Install ufw?"}, {"ubuntu2604", "1\n", "Type the hostname"},
 		{"profiles", "2\n", "Add profile"}, {"profiles", "2\n1\n", "Profile name"}, {"profiles", "2\n2\n", "Remove which profile?"},
-		{"active22", "1\n", "Disable the firewall?"}, {"pve9", "", "Enter selection"},
+		{"active22", "1\n", "Disable the firewall?"}, {"pve9", "", "Option ["},
 	} {
 		h, cfg := screenHost(t, tt.host)
 		n := len(h.Calls())

@@ -142,7 +142,7 @@ func galleryMenu(t *testing.T, name string) string {
 			item := "   5) Auto Updates"
 			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+"Configure automatic updates", l)
 		}
-		if strings.HasPrefix(l, "    > Enter selection") {
+		if strings.HasPrefix(l, "    > Option") {
 			return strings.Join(lines, "\n")
 		}
 	}
@@ -193,7 +193,7 @@ func TestMainMenuOnEL(t *testing.T) {
 			for _, want := range []string{
 				"\n   3) Firewall             Configure firewalld\n",
 				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
-				"\n    > Enter selection [0-10 or q]:",
+				"\n    > Option [0-10 or q]:",
 			} {
 				if !strings.Contains(menu, want) {
 					t.Errorf("no %q in the main menu:\n%s", want, menu)
