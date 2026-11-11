@@ -56,7 +56,8 @@ func (*Planning) Planned() bool
 
 func Adopt(ctx context.Context, sys host.System, c, edited *config.Config)
 func NotLoaded(ctx context.Context, sys host.System, cfg *config.Config, id, setting string, more ...string) []string
-func RefusalWords(err error) string
+func RefusalWords(err error) string // a change waiting for hardn confirm: WordsPending
+const WordsPending = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
 func FullStop(s string) string
 func Apart(c component.Ctx, msgs component.Messages) string
 func Warnings(paragraphs ...string) component.Messages
@@ -103,6 +104,7 @@ func OrElse(s, none string) string
 - **DNS parity:** `parity_test.go`: the scenarios, distributions and table, the header, the run of the new path (`configure`, `menuItem`, `beforeAsking`), the file aspects (`servers`, `search`, `others`), the record's directories and the v0.3.2 sections the page cites (`V032Sections`; the moved harness had DNS's built in). Its table keeps its rows through a local positional `tie`, converted by `ties`, because go vet takes unkeyed fields only for a package's own types.
 - **Backup** (unit (c), and its (b2)): its reading, items, words and view-model; its control and refusals (unit (b)'s second part); its scenarios and table. *Built in `next/s3-screen` ([screen-backup.md](screen-backup.md)): `pkg/screens/backup` runs each change with `Session.Change` and says its refusals with `Session.Say`, `Warnings`, `NotLoaded` and `FullStop`; no change to this package.*
 - **Environment** (slice 9, unit (c), and its (b2)): its reading, item 1, words and view-model; its scenarios and table. *Built in `next/s9-screen` ([screen-environment.md](screen-environment.md)): `pkg/screens/environment` runs its one change with `Session.Change`, its `Ran` wrapped to say after an applied change that it takes effect at the next sudo hardn, its session's configuration one read from no file (the control saves no setting, so `Adopt` leaves it, and `NotLoaded` does not apply), and says its refusals with `Session.Say`, `Warnings`, `RefusalWords` and `FullStop`; no change to this package.*
+- **A change waiting for hardn confirm** is `WordsPending` in `RefusalWords` since 2026-11-11 (the maintainer: "Yes, match SSH"): SSH's words (gallery-ssh.md §6), moved here from SSH's `planWords`, so the Firewall's and Auto Updates' warnings before asking say it as SSH does. Any other change journalled keeps revert's words, naming its hardn rollback. Run All keeps its own copy, `runall.PendingWords`, in the engine. Tested: `TestRefusalWords`.
 - **The plan before asking** (`Session.Preplan`) moved here from Auto Updates' `preplan` on 2026-11-10, as Firewall is its second user: an item the screen's reading doesn't plan is planned on the engine when chosen, its refusal said as a warning before asking. *Since 2026-11-11*, every Firewall change with no form (item 1, Disable, Apply), so that the engine's refusals, a change waiting for hardn confirm among them, come before asking too. SSH keeps its own, which also returns the plan.
 - **The typed confirmation** moved here from Environment in slice 4, unit (c) (`next/s4-screen`), as Firewall is its second user and slices 5 and 6 follow: `Hostname(ctx, sys) (phrase, short, err)`, `TypeTheHostname`, `Session.CantConfirm(err)`. Environment's words and goldens are unchanged.
 

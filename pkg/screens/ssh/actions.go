@@ -12,7 +12,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
-	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/form"
@@ -20,29 +19,26 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// The engine's refusals in the screen's words: a change waiting for hardn
-// confirm, decided (gallery-ssh.md §6); a port in use, the adopted mock's.
-// The control's refusals are its own, in the same section's words.
-const (
-	wordsPending = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
-	wordsInUse   = "A port the change adds is in use. Pick another."
-)
+// wordsInUse is the engine's refusal of a port in use in the screen's
+// words, the adopted mock's (gallery-ssh.md §6); a change waiting for hardn
+// confirm is screenkit.WordsPending, decided there too. The control's
+// refusals are its own, in the same section's words.
+const wordsInUse = "A port the change adds is in use. Pick another."
 
 // planWords are a refusal of the engine's plan in the screen's words: a
-// change waiting for hardn confirm (an applied lockout-risk change,
-// revert.State.Waiting), a port in use; any other change journalled (an
-// unfinished rollback, a change that did not finish) and the control's
-// refusals as they are (screenkit.RefusalWords), revert's naming its
-// hardn rollback.
+// change waiting for hardn confirm (screenkit.WordsPending), then a port in
+// use; the rest as screenkit.RefusalWords says them, any other change
+// journalled (an unfinished rollback, a change that did not finish) in
+// revert's words, naming its hardn rollback.
 func planWords(err error) string {
-	var pe *revert.PendingError
-	switch {
-	case errors.As(err, &pe) && pe.State.Waiting():
-		return wordsPending
+	switch words := screenkit.RefusalWords(err); {
+	case words == screenkit.WordsPending:
+		return words
 	case errors.Is(err, reload.ErrInUse):
 		return wordsInUse
+	default:
+		return words
 	}
-	return screenkit.RefusalWords(err)
 }
 
 // draw reads the host and returns the screen, its items bound.

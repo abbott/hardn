@@ -26,7 +26,7 @@ func TestPlanWords(t *testing.T) {
 		st   revert.State
 		want string // "" for revert's own, with its hardn rollback
 	}{
-		{"waiting for confirm", revert.State{Pending: journal(revert.RiskLockout, true)}, wordsPending},
+		{"waiting for confirm", revert.State{Pending: journal(revert.RiskLockout, true)}, screenkit.WordsPending},
 		{"lockout-risk, not applied", revert.State{Pending: journal(revert.RiskLockout, false)}, ""},
 		{"did not finish", revert.State{Pending: journal(revert.RiskOther, true)}, ""},
 		{"rollback unfinished", revert.State{RollingBack: journal(revert.RiskLockout, true)}, ""},
