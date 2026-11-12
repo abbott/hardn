@@ -55,17 +55,24 @@ Pinning a version, installing by hand, building from source and troubleshooting:
 
 ## Quick Start
 
-`hardn` needs root: run it with `sudo hardn` or `doas hardn`. With no flag, it opens the main menu.
+`hardn` needs root (e.g., `sudo hardn` or `doas hardn`), except `--version`, `--help`, `--print-logs` on its own, `completion`, `config`, and `system-details`.
 
 ```sh
-sudo hardn -n -r                # show Run All's plan
-sudo hardn -u george -c         # create george, an admin with hardn.yml's keys
-sudo hardn -c -d                # create the user, then turn root login off
-sudo hardn -g --yes             # from cron: set the nameservers
-sudo hardn system-details --output json > web-01.json
-```
+hardn -h                        # help: usage flags and commands
+hardn -h config                 # help for `config` command
+hardn config                    # show hardn.yml
 
-Every flag and command, scripts and cron, exit statuses, JSON and logs: [docs/usage.md](docs/usage.md). Every `hardn.yml` key: [docs/configuration.md](docs/configuration.md).
+# output system details report as JSON file
+hardn system-details --output json > web-01.json
+
+sudo hardn                      # no flag: opens the main menu
+sudo hardn -n -r                # show Run All's plan
+```
+> [!TIP]
+> See [docs/usage.md](docs/usage.md) for every flag and command, scripts and cron, exit statuses, JSON and logs. 
+
+### hardn.yml
+See [docs/configuration.md](docs/configuration.md) for every `hardn.yml` key.
 
 ## Supported Distributions
 
