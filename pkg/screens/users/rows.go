@@ -28,6 +28,7 @@ const (
 	cantRead      = "Can't read"
 	noPassword    = "No password"
 	noPassToAsk   = "No password to ask for" // a cost, not a failure (decision 3)
+	noPassSet     = "No password set"        // the rights wait for one (the maintainer, 2026-11-11)
 	pwSet         = "Set"
 	pwNone        = "None"
 	pwLocked      = "Locked,"
@@ -89,8 +90,11 @@ func userRows(r usersctl.Reading, u usersctl.User) []component.KeyValue {
 	switch u.Admin {
 	case detect.Yes:
 		tool = component.KeyValue{Key: toolKey(r), Value: enabled, State: component.ValueOK}
-		if u.NoPassword {
+		switch {
+		case u.NoPassword:
 			tool = nopassRow(r, noPasswordToAsk(u))
+		case noPasswordToAsk(u):
+			tool = notSetRow(r)
 		}
 	case detect.Unknown:
 		tool.Value, tool.State = cantRead, component.ValueUnknown
@@ -139,6 +143,12 @@ func nopassRow(r usersctl.Reading, none bool) component.KeyValue {
 		return component.KeyValue{Key: toolKey(r), Value: enabledComma, State: component.ValueWarn, Note: noPassToAsk}
 	}
 	return component.KeyValue{Key: toolKey(r), Value: enabledComma, State: component.ValueBad, Note: noPassword}
+}
+
+// notSetRow is the tool's row for a grant that asks a password the user
+// has not got yet: a cost, as the user can't use it until passwd sets one.
+func notSetRow(r usersctl.Reading) component.KeyValue {
+	return component.KeyValue{Key: toolKey(r), Value: enabledComma, State: component.ValueWarn, Note: noPassSet}
 }
 
 // enabledRow is the tool's row for a grant that asks the password.

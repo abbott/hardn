@@ -28,6 +28,7 @@ sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # SSH config file location
 #################################################
 # User Configuration
 #################################################
+adminNoPassword: false            # true: a new user's admin rights ask no password (sudo NOPASSWD, doas nopass)
 sshKeys:                          # -c adds them all; User Management offers the first
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
   # Add more keys as needed

@@ -47,6 +47,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mcarol can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mcarol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -98,7 +100,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+carol ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+carol ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd carol's key␛[m$
       ␛[38;2;129;134;156m/home/carol/.ssh/authorized_keys␛[m$
@@ -258,6 +260,8 @@ $
 $
    -  User                 Create carol, 1 key$
    -  SSH Login            Root login off$
+  [ ] carol can't use sudo until a password is set: run passwd$
+      carol$
 $
    -  Install hardn's boot unit$
       /etc/systemd/system/hardn-boot.service$
@@ -309,7 +313,7 @@ $
       /etc/sudoers.d/hardn-grant-carol$
       @@ -0,0 +1,2 @@$
       +# Managed by hardn$
-      +carol ALL=(ALL) NOPASSWD: ALL$
+      +carol ALL=(ALL) ALL$
 $
    -  Add carol's key$
       /home/carol/.ssh/authorized_keys$
@@ -484,6 +488,8 @@ $
       ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
       ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mcarol can't use sudo until a password is set: run␛[m$
+      ␛[38;2;219;184;83mpasswd carol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -537,7 +543,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+carol ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+carol ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd carol's key␛[m$
       ␛[38;2;129;134;156m/home/carol/.ssh/authorized_keys␛[m$
@@ -716,6 +722,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mcarol can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mcarol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -767,7 +775,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+carol ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+carol ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd carol's key␛[m$
       ␛[38;2;129;134;156m/home/carol/.ssh/authorized_keys␛[m$
@@ -927,6 +935,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mcarol can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mcarol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -978,7 +988,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+carol ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+carol ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd carol's key␛[m$
       ␛[38;2;129;134;156m/home/carol/.ssh/authorized_keys␛[m$
@@ -1138,6 +1148,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate carol, 1 key␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
+   ␛[38;2;219;184;83m-␛[m  ␛[38;2;219;184;83mcarol can't use sudo until a password is set: run passwd␛[m$
+      ␛[38;2;219;184;83mcarol␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mInstall hardn's boot unit␛[m$
       ␛[38;2;129;134;156m/etc/systemd/system/hardn-boot.service␛[m$
@@ -1189,7 +1201,7 @@ $
       ␛[38;2;129;134;156m/etc/sudoers.d/hardn-grant-carol␛[m$
       ␛[38;2;86;91;107m@@ -0,0 +1,2 @@␛[m$
       ␛[38;2;112;212;127m+# Managed by hardn␛[m$
-      ␛[38;2;112;212;127m+carol ALL=(ALL) NOPASSWD: ALL␛[m$
+      ␛[38;2;112;212;127m+carol ALL=(ALL) ALL␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAdd carol's key␛[m$
       ␛[38;2;129;134;156m/home/carol/.ssh/authorized_keys␛[m$

@@ -338,5 +338,17 @@ func UsersCreateReview(tool component.KeyValue, key bool) flow.Review {
 	return flow.Review{Title: usersConfigSection, Items: []component.KeyValue{tool, keys, {Key: UsersPasswordKey, Value: usersPasswordNone}}}
 }
 
+// UsersSetPasswordField is Create's question after a password is required
+// for admin rights: yes runs passwd for name once the user is there.
+func UsersSetPasswordField(name string) string { return fmt.Sprintf("Set %s's password now?", name) }
+
+// UsersSettingPassword is said before passwd takes the terminal.
+func UsersSettingPassword(name string) string { return fmt.Sprintf("Setting %s's password", name) }
+
+// UsersPasswordNotSet is said where passwd did not set name's password.
+func UsersPasswordNotSet(name string) string {
+	return fmt.Sprintf("%s's password isn't set. Run passwd %s.", name, name)
+}
+
 // UsersCreateQuestion is Create's question.
 func UsersCreateQuestion(name string) string { return fmt.Sprintf("Create user '%s'?", name) }

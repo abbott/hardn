@@ -26,7 +26,7 @@ const (
 	// that nothing that plans over the main menu's rows plans a lockout
 	// change.
 	ActionNone          Action = iota
-	ActionGrant                // hardn's grant: the user's password asked where it has a usable one, none where not (Made here)
+	ActionGrant                // hardn's grant, asking the user's password, set or not (the maintainer, 2026-11-11)
 	ActionRemove               // hardn's grant removed, where no other rule grants (decision 2 (a)), and not the last way to root (decision 4)
 	ActionAskPassword          // hardn's grant asks the user's password (decision 3 (a))
 	ActionNoPassword           // hardn's grant asks no password
@@ -90,8 +90,6 @@ var (
 	ErrNameTaken = errors.New("a user or group of that name is there")
 	// ErrHomeThere: the new user's home is there, which undoing Create would delete.
 	ErrHomeThere = errors.New("the new user's home is there already")
-	// ErrNewPassword: a password asked of a new user, who has none.
-	ErrNewPassword = errors.New("a new user has no password to ask")
 	// ErrPasswordBypass: sshd lacks CVE-2026-123158's fix and may check
 	// passwords without PAM, so anyone could log in as a new user, whose
 	// field is "*", with a long password.
@@ -127,7 +125,6 @@ const (
 	codeNameForm         = "USERS_NAME_FORM"
 	codeNameTaken        = "USERS_NAME_TAKEN"
 	codeHomeThere        = "USERS_HOME_THERE"
-	codeNewPassword      = "USERS_NEW_PASSWORD"
 	codePasswordBypass   = "USERS_PASSWORD_BYPASS"
 	codeNoUseradd        = "USERS_NO_USERADD"
 )
@@ -184,13 +181,15 @@ func (a Admin) Plan(ctx context.Context, sys host.System, in engine.Input) ([]en
 		if u.Policy.Grant != sudoers.GrantNone {
 			return nil, nil
 		}
-		g := u.NewGrant()
 		// A grant added to a user who is not an admin takes no way to root
 		// away; to one who is (cloud-init's NOPASSWD rule), a GrantPassword
 		// file can ask a password where none was asked: the planner's risk
 		// (decision 4).
-		if c, err = grantChange(ctx, sys, r, u.Name, g, "Let "+u.Name+" use "+tool); c != nil && u.Admin == detect.No {
+		if c, err = grantChange(ctx, sys, r, u.Name, sudoers.GrantPassword, "Let "+u.Name+" use "+tool); c != nil && u.Admin == detect.No {
 			c.Risk = engine.RiskPlain
+		}
+		if c != nil && u.Password != accounts.PasswordSet {
+			c.Findings = append(c.Findings, passwordNotSet(u.Name, tool))
 		}
 	case ActionRemove:
 		if u.Policy.Grant == sudoers.GrantNone {
@@ -212,16 +211,6 @@ func (a Admin) Plan(ctx context.Context, sys host.System, in engine.Input) ([]en
 		return nil, err
 	}
 	return []engine.Change{*c}, nil
-}
-
-// NewGrant is the grant Grant admin rights plans for u: the password asked
-// where u has a usable one (GrantPassword), none where not
-// (GrantNoPassword). The screen's review says it from this alone.
-func (u User) NewGrant() sudoers.Grant {
-	if u.Password == accounts.PasswordSet {
-		return sudoers.GrantPassword
-	}
-	return sudoers.GrantNoPassword
 }
 
 // Refusal is why Plan refuses a for a.User before anything is asked of it

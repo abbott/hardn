@@ -269,7 +269,6 @@ var sentinels = map[string]error{
 	"users.ErrNameForm":               users.ErrNameForm,
 	"users.ErrNameTaken":              users.ErrNameTaken,
 	"users.ErrHomeThere":              users.ErrHomeThere,
-	"users.ErrNewPassword":            users.ErrNewPassword,
 	"users.ErrPasswordBypass":         users.ErrPasswordBypass,
 	"users.ErrNoUseradd":              users.ErrNoUseradd,
 	"authkeys.ErrNotPlanned":          authkeys.ErrNotPlanned,
@@ -698,6 +697,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, header.CodeRebootRequired, header.CodeNewerKernel, header.CodeModulesMissing, header.CodeKernelReplaced) // next/p4-header
 	want = append(want, risk.CodeUptimeNoUpdates)                                                                                // next/p4-risk
 	want = append(want, users.CodeLocked)                                                                                        // next/p4-locked
+	want = append(want, users.CodePasswordNotSet)                                                                                // next/sudo-password-opt-in
 	want = append(want, users.CodeNoKey)                                                                                         // next/s5-control
 	want = append(want, output.CodeDetailsUnreadable)                                                                            // next/s1-readers
 	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158

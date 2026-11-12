@@ -21,18 +21,30 @@ import (
 )
 
 // New is the user Create makes: Name; Admin, hardn's grant for it, asking
-// no password; Password, a password asked for admin rights, which a new
-// user does not have (refused, decision 3 (a)); Keys, its public keys,
-// each a pasted key or one of hardn.yml's sshKeys, none for no key.
+// the user's password; NoPassword, with Admin, the grant asking none, the
+// opt-in (hardn.yml's adminNoPassword, or the screen's answer; the
+// maintainer, 2026-11-11); Keys, its public keys, each a pasted key or one
+// of hardn.yml's sshKeys, none for no key.
 type New struct {
-	Name            string
-	Admin, Password bool
-	Keys            []string
+	Name              string
+	Admin, NoPassword bool
+	Keys              []string
 }
 
 // CodeNoKey: Create plans a user with no key, who has no password either,
 // so cannot log in.
 const CodeNoKey = "USERS_NO_KEY"
+
+// CodePasswordNotSet: hardn's grant asks the password of a user who has
+// none (a new user's, Create's; Grant's for a user without one), so the
+// user can't use the tool until one is set. hardn sets none itself.
+const CodePasswordNotSet = "USERS_PASSWORD_NOT_SET"
+
+// passwordNotSet is CodePasswordNotSet's finding for name and the tool's
+// word.
+func passwordNotSet(name, tool string) engine.Finding {
+	return engine.Finding{Code: CodePasswordNotSet, Detail: name + " can't use " + tool + " until a password is set: run passwd " + name}
+}
 
 // nameForm is useradd's default NAME_REGEX on Debian
 // (^[a-z][-a-z0-9_]*\$?$), with shadow's leading "_" (is_valid_user_name);
@@ -71,9 +83,8 @@ func (r Reading) CheckName(ctx context.Context, sys host.System, name string) er
 }
 
 // CheckNew is why Plan refuses Create of n, in its order: CheckName's;
-// Password (decision 3 (a)); UseraddRefusal's, one refusal naming shadow
-// and doas where, with Admin, ToolRefusal's is no tool too; with Admin,
-// ToolRefusal's;
+// UseraddRefusal's, one refusal naming shadow and doas where, with Admin,
+// ToolRefusal's is no tool too; with Admin, ToolRefusal's;
 // with Keys, KeysRefusal's and newKeys'; then bypassRefusal's, the host's.
 // nil where Create may go on. Create without admin rights works with no
 // tool, as on Proxmox VE.
@@ -87,9 +98,6 @@ func (r Reading) CheckNew(ctx context.Context, sys host.System, n New) error {
 func (r Reading) checkNew(ctx context.Context, sys host.System, n New) (*engine.Finding, error) {
 	if err := r.CheckName(ctx, sys, n.Name); err != nil {
 		return nil, err
-	}
-	if n.Password {
-		return nil, refuse(codeNewPassword, ErrNewPassword, nil, "A new user has no password, so "+r.toolWord()+" couldn't ask for one", "")
 	}
 	if err := r.UseraddRefusal(ctx, sys); err != nil {
 		if tool := r.ToolRefusal(); n.Admin && errors.Is(err, ErrNoUseradd) && errors.Is(tool, ErrNoTool) {
@@ -224,9 +232,9 @@ func newKeys(n New) ([]authkeys.Key, error) {
 // and, where sshd's PAM is not established as on, the password field "*"
 // in place of useradd's "!", which sshd without PAM refuses a key login to
 // (decision 3 (a); run on the Alpine 3.23 VM, 2026-11-07), undone by
-// userdel --remove; then, with Admin, hardn's grant asking no password, as
-// Grant plans it; then,
-// with Keys, every key in ~/.ssh/authorized_keys, one change (each
+// userdel --remove; then, with Admin, hardn's grant asking the user's
+// password, with a finding that none is set yet (CodePasswordNotSet), or,
+// with NoPassword, asking none; then, with Keys, every key in ~/.ssh/authorized_keys, one change (each
 // authkeys.PlanAdd's line appended after the keys planned before it, a key
 // a file sshd reads holds already left out), ~/.ssh made by install with
 // the user's name, its own group (USERGROUPS_ENAB yes on all three VMs,
@@ -274,13 +282,24 @@ func (r Reading) planCreate(ctx context.Context, sys host.System, n New) ([]engi
 	}
 	out := []engine.Change{add}
 	if n.Admin {
-		g, err := grantChange(ctx, sys, r, n.Name, sudoers.GrantNoPassword, "Let "+n.Name+" use "+r.toolWord())
+		grant := sudoers.GrantPassword
+		if n.NoPassword {
+			grant = sudoers.GrantNoPassword
+		}
+		g, err := grantChange(ctx, sys, r, n.Name, grant, "Let "+n.Name+" use "+r.toolWord())
 		if err != nil {
 			return nil, err
 		}
 		if g != nil {
 			g.Risk, g.After = engine.RiskPlain, []string{ChangeCreate}
+			if !n.NoPassword {
+				g.Findings = append(g.Findings, passwordNotSet(n.Name, r.toolWord()))
+			}
 			out = append(out, *g)
+		} else if !n.NoPassword {
+			// hardn's file is there already (a user removed by hand, its
+			// file left): no grant to plan, and the finding still holds.
+			out[0].Findings = append(out[0].Findings, passwordNotSet(n.Name, r.toolWord()))
 		}
 	}
 	if len(n.Keys) > 0 {

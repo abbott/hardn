@@ -13,6 +13,7 @@ type retiredKind int
 const (
 	retiredList retiredKind = iota // a list: the default none
 	retiredFlag                    // a bool: the default false
+	retiredOn                      // a bool: the default true
 	retiredText                    // a string: the default retiredKey.text
 	retiredLogs                    // logsconfig: a mapping, the default logfilepath: retiredKey.text
 )
@@ -33,7 +34,10 @@ type retiredKey struct {
 // after slice 9), the DMZ subnet, the package lists, the repositories,
 // useUvPackageManager and the locale settings; and since next/legacy-rehome,
 // sshKeyPath, whose one reader was its own warning, and logsconfig,
-// origin/main's LogsConfig as its save wrote it. Config has no field for
+// origin/main's LogsConfig as its save wrote it; and since
+// next/sudo-password-opt-in, sudoNoPassword, which adminNoPassword
+// replaces: its old default, true, is in every file a save wrote, so it is
+// never taken for the opt-in. Config has no field for
 // them (docs/engine/legacy-left.md §2, step 8). A file that sets one
 // still loads, and is told so (Retired); a save edits only the keys it
 // changes (Save, Edit), so the file keeps it.
@@ -52,6 +56,7 @@ var retired = []retiredKey{
 	{name: "lang", kind: retiredText}, {name: "language", kind: retiredText}, {name: "lcAll", kind: retiredText},
 	{name: "tz", kind: retiredText}, {name: "pythonUnbuffered", kind: retiredText, text: "1"},
 	{name: "logsconfig", kind: retiredLogs, text: defaultLogFile},
+	{name: "sudoNoPassword", kind: retiredOn},
 }
 
 // Retired returns the keys of retired that the file c was read from sets
@@ -97,6 +102,9 @@ func atDefault(name string, v *yaml.Node) bool {
 	case retiredFlag:
 		var b bool
 		return v.Kind == yaml.ScalarNode && v.Decode(&b) == nil && !b
+	case retiredOn:
+		var b bool
+		return v.Kind == yaml.ScalarNode && v.Decode(&b) == nil && b
 	case retiredLogs:
 		var m map[string]string
 		return v.Kind == yaml.MappingNode && v.Decode(&m) == nil && len(m) <= 1 && (len(m) == 0 || m["logfilepath"] == r.text)

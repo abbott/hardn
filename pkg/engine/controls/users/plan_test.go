@@ -231,19 +231,24 @@ func TestAskPassword(t *testing.T) {
 }
 
 // TestGrant: Grant writes hardn's grant, asking alice's password (a hash)
-// and not george's (none: "!"), plain (y/N); granted already by hardn, an
-// empty plan. Don't ask password is plain too.
+// and george's too (none: "!"), with the finding that george can't use it
+// until one is set (the maintainer, 2026-11-11: no password is opt-in),
+// plain (y/N); granted already by hardn, an empty plan. Don't ask password
+// is plain too.
 func TestGrant(t *testing.T) {
 	ctx := context.Background()
 	for _, tc := range []struct {
-		user, want string
+		user, want, finding string
 	}{
-		{"alice", "alice ALL=(ALL) ALL\n"},
-		{"george", "george ALL=(ALL) NOPASSWD: ALL\n"},
+		{"alice", "alice ALL=(ALL) ALL\n", ""},
+		{"george", "george ALL=(ALL) ALL\n", "george can't use sudo until a password is set: run passwd george"},
 	} {
 		e, p, _, h := planOn(t, debian13Login(), users.Admin{Action: users.ActionGrant, User: tc.user, Getenv: env(sudoGeorge)})
 		if p.Err() != nil || p.Risk != engine.RiskPlain || len(p.Changes) != 1 || p.Changes[0].Risk != engine.RiskPlain || p.Changes[0].Summary != "Let "+tc.user+" use sudo" {
 			t.Fatalf("%s: %v, risk %v, %+v", tc.user, p.Err(), p.Risk, p.Changes)
+		}
+		if fs := p.Changes[0].Findings; (tc.finding == "") != (len(fs) == 0) || (len(fs) > 0 && (fs[0].Code != users.CodePasswordNotSet || fs[0].Detail != tc.finding)) {
+			t.Errorf("%s: findings %+v, want %q", tc.user, fs, tc.finding)
 		}
 		if _, err := e.Apply(ctx, p); err != nil {
 			t.Fatal(err)
@@ -458,18 +463,5 @@ func TestNotMigrated(t *testing.T) {
 	cs, err := users.Admin{User: "george"}.Plan(context.Background(), sys, engine.Input{Facts: debian13().facts})
 	if !errors.Is(err, engine.ErrNotMigrated) || cs != nil || len(h.Calls()) != 0 {
 		t.Errorf("%v, %v, %d calls", cs, err, len(h.Calls()))
-	}
-}
-
-// TestNewGrant: Grant asks the password of a user with a usable one, and
-// of no other; the screen's review row says this one choice.
-func TestNewGrant(t *testing.T) {
-	for pw, want := range map[accounts.Password]sudoers.Grant{
-		accounts.PasswordSet: sudoers.GrantPassword, accounts.PasswordNone: sudoers.GrantNoPassword,
-		accounts.PasswordEmpty: sudoers.GrantNoPassword, accounts.PasswordNotRead: sudoers.GrantNoPassword,
-	} {
-		if got := (users.User{Password: pw}).NewGrant(); got != want {
-			t.Errorf("%v: %v, want %v", pw, got, want)
-		}
 	}
 }

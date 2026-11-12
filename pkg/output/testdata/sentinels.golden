@@ -252,7 +252,6 @@ users.ErrLastAdmin USERS_LAST_ADMIN
 users.ErrLastKey USERS_LAST_KEY
 users.ErrNameForm USERS_NAME_FORM
 users.ErrNameTaken USERS_NAME_TAKEN
-users.ErrNewPassword USERS_NEW_PASSWORD
 users.ErrNoPasswordToAsk USERS_NO_PASSWORD_TO_ASK
 users.ErrNoTool USERS_NO_TOOL
 users.ErrNoUseradd USERS_NO_USERADD

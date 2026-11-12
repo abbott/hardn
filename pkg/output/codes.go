@@ -383,7 +383,6 @@ var errorCodes = []Entry{
 	is("USERS_NAME_FORM", users.ErrNameForm),
 	is("USERS_NAME_TAKEN", users.ErrNameTaken),
 	is("USERS_HOME_THERE", users.ErrHomeThere),
-	is("USERS_NEW_PASSWORD", users.ErrNewPassword),
 	is("USERS_PASSWORD_BYPASS", users.ErrPasswordBypass),
 	is("USERS_NO_USERADD", users.ErrNoUseradd),
 	// A user's SSH keys (pkg/host/authkeys, slice 5, unit (b)).
@@ -588,6 +587,7 @@ var findingCodes = []Entry{
 	finding(users.CodeLocked, "a user account's password is locked (!) and sshd does not use PAM, so sshd refuses it, keys included: the User row does not count it"),
 	// The users control's plan for a new user with no key (slice 5, unit (b)).
 	finding(users.CodeNoKey, "a new user is planned with no key and no password, so it cannot log in"),
+	finding(users.CodePasswordNotSet, "admin rights that ask a password are planned for a user who has none, so the user cannot use them until one is set"),
 	// The System Details form's own (slice 1, next/s1-readers).
 	finding(CodeDetailsUnreadable, "a section of the System Details report, or a fact of it, was not read: source says what; the rest was read"),
 }

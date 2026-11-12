@@ -113,6 +113,9 @@ type usrHost struct {
 	env   map[string]string // hardn's environment: SUDO_USER or DOAS_USER, none at a root login
 	// rejects: visudo -c rejects cloud-init's file.
 	rejects bool
+	// passwdFails: passwd exits 10, as it does when the two entries differ
+	// (passwd(1), EXIT VALUES).
+	passwdFails bool
 
 	mu         sync.Mutex
 	unexpected []string // the commands the fake does not answer
@@ -261,7 +264,7 @@ func (h *usrHost) answer(argv []string, _ []byte) hostfake.Response {
 		if slices.Contains(argv, "-T") {
 			return h.sshdT()
 		}
-	case "useradd", "userdel", "install":
+	case "useradd", "userdel", "install", "passwd":
 		if r, ok := h.account(argv); ok {
 			return r
 		}
@@ -386,6 +389,14 @@ func (h *usrHost) account(argv []string) (hostfake.Response, bool) {
 			h.AddDir(home, h.plat.home, uid, uid)
 		}
 		return hostfake.Response{}, true
+	case "passwd": // passwd(1) NAME, run with the terminal: the field a hash
+		if len(argv) == 2 {
+			if h.passwdFails {
+				return hostfake.Response{ExitCode: 10}, true
+			}
+			h.setPassword(argv[1], "$6$synthetic$not-a-hash")
+			return hostfake.Response{}, true
+		}
 	case "userdel": // userdel(8) --remove NAME: the lines and the home directory
 		name := argv[len(argv)-1]
 		for _, f := range []string{"/etc/passwd", "/etc/group", accounts.ShadowFile} {
@@ -428,6 +439,22 @@ func (h *usrHost) dropLine(name, user string) {
 		}
 	}
 	h.AddFile(name, []byte(strings.Join(keep, "")), e.Mode.Perm(), e.UID, e.GID)
+}
+
+// setPassword gives user a password in /etc/shadow, as passwd(1) does: its
+// field a hash.
+func (h *usrHost) setPassword(user, hash string) {
+	e, ok := h.Entry(accounts.ShadowFile)
+	if !ok {
+		return
+	}
+	lines := strings.SplitAfter(string(e.Data), "\n")
+	for i, l := range lines {
+		if f := strings.SplitN(l, ":", 3); len(f) == 3 && f[0] == user {
+			lines[i] = user + ":" + hash + ":" + f[2]
+		}
+	}
+	h.AddFile(accounts.ShadowFile, []byte(strings.Join(lines, "")), e.Mode.Perm(), e.UID, e.GID)
 }
 
 // george is the VMs' login user: uid 1000 (Debian, Ubuntu) or 1001

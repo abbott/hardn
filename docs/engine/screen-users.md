@@ -2,6 +2,8 @@
 
 > **Unit:** refactor plan slice 5, unit (c), `next/s5-screen`, from `9ac4bfa0`. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake (the gallery's users hosts, its `userSim` copied), the control's plans on the real engine. No real terminal, no hardn binary, no VM. *Wired in `next/s5-replace` (unit (d)): main menu 1 runs `Run`, and `-c` plans the control's Create ([cmd-engine.md](cmd-engine.md) §2.14, §2.15); the gallery's `play users` runs `Run` too.*
 
+*Since `next/sudo-password-opt-in` (2026-11-11, [control-users.md](control-users.md) §8): Create's "Require password for admin rights?" defaults to yes (no with hardn.yml's `adminNoPassword: true`) and is no longer refused; after yes, "Set carol's password now?" runs `passwd carol` with the terminal once the plan is applied (`setPassword`). Grant's review row is "Enabled, No password set" for a user with none. Where this page says the form never uses `sudoNoPassword`, or names `User.NewGrant`, this note is current.*
+
 ## What it does
 
 Main menu 1 as the maintainer adopted its mocks on 2026-11-03 ([gallery-users.md](gallery-users.md) §3 and §5, "Adopt all, start (b)", §6's words), drawn from `users.Read` and the User row (`Reading.Status` through `output.StatusViewOf`, no engine), writing nothing, under plan only too. Never from hardn.yml.

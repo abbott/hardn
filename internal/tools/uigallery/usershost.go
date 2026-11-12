@@ -93,6 +93,11 @@ func (u *userSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 			h.f.AddDir(home, fsMode(u.home), uid, uid)
 		}
 		return hostfake.Response{}, true
+	case "passwd": // passwd(1) NAME, run with the terminal: the field a hash
+		if len(argv) == 2 {
+			h.setPassword(argv[1], shaHash)
+			return hostfake.Response{}, true
+		}
 	case "userdel": // userdel(8) --remove NAME: the lines and the home directory
 		name := argv[len(argv)-1]
 		for _, f := range []string{"/etc/passwd", "/etc/group", accounts.ShadowFile} {
@@ -123,6 +128,23 @@ func fsMode(m int) fs.FileMode { return fs.FileMode(m) }
 func (h *fakeHost) appendLine(name, line string, mode, gid int) {
 	data, _ := h.f.ReadFile(context.Background(), name)
 	h.f.AddFile(name, append(data, []byte(line+"\n")...), fsMode(mode), 0, gid)
+}
+
+// setPassword gives user a password in /etc/shadow, as passwd(1) does: its
+// field a hash.
+func (h *fakeHost) setPassword(user, hash string) {
+	data, err := h.f.ReadFile(context.Background(), accounts.ShadowFile)
+	if err != nil {
+		return
+	}
+	lines := strings.SplitAfter(string(data), "\n")
+	for i, l := range lines {
+		if f := strings.SplitN(l, ":", 3); len(f) == 3 && f[0] == user {
+			lines[i] = user + ":" + hash + ":" + f[2]
+		}
+	}
+	fi, _ := h.f.Stat(context.Background(), accounts.ShadowFile)
+	h.f.AddFile(accounts.ShadowFile, []byte(strings.Join(lines, "")), fi.Mode().Perm(), 0, 42)
 }
 
 // dropLine removes user's line from the file name.

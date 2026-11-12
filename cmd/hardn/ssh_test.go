@@ -544,6 +544,7 @@ func TestCreateUserThenDisallowRoot(t *testing.T) {
 		name, host string
 		args       []string
 		tty        bool
+		nopass     bool // hardn.yml's adminNoPassword: true
 		lines      []string
 		code       int // the exit status; 0: hardn did not exit
 		said       []string
@@ -556,12 +557,18 @@ func TestCreateUserThenDisallowRoot(t *testing.T) {
 			said: []string{"Create user carol", "SSH_NO_ADMIN_LOGIN"}},
 		{name: "-c -d off a terminal", host: "debian13", args: []string{"--yes", "-c", "-d", "-u", "carol"}, code: 1, made: true,
 			said: []string{"Create user carol", "Operation Successful", "Lockout risk", dLockoutWords}},
-		{name: "-c -d on a terminal, george's key gone", host: "no-key", args: []string{"-c", "-d", "-u", "carol"}, tty: true, lines: []string{"web-01"},
+		// carol's rights ask a password she has not got, so she is no admin
+		// who can become root: -d is refused, carol made (the maintainer,
+		// 2026-11-11). With adminNoPassword true they ask none, and -d goes on.
+		{name: "-c -d on a terminal, george's key gone", host: "no-key", args: []string{"-c", "-d", "-u", "carol"}, tty: true, code: 1, made: true,
+			said: []string{"Create user carol", "Operation Successful", "SSH_NO_ADMIN_LOGIN"}},
+		{name: "-c -d on a terminal, george's key gone, adminNoPassword", host: "no-key", args: []string{"-c", "-d", "-u", "carol"}, tty: true, nopass: true, lines: []string{"web-01"},
 			made: true, applied: true, said: []string{"Create user carol", "Disallow root login?", "Type the hostname", "Operation Successful", "sudo hardn confirm"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h, _ := newSSHHost(t, tc.host)
 			cfg := withKeys(t, h.usrTestHost, key)
+			cfg.AdminNoPassword = tc.nopass
 			was, before := h.rootLogin(), len(h.writes())
 			var env func() term.Env
 			if tc.tty {

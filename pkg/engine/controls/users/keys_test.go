@@ -353,7 +353,6 @@ func TestCreateRefusals(t *testing.T) {
 		{"a user's", keyed(sshdKeys, nil), users.New{Name: "alice"}, "USERS_NAME_TAKEN", "alice already exists."},
 		{"a group's", keyed(sshdKeys, nil), users.New{Name: "sudo"}, "USERS_NAME_TAKEN", "sudo already exists."},
 		{"its home there", there, users.New{Name: "carol"}, "USERS_HOME_THERE", "/home/carol is already there, and undoing Create would delete it. Choose another name."},
-		{"a password", keyed(sshdKeys, nil), users.New{Name: "carol", Admin: true, Password: true}, "USERS_NEW_PASSWORD", "A new user has no password, so sudo couldn't ask for one."},
 		{"admin, no tool", site{plat: pve9(), users: []string{georgeLine}}, users.New{Name: "carol", Admin: true}, "USERS_NO_TOOL", "sudo isn't installed, so hardn can't grant admin rights. Install sudo, then try again."},
 		// Alpine (the LXC of 2026-11-07): doas named, Alpine's default (sudoers.md);
 		// useradd, shadow's, looked for before the tool; both missing, with
@@ -399,7 +398,8 @@ func TestCreateRefusals(t *testing.T) {
 // --password '*' only where sshd's PAM is not on; applied, the user, its
 // grant and its key 0600, its own; with the key's write failing, the
 // rollback removes the grant and the user, its home with it. No key: the
-// notice.
+// notice. The grant asks carol's password, with the finding that none is
+// set yet; with NoPassword, the opt-in, it asks none, with no finding.
 func TestCreate(t *testing.T) {
 	ctx := context.Background()
 	n := users.New{Name: "carol", Admin: true, Keys: []string{key4}}
@@ -439,8 +439,32 @@ func TestCreate(t *testing.T) {
 	}
 	k, _ := h.Entry("/home/carol/.ssh/authorized_keys")
 	g, _ := h.Entry(grantDir + "hardn-grant-carol")
-	if string(k.Data) != key4+"\n" || k.Mode.Perm() != 0o600 || k.UID != 1002 || k.GID != 1002 || !strings.Contains(string(g.Data), "carol ALL=(ALL) NOPASSWD: ALL") {
+	if string(k.Data) != key4+"\n" || k.Mode.Perm() != 0o600 || k.UID != 1002 || k.GID != 1002 || string(g.Data) != "# Managed by hardn\ncarol ALL=(ALL) ALL\n" {
 		t.Errorf("key %q %v %d:%d, grant %q", k.Data, k.Mode, k.UID, k.GID, g.Data)
+	}
+	for _, c := range p.Changes {
+		want := 0
+		if c.ID == users.ChangeGrant {
+			want = 1
+		}
+		if len(c.Findings) != want || (want == 1 && (c.Findings[0].Code != users.CodePasswordNotSet || c.Findings[0].Detail != "carol can't use sudo until a password is set: run passwd carol")) {
+			t.Errorf("%s: findings %+v", c.ID, c.Findings)
+		}
+	}
+	opt := n
+	opt.NoPassword = true
+	e, p, _, h = planOn(t, keyed(sshdKeys, both()), users.Admin{Action: users.ActionCreate, New: opt})
+	simAccounts(h)
+	if _, err := e.Apply(ctx, p); err != nil {
+		t.Fatal(err)
+	}
+	if g, _ := h.Entry(grantDir + "hardn-grant-carol"); p.Risk != engine.RiskPlain || string(g.Data) != "# Managed by hardn\ncarol ALL=(ALL) NOPASSWD: ALL\n" {
+		t.Errorf("NoPassword: risk %v, grant %q", p.Risk, g.Data)
+	}
+	for _, c := range p.Changes {
+		if len(c.Findings) > 0 {
+			t.Errorf("NoPassword: %s: findings %+v", c.ID, c.Findings)
+		}
 	}
 
 	s := keyed(sshdKeys, both())
@@ -501,7 +525,7 @@ func TestCreateKeys(t *testing.T) {
 				if c.ID == users.ChangeKeys {
 					keys = append(keys, c)
 				}
-				if len(c.Findings) > 0 {
+				if len(c.Findings) > 0 && (c.ID != users.ChangeGrant || c.Findings[0].Code != users.CodePasswordNotSet) {
 					t.Errorf("%s: findings %+v", c.ID, c.Findings)
 				}
 			}

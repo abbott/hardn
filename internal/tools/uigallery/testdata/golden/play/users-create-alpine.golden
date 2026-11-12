@@ -51,7 +51,7 @@ $
 $
    ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m n$
 $
    ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $
@@ -180,7 +180,7 @@ $
 $
    2. Grant admin rights? [y/N, 0 or q]: y$
 $
-   3. Require password for admin rights? [y/N, 0 or q]: n$
+   3. Require password for admin rights? [Y/n, 0 or q]: n$
 $
    4. Add SSH key? [y/N, 0 or q]: n$
 $
@@ -322,7 +322,7 @@ $
 $
    ␛[38;2;192;196;216m2.␛[m ␛[38;2;192;196;216mGrant admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m y$
 $
-   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
+   ␛[38;2;192;196;216m3.␛[m ␛[38;2;192;196;216mRequire password for admin rights?␛[m ␛[38;2;192;196;216m[Y/n, 0 or q]:␛[m n$
 $
    ␛[38;2;192;196;216m4.␛[m ␛[38;2;192;196;216mAdd SSH key?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m n$
 $

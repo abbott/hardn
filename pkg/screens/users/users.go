@@ -51,7 +51,8 @@ type Options struct {
 	// change's plan too. Required.
 	Getenv func(string) string
 	// Config is hardn.yml as loaded, whose username and sshKeys are
-	// Create's defaults alone (sudoNoPassword is not used), never the user
+	// Create's defaults alone, with adminNoPassword the default of its
+	// password question, never the user
 	// the rows are about (decision 7). Nil has none. No change saves it.
 	Config *config.Config
 	// NewEngine returns the engine a change plans and applies with, built as
