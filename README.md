@@ -24,9 +24,9 @@ For anyone administering a Linux server, container or virtual machine without a 
 | 5) Auto Updates | the distribution's automatic updates |
 | 6) Run All | options 1 to 5, from `hardn.yml` |
 | 7) Backup | backups of the files hardn changes |
-| 8) Configuration | nothing: the `hardn.yml` it read |
-| 9) System Details | nothing: a report on the host |
-| 10) Logs | nothing: `/var/log/hardn.log` |
+| 8) Configuration | displays `hardn.yml` |
+| 9) System Details | displays host details |
+| 10) Logs | displays `/var/log/hardn.log` |
 
 AppArmor is displayed, not configured. What each option shows and changes: [docs/usage.md](docs/usage.md#the-menu).
 
@@ -55,7 +55,7 @@ Pinning a version, installing by hand, building from source and troubleshooting:
 
 ## Quick Start
 
-`hardn` needs root (e.g., `sudo hardn` or `doas hardn`), except `--version`, `--help`, `--print-logs` on its own, `completion`, `config`, and `system-details`.
+`hardn` needs root (e.g., `sudo hardn` or `doas hardn`), except `--version`, `--help`, `--print-logs`, `completion`, `config`, and `system-details`.
 
 ```sh
 hardn -h                        # help: usage flags and commands
