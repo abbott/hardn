@@ -1,7 +1,7 @@
 # The Configuration screen (`pkg/screens/config`, `screen.Config`)
 
 Unit (b) of the roadmap's Configuration item ("View and manage hardn.yml" until this unit), `next/config-screen`: the screen [gallery-config.md](gallery-config.md) mocked, as adopted there (2026-11-12, all (a)), now main menu 8. It is the read-only view alone; editing is a later unit.
-Status: built and tested in process (`make check`, all ten steps). No hardn binary ran. Nothing ran on Linux, and nothing on a terminal.
+Status: built and tested in process (`make check`, all ten steps). *Run on `deb13-vm` (Debian 13) and `alpine323-vm` (Alpine 3.23.6), 2026-11-12, the linux-amd64 build of `bf7f111c` (`vm-runs/v090/`): `go test ./...` passed on both; `hardn config` as the login user and through sudo or doas, a named file missing by `-f` and by `HARDN_CONFIG`, `config -c` refused, and main menu 8 opened, left with 0 and quit on a terminal. Debian read `/etc/hardn/hardn.yml`; Alpine had no hardn.yml. Not run: the other distributions, arm64.*
 
 ## 1. What it does
 
@@ -35,7 +35,7 @@ Main menu `8) Configuration`, "View hardn.yml", shows which hardn.yml hardn read
 
 ## 5. Not run
 
-Nothing on Linux, nothing on a terminal, no hardn binary. The first run's file is tested through the bytes it writes, not through the offer at a terminal. Ctrl-C at the prompt is `nav`'s and `prompt`'s own tests'.
+Since the run of 2026-11-12 (above): the other distributions and arm64. The first run's file is tested through the bytes it writes, not through the offer at a terminal. Ctrl-C at the prompt is `nav`'s and `prompt`'s own tests'.
 
 ## 6. `hardn config`
 
