@@ -1,0 +1,88 @@
+package screen
+
+import (
+	"slices"
+	"strings"
+	"testing"
+
+	"github.com/abbott/hardn/pkg/ui/component"
+)
+
+// configValues are every key at a default, but username, which the file sets.
+func configValues() map[string]ConfigValue {
+	v := map[string]ConfigValue{}
+	for _, k := range ConfigKeys() {
+		v[k] = ConfigValue{Text: "false"}
+	}
+	v["username"] = ConfigValue{Text: "george", Set: true}
+	v["sshConfigFile"] = ConfigValue{}
+	return v
+}
+
+// TestConfigFile: the File section by how the file was looked for: found, none
+// anywhere, and one that -f or HARDN_CONFIG names and is not there.
+func TestConfigFile(t *testing.T) {
+	defaults := component.KeyValue{Key: "hardn is using its defaults.", State: component.ValueNone}
+	for _, tt := range []struct {
+		name string
+		c    Config
+		rows []component.KeyValue
+	}{
+		{"search", Config{Path: "/etc/hardn/hardn.yml", By: ConfigBySearch},
+			[]component.KeyValue{{Key: "Path", Value: "/etc/hardn/hardn.yml"}, {Key: "From", Value: "Search path"}}},
+		{"flag", Config{Path: "/root/site.yml", By: ConfigByFlag},
+			[]component.KeyValue{{Key: "Path", Value: "/root/site.yml"}, {Key: "From", Value: "-f"}}},
+		{"none", Config{},
+			[]component.KeyValue{{Key: "Path", Value: "None found"}, defaults}},
+		{"missing", Config{Path: "/home/george/hardn.yml", By: ConfigByEnv, Missing: true},
+			[]component.KeyValue{{Key: "Path", Value: "/home/george/hardn.yml", State: component.ValueBad, Note: "not found"}, {Key: "From", Value: "HARDN_CONFIG"}, defaults}},
+	} {
+		sub := tt.c.SubMenu()
+		if got := sub.Sections[0]; got.Header.Title != "File" || !slices.Equal(got.Rows.Items, tt.rows) {
+			t.Errorf("%s: %q, rows %+v", tt.name, got.Header.Title, got.Rows.Items)
+		}
+		if sub.Title.Title != "Configuration" || len(sub.Menu.Items) != 0 || sub.Menu.Exit.Label != "Return" || sub.Prompt != "Option" {
+			t.Errorf("%s: %+v", tt.name, sub)
+		}
+	}
+}
+
+// TestConfigRows: a row for each key, under its group, in order; a value the file
+// does not set carries "default", an empty one says "Not set"; "Not used" shows
+// only where there is a key for it, each a warning.
+func TestConfigRows(t *testing.T) {
+	c := Config{Path: "/etc/hardn/hardn.yml", By: ConfigBySearch, Values: configValues()}
+	out := strings.Join(drawn(c.SubMenu().Render(plainAt(24, false))), "\n")
+	at := 0
+	for _, want := range append([]string{"File", "Users", "username", "SSH", "Firewall", "DNS", "Auto Updates", "Backup", "General"}, "0) Return") {
+		i := strings.Index(out[at:], want)
+		if i < 0 {
+			t.Fatalf("no %q after offset %d in:\n%s", want, at, out)
+		}
+		at += i
+	}
+	for _, k := range ConfigKeys() {
+		if !strings.Contains(out, k) {
+			t.Errorf("no row for %s", k)
+		}
+	}
+	users := c.SubMenu().Sections[1].Rows.Items
+	if want := (component.KeyValue{Key: "username", Value: "george"}); users[0] != want {
+		t.Errorf("a key the file sets: %+v", users[0])
+	}
+	if want := (component.KeyValue{Key: "adminNoPassword", Value: "false", Note: "(default)"}); users[1] != want {
+		t.Errorf("a default: %+v", users[1])
+	}
+	if !strings.Contains(out, "Not set (default)") || strings.Contains(out, "Not used") {
+		t.Errorf("an empty value, or Not used with no key:\n%s", out)
+	}
+	c.Unused = []ConfigUnused{{Key: "enableLynis", Value: "true"}, {Key: "ufwAllowedPorts"}}
+	sections := c.SubMenu().Sections
+	want := []component.KeyValue{
+		{Key: "enableLynis", Value: "true", State: component.ValueWarn},
+		{Key: "ufwAllowedPorts", State: component.ValueWarn},
+	}
+	if last := sections[len(sections)-1]; last.Header.Title != "Not used" || !slices.Equal(last.Rows.Items, want) {
+		t.Errorf("Not used: %+v", last)
+	}
+}
