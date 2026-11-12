@@ -7,9 +7,7 @@ Simple, precise hardening for Linux servers.
 
 For anyone administering a Linux server, container or virtual machine without a security team: homelab enthusiasts, students, and small organizations such as schools, clinics and nonprofits.
 
-<p align="center">
-<img width="1327" height="1803" alt="hardn v0.4.0" src="https://github.com/user-attachments/assets/e7b53b65-47f7-4283-aeda-1c3ec7b3d352" />
-</p>
+<img width="1327" height="1803" alt="hardn menu" src="https://github.com/user-attachments/assets/c5967b53-0860-49dd-9bd8-437a7bfcc70a" />
 
 ## What It Does
 
