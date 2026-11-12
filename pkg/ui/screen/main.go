@@ -60,7 +60,7 @@ const CompactMainMenu = false
 //
 //	   0) Exit                 q to quit
 //
-//	    > Option [0-10 or q]:
+//	    > Option [0-4, 6-10 or q]:
 //
 // The blocks follow Figma's order: Header, ContextBar, HostBlock,
 // RiskSummary, StatusList, Divider, the MenuHeading with the
@@ -99,12 +99,12 @@ const CompactMainMenu = false
 //	  [ ] Auto Updates         Not Configured
 //
 //	  Select an option         Mode Live
-//	   1) User Management       6) Dry-Run
+//	   1) User Management       6) Run All
 //	   5) Backup               10) Logs
 //
 //	   0) Exit                 q to quit
 //
-//	    > Option [0-10 or q]:
+//	    > Option [0-4, 6-10 or q]:
 //
 // The host, the risk, every status row, the mode and every item stay on
 // screen, Figma's content in theme.CompactBudget lines: the blank line

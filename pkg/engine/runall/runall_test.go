@@ -13,7 +13,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
-	envctl "github.com/abbott/hardn/pkg/engine/controls/environment"
 	fwctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
@@ -149,7 +148,7 @@ func held(t *testing.T, name string, h *runHost, r runall.Reading) {
 		if w, ok := map[string]string{apparmor.ID: runall.WordsStatus, backupctl.ID: runall.WordsUnchanged}[rw.ID]; ok && (rw.Kind != runall.Left || rw.Words != w) {
 			t.Errorf("%s %s: %v %q, want left, %q", name, rw.ID, rw.Kind, rw.Words, w)
 		}
-		if (rw.ID == ssh.Auth{}.ID() || rw.ID == envctl.ID) && (rw.Kind != runall.NothingAsked || rw.Words != runall.WordsNothing) {
+		if (rw.ID == ssh.Auth{}.ID()) && (rw.Kind != runall.NothingAsked || rw.Words != runall.WordsNothing) {
 			t.Errorf("%s %s: %v %q, want nothing asked", name, rw.ID, rw.Kind, rw.Words)
 		}
 		if rw.Kind == runall.NotApplicable && (rw.Words == "" || rw.Words != rw.Report.Status.Detail) {
@@ -235,7 +234,6 @@ func TestAsked(t *testing.T) {
 		{"ssh auth", ssh.Auth{}.ID(), debian, nil, nil, "", 0},
 		{"apparmor", apparmor.ID, debian, nil, nil, "", 0},
 		{"backup", backupctl.ID, debian, nil, nil, "", 0},
-		{"environment", envctl.ID, debian, nil, nil, "", 0},
 	}
 	for _, tt := range tests {
 		cfg := full()

@@ -13,7 +13,7 @@ This document explains how to configure `hardn`, the simple hardening tool for L
 5. `~/.hardn.yml` (traditional dot-file in home directory)
 6. `./hardn.yml` (the directory `hardn` runs in)
 
-The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`, `-e`) and `setup-sudo-env` say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts.
+The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `8) Configuration` shows which file was read, or run `sudo hardn config`.
 
 ## Creating a Configuration File
 
@@ -50,29 +50,26 @@ You can set the `HARDN_CONFIG` environment variable to specify a configuration f
 
 ### Using with sudo or doas
 
-`sudo` and `doas` drop most environment variables, `HARDN_CONFIG` among them. The main menu's Environment (8) keeps it for the user who ran `sudo hardn`, or `doas hardn`, and shows whether it is kept. `sudo hardn setup-sudo-env`, or `sudo hardn -e`, keeps it: on a terminal without asking you to confirm; off one only with `--yes`, otherwise it shows the plan and exits 2.
-
-- **hardn writes only its own file**, `/etc/sudoers.d/hardn-env-<user>` (on doas, its rule `/etc/doas.d/zz-hardn-<user>.conf`), and leaves the others as they are.
-- **An earlier hardn's line is read.** `env_keep += "HARDN_CONFIG"` in `/etc/sudoers.d/<user>` shows as kept by that file. hardn leaves the file as it is.
-- **Both ways.** Once hardn's file keeps it, Environment offers to stop keeping it.
-- **doas needs a rule of hardn's for you**, which this release does not write. Without one, hardn says to add `setenv { HARDN_CONFIG }` to the rule that lets you use doas, and changes nothing.
-- **A root login is refused.** Run `sudo hardn` as the user to keep it for.
-- **`-e` and `setup-sudo-env` apply without asking you to confirm, on a terminal.** Off one they apply only with `--yes`; without it they show the plan, change nothing and exit 2. A change that could lock you out is refused: keep it from main menu 8, which asks you to confirm. With `-n` they show the plan, and the change is not made.
-- **With no hardn.yml found,** `setup-sudo-env` goes on with the defaults and asks nothing. `-e` first asks to create one, as `hardn` does at any start, with `-n` too; answer `n` to go on without one.
-- **It takes effect at the next `sudo hardn`.**
-
-#### Workflow example
+`sudo` and `doas` drop most environment variables, `HARDN_CONFIG` among them, so `sudo hardn` doesn't see it. Any of these gets hardn the file:
 
 ```bash
-# Keep HARDN_CONFIG under sudo (only needs to be done once)
-sudo hardn setup-sudo-env
-
-# Set your preferred config location for your current session
-export HARDN_CONFIG=$HOME/.config/hardn/hardn.yml
-
-# Run with sudo - the environment variable will be preserved
-sudo hardn
+# Name the file
+sudo hardn -f "$HARDN_CONFIG"
 ```
+
+```bash
+# Pass the variable on sudo's command line (needs a rule for ALL commands, the usual admin rule)
+sudo HARDN_CONFIG="$HARDN_CONFIG" hardn
+```
+
+```bash
+# Under doas
+doas env HARDN_CONFIG="$HARDN_CONFIG" hardn
+```
+
+Or put the file at `/etc/hardn/hardn.yml`, where hardn looks first.
+
+- **A line an earlier hardn (before the next release) wrote still works.** `/etc/sudoers.d/hardn-env-<user>` keeps `HARDN_CONFIG` under sudo until you delete it: `sudo rm /etc/sudoers.d/hardn-env-<user>`. Under doas, hardn's rule in `/etc/doas.d/zz-hardn-<user>.conf` keeps its `setenv { HARDN_CONFIG }` while User Management changes the rule, and loses it when Remove admin rights removes the rule.
 
 #### **Persistent Across Sessions**
 To make configuration persist across reboots and new shell sessions, add it to your shell's startup file by issuing the following command for your respective shell:
@@ -141,9 +138,9 @@ backupPath: "/var/backups/hardn"    # Path to store backups
 
 `dryRun: true` starts `hardn` as a dry run: changes are shown, not applied. `-n` does the same for one run.
 
-- **User Management, SSH Login, Firewall, Backup, Auto Updates, Run All and Environment open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
+- **User Management, SSH Login, Firewall, Backup, Auto Updates and Run All open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
 - **The flag wins.** `-n` turns dry run on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
-- **Operation flags show their plan** in a dry run, as with `-n`: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` exit 3 when there are changes. To apply, add `--dry-run=false`.
+- **Operation flags show their plan** in a dry run, as with `-n`: `-r`, `-c`, `-d`, `-g` and `-w` exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
 - **Set it here, not in the menu.** The menu's saves write `dryRun` as the file had it, never the mode of the session.
 - **The main menu says so.** Beside "Select an option" it shows "Mode Dry run (hardn.yml)", or "(-n)" when the flag set it.
@@ -310,7 +307,7 @@ https://linux-audit.com/ssh/audit-and-harden-your-ssh-configuration/#do-not-use-
    dryRun: true      # dry run at every start
    enableBackups: true
    ```
-   With `dryRun: true`, every start is a dry run, scripts and cron jobs included: `-r`, `-c`, `-d`, `-g`, `-w`, `-e` and `setup-sudo-env` only show their plan. Use `--dry-run=false` to apply.
+   With `dryRun: true`, every start is a dry run, scripts and cron jobs included: `-r`, `-c`, `-d`, `-g` and `-w` only show their plan. Use `--dry-run=false` to apply.
 
 3. **SSH Security**: Always use key-based authentication:
    ```yaml

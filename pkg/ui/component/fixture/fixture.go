@@ -127,7 +127,7 @@ func FigmaMenu() component.Menu {
 		{Key: "5", Label: "Backup", Description: "Configure hardn backup"},
 		{Key: "6", Label: "Dry-Run", Description: "Simulate changes"},
 		{Key: "7", Label: "Run All", Description: "Execute hardening operations"},
-		{Key: "8", Label: "Environment", Description: "Configure environment variable"},
+		{Key: "8", Label: "Configuration", Description: "View hardn.yml"},
 		{Key: "9", Label: "System Details", Description: "View system information"},
 		{Key: "10", Label: "Logs", Description: "View log file"},
 	}, Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}}

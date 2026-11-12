@@ -4,7 +4,7 @@ package main
 // unit (d), next/s4-replace; plan §3.14: the legacy path replaced, not
 // gated): the main menu's Firewall item runs the Firewall screen
 // (pkg/screens/firewall), which pkg/screens/mainmenu reaches through the hook set
-// here, as it reaches the Environment screen (environment.go), so that
+// here, so that
 // pkg/screens/mainmenu builds no engine; and -w plans and applies the Firewall
 // control's Enable through runControls, a lockout-risk plan confirmed by
 // the hostname typed on a terminal and refused off one
@@ -130,8 +130,7 @@ func withFirewallScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
 
 // runFirewallScreen is the main menu's Firewall item: the Firewall screen
 // until the user goes back (nil) or quits (nav.ErrQuit), or the input ends
-// (prompt.ErrAborted), as runEnvironmentScreen runs the Environment
-// screen: on the host hardn builds, with its run log in hardn's log, the
+// (prompt.ErrAborted): on the host hardn builds, with its run log in hardn's log, the
 // facts detected once per visit, through the one line reader every prompt
 // shares and stdout's render environment; each change on an engine with
 // engineOptions, assembled for this visit from c as it is now, and the

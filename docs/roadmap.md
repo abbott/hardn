@@ -17,7 +17,7 @@ Features hardn doesn't have yet. None has a release or a date.
 
 ## Configuration
 
-- **View and manage hardn.yml.** hardn reads hardn.yml from `-f`, `HARDN_CONFIG`, or the first of `/etc/hardn/hardn.yml`, `~/.config/hardn/hardn.yml`, `~/.hardn.yml` and `./hardn.yml`, but no screen shows which file it read or what it holds. Firewall, DNS, Auto Updates and Backup already save their own keys: only those lines change, comments stay, and a file changed since it was read is refused. A hardn.yml item in the main menu would show the file's path and each key's value, marking the defaults, and edit any key through the same save: the edited lines shown first, then asked.
+- **Edit hardn.yml from the menu.** `8) Configuration` shows which hardn.yml hardn read and each key's value, but changes nothing. Firewall, DNS, Auto Updates and Backup already save their own keys: only those lines change, comments stay, and a file changed since it was read is refused. Configuration would edit the keys no other screen saves through the same save: the edited lines shown first, then asked.
 
 ## Firewall
 

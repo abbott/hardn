@@ -21,7 +21,7 @@ const (
 	sdTextDefault = "text is the default"
 	sdNoFilter    = "nothing filters the report"
 	sdUseRedirect = "use > file"
-	sdAlone       = "run it without system-details"
+	sdAlone       = "run it without %s"
 )
 
 // rootOperations are root's flags that run something, each with the name a refusal
@@ -33,7 +33,17 @@ var rootOperations = []struct{ flag, name string }{
 	{"configure-dns", "-g"},
 	{"configure-ufw", "-w"},
 	{"run-all", "-r"},
-	{"setup-sudo-env", "-e"},
+}
+
+// refuseRootOperations is the refusal of the first of root's operation flags given
+// to command, which would not run it; nil where none is.
+func refuseRootOperations(given func(name string) bool, command string) error {
+	for _, op := range rootOperations {
+		if given(op.flag) {
+			return fmt.Errorf(sdRefused, op.name, fmt.Sprintf(sdAlone, command))
+		}
+	}
+	return nil
 }
 
 // systemDetailsFlags are the command's flags as given. -E, -S, -O, --json and --yaml
@@ -50,10 +60,8 @@ type systemDetailsFlags struct {
 // flags, which this command would not run, are refused too. given says which flags
 // were on the command line. A refusal is the error, for exit status 2 (output.ExitUsage).
 func (f systemDetailsFlags) form(given func(name string) bool) (SystemDetailsForm, error) {
-	for _, op := range rootOperations {
-		if given(op.flag) {
-			return SystemDetailsForm{}, fmt.Errorf(sdRefused, op.name, sdAlone)
-		}
+	if err := refuseRootOperations(given, "system-details"); err != nil {
+		return SystemDetailsForm{}, err
 	}
 	switch {
 	case given("yaml"):
@@ -106,4 +114,20 @@ func systemDetailsCmd(run func(SystemDetailsForm, error)) *cobra.Command {
 		_ = cmd.Flags().MarkHidden(name)
 	}
 	return cmd
+}
+
+// configCmd returns the config command, which has no flag of its own: run gets the
+// refusal of root's operation flags, or nil.
+func configCmd(run func(error)) *cobra.Command {
+	return &cobra.Command{
+		Use:   "config",
+		Short: "Show hardn.yml: the file hardn reads and each key's value",
+		Long: `Print which hardn.yml hardn reads (-f, then HARDN_CONFIG, then the search path) and each key's value, as the main menu's Configuration shows them. It changes nothing and doesn't need root.
+
+It shows the file for the user who runs it: HARDN_CONFIG and the home directory are that user's. To see what sudo hardn reads, run sudo hardn config.`,
+		Args: cobra.NoArgs,
+		Run: func(cmd *cobra.Command, _ []string) {
+			run(refuseRootOperations(cmd.Flags().Changed, "config"))
+		},
+	}
 }

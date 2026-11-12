@@ -18,7 +18,7 @@ var runAllTestRows = []RunAllRow{{Label: "User", Outcome: "Already as asked"},
 	{Label: "Firewall", Outcome: "Refused", Refusal: "hardn can't tell which ports sshd listens on: ss is not installed. Install iproute2."},
 	{Label: "SSH Login", Outcome: "Root login off"}, {Label: "SSH Auth", Outcome: "Nothing asked"}, {Label: "SSH Port", Outcome: "Already as asked"},
 	{Label: "AppArmor", Outcome: "Status only"}, {Label: "Auto Updates", Outcome: "Turn on"}, {Label: "DNS", Outcome: "Set 2 nameservers"},
-	{Label: "Backups", Outcome: "Used, not changed"}, {Label: "Environment", Outcome: "Nothing asked"}}
+	{Label: "Backups", Outcome: "Used, not changed"}}
 
 // TestRunAllHeights (from the gallery's, gallery-runall.md §4): the screen
 // at 80x24 and 80x40, Unicode and ASCII, fits 24 rows, the prompt on its

@@ -19,7 +19,7 @@ To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have n
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo env HARDN_VERSION=0.4.0 sh
 ```
 
-The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except `setup-sudo-env` and dry runs._
+The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except in a dry run._
 
 ## Install Manually
 

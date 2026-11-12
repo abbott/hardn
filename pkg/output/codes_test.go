@@ -22,7 +22,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
-	"github.com/abbott/hardn/pkg/engine/controls/environment"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
@@ -248,7 +247,6 @@ var sentinels = map[string]error{
 	"ufw.ErrStateUnknown":             ufw.ErrStateUnknown,
 	"ufw.ErrVerify":                   ufw.ErrVerify,
 	"engine.ErrNotMigrated":           engine.ErrNotMigrated,
-	"environment.ErrNoUser":           environment.ErrNoUser,
 	"users.ErrElevationNotRead":       users.ErrElevationNotRead,
 	"users.ErrNoTool":                 users.ErrNoTool,
 	"users.ErrNotListed":              users.ErrNotListed,

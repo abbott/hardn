@@ -512,7 +512,6 @@ func TestSystemDetailsFlags(t *testing.T) {
 		{args: []string{"-g"}, code: 2, stderr: []string{"hardn: -g is refused: " + runAlone}},
 		{args: []string{"-w"}, code: 2, stderr: []string{"hardn: -w is refused: " + runAlone}},
 		{args: []string{"-r"}, code: 2, stderr: []string{"hardn: -r is refused: " + runAlone}},
-		{args: []string{"-e"}, code: 2, stderr: []string{"hardn: -e is refused: " + runAlone}},
 		{args: []string{"-n"}},
 		{args: []string{"--no-color"}, stderr: []string{noColorDeprecated}}, // warnNoColor
 		{args: []string{"-f", "hardn.yml"}},
@@ -616,7 +615,7 @@ func TestReaderScreens(t *testing.T) {
 				}
 				c := config.DefaultConfig()
 				c.LogFile, c.DryRun = "/srv/log/hardn.log", true
-				set := withReaderScreens(mainmenu.Options{}, c)
+				set := withReaderScreens(mainmenu.Options{}, c, config.Found{})
 				run := set.SystemDetails
 				if screen == "logs" {
 					run = set.Logs
@@ -650,7 +649,7 @@ func TestPrintOnly(t *testing.T) {
 	}
 	for name, flag := range map[string]*bool{
 		"create-user": &createUser, "disable-root": &disableRootSSH, "configure-ufw": &configureUfw,
-		"configure-dns": &configureDns, "run-all": &runAll, "setup-sudo-env": &setupSudoEnv,
+		"configure-dns": &configureDns, "run-all": &runAll,
 	} {
 		was := *flag
 		*flag = true
@@ -682,7 +681,7 @@ func TestLogsOpenTerm(t *testing.T) {
 	t.Cleanup(func() { engineInput = inputWas })
 	in := prompt.New(uitest.NewTypist(io.Discard, "1", "0"), false)
 	engineInput = func() *prompt.Reader { return in }
-	set := withReaderScreens(mainmenu.Options{}, config.DefaultConfig())
+	set := withReaderScreens(mainmenu.Options{}, config.DefaultConfig(), config.Found{})
 	if err := set.Logs(); err != nil {
 		t.Fatalf("= %v; screen:\n%s", err, s.out.String())
 	}
@@ -697,5 +696,117 @@ func TestLogsOpenTerm(t *testing.T) {
 	}
 	if !opened {
 		t.Errorf("Open ran nothing; screen:\n%s", s.out.String())
+	}
+}
+
+// TestConfigScreenHook: main menu 8 shows the configuration the main menu holds and
+// how its file was found when it loaded, hardn.yml never looked for again: a file
+// that has gone, and another -f would now find, change nothing. Under plan only as
+// live, it reaches no host; 0 goes back, q quits, the end of the input aborts.
+func TestConfigScreenHook(t *testing.T) {
+	const path = "/etc/hardn/hardn.yml"
+	for _, tc := range []struct {
+		name  string
+		lines []string
+		want  error
+	}{
+		{"back", []string{"0"}, nil},
+		{"quit", []string{"q"}, nav.ErrQuit},
+		{"the end of the input", nil, prompt.ErrAborted},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := hostfake.New(host.Options{})
+			h.AddFile(path, []byte("username: alice\nsshPort: 2230\n"), 0o600, 0, 0)
+			c, err := config.Read(context.Background(), h, path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			c.ResolveDryRun(true, true) // -n
+			s := &readerSeams{}
+			useReaderHost(t, h, s)
+			inputWas, findWas, fileWas := engineInput, findConfig, configFile
+			t.Cleanup(func() { engineInput, findConfig, configFile = inputWas, findWas, fileWas })
+			in := prompt.New(uitest.NewTypist(io.Discard, tc.lines...), false)
+			engineInput = func() *prompt.Reader { return in }
+			configFile = "/root/other.yml"
+			var asked []string
+			findConfig = func(p string) config.Found {
+				asked = append(asked, p)
+				return config.Found{Path: p, By: config.FoundFlag}
+			}
+			run := withReaderScreens(mainmenu.Options{}, c, config.Found{Path: path, By: config.FoundSearch, Exists: true}).Configuration
+			if err := run(); !errors.Is(err, tc.want) || (tc.want == nil && err != nil) {
+				t.Fatalf("= %v, want %v; screen:\n%s", err, tc.want, s.out.String())
+			}
+			for _, w := range []string{"# Configuration ###", "   -  Path                 " + path + "\n", "   -  From                 Search path\n",
+				"   -  username             alice\n", "   -  sshPort              2230\n", "   -  dryRun               false (default)", "   0) Return"} {
+				if !strings.Contains(s.out.String(), w) {
+					t.Errorf("no %q in:\n%s", w, s.out.String())
+				}
+			}
+			if strings.Contains(s.out.String(), "other.yml") || strings.Contains(s.out.String(), "not found") {
+				t.Errorf("the screen names another file:\n%s", s.out.String())
+			}
+			if len(asked) != 0 || s.reached != 0 || len(h.Calls()) != 1 {
+				t.Errorf("looked for %v, the host reached %d times, %d calls; want no look and the test's own read alone", asked, s.reached, len(h.Calls()))
+			}
+		})
+	}
+}
+
+// TestLoadedFound: how the file was found at load stays as main found it, a missing
+// -f's with no file loaded too; a file the first run's offer created since, none
+// found or a mistyped -f's, is from the search path where it is on it, and from
+// nowhere where it is not; and the screen then names the created file.
+func TestLoadedFound(t *testing.T) {
+	const etc, site = "/etc/hardn/hardn.yml", "/root/site.yml"
+	typo := config.Found{Path: "/root/typo.yml", By: config.FoundFlag}
+	at := func(path string) *config.Config {
+		if path == "" {
+			return config.DefaultConfig()
+		}
+		h := hostfake.New(host.Options{})
+		h.AddFile(path, []byte("sshPort: 2230\n"), 0o600, 0, 0)
+		c, err := config.Read(context.Background(), h, path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return c
+	}
+	onPath := config.Found{Path: etc, By: config.FoundSearch, Exists: true}
+	for _, tc := range []struct {
+		name, path string
+		found      config.Found
+		want       config.Found
+	}{
+		{"read by -f", site, config.Found{Path: site, By: config.FoundFlag, Exists: true}, config.Found{Path: site, By: config.FoundFlag, Exists: true}},
+		{"none loaded", "", config.Found{}, config.Found{}},
+		{"none loaded, -f's missing", "", typo, typo},
+		{"created, none found", etc, config.Found{}, onPath},
+		{"created, -f mistyped", etc, typo, onPath},
+		{"created off the search path", site, typo, config.Found{}},
+	} {
+		if got := loadedFound(at(tc.path), tc.found); got != tc.want {
+			t.Errorf("%s: %+v, want %+v", tc.name, got, tc.want)
+		}
+	}
+	h, s := hostfake.New(host.Options{}), &readerSeams{}
+	useReaderHost(t, h, s)
+	inputWas := engineInput
+	t.Cleanup(func() { engineInput = inputWas })
+	in := prompt.New(uitest.NewTypist(io.Discard, "0"), false)
+	engineInput = func() *prompt.Reader { return in }
+	c := at(etc)
+	if err := withReaderScreens(mainmenu.Options{}, c, loadedFound(c, typo)).Configuration(); err != nil {
+		t.Fatal(err)
+	}
+	out := s.out.String()
+	for _, w := range []string{"   -  Path                 " + etc + "\n", "   -  From                 Search path\n", "   -  sshPort              2230\n"} {
+		if !strings.Contains(out, w) {
+			t.Errorf("no %q in:\n%s", w, out)
+		}
+	}
+	if strings.Contains(out, "typo.yml") || strings.Contains(out, "not found") {
+		t.Errorf("the mistyped -f's path over the created file's values:\n%s", out)
 	}
 }

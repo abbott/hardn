@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | environment | environment/host | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | runall | runall/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | system-details | system-details/host | logs | logs/host | config | config/mock | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | runall | runall/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -30,8 +30,8 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // item to the root-login toggle. The main menu's 4 leads to the real DNS
 // screen (dnsLinks, dnsscreen.go), its 7 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
-// kept among the mocks as Figma's record (figmaRecords), and its 8 to the
-// real Environment screen (envLinks, environment.go), its 9 to the real System
+// kept among the mocks as Figma's record (figmaRecords), its 8 to the real
+// Configuration screen (configLinks, config.go), its 9 to the real System
 // Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
 // (logsLinks, logs.go), its 3 to the real Firewall screen (fwLinks, firewall.go),
 // its 1 to the real User Management screen (usrLinks, users.go) and its 2 to the
@@ -124,22 +124,6 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
 			return s.play("play "+name, []string{note}, s.openBackup(name), stderr)
-		})
-	}
-	if name, ok, err := envStart(fs.Args()); ok || err != nil {
-		set := map[string]bool{}
-		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
-		switch {
-		case err != nil:
-			return usage("%v", err)
-		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Environment screen fails where its host does")
-		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Environment screen plays normal or dry-run", *sequence)
-		}
-		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
-			s.sequence = *sequence
-			return s.play("play "+name, []string{engineNote}, s.openEnv(name), stderr)
 		})
 	}
 	if name, ok, err := usrStart(fs.Args()); ok || err != nil {
@@ -236,6 +220,22 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
 			return s.play("play "+name, []string{logsNote}, s.openLogs(name), stderr)
+		})
+	}
+	if name, ok, err := configStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the Configuration screen applies nothing")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the Configuration screen plays normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{configNote}, s.openConfig(name), stderr)
 		})
 	}
 	if name, ok, err := raStart(fs.Args()); ok || err != nil {
@@ -540,8 +540,8 @@ func (s *session) open(m screen.Mock) func() error {
 }
 
 // menu returns the menu of menu mock m bound to its actions: each item
-// opens the mock links name for it, or the DNS, Backup, Environment, System
-// Details or Logs screen on the host dnsLinks, backupLinks, envLinks, sdLinks
+// opens the mock links name for it, or the DNS, Backup, Configuration, System
+// Details or Logs screen on the host dnsLinks, backupLinks, configLinks, sdLinks
 // or logsLinks name, an item m
 // refuses says why, and an item with none of these says that the gallery
 // has no screen for it.
@@ -562,9 +562,6 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		if to, ok := backupLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openBackup(to)
 		}
-		if to, ok := envLinks[m.Name+"/"+it.Key]; ok {
-			action = s.openEnv(to)
-		}
 		if to, ok := fwLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openFW(to)
 		}
@@ -573,6 +570,9 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		}
 		if to, ok := sshLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openSSH(to)
+		}
+		if to, ok := configLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openConfig(to)
 		}
 		if to, ok := sdLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openSD(to)

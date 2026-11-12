@@ -6,6 +6,8 @@ Since `next/s8-screen` the listing, its mocks and `raTyped` are gone: `play runa
 
 *Since `next/sudo-password-opt-in` (2026-11-11, [control-users.md](control-users.md) §8): Create's grant asks the user's password unless hardn.yml's `adminNoPassword` is true, so `fresh` and `new-admin` plan george and carol with a rule that waits for `passwd`; where this page says passwordless sudo, or `sudoNoPassword` unused, this note is current.*
 
+*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); since `next/config-screen` Configuration is main menu 8 ([screen-config.md](screen-config.md)), and System Details and Logs are 9 and 10 again.*
+
 ## 1. What to run
 
 ```

@@ -571,7 +571,7 @@ func TestCompactForm(t *testing.T) {
 
   Select an option         Mode Live
    1) User Management       7) Backup
-   2) SSH Login             8) Environment
+   2) SSH Login             8) Configuration
    3) Firewall              9) System Details
    4) DNS                  10) Logs
    6) Run All

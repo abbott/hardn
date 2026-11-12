@@ -44,14 +44,13 @@ func TestBackupItem(t *testing.T) {
 	})
 }
 
-// TestEnvironmentItem: the main menu's 8 runs the Environment screen
-// cmd/hardn sets (Options.Environment), as TestDNSItem's 4 runs the DNS screen,
-// and maps what it returns the same way (refactor plan slice 9, unit (d));
-// the screen saves no setting, so the main menu's configuration is as it
-// was.
-func TestEnvironmentItem(t *testing.T) {
+// TestConfigurationItem: the main menu's 8 runs the Configuration screen
+// cmd/hardn sets (Options.Configuration), as TestDNSItem's 4 runs the DNS screen,
+// and maps what it returns the same way (next/config-screen); the screen
+// only shows, so the main menu's configuration is as it was.
+func TestConfigurationItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "8", name: "ENVIRONMENT", set: setEnvironment,
+		key: "8", name: "CONFIGURATION", set: setConfiguration,
 		edit: func(*config.Config) {},
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.BackupPath == config.DefaultConfig().BackupPath

@@ -8,11 +8,10 @@ import (
 	"testing"
 )
 
-// TestLoadExisting: setup-sudo-env's load (refactor plan slice 9, unit
-// (d)). A file found is read as LoadConfig reads it; none found is the
-// defaults, with no question asked and nothing written; a file -f or
-// HARDN_CONFIG names that is not there is fs.ErrNotExist, with no question
-// either.
+// TestLoadExisting: -n's load. A file found is read as LoadConfig reads
+// it; none found is the defaults, with no question asked and nothing
+// written; a file -f or HARDN_CONFIG names that is not there is
+// fs.ErrNotExist, with no question either.
 func TestLoadExisting(t *testing.T) {
 	if _, err := os.Stat("/etc/hardn/hardn.yml"); err == nil {
 		t.Skip("/etc/hardn/hardn.yml exists on this machine: the search path would find it")

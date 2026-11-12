@@ -264,27 +264,6 @@ func TestConfirmTimeout(t *testing.T) {
 	}
 }
 
-// TestConfirmTimeoutSetupSudoEnv: setup-sudo-env, and -e, refuse
-// hardn.yml's confirmTimeout: 10 (10 s, below the floor) once it loads,
-// a usage error, exit status 2, CONFIRM_TIMEOUT_INVALID, nothing planned,
-// written or run on the host.
-func TestConfirmTimeoutSetupSudoEnv(t *testing.T) {
-	const refused = "hardn: confirmTimeout 10s: at least 1m0s: confirm timeout not accepted (CONFIRM_TIMEOUT_INVALID)"
-	for _, args := range [][]string{{"setup-sudo-env"}, {"-e"}} {
-		t.Run(strings.Join(args, " "), func(t *testing.T) {
-			h := newEnvHost(t, "debian13")
-			c := config.DefaultConfig()
-			c.ConfirmTimeout = "10"
-			r, s := runG(t, h.dnsHost, c, func(*dnsSeams) {
-				environmentGetenv = func(k string) string { return h.env[k] }
-			}, args...)
-			if !r.ended || r.code != 2 || !strings.Contains(r.stderr, refused) || s.out.Len() != 0 || s.applies != 0 || len(h.writes()) != 0 || len(h.Calls()) != 0 {
-				t.Errorf("ended %v with %d, %d applies, wrote %q, ran %d commands; report:\n%s\nstderr:\n%s", r.ended, r.code, s.applies, h.writes(), len(h.Calls()), s.out.String(), r.stderr)
-			}
-		})
-	}
-}
-
 // TestConfirmTimeoutArmed: -w's lockout-risk plan, typed on a terminal,
 // arms the revert timer for --confirm-timeout's window, and the countdown
 // after it says that window, the clock fixed (revertNow): 5m, the timer's

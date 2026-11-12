@@ -59,9 +59,10 @@ type Options struct {
 	RunAll func() error
 	// Backup is the Backup item (7): pkg/screens/backup.
 	Backup func() error
-	// Environment is the Environment item (8): pkg/screens/environment,
-	// which saves no setting of hardn.yml.
-	Environment func() error
+	// Configuration is the Configuration item (8): pkg/screens/config, which
+	// shows hardn.yml as loaded and changes nothing, under plan only as live.
+	// Its name is not the item's bare word: Config is the field above.
+	Configuration func() error
 	// SystemDetails is the System Details item (9): pkg/screens/systemdetails.
 	// It reads and changes nothing else, under plan only as live.
 	SystemDetails func() error
@@ -305,13 +306,14 @@ func (o Options) firewallDescription() string {
 // for it, and its Exit item "0) Exit", "q to quit" (DEV-030); the hint,
 // generated from the items, says "[0-10 or q]". The order is the
 // maintainer's (2026-11-07): User Management, SSH Login, Firewall, DNS,
-// Auto Updates, Run All, Backup, Environment, System Details, Logs. Item
+// Auto Updates, Run All, Backup, Configuration, System Details, Logs. Item
 // 1's parenthesis is its aside. Item 2 says what the SSH Login screen
 // changes, "Root login, passwords, port" (legacy-left.md §3, decision 7
 // (a); P-07 (a), P-12); item 3 on Proxmox VE "View pve-firewall" (slice
 // 4, decision 7), on Rocky Linux and AlmaLinux "Configure firewalld"; Auto Updates (slice 7, unit (d)) took the key
-// origin/main's Dry-Run left; item 8 "Keep HARDN_CONFIG" (slice 9,
-// decision 7 (a), P-07 (c)). Every
+// origin/main's Dry-Run left; item 8, Configuration, "View hardn.yml"
+// (gallery-config.md §3, decisions 1 and 6 (a)), took the key Environment
+// left. Every
 // item opens under plan only as live: its screen stops each change at its
 // plan.
 func (o Options) items() nav.Menu {
@@ -328,7 +330,7 @@ func (o Options) items() nav.Menu {
 			{Item: item("5", "Auto Updates", "Configure automatic updates"), Action: o.show(o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)")},
 			{Item: item("6", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
 			{Item: item("7", "Backup", "Configure hardn backup"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
-			{Item: item("8", "Environment", "Keep HARDN_CONFIG"), Action: o.show(o.Environment, "mainmenu: the Environment item has no screen (Options.Environment)")},
+			{Item: item("8", "Configuration", "View hardn.yml"), Action: o.show(o.Configuration, "mainmenu: the Configuration item has no screen (Options.Configuration)")},
 			{Item: item("9", "System Details", "View system information"), Action: o.show(o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)")},
 			{Item: item("10", "Logs", "View log file"), Action: o.show(o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)")},
 		},

@@ -35,20 +35,20 @@ func (f typedReportWrite) Write(p []byte) (int, error) {
 	return f.w.Write(p)
 }
 
-// typedSignal runs -w -e on a terminal on the Firewall host whose
+// typedSignal runs -w -p on a terminal on the Firewall host whose
 // Enable's plan is lockout-risk, the hostname typed, sig sent to this
 // test process during the apply's rollback (inRollback: ufw's start
 // fails and the change is rolled back, ufw stopped and 22 no longer
 // allowed; sig is sent under the engine's own hold, hold.Signals, which
 // catches it) or during the report of an apply that succeeded; it
 // returns what hardn did other than end with the failure's status, 1,
-// after the rollback, or 130 after the report, -e not run, the apply's
+// after the rollback, or 130 after the report, -p not run, the apply's
 // context cancelled, or "".
 func typedSignal(t *testing.T, sig syscall.Signal, inRollback bool) string {
 	t.Helper()
 	signals := engineSignals // the real one: useDNSHost replaces it
 	h := newFWHost(t, "debian13")
-	ran := withSudo(h.dnsHost) // -e keeps HARDN_CONFIG for alice there
+	ran := withLog(t, false)
 	if inRollback {
 		answer := h.Handler
 		h.Handler = func(argv []string, in []byte) hostfake.Response {
@@ -90,7 +90,7 @@ func typedSignal(t *testing.T, sig syscall.Signal, inRollback bool) string {
 			}}
 		}
 		endHangup = func() { ended++ } // a screen's end of hardn, not a flag's
-	}, "-w", "-e")
+	}, "-w", "-p")
 	out := stripANSI(s.out.String())
 	where, want := "during the report", 130
 	if inRollback {
@@ -98,7 +98,7 @@ func typedSignal(t *testing.T, sig syscall.Signal, inRollback bool) string {
 	}
 	cancelled := applying != nil && applying.Err() != nil
 	if fired != 1 || !r.ended || r.code != want || ran() || ended != 0 || s.applies != 1 || !cancelled {
-		return fmt.Sprintf("%v %s: fired %d; ended %v with %d, want %d; -e ran %v, ended by a hangup %d times, %d applies, the apply's context cancelled %v; report:\n%s\nstderr:\n%s",
+		return fmt.Sprintf("%v %s: fired %d; ended %v with %d, want %d; -p ran %v, ended by a hangup %d times, %d applies, the apply's context cancelled %v; report:\n%s\nstderr:\n%s",
 			sig, where, fired, r.ended, r.code, want, ran(), ended, s.applies, cancelled, out, r.stderr)
 	}
 	if !strings.Contains(out, "Type the hostname") {
@@ -117,7 +117,7 @@ func typedSignal(t *testing.T, sig syscall.Signal, inRollback bool) string {
 // lockout-risk plan confirmed by the hostname typed (runTyped), a hangup
 // or SIGTERM during the apply's rollback ends hardn with the failure's
 // status, 1, and one during the report ends it with 130, as runControls
-// ends -g (signalInRollback; TestConfigureDNSFlagWithOthers), -e not run
+// ends -g (signalInRollback; TestConfigureDNSFlagWithOthers), -p not run
 // and the apply's context cancelled, on every run: each 50 times on one
 // CPU (GOMAXPROCS 1), where the race the fix of 8367f031 closed showed
 // most.

@@ -74,7 +74,7 @@ var errCreateLockoutRisk = &steps.Refusal{
 }
 
 // refuseCreateLockoutRisk refuses p when it is lockout-risk
-// (engine.RiskLockout), as refuseLockoutRisk refuses -e's: such a plan is
+// (engine.RiskLockout): such a plan is
 // confirmed by the hostname typed and armed with the revert timer, which a
 // flag that applies without asking must not arm unasked. Create's plan is
 // never one (its grant is a new user's, plain: gallery-users.md §5,

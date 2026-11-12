@@ -24,7 +24,7 @@ For anyone administering a Linux server, container or virtual machine without a 
 | 5) Auto Updates | the distribution's automatic updates |
 | 6) Run All | options 1 to 5, from `hardn.yml` |
 | 7) Backup | backups of the files hardn changes |
-| 8) Environment | `HARDN_CONFIG` kept under `sudo` or `doas` |
+| 8) Configuration | nothing: the `hardn.yml` it read |
 | 9) System Details | nothing: a report on the host |
 | 10) Logs | nothing: `/var/log/hardn.log` |
 
@@ -36,7 +36,7 @@ AppArmor is displayed, not configured. What each option shows and changes: [docs
 ## How It Works
 
 1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [safeguards](docs/safeguards.md)).
-2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, some Environment changes under doas, Run All) asks you to type the hostname.
+2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, Run All) asks you to type the hostname.
 3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 

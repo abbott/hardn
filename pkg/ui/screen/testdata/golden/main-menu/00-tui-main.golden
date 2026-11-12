@@ -30,7 +30,7 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -66,7 +66,7 @@ $
    4) DNS                  Configure nameservers$
    6) Run All              Execute hardening operations$
    7) Backup               Configure hardn backup$
-   8) Environment          Keep HARDN_CONFIG$
+   8) Configuration        View hardn.yml$
    9) System Details       View system information$
   10) Logs                 View log file$
 $
@@ -119,8 +119,8 @@ $
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+      ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
@@ -159,7 +159,7 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -195,7 +195,7 @@ $
    ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mDNS␛[m                  ␛[38;2;87;92;110mConfigure nameservers␛[m$
    ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mRun All␛[m              ␛[38;2;87;92;110mExecute hardening operations␛[m$
    ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[38;2;87;92;110mConfigure hardn backup␛[m$
-   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m          ␛[38;2;87;92;110mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m        ␛[38;2;87;92;110mView hardn.yml␛[m$
    ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m       ␛[38;2;87;92;110mView system information␛[m$
   ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m                 ␛[38;2;87;92;110mView log file␛[m$
 $
@@ -248,8 +248,8 @@ $
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;129;134;156mKeep HARDN_CONFIG␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+      ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$

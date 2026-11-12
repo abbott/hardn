@@ -5,7 +5,7 @@
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
 $
@@ -14,7 +14,7 @@ $
 === truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
 $
@@ -23,7 +23,7 @@ $
 === truecolor-dark-unicode-120: width 120, height 24, profile truecolor, dark, glyphs unicode
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
 $
@@ -32,7 +32,7 @@ $
 === truecolor-dark-ascii-60: width 60, height 24, profile truecolor, dark, glyphs ascii
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
 $
@@ -41,7 +41,7 @@ $
 === truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
 $
@@ -50,7 +50,7 @@ $
 === truecolor-dark-ascii-120: width 120, height 24, profile truecolor, dark, glyphs ascii
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m       ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m             ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mDNS␛[m                   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mFirewall␛[m              ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
 $
@@ -59,7 +59,7 @@ $
 === truecolor-light-unicode-60: width 60, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mUser Management␛[m       ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mSSH Login␛[m             ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
-   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
+   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
    ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mFirewall␛[m              ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
 $
@@ -68,7 +68,7 @@ $
 === truecolor-light-unicode-80: width 80, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mUser Management␛[m       ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mSSH Login␛[m             ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
-   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
+   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
    ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mFirewall␛[m              ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
 $
@@ -77,7 +77,7 @@ $
 === truecolor-light-unicode-120: width 120, height 24, profile truecolor, light, glyphs unicode
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mUser Management␛[m       ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mSSH Login␛[m             ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
-   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
+   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
    ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mFirewall␛[m              ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
 $
@@ -86,7 +86,7 @@ $
 === truecolor-light-ascii-60: width 60, height 24, profile truecolor, light, glyphs ascii
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mUser Management␛[m       ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mSSH Login␛[m             ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
-   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
+   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
    ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mFirewall␛[m              ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
 $
@@ -95,7 +95,7 @@ $
 === truecolor-light-ascii-80: width 80, height 24, profile truecolor, light, glyphs ascii
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mUser Management␛[m       ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mSSH Login␛[m             ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
-   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
+   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
    ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mFirewall␛[m              ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
 $
@@ -104,7 +104,7 @@ $
 === truecolor-light-ascii-120: width 120, height 24, profile truecolor, light, glyphs ascii
    ␛[1;38;2;30;34;48m1)␛[m ␛[38;2;30;34;48mUser Management␛[m       ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m$
    ␛[1;38;2;30;34;48m2)␛[m ␛[38;2;30;34;48mSSH Login␛[m             ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
-   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
+   ␛[1;38;2;30;34;48m3)␛[m ␛[38;2;30;34;48mDNS␛[m                   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
    ␛[1;38;2;30;34;48m4)␛[m ␛[38;2;30;34;48mFirewall␛[m              ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
 $
@@ -113,7 +113,7 @@ $
 === 256-dark-unicode-60: width 60, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m       ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m             ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m              ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
 $
@@ -122,7 +122,7 @@ $
 === 256-dark-unicode-80: width 80, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m       ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m             ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m              ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
 $
@@ -131,7 +131,7 @@ $
 === 256-dark-unicode-120: width 120, height 24, profile 256, dark, glyphs unicode
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m       ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m             ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m              ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
 $
@@ -140,7 +140,7 @@ $
 === 256-dark-ascii-60: width 60, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m       ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m             ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m              ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
 $
@@ -149,7 +149,7 @@ $
 === 256-dark-ascii-80: width 80, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m       ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m             ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m              ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
 $
@@ -158,7 +158,7 @@ $
 === 256-dark-ascii-120: width 120, height 24, profile 256, dark, glyphs ascii
    ␛[1;38;5;251m1)␛[m ␛[38;5;251mUser Management␛[m       ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m$
    ␛[1;38;5;251m2)␛[m ␛[38;5;251mSSH Login␛[m             ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
-   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
+   ␛[1;38;5;251m3)␛[m ␛[38;5;251mDNS␛[m                   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
    ␛[1;38;5;251m4)␛[m ␛[38;5;251mFirewall␛[m              ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
 $
@@ -167,7 +167,7 @@ $
 === 256-light-unicode-60: width 60, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m       ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m             ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
-   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
+   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m              ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
 $
@@ -176,7 +176,7 @@ $
 === 256-light-unicode-80: width 80, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m       ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m             ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
-   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
+   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m              ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
 $
@@ -185,7 +185,7 @@ $
 === 256-light-unicode-120: width 120, height 24, profile 256, light, glyphs unicode
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m       ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m             ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
-   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
+   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m              ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
 $
@@ -194,7 +194,7 @@ $
 === 256-light-ascii-60: width 60, height 24, profile 256, light, glyphs ascii
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m       ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m             ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
-   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
+   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m              ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
 $
@@ -203,7 +203,7 @@ $
 === 256-light-ascii-80: width 80, height 24, profile 256, light, glyphs ascii
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m       ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m             ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
-   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
+   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m              ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
 $
@@ -212,7 +212,7 @@ $
 === 256-light-ascii-120: width 120, height 24, profile 256, light, glyphs ascii
    ␛[1;38;5;235m1)␛[m ␛[38;5;235mUser Management␛[m       ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m$
    ␛[1;38;5;235m2)␛[m ␛[38;5;235mSSH Login␛[m             ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
-   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
+   ␛[1;38;5;235m3)␛[m ␛[38;5;235mDNS␛[m                   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
    ␛[1;38;5;235m4)␛[m ␛[38;5;235mFirewall␛[m              ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
 $
@@ -221,7 +221,7 @@ $
 === 16-dark-unicode-60: width 60, height 24, profile 16, dark, glyphs unicode
    ␛[1;37m1)␛[m ␛[37mUser Management␛[m       ␛[1;37m6)␛[m ␛[37mDry-Run␛[m$
    ␛[1;37m2)␛[m ␛[37mSSH Login␛[m             ␛[1;37m7)␛[m ␛[37mRun All␛[m$
-   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
+   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
    ␛[1;37m4)␛[m ␛[37mFirewall␛[m              ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[1;37m10)␛[m ␛[37mLogs␛[m$
 $
@@ -230,7 +230,7 @@ $
 === 16-dark-unicode-80: width 80, height 24, profile 16, dark, glyphs unicode
    ␛[1;37m1)␛[m ␛[37mUser Management␛[m       ␛[1;37m6)␛[m ␛[37mDry-Run␛[m$
    ␛[1;37m2)␛[m ␛[37mSSH Login␛[m             ␛[1;37m7)␛[m ␛[37mRun All␛[m$
-   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
+   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
    ␛[1;37m4)␛[m ␛[37mFirewall␛[m              ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[1;37m10)␛[m ␛[37mLogs␛[m$
 $
@@ -239,7 +239,7 @@ $
 === 16-dark-unicode-120: width 120, height 24, profile 16, dark, glyphs unicode
    ␛[1;37m1)␛[m ␛[37mUser Management␛[m       ␛[1;37m6)␛[m ␛[37mDry-Run␛[m$
    ␛[1;37m2)␛[m ␛[37mSSH Login␛[m             ␛[1;37m7)␛[m ␛[37mRun All␛[m$
-   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
+   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
    ␛[1;37m4)␛[m ␛[37mFirewall␛[m              ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[1;37m10)␛[m ␛[37mLogs␛[m$
 $
@@ -248,7 +248,7 @@ $
 === 16-dark-ascii-60: width 60, height 24, profile 16, dark, glyphs ascii
    ␛[1;37m1)␛[m ␛[37mUser Management␛[m       ␛[1;37m6)␛[m ␛[37mDry-Run␛[m$
    ␛[1;37m2)␛[m ␛[37mSSH Login␛[m             ␛[1;37m7)␛[m ␛[37mRun All␛[m$
-   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
+   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
    ␛[1;37m4)␛[m ␛[37mFirewall␛[m              ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[1;37m10)␛[m ␛[37mLogs␛[m$
 $
@@ -257,7 +257,7 @@ $
 === 16-dark-ascii-80: width 80, height 24, profile 16, dark, glyphs ascii
    ␛[1;37m1)␛[m ␛[37mUser Management␛[m       ␛[1;37m6)␛[m ␛[37mDry-Run␛[m$
    ␛[1;37m2)␛[m ␛[37mSSH Login␛[m             ␛[1;37m7)␛[m ␛[37mRun All␛[m$
-   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
+   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
    ␛[1;37m4)␛[m ␛[37mFirewall␛[m              ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[1;37m10)␛[m ␛[37mLogs␛[m$
 $
@@ -266,7 +266,7 @@ $
 === 16-dark-ascii-120: width 120, height 24, profile 16, dark, glyphs ascii
    ␛[1;37m1)␛[m ␛[37mUser Management␛[m       ␛[1;37m6)␛[m ␛[37mDry-Run␛[m$
    ␛[1;37m2)␛[m ␛[37mSSH Login␛[m             ␛[1;37m7)␛[m ␛[37mRun All␛[m$
-   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
+   ␛[1;37m3)␛[m ␛[37mDNS␛[m                   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
    ␛[1;37m4)␛[m ␛[37mFirewall␛[m              ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[1;37m10)␛[m ␛[37mLogs␛[m$
 $
@@ -275,7 +275,7 @@ $
 === 16-light-unicode-60: width 60, height 24, profile 16, light, glyphs unicode
    ␛[1;30m1)␛[m ␛[30mUser Management␛[m       ␛[1;30m6)␛[m ␛[30mDry-Run␛[m$
    ␛[1;30m2)␛[m ␛[30mSSH Login␛[m             ␛[1;30m7)␛[m ␛[30mRun All␛[m$
-   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
+   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
    ␛[1;30m4)␛[m ␛[30mFirewall␛[m              ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[1;30m10)␛[m ␛[30mLogs␛[m$
 $
@@ -284,7 +284,7 @@ $
 === 16-light-unicode-80: width 80, height 24, profile 16, light, glyphs unicode
    ␛[1;30m1)␛[m ␛[30mUser Management␛[m       ␛[1;30m6)␛[m ␛[30mDry-Run␛[m$
    ␛[1;30m2)␛[m ␛[30mSSH Login␛[m             ␛[1;30m7)␛[m ␛[30mRun All␛[m$
-   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
+   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
    ␛[1;30m4)␛[m ␛[30mFirewall␛[m              ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[1;30m10)␛[m ␛[30mLogs␛[m$
 $
@@ -293,7 +293,7 @@ $
 === 16-light-unicode-120: width 120, height 24, profile 16, light, glyphs unicode
    ␛[1;30m1)␛[m ␛[30mUser Management␛[m       ␛[1;30m6)␛[m ␛[30mDry-Run␛[m$
    ␛[1;30m2)␛[m ␛[30mSSH Login␛[m             ␛[1;30m7)␛[m ␛[30mRun All␛[m$
-   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
+   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
    ␛[1;30m4)␛[m ␛[30mFirewall␛[m              ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[1;30m10)␛[m ␛[30mLogs␛[m$
 $
@@ -302,7 +302,7 @@ $
 === 16-light-ascii-60: width 60, height 24, profile 16, light, glyphs ascii
    ␛[1;30m1)␛[m ␛[30mUser Management␛[m       ␛[1;30m6)␛[m ␛[30mDry-Run␛[m$
    ␛[1;30m2)␛[m ␛[30mSSH Login␛[m             ␛[1;30m7)␛[m ␛[30mRun All␛[m$
-   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
+   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
    ␛[1;30m4)␛[m ␛[30mFirewall␛[m              ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[1;30m10)␛[m ␛[30mLogs␛[m$
 $
@@ -311,7 +311,7 @@ $
 === 16-light-ascii-80: width 80, height 24, profile 16, light, glyphs ascii
    ␛[1;30m1)␛[m ␛[30mUser Management␛[m       ␛[1;30m6)␛[m ␛[30mDry-Run␛[m$
    ␛[1;30m2)␛[m ␛[30mSSH Login␛[m             ␛[1;30m7)␛[m ␛[30mRun All␛[m$
-   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
+   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
    ␛[1;30m4)␛[m ␛[30mFirewall␛[m              ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[1;30m10)␛[m ␛[30mLogs␛[m$
 $
@@ -320,7 +320,7 @@ $
 === 16-light-ascii-120: width 120, height 24, profile 16, light, glyphs ascii
    ␛[1;30m1)␛[m ␛[30mUser Management␛[m       ␛[1;30m6)␛[m ␛[30mDry-Run␛[m$
    ␛[1;30m2)␛[m ␛[30mSSH Login␛[m             ␛[1;30m7)␛[m ␛[30mRun All␛[m$
-   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
+   ␛[1;30m3)␛[m ␛[30mDNS␛[m                   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
    ␛[1;30m4)␛[m ␛[30mFirewall␛[m              ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[1;30m10)␛[m ␛[30mLogs␛[m$
 $
@@ -329,7 +329,7 @@ $
 === none-dark-unicode-60: width 60, height 24, profile none, dark, glyphs unicode
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -338,7 +338,7 @@ $
 === none-dark-unicode-80: width 80, height 24, profile none, dark, glyphs unicode
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -347,7 +347,7 @@ $
 === none-dark-unicode-120: width 120, height 24, profile none, dark, glyphs unicode
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -356,7 +356,7 @@ $
 === none-dark-ascii-60: width 60, height 24, profile none, dark, glyphs ascii
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -365,7 +365,7 @@ $
 === none-dark-ascii-80: width 80, height 24, profile none, dark, glyphs ascii
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -374,7 +374,7 @@ $
 === none-dark-ascii-120: width 120, height 24, profile none, dark, glyphs ascii
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -383,7 +383,7 @@ $
 === none-light-unicode-60: width 60, height 24, profile none, light, glyphs unicode
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -392,7 +392,7 @@ $
 === none-light-unicode-80: width 80, height 24, profile none, light, glyphs unicode
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -401,7 +401,7 @@ $
 === none-light-unicode-120: width 120, height 24, profile none, light, glyphs unicode
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -410,7 +410,7 @@ $
 === none-light-ascii-60: width 60, height 24, profile none, light, glyphs ascii
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -419,7 +419,7 @@ $
 === none-light-ascii-80: width 80, height 24, profile none, light, glyphs ascii
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $
@@ -428,7 +428,7 @@ $
 === none-light-ascii-120: width 120, height 24, profile none, light, glyphs ascii
    ␛[1m1)␛[m User Management       ␛[1m6)␛[m Dry-Run$
    ␛[1m2)␛[m SSH Login             ␛[1m7)␛[m Run All$
-   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Environment$
+   ␛[1m3)␛[m DNS                   ␛[1m8)␛[m Configuration$
    ␛[1m4)␛[m Firewall              ␛[1m9)␛[m System Details$
    ␛[1m5)␛[m Backup               ␛[1m10)␛[m Logs$
 $

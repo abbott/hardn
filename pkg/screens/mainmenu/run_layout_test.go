@@ -40,7 +40,7 @@ const invalid = "  (x) Invalid option. Please try again."
 // them, until the test ends: each item's screen, which cmd/hardn sets,
 // records its name in the list returned and prints it, as a screen prints
 // over the main menu: "users", "ssh", "dns", "firewall", "backup",
-// "updates", "runAll", "environment", "systemDetails" and "logs".
+// "updates", "runAll", "configuration", "systemDetails" and "logs".
 func recordScreens(t *testing.T, m *Options) *[]string {
 	t.Helper()
 	var opened []string
@@ -55,7 +55,7 @@ func recordScreens(t *testing.T, m *Options) *[]string {
 	m.Backup = func() error { record("backup"); return nil }
 	m.Updates = func() error { record("updates"); return nil }
 	m.RunAll = func() error { record("runAll"); return nil }
-	m.Environment = func() error { record("environment"); return nil }
+	m.Configuration = func() error { record("configuration"); return nil }
 	m.SystemDetails = func() error { record("systemDetails"); return nil }
 	m.Logs = func() error { record("logs"); return nil }
 	return &opened
@@ -75,7 +75,7 @@ func (r interrupted) Read(p []byte) (int, error) {
 
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 10 open
 // the User Management, SSH Login, DNS, Firewall, Backup, Auto Updates, Run
-// All, Environment, System Details and Logs screens cmd/hardn sets
+// All, Configuration, System Details and Logs screens cmd/hardn sets
 // (recordScreens), 6 where origin/main's Dry-Run was (slice 7, unit (d)),
 // 7 the Run All screen on the planner (slice 8, unit (d)), and the main
 // menu is drawn again when it returns; 0 (Exit) and q, in
@@ -101,11 +101,11 @@ func TestMainMenuKeys(t *testing.T) {
 		{"5 opens Auto Updates", []string{"5", "q"}, false, []string{"updates"}, 0, 0},
 		{"6 opens Run All", []string{"6", "q"}, false, []string{"runAll"}, 0, 0},
 		{"7 opens Backup", []string{"7", "q"}, false, []string{"backup"}, 0, 0},
-		{"8 opens Environment", []string{"8", "q"}, false, []string{"environment"}, 0, 0},
+		{"8 opens Configuration", []string{"8", "q"}, false, []string{"configuration"}, 0, 0},
 		{"9 opens System Details", []string{"9", "q"}, false, []string{"systemDetails"}, 0, 0},
 		{"10 opens Logs", []string{"10", "q"}, false, []string{"logs"}, 0, 0},
 		{"every item in turn", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "ssh", "firewall", "dns", "updates", "runAll", "backup", "environment", "systemDetails", "logs"}, 0, 0},
+			[]string{"users", "ssh", "firewall", "dns", "updates", "runAll", "backup", "configuration", "systemDetails", "logs"}, 0, 0},
 		{"0 exits", []string{"0"}, false, nil, 0, 0},
 		{"q quits", []string{"q"}, false, nil, 0, 0},
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
@@ -269,7 +269,7 @@ func TestMainMenuMode(t *testing.T) {
 // with item 5, Auto Updates, "Configure automatic updates", between 4 and
 // 6 (withUpdatesItem): its numbers, labels and descriptions, item 1's
 // aside, item 2's "Root login, passwords, port" (legacy-left.md §3,
-// decision 7 (a)), item 8's "Keep HARDN_CONFIG", and its Exit row, "q to
+// decision 7 (a)), item 8's "View hardn.yml", and its Exit row, "q to
 // quit" (DEV-030). The heading and prompt are origin/main's, the hint
 // generated from the items, "[0-10 or q]".
 func TestMainMenuItems(t *testing.T) {

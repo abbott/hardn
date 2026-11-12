@@ -358,7 +358,7 @@ func TestRevertAbandonCommand(t *testing.T) {
 	}
 	// The next run's notice names the flag.
 	s.stderr.Reset()
-	showRevertNotices(setupSudoEnvCmd, nil)
+	showRevertNotices(rollbackCmd, nil)
 	if !strings.Contains(flat(s.stderr.String()), "to give it up, leaving the host as it is, run `sudo hardn rollback --abandon "+revertTestID+"`") {
 		t.Errorf("notice: %q", s.stderr.String())
 	}
@@ -577,14 +577,14 @@ func TestRevertNotices(t *testing.T) {
 		t.Error("a notice nobody saw was cleared")
 	}
 	s.seen = true
-	showRevertNotices(setupSudoEnvCmd, nil)
+	showRevertNotices(rollbackCmd, nil)
 	if s.has(reverted) {
 		t.Error("a subcommand did not clear the notice once seen")
 	}
 
 	s = newRevertSeams(t, 1000)
 	calls := len(s.f.Calls())
-	showRevertNotices(setupSudoEnvCmd, nil)
+	showRevertNotices(rollbackCmd, nil)
 	if len(s.f.Calls()) != calls {
 		t.Error("the notice read the journal for a user other than root")
 	}

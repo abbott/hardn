@@ -211,11 +211,10 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 	t.Helper()
 	sys := h.sys()
 	e := engine.New(sys, engine.Options{Detect: func(context.Context, host.System) (detect.Facts, error) { return r.Facts, nil }})
-	getenv := func(k string) string { return raEnvOf(name)[k] }
 	status := output.StatusViewOf(r.Reports, risk.Level{}).Status
 	for i, rw := range r.Rows {
 		c := runall.Asked(r.in, rw.ID).Control
-		checked := runall.Checked(r.Config, getenv)
+		checked := runall.Checked(r.Config)
 		j := slices.IndexFunc(checked, func(x engine.Control) bool { return x.ID() == rw.ID })
 		reps, err := e.Check(ctx, checked[j:j+1])
 		if err != nil {

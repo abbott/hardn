@@ -234,6 +234,7 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 			config.setPath(path)
 			if data, err := os.ReadFile(path); err == nil {
 				config.setLoaded(path, data) // what was created, for LoadedFrom
+				config.loaded.set = setOf(data)
 			}
 			return config, nil
 		}
@@ -269,9 +270,7 @@ func readConfigFile(path string) (*Config, error) {
 // LoadConfig loads hardn's configuration as LoadConfigWithEnvPriority
 // finds it (-f, HARDN_CONFIG, then the search path). It runs nothing: origin/main's su - probe of the sudo
 // user's login shell for HARDN_CONFIG, and the notice after it, are gone
-// (refactor plan slice 9, unit (d), decision 4; side-effects row 5): the
-// Environment screen's state row says whether sudo, or doas, keeps
-// HARDN_CONFIG, read from hardn's files (pkg/screens/environment).
+// (refactor plan slice 9, unit (d), decision 4; side-effects row 5).
 func LoadConfig(filePath string) (*Config, error) {
 	return LoadConfigWithEnvPriority(filePath)
 }
@@ -281,10 +280,7 @@ func LoadConfig(filePath string) (*Config, error) {
 // where none is: it never offers to create one, and so writes nothing. A
 // file -f or HARDN_CONFIG names that is not there is an error wrapping
 // fs.ErrNotExist, as FindConfigFile does not look elsewhere for it.
-// setup-sudo-env's (refactor plan slice 9, unit (d)): the command keeps
-// HARDN_CONFIG, so root finding no file is its usual case, and under -n it
-// writes nothing (gallery-environment.md §5, Made here, adopted
-// 2026-10-29).
+// -n's load (cmd/hardn's loadExisting): under -n hardn writes nothing.
 func LoadExisting(filePath string) (*Config, error) {
 	cfg := DefaultConfig()
 	found := FindConfigFile(filePath)

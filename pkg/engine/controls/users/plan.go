@@ -368,6 +368,14 @@ func grantChange(ctx context.Context, sys host.System, r Reading, user string, g
 		return nil, err
 	}
 	pol.Grant = g
+	if g == sudoers.GrantNone && r.Choice.Tool == sudoers.ToolDoas {
+		// doas keeps variables only on the rule that permits the user
+		// (sudoers.ErrEnvNeedsGrant), so they go with the rule: since the
+		// Environment screen is gone (2026-11-12), nothing else could take
+		// a setenv an earlier hardn wrote off it, and Remove would be
+		// refused for good.
+		pol.Env = nil
+	}
 	p, err := sudoers.PlanFor(st, []sudoers.Policy{pol})
 	if err != nil || len(p.Changes) == 0 {
 		return nil, err

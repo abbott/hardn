@@ -17,8 +17,8 @@
       ␛[38;2;129;134;156mSimulate changes␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+      ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
@@ -35,7 +35,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -49,7 +49,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -70,8 +70,8 @@ $
       ␛[38;2;129;134;156mSimulate changes␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m$
-      ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+      ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
@@ -88,7 +88,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -102,7 +102,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mDry-Run␛[m              ␛[38;2;129;134;156mSimulate changes␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mEnvironment␛[m          ␛[38;2;129;134;156mConfigure environment variable␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -123,8 +123,8 @@ $
       ␛[38;2;87;92;110mSimulate changes␛[m$
    ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
       ␛[38;2;87;92;110mExecute hardening operations␛[m$
-   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
-      ␛[38;2;87;92;110mConfigure environment variable␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
+      ␛[38;2;87;92;110mView hardn.yml␛[m$
    ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
       ␛[38;2;87;92;110mView system information␛[m$
   ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
@@ -141,7 +141,7 @@ $
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[38;2;87;92;110mConfigure hardn backup␛[m$
    ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m              ␛[38;2;87;92;110mSimulate changes␛[m$
    ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m              ␛[38;2;87;92;110mExecute hardening operations␛[m$
-   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m          ␛[38;2;87;92;110mConfigure environment variable␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m        ␛[38;2;87;92;110mView hardn.yml␛[m$
    ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m       ␛[38;2;87;92;110mView system information␛[m$
   ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m                 ␛[38;2;87;92;110mView log file␛[m$
 $
@@ -155,7 +155,7 @@ $
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[38;2;87;92;110mConfigure hardn backup␛[m$
    ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m              ␛[38;2;87;92;110mSimulate changes␛[m$
    ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m              ␛[38;2;87;92;110mExecute hardening operations␛[m$
-   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m          ␛[38;2;87;92;110mConfigure environment variable␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m        ␛[38;2;87;92;110mView hardn.yml␛[m$
    ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m       ␛[38;2;87;92;110mView system information␛[m$
   ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m                 ␛[38;2;87;92;110mView log file␛[m$
 $
@@ -176,8 +176,8 @@ $
       ␛[38;2;87;92;110mSimulate changes␛[m$
    ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m$
       ␛[38;2;87;92;110mExecute hardening operations␛[m$
-   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m$
-      ␛[38;2;87;92;110mConfigure environment variable␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m$
+      ␛[38;2;87;92;110mView hardn.yml␛[m$
    ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m$
       ␛[38;2;87;92;110mView system information␛[m$
   ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m$
@@ -194,7 +194,7 @@ $
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[38;2;87;92;110mConfigure hardn backup␛[m$
    ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m              ␛[38;2;87;92;110mSimulate changes␛[m$
    ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m              ␛[38;2;87;92;110mExecute hardening operations␛[m$
-   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m          ␛[38;2;87;92;110mConfigure environment variable␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m        ␛[38;2;87;92;110mView hardn.yml␛[m$
    ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m       ␛[38;2;87;92;110mView system information␛[m$
   ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m                 ␛[38;2;87;92;110mView log file␛[m$
 $
@@ -208,7 +208,7 @@ $
    ␛[1;38;2;30;34;48m5)␛[m ␛[38;2;30;34;48mBackup␛[m               ␛[38;2;87;92;110mConfigure hardn backup␛[m$
    ␛[1;38;2;30;34;48m6)␛[m ␛[38;2;30;34;48mDry-Run␛[m              ␛[38;2;87;92;110mSimulate changes␛[m$
    ␛[1;38;2;30;34;48m7)␛[m ␛[38;2;30;34;48mRun All␛[m              ␛[38;2;87;92;110mExecute hardening operations␛[m$
-   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mEnvironment␛[m          ␛[38;2;87;92;110mConfigure environment variable␛[m$
+   ␛[1;38;2;30;34;48m8)␛[m ␛[38;2;30;34;48mConfiguration␛[m        ␛[38;2;87;92;110mView hardn.yml␛[m$
    ␛[1;38;2;30;34;48m9)␛[m ␛[38;2;30;34;48mSystem Details␛[m       ␛[38;2;87;92;110mView system information␛[m$
   ␛[1;38;2;30;34;48m10)␛[m ␛[38;2;30;34;48mLogs␛[m                 ␛[38;2;87;92;110mView log file␛[m$
 $
@@ -229,8 +229,8 @@ $
       ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
       ␛[38;5;102mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
-      ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
+      ␛[38;5;102mView hardn.yml␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
       ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
@@ -247,7 +247,7 @@ $
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure hardn backup␛[m$
    ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m        ␛[38;5;102mView hardn.yml␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
@@ -261,7 +261,7 @@ $
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure hardn backup␛[m$
    ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m        ␛[38;5;102mView hardn.yml␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
@@ -282,8 +282,8 @@ $
       ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m$
       ␛[38;5;102mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m$
-      ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m$
+      ␛[38;5;102mView hardn.yml␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m$
       ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m$
@@ -300,7 +300,7 @@ $
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure hardn backup␛[m$
    ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m        ␛[38;5;102mView hardn.yml␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
@@ -314,7 +314,7 @@ $
    ␛[1;38;5;251m5)␛[m ␛[38;5;251mBackup␛[m               ␛[38;5;102mConfigure hardn backup␛[m$
    ␛[1;38;5;251m6)␛[m ␛[38;5;251mDry-Run␛[m              ␛[38;5;102mSimulate changes␛[m$
    ␛[1;38;5;251m7)␛[m ␛[38;5;251mRun All␛[m              ␛[38;5;102mExecute hardening operations␛[m$
-   ␛[1;38;5;251m8)␛[m ␛[38;5;251mEnvironment␛[m          ␛[38;5;102mConfigure environment variable␛[m$
+   ␛[1;38;5;251m8)␛[m ␛[38;5;251mConfiguration␛[m        ␛[38;5;102mView hardn.yml␛[m$
    ␛[1;38;5;251m9)␛[m ␛[38;5;251mSystem Details␛[m       ␛[38;5;102mView system information␛[m$
   ␛[1;38;5;251m10)␛[m ␛[38;5;251mLogs␛[m                 ␛[38;5;102mView log file␛[m$
 $
@@ -335,8 +335,8 @@ $
       ␛[38;5;59mSimulate changes␛[m$
    ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
       ␛[38;5;59mExecute hardening operations␛[m$
-   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
-      ␛[38;5;59mConfigure environment variable␛[m$
+   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
+      ␛[38;5;59mView hardn.yml␛[m$
    ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
       ␛[38;5;59mView system information␛[m$
   ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
@@ -353,7 +353,7 @@ $
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[38;5;59mConfigure hardn backup␛[m$
    ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m              ␛[38;5;59mSimulate changes␛[m$
    ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m              ␛[38;5;59mExecute hardening operations␛[m$
-   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m          ␛[38;5;59mConfigure environment variable␛[m$
+   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m        ␛[38;5;59mView hardn.yml␛[m$
    ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m       ␛[38;5;59mView system information␛[m$
   ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m                 ␛[38;5;59mView log file␛[m$
 $
@@ -367,7 +367,7 @@ $
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[38;5;59mConfigure hardn backup␛[m$
    ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m              ␛[38;5;59mSimulate changes␛[m$
    ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m              ␛[38;5;59mExecute hardening operations␛[m$
-   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m          ␛[38;5;59mConfigure environment variable␛[m$
+   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m        ␛[38;5;59mView hardn.yml␛[m$
    ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m       ␛[38;5;59mView system information␛[m$
   ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m                 ␛[38;5;59mView log file␛[m$
 $
@@ -388,8 +388,8 @@ $
       ␛[38;5;59mSimulate changes␛[m$
    ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m$
       ␛[38;5;59mExecute hardening operations␛[m$
-   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m$
-      ␛[38;5;59mConfigure environment variable␛[m$
+   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m$
+      ␛[38;5;59mView hardn.yml␛[m$
    ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m$
       ␛[38;5;59mView system information␛[m$
   ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m$
@@ -406,7 +406,7 @@ $
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[38;5;59mConfigure hardn backup␛[m$
    ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m              ␛[38;5;59mSimulate changes␛[m$
    ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m              ␛[38;5;59mExecute hardening operations␛[m$
-   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m          ␛[38;5;59mConfigure environment variable␛[m$
+   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m        ␛[38;5;59mView hardn.yml␛[m$
    ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m       ␛[38;5;59mView system information␛[m$
   ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m                 ␛[38;5;59mView log file␛[m$
 $
@@ -420,7 +420,7 @@ $
    ␛[1;38;5;235m5)␛[m ␛[38;5;235mBackup␛[m               ␛[38;5;59mConfigure hardn backup␛[m$
    ␛[1;38;5;235m6)␛[m ␛[38;5;235mDry-Run␛[m              ␛[38;5;59mSimulate changes␛[m$
    ␛[1;38;5;235m7)␛[m ␛[38;5;235mRun All␛[m              ␛[38;5;59mExecute hardening operations␛[m$
-   ␛[1;38;5;235m8)␛[m ␛[38;5;235mEnvironment␛[m          ␛[38;5;59mConfigure environment variable␛[m$
+   ␛[1;38;5;235m8)␛[m ␛[38;5;235mConfiguration␛[m        ␛[38;5;59mView hardn.yml␛[m$
    ␛[1;38;5;235m9)␛[m ␛[38;5;235mSystem Details␛[m       ␛[38;5;59mView system information␛[m$
   ␛[1;38;5;235m10)␛[m ␛[38;5;235mLogs␛[m                 ␛[38;5;59mView log file␛[m$
 $
@@ -441,8 +441,8 @@ $
       ␛[90mSimulate changes␛[m$
    ␛[1;37m7)␛[m ␛[37mRun All␛[m$
       ␛[90mExecute hardening operations␛[m$
-   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
-      ␛[90mConfigure environment variable␛[m$
+   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
+      ␛[90mView hardn.yml␛[m$
    ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
       ␛[90mView system information␛[m$
   ␛[1;37m10)␛[m ␛[37mLogs␛[m$
@@ -459,7 +459,7 @@ $
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;37m6)␛[m ␛[37mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;37m7)␛[m ␛[37mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;37m9)␛[m ␛[37mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;37m10)␛[m ␛[37mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -473,7 +473,7 @@ $
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;37m6)␛[m ␛[37mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;37m7)␛[m ␛[37mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;37m9)␛[m ␛[37mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;37m10)␛[m ␛[37mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -494,8 +494,8 @@ $
       ␛[90mSimulate changes␛[m$
    ␛[1;37m7)␛[m ␛[37mRun All␛[m$
       ␛[90mExecute hardening operations␛[m$
-   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m$
-      ␛[90mConfigure environment variable␛[m$
+   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m$
+      ␛[90mView hardn.yml␛[m$
    ␛[1;37m9)␛[m ␛[37mSystem Details␛[m$
       ␛[90mView system information␛[m$
   ␛[1;37m10)␛[m ␛[37mLogs␛[m$
@@ -512,7 +512,7 @@ $
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;37m6)␛[m ␛[37mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;37m7)␛[m ␛[37mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;37m9)␛[m ␛[37mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;37m10)␛[m ␛[37mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -526,7 +526,7 @@ $
    ␛[1;37m5)␛[m ␛[37mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;37m6)␛[m ␛[37mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;37m7)␛[m ␛[37mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;37m8)␛[m ␛[37mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;37m8)␛[m ␛[37mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;37m9)␛[m ␛[37mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;37m10)␛[m ␛[37mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -547,8 +547,8 @@ $
       ␛[90mSimulate changes␛[m$
    ␛[1;30m7)␛[m ␛[30mRun All␛[m$
       ␛[90mExecute hardening operations␛[m$
-   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
-      ␛[90mConfigure environment variable␛[m$
+   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
+      ␛[90mView hardn.yml␛[m$
    ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
       ␛[90mView system information␛[m$
   ␛[1;30m10)␛[m ␛[30mLogs␛[m$
@@ -565,7 +565,7 @@ $
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;30m6)␛[m ␛[30mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;30m7)␛[m ␛[30mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;30m9)␛[m ␛[30mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;30m10)␛[m ␛[30mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -579,7 +579,7 @@ $
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;30m6)␛[m ␛[30mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;30m7)␛[m ␛[30mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;30m9)␛[m ␛[30mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;30m10)␛[m ␛[30mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -600,8 +600,8 @@ $
       ␛[90mSimulate changes␛[m$
    ␛[1;30m7)␛[m ␛[30mRun All␛[m$
       ␛[90mExecute hardening operations␛[m$
-   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m$
-      ␛[90mConfigure environment variable␛[m$
+   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m$
+      ␛[90mView hardn.yml␛[m$
    ␛[1;30m9)␛[m ␛[30mSystem Details␛[m$
       ␛[90mView system information␛[m$
   ␛[1;30m10)␛[m ␛[30mLogs␛[m$
@@ -618,7 +618,7 @@ $
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;30m6)␛[m ␛[30mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;30m7)␛[m ␛[30mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;30m9)␛[m ␛[30mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;30m10)␛[m ␛[30mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -632,7 +632,7 @@ $
    ␛[1;30m5)␛[m ␛[30mBackup␛[m               ␛[90mConfigure hardn backup␛[m$
    ␛[1;30m6)␛[m ␛[30mDry-Run␛[m              ␛[90mSimulate changes␛[m$
    ␛[1;30m7)␛[m ␛[30mRun All␛[m              ␛[90mExecute hardening operations␛[m$
-   ␛[1;30m8)␛[m ␛[30mEnvironment␛[m          ␛[90mConfigure environment variable␛[m$
+   ␛[1;30m8)␛[m ␛[30mConfiguration␛[m        ␛[90mView hardn.yml␛[m$
    ␛[1;30m9)␛[m ␛[30mSystem Details␛[m       ␛[90mView system information␛[m$
   ␛[1;30m10)␛[m ␛[30mLogs␛[m                 ␛[90mView log file␛[m$
 $
@@ -653,8 +653,8 @@ $
       Simulate changes$
    ␛[1m7)␛[m Run All$
       Execute hardening operations$
-   ␛[1m8)␛[m Environment$
-      Configure environment variable$
+   ␛[1m8)␛[m Configuration$
+      View hardn.yml$
    ␛[1m9)␛[m System Details$
       View system information$
   ␛[1m10)␛[m Logs$
@@ -671,7 +671,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $
@@ -685,7 +685,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $
@@ -706,8 +706,8 @@ $
       Simulate changes$
    ␛[1m7)␛[m Run All$
       Execute hardening operations$
-   ␛[1m8)␛[m Environment$
-      Configure environment variable$
+   ␛[1m8)␛[m Configuration$
+      View hardn.yml$
    ␛[1m9)␛[m System Details$
       View system information$
   ␛[1m10)␛[m Logs$
@@ -724,7 +724,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $
@@ -738,7 +738,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $
@@ -759,8 +759,8 @@ $
       Simulate changes$
    ␛[1m7)␛[m Run All$
       Execute hardening operations$
-   ␛[1m8)␛[m Environment$
-      Configure environment variable$
+   ␛[1m8)␛[m Configuration$
+      View hardn.yml$
    ␛[1m9)␛[m System Details$
       View system information$
   ␛[1m10)␛[m Logs$
@@ -777,7 +777,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $
@@ -791,7 +791,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $
@@ -812,8 +812,8 @@ $
       Simulate changes$
    ␛[1m7)␛[m Run All$
       Execute hardening operations$
-   ␛[1m8)␛[m Environment$
-      Configure environment variable$
+   ␛[1m8)␛[m Configuration$
+      View hardn.yml$
    ␛[1m9)␛[m System Details$
       View system information$
   ␛[1m10)␛[m Logs$
@@ -830,7 +830,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $
@@ -844,7 +844,7 @@ $
    ␛[1m5)␛[m Backup               Configure hardn backup$
    ␛[1m6)␛[m Dry-Run              Simulate changes$
    ␛[1m7)␛[m Run All              Execute hardening operations$
-   ␛[1m8)␛[m Environment          Configure environment variable$
+   ␛[1m8)␛[m Configuration        View hardn.yml$
    ␛[1m9)␛[m System Details       View system information$
   ␛[1m10)␛[m Logs                 View log file$
 $

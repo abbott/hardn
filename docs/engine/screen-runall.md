@@ -2,6 +2,8 @@
 
 > **Unit:** refactor plan slice 8, unit (c), `next/s8-screen`, from `346e2fb9`. **Status:** built and tested on macOS, in process: the screen through `Run` on its own fake (`host_test.go` and `hosts_test.go` copied from `pkg/engine/runall`'s tests, Create's accounts model from `pkg/screens/users`'), the planner's reads and the plans on the real engine. No real terminal, no hardn binary, no VM. Not yet wired: main menu 7 still runs the legacy Run All until unit (d). *Since `next/s8-replace`: main menu 7 opens this screen, and `hardn -r` runs its plan ([cmd-engine.md](cmd-engine.md) §2.19).*
 
+*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); since `next/config-screen` Configuration is main menu 8 ([screen-config.md](screen-config.md)), and System Details and Logs are 9 and 10 again.*
+
 ## What it does
 
 Main menu 7 as the maintainer adopted its mock on 2026-11-04 ([gallery-runall.md](gallery-runall.md) §5 and §6), drawn from Run All's planner ([control-runall.md](control-runall.md)): each round `runall.Read`, writing nothing, live and under plan only.
