@@ -229,7 +229,7 @@ main() {
 	fi
 	printf '\nhardn writes /etc/hardn/hardn.yml.example the first time it runs.\n'
 	# shellcheck disable=SC2016 # the backticks are printed, not run
-	printf 'Run `hardn --help`.\n\n'
+	printf '\nRun `hardn --help`.\n'
 	printf '\nhardn comes with no warranty: GNU AGPL v3, sections 15 and 16.\n\n'
 }
 
