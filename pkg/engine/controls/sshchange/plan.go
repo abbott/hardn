@@ -17,7 +17,9 @@ import (
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/pve"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 )
@@ -43,6 +45,10 @@ const (
 	wordsMigrate     = "hardn's old SSH files are still here (%s). Move them into 00-hardn.conf first: item 4."
 	wordsIncludeNot  = "sshd_config doesn't start with \"" + sshd.IncludeLine + "\", so hardn's settings wouldn't be read first. Put that line first, then try again."
 	wordsNoAdminRoot = "there's no admin besides root"
+	// Approved by the maintainer, 2026-11-12: both systemd units set to start sshd
+	// (detect.ErrConflict), the unit to disable named where one runs.
+	wordsStartOne    = "%s and %s are both set to start sshd, so hardn can't tell which will after a restart. Run systemctl disable %s (%s is the one running), then try again."
+	wordsStartEither = "%s and %s are both set to start sshd, so hardn can't tell which will after a restart. Run systemctl disable on the one you don't use, then try again."
 )
 
 // Errors of the refusals, testable with errors.Is, each the Err of a
@@ -95,6 +101,7 @@ const (
 	codeMigrateFirst       = "SSH_MIGRATE_FIRST"
 	codeIncludeNot         = "SSHD_NO_WRITE_STRATEGY"
 	codePVEPort            = "PVE_PORT_CHANGE_REFUSED"
+	codeStartMode          = "RELOAD_MODE_UNKNOWN"
 )
 
 // MigrateID is Migrate's ID, and its changes' prefix.
@@ -130,12 +137,38 @@ func (r Reading) common(migrating bool) error {
 		return refuse(codeNotRead, ErrNotRead, r.EffErr, fmt.Sprintf(wordsNotRead, r.EffErr))
 	case r.FoundErr != nil:
 		return refuse(codeNotRead, ErrNotRead, r.FoundErr, fmt.Sprintf(wordsNotRead, r.FoundErr))
+	case r.startMode() != nil:
+		return r.startMode()
 	case len(r.Found.Artifacts) > 0 && !migrating:
 		return refuse(codeMigrateFirst, steps.ErrMigrateFirst, nil, fmt.Sprintf(wordsMigrate, r.legacyNames()))
 	case r.Found.Include.Mode == sshd.IncludeOther:
 		return refuse(codeIncludeNot, steps.ErrNoWriteStrategy, nil, wordsIncludeNot)
 	}
 	return nil
+}
+
+// startMode is why no change can be planned where systemd's socket unit and
+// service unit both claim sshd (detect.ErrConflict), so that how sshd is
+// started is not established and no reload can be planned
+// (reload.ErrModeUnknown): which units, and the one to disable, the unit
+// that is not running where exactly one runs. Disabling a unit stops
+// nothing that runs. nil when the mode is established, or unknown for
+// another reason.
+func (r Reading) startMode() error {
+	s := r.Facts.SSH
+	if s.Mode != detect.SSHUnknown || !errors.Is(s.Err, detect.ErrConflict) {
+		return nil
+	}
+	sock, svc := s.SocketUnit(), s.ServiceUnit()
+	sockUp, svcUp := s.Socket.IsActive() == detect.Yes, s.Service.IsActive() == detect.Yes
+	words := fmt.Sprintf(wordsStartEither, sock, svc)
+	switch {
+	case svcUp && !sockUp:
+		words = fmt.Sprintf(wordsStartOne, sock, svc, sock, svc)
+	case sockUp && !svcUp:
+		words = fmt.Sprintf(wordsStartOne, sock, svc, svc, sock)
+	}
+	return refuse(codeStartMode, reload.ErrModeUnknown, s.Err, words)
 }
 
 // legacyNames are hardn's old files' names.
