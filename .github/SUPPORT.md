@@ -42,7 +42,7 @@ If you look after Linux servers for a school, a clinic, a nonprofit or another s
 - **When:** a first reply within 5 working days, best effort.
 - **Keep private details out of the post:** hostnames, addresses and user names. Send those to `help@hardn.sh`, with a link to your discussion.
 - **We never ask for passwords, keys or remote access.** Anyone who does is not us.
-- **Help is guidance, on a best-effort basis.** You stay responsible for your own systems, and the licence's no-warranty terms apply to the help as they do to hardn ([LICENSE](../LICENSE), sections 15 and 16).
+- **Help is guidance, on a best-effort basis.** You stay responsible for your own systems, and the license's no-warranty terms apply to the help as they do to hardn ([LICENSE](../LICENSE), sections 15 and 16).
 
 ## Creating Effective Support Requests
 

@@ -5,7 +5,7 @@
 Simple, precise hardening for Linux servers.
 > For Debian, Ubuntu, Proxmox, Alpine, Rocky, Alma and RHEL. See each change before it happens. Revert if needed.
 
-For anyone administering a Linux server, container or virtual machine without a security team: homelab enthusiasts, students, and small organisations such as schools, clinics and nonprofits. hardn works on one host at a time: it is **<ins>not a fleet manager</ins>**.
+For anyone administering a Linux server, container or virtual machine without a security team: homelab enthusiasts, students, and small organizations such as schools, clinics and nonprofits.
 
 <p align="center">
 <img width="1327" height="1803" alt="hardn v0.4.0" src="https://github.com/user-attachments/assets/e7b53b65-47f7-4283-aeda-1c3ec7b3d352" />
@@ -125,6 +125,6 @@ Built with the libraries in [docs/acknowledgments.md](docs/acknowledgments.md).
 
 Copyright © 2025-2026 Bruce Abbott. GNU AGPL v3: see [LICENSE](LICENSE).
 
-hardn comes with no warranty, and its authors accept no liability for its use: see sections 15 and 16 of the licence.
+hardn comes with no warranty, and its authors accept no liability for its use: see sections 15 and 16 of the license.
 
-Using hardn puts no obligation on you. The licence's terms apply when you pass hardn on to others, or run a version you changed as a service for them: its source then has to be available under the same licence.
+As an end-user, you can use hardn freely. The license’s terms apply when you pass hardn on to others, modified or otherwise, or offer a modified version as a service.

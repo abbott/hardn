@@ -101,7 +101,7 @@ The refactor brief (kept outside the repository) sets these rules:
 
 Approved by the maintainer (refactor plan §3.9). From the `go.mod` diff between `next/v0.4` and this branch. None of them imports `"C"`, and `pkg/ui` builds with `CGO_ENABLED=0` for the three release targets (linux/amd64, linux/arm64, darwin/amd64).
 
-| Module | Version | Licence | Imported by (non-test code) |
+| Module | Version | License | Imported by (non-test code) |
 |---|---|---|---|
 | `charm.land/lipgloss/v2` | v2.0.6 | MIT | `pkg/ui/term`, `pkg/ui/theme`, `pkg/ui/component`, `pkg/ui/uitest` |
 | `github.com/charmbracelet/colorprofile` | v0.4.3 | MIT | `pkg/ui/term`, `pkg/ui/theme`, `pkg/ui/uitest` and the gallery: profiles and `colorprofile.Writer` |
