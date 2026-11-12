@@ -107,7 +107,7 @@ What differs on Alpine, on Rocky, Alma and RHEL, and on Proxmox: [docs/platforms
 | [docs/cve.md](docs/cve.md) | the CVEs hardn checks for |
 | [docs/reference/output.md](docs/reference/output.md) | the JSON document and its codes |
 | [docs/roadmap.md](docs/roadmap.md) | planned features |
-| [docs/releases/v0.7.0.md](docs/releases/v0.7.0.md) | the release notes |
+| [docs/releases/v0.7.1.md](docs/releases/v0.7.1.md) | the release notes |
 
 ## Contributing
 

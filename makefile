@@ -14,8 +14,8 @@ LDFLAGS=-ldflags "-X main.Version=$(VERSION) -X main.GitCommit=$(GIT_COMMIT) -X 
 # Version
 VERSION_MAJOR=0
 VERSION_MINOR=7
-VERSION_PATCH=0
-VERSION=0.7.0
+VERSION_PATCH=1
+VERSION=0.7.1
 
 .PHONY: release release-artifacts
 
