@@ -21,16 +21,16 @@ Verification is a separate step, and recommended. From v0.4.0, each release has 
 [verify.sh](../verify.sh) downloads a binary and `SHA256SUMS`, checks the SHA-256, and then checks the attestation. It needs curl, sha256sum or shasum, and [gh](https://cli.github.com) 2.68.0 or later, signed in (`gh auth login`):
 
 ```sh
-curl -fsSLO https://raw.githubusercontent.com/abbott/hardn/v0.7.1/verify.sh
-sh verify.sh 0.7.1 linux-amd64      # leaves ./hardn-linux-amd64 only if both checks pass
+curl -fsSLO https://raw.githubusercontent.com/abbott/hardn/v0.8.0/verify.sh
+sh verify.sh 0.8.0 linux-amd64      # leaves ./hardn-linux-amd64 only if both checks pass
 ```
 
 To check a binary you already have, such as one installed using [install.sh](../install.sh), use `gh`:
 
 ```sh
 gh attestation verify /usr/local/bin/hardn --repo abbott/hardn \
-  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.7.1 \
-  --source-ref refs/tags/v0.7.1 --deny-self-hosted-runners
+  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.8.0 \
+  --source-ref refs/tags/v0.8.0 --deny-self-hosted-runners
 ```
 
 To check a binary on a host with no network, bring three files from a machine that has one: the binary, its bundle from the same release, and Sigstore's trusted root, from `gh attestation trusted-root > trusted_root.jsonl`. Then, with gh 2.68.0 or later, signed in or not:
@@ -38,8 +38,8 @@ To check a binary on a host with no network, bring three files from a machine th
 ```sh
 gh attestation verify hardn-linux-amd64 --repo abbott/hardn \
   --bundle hardn-linux-amd64.sigstore.json --custom-trusted-root trusted_root.jsonl \
-  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.7.1 \
-  --source-ref refs/tags/v0.7.1 --deny-self-hosted-runners \
+  --cert-identity https://github.com/abbott/hardn/.github/workflows/build.yml@refs/tags/v0.8.0 \
+  --source-ref refs/tags/v0.8.0 --deny-self-hosted-runners \
   --format json --jq '.[].verificationResult.signature.certificate.sourceRepositoryIdentifier'
 ```
 

@@ -71,7 +71,7 @@ Words (*proposed*): "sshd would let anyone log in as carol with a long password,
 ## 8. Admin rights without a password are opt-in
 
 > **Unit:** `next/sudo-password-opt-in`, from `e0014917`. The maintainer, 2026-11-11: "hardn should not default to looser restrictions"; the five choices below adopted that day ("Adopt all").
-> **Status:** built and tested on macOS, in process, on `hostfake` and the gallery's hosts; `go test ./...` passed on `deb13-vm` and `alpine323-vm`; Create User with `passwd` run on both (below). Not run: `-c` and Run All on a host; Grant for a user with no password; `passwd` failing; ubuntu26-vm and the EL hosts.
+> **Status:** built and tested on macOS, in process, on `hostfake` and the gallery's hosts; `go test ./...` passed on `deb13-vm` and `alpine323-vm`; Create User with `passwd` run on both (below). Run 2026-11-11 with the linux-amd64 build of the v0.8.0 tree: `-c` with and without `adminNoPassword`, and Run All for the user alone, on `deb13-vm`, `ubuntu26-vm`, `alpine323-vm`, `alpine324-test-116`, `alma9-test-111`, `rhel9-test-115`, `rhel10-test-114`, `rocky9-test-113` and `rocky10-test-110`; Grant for a user with no password on `deb13-vm` and `alpine323-vm`. Not run: `passwd` failing; Create User's `passwd` on ubuntu26-vm and the EL hosts; arm64.
 
 **What changed.** hardn writes the no-password rule (`NOPASSWD`, `nopass`) only where asked.
 
