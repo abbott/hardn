@@ -27,7 +27,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
-	envctl "github.com/abbott/hardn/pkg/engine/controls/environment"
 	fwctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
@@ -119,8 +118,8 @@ type Input struct {
 	// the engine's: the SSH Port row reads sshd with it.
 	Session revert.Session
 	// Getenv is hardn's environment (os.Getenv in hardn): SUDO_USER and
-	// DOAS_USER, for Create's and root login's proofs and Environment's
-	// check. nil is an empty environment.
+	// DOAS_USER, for Create's and root login's proofs. nil is an empty
+	// environment.
 	Getenv func(string) string
 	// Revert are the journal's options, as the engine's Options.Revert:
 	// the revert state is read with them before any plan, and they are
@@ -143,19 +142,19 @@ func (in Input) getenv(k string) string {
 }
 
 // IDs are the rows' controls, in the screen's order: the main menu's
-// (risk.Rows), then Backup and Environment.
+// (risk.Rows), then Backup.
 func IDs() []string {
 	var ids []string
 	for _, r := range risk.Rows() {
 		ids = append(ids, r.ID)
 	}
-	return append(ids, backupctl.ID, envctl.ID)
+	return append(ids, backupctl.ID)
 }
 
 // Checked are the controls whose checks the rows show: the main menu's,
-// then Backup's and Environment's.
-func Checked(cfg *config.Config, getenv func(string) string) []engine.Control {
-	return append(controls.Status(cfg), backupctl.Settings{Config: cfg}, envctl.Keep{Getenv: getenv})
+// then Backup's.
+func Checked(cfg *config.Config) []engine.Control {
+	return append(controls.Status(cfg), backupctl.Settings{Config: cfg})
 }
 
 // Ask is what hardn.yml asks Run All of one row (decision 4 (a)).
@@ -186,7 +185,7 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // nameservers; enableUnattendedUpgrades true, on (never off). SSH Auth asks
 // no key: on Alpine, where sshd lacks CVE-2026-123158's fix, it is the
 // openssh upgrade (sshchange.Upgrade; the maintainer, 2026-11-08). Every
-// other row asks nothing: AppArmor, Backup and Environment.
+// other row asks nothing: AppArmor and Backup.
 func Asked(in Input, id string) Ask {
 	cfg := in.Config
 	switch id {
@@ -348,7 +347,7 @@ func Read(ctx context.Context, in Input) (Reading, error) {
 		return Reading{}, fmt.Errorf("runall: the change journal: %w", err)
 	}
 	r.Busy, r.state = st.Busy(), st
-	reports, err := newEngine(in).Check(ctx, Checked(in.Config, in.getenv))
+	reports, err := newEngine(in).Check(ctx, Checked(in.Config))
 	if err != nil {
 		return Reading{}, fmt.Errorf("runall: %w", err)
 	}

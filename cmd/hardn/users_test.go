@@ -93,6 +93,10 @@ func withKeys(t *testing.T, h *usrTestHost, keys ...string) *config.Config {
 	return cfg
 }
 
+// usrTestSudoers is Debian 13's /etc/sudoers in shape, its includedir
+// last.
+const usrTestSudoers = "Defaults\tenv_reset\nroot\tALL=(ALL:ALL) ALL\n%sudo\tALL=(ALL:ALL) ALL\n\n@includedir /etc/sudoers.d\n"
+
 // newUsersHost returns the host, and hardn.yml as hardn reads it there
 // (newDNSHost's: username alice, Create's default).
 func newUsersHost(t *testing.T) (*usrTestHost, *config.Config) {
@@ -110,7 +114,7 @@ func newUsersHost(t *testing.T) (*usrTestHost, *config.Config) {
 		h.AddFile(sh, []byte("ELF"), 0o755, 0, 0)
 	}
 	h.AddFile(sshd.MainConfig, []byte(sshd.IncludeLine+"\n\nUsePAM yes\n"), 0o644, 0, 0)
-	h.AddFile(sudoers.MainConfig, []byte(envTestSudoers), 0o440, 0, 0)
+	h.AddFile(sudoers.MainConfig, []byte(usrTestSudoers), 0o440, 0, 0)
 	h.AddFile(sudoers.DropInDir+"/90-cloud-init-users", []byte("# Created by cloud-init v. 25.1\n\n# User rules for george\ngeorge ALL=(ALL) NOPASSWD:ALL\n"), 0o440, 0, 0)
 	h.AddFile(accounts.PasswdFile, []byte("root:x:0:0:root:/root:/bin/bash\nnobody:x:65534:65534:nobody:/nonexistent:/usr/sbin/nologin\ngeorge:x:1000:1000::/home/george:/bin/bash\n"), 0o644, 0, 0)
 	h.AddFile(accounts.GroupFile, []byte("root:x:0:\nsudo:x:27:george\ngeorge:x:1000:\n"), 0o644, 0, 0)

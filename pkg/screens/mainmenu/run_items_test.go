@@ -44,21 +44,6 @@ func TestBackupItem(t *testing.T) {
 	})
 }
 
-// TestEnvironmentItem: the main menu's 8 runs the Environment screen
-// cmd/hardn sets (Options.Environment), as TestDNSItem's 4 runs the DNS screen,
-// and maps what it returns the same way (refactor plan slice 9, unit (d));
-// the screen saves no setting, so the main menu's configuration is as it
-// was.
-func TestEnvironmentItem(t *testing.T) {
-	testScreenItem(t, screenItem{
-		key: "8", name: "ENVIRONMENT", set: setEnvironment,
-		edit: func(*config.Config) {},
-		edited: func(c *config.Config) bool {
-			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.BackupPath == config.DefaultConfig().BackupPath
-		},
-	})
-}
-
 // TestFirewallItem: the main menu's 3 runs the Firewall screen cmd/hardn
 // sets (Options.Firewall), as TestDNSItem's 4 runs the DNS screen, and maps what
 // it returns the same way (refactor plan slice 4, unit (d)); the main menu
@@ -168,13 +153,13 @@ func TestRunAllItem(t *testing.T) {
 	})
 }
 
-// TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
+// TestSystemDetailsAndLogsItems: the main menu's 8 and 9 run the screens cmd/hardn
 // sets, and map what they return as TestDNSItem's 3 does (refactor plan slice 1, unit
 // (d)); neither saves a setting.
 func TestSystemDetailsAndLogsItems(t *testing.T) {
 	for _, it := range []screenItem{
-		{key: "9", name: "SYSTEM DETAILS", set: setSystemDetails},
-		{key: "10", name: "LOGS", set: setLogs},
+		{key: "8", name: "SYSTEM DETAILS", set: setSystemDetails},
+		{key: "9", name: "LOGS", set: setLogs},
 	} {
 		t.Run(it.name, func(t *testing.T) {
 			it.edit = func(*config.Config) {}
@@ -239,7 +224,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 				// The screen opens on a cleared screen on a terminal, after the
 				// main menu's prompt and the key typed; off one nothing clears.
 				noClearOff(t, env, out)
-				if !strings.Contains(out, "[0-10 or q]: \n"+clearGapOn(env)+said+"\n") {
+				if !strings.Contains(out, "[0-9 or q]: \n"+clearGapOn(env)+said+"\n") {
 					t.Errorf("the screen does not open on a cleared screen:\n%q", out)
 				}
 				wantPasses := map[bool]int{false: 1, true: 2}[tc.again]

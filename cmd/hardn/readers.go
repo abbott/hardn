@@ -2,9 +2,9 @@ package main
 
 // System Details and Logs (refactor plan slice 1, unit (d), next/s1-replace;
 // docs/engine/screen-system-details.md §7; plan §3.14: the legacy path replaced, not
-// gated): main menu 9 and 10 run the two screens (pkg/screens/systemdetails,
-// pkg/screens/logs), which pkg/screens/mainmenu reaches through the hooks set here, as it reaches
-// the Environment screen (environment.go), so that pkg/screens/mainmenu builds no reader; hardn
+// gated): main menu 8 and 9 run the two screens (pkg/screens/systemdetails,
+// pkg/screens/logs), which pkg/screens/mainmenu reaches through the hooks set here,
+// so that pkg/screens/mainmenu builds no reader; hardn
 // system-details and -p print through the same packages. All of this only reads, under
 // plan only as live, on a host with no run log; neither opens hardn's log nor writes
 // /etc/hardn/hardn.yml.example (main.go's openStartLog and liveWrites).
@@ -56,16 +56,16 @@ func readerFacts(ctx context.Context, sys host.System) detect.Facts {
 	return facts
 }
 
-// runSystemDetailsScreen is main menu 9: the screen until the user goes back (nil) or
-// quits (nav.ErrQuit), or the input ends (prompt.ErrAborted), as runEnvironmentScreen
-// runs Environment's, pkg/screens/mainmenu's showScreen mapping what it returns; the facts detected
+// runSystemDetailsScreen is main menu 8: the screen until the user goes back (nil) or
+// quits (nav.ErrQuit), or the input ends (prompt.ErrAborted),
+// pkg/screens/mainmenu's showScreen mapping what it returns; the facts detected
 // once per visit.
 func runSystemDetailsScreen(ctx context.Context) error {
 	sys := readerHost()
 	return systemdetails.Run(ctx, systemdetails.Options{Prompter: readerPrompter(), System: sys, Facts: readerFacts(ctx, sys)})
 }
 
-// runLogsScreen is main menu 10, as runSystemDetailsScreen is 9: the log hardn writes,
+// runLogsScreen is main menu 9, as runSystemDetailsScreen is 8: the log hardn writes,
 // c's logFile said where it names another path, TERM for the pager.
 func runLogsScreen(ctx context.Context, c *config.Config) error {
 	return logs.Run(ctx, logs.Options{Prompter: readerPrompter(), System: readerHost(), LogFile: c.LogFile, Term: os.Getenv("TERM")})
@@ -112,7 +112,7 @@ func runSystemDetails(form SystemDetailsForm, refused error) {
 // runs ahead of the root check (decisions 9 (a), 10 (a)).
 func printOnly() bool {
 	return printLogs && !createUser && !disableRootSSH && !configureUfw && !configureDns &&
-		!runAll && !setupSudoEnv
+		!runAll
 }
 
 // printLog is -p: logs.Print on stdout, logFile said in a row to a terminal where it

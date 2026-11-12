@@ -24,7 +24,7 @@ type yesFlag struct {
 
 // TestYesFlag (refactor plan §3.11, approved 2026-11-04: "operation flags
 // require --yes without a TTY"): for each flag whose plan has no lockout
-// risk (-g, -c, -e, setup-sudo-env), off a terminal (stdin not one)
+// risk (-g, -c), off a terminal (stdin not one)
 // without --yes a plan with changes is shown and not applied, exit status
 // 2, CONFIRMATION_REQUIRED naming --yes; with --yes it is applied, 0; on
 // a terminal it is applied unasked, with --yes or without, as before;
@@ -58,21 +58,6 @@ func TestYesFlag(t *testing.T) {
 			}, args...)
 			return r, stripANSI(s.out.String()), len(h.commands("useradd")) > 0
 		}},
-	}
-	for _, spelling := range [][]string{{"-e"}, {"setup-sudo-env"}} {
-		plain = append(plain, yesFlag{spelling[0], spelling, func(t *testing.T, nothing bool, env func() term.Env, lines []string, args ...string) (result, string, bool) {
-			host := "debian13"
-			if nothing {
-				host = "kept"
-			}
-			h := newEnvHost(t, host)
-			r, s := runE(t, h, func(*dnsSeams) {
-				if env != nil {
-					stdoutEnv = env
-				}
-			}, args...)
-			return r, stripANSI(s.out.String()), len(h.writes()) > 0
-		}})
 	}
 	for _, f := range plain {
 		for _, tc := range []struct {

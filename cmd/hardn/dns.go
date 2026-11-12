@@ -38,8 +38,8 @@ func configureDNS(c *config.Config) int {
 // planned over the configuration c with engineOptions, then applied
 // without a question, unless the plan is refused or c.DryRun (-n) asks
 // for the plan alone; its report on stdout (output.Human). refuse, when
-// not nil, is the flag's own refusal of a plan the engine made (-e's of a
-// lockout-risk plan, environment.go): an error from it is the run's, the
+// not nil, is the flag's own refusal of a plan the engine made (-c's of a
+// lockout-risk plan, users.go): an error from it is the run's, the
 // plan shown with it and not applied, under -n too, so that the plan
 // alone says what the flag would do. A failed apply is rolled back. The apply alone runs under engineSignals: Ctrl-C,
 // SIGTERM and a hangup during it cancel it, rolled back, and end hardn
@@ -107,7 +107,7 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 }
 
 // gatePlan is what refuses a flag's plan p before its apply, in order:
-// the flag's own refusal (refuse: -e's of a lockout-risk plan, -c's), the
+// the flag's own refusal (refuse: -c's of a lockout-risk plan), the
 // plan alone under plan only; then, live, for a plan with changes: a plan
 // the flag confirms by the hostname typed (confirm.asks: a lockout-risk
 // plan of -w, -d or -r, and any plan of -r's) goes to the hostname typed

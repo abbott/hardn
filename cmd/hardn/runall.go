@@ -174,16 +174,16 @@ var runAllConfirm = typedConfirm{
 	},
 }
 
-// errRunAllAlone refuses -r with -c, -d, -w, -g or -e: -r runs alone
+// errRunAllAlone refuses -r with -c, -d, -w or -g: -r runs alone
 // (gallery-runall.md §5, decision 8 (a); slice 9's defect 10, where -r -e
 // ran -r alone), a usage error, nothing run. -p is not refused: it
 // prints the log after -r's run.
-var errRunAllAlone = errors.New("hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e.")
+var errRunAllAlone = errors.New("hardn -r runs alone: it can't be combined with -c, -d, -w or -g.")
 
-// runAllAlone is errRunAllAlone where -r is given with -c, -d, -w, -g or
-// -e; nil otherwise.
+// runAllAlone is errRunAllAlone where -r is given with -c, -d, -w or -g;
+// nil otherwise.
 func runAllAlone() error {
-	if runAll && (createUser || disableRootSSH || configureUfw || configureDns || setupSudoEnv) {
+	if runAll && (createUser || disableRootSSH || configureUfw || configureDns) {
 		return errRunAllAlone
 	}
 	return nil

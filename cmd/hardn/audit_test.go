@@ -97,7 +97,7 @@ func wantOneRecord(t *testing.T, h *hostfake.System, mode output.Mode, outcome o
 // TestAuditFlags: each operation flag's run is one record of the audit
 // log, written on the host it ran on, whatever its outcome: -g applied
 // (its hostname read), planned alone (-n), and refused; -c refused by its
-// own guard; -e applied; -w through the hostname typed (a lockout-risk
+// own guard; -w through the hostname typed (a lockout-risk
 // change, awaiting its confirmation), and interrupted during its apply,
 // hardn ending with 130 once the record is written.
 func TestAuditFlags(t *testing.T) {
@@ -151,15 +151,6 @@ func TestAuditFlags(t *testing.T) {
 			t.Fatalf("exit status %d (ended %v), want 1", r.code, r.ended)
 		}
 		wantOneRecord(t, h.System, output.ModeApply, output.OutcomeRefused)
-	})
-	t.Run("-e applied", func(t *testing.T) {
-		auditOnRunHost(t)
-		h := newEnvHost(t, "debian13")
-		r, _ := runE(t, h, nil, "--yes", "-e")
-		if r.ended {
-			t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
-		}
-		wantOneRecord(t, h.System, output.ModeApply, output.OutcomeApplied)
 	})
 	t.Run("-w, the hostname typed", func(t *testing.T) {
 		auditOnRunHost(t)
@@ -374,8 +365,8 @@ func TestAuditTypedInterrupted(t *testing.T) {
 // TestAuditScreens: a change on each screen but DNS's (TestAuditScreen),
 // as a dry run, is one record of its plan, once its flow has ended
 // (Options.Ran): User Management's Create, SSH Login's Disallow, the
-// Firewall's Enable, Backup's turn off, Auto Updates' Enable, the
-// Environment's keep, and Run All's Apply all.
+// Firewall's Enable, Backup's turn off, Auto Updates' Enable, and Run
+// All's Apply all.
 func TestAuditScreens(t *testing.T) {
 	ctx := context.Background()
 	for _, tc := range []struct {
@@ -414,13 +405,6 @@ func TestAuditScreens(t *testing.T) {
 			engineHost = func() host.System { return h }
 			cfg.DryRun = true
 			return h.System, runUpdatesScreen(ctx, cfg, Version)
-		}},
-		{"environment", func(t *testing.T) (*hostfake.System, error) {
-			h := newEnvHost(t, "debian13")
-			useEnvHost(t, h, "1", "0")
-			cfg := config.DefaultConfig()
-			cfg.DryRun = true
-			return h.System, runEnvironmentScreen(ctx, cfg)
 		}},
 		{"runall", func(t *testing.T) (*hostfake.System, error) {
 			h, cfg := newRunAllHost(t, "debian13", runAllYML)

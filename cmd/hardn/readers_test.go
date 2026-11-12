@@ -512,7 +512,6 @@ func TestSystemDetailsFlags(t *testing.T) {
 		{args: []string{"-g"}, code: 2, stderr: []string{"hardn: -g is refused: " + runAlone}},
 		{args: []string{"-w"}, code: 2, stderr: []string{"hardn: -w is refused: " + runAlone}},
 		{args: []string{"-r"}, code: 2, stderr: []string{"hardn: -r is refused: " + runAlone}},
-		{args: []string{"-e"}, code: 2, stderr: []string{"hardn: -e is refused: " + runAlone}},
 		{args: []string{"-n"}},
 		{args: []string{"--no-color"}, stderr: []string{noColorDeprecated}}, // warnNoColor
 		{args: []string{"-f", "hardn.yml"}},
@@ -650,7 +649,7 @@ func TestPrintOnly(t *testing.T) {
 	}
 	for name, flag := range map[string]*bool{
 		"create-user": &createUser, "disable-root": &disableRootSSH, "configure-ufw": &configureUfw,
-		"configure-dns": &configureDns, "run-all": &runAll, "setup-sudo-env": &setupSudoEnv,
+		"configure-dns": &configureDns, "run-all": &runAll,
 	} {
 		was := *flag
 		*flag = true

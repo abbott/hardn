@@ -58,7 +58,7 @@ const sdMainHost = sdPrefix + "/debian13"
 // sdLinks lead from a menu mock's item to the System Details screen on a
 // host, by the mock's name and the item's key, beside links: the main
 // menu's 9, which said the gallery had no screen for it until unit (a).
-var sdLinks = map[string]string{mainMenuMock + "/9": sdMainHost}
+var sdLinks = map[string]string{mainMenuMock + "/8": sdMainHost}
 
 // sdHost is one simulated host the System Details screen runs on.
 type sdHost struct {

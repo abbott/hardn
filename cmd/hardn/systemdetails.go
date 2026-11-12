@@ -33,7 +33,6 @@ var rootOperations = []struct{ flag, name string }{
 	{"configure-dns", "-g"},
 	{"configure-ufw", "-w"},
 	{"run-all", "-r"},
-	{"setup-sudo-env", "-e"},
 }
 
 // systemDetailsFlags are the command's flags as given. -E, -S, -O, --json and --yaml

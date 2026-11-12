@@ -465,3 +465,24 @@ func TestNotMigrated(t *testing.T) {
 		t.Errorf("%v, %v, %d calls", cs, err, len(h.Calls()))
 	}
 }
+
+// TestRemoveDoasKeptVariable: on doas a rule keeps variables only with its
+// grant, so Remove takes a setenv an earlier hardn wrote away with the
+// rule (the Environment screen, which could stop keeping it, is gone:
+// 2026-11-12), where it was refused for good (SUDOERS_ENV_NEEDS_GRANT).
+func TestRemoveDoasKeptVariable(t *testing.T) {
+	alpine := with(alpine324(), func(f *detect.Facts) { f.Init = detect.Init{Kind: detect.OpenRC, Running: detect.Yes} })
+	kept := written(t, alpine, sudoers.Policy{User: "george", Grant: sudoers.GrantNoPassword, Env: []string{"HARDN_CONFIG"}})
+	s := site{plat: alpine, users: []string{georgeLine, aliceSh}, locks: map[string]string{"george": "*", "alice": "*"}, files: kept}
+	asAlice := func(k string) string { return map[string]string{"DOAS_USER": "alice"}[k] }
+	e, p, _, h := planOn(t, s, users.Admin{Action: users.ActionRemove, User: "george", Getenv: asAlice})
+	if p.Err() != nil || len(p.Changes) == 0 {
+		t.Fatalf("Remove: %v, %d changes", p.Err(), len(p.Changes))
+	}
+	if _, err := e.Apply(context.Background(), p); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := h.Entry(sudoers.DoasDir + "/zz-hardn-george.conf"); ok {
+		t.Error("hardn's rule for george is still there")
+	}
+}

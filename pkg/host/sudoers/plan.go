@@ -27,8 +27,7 @@ type File struct {
 // and can write: owner and group 0, no group or other write bit, no bit
 // beyond the permissions. Plan.Check refuses a change whose old file is
 // not (a rollback would write it back so); a caller that says that
-// refusal in words finds the file with it (the Environment control,
-// next/s9-screen).
+// refusal in words finds the file with it.
 func (f File) RootsAlone() bool {
 	return f.UID == 0 && f.GID == 0 && f.Mode&^fs.ModePerm == 0 && f.Mode&0o022 == 0
 }

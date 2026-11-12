@@ -10,3 +10,12 @@
 - **Grant admin rights asks the user's password too,** even when they have none yet. Manage User's "Don't ask password" still removes the question for one user.
 - **`sudoNoPassword` is retired** for `adminNoPassword`. `sudoNoPassword: true` is ignored, as every hardn.yml an older hardn saved holds it; `false` warns that it isn't used.
 - **Users hardn already created keep their no-password rule.** To tighten one, run `passwd <name>`, then choose Manage User's "Ask for password".
+
+## Removed
+
+- **The Environment screen, `-e` and `setup-sudo-env` are gone.** They kept `HARDN_CONFIG` under sudo or doas. Use `sudo hardn -f <path>`, `sudo HARDN_CONFIG=<path> hardn` or `doas env HARDN_CONFIG=<path> hardn` instead, or put the file at `/etc/hardn/hardn.yml`.
+- **A line hardn already wrote keeps working.** To take it away under sudo, delete `/etc/sudoers.d/hardn-env-<user>`.
+- **The main menu has nine items:** System Details is 8 and Logs is 9.
+- **Run All no longer shows an Environment row.**
+- **Under doas, Remove admin rights now removes a rule that keeps `HARDN_CONFIG`** along with the variable. It used to be refused until Environment stopped keeping it.
+

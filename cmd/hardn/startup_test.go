@@ -13,7 +13,7 @@ import (
 )
 
 // TestConfigLine: which hardn.yml was read is said once, on stderr, for
-// the flags and setup-sudo-env, in FindConfigFile's words as they were,
+// the flags, in FindConfigFile's words as they were,
 // with no [INFO]; an -f or HARDN_CONFIG file that is not there is an
 // error; the defaults, the offer to create one declined, are said after
 // it, and alone where none was found; nothing is said before the main
@@ -35,7 +35,7 @@ func TestConfigLine(t *testing.T) {
 			"Operation Failed Configuration file specified by command-line flag not found: " + yml + " Using default configuration (no config file found)"},
 		{"HARDN_CONFIG not there, -r", []string{"-r"}, config.Found{Path: yml, By: config.FoundEnv},
 			"Operation Failed Configuration file specified by HARDN_CONFIG environment variable not found: " + yml + " Using default configuration (no config file found)"},
-		{"none, -e", []string{"-e"}, config.Found{}, "Using default configuration (no config file found)"},
+		{"none, -g", []string{"-g"}, config.Found{}, "Using default configuration (no config file found)"},
 		{"the search path, -g -p", []string{"-g", "-p"}, config.Found{Path: yml, By: config.FoundSearch, Exists: true}, "Using configuration from: " + yml},
 		{"the main menu", nil, config.Found{Path: yml, By: config.FoundSearch, Exists: true}, ""},
 	} {
@@ -54,11 +54,11 @@ func TestConfigLine(t *testing.T) {
 			}
 		})
 	}
-	t.Run("setup-sudo-env", func(t *testing.T) {
+	t.Run("-n -g, the load failing", func(t *testing.T) {
 		r := runHardnWith(t, asRoot, func() {
 			findConfig = func(string) config.Found { return config.Found{Path: yml, By: config.FoundSearch, Exists: true} }
 			loadExisting = func(string) (*config.Config, error) { return nil, errors.New("test: past the line") }
-		}, "setup-sudo-env")
+		}, "-n", "-g")
 		if got := flat(r.stderr); !r.ended || r.code != 1 || got != "Using configuration from: "+yml+" Operation Failed Failed to load configuration: test: past the line" {
 			t.Errorf("ended %v with %d; stderr %q", r.ended, r.code, got)
 		}

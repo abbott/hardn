@@ -8,7 +8,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/theme"
 )
 
-// The Logs screen (refactor plan slice 1, unit (c), next/s1-screen): main menu 10
+// The Logs screen (refactor plan slice 1, unit (c), next/s1-screen): main menu 9
 // and hardn -p to a terminal, read only, as the maintainer adopted the mock on
 // 2026-10-30 (docs/engine/gallery-system-details.md §5, decisions 6 (a), 7 (a),
 // 8 (a), 10 (a), with §6's words). There is no Figma frame: it is inferred from

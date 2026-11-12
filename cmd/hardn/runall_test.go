@@ -389,16 +389,16 @@ func TestRunAllFlagPlanOnlyFromFile(t *testing.T) {
 	}
 }
 
-// TestRunAllFlagAlone: -r with -c, -d, -w, -g or -e, under -n too, is a
+// TestRunAllFlagAlone: -r with -c, -d, -w or -g, under -n too, is a
 // usage error in §6's words, 2, before the root check, nothing run
 // (slice 9's defect 10, where -r -e ran -r alone).
 func TestRunAllFlagAlone(t *testing.T) {
-	for _, args := range [][]string{{"-r", "-c"}, {"-r", "-d"}, {"-r", "-w"}, {"-r", "-g"}, {"-r", "-e"}, {"-e", "-r"},
-		{"-n", "-r", "-g"}, {"-d", "-p", "-n", "-r", "-w", "-g", "-e", "-c"}} {
+	for _, args := range [][]string{{"-r", "-c"}, {"-r", "-d"}, {"-r", "-w"}, {"-r", "-g"},
+		{"-n", "-r", "-g"}, {"-d", "-p", "-n", "-r", "-w", "-g", "-c"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
 			if !r.ended || r.code != output.ExitUsage || len(r.reached) != 0 ||
-				strings.TrimSpace(r.stderr) != "hardn -r runs alone: it can't be combined with -c, -d, -w, -g or -e." {
+				strings.TrimSpace(r.stderr) != "hardn -r runs alone: it can't be combined with -c, -d, -w or -g." {
 				t.Errorf("ended %v with %d after %v; stderr:\n%s", r.ended, r.code, r.reached, r.stderr)
 			}
 		})

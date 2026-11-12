@@ -33,7 +33,6 @@ var (
 	runAll         bool
 	printLogs      bool
 	showVersion    bool
-	setupSudoEnv   bool
 	assumeYes      bool
 	cfg            *config.Config
 )
@@ -77,7 +76,7 @@ var startLogPath string
 var logOpened bool
 
 // openStartLog opens hardn's log (openLog), once, for the commands that write it:
-// the main menu, the operation flags and setup-sudo-env through liveWrites, and
+// the main menu and the operation flags through liveWrites, and
 // confirm, rollback, rollback --abandon and rollback --boot, once their own
 // refusals (revertPreflight: -n, not root) are past, whose steps it records under
 // the revert timer and the boot unit (revertLog). Those that only read it, the
@@ -111,7 +110,6 @@ func init() {
 	// with "hardn version <x>" alone, ahead of Run's build info (refactor
 	// plan §3.11: --version's build info restored).
 
-	rootCmd.AddCommand(setupSudoEnvCmd)
 	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
 
 	// cobra's help on stdout, and its errors and the usage after them on
@@ -149,7 +147,6 @@ func init() {
 	rootCmd.PersistentFlags().BoolVarP(&dryRun, "dry-run", "n", false, "Dry run mode (preview changes without applying)")
 	rootCmd.PersistentFlags().BoolVarP(&printLogs, "print-logs", "p", false, "Print logs")
 	rootCmd.PersistentFlags().BoolVarP(&showVersion, "version", "v", false, "Show version information")
-	rootCmd.PersistentFlags().BoolVarP(&setupSudoEnv, "setup-sudo-env", "e", false, "Keep HARDN_CONFIG under sudo or doas")
 	rootCmd.PersistentFlags().BoolVar(&assumeYes, "yes", false, "Apply a plan without a terminal to confirm it on; a lockout-risk plan still needs one")
 	addSurfaceFlags(rootCmd.PersistentFlags())
 	addTimeoutFlag(rootCmd.PersistentFlags())
@@ -163,7 +160,7 @@ var startMenu = runMenu
 // operation flag given.
 func mainMenuRun() bool {
 	return !createUser && !disableRootSSH && !configureUfw && !configureDns &&
-		!runAll && !printLogs && !setupSudoEnv
+		!runAll && !printLogs
 }
 
 // sayFound says which hardn.yml FindConfigFile found, once, on stderr:
@@ -181,7 +178,7 @@ var rootCmd = &cobra.Command{
 	Short: "Linux hardening tool",
 	Long:  `A simple hardening tool for Debian, Ubuntu, Proxmox, Alpine, Rocky Linux, AlmaLinux and RHEL.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// -r runs alone: with -c, -d, -w, -g or -e a usage error before
+		// -r runs alone: with -c, -d, -w or -g a usage error before
 		// anything runs (runall.go; slice 9's defect 10).
 		if refuse(runAllAlone()) {
 			return
@@ -241,7 +238,7 @@ var rootCmd = &cobra.Command{
 		// nothing before the main menu (decision 4 (a) of
 		// docs/engine/legacy-left.md, adopted 2026-11-04). With -n, plan
 		// only, none found is the defaults, with no offer to create one
-		// (loadExisting, as setup-sudo-env's), so that -n writes nothing.
+		// (loadExisting), so that -n writes nothing.
 		// A yes to the offer on a live run writes hardn.yml, asked for,
 		// whatever refusal follows it. None found is not said here: the
 		// offer, NoneLoaded below, or both say it (a third line said it
@@ -324,7 +321,7 @@ var rootCmd = &cobra.Command{
 		// question, as -g's (users.go). Its status is hardn's as -g's is,
 		// composed by runStatus, once the flags after it have run. It no
 		// longer configures sshd after the user (SSH is slice 6's).
-		status := 0 // -c's, -d's, -w's, -g's and -p's, what -e's yields to (runStatus)
+		status := 0 // -c's, -d's, -w's, -g's and -p's (runStatus)
 		if createUser {
 			status = createAdmin(cfg)
 		}
@@ -365,68 +362,13 @@ var rootCmd = &cobra.Command{
 			status = runStatus(status, printLog(context.Background(), cfg.LogFile))
 		}
 
-		// Keep HARDN_CONFIG: the Environment control through the engine,
-		// with no question (environment.go). A refusal, a lockout-risk
-		// plan's among them, or a failure is hardn's exit status at once;
-		// a plan with changes to make (3) yields to -g's refusal or failure.
-		if setupSudoEnv {
-			status = runStatus(status, keepEnvironment(cfg))
-			return
-		}
-	},
-}
-
-var setupSudoEnvCmd = &cobra.Command{
-	Use:   "setup-sudo-env",
-	Short: "Keep HARDN_CONFIG under sudo or doas",
-	Long: `Keeps HARDN_CONFIG for the user who runs sudo hardn (or doas hardn), in hardn's own rule.
-This allows you to consistently use a custom configuration file location across
-all commands, even when requiring elevated privileges.
-
-This command must be run with sudo privileges.
-
-Example:
-  sudo hardn setup-sudo-env`,
-	// What -e does (keepEnvironment), after the root command's root check,
-	// its OS check (detectOS: hardn changes nothing on an OS it refuses,
-	// macOS included, its log and example configuration neither), and
-	// hardn.yml's load (loadExisting: none found is the defaults, with
-	// no offer to create one, which -n would let write), whose backup
-	// settings the engine takes and whose dryRun, or -n, makes it the plan
-	// alone (refactor plan slice 9,
-	// unit (d); gallery-environment.md §5, Made here, adopted 2026-10-29).
-	Run: func(cmd *cobra.Command, args []string) {
-		if checkRoot() != nil {
-			return
-		}
-		if err := detectOS(); err != nil {
-			sayError("Failed to detect OS: %v", err)
-			exit(1)
-			return
-		}
-		sayFound(findConfig(configFile))
-		var err error
-		if cfg, err = loadExisting(configFile); err != nil {
-			sayError("Failed to load configuration: %v", err)
-			exit(1)
-			return
-		}
-		warnDeprecations(cfg)
-		cfg.ResolveDryRun(dryRunGiven(cmd), dryRun)
-		if refuseConfirmTimeout(cfg) {
-			return
-		}
-		liveWrites(cfg)
-		if code := keepEnvironment(cfg); code != 0 {
-			exit(code)
-		}
 	},
 }
 
 // The steps of the commands' Run functions that reach the host outside the
 // engine, and the process exit. cmd/hardn's tests replace them, so that a
 // test never reads this machine's user, config or OS, and never exits.
-// loadExisting is setup-sudo-env's load: hardn.yml where one is found, the
+// loadExisting is -n's load: hardn.yml where one is found, the
 // defaults where none is, never the offer to create one (config.LoadExisting;
 // refactor plan slice 9, unit (d)).
 var (

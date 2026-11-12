@@ -58,12 +58,12 @@ const (
 func resetFlags() {
 	noColor, configFile, username, dryRun = false, "", "", false
 	createUser, disableRootSSH, configureUfw, configureDns, runAll, printLogs = false, false, false, false, false, false
-	showVersion, setupSudoEnv, assumeYes = false, false, false
+	showVersion, assumeYes = false, false
 	colorMode, asciiOutput, plainOutput, themeMode = term.ColorUnset, false, false, term.ThemeUnset
 	confirmTimeoutFlag, confirmTimeoutGiven, themeAnswered = "", false, term.ThemeUnset
 	cfg = nil
 	// A flag given in one run stays given in pflag for the next (dryRunGiven).
-	for _, name := range []string{"dry-run", "print-logs", "create-user", "disable-root", "configure-dns", "configure-ufw", "run-all", "setup-sudo-env",
+	for _, name := range []string{"dry-run", "print-logs", "create-user", "disable-root", "configure-dns", "configure-ufw", "run-all",
 		"color", "ascii", "plain", "theme", "confirm-timeout", "no-color", "yes"} {
 		rootCmd.PersistentFlags().Lookup(name).Changed = false
 	}
@@ -145,7 +145,7 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 		}
 		return nil, unreachable
 	}
-	loadExisting = loadConfig // setup-sudo-env's, the same configurations
+	loadExisting = loadConfig // -n's, the same configurations
 	// The file the stubbed loads stand for, which hardn says it read.
 	findConfig = func(string) config.Found { return config.Found{Path: confPath, By: config.FoundSearch, Exists: true} }
 	detectOS = func() error {
@@ -181,14 +181,14 @@ func runHardnWith(t *testing.T, mode hostMode, setup func(), args ...string) res
 }
 
 // TestDryRunAloneIsNotRefused checks that -n without an operation, or with
-// -g, -e, -w, -c, -d, -r or setup-sudo-env, whose dry runs are their plans
+// -g, -w, -c, -d or -r, whose dry runs are their plans
 // (-r's Run All's, slice 8, unit (d)), still reaches the
 // root check (and then the menus in dry-run mode, or the plan); the stubbed
 // root check fails, so the run ends there with status 1. -n -p no longer
 // does: -p alone runs ahead of the root check (decisions 9 (a), 10 (a);
 // TestPrintLogAlone).
 func TestDryRunAloneIsNotRefused(t *testing.T) {
-	for _, args := range [][]string{{"-n"}, {"-n", "-g"}, {"-n", "-e"}, {"-n", "-w"}, {"-n", "-c", "-u", "carol"}, {"-n", "-d"}, {"-n", "-r"}, {"-n", "setup-sudo-env"}, {"-d"}} {
+	for _, args := range [][]string{{"-n"}, {"-n", "-g"}, {"-n", "-w"}, {"-n", "-c", "-u", "carol"}, {"-n", "-d"}, {"-n", "-r"}, {"-d"}} {
 		t.Run(strings.Join(args, " "), func(t *testing.T) {
 			r := runHardn(t, hostUnreachable, args...)
 			if !r.ended || r.code != 1 || len(r.reached) != 1 || r.reached[0] != "root check" {

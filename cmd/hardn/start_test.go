@@ -264,9 +264,7 @@ func TestStartWritesNothing(t *testing.T) {
 		{"a bad --confirm-timeout", asRootStart(nil), []string{"-g", "--confirm-timeout", "soon"}},
 		{"not root, the main menu", nil, nil},
 		{"not root, -g", nil, []string{"-g"}},
-		{"not root, setup-sudo-env", nil, []string{"setup-sudo-env"}},
 		{"root, the OS refused", asRootStart(func() { detectOS = func() error { return errors.New("test: the OS check") } }), []string{"-g"}},
-		{"root, the OS refused, setup-sudo-env", asRootStart(func() { detectOS = func() error { return errors.New("test: the OS check") } }), []string{"setup-sudo-env"}},
 		{"root, -c with no user", asRootStart(nil), []string{"-c"}},
 		{"root, plan only, the main menu", asRootStart(menu), []string{"-n"}},
 	} {
@@ -428,12 +426,12 @@ func TestStartLiveWrites(t *testing.T) {
 			t.Errorf("stderr %q, want %q", flat(r.stderr), want)
 		}
 	})
-	// setup-sudo-env, live, as root, opens the log and writes the example once its
-	// refusals are past, ahead of its run (here on a host with nothing on it).
-	t.Run("setup-sudo-env", func(t *testing.T) {
+	// An operation flag, live, as root, opens the log and writes the example once its
+	// refusals are past, ahead of its run (here -g on a host with nothing on it).
+	t.Run("-g", func(t *testing.T) {
 		r := runStartWith(t, logHost(readerLog), asRootStart(func() {
 			engineHost = func() host.System { return hostfake.New(host.Options{}) }
-		}), "setup-sudo-env")
+		}), "--yes", "-g")
 		if _, err := os.Stat(filepath.Join(r.root, startLog)); err != nil {
 			t.Errorf("the log: %v; stderr:\n%s", err, r.stderr)
 		}

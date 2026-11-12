@@ -35,7 +35,7 @@
 //
 // Each prompt's hint is generated from what it accepts (keys.Set.Hint):
 // the prompt's own inputs, then the navigation inputs, so that these end
-// every hint alike: "[0-10 or q]" on the main menu, where 0 is the Exit
+// every hint alike: "[0-9 or q]" on the main menu, where 0 is the Exit
 // item's number too, as Figma draws it, "[0-2 or q]" on a sub-menu,
 // "[y/N, 0 or q]" for a y/N question, "[web-01, 0 or q]" for a typed
 // confirmation and "[0 or q]" for free text (DEV-044, DEV-045; P-25 puts

@@ -509,6 +509,7 @@ func TestConfigureFirewallFlag(t *testing.T) {
 // flags after it not run.
 func TestConfigureFirewallFlagInterrupted(t *testing.T) {
 	h := newFWHost(t, "debian13")
+	ran := withLog(t, false)
 	var cancel context.CancelFunc
 	r, s := runW(t, h, onTTY, []string{"web-01"}, func(s *dnsSeams) {
 		engineSignals = func(ctx context.Context) (context.Context, context.CancelFunc) {
@@ -518,7 +519,7 @@ func TestConfigureFirewallFlagInterrupted(t *testing.T) {
 			return c, cc
 		}
 		h.during = func() { cancel() }
-	}, "-w", "-e")
+	}, "-w", "-p")
 	out := stripANSI(s.out.String())
 	if !r.ended || r.code != 130 {
 		t.Fatalf("exit status %d (ended %v), want 130; report:\n%s\nstderr:\n%s", r.code, r.ended, out, r.stderr)
@@ -529,8 +530,8 @@ func TestConfigureFirewallFlagInterrupted(t *testing.T) {
 	if h.active {
 		t.Errorf("ufw left running after the rollback; ran %q", h.changed())
 	}
-	if strings.Contains(out, "Keep HARDN_CONFIG") {
-		t.Errorf("-e ran after -w was interrupted:\n%s", out)
+	if ran() {
+		t.Errorf("-p ran after -w was interrupted:\n%s", out)
 	}
 }
 

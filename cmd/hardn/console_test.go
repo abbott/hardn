@@ -48,6 +48,23 @@ func flat(s string) string {
 	return strings.Join(strings.Fields(b.String()), " ")
 }
 
+// inOrder returns the first of want that out does not show after what
+// came before it, each compared with its white space, a callout's bar
+// at a wrapped line's start among it, as single spaces; "" when it shows
+// them all, in order.
+func inOrder(out string, want ...string) string {
+	f := strings.Join(strings.Fields(strings.ReplaceAll(out, "\n# ", " ")), " ")
+	at := 0
+	for _, w := range want {
+		i := strings.Index(f[at:], strings.Join(strings.Fields(w), " "))
+		if i < 0 {
+			return w
+		}
+		at += i + 1
+	}
+	return ""
+}
+
 // nospace is s without white space. The wrap cuts a word longer than the
 // width, a temporary file's path among them, at a place that depends on
 // TMPDIR's length and t.TempDir's digits; flat joins the pieces with a

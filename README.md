@@ -40,16 +40,15 @@ Anyone managing a **privately owned** Linux server, container, or virtual machin
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL); turns off only what hardn turned on. Read only on Proxmox |
 | 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS and automatic updates. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
-| 8) Environment | whether `HARDN_CONFIG` is kept under `sudo` or `doas` | keeps it in `/etc/sudoers.d/hardn-env-<user>`; under doas, adds it to hardn's own rule for the user, or, where hardn has none, says what to add |
-| 9) System Details | OS, kernel, addresses, users, CPU, disk, memory, last logins | nothing |
-| 10) Logs | `/var/log/hardn.log` | nothing |
+| 8) System Details | OS, kernel, addresses, users, CPU, disk, memory, last logins | nothing |
+| 9) Logs | `/var/log/hardn.log` | nothing |
 
 _The hardn status for **AppArmor** only displays current state, nothing more._
 
 ### How It Works
 
 1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [Safety](#safety)).
-2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, some Environment changes under doas, Run All) asks you to type the hostname.
+2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, Run All) asks you to type the hostname.
 3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 
@@ -91,7 +90,7 @@ To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have n
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo env HARDN_VERSION=0.4.0 sh
 ```
 
-The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except `setup-sudo-env` and dry runs._
+The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except in a dry run._
 
 ### Install Manually
 
@@ -146,8 +145,7 @@ To update, run the  [Install Script](#install-script) command again.
 | `-d, --disable-root` | Turn root's SSH login off (key-only on Proxmox). Refused unless another admin can still log in and become root |
 | `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox, Rocky, Alma and RHEL |
 | `-g, --configure-dns` | Set hardn.yml's nameservers |
-| `-e, --setup-sudo-env` | Keep `HARDN_CONFIG` under sudo or doas, as `setup-sudo-env` does |
-| `-r, --run-all` | Run All's plan from hardn.yml. Can't be combined with `-c`, `-d`, `-w`, `-g` or `-e` (exit 2) |
+| `-r, --run-all` | Run All's plan from hardn.yml. Can't be combined with `-c`, `-d`, `-w` or `-g` (exit 2) |
 | `-n, --dry-run` | Dry run: show the plan, change nothing |
 | `-p, --print-logs` | Print `/var/log/hardn.log`. On its own, it doesn't need root |
 | `-v, --version` | Print the version, commit and build date |
@@ -159,7 +157,7 @@ To update, run the  [Install Script](#install-script) command again.
 | `--theme dark\|light\|auto` | Colour theme. `auto` asks the terminal for its background. Default dark |
 | `-h, --help` | Help for hardn or a command |
 
-With no operation flag, `hardn` opens the main menu. Operation flags can be combined, and run in the order `-c`, `-d`, `-w`, `-g`, `-p`, `-e`.
+With no operation flag, `hardn` opens the main menu. Operation flags can be combined, and run in the order `-c`, `-d`, `-w`, `-g`, `-p`.
 
 | Command | What it does |
 |---|---|
@@ -169,19 +167,18 @@ With no operation flag, `hardn` opens the main menu. Operation flags can be comb
 | `hardn rollback --abandon <id>` | Give up a rollback that can never finish. The host stays as the rollback left it |
 | `hardn rollback --boot` | What hardn's boot unit runs. You don't run it yourself |
 | `hardn system-details` | Print the System Details report. `--output json` prints it as JSON. Save it with `> file` |
-| `hardn setup-sudo-env` | The same as `-e` |
 
 **On a terminal, and off one (scripts, cron).** Off a terminal, hardn never asks a question.
 
 | Flag | On a terminal | Off a terminal |
 |---|---|---|
-| `-c`, `-g`, `-e`, `setup-sudo-env` | Applies the change, unasked | Applies it only with `--yes` |
+| `-c`, `-g` | Applies the change, unasked | Applies it only with `--yes` |
 | `-w`, `-d` | A change that could lock you out: type the hostname. Any other: applied, unasked | A change that could lock you out: refused (exit 1), even with `--yes`. Any other: only with `--yes` |
 | `-r` | Type the hostname, for any plan with changes, `--yes` or not | A change that could lock you out: refused (exit 1), even with `--yes`. Any other: only with `--yes` |
 
 To ask for the hostname, hardn needs stdin and stdout both on a terminal: with the output piped or redirected, a change that could lock you out is refused, and `-r` needs `--yes` for any other. Otherwise only stdin counts.
 
-Where `--yes` is needed and not given, hardn shows the plan, changes nothing, and exits 2. A plan with nothing to change exits 0. `-e` refuses a change that could lock you out, on a terminal too: make it from main menu 8.
+Where `--yes` is needed and not given, hardn shows the plan, changes nothing, and exits 2. A plan with nothing to change exits 0.
 
 ```sh
 sudo hardn -n -r                # show Run All's plan
@@ -232,7 +229,7 @@ confirmTimeout: "5m"
 ```
 
 > [!TIP]
-> See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to keep `HARDN_CONFIG` under sudo. Example: [hardn.yml.example](hardn.yml.example)
+> See [docs/configuration.md](docs/configuration.md) for every key, where hardn looks for the file, and how to use `HARDN_CONFIG` with sudo. Example: [hardn.yml.example](hardn.yml.example)
 
 ## Distribution Support
 

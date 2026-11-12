@@ -56,11 +56,11 @@ const CompactMainMenu = false
 //	  Select an option         Mode Live
 //
 //	   1) User Management      Create, configure (sudo, SSH keys)
-//	  10) Logs                 View log file
+//	   9) Logs                 View log file
 //
 //	   0) Exit                 q to quit
 //
-//	    > Option [0-10 or q]:
+//	    > Option [0-4, 6-9 or q]:
 //
 // The blocks follow Figma's order: Header, ContextBar, HostBlock,
 // RiskSummary, StatusList, Divider, the MenuHeading with the
@@ -68,19 +68,19 @@ const CompactMainMenu = false
 // theme.PromptGap blank lines. An empty StatusList is left out with its
 // gap. An Alert, which Figma does not draw, stands between the StatusList
 // and the Divider, in the compact form after the rows: three lines and a
-// gap more. From theme.StackBelow columns up Figma's content takes 35 lines,
-// and a host's eight rows, DNS among them, 36, with each line under a row
+// gap more. From theme.StackBelow columns up Figma's content takes 34 lines,
+// and a host's eight rows, DNS among them, 35, with each line under a row
 // one more; below that width the rows stack (DEV-021), and at 60 columns
-// Figma's content takes 57. The main menu takes this form at every height
+// Figma's content takes 55. The main menu takes this form at every height
 // (CompactMainMenu): on a terminal shorter than its lines, its top
 // scrolls off, the prompt staying on the terminal's last line.
 //
 // Gated by CompactMainMenu, its compact form: on a terminal shorter than
 // theme.CompactBelow, or too short for the full form, prompt included, it
 // fits theme.CompactBudget lines, an 80x24 console, with Figma's content
-// from theme.StackBelow columns up (DEV-052); a host's eight rows, DNS
-// among them, take one line more, 25, so that at 80x24 its first line
-// scrolls off, and each line under a row another. In the compact form the
+// from theme.StackBelow columns up (DEV-052), in one line fewer; a host's
+// eight rows, DNS among them, take one line more, 24, theme.CompactBudget
+// itself, and each line under a row another. In the compact form the
 // Header and the Divider are left out; the ContextBar keeps the blank line
 // under it, as a bar always has, Figma's and the sub-screens' title bar
 // alike; the RiskSummary and the StatusList are one group, with no blank
@@ -99,18 +99,18 @@ const CompactMainMenu = false
 //	  [ ] Auto Updates         Not Configured
 //
 //	  Select an option         Mode Live
-//	   1) User Management       6) Dry-Run
-//	   5) Backup               10) Logs
+//	   1) User Management       6) Run All
+//	   4) DNS                   9) Logs
 //
 //	   0) Exit                 q to quit
 //
-//	    > Option [0-10 or q]:
+//	    > Option [0-4, 6-9 or q]:
 //
 // The host, the risk, every status row, the mode and every item stay on
-// screen, Figma's content in theme.CompactBudget lines: the blank line
+// screen, Figma's content within theme.CompactBudget lines: the blank line
 // the heading leaves out is the one the bar keeps. Below
-// theme.StackBelow columns the compact form stacks its rows too, 34 lines
-// at 60 columns, so a 60-column terminal shows the full form from 57 rows
+// theme.StackBelow columns the compact form stacks its rows too, 33 lines
+// at 60 columns, so a 60-column terminal shows the full form from 55 rows
 // and the compact form below. Output that is not a terminal has no height
 // to fit, and gets the full form. StatusBlocks draws the blocks above the
 // heading alone, in the same forms, for a caller that draws its own menu

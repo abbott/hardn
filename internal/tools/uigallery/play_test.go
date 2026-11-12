@@ -292,8 +292,8 @@ func TestPlayFail(t *testing.T) {
 }
 
 // TestPlayReaches checks the playable mode's links: each leads from an
-// item of a menu mock to a mock, or to the DNS, Backup or Environment
-// screen on a host (dnsLinks, backupLinks, envLinks), every menu mock's
+// item of a menu mock to a mock, or to the DNS or Backup
+// screen on a host (dnsLinks, backupLinks), every menu mock's
 // screen is one whose menu play binds, an item it refuses is one of its
 // menu's and has no link, and every mock can be reached from the main
 // menu, but Figma's records of screens hardn now draws itself
@@ -332,17 +332,6 @@ func TestPlayReaches(t *testing.T) {
 		if _, host := findBackupHost(strings.TrimPrefix(to, backupPrefix+"/")); !ok || linked || dns || !host ||
 			!slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == from[i+1:] }) {
 			t.Errorf("Backup link %s to %s: no menu mock with the item, another link from it too, or no such host", from, to)
-		}
-	}
-	for from, to := range envLinks {
-		i := strings.LastIndex(from, "/")
-		menu, ok := menuOf(mocks[from[:i]].Screen)
-		_, linked := links[from]
-		_, dns := dnsLinks[from]
-		_, bak := backupLinks[from]
-		if _, host := findEnvHost(strings.TrimPrefix(to, envPrefix+"/")); !ok || linked || dns || bak || !host ||
-			!slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == from[i+1:] }) {
-			t.Errorf("Environment link %s to %s: no menu mock with the item, another link from it too, or no such host", from, to)
 		}
 	}
 	for name, item := range figmaRecords {
@@ -782,8 +771,7 @@ func TestPlayTouchesNothing(t *testing.T) {
 	}
 	for _, p := range []string{"pkg/ui/prompt", "pkg/ui/screen", "pkg/ui/component/fixture", "pkg/diff", "pkg/engine", "pkg/engine/steps",
 		"pkg/engine/confirm", "pkg/engine/controls/dns", "pkg/host/dns", "pkg/output", "pkg/host/hostfake", "pkg/screens/dns", "pkg/screens/screenkit",
-		"pkg/screens/backup", "pkg/engine/controls/backup", "pkg/host/backup",
-		"pkg/screens/environment", "pkg/engine/controls/environment", "pkg/host/sudoers",
+		"pkg/screens/backup", "pkg/engine/controls/backup", "pkg/host/backup", "pkg/host/sudoers",
 		"pkg/screens/systemdetails", "pkg/screens/logs", "pkg/engine/details", "pkg/engine/logview",
 		"pkg/screens/firewall", "pkg/engine/controls/firewall", "pkg/host/ufw", "pkg/host/pve",
 		"pkg/screens/users", "pkg/screens/ssh", "pkg/screens/updates", "pkg/screens/runall", "pkg/engine/runall"} {
