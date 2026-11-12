@@ -54,7 +54,7 @@ env:
     hardn-linux-amd64 hardn-linux-arm64 hardn-darwin-amd64
     hardn-linux-amd64.sigstore.json hardn-linux-arm64.sigstore.json
     hardn-darwin-amd64.sigstore.json hardn-sbom.spdx.json
-  # abbott/hardn's repository ID, as the README gives it for the offline
+  # abbott/hardn's repository ID, as docs/verify.md gives it for the offline
   # check. A repository keeps its ID when renamed; another that takes the
   # name gets a new one (GitHub's "Verifying attestations offline").
   REPO_ID: "941701082"
@@ -318,7 +318,7 @@ jobs:
       # ends @GITHUB_REF and its digest is GITHUB_SHA. A binary that fails
       # leaves the release a draft.
       #
-      # Then the README's offline check, against each binary's bundle on the
+      # Then docs/verify.md's offline check, against each binary's bundle on the
       # draft: Sigstore's trusted root from gh attestation trusted-root, the
       # same policy, and the certificate's repository ID, which must be
       # REPO_ID. Offline, --repo is compared only with the names in the

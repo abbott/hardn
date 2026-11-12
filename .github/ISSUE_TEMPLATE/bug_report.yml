@@ -1,0 +1,36 @@
+name: Bug report
+description: Something hardn does wrong.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps
+      description: The steps that show the problem.
+      placeholder: |
+        1. Run `sudo hardn`
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS and version
+      placeholder: Debian 13
+    validations:
+      required: true
+  - type: textarea
+    id: version
+    attributes:
+      label: hardn --version
+      description: The output of `hardn --version`.
+      render: text
+    validations:
+      required: true

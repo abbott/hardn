@@ -1,0 +1,16 @@
+name: Feature request
+description: Something hardn should do.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: feature
+    attributes:
+      label: Feature
+      description: What hardn should do, and the problem it solves.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Other ways you've considered, if any.
