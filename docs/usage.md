@@ -21,7 +21,7 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 
 ## Flags and commands
 
-`hardn` needs root, except `-p` alone, `--version`, `--help`, `completion` and `system-details`. Run it with `sudo hardn` or `doas hardn`.
+`hardn` needs root, except `-p` alone, `--version`, `--help`, `completion`, `config` and `system-details`. Run it with `sudo hardn` or `doas hardn`.
 
 | Flag | What it does |
 |---|---|
@@ -48,6 +48,7 @@ With no operation flag, `hardn` opens the main menu. Operation flags can be comb
 | Command | What it does |
 |---|---|
 | `hardn completion <shell>` | Print a tab-completion script for bash, zsh, fish or powershell. Learn more: `hardn completion bash --help` |
+| `hardn config` | Print which hardn.yml hardn reads and each key's value. It doesn't need root, but it shows the file for the user who runs it: use `sudo hardn config` to see what `sudo hardn` reads |
 | `hardn confirm` | Keep the change that is waiting for confirmation. Run it from a new SSH connection. At the console, it confirms with a warning. When run from a new SSH connection after a port change, it also closes the old port |
 | `hardn rollback <id>` | Undo that change now, or finish a rollback that stopped partway |
 | `hardn rollback --abandon <id>` | Give up a rollback that can never finish. The host stays as the rollback left it |

@@ -13,7 +13,7 @@ This document explains how to configure `hardn`, the simple hardening tool for L
 5. `~/.hardn.yml` (traditional dot-file in home directory)
 6. `./hardn.yml` (the directory `hardn` runs in)
 
-The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `8) Configuration` shows which file was read.
+The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `8) Configuration` shows which file was read, or run `sudo hardn config`.
 
 ## Creating a Configuration File
 

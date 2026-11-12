@@ -36,3 +36,20 @@ Main menu `8) Configuration`, "View hardn.yml", shows which hardn.yml hardn read
 ## 5. Not run
 
 Nothing on Linux, nothing on a terminal, no hardn binary. The first run's file is tested through the bytes it writes, not through the offer at a terminal. Ctrl-C at the prompt is `nav`'s and `prompt`'s own tests'.
+
+## 6. `hardn config`
+
+`hardn config` prints what the screen shows, without the menu or the prompt, on stdout: `screen.Config.Report` of the same `configscreen.View`, through `configscreen.Print`. On a terminal it is drawn as the screen is; off one it is plain, each value whole. `--color`, `--plain`, `--ascii` and `--theme` apply.
+
+- It doesn't need root, and writes nothing: no log, no example hardn.yml, no offer to create hardn.yml (`loadExisting`).
+- It reads the file every command reads: `-f`, then `HARDN_CONFIG`, then the search path.
+- It reads as the user who runs it: `HARDN_CONFIG`, the home directory and `./hardn.yml` are that user's, so `sudo hardn config` is what shows the file `sudo hardn` reads.
+- Like `system-details`, it doesn't say on stderr which file it read. The load's warnings are not printed: "Not used" lists the keys. `-n` and `-u` change nothing in it.
+
+| Exit status | When |
+|---|---|
+| `0` | The report printed. That includes no file found, and a file `-f` or `HARDN_CONFIG` names that isn't there ("not found", "hardn is using its defaults.") |
+| `1` | hardn.yml can't be read or doesn't parse, or a named file is in a directory the user can't enter ("Failed to load configuration: ..." on stderr), or the write failed |
+| `2` | `-c`, `-d`, `-g`, `-w`, `-r` or `-p` given ("hardn: -p is refused: run it without config"), or an argument |
+
+Tested in process (`cmd/hardn/config_test.go`): a file on the search path, by `-f`, by `HARDN_CONFIG`; no file; a named file missing; a file that doesn't parse; a file the user can't read; a failed write; as a user other than root; nothing written and no log opened; each operation flag refused; an argument; the whole plain report, equal to the screen's view; `--help` lists it. `pkg/ui/screen`: the screen opens with the report. `pkg/screens/config`: `Print`. Not run: the hardn binary, anything on Linux.

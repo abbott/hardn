@@ -121,16 +121,10 @@ func configSection(title string, rows []component.KeyValue) Section {
 	return Section{Header: component.SectionHeader{Title: title}, Rows: component.BulletList{Items: rows}}
 }
 
-// SubMenu returns the screen: the title bar; "File"; a section for each group of
-// keys; "Not used" where the file sets a key nothing reads, each a warning row;
-// Return alone; "Option". It has no item: the screen only reads.
-func (v Config) SubMenu() SubMenu {
-	vm := SubMenu{
-		Title:    trail(configTitle),
-		Sections: []Section{v.fileSection()},
-		Menu:     component.Menu{Exit: returnItem()},
-		Prompt:   menuPrompt,
-	}
+// sections are "File", a section for each group of keys, and "Not used" where the
+// file sets a key nothing reads, each a warning row.
+func (v Config) sections() []Section {
+	out := []Section{v.fileSection()}
 	for _, g := range configGroups {
 		var rows []component.KeyValue
 		for _, k := range g.keys {
@@ -147,12 +141,33 @@ func (v Config) SubMenu() SubMenu {
 			}
 			rows = append(rows, row)
 		}
-		vm.Sections = append(vm.Sections, configSection(g.title, rows))
+		out = append(out, configSection(g.title, rows))
 	}
 	var unused []component.KeyValue
 	for _, u := range v.Unused {
 		unused = append(unused, component.KeyValue{Key: u.Key, Value: u.Value, State: component.ValueWarn})
 	}
-	vm.Sections = append(vm.Sections, configSection(configUnused, unused))
-	return vm
+	return append(out, configSection(configUnused, unused))
+}
+
+// SubMenu returns the screen: the title bar; the sections; Return alone; "Option".
+// It has no item: the screen only reads.
+func (v Config) SubMenu() SubMenu {
+	return SubMenu{
+		Title:    trail(configTitle),
+		Sections: v.sections(),
+		Menu:     component.Menu{Exit: returnItem()},
+		Prompt:   menuPrompt,
+	}
+}
+
+// Report renders the title bar and the sections for c, with no menu and no prompt:
+// hardn config. Each value is cut at its row on a terminal, and whole under
+// component.OffTerminal, as SystemDetails.Report's.
+func (v Config) Report(c component.Ctx) string {
+	blocks := []string{titleBar(trail(configTitle), TitleTrail).Render(c)}
+	for _, s := range v.sections() {
+		blocks = append(blocks, s.Render(c))
+	}
+	return join(blocks...)
 }

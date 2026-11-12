@@ -6,14 +6,16 @@ package main
 // pkg/screens/logs), which pkg/screens/mainmenu reaches through the hooks set here,
 // so that pkg/screens/mainmenu builds no reader; main menu 8 runs the Configuration
 // screen (pkg/screens/config; docs/engine/screen-config.md), which reads no host; hardn
-// system-details and -p print through the same packages. All of this only reads, under
+// system-details, hardn config and -p print through the same packages. All of this only reads, under
 // plan only as live, on a host with no run log; neither opens hardn's log nor writes
 // /etc/hardn/hardn.yml.example (main.go's openStartLog and liveWrites).
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -129,6 +131,44 @@ func runSystemDetails(form SystemDetailsForm, refused error) {
 	} else {
 		err = systemdetails.Print(ctx, systemdetails.PrintOptions{Out: engineStdout, Env: stdoutEnv(), System: sys, Facts: facts})
 	}
+	if err != nil {
+		fmt.Fprintf(stderr, "hardn: %v\n", err)
+		exit(1)
+	}
+}
+
+// runConfig is hardn config: what main menu 8 shows, on stdout, with no menu and no
+// prompt. No root check, as system-details; refused's words on stderr, exit status 2,
+// nothing read. It writes nothing: no log, no example, and no offer to create
+// hardn.yml (loadExisting). A file -f or HARDN_CONFIG names that is not there is the
+// screen's "not found", exit status 0; one that does not load is said on stderr, exit
+// status 1, as is a failed write. The load's warnings are not said, as system-details
+// says none: "Not used" lists the keys.
+func runConfig(refused error) {
+	if refuse(refused) {
+		return
+	}
+	found := findConfig(configFile)
+	// A file -f or HARDN_CONFIG names that can't be looked at (a directory
+	// this user can't enter) is not a file that isn't there: say why, as
+	// for one that can't be read.
+	if !found.Exists && found.By != config.FoundNone {
+		if _, err := os.Stat(found.Path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			sayError("Failed to load configuration: %v", err)
+			exit(1)
+			return
+		}
+	}
+	c := config.DefaultConfig()
+	if found.Exists || found.By == config.FoundNone {
+		var err error
+		if c, err = loadExisting(configFile); err != nil {
+			sayError("Failed to load configuration: %v", err)
+			exit(1)
+			return
+		}
+	}
+	err := configscreen.Print(configscreen.PrintOptions{Out: engineStdout, Env: stdoutEnv(), Config: c, Found: loadedFound(c, found)})
 	if err != nil {
 		fmt.Fprintf(stderr, "hardn: %v\n", err)
 		exit(1)

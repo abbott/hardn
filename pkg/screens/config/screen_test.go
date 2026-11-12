@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"io/fs"
 	"reflect"
 	"slices"
@@ -374,5 +375,29 @@ func TestEveryConfigKeyHasARow(t *testing.T) {
 	}
 	if len(keys) < 10 {
 		t.Errorf("read %d keys of config.Config: %v", len(keys), keys)
+	}
+}
+
+// TestPrint: the report is View's, with no menu and no prompt; off a terminal plain,
+// whatever the environment says of colour; nothing written without Out or a Config.
+func TestPrint(t *testing.T) {
+	cfg, found := config.DefaultConfig(), config.Found{Path: "/root/typo.yml", By: config.FoundFlag}
+	var out bytes.Buffer
+	env := term.Resolve(term.Options{Color: term.ColorAlways}, term.Facts{Width: 80, Height: 24})
+	if err := configscreen.Print(configscreen.PrintOptions{Out: &out, Env: env, Config: cfg, Found: found}); err != nil {
+		t.Fatal(err)
+	}
+	c := component.OffTerminal()
+	var want bytes.Buffer
+	_, _ = io.WriteString(c.Env.Writer(&want), configscreen.View(cfg, found).Report(c)+"\n")
+	if got := out.String(); got != want.String() || strings.Contains(got, "\x1b") || strings.Contains(got, "Return") ||
+		!strings.Contains(got, "/root/typo.yml") || !strings.Contains(got, "not found") {
+		t.Errorf("the report:\n%s\nwant:\n%s", got, want.String())
+	}
+	out.Reset()
+	for _, o := range []configscreen.PrintOptions{{Config: cfg}, {Out: &out}} {
+		if err := configscreen.Print(o); !errors.Is(err, fs.ErrInvalid) || out.Len() != 0 {
+			t.Errorf("configscreen.Print(%+v) = %v, wrote %q", o, err, out.String())
+		}
 	}
 }

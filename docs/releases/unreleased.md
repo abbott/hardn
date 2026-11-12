@@ -5,6 +5,7 @@
 ## New
 
 - **Configuration (main menu 8) shows which hardn.yml hardn read** and each key's value, marking defaults and keys hardn doesn't use. It changes nothing.
+- **`hardn config` prints the same**, without the menu. It doesn't need root; run it as `sudo hardn config` to see the file `sudo hardn` reads.
 
 ## Changed
 

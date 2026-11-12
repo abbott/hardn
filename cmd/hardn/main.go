@@ -111,6 +111,7 @@ func init() {
 	// plan §3.11: --version's build info restored).
 
 	rootCmd.AddCommand(systemDetailsCmd(runSystemDetails))
+	rootCmd.AddCommand(configCmd(runConfig))
 
 	// cobra's help on stdout, and its errors and the usage after them on
 	// stderr, inside the output frame on a terminal (frame.go). cobra prints

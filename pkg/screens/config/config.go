@@ -13,6 +13,7 @@ package configscreen
 import (
 	"context"
 	"fmt"
+	"io"
 	"io/fs"
 	"strconv"
 	"strings"
@@ -20,8 +21,10 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host/revert"
+	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/term"
 )
 
 // The values' words (gallery-config.md §4).
@@ -57,6 +60,35 @@ func Run(_ context.Context, o Options) error {
 	sub := View(o.Config, o.Found).SubMenu()
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	return o.Prompter.Run(func() nav.Screen { return sub.Screen(o.Prompter.Ctx, menu) })
+}
+
+// PrintOptions is what Print writes with: hardn config's.
+type PrintOptions struct {
+	// Out takes the report; Env is its render environment.
+	Out io.Writer
+	Env term.Env
+	// Config and Found are Options'.
+	Config *config.Config
+	Found  config.Found
+}
+
+// Print writes what the screen shows, View of Config and Found, with no menu and no
+// prompt, and nothing else. To a terminal it is as the screen draws it; off one,
+// plain, each value whole, as systemdetails.Print's. It returns an error wrapping
+// fs.ErrInvalid, writing nothing, without Out or a Config, and a failed write.
+func Print(o PrintOptions) error {
+	if o.Out == nil || o.Config == nil {
+		return fmt.Errorf("configuration report: %w: it needs Out and a Config", fs.ErrInvalid)
+	}
+	c, env := component.NewCtx(o.Env), o.Env
+	if !o.Env.TTY {
+		c = component.OffTerminal()
+		env = c.Env
+	}
+	if _, err := io.WriteString(env.Writer(o.Out), View(o.Config, o.Found).Report(c)+"\n"); err != nil {
+		return fmt.Errorf("configuration report: write: %w", err)
+	}
+	return nil
 }
 
 // View is the screen's view of cfg, a hardn.yml as loaded, and found, how the file

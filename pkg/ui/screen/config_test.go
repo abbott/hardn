@@ -93,3 +93,29 @@ func TestConfigRows(t *testing.T) {
 		t.Errorf("Not used: %+v", last)
 	}
 }
+
+// TestConfigReport: the report is the screen less its menu and prompt: the title
+// bar and the same sections, drawn the same, "Not used" left out with no key for
+// it; off a terminal a long value stays whole.
+func TestConfigReport(t *testing.T) {
+	v := Config{Path: "/etc/hardn/hardn.yml", By: ConfigBySearch, Values: configValues(), Unused: []ConfigUnused{{Key: "enableLynis", Value: "true"}}}
+	for _, unicode := range []bool{true, false} {
+		c := plainAt(24, unicode)
+		report, drawing := v.Report(c), v.SubMenu().Render(c)
+		if !strings.HasPrefix(drawing, report+"\n") {
+			t.Errorf("unicode %t: the screen does not open with the report:\n%s\n--\n%s", unicode, report, drawing)
+		}
+		if strings.Contains(report, "Return") || strings.Contains(report, "Option") || !strings.Contains(report, "Not used") {
+			t.Errorf("unicode %t: a menu, a prompt or no Not used:\n%s", unicode, report)
+		}
+	}
+	v.Unused = nil
+	long := "/" + strings.Repeat("a", 90)
+	v.Values["backupPath"] = ConfigValue{Text: long, Set: true}
+	if s := v.Report(plainAt(24, false)); strings.Contains(s, "Not used") || strings.Contains(s, long) {
+		t.Errorf("on a terminal:\n%s", s)
+	}
+	if s := v.Report(component.OffTerminal()); !strings.Contains(s, long) {
+		t.Errorf("off a terminal:\n%s", s)
+	}
+}
