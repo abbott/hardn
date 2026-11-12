@@ -21,7 +21,7 @@ Features hardn doesn't have yet. None has a release or a date.
 
 ## Firewall
 
-- **Granular ufw rules.** The Firewall screen opens other ports only through Application Profiles, or a whole interface through Trusted Interfaces, and Enable's review keeps a port open with a rule for everyone (`ufw allow 8000/tcp`). A Rules item would add and remove rules limited by source, port and protocol, such as `ufw allow proto tcp from <caddy-address> to any port 8000` for an app only a reverse proxy should reach. Each would be shown first and asked, like any change, and Enable's review could offer one for each port it lists. hardn already reads such rules (`Restricted`) and leaves them be. This revisits the decision that other ports open from Application Profiles ([gallery-firewall.md](docs/engine/gallery-firewall.md) §5). On Rocky, Alma and RHEL it would take firewalld's rich rules, which hardn doesn't read yet.
+- **Granular ufw rules.** The Firewall screen opens other ports only through Application Profiles, or a whole interface through Trusted Interfaces, and Enable's review keeps a port open with a rule for everyone (`ufw allow 8000/tcp`). A Rules item would add and remove rules limited by source, port and protocol, such as `ufw allow proto tcp from <caddy-address> to any port 8000` for an app only a reverse proxy should reach. Each would be shown first and asked, like any change, and Enable's review could offer one for each port it lists. hardn already reads such rules (`Restricted`) and leaves them be. This revisits the decision that other ports open from Application Profiles ([gallery-firewall.md](engine/gallery-firewall.md) §5). On Rocky, Alma and RHEL it would take firewalld's rich rules, which hardn doesn't read yet.
 
 ## Backup
 
