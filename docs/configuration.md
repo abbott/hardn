@@ -69,8 +69,7 @@ doas env HARDN_CONFIG="$HARDN_CONFIG" hardn
 
 Or put the file at `/etc/hardn/hardn.yml`, where hardn looks first.
 
-- **hardn no longer keeps the variable for you.** The Environment screen, `-e` and `setup-sudo-env` are removed.
-- **A line an earlier hardn wrote still works.** `/etc/sudoers.d/hardn-env-<user>` keeps `HARDN_CONFIG` under sudo until you delete it: `sudo rm /etc/sudoers.d/hardn-env-<user>`. Under doas, hardn's rule in `/etc/doas.d/zz-hardn-<user>.conf` keeps its `setenv { HARDN_CONFIG }` while User Management changes the rule, and loses it when Remove admin rights removes the rule.
+- **A line an earlier hardn (before the next release) wrote still works.** `/etc/sudoers.d/hardn-env-<user>` keeps `HARDN_CONFIG` under sudo until you delete it: `sudo rm /etc/sudoers.d/hardn-env-<user>`. Under doas, hardn's rule in `/etc/doas.d/zz-hardn-<user>.conf` keeps its `setenv { HARDN_CONFIG }` while User Management changes the rule, and loses it when Remove admin rights removes the rule.
 
 #### **Persistent Across Sessions**
 To make configuration persist across reboots and new shell sessions, add it to your shell's startup file by issuing the following command for your respective shell:

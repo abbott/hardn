@@ -228,7 +228,9 @@ main() {
 		printf 'Created /etc/hardn.\n'
 	fi
 	printf '\nhardn writes /etc/hardn/hardn.yml.example the first time it runs.\n'
-	printf 'Run hardn --help.\n\n'
+	# shellcheck disable=SC2016 # the backticks are printed, not run
+	printf '\nRun `hardn --help`.\n'
+	printf '\nhardn comes with no warranty: GNU AGPL v3, sections 15 and 16.\n\n'
 }
 
 main "$@"

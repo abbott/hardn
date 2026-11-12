@@ -393,6 +393,17 @@ func planOn(t *testing.T, v *vm, c engine.Control) (*engine.Engine, *engine.Plan
 	return e, p
 }
 
+// bothUnits is v with ssh.socket enabled too, inactive, while ssh.service
+// runs, as detect.DetectSSH reads a Debian 12 host seen 2026-11-11: how
+// sshd is started is not established (detect.ErrConflict).
+func bothUnits(v *vm) *vm {
+	v.facts.SSH = detect.SSH{Generator: detect.No,
+		Socket:  detect.UnitState{Enabled: "enabled", Active: "inactive"},
+		Service: detect.UnitState{Enabled: "enabled", Active: "active"},
+		Err:     fmt.Errorf("detect: ssh: ssh.socket and ssh.service are both enabled: %w", detect.ErrConflict)}
+	return v
+}
+
 // refusalOf is the plan's one refusal, a *steps.Refusal.
 func refusalOf(t *testing.T, p *engine.Plan) *steps.Refusal {
 	t.Helper()
@@ -454,6 +465,7 @@ func d9(t *testing.T) *vm {
 // counterpart of the gallery's TestSSHRefusals and TestSSHGuards.
 func TestRefusals(t *testing.T) {
 	const noAdminWhy = "No admin could log in over SSH afterwards: "
+	const bothUnitsWords = "ssh.socket and ssh.service are both set to start sshd, so hardn can't tell which will after a restart. Run systemctl disable ssh.socket (ssh.service is the one running), then try again."
 	for _, tt := range []struct {
 		name  string
 		host  func(*testing.T) *vm
@@ -612,6 +624,15 @@ func TestRefusals(t *testing.T) {
 			return v
 		}, port2230, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
 			"ufw lets port 22 in from anywhere on eth0 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
+		{"ssh.socket and ssh.service both enabled", func(t *testing.T) *vm {
+			return bothUnits(debianVM(t))
+		}, port2230, "RELOAD_MODE_UNKNOWN", reload.ErrModeUnknown, bothUnitsWords, false},
+		{"both enabled, with v0.3.2's files: said before \"move them first\"", func(t *testing.T) *vm {
+			return bothUnits(d9(t))
+		}, port2230, "RELOAD_MODE_UNKNOWN", reload.ErrModeUnknown, bothUnitsWords, false},
+		{"both enabled: moving the old files", func(t *testing.T) *vm {
+			return bothUnits(d9(t))
+		}, sshchange.Migrate{}, "RELOAD_MODE_UNKNOWN", reload.ErrModeUnknown, bothUnitsWords, false},
 		{"the port with v0.3.2's files", d9, port2230, "SSH_MIGRATE_FIRST", steps.ErrMigrateFirst,
 			"hardn's old SSH files are still here (manage.conf, listen.conf). Move them into 00-hardn.conf first: item 4.", false},
 		{"listen.conf never in effect (P-39)", d9, sshchange.Migrate{}, steps.CodeListenConfNotInEffect, steps.ErrListenConfNotInEffect,

@@ -70,9 +70,9 @@ func TestVersionFlag(t *testing.T) {
 		want                  string
 	}{
 		{"a release build", "0.4.0", "2026-11-04T12:00:00Z", "0123456789abcdef0123456789abcdef01234567",
-			"hardn - Linux hardening tool\nVersion:    0.4.0\nBuild Date: 2026-11-04T12:00:00Z\nGit Commit: 0123456789abcdef0123456789abcdef01234567\n"},
+			"hardn - Linux hardening tool\nVersion:    0.4.0\nBuild Date: 2026-11-04T12:00:00Z\nGit Commit: 0123456789abcdef0123456789abcdef01234567\nLicense:    GNU AGPL v3, no warranty\n"},
 		{"go build, no ldflags", "", "", "",
-			"hardn - Linux hardening tool\nVersion:    unknown\nBuild Date: unknown\nGit Commit: unknown\n"},
+			"hardn - Linux hardening tool\nVersion:    unknown\nBuild Date: unknown\nGit Commit: unknown\nLicense:    GNU AGPL v3, no warranty\n"},
 	} {
 		for _, flag := range []string{"--version", "-v"} {
 			t.Run(tc.name+" "+flag, func(t *testing.T) {

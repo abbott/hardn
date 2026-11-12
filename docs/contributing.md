@@ -73,12 +73,23 @@ Use synthetic values only, in tests, goldens and docs: user names such as `georg
 - Commit messages start with the package or area changed, or a type: `cmd/hardn: ...`, `pkg/config: ...`, `docs: ...`, `fix(cmd): ...`.
 - A change users will notice gets a line in `docs/releases/unreleased.md`.
 
+## Contributor agreement
+
+hardn is licensed under the GNU AGPL v3, and its copyright holder may also offer it under other terms. So before your first pull request is merged, you sign hardn's contributor agreement, once:
+
+- **You keep the copyright** in what you contribute.
+- **You grant** the copyright holder the right to license your contribution under the AGPL v3 and under other terms.
+- **You confirm** the contribution is yours to give.
+
+<!-- TODO before recruiting contributors: the agreement's text, reviewed by a lawyer, and how it is signed. -->
+The agreement's text is not published yet. Until it is, a pull request can be opened and reviewed, but not merged.
+
 ## Releases
 
 hardn uses semantic versioning. A release is cut from a tag `v<major>.<minor>.<patch>`; a tag with a suffix (`v1.2.3-rc1`) is not released.
 
 1. **Release notes.** `docs/releases/unreleased.md` becomes `docs/releases/v<x.y.z>.md`. The release's body is that file at the tagged commit; the release fails before building anything when it is missing or empty.
-2. **The version.** Set `VERSION` (and `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`) in the makefile, and commit.
+2. **The version.** Set `VERSION` (and `VERSION_MAJOR`, `VERSION_MINOR`, `VERSION_PATCH`) in the makefile, point the `verify.sh` commands in [verify.md](verify.md) and the README's release-notes link at the new tag, and commit.
 3. **The tag.** `make tag` makes the annotated tag `v$(VERSION)` locally and prints the command that pushes it, `git push origin refs/tags/v<x.y.z>`. `make release` runs `go test`, builds the three binaries with archives and `.sha256` files under `build/` for a local look, then makes the tag the same way. **Neither pushes anything.**
 4. **Pushing the tag** is the maintainer's step, and it starts `.github/workflows/release.yml`:
    - checks the tag's form and the release notes;
@@ -86,7 +97,7 @@ hardn uses semantic versioning. A release is cut from a tag `v<major>.<minor>.<p
    - builds the three binaries in `.github/workflows/build.yml`, and attests each one's build provenance (SLSA Build Level 3, a GitHub artifact attestation), keeping the attestation's bundle;
    - writes an SPDX SBOM and `SHA256SUMS`;
    - creates the release as a draft, with the notes as its body, and uploads every file;
-   - downloads them back from the draft, checks them against `SHA256SUMS`, and verifies each binary's attestation, from GitHub's API and then from its bundle as the README's offline check does;
+   - downloads them back from the draft, checks them against `SHA256SUMS`, and verifies each binary's attestation, from GitHub's API and then from its bundle as [verify.md](verify.md)'s offline check does;
    - only then publishes it, as the latest release unless a newer version is already out.
 
    A failure anywhere leaves at most a draft. A draft left by a failed run is deleted by hand before the run is retried.

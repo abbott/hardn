@@ -4,21 +4,21 @@
 
 | Version | Supported |
 |---|---|
-| 0.7.x | yes |
-| 0.6.x and older | no |
+| 0.8.x | yes |
+| 0.7.x and older | no |
 
-Only the latest minor version gets security fixes, in a new patch release. When 0.8.0 is out, 0.7.x is no longer supported. Update to the latest release.
+Only the latest minor version gets security fixes, in a new patch release. When 0.9.0 is out, 0.8.x is no longer supported. Update to the latest release.
 
 ## Reporting a vulnerability
 
 **Don't open a public issue.** Report it privately, either way:
 
 - **GitHub:** the repository's [Security tab](https://github.com/abbott/hardn/security), "Report a vulnerability".
-- **Email:** `641138+abbott@users.noreply.github.com`.
+- **Email:** `security@hardn.sh`.
 
 Include what the problem is, the steps that show it, the hardn version (`hardn --version`) and the OS, what an attacker could do with it, and a fix if you have one.
 
-hardn has one maintainer, so there is no bug bounty. What to expect:
+There is no bug bounty. What to expect:
 
 1. An acknowledgment within 48 hours.
 2. The report is checked and its severity assessed.
@@ -56,6 +56,6 @@ gh attestation verify hardn-linux-amd64 --repo abbott/hardn \
   --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners
 ```
 
-**Offline**, with the binary's bundle and its repository ID, as the README's [Verify a Release](../README.md#verify-a-release) says.
+**Offline**, with the binary's bundle and its repository ID, as [docs/verify.md](../docs/verify.md#verify-a-release) says.
 
 Releases v0.3.x and older had no `SHA256SUMS` and no GitHub artifact attestation; `verify.sh` does not check them.

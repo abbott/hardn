@@ -91,7 +91,8 @@ func (s *Service) CheckForUpdates(options *UpdateOptions) CheckResult {
 // build date and the commit, from the ldflags (main.Version,
 // main.BuildDate, main.GitCommit), as v0.3.2 printed them, each "unknown"
 // when the build did not set it (refactor plan §3.11, approved
-// 2026-11-04: the build info restored).
+// 2026-11-04: the build info restored), then the license and that it
+// carries no warranty (the LICENSE's sections 15 and 16).
 func (s *Service) PrintVersionInfo(w io.Writer) error {
 	known := func(v string) string {
 		if v == "" {
@@ -99,7 +100,7 @@ func (s *Service) PrintVersionInfo(w io.Writer) error {
 		}
 		return v
 	}
-	_, err := fmt.Fprintf(w, "hardn - Linux hardening tool\nVersion:    %s\nBuild Date: %s\nGit Commit: %s\n",
+	_, err := fmt.Fprintf(w, "hardn - Linux hardening tool\nVersion:    %s\nBuild Date: %s\nGit Commit: %s\nLicense:    GNU AGPL v3, no warranty\n",
 		known(s.CurrentVersion), known(s.BuildDate), known(s.GitCommit))
 	return err
 }
