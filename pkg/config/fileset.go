@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"fmt"
 	"path/filepath"
 	"slices"
@@ -28,9 +29,10 @@ func (c *Config) FileSets(key string) bool {
 	return !slices.ContainsFunc(c.loaded.deprecations, func(d Deprecation) bool { return d.Key == disableRootKey && d.Shadowed })
 }
 
-// FileWord is the value the file gives the top-level key where it is one
-// string, bool or whole number, as yaml.v3 reads it; "" for any other value,
-// a key not set (FileSets) and an empty string.
+// FileWord is the value the file gives the top-level key: one string, bool
+// or whole number as yaml.v3 reads it; a list or a mapping on one line, in
+// YAML's flow form (["bob"], {"logfilepath":"/srv/log"}); "" for any other
+// value, a key not set (FileSets) and an empty string.
 func (c *Config) FileWord(key string) string { return c.loaded.set[key] }
 
 // FileUsername is username as the file gave it, as the loader read it (a
@@ -94,6 +96,12 @@ func mergeSet(m *yaml.Node, set map[string]string, seen map[string]bool, in map[
 		switch val.(type) {
 		case string, bool, int:
 			set[k.Value] = fmt.Sprint(val)
+		case []any, map[string]any:
+			// A list or a mapping on one line, as YAML's flow form, which
+			// JSON is: a reader that shows the key shows what it holds.
+			if b, err := json.Marshal(val); err == nil {
+				set[k.Value] = string(b)
+			}
 		}
 	}
 	switch {

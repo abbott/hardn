@@ -53,7 +53,7 @@ Decided with §3: "Configuration"; "File"; "Path"; "From": "-f", "HARDN_CONFIG",
 - "hardn is using its defaults." is a muted line in "File", as the Logs screen's "No log yet", not a callout: the sub-menu layout has no notice block.
 - A default is told by "(default)" alone. The theme draws every plain value muted already, so there is no dimmer style without a new value state.
 - `permitRootLogin` is listed under "Not used" only where it is not the default, as hardn's start-up warning has it (`cmd/hardn/output.go`, `notUsed`). There is no "deprecated form" row: `Config.Deprecations()` does not report the bool (`pkg/config/rootlogin.go`). So the `unused` mock writes `permitRootLogin: "yes"`.
-- A "Not used" row shows the key's value where it is one word or number.
+- A "Not used" row shows the key's value where it is one word or number. *Since `next/config-command`: a list or a mapping too, on one line (`["bob"]`), so every row carries its warning mark; without a value the row drew a plain bullet (seen on `deb13-vm`, 2026-11-12, for `logsconfig`).*
 - An empty list says "None"; `ufwAppProfiles` shows the names alone; `sshKeys` a count, never a key.
 - The screen is full at every height: 45 lines for `etc`, taller than 24 rows.
 - The values are worded in the mapping, the sections and row order in `pkg/ui/screen`.

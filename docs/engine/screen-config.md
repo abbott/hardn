@@ -11,7 +11,7 @@ Main menu `8) Configuration`, "View hardn.yml", shows which hardn.yml hardn read
 
 - `configscreen.Run(ctx, Options{Prompter, Config, Found})` (`pkg/screens/config`, package `configscreen`): draws the screen until `0` (nil) or `q` (`nav.ErrQuit`). No `host.System`: it reads no host.
 - `configscreen.View(cfg, found) screen.Config`: the one mapping from a loaded `*config.Config` and the load's `config.Found` to the view. The gallery draws its mocks through it.
-- `pkg/config`: `(*Config).FileSets(key)` (the file gives the key a value, through a top-level `<<` merge too), `FileWord(key)` (that value where it is one word or number), `FileUsername()` and `FileDryRun()`, recorded as the file is decoded; `FileSets` and `FileWord` again after `Save`. `OnSearchPath(path)`.
+- `pkg/config`: `(*Config).FileSets(key)` (the file gives the key a value, through a top-level `<<` merge too), `FileWord(key)` (that value: a list or a mapping on one line, in YAML's flow form; otherwise where it is one word or number), `FileUsername()` and `FileDryRun()`, recorded as the file is decoded; `FileSets` and `FileWord` again after `Save`. `OnSearchPath(path)`.
 - `mainmenu.Options.Configuration`, set by `cmd/hardn`'s `withReaderScreens` (`runConfigScreen`) with the `config.Found` of the load (`loadedFound`); hardn.yml is not looked for again.
 - `component.KeyValue.KeepNote`: opt-in, see §3.
 

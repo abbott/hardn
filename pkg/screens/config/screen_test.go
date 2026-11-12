@@ -195,7 +195,7 @@ func TestNotUsed(t *testing.T) {
 		t.Fatalf("no Not used section:\n%s", p.out)
 	}
 	rows, _, _ := strings.Cut(strings.TrimLeft(section, "-\n"), "\n\n")
-	want := "  [ ] logFile              /srv/log/hardn.log\n  [ ] permitRootLogin      yes\n   -  sshAllowedUsers\n" +
+	want := "  [ ] logFile              /srv/log/hardn.log\n  [ ] permitRootLogin      yes\n  [ ] sshAllowedUsers      [\"bob\"]\n" +
 		"  [ ] sshListenAddress     192.0.2.10\n  [ ] enableLynis          true\n  [ ] sudoNoPassword       false"
 	if rows != want {
 		t.Errorf("Not used:\n%s\nwant:\n%s", rows, want)

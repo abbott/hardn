@@ -43,13 +43,13 @@ func TestFileSets(t *testing.T) {
 }
 
 // TestFileWord: a key's value as a word where it is one string, bool or
-// whole number, as yaml.v3 reads it; nothing for a list, a mapping, a null
-// and a key the file leaves out.
+// whole number, as yaml.v3 reads it; a list and a mapping on one line, in
+// flow form; nothing for a null and a key the file leaves out.
 func TestFileWord(t *testing.T) {
 	c := load(t, "username: alice\nenableLynis: true\nsshPort: 0x16\nsshListenAddress: 192.0.2.10\n"+
 		"sshAllowedUsers: [bob]\nlogsconfig:\n  logfilepath: /srv/log\ntz:\n")
 	for k, want := range map[string]string{"username": "alice", "enableLynis": "true", "sshPort": "22", "sshListenAddress": "192.0.2.10",
-		"sshAllowedUsers": "", "logsconfig": "", "tz": "", "lang": ""} {
+		"sshAllowedUsers": `["bob"]`, "logsconfig": `{"logfilepath":"/srv/log"}`, "tz": "", "lang": ""} {
 		if got := c.FileWord(k); got != want {
 			t.Errorf("FileWord(%s) = %q, want %q", k, got, want)
 		}
