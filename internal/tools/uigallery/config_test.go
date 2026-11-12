@@ -1,16 +1,25 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"slices"
 	"strings"
 	"testing"
 
+	"github.com/charmbracelet/x/ansi"
+
+	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
+	"github.com/abbott/hardn/pkg/ui/term"
+	"github.com/abbott/hardn/pkg/ui/uitest"
 )
 
-// The Configuration screen's mocks (config.go; unit (a), next/config-gallery).
-// Nothing here reads this machine's hardn.yml or its environment.
+// The Configuration screen's mocks (config.go), listed and played on hardn's screen
+// (pkg/screens/config, whose own tests hold the mapping). Nothing here reads this
+// machine's hardn.yml or its environment.
 
 // TestConfigGolden pins each mock on the core set and under LANG=C.
 func TestConfigGolden(t *testing.T) { goldenListing(t, configListing) }
@@ -94,7 +103,7 @@ func TestConfigShowsNoKey(t *testing.T) {
 // an empty confirmTimeout; disableRoot, disableRootSSH's old name, sets it. A
 // control character in a value never reaches the screen.
 func TestConfigViewReadsAsTheLoader(t *testing.T) {
-	m := configMock{name: "probe", path: "/etc/hardn/hardn.yml", by: screen.ConfigBySearch,
+	m := configMock{name: "probe", path: "/etc/hardn/hardn.yml", by: config.FoundSearch,
 		yml: "username: \"a\\e[2Jb\"\nsshPort:\nnameservers: ~\nconfirmTimeout: \"\"\ndisableRoot: true\n"}
 	v, err := m.view(context.Background())
 	if err != nil {
@@ -110,5 +119,68 @@ func TestConfigViewReadsAsTheLoader(t *testing.T) {
 	}
 	if got := v.Values["disableRootSSH"].Text; got != "true" {
 		t.Errorf("disableRootSSH %q", got)
+	}
+}
+
+// TestPlayConfigGolden plays hardn's Configuration screen end to end and pins each
+// transcript: from the main menu's 8, on the typical file, leaving; the same under
+// plan only, which draws the same screen; the keys nothing reads; a named file that
+// is not there; and the mocks' menu.
+func TestPlayConfigGolden(t *testing.T) {
+	for _, tt := range []struct {
+		name  string
+		args  []string
+		lines []string
+	}{
+		{"config", nil, []string{"8", "0", "0"}},
+		{"config-plan-only", []string{"-sequence", "dry-run"}, []string{"8", "0", "0"}},
+		{"config-unused", []string{"config/unused"}, []string{"q"}},
+		{"config-missing", []string{"config/missing"}, []string{"1", "0"}},
+		{"config-mocks", []string{"config"}, []string{"4", "0", "0"}},
+	} {
+		uitest.Golden(t, "play/"+tt.name, uitest.Core(), func(env term.Env) string {
+			args := append(lookArgs(t, env), tt.args...)
+			code, out, errs, unread := playGallery(tt.lines, args...)
+			if code != exitOK || errs != "" || unread != 0 {
+				t.Errorf("%s, %v: exit %d, stderr %q, %d lines unread", tt.name, args, code, errs, unread)
+			}
+			return out
+		})
+	}
+}
+
+// TestPlayConfigIsTheListing: play draws each mock as the listing does, both by the
+// real screen's mapping: the listing's rows are in play's transcript.
+func TestPlayConfigIsTheListing(t *testing.T) {
+	for _, m := range configMocks() {
+		code, out, errs, unread := playGallery([]string{"0"}, "-profile", "plain", configPrefix+"/"+m.name)
+		if code != exitOK || errs != "" || unread != 0 {
+			t.Fatalf("%s: exit %d, stderr %q, %d lines unread", m.name, code, errs, unread)
+		}
+		v, err := m.view(context.Background())
+		if err != nil {
+			t.Fatal(err)
+		}
+		drawn := v.SubMenu().Render(component.NewCtx(plainOff()))
+		if rows, _, _ := strings.Cut(ansi.Strip(drawn), "\n   0) Return"); !strings.Contains(ansi.Strip(out), rows) {
+			t.Errorf("%s: play does not hold the listing's screen:\n%s\nplay:\n%s", m.name, rows, out)
+		}
+	}
+}
+
+// TestConfigUsage: play refuses what the Configuration screen does not take, with
+// status 2 and nothing on stdout.
+func TestConfigUsage(t *testing.T) {
+	for _, args := range [][]string{
+		{"play", "config/nope"},
+		{"play", "-fail", "1", "config/etc"},
+		{"play", "-sequence", "failure", "config/etc"},
+	} {
+		var out, errs bytes.Buffer
+		read := false
+		code := run(args, func() *prompt.Reader { read = true; return noInput() }, offTerminal, &out, &errs)
+		if code != exitUsage || out.Len() != 0 || errs.Len() == 0 || read {
+			t.Errorf("%v: exit %d, stdout %q, stderr %q, stdin read %t", args, code, out.String(), errs.String(), read)
+		}
 	}
 }

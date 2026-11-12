@@ -3,7 +3,7 @@ package screen
 import "github.com/abbott/hardn/pkg/ui/component"
 
 // The System Details screen (refactor plan slice 1, unit (c), next/s1-screen):
-// main menu 8 and hardn system-details, read only, as the maintainer adopted the
+// main menu 9 and hardn system-details, read only, as the maintainer adopted the
 // mock on 2026-10-30 (docs/engine/gallery-system-details.md §5, decisions 2 (a),
 // 3 (a), 4 (a), 5 (a), with §6's words). There is no Figma frame: it is inferred
 // from origin/main, with P-17's seven sections. pkg/ui cannot reach the host:

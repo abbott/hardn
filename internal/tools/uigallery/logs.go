@@ -44,7 +44,7 @@ const logsMainHost = logsPrefix + "/lines"
 // logsLinks lead from a menu mock's item to the Logs screen on a host, by
 // the mock's name and the item's key, beside links: the main menu's 10,
 // which said the gallery had no screen for it until unit (a).
-var logsLinks = map[string]string{mainMenuMock + "/9": logsMainHost}
+var logsLinks = map[string]string{mainMenuMock + "/10": logsMainHost}
 
 // hardnLog is the file hardn writes, whatever hardn.yml's logFile says
 // (cmd/hardn/main.go:57).

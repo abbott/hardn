@@ -67,11 +67,15 @@
 // its record (sub-menu/05-backup).
 //
 // SystemDetails and Logs are the System Details and Logs screens (slice 1,
-// next/s1-screen): the main menu's 8 and 9 (origin/main's 9 and 10) as the maintainer adopted
+// next/s1-screen): the main menu's 9 and 10 as the maintainer adopted
 // their mocks, read only, filled from what pkg/screens/systemdetails and
 // pkg/screens/logs read, which also run their items. SystemDetails.Report draws
 // hardn system-details, and Logs.Terminal hardn -p to a terminal
 // (docs/engine/gallery-system-details.md §5).
+//
+// Config is the Configuration screen (next/config-screen): the main menu's
+// 8, read only, filled from hardn.yml as loaded by pkg/screens/config
+// (docs/engine/screen-config.md).
 //
 // # Fixtures and mocks
 //

@@ -13,7 +13,7 @@
 //
 //	go run ./internal/tools/uigallery [flags] [component | component/state | all]...
 //	go run ./internal/tools/uigallery -screens [flags] [layout | layout/screen | ... | all]...
-//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | system-details | system-details/host | logs | logs/host | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | runall | runall/host]
+//	go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | system-details | system-details/host | logs | logs/host | config | config/mock | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | runall | runall/host]
 //	go run ./internal/tools/uigallery status [flags] [host | all]...
 //	go run ./internal/tools/uigallery glyphs [flags] [set | strip | all]...
 //	go run ./internal/tools/uigallery system-details [flags] [form | all]...
@@ -176,8 +176,11 @@
 // Their flags are -list, -theme, -profile, -ascii, -override, and -width and -height
 // sized as play's.
 //
-// "config" lists the mocks of the Configuration screen, a proposal that shows
-// hardn.yml read only (config.go, docs/engine/gallery-config.md), with the same flags.
+// "config" lists the mocks of the Configuration screen, which shows hardn.yml read
+// only (config.go, docs/engine/gallery-config.md), with the same flags. "play config"
+// is the menu of those mocks and "play config/<mock>" hardn's Configuration screen
+// itself on one (pkg/screens/config; docs/engine/screen-config.md); the main menu's 8
+// leads to it on the typical file.
 //
 // "play firewall" is the menu of the Firewall screen's hosts and "play
 // firewall/<host>" the real screen on one (pkg/screens/firewall, firewall.go),

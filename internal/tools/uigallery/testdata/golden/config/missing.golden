@@ -27,7 +27,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshPort␛[m              ␛[38;2;129;134;156m22␛[m ␛[38;2;129;134;156m(default)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdisableRootSSH␛[m       ␛[38;2;129;134;156mfalse␛[m ␛[38;2;129;134;156m(default)␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshConfigFile␛[m        ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/hardn.conf␛[m ␛[38;2;129;134;156m(d…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshConfigFile␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/hardn.conf␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
   ␛[1;38;2;129;134;156mFirewall␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -86,7 +87,8 @@ $
 $
    -  sshPort              22 (default)$
    -  disableRootSSH       false (default)$
-   -  sshConfigFile        /etc/ssh/sshd_config.d/hardn.conf...$
+   -  sshConfigFile$
+      /etc/ssh/sshd_config.d/hardn.conf (default)$
 $
   Firewall -----------------------------------------------------$
 $
@@ -221,7 +223,8 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshPort␛[m              ␛[38;2;129;134;156m22␛[m ␛[38;2;129;134;156m(default)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mdisableRootSSH␛[m       ␛[38;2;129;134;156mfalse␛[m ␛[38;2;129;134;156m(default)␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshConfigFile␛[m        ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/hardn.conf...␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msshConfigFile␛[m$
+      ␛[38;2;129;134;156m/etc/ssh/sshd_config.d/hardn.conf␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
   ␛[1;38;2;129;134;156mFirewall␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
 $

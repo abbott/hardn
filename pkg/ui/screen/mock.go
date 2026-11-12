@@ -137,7 +137,7 @@ func frameMocks() []Mock {
 				"The mode indicator says \"Mode Live\" where Figma's says \"Dry-run Mode Disabled\" (decisions 2 and 3, DEV-065). "+
 				"Dry-Run is left out, as hardn removed it (slice 2b, decision 1). "+
 				"The rows and items are in hardn's order, the maintainer's (2026-11-07), not the PNG's; Auto Updates (5) is not drawn yet. "+
-				"Environment (8) is left out, as hardn removed it (the maintainer, 2026-11-12).")},
+				"Item 8 is hardn's Configuration (next/config-screen) where Figma has Environment, which hardn removed (the maintainer, 2026-11-12).")},
 		{Name: "sub-menu/01-user", Screen: UserFixture(), Source: figma("01-USER",
 			"v0.3.2 has no User Management menu: its item 1, Sudo User, creates the configured user at once, "+
 				"asking only for a username when none is configured, with no confirmation (pkg/menu/menu.go:317-349). "+

@@ -36,15 +36,16 @@ func fixtureHeader() component.Header {
 // live mode. The rows and items are in hardn's order, the maintainer's
 // (2026-11-07), not the PNG's: the rows as risk.Rows has them, without
 // DNS; the items User Management, SSH Login, Firewall, DNS, Run All,
-// Backup, System Details, Logs. The items are hardn's
+// Backup, Configuration, System Details, Logs. The items are hardn's
 // (pkg/screens/mainmenu run.go, held equal by its TestMainMenuItems) but
 // item 5, Auto Updates, which the mock has not yet; they differ from the
 // PNG in item 2, "Root login, passwords, port" where Figma has "Toggle
 // root SSH access" (legacy-left.md §3, decision 7 (a); P-07 (a), P-12),
 // in Dry-Run, which hardn removed (refactor plan slice 2b, decision 1),
-// and in item 8, Environment ("Configure environment variable" in Figma
-// and origin/main), which hardn removed (the maintainer, 2026-11-12), so
-// that System Details is 8 and Logs 9. The Exit item says "q to quit" (DEV-030),
+// and in item 8, Configuration, "View hardn.yml" (next/config-screen),
+// where Figma and origin/main have Environment ("Configure environment
+// variable"), which hardn removed (the maintainer, 2026-11-12); System
+// Details is 9 and Logs 10, as theirs. The Exit item says "q to quit" (DEV-030),
 // and the prompt is "Option" where Figma's says "Enter your choice"
 // (P-29 (a)).
 func MainMenuFixture() MainMenu {
@@ -73,8 +74,9 @@ func MainMenuFixture() MainMenu {
 			{Key: "4", Label: "DNS", Description: "Configure nameservers"},
 			{Key: "6", Label: "Run All", Description: "Execute hardening operations"},
 			{Key: "7", Label: "Backup", Description: "Configure hardn backup"},
-			{Key: "8", Label: "System Details", Description: "View system information"},
-			{Key: "9", Label: "Logs", Description: "View log file"},
+			{Key: "8", Label: "Configuration", Description: "View hardn.yml"},
+			{Key: "9", Label: "System Details", Description: "View system information"},
+			{Key: "10", Label: "Logs", Description: "View log file"},
 		}, Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}},
 		Prompt: menuPrompt,
 	}

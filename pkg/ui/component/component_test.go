@@ -395,14 +395,14 @@ func TestLayout(t *testing.T) {
 		{"menu: an item with no label is not shown", Menu{Items: []MenuItem{{Key: "1", Description: "x"}, {Key: "2", Label: "DNS"}}}, 80, false,
 			"   2) DNS"},
 		{"menu: compact, two columns down then across, the exit item apart", compactMenu, from, false,
-			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) System Details\n" +
-				"   4) Firewall              9) Logs\n   5) Backup" +
+			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) Configuration\n" +
+				"   4) Firewall              9) System Details\n   5) Backup               10) Logs" +
 				strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
 		// 60 columns stacks a one-column menu while StackBelow is 64; two
 		// columns, and the exit item beside its label, do not stack.
 		{"menu: compact, the exit item stays beside its label wherever the columns fit", compactMenu, 60, false,
-			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) System Details\n" +
-				"   4) Firewall              9) Logs\n   5) Backup" +
+			"   1) User Management       6) Dry-Run\n   2) SSH Login             7) Run All\n   3) DNS                   8) Configuration\n" +
+				"   4) Firewall              9) System Details\n   5) Backup               10) Logs" +
 				strings.Repeat("\n", theme.SectionGap+1) + "   0) Exit                 q to quit"},
 		{"menu: compact, an odd item ends the first column", Menu{Items: []MenuItem{{Key: "1", Label: "DNS"}, {Key: "2", Label: "Logs"}, {Key: "3", Label: "Backup"}}, Compact: true}, 80, false,
 			"   1) DNS                   3) Backup\n   2) Logs"},
@@ -424,12 +424,12 @@ func TestLayout(t *testing.T) {
 		}, Compact: true}, 80, false,
 			"   1) DNS\n 100) Logs"},
 		{"prompt: glyph, label, generated hint and colon", figmaPrompt, 80, true,
-			"    ❯ Enter your choice [0-9 or q]:"},
+			"    ❯ Enter your choice [0-10 or q]:"},
 		{"prompt: with no hint the colon follows the label", PromptLine{Label: "Username"}, 80, false, "    > Username:"},
-		{"prompt: too narrow, the label is cut, not the hint", figmaPrompt, 31, false,
-			"    > Enter your... [0-9 or q]:"},
-		{"prompt: with no letter of the label left, the hint alone", figmaPrompt, 21, false,
-			"    > [0-9 or q]:"},
+		{"prompt: too narrow, the label is cut, not the hint", figmaPrompt, 32, false,
+			"    > Enter your... [0-10 or q]:"},
+		{"prompt: with no letter of the label left, the hint alone", figmaPrompt, 22, false,
+			"    > [0-10 or q]:"},
 		{"prompt: empty is the glyph", PromptLine{}, 80, false, "    >"},
 		// 用户名称 is double-width: beside the ellipsis, its first letter
 		// needs 5 cells, which width 17 leaves 4 of.
@@ -474,6 +474,19 @@ func TestLayout(t *testing.T) {
 		{"keyvalue: a long key stacks the row", KeyValue{Key: "Unattended Upgrades Mail Reports", Value: "alice"}, 80, false,
 			"   -  Unattended Upgrades Mail Reports\n      alice"},
 		{"keyvalue: a long value is cut", KeyValue{Key: "Allowed Users", Value: strings.Repeat("x", 60)}, from, false,
+			"   -  Allowed Users        " + strings.Repeat("x", maxWidth(KeyValue{}, from)-theme.ValueCol-3) + "..."},
+		{"keyvalue: unasked, a long value's note is cut", KeyValue{Key: "File", Value: strings.Repeat("x", 33), Note: "(default)"}, 80, false,
+			"   -  File                 " + strings.Repeat("x", 33) + "..."},
+		{"keyvalue: KeepNote puts a value that has no room with its note under the key", KeyValue{Key: "File", Value: strings.Repeat("x", 33), Note: "(default)", KeepNote: true}, 80, false,
+			"   -  File\n      " + strings.Repeat("x", 33) + " (default)"},
+		{"keyvalue: KeepNote, with room, changes nothing", KeyValue{Key: "File", Value: "/var/backups/hardn", Note: "(default)", KeepNote: true}, 80, false,
+			"   -  File                 /var/backups/hardn (default)"},
+		{"keyvalue: KeepNote cuts a value too wide under the key, the note whole", KeyValue{Key: "File", Value: strings.Repeat("x", 70), Note: "(default)", KeepNote: true}, 80, false,
+			"   -  File\n      " + strings.Repeat("x", 45) + "... (default)"},
+		{"keyvalue: KeepNote stacks its row alone in a list", BulletList{Items: []KeyValue{
+			{Key: "Port", Value: "22"}, {Key: "File", Value: strings.Repeat("x", 33), Note: "(default)", KeepNote: true}}}, 80, false,
+			"   -  Port                 22\n   -  File\n      " + strings.Repeat("x", 33) + " (default)"},
+		{"keyvalue: KeepNote without a note is the row as ever", KeyValue{Key: "Allowed Users", Value: strings.Repeat("x", 60), KeepNote: true}, from, false,
 			"   -  Allowed Users        " + strings.Repeat("x", maxWidth(KeyValue{}, from)-theme.ValueCol-3) + "..."},
 		{"keyvalue: an extra that fits follows the value", KeyValue{Key: "/", Value: "/dev/sda1", Extra: "ext4"}, from, false,
 			"   -  /                    /dev/sda1 ext4"},
@@ -950,7 +963,7 @@ func TestMenuStyles(t *testing.T) {
 			{"(key-only)", m.Disabled}, {g.NotApplicable + " " + Unavailable, m.Disabled},
 		}},
 		{"risk", Menu{Items: []MenuItem{{Key: "1", Label: "Run All", Risk: true}}}, []part{{g.Warn + " " + LockoutRisk, m.Risk}}},
-		{"prompt", figmaPrompt, []part{{g.Prompt, p.Glyph}, {"Enter your choice", p.Label}, {"[0-9 or q]:", p.Hint}}},
+		{"prompt", figmaPrompt, []part{{g.Prompt, p.Glyph}, {"Enter your choice", p.Label}, {"[0-10 or q]:", p.Hint}}},
 		{"prompt with no hint", PromptLine{Label: "Username"}, []part{{"Username", p.Label}, {":", p.Label}}},
 	}
 	for _, tt := range tests {
@@ -972,9 +985,9 @@ func TestMenuBindings(t *testing.T) {
 		m    Menu
 		want string
 	}{
-		{"Figma's main menu", figmaMenu, "0-9 or q"},
+		{"Figma's main menu", figmaMenu, "0-10 or q"},
 		{"Figma's sub-menu", sshMenu, "0-2 or q"},
-		{"a disabled item is not accepted", withItem(figmaMenu, 2, MenuItem{Key: "3", Label: "DNS", Disabled: true}), "0-2, 4-9 or q"},
+		{"a disabled item is not accepted", withItem(figmaMenu, 2, MenuItem{Key: "3", Label: "DNS", Disabled: true}), "0-2, 4-10 or q"},
 		{"nor one with no key or no label", Menu{Items: []MenuItem{{Label: "DNS"}, {Key: "2"}, {Key: " 3 ", Label: "Logs"}}}, "3 or q"},
 		{"the exit item is, whatever its Disabled", Menu{Exit: MenuItem{Key: "0", Label: "Return", Disabled: true}}, "0 or q"},
 		{"an empty menu accepts nothing", Menu{}, "q"},

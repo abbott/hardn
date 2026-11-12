@@ -234,6 +234,7 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 			config.setPath(path)
 			if data, err := os.ReadFile(path); err == nil {
 				config.setLoaded(path, data) // what was created, for LoadedFrom
+				config.loaded.set = setOf(data)
 			}
 			return config, nil
 		}

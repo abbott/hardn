@@ -35,7 +35,7 @@ func TestConfigFile(t *testing.T) {
 		{"none", Config{},
 			[]component.KeyValue{{Key: "Path", Value: "None found"}, defaults}},
 		{"missing", Config{Path: "/home/george/hardn.yml", By: ConfigByEnv, Missing: true},
-			[]component.KeyValue{{Key: "Path", Value: "/home/george/hardn.yml", State: component.ValueBad, Note: "not found"}, {Key: "From", Value: "HARDN_CONFIG"}, defaults}},
+			[]component.KeyValue{{Key: "Path", Value: "/home/george/hardn.yml", State: component.ValueBad, Note: "not found", KeepNote: true}, {Key: "From", Value: "HARDN_CONFIG"}, defaults}},
 	} {
 		sub := tt.c.SubMenu()
 		if got := sub.Sections[0]; got.Header.Title != "File" || !slices.Equal(got.Rows.Items, tt.rows) {
@@ -70,11 +70,18 @@ func TestConfigRows(t *testing.T) {
 	if want := (component.KeyValue{Key: "username", Value: "george"}); users[0] != want {
 		t.Errorf("a key the file sets: %+v", users[0])
 	}
-	if want := (component.KeyValue{Key: "adminNoPassword", Value: "false", Note: "(default)"}); users[1] != want {
+	if want := (component.KeyValue{Key: "adminNoPassword", Value: "false", Note: "(default)", KeepNote: true}); users[1] != want {
 		t.Errorf("a default: %+v", users[1])
 	}
 	if !strings.Contains(out, "Not set (default)") || strings.Contains(out, "Not used") {
 		t.Errorf("an empty value, or Not used with no key:\n%s", out)
+	}
+	// A default too wide to sit beside its key keeps its note, under the key.
+	long := c
+	long.Values = configValues()
+	long.Values["sshConfigFile"] = ConfigValue{Text: "/etc/ssh/sshd_config.d/hardn.conf"}
+	if out := strings.Join(drawn(long.SubMenu().Render(plainAt(24, false))), "\n"); !strings.Contains(out, "   -  sshConfigFile\n      /etc/ssh/sshd_config.d/hardn.conf (default)\n") {
+		t.Errorf("a long default lost its note:\n%s", out)
 	}
 	c.Unused = []ConfigUnused{{Key: "enableLynis", Value: "true"}, {Key: "ufwAllowedPorts"}}
 	sections := c.SubMenu().Sections

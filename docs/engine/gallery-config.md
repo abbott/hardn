@@ -1,5 +1,7 @@
 # Configuration mock (unit (a))
 
+*Since `next/config-screen` (2026-11-12): the screen is built and is main menu 8 ([screen-config.md](screen-config.md)). The mocks draw through its mapping, `play config` runs it, and a long value keeps its "(default)" (decision 2's second cost is fixed). Where this page says nothing is wired, or names `configView`, this note is current.*
+
 Unit (a) of the roadmap's "View and manage hardn.yml", `next/config-gallery`. **Adopted (the maintainer, 2026-11-12): "Adopt all".** Every recommended answer of §3 is adopted, with the Made here calls as stated and §4's words. It is the read-only view alone: no editing, no engine.
 Status: built and tested on macOS in process (`go test ./pkg/ui/screen/ ./internal/tools/uigallery/`). No hardn binary ran. Nothing ran on Linux. Nothing is wired into hardn: the main menu, `cmd/hardn` and `pkg/screens` are untouched.
 

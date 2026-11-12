@@ -4,7 +4,7 @@
 > **Amended** (the maintainer, 2026-10-23, after the VM run of §10.1: *Adopt it: the DNS row is Not Applicable with "none configured" when hardn.yml lists no nameservers and "no hardn.yml" when there is none; build it on next/s2-menu-live before the merge.*): built on this branch. With no nameserver configured the DNS row is Not Applicable, "none configured" where `hardn.yml` lists none and "no hardn.yml" where there is none ([control-dns.md](control-dns.md) §5, decision 13); it was Not Configured, "none in hardn.yml". §3, §4, §7, §8, §9, §10, §11 item 4 and §13 say so; the rest stands.
 > **Status:** built and tested on macOS against `hostfake` and the gallery's model only. Nothing has run on Linux: every host claim is "written, not run (gate 5)", and the VM steps are §10, for the orchestrator. No new flag, environment variable, configuration key or module.
 
-*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); the main menu has nine items, System Details 8 and Logs 9. Where this page names them, or item numbers 9 and 10, this note is current.*
+*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); since `next/config-screen` Configuration is main menu 8 ([screen-config.md](screen-config.md)), and System Details and Logs are 9 and 10 again.*
 
 ## 1. What goes live
 

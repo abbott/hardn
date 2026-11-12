@@ -297,7 +297,7 @@ var rootCmd = &cobra.Command{
 			// The main menu; its screens' items and its status: hooks.go.
 			// It keeps its own rows: no output frame around it (frame.go).
 			outFrame.disarm()
-			startMenu(context.Background(), menuOptions(cfg, Version))
+			startMenu(context.Background(), menuOptions(cfg, loadedFound(cfg, found), Version))
 			return
 		}
 

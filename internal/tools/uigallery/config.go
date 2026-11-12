@@ -3,40 +3,46 @@ package main
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"strings"
 
-	"go.yaml.in/yaml/v3"
-
 	"github.com/abbott/hardn/pkg/config"
-	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hostfake"
-	"github.com/abbott/hardn/pkg/host/revert"
+	configscreen "github.com/abbott/hardn/pkg/screens/config"
 	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// The Configuration screen's mocks (docs/ROADMAP.md, "View and manage hardn.yml";
-// unit (a), next/config-gallery; docs/engine/gallery-config.md): a proposal, read
-// only. "uigallery config" lists them. Each mock is a hardn.yml, loaded by the real
-// loader (config.Read) from a fake host, and how hardn found it, which the mock
-// says itself: config.FindConfigFile reads this machine and is never called.
-// Nothing in hardn draws the screen yet.
+// The Configuration screen's mocks (docs/roadmap.md, "Configuration";
+// docs/engine/gallery-config.md, docs/engine/screen-config.md): read only.
+// "uigallery config" lists them and "play config" runs hardn's screen
+// (pkg/screens/config) on them. Each mock is a hardn.yml, loaded by the real loader
+// (config.Read) from a fake host, and how hardn found it, which the mock says
+// itself: config.FindConfigFile reads this machine and is never called.
 
-// configPrefix names the listing and its goldens.
+// configPrefix names the listing, its goldens and play's screens.
 const configPrefix = "config"
+
+// configMainMock is the mock the main menu's item leads to: the typical file.
+const configMainMock = configPrefix + "/etc"
+
+// configLinks lead from a menu mock's item to the Configuration screen on a mock,
+// by the menu mock's name and the item's key, beside links: the main menu's 8.
+var configLinks = map[string]string{mainMenuMock + "/8": configMainMock}
 
 // configLabel is the source label every mock's note opens with.
 const configLabel = "Proposed: no Figma frame."
 
 // configMock is one hardn.yml and how hardn found it.
 type configMock struct {
-	name, note string
+	// name is the mock's, after configPrefix; label and about its item in play's
+	// menu of the mocks; note what it shows.
+	name, label, about, note string
 	// path is the file and by how it was looked for; missing, that -f or
 	// HARDN_CONFIG names it and it is not there.
 	path    string
-	by      screen.ConfigFound
+	by      config.FoundBy
 	missing bool
 	// yml is the file's content, read only where there is a file.
 	yml string
@@ -60,131 +66,110 @@ const configUnusedYML = "sudoNoPassword: false\nenableLynis: true\nsshListenAddr
 // configMocks are the mocks, in the listing's order.
 func configMocks() []configMock {
 	return []configMock{
-		{name: "etc", path: hardnYML, by: screen.ConfigBySearch, yml: configTypical(),
+		{name: "etc", label: "Search path", about: "A typical file", path: hardnYML, by: config.FoundSearch, yml: configTypical(),
 			note: "A typical file, the first on the search path. A key the file leaves out says default."},
-		{name: "flag", path: "/root/site.yml", by: screen.ConfigByFlag, yml: configTypical(),
+		{name: "flag", label: "-f", about: "The same file, by -f", path: "/root/site.yml", by: config.FoundFlag, yml: configTypical(),
 			note: "The same file, named by -f /root/site.yml."},
-		{name: "env", path: "/home/george/.config/hardn/hardn.yml", by: screen.ConfigByEnv, yml: configTypical(),
+		{name: "env", label: "HARDN_CONFIG", about: "The same file, by HARDN_CONFIG", path: "/home/george/.config/hardn/hardn.yml", by: config.FoundEnv, yml: configTypical(),
 			note: "The same file, named by HARDN_CONFIG."},
-		{name: "none", by: screen.ConfigNoFile,
+		{name: "none", label: "No file", about: "Every key a default", by: config.FoundNone,
 			note: "No file anywhere: every key at its default."},
-		{name: "minimal", path: hardnYML, by: screen.ConfigBySearch, yml: "username: george\nnameservers: [192.0.2.53]\n",
+		{name: "minimal", label: "Minimal", about: "A two-line file", path: hardnYML, by: config.FoundSearch, yml: "username: george\nnameservers: [192.0.2.53]\n",
 			note: "A two-line file: username and nameservers, everything else default."},
-		{name: "unused", path: hardnYML, by: screen.ConfigBySearch, yml: configTypical() + configUnusedYML,
+		{name: "unused", label: "Not used", about: "Keys nothing reads", path: hardnYML, by: config.FoundSearch, yml: configTypical() + configUnusedYML,
 			note: "The file also sets sudoNoPassword, enableLynis, sshListenAddress, logFile and permitRootLogin, which nothing reads: the Not used section."},
-		{name: "missing", path: "/home/george/hardn.yml", by: screen.ConfigByEnv, missing: true,
+		{name: "missing", label: "Missing", about: "HARDN_CONFIG's file is not there", path: "/home/george/hardn.yml", by: config.FoundEnv, missing: true,
 			note: "HARDN_CONFIG names a file that is not there: hardn looks nowhere else."},
 	}
 }
 
+// findConfigMock returns the mock named name, after configPrefix.
+func findConfigMock(name string) (configMock, bool) {
+	for _, m := range configMocks() {
+		if m.name == name {
+			return m, true
+		}
+	}
+	return configMock{}, false
+}
+
+// found is how hardn found the mock's file, as config.FindConfigFile says it.
+func (m configMock) found() config.Found {
+	return config.Found{Path: m.path, By: m.by, Exists: m.by != config.FoundNone && !m.missing}
+}
+
 // load is the mock's hardn.yml as hardn loads it, by the real loader from a fake
-// host that holds the file alone, with the file's top-level keys; the defaults and
-// no key where there is no file.
-func (m configMock) load(ctx context.Context) (*config.Config, map[string]any, error) {
-	if m.by == screen.ConfigNoFile || m.missing {
-		return config.DefaultConfig(), nil, nil
+// host that holds the file alone; the defaults where there is no file.
+func (m configMock) load(ctx context.Context) (*config.Config, error) {
+	if !m.found().Exists {
+		return config.DefaultConfig(), nil
 	}
 	f := hostfake.New(host.Options{})
 	f.AddFile(m.path, []byte(m.yml), 0o600, 0, 0)
-	cfg, err := config.Read(ctx, f, m.path)
-	if err != nil {
-		return nil, nil, err
-	}
-	var keys map[string]any
-	if err := yaml.Unmarshal([]byte(m.yml), &keys); err != nil {
-		return nil, nil, err
-	}
-	return cfg, keys, nil
+	return config.Read(ctx, f, m.path)
 }
 
-// view is the mock's screen.
+// view is the mock's screen, by the real screen's mapping (configscreen.View).
 func (m configMock) view(ctx context.Context) (screen.Config, error) {
-	cfg, keys, err := m.load(ctx)
+	cfg, err := m.load(ctx)
 	if err != nil {
 		return screen.Config{}, err
 	}
-	return configView(cfg, keys, m.path, m.by, m.missing), nil
+	return configscreen.View(cfg, m.found()), nil
 }
 
-// configView is the Configuration screen's view of cfg, a hardn.yml as loaded:
-// keys are the file's top-level keys, by which a value is the file's or a default;
-// path, by and missing say how the file was found.
-//
-// STAND-IN: this is the one mapping from a loaded *config.Config to the screen.
-// The screen unit moves it into pkg/screens, with the file's keys and how it was
-// found read from hardn itself (gallery-config.md, "For unit (b)").
-func configView(cfg *config.Config, keys map[string]any, path string, by screen.ConfigFound, missing bool) screen.Config {
-	list := func(items []string) string {
-		if len(items) == 0 {
-			return "None"
-		}
-		return fmt.Sprintf("%d: %s", len(items), strings.Join(items, ", "))
+// openConfig returns the action that opens what name names: the mocks' menu for
+// configPrefix alone, the screen on one mock for "config/<mock>".
+func (s *session) openConfig(name string) func() error {
+	if m, ok := findConfigMock(strings.TrimPrefix(name, configPrefix+"/")); ok && name != configPrefix {
+		return func() error { return s.configScreen(context.Background(), m) }
 	}
-	sshKeys := "None"
-	switch n := len(cfg.SshKeys); {
-	case n == 1:
-		sshKeys = "1 key" // never the key's text
-	case n > 1:
-		sshKeys = fmt.Sprintf("%d keys", n)
+	return func() error {
+		menu := hostsMenu("Configuration files", func(add func(label, about string, action func() error)) {
+			for _, m := range configMocks() {
+				add(m.label, m.about, func() error { return s.configScreen(context.Background(), m) })
+			}
+		})
+		return s.p.Run(func() nav.Screen { return menu.vm.Screen(s.p.Ctx, menu.menu) })
 	}
-	profiles := "None"
-	if len(cfg.UfwAppProfiles) > 0 {
-		var names []string
-		for _, p := range cfg.UfwAppProfiles {
-			names = append(names, p.Name)
-		}
-		profiles = strings.Join(names, ", ")
-	}
-	timeout := cfg.ConfirmTimeout
-	if timeout == "" {
-		timeout = strings.TrimSuffix(revert.DefaultTimeout.String(), "0s") // "3m"
-	}
-	text := map[string]string{
-		"username": cfg.Username, "adminNoPassword": strconv.FormatBool(cfg.AdminNoPassword), "sshKeys": sshKeys,
-		"sshPort": strconv.Itoa(cfg.SshPort), "disableRootSSH": strconv.FormatBool(cfg.DisableRootSSH), "sshConfigFile": cfg.SshConfigFile,
-		"enableUfwSshPolicy": strconv.FormatBool(cfg.EnableUfwSshPolicy), "ufwAppProfiles": profiles, "ufwTrustedInterfaces": list(cfg.UfwTrustedInterfaces),
-		"configureDns": strconv.FormatBool(cfg.ConfigureDns), "nameservers": list(cfg.Nameservers),
-		"enableUnattendedUpgrades": strconv.FormatBool(cfg.EnableUnattendedUpgrades),
-		"enableBackups":            strconv.FormatBool(cfg.EnableBackups), "backupPath": cfg.BackupPath,
-		"dryRun": strconv.FormatBool(cfg.DryRun), "confirmTimeout": timeout,
-	}
-	v := screen.Config{Path: path, By: by, Missing: missing, Values: map[string]screen.ConfigValue{}}
-	// A value is the file's where the file has its key with a value: a null
-	// keeps the default, as the loader reads it, and so does an empty
-	// confirmTimeout; disableRoot is disableRootSSH's old name
-	// (pkg/config/rootlogin.go). Every string of the file's is made safe to
-	// show (logview.Safe): a control character in one never reaches the
-	// terminal.
-	for k, t := range text {
-		set := keys[k] != nil
-		switch {
-		case k == "disableRootSSH" && keys["disableRoot"] != nil:
-			set = true
-		case k == "confirmTimeout" && cfg.ConfirmTimeout == "":
-			set = false
-		}
-		v.Values[k] = screen.ConfigValue{Text: logview.Safe(t), Set: set}
-	}
-	// The keys nothing reads, in the order of hardn's start-up warning
-	// (cmd/hardn's loadWarnings): logFile where it names another path
-	// (logview.Elsewhere), permitRootLogin where it is not the default, then
-	// the retired keys.
-	if p := logview.Elsewhere(cfg.LogFile); p != "" {
-		v.Unused = append(v.Unused, screen.ConfigUnused{Key: "logFile", Value: logview.Safe(p)})
-	}
-	if r := cfg.RootLogin(); r != config.DefaultConfig().RootLogin() {
-		v.Unused = append(v.Unused, screen.ConfigUnused{Key: "permitRootLogin", Value: string(r)})
-	}
-	for _, k := range cfg.Retired() {
-		u := screen.ConfigUnused{Key: k}
-		switch val := keys[k].(type) {
-		case string, bool, int:
-			u.Value = logview.Safe(fmt.Sprint(val))
-		}
-		v.Unused = append(v.Unused, u)
-	}
-	return v
 }
+
+// configScreen runs hardn's Configuration screen on m until the user goes back from
+// it: its note above it; the file as hardn loads it, and how it was found the
+// mock's own word. Nothing is read from a host, written or run; the plan-only
+// sequence draws the same screen, as Options has no mode.
+func (s *session) configScreen(ctx context.Context, m configMock) error {
+	if err := s.writeNote(configPrefix+"/"+m.name, m.note); err != nil {
+		return err
+	}
+	cfg, err := m.load(ctx)
+	if err != nil {
+		return err
+	}
+	return configscreen.Run(ctx, configscreen.Options{Prompter: s.p, Config: cfg, Found: m.found()})
+}
+
+// configStart returns the mocks' menu, or the mock, that args name ("config",
+// "config/<mock>"), and whether they name one; an error for a mock that is not one.
+func configStart(args []string) (string, bool, error) {
+	if len(args) != 1 || (args[0] != configPrefix && !strings.HasPrefix(args[0], configPrefix+"/")) {
+		return "", false, nil
+	}
+	if name := strings.TrimPrefix(args[0], configPrefix+"/"); args[0] != configPrefix {
+		if _, ok := findConfigMock(name); !ok {
+			var names []string
+			for _, m := range configMocks() {
+				names = append(names, configPrefix+"/"+m.name)
+			}
+			return "", false, fmt.Errorf("no config mock %q; the mocks are %s", args[0], strings.Join(names, ", "))
+		}
+	}
+	return args[0], true, nil
+}
+
+// configNote is play's note for the Configuration screen.
+const configNote = "Play mode: hardn's Configuration screen (pkg/screens/config), proposed with no Figma frame, on a hardn.yml loaded by the real loader (pkg/config). " +
+	"It only shows: no plan, no y/N, no journal, no host read. Nothing on this machine changes or is read."
 
 // configListMocks are the listing's mocks: each mock's screen.
 func configListMocks() []listMock {

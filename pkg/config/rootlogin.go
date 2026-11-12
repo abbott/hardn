@@ -114,9 +114,13 @@ type loaded struct {
 	rootLogin    RootLogin // permitRootLogin's string value; "" for the bool or no value
 	deprecations []Deprecation
 	retired      []string // the keys of retired the file sets (readRetired)
-	path         string   // the absolute path LoadConfig read or created; "" for none
-	sum          string   // the SHA-256 of the bytes read there or last saved (LoadedFrom); "" for none
-	dryRun       bool     // dryRun as the file gave it, its default false included: what SaveConfig writes (dryrun.go)
+	// set is the file's top-level keys that have a value, by key, each with
+	// its value as a word where it is one (readSet); nil for no file.
+	set      map[string]string
+	path     string // the absolute path LoadConfig read or created; "" for none
+	sum      string // the SHA-256 of the bytes read there or last saved (LoadedFrom); "" for none
+	username string // username as the file gave it, "" for none (FileUsername)
+	dryRun   bool   // dryRun as the file gave it, its default false included: what SaveConfig writes (dryrun.go)
 	// What set the session's mode, and the value it set (ResolveDryRun).
 	source   DryRunSource
 	resolved bool
@@ -162,6 +166,7 @@ func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 		*node = *n
 		node.Content = nil
 		c.readRetired(n)
+		c.loaded.set = readSet(n)
 		for i := 0; i+1 < len(n.Content); i += 2 {
 			if k := n.Content[i]; k.Kind == yaml.ScalarNode && k.Value == rootLoginKey {
 				if len(values) > 0 { // as the decoder reports a repeated field
@@ -182,7 +187,7 @@ func (c *Config) UnmarshalYAML(n *yaml.Node) error {
 			errs = append(errs, strings.ReplaceAll(e, "config.plain", "config.Config"))
 		}
 	}
-	c.loaded.dryRun = c.DryRun
+	c.loaded.dryRun, c.loaded.username = c.DryRun, c.Username
 	if n.Kind == yaml.MappingNode {
 		errs = append(errs, c.readDisableRoot(n)...)
 	}
@@ -314,5 +319,6 @@ func Save(ctx context.Context, sys host.System, c *Config, settings ...string) e
 		return fmt.Errorf("config: saving %s: %w", path, err)
 	}
 	c.loaded.sum = sum(out)
+	c.loaded.set = setOf(out)
 	return nil
 }

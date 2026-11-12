@@ -2,13 +2,14 @@ package screen
 
 import "github.com/abbott/hardn/pkg/ui/component"
 
-// The Configuration screen (docs/ROADMAP.md, "View and manage hardn.yml"; unit
-// (a), next/config-gallery): a proposal, read only, on the sub-menu layout as the
-// Logs screen is. There is no Figma frame. Nothing in hardn draws it yet: the
-// gallery's config listing fills Config (docs/engine/gallery-config.md). pkg/ui
-// cannot reach the host or load hardn.yml: the caller reads both and fills Config.
+// The Configuration screen (docs/roadmap.md, "Configuration"; units
+// (a) and (b), next/config-gallery and next/config-screen): main menu 8, read
+// only, on the sub-menu layout as the Logs screen is, as the maintainer adopted
+// its mock (docs/engine/gallery-config.md). There is no Figma frame. pkg/ui
+// cannot load hardn.yml: pkg/screens/config fills Config from it as loaded
+// (docs/engine/screen-config.md).
 
-// The Configuration screen's words, all proposed (gallery-config.md, "Words").
+// The Configuration screen's words (gallery-config.md, "Words").
 const (
 	configTitle       = "Configuration"
 	configFileSection = "File"
@@ -34,6 +35,8 @@ const (
 	ConfigByEnv
 	// ConfigBySearch: the first file of the search path.
 	ConfigBySearch
+	// ConfigRead: a file read that none of these found; no "From" row.
+	ConfigRead
 )
 
 // configFoundBy are the "From" row's values.
@@ -101,7 +104,7 @@ func (v Config) fileSection() Section {
 	case v.By == ConfigNoFile:
 		path.Value = configNoFile
 	case v.Missing:
-		path.State, path.Note = component.ValueBad, configNotFound
+		path.State, path.Note, path.KeepNote = component.ValueBad, configNotFound, true
 	}
 	rows := []component.KeyValue{path}
 	if by := configFoundBy[v.By]; by != "" {
@@ -140,7 +143,7 @@ func (v Config) SubMenu() SubMenu {
 				row.Value = configNotSet
 			}
 			if !val.Set {
-				row.Note = configDefault
+				row.Note, row.KeepNote = configDefault, true // a long value keeps it
 			}
 			rows = append(rows, row)
 		}

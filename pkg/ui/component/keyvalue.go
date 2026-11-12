@@ -135,6 +135,12 @@ type KeyValue struct {
 	// not cut for it, as the root file system's type after its device;
 	// never with a Note.
 	Extra string
+	// KeepNote keeps a row's Note on screen, for a note that changes what
+	// the value means, as the Configuration screen's "(default)": where the
+	// value and its note have no room beside the key, this row, alone of
+	// its list, puts them under the key, and a value too wide even there is
+	// cut ahead of the note. Unset, the row is cut at its end, note first.
+	KeepNote bool
 	// Finding marks a bullet item as a plan's finding (flow.Finding): with
 	// no colour to tell it from a change's or a row's bullet, a warning's
 	// leads with Glyphs.Warn, ⭘ [ ], the design system's warning marker, in
@@ -156,6 +162,9 @@ func (vm KeyValue) Render(c Ctx) string {
 // bullet item wraps its text under itself.
 func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 	if r.value != nil {
+		if vm.KeepNote {
+			stack, r.value = keepNote(c, r.value, stack)
+		}
 		return c.layout(stack, r.head, r.value)
 	}
 	t, w := c.Theme.KeyValue, c.width()
@@ -181,6 +190,23 @@ func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 		lead = line{gap(theme.LabelCol)}
 	}
 	return strings.Join(out, "\n")
+}
+
+// keepNote is KeyValue.KeepNote's layout of value, a row's value, gap and
+// note: stacked where stack is set or they have no room beside the key, and
+// the value cut to leave the note whole where they have none stacked. A
+// value with no note, and any with Ctx.Whole, is as it was.
+func keepNote(c Ctx, value line, stack bool) (bool, line) {
+	if c.Whole || len(value) != 3 {
+		return stack, value
+	}
+	w := c.width()
+	stack = stack || theme.ValueCol+value.width() > w
+	if stack && theme.StackCol+value.width() > w {
+		room := w - theme.StackCol - value[1:].width()
+		value = line{{c.truncate(value[0].text, max(0, room)), value[0].style}, value[1], value[2]}
+	}
+	return stack, value
 }
 
 // row returns the row's parts. A row with neither key nor value is not

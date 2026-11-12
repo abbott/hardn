@@ -52,7 +52,7 @@ func goldenListing(t *testing.T, l listing) {
 func TestSystemDetailsGolden(t *testing.T) { goldenListing(t, sdListing) }
 
 // TestPlaySystemDetailsGolden plays the reading end to end and pins each
-// transcript: from the main menu's 8, on Debian 13, Refresh and leaving;
+// transcript: from the main menu's 9, on Debian 13, Refresh and leaving;
 // the same under plan only; on each release; one section unreadable; and the
 // hosts' menu.
 func TestPlaySystemDetailsGolden(t *testing.T) {
@@ -62,9 +62,9 @@ func TestPlaySystemDetailsGolden(t *testing.T) {
 		lines []string
 		cells []uitest.Cell
 	}{
-		{"system-details", nil, []string{"8", "0", "0"}, nil},
+		{"system-details", nil, []string{"9", "0", "0"}, nil},
 		{"system-details-refresh", []string{"system-details/debian13"}, []string{"1", "0"}, append(uitest.Core(), asciiColour)},
-		{"system-details-plan-only", []string{"-sequence", "dry-run"}, []string{"8", "1", "0", "0"}, nil},
+		{"system-details-plan-only", []string{"-sequence", "dry-run"}, []string{"9", "1", "0", "0"}, nil},
 		{"system-details-sudo-rs", []string{"system-details/ubuntu2604"}, []string{"0"}, nil},
 		{"system-details-alpine", []string{"system-details/alpine323"}, []string{"1", "0"}, nil},
 		{"system-details-zfs", []string{"system-details/pve9"}, []string{"1", "0"}, nil},

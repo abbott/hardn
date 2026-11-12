@@ -4,7 +4,7 @@
 > **Status:** built and tested on macOS, in process: `pkg/menu`'s main menu driven through scripted stdin with its screens recorded, its status Figma's fixture or `pkg/screens/mainmenu` over the gallery's hosts (`hostfake`). No hardn binary ran; nothing touched this machine's `/etc`; nothing has run on Linux. The VM steps are §9, for the orchestrator. Item 6 (Dry-Run) and Run All's option 2 are still there: unit (d) removes them. *Removed by `next/s2b-replace` ([dryrun-replace.md](dryrun-replace.md)).*
 > **Amended by `next/legacy-rehome`** (the maintainer, 2026-11-04: "Adopt all, start part 2"; [legacy-left.md](legacy-left.md) §3, decisions 4 and 7): item 2's description is "Root login, passwords, port" (P-07 (a)); the main menu and its items' screens clear only on a terminal.
 
-*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); the main menu has nine items, System Details 8 and Logs 9. Where this page names them, or item numbers 9 and 10, this note is current.*
+*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); since `next/config-screen` Configuration is main menu 8 ([screen-config.md](screen-config.md)), and System Details and Logs are 9 and 10 again.*
 
 ## 1. What is built
 

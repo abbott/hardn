@@ -22,7 +22,7 @@ import (
 func TestLogsGolden(t *testing.T) { goldenListing(t, logsListing) }
 
 // TestPlayLogsGolden plays the reading end to end and pins each transcript:
-// from the main menu's 9, on a log of lines, leaving; Refresh, a line
+// from the main menu's 10, on a log of lines, leaving; Refresh, a line
 // having been written; the same under plan only; a long log's Open, which
 // says what it would run; each state; no pager; and the hosts' menu.
 func TestPlayLogsGolden(t *testing.T) {
@@ -32,9 +32,9 @@ func TestPlayLogsGolden(t *testing.T) {
 		lines []string
 		cells []uitest.Cell
 	}{
-		{"logs", nil, []string{"9", "0", "0"}, nil},
+		{"logs", nil, []string{"10", "0", "0"}, nil},
 		{"logs-refresh", []string{"logs/lines"}, []string{"2", "0"}, append(uitest.Core(), asciiColour)},
-		{"logs-plan-only", []string{"-sequence", "dry-run"}, []string{"9", "2", "0", "0"}, nil},
+		{"logs-plan-only", []string{"-sequence", "dry-run"}, []string{"10", "2", "0", "0"}, nil},
 		{"logs-open", []string{"logs/long"}, []string{"1", "0"}, nil},
 		{"logs-missing", []string{"logs/missing"}, []string{"1", "0"}, nil},
 		{"logs-unreadable", []string{"logs/unreadable"}, []string{"1", "q"}, nil},

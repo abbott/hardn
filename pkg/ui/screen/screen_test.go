@@ -299,9 +299,8 @@ func TestScreen(t *testing.T) {
 // terminal it does not fit. From theme.StackBelow columns, where the rows
 // sit side by side, the compact form takes at most theme.CompactBudget
 // lines and the full form fits theme.CompactBelow rows. At 60 columns,
-// where they stack, the full form takes 53 lines and the compact form 33
-// (DEV-052; 55 and 34 with item 8, Environment, removed 2026-11-12; 57 in
-// full with item 6 too, before slice 2b's unit (d)). At every width the compact form's context bar keeps the
+// where they stack, the full form takes 55 lines and the compact form 34
+// (DEV-052; 57 in full with item 6, before slice 2b's unit (d)). At every width the compact form's context bar keeps the
 // blank line under it. With no terminal, the full form whatever the
 // height.
 func TestCompact(t *testing.T) {
@@ -357,8 +356,8 @@ func TestCompact(t *testing.T) {
 	env := term.Fixed(60, colorprofile.TrueColor, true, true)
 	env.Height = theme.CompactBelow
 	c := component.NewCtx(env)
-	if nFull, nShort := lines(vm.form(c, false)), lines(vm.form(c, true)); nFull != 53 || nShort != 33 {
-		t.Errorf("60 columns: the full form takes %d lines and the compact %d, want 53 and 33 (README §9.12)", nFull, nShort)
+	if nFull, nShort := lines(vm.form(c, false)), lines(vm.form(c, true)); nFull != 55 || nShort != 34 {
+		t.Errorf("60 columns: the full form takes %d lines and the compact %d, want 55 and 34 (README §9.12)", nFull, nShort)
 	}
 	if out := ansi.Strip(vm.render(c, true)); strings.HasPrefix(out, "hardn") || !strings.Contains(out, "BOS-SAN-L01") || !strings.Contains(out, "Risk Level") {
 		t.Errorf("60x40: want the compact form, the host badge and the risk line on screen, got:\n%s", out)
@@ -423,15 +422,14 @@ func TestStatusBlocks(t *testing.T) {
 // TestHeights records the main menu's heights with Figma's seven status
 // rows and with an eighth, the DNS row of next/s2-menu-live
 // (docs/engine/menu-live.md §6), on a terminal of 80 and 60 columns, 24
-// and 40 rows, Unicode and ASCII, in both forms: the full form, 34 lines
-// with the eighth row from 64 columns, 55 at 60 columns where the rows
-// stack, so that on 24 rows its top 10 lines scroll off, the risk level
-// among them (one more each with item 8, Environment, removed 2026-11-12,
-// and again with item 6, which slice 2b's unit (d) removed from the
-// menu); and, with the compact form allowed (render), the form it took
-// and its lines: with the eighth row 24 at 80x24, theme.CompactBudget
-// (25 with item 8, its distribution bar scrolled off), and 34 in full at
-// 80x40. Live: StatusBlocks above a menu of 17 lines after the gap,
+// and 40 rows, Unicode and ASCII, in both forms: the full form, 35 lines
+// with the eighth row from 64 columns, 57 at 60 columns where the rows
+// stack, so that on 24 rows its top 11 lines scroll off, the risk level
+// among them (one more each with item 6, which slice 2b's unit (d)
+// removed from the menu); and, with the compact form allowed (render),
+// the form it took and its lines: with the eighth row 25 at 80x24, one
+// over theme.CompactBudget, its distribution bar scrolled off, and 35 in
+// full at 80x40. Live: StatusBlocks above a menu of 17 lines after the gap,
 // as hardn's live main menu drew its legacy menu (pkg/menu: heading to
 // prompt) until next/s2b-menu put it on this layout, with each form's
 // blocks. Drawn, by Render, StatusBlocks and the form chosen: the full
@@ -450,12 +448,12 @@ func TestHeights(t *testing.T) {
 		form              string // with the compact form allowed
 		allowed, liveForm int
 	}{
-		{MainMenuFixture(), 7, 80, 24, 33, 36, "compact", 23, 31},
-		{MainMenuFixture(), 7, 80, 40, 33, 36, "full", 33, 36},
-		{eight, 8, 80, 24, 34, 37, "compact", 24, 32},
-		{eight, 8, 80, 40, 34, 37, "full", 34, 37},
-		{eight, 8, 60, 24, 55, 48, "compact", 35, 42},
-		{eight, 8, 60, 40, 55, 48, "compact", 35, 42},
+		{MainMenuFixture(), 7, 80, 24, 34, 36, "compact", 24, 31},
+		{MainMenuFixture(), 7, 80, 40, 34, 36, "full", 34, 36},
+		{eight, 8, 80, 24, 35, 37, "compact", 25, 32},
+		{eight, 8, 80, 40, 35, 37, "full", 35, 37},
+		{eight, 8, 60, 24, 57, 48, "compact", 36, 42},
+		{eight, 8, 60, 40, 57, 48, "compact", 36, 42},
 	} {
 		for _, unicode := range []bool{true, false} {
 			env := term.Fixed(tc.w, colorprofile.TrueColor, unicode, true)
@@ -552,8 +550,7 @@ func TestScreenMenu(t *testing.T) {
 // TestCompactForm checks what the compact form keeps and leaves out, the
 // form allowed as CompactMainMenu, gated, would allow it, on plain text at
 // 80x24: the context bar keeps its blank line, and the
-// menu's items start on the line under the heading, in 23 lines, one
-// under theme.CompactBudget.
+// menu's items start on the line under the heading, in 24 lines.
 func TestCompactForm(t *testing.T) {
 	env := term.Fixed(80, colorprofile.ASCII, false, true)
 	env.Height = term.DefaultHeight
@@ -573,16 +570,17 @@ func TestCompactForm(t *testing.T) {
   [ ] AppArmor             Not Configured
 
   Select an option         Mode Live
-   1) User Management       6) Run All
-   2) SSH Login             7) Backup
-   3) Firewall              8) System Details
-   4) DNS                   9) Logs
+   1) User Management       7) Backup
+   2) SSH Login             8) Configuration
+   3) Firewall              9) System Details
+   4) DNS                  10) Logs
+   6) Run All
 
    0) Exit                 q to quit
 
-    > Option [0-4, 6-9 or q]:`
-	if out != want || lines(out) != theme.CompactBudget-1 {
-		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget-1, want)
+    > Option [0-4, 6-10 or q]:`
+	if out != want || lines(out) != theme.CompactBudget {
+		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
 	}
 }
 

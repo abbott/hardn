@@ -35,9 +35,10 @@ $
    \x1b[1;38;5;251m5)\x1b[m \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;102mConfigure automatic updates\x1b[m$
    \x1b[1;38;5;251m6)\x1b[m \x1b[38;5;251mRun All\x1b[m              \x1b[38;5;102mExecute hardening operations\x1b[m$
    \x1b[1;38;5;251m7)\x1b[m \x1b[38;5;251mBackup\x1b[m               \x1b[38;5;102mConfigure hardn backup\x1b[m$
-   \x1b[1;38;5;251m8)\x1b[m \x1b[38;5;251mSystem Details\x1b[m       \x1b[38;5;102mView system information\x1b[m$
-   \x1b[1;38;5;251m9)\x1b[m \x1b[38;5;251mLogs\x1b[m                 \x1b[38;5;102mView log file\x1b[m$
+   \x1b[1;38;5;251m8)\x1b[m \x1b[38;5;251mConfiguration\x1b[m        \x1b[38;5;102mView hardn.yml\x1b[m$
+   \x1b[1;38;5;251m9)\x1b[m \x1b[38;5;251mSystem Details\x1b[m       \x1b[38;5;102mView system information\x1b[m$
+  \x1b[1;38;5;251m10)\x1b[m \x1b[38;5;251mLogs\x1b[m                 \x1b[38;5;102mView log file\x1b[m$
 $
    \x1b[1;38;5;102m0)\x1b[m \x1b[38;5;102mExit\x1b[m                 \x1b[38;5;102mq to quit\x1b[m$
 $
-    \x1b[1;38;5;102m❯\x1b[m \x1b[1;38;5;102mOption\x1b[m \x1b[38;5;102m[0-9 or q]:\x1b[m $
+    \x1b[1;38;5;102m❯\x1b[m \x1b[1;38;5;102mOption\x1b[m \x1b[38;5;102m[0-10 or q]:\x1b[m $

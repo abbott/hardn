@@ -24,8 +24,9 @@ For anyone administering a Linux server, container or virtual machine without a 
 | 5) Auto Updates | the distribution's automatic updates |
 | 6) Run All | options 1 to 5, from `hardn.yml` |
 | 7) Backup | backups of the files hardn changes |
-| 8) System Details | nothing: a report on the host |
-| 9) Logs | nothing: `/var/log/hardn.log` |
+| 8) Configuration | nothing: the `hardn.yml` it read |
+| 9) System Details | nothing: a report on the host |
+| 10) Logs | nothing: `/var/log/hardn.log` |
 
 AppArmor is displayed, not configured. What each option shows and changes: [docs/usage.md](docs/usage.md#the-menu).
 

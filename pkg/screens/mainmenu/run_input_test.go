@@ -62,6 +62,7 @@ func setDNS(o *Options, run func() error)           { o.DNS = run }
 func setBackup(o *Options, run func() error)        { o.Backup = run }
 func setUpdates(o *Options, run func() error)       { o.Updates = run }
 func setRunAll(o *Options, run func() error)        { o.RunAll = run }
+func setConfiguration(o *Options, run func() error) { o.Configuration = run }
 func setSystemDetails(o *Options, run func() error) { o.SystemDetails = run }
 func setLogs(o *Options, run func() error)          { o.Logs = run }
 

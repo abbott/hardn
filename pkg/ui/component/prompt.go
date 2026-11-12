@@ -11,13 +11,13 @@ import (
 
 // PromptLine is the prompt under a menu or a question: Glyphs.Prompt, the
 // label, the hint in brackets and a colon, as Figma draws
-// "❯ Enter your choice [0-10 or q]:" and hardn "❯ Option [0-9 or q]:"
+// "❯ Enter your choice [0-10 or q]:" and hardn "❯ Option [0-10 or q]:"
 // (P-29 (a)). Here with no colour and ASCII
 // glyphs:
 //
 //	0 2 4 6
 //	   0) Exit
-//	    > Option [0-9 or q]:
+//	    > Option [0-10 or q]:
 //
 // The hint is generated from Accepts (keys.Set.Hint), never written by
 // hand. The glyph stands at theme.PromptCol, under a menu key's closing

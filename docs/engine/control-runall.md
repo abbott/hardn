@@ -4,7 +4,7 @@
 
 `pkg/engine/runall`, `next/s8-control`: what Run All plans, as real code that unit (c)'s screen (main menu 7) and unit (d)'s `hardn -r` both call, so the two never differ. It builds what [gallery-runall.md](gallery-runall.md) §5 adopted (2026-11-04, "Adopt all, start (b)") on the mock's behaviour (`internal/tools/uigallery/runall.go`: `raAsk`, `raReading.pick`, `alone`, `port`, `userThere`). Status: tested on macOS on `hostfake` only; nothing ran on a VM, no hardn binary ran.
 
-*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); the main menu has nine items, System Details 8 and Logs 9. Where this page names them, or item numbers 9 and 10, this note is current.*
+*Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); since `next/config-screen` Configuration is main menu 8 ([screen-config.md](screen-config.md)), and System Details and Logs are 9 and 10 again.*
 
 ## 1. What it does
 

@@ -114,7 +114,7 @@ func menuOf(out string) string {
 // line's "$" taken off; with the items hardn's main menu draws in place of
 // the mock's, which the gallery draws (pkg/screens/mainmenu's
 // galleryStatus does the same): item 5, Auto Updates, above item 6 in its
-// columns, the hint "[0-9 or q]", and on Proxmox VE item 3's "View
+// columns, the hint "[0-10 or q]", and on Proxmox VE item 3's "View
 // pve-firewall".
 func galleryMenu(t *testing.T, name string) string {
 	t.Helper()
@@ -128,7 +128,7 @@ func galleryMenu(t *testing.T, name string) string {
 	}
 	var lines []string
 	for _, l := range strings.Split(cell, "\n")[1:] {
-		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-9 or q]", "[0-9 or q]")
+		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-10 or q]", "[0-10 or q]")
 		if name == "pve9" {
 			l = strings.Replace(l, "   3) Firewall             Configure ufw rules", "   3) Firewall             View pve-firewall", 1)
 		}
@@ -171,7 +171,7 @@ func TestMainMenuAsGallery(t *testing.T) {
 
 // TestMainMenuOnEL: on Rocky Linux and AlmaLinux, p4status draws the items
 // hardn's main menu draws there: item 3 "Configure firewalld", item 5,
-// Auto Updates, and the hint "[0-9 or q]". The hosts are the debian13
+// Auto Updates, and the hint "[0-10 or q]". The hosts are the debian13
 // fixture with Rocky Linux 10.2's os-release (pkg/host/detect's test
 // file) or AlmaLinux 9.6's in place of Debian's: the items turn on
 // detect's distribution alone, and a command the fixture does not answer
@@ -193,7 +193,7 @@ func TestMainMenuOnEL(t *testing.T) {
 			for _, want := range []string{
 				"\n   3) Firewall             Configure firewalld\n",
 				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
-				"\n    > Option [0-9 or q]:",
+				"\n    > Option [0-10 or q]:",
 			} {
 				if !strings.Contains(menu, want) {
 					t.Errorf("no %q in the main menu:\n%s", want, menu)
