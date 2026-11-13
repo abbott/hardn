@@ -27,14 +27,56 @@
 # in SHA256SUMS; gh attestation verify it. Only when every step passes is the
 # binary moved to ./hardn-<platform>; an existing file there is never
 # overwritten. Nothing is executed.
+#
+# The output takes hardn's look (look, below): a mark for each step and one
+# closing line that names the verified file.
 
 set -eu
 
 REPO=abbott/hardn
 SIGNER_WORKFLOW=https://github.com/abbott/hardn/.github/workflows/build.yml
 
+# look sets hardn's marks and colours for file descriptor $1. Piped, or on a
+# dumb terminal, they are the ASCII marks with no colour. A terminal gets
+# hardn's glyphs in a UTF-8 locale (not TERM=linux, a zh, ja or ko locale, or
+# with HARDN_ASCII set) and its 16-colour palette unless NO_COLOR is set. The
+# words are the same either way.
+look() {
+	m_ok='[+]' m_bad='(x)' m_run=' - '
+	bar_ok='#'
+	c_ok='' c_bad='' c_mute='' t_ok='' c_off=''
+	[ -t "$1" ] || return 0
+	case ${TERM:-dumb} in dumb) return 0 ;; esac
+	if [ -z "${HARDN_ASCII:-}" ]; then
+		case $TERM/${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
+		linux/* | */zh* | */ja* | */ko*) ;;
+		*.[Uu][Tt][Ff]-8* | *.[Uu][Tt][Ff]8*)
+			m_ok=' ⛛ ' m_bad=' ⨳ '
+			bar_ok='█'
+			;;
+		esac
+	fi
+	[ -z "${NO_COLOR:-}" ] || return 0
+	e=$(printf '\033')
+	c_ok="${e}[92m" c_bad="${e}[91m" c_mute="${e}[90m"
+	t_ok="${e}[1;92m" c_off="${e}[0m"
+	bar_ok="${e}[42m ${e}[0m"
+}
+
+# A step's row: its mark in columns 2 to 4, its words from column 6. running
+# is a step under way, detail a line under a step's words.
+ok() { printf '  %s%s%s %s\n' "$c_ok" "$m_ok" "$c_off" "$1"; }
+running() { printf '  %s%s %s%s\n' "$c_mute" "$m_run" "$1" "$c_off"; }
+detail() { printf '      %s%s%s\n' "$c_mute" "$1" "$c_off"; }
+
+# die says why verify.sh stops, on stderr: the refused mark, then its lines.
 die() {
-	printf 'verify.sh: %s\n' "$*" >&2
+	look 2
+	lead="  $m_bad "
+	printf 'verify.sh: %s\n' "$*" | while IFS= read -r l; do
+		printf '%s%s%s%s\n' "$c_bad" "$lead" "$l" "$c_off"
+		lead='      '
+	done >&2
 	exit 1
 }
 
@@ -93,10 +135,14 @@ trap 'exit 1' HUP INT TERM
 
 base=https://github.com/$REPO/releases/download/$tag
 
+look 1
+
 # 1. Download.
-printf 'Downloading %s and SHA256SUMS from %s ...\n' "$binary" "$tag"
+running "Downloading $binary and SHA256SUMS from $tag ..."
 curl -fsSL -o "$tmp/$binary" "$base/$binary" || die "cannot download $base/$binary"
 curl -fsSL -o "$tmp/SHA256SUMS" "$base/SHA256SUMS" || die "cannot download $base/SHA256SUMS"
+
+ok "Downloaded $binary and SHA256SUMS"
 
 # 2. SHA-256 against SHA256SUMS: exactly one line names the binary.
 lines=$(awk -v f="$binary" '$2 == f || $2 == "*" f' "$tmp/SHA256SUMS" | wc -l | tr -d ' ')
@@ -108,11 +154,13 @@ case $want in
 esac
 [ "${#want}" -eq 64 ] || die "SHA256SUMS's entry for $binary is not a SHA-256"
 [ "$got" = "$want" ] || die "$binary's SHA-256 is $got; SHA256SUMS says $want"
-printf 'SHA-256 matches SHA256SUMS: %s\n' "$got"
+ok "SHA-256 matches SHA256SUMS"
+detail "$got"
 
 # 3. Provenance: signed by build.yml in abbott/hardn at the tag (the exact
 # certificate identity), from the tag, on a GitHub-hosted runner.
-printf 'Verifying the provenance attestation ...\n'
+printf '\n'
+running "Verifying the provenance attestation ..."
 gh attestation verify "$tmp/$binary" \
 	--repo "$REPO" \
 	--cert-identity "$SIGNER_WORKFLOW@refs/tags/$tag" \
@@ -121,4 +169,6 @@ gh attestation verify "$tmp/$binary" \
 	die "gh attestation verify failed for $binary at $tag"
 
 mv "$tmp/$binary" "$dest" || die "cannot move the verified binary to $dest"
-printf 'Verified: %s, %s, built by %s from %s at %s.\n' "$dest" "$tag" "$SIGNER_WORKFLOW@refs/tags/$tag" "$REPO" "refs/tags/$tag"
+ok "Provenance verified: built by"
+detail "$SIGNER_WORKFLOW@refs/tags/$tag"
+printf '\n%s %sVerified %s, hardn %s.%s\n' "$bar_ok" "$t_ok" "$dest" "$tag" "$c_off"
