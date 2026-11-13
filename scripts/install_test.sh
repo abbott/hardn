@@ -513,17 +513,25 @@ $dl/v0.4.0/hardn-linux-amd64"
 	expect_out "Downloading hardn-linux-amd64 ..."
 	expect_blank_start
 	expect_fits
-	for part in "SHA-256 matches" "Provenance not checked" "Installed hardn" "hardn writes"; do
+	expect_out "  [+] Downloaded hardn-linux-amd64"
+	expect_out "  [+] SHA-256 matches SHA256SUMS"
+	expect_out "  [ ] Provenance not checked"
+	expect_out "  [+] Created /etc/hardn"
+	for part in "   -  Downloading" "# Warning" "To check it:" "  [+] Created" "hardn writes" "# Installed hardn"; do
 		expect_blank_before "$part"
 	done
+	# Not a terminal: no colour, and ASCII marks.
+	if LC_ALL=C grep -q '[^ -~]' "$cdir/out"; then fail "stdout has an escape or a non-ASCII byte"; fi
+	[ "$(awk 'NF { l = $0 } END { print l }' "$cdir/out")" = "# Installed hardn v0.4.0 as /usr/local/bin/hardn." ] ||
+		fail "the last line doesn't say what was installed"
 	expect_blank_end
 	new_case "gh verifies"
 	run_install GH=1
 	expect_installed hardn-linux-amd64
-	expect_out "Provenance verified: built by"
-	expect_out "  $identity"
+	expect_out "  [+] Provenance verified: built by"
+	expect_out "      $identity"
 	expect_fits
-	expect_blank_before "Verifying the provenance"
+	expect_blank_before "   -  Verifying the provenance"
 	expect_blank_end
 	grep -q "^attestation verify $cdir/tmp/hardn-install\.[^/]*/hardn-linux-amd64 --repo abbott/hardn --cert-identity $identity --source-ref refs/tags/v0.4.0 --deny-self-hosted-runners\$" "$cdir/log/gh.log" ||
 		fail "gh's arguments: $(cat "$cdir/log/gh.log")"

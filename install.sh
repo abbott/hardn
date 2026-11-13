@@ -27,9 +27,11 @@
 #      (0755) if missing. Nothing
 #      else is written, and hardn is not run.
 #
-# The output starts after a blank line and ends with one, whether it installs
-# or stops, with a blank line between its parts, and keeps to 80 columns but
-# for the attestation's identity: a URL can't break.
+# The output takes hardn's look (look, below): a mark for each step, a
+# Warning callout where provenance is not checked, and one closing line that
+# says what was installed. It starts after a blank line and ends with one,
+# whether it installs or stops, with a blank line between its parts, and
+# keeps to 80 columns but for the attestation's identity: a URL can't break.
 #
 # HARDN_INSTALL_ROOT (default empty) is prefixed to /usr/local/bin and
 # /etc/hardn. It exists for scripts/install_test.sh, which installs into a
@@ -46,12 +48,54 @@ staged=
 installed=
 spoke=
 
-# die says why install.sh stops, a blank line apart from the progress above
-# it (spoke), and ends with a blank line.
+# look sets hardn's marks and colours for file descriptor $1. Piped, or on a
+# dumb terminal, they are the ASCII marks with no colour. A terminal gets
+# hardn's glyphs in a UTF-8 locale (not TERM=linux, a zh, ja or ko locale, or
+# with HARDN_ASCII set) and its 16-colour palette unless NO_COLOR is set. The
+# words are the same either way.
+look() {
+	m_ok='[+]' m_warn='[ ]' m_bad='(x)' m_run=' - '
+	bar_ok='#' bar_warn='#'
+	c_ok='' c_warn='' c_bad='' c_mute='' t_ok='' t_warn='' c_off=''
+	[ -t "$1" ] || return 0
+	case ${TERM:-dumb} in dumb) return 0 ;; esac
+	if [ -z "${HARDN_ASCII:-}" ]; then
+		case $TERM/${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
+		linux/* | */zh* | */ja* | */ko*) ;;
+		*.[Uu][Tt][Ff]-8* | *.[Uu][Tt][Ff]8*)
+			m_ok=' ⛛ ' m_warn=' ⭘ ' m_bad=' ⨳ '
+			bar_ok='█' bar_warn='█'
+			;;
+		esac
+	fi
+	[ -z "${NO_COLOR:-}" ] || return 0
+	e=$(printf '\033')
+	c_ok="${e}[92m" c_warn="${e}[33m" c_bad="${e}[91m" c_mute="${e}[90m"
+	t_ok="${e}[1;92m" t_warn="${e}[1;33m" c_off="${e}[0m"
+	bar_ok="${e}[42m ${e}[0m" bar_warn="${e}[43m ${e}[0m"
+}
+
+# A step's row: its mark in columns 2 to 4, its words from column 6. running
+# is a step under way, detail a line under a step's words.
+ok() { printf '  %s%s%s %s\n' "$c_ok" "$m_ok" "$c_off" "$1"; }
+warn() { printf '  %s%s%s %s\n' "$c_warn" "$m_warn" "$c_off" "$1"; }
+running() { printf '  %s%s %s%s\n' "$c_mute" "$m_run" "$1" "$c_off"; }
+detail() { printf '      %s%s%s\n' "$c_mute" "$1" "$c_off"; }
+muted() { printf '%s%s%s\n' "$c_mute" "$1" "$c_off"; }
+
+# die says why install.sh stops, on stderr: a blank line apart from the
+# progress above it (spoke), the refused mark, its lines, and a blank line.
 die() {
+	look 2
 	[ -z "$spoke" ] || printf '\n' >&2
-	printf 'install.sh: %s\n' "$*" >&2
-	[ -n "$installed" ] || printf 'install.sh: nothing was installed.\n' >&2
+	lead="  $m_bad "
+	{
+		printf 'install.sh: %s\n' "$*"
+		[ -n "$installed" ] || printf 'install.sh: nothing was installed.\n'
+	} | while IFS= read -r l; do
+		printf '%s%s%s%s\n' "$c_bad" "$lead" "$l" "$c_off"
+		lead='      '
+	done >&2
 	printf '\n' >&2
 	exit 1
 }
@@ -71,6 +115,7 @@ check_version() {
 
 # All of it runs from the last line, so a download cut short runs nothing.
 main() {
+	look 1
 	printf '\n'
 	root=${HARDN_INSTALL_ROOT:-}
 	bindir=$root/usr/local/bin
@@ -151,7 +196,7 @@ main() {
 	base=https://github.com/$REPO/releases/download/$tag
 
 	printf 'Installing hardn %s: %s (%s %s)\n' "$tag" "$asset" "$os" "$arch"
-	[ -z "$note" ] || printf '%s\n' "$note"
+	[ -z "$note" ] || muted "$note"
 	spoke=1
 
 	# 4. Download, and the SHA-256 against SHA256SUMS.
@@ -162,7 +207,8 @@ main() {
 	22) die "cannot download $base/SHA256SUMS (curl's HTTP error is above). A 404 means there is no release $tag, or it is older than v0.4.0: v0.3.2 and earlier have no SHA256SUMS, and install.sh installs only a release it can check" ;;
 	*) die "cannot download $base/SHA256SUMS" ;;
 	esac
-	printf 'Downloading %s ...\n' "$asset"
+	printf '\n'
+	running "Downloading $asset ..."
 	meter=--silent
 	[ ! -t 2 ] || meter=--progress-bar
 	curl -fSL "$meter" --proto '=https' --tlsv1.2 -o "$tmp/$asset" "$base/$asset" || die "cannot download $base/$asset"
@@ -176,7 +222,9 @@ main() {
 	[ "${#want}" -eq 64 ] || die "SHA256SUMS's entry for $asset is not a SHA-256"
 	got=$(sha256 "$tmp/$asset" | tr 'A-F' 'a-f')
 	[ "$got" = "$want" ] || die "$asset's SHA-256 is $got; SHA256SUMS says $want"
-	printf '\nSHA-256 matches SHA256SUMS:\n  %s\n\n' "$got"
+	ok "Downloaded $asset"
+	ok "SHA-256 matches SHA256SUMS"
+	detail "$got"
 
 	# 5. Provenance: verify.sh's check, when gh can make it.
 	identity=$SIGNER_WORKFLOW@refs/tags/$tag
@@ -189,17 +237,21 @@ main() {
 		done
 	fi
 	if [ -n "$gh_ok" ]; then
-		printf 'Verifying the provenance attestation ...\n'
+		printf '\n'
+		running "Verifying the provenance attestation ..."
 		gh attestation verify "$tmp/$asset" \
 			--repo "$REPO" \
 			--cert-identity "$identity" \
 			--source-ref "refs/tags/$tag" \
 			--deny-self-hosted-runners ||
 			die "gh attestation verify failed for $asset at $tag"
-		printf 'Provenance verified: built by\n  %s\n' "$identity"
+		ok "Provenance verified: built by"
+		detail "$identity"
 	else
-		printf 'Provenance not checked: it needs gh 2.68.0 or later, signed in\n'
-		printf '(gh auth login). To check it:\n'
+		warn "Provenance not checked"
+		printf '\n%s %sWarning%s\n' "$bar_warn" "$t_warn" "$c_off"
+		printf '%s Provenance needs gh 2.68.0 or later, signed in (gh auth login).\n' "$bar_warn"
+		printf '\nTo check it:\n'
 		printf '  gh attestation verify /usr/local/bin/hardn --repo %s \\\n' "$REPO"
 		printf '    --source-ref refs/tags/%s --deny-self-hosted-runners \\\n' "$tag"
 		printf '    --cert-identity \\\n'
@@ -222,15 +274,17 @@ main() {
 	mv -f "$staged" "$dest" || die "cannot move $staged to $dest"
 	staged=
 	installed=1
-	printf '\nInstalled hardn %s as /usr/local/bin/hardn.\n' "$tag"
+	printf '\n'
 	if [ ! -d "$confdir" ]; then
 		mkdir -m 0755 "$confdir" || die "cannot create $confdir"
-		printf 'Created /etc/hardn.\n'
+		ok "Created /etc/hardn"
+		printf '\n'
 	fi
-	printf '\nhardn writes /etc/hardn/hardn.yml.example the first time it runs.\n'
+	muted "hardn writes /etc/hardn/hardn.yml.example the first time it runs."
 	# shellcheck disable=SC2016 # the backticks are printed, not run
-	printf '\nRun `hardn --help`.\n'
-	printf '\nhardn comes with no warranty: GNU AGPL v3, sections 15 and 16.\n\n'
+	muted 'Run `hardn --help`.'
+	muted "hardn comes with no warranty: GNU AGPL v3, sections 15 and 16."
+	printf '\n%s %sInstalled hardn %s as /usr/local/bin/hardn.%s\n\n' "$bar_ok" "$t_ok" "$tag" "$c_off"
 }
 
 main "$@"
