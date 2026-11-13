@@ -26,6 +26,7 @@ On Rocky, Alma and RHEL:
 - A new SSH port is labelled for sshd in SELinux and let through firewalld before sshd moves.
 - The Firewall screen installs, enables and disables firewalld. It refuses a dnf install that brings a new kernel.
 - Run All and `-w` leave the firewall to that screen. ufw is never installed or enabled.
+- The Firewall screen has no Limit SSH: firewalld has no limit per address. SSH Login's Brute-Force Limit row shows sshd's own.
 - Auto Updates turns on dnf-automatic's daily security updates; restarts stay as automatic.conf sets them (never, as shipped). Off undoes only what hardn did.
 - DNS is only read.
 - RHEL's repositories come with its subscription: on a host with none enabled, such as one that isn't registered, hardn refuses to install firewalld or dnf-automatic.

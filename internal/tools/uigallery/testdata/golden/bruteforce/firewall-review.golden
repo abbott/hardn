@@ -1,0 +1,121 @@
+# Golden file of TestBruteForceGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mbruteforce firewall-review␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. firewall-offer's item 5, up to its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mquestion: what the limit does, the rules as it leaves them,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe engine's plan, y/N.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLimit SSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mufw refuses an address that opens 6 or more SSH connections in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m30 seconds, yours included.␛[m$
+$
+  ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp␛[m               ␛[38;2;112;212;127mLimit␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp (v6)␛[m          ␛[38;2;112;212;127mLimit␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLimit 22/tcp␛[m$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;231;70;105m-allow 22/tcp␛[m$
+      ␛[38;2;112;212;127m+limit 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw limit 22/tcp␛[m$
+$
+  ␛[38;2;192;196;216mLimit SSH?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  bruteforce firewall-review -----------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. firewall-offer's item 5, up to its$
+# question: what the limit does, the rules as it leaves them,$
+# the engine's plan, y/N.$
+$
+# Limit SSH ####################################################$
+$
+# Note$
+# ufw refuses an address that opens 6 or more SSH connections in$
+# 30 seconds, yours included.$
+$
+  Rules --------------------------------------------------------$
+$
+  [+] 22/tcp               Limit$
+  [+] 22/tcp (v6)          Limit$
+$
+   -  Limit 22/tcp$
+      ufw$
+      -allow 22/tcp$
+      +limit 22/tcp$
+      $ ufw limit 22/tcp$
+$
+  Limit SSH? [y/N, 0 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mbruteforce firewall-review␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. firewall-offer's item 5, up to␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mits question: what the limit does, the rules as it leaves␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthem, the engine's plan, y/N.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLimit SSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mufw refuses an address that opens 6 or more SSH␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconnections in 30 seconds, yours included.␛[m$
+$
+  ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp␛[m$
+      ␛[38;2;112;212;127mLimit␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216m22/tcp (v6)␛[m$
+      ␛[38;2;112;212;127mLimit␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLimit 22/tcp␛[m$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;231;70;105m-allow 22/tcp␛[m$
+      ␛[38;2;112;212;127m+limit 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw limit 22/tcp␛[m$
+$
+  ␛[38;2;192;196;216mLimit SSH?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mbruteforce firewall-review␛[m ␛[38;2;22;24;29m-----------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. firewall-offer's item 5, up to its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mquestion: what the limit does, the rules as it leaves them,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe engine's plan, y/N.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLimit SSH␛[m ␛[38;2;43;47;59m####################################################␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mufw refuses an address that opens 6 or more SSH connections in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m30 seconds, yours included.␛[m$
+$
+  ␛[1;38;2;129;134;156mRules␛[m ␛[38;2;22;24;29m--------------------------------------------------------␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216m22/tcp␛[m               ␛[38;2;112;212;127mLimit␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216m22/tcp (v6)␛[m          ␛[38;2;112;212;127mLimit␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLimit 22/tcp␛[m$
+      ␛[38;2;129;134;156mufw␛[m$
+      ␛[38;2;231;70;105m-allow 22/tcp␛[m$
+      ␛[38;2;112;212;127m+limit 22/tcp␛[m$
+      ␛[38;2;129;134;156m$ ufw limit 22/tcp␛[m$
+$
+  ␛[38;2;192;196;216mLimit SSH?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m$
+$
+$

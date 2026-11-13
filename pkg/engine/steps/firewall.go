@@ -219,6 +219,39 @@ func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefi
 	return []engine.Change{c}, nil
 }
 
+// PlanUFWLimit plans Limit SSH: "ufw limit <port>/tcp" over the plain allow
+// of each SSH port of listeners that has one (ufw.PlanLimit), which ufw
+// replaces in its place: one plain change, id prefix+"/limit", or none
+// where every SSH port is limited already. A limit accepts, so the port
+// never lacks a rule that lets SSH through, and "ufw allow <port>/tcp",
+// journalled before it runs, puts the allow back; the adopted decision is
+// y/N, not lockout-risk (gallery-bruteforce.md §3, 7 (a)). listeners must be
+// established and ufw active; a port whose rule is not the plain allow is
+// left alone (ufw.ErrNoPlainAllow where none is).
+func PlanUFWLimit(ctx context.Context, sys host.System, in engine.Input, prefix string, listeners sshd.Listeners) ([]engine.Change, error) {
+	if in.Facts.Platform.Distro.EL() {
+		return nil, ErrELFirewall
+	}
+	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
+	if err != nil {
+		return nil, ufwStateErr(err)
+	}
+	p, err := ufw.PlanLimit(st, listeners, in.Facts.Proxmox)
+	if err != nil || p.Empty() {
+		return nil, err
+	}
+	var ports []string
+	for _, s := range p.Steps {
+		ports = append(ports, fmt.Sprintf("%d/tcp", s.Port))
+	}
+	list := strings.Join(ports, ", ")
+	c := firewallChange(prefix+"/limit", p)
+	c.Summary, c.Title = "Limit SSH: "+strings.Join(c.Commands, "; "), engine.FitTitle("Limit "+list, "Limit SSH")
+	c.StateBefore, c.StateAfter = "allow "+list, "limit "+list
+	c.Risk, c.Resources = engine.RiskPlain, []string{ResourceUFW}
+	return []engine.Change{c}, nil
+}
+
 // ufwStateErr is err, ufw.Read's, as ufw.ErrStateUnknown; Proxmox VE's as it is.
 func ufwStateErr(err error) error {
 	if errors.Is(err, ufw.ErrNotApplicable) || errors.Is(err, ufw.ErrProxmoxUnknown) {

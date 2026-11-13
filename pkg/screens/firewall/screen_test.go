@@ -43,6 +43,7 @@ func TestScreen(t *testing.T) {
 	const (
 		p2 = ", 2 Application Profiles, 3 Trusted Interfaces"
 		d3 = ", 4 Disable firewall"
+		l5 = ", 5 Limit SSH" // ufw active, SSH's port allowed from anywhere by the plain rule
 	)
 	for _, tt := range []struct {
 		host, status, items string
@@ -50,8 +51,8 @@ func TestScreen(t *testing.T) {
 	}{
 		{"debian13", "Not Configured ufw not installed", "1 Install UFW", false},
 		{"ubuntu2604", "Not Configured inactive", "1 Enable firewall" + p2, true},
-		{"active22", "Configured deny policy", "1 Disable firewall" + p2, false},
-		{"hardened", "Configured deny policy", "1 Disable firewall" + p2, false},
+		{"active22", "Configured deny policy", "1 Disable firewall" + p2 + l5, false},
+		{"hardened", "Configured deny policy", "1 Disable firewall" + p2 + l5, false},
 		{"allow-policy", "Partial allow policy", "1 Set deny policy" + p2 + d3, true},
 		{"lockout", "Partial ssh blocked", "1 Let SSH through" + p2 + d3, true},
 		{"lockout-at-start", "Not Configured enabled, not running", "1 Enable firewall" + p2, false},
@@ -62,11 +63,11 @@ func TestScreen(t *testing.T) {
 		{"denied", "Partial ssh blocked", "1 Repair firewall" + p2 + d3, false},
 		{"alpine324", "Not Configured ufw not installed", "1 Install UFW", false},
 		{"alpine-stock", "Not Configured ufw not installed", "1 Install UFW", false},
-		{"alpine-runlevel", "Partial off after restart", "1 Start ufw at boot" + p2 + d3, false},
-		{"unit-off", "Partial off after restart", "1 Start ufw at boot" + p2 + d3, false},
+		{"alpine-runlevel", "Partial off after restart", "1 Start ufw at boot" + p2 + d3 + l5, false},
+		{"unit-off", "Partial off after restart", "1 Start ufw at boot" + p2 + d3 + l5, false},
 		{"pve9", "Not Configured disabled", "", false},
 		{"pve9-drop", "Configured drop policy", "", false},
-		{"profiles", "Configured deny policy", "1 Disable firewall" + p2, false},
+		{"profiles", "Configured deny policy", "1 Disable firewall" + p2 + l5, false},
 	} {
 		for _, dryRun := range []bool{false, true} {
 			h, cfg := screenHost(t, tt.host)
@@ -603,9 +604,9 @@ func TestProxmox(t *testing.T) {
 // every host and the profiles' screen at 80x24 and at 80x40, in Unicode and
 // ASCII: as many lines at either height, the prompt on its last.
 func TestHeights(t *testing.T) {
-	want := map[string]int{"debian13": 20, "ubuntu2604": 30, "active22": 30, "hardened": 30, "allow-policy": 31, "lockout": 32,
+	want := map[string]int{"debian13": 20, "ubuntu2604": 30, "active22": 31, "hardened": 31, "allow-policy": 31, "lockout": 32,
 		"lockout-at-start": 30, "allowlist": 32, "blocklist": 34, "edit-2230": 31, "moved-2230": 32, "denied": 31, "alpine324": 20, "alpine-stock": 21,
-		"alpine-runlevel": 31, "unit-off": 31, "pve9": 17, "pve9-drop": 17, "profiles": 35, "sub-profiles": 16} // ufw installed: item 3, Trusted Interfaces, a line more
+		"alpine-runlevel": 32, "unit-off": 32, "pve9": 17, "pve9-drop": 17, "profiles": 36, "sub-profiles": 16} // ufw installed: item 3, Trusted Interfaces, a line more; SSH's plain allow on an active ufw: item 5, Limit SSH, another
 	for name, lines := range want {
 		host, keys, at, title := name, []string{"0"}, 0, "Firewall Configuration"
 		if name == "sub-profiles" {

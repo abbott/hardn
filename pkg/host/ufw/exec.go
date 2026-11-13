@@ -55,8 +55,8 @@ var (
 // Execute runs p's steps in order, stopping at the first that fails, then
 // reads "ufw status verbose" and checks it shows the plan's state: active
 // or not, the default policies, and every Need that p.After lets through
-// still let through (ErrVerify otherwise; an "Aborted" from ufw exits 0 and
-// is caught here). On any error the caller rolls back with
+// still let through, and after a limit every Need it limits Limited
+// (ErrVerify otherwise; an "Aborted" from ufw exits 0 and is caught here). On any error the caller rolls back with
 // Rollback(ctx, sys, report) while the session is still open. A done ctx is
 // refused before anything runs; a rollback after Ctrl-C must pass
 // context.WithoutCancel. Nothing runs for a NotApplicable plan. A caller
@@ -144,10 +144,14 @@ func verify(rep *Report, p Plan) error {
 	fw := p.firewall()
 	fw.Incoming = st.Incoming
 	rep.Coverage = Evaluate(st.Rules, fw, p.Needs)
+	limits := slices.ContainsFunc(p.Steps, func(s Step) bool { return s.Kind == StepLimit })
 	var missing []string
 	for i, c := range rep.Coverage {
-		if (i >= len(p.After) || p.After[i].Verdict.OK()) && !c.Verdict.OK() {
+		switch {
+		case (i >= len(p.After) || p.After[i].Verdict.OK()) && !c.Verdict.OK():
 			missing = append(missing, fmt.Sprintf("%s (%s %d) is %s by %q", c.Need.Why, c.Need.Family, c.Need.Port, c.Verdict, c.By))
+		case limits && i < len(p.After) && p.After[i].Verdict == Limited && c.Verdict != Limited: // PlanLimit's: the limit is there
+			missing = append(missing, fmt.Sprintf("%s (%s %d) is %s by %q, not limited", c.Need.Why, c.Need.Family, c.Need.Port, c.Verdict, c.By))
 		}
 	}
 	if len(missing) > 0 {

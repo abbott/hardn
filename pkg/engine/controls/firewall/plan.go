@@ -69,6 +69,7 @@ const (
 	codeInactive      = "UFW_INACTIVE"
 	codeBadProfile    = "UFW_BAD_PROFILE"
 	codeBadInterface  = "UFW_BAD_INTERFACE"
+	codeNoPlainAllow  = "UFW_NO_PLAIN_ALLOW"
 )
 
 // Plan is what Action does on the host in.Facts describe. ActionNone, the
@@ -97,6 +98,8 @@ func (c Incoming) Plan(ctx context.Context, sys host.System, in engine.Input) ([
 	case ActionDisable:
 		changes, err := steps.PlanUFWDisable(ctx, sys, in, ID)
 		return changes, refusal(ctx, sys, in, err)
+	case ActionLimitSSH:
+		return limit(ctx, sys, in)
 	case ActionSaveProfiles:
 		if _, err := profilesOf(in.Config); err != nil {
 			return nil, err

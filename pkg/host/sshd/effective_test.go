@@ -714,3 +714,59 @@ func TestEvaluateKeyFiles(t *testing.T) {
 		})
 	}
 }
+
+// penaltiesOn is sshd -T's persourcepenalties line with OpenSSH 10.0's
+// defaults (servconf.c: fill_default_server_options, dump_config).
+const penaltiesOn = "persourcepenalties crash:90 authfail:5 noauth:1 grace-exceeded:10 refuseconnection:10 max:600 min:15 " +
+	"max-sources4:65536 max-sources6:65536 overflow:permissive overflow6:permissive\n"
+
+// TestReadEffectivePenalties: PerSourcePenalties as sshd -T prints it, read
+// from a host: on, off, an sshd before 9.8 with no such line, and every
+// output that does not establish it.
+func TestReadEffectivePenalties(t *testing.T) {
+	for _, tc := range []struct {
+		name, out string
+		want      sshd.Penalties
+	}{
+		{"on, OpenSSH 10.0's defaults", base + penaltiesOn, sshd.PenaltiesOn},
+		{"on, OpenSSH 9.8's line", base + "persourcepenalties crash:90 authfail:5 noauth:1 grace-exceeded:20 max:600 min:15 max-sources4:65536 max-sources6:65536 overflow:permissive overflow6:permissive\n", sshd.PenaltiesOn},
+		{"on, mixed case as 10.4 prints keywords", base + "PerSourcePenalties crash:90 authfail:5\n", sshd.PenaltiesOn},
+		{"off", base + "persourcepenalties no\n", sshd.PenaltiesOff},
+		{"before 9.8: no line", base, sshd.PenaltiesNone},
+		{"a value hardn does not know", base + "persourcepenalties maybe\n", sshd.PenaltiesUnknown},
+		{"an empty value", base + "persourcepenalties \n", sshd.PenaltiesUnknown},
+		{"printed twice", base + "persourcepenalties no\n" + penaltiesOn, sshd.PenaltiesUnknown},
+		{"no line, and none of the settings sshd always prints", "port 22\nlistenaddress 0.0.0.0:22\n", sshd.PenaltiesUnknown},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h := hostfake.New(host.Options{})
+			h.AddDir(sshd.DropInDir, 0o755, 0, 0)
+			h.AddFile(sshd.MainConfig, []byte(sshd.IncludeLine+"\n"), 0o644, 0, 0)
+			h.Respond(hostfake.Response{Stdout: tc.out}, sshdT[0], sshdT[1:]...)
+			e, _, err := sshd.ReadEffective(context.Background(), h, sshd.EffectiveRequest{SSH: serviceUp})
+			if err != nil || e.Penalties != tc.want {
+				t.Errorf("Penalties = %d, %v; want %d", e.Penalties, err, tc.want)
+			}
+			checkReadOnly(t, h)
+		})
+	}
+	// sshd missing and sshd -T failing are errors; output that is not sshd's
+	// establishes nothing.
+	for name, r := range map[string]hostfake.Response{
+		"no sshd":                   {Err: host.ErrNotFound, ExitCode: -1},
+		"sshd -T fails":             {Stderr: "Missing privilege separation directory: /run/sshd\r\n", ExitCode: 255},
+		"nothing printed":           {},
+		"not a keyword and a value": {Stdout: "garbage\n"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			h := hostfake.New(host.Options{})
+			h.AddDir(sshd.DropInDir, 0o755, 0, 0)
+			h.AddFile(sshd.MainConfig, []byte(sshd.IncludeLine+"\n"), 0o644, 0, 0)
+			h.Respond(r, sshdT[0], sshdT[1:]...)
+			e, _, err := sshd.ReadEffective(context.Background(), h, sshd.EffectiveRequest{SSH: serviceUp})
+			if e.Penalties != sshd.PenaltiesUnknown || err == nil && (r.Err != nil || r.ExitCode != 0) {
+				t.Errorf("Penalties = %d, %v; want not established", e.Penalties, err)
+			}
+		})
+	}
+}

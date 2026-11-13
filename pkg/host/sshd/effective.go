@@ -235,6 +235,11 @@ type Effective struct {
 	// seen here.
 	AuthorizedKeysFile []string
 
+	// Penalties is sshd's PerSourcePenalties: whether it refuses, for a
+	// while, an address that keeps failing to log in (readPenalties). Match
+	// blocks do not set it (servconf.c: SSHCFG_GLOBAL).
+	Penalties Penalties
+
 	// Port is sshd's Port set. Where it listens is Listeners: a
 	// ListenAddress with a port of its own listens on a port not in Port.
 	Port                                                      Set
@@ -332,6 +337,7 @@ func Evaluate(in EffectiveInputs) (Effective, []Finding) {
 		*e.set(k) = readSet(kw, k)
 	}
 	e.StrictModes, _ = readSetting(kw, "strictmodes")
+	e.Penalties = readPenalties(kw)
 	for _, v := range kw["authorizedkeysfile"] {
 		e.AuthorizedKeysFile = append(e.AuthorizedKeysFile, strings.Fields(v)...)
 	}
@@ -542,6 +548,45 @@ func readUsePAM(kw map[string][]string) (s Setting, noPAM bool, why string) {
 	}
 	s, why = readSetting(kw, "usepam")
 	return s, false, why
+}
+
+// Penalties is sshd's PerSourcePenalties as sshd -T prints it.
+type Penalties uint8
+
+// The states of PerSourcePenalties.
+const (
+	// PenaltiesUnknown: sshd -T printed a persourcepenalties line hardn
+	// can't read, or more than one, or too little to tell that it has none.
+	PenaltiesUnknown Penalties = iota
+	// PenaltiesOn: sshd -T printed the penalties ("crash:90 authfail:5 ...").
+	PenaltiesOn
+	// PenaltiesOff: sshd -T printed "persourcepenalties no".
+	PenaltiesOff
+	// PenaltiesNone: this sshd has no PerSourcePenalties: OpenSSH before
+	// 9.8, which first had it (release notes of 9.8).
+	PenaltiesNone
+)
+
+// readPenalties is sshd -T's persourcepenalties. dump_config (servconf.c,
+// OpenSSH 9.8 and 10.0) always prints the line: "persourcepenalties no"
+// where they are off, else each penalty as "name:value", "crash:" first.
+// OpenSSH 9.7 has no such keyword and prints no line; as for usepam, no
+// line where sshd printed the settings it always prints is an sshd without
+// it, and no line beside none of those is Unknown: the output may not be
+// sshd's whole answer.
+func readPenalties(kw map[string][]string) Penalties {
+	vs := kw["persourcepenalties"]
+	switch {
+	case len(vs) == 0 && slices.ContainsFunc(settingKeys, func(k string) bool { return len(kw[k]) > 0 }):
+		return PenaltiesNone
+	case len(vs) != 1:
+		return PenaltiesUnknown
+	case strings.EqualFold(strings.TrimSpace(vs[0]), "no"):
+		return PenaltiesOff
+	case strings.HasPrefix(vs[0], "crash:"):
+		return PenaltiesOn
+	}
+	return PenaltiesUnknown
 }
 
 // readSet is accumulating keyword k of sshd -T's output (one line per

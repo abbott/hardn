@@ -139,6 +139,8 @@ func sshVariants() []sshHost {
 			h.ssh.log = ""
 			return h
 		}},
+		{name: bfSSHOff, note: "20-site.conf sets PerSourcePenalties no: sshd's own brute-force limit is off.", env: sudo, host: bfLimitOff},
+		{name: bfSSHOld, note: "An sshd before OpenSSH 9.8, as Debian 12's 9.2p1: no PerSourcePenalties.", env: sudo, host: bfLimitOld},
 		{name: "pve9-password", note: "pve9, root logged in by password.", env: map[string]string{"SSH_CONNECTION": applyConn}, host: func() *fakeHost {
 			return usersOn(pve9Platform, false).rootLike(syntheticHash).withLog("password", "root", 0)
 		}},

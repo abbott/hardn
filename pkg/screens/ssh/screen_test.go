@@ -536,6 +536,8 @@ func TestMatchModel(t *testing.T) {
 // cells; over 24 its top scrolls off.
 func TestHeights(t *testing.T) {
 	want := map[string]int{"match-allows": 25, "not-read": 25, "legacy-main": 26, "legacy-v032": 27}
+	want := map[string]int{"match-allows": 25, "legacy-main": 26, "legacy-v032": 27} // with Brute-Force Limit's row; not-read has no section
+
 	for _, rows := range []int{24, 40} {
 		for _, unicode := range []bool{true, false} {
 			lang := map[bool]string{true: "LANG=en_US.UTF-8", false: "LANG=C"}[unicode]
@@ -550,6 +552,7 @@ func TestHeights(t *testing.T) {
 				w, ok := want[name]
 				if !ok {
 					w = 24 // 23 before item 6, SSH keys (gallery-keys.md, decision 1)
+					w = 24
 				}
 				if got := drawn(plain); len(got) != 1 || got[0] != w {
 					t.Errorf("%s at 80x%d, unicode %v: %v lines, want %d", name, rows, unicode, got, w)

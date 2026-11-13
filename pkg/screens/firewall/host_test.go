@@ -374,6 +374,17 @@ func (h *fwHost) status() string {
 	return b.String()
 }
 
+// plain is the index of the rule on spec ("22/tcp") from anywhere, with no
+// application or interface, that action would replace: the allow for a
+// limit, the limit for an allow; -1 for none.
+func (h *fwHost) plain(action, spec string) int {
+	other := map[string]string{"limit": "allow", "allow": "limit"}[action]
+	port := strings.TrimSuffix(spec, "/tcp")
+	return slices.IndexFunc(h.rules, func(r fwRule) bool {
+		return r.verb() == other && r.port == port && r.src == "" && r.app == "" && r.iface == ""
+	})
+}
+
 // listeners are sshd's: every port on [::] and 0.0.0.0.
 func (h *fwHost) listeners() []string { return listenersOn(h.ports) }
 
@@ -456,6 +467,18 @@ func (h *fwHost) answer(t *testing.T, argv []string) hostfake.Response {
 	case cmd == "ufw disable":
 		h.active, h.stale = false, false
 		return hostfake.Response{Stdout: "Firewall stopped and disabled on system startup\n"}
+	case len(argv) == 3 && (argv[1] == "limit" || argv[1] == "allow") && h.plain(argv[1], argv[2]) >= 0:
+		// set_rule replaces a saved rule of the same tuple and another action
+		// in its place, "Rule updated" (ufw.md §3): a limit over the plain
+		// allow, and the allow back over it.
+		h.rules = slices.Clone(h.rules)
+		h.rules[h.plain(argv[1], argv[2])].action = argv[1]
+		return hostfake.Response{Stdout: "Rule updated\nRule updated (v6)\n"}
+	case len(argv) == 3 && argv[1] == "allow" && h.plain("limit", argv[2]) >= 0: // the allow is there: a limit's undo whose limit never ran
+		return hostfake.Response{Stdout: "Skipping adding existing rule\nSkipping adding existing rule (v6)\n"}
+	case len(argv) == 3 && argv[1] == "limit":
+		h.rules = append(h.rules, fwRule{port: strings.TrimSuffix(argv[2], "/tcp"), action: "limit"})
+		return hostfake.Response{Stdout: "Rule added\nRule added (v6)\n"}
 	case len(argv) == 3 && argv[1] == "allow":
 		h.rules = append(h.rules, fwRule{port: strings.TrimSuffix(argv[2], "/tcp")})
 		return hostfake.Response{Stdout: "Rule added\nRule added (v6)\n"}

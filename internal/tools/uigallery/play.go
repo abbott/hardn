@@ -457,6 +457,8 @@ type session struct {
 	mocks    map[string]screen.Mock
 	sequence string
 	sim      *simulator
+	// quiet: a listing's session (bfRun): writeNote writes nothing.
+	quiet bool
 
 	mu         sync.Mutex
 	engineRuns []*recorder

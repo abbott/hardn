@@ -319,6 +319,7 @@ var errorCodes = []Entry{
 	is("UFW_INACTIVE", ufw.ErrInactive),
 	is("UFW_BAD_PROFILE", ufw.ErrBadProfile),
 	is("UFW_BAD_INTERFACE", ufw.ErrBadInterface),
+	is("UFW_NO_PLAIN_ALLOW", ufw.ErrNoPlainAllow),
 
 	// Packages (pkg/host/packages): an OtherPackagesError and a KernelError
 	// are their sentinels'.

@@ -63,6 +63,7 @@ func mainView(r firewallctl.Reading, status component.StatusList, f detect.Facts
 		return v
 	}
 	v.UFW, v.SSH, v.Container = ufwRows(r, f), sshRows(r), r.Container
+	v.LimitSSH = len(r.LimitPorts()) > 0
 	if r.State.Installed {
 		v.Rules = ruleRows(r)
 		if len(r.Profiles) > 0 {
@@ -73,6 +74,21 @@ func mainView(r firewallctl.Reading, status component.StatusList, f detect.Facts
 		}
 	}
 	return v
+}
+
+// limitRules are the rules Limit SSH turns into limits, as the Rules section
+// names them: each port's ("22/tcp"), then, with ufw's IPv6 on, each port's
+// IPv6 rule ("22/tcp (v6)"), in ufw status' order.
+func limitRules(r firewallctl.Reading) []string {
+	var v4, v6 []string
+	for _, p := range r.LimitPorts() {
+		spec := strconv.Itoa(int(p)) + "/tcp"
+		v4 = append(v4, spec)
+		if r.State.IPv6 {
+			v6 = append(v6, spec+" (v6)")
+		}
+	}
+	return append(v4, v6...)
 }
 
 // interfaceRows are the trusted interfaces' rows: each one, every port let

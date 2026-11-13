@@ -242,6 +242,7 @@ var sentinels = map[string]error{
 	"ufw.ErrBlocks":                   ufw.ErrBlocks,
 	"ufw.ErrEnabledMismatch":          ufw.ErrEnabledMismatch,
 	"ufw.ErrInactive":                 ufw.ErrInactive,
+	"ufw.ErrNoPlainAllow":             ufw.ErrNoPlainAllow,
 	"ufw.ErrListenersUnknown":         ufw.ErrListenersUnknown,
 	"ufw.ErrNotApplicable":            ufw.ErrNotApplicable,
 	"ufw.ErrNotInstalled":             ufw.ErrNotInstalled,

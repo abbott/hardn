@@ -68,10 +68,13 @@ const stockMain = sshd.IncludeLine + "\n\nUsePAM yes\n"
 // through ssh.socket when socket is set, or OpenRC's sshd; ufw is active
 // and allows 22 unless set otherwise; sudo has its stock includedir.
 type fakeHost struct {
-	f          *hostfake.System
-	platform            // what the release ships
-	allowed    []uint16 // ufw's allow rules, both families
-	inactive   bool     // ufw stopped; saveRules writes ENABLED=no for it
+	f        *hostfake.System
+	platform          // what the release ships
+	allowed  []uint16 // ufw's allow rules, both families
+	inactive bool     // ufw stopped; saveRules writes ENABLED=no for it
+	// oldSSHD: sshd is older than OpenSSH 9.8 (Debian 12's 9.2), which has
+	// no PerSourcePenalties, so sshd -T prints no such line.
+	oldSSHD    bool
 	bound      []string // what ss shows of sshd's (or ssh.socket's) sockets
 	configured []string // ssh.socket's Listen, as the last daemon-reload set it
 	// failReloads is how many reloads of ssh.service to refuse, as
@@ -500,7 +503,38 @@ func (h *fakeHost) sshdT(main []byte, drops []sshd.File) (out string, listeners 
 			b.WriteString(k + " " + v + "\n")
 		}
 	}
+	b.WriteString(penaltiesLine(sshd.ReadOrder(main, drops), h.oldSSHD))
 	return b.String(), listeners
+}
+
+// penaltiesLine is sshd -T's persourcepenalties line for the lines sshd
+// reads, by servconf.c (OpenSSH 9.8 and 10.0): "no" where the first yes or
+// no outside a penalty is no and no line sets a penalty (one does turn them
+// on), else the penalties, here OpenSSH 10.0's defaults whatever the lines
+// set. "" before OpenSSH 9.8 (old), which has no such keyword.
+func penaltiesLine(lines []sshd.Line, old bool) string {
+	if old {
+		return ""
+	}
+	first, sets := "", false
+	for _, l := range lines {
+		if l.Match != nil || l.Keyword != "persourcepenalties" {
+			continue
+		}
+		for _, a := range l.Args {
+			switch a = strings.ToLower(a); {
+			case a != "yes" && a != "no":
+				sets = true
+			case first == "":
+				first = a
+			}
+		}
+	}
+	if first == "no" && !sets {
+		return "persourcepenalties no\n"
+	}
+	return "persourcepenalties crash:90 authfail:5 noauth:1 grace-exceeded:10 refuseconnection:10 max:600 min:15 " +
+		"max-sources4:65536 max-sources6:65536 overflow:permissive overflow6:permissive\n"
 }
 
 // listening is the listeners the installed files configure, by the model.
