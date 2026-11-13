@@ -13,7 +13,8 @@
     "platform": {
       "distro": "unknown",
       "version": "",
-      "support": "unknown"
+      "support": "unknown",
+      "supportEnds": ""
     },
     "init": "unknown",
     "ssh": "unknown",

@@ -92,6 +92,7 @@ func limitRules(r firewallctl.Reading) []string {
 	}
 	return append(v4, v6...)
 }
+
 // PortRows are the Ports section's rows (docs/engine/screen-ports.md): the
 // control's reading in the view's words. A program's name is the host's
 // word, made safe to show here (logview.Safe). The gallery's mocks draw

@@ -1,5 +1,18 @@
-# hardn (unreleased)
+# hardn (next release)
+
+> **Draft: every line is proposed until the maintainer approves the words.** At the release candidate this file becomes `docs/releases/v<x.y.z>.md`, the release's whole body, and this note is cut.
 
 ## New
 
+- **The main menu warns when a release's vendor support ends within 90 days, or has ended**, and names the release to upgrade to. Every plan carries the same warning (`PLATFORM_SUPPORT_ENDS`, `PLATFORM_SUPPORT_ENDED`). It changes nothing hardn does. Proxmox VE 9 has no date yet, so no warning. The dates are in docs/platforms.md.
+- **The JSON document has `host.platform.supportEnds`**, the date hardn holds for the release.
+- **hardn can tell you when a newer release is out.** Set `checkReleases: true` in hardn.yml, and the main menu's first line says so, such as "v0.9.1 available". It is off by default. On, hardn asks GitHub for the latest release's tag at most once a day and sends nothing about the host. See [docs/configuration.md](../configuration.md).
+- **Firewall shows each listening port against the rules**: open, let in from some sources, blocked, or local only, with the program. A port the rules let in with nothing listening is flagged. It changes nothing.
+- **System Details lists the listening ports**, and `hardn system-details` prints them. Run it as root to see every program. `--output json` doesn't include them.
+- **SSH Login shows sshd's own brute-force limit.** The row "Brute-Force Limit" reads On, Off (with the file that turns it off) or "Not available" on an sshd before OpenSSH 9.8. It changes nothing.
+- **Firewall can limit repeated SSH connections (item 5, Limit SSH).** On an active ufw that allows SSH from anywhere, it turns that rule into ufw's limit: an address that opens 6 or more connections in 30 seconds is refused, yours included. `ufw allow <port>/tcp` undoes it. Not on Rocky, Alma or RHEL, and not part of Run All.
+- **User Management has an Account Review (item 3).** It lists accounts with an empty password, a password that never expires, or no login in 90 days, each with the command to run. It changes nothing.
+- **An empty password shows on the main menu** as "Empty password" under User, and lowers the security level. Its finding code is `USERS_EMPTY_PASSWORD`.
+- **SSH Login lists every SSH key sshd reads, by account (item 6, SSH keys).** It marks a weak key (DSA, or RSA under 2048 bits), a key more than one account holds, and a key this sshd refuses. A key file it can't read, and lines that are no key, are shown as such. It changes nothing.
+- **`hardn system-details --output markdown` prints a report to hand over**, for an auditor or a manager: the host and its support level, the risk level and why, each control's status with its evidence, the findings, and System Details. It is one Markdown document on stdout: save it with `> web-01.md`. It changes nothing and exits 0. Run it with `sudo` or `doas`: without root, what only root can read shows Unknown, and the report says so. Unlike the other forms of `system-details`, it reads hardn.yml, for the DNS row.
 - **The audit log records confirmations and rollbacks.** Each `hardn confirm` and `hardn rollback` (`<id>`, `--abandon`, `--boot`) adds a line to `/var/log/hardn/audit.jsonl` with who ran it, the change's id and how it ended, refused and failed runs included. The rollback of a change nobody confirmed is recorded too. See [output.md](../reference/output.md) §4.1.
