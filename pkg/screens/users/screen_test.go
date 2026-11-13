@@ -848,11 +848,12 @@ func (h *hooked) Read(b []byte) (int, error) {
 
 // TestHeights: each host's screen at 80x24 and 80x40, in Unicode and ASCII,
 // is as many lines at either height, the prompt on its last (the gallery's
-// TestUsersHeights, its counts gallery-users.md §4's).
+// TestUsersHeights, its counts gallery-users.md §4's, and a line each for
+// Account Review's item).
 func TestHeights(t *testing.T) {
-	want := map[string]int{"debian13": 26, "ubuntu2604": 26, "alpine323": 26, "legacy": 19, "hardn": 19, "second-admin": 26, "one-key": 26,
-		"sudo-password": 19, "alpine-no-rule": 18, "alpine-locked": 33, "yml-missing": 26, "not-read": 24, "pve9": 15, "no-sudo": 18,
-		"root-login": 19, "debian-nopam": 26, "alpine-stray": 26, "group-home": 26}
+	want := map[string]int{"debian13": 27, "ubuntu2604": 27, "alpine323": 27, "legacy": 20, "hardn": 20, "second-admin": 27, "one-key": 27,
+		"sudo-password": 20, "alpine-no-rule": 19, "alpine-locked": 34, "yml-missing": 27, "not-read": 25, "pve9": 16, "no-sudo": 19,
+		"root-login": 20, "debian-nopam": 27, "alpine-stray": 27, "group-home": 27}
 	// The user list, george's screen and george's keys, drawn second,
 	// third and fourth.
 	draws := map[string][]string{"select": {"1", "0", "0"}, "manage": {"1", "1", "0", "0", "0"}, "keys": {"1", "1", "3", "0", "0", "0", "0"}}

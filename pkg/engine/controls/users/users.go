@@ -79,6 +79,11 @@ const (
 	// ("!") while sshd does not use PAM, so that sshd refuses it before
 	// any method, keys included (next/p4-locked): it is not counted.
 	CodeLocked = "USERS_LOCKED"
+	// CodeEmptyPassword: an account, any uid, whose password field is
+	// empty (accounts.PasswordEmpty; "!" and "*" are not), in every
+	// state: no password is asked of it where one would be (shadow(5)).
+	// Not made where ShadowFile is not read.
+	CodeEmptyPassword = "USERS_EMPTY_PASSWORD"
 )
 
 // MinUID is the first uid of a user account: Figma's "UID ≥ 1000" and
@@ -158,10 +163,15 @@ func (Admin) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 	}
 	var st engine.Status
 	var cs []candidate
+	sh, shErr := accounts.ReadShadow(ctx, sys)
 	seen := map[string]bool{}
 	for _, u := range db.Users {
 		first := !seen[u.Name]
 		seen[u.Name] = true
+		if first && shErr == nil && sh.PasswordOf(u) == accounts.PasswordEmpty {
+			_, at := sh.LockOf(u)
+			st.Findings = append(st.Findings, engine.Finding{Code: CodeEmptyPassword, Detail: u.Name + " has an empty password", Source: at})
+		}
 		switch {
 		case !first:
 		case u.UID == 0 && u.Name != "root":
@@ -184,7 +194,7 @@ func (Admin) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 	}
 	var lr locks
 	if len(cs) > 0 {
-		lr = readLocks(ctx, sys, f, cs)
+		lr = readLocks(ctx, sys, f, cs, sh, shErr)
 	}
 	st, err = verdict(st, f, tools, cs, lr)
 	st.Evidence = evidence(tools, cs, lr, err)
@@ -199,14 +209,14 @@ type locks struct {
 	pamErr error    // sshd's configuration not read
 }
 
-// readLocks reads each candidate's lock (ShadowFile, else its PasswdFile
+// readLocks reads each candidate's lock from sh, ShadowFile as Check read
+// it, err why it did not (ShadowFile, else its PasswdFile
 // field: accounts.Shadow.LockOf) and, only where one is locked or not
 // read, sshd's PAM as the SSH rows read it (ssh.ReadPAM); it sets each
 // candidate's refused (ssh.LockedOut) and, where that is not established,
 // its login Unknown with the reason.
-func readLocks(ctx context.Context, sys host.System, f detect.Facts, cs []candidate) locks {
+func readLocks(ctx context.Context, sys host.System, f detect.Facts, cs []candidate, sh accounts.Shadow, err error) locks {
 	var lr locks
-	sh, err := accounts.ReadShadow(ctx, sys)
 	lr.err = err
 	uses := detect.Unknown
 	for i := range cs {

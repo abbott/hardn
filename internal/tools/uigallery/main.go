@@ -642,6 +642,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == releasePrefix {
 		return releaseListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == accountsPrefix {
+		return accountsListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -655,6 +658,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(configUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(eolUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(releaseUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(accountsUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

@@ -1,0 +1,84 @@
+# Golden file of TestAccountsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts not-read␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host whose accounts hardn can't␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, here /etc/tcb: the screen says why and lists nothing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mAccounts␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156maccounts: /etc/tcb exists: getspnam may read it before␛[m$
+      ␛[38;2;129;134;156m/etc/shadow.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  accounts not-read --------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. A host whose accounts hardn can't$
+# read, here /etc/tcb: the screen says why and lists nothing.$
+$
+# Account Review ###############################################$
+$
+  Accounts -----------------------------------------------------$
+$
+   -  accounts: /etc/tcb exists: getspnam may read it before$
+      /etc/shadow.$
+$
+   0) Return$
+$
+    > Option [0 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts not-read␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host whose accounts hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcan't read, here /etc/tcb: the screen says why and lists␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mAccounts␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156maccounts: /etc/tcb exists: getspnam may read it before␛[m$
+      ␛[38;2;129;134;156m/etc/shadow.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156maccounts not-read␛[m ␛[38;2;22;24;29m--------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host whose accounts hardn can't␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread, here /etc/tcb: the screen says why and lists nothing.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+  ␛[1;38;2;129;134;156mAccounts␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156maccounts: /etc/tcb exists: getspnam may read it before␛[m$
+      ␛[38;2;129;134;156m/etc/shadow.␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$

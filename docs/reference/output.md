@@ -413,6 +413,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `DETECT_NO_SIGNAL` | 1 | detection: no signal established the fact |
 | `ACCOUNTS_MALFORMED` | 1 | a line of /etc/passwd or /etc/group is not in a form hardn knows ([check-users.md](../engine/check-users.md)) |
 | `ACCOUNTS_TCB` | 1 | /etc/tcb exists, whose files getspnam may read before /etc/shadow: an account's lock is not established ([check-users.md](../engine/check-users.md) §7) |
+| `ACCOUNTS_NO_LOGIN_RECORD` | 1 | the host has neither /var/log/lastlog nor lastlog2's database, so no account's last login is read; Account Review says "This host keeps no login record" ([screen-accounts.md](../engine/screen-accounts.md)) |
+| `ACCOUNTS_LOGINS_MALFORMED` | 1 | lslogins' output is not in a form hardn knows, or lacks an account, so no account's last login is established ([screen-accounts.md](../engine/screen-accounts.md)) |
 | `SYMLINK_IN_UNSAFE_DIRECTORY` | 1 | refusing a symlink in a directory another user can change |
 | `SYMLINK_REFUSED` | 1 | refusing a symlink |
 | `HARD_LINK_REFUSED` | 1 | refusing a file with other hard links, in a directory another user can change |
@@ -494,6 +496,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `USERS_NOPASSWD` | a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass) ([check-users.md](../engine/check-users.md)) |
 | `USERS_RULE_NOT_READ` | an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root ([check-users.md](../engine/check-users.md)) |
 | `USERS_UID0` | an account other than root has uid 0, so it is root ([check-users.md](../engine/check-users.md)) |
+| `USERS_EMPTY_PASSWORD` | an account's password field is empty, so no password is asked of it where one would be; a locked field (`!`) and `*` are not empty ([screen-accounts.md](../engine/screen-accounts.md)) |
 | `APPARMOR_GLOBAL_MODE_UNKNOWN` | AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established ([check-apparmor.md](../engine/check-apparmor.md)) |
 | `APPARMOR_BOOT_UNKNOWN` | AppArmor's service is in a state that does not say whether it loads the profiles at the next boot ([check-apparmor.md](../engine/check-apparmor.md)) |
 | `UPDATES_APT_VALUE_UNKNOWN` | an APT::Periodic value in a form hardn does not rank, so whether apt's daily job runs is not established ([check-updates.md](../engine/check-updates.md)) |

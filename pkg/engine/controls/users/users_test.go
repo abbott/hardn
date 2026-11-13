@@ -692,7 +692,7 @@ func TestLocked(t *testing.T) {
 		{name: "alpine: !!", site: vm(lock("!!")), state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
 		{name: "alpine: ! before a hash", site: vm(lock("!" + aliceHash)), state: engine.NotConfigured, want: "non-root, locked", codes: []string{users.CodeLocked}},
 		{name: "alpine: a hash", site: vm(lock(aliceHash)), state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
-		{name: "alpine: an empty field", site: vm(lock("")), state: engine.Configured, want: "non-root, doas", codes: []string{noPass}},
+		{name: "alpine: an empty field", site: vm(lock("")), state: engine.Configured, want: "non-root, doas", codes: []string{users.CodeEmptyPassword, noPass}},
 		{name: "alpine: alice locked, bob may log in", site: site{plat: a, users: []string{aliceSh, "bob:x:1001:1001::/home/bob:/bin/sh"},
 			members: map[string]string{"wheel": "root,alice,bob"}, locks: lock("!"), sshd: sshdNoPAM},
 			state: engine.Configured, want: "non-root, doas", codes: []string{users.CodeLocked}},
@@ -808,14 +808,15 @@ func TestLocked(t *testing.T) {
 		}
 	}
 
-	// No lock decides: neither sshd -T nor, with root alone, /etc/shadow.
+	// No lock decides: no sshd -T. /etc/shadow is read whatever the
+	// accounts, for USERS_EMPTY_PASSWORD.
 	for _, s := range []site{vm(lock("*")), {plat: a, sshd: sshdNoPAM}} {
 		sys, h := s.build(t)
 		if _, err := (users.Admin{}).Check(context.Background(), sys, s.plat.facts); err != nil {
 			t.Fatal(err)
 		}
 		for _, c := range h.Calls() {
-			if c.Op == "run" && sshdT(c.Argv) || len(s.users) == 0 && c.Path == accounts.ShadowFile {
+			if c.Op == "run" && sshdT(c.Argv) {
 				t.Errorf("%v", c)
 			}
 		}

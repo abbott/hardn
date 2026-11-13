@@ -469,6 +469,9 @@ var errorCodes = []Entry{
 	is("ACCOUNTS_MALFORMED", accounts.ErrMalformed).what("a line of /etc/passwd or /etc/group is not in a form hardn knows"),
 	// next/p4-locked: /etc/tcb, read before /etc/shadow.
 	is("ACCOUNTS_TCB", accounts.ErrTCB).what("/etc/tcb exists, whose files getspnam may read before /etc/shadow: an account's lock is not established"),
+	// Account Review's login record (account hygiene).
+	is("ACCOUNTS_NO_LOGIN_RECORD", accounts.ErrNoLoginRecord).what("the host has neither /var/log/lastlog nor lastlog2's database, so no account's last login is read"),
+	is("ACCOUNTS_LOGINS_MALFORMED", accounts.ErrLogins).what("lslogins' output is not in a form hardn knows, or lacks an account, so no account's last login is established"),
 
 	// The seam (pkg/host): ErrSymlinkParent wraps ErrSymlink, and a
 	// *revert.LockedError wraps ErrLocked, so both come first above.
@@ -565,6 +568,7 @@ var findingCodes = []Entry{
 	finding(users.CodeNoPassword, "a user account (uid 1000 or more) with a login shell becomes root without a password (sudo's NOPASSWD, doas's nopass)"),
 	finding(users.CodeRuleNotRead, "an elevation rule or sudo Defaults hardn does not read may decide whether a user account becomes root"),
 	finding(users.CodeUID0, "an account other than root has uid 0, so it is root"),
+	finding(users.CodeEmptyPassword, "an account's password field is empty, so no password is asked of it where one would be"),
 	// The AppArmor control's own (next/p4-check-apparmor).
 	finding(apparmor.CodeGlobalModeUnknown, "AppArmor's global mode is kill or unconfined, which hardn does not rank, so what the profiles enforce is not established"),
 	finding(apparmor.CodeBootUnknown, "AppArmor's service is in a state that does not say whether it loads the profiles at the next boot"),

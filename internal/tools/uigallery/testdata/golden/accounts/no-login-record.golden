@@ -1,0 +1,116 @@
+# Golden file of TestAccountsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts no-login-record␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host with no login record, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine: the last section says so. The other two are read from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshadow as anywhere.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcarol␛[m                ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mThis host keeps no login record␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  accounts no-login-record -------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. A host with no login record, as$
+# Alpine: the last section says so. The other two are read from$
+# shadow as anywhere.$
+$
+# Account Review ###############################################$
+$
+  Empty password -----------------------------------------------$
+$
+  [ ] carol                Run passwd -l carol$
+$
+  Password never expires ---------------------------------------$
+$
+   -  None$
+$
+  No login in 90 days ------------------------------------------$
+$
+   -  This host keeps no login record$
+$
+   0) Return$
+$
+    > Option [0 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts no-login-record␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host with no login record, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine: the last section says so. The other two are read␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom shadow as anywhere.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcarol␛[m$
+      ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mThis host keeps no login record␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156maccounts no-login-record␛[m ␛[38;2;22;24;29m-------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host with no login record, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAlpine: the last section says so. The other two are read from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshadow as anywhere.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m-----------------------------------------------␛[m$
+$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mcarol␛[m                ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m---------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mThis host keeps no login record␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
