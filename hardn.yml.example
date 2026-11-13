@@ -7,6 +7,7 @@ username: ""                      # The user -c creates, and User Management's a
 dryRun: false                     # Preview changes without applying them
 enableBackups: true               # Backup files before modifying them
 backupPath: "/var/backups/hardn"  # Path to store backups
+checkReleases: false              # true: ask GitHub for the latest release's tag, at most once a day
 
 #################################################
 # Network Configuration

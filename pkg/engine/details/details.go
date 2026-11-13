@@ -7,6 +7,8 @@
 //     reads them (pkg/engine/header), and /proc/sys/kernel/osrelease;
 //   - Host and IPs: the hostname, likewise, and every global address in both
 //     families, `ip -o addr show scope global`;
+//   - Listening Ports, after P-17's sections were set (ports.go): every
+//     listening socket, `ss -Htlnp` then `ss -Hulnp`;
 //   - Users: uid 1000 and up, but nobody and nfsnobody, each with what lets
 //     them administer, as the users check reads it (users.Elevation);
 //   - CPU and Load: /proc/cpuinfo and /proc/loadavg;
@@ -36,8 +38,10 @@ import (
 
 // Report is what Read read of the host, in P-17's order.
 type Report struct {
-	OS     OSKernel
-	Host   HostIPs
+	OS   OSKernel
+	Host HostIPs
+	// Ports are the listening sockets, drawn after Host and IPs.
+	Ports  Ports
 	Users  Users
 	CPU    CPU
 	Disk   Disk
@@ -90,6 +94,7 @@ func read(ctx context.Context, sys host.System, f detect.Facts, b bounds) Report
 	return Report{
 		OS:     readOS(ctx, sys, f),
 		Host:   readHost(ctx, sys),
+		Ports:  ReadPorts(ctx, sys, users.Root),
 		Users:  users,
 		CPU:    readCPU(ctx, sys),
 		Disk:   readDisk(ctx, sys),

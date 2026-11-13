@@ -62,19 +62,42 @@ func (s *sshSim) answer(h *fakeHost, argv []string) (hostfake.Response, bool) {
 			main, drops := h.files(argv[slices.Index(argv, "-f")+1])
 			m := matched(main, drops, argv[i+1])
 			out, _ := h.sshdT(m, drops)
-			// requiredrsasize, which the model does not print: the first
-			// value, OpenSSH 9.1's default 1024 where none is set.
-			size := strconv.Itoa(authkeys.MinRSABits)
-			for _, l := range sshd.ReadOrder(m, drops) {
-				if l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0 {
-					size = l.Args[0]
-					break
-				}
+			return hostfake.Response{Stdout: out + rsaSizeLine(m, drops)}, true
+		}
+		// sshd -T alone, on a host whose files set RequiredRSASize: the
+		// model's output and that line, for the SSH Keys screen. Any other
+		// host's is the fake host's own, which prints none, as before
+		// OpenSSH 9.1.
+		if i := slices.Index(argv, "-f"); slices.Contains(argv, "-T") && i >= 0 && i+1 < len(argv) && argv[i+1] == sshd.MainConfig {
+			if main, drops := h.files(sshd.MainConfig); rsaSizeSet(main, drops) {
+				out, _ := h.sshdT(main, drops)
+				return hostfake.Response{Stdout: out + rsaSizeLine(main, drops)}, true
 			}
-			return hostfake.Response{Stdout: out + "requiredrsasize " + size + "\n"}, true
 		}
 	}
 	return hostfake.Response{}, false
+}
+
+// rsaSizeSet reports whether a line outside a Match block sets
+// RequiredRSASize.
+func rsaSizeSet(main []byte, drops []sshd.File) bool {
+	return slices.ContainsFunc(sshd.ReadOrder(main, drops), func(l sshd.Line) bool {
+		return l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0
+	})
+}
+
+// rsaSizeLine is sshd -T's requiredrsasize line over main and drops: the
+// first value outside a Match block, OpenSSH 9.1's default 1024 where none
+// is set.
+func rsaSizeLine(main []byte, drops []sshd.File) string {
+	size := strconv.Itoa(authkeys.MinRSABits)
+	for _, l := range sshd.ReadOrder(main, drops) {
+		if l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0 {
+			size = l.Args[0]
+			break
+		}
+	}
+	return "requiredrsasize " + size + "\n"
 }
 
 // matched is main with the directives of the Match blocks spec's connection

@@ -12,6 +12,7 @@
   "EnableBackups": false,
   "BackupPath": "/var/backups/hardn",
   "ConfirmTimeout": "",
+  "CheckReleases": false,
   "Nameservers": null,
   "SshPort": 22,
   "PermitRootLogin": true,

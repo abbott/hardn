@@ -110,3 +110,48 @@ func btoi(b bool) int {
 	}
 	return 0
 }
+
+// TestNoticeOf: the main menu's end-of-support notice is none before 90
+// days to the release's last day, "ends" up to that day and "ended" after
+// it, for good; it names the newest supported release to upgrade to, none
+// from that release; says that hardn refuses every change where the
+// engine's gate does, and only there; and is none for a release with no
+// date or no row. It reads the platform and the day alone.
+func TestNoticeOf(t *testing.T) {
+	classify := func(id, v string) detect.Platform {
+		return detect.Classify(detect.OSRelease{ID: id, VersionID: v}, detect.Proxmox{Installed: detect.No})
+	}
+	for _, tt := range []struct {
+		p     detect.Platform
+		today string
+		want  *screen.Alert
+	}{
+		{classify("alpine", "3.22.4"), "2027-01-30", nil},
+		{classify("alpine", "3.22.4"), "2027-01-31", &screen.Alert{Title: "Alpine 3.22 support ends 2027-05-01", Fix: "Upgrade to Alpine 3.24."}},
+		{classify("alpine", "3.22.4"), "2027-05-01", &screen.Alert{Title: "Alpine 3.22 support ends 2027-05-01", Fix: "Upgrade to Alpine 3.24."}},
+		{classify("alpine", "3.22.4"), "2027-05-02", &screen.Alert{Title: "Alpine 3.22 support ended 2027-05-01", Fix: "Upgrade to Alpine 3.24."}},
+		{classify("alpine", "3.22.4"), "2031-01-01", &screen.Alert{Title: "Alpine 3.22 support ended 2027-05-01", Fix: "Upgrade to Alpine 3.24."}},
+		{classify("alpine", "3.24.1"), "2028-05-30", &screen.Alert{Title: "Alpine 3.24 support ends 2028-06-01"}},
+		{classify("alpine", "3.20.9"), "2026-11-13", &screen.Alert{Title: "Alpine 3.20 support ended 2026-04-01", Why: screen.OutOfScopeRefused, Fix: "Upgrade to Alpine 3.24."}},
+		{classify("ubuntu", "22.04"), "2027-05-31", &screen.Alert{Title: "Ubuntu 22.04 support ends May 2027", Fix: "Upgrade to Ubuntu 26.04."}},
+		{classify("ubuntu", "22.04"), "2027-06-01", &screen.Alert{Title: "Ubuntu 22.04 support ended May 2027", Fix: "Upgrade to Ubuntu 26.04."}},
+		{classify("rocky", "9.8"), "2032-05-01", &screen.Alert{Title: "Rocky Linux 9 support ends 2032-05-31", Fix: "Upgrade to Rocky Linux 10."}},
+		{classify("almalinux", "9.8"), "2032-06-01", &screen.Alert{Title: "AlmaLinux 9 support ended 2032-05-31", Fix: "Upgrade to AlmaLinux 10."}},
+		{classify("rhel", "10.3"), "2035-05-01", &screen.Alert{Title: "RHEL 10 support ends 2035-05-31"}},
+		{detect.Platform{Distro: detect.DistroProxmox, Version: "8", Support: detect.OutOfScope, Ends: "2026-08"}, "2026-11-13",
+			&screen.Alert{Title: "Proxmox VE 8 support ended August 2026", Why: screen.OutOfScopeRefused, Fix: "Upgrade to Proxmox VE 9."}},
+		{detect.Platform{Distro: detect.DistroProxmox, Version: "9", Support: detect.Supported}, "2040-01-01", nil},
+		{classify("alpine", "3.19.9"), "2031-01-01", nil},
+		{classify("ubuntu", "25.10"), "2031-01-01", nil},
+		{detect.Platform{}, "2031-01-01", nil},
+	} {
+		today, err := time.Parse(time.DateOnly, tt.today)
+		if err != nil {
+			t.Fatal(err)
+		}
+		got := output.NoticeOf(tt.p, today)
+		if (got == nil) != (tt.want == nil) || got != nil && *got != *tt.want {
+			t.Errorf("%s %s on %s: %+v, want %+v", tt.p.Distro, tt.p.Version, tt.today, got, tt.want)
+		}
+	}
+}

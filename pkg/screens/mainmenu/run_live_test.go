@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
@@ -38,6 +39,10 @@ const clearScreen = term.ClearSequence
 
 // ttyEnv is a terminal 80 columns wide, without colour (NO_COLOR): the
 // main menu clears on it.
+// statusDay is the clock the status is read with, so that no host's
+// end-of-support notice appears as the real clock nears its release's date.
+func statusDay() time.Time { return time.Date(2026, 11, 13, 12, 0, 0, 0, time.UTC) }
+
 func ttyEnv() term.Env {
 	return term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80,
 		Environ: []string{"TERM=xterm-256color", "NO_COLOR=1"}})
@@ -239,7 +244,7 @@ func TestLiveStatusOnHosts(t *testing.T) {
 			}
 			before := len(f.Calls())
 			m := liveMenu(t, plainEnv(), func(ctx context.Context) (screen.MainMenu, error) {
-				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
+				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
 			}, "q")
 			out, _, ended := session(t, func() { show(m) })
 			want := galleryStatus(t, name) + " \n" // off a terminal, no clear
@@ -287,7 +292,7 @@ func TestLiveMainMenuGolden(t *testing.T) {
 				env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: rows,
 					Environ: []string{"TERM=xterm-256color", "LANG=C.UTF-8"}})
 				m := liveMenu(t, env, func(ctx context.Context) (screen.MainMenu, error) {
-					return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
+					return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
 				}, "q")
 				out, _, _ := session(t, func() { show(m) })
 				screen, _, _ := strings.Cut(strings.TrimPrefix(out, clearOn(env)), clearOn(env))

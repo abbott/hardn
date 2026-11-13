@@ -19,18 +19,21 @@ package ssh
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io/fs"
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	sshctl "github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
+	"github.com/abbott/hardn/pkg/screens/sshkeys"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
@@ -95,7 +98,9 @@ type Options struct {
 // Item 1 is Disallow root login, Allow root key-only where root login is
 // disallowed, or on Proxmox VE Root key-only; item 2 Key-only login, or
 // Password login on where passwords don't log in; item 3 Change SSH port;
-// item 4, with hardn's old files, Move old settings. Each is planned by the
+// item 4, with hardn's old files, Move old settings; item 5, where sshd lacks
+// the fix, Upgrade openssh; item 6 SSH keys, the read-only SSH Keys screen
+// (pkg/screens/sshkeys), which plans nothing. Each change is planned by the
 // engine first, from a fresh reading, and its refusal (the control's, or
 // the engine's, such as a change waiting for hardn confirm) said before
 // anything is asked; Change SSH port plans the port sshd has for it, before
@@ -132,18 +137,39 @@ type runner struct {
 }
 
 // reading is one reading of the host: the control's, why it was cut short
-// (err: the context's), and the three rows.
+// (err: the context's), the three rows, and the SSH keys item's description
+// (keys; "" in a reading that did not read them).
 type reading struct {
 	sshchange.Reading
 	err    error
 	status component.StatusList
+	keys   string
 }
 
 // read reads the host as the control reads it (sshchange.Read, writing
-// nothing, running only reads), and the three rows from their checks.
+// nothing, running only reads), the three rows from their checks, and every
+// account's keys (sshkeys.Read) in the files the sshd -T just read names, for
+// the SSH keys item: Can't read where sshd's settings are not read.
 func (r *runner) read(ctx context.Context) reading {
 	rd, err := sshchange.Read(ctx, r.o.System, r.o.Facts, r.o.Config, r.o.Session, r.o.Getenv)
-	return reading{Reading: rd, err: err, status: statusRows(ctx, r.o.System, r.o.Facts)}
+	h := reading{Reading: rd, err: err, status: statusRows(ctx, r.o.System, r.o.Facts)}
+	h.keys = sshkeys.View(sshkeys.Read(ctx, r.o.System, func(context.Context) (sshctl.KeySettings, error) {
+		if h.notRead() {
+			return sshctl.KeySettings{}, errors.Join(h.EffErr, h.err)
+		}
+		return sshctl.KeySettingsOf(h.Effective)
+	})).Entry()
+	return h
+}
+
+// keysScreen is item 6, SSH keys: the SSH Keys screen (pkg/screens/sshkeys),
+// which reads sshd's settings and the keys again on each draw and changes
+// nothing, under plan only too.
+func (r *runner) keysScreen(ctx context.Context) error {
+	return sshkeys.Run(ctx, sshkeys.Options{Prompter: r.o.Prompter, System: r.o.System,
+		Settings: func(ctx context.Context) (sshctl.KeySettings, error) {
+			return sshctl.ReadKeySettings(ctx, r.o.System, r.o.Facts)
+		}})
 }
 
 // notRead reports whether sshd's settings are not read: sshd -T failed, or

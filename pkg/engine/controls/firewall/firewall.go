@@ -105,6 +105,7 @@ const (
 	ActionSaveInterfaces         // hardn.yml's ufwTrustedInterfaces, as in.Config has them
 	ActionApplyInterfaces        // "ufw allow in on <interface>" for each trusted interface
 	ActionInstallSS              // the iproute2 package, which brings ss, through apt-get or apk
+	ActionLimitSSH               // "ufw limit <port>/tcp" over the plain allow of each SSH port (limit.go)
 )
 
 // Incoming is Figma's Firewall row: the host's firewall for incoming

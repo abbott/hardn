@@ -15,6 +15,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 50-cloud-init.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mNot known␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
@@ -22,10 +23,11 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mRoot can't log in over SSH␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 0$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -41,6 +43,7 @@ $
    -  Password Login       Off by 50-cloud-init.conf$
    -  SSH Port             22$
    -  Allowed Users        Anyone$
+   -  Brute-Force Limit    On sshd's default$
   [?] Logged in as         Not known$
 $
   Select an option$
@@ -48,10 +51,11 @@ $
    1) Disallow root login  Root can't log in over SSH$
    2) Password login on    Let passwords log in again$
    3) Change SSH port      Now 22$
+   6) SSH keys             3 keys, 2 to review$
 $
    0) Return$
 $
-    > Option [0-3 or q]: 0$
+    > Option [0-3, 6 or q]: 0$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -74,6 +78,8 @@ $
       ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$
+      ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
       ␛[38;2;129;134;156mNot known␛[m$
 $
@@ -85,8 +91,10 @@ $
       ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
       ␛[38;2;129;134;156mNow 22␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 0$
 $

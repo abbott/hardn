@@ -61,6 +61,46 @@ const (
 	SSHYouKey      = "Logged in as"
 )
 
+// Brute-force limiting's row: its words adopted
+// (docs/engine/gallery-bruteforce.md §4, 2026-11-13); pkg/screens/ssh fills
+// it from sshd -T (docs/engine/screen-bruteforce.md).
+const (
+	SSHLimitKey = "Brute-Force Limit"
+
+	sshLimitOn    = "On"
+	sshLimitOff   = "Off"
+	sshLimitNone  = "Not available"
+	sshLimitNeeds = "needs OpenSSH 9.8"
+)
+
+// SSHLimit is what sshd does about an address that keeps failing to log in:
+// its PerSourcePenalties.
+type SSHLimit uint8
+
+// The limits.
+const (
+	// SSHLimitOn: sshd refuses the address for a while.
+	SSHLimitOn SSHLimit = iota
+	// SSHLimitOff: a file turns the penalties off.
+	SSHLimitOff
+	// SSHLimitUnavailable: sshd is older than 9.8, which has none.
+	SSHLimitUnavailable
+)
+
+// SSHLimitRow is the SSH Configuration section's Brute-Force Limit row:
+// On, or Off as a warning, with note, the file that decides it, as the
+// other rows note theirs; Not available on an sshd before 9.8, which says
+// so in note's place.
+func SSHLimitRow(l SSHLimit, note string) component.KeyValue {
+	switch l {
+	case SSHLimitOff:
+		return component.KeyValue{Key: SSHLimitKey, Value: sshLimitOff, State: component.ValueWarn, Note: note}
+	case SSHLimitUnavailable:
+		return component.KeyValue{Key: SSHLimitKey, Value: sshLimitNone, Note: sshLimitNeeds}
+	}
+	return component.KeyValue{Key: SSHLimitKey, Value: sshLimitOn, Note: note}
+}
+
 // The port form's words: its field, decided (gallery-ssh.md §6), and its
 // refusals, the adopted mock's; its default's, proposed (screen-ssh.md), as
 // Create User's (screen-users.md §5).
@@ -81,6 +121,7 @@ const (
 	SSHPortItem     = "3" // Change SSH port
 	SSHMigrateItem  = "4" // Move old settings, with hardn's old files
 	SSHUpgradeItem  = "5" // Upgrade openssh, where sshd lacks the fix
+	SSHKeysEntry    = "6" // SSH keys, where Keys is set (keys.go)
 )
 
 // SSHRoot is what item 1 does.
@@ -122,6 +163,9 @@ type SSH struct {
 	// CVE-2026-123158's fix, so item 5 upgrades openssh; its description
 	// stands with NotRead, as the upgrade reads no sshd setting.
 	Unfixed bool
+	// Keys is the SSH keys item's description (SSHKeys.Entry), such as "14
+	// keys, 3 to review"; "" shows no item.
+	Keys string
 }
 
 // SubMenu returns the SSH Login screen (02-SSH_LOGIN): the title bar; the
@@ -160,6 +204,9 @@ func (s SSH) SubMenu() SubMenu {
 	if s.Unfixed {
 		items = append(items, component.MenuItem{Key: SSHUpgradeItem, Label: sshUpgradeLabel, Description: sshUpgradeAbout})
 		alert = &Alert{Title: CVEUnfixed, Item: sshUpgradeLabel}
+	}
+	if s.Keys != "" {
+		items = append(items, component.MenuItem{Key: SSHKeysEntry, Label: sshKeysEntryLabel, Description: s.Keys})
 	}
 	return SubMenu{
 		Title:    trail(sshTitle),

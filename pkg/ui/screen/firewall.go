@@ -68,6 +68,13 @@ const (
 	firewallApplyInactive  = "Enable the firewall first"
 	firewallUntrustNotice  = "This takes the interface out of hardn.yml. A rule already in ufw stays."
 	firewallPackageKey     = "Package"
+
+	// Limit SSH's words: adopted (docs/engine/gallery-bruteforce.md §4,
+	// 2026-11-13).
+	firewallLimitLabel  = "Limit SSH"
+	firewallLimitAbout  = "Block repeated connections"
+	firewallLimitNotice = "ufw refuses an address that opens 6 or more SSH connections in 30 seconds, yours included."
+	firewallLimitValue  = "Limit"
 )
 
 // The ufw section's keys a review shares with the screen's rows
@@ -87,6 +94,7 @@ const (
 	FirewallProfilesItem   = "2" // Application Profiles, where ufw is installed
 	FirewallInterfacesItem = "3" // Trusted Interfaces, where ufw is installed
 	FirewallDisableItem    = "4" // Disable, on an active ufw whose item 1 is not it
+	FirewallLimitItem      = "5" // Limit SSH, where ufw allows SSH's port from anywhere with no limit
 )
 
 // The application profiles' items, by key.
@@ -149,6 +157,10 @@ type Firewall struct {
 	// UFW, SSH, Rules, Profiles and Interfaces are the sections' rows; a
 	// section with none is left out.
 	UFW, SSH, Rules, Profiles, Interfaces []component.KeyValue
+	// Ports are the section Ports' rows, the listening ports against the
+	// rules (FirewallPorts.Rows), after Rules; none, no section
+	// (docs/engine/screen-ports.md).
+	Ports []component.KeyValue
 	// First is what item 1 does; Risk, that its plan is lockout-risk, which
 	// marks the item.
 	First FirewallFirst
@@ -164,12 +176,17 @@ type Firewall struct {
 	// Container: hardn runs in a container, so the section ufw ends with the
 	// muted line that its host may filter traffic too.
 	Container bool
+	// LimitSSH: ufw is active and allows an SSH port from anywhere with no
+	// limit, by the plain rule a limit replaces, so item 5 offers one
+	// (docs/engine/screen-bruteforce.md).
+	LimitSSH bool
 }
 
 // SubMenu returns ufw's screen: the title bar; the Firewall row; the sections
 // ufw, SSH, Rules, Application Profiles, Trusted Interfaces, ufw's ending with
 // the container line where Container holds; item 1 by First, items 2 and 3
-// where ufw is installed, item 4 where Disable is beside item 1; Return;
+// where ufw is installed, item 4 where Disable is beside item 1, item 5 where
+// LimitSSH holds; Return;
 // "Select an option"; "Option". Every section at every height
 // (decision 9).
 func (f Firewall) SubMenu() SubMenu {
@@ -177,7 +194,7 @@ func (f Firewall) SubMenu() SubMenu {
 	for _, s := range []struct {
 		title string
 		rows  []component.KeyValue
-	}{{firewallSectionUFW, containerRows(f.UFW, f.Container)}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {firewallSectionProfiles, f.Profiles}, {firewallSectionIfaces, f.Interfaces}} {
+	}{{firewallSectionUFW, containerRows(f.UFW, f.Container)}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {portsSection, f.Ports}, {firewallSectionProfiles, f.Profiles}, {firewallSectionIfaces, f.Interfaces}} {
 		if len(s.rows) > 0 {
 			vm.Sections = append(vm.Sections, firewallSection(s.title, s.rows))
 		}
@@ -192,7 +209,23 @@ func (f Firewall) SubMenu() SubMenu {
 	if f.DisableBeside {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallDisableItem, Label: firewallDisableLabel, Description: firewallDisableAbout})
 	}
+	if f.LimitSSH {
+		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewallLimitItem, Label: firewallLimitLabel, Description: firewallLimitAbout})
+	}
 	return vm
+}
+
+// FirewallLimitChange is Limit SSH's change: what ufw's limit does, above
+// rules, SSH's as the Rules section names them ("22/tcp", "22/tcp (v6)"),
+// each a limit after it; y/N.
+func FirewallLimitChange(rules []string) FirewallChange {
+	items := make([]component.KeyValue, len(rules))
+	for i, r := range rules {
+		items[i] = component.KeyValue{Key: r, Value: firewallLimitValue, State: component.ValueOK}
+	}
+	return FirewallChange{Step: firewallStep(firewallLimitLabel), Question: "Limit SSH?", Review: flow.Review{
+		Notice: &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{firewallLimitNotice}}},
+		Title:  firewallSectionRules, Items: items}}
 }
 
 // containerRows are rows, a section's, with the container line, muted, after

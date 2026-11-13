@@ -53,6 +53,7 @@ func TestPlayFirewallGolden(t *testing.T) {
 		{"firewall-alpine-lxc", []string{"firewall/alpine-lxc"}, []string{"0"}, nil},
 		{"firewall-enable", []string{"firewall/ubuntu2604"}, []string{"1", hostName, "0"}, append(uitest.Core(), asciiColour)},
 		{"firewall-disable", []string{"firewall/active22"}, []string{"1", "y", "0"}, nil},
+		{"firewall-limit", []string{"firewall/active22"}, []string{"5", "y", "0"}, nil},
 		{"firewall-allow-policy", []string{"firewall/allow-policy"}, []string{"1", hostName, "0"}, nil},
 		{"firewall-lockout", []string{"firewall/lockout"}, []string{"1", hostName, "0"}, nil},
 		{"firewall-lockout-at-start", []string{"firewall/lockout-at-start"}, []string{"1", "0"}, nil},

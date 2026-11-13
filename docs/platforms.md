@@ -2,9 +2,22 @@
 
 What hardn does differently on each distribution. The support table is in the [README](../README.md#supported-distributions).
 
+## End of support
+
+hardn knows when each release's free security updates end. From 90 days before, the main menu shows a warning and the release to upgrade to, and every plan carries one (`PLATFORM_SUPPORT_ENDS`, then `PLATFORM_SUPPORT_ENDED`). The warning is by the host's clock. It changes nothing hardn does: only a new hardn moves a release to Out of scope.
+
+| Distribution | Release: end of support |
+|---|---|
+| Debian | 13: 2030-06-30, 12: 2028-06-30 (the end of LTS) |
+| Ubuntu | 26.04: May 2031, 24.04: May 2029, 22.04: May 2027 (without Ubuntu Pro) |
+| Alpine | 3.24: 2028-06-01, 3.23: 2027-11-01, 3.22: 2027-05-01, 3.21: 2026-11-01, 3.20: 2026-04-01 |
+| Proxmox | 9: not announced, so no warning; 8: August 2026 |
+| Rocky, Alma, RHEL | 10: 2035-05-31, 9: 2032-05-31 (RHEL without the paid add-on) |
+
 ## Alpine
 
 - On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.
+- Stock Alpine has no `ss`, so listening ports show "ss not installed" until `iproute2` is installed. Firewall offers to install it.
 - On Alpine, Auto Updates restarts no service. An upgraded service keeps running its old version until it restarts, unless its package restarts it.
 
 ## Rocky, Alma and RHEL
@@ -14,6 +27,7 @@ On Rocky, Alma and RHEL:
 - A new SSH port is labelled for sshd in SELinux and let through firewalld before sshd moves.
 - The Firewall screen installs, enables and disables firewalld. It refuses a dnf install that brings a new kernel.
 - Run All and `-w` leave the firewall to that screen. ufw is never installed or enabled.
+- The Firewall screen has no Limit SSH: firewalld has no limit per address. SSH Login's Brute-Force Limit row shows sshd's own.
 - Auto Updates turns on dnf-automatic's daily security updates; restarts stay as automatic.conf sets them (never, as shipped). Off undoes only what hardn did.
 - DNS is only read.
 - RHEL's repositories come with its subscription: on a host with none enabled, such as one that isn't registered, hardn refuses to install firewalld or dnf-automatic.

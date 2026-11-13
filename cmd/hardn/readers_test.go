@@ -500,7 +500,10 @@ func TestSystemDetailsFlags(t *testing.T) {
 		{args: []string{"--yaml=false"}, code: 2, stderr: []string{"hardn: --yaml is refused: " + useJSON}},
 		{args: []string{"-O", "yaml"}, code: 2, stderr: []string{"hardn: -O yaml is refused: " + useJSON}},
 		{args: []string{"-O", "nonsense"}, code: 2, stderr: []string{"hardn: -O nonsense is refused: " + useJSON}},
-		{args: []string{"--output", "yaml"}, code: 2, stderr: []string{"hardn: --output yaml is refused: " + useJSON}},
+		{args: []string{"--output", "yaml"}, code: 2, stderr: []string{"hardn: --output yaml is refused: use --output json or --output markdown"}},
+		{args: []string{"--output", "md"}, code: 2, stderr: []string{"hardn: --output md is refused: use --output json or --output markdown"}},
+		{args: []string{"--output", "markdown", "--yaml"}, code: 2, stderr: []string{"hardn: --yaml is refused: " + useJSON}},
+		{args: []string{"--output", "markdown", "-r"}, code: 2, stderr: []string{"hardn: -r is refused: " + runAlone}},
 		{args: []string{"-S", "disk"}, code: 2, stderr: []string{"hardn: -S is refused: nothing filters the report"}},
 		{args: []string{"--section=disk", "--json"}, code: 2, stderr: []string{"hardn: -S is refused"}},
 		{args: []string{"-E", "out.txt"}, code: 2, stderr: []string{"hardn: -E is refused: use > file"}},
@@ -559,6 +562,70 @@ func TestSystemDetailsFlags(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestSystemDetailsMarkdown: --output markdown is the report to hand over, one
+// Markdown document alone on stdout, exit status 0 whatever the checks found: it
+// reads hardn.yml, never creating one, and asks who runs it, but refuses no one; as a
+// user other than root it says so. --output decides beside a deprecated flag, which
+// still warns. A hardn.yml that does not load is said, exit status 1, nothing read.
+func TestSystemDetailsMarkdown(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		args   []string
+		user   bool
+		stderr string
+	}{
+		{name: "root", args: []string{"--output", "markdown"}},
+		{name: "a user", args: []string{"--output=markdown"}, user: true},
+		{name: "--json beside it", args: []string{"--output", "markdown", "--json"}, stderr: "--json is deprecated: use --output json"},
+		{name: "-O json beside it", args: []string{"-O", "json", "--output", "markdown"}, stderr: "-O json is deprecated: use --output json"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &readerSeams{}
+			r := runHardnWith(t, asRoot, func() {
+				useReaderHost(t, logHost(readerLog), s)
+				if tc.user {
+					asUser(t)
+				}
+			}, append([]string{"system-details"}, tc.args...)...)
+			if r.ended {
+				t.Fatalf("ended with %d; stderr:\n%s", r.code, r.stderr)
+			}
+			got := s.out.String()
+			for _, want := range []string{"## Host\n", "## Risk level\n", "## Status\n", "| SSH Port | ", "## Findings\n", "## Memory\n"} {
+				if !strings.Contains(got, want) {
+					t.Errorf("no %q in:\n%s", want, got)
+				}
+			}
+			if !strings.HasPrefix(got, "# hardn report") || strings.ContainsAny(got, "\x1b{") {
+				t.Errorf("not one Markdown document:\n%s", got)
+			}
+			if strings.Contains(got, "Not root:") != tc.user {
+				t.Errorf("Not root said %v, want %v:\n%s", !tc.user, tc.user, got)
+			}
+			if slices.Contains(r.reached, "OS detection") || !slices.Contains(r.reached, "config load") {
+				t.Errorf("reached %v: want hardn.yml read, no OS refusal", r.reached)
+			}
+			if tc.stderr == "" && r.stderr != "" || !strings.Contains(r.stderr, tc.stderr) {
+				t.Errorf("stderr %q, want %q", r.stderr, tc.stderr)
+			}
+		})
+	}
+	t.Run("hardn.yml does not load", func(t *testing.T) {
+		s := &readerSeams{}
+		r := runReader(t, hostUnreachable, logHost(readerLog), s, "system-details", "--output", "markdown")
+		if !r.ended || r.code != 1 || !strings.Contains(flat(r.stderr), "Failed to load configuration") || s.out.Len() != 0 || s.reached != 0 {
+			t.Errorf("ended %v with %d; stdout %q, the host asked %d times; stderr:\n%s", r.ended, r.code, s.out.String(), s.reached, r.stderr)
+		}
+	})
+	t.Run("a failed write", func(t *testing.T) {
+		s := &readerSeams{failing: true}
+		r := runReader(t, asRoot, logHost(""), s, "system-details", "--output", "markdown")
+		if !r.ended || r.code != 1 || !strings.Contains(r.stderr, "no space left") {
+			t.Errorf("ended %v with %d; stderr %q", r.ended, r.code, r.stderr)
+		}
+	})
 }
 
 // TestSystemDetailsRootFlagFirst: root's operation flag is refused ahead of the

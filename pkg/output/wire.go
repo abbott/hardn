@@ -32,7 +32,9 @@ type Document struct {
 // Mode is what the run was asked to do.
 type Mode string
 
-// The modes.
+// The modes of a run of the engine; the audit log's records of hardn
+// confirm and hardn rollback have four more (ModeConfirm and those beside
+// it).
 const (
 	ModeCheck Mode = "check" // read each control's state; change nothing
 	ModePlan  Mode = "plan"  // plan the changes; change nothing (the dry run)
@@ -66,6 +68,12 @@ type Platform struct {
 	Distro  string `json:"distro"`  // debian, ubuntu, alpine, proxmox, other, unknown
 	Version string `json:"version"` // the matrix's key, such as 13 or 3.24; "" when not established
 	Support string `json:"support"` // supported, best-effort, out-of-scope, unlisted, unknown
+	// SupportEnds is the last day of the vendor's free security updates,
+	// as the support matrix holds it: a day, 2027-05-01, or the month,
+	// 2027-05, where the vendor names a month alone; "" when hardn has no
+	// date for the release. It is the matrix's, not the clock's: whether
+	// it is near or past is the reader's to count.
+	SupportEnds string `json:"supportEnds"`
 }
 
 // Proxmox is whether the host runs Proxmox VE.
@@ -113,6 +121,10 @@ type Result struct {
 	// a file first: what it kept, and where (§3.16; slice 3 decision 8,
 	// added by next/s3-control).
 	Backup *Kept `json:"backup,omitempty"`
+	// Revert is set on the audit log's records of hardn confirm and hardn
+	// rollback (<id>, --abandon, --boot), and on those alone: who ran it,
+	// and what it did (BuildRevert).
+	Revert *Revert `json:"revert,omitempty"`
 }
 
 // Kept is what an applied change kept a copy of, and where.

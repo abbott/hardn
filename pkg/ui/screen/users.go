@@ -114,6 +114,9 @@ type Users struct {
 	// NoUseradd: useradd is not installed (Alpine without shadow), so Create
 	// User installs shadow first (UsersShadowChange).
 	NoUseradd bool
+	// Review, where set, adds Account Review, which says how many accounts
+	// it lists (accounts.go); nil draws the screen without it.
+	Review *Accounts
 }
 
 // SubMenu returns the users' screen (01-USER): the title bar; the User row;
@@ -136,6 +139,9 @@ func (u Users) SubMenu() SubMenu {
 		create.Description = usersShadowAbout
 	}
 	vm.Menu.Items = append(vm.Menu.Items, create)
+	if u.Review != nil {
+		vm.Menu.Items = append(vm.Menu.Items, u.Review.item())
+	}
 	return vm
 }
 

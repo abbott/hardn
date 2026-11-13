@@ -114,13 +114,17 @@ func (k Key) Restricted() bool {
 // among them. Blank and # lines are ErrNotKey, and so is a line whose blob
 // sshd would refuse (checkBlob): Read leaves it out, so it is neither
 // listed nor counted as a way to log in.
-func ParseLine(line string) (Key, error) {
+func ParseLine(line string) (Key, error) { return parseLine(line, kinds, MinRSABits) }
+
+// parseLine is ParseLine for the types given, an RSA key's modulus at least
+// minRSA bits.
+func parseLine(line string, types []string, minRSA int) (Key, error) {
 	l := strings.TrimSpace(line)
 	if l == "" || strings.HasPrefix(l, "#") {
 		return Key{}, ErrNotKey
 	}
 	var opts string
-	if !slices.Contains(kinds, strings.Fields(l)[0]) {
+	if !slices.Contains(types, strings.Fields(l)[0]) {
 		end, quoted := len(l), false
 		for i := 0; i < len(l); i++ {
 			switch c := l[i]; {
@@ -140,7 +144,7 @@ func ParseLine(line string) (Key, error) {
 		}
 		opts, l = l[:end], strings.TrimSpace(l[end:])
 	}
-	k, err := parse(l)
+	k, err := parse(l, types, minRSA)
 	if err != nil {
 		return Key{}, err
 	}
@@ -156,7 +160,7 @@ func ParsePublic(s string) (Key, error) {
 	if strings.ContainsAny(l, "\r\n") {
 		return Key{}, fmt.Errorf("%w: more than one line", ErrNotKey)
 	}
-	k, err := parse(l)
+	k, err := parse(l, kinds, MinRSABits)
 	if err != nil {
 		return Key{}, err
 	}
@@ -164,10 +168,11 @@ func ParsePublic(s string) (Key, error) {
 	return k, nil
 }
 
-// parse is a key with no options: type, blob and comment.
-func parse(l string) (Key, error) {
+// parse is a key with no options: type, one of types, blob and comment; an
+// RSA key's modulus is at least minRSA bits.
+func parse(l string, types []string, minRSA int) (Key, error) {
 	f := strings.Fields(l)
-	if len(f) < 2 || !slices.Contains(kinds, f[0]) {
+	if len(f) < 2 || !slices.Contains(types, f[0]) {
 		return Key{}, ErrNotKey
 	}
 	blob, err := base64.StdEncoding.DecodeString(f[1])
@@ -177,7 +182,7 @@ func parse(l string) (Key, error) {
 	if n := binary.BigEndian.Uint32(blob); uint64(n)+4 > uint64(len(blob)) || string(blob[4:4+n]) != f[0] {
 		return Key{}, fmt.Errorf("%w: its blob is not a %s key", ErrNotKey, f[0])
 	}
-	if why := checkBlob(f[0], blob); why != "" {
+	if why := checkBlob(f[0], blob, minRSA); why != "" {
 		return Key{}, fmt.Errorf("%w: its blob is not a %s key: %s", ErrNotKey, f[0], why)
 	}
 	comment := strings.TrimSpace(l[strings.Index(l, f[1])+len(f[1]):])
@@ -204,13 +209,15 @@ var points = map[string]int{"nistp256": 65, "nistp384": 97, "nistp521": 133}
 //
 //	ssh-ed25519                        string key, 32 bytes (RFC 8709 §4)
 //	ssh-rsa                            mpint e, mpint n (RFC 4253 §6.6): both
-//	                                   positive, n MinRSABits to MaxRSABits
+//	                                   positive, n minRSA to MaxRSABits
+//	ssh-dss                            mpint p, q, g, y (RFC 4253 §6.6): each
+//	                                   positive (Review's alone)
 //	ecdsa-sha2-<curve>                 string curve, the type's; string Q,
 //	                                   uncompressed (RFC 5656 §3.1)
 //	sk-ssh-ed25519@openssh.com         ed25519's, then string application
 //	sk-ecdsa-sha2-nistp256@openssh.com nistp256's, then string application
 //	                                   (OpenSSH PROTOCOL.u2f)
-func checkBlob(typ string, blob []byte) string {
+func checkBlob(typ string, blob []byte, minRSA int) string {
 	w := wire{b: blob}
 	w.next() // the type
 	var why string
@@ -226,10 +233,16 @@ func checkBlob(typ string, blob []byte) string {
 			why = "its exponent isn't positive"
 		case !positive(n):
 			why = "its modulus isn't positive"
-		case bitLen(n) < MinRSABits:
-			why = fmt.Sprintf("its modulus is %d bits, under %d", bitLen(n), MinRSABits)
+		case bitLen(n) < minRSA:
+			why = fmt.Sprintf("its modulus is %d bits, under %d", bitLen(n), minRSA)
 		case bitLen(n) > MaxRSABits:
 			why = fmt.Sprintf("its modulus is %d bits, over %d", bitLen(n), MaxRSABits)
+		}
+	case DSA:
+		for range 4 {
+			if !positive(w.next()) && why == "" {
+				why = "a number of it isn't positive"
+			}
 		}
 	default: // ecdsa-sha2-<curve>
 		curve := strings.TrimPrefix(base, "ecdsa-sha2-")

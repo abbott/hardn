@@ -94,7 +94,7 @@ What differs on Alpine, on Rocky, Alma and RHEL, and on Proxmox: [docs/platforms
 
 ## Security
 
-- **No telemetry.** `hardn` never phones home, and needs no account or cloud service.
+- **No telemetry.** `hardn` makes no network request unless you turn on `checkReleases`, which asks GitHub for the latest release's tag once a day and sends nothing about the host. It needs no account or cloud service.
 - **Releases.** Each binary has [SLSA](https://slsa.dev) Build Level 3 provenance and a [Sigstore](https://www.sigstore.dev/) signature, and a rebuild of a tag is byte-identical: [docs/verify.md](docs/verify.md).
 - **CVEs.** hardn checks for the vendor's fix to a CVE that makes one of its changes unsafe, today one on Alpine: [docs/cve.md](docs/cve.md).
 - **Reporting.** Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, **<ins>not in a public issue</ins>**.

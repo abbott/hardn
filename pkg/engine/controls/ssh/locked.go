@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/fs"
 	"slices"
+	"strconv"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/engine"
@@ -13,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/pve"
+	"github.com/abbott/hardn/pkg/host/sshd"
 )
 
 // Locked accounts without PAM (next/p4-locked, check-ssh.md §9). When sshd
@@ -268,4 +270,49 @@ func ReadKeyFiles(ctx context.Context, sys host.System, f detect.Facts) ([]strin
 		return nil, errors.New("sshd -T printed no authorizedkeysfile")
 	}
 	return r.eff.AuthorizedKeysFile, nil
+}
+
+// KeySettings is what sshd -T says of the keys it takes, for the SSH Keys
+// screen (docs/engine/screen-keys.md). Match blocks are not read, as for
+// ReadKeyFiles: a block that sets one of them for a user is not seen.
+type KeySettings struct {
+	// Files are AuthorizedKeysFile's entries, unexpanded, "none" kept.
+	Files []string
+	// Algorithms are PubkeyAcceptedAlgorithms, the comma list split; nil
+	// where sshd -T prints none.
+	Algorithms []string
+	// RSAMin is RequiredRSASize; 0 where sshd -T prints none (before OpenSSH
+	// 9.1, user.go).
+	RSAMin int
+}
+
+// KeySettingsOf is eff's KeySettings. An error where eff has no
+// authorizedkeysfile line, as an sshd -T not read has none, or a
+// requiredrsasize that is not a number.
+func KeySettingsOf(eff sshd.Effective) (KeySettings, error) {
+	k := KeySettings{Files: eff.AuthorizedKeysFile}
+	if len(k.Files) == 0 {
+		return KeySettings{}, errors.New("sshd -T printed no authorizedkeysfile")
+	}
+	if a := eff.Keywords["pubkeyacceptedalgorithms"]; len(a) > 0 && a[0] != "" {
+		k.Algorithms = strings.Split(a[0], ",")
+	}
+	if s := eff.Keywords["requiredrsasize"]; len(s) > 0 {
+		n, err := strconv.Atoi(s[0])
+		if err != nil || n < 0 {
+			return KeySettings{}, fmt.Errorf("sshd -T printed requiredrsasize %q, not a number", s[0])
+		}
+		k.RSAMin = n
+	}
+	return k, nil
+}
+
+// ReadKeySettings is KeySettingsOf sshd -T, read as ReadKeyFiles reads it. It
+// writes nothing.
+func ReadKeySettings(ctx context.Context, sys host.System, f detect.Facts) (KeySettings, error) {
+	r, err := readEffective(ctx, sys, f)
+	if err != nil {
+		return KeySettings{}, err
+	}
+	return KeySettingsOf(r.eff)
 }

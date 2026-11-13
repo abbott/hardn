@@ -74,6 +74,8 @@ func (c Incoming) planEL(ctx context.Context, sys host.System, in engine.Input) 
 		return cs, true, err
 	case ActionApplyProfiles, ActionApplyInterfaces:
 		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn doesn't apply ufw's profiles or trusted interfaces on Rocky Linux, AlmaLinux or RHEL, which use firewalld", Err: ErrEL}
+	case ActionLimitSSH: // firewalld has no rule like ufw's limit (gallery-bruteforce.md §3, 8 (a))
+		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn adds no connection limit on Rocky Linux, AlmaLinux or RHEL, which use firewalld", Err: ErrEL}
 	}
 	return nil, false, nil
 }

@@ -7,7 +7,7 @@
 ## API
 
 ```go
-firewall.Incoming{Action: firewall.ActionEnable} // ActionNone, ActionInstall, ActionEnable, ActionDisable, ActionSaveProfiles, ActionApplyProfiles
+firewall.Incoming{Action: firewall.ActionEnable} // ActionNone, ActionInstall, ActionEnable, ActionDisable, ActionSaveProfiles, ActionApplyProfiles; ActionLimitSSH since 2026-11-13 (screen-bruteforce.md)
 firewall.Read(ctx, sys, facts, cfg, session) firewall.Reading // reads only; what the screen draws, as facts
 firewall.ReadSockets(ctx, sys, facts) firewall.Sockets        // the one reading of the SSH listeners
 ```

@@ -19,6 +19,9 @@
 //	go run ./internal/tools/uigallery system-details [flags] [form | all]...
 //	go run ./internal/tools/uigallery logs [flags] [form | all]...
 //	go run ./internal/tools/uigallery config [flags] [mock | all]...
+//	go run ./internal/tools/uigallery eol [flags] [mock | all]...
+//	go run ./internal/tools/uigallery release-check [flags] [mock | all]...
+//	go run ./internal/tools/uigallery keys [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -181,6 +184,20 @@
 // is the menu of those mocks and "play config/<mock>" hardn's Configuration screen
 // itself on one (pkg/screens/config; docs/engine/screen-config.md); the main menu's 8
 // leads to it on the typical file.
+//
+// "eol" lists the mocks of the main menu's end-of-support notice (eol.go,
+// docs/engine/gallery-eol.md), with the same flags, each drawn through the
+// mapping hardn's main menu uses (output.NoticeOf). play has none of them:
+// its hosts have no clock.
+// "release-check" lists the mocks of the release check's one line on the main
+// menu (release.go, docs/engine/gallery-release-check.md), with the same flags:
+// each read by hardn's own check from the mock's cache; none makes a request.
+// "keys" lists the mocks of the SSH Keys screen, under SSH Login: every key sshd
+// reads, by account, read only (keys.go, docs/engine/gallery-keys.md), with the
+// same flags, each drawn through the real screen's mapping. "play keys" is the
+// menu of its mocks and "play keys/<mock>" the real screen itself on one
+// (pkg/screens/sshkeys; docs/engine/screen-keys.md); SSH Login's 6 leads to it
+// on a "play ssh/<host>" host.
 //
 // "play firewall" is the menu of the Firewall screen's hosts and "play
 // firewall/<host>" the real screen on one (pkg/screens/firewall, firewall.go),
@@ -605,8 +622,13 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // line reader stdin returns and sizes itself with size; with "status",
 // "glyphs", "system-details" or "logs" first, the status listing
 // (statusList), the glyphs mode (glyphs), the System Details listing
+// (sdListing), the Logs listing (logsListing), the Configuration listing
+// (configListing) or the brute-force limiting listing (bfListing), which
+// size themselves with size too and read no input. No other mode calls
+// either.
 // (sdListing) or the Logs listing (logsListing), which size themselves with
-// size too and read no input. No other mode calls either.
+// size too and read no input, as "config" and "ports" (configListing,
+// portsListing) do. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -626,6 +648,24 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == configPrefix {
 		return configListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == eolPrefix {
+		return eolListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == releasePrefix {
+		return releaseListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == accountsPrefix {
+		return accountsListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == keysPrefix {
+		return keysListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == bfPrefix {
+		return bfListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == portsPrefix {
+		return portsListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -637,6 +677,12 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(sdUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(logsUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(configUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(eolUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(releaseUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(accountsUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(keysUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(bfUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(portsUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

@@ -119,6 +119,9 @@ const CompactMainMenu = false
 type MainMenu struct {
 	// Header is the wordmark, the version and the repository link.
 	Header component.Header
+	// Release is what the release check found, drawn in the Header in the
+	// link's place; the zero value, the check off, draws nothing (Release).
+	Release Release
 	// Context is the distribution bar.
 	Context component.ContextBar
 	// Host is the hostname badge, the address and the uptime.
@@ -132,6 +135,9 @@ type MainMenu struct {
 	// Alert is a fact the main menu raises between the status rows and the
 	// Divider, nil for none (Alert).
 	Alert *Alert
+	// Notice is a second fact, the release's end of support
+	// (EndOfSupport), drawn as Alert is, after it, nil for none.
+	Notice *Alert
 	// Heading is the menu heading's title, such as "Select an option".
 	Heading string
 	// Mode is the mode hardn runs in, live or plan only, and what set
@@ -202,16 +208,17 @@ func (vm MainMenu) above(c component.Ctx, short bool) string {
 
 // blocks renders the blocks above the menu heading, which the status
 // model fills: the full form's Header, ContextBar, HostBlock,
-// RiskSummary, StatusList, Alert and Divider, or, when short is set, the
-// compact form's ContextBar, HostBlock, the RiskSummary and StatusList as
-// one group, and the Alert. The Alert's route is vm.Menu's item.
+// RiskSummary, StatusList, Alert, Notice and Divider, or, when short is
+// set, the compact form's ContextBar, HostBlock, the RiskSummary and
+// StatusList as one group, the Alert and the Notice. The Alert's route is
+// vm.Menu's item.
 func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
-	alert := vm.Alert.render(c, vm.Menu)
+	alert, notice := vm.Alert.render(c, vm.Menu), vm.Notice.render(c, vm.Menu)
 	if short {
-		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c)), alert}
+		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c)), alert, notice}
 	}
-	return []string{vm.Header.Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c),
-		alert, component.Divider{}.Render(c)}
+	return []string{vm.Release.header(vm.Header).Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c),
+		alert, notice, component.Divider{}.Render(c)}
 }
 
 // selectOption leads an alert's route to its fix: the menu's item, by its
@@ -243,9 +250,22 @@ const CVEUnfixed = "CVE-2026-123158"
 // for Item, so it cannot name another; with no item of that label it is
 // left out. SSH Login's screen raises the same alert with no fix, its
 // route to Upgrade openssh (SubMenu.Alert).
+//
+// The main menu draws two, each its own callout, SectionGap blank lines
+// between: Alert, then Notice (EndOfSupport), which has no route:
+//
+//	# Warning: CVE-2026-123158
+//	# Upgrade openssh.
+//	# Select option: 2) SSH Login
+//
+//	# Warning: Alpine 3.22 support ends 2027-05-01
+//	# Upgrade to Alpine 3.24.
 type Alert struct {
 	// Title names the fact: "CVE-2026-123158".
 	Title string
+	// Why is what the fact means here, a body line before Fix: "Out of
+	// scope: hardn refuses every change."; empty for none.
+	Why string
 	// Fix is what to do: "Upgrade openssh."; empty for none.
 	Fix string
 	// Item is the label of the main menu's item where the fix is done:
@@ -259,7 +279,7 @@ func (a *Alert) render(c component.Ctx, m component.Menu) string {
 	if a == nil {
 		return ""
 	}
-	vm := component.Callout{Kind: component.MessageWarn, Title: a.Title, Body: []string{a.Fix},
+	vm := component.Callout{Kind: component.MessageWarn, Title: a.Title, Body: []string{a.Why, a.Fix},
 		Indent: theme.MarkerCol + theme.MarkerWidth/2, ChoiceLead: selectOption}
 	for _, it := range m.Items {
 		if it.Label == a.Item {

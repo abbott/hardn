@@ -27,18 +27,25 @@ const SystemDetailsRefreshItem = "1"
 // order, which pkg/screens/systemdetails fills from details.Report.
 type SystemDetails struct {
 	OS, Host, Users, CPU, Disk, Memory, Logins []component.KeyValue
+	// Ports are the section Listening Ports' rows (Listeners.Rows), after
+	// Host and IPs; none, no section (docs/engine/screen-ports.md).
+	Ports []component.KeyValue
 }
 
-// sections are the report's seven sections; a section with no row is left out.
+// sections are the report's seven sections, and Listening Ports after Host and
+// IPs where it has a row.
 func (d SystemDetails) sections() []Section {
 	var out []Section
 	for _, s := range []struct {
 		title string
 		rows  []component.KeyValue
 	}{
-		{"OS and Kernel", d.OS}, {"Host and IPs", d.Host}, {"Users", d.Users}, {"CPU and Load", d.CPU},
+		{"OS and Kernel", d.OS}, {"Host and IPs", d.Host}, {listenersSection, d.Ports}, {"Users", d.Users}, {"CPU and Load", d.CPU},
 		{"Disk", d.Disk}, {"Memory", d.Memory}, {"Last Login", d.Logins},
 	} {
+		if s.title == listenersSection && len(s.rows) == 0 {
+			continue
+		}
 		out = append(out, Section{Header: component.SectionHeader{Title: s.title}, Rows: component.BulletList{Items: s.rows}})
 	}
 	return out

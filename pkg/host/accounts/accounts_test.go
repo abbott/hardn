@@ -135,12 +135,12 @@ const (
 func TestShadow(t *testing.T) {
 	s, err := accounts.ParseShadow([]byte(shadow))
 	want := accounts.Shadow{
-		"root":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 1},
-		"alice":  {Lock: accounts.NotLocked, Password: accounts.PasswordSet, Shape: accounts.ShapeSHACrypt, Line: 4}, // the first line; the second, "!", is not getspnam's
-		"bob":    {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 5},
-		"daemon": {Lock: accounts.NotLocked, Password: accounts.PasswordNone, Shape: accounts.ShapeStar, Line: 6},
-		"sshd":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 7},
-		"nobody": {Lock: accounts.Empty, Password: accounts.PasswordEmpty, Shape: accounts.ShapeOther, Line: 8},
+		"root":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 1, NeverExpires: true},
+		"alice":  {Lock: accounts.NotLocked, Password: accounts.PasswordSet, Shape: accounts.ShapeSHACrypt, Line: 4, NeverExpires: true}, // the first line; the second, "!", is not getspnam's
+		"bob":    {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 5, NeverExpires: true},
+		"daemon": {Lock: accounts.NotLocked, Password: accounts.PasswordNone, Shape: accounts.ShapeStar, Line: 6, NeverExpires: true},
+		"sshd":   {Lock: accounts.Locked, Password: accounts.PasswordNone, Shape: accounts.ShapeOther, Line: 7, NeverExpires: true},
+		"nobody": {Lock: accounts.Empty, Password: accounts.PasswordEmpty, Shape: accounts.ShapeOther, Line: 8, NeverExpires: true},
 	}
 	if err != nil || !reflect.DeepEqual(s, want) {
 		t.Fatalf("ParseShadow: %#v, %v", s, err)

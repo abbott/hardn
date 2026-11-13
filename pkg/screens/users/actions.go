@@ -26,7 +26,8 @@ const (
 	keyDefault  = "Default: hardn.yml's key"
 )
 
-// draw reads the host and returns the users' screen, its items bound: 1
+// draw reads the host and returns the users' screen, its items bound: 3
+// opens Account Review, which the item counts (ReadReview); 1
 // opens the user list, 2 Create's form, which says first why the users were
 // not read where they were not, and installs shadow first where useradd is
 // missing (the control's UseraddRefusal, looked up live).
@@ -34,6 +35,8 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	h := r.read(ctx)
 	view := mainView(h)
 	view.NoUseradd = errors.Is(h.UseraddRefusal(ctx, r.o.System), usersctl.ErrNoUseradd)
+	review := AccountsView(usersctl.ReadReview(ctx, r.o.System, r.o.Now()))
+	view.Review = &review
 	sub := view.SubMenu()
 	create := func() error { return r.create(ctx, h) }
 	if h.err != nil {
@@ -42,7 +45,15 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, bind(sub.Menu.Exit, sub.Menu.Items, map[string]func() error{
 		screen.UsersManageItem: func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawSelect(ctx) }) },
 		screen.UsersCreateItem: create,
+		screen.UsersReviewItem: func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawReview(ctx) }) },
 	}))
+}
+
+// drawReview reads the host and returns Account Review: what it lists, and
+// Return alone. It plans and changes nothing.
+func (r *runner) drawReview(ctx context.Context) nav.Screen {
+	sub := AccountsView(usersctl.ReadReview(ctx, r.o.System, r.o.Now())).SubMenu()
+	return sub.Screen(r.o.Prompter.Ctx, bind(sub.Menu.Exit, nil, nil))
 }
 
 // refuse returns the action that says err, the control's refusal, before

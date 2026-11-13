@@ -116,6 +116,9 @@ type usrHost struct {
 	// passwdFails: passwd exits 10, as it does when the two entries differ
 	// (passwd(1), EXIT VALUES).
 	passwdFails bool
+	// logins is lslogins' answer (Account Review, review_test.go); nil
+	// leaves lslogins unanswered, as on a host that never runs it.
+	logins *hostfake.Response
 
 	mu         sync.Mutex
 	unexpected []string // the commands the fake does not answer
@@ -263,6 +266,10 @@ func (h *usrHost) answer(argv []string, _ []byte) hostfake.Response {
 	case "sshd", "/usr/sbin/sshd":
 		if slices.Contains(argv, "-T") {
 			return h.sshdT()
+		}
+	case "lslogins":
+		if h.logins != nil {
+			return *h.logins
 		}
 	case "useradd", "userdel", "install", "passwd":
 		if r, ok := h.account(argv); ok {

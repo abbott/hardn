@@ -132,6 +132,7 @@ username: "george"                # Default username to create
 dryRun: false                       # Preview changes without applying them
 enableBackups: true                 # Backup files before modifying them
 backupPath: "/var/backups/hardn"    # Path to store backups
+checkReleases: false                # true: ask GitHub for the latest release's tag
 ```
 
 #### `dryRun`: dry run
@@ -208,6 +209,7 @@ The main menu's SSH Login (2) shows root login, password login, the SSH port and
 - **Each change asks you to type the hostname**, since it could lock you out. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.
 - **Some changes are refused before anything is asked**, such as turning root login off where no other admin could log in by key. With hardn's old sshd settings, every change but Move old settings is refused until it moves them.
 - **`hardn -d` turns root login off the same way.** On a terminal it asks you to type the hostname; 0 or q declines, exit status 3. Off one it is refused, exit status 1: run `hardn -d` from a terminal. With `-n` it shows the plan. Root login already off is nothing to change, exit status 0. It is refused where no other admin could log in afterwards, by key, or by password while password login is on, and become root. On Proxmox VE it makes root key-only, which the cluster needs.
+- **SSH keys (item 6) lists every key sshd reads, by account**, from the files its `AuthorizedKeysFile` names. It changes nothing. It marks a weak key (DSA, or RSA under 2048 bits), a key more than one account holds, and a key this sshd refuses. A file it can't read, and lines that are no key, are shown as such. It doesn't read a key file that is a symlink inside the account's own `~/.ssh`, is over 1 MiB, or isn't a regular file. Over 10 keys it shows the keys to review; "All keys" lists the rest. A file a `Match` block names for one user isn't listed. To remove a key, use User Management.
 - **`sshPort` is Change SSH port's default.** **`sshConfigFile` is read by Move old settings alone**, to find hardn's old file.
 - **`permitRootLogin`, `sshAllowedUsers`, `sshListenAddress` and `sshKeyPath` aren't used.** Where hardn.yml sets one to other than its default, hardn warns, such as "hardn.yml's sshAllowedUsers isn't used". `permitRootLogin: "prohibit-password"` is warned too, as `"yes"` is; it is no longer refused.
 
@@ -218,6 +220,23 @@ confirmTimeout: "3m"                # seconds, such as 300, or a duration
 ```
 
 A change that could lock you out rolls back unless `sudo hardn confirm` keeps it within this time. It is 3 minutes when unset; less than 60 seconds is refused. `--confirm-timeout` wins over it.
+
+#### `checkReleases`: new releases
+
+```yaml
+checkReleases: true                 # off unless set
+```
+
+Off, the default, hardn makes no network request. On, the main menu's first line says when a newer release is out, such as "v0.9.1 available", in the repository link's place.
+
+- **One request a day at most**, to `https://api.github.com/repos/abbott/hardn/releases/latest`, while the main menu is open. The menu never waits for it: the answer shows the next time the menu is drawn.
+- **Nothing about the host is sent.** GitHub sees the host's address and hardn's version (`User-Agent: hardn/<version>`).
+- **Only the release's tag is read**, and shown only where it is a version such as `v0.9.1`.
+- **"Release check failed"** means the last check got no answer; `/var/log/hardn.log` has the reason. hardn tries again a day later.
+- **Never for a flag or a subcommand.**
+- **In a dry run too.** It changes nothing on the host but its own file. A dry run writes no log, so a check that fails there leaves no reason in it.
+- **hardn doesn't update itself.** Install the release with [install.sh](install.md).
+- The last answer is kept in `/var/lib/hardn/release.json`, root's alone.
 
 ### Feature Toggles
 

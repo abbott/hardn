@@ -61,7 +61,8 @@ const (
 // action returns what choosing the item keyed key does with the reading h: item 1
 // says its plan's refusal before asking, or runs its change, planned on the
 // engine first (planned); item 2 opens the application profiles; item 3 the
-// trusted interfaces; item 4 is Disable, planned first.
+// trusted interfaces; item 4 is Disable, planned first; item 5 is Limit SSH,
+// planned first, its change plain: y/N (gallery-bruteforce.md §3, 7 (a)).
 func (r *runner) action(ctx context.Context, h reading, key string) func() error {
 	switch key {
 	case screen.FirewallFirstItem:
@@ -78,6 +79,8 @@ func (r *runner) action(ctx context.Context, h reading, key string) func() error
 		return func() error { return r.o.Prompter.Run(func() nav.Screen { return r.drawInterfaces(ctx) }) }
 	case screen.FirewallDisableItem:
 		return r.planned(ctx, firewallctl.ActionDisable, screen.FirewallDisableChange(), false)
+	case screen.FirewallLimitItem:
+		return r.planned(ctx, firewallctl.ActionLimitSSH, screen.FirewallLimitChange(limitRules(h.Reading)), false)
 	}
 	return func() error { return fmt.Errorf("firewall screen: item %s has no action", key) } // not reached: SubMenu's items are those above
 }

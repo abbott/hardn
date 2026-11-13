@@ -111,6 +111,13 @@ func fwHosts() []fwHost {
 	}
 }
 
+// fwVariants are hosts play opens by name ("firewall/<host>") that the menu
+// does not list.
+func fwVariants() []fwHost {
+	return []fwHost{{name: bfFWLimited, host: bfLimited,
+		note: hostFQDN + " runs Debian 13. ufw active, default deny incoming, limiting 22: after Limit SSH, or ufw limit 22/tcp."}}
+}
+
 // fwHardened is Debian 13 after hardn, with hardn.yml (hardened's: unattended
 // upgrades and DNS too, none of which this screen reads).
 func fwHardened() *fakeHost {
@@ -121,7 +128,7 @@ func fwHardened() *fakeHost {
 
 // findFWHost returns the host named name, after fwPrefix.
 func findFWHost(name string) (fwHost, bool) {
-	all := fwHosts()
+	all := append(fwHosts(), fwVariants()...)
 	i := slices.IndexFunc(all, func(h fwHost) bool { return h.name == name })
 	if i < 0 {
 		return fwHost{}, false

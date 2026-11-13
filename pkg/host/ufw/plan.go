@@ -55,9 +55,10 @@ const (
 	StepDisable                        // ufw disable (PlanDisable)
 	StepAllowApp                       // ufw allow from any to any app <name> (PlanApps)
 	StepAllowIface                     // ufw allow in on <interface> (PlanInterfaces)
+	StepLimit                          // ufw limit <port>/tcp, over the plain allow of it (PlanLimit)
 )
 
-var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app", "allow-interface"}
+var stepNames = [...]string{"unknown", "allow", "default", "enable", "disable", "allow-app", "allow-interface", "limit"}
 
 func (k StepKind) String() string {
 	if int(k) >= len(stepNames) {
@@ -74,7 +75,7 @@ type Step struct {
 	Kind StepKind
 	Argv []string
 	Undo []string
-	Port uint16 // StepAllow's
+	Port uint16 // StepAllow's and StepLimit's
 	Why  string
 }
 
@@ -104,15 +105,16 @@ func (p Plan) firewall() Firewall {
 	return Firewall{Active: p.Active, IPv6: p.IPv6, NoKernelIPv6: p.NoKernelIPv6, Incoming: p.Incoming}
 }
 
-// PreUndo are the undos of p's StepDefault, StepEnable and StepDisable
-// steps, last first: safe to journal before Execute runs (p2-revert), as each puts back
-// the state before the plan and does no harm when its step never ran. An
-// allow's undo depends on ufw's answer (Report.Undo); an allow left behind
-// never locks anyone out.
+// PreUndo are the undos of p's StepDefault, StepEnable, StepDisable and
+// StepLimit steps, last first: safe to journal before Execute runs (p2-revert), as each puts back
+// the state before the plan and does no harm when its step never ran (a
+// limit's is the allow it replaced, which ufw skips where it is still
+// there). An allow's undo depends on ufw's answer (Report.Undo); an allow
+// left behind never locks anyone out.
 func (p Plan) PreUndo() [][]string {
 	var u [][]string
 	for _, s := range p.Steps {
-		if s.Kind == StepDefault || s.Kind == StepEnable || s.Kind == StepDisable {
+		if s.Kind == StepDefault || s.Kind == StepEnable || s.Kind == StepDisable || s.Kind == StepLimit {
 			u = append([][]string{s.Undo}, u...)
 		}
 	}

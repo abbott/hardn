@@ -18,10 +18,11 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mManage User␛[m          ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m          ␛[38;2;129;134;156mConfigure a new user␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAccount Review␛[m       ␛[38;2;129;134;156m1 account to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -40,10 +41,11 @@ $
 $
    1) Manage User          Configure sudo, SSH keys$
    2) Create User          Configure a new user$
+   3) Account Review       1 account to review$
 $
    0) Return$
 $
-    > Option [0-2 or q]: 0$
+    > Option [0-3 or q]: 0$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -69,8 +71,10 @@ $
       ␛[38;2;129;134;156mConfigure sudo, SSH keys␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mCreate User␛[m$
       ␛[38;2;129;134;156mConfigure a new user␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mAccount Review␛[m$
+      ␛[38;2;129;134;156m1 account to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-2 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
 $

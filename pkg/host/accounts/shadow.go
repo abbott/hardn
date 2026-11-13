@@ -157,12 +157,57 @@ func shapeOf(field string) Shape {
 }
 
 // ShadowEntry is one name's first line of ShadowFile: its lock state, its
-// password state, its field's shape, and the line, from 1.
+// password state, its field's shape, and the line, from 1; and of its ageing
+// fields, whether the password never expires and the day the account does.
 type ShadowEntry struct {
 	Lock     Lock
 	Password Password
 	Shape    Shape
 	Line     int
+	// NeverExpires: the password has no date to expire on, as chage -l
+	// says "never" for it (neverExpires).
+	NeverExpires bool
+	// Expire is the day the account expires, in days since 1970-01-01
+	// (the eighth field); 0 for none: an empty field, or 0, which
+	// shadow(5) says not to use.
+	Expire int
+}
+
+// NeverMaxDays is the maximum age from which chage -l says a password
+// never expires (shadow's src/chage.c, 4.13 and 4.17.4: maxdays >= 10000);
+// login.defs' PASS_MAX_DAYS of 99999 is such an age.
+const NeverMaxDays = 10000
+
+// neverExpires reports whether a line's last change (third field) and
+// maximum age (fifth) give the password no date to expire on, as chage -l
+// prints "never": no last change, no maximum age (shadow(5): "An empty
+// field means that there are no maximum password age"), or one of
+// NeverMaxDays or more. A last change of 0 is a password that must be
+// changed at the next login, so not one, whatever its maximum age: chage
+// tests it first. The fields are decimal digits or empty (notNumber); a
+// number too long to read is more than NeverMaxDays.
+func neverExpires(lastChange, maxAge string) bool {
+	if lastChange == "" {
+		return true
+	}
+	if n, err := strconv.Atoi(lastChange); err == nil && n == 0 {
+		return false
+	}
+	if maxAge == "" {
+		return true
+	}
+	n, err := strconv.Atoi(maxAge)
+	return err != nil || n >= NeverMaxDays
+}
+
+// expireDay is the eighth field as a day; 0 for an empty one, and for a
+// number too long to read, which is no day that has passed.
+func expireDay(field string) int {
+	n, err := strconv.Atoi(field)
+	if err != nil {
+		return 0
+	}
+	return n
 }
 
 // Shadow is ShadowFile as read: each name's first line, as getspnam finds
@@ -188,7 +233,8 @@ func ReadShadow(ctx context.Context, sys host.System) (Shadow, error) {
 
 // ParseShadow parses ShadowFile's content: name:password:lastchg:min:max:
 // warn:inactive:expire:reserved, nine fields (shadow(5)). Of each line it
-// keeps the name, its lock state, its password state and its shape. A line that musl's getspnam would
+// keeps the name, its lock state, its password state, its shape, whether the
+// password never expires and the day the account expires. A line that musl's getspnam would
 // pass over, or for which it would find no entry, is ErrMalformed, whose
 // message names the line, never its content (src/passwd/getspnam_r.c):
 // another number of fields, a numeric field neither empty nor decimal
@@ -203,7 +249,8 @@ func ParseShadow(data []byte) (Shadow, error) {
 			return ErrMalformed
 		}
 		if _, ok := s[f[0]]; !ok {
-			s[f[0]] = ShadowEntry{Lock: lockOf(f[1]), Password: passwordOf(f[1]), Shape: shapeOf(f[1]), Line: n}
+			s[f[0]] = ShadowEntry{Lock: lockOf(f[1]), Password: passwordOf(f[1]), Shape: shapeOf(f[1]), Line: n,
+				NeverExpires: neverExpires(f[2], f[4]), Expire: expireDay(f[7])}
 		}
 		return nil
 	})

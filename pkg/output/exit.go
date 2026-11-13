@@ -30,7 +30,7 @@ const (
 // Exit is the exit status of a run that ended with o.
 func (o Outcome) Exit() int {
 	switch o {
-	case OutcomeNothingToDo, OutcomeApplied, OutcomeAwaiting:
+	case OutcomeNothingToDo, OutcomeApplied, OutcomeAwaiting, OutcomeConfirmed, OutcomeUndone, OutcomeAbandoned, OutcomeRearmed:
 		return ExitOK
 	case OutcomeChangesNeeded, OutcomeDeclined:
 		return ExitChanges

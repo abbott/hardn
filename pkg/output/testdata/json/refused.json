@@ -12,7 +12,8 @@
     "platform": {
       "distro": "ubuntu",
       "version": "24.04",
-      "support": "supported"
+      "support": "supported",
+      "supportEnds": ""
     },
     "init": "systemd",
     "ssh": "ssh.socket",

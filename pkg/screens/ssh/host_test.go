@@ -162,6 +162,12 @@ type sshHost struct {
 	plat platform
 	env  map[string]string // hardn's environment: SUDO_USER or DOAS_USER, none at a root login
 	sess revert.Session
+	// oldSSHD: sshd is older than OpenSSH 9.8 (Debian 12's 9.2), which has
+	// no PerSourcePenalties, so sshd -T prints no such line.
+	oldSSHD bool
+	// penalties, where set, is sshd -T's persourcepenalties output as it is,
+	// whatever the files say: a line hardn can't read.
+	penalties *string
 	// log is sshd's log of the session's login: journalctl -u ssh's on
 	// systemd; on OpenRC /var/log/messages holds it.
 	log string
@@ -582,7 +588,42 @@ func (h *sshHost) sshdT(main []byte, drops []sshd.File) (out string, listeners [
 			b.WriteString(k + " " + v + "\n")
 		}
 	}
+	if h.penalties != nil {
+		b.WriteString(*h.penalties)
+	} else {
+		b.WriteString(penaltiesLine(sshd.ReadOrder(main, drops), h.oldSSHD))
+	}
 	return b.String(), listeners
+}
+
+// penaltiesLine is sshd -T's persourcepenalties line for the lines sshd
+// reads, by servconf.c (OpenSSH 9.8 and 10.0): "no" where the first yes or
+// no outside a penalty is no and no line sets a penalty (one does turn them
+// on), else the penalties, here OpenSSH 10.0's defaults whatever the lines
+// set. "" before OpenSSH 9.8 (old), which has no such keyword.
+func penaltiesLine(lines []sshd.Line, old bool) string {
+	if old {
+		return ""
+	}
+	first, sets := "", false
+	for _, l := range lines {
+		if l.Match != nil || l.Keyword != "persourcepenalties" {
+			continue
+		}
+		for _, a := range l.Args {
+			switch a = strings.ToLower(a); {
+			case a != "yes" && a != "no":
+				sets = true
+			case first == "":
+				first = a
+			}
+		}
+	}
+	if first == "no" && !sets {
+		return "persourcepenalties no\n"
+	}
+	return "persourcepenalties crash:90 authfail:5 noauth:1 grace-exceeded:10 refuseconnection:10 max:600 min:15 " +
+		"max-sources4:65536 max-sources6:65536 overflow:permissive overflow6:permissive\n"
 }
 
 // matched is main with the directives of the Match blocks spec's
@@ -673,8 +714,7 @@ func addrMatch(s, p string) bool {
 // sshd answers sshd -t, -T and -T -C over the files -f names: exit 1
 // without host keys (noKeys); sshd.c's fatal() where /run/sshd is missing
 // (reload.md §2.4); -C with the Match
-// blocks applied and requiredrsasize, the first value, OpenSSH 9.1's
-// default 1024 where none is set.
+// blocks applied; each with requiredrsasize (rsaSizeLine).
 func (h *sshHost) sshd(argv []string) hostfake.Response {
 	if h.noKeys && (slices.Contains(argv, "-T") || slices.Contains(argv, "-t")) {
 		return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\r\n", ExitCode: 1}
@@ -693,17 +733,24 @@ func (h *sshHost) sshd(argv []string) hostfake.Response {
 	if i := slices.Index(argv, "-C"); i >= 0 && i+1 < len(argv) {
 		m := matched(main, drops, argv[i+1])
 		out, _ := h.sshdT(m, drops)
-		size := strconv.Itoa(authkeys.MinRSABits)
-		for _, l := range sshd.ReadOrder(m, drops) {
-			if l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0 {
-				size = l.Args[0]
-				break
-			}
-		}
-		return hostfake.Response{Stdout: out + "requiredrsasize " + size + "\n"}
+		return hostfake.Response{Stdout: out + rsaSizeLine(m, drops)}
 	}
 	out, _ := h.sshdT(main, drops)
-	return hostfake.Response{Stdout: out}
+	return hostfake.Response{Stdout: out + rsaSizeLine(main, drops)}
+}
+
+// rsaSizeLine is sshd -T's requiredrsasize line over main and drops: the
+// first value outside a Match block, OpenSSH 9.1's default 1024 where none
+// is set.
+func rsaSizeLine(main []byte, drops []sshd.File) string {
+	size := strconv.Itoa(authkeys.MinRSABits)
+	for _, l := range sshd.ReadOrder(main, drops) {
+		if l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0 {
+			size = l.Args[0]
+			break
+		}
+	}
+	return "requiredrsasize " + size + "\n"
 }
 
 // ssOutput is ss -Htln's output for the sockets given ("0.0.0.0:22").

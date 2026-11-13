@@ -1,0 +1,141 @@
+# Golden file of TestAccountsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts found␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Item 3's screen: carol has an empty␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword, george and alice have passwords that never expire,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, deploy and backup-operator have no login in 90 days.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach row is the command to run; hardn changes nothing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcarol␛[m                ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mgeorge␛[m               ␛[38;2;129;134;156mRun chage -M 365 george␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mRun chage -M 365 alice␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156m2026-03-02,␛[m ␛[38;2;219;184;83mrun usermod -e 1 alice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mdeploy␛[m               ␛[38;2;129;134;156mNever,␛[m ␛[38;2;219;184;83mrun usermod -e 1 deploy␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mbackup-operator␛[m$
+      ␛[38;2;129;134;156m2025-11-20,␛[m ␛[38;2;219;184;83mrun usermod -e 1 backup-operator␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  accounts found -----------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. Item 3's screen: carol has an empty$
+# password, george and alice have passwords that never expire,$
+# alice, deploy and backup-operator have no login in 90 days.$
+# Each row is the command to run; hardn changes nothing.$
+$
+# Account Review ###############################################$
+$
+  Empty password -----------------------------------------------$
+$
+  [ ] carol                Run passwd -l carol$
+$
+  Password never expires ---------------------------------------$
+$
+   -  george               Run chage -M 365 george$
+   -  alice                Run chage -M 365 alice$
+$
+  No login in 90 days ------------------------------------------$
+$
+  [ ] alice                2026-03-02, run usermod -e 1 alice$
+  [ ] deploy               Never, run usermod -e 1 deploy$
+  [ ] backup-operator$
+      2025-11-20, run usermod -e 1 backup-operator$
+$
+   0) Return$
+$
+    > Option [0 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts found␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Item 3's screen: carol has an␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mempty password, george and alice have passwords that never␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mexpire, alice, deploy and backup-operator have no login in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m90 days. Each row is the command to run; hardn changes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcarol␛[m$
+      ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mgeorge␛[m$
+      ␛[38;2;129;134;156mRun chage -M 365 george␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156mRun chage -M 365 alice␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216malice␛[m$
+      ␛[38;2;129;134;156m2026-03-02,␛[m ␛[38;2;219;184;83mrun usermod -e 1 alice␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mdeploy␛[m$
+      ␛[38;2;129;134;156mNever,␛[m ␛[38;2;219;184;83mrun usermod -e 1 deploy␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mbackup-operator␛[m$
+      ␛[38;2;129;134;156m2025-11-20,␛[m ␛[38;2;219;184;83mrun usermod -e 1 backup-operator␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156maccounts found␛[m ␛[38;2;22;24;29m-----------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Item 3's screen: carol has an empty␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpassword, george and alice have passwords that never expire,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malice, deploy and backup-operator have no login in 90 days.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mEach row is the command to run; hardn changes nothing.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m-----------------------------------------------␛[m$
+$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mcarol␛[m                ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m---------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mgeorge␛[m               ␛[38;2;129;134;156mRun chage -M 365 george␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156mRun chage -M 365 alice␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m------------------------------------------␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216malice␛[m                ␛[38;2;129;134;156m2026-03-02,␛[m ␛[38;2;219;184;83mrun usermod -e 1 alice␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mdeploy␛[m               ␛[38;2;129;134;156mNever,␛[m ␛[38;2;219;184;83mrun usermod -e 1 deploy␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mbackup-operator␛[m$
+      ␛[38;2;129;134;156m2025-11-20,␛[m ␛[38;2;219;184;83mrun usermod -e 1 backup-operator␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$

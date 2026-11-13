@@ -53,6 +53,9 @@ func TestMenuOptions(t *testing.T) {
 	if status.Version != "v"+version || runAll.Version != version || updates.Version != version {
 		t.Errorf("hardn's version: status %q, Run All %q, Auto Updates %q; want %q", status.Version, runAll.Version, updates.Version, version)
 	}
+	if status.Now == nil {
+		t.Error("the status has no clock: the end-of-support notice counts from the engine's (revertNow)")
+	}
 	for name, ok := range map[string]bool{
 		"User Management": o.Users != nil, "SSH Login": o.SSH != nil, "DNS": o.DNS != nil, "Firewall": o.Firewall != nil, "the Firewall item's description": o.FirewallPVE != nil, "the Firewall item's description on Rocky Linux and AlmaLinux": o.FirewallEL != nil,
 		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Run All": o.RunAll != nil,

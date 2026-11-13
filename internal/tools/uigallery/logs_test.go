@@ -147,7 +147,7 @@ func TestPipeIsEveryLine(t *testing.T) {
 
 // TestNotesOpenWithTheirSource: every form's note carries its source label.
 func TestNotesOpenWithTheirSource(t *testing.T) {
-	for _, l := range []listing{sdListing, logsListing} {
+	for _, l := range []listing{sdListing, logsListing, eolListing} {
 		for _, m := range l.mocks() {
 			if note := l.note(m); !strings.HasPrefix(note, l.label) {
 				t.Errorf("%s %s: %q", l.prefix, m.name, note)

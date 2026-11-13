@@ -26,7 +26,7 @@ origin/main: menu/system_details_open.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -86,8 +86,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-open on Alpine 3.23
@@ -106,7 +106,7 @@ origin/main: menu/system_details_open.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: lstat, read, readdir, readlink, run, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; doas -C /etc/doas.conf; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; doas -C /etc/doas.conf; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Alpine 3.23.6
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -168,8 +168,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-invalid on Debian 13
@@ -187,7 +187,7 @@ origin/main: menu/system_details_invalid.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "7", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -251,8 +251,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-return on Debian 13
@@ -270,7 +270,7 @@ origin/main: menu/system_details_return.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "0"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -330,8 +330,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-refresh on Debian 13
@@ -349,7 +349,7 @@ origin/main: menu/system_details_refresh.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "1", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -409,8 +409,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-group-no-rule on Debian 13
@@ -429,7 +429,7 @@ origin/main: menu/system_details_open.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -490,8 +490,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-render on Debian 13
@@ -501,7 +501,7 @@ origin/main: menu/system_details_render.golden ()
   a renderer golden: its rows are synthetic and unmasked; Hypervisor and CPU Freq, which no file the new path reads holds, are origin/main's alone
   start: a synthetic report, no calls
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "0"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -562,8 +562,8 @@ differ Disk Used: none | 20.0 of 80.0 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 31.2 of 62.5 GiB (50%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-render-zfs on Debian 13
@@ -573,7 +573,7 @@ origin/main: menu/system_details_render_zfs.golden ()
   a renderer golden: its rows are synthetic and unmasked; Hypervisor and CPU Freq, which no file the new path reads holds, are origin/main's alone
   start: a synthetic report, no calls
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "0"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice,bob
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -637,8 +637,8 @@ differ Disk Used: none | 12.0 of 100.0 GiB (12%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 31.2 of 62.5 GiB (50%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-error on Debian 13
@@ -648,7 +648,7 @@ origin/main: menu/system_details_error.golden ()
   start: /etc/resolv.conf -> 66 bytes; /etc/passwd -> 148 bytes; /etc/group -> 40 bytes; /etc/os-release -> 139 bytes; /proc/uptime -> 22 bytes; /proc/cpuinfo -> 75 bytes; /proc/meminfo -> error: file not found: /proc/meminfo
   probes: 4x read /etc/resolv.conf -> 66 bytes; 4x read /etc/passwd -> 148 bytes; 7x read /etc/group -> 40 bytes; 3x read /etc/os-release -> 139 bytes; 4x read /proc/uptime -> 22 bytes; 3x exec uname -r -> ok; 3x read /proc/cpuinfo -> 75 bytes; 3x read /proc/meminfo -> error: file not found: /proc/meminfo; 3x exec cat /proc/meminfo -> ok; 3x exec df -k -> ok; 1x tool nproc; 1x tool lscpu
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -669,8 +669,8 @@ differ failure words: Failed to retrieve system status information.; Please chec
        defect 7; gallery-system-details.md §6, Can't read <source>: "check permissions" whatever it was; now what it could not read
 differ reads a draw: 3 | 1
        defect 20: each of the host-info service's files read four times a draw, three where memory fails; now one read
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-no-lastlog on Debian 13
@@ -689,7 +689,7 @@ origin/main: menu/system_details_no_lastlog.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -749,8 +749,8 @@ differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
 differ From: none | alice 192.0.2.10
        decision 3 (a); defect 14; KNOWN-DEFECT (left blank): no row with the blank; now each account's, by lslogins
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-never on Debian 13
@@ -768,7 +768,7 @@ origin/main: menu/system_details_never_logged_in.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -826,8 +826,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-login-hostname on Debian 13
@@ -845,7 +845,7 @@ origin/main: menu/system_details_login_hostname.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -905,8 +905,8 @@ differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
 differ From: none | alice laptop
        decision 3 (a); defect 14; KNOWN-DEFECT (left blank): no row with the blank; now each account's, a name with no dot read
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-no-lscpu on Debian 13
@@ -925,7 +925,7 @@ origin/main: menu/system_details_no_lscpu.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -985,8 +985,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-zfs-all-healthy on Debian 13
@@ -1005,7 +1005,7 @@ origin/main: menu/system_details_zfs_all_healthy.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1068,8 +1068,8 @@ differ ZFS Health: none | zroot ONLINE
        defect 9: no row, ZFS not seen; now the mount's pool, as zpool says it
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-zfs-dataset on Debian 13
@@ -1088,7 +1088,7 @@ origin/main: menu/system_details_zfs_dataset.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1151,8 +1151,8 @@ differ Disk Used: none | 12.0 of 100.0 GiB (12%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-zfs-other on Debian 13
@@ -1171,7 +1171,7 @@ origin/main: menu/system_details_zfs_other_dataset.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; zpool list -H -o health rpool; zfs get -Hp -o value used,available rpool/ROOT/pve-1; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health rpool; zfs get -Hp -o value used,available rpool/ROOT/pve-1; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1234,8 +1234,8 @@ differ Disk Used: none | 12.0 of 100.0 GiB (12%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
 
 == sd-export on Debian 13
@@ -1308,7 +1308,7 @@ origin/main: menu/system_details_export_default.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1376,8 +1376,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 differ key refused: none | Invalid option. Please try again.
        decision 5 (a): item 2 offered; now no item 2, and the key refused in origin/main's words
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
@@ -1453,7 +1453,7 @@ origin/main: menu/system_details_export_named.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1522,8 +1522,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 differ key refused: none | Invalid option. Please try again.
        decision 5 (a): item 2 offered; now no item 2, and the key refused in origin/main's words
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
@@ -1598,7 +1598,7 @@ origin/main: menu/system_details_export_overwrite.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1666,8 +1666,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 differ key refused: none | Invalid option. Please try again.
        decision 5 (a): item 2 offered; now no item 2, and the key refused in origin/main's words
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
@@ -1687,7 +1687,7 @@ origin/main: menu/system_details_export_fails.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1754,8 +1754,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 differ key refused: none | Invalid option. Please try again.
        decision 5 (a): item 2 offered; now no item 2, and the key refused in origin/main's words
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
@@ -1775,7 +1775,7 @@ origin/main: menu/system_details_export_dry_run.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; df -kP /; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1842,8 +1842,8 @@ differ Disk Used: none | 6.0 of 39.3 GiB (15%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 differ key refused: none | Invalid option. Please try again.
        decision 5 (a): item 2 offered; now no item 2, and the key refused in origin/main's words
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)
@@ -1919,7 +1919,7 @@ origin/main: menu/system_details_export_zfs.golden ()
   masked Load 15m (recorded, not compared): <read from the host>
   masked Domain (recorded, not compared): <dropped>
 new path: the System Details screen's Run on detect's facts through details.Bounded, typed "2", "q"; hostfake's record: read, readdir, readlink, run, scan-lines, stat; nothing written
-  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
+  probes: dpkg-query --show "--showformat=${Status}\\t${Version}\\n" pve-manager; sudo --version; visudo -c; ip -o addr show scope global; ss -Htlnp; ss -Hulnp; zpool list -H -o health zroot; zfs get -Hp -o value used,available zroot/ROOT/os; lslogins --time-format=iso --noheadings --raw --output=USER,LAST-LOGIN,LAST-TTY,LAST-HOSTNAME -l root,alice
   masked OS (recorded, not compared): Debian 13 (Trixie)
   masked Hostname (recorded, not compared): web-01
   masked IP Addresses (recorded, not compared): eth0 192.0.2.20/24
@@ -1990,8 +1990,8 @@ differ Disk Used: none | 12.0 of 100.0 GiB (12%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Volume in its own words; now the row's, Volume the fact it draws
 differ Memory Used: none | 1.9 of 7.8 GiB (25%)
        decision 2 (a); gallery-system-details.md §6, Used: none, Memory in its own words; now the row's, Memory the fact it draws
-differ sections: none | OS and Kernel, Host and IPs, Users, CPU and Load, Disk, Memory, Last Login
-       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven
+differ sections: none | OS and Kernel, Host and IPs, Listening Ports, Users, CPU and Load, Disk, Memory, Last Login
+       decision 2 (a); gallery-system-details.md §6, System Details sections: no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)
 differ key refused: none | Invalid option. Please try again.
        decision 5 (a): item 2 offered; now no item 2, and the key refused in origin/main's words
 v0.3.2: no such screen: v0.3.2 had no System Details (gallery-system-details.md §2.11; read)

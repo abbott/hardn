@@ -1,6 +1,10 @@
 package engine
 
-import "github.com/abbott/hardn/pkg/host/detect"
+import (
+	"time"
+
+	"github.com/abbott/hardn/pkg/host/detect"
+)
 
 // CodeBestEffort is the finding of a plan made on a best-effort release
 // (detect.BestEffort: Ubuntu 22.04 and Alpine 3.22): one its vendor
@@ -11,34 +15,63 @@ import "github.com/abbott/hardn/pkg/host/detect"
 // in every plan; next/p3-confirm-cleanup).
 const CodeBestEffort = "PLATFORM_BEST_EFFORT"
 
-// distroNames are the platforms' names in a finding's words.
-var distroNames = map[detect.Distro]string{
-	detect.DistroDebian:  "Debian",
-	detect.DistroUbuntu:  "Ubuntu",
-	detect.DistroAlpine:  "Alpine",
-	detect.DistroProxmox: "Proxmox VE",
-	detect.DistroRocky:   "Rocky Linux",
-	detect.DistroAlma:    "AlmaLinux",
-	detect.DistroRHEL:    "RHEL",
+// CodeSupportEnds and CodeSupportEnded are the findings of a plan made on
+// a release whose vendor support ends within detect.EndNear days, or has
+// ended (docs/engine/gallery-eol.md, adopted 2026-11-13;
+// docs/engine/screen-eol.md): the main menu's notice, on the plan. They
+// are stable once released.
+const (
+	CodeSupportEnds  = "PLATFORM_SUPPORT_ENDS"
+	CodeSupportEnded = "PLATFORM_SUPPORT_ENDED"
+)
+
+// platformFindings are the plan's findings of the platform p on the day
+// today: on a best-effort release, CodeBestEffort, whatever the plan holds
+// (P-41: every plan made on one); then, on a release whose support ends
+// soon or has ended, at every support level, CodeSupportEnds or
+// CodeSupportEnded (endFinding). The support gate is unchanged, and never
+// reads the clock: out-of-scope, unlisted and unestablished releases are
+// refused for a plan with changes (refuseApply, ErrUnsupported), and a
+// release past its date is changed as before.
+func platformFindings(p detect.Platform, today time.Time) []Finding {
+	var out []Finding
+	if p.Support == detect.BestEffort {
+		detail := releaseName(p) + " is a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it"
+		if p.Note != "" {
+			detail += " (" + p.Note + ")"
+		}
+		out = append(out, Finding{Code: CodeBestEffort, Detail: detail})
+	}
+	return append(out, endFinding(p, today)...)
 }
 
-// platformFindings are the plan's findings of the platform p: on a
-// best-effort release, CodeBestEffort, whatever the plan holds (P-41: every
-// plan made on one); none on a supported release. The support gate is
-// unchanged: out-of-scope, unlisted and unestablished releases are refused
-// for a plan with changes (refuseApply, ErrUnsupported), and get no such
-// finding.
-func platformFindings(p detect.Platform) []Finding {
-	if p.Support != detect.BestEffort {
+// endFinding is the end-of-support finding of p on the day today, none
+// where the date is further off or there is none: "Alpine 3.22 support
+// ends 2027-05-01: upgrade to Alpine 3.24", the notice's words
+// (screen.EndOfSupport) on one line. Every word is hardn's own: the name
+// is detect's and the version the matrix row's, never the host's text.
+func endFinding(p detect.Platform, today time.Time) []Finding {
+	end := p.End(today)
+	if !end.Due() {
 		return nil
 	}
-	name := distroNames[p.Distro]
+	code, verb := CodeSupportEnds, " support ends "
+	if end.State == detect.Ended {
+		code, verb = CodeSupportEnded, " support ended "
+	}
+	detail := releaseName(p) + verb + end.Words
+	if r, ok := p.Upgrade(); ok {
+		detail += ": upgrade to " + r.Distro.Name() + " " + r.Version
+	}
+	return []Finding{{Code: code, Detail: detail}}
+}
+
+// releaseName is p's distribution and release in a finding's words,
+// "Ubuntu 22.04".
+func releaseName(p detect.Platform) string {
+	name := p.Distro.Name()
 	if name == "" {
 		name = string(p.Distro)
 	}
-	detail := name + " " + p.Version + " is a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it"
-	if p.Note != "" {
-		detail += " (" + p.Note + ")"
-	}
-	return []Finding{{Code: CodeBestEffort, Detail: detail}}
+	return name + " " + p.Version
 }

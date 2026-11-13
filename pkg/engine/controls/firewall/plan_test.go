@@ -124,6 +124,21 @@ func (l *live) run(argv []string) (string, bool) {
 	case len(argv) == 4 && argv[1] == "default" && argv[3] == "incoming":
 		l.u.incoming = argv[2]
 		return "Default incoming policy changed to '" + argv[2] + "'\n", true
+	case len(argv) == 3 && (argv[1] == "limit" || argv[1] == "allow" && l.plain("limit", argv[2]) >= 0):
+		// set_rule replaces a saved rule of the same tuple and another action
+		// in its place ("Rule updated", ufw.md §3); a limit with no such rule
+		// adds one.
+		other := map[string]string{"limit": "allow", "allow": "limit"}[argv[1]]
+		switch i := l.plain(other, argv[2]); {
+		case i >= 0:
+			l.u.rules = slices.Clone(l.u.rules) // a site's rules may be a shared value's (allow22)
+			l.u.rules[i].action = argv[1]
+			return "Rule updated\nRule updated (v6)\n", true
+		case l.plain(argv[1], argv[2]) >= 0:
+			return "Skipping adding existing rule\nSkipping adding existing rule (v6)\n", true
+		}
+		l.u.rules = append(l.u.rules, rule{action: argv[1], port: strings.TrimSuffix(argv[2], "/tcp")})
+		return "Rule added\nRule added (v6)\n", true
 	case len(argv) == 3 && argv[1] == "allow":
 		port := strings.TrimSuffix(argv[2], "/tcp")
 		i := slices.IndexFunc(l.u.rules, func(r rule) bool { return r.port == port && r.app == "" })
@@ -198,6 +213,15 @@ func (l *live) run(argv []string) (string, bool) {
 		return "", true
 	}
 	return "", false
+}
+
+// plain is the index of l's rule of action on spec ("22/tcp") from anywhere,
+// with no application or interface, or -1.
+func (l *live) plain(action, spec string) int {
+	port := strings.TrimSuffix(spec, "/tcp")
+	return slices.IndexFunc(l.u.rules, func(r rule) bool {
+		return r.action == action && r.port == port && r.src == "" && r.dst == "" && r.app == "" && r.iface == ""
+	})
 }
 
 func engineOn(l *live, session revert.Session) *engine.Engine {

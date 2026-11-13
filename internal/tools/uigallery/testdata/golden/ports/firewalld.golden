@@ -1,0 +1,195 @@
+# Golden file of TestPortsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mports firewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net listens on 22, 80␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand 443 on every address, 5353/udp, 5432 on loopback alone,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m9090 and 9100. firewalld is running, its zone public letting␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min the same ports, and its zone internal 9090 from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.0/24 alone. The same Ports section, after firewalld's,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a port let in from some sources.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRunning␛[m              ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDefault zone␛[m         ␛[38;2;129;134;156mpublic␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mActive zones␛[m         ␛[38;2;129;134;156minternal, public␛[m$
+$
+  ␛[1;38;2;129;134;156mPorts␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m22/tcp␛[m               ␛[38;2;129;134;156mOpen sshd␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m80/tcp␛[m               ␛[38;2;129;134;156mOpen nginx␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m443/tcp␛[m              ␛[38;2;129;134;156mOpen nginx␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m5353/udp␛[m             ␛[38;2;129;134;156mBlocked avahi-daemon␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m5432/tcp␛[m             ␛[38;2;129;134;156mLocal only postgres␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m8080/tcp␛[m             ␛[38;2;129;134;156mOpen␛[m ␛[38;2;219;184;83mnothing listening␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m9090/tcp␛[m             ␛[38;2;129;134;156mSome sources prometheus␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m9100/tcp␛[m             ␛[38;2;129;134;156mBlocked node_exporter␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable firewalld␛[m    ␛[38;2;129;134;156mStop firewalld (not recommended)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  ports firewalld ----------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. web-01.example.net listens on 22, 80$
+# and 443 on every address, 5353/udp, 5432 on loopback alone,$
+# 9090 and 9100. firewalld is running, its zone public letting$
+# in the same ports, and its zone internal 9090 from$
+# 192.0.2.0/24 alone. The same Ports section, after firewalld's,$
+# with a port let in from some sources.$
+$
+# Firewall Configuration #######################################$
+$
+  [+] Firewall             Configured firewalld running$
+$
+  firewalld ----------------------------------------------------$
+$
+  [+] Installed            Yes$
+  [+] Running              Yes$
+  [+] At boot              Yes$
+   -  Default zone         public$
+   -  Active zones         internal, public$
+$
+  Ports --------------------------------------------------------$
+$
+   -  22/tcp               Open sshd$
+   -  80/tcp               Open nginx$
+   -  443/tcp              Open nginx$
+   -  5353/udp             Blocked avahi-daemon$
+   -  5432/tcp             Local only postgres$
+  [ ] 8080/tcp             Open nothing listening$
+   -  9090/tcp             Some sources prometheus$
+   -  9100/tcp             Blocked node_exporter$
+$
+  Select an option$
+$
+   1) Disable firewalld    Stop firewalld (not recommended)$
+$
+   0) Return$
+$
+    > Option [0-1 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mports firewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net listens on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22, 80 and 443 on every address, 5353/udp, 5432 on␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mloopback alone, 9090 and 9100. firewalld is running, its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mzone public letting in the same ports, and its zone␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156minternal 9090 from 192.0.2.0/24 alone. The same Ports␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msection, after firewalld's, with a port let in from some␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msources.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mInstalled␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mRunning␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAt boot␛[m$
+      ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDefault zone␛[m$
+      ␛[38;2;129;134;156mpublic␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mActive zones␛[m$
+      ␛[38;2;129;134;156minternal, public␛[m$
+$
+  ␛[1;38;2;129;134;156mPorts␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m22/tcp␛[m$
+      ␛[38;2;129;134;156mOpen sshd␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m80/tcp␛[m$
+      ␛[38;2;129;134;156mOpen nginx␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m443/tcp␛[m$
+      ␛[38;2;129;134;156mOpen nginx␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m5353/udp␛[m$
+      ␛[38;2;129;134;156mBlocked avahi-daemon␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m5432/tcp␛[m$
+      ␛[38;2;129;134;156mLocal only postgres␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216m8080/tcp␛[m$
+      ␛[38;2;129;134;156mOpen␛[m ␛[38;2;219;184;83mnothing listening␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m9090/tcp␛[m$
+      ␛[38;2;129;134;156mSome sources prometheus␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m9100/tcp␛[m$
+      ␛[38;2;129;134;156mBlocked node_exporter␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable firewalld␛[m$
+      ␛[38;2;129;134;156mStop firewalld (not recommended)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mports firewalld␛[m ␛[38;2;22;24;29m----------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net listens on 22, 80␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand 443 on every address, 5353/udp, 5432 on loopback alone,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m9090 and 9100. firewalld is running, its zone public letting␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min the same ports, and its zone internal 9090 from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.0/24 alone. The same Ports section, after firewalld's,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a port let in from some sources.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m#######################################␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
+$
+  ␛[1;38;2;129;134;156mfirewalld␛[m ␛[38;2;22;24;29m----------------------------------------------------␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mInstalled␛[m            ␛[38;2;112;212;127mYes␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mRunning␛[m              ␛[38;2;112;212;127mYes␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAt boot␛[m              ␛[38;2;112;212;127mYes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDefault zone␛[m         ␛[38;2;129;134;156mpublic␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mActive zones␛[m         ␛[38;2;129;134;156minternal, public␛[m$
+$
+  ␛[1;38;2;129;134;156mPorts␛[m ␛[38;2;22;24;29m--------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m22/tcp␛[m               ␛[38;2;129;134;156mOpen sshd␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m80/tcp␛[m               ␛[38;2;129;134;156mOpen nginx␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m443/tcp␛[m              ␛[38;2;129;134;156mOpen nginx␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m5353/udp␛[m             ␛[38;2;129;134;156mBlocked avahi-daemon␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m5432/tcp␛[m             ␛[38;2;129;134;156mLocal only postgres␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216m8080/tcp␛[m             ␛[38;2;129;134;156mOpen␛[m ␛[38;2;219;184;83mnothing listening␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m9090/tcp␛[m             ␛[38;2;129;134;156mSome sources prometheus␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216m9100/tcp␛[m             ␛[38;2;129;134;156mBlocked node_exporter␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisable firewalld␛[m    ␛[38;2;129;134;156mStop firewalld (not recommended)␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$

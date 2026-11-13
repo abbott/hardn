@@ -11,6 +11,7 @@
   "EnableBackups": false,
   "BackupPath": "/var/backups/hardn",
   "ConfirmTimeout": "",
+  "CheckReleases": false,
   "Nameservers": [
     "192.0.2.53",
     "192.0.2.54"

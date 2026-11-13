@@ -29,7 +29,11 @@ type Bound struct {
 	Device string // the interface after "%", for a socket bound to one
 }
 
-func (b Bound) String() string {
+func (b Bound) String() string { return b.Address() + ":" + strconv.Itoa(int(b.Port)) }
+
+// Address is the address as ss writes it, without the port: "0.0.0.0",
+// "[::]", "*", and "%<interface>" after a socket bound to one.
+func (b Bound) Address() string {
 	a := b.Addr.String()
 	switch {
 	case b.Dual:
@@ -40,7 +44,7 @@ func (b Bound) String() string {
 	if b.Device != "" {
 		a += "%" + b.Device
 	}
-	return a + ":" + strconv.Itoa(int(b.Port))
+	return a
 }
 
 // ReadBound lists the TCP sockets in the LISTEN state with ss -Htln. bad
@@ -122,16 +126,21 @@ func ParseListening(out []byte, proto string) (socks []Socket, bad []string) {
 	return socks, bad
 }
 
-// process is the first program's name in a line's users:(("<name>",...))
-// column, "" for none. The name is the program's comm, which may hold a
-// space, so the line is searched rather than split.
+// process is the first program's name in a line's users:(("<name>",pid=N,...))
+// column, "" for none: ss prints no column for a socket whose owner it
+// cannot read, as for another user's when it does not run as root (ss.c,
+// user_ent_hash_build_task: an unreadable /proc/<pid>/fd is skipped). The
+// name is the program's comm, the host's word, which may hold a space, a
+// quote or a comma, so the line is searched rather than split and the name
+// ends at `",pid=`, what ss writes after it. It is returned as printed: the
+// caller makes it safe to show.
 func process(line string) string {
-	const open = `users:(("`
+	const open, end = `users:(("`, `",pid=`
 	_, rest, ok := strings.Cut(line, open)
 	if !ok {
 		return ""
 	}
-	name, _, ok := strings.Cut(rest, `",`)
+	name, _, ok := strings.Cut(rest, end)
 	if !ok {
 		return ""
 	}

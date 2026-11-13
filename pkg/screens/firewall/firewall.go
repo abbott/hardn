@@ -89,7 +89,10 @@ type Options struct {
 // or Disable; where its plan refuses it says why before asking. Item 2, where ufw
 // is installed, opens the application profiles: Add, and with any Remove and
 // Apply. Item 3, beside an item 1 that is not Disable on an active ufw, is
-// Disable. Each change is planned, reviewed, confirmed y/N, or by the hostname
+// Disable. Item 5, where ufw is active and allows an SSH port from anywhere
+// with no limit by the plain rule a limit replaces (Reading.LimitPorts), is
+// Limit SSH: "ufw limit <port>/tcp" over that allow, y/N
+// (docs/engine/screen-bruteforce.md). Each change is planned, reviewed, confirmed y/N, or by the hostname
 // typed for a lockout-risk plan, and applied; n and 0 change nothing, and a dry
 // run stops at the plan. A lockout-risk plan whose hostname can't be read says so
 // before asking; Add and Remove with no hardn.yml read say that before asking;

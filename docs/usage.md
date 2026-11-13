@@ -6,18 +6,34 @@
 
 | Option | Displays | Configures |
 |---|---|---|
-| 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
-| 2) SSH Login | root login, password login, the port, allowed users, as sshd reads them | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
-| 3) Firewall | `ufw` state, policy, rules, application profiles | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
+| 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state; under Account Review, accounts with an empty password, a password that never expires or no login in 90 days, each with the command to run | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
+| 2) SSH Login | root login, password login, the port, allowed users, sshd's brute-force limit, as sshd reads them; every account's SSH keys, with weak and shared ones marked | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
+| 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles, limits repeated SSH connections. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL); turns off only what hardn turned on. Read only on Proxmox |
 | 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS and automatic updates. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
 | 8) Configuration | which `hardn.yml` hardn read and each key's value | nothing |
-| 9) System Details | OS, kernel, addresses, users, CPU, disk, memory, last logins | nothing |
+| 9) System Details | OS, kernel, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
 _The hardn status for **AppArmor** only displays current state, nothing more._
+
+From 90 days before a release's vendor support ends, the main menu says so, and every plan carries a warning. It changes nothing hardn does. The dates: [platforms.md](platforms.md#end-of-support).
+### Account Review
+
+User Management's `3) Account Review` lists accounts to look at. hardn changes none of them: each row is the command to run.
+
+| Section | Lists | Command |
+|---|---|---|
+| Empty password | accounts whose password field in `/etc/shadow` is empty. A locked account (`!`) or one with `*` isn't listed | `passwd -l NAME` locks it |
+| Password never expires | accounts with a password and no expiry date | `chage -M 365 NAME` sets one |
+| No login in 90 days | users (uid 1000 or more, a login shell, not expired) with no login in 90 days, or none on record ("Never") | `usermod -e 1 NAME` disables the account |
+
+- **An empty password also shows on the main menu**, as "Empty password" under User, and lowers the security level.
+- **"This host keeps no login record"** means hardn found no last-login record (`/var/log/lastlog` or lastlog2's database). It then lists no one: it never guesses.
+- **"The login record has no login in 90 days"** means the record is there but may no longer be written. It lists no one then too.
+- **"Can't read the login record"** means the record is there but `lslogins` (util-linux) is missing or failed.
 
 ## Flags and commands
 
@@ -53,7 +69,7 @@ With no operation flag, `hardn` opens the main menu. Operation flags can be comb
 | `hardn rollback <id>` | Undo that change now, or finish a rollback that stopped partway |
 | `hardn rollback --abandon <id>` | Give up a rollback that can never finish. The host stays as the rollback left it |
 | `hardn rollback --boot` | What hardn's boot unit runs. You don't run it yourself |
-| `hardn system-details` | Print the System Details report. `--output json` prints it as JSON. Save it with `> file` |
+| `hardn system-details` | Print the System Details report. `--output json` prints it as JSON; `--output markdown` prints a [report to hand over](#markdown-report). Save it with `> file` |
 
 **On a terminal, and off one (scripts, cron).** Off a terminal, hardn never asks a question.
 
@@ -73,6 +89,7 @@ sudo hardn -u george -c         # create george, an admin with hardn.yml's keys
 sudo hardn -c -d                # create the user, then turn root login off
 sudo hardn -g --yes             # from cron: set the nameservers
 sudo hardn system-details --output json > web-01.json
+sudo hardn system-details --output markdown > web-01.md
 ```
 
 ## Dry run
@@ -94,6 +111,19 @@ sudo hardn system-details --output json > web-01.json
 ### JSON
 `hardn system-details --output json` prints one JSON document on stdout. [reference/output.md](reference/output.md) describes its fields and the stable error and finding codes.
 
+### Markdown report
+`sudo hardn system-details --output markdown > web-01.md` writes a report to hand to an auditor or a manager, as one Markdown document:
+
+- the host, its platform and whether hardn supports it;
+- the risk level, and each thing that raised it;
+- each control's status, as the main menu shows it, with the evidence it was read from;
+- the findings, and any check that failed;
+- System Details: addresses, users, CPU and load, disk, memory, last login.
+
+It changes nothing and exits 0 whatever it found. It doesn't need root, but without root what only root can read shows Unknown, and the report says so. It reads hardn.yml, for the DNS row; a hardn.yml that doesn't load is an error (exit 1).
+
+The document has no colour. Text read from the host is escaped or shown as code, so a hostname or a file's content can't add formatting, links or HTML to the report.
+
 ### Plain output and colour
 Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color=always` colours it anyway, and wins over `--plain`, `NO_COLOR` and `TERM=dumb` too. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
 
@@ -101,12 +131,12 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 > `TERM=linux`, as under Proxmox VE's `pct console`, gets basic colours and ASCII symbols. Where your terminal can show more, add `[ "$TERM" = linux ] && alias hardn='TERM=xterm-256color LANG=C.UTF-8 hardn'` to `/root/.profile`.
 
 ### Logs
-- `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
+- `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. Each `hardn confirm` and `hardn rollback` adds a line too, with who ran it, the change's id and how it ended; so does the rollback of a change nobody confirmed. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
 - `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. `10) Logs` and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
 
 ## hardn.yml
 
-hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `ufwAppProfiles`, `ufwTrustedInterfaces`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
+hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
 
 ```yaml
 username: "george"

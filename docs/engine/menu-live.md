@@ -91,7 +91,7 @@ Each line of origin/main's block (`pkg/menu` `displayNormalSecurityStatus`, `pkg
 | origin/main | Live | Source |
 |---|---|---|
 | `hardn v0.4.0` and the repository URL | the same, the `Header` component; the URL at column 27 | DEV-017; the version is `cmd/hardn`'s, as before |
-| With an update found: `v0.4.1 available` in place of the URL, and the URL on a second line | **not drawn**: the `Header` has no notice | **Open**; unreachable while update checks are off (`updateCheckEnabled`, V26); P-15 |
+| With an update found: `v0.4.1 available` in place of the URL, and the URL on a second line | **drawn since `next/release-check`** (2026-11-13): the notice takes the URL's place, with no second line; only where hardn.yml's `checkReleases` is on | Done: [screen-release-check.md](screen-release-check.md) |
 | The security-update alert in place of the block, then Enter ends hardn | the same, origin/main's code, on either side of the gate | kept (§5); unreachable while V26's gate holds |
 | The OS bar, from `osdetect`: "Debian 13 (Trixie)", "Alpine Linux 3.23.0" | the `ContextBar` from the header probe (os-release): "Debian 13 (Trixie)", "Alpine 3.24.2", "Proxmox VE 9.0.10 (Trixie)" (origin/main showed Debian there) | `next/p4-header`, [header.md](header.md) §5 |
 | The host line: hostname badge and the first address of `GetHostInfo`, "Unknown" without one; the whole host block left out when it failed | hostname badge and the primary address (the default route's), "no default route", "no address", or "Unknown"; always drawn | `next/p4-header`, header.md §2, §5.2 |

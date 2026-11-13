@@ -256,3 +256,42 @@ func (r Reading) DecidedBy(keyword string) string {
 	}
 	return ""
 }
+
+// PenaltiesBy is the base name of the file whose line decides whether
+// PerSourcePenalties is on, as servconf.c reads it: off, the first line
+// that says "no"; on, the first line that sets a penalty, which turns them
+// on whatever a "yes" or "no" says, else the first that says "yes". ""
+// where no line read does: on, that is sshd's default.
+func (r Reading) PenaltiesBy() string {
+	var yes, no, sets string
+	for _, l := range sshd.ReadOrder(r.Found.Main, r.Found.DropIns) {
+		if l.Match != nil || l.Keyword != "persourcepenalties" {
+			continue
+		}
+		for _, a := range l.Args {
+			switch f := path.Base(l.File); {
+			case strings.EqualFold(a, "no"):
+				no = first(no, f)
+			case strings.EqualFold(a, "yes"):
+				yes = first(yes, f)
+			default:
+				sets = first(sets, f)
+			}
+		}
+	}
+	switch {
+	case r.Effective.Penalties == sshd.PenaltiesOff:
+		return no
+	case sets != "":
+		return sets
+	}
+	return yes
+}
+
+// first is a, or b where a is empty.
+func first(a, b string) string {
+	if a != "" {
+		return a
+	}
+	return b
+}

@@ -16,6 +16,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
 $
@@ -25,10 +26,11 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 0$
 $
 
 === plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
@@ -45,6 +47,7 @@ $
    -  Password Login       Off by 60-cloudimg-settings.conf$
    -  SSH Port             22, 2230 ssh.socket$
    -  Allowed Users        george by manage.conf$
+   -  Brute-Force Limit    On sshd's default$
   [ ] Old Settings         manage.conf, listen.conf$
    -  Logged in as         george, by key$
 $
@@ -54,10 +57,11 @@ $
    2) Password login on    Let passwords log in again$
    3) Change SSH port      Now 22 and 2230$
    4) Move old settings    Into 00-hardn.conf$
+   6) SSH keys             3 keys, 2 to review$
 $
    0) Return$
 $
-    > Option [0-4 or q]: 0$
+    > Option [0-4, 6 or q]: 0$
 $
 
 === truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
@@ -81,6 +85,8 @@ $
       ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mgeorge␛[m ␛[38;2;129;134;156mby manage.conf␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$
+      ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m$
       ␛[38;2;219;184;83mmanage.conf, listen.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$
@@ -96,8 +102,10 @@ $
       ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
       ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 0$
 $

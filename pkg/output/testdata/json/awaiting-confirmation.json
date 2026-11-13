@@ -12,7 +12,8 @@
     "platform": {
       "distro": "debian",
       "version": "13",
-      "support": "supported"
+      "support": "supported",
+      "supportEnds": ""
     },
     "init": "systemd",
     "ssh": "ssh.service",
