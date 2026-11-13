@@ -1,0 +1,116 @@
+# Golden file of TestKeysGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mkeys comments␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Comments are untrusted: one holds an␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mescape sequence and a right-to-left override, one is 120␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mletters long, one is missing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Keys␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mSummary␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeys␛[m                 ␛[38;2;129;134;156m3 in 1 account␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTo review␛[m            ␛[38;2;112;212;127mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m              ␛[38;2;129;134;156m^[[2J^[[32mroot@trusted<U+202E>␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m              ␛[38;2;129;134;156mlong-comment-long-comment-long-comme…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m              ␛[38;2;129;134;156mNo comment␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  keys comments ------------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. Comments are untrusted: one holds an$
+# escape sequence and a right-to-left override, one is 120$
+# letters long, one is missing.$
+$
+# SSH Keys #####################################################$
+$
+  Summary ------------------------------------------------------$
+$
+   -  Keys                 3 in 1 account$
+  [+] To review            None$
+$
+  george -------------------------------------------------------$
+$
+   -  ED25519              ^[[2J^[[32mroot@trusted<U+202E>$
+   -  ED25519              long-comment-long-comment-long-com...$
+   -  ED25519              No comment$
+$
+   0) Return$
+$
+    > Option [0 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mkeys comments␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Comments are untrusted: one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mholds an escape sequence and a right-to-left override, one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis 120 letters long, one is missing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Keys␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mSummary␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeys␛[m$
+      ␛[38;2;129;134;156m3 in 1 account␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTo review␛[m$
+      ␛[38;2;112;212;127mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m$
+      ␛[38;2;129;134;156m^[[2J^[[32mroot@trusted<U+202E>␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m$
+      ␛[38;2;129;134;156mlong-comment-long-comment-long-comment-long-comment-l…␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m$
+      ␛[38;2;129;134;156mNo comment␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mkeys comments␛[m ␛[38;2;22;24;29m------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Comments are untrusted: one holds an␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mescape sequence and a right-to-left override, one is 120␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mletters long, one is missing.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSSH Keys␛[m ␛[38;2;43;47;59m#####################################################␛[m$
+$
+  ␛[1;38;2;129;134;156mSummary␛[m ␛[38;2;22;24;29m------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKeys␛[m                 ␛[38;2;129;134;156m3 in 1 account␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mTo review␛[m            ␛[38;2;112;212;127mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mgeorge␛[m ␛[38;2;22;24;29m-------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m              ␛[38;2;129;134;156m^[[2J^[[32mroot@trusted<U+202E>␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m              ␛[38;2;129;134;156mlong-comment-long-comment-long-com...␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mED25519␛[m              ␛[38;2;129;134;156mNo comment␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$

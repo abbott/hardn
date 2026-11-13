@@ -51,6 +51,7 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 		screen.SSHPortItem:     func() error { return r.port(ctx, h) },
 		screen.SSHMigrateItem:  func() error { return r.migrate(ctx, h) },
 		screen.SSHUpgradeItem:  func() error { return r.upgrade(ctx, h) },
+		screen.SSHKeysEntry:    func() error { return r.keysScreen(ctx) },
 	}
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {

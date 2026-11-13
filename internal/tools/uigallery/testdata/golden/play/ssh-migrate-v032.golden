@@ -42,10 +42,11 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
@@ -73,10 +74,11 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 4$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 4$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn v0.3.x's listen.conf (port 2230 for ssh.socket) never␛[m$
@@ -107,10 +109,11 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mPassword login on␛[m    ␛[38;2;129;134;156mLet passwords log in again␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m    ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -158,10 +161,11 @@ $
    2) Password login on    Let passwords log in again$
    3) Change SSH port      Now 22 and 2230$
    4) Move old settings    Into 00-hardn.conf$
+   6) SSH keys             3 keys, 2 to review$
 $
    0) Return$
 $
-    > Option [0-4 or q]: 1$
+    > Option [0-4, 6 or q]: 1$
 $
 # Warning$
 # hardn's old SSH files are still here (manage.conf,$
@@ -189,10 +193,11 @@ $
    2) Password login on    Let passwords log in again$
    3) Change SSH port      Now 22 and 2230$
    4) Move old settings    Into 00-hardn.conf$
+   6) SSH keys             3 keys, 2 to review$
 $
    0) Return$
 $
-    > Option [0-4 or q]: 4$
+    > Option [0-4, 6 or q]: 4$
 $
 # Warning$
 # hardn v0.3.x's listen.conf (port 2230 for ssh.socket) never$
@@ -223,10 +228,11 @@ $
    2) Password login on    Let passwords log in again$
    3) Change SSH port      Now 22 and 2230$
    4) Move old settings    Into 00-hardn.conf$
+   6) SSH keys             3 keys, 2 to review$
 $
    0) Return$
 $
-    > Option [0-4 or q]: 0$
+    > Option [0-4, 6 or q]: 0$
 $
   simulated system ---------------------------------------------$
 $
@@ -288,10 +294,12 @@ $
       ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
       ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 1$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
@@ -332,10 +340,12 @@ $
       ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
       ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 4$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 4$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn v0.3.x's listen.conf (port 2230 for ssh.socket)␛[m$
@@ -379,10 +389,12 @@ $
       ␛[38;2;129;134;156mNow 22 and 2230␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mMove old settings␛[m$
       ␛[38;2;129;134;156mInto 00-hardn.conf␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156m3 keys, 2 to review␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

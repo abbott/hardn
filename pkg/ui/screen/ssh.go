@@ -81,6 +81,7 @@ const (
 	SSHPortItem     = "3" // Change SSH port
 	SSHMigrateItem  = "4" // Move old settings, with hardn's old files
 	SSHUpgradeItem  = "5" // Upgrade openssh, where sshd lacks the fix
+	SSHKeysEntry    = "6" // SSH keys, where Keys is set (keys.go)
 )
 
 // SSHRoot is what item 1 does.
@@ -122,6 +123,9 @@ type SSH struct {
 	// CVE-2026-123158's fix, so item 5 upgrades openssh; its description
 	// stands with NotRead, as the upgrade reads no sshd setting.
 	Unfixed bool
+	// Keys is the SSH keys item's description (SSHKeys.Entry), such as "14
+	// keys, 3 to review"; "" shows no item.
+	Keys string
 }
 
 // SubMenu returns the SSH Login screen (02-SSH_LOGIN): the title bar; the
@@ -160,6 +164,9 @@ func (s SSH) SubMenu() SubMenu {
 	if s.Unfixed {
 		items = append(items, component.MenuItem{Key: SSHUpgradeItem, Label: sshUpgradeLabel, Description: sshUpgradeAbout})
 		alert = &Alert{Title: CVEUnfixed, Item: sshUpgradeLabel}
+	}
+	if s.Keys != "" {
+		items = append(items, component.MenuItem{Key: SSHKeysEntry, Label: sshKeysEntryLabel, Description: s.Keys})
 	}
 	return SubMenu{
 		Title:    trail(sshTitle),

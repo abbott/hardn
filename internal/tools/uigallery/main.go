@@ -21,6 +21,7 @@
 //	go run ./internal/tools/uigallery config [flags] [mock | all]...
 //	go run ./internal/tools/uigallery eol [flags] [mock | all]...
 //	go run ./internal/tools/uigallery release-check [flags] [mock | all]...
+//	go run ./internal/tools/uigallery keys [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -191,6 +192,12 @@
 // "release-check" lists the mocks of the release check's one line on the main
 // menu (release.go, docs/engine/gallery-release-check.md), with the same flags:
 // each read by hardn's own check from the mock's cache; none makes a request.
+// "keys" lists the mocks of the SSH Keys screen, under SSH Login: every key sshd
+// reads, by account, read only (keys.go, docs/engine/gallery-keys.md), with the
+// same flags, each drawn through the real screen's mapping. "play keys" is the
+// menu of its mocks and "play keys/<mock>" the real screen itself on one
+// (pkg/screens/sshkeys; docs/engine/screen-keys.md); SSH Login's 6 leads to it
+// on a "play ssh/<host>" host.
 //
 // "play firewall" is the menu of the Firewall screen's hosts and "play
 // firewall/<host>" the real screen on one (pkg/screens/firewall, firewall.go),
@@ -645,6 +652,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == accountsPrefix {
 		return accountsListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == keysPrefix {
+		return keysListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -659,6 +669,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(eolUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(releaseUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(accountsUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(keysUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

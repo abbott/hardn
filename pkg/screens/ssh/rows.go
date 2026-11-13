@@ -70,7 +70,7 @@ func statusRows(ctx context.Context, sys host.System, f detect.Facts) component.
 
 // mainView is h as the screen draws it.
 func mainView(h reading) screen.SSH {
-	v := screen.SSH{Status: h.status, Rows: sectionRows(h), Ports: portWords(h), OldFiles: len(h.Found.Artifacts) > 0, NotRead: h.notRead()}
+	v := screen.SSH{Status: h.status, Rows: sectionRows(h), Ports: portWords(h), OldFiles: len(h.Found.Artifacts) > 0, NotRead: h.notRead(), Keys: h.keys}
 	switch {
 	case h.PVE:
 		v.Root = screen.SSHPVERoot

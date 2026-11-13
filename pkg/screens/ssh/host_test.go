@@ -673,8 +673,7 @@ func addrMatch(s, p string) bool {
 // sshd answers sshd -t, -T and -T -C over the files -f names: exit 1
 // without host keys (noKeys); sshd.c's fatal() where /run/sshd is missing
 // (reload.md §2.4); -C with the Match
-// blocks applied and requiredrsasize, the first value, OpenSSH 9.1's
-// default 1024 where none is set.
+// blocks applied; each with requiredrsasize (rsaSizeLine).
 func (h *sshHost) sshd(argv []string) hostfake.Response {
 	if h.noKeys && (slices.Contains(argv, "-T") || slices.Contains(argv, "-t")) {
 		return hostfake.Response{Stderr: "sshd: no hostkeys available -- exiting.\r\n", ExitCode: 1}
@@ -693,17 +692,24 @@ func (h *sshHost) sshd(argv []string) hostfake.Response {
 	if i := slices.Index(argv, "-C"); i >= 0 && i+1 < len(argv) {
 		m := matched(main, drops, argv[i+1])
 		out, _ := h.sshdT(m, drops)
-		size := strconv.Itoa(authkeys.MinRSABits)
-		for _, l := range sshd.ReadOrder(m, drops) {
-			if l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0 {
-				size = l.Args[0]
-				break
-			}
-		}
-		return hostfake.Response{Stdout: out + "requiredrsasize " + size + "\n"}
+		return hostfake.Response{Stdout: out + rsaSizeLine(m, drops)}
 	}
 	out, _ := h.sshdT(main, drops)
-	return hostfake.Response{Stdout: out}
+	return hostfake.Response{Stdout: out + rsaSizeLine(main, drops)}
+}
+
+// rsaSizeLine is sshd -T's requiredrsasize line over main and drops: the
+// first value outside a Match block, OpenSSH 9.1's default 1024 where none
+// is set.
+func rsaSizeLine(main []byte, drops []sshd.File) string {
+	size := strconv.Itoa(authkeys.MinRSABits)
+	for _, l := range sshd.ReadOrder(main, drops) {
+		if l.Match == nil && l.Keyword == "requiredrsasize" && len(l.Args) > 0 {
+			size = l.Args[0]
+			break
+		}
+	}
+	return "requiredrsasize " + size + "\n"
 }
 
 // ssOutput is ss -Htln's output for the sockets given ("0.0.0.0:22").
