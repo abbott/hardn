@@ -23,6 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/revert/plans"
+	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 )
 
@@ -216,7 +217,7 @@ func runConfirm(*cobra.Command, []string) {
 	if err != nil {
 		sayWarning("%v", err)
 	}
-	if code := confirmAndCleanUp(ctx, sys, s, opts); code != 0 {
+	if code := confirmAndCleanUp(ctx, sys, s, whoOf(s, err), opts); code != 0 {
 		revertExit(code)
 	}
 }
@@ -239,6 +240,7 @@ func runRollback(_ *cobra.Command, args []string) {
 	sys := revertHost()
 	opts := revert.Options{Log: revertLog{}, Now: revertNow, Plans: revertPlans}
 	res, err := revert.Rollback(ctx, sys, args[0], opts)
+	auditRevert(sys, nil, output.RevertRun{Mode: output.ModeRollback, ID: args[0], Rollback: &res, Err: err})
 	switch {
 	case errors.Is(err, revert.ErrID):
 		sayError("%v", err)
@@ -266,7 +268,13 @@ func runAbandon(id string) {
 	if !revertPreflight("rollback --abandon") {
 		return
 	}
-	res, err := revert.Abandon(context.Background(), revertHost(), id, revert.Options{Log: revertLog{}, Now: revertNow})
+	ctx, sys := context.Background(), revertHost()
+	res, err := revert.Abandon(ctx, sys, id, revert.Options{Log: revertLog{}, Now: revertNow})
+	rec := output.RevertRun{Mode: output.ModeAbandon, ID: id, Err: err}
+	if err == nil {
+		rec.Abandoned = &res
+	}
+	auditRevert(sys, nil, rec)
 	switch {
 	case errors.Is(err, revert.ErrID):
 		sayError("%v", err)
@@ -335,12 +343,14 @@ func runBoot() {
 	sys := revertHost()
 	self, err := revertExecutable()
 	if err != nil {
+		auditRevert(sys, nil, output.RevertRun{Mode: output.ModeBoot, Err: err})
 		sayError("hardn rollback --boot: this hardn's own path cannot be read, so whether it wrote the change journal cannot be told, and hardn does not act on it: %v", err)
 		revertExit(1)
 		return
 	}
 	opts := revert.Options{Log: revertLog{}, Now: revertNow, Hardn: self, Plans: revertPlans}
 	res, err := revert.Boot(ctx, sys, revertInit(ctx, sys), opts)
+	auditRevert(sys, nil, output.RevertRun{Mode: output.ModeBoot, Boot: &res, Err: err})
 	what := "At boot"
 	if j := res.Change; j.ID != "" {
 		what = "At boot, change " + j.ID + " (" + j.Summary + ")"

@@ -35,7 +35,9 @@
 // WriteJSON); nothing else: the rest of refactor plan §3.11 (--output json
 // on any other command) is not approved. Since next/p3-startup it appends
 // each engine run, a flag's or a screen's change, to the audit log
-// (Append, NewRecord). docs/reference/output.md is the public contract;
+// (Append, NewRecord), and since next/audit-records each hardn confirm and
+// hardn rollback (<id>, --abandon, --boot), with who ran it (BuildRevert,
+// NewRevertRecord). docs/reference/output.md is the public contract;
 // docs/engine/output.md says what this package guarantees.
 //
 // It reaches the host only through host.System (depguard rule

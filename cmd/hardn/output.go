@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -26,6 +27,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/hangup"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/term"
@@ -44,7 +46,8 @@ var (
 // each engine run, a flag's or a screen's change, whatever its outcome (a
 // plan alone, a refusal, an apply, its rollback, one declined or
 // interrupted), once it is reported and before hardn may end on a signal
-// (endControls). Only the operations reach it, so never --help,
+// (endControls); hardn confirm's and hardn rollback's own records are
+// auditRevert's. Only the operations reach it, so never --help,
 // --version, a usage error or the non-root refusal. The run's version and
 // hostname, and c's deprecations, are filled in where the run has none,
 // so that the line holds what a JSON document of the run would. A record
@@ -57,16 +60,80 @@ func audit(sys host.System, c *config.Config, run output.Run) {
 		run.HardnVersion = Version
 	}
 	if run.Hostname == "" {
-		if data, err := sys.ReadFile(ctx, header.HostnameFile); err == nil {
-			run.Hostname = strings.TrimSpace(string(data))
-		}
+		run.Hostname = auditHostname(ctx, sys)
 	}
 	if c != nil && run.Deprecations == nil {
 		run.Deprecations, run.ConfigPath = c.Deprecations(), c.Path()
 	}
-	if err := output.Append(ctx, sys, auditPath, output.NewRecord(run, revertNow())); err != nil {
+	auditAppend(ctx, sys, output.NewRecord(run, revertNow()))
+}
+
+// auditHostname is sys's hostname, as the header reads it; "" when not read.
+func auditHostname(ctx context.Context, sys host.System) string {
+	data, err := sys.ReadFile(ctx, header.HostnameFile)
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(data))
+}
+
+// auditAppend appends rec to the audit log through sys; a record not
+// written is a warning on stderr, with its code.
+func auditAppend(ctx context.Context, sys host.System, rec output.Record) {
+	if err := output.Append(ctx, sys, auditPath, rec); err != nil {
 		sayWarning("This run is not in the audit log (%s): %v", output.CodeOf(err), err)
 	}
+}
+
+// revertWho is who runs hardn confirm or hardn rollback, for its audit
+// record: the user who ran hardn through sudo or doas (SUDO_USER,
+// DOAS_USER: sudoers.Invoker's variables), root otherwise, which
+// revertPreflight has established; and the session, read from sys
+// (revert.ReadSession), with why it is not established.
+type revertWho struct {
+	user    string
+	session revert.Session
+	err     error
+}
+
+// readRevertWho is the revertWho of this hardn, its session read from sys.
+func readRevertWho(ctx context.Context, sys host.System) revertWho {
+	s, err := revert.ReadSession(ctx, sys, revertGetenv, revertPID())
+	return whoOf(s, err)
+}
+
+// whoOf is the revertWho of session s, read with err.
+func whoOf(s revert.Session, err error) revertWho {
+	user := "root"
+	for _, k := range []string{"SUDO_USER", "DOAS_USER"} {
+		if v := revertGetenv(k); v != "" {
+			user = v
+			break
+		}
+	}
+	return revertWho{user: user, session: s, err: err}
+}
+
+// auditRevert appends the record of a hardn confirm or hardn rollback
+// (<id>, --abandon, --boot) to the audit log through sys, the host it ran
+// on (docs/reference/output.md §4.1): who ran it (who, or read from sys
+// when nil), the change's id and how it ended, a refusal and a failure
+// included. As audit, a record not written is a warning and changes
+// nothing else. A change id that is not one is a usage error: no record,
+// as for every usage error, and nothing read.
+func auditRevert(sys host.System, who *revertWho, run output.RevertRun) {
+	if errors.Is(run.Err, revert.ErrID) {
+		return
+	}
+	ctx := context.Background()
+	if who == nil {
+		w := readRevertWho(ctx, sys)
+		who = &w
+	}
+	sys = auditHost(sys)
+	run.HardnVersion, run.Hostname = Version, auditHostname(ctx, sys)
+	run.User, run.Session, run.SessionErr = who.user, who.session, who.err
+	auditAppend(ctx, sys, output.NewRevertRecord(run, revertNow()))
 }
 
 // auditRan is a screen's Options.Ran: each change's run, once its flow has

@@ -24,6 +24,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/spf13/pflag"
@@ -426,8 +427,9 @@ func TestAuditScreens(t *testing.T) {
 }
 
 // TestAuditConfirmCleanup: hardn confirm's clean-up, once it runs from a new
-// connection, is one record on the clean-up's host (confirmAndCleanUp): applied,
-// and refused; a console's confirmation, which runs none, writes none.
+// connection, is one record on the clean-up's host (confirmAndCleanUp), after
+// the confirmation's own: applied, and refused; a console's confirmation,
+// which runs none, writes the confirmation's alone.
 func TestAuditConfirmCleanup(t *testing.T) {
 	refusal := fmt.Errorf("%s: port [22]: %w", confirm.ControlID, steps.ErrNoWriteStrategy)
 	for _, tc := range []struct {
@@ -448,7 +450,11 @@ func TestAuditConfirmCleanup(t *testing.T) {
 			if s.calls != 1 {
 				t.Fatalf("clean-up called %d times:\n%s", s.calls, s.out.String())
 			}
-			wantOneRecord(t, s.f, output.ModeApply, tc.want)
+			recs := auditRecords(t, s.f)
+			if len(recs) != 2 || recs[0].Mode != output.ModeConfirm || recs[0].Result.Outcome != output.OutcomeConfirmed ||
+				recs[1].Mode != output.ModeApply || recs[1].Result.Outcome != tc.want || recs[1].Result.Revert != nil {
+				t.Fatalf("records %s; want the confirmation's, then the clean-up's (%s)", mustJSON(t, recs), tc.want)
+			}
 		})
 	}
 	t.Run("a console", func(t *testing.T) {
@@ -461,8 +467,9 @@ func TestAuditConfirmCleanup(t *testing.T) {
 		revertProc(s.f, 3000, 1, "login")
 		revertProc(s.f, 3980, 3000, "bash")
 		executeHardn(t, "confirm")
-		if recs := auditRecords(t, s.f); len(recs) != 0 {
-			t.Errorf("%d audit records, want none", len(recs))
+		rec := wantOneRecord(t, s.f, output.ModeConfirm, output.OutcomeConfirmed)
+		if rv := rec.Result.Revert; rv == nil || rv.Session != output.SessionConsole || rv.Client != "" {
+			t.Errorf("the confirmation's record: %s", mustJSON(t, rec))
 		}
 	})
 }
@@ -492,4 +499,208 @@ func TestAuditRunAllRefused(t *testing.T) {
 			t.Errorf("%q: record %s", tc.args, mustJSON(t, rec))
 		}
 	}
+}
+
+// revertRecord is the one audit record on s's host, of mode and outcome,
+// with the change's id and who ran it: alice, over SSH from her new
+// connection, unless the test says otherwise.
+func revertRecord(t *testing.T, s *revertSeams, mode output.Mode, outcome output.Outcome, exit int) output.Record {
+	t.Helper()
+	rec := wantOneRecord(t, s.f, mode, outcome)
+	if rec.Result.Revert == nil {
+		t.Fatalf("no result.revert: %s", mustJSON(t, rec))
+	}
+	if rec.Result.ExitCode != exit || !rec.Time.Equal(revertNow()) || len(rec.Changes) != 0 || len(rec.Status) != 0 {
+		t.Errorf("exit %d, want %d; time %v: %s", rec.Result.ExitCode, exit, rec.Time, mustJSON(t, rec))
+	}
+	return rec
+}
+
+// auditAsAlice writes the audit log on the fake of s, with hardn run by
+// alice through sudo.
+func auditAsAlice(t *testing.T, s *revertSeams) {
+	t.Helper()
+	auditOnRunHost(t)
+	s.f.AddDir("/var/log", 0o755, 0, 0)
+	revertGetenv = func(k string) string {
+		if k == "SUDO_USER" {
+			return "alice"
+		}
+		return ""
+	}
+}
+
+// TestAuditRevert: hardn confirm, hardn rollback <id>, --abandon and --boot
+// are each one record of the audit log (auditRevert; output.md §4.1), of a
+// mode of their own, with who ran it, the change's id and how it ended,
+// a refusal and a failure included; an id that is not one, -n and a user
+// other than root write none.
+func TestAuditRevert(t *testing.T) {
+	wantWho := func(t *testing.T, rec output.Record, user, session, client string) {
+		t.Helper()
+		if rv := rec.Result.Revert; rv.User != user || rv.Session != session || rv.Client != client {
+			t.Errorf("who: %q, %q, %q; want %q, %q, %q", rv.User, rv.Session, rv.Client, user, session, client)
+		}
+	}
+	const summary = "SSH port 22 to 2230 on web-01.example.net"
+	t.Run("confirm", func(t *testing.T) {
+		s := newRevertSeams(t, 0)
+		auditAsAlice(t, s)
+		executeHardn(t, "confirm")
+		rec := revertRecord(t, s, output.ModeConfirm, output.OutcomeConfirmed, 0)
+		wantWho(t, rec, "alice", output.SessionSSH, "192.0.2.10:50123")
+		if rec.Result.ID != revertTestID || rec.Result.Revert.Summary != summary || len(rec.Errors) != 0 {
+			t.Errorf("record: %s", mustJSON(t, rec))
+		}
+		// Nothing left to confirm: refused, with its code.
+		executeHardn(t, "confirm")
+		recs := auditRecords(t, s.f)
+		if len(recs) != 2 {
+			t.Fatalf("%d records, want 2", len(recs))
+		}
+		if r := recs[1]; r.Mode != output.ModeConfirm || r.Result.Outcome != output.OutcomeRefused || r.Result.ExitCode != 1 ||
+			len(r.Errors) != 1 || r.Errors[0].Code != "NOTHING_PENDING" || r.Result.Revert.User != "alice" {
+			t.Errorf("the second confirm's record: %s", mustJSON(t, r))
+		}
+	})
+	t.Run("confirm, from the connection that applied", func(t *testing.T) {
+		s := newRevertSeams(t, 0)
+		auditAsAlice(t, s)
+		revertPID = func() int { return 3971 }
+		revertProc(s.f, 3971, 3970, "hardn", "SSH_CONNECTION=192.0.2.10 50022 192.0.2.20 22")
+		executeHardn(t, "confirm")
+		rec := revertRecord(t, s, output.ModeConfirm, output.OutcomeRefused, 1)
+		if s.exit != 1 || len(rec.Errors) != 1 || rec.Errors[0].Code == output.CodeUnclassified || rec.Result.ID != "" {
+			t.Errorf("exit %d; record: %s", s.exit, mustJSON(t, rec))
+		}
+	})
+	t.Run("rollback", func(t *testing.T) {
+		s := newRevertSeams(t, 0)
+		auditAsAlice(t, s)
+		executeHardn(t, "rollback", revertTestID)
+		rec := revertRecord(t, s, output.ModeRollback, output.OutcomeUndone, 0)
+		wantWho(t, rec, "alice", output.SessionSSH, "192.0.2.10:50123")
+		if rv := rec.Result.Revert; rec.Result.ID != revertTestID || rv.Summary != summary || rv.Reason != string(revert.ReasonRequested) || rv.Resumed {
+			t.Errorf("record: %s", mustJSON(t, rec))
+		}
+		// Again: nothing to do, and why. An id that is not one: no record.
+		executeHardn(t, "rollback", revertTestID)
+		executeHardn(t, "rollback", "../etc")
+		recs := auditRecords(t, s.f)
+		if len(recs) != 2 {
+			t.Fatalf("%d records, want 2: %s", len(recs), mustJSON(t, recs))
+		}
+		if r := recs[1]; r.Mode != output.ModeRollback || r.Result.Outcome != output.OutcomeNothingToDo || r.Result.ID != revertTestID || r.Result.Revert.Detail == "" {
+			t.Errorf("the second rollback's record: %s", mustJSON(t, r))
+		}
+	})
+	t.Run("rollback, the timer's", func(t *testing.T) {
+		s := newRevertSeams(t, 0)
+		auditOnRunHost(t)
+		s.f.AddDir("/var/log", 0o755, 0, 0)
+		revertPID = func() int { return 5000 }
+		revertProc(s.f, 5000, 1, "hardn") // systemd runs it
+		revertNow = func() time.Time { return revertTestNow.Add(time.Hour) }
+		executeHardn(t, "rollback", revertTestID)
+		rec := revertRecord(t, s, output.ModeRollback, output.OutcomeUndone, 0)
+		wantWho(t, rec, "root", output.SessionUnknown, "")
+		if rec.Result.Revert.Reason != string(revert.ReasonTimeout) {
+			t.Errorf("reason %q, want timeout", rec.Result.Revert.Reason)
+		}
+	})
+	t.Run("rollback that does not finish, then --abandon", func(t *testing.T) {
+		s := newRevertSeamsWith(t, 0, unfinishable)
+		auditAsAlice(t, s)
+		s.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
+		executeHardn(t, "rollback", revertTestID)
+		rec := revertRecord(t, s, output.ModeRollback, output.OutcomeRollbackIncomplete, 1)
+		want := []output.RevertPart{
+			{Kind: "restore", Index: 1, Done: false, What: "/var/backups/hardn/" + revertTestID},
+			{Kind: "undo", Index: 1, Done: true, What: "ufw delete allow 2230/tcp"},
+			{Kind: "reload", Index: 1, Done: false, What: "ssh"},
+		}
+		if s.exit != 1 || len(rec.Errors) != 1 || rec.Errors[0].Code != "ROLLBACK_INCOMPLETE" || rec.Errors[0].Step != "rollback" || !slices.Equal(rec.Result.Revert.Parts, want) {
+			t.Errorf("exit %d; record: %s", s.exit, mustJSON(t, rec))
+		}
+		// Another id: refused, nothing given up. An id that is not one, -n
+		// and alice herself: no record.
+		executeHardn(t, "rollback", "--abandon", "20261018T120000Z-0000aaaa")
+		rollbackAbandon = false
+		executeHardn(t, "rollback", "--abandon", "../etc")
+		rollbackAbandon = false
+		executeHardn(t, "-n", "rollback", "--abandon", revertTestID)
+		rollbackAbandon, dryRun = false, false
+		revertEUID = func() int { return 1000 }
+		executeHardn(t, "rollback", "--abandon", revertTestID)
+		rollbackAbandon = false
+		revertEUID = func() int { return 0 }
+		executeHardn(t, "rollback", "--abandon", revertTestID)
+		recs := auditRecords(t, s.f)
+		if len(recs) != 3 {
+			t.Fatalf("%d records, want 3: %s", len(recs), mustJSON(t, recs))
+		}
+		if r := recs[1]; r.Mode != output.ModeAbandon || r.Result.Outcome != output.OutcomeRefused || r.Result.ExitCode != 1 || r.Result.ID != "20261018T120000Z-0000aaaa" ||
+			len(r.Errors) != 1 || !strings.HasPrefix(r.Errors[0].Code, "ABANDON_") {
+			t.Errorf("the refused --abandon's record: %s", mustJSON(t, r))
+		}
+		r := recs[2]
+		if rv := r.Result.Revert; r.Mode != output.ModeAbandon || r.Result.Outcome != output.OutcomeAbandoned || r.Result.ExitCode != 0 || r.Result.ID != revertTestID ||
+			rv.User != "alice" || rv.Kept != revert.DefaultDir+"/"+revert.AbandonedName(revertTestID) || !slices.Equal(rv.Parts, want) || rv.Summary != summary {
+			t.Errorf("the --abandon's record: %s", mustJSON(t, r))
+		}
+	})
+	t.Run("--boot", func(t *testing.T) {
+		for _, tc := range []struct {
+			name           string
+			after          time.Duration
+			setup          func(s *revertSeams)
+			outcome        output.Outcome
+			exit           int
+			action, reason string
+		}{
+			{"re-armed", time.Minute, func(s *revertSeams) {
+				s.f.Respond(hostfake.Response{}, "systemd-run", "--unit=hardn-revert-"+revertTestID, "--description=hardn: roll back change "+revertTestID+" unless confirmed",
+					"--on-active=120s", "--timer-property=AccuracySec=1s", revertTestHardn, "rollback", revertTestID)
+			}, output.OutcomeRearmed, 0, "BOOT_REARMED", "BOOT_IN_WINDOW"},
+			{"left", time.Minute, func(*revertSeams) {
+				revertExecutable = func() (string, error) { return "/usr/sbin/hardn", nil }
+			}, output.OutcomeRefused, 1, "BOOT_LEFT", "BOOT_OTHER_BINARY"},
+			{"rolled back", time.Hour, func(*revertSeams) {}, output.OutcomeUndone, 0, "BOOT_ROLLED_BACK", "BOOT_DEADLINE_PASSED"},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				s := newRevertSeams(t, 0)
+				auditOnRunHost(t)
+				s.f.AddDir("/var/log", 0o755, 0, 0)
+				rebootSeams(s, tc.after)
+				tc.setup(s)
+				executeHardn(t, "rollback", "--boot")
+				rec := revertRecord(t, s, output.ModeBoot, tc.outcome, tc.exit)
+				if rv := rec.Result.Revert; rv.BootAction != tc.action || rv.BootReason != tc.reason || rec.Result.ID != revertTestID || rv.Detail == "" || rv.User != "root" {
+					t.Errorf("record: %s", mustJSON(t, rec))
+				}
+			})
+		}
+		t.Run("the rollback does not finish", func(t *testing.T) {
+			s := newRevertSeamsWith(t, 0, unfinishable)
+			auditOnRunHost(t)
+			s.f.AddDir("/var/log", 0o755, 0, 0)
+			s.f.Respond(hostfake.Response{Stdout: "Rule deleted\n"}, "ufw", "delete", "allow", "2230/tcp")
+			rebootSeams(s, time.Hour)
+			executeHardn(t, "rollback", "--boot")
+			rec := revertRecord(t, s, output.ModeBoot, output.OutcomeRollbackIncomplete, 1)
+			if len(rec.Errors) != 1 || rec.Errors[0].Code != "ROLLBACK_INCOMPLETE" || len(rec.Result.Revert.Parts) != 3 {
+				t.Errorf("record: %s", mustJSON(t, rec))
+			}
+		})
+	})
+	t.Run("not written: a warning, the command's exit its own", func(t *testing.T) {
+		s := newRevertSeams(t, 0)
+		auditOnRunHost(t)
+		s.f.AddDir("/var/log", 0o755, 0, 0)
+		s.f.AddDir("/var/log/hardn", 0o777, 0, 0)
+		out := s.output(t, "rollback", revertTestID)
+		if s.exit != -1 || !strings.Contains(out, "This run is not in the audit log (AUDIT_DIR_UNSAFE)") || s.has(revert.DefaultDir+"/"+revert.PendingName) {
+			t.Errorf("exit %d:\n%s", s.exit, out)
+		}
+	})
 }

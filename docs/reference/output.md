@@ -1,11 +1,11 @@
 # hardn's output: the JSON document, codes, exit statuses and the audit log
 
 > **What this is:** the public contract of what hardn reports, to a script and to a person (brief §2, "A fixed exit-code set and versioned JSON output", decided; brief Phase 3, the JSON contract, the exit codes and the audit log). Built by refactor plan Phase 3, `next/p3-output`, in `pkg/output`; [docs/engine/output.md](../engine/output.md) says what the package guarantees and how. **Once released, none of it changes but by the rules below.**
-> **Status:** built and tested (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake); the operation flags, the screens and `hardn confirm` run on the engine and have run on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs. **JSON reaches the command line on `hardn system-details --output json` alone** (§1.10); no other command has `--output`. Every operation flag and every screen's change reports as §7 says and exits as §3 says; the audit log (§4) records each. `--yes` and `--confirm-timeout` are flags of `hardn` (refactor plan §3.11, adopted 2026-11-04); §6 says what `--yes` does off a terminal, and what it doesn't.
+> **Status:** built and tested (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake); the operation flags, the screens and `hardn confirm` run on the engine and have run on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs. **JSON reaches the command line on `hardn system-details --output json` alone** (§1.10); no other command has `--output`. Every operation flag and every screen's change reports as §7 says and exits as §3 says; the audit log (§4) records each, and each `hardn confirm` and `hardn rollback` (§4.1). `--yes` and `--confirm-timeout` are flags of `hardn` (refactor plan §3.11, adopted 2026-11-04); §6 says what `--yes` does off a terminal, and what it doesn't.
 
 ## 1. The JSON document
 
-One run writes **exactly one JSON value on stdout**, then a newline; everything for a person (progress, warnings, notices) goes to stderr, so stdout parses whole (`TestStdoutIsOneDocument`). The same document, with a `time`, is one line of the audit log (§4). Strings are UTF-8; `<`, `>` and `&` are not escaped; DEL, C1 controls and format characters are, as `\uXXXX`, as stdout may be a terminal, the string's value unchanged (`TestJSONEscapesWhatATerminalActsOn`). **Arrays are never `null`**: an empty one is `[]`. Optional objects (`result.confirm`, `result.rollback`, `result.boot`) are left out when they do not apply.
+One run writes **exactly one JSON value on stdout**, then a newline; everything for a person (progress, warnings, notices) goes to stderr, so stdout parses whole (`TestStdoutIsOneDocument`). The same document, with a `time`, is one line of the audit log (§4). Strings are UTF-8; `<`, `>` and `&` are not escaped; DEL, C1 controls and format characters are, as `\uXXXX`, as stdout may be a terminal, the string's value unchanged (`TestJSONEscapesWhatATerminalActsOn`). **Arrays are never `null`**: an empty one is `[]`. Optional objects (`result.confirm`, `result.rollback`, `result.boot`, `result.backup`, `result.revert`) are left out when they do not apply.
 
 ### 1.1 `schemaVersion` and the rule for bumping it
 
@@ -18,7 +18,7 @@ One run writes **exactly one JSON value on stdout**, then a newline; everything 
 | `schemaVersion` | number | `1` (§1.1) |
 | `hardnVersion` | string | the build's version (`main.Version`, set by the release build) |
 | `host` | object | the host the run read (§1.3) |
-| `mode` | string | `check` (read each control's state, change nothing), `plan` (the dry run: plan, change nothing), `apply` (plan, then apply) |
+| `mode` | string | `check` (read each control's state, change nothing), `plan` (the dry run: plan, change nothing), `apply` (plan, then apply). The audit log's records of `hardn confirm` and `hardn rollback` have four more, never on stdout: `confirm`, `rollback`, `abandon`, `boot` (§4.1) |
 | `result` | object | how the run ended (§1.4) |
 | `changes` | array | the plan's changes, in the order an apply runs them (§1.5); `[]` for a check |
 | `status` | array | each control's state, for a check (§1.6); `[]` otherwise |
@@ -45,7 +45,7 @@ detect's facts in this schema's own words (they are mapped, never written as det
 
 | Field | Meaning |
 |---|---|
-| `outcome` | the run in one word (open); each has its exit status (§3): `nothing-to-do` 0, `applied` 0, `awaiting-confirmation` 0, `changes-needed` 3 (a check or a plan found changes to make), `declined` 3 (the user declined them at the confirmation, or quit with `q` or went back with `0` before they were applied: nothing changed), `refused` 1, `failed` 1, `rolled-back` 1 (every change started was undone), `rollback-incomplete` 1 (the rollback did not finish here, another process had the change, or a change was not covered: `result.rollback` says which), `usage-error` 2, `cancelled` 130. **`cancelled` says nothing of a rollback**: an interrupted apply is rolled back, and `result.rollback.finished` and `result.rollback.command` say whether that finished and how to finish it |
+| `outcome` | the run in one word (open); each has its exit status (§3): `nothing-to-do` 0, `applied` 0, `awaiting-confirmation` 0, `changes-needed` 3 (a check or a plan found changes to make), `declined` 3 (the user declined them at the confirmation, or quit with `q` or went back with `0` before they were applied: nothing changed), `refused` 1, `failed` 1, `rolled-back` 1 (every change started was undone), `rollback-incomplete` 1 (the rollback did not finish here, another process had the change, or a change was not covered: `result.rollback` says which), `usage-error` 2, `cancelled` 130; and on the records of §4.1 alone, each 0: `confirmed`, `undone`, `abandoned`, `rearmed`. **`cancelled` says nothing of a rollback**: an interrupted apply is rolled back, and `result.rollback.finished` and `result.rollback.command` say whether that finished and how to finish it |
 | `exitCode` | the run's exit status, so that the audit log has it too |
 | `id` | the change's id (its journal's, its backups' and its revert timer's, `<backupPath>/<id>/`); `""` without a plan |
 | `risk` | the plan's risk class: `plain`, `package-install`, `service-restart`, `lockout` (open); `""` without a plan |
@@ -53,6 +53,7 @@ detect's facts in this schema's own words (they are mapped, never written as det
 | `rollback` | only when an apply stopped once its change was journalled, whatever the plan's risk: `finished` (the rollback in this run finished and undid every change started), `byAnotherProcess` (another process had taken the change: the timer's rollback, a `hardn rollback <id>`, a rollback given up, a confirmation; this run undid nothing, and its `ROLLBACK_RUNNING` error says which), `step` (`start`, `window`, `backup`, `journal`, `apply`, `journal-after`, `mark-applied`, `done`), `change` (the change that failed, or at `start` and `window` the one that was next and never started; `""` for the apply's last write), `changeUndone` (true when nothing of the change that failed is left either: it undid its own steps before the rollback, as DNS's does, or left the rest to its journalled undo and this rollback finished; added by `next/s2-control`), `restored` (files put back), `undone` (the inverse steps run, in words), `unjournalled` (§1.4.1; left out when none), `command` (`sudo hardn rollback <id>`, `doas` on a host with doas and no sudo, which finishes a rollback that did not finish; `""` otherwise) |
 | `boot` | only when the apply ran the install of hardn's boot unit, before the change was journalled ([engine-boot.md](../engine/engine-boot.md) §2.1): `installed` (false when the install failed, and nothing was armed), `detail`. It is never rolled back; it removes itself at a boot that finds nothing journalled |
 | `backup` | only when an apply applied every change (`applied`, `awaiting-confirmation`) and kept a copy of a file first: `dir` (the backup run's directory, `<backupPath>/<id>`), `files` (each file whose content was kept, once, in the order backed up; a path that was not there before is not one), `takenAnyway` (true when a copy was taken with `enableBackups: false`, as the rollback needs it, §3.16). Added by `next/s3-control` ([control-backup.md](../engine/control-backup.md)); the human report says the same after "Operation Successful": "Backup of <files> kept in", the directory, and "Backed up anyway: the rollback needs it." when `takenAnyway` |
+| `revert` | only on the audit log's records of `hardn confirm` and `hardn rollback` (`<id>`, `--abandon`, `--boot`): who ran it and what it did (§4.1) |
 
 #### 1.4.1 `result.rollback.unjournalled`
 
@@ -511,7 +512,7 @@ The save's finding that hardn.yml's comments would be lost (CONFIG_COMMENTS_LOST
 
 ### 2.3 `hardn rollback --boot`'s codes
 
-What the boot unit's command did (`revert.BootAction`) and why (`revert.BootReason`), the stable values of [revert-boot.md](../safety/revert-boot.md) §5, so that no consumer reads its words. Not in a document yet: `--boot` writes none until its wiring (`next/p3-startup`).
+What the boot unit's command did (`revert.BootAction`) and why (`revert.BootReason`), the stable values of [revert-boot.md](../safety/revert-boot.md) §5, so that no consumer reads its words. They are `result.revert.bootAction` and `bootReason` of `--boot`'s audit record (§4.1).
 
 | Code | Meaning |
 |---|---|
@@ -562,9 +563,67 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
 ## 4. The audit log
 
 - **Path:** `/var/log/hardn/audit.jsonl` (`output.AuditPath`, the path the refactor plan proposes, row `p3-output`). The directory is made `0750` when missing and must be a directory owned by root that neither its group nor others can write (`AUDIT_DIR_UNSAFE` otherwise), checked by its path and again on the directory the append opens, so that one put in its place in between is refused too; the file is created `0600`. A record holds the plan, its diffs included, so both are root's alone. A run ended by Ctrl-C, `SIGTERM` or a hangup still writes its record.
-- **Format:** one line per run, appended: `{"time": "<RFC 3339, UTC>", ...the run's document (§1)...}`, the same nine fields as stdout's, so the plan, the results and any rollback (`result.rollback`) are there. Written with one `write(2)` on a descriptor opened with `O_APPEND`, so two runs never overwrite each other's lines. A write cut short (a crash, a full disk) leaves a line that is not valid JSON, and the next record is appended on that same line, so a reader skips any line that does not parse: at most that record and the next are lost. Never rewritten, truncated or rotated by hardn; rotation is the packaging's (`next/p7-install`).
+- **Format:** one line per run, and per `hardn confirm` or `hardn rollback` (§4.1), appended: `{"time": "<RFC 3339, UTC>", ...the run's document (§1)...}`, the same nine fields as stdout's, so the plan, the results and any rollback (`result.rollback`) are there. Written with one `write(2)` on a descriptor opened with `O_APPEND`, so two runs never overwrite each other's lines. A write cut short (a crash, a full disk) leaves a line that is not valid JSON, and the next record is appended on that same line, so a reader skips any line that does not parse: at most that record and the next are lost. Never rewritten, truncated or rotated by hardn; rotation is the packaging's (`next/p7-install`).
 - **The legacy log**, as the brief's [Verify] asked recorded (`output.LegacyLogPath`; [phase0-findings.md](../refactor/phase0-findings.md) §6, **[V]**): `/var/log/hardn.log`, opened before flags were parsed until `next/p3-startup` (V26); since then by the main menu, the operation flags once they run, never in a dry run, and by `confirm` and `rollback` (`<id>`, `--abandon`, `--boot`) once their refusals of `-n` and of a user other than root are past (`openStartLog`, `cmd/hardn/main.go`; `revertPreflight`, `cmd/hardn/revert.go`); `O_CREATE|O_APPEND`, `0644`, its directory made `0755`; each line Go's `log.LstdFlags` date and time (`2006/01/02 15:04:05`), then `ERROR: `, `WARNING: `, `INFO: `, `SUCCESS: ` or `INSTALLED: ` and the message; not rotated. The `logFile` key is only read (the Logs screen and `-p`), so the two differ when it is changed. It is unchanged: the audit log is new, beside it. **The run log** (`host.Real`'s record of each command's argv, output and exit status, [system.md](../safety/system.md) §2.6) goes where its caller says: `cmd/hardn`'s confirm and rollback commands send it to the legacy log (`revertLog`), and that stays the run log's path, a decision of `next/p3-output`, unchanged by `next/p3-startup`, which made the log's opening lazy: where the log is not opened (a dry run), the run log is written nowhere.
-- **Written by** `cmd/hardn` since `next/p3-startup` (`audit`, `cmd/hardn/output.go`): one record for each run of the engine, after its report, whatever its outcome: each operation flag's (`-g`, `-c`, `-w`, `-d`, `-r`), a plan alone (`-n`, `mode` `plan`: the one thing a dry run writes, which opens neither the legacy log nor `/etc/hardn/hardn.yml.example` and asks no first-run question), a refusal (`-r`'s by its planner before any plan, a change pending, among them: `outcome` `refused`, its code the refusal's), a confirmation declined, an apply, its rollback, one interrupted (written before hardn ends on the signal); each change a screen plans (DNS, Backup, Firewall, SSH Login, User Management, Environment, Auto Updates, Run All's Apply all), once its flow ends; and `hardn confirm`'s clean-up when it runs. Nothing is written before flags are parsed and an operation runs, so never for `--help`, `--version`, a usage error or the non-root refusal. A record that cannot be written (`AUDIT_DIR_UNSAFE`, a full disk) is a warning on stderr with its code: the run goes on, its exit status its own. **Not recorded yet:** the confirmation itself, `hardn rollback <id>` (the timer's included), `--abandon` and `--boot`, which need a `mode` of their own ([docs/engine/output.md](../engine/output.md) §7); a screen's change after which a hangup ends hardn before its flow is drawn.
+- **Written by** `cmd/hardn` since `next/p3-startup` (`audit`, `cmd/hardn/output.go`): one record for each run of the engine, after its report, whatever its outcome: each operation flag's (`-g`, `-c`, `-w`, `-d`, `-r`), a plan alone (`-n`, `mode` `plan`: the one thing a dry run writes, which opens neither the legacy log nor `/etc/hardn/hardn.yml.example` and asks no first-run question), a refusal (`-r`'s by its planner before any plan, a change pending, among them: `outcome` `refused`, its code the refusal's), a confirmation declined, an apply, its rollback, one interrupted (written before hardn ends on the signal); each change a screen plans (DNS, Backup, Firewall, SSH Login, User Management, Environment, Auto Updates, Run All's Apply all), once its flow ends; and `hardn confirm`'s clean-up when it runs; `hardn confirm` and `hardn rollback` write their own (§4.1). Nothing is written before flags are parsed and an operation runs, so never for `--help`, `--version`, a usage error or the non-root refusal. A record that cannot be written (`AUDIT_DIR_UNSAFE`, a full disk) is a warning on stderr with its code: the run goes on, its exit status its own. **Not recorded yet:** a screen's change after which a hangup ends hardn before its flow is drawn.
+
+### 4.1 `hardn confirm` and `hardn rollback`
+
+Each `hardn confirm`, `hardn rollback <id>` (a person's, and the revert timer's), `hardn rollback --abandon <id>` and `hardn rollback --boot` writes one record, whether it did what was asked, had nothing to do, was refused or failed (`auditRevert`, `cmd/hardn/output.go`; `output.BuildRevert`). **Not written:** under `-n`, for a user other than root, and for a change id that is not one, as for every usage error. `hardn confirm`'s record comes before its clean-up's (`mode` `apply`, §4), which is unchanged.
+
+The record has the nine fields, `changes`, `status` and `findings` empty; `host` has the hostname alone, its other fields empty or `unknown`; `result.id` is the change's id: the one asked for, or the one the command acted on. A refused `hardn confirm` has `""`, but for a change already rolled back, which it names; `result.risk` is `""`; `errors` has the refusal's or the failure's code (§2.1), its `step` `rollback` for a rollback's.
+
+| `mode` | Command | `outcome` and exit status |
+|---|---|---|
+| `confirm` | `hardn confirm` | `confirmed` 0; `refused` 1 (nothing waiting, the connection that applied the change, and any other error, a journal or lock that can't be read included: the code says which) |
+| `rollback` | `hardn rollback <id>` | `undone` 0 (every part rolled back); `nothing-to-do` 0 (`detail` says why: confirmed, rolled back already, another change, being rolled back, given up); `rollback-incomplete` 1 (`ROLLBACK_INCOMPLETE`: `parts` says what is left); `failed` 1 (any other error) |
+| `abandon` | `hardn rollback --abandon <id>` | `abandoned` 0 (the host stays as the rollback left it: `parts`); `refused` 1 (nothing given up, whatever the error: an `ABANDON_*` code, `ROLLBACK_RUNNING`, a lock, a journal that can't be read) |
+| `boot` | `hardn rollback --boot` | `nothing-to-do` 0 (`BOOT_NOTHING`); `rearmed` 0 (`BOOT_REARMED`); `undone` 0 (`BOOT_ROLLED_BACK`); `refused` 1 (`BOOT_LEFT`: left to a person); `rollback-incomplete` or `failed` 1, as `rollback` |
+
+`exitCode` is this step's own: `hardn confirm` also exits 1 or 130 when its clean-up, a record of its own, did not finish (§3).
+
+`result.revert`, on these records alone:
+
+| Field | Meaning |
+|---|---|
+| `user` | who ran it: the user who ran hardn through sudo or doas (`SUDO_USER`, `DOAS_USER`), `root` otherwise (a root login, the revert timer, the boot unit). A record, not a proof: it is the environment's word |
+| `session` | `ssh`, `console`, or `unknown` when not established: the revert timer and the boot unit, tmux, run0 ([revert.md](../safety/revert.md), `ReadSession`) |
+| `client` | the SSH connection's client end, `address:port`; `""` when not read |
+| `summary` | the change's one line; `""` when no change was read |
+| `reason` | why a rollback ran (open): `timeout` (not confirmed by its deadline: the timer's, or one run after it), `requested` (before the deadline, or of a change with none), `failed`; `""` when none ran |
+| `resumed` | the rollback took up one that had not finished |
+| `parts` | the rollback's parts in the order it runs them, for a rollback run or given up, `[]` otherwise: `kind` (`restore` the backups, `undo` an inverse step, `reload` a service; open), `index` (from 1, among its kind), `done` (by the rollback's record; a part not done may have run in part), `what` (the backup run's directory, the step, the service) |
+| `kept` | `--abandon`: where the given-up rollback's record is kept; `""` otherwise |
+| `bootAction`, `bootReason` | `--boot`: its codes (§2.3); `""` otherwise |
+| `detail` | the rest in words, which may change: why there was nothing to do, what `--boot` found |
+
+`pkg/output/testdata/json/audit-rollback.json` is a whole record, a rollback that did not finish. The `result` of the timer's rollback of a change not confirmed:
+
+```json
+{
+  "outcome": "undone",
+  "exitCode": 0,
+  "id": "20261019T120000Z-1a2b3c4d",
+  "risk": "",
+  "revert": {
+    "user": "root",
+    "session": "unknown",
+    "client": "",
+    "summary": "SSH port 22 to 2230 on web-01.example.net",
+    "reason": "timeout",
+    "resumed": false,
+    "parts": [
+      { "kind": "restore", "index": 1, "done": true, "what": "/var/backups/hardn/20261019T120000Z-1a2b3c4d" },
+      { "kind": "undo", "index": 1, "done": true, "what": "ufw delete allow 2230/tcp" },
+      { "kind": "reload", "index": 1, "done": true, "what": "ssh" }
+    ],
+    "kept": "",
+    "bootAction": "",
+    "bootReason": "",
+    "detail": ""
+  }
+}
+```
 
 ## 5. What `cmd/hardn` does with this today
 

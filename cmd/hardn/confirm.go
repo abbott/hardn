@@ -58,10 +58,11 @@ var (
 // design, or a session that could not have confirmed the change before
 // it), whose report says what stays open. A clean-up that ran is one
 // record of the audit log (audit), an engine run as a flag's is; the
-// confirmation itself is not one yet: it needs a mode of its own in the
-// document (docs/engine/output.md §7), as hardn rollback's records do.
-func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, opts revert.Options) int {
+// confirmation itself is one before it, of mode confirm, whether it
+// confirmed or not (auditRevert), with who, the session's user.
+func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, who revertWho, opts revert.Options) int {
 	h, err := confirmClaim(ctx, sys, s, opts)
+	auditRevert(sys, &who, output.RevertRun{Mode: output.ModeConfirm, Confirmed: h.Confirmed, Err: err})
 	code := 0
 	if err != nil {
 		sayError("%v", err)

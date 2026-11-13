@@ -1,0 +1,87 @@
+{
+  "time": "2026-10-19T12:01:00Z",
+  "schemaVersion": 1,
+  "hardnVersion": "0.9.0",
+  "host": {
+    "hostname": "web-01",
+    "os": {
+      "id": "",
+      "versionId": "",
+      "codename": "",
+      "prettyName": ""
+    },
+    "platform": {
+      "distro": "unknown",
+      "version": "",
+      "support": "unknown"
+    },
+    "init": "unknown",
+    "ssh": "unknown",
+    "proxmox": {
+      "installed": "unknown",
+      "version": ""
+    },
+    "container": {
+      "detected": "unknown",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "unknown",
+      "sudoFlavor": "unknown",
+      "doas": "unknown"
+    }
+  },
+  "mode": "rollback",
+  "result": {
+    "outcome": "rollback-incomplete",
+    "exitCode": 1,
+    "id": "20261019T120000Z-1a2b3c4d",
+    "risk": "",
+    "revert": {
+      "user": "alice",
+      "session": "ssh",
+      "client": "192.0.2.10:50123",
+      "summary": "SSH port 22 to 2230 on web-01.example.net",
+      "reason": "requested",
+      "resumed": false,
+      "parts": [
+        {
+          "kind": "restore",
+          "index": 1,
+          "done": false,
+          "what": "/var/backups/hardn/20261019T120000Z-1a2b3c4d"
+        },
+        {
+          "kind": "undo",
+          "index": 1,
+          "done": true,
+          "what": "ufw delete allow 2230/tcp"
+        },
+        {
+          "kind": "reload",
+          "index": 1,
+          "done": false,
+          "what": "ssh"
+        }
+      ],
+      "kept": "",
+      "bootAction": "",
+      "bootReason": "",
+      "detail": ""
+    }
+  },
+  "changes": [],
+  "status": [],
+  "findings": [],
+  "errors": [
+    {
+      "code": "ROLLBACK_INCOMPLETE",
+      "message": "revert: rollback 20261019T120000Z-1a2b3c4d: the rollback did not finish",
+      "control": "",
+      "change": "",
+      "step": "rollback",
+      "why": "",
+      "fix": ""
+    }
+  ]
+}
