@@ -20,6 +20,7 @@
 //	go run ./internal/tools/uigallery logs [flags] [form | all]...
 //	go run ./internal/tools/uigallery config [flags] [mock | all]...
 //	go run ./internal/tools/uigallery eol [flags] [mock | all]...
+//	go run ./internal/tools/uigallery release-check [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
 // state of Menu and "menu/compact" one. States come out in the catalogue's
@@ -187,6 +188,9 @@
 // docs/engine/gallery-eol.md), with the same flags, each drawn through the
 // mapping hardn's main menu uses (output.NoticeOf). play has none of them:
 // its hosts have no clock.
+// "release-check" lists the mocks of the release check's one line on the main
+// menu (release.go, docs/engine/gallery-release-check.md), with the same flags:
+// each read by hardn's own check from the mock's cache; none makes a request.
 //
 // "play firewall" is the menu of the Firewall screen's hosts and "play
 // firewall/<host>" the real screen on one (pkg/screens/firewall, firewall.go),
@@ -635,6 +639,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == eolPrefix {
 		return eolListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == releasePrefix {
+		return releaseListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -647,6 +654,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(logsUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(configUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(eolUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(releaseUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

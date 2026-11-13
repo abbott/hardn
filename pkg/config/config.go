@@ -45,6 +45,12 @@ type Config struct {
 	// (revert.ResolveTimeout; engine.ConfirmTimeout). Not written when
 	// unset, so a legacy save writes no new key.
 	ConfirmTimeout string `yaml:"confirmTimeout,omitempty"`
+	// CheckReleases turns the release check on: at the main menu hardn
+	// then asks GitHub for the latest release's tag, at most once a day,
+	// and says so in one line when a newer one is out (pkg/version's
+	// Checker; docs/engine/screen-release-check.md). False, the default,
+	// hardn makes no network request. Not written when false.
+	CheckReleases bool `yaml:"checkReleases,omitempty"`
 
 	// Network Configuration
 	Nameservers []string `yaml:"nameservers"`

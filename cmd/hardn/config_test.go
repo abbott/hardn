@@ -64,6 +64,7 @@ const configReport = `# Configuration ##########################################
 
    -  dryRun               false (default)
    -  confirmTimeout       3m (default)
+   -  checkReleases        false (default)
 
   Not used -----------------------------------------------------
 

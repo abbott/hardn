@@ -201,8 +201,8 @@ func TestDryRunAloneIsNotRefused(t *testing.T) {
 	}
 }
 
-// TestUpdateFlagsGone: the update-check flags, which did nothing while
-// pkg/version's updateCheckEnabled is false (V26), are gone (legacy-left.md
+// TestUpdateFlagsGone: the update-check flags, which did nothing since
+// update checks were turned off (V26), are gone (legacy-left.md
 // §3, decision 3 (a)); TestUsageErrors runs each as an unknown flag, exit
 // status 2.
 func TestUpdateFlagsGone(t *testing.T) {

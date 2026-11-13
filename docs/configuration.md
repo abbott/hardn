@@ -132,6 +132,7 @@ username: "george"                # Default username to create
 dryRun: false                       # Preview changes without applying them
 enableBackups: true                 # Backup files before modifying them
 backupPath: "/var/backups/hardn"    # Path to store backups
+checkReleases: false                # true: ask GitHub for the latest release's tag
 ```
 
 #### `dryRun`: dry run
@@ -218,6 +219,23 @@ confirmTimeout: "3m"                # seconds, such as 300, or a duration
 ```
 
 A change that could lock you out rolls back unless `sudo hardn confirm` keeps it within this time. It is 3 minutes when unset; less than 60 seconds is refused. `--confirm-timeout` wins over it.
+
+#### `checkReleases`: new releases
+
+```yaml
+checkReleases: true                 # off unless set
+```
+
+Off, the default, hardn makes no network request. On, the main menu's first line says when a newer release is out, such as "v0.9.1 available", in the repository link's place.
+
+- **One request a day at most**, to `https://api.github.com/repos/abbott/hardn/releases/latest`, while the main menu is open. The menu never waits for it: the answer shows the next time the menu is drawn.
+- **Nothing about the host is sent.** GitHub sees the host's address and hardn's version (`User-Agent: hardn/<version>`).
+- **Only the release's tag is read**, and shown only where it is a version such as `v0.9.1`.
+- **"Release check failed"** means the last check got no answer; `/var/log/hardn.log` has the reason. hardn tries again a day later.
+- **Never for a flag or a subcommand.**
+- **In a dry run too.** It changes nothing on the host but its own file. A dry run writes no log, so a check that fails there leaves no reason in it.
+- **hardn doesn't update itself.** Install the release with [install.sh](install.md).
+- The last answer is kept in `/var/lib/hardn/release.json`, root's alone.
 
 ### Feature Toggles
 

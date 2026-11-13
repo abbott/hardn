@@ -80,6 +80,16 @@ type Options struct {
 	// again on every pass, so that each pass draws for the terminal as it
 	// is then.
 	Terminal func() term.Env
+	// Release, where set, is what the release check knows, asked on every
+	// pass and drawn in the header (screen.Release): it reads hardn's own
+	// cache and never waits for a request. Nil, as with hardn.yml's
+	// checkReleases off, nothing is asked or drawn.
+	Release func(ctx context.Context) screen.Release
+	// CheckRelease, where set, makes the release check's request where
+	// one is due. Run starts it once, beside the main menu and never
+	// before it, and cancels it as the main menu ends; what it finds
+	// shows the next time the main menu is drawn.
+	CheckRelease func(ctx context.Context)
 	// Warned says that loading hardn.yml warned on stderr: the main menu
 	// then draws below the warning, where it would clear the screen and
 	// lose it.
@@ -129,6 +139,14 @@ var errAgain = errors.New("mainmenu: the main menu again")
 // command that blocks holds the screen until it returns or Ctrl-C ends
 // hardn (docs/engine/menu-live.md §5).
 func Run(ctx context.Context, o Options) error {
+	if o.CheckRelease != nil {
+		// One request a start, in one goroutine, beside the main menu.
+		// Leaving the main menu cancels it, and waits only for that.
+		checkCtx, cancel := context.WithCancel(ctx)
+		done := make(chan struct{})
+		go func() { defer close(done); o.CheckRelease(checkCtx) }()
+		defer func() { cancel(); <-done }()
+	}
 	if o.Warned {
 		o.belowWarning(o.navGap())
 	} else {
@@ -160,6 +178,9 @@ func (o Options) pass(ctx context.Context) error {
 		return err
 	}
 	vm.Heading, vm.Mode, vm.Prompt = mainHeading, o.mode(), mainPrompt
+	if o.Release != nil {
+		vm.Release = o.Release(ctx)
+	}
 	if o.Input == nil {
 		panic("mainmenu: the main menu has no input (Options.Input)")
 	}
