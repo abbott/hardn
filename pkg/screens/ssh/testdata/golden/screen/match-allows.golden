@@ -15,6 +15,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mMatch Block␛[m          ␛[38;2;129;134;156mLets more in␛[m ␛[38;2;219;184;83m20-site.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
 $
@@ -42,6 +43,7 @@ $
    -  Password Login       Off by sshd_config$
    -  SSH Port             22$
    -  Allowed Users        Anyone$
+   -  Brute-Force Limit    On sshd's default$
   [ ] Match Block          Lets more in 20-site.conf$
    -  Logged in as         george, by key$
 $
@@ -76,6 +78,8 @@ $
       ␛[38;2;129;134;156m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$
+      ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mMatch Block␛[m$
       ␛[38;2;129;134;156mLets more in␛[m ␛[38;2;219;184;83m20-site.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m$

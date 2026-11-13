@@ -33,7 +33,7 @@ var containerHosts = []struct {
 	lines      int // drawn at 80x24 and 80x40, the title to the prompt: the host's own (TestHeights) and one
 }{
 	{"alpine-lxc", "alpine-stock", 22},           // Alpine 3.23 as the LXC dogfood's (alpine.md §7): no ufw, no ss
-	{"alpine-lxc-active", "alpine-runlevel", 32}, // ufw active, every ufw row drawn: over 24, as decision 9 has it
+	{"alpine-lxc-active", "alpine-runlevel", 33}, // ufw active, every ufw row drawn, Limit SSH offered: over 24, as decision 9 has it
 	{"rocky-lxc", "rocky-stopped", 21},           // firewalld's section
 }
 

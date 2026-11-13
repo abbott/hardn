@@ -10,6 +10,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	sshctl "github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -132,6 +133,7 @@ func sectionRows(h reading) []component.KeyValue {
 	} else {
 		rows = append(rows, component.KeyValue{Key: screen.SSHUsersKey, Value: anyone})
 	}
+	rows = append(rows, limitRow(h))
 	ms := slices.Concat(h.MatchMore("permitrootlogin", h.RootValue()), h.MatchMore("passwordauthentication", h.Effective.PasswordAuthentication.Value))
 	if h.Effective.UsePAM.Value == "yes" {
 		ms = append(ms, h.MatchMore("kbdinteractiveauthentication", h.Effective.KbdInteractiveAuthentication.Value)...)
@@ -143,6 +145,32 @@ func sectionRows(h reading) []component.KeyValue {
 		rows = append(rows, component.KeyValue{Key: screen.SSHOldKey, Value: oldNames(h), State: component.ValueWarn})
 	}
 	return append(rows, youRow(h))
+}
+
+// limitRow is Brute-Force Limit: sshd's PerSourcePenalties as sshd -T
+// prints it, with the file that decides it; Not available on an sshd that
+// has none (before OpenSSH 9.8); Can't read where sshd -T's line does not
+// establish it. Off with no line read saying so names no file.
+func limitRow(h reading) component.KeyValue {
+	note := func(file string) string {
+		switch file {
+		case "", path.Base(sshd.HardnDropIn):
+			return ""
+		}
+		return noteBy + logview.Safe(file)
+	}
+	switch by := h.PenaltiesBy(); h.Effective.Penalties {
+	case sshd.PenaltiesOn:
+		if by == "" {
+			return screen.SSHLimitRow(screen.SSHLimitOn, noteDefault)
+		}
+		return screen.SSHLimitRow(screen.SSHLimitOn, note(by))
+	case sshd.PenaltiesOff:
+		return screen.SSHLimitRow(screen.SSHLimitOff, note(by))
+	case sshd.PenaltiesNone:
+		return screen.SSHLimitRow(screen.SSHLimitUnavailable, "")
+	}
+	return component.KeyValue{Key: screen.SSHLimitKey, Value: cantRead, State: component.ValueUnknown}
 }
 
 // rootRow is Root SSH Login: Locked where no account logs in as root, else

@@ -308,6 +308,7 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UFW_INACTIVE` | 1 | ufw is not running: its rules would only be saved |
 | `UFW_BAD_PROFILE` | 1 | the application profile is not one ufw reads |
 | `UFW_BAD_INTERFACE` | 1 | the interface is not one ufw takes |
+| `UFW_NO_PLAIN_ALLOW` | 1 | no SSH port has a plain ufw allow rule for a limit to replace |
 | `PACKAGE_NO_TOOL` | 1 | hardn can't install packages on this system |
 | `PACKAGE_NOT_IN_REPOS` | 1 | package not found in the repositories |
 | `PACKAGE_NO_REPOS` | 1 | dnf has no enabled repository to install from, as on an unregistered RHEL host: register it (subscription-manager or rhc) or enable a repository ([el-rhel.md](../engine/el-rhel.md)) |

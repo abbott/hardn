@@ -306,6 +306,17 @@ func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 		s.incoming = argv[2]
 		s.save()
 		return hostfake.Response{Stdout: fmt.Sprintf("Default incoming policy changed to '%s'\n(be sure to update your rules accordingly)\n", argv[2])}, true
+	case len(argv) == 3 && (argv[1] == "limit" || argv[1] == "allow") && strings.HasSuffix(argv[2], "/tcp") && s.plain(argv[1], argv[2]) >= 0:
+		// set_rule replaces a saved rule of the same tuple and another action
+		// in its place, "Rule updated" while active (ufw.md §3): a limit over
+		// the plain allow, and the allow back over it. Not run on a host.
+		s.rules[s.plain(argv[1], argv[2])].action = argv[1]
+		s.save()
+		return hostfake.Response{Stdout: strings.ReplaceAll(both, "Rule added", "Rule updated")}, true
+	case len(argv) == 3 && argv[1] == "limit" && strings.HasSuffix(argv[2], "/tcp"):
+		s.rules = append(s.rules, simRule{action: "limit", port: strings.TrimSuffix(argv[2], "/tcp")})
+		s.save()
+		return hostfake.Response{Stdout: both}, true
 	case len(argv) == 3 && argv[1] == "allow" && strings.HasSuffix(argv[2], "/tcp"):
 		s.rules = append(s.rules, simRule{action: "allow", port: strings.TrimSuffix(argv[2], "/tcp")})
 		s.save()
@@ -357,6 +368,17 @@ func (s *ufwSim) ufw(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: gone}, true
 	}
 	return hostfake.Response{}, false
+}
+
+// plain is the index of the rule on spec ("22/tcp") from anywhere, with no
+// application or interface, that action would replace: the allow for a
+// limit, the limit for an allow; -1 for none.
+func (s *ufwSim) plain(action, spec string) int {
+	other := map[string]string{"limit": "allow", "allow": "limit"}[action]
+	port := strings.TrimSuffix(spec, "/tcp")
+	return slices.IndexFunc(s.rules, func(r simRule) bool {
+		return r.action == other && r.port == port && r.src == "" && r.app == "" && r.iface == "" && r.protocol() == "tcp"
+	})
 }
 
 // profileRules are application app's rules, from hardn's profile file: one per

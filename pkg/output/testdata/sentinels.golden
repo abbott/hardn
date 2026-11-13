@@ -220,6 +220,7 @@ ufw.ErrBlocks UFW_WOULD_BLOCK
 ufw.ErrEnabledMismatch UFW_ENABLED_MISMATCH
 ufw.ErrInactive UFW_INACTIVE
 ufw.ErrListenersUnknown UFW_LISTENERS_UNKNOWN
+ufw.ErrNoPlainAllow UFW_NO_PLAIN_ALLOW
 ufw.ErrNotApplicable UFW_NOT_APPLICABLE
 ufw.ErrNotInstalled UFW_NOT_INSTALLED
 ufw.ErrProxmoxUnknown UFW_PROXMOX_UNKNOWN

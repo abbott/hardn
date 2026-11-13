@@ -110,3 +110,22 @@ func TestSSHAlert(t *testing.T) {
 		t.Errorf("SSH Login, sshd fixed, raises an alert:\n%s", out)
 	}
 }
+
+// TestSSHLimitRow: the Brute-Force Limit row
+// (docs/engine/gallery-bruteforce.md) is On or, as a warning, Off, with the
+// deciding file's note; before OpenSSH 9.8 it says what the limit needs.
+func TestSSHLimitRow(t *testing.T) {
+	tests := []struct {
+		limit SSHLimit
+		want  component.KeyValue
+	}{
+		{SSHLimitOn, component.KeyValue{Key: SSHLimitKey, Value: "On", Note: "by x.conf"}},
+		{SSHLimitOff, component.KeyValue{Key: SSHLimitKey, Value: "Off", State: component.ValueWarn, Note: "by x.conf"}},
+		{SSHLimitUnavailable, component.KeyValue{Key: SSHLimitKey, Value: "Not available", Note: "needs OpenSSH 9.8"}},
+	}
+	for _, tt := range tests {
+		if got := SSHLimitRow(tt.limit, "by x.conf"); got != tt.want {
+			t.Errorf("%d: %+v, want %+v", tt.limit, got, tt.want)
+		}
+	}
+}

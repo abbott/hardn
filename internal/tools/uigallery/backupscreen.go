@@ -300,6 +300,9 @@ func (s *session) openBackup(name string) func() error {
 // writeNote writes the note on what play runs, titled title, set apart as
 // a scenario's is (runScenario).
 func (s *session) writeNote(title, note string) error {
+	if s.quiet {
+		return nil
+	}
 	c, gap := s.p.Ctx, strings.Repeat("\n", theme.SectionGap)
 	text := component.Callout{Kind: component.MessageInfo, Title: title, Body: []string{note}}.Render(c) + "\n" + gap
 	if s.p.In.Asked() {

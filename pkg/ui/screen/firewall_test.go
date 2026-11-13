@@ -119,3 +119,29 @@ func TestFirewallChanges(t *testing.T) {
 		t.Errorf("Add's review: %+v", r)
 	}
 }
+
+// TestFirewallLimit: Limit SSH (docs/engine/gallery-bruteforce.md) is
+// item 5, after the others, only where LimitSSH holds; its change says what
+// ufw's limit does above each rule as a limit.
+func TestFirewallLimit(t *testing.T) {
+	f := fwTestLockout
+	before := f.SubMenu().Menu.Items
+	f.LimitSSH = true
+	items := f.SubMenu().Menu.Items
+	if len(items) != len(before)+1 || items[len(items)-1].Key != FirewallLimitItem || items[len(items)-1].Label != "Limit SSH" {
+		t.Errorf("items %+v", items)
+	}
+	for i, it := range before {
+		if items[i] != it {
+			t.Errorf("item %d: %+v, was %+v", i, items[i], it)
+		}
+	}
+	c := FirewallLimitChange([]string{"22/tcp", "22/tcp (v6)"})
+	want := []component.KeyValue{{Key: "22/tcp", Value: "Limit", State: component.ValueOK}, {Key: "22/tcp (v6)", Value: "Limit", State: component.ValueOK}}
+	if c.Question != "Limit SSH?" || c.Review.Title != "Rules" || len(c.Review.Items) != 2 || c.Review.Items[0] != want[0] || c.Review.Items[1] != want[1] {
+		t.Errorf("change %+v", c)
+	}
+	if n := c.Review.Notice; n == nil || n.Callout.Kind != component.MessageInfo || !strings.Contains(n.Callout.Body[0], "6 or more SSH connections in 30 seconds") {
+		t.Errorf("notice %+v", c.Review.Notice)
+	}
+}

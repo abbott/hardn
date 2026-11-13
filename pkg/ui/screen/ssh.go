@@ -61,6 +61,46 @@ const (
 	SSHYouKey      = "Logged in as"
 )
 
+// Brute-force limiting's row: its words adopted
+// (docs/engine/gallery-bruteforce.md §4, 2026-11-13); pkg/screens/ssh fills
+// it from sshd -T (docs/engine/screen-bruteforce.md).
+const (
+	SSHLimitKey = "Brute-Force Limit"
+
+	sshLimitOn    = "On"
+	sshLimitOff   = "Off"
+	sshLimitNone  = "Not available"
+	sshLimitNeeds = "needs OpenSSH 9.8"
+)
+
+// SSHLimit is what sshd does about an address that keeps failing to log in:
+// its PerSourcePenalties.
+type SSHLimit uint8
+
+// The limits.
+const (
+	// SSHLimitOn: sshd refuses the address for a while.
+	SSHLimitOn SSHLimit = iota
+	// SSHLimitOff: a file turns the penalties off.
+	SSHLimitOff
+	// SSHLimitUnavailable: sshd is older than 9.8, which has none.
+	SSHLimitUnavailable
+)
+
+// SSHLimitRow is the SSH Configuration section's Brute-Force Limit row:
+// On, or Off as a warning, with note, the file that decides it, as the
+// other rows note theirs; Not available on an sshd before 9.8, which says
+// so in note's place.
+func SSHLimitRow(l SSHLimit, note string) component.KeyValue {
+	switch l {
+	case SSHLimitOff:
+		return component.KeyValue{Key: SSHLimitKey, Value: sshLimitOff, State: component.ValueWarn, Note: note}
+	case SSHLimitUnavailable:
+		return component.KeyValue{Key: SSHLimitKey, Value: sshLimitNone, Note: sshLimitNeeds}
+	}
+	return component.KeyValue{Key: SSHLimitKey, Value: sshLimitOn, Note: note}
+}
+
 // The port form's words: its field, decided (gallery-ssh.md §6), and its
 // refusals, the adopted mock's; its default's, proposed (screen-ssh.md), as
 // Create User's (screen-users.md §5).

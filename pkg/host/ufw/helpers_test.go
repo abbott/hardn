@@ -173,6 +173,31 @@ func (m *model) run(h *hostfake.System, argv []string) hostfake.Response {
 	switch {
 	case cmd == "ufw status verbose":
 		out = m.status()
+	case len(argv) == 3 && (argv[1] == "limit" || argv[1] == "allow" && m.has("limit", argv[2])):
+		// set_rule replaces a saved rule of the same tuple and another
+		// action in its place, "Rule updated" while active (ufw.md §3).
+		port := strings.TrimSuffix(argv[2], "/tcp")
+		fams := []ufw.Family{ufw.IPv4}
+		if m.ipv6 {
+			fams = append(fams, ufw.IPv6)
+		}
+		for _, fam := range fams {
+			i := slices.IndexFunc(m.rules, func(r modelRule) bool { return r.fam == fam && r.port == port && r.tuple == "" })
+			sfx := ""
+			if fam == ufw.IPv6 {
+				sfx = " (v6)"
+			}
+			switch {
+			case i >= 0 && m.rules[i].action == argv[1]:
+				out += "Skipping adding existing rule" + sfx + "\n"
+			case i >= 0:
+				m.rules[i].action = argv[1]
+				out += m.word("Rule updated", sfx)
+			default:
+				m.rules = append(m.rules, modelRule{fam: fam, action: argv[1], port: port})
+				out += m.word("Rule added", sfx)
+			}
+		}
 	case len(argv) == 3 && argv[1] == "allow", len(argv) == 4 && argv[1] == "delete":
 		port := strings.TrimSuffix(argv[len(argv)-1], "/tcp")
 		fams := []ufw.Family{ufw.IPv4}
@@ -226,6 +251,13 @@ func (m *model) run(h *hostfake.System, argv []string) hostfake.Response {
 	}
 	m.files(h)
 	return hostfake.Response{Stdout: out}
+}
+
+// has reports whether the model holds a plain rule of action on spec
+// ("22/tcp") in some IP version.
+func (m *model) has(action, spec string) bool {
+	port := strings.TrimSuffix(spec, "/tcp")
+	return slices.ContainsFunc(m.rules, func(r modelRule) bool { return r.action == action && r.port == port && r.tuple == "" })
 }
 
 // word is set_rule's answer: "Rules updated" while inactive.
