@@ -57,7 +57,9 @@ import (
 // pkg/engine/..., by package and name. TestSentinelsRegistered fails for one
 // missing here: add it, with an entry in codes.go that matches it.
 var sentinels = map[string]error{
+	"accounts.ErrLogins":              accounts.ErrLogins,
 	"accounts.ErrMalformed":           accounts.ErrMalformed,
+	"accounts.ErrNoLoginRecord":       accounts.ErrNoLoginRecord,
 	"accounts.ErrTCB":                 accounts.ErrTCB,
 	"alpine.ErrChanged":               alpine.ErrChanged,
 	"alpine.ErrNoBackup":              alpine.ErrNoBackup,
@@ -701,6 +703,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158
 	want = append(want, ssh.CodeSSHDUnfixedLatent)                                                                               // its line with no password path
 	want = append(want, firewall.CodePortsBlocked, firewall.CodePortsUnread)                                                     // the other listeners Enable blocks
+	want = append(want, users.CodeEmptyPassword)                                                                                 // account hygiene
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

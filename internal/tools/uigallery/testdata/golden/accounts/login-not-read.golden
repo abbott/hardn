@@ -1,0 +1,116 @@
+# Golden file of TestAccountsGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts login-not-read␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host with a login record hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcan't read, here lslogins not installed: the last section says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso and lists no one.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcarol␛[m                ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mCan't read the login record␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  accounts login-not-read --------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. A host with a login record hardn$
+# can't read, here lslogins not installed: the last section says$
+# so and lists no one.$
+$
+# Account Review ###############################################$
+$
+  Empty password -----------------------------------------------$
+$
+  [ ] carol                Run passwd -l carol$
+$
+  Password never expires ---------------------------------------$
+$
+   -  None$
+$
+  No login in 90 days ------------------------------------------$
+$
+   -  Can't read the login record$
+$
+   0) Return$
+$
+    > Option [0 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156maccounts login-not-read␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host with a login record hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcan't read, here lslogins not installed: the last section␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msays so and lists no one.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mcarol␛[m$
+      ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mCan't read the login record␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156maccounts login-not-read␛[m ␛[38;2;22;24;29m--------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. A host with a login record hardn␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcan't read, here lslogins not installed: the last section says␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso and lists no one.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mAccount Review␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+  ␛[1;38;2;129;134;156mEmpty password␛[m ␛[38;2;22;24;29m-----------------------------------------------␛[m$
+$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mcarol␛[m                ␛[38;2;231;70;105mRun passwd -l carol␛[m$
+$
+  ␛[1;38;2;129;134;156mPassword never expires␛[m ␛[38;2;22;24;29m---------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mNone␛[m$
+$
+  ␛[1;38;2;129;134;156mNo login in 90 days␛[m ␛[38;2;22;24;29m------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mCan't read the login record␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m$
+$
+$

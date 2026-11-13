@@ -256,6 +256,8 @@ func TestAssess(t *testing.T) {
 			want{band: risk.Low, score: 85, factors: []string{"Second root account"}}},
 		{"no password to root: keeps the top band out", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeNoPassword, users.CodeNoPassword)), quiet,
 			want{band: risk.Low, score: 95, factors: []string{"No password to become root"}}},
+		{"an empty password", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeEmptyPassword, users.CodeEmptyPassword)), quiet,
+			want{band: risk.Low, score: 90, factors: []string{"Empty password"}}},
 		// A grant the row does not establish costs as one without a
 		// password: never Minimal, never above the grant read.
 		{"a grant not read: as no password", with(rep(idUser, engine.Configured, "non-root, sudo", users.CodeRuleNotRead)), quiet,
@@ -691,7 +693,7 @@ func everyLine() []risk.Factor {
 		all = append(all, risk.Assess(with(u), long).Factors...)
 	}
 	all = append(all, risk.Assess([]engine.Report{
-		rep(idUser, engine.Configured, "x", users.CodeNoPassword, users.CodeUID0),
+		rep(idUser, engine.Configured, "x", users.CodeNoPassword, users.CodeUID0, users.CodeEmptyPassword),
 		rep(idFW, engine.NotConfigured, "x", "UFW_SSH_NOT_ALLOWED_AT_START", firewall.CodeSSHUnchecked),
 	}, header.Header{}).Factors...)
 	all = append(all, risk.Assess(hardened(), pending(detect.Yes)).Factors...)
@@ -713,8 +715,8 @@ func TestFactorsFit(t *testing.T) {
 			t.Errorf("%q: %d cells, over 35", f.Detail, n)
 		}
 	}
-	if len(kinds) != 12 {
-		t.Errorf("%d kinds checked, want 12", len(kinds))
+	if len(kinds) != 13 {
+		t.Errorf("%d kinds checked, want 13", len(kinds))
 	}
 }
 
@@ -738,13 +740,14 @@ func TestFactorLines(t *testing.T) {
 		"Up 9999 days":                       false,
 		"Uptime unknown":                     false,
 		"No password to become root":         true,
+		"Empty password":                     true,
 		"Maybe no password to become root":   false,
 		"Anyone can log in: upgrade openssh": true,
 		"sshd unpatched: upgrade openssh":    true,
 		"Can't tell if sshd is patched":      false,
 	}
 	under := map[risk.Kind]string{risk.KindLockoutAtStart: idFW, risk.KindSecondRoot: idUser, risk.KindSSHUnchecked: idFW,
-		risk.KindUpdatesOpen: idUpdate, risk.KindReboot: "", risk.KindUptime: idUpdate, risk.KindNoPassword: idUser,
+		risk.KindUpdatesOpen: idUpdate, risk.KindReboot: "", risk.KindUptime: idUpdate, risk.KindNoPassword: idUser, risk.KindEmptyPassword: idUser,
 		risk.KindPasswordBypass: idAuth, risk.KindSSHDUnfixed: idAuth, risk.KindFixUnknown: idAuth, risk.KindUnfixedLatent: idAuth}
 	shown := map[string]bool{}
 	for _, r := range risk.Rows() {
@@ -882,13 +885,13 @@ func TestBandWords(t *testing.T) {
 			t.Errorf("%d: %q, want %q", b, b.String(), w)
 		}
 	}
-	if risk.KindNoPassword.String() != "no-password" || risk.KindUnknown.String() != "unknown" || risk.Kind(12).String() != "kind(12)" ||
+	if risk.KindNoPassword.String() != "no-password" || risk.KindUnknown.String() != "unknown" || risk.Kind(13).String() != "kind(13)" || risk.KindEmptyPassword.String() != "empty-password" ||
 		risk.KindPasswordBypass.String() != "password-bypass" || risk.KindSSHDUnfixed.String() != "sshd-unfixed" || risk.KindFixUnknown.String() != "fix-unknown" ||
 		risk.KindUnfixedLatent.String() != "sshd-unfixed-latent" {
 		t.Error("kind words")
 	}
 	// The kinds before CVE-2026-123158's keep their numbers.
-	if risk.KindNoPassword != 7 || risk.KindPasswordBypass != 8 || risk.KindSSHDUnfixed != 9 || risk.KindFixUnknown != 10 || risk.KindUnfixedLatent != 11 {
+	if risk.KindNoPassword != 7 || risk.KindPasswordBypass != 8 || risk.KindSSHDUnfixed != 9 || risk.KindFixUnknown != 10 || risk.KindUnfixedLatent != 11 || risk.KindEmptyPassword != 12 {
 		t.Error("kinds renumbered")
 	}
 }

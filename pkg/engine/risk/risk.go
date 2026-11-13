@@ -85,12 +85,13 @@ const (
 
 // The cross-checks' costs, in points of 100 (risk.md §5.3).
 const (
-	PenaltyAtStart    = 10 // ufw set to start at boot, its saved rules not letting SSH through from everywhere
-	PenaltySecondRoot = 15 // an account other than root has uid 0
-	PenaltyReboot     = 10 // a reboot pending, or not established
-	PenaltyUptime     = 10 // up LongUptime or more without automatic updates, or either not established
-	PenaltyNoPassword = 5  // a user account becomes root without a password, or may
-	PenaltyUnfixed    = 15 // Alpine's sshd lacks CVE-2026-123158's fix, password auth on without PAM, no account exposed yet
+	PenaltyAtStart       = 10 // ufw set to start at boot, its saved rules not letting SSH through from everywhere
+	PenaltySecondRoot    = 15 // an account other than root has uid 0
+	PenaltyReboot        = 10 // a reboot pending, or not established
+	PenaltyUptime        = 10 // up LongUptime or more without automatic updates, or either not established
+	PenaltyNoPassword    = 5  // a user account becomes root without a password, or may
+	PenaltyEmptyPassword = 10 // an account has an empty password
+	PenaltyUnfixed       = 15 // Alpine's sshd lacks CVE-2026-123158's fix, password auth on without PAM, no account exposed yet
 )
 
 // LongUptime is the uptime from which a host that does not upgrade itself
@@ -187,10 +188,11 @@ const (
 	KindSSHDUnfixed                // sshd lacks CVE-2026-123158's fix, no account exposed yet (SSH_SSHD_UNFIXED)
 	KindFixUnknown                 // whether sshd has the fix, or whom it exposes, not established (SSH_FIX_UNKNOWN)
 	KindUnfixedLatent              // sshd lacks the fix, no password path to it established (SSH_SSHD_UNFIXED_LATENT): no cost
+	KindEmptyPassword              // an account has an empty password (USERS_EMPTY_PASSWORD)
 )
 
 var kindWords = [...]string{"lockout-at-start", "unknown", "second-root", "ssh-unchecked", "updates-open", "reboot", "uptime", "no-password",
-	"password-bypass", "sshd-unfixed", "fix-unknown", "sshd-unfixed-latent"}
+	"password-bypass", "sshd-unfixed", "fix-unknown", "sshd-unfixed-latent", "empty-password"}
 
 // String returns the kind's word.
 func (k Kind) String() string {
@@ -327,6 +329,9 @@ func Assess(reports []engine.Report, h header.Header) Level {
 	if f, ok := sshdFix(au, auOK); ok {
 		add(f)
 		l.Bypass = f.Kind == KindPasswordBypass
+	}
+	if usOK && has(us, users.CodeEmptyPassword) {
+		add(Factor{Kind: KindEmptyPassword, Control: us.Control, Detail: "Empty password", Established: true, Penalty: PenaltyEmptyPassword})
 	}
 
 	penalty := 0

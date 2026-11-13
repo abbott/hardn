@@ -5,6 +5,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	usersctl "github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/accounts"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -173,4 +174,34 @@ func keyRows(u usersctl.User) []component.KeyValue {
 // risky is whether a plan's changes are lockout-risk.
 func risky(plan []engine.Change) bool {
 	return slices.ContainsFunc(plan, func(c engine.Change) bool { return c.Risk == engine.RiskLockout })
+}
+
+// reviewDay is how a stale account's last login is written: the day, as
+// the host's clock had it (lslogins writes the time with its offset).
+const reviewDay = "2006-01-02"
+
+// AccountsView is the User control's review as Account Review draws it
+// (screen.Accounts): the one mapping, which the gallery's mocks draw
+// through too. Every account name, from /etc/passwd, is made safe to show
+// (logview.Safe); a reading that failed is said in the control's words
+// (screenkit.RefusalWords).
+func AccountsView(rv usersctl.Review) screen.Accounts {
+	if rv.Err != nil {
+		return screen.Accounts{NotRead: logview.Safe(screenkit.RefusalWords(rv.Err))}
+	}
+	v := screen.Accounts{NoLoginRecord: rv.NoRecord, NoRecentLogin: rv.NoRecent, LoginNotRead: rv.LoginErr != nil}
+	for _, n := range rv.EmptyPassword {
+		v.EmptyPassword = append(v.EmptyPassword, logview.Safe(n))
+	}
+	for _, n := range rv.NeverExpires {
+		v.NeverExpires = append(v.NeverExpires, logview.Safe(n))
+	}
+	for _, s := range rv.Stale {
+		st := screen.AccountsStale{Name: logview.Safe(s.Name)}
+		if !s.Last.IsZero() {
+			st.Last = s.Last.Format(reviewDay)
+		}
+		v.Stale = append(v.Stale, st)
+	}
+	return v
 }

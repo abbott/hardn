@@ -6,7 +6,7 @@
 
 | Option | Displays | Configures |
 |---|---|---|
-| 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
+| 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state; under Account Review, accounts with an empty password, a password that never expires or no login in 90 days, each with the command to run | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
 | 2) SSH Login | root login, password login, the port, allowed users, as sshd reads them | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
 | 3) Firewall | `ufw` state, policy, rules, application profiles | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
@@ -18,6 +18,21 @@
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
 _The hardn status for **AppArmor** only displays current state, nothing more._
+
+### Account Review
+
+User Management's `3) Account Review` lists accounts to look at. hardn changes none of them: each row is the command to run.
+
+| Section | Lists | Command |
+|---|---|---|
+| Empty password | accounts whose password field in `/etc/shadow` is empty. A locked account (`!`) or one with `*` isn't listed | `passwd -l NAME` locks it |
+| Password never expires | accounts with a password and no expiry date | `chage -M 365 NAME` sets one |
+| No login in 90 days | users (uid 1000 or more, a login shell, not expired) with no login in 90 days, or none on record ("Never") | `usermod -e 1 NAME` disables the account |
+
+- **An empty password also shows on the main menu**, as "Empty password" under User, and lowers the security level.
+- **"This host keeps no login record"** means hardn found no last-login record (`/var/log/lastlog` or lastlog2's database). It then lists no one: it never guesses.
+- **"The login record has no login in 90 days"** means the record is there but may no longer be written. It lists no one then too.
+- **"Can't read the login record"** means the record is there but `lslogins` (util-linux) is missing or failed.
 
 ## Flags and commands
 

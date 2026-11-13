@@ -1,4 +1,6 @@
+accounts.ErrLogins ACCOUNTS_LOGINS_MALFORMED
 accounts.ErrMalformed ACCOUNTS_MALFORMED
+accounts.ErrNoLoginRecord ACCOUNTS_NO_LOGIN_RECORD
 accounts.ErrTCB ACCOUNTS_TCB
 alpine.ErrChanged ALPINE_CHANGED
 alpine.ErrNoBackup ALPINE_NO_BACKUP

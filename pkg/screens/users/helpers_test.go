@@ -101,11 +101,11 @@ func newEngine(h *usrHost) func(progress func(engine.Event)) *engine.Engine {
 	}
 }
 
-// readOnlyRuns are the commands that only read: the tools' checks and
-// sshd -T.
+// readOnlyRuns are the commands that only read: the tools' checks, sshd -T
+// and lslogins.
 func readOnlyRun(argv []string) bool {
 	cmd := strings.Join(argv, " ")
-	return cmd == "visudo -c" || strings.HasPrefix(cmd, "doas -C ") || (argv[0] == "sshd" || argv[0] == "/usr/sbin/sshd") && strings.Contains(cmd, " -T")
+	return cmd == "visudo -c" || argv[0] == "lslogins" || strings.HasPrefix(cmd, "doas -C ") || (argv[0] == "sshd" || argv[0] == "/usr/sbin/sshd") && strings.Contains(cmd, " -T")
 }
 
 // writes are the calls on h, from the nth on, that could change the host
