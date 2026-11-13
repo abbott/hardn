@@ -9,6 +9,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	firewallctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -64,6 +65,7 @@ func mainView(r firewallctl.Reading, status component.StatusList, f detect.Facts
 	}
 	v.UFW, v.SSH, v.Container = ufwRows(r, f), sshRows(r), r.Container
 	v.LimitSSH = len(r.LimitPorts()) > 0
+	v.UFW, v.SSH, v.Container, v.Ports = ufwRows(r, f), sshRows(r), r.Container, PortRows(r.Ports)
 	if r.State.Installed {
 		v.Rules = ruleRows(r)
 		if len(r.Profiles) > 0 {
@@ -89,6 +91,22 @@ func limitRules(r firewallctl.Reading) []string {
 		}
 	}
 	return append(v4, v6...)
+}
+// PortRows are the Ports section's rows (docs/engine/screen-ports.md): the
+// control's reading in the view's words. A program's name is the host's
+// word, made safe to show here (logview.Safe). The gallery's mocks draw
+// through it.
+func PortRows(p firewallctl.Ports) []component.KeyValue {
+	reach := map[firewallctl.Reach]screen.PortReach{
+		firewallctl.ReachUnknown: screen.PortUnknown, firewallctl.ReachOpen: screen.PortOpen, firewallctl.ReachSome: screen.PortSome,
+		firewallctl.ReachBlocked: screen.PortBlocked, firewallctl.ReachLocal: screen.PortLocal, firewallctl.ReachUnused: screen.PortUnused,
+		firewallctl.ReachUnfiltered: screen.PortUnfiltered,
+	}
+	v := screen.FirewallPorts{NoSS: p.NoSS, Failed: p.Failed, Partial: p.Partial}
+	for _, port := range p.List {
+		v.Ports = append(v.Ports, screen.FirewallPort{Port: port.Spec, Proto: port.Proto, Process: logview.Safe(port.Process), Reach: reach[port.Reach]})
+	}
+	return v.Rows()
 }
 
 // interfaceRows are the trusted interfaces' rows: each one, every port let

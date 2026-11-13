@@ -626,6 +626,9 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // (configListing) or the brute-force limiting listing (bfListing), which
 // size themselves with size too and read no input. No other mode calls
 // either.
+// (sdListing) or the Logs listing (logsListing), which size themselves with
+// size too and read no input, as "config" and "ports" (configListing,
+// portsListing) do. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -660,6 +663,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == bfPrefix {
 		return bfListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == portsPrefix {
+		return portsListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -676,6 +682,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(accountsUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(keysUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(bfUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(portsUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

@@ -624,6 +624,12 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 			return hostfake.Response{}
 		}
 	case "ss":
+		switch {
+		case slices.Contains(argv, "-Hulnp"): // no UDP socket
+			return hostfake.Response{}
+		case slices.Contains(argv, "-Htlnp"): // with sshd's name, as ss prints it to root
+			return hostfake.Response{Stdout: strings.ReplaceAll(ssOutput(h.bound), "\n", " users:((\"sshd\",pid=812,fd=3))\n")}
+		}
 		return hostfake.Response{Stdout: ssOutput(h.bound)}
 	case "systemd-run":
 		h.arm(argv)

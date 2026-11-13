@@ -1,6 +1,7 @@
 package firewall_test
 
 import (
+	"cmp"
 	"context"
 	"errors"
 	"slices"
@@ -32,8 +33,14 @@ type elHost struct {
 	noCleanup       bool   // CleanupOnExit=no
 	failInstall     bool
 	noRepos         bool // dnf has no enabled repository (an unregistered RHEL host)
-	ran             []string
+	// zones is firewall-cmd --list-all-zones' answer while firewalld runs;
+	// "" is elZones, the stock public zone on eth0.
+	zones string
+	ran   []string
 }
+
+// elZones is a running firewalld's stock public zone, in command.py's form.
+const elZones = "public (default, active)\n  target: default\n  interfaces: eth0\n  sources: \n  services: cockpit dhcpv6-client ssh\n  ports: \n  rich rules: \n"
 
 const elSimulate = "Dependencies resolved.\n" +
 	"================================================================================\n" +
@@ -115,11 +122,16 @@ func (e *elHost) answer(argv []string) (hostfake.Response, bool) {
 	case "firewall-offline-cmd --list-all-zones":
 		return hostfake.Response{Stdout: "drop\n  target: DROP\n  interfaces: \n  sources: \n  services: \n  ports: \n\n" +
 			"public (default)\n  target: default\n  interfaces: \n  sources: \n  services: cockpit dhcpv6-client ssh\n  ports: \n\n"}, true
-	case "firewall-offline-cmd --service=ssh --get-ports":
+	case "firewall-cmd --list-all-zones":
+		if e.active != "active" {
+			return hostfake.Response{Stderr: "FirewallD is not running\n", ExitCode: 252}, true
+		}
+		return hostfake.Response{Stdout: cmp.Or(e.zones, elZones)}, true
+	case "firewall-offline-cmd --service=ssh --get-ports", "firewall-cmd --permanent --service=ssh --get-ports":
 		return hostfake.Response{Stdout: "22/tcp\n"}, true
-	case "firewall-offline-cmd --service=cockpit --get-ports":
+	case "firewall-offline-cmd --service=cockpit --get-ports", "firewall-cmd --permanent --service=cockpit --get-ports":
 		return hostfake.Response{Stdout: "9090/tcp\n"}, true
-	case "firewall-offline-cmd --service=dhcpv6-client --get-ports":
+	case "firewall-offline-cmd --service=dhcpv6-client --get-ports", "firewall-cmd --permanent --service=dhcpv6-client --get-ports":
 		return hostfake.Response{Stdout: "546/udp\n"}, true
 	case "nmcli -t -f UUID,DEVICE connection show --active":
 		return hostfake.Response{Stdout: "1dd9a779-d327-56e1-8454-c65e2556c12c:eth0\n"}, true

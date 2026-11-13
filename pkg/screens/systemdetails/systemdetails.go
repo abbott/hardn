@@ -152,7 +152,7 @@ func read(ctx context.Context, sys host.System, facts detect.Facts, now func() t
 // safe, here alone. now's year decides a login's form.
 func viewOf(r details.Report, now time.Time) screen.SystemDetails {
 	return screen.SystemDetails{
-		OS: safeRows(osRows(r)), Host: safeRows(hostRows(r)), Users: safeRows(userRows(r)), CPU: safeRows(cpuRows(r)),
+		OS: safeRows(osRows(r)), Host: safeRows(hostRows(r)), Ports: PortRows(r.Ports), Users: safeRows(userRows(r)), CPU: safeRows(cpuRows(r)),
 		Disk: safeRows(diskRows(r)), Memory: safeRows(memoryRows(r)), Logins: safeRows(loginRows(r, now)),
 	}
 }
@@ -227,6 +227,20 @@ func rejecter(err error) string {
 		return sudoers.ToolSudo.String()
 	}
 	return ce.Argv[0]
+}
+
+// portRows are the Listening Ports section's rows: each socket's port and
+// protocol, its address as ss writes it, and the program ss names; no ss, an
+// ss that failed and lines not read each say so; and where hardn is
+// established not to run as root, the line that says why programs are missing.
+// A program's name is the host's word, made safe to show here. The gallery's
+// mocks draw through it.
+func PortRows(p details.Ports) []component.KeyValue {
+	l := screen.Listeners{NoSS: p.NoSS, Failed: len(p.Unread) > 0, Partial: p.Partial, NotRoot: p.Root == detect.No}
+	for _, s := range p.List {
+		l.List = append(l.List, screen.Listener{Port: strconv.Itoa(int(s.Port)), Proto: s.Proto, Address: s.Address(), Process: s.Process})
+	}
+	return safeRows(l.Rows())
 }
 
 // osWords is the distribution as the header's bar names it: "Debian 13 (Trixie)".

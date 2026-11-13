@@ -178,6 +178,14 @@ func (m *fwdModel) answer(argv []string) (hostfake.Response, bool) {
 		return hostfake.Response{Stdout: "public (default)\n  interfaces: eth0\n"}, running
 	case "firewall-cmd --permanent --zone=public --get-target":
 		return hostfake.Response{Stdout: "default\n"}, running
+	case "firewall-cmd --list-all-zones": // the Ports section's read of the stock public zone
+		return hostfake.Response{Stdout: "public (default, active)\n  target: default\n  interfaces: eth0\n  sources: \n  services: cockpit dhcpv6-client ssh\n  ports: \n  rich rules: \n"}, running
+	case "firewall-cmd --permanent --service=ssh --get-ports":
+		return hostfake.Response{Stdout: "22/tcp\n"}, running
+	case "firewall-cmd --permanent --service=cockpit --get-ports":
+		return hostfake.Response{Stdout: "9090/tcp\n"}, running
+	case "firewall-cmd --permanent --service=dhcpv6-client --get-ports":
+		return hostfake.Response{Stdout: "546/udp\n"}, running
 	default:
 		if len(argv) == 3 && argv[0] == "systemctl" && (argv[1] == "is-active" || argv[1] == "is-enabled") {
 			if argv[1] == "is-active" {

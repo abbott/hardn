@@ -555,6 +555,25 @@ func (s asUserSys) ReadDir(ctx context.Context, name string) ([]fs.DirEntry, err
 	return s.System.ReadDir(ctx, name)
 }
 
+// Run is the host's, but ss's answer without its users column: to alice ss
+// names her own programs alone, and the host's listeners are not hers.
+func (s asUserSys) Run(ctx context.Context, name string, args ...string) (host.Result, error) {
+	res, err := s.System.Run(ctx, name, args...)
+	if name != "ss" || err != nil {
+		return res, err
+	}
+	var b strings.Builder
+	for _, l := range strings.SplitAfter(string(res.Stdout), "\n") {
+		line, _, cut := strings.Cut(l, " users:")
+		b.WriteString(line)
+		if cut {
+			b.WriteString("\n")
+		}
+	}
+	res.Stdout = []byte(b.String())
+	return res, nil
+}
+
 // userHost is a host of platform p as alice reads it, not through sudo.
 func userHost(p platform) host.System {
 	h := vmDetails(p)()

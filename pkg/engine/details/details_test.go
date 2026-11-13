@@ -1280,14 +1280,18 @@ func TestReadWritesNothing(t *testing.T) {
 		"visudo":   true, // -c
 		"doas":     true, // -C
 		"lslogins": true,
+		"ss":       true, // -Htlnp, -Hulnp
 	}
 	wantArgs := map[string]func([]string) bool{
-		"ip":       func(a []string) bool { return a[0] == "-o" && a[1] == "addr" },
-		"df":       func(a []string) bool { return slices.Equal(a, []string{"-kP", "/"}) },
-		"zpool":    func(a []string) bool { return a[0] == "list" },
-		"zfs":      func(a []string) bool { return a[0] == "get" },
-		"visudo":   func(a []string) bool { return slices.Equal(a, []string{"-c"}) },
-		"doas":     func(a []string) bool { return a[0] == "-C" },
+		"ip":     func(a []string) bool { return a[0] == "-o" && a[1] == "addr" },
+		"df":     func(a []string) bool { return slices.Equal(a, []string{"-kP", "/"}) },
+		"zpool":  func(a []string) bool { return a[0] == "list" },
+		"zfs":    func(a []string) bool { return a[0] == "get" },
+		"visudo": func(a []string) bool { return slices.Equal(a, []string{"-c"}) },
+		"doas":   func(a []string) bool { return a[0] == "-C" },
+		"ss": func(a []string) bool {
+			return slices.Equal(a, []string{"-Htlnp"}) || slices.Equal(a, []string{"-Hulnp"})
+		},
 		"lslogins": func(a []string) bool { return strings.HasPrefix(a[0], "--time-format") },
 	}
 	for _, zfs := range []bool{false, true} {

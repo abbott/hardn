@@ -22,7 +22,8 @@ func elChanges(h *fwHost, n int) []string {
 		}
 		f := host.FormatArgv(c.Argv)
 		read := isRead(f) || timerCommand(f) || slices.ContainsFunc([]string{"rpm -q ", "dnf install --assumeno ", "firewall-offline-cmd --get-", "firewall-offline-cmd --list-",
-			"firewall-offline-cmd --service=", "nmcli ", "firewall-cmd --state", "firewall-cmd --get-", "firewall-cmd --permanent --zone=public --get-"}, func(p string) bool { return strings.HasPrefix(f, p) })
+			"firewall-offline-cmd --service=", "nmcli ", "firewall-cmd --state", "firewall-cmd --get-", "firewall-cmd --permanent --zone=public --get-",
+			"firewall-cmd --list-all-zones", "firewall-cmd --permanent --service="}, func(p string) bool { return strings.HasPrefix(f, p) })
 		if !read {
 			out = append(out, f)
 		}

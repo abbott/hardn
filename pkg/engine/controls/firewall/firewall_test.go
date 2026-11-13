@@ -407,6 +407,10 @@ func (s site) build(t *testing.T) (*hostfake.System, detect.Facts) {
 			return *s.ssErr
 		case cmd == "ss -Htln":
 			return hostfake.Response{Stdout: ss(bound, s.plat.socket)}
+		case (cmd == "ss -Htlnp" || cmd == "ss -Hulnp") && s.plat.noSS:
+			return hostfake.Response{Err: fmt.Errorf("host: run ss: %w", host.ErrNotFound)}
+		case cmd == "ss -Htlnp" && s.ssErr != nil:
+			return *s.ssErr
 		case cmd == "ss -Htlnp":
 			return hostfake.Response{Stdout: ss(bound, s.plat.socket) + s.tcp}
 		case cmd == "ss -Hulnp" && s.listenErr != nil:
@@ -493,7 +497,7 @@ func readOnly(t *testing.T, h *hostfake.System, p platform) {
 		case "run":
 			switch cmd := strings.Join(c.Argv, " "); {
 			case cmd == "ufw status verbose" && !onPVE, cmd == "systemctl is-enabled ufw.service" && !onPVE, strings.HasPrefix(cmd, p.bin+" -T -f "+sshd.MainConfig),
-				cmd == "systemctl show -p Listen ssh.socket", cmd == "ss -Htln", strings.HasPrefix(cmd, "dpkg-query --show "),
+				cmd == "systemctl show -p Listen ssh.socket", cmd == "ss -Htln", cmd == "ss -Htlnp" && !onPVE, cmd == "ss -Hulnp" && !onPVE, strings.HasPrefix(cmd, "dpkg-query --show "),
 				cmd == "apk info -e iproute2", cmd == "apt-get install -s -y iproute2", cmd == "apk add --simulate iproute2",
 				cmd == "systemctl is-active "+pve.FirewallUnit, cmd == "systemctl is-active "+pve.NFTablesUnit,
 				p.facts.Platform.Distro.EL() && strings.HasPrefix(cmd, "firewall-cmd ") && !strings.Contains(cmd, "-add-") && !strings.Contains(cmd, "-remove-"),

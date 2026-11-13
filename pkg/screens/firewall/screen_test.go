@@ -607,6 +607,10 @@ func TestHeights(t *testing.T) {
 	want := map[string]int{"debian13": 20, "ubuntu2604": 30, "active22": 31, "hardened": 31, "allow-policy": 31, "lockout": 32,
 		"lockout-at-start": 30, "allowlist": 32, "blocklist": 34, "edit-2230": 31, "moved-2230": 32, "denied": 31, "alpine324": 20, "alpine-stock": 21,
 		"alpine-runlevel": 32, "unit-off": 32, "pve9": 17, "pve9-drop": 17, "profiles": 36, "sub-profiles": 16} // ufw installed: item 3, Trusted Interfaces, a line more; SSH's plain allow on an active ufw: item 5, Limit SSH, another
+	// Since next/listening-ports each of ufw's screens has the Ports section: four lines with one port, five with two.
+	want := map[string]int{"debian13": 24, "ubuntu2604": 34, "active22": 34, "hardened": 34, "allow-policy": 35, "lockout": 37,
+		"lockout-at-start": 34, "allowlist": 36, "blocklist": 38, "edit-2230": 35, "moved-2230": 37, "denied": 35, "alpine324": 24, "alpine-stock": 25,
+		"alpine-runlevel": 35, "unit-off": 35, "pve9": 17, "pve9-drop": 17, "profiles": 39, "sub-profiles": 16} // ufw installed: item 3, Trusted Interfaces, a line more
 	for name, lines := range want {
 		host, keys, at, title := name, []string{"0"}, 0, "Firewall Configuration"
 		if name == "sub-profiles" {

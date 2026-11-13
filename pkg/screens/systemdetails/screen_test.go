@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net/netip"
 	"path"
 	"reflect"
 	"regexp"
@@ -16,9 +17,11 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine/details"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sudoers"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -61,7 +64,19 @@ type model struct {
 	addrs, df, health, zfs string
 	logins                 map[string]string // a name's line; another listed name answers blanks
 	lslogins               *hostfake.Response
+	// tcp and udp are ss -Htlnp's and ss -Hulnp's output; ss, its answer
+	// where it does not list them (no ss, a failure).
+	tcp, udp string
+	ss       *hostfake.Response
 }
+
+// noTool is the answer of a host without the tool.
+func noTool(name string) *hostfake.Response {
+	return &hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", name, host.SearchPath, host.ErrNotFound)}
+}
+
+// sshdTCP is sshd on port 22 in both families, as ss -Htlnp prints it to root.
+const sshdTCP = "LISTEN 0 128 0.0.0.0:22 0.0.0.0:* users:((\"sshd\",pid=812,fd=3))\nLISTEN 0 128 [::]:22 [::]:* users:((\"sshd\",pid=812,fd=4))\n"
 
 // testHost is one host: the fake, and the facts detect gives of it.
 type testHost struct {
@@ -109,7 +124,7 @@ func (h *testHost) add(name, data string) { h.AddFile(name, []byte(data), 0o644,
 // none.
 func on(release string) *testHost {
 	h := &testHost{System: hostfake.New(host.Options{})}
-	h.m = model{addrs: ipLine(2, "eth0", "inet", "192.0.2.20/24"), df: dfRoot, logins: map[string]string{"alice": aliceLogin}}
+	h.m = model{addrs: ipLine(2, "eth0", "inet", "192.0.2.20/24"), df: dfRoot, logins: map[string]string{"alice": aliceLogin}, tcp: sshdTCP}
 	h.add(header.HostnameFile, "web-01\n")
 	h.add(header.UptimeFile, "277920.37 553000.12\n")
 	h.add(details.LoadAvgFile, "0.12 0.08 0.03 1/123 4567\n")
@@ -136,7 +151,8 @@ func on(release string) *testHost {
 		h.AddFile(sudoers.DoasConfig, []byte("# permit persist :wheel\n"), 0o640, 0, 0)
 		h.AddDir(sudoers.DoasDir, 0o750, 0, 0)
 		h.AddFile(sudoers.DoasDir+"/20-wheel.conf", []byte("permit persist :wheel\n"), 0o440, 0, 0)
-		h.m.lslogins = &hostfake.Response{Err: fmt.Errorf("host: %q: not in %s: %w", "lslogins", host.SearchPath, host.ErrNotFound)}
+		h.m.lslogins = noTool("lslogins")
+		h.m.ss = noTool("ss") // stock Alpine has busybox's netstat, and no iproute2
 	}
 	h.add(header.KernelReleaseFile, kernel+"\n")
 	if release != "alpine323" {
@@ -166,6 +182,12 @@ func (h *testHost) answer(argv []string, _ []byte) hostfake.Response {
 		return hostfake.Response{Stdout: m.health + "\n"}
 	case cmd == "zfs get -Hp -o value used,available "+pveDataset && m.zfs != "":
 		return hostfake.Response{Stdout: m.zfs}
+	case argv[0] == "ss" && m.ss != nil:
+		return *m.ss
+	case cmd == "ss -Htlnp":
+		return hostfake.Response{Stdout: m.tcp}
+	case cmd == "ss -Hulnp":
+		return hostfake.Response{Stdout: m.udp}
 	case argv[0] == "lslogins" && m.lslogins != nil:
 		return *m.lslogins
 	case len(argv) == len(lsloginsArgs)+2 && argv[0] == "lslogins" && slices.Equal(argv[1:len(argv)-1], lsloginsArgs):
@@ -303,7 +325,7 @@ func assertOnlyReads(t *testing.T, name string, h *testHost) {
 		switch c.Op {
 		case "read", "read-nofollow", "scan-lines", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group":
 		case "run":
-			if !slices.Contains([]string{"ip", "df", "zpool", "zfs", "visudo", "doas", "lslogins"}, path.Base(c.Argv[0])) {
+			if !slices.Contains([]string{"ip", "df", "zpool", "zfs", "visudo", "doas", "lslogins", "ss"}, path.Base(c.Argv[0])) {
 				t.Errorf("%s: ran %s", name, c)
 			}
 		default:
@@ -338,19 +360,21 @@ func TestScreenHosts(t *testing.T) {
 		lines int
 		want  []string
 	}{
-		{"debian13", 44, []string{"OS                   Debian 13 (Trixie)", "Kernel               6.12.113+deb13-cloud-amd64", "Uptime               3 days, 5 hours, 12 minutes",
+		{"debian13", 49, []string{"OS                   Debian 13 (Trixie)", "Kernel               6.12.113+deb13-cloud-amd64", "Uptime               3 days, 5 hours, 12 minutes",
 			"Hostname             web-01", "eth0                 192.0.2.20/24", "alice                sudo", "Model                " + vmCPU, "CPUs                 4, 1 socket",
 			"Load (1, 5, 15 min)  0.12, 0.08, 0.03", "/                    /dev/vda1 ext4", "Used                 4.2 of 38.6 GiB (11%)", "Used                 1.2 of 3.8 GiB (30%)",
-			"root                 None recorded", "alice                " + session}},
-		{"ubuntu2604", 44, []string{"OS                   Ubuntu 26.04 (Resolute)", "Kernel               7.0.0-38-generic", "alice                sudo", "alice                " + session}},
-		{"alpine323", 43, []string{"OS                   Alpine 3.23.6", "alice                doas", "Logins               Not known: lslogins isn't installed"}},
-		{"pve9", 44, []string{"OS                   Proxmox VE 9.0.10 (Trixie)", "None but root", "/                    " + pveDataset + " zfs", "Used                 50.0 of 450.0 GiB (11%)",
+			"root                 None recorded", "alice                " + session,
+			"  Listening Ports ---", "22/tcp               0.0.0.0 sshd", "22/tcp               [::] sshd"}},
+		{"ubuntu2604", 49, []string{"OS                   Ubuntu 26.04 (Resolute)", "Kernel               7.0.0-38-generic", "alice                sudo", "alice                " + session}},
+		{"alpine323", 47, []string{"OS                   Alpine 3.23.6", "alice                doas", "Logins               Not known: lslogins isn't installed",
+			"  Listening Ports ---", "[?] Listening ports      ss not installed"}},
+		{"pve9", 49, []string{"OS                   Proxmox VE 9.0.10 (Trixie)", "None but root", "/                    " + pveDataset + " zfs", "Used                 50.0 of 450.0 GiB (11%)",
 			"[+] Pool rpool           ONLINE", "CPUs                 48, 2 sockets", "root                 " + session, "Used                 33.3 of 125.0 GiB (27%)"}},
-		{"zfs-degraded", 44, []string{"[ ] Pool rpool           DEGRADED"}},
-		{"unreadable", 44, []string{"Can't read /proc/meminfo", "alice                " + session, "Used                 4.2 of 38.6 GiB (11%)"}},
-		{"no-logins", 44, []string{"root                 None recorded", "alice                None recorded"}},
-		{"login-console", 44, []string{"alice                Oct 20 11:42 on tty1"}},
-		{"many", 78, []string{"2001:db8:0:3::20/128", "peggy                No sudo", "bob                  sudo", "bob                  Oct 19 08:01 from 192.0.2.11", "peggy                None recorded"}},
+		{"zfs-degraded", 49, []string{"[ ] Pool rpool           DEGRADED"}},
+		{"unreadable", 49, []string{"Can't read /proc/meminfo", "alice                " + session, "Used                 4.2 of 38.6 GiB (11%)"}},
+		{"no-logins", 49, []string{"root                 None recorded", "alice                None recorded"}},
+		{"login-console", 49, []string{"alice                Oct 20 11:42 on tty1"}},
+		{"many", 83, []string{"2001:db8:0:3::20/128", "peggy                No sudo", "bob                  sudo", "bob                  Oct 19 08:01 from 192.0.2.11", "peggy                None recorded"}},
 	} {
 		h := hosts[tt.host]()
 		p := play(h, "0")
@@ -658,8 +682,53 @@ func rowsOf(r details.Report, section string) []component.KeyValue {
 		return v.Disk
 	case "Memory":
 		return v.Memory
+	case "Ports":
+		return v.Ports
 	}
 	return v.Logins
+}
+
+// TestSDPorts: the Listening Ports section in each state (gallery-ports.md,
+// adopted 2026-11-13): a row a socket, its address as ss writes it and its
+// program; as a user, no program and the line that says why; no ss, an ss
+// that failed, a line not read and nothing listening each in its words; and a
+// program's name, the host's word, made safe.
+func TestSDPorts(t *testing.T) {
+	sock := func(addr string, port uint16, proto, process string) reload.Socket {
+		b := reload.Bound{Addr: netip.MustParseAddr(addr), Port: port}
+		return reload.Socket{Bound: b, Proto: proto, Process: process}
+	}
+	star, lo := sock("::", 9100, "tcp", "node_exporter"), sock("127.0.0.53", 53, "udp", "systemd-resolve")
+	star.Dual, lo.Device = true, "lo"
+	list := []reload.Socket{sock("0.0.0.0", 22, "tcp", "sshd"), sock("::", 22, "tcp", "sshd"), star, lo}
+	for _, tt := range []struct {
+		name  string
+		ports details.Ports
+		want  []component.KeyValue
+	}{
+		{"root", details.Ports{List: list, Root: detect.Yes}, []component.KeyValue{{Key: "22/tcp", Value: "0.0.0.0", Extra: "sshd"}, {Key: "22/tcp", Value: "[::]", Extra: "sshd"},
+			{Key: "9100/tcp", Value: "*", Extra: "node_exporter"}, {Key: "53/udp", Value: "127.0.0.53%lo", Extra: "systemd-resolve"}}},
+		{"a user", details.Ports{List: []reload.Socket{sock("0.0.0.0", 22, "tcp", "")}, Root: detect.No},
+			[]component.KeyValue{{Key: "22/tcp", Value: "0.0.0.0"}, {Key: "Run hardn as root to see every process.", State: component.ValueNone}}},
+		{"the uid not established", details.Ports{List: []reload.Socket{sock("0.0.0.0", 22, "tcp", "")}, Root: detect.Unknown}, []component.KeyValue{{Key: "22/tcp", Value: "0.0.0.0"}}},
+		{"no ss", details.Ports{NoSS: true, Root: detect.Yes}, []component.KeyValue{{Key: "Listening ports", Value: "ss not installed", State: component.ValueUnknown}}},
+		{"ss failed", details.Ports{Root: detect.Yes, Unread: []details.Unread{{Source: details.SourceSS}}}, []component.KeyValue{{Key: "Listening ports", Value: "ss failed", State: component.ValueUnknown}}},
+		{"a line not read", details.Ports{List: list[:1], Partial: true, Root: detect.Yes},
+			[]component.KeyValue{{Key: "22/tcp", Value: "0.0.0.0", Extra: "sshd"}, {Key: "Listening ports", Value: "Some not read", State: component.ValueUnknown}}},
+		{"nothing listening", details.Ports{Root: detect.Yes}, []component.KeyValue{{Key: "Nothing is listening", State: component.ValueNone}}},
+		{"a hostile name", details.Ports{List: []reload.Socket{sock("0.0.0.0", 8000, "tcp", "\x1b[2J\x1b]0;x\x07ev\nil")}, Root: detect.Yes},
+			[]component.KeyValue{{Key: "8000/tcp", Value: "0.0.0.0", Extra: logview.Safe("\x1b[2J\x1b]0;x\x07ev\nil")}}},
+	} {
+		got := rowsOf(details.Report{Ports: tt.ports}, "Ports")
+		if !slices.Equal(got, tt.want) {
+			t.Errorf("%s: %+v, want %+v", tt.name, got, tt.want)
+		}
+		for _, r := range got {
+			if strings.ContainsAny(r.Extra, "\x1b\x07\n") {
+				t.Errorf("%s: %q is not safe to show", tt.name, r.Extra)
+			}
+		}
+	}
 }
 
 // readOn reads h as the screen does.

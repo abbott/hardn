@@ -64,6 +64,10 @@ type Firewalld struct {
 	Status component.StatusList
 	// Rows are the section firewalld's.
 	Rows []component.KeyValue
+	// Ports are the section Ports' rows, the listening ports against the
+	// rules (FirewallPorts.Rows), after firewalld's; none, no section
+	// (docs/engine/screen-ports.md).
+	Ports []component.KeyValue
 	// First is what item 1 does; Risk, that its plan is lockout-risk, which
 	// marks the item.
 	First FirewalldFirst
@@ -84,6 +88,9 @@ func (f Firewalld) SubMenu() SubMenu {
 	vm := SubMenu{Title: trail(firewalldTitle), Status: f.Status, Heading: fixtureHeading, Prompt: menuPrompt, Menu: component.Menu{Exit: returnItem()}}
 	if len(f.Rows) > 0 {
 		vm.Sections = append(vm.Sections, firewallSection(firewalldSection, containerRows(f.Rows, f.Container)))
+	}
+	if len(f.Ports) > 0 {
+		vm.Sections = append(vm.Sections, firewallSection(portsSection, f.Ports))
 	}
 	if w, ok := firewalldFirsts[f.First]; ok {
 		vm.Menu.Items = append(vm.Menu.Items, component.MenuItem{Key: FirewalldFirstItem, Label: w.label, Description: w.about, Risk: f.Risk})

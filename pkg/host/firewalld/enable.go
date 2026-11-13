@@ -142,6 +142,14 @@ func CleanupOnExit(ctx context.Context, sys host.System) (bool, error) {
 type Zone struct {
 	Target                               string
 	Interfaces, Sources, Services, Ports []string
+	// Rich: the zone has a rich rule, whose own lines follow "rich rules:"
+	// (command.py's print_zone_policy_info). What it accepts or refuses is
+	// not read. A tab-indented line under any key but "rich rules" and
+	// "forward-ports" marks it too: firewalld prints no other.
+	Rich bool
+	// Forwards are the zone's port forwards, one for each line after
+	// "forward-ports:", as printed ("port=80:proto=tcp:toport=8080:toaddr=").
+	Forwards []string
 }
 
 // Offline is firewalld's permanent configuration, read while it is down.
@@ -174,12 +182,13 @@ func ReadOffline(ctx context.Context, sys host.System) (Offline, error) {
 }
 
 // parseZones reads --list-all-zones: each zone's name at the margin (the
-// default's followed by " (default)"), then its "  key: values" lines;
-// a rich rule's own lines start with a tab. A zone without a target line
-// is ErrUnknown.
+// default's followed by " (default)"), then its "  key: values" lines.
+// The lines after "forward-ports:" and "rich rules:" start with a tab, one
+// forward or rule each: a forward is kept (Zone.Forwards), a rule marks the
+// zone Rich. A zone without a target line is ErrUnknown.
 func parseZones(out []byte) (map[string]Zone, error) {
 	zs := map[string]Zone{}
-	cur, seen := "", false
+	cur, key, seen := "", "", false
 	done := func() error {
 		if cur != "" && !seen {
 			return fmt.Errorf("firewalld: zone %s printed no target: %w", cur, ErrUnknown)
@@ -188,7 +197,16 @@ func parseZones(out []byte) (map[string]Zone, error) {
 	}
 	for _, l := range strings.Split(string(out), "\n") {
 		switch {
-		case l == "" || l[0] == '\t':
+		case l == "":
+		case l[0] == '\t':
+			if z, ok := zs[cur]; ok && strings.TrimSpace(l) != "" {
+				if key == "forward-ports" {
+					z.Forwards = append(z.Forwards, strings.TrimSpace(l))
+				} else {
+					z.Rich = true
+				}
+				zs[cur] = z
+			}
 		case l[0] != ' ':
 			if err := done(); err != nil {
 				return nil, err
@@ -197,13 +215,14 @@ func parseZones(out []byte) (map[string]Zone, error) {
 			if !zoneName(name) {
 				return nil, fmt.Errorf("firewalld: zone %q: %w", name, ErrUnknown)
 			}
-			cur, seen = name, false
+			cur, key, seen = name, "", false
 			zs[cur] = Zone{}
 		case cur != "":
 			k, v, ok := strings.Cut(strings.TrimSpace(l), ":")
 			if !ok {
 				continue
 			}
+			key = k
 			z, f := zs[cur], strings.Fields(v)
 			switch k {
 			case "target":

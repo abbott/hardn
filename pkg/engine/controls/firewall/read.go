@@ -65,6 +65,9 @@ type Reading struct {
 	// read: masked and not-found are what Enable refuses (ufw.ReadBootUnit).
 	BootUnit string
 	Sockets  Sockets
+	// Ports are the listening ports against the firewall's rules, off
+	// Proxmox VE (ports.go).
+	Ports Ports
 	// Container: off Proxmox VE, detect establishes a container (inContainer),
 	// whose host may filter traffic too, which the screen says.
 	Container bool
@@ -103,12 +106,14 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 	r.Container = inContainer(f)
 	if f.Platform.Distro.EL() {
 		r.readEL(ctx, sys, engine.Input{Facts: f, Config: cfg, Session: session})
+		r.Ports = ReadPorts(ctx, sys, r)
 		return r
 	}
 	r.State, r.StateErr = ufw.Read(ctx, sys, f.Proxmox)
 	if r.State.Installed {
 		r.Boot, r.BootUnit = ufw.ReadBootUnit(ctx, sys, f)
 	}
+	r.Ports = ReadPorts(ctx, sys, r)
 	r.First = r.first()
 	r.DisableBeside = (r.First == ItemEnable || r.First == ItemInstallSS) && r.State.Status.Known && r.State.Status.Active
 	in := engine.Input{Facts: f, Config: cfg, Session: session}
