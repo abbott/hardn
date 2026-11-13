@@ -119,6 +119,9 @@ const CompactMainMenu = false
 type MainMenu struct {
 	// Header is the wordmark, the version and the repository link.
 	Header component.Header
+	// Release is what the release check found, drawn in the Header in the
+	// link's place; the zero value, the check off, draws nothing (Release).
+	Release Release
 	// Context is the distribution bar.
 	Context component.ContextBar
 	// Host is the hostname badge, the address and the uptime.
@@ -210,7 +213,7 @@ func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
 	if short {
 		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c)), alert}
 	}
-	return []string{vm.Header.Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c),
+	return []string{vm.Release.header(vm.Header).Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c),
 		alert, component.Divider{}.Render(c)}
 }
 

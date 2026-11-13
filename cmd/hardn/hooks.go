@@ -26,13 +26,14 @@ import (
 // Logs items (withUsersScreen, withSSHScreen, withDNSScreen,
 // withFirewallScreen, withBackupScreen, withUpdatesScreen,
 // withRunAllScreen, withReaderScreens), its status
-// and terminal (withStatus), whether c warned at load or --no-color was
+// and terminal (withStatus), its release check where hardn.yml turns it on
+// (withReleaseCheck), whether c warned at load or --no-color was
 // given (warnNoColor), for the main menu to keep the warning, and the line reader every prompt shares and stdout.
 func menuOptions(c *config.Config, found config.Found, version string) mainmenu.Options {
 	m := mainmenu.Options{Config: c, Warned: noColorGiven() || loadWarnings(c) != "", Input: engineInput, Out: os.Stdout}
 	m = withUpdatesScreen(withBackupScreen(withDNSScreen(withSSHScreen(withUsersScreen(m, c), c), c), c), c, version)
 	m = withRunAllScreen(m, c, version)
-	return withStatus(withReaderScreens(withFirewallScreen(m, c), c, found), c, version)
+	return withReleaseCheck(withStatus(withReaderScreens(withFirewallScreen(m, c), c, found), c, version), c, version)
 }
 
 // reraise ends hardn by SIGINT after Ctrl-C at the main menu: a seam for

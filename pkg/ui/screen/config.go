@@ -54,7 +54,7 @@ var configGroups = []struct {
 	{"DNS", []string{"configureDns", "nameservers"}},
 	{"Auto Updates", []string{"enableUnattendedUpgrades"}},
 	{"Backup", []string{"enableBackups", "backupPath"}},
-	{"General", []string{"dryRun", "confirmTimeout"}},
+	{"General", []string{"dryRun", "confirmTimeout", "checkReleases"}},
 }
 
 // ConfigKeys returns the hardn.yml keys the screen has a row for, in its order.

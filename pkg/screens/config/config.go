@@ -162,7 +162,7 @@ func texts(cfg *config.Config) map[string]string {
 		"configureDns": strconv.FormatBool(cfg.ConfigureDns), "nameservers": list(cfg.Nameservers),
 		"enableUnattendedUpgrades": strconv.FormatBool(cfg.EnableUnattendedUpgrades),
 		"enableBackups":            strconv.FormatBool(cfg.EnableBackups), "backupPath": cfg.BackupPath,
-		"dryRun": strconv.FormatBool(cfg.FileDryRun()), "confirmTimeout": timeout,
+		"dryRun": strconv.FormatBool(cfg.FileDryRun()), "confirmTimeout": timeout, "checkReleases": strconv.FormatBool(cfg.CheckReleases),
 	}
 }
 
