@@ -8,7 +8,6 @@ import (
 	"path"
 	"slices"
 	"strings"
-	"syscall"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/accounts"
@@ -103,7 +102,7 @@ func readGuarded(ctx context.Context, sys host.System, p string) File {
 		}
 	}
 	switch {
-	case errors.Is(err, fs.ErrNotExist), errors.Is(err, syscall.ENOTDIR):
+	case errors.Is(err, fs.ErrNotExist), host.NotDir(err):
 		// No file. ENOTDIR: a home that is no directory, as /dev/null is
 		// for Alpine's system accounts, holds no key file either.
 	case err != nil:
