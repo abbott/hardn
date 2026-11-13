@@ -20,3 +20,19 @@ func TestDistroWords(t *testing.T) {
 		}
 	}
 }
+
+// TestSupportEnds: the document's platform carries the matrix's date as
+// the matrix writes it, a day or a month, and "" for none; never a word
+// counted from the clock.
+func TestSupportEnds(t *testing.T) {
+	for id, tt := range map[string]struct{ version, want string }{
+		"alpine": {"3.22.4", "2027-05-01"},
+		"ubuntu": {"22.04", "2027-05"},
+		"fedora": {"43", ""},
+	} {
+		p := detect.Classify(detect.OSRelease{ID: id, VersionID: tt.version}, detect.Proxmox{Installed: detect.No})
+		if got := hostOf("web-01", detect.Facts{Platform: p}).Platform.SupportEnds; got != tt.want {
+			t.Errorf("%s %s: supportEnds %q, want %q", id, tt.version, got, tt.want)
+		}
+	}
+}

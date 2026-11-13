@@ -410,7 +410,7 @@ func TestMainMenuHeights(t *testing.T) {
 			env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: tc.w, Height: tc.h,
 				Environ: []string{"TERM=xterm-256color", "LANG=" + lang}})
 			m := liveMenu(t, env, func(ctx context.Context) (screen.MainMenu, error) {
-				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0"})
+				return Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
 			}, "q")
 			out, _, _ := session(t, func() { show(m) })
 			drawn, _, _ := strings.Cut(strings.TrimPrefix(out, clearOn(env)), clearOn(env))

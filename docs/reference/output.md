@@ -36,6 +36,7 @@ detect's facts in this schema's own words (they are mapped, never written as det
 | `platform.distro` | `debian`, `ubuntu`, `alpine`, `proxmox`, `rocky`, `almalinux`, `rhel`, `other`, `unknown` (open) |
 | `platform.version` | the support matrix's key (`13`, `24.04`, `3.24`); `""` when not established |
 | `platform.support` | `supported`, `best-effort`, `out-of-scope`, `unlisted`, `unknown` |
+| `platform.supportEnds` | the last day of the vendor's free security updates, as hardn's support matrix holds it: a day (`2027-05-01`), or a month (`2027-05`) where the vendor names a month alone, which lasts to its last day; `""` when hardn has no date for the release. It is not counted against the clock: a plan's `PLATFORM_SUPPORT_ENDS` or `PLATFORM_SUPPORT_ENDED` finding is |
 | `init` | `systemd`, `openrc`, `unknown` (open) |
 | `ssh` | how sshd is started: `ssh.socket`, `ssh.service` (on Rocky Linux, AlmaLinux and RHEL too, whose unit is `sshd.service`), `openrc`, `unknown` (open) |
 | `proxmox.installed`, `container.detected` | `yes`, `no`, `unknown`; with `proxmox.version` (pve-manager's) and `container.manager` |
@@ -473,6 +474,8 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `DNS_UDHCPC_UNKNOWN` | whether Alpine's udhcpc is the DHCP client is not established ([dns.md](../safety/dns.md) §3) |
 | `CONFIG_DEPRECATED_VALUE` | a configuration value in a form that is going away; it still works (§3.17) |
 | `PLATFORM_BEST_EFFORT` | a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it (P-41); in every plan made on one, as the plan's own finding (no `control` or `change`) |
+| `PLATFORM_SUPPORT_ENDS` | the release's vendor support ends within 90 days, by the host's clock (`platform.supportEnds`); in every plan made then, as the plan's own finding. It refuses nothing ([screen-eol.md](../engine/screen-eol.md)) |
+| `PLATFORM_SUPPORT_ENDED` | the release's vendor support has ended, by the host's clock; in every plan made then, as the plan's own finding. It refuses nothing: hardn changes the release as before, unless it is out of scope |
 | `SSH_MATCH_ALLOWS_MORE` | a Match block lets in more than the global value does (root's login, a password), for the connections it matches ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_PORT_NOT_IN_EFFECT` | a listener sshd's configuration names is not bound: the configuration is not in effect ([check-ssh.md](../engine/check-ssh.md)) |
 | `SSH_MATCH_VALUE_UNKNOWN` | a Match block sets a value hardn does not rank, so what it lets in is not established ([check-ssh.md](../engine/check-ssh.md)) |

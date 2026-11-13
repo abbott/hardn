@@ -66,6 +66,13 @@ type Release struct {
 	Version string
 	Support Support
 	Note    string
+	// Ends is the last day of the vendor's free security updates, its
+	// long-term support included and paid support left out
+	// (docs/engine/gallery-eol.md, decision 1): a day, "2027-05-01", or,
+	// where the vendor names a month alone, the month, "2027-05", which
+	// lasts to its last day. "" where the vendor names none (Proxmox VE 9).
+	// Platform.End reads it.
+	Ends string
 }
 
 // matrix is brief §2's decision "support what each vendor still supports;
@@ -76,30 +83,45 @@ type Release struct {
 // support ended first, given a row so that its refusal says why (the
 // maintainer, 2026-11-08: "Out of scope + fixes"). Supported says hardn
 // changes a release, not that a VM run covered it.
+//
+// Each row's Ends is its vendor's date (each page read 2026-11-13;
+// docs/engine/gallery-eol.md §3):
+//   - Debian: the end of LTS, https://wiki.debian.org/LTS
+//   - Ubuntu: the end of standard security maintenance, a month,
+//     https://ubuntu.com/about/release-cycle
+//   - Alpine: "End of support", https://alpinelinux.org/releases/
+//   - Proxmox VE: "Proxmox EOL", a month, "tba" for 9,
+//     https://pve.proxmox.com/wiki/FAQ
+//   - Rocky Linux: security support, https://docs.rockylinux.org/releases/
+//   - AlmaLinux: security support, https://wiki.almalinux.org/release-notes/
+//   - RHEL: the end of maintenance support,
+//     https://access.redhat.com/support/policy/updates/errata
+//
+// A distribution's supported rows are newest first (Newest).
 var matrix = []Release{
-	{DistroDebian, "13", Supported, ""},
-	{DistroDebian, "12", Supported, ""},
-	{DistroUbuntu, "26.04", Supported, ""},
-	{DistroUbuntu, "24.04", Supported, ""},
-	{DistroAlpine, "3.24", Supported, ""},
-	{DistroAlpine, "3.23", Supported, ""},
-	{DistroProxmox, "9", Supported, ""},
+	{DistroDebian, "13", Supported, "", "2030-06-30"},
+	{DistroDebian, "12", Supported, "", "2028-06-30"},
+	{DistroUbuntu, "26.04", Supported, "", "2031-05"},
+	{DistroUbuntu, "24.04", Supported, "", "2029-05"},
+	{DistroAlpine, "3.24", Supported, "", "2028-06-01"},
+	{DistroAlpine, "3.23", Supported, "", "2027-11-01"},
+	{DistroProxmox, "9", Supported, "", ""},
 	// Rocky Linux and AlmaLinux: every change but DNS (el-changes.md,
 	// el-ports.md, el-firewalld.md, el-updates.md). VM runs covered Rocky
 	// Linux 10 alone.
-	{DistroRocky, "10", Supported, ""},
-	{DistroRocky, "9", Supported, ""},
-	{DistroAlma, "10", Supported, ""},
-	{DistroAlma, "9", Supported, ""},
+	{DistroRocky, "10", Supported, "", "2035-05-31"},
+	{DistroRocky, "9", Supported, "", "2032-05-31"},
+	{DistroAlma, "10", Supported, "", "2035-05-31"},
+	{DistroAlma, "9", Supported, "", "2032-05-31"},
 	// RHEL: as Rocky Linux and AlmaLinux; the host kit ran on RHEL 10.3 and
 	// 9.9 (el-rhel.md §7).
-	{DistroRHEL, "10", Supported, ""},
-	{DistroRHEL, "9", Supported, ""},
-	{DistroUbuntu, "22.04", BestEffort, ""},
-	{DistroAlpine, "3.22", BestEffort, ""},
-	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01"},
-	{DistroAlpine, "3.20", OutOfScope, "vendor support ended 2026-04-01"},
-	{DistroProxmox, "8", OutOfScope, "end of life since 2026-08-31"},
+	{DistroRHEL, "10", Supported, "", "2035-05-31"},
+	{DistroRHEL, "9", Supported, "", "2032-05-31"},
+	{DistroUbuntu, "22.04", BestEffort, "", "2027-05"},
+	{DistroAlpine, "3.22", BestEffort, "", "2027-05-01"},
+	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01", "2026-11-01"},
+	{DistroAlpine, "3.20", OutOfScope, "vendor support ended 2026-04-01", "2026-04-01"},
+	{DistroProxmox, "8", OutOfScope, "end of life since 2026-08-31", "2026-08"},
 }
 
 // Matrix returns the support matrix, a copy.
@@ -115,7 +137,10 @@ type Platform struct {
 	Version string // the matrix key (Release.Version); "" when not established
 	Support Support
 	Note    string
-	Err     error // why Distro or Support is Unknown
+	// Ends is the matrix row's (Release.Ends); "" for a release with no
+	// row, or whose vendor names no date.
+	Ends string
+	Err  error // why Distro or Support is Unknown
 }
 
 // Classify places a host in the support matrix from its os-release and its
@@ -146,7 +171,7 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 	case DistroAlpine:
 		p := lookup(Platform{Distro: d, Version: majorMinor(osr.VersionID)})
 		if p.Version != "" && !alpineStable(osr.VersionID) {
-			p.Support, p.Note = Unlisted, "VERSION_ID "+osr.VersionID+" is not a stable release's x.y.z"
+			p.Support, p.Note, p.Ends = Unlisted, "VERSION_ID "+osr.VersionID+" is not a stable release's x.y.z", ""
 		}
 		return p
 	case DistroRocky, DistroAlma, DistroRHEL:
@@ -165,7 +190,7 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 func lookup(p Platform) Platform {
 	for _, r := range matrix {
 		if r.Distro == p.Distro && r.Version == p.Version {
-			p.Support, p.Note = r.Support, r.Note
+			p.Support, p.Note, p.Ends = r.Support, r.Note, r.Ends
 			return p
 		}
 	}

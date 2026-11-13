@@ -668,6 +668,47 @@ func TestAlert(t *testing.T) {
 	}
 }
 
+// TestNotice checks the main menu's second callout (MainMenu.Notice,
+// EndOfSupport): alone where the alert stands, and after the alert, a blank
+// line between; in the compact form too; its words ending soon, ended and
+// on a release hardn refuses to change; and nothing for no release or no
+// date. Plain, at 80 columns.
+func TestNotice(t *testing.T) {
+	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
+	alert := "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH Login"
+	soon := EndOfSupport{Release: "Alpine 3.22", Date: "2027-05-01", Upgrade: "Alpine 3.24"}
+	notice := "   # Warning: Alpine 3.22 support ends 2027-05-01\n   # Upgrade to Alpine 3.24."
+	vm := MainMenuFixture()
+	vm.Notice = soon.Alert()
+	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "Not Configured\n\n"+notice+"\n\n----") {
+		t.Errorf("main menu with a notice:\n%s", out)
+	}
+	vm.Alert = cveAlertFixture().Alert
+	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "Not Configured\n\n"+alert+"\n\n"+notice+"\n\n----") {
+		t.Errorf("main menu with an alert and a notice:\n%s", out)
+	}
+	if out := ansi.Strip(vm.form(c, true)); !strings.Contains(out, "Not Configured\n\n"+alert+"\n\n"+notice+"\n\n  Select an option") {
+		t.Errorf("compact form with an alert and a notice:\n%s", out)
+	}
+	for _, tt := range []struct {
+		e    EndOfSupport
+		want *Alert
+	}{
+		{EndOfSupport{Release: "Alpine 3.22", Date: "2027-05-01", Ended: true, Upgrade: "Alpine 3.24"},
+			&Alert{Title: "Alpine 3.22 support ended 2027-05-01", Fix: "Upgrade to Alpine 3.24."}},
+		{EndOfSupport{Release: "Alpine 3.21", Date: "2026-11-01", Ended: true, Refused: true, Upgrade: "Alpine 3.24"},
+			&Alert{Title: "Alpine 3.21 support ended 2026-11-01", Why: "Out of scope: hardn refuses every change.", Fix: "Upgrade to Alpine 3.24."}},
+		{EndOfSupport{Release: "Ubuntu 26.04", Date: "May 2031"}, &Alert{Title: "Ubuntu 26.04 support ends May 2031"}},
+		{EndOfSupport{Date: "2027-05-01"}, nil},
+		{EndOfSupport{Release: "Proxmox VE 9"}, nil},
+	} {
+		got := tt.e.Alert()
+		if (got == nil) != (tt.want == nil) || got != nil && *got != *tt.want {
+			t.Errorf("%+v: %+v, want %+v", tt.e, got, tt.want)
+		}
+	}
+}
+
 // TestSubMenuFrames checks that the sub-menu layout draws Figma's other
 // sub-menu frames by leaving out the blocks they have no data for:
 // USER-MANAGE_USER-SELECT_USER, a menu of users under its own heading, and

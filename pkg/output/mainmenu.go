@@ -2,11 +2,13 @@ package output
 
 import (
 	"slices"
+	"time"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
+	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
@@ -64,4 +66,30 @@ func AlertOf(l risk.Level) (*screen.Alert, risk.Level) {
 		rest.Factors = append(rest.Factors, f)
 	}
 	return alert, rest
+}
+
+// NoticeOf is the main menu's end-of-support notice for the platform p on
+// the day today, the host's clock; nil for none (docs/engine/gallery-eol.md,
+// adopted 2026-11-13): from detect.EndNear days before the release's last
+// day of support, and after it for good, at every support level. A release
+// with no matrix row or no date (Proxmox VE 9) has none. On a release the
+// engine's gate refuses to change (refuseApply: any level but Supported
+// and Best effort) it says so. It is a notice alone: nothing hardn does
+// follows from it. Its words are hardn's own, detect's name and the
+// matrix's version and date, never the host's text. It is pure.
+func NoticeOf(p detect.Platform, today time.Time) *screen.Alert {
+	end := p.End(today)
+	if !end.Due() {
+		return nil
+	}
+	e := screen.EndOfSupport{
+		Release: p.Distro.Name() + " " + p.Version,
+		Date:    end.Words,
+		Ended:   end.State == detect.Ended,
+		Refused: p.Support != detect.Supported && p.Support != detect.BestEffort,
+	}
+	if r, ok := p.Upgrade(); ok {
+		e.Upgrade = r.Distro.Name() + " " + r.Version
+	}
+	return e.Alert()
 }

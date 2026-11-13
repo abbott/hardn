@@ -7,6 +7,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/host"
@@ -27,11 +28,13 @@ import (
 // on hosts that answer them.
 var calls = []string{"read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group", "run"}
 
-// options are a status read on f, hardn.yml listing one nameserver.
+// options are a status read on f, hardn.yml listing one nameserver, on a
+// fixed day.
 func options(f *hostfake.System) mainmenu.StatusOptions {
 	cfg := config.DefaultConfig()
 	cfg.Nameservers = []string{"192.0.2.53"}
-	return mainmenu.StatusOptions{System: f, Detect: detect.Detect, Config: cfg, Version: "v9.9.9"}
+	return mainmenu.StatusOptions{System: f, Detect: detect.Detect, Config: cfg, Version: "v9.9.9",
+		Now: func() time.Time { return time.Date(2026, 11, 13, 12, 0, 0, 0, time.UTC) }}
 }
 
 // plain renders vm plain, as written to output that is not a terminal,

@@ -19,6 +19,8 @@
 
 _The hardn status for **AppArmor** only displays current state, nothing more._
 
+From 90 days before a release's vendor support ends, the main menu says so, and every plan carries a warning. It changes nothing hardn does. The dates: [platforms.md](platforms.md#end-of-support).
+
 ## Flags and commands
 
 `hardn` needs root, except `-p` alone, `--version`, `--help`, `completion`, `config` and `system-details`. Run it with `sudo hardn` or `doas hardn`.

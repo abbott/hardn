@@ -66,6 +66,12 @@ type Platform struct {
 	Distro  string `json:"distro"`  // debian, ubuntu, alpine, proxmox, other, unknown
 	Version string `json:"version"` // the matrix's key, such as 13 or 3.24; "" when not established
 	Support string `json:"support"` // supported, best-effort, out-of-scope, unlisted, unknown
+	// SupportEnds is the last day of the vendor's free security updates,
+	// as the support matrix holds it: a day, 2027-05-01, or the month,
+	// 2027-05, where the vendor names a month alone; "" when hardn has no
+	// date for the release. It is the matrix's, not the clock's: whether
+	// it is near or past is the reader's to count.
+	SupportEnds string `json:"supportEnds"`
 }
 
 // Proxmox is whether the host runs Proxmox VE.

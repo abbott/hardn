@@ -52,7 +52,8 @@ type Plan struct {
 	Backups backup.Settings
 	// Findings are what the engine found about the plan as a whole, which
 	// refuse nothing: on a best-effort release, CodeBestEffort (P-41,
-	// next/p3-confirm-cleanup). A change's own are on the change
+	// next/p3-confirm-cleanup); on one whose vendor support ends soon or
+	// has ended, CodeSupportEnds or CodeSupportEnded. A change's own are on the change
 	// (Change.Findings).
 	Findings []Finding
 	// Refused are the refusals: a control's (also in its Item), the
@@ -119,7 +120,7 @@ func (e *Engine) plan(ctx context.Context, id string, controls []Control, cfg *c
 	if err != nil {
 		return nil, fmt.Errorf("engine: detect: %w", err)
 	}
-	p := &Plan{ID: id, Facts: facts, Findings: platformFindings(facts.Platform), Backups: e.opts.Backups, controls: controls, cfg: cfg}
+	p := &Plan{ID: id, Facts: facts, Findings: platformFindings(facts.Platform, e.now()), Backups: e.opts.Backups, controls: controls, cfg: cfg}
 	refuse := func(err error) { p.Refused = append(p.Refused, err) }
 	runDir := filepath.Join(e.runRoot(), id)
 	if err := e.sys.MkdirAll(ctx, runDir, 0o700); err != nil {

@@ -47,7 +47,9 @@ var menuStatus = mainmenu.Status
 // readStatus is one pass's status: read through statusHost, the facts
 // detected by engineDetect, against c's nameservers as they are now (the
 // DNS screen adopts each list it saves into c), the main menu's
-// view-model with its header, host block, risk level and rows filled.
+// view-model with its header, host block, risk level and rows filled, and
+// the release's end-of-support notice on the day of the clock every engine
+// run takes (revertNow).
 // Nothing is registered for Ctrl-C: it ends hardn by Go's default for
 // SIGINT, as during origin/main's checks (pkg/screens/mainmenu).
 func readStatus(ctx context.Context, c *config.Config, version string) (screen.MainMenu, error) {
@@ -56,6 +58,7 @@ func readStatus(ctx context.Context, c *config.Config, version string) (screen.M
 		Detect:  engineDetect,
 		Config:  c,
 		Version: headerVersion(version),
+		Now:     revertNow,
 	})
 }
 
