@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/host"
@@ -66,6 +67,17 @@ func audit(sys host.System, c *config.Config, run output.Run) {
 		run.Deprecations, run.ConfigPath = c.Deprecations(), c.Path()
 	}
 	auditAppend(ctx, sys, output.NewRecord(run, revertNow()))
+}
+
+// withBaseline is run with whether the host has a baseline of hardn
+// check's (drift.Kept: one Lstat), for a run that applied its plan, so that
+// its report says to accept the host again (docs/engine/design-check.md,
+// decision 2). Any other run is returned as it is, nothing looked at.
+func withBaseline(ctx context.Context, sys host.System, run output.Run) output.Run {
+	if run.Mode == output.ModeApply && run.Result != nil && run.Err == nil {
+		run.Baseline = drift.Kept(context.WithoutCancel(ctx), sys, checkOpts)
+	}
+	return run
 }
 
 // auditHostname is sys's hostname, as the header reads it; "" when not read.

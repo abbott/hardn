@@ -1,0 +1,101 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported",
+      "supportEnds": ""
+    },
+    "init": "systemd",
+    "ssh": "ssh.service",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "check",
+  "result": {
+    "outcome": "changes-needed",
+    "exitCode": 3,
+    "id": "",
+    "risk": ""
+  },
+  "changes": [],
+  "status": [],
+  "findings": [
+    {
+      "code": "CHECK_NOT_COMPARED",
+      "detail": "ss is not installed",
+      "source": "firewall.ports",
+      "control": "",
+      "change": ""
+    }
+  ],
+  "errors": [],
+  "check": {
+    "accepted": false,
+    "baseline": {
+      "path": "/var/lib/hardn/baseline.json",
+      "format": 1,
+      "saved": "2026-11-13T10:00:00Z",
+      "user": "george",
+      "hardnVersion": "0.4.0"
+    },
+    "differences": [
+      {
+        "fact": "users.admins",
+        "change": "added",
+        "was": "",
+        "is": "carol"
+      },
+      {
+        "fact": "users.keys",
+        "change": "removed",
+        "was": "george ssh-ed25519 SHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA",
+        "is": ""
+      },
+      {
+        "fact": "ssh.rootLogin",
+        "change": "changed",
+        "was": "prohibit-password",
+        "is": null
+      },
+      {
+        "fact": "ssh.passwordLogin",
+        "change": "changed",
+        "was": "no",
+        "is": "yes"
+      },
+      {
+        "fact": "ssh.allowUsers",
+        "change": "changed",
+        "was": "george",
+        "is": ""
+      },
+      {
+        "fact": "firewall.rules",
+        "change": "added",
+        "was": "",
+        "is": "allow in 8080/tcp"
+      }
+    ]
+  }
+}

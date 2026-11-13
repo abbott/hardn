@@ -53,6 +53,10 @@ dns.ErrNotRunning DNS_RESOLVED_NOT_RUNNING
 dns.ErrOverridden DNS_OVERRIDDEN
 dns.ErrUnknown DNS_UNKNOWN
 dns.ErrUnsupported DNS_UNSUPPORTED
+drift.ErrFormat BASELINE_OTHER_FORMAT
+drift.ErrInvalid BASELINE_INVALID
+drift.ErrNoBaseline BASELINE_MISSING
+drift.ErrUnsafe BASELINE_UNSAFE
 engine.ErrBootUnit BOOT_UNIT_NOT_INSTALLED
 engine.ErrChange ENGINE_CHANGE_INVALID
 engine.ErrConflict ENGINE_CONFLICT

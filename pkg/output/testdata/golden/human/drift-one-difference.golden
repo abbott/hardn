@@ -1,0 +1,28 @@
+# Golden file of TestHumanCheck/drift-one-difference, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m1 difference from the baseline of 2026-11-13 10:00 UTC␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH password login: was no, is yes␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn check --accept` to keep the host as it is now.␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Warning$
+# 1 difference from the baseline of 2026-11-13 10:00 UTC$
+# SSH password login: was no, is yes$
+$
+  Run `sudo hardn check --accept` to keep the host as it is now.$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m1 difference from the baseline of 2026-11-13 10:00 UTC␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH password login: was no, is yes␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn check --accept` to keep the host as it is␛[m$
+  ␛[38;2;129;134;156mnow.␛[m$
+$

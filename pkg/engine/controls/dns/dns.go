@@ -199,10 +199,7 @@ func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts)
 		return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: ev}, fmt.Errorf("dns: %w", why)
 	}
 	st := engine.Status{State: engine.NotConfigured, Evidence: append(ev, listEvidence(n.Config)...), Findings: findings(s)}
-	inUse := s.Nameservers
-	if s.Manager == hostdns.ManagerResolved {
-		inUse = s.Resolved.Global
-	}
+	inUse := InUse(s)
 	switch v, err := hostdns.Validate(hostdns.Config{Nameservers: want}, s.Manager); {
 	case err != nil:
 		st.Detail = DetailInvalid
@@ -214,6 +211,16 @@ func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts)
 		st.Detail = DetailNotHardn
 	}
 	return st, nil
+}
+
+// InUse are the nameservers in use on a host read as s, in their order:
+// the file's, or systemd-resolved's global ones. Check compares them, and
+// hardn check keeps them (pkg/engine/drift).
+func InUse(s hostdns.State) []string {
+	if s.Manager == hostdns.ManagerResolved {
+		return s.Resolved.Global
+	}
+	return s.Nameservers
 }
 
 // none is the row where cfg lists no nameserver (the maintainer,

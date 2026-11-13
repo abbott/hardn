@@ -1,0 +1,49 @@
+# Golden file of TestHumanCheck/drift-differences, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m6 differences from the baseline of 2026-11-13 10:00 UTC␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdmin added: carol␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH key removed: george ssh-ed25519␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH root login: was prohibit-password, is not established␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH password login: was no, is yes␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH allowed users: was george, is none␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFirewall rule added: allow in 8080/tcp␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn check --accept` to keep the host as it is now.␛[m$
+  ␛[38;2;129;134;156mListening ports not compared: ss is not installed␛[m$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+# Warning$
+# 6 differences from the baseline of 2026-11-13 10:00 UTC$
+# Admin added: carol$
+# SSH key removed: george ssh-ed25519$
+# SHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA$
+# SSH root login: was prohibit-password, is not established$
+# SSH password login: was no, is yes$
+# SSH allowed users: was george, is none$
+# Firewall rule added: allow in 8080/tcp$
+$
+  Run `sudo hardn check --accept` to keep the host as it is now.$
+  Listening ports not compared: ss is not installed$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m6 differences from the baseline of 2026-11-13 10:00 UTC␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mAdmin added: carol␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH key removed: george ssh-ed25519␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSHA256:RXm/ruZ0eTzRXKwi1AQEDynB0VgHQ2ac9KPSFdf/YnA␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH root login: was prohibit-password, is not established␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH password login: was no, is yes␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSSH allowed users: was george, is none␛[m$
+␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mFirewall rule added: allow in 8080/tcp␛[m$
+$
+  ␛[38;2;129;134;156mRun `sudo hardn check --accept` to keep the host as it is␛[m$
+  ␛[38;2;129;134;156mnow.␛[m$
+  ␛[38;2;129;134;156mListening ports not compared: ss is not installed␛[m$
+$

@@ -12,6 +12,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
@@ -223,6 +224,46 @@ func TestChange(t *testing.T) {
 			}
 			if got := listOf(t, h); !slices.Equal(got, append(list, "192.0.2.55")) {
 				t.Errorf("after the next change hardn.yml lists %q", got)
+			}
+		})
+	}
+}
+
+// TestBaselineReminder: a change applied on a host that has a baseline of
+// hardn check's ends with the words that say to accept the host again
+// (docs/engine/design-check.md, decision 2), and its run says so; on a
+// host with none, on a change declined and on a dry run, it does not, and
+// nothing looks for the baseline.
+func TestBaselineReminder(t *testing.T) {
+	const words = "check --accept` to keep this as the baseline."
+	for _, tc := range []struct {
+		name   string
+		kept   bool
+		dryRun bool
+		lines  []string
+		want   bool
+	}{
+		{name: "applied, with a baseline", kept: true, lines: []string{"192.0.2.54", "y"}, want: true},
+		{name: "applied, with none", lines: []string{"192.0.2.54", "y"}},
+		{name: "declined", kept: true, lines: []string{"192.0.2.54", "n"}},
+		{name: "a dry run", kept: true, dryRun: true, lines: []string{"192.0.2.54"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			h, cfg := newHost(t)
+			if tc.kept {
+				h.AddDir("/var/lib/hardn", 0o700, 0, 0)
+				h.AddFile(drift.Path, []byte("{}\n"), 0o600, 0, 0)
+			}
+			r := change(h, cfg, tc.dryRun, nil, tc.lines...)
+			if r.err != nil || len(r.runs) != 1 {
+				t.Fatalf("Change = %v, %d runs:\n%s", r.err, len(r.runs), r.out)
+			}
+			if got := strings.Contains(strings.Join(strings.Fields(r.out), " "), words); got != tc.want || r.runs[0].Baseline != tc.want {
+				t.Errorf("the reminder %v, the run's Baseline %v, want %v:\n%s", got, r.runs[0].Baseline, tc.want, r.out)
+			}
+			looked := slices.ContainsFunc(h.Calls(), func(c hostfake.Call) bool { return c.Path == drift.Path })
+			if applied := len(tc.lines) == 2 && tc.lines[1] == "y" && !tc.dryRun; looked != applied {
+				t.Errorf("looked for the baseline: %v", looked)
 			}
 		})
 	}

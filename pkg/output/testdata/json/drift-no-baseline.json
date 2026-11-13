@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported",
+      "supportEnds": ""
+    },
+    "init": "systemd",
+    "ssh": "ssh.service",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "check",
+  "result": {
+    "outcome": "failed",
+    "exitCode": 1,
+    "id": "",
+    "risk": ""
+  },
+  "changes": [],
+  "status": [],
+  "findings": [],
+  "errors": [
+    {
+      "code": "BASELINE_MISSING",
+      "message": "drift: no baseline",
+      "control": "",
+      "change": "",
+      "step": "",
+      "why": "",
+      "fix": ""
+    }
+  ],
+  "check": {
+    "accepted": false,
+    "baseline": null,
+    "differences": []
+  }
+}

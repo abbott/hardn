@@ -161,11 +161,40 @@ func applyBlocks(c component.Ctx, r Run, d Document, now time.Time) []string {
 	case res.Confirm != nil:
 		blocks = append(blocks, component.Callout{Kind: component.MessageOK}.Render(c))
 		blocks = append(blocks, countdown(c, *res.Confirm, res.ID, now)...)
-		blocks = append(blocks, keptBlock(c, res.Backup))
+		blocks = append(blocks, keptBlock(c, res.Backup), baselineBlock(c, r, d))
 	case len(d.Errors) == 0:
-		blocks = append(blocks, component.Callout{Kind: component.MessageOK}.Render(c), keptBlock(c, res.Backup))
+		blocks = append(blocks, component.Callout{Kind: component.MessageOK}.Render(c), keptBlock(c, res.Backup), baselineBlock(c, r, d))
 	}
 	return blocks
+}
+
+// The reminder after a change applied on a host with a baseline
+// (docs/engine/design-check.md, decision 2): the host no longer matches
+// it until it is accepted again. A change waiting for confirmation may
+// still be rolled back, so its words say to confirm first.
+const (
+	acceptBaseline      = "Run `%s check --accept` to keep this as the baseline."
+	acceptOnceConfirmed = "Once confirmed, run `%s check --accept` to keep this as the baseline."
+)
+
+// baselineBlock is that reminder for run r, whose document is d: for an
+// apply that applied every change, on a host with a baseline (r.Baseline);
+// "" otherwise. Human and AfterFlow both end an applied change's report
+// with it.
+func baselineBlock(c component.Ctx, r Run, d Document) string {
+	if !r.Baseline || r.Mode != ModeApply {
+		return ""
+	}
+	words := ""
+	switch d.Result.Outcome {
+	case OutcomeApplied:
+		words = acceptBaseline
+	case OutcomeAwaiting:
+		words = acceptOnceConfirmed
+	default:
+		return ""
+	}
+	return component.Message{Text: fmt.Sprintf(words, hardnAsRoot(r.facts()))}.Render(c)
 }
 
 // The words after a change applied (slice 3 decision 8, decided
@@ -253,7 +282,7 @@ func AfterFlow(env term.Env, r Run, now time.Time) string {
 		blocks = append(blocks, countdown(c, *cf, d.Result.ID, now)...)
 	}
 	if r.Mode == ModeApply {
-		blocks = append(blocks, keptBlock(c, d.Result.Backup))
+		blocks = append(blocks, keptBlock(c, d.Result.Backup), baselineBlock(c, r, d))
 	}
 	found := d.Findings
 	if r.Reviewed {

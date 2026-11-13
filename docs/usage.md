@@ -63,6 +63,7 @@ With no operation flag, `hardn` opens the main menu. Operation flags can be comb
 
 | Command | What it does |
 |---|---|
+| `hardn check` | Compare the host with its saved baseline: one line for each difference. `--accept` saves the host as the baseline. `--output json` prints the result as JSON. See [hardn check](#hardn-check) |
 | `hardn completion <shell>` | Print a tab-completion script for bash, zsh, fish or powershell. Learn more: `hardn completion bash --help` |
 | `hardn config` | Print which hardn.yml hardn reads and each key's value. It doesn't need root, but it shows the file for the user who runs it: use `sudo hardn config` to see what `sudo hardn` reads |
 | `hardn confirm` | Keep the change that is waiting for confirmation. Run it from a new SSH connection. At the console, it confirms with a warning. When run from a new SSH connection after a port change, it also closes the old port |
@@ -92,6 +93,62 @@ sudo hardn system-details --output json > web-01.json
 sudo hardn system-details --output markdown > web-01.md
 ```
 
+## hardn check
+
+`hardn check` tells you when a host is no longer as you left it. It reads the host, changes nothing and makes no network request.
+
+```sh
+sudo hardn check --accept       # save the host as it is now: the baseline
+sudo hardn check                # compare the host with the baseline
+sudo hardn check --output json  # the same, as JSON
+```
+
+The baseline is `/var/lib/hardn/baseline.json`, root's alone. Each difference is one line, with what it was and what it is:
+
+```text
+SSH password login: was no, is yes
+Firewall rule added: allow in 8080/tcp
+Admin added: carol
+```
+
+| Compared | What |
+|---|---|
+| Users | who can become root (`sudo`, `doas`), accounts with uid 0, their SSH keys (type and fingerprint), accounts with an empty password |
+| SSH | root login, password login, the port and listeners, allowed users, as `sshd -T` prints them |
+| Firewall | on or off, the incoming policy, whether it starts at boot, every rule (ufw's and their order, or each firewalld zone's) |
+| Listening ports | each port the firewall lets in from outside. A port on loopback alone is never counted. It needs `ss`: without it, ports aren't compared, and the result says so. After installing `ss`, run `--accept` again |
+| DNS | the nameservers in use |
+| Auto updates | on or off |
+
+Not compared: AppArmor, sysctl, packages, rules written straight into nftables, a cloud provider's firewall, sshd's `Match` blocks, firewalld's rich rules.
+
+| Status | Meaning |
+|---|---|
+| `0` | No difference; or, with `--accept`, the baseline is saved |
+| `1` | An error, not root, no baseline yet, or a baseline hardn won't read (not root's alone, or from another version of hardn) |
+| `2` | A usage error: an operation flag, `-n`, or an `--output` other than `json` |
+| `3` | At least one difference |
+| `130` | Interrupted |
+
+- **A safer change counts too**, such as the firewall turned on: the host isn't as you left it.
+- **What hardn can't read is "not established"**, never assumed. It is a difference only when the baseline had it, or the other way round.
+- **After hardn applies a change**, its result says to run `hardn check --accept`. Until you do, `hardn check` reports that change.
+- `hardn check` writes nothing. `--accept` writes the baseline and one line in the audit log, with who ran it.
+
+From cron, every hour. It prints only when the host differs or the check fails, and cron mails what it prints:
+
+```sh
+# /etc/cron.d/hardn-check
+MAILTO=root
+0 * * * * root out=$(/usr/local/bin/hardn check 2>&1) || echo "$out"
+```
+
+**Known false alarms:**
+
+- **DHCP rewrites the nameservers.** Where a DHCP client manages `/etc/resolv.conf`, a new lease can change them.
+- **A change you made on purpose**, until you run `sudo hardn check --accept`.
+- **IPv6 switched on**, which gives each ufw rule an IPv6 twin.
+
 ## Dry run
 
 `sudo hardn -n` (or `dryRun: true` in hardn.yml) shows each operational plan and changes nothing. Operation flags exit 3 when there are changes. `--dry-run=false` overrides the file.
@@ -109,7 +166,7 @@ sudo hardn system-details --output markdown > web-01.md
 | `130` | Interrupted: Ctrl-C, SIGTERM or a hangup. An apply that was running is rolled back first |
 
 ### JSON
-`hardn system-details --output json` prints one JSON document on stdout. [reference/output.md](reference/output.md) describes its fields and the stable error and finding codes.
+`hardn system-details --output json` and `hardn check --output json` each print one JSON document on stdout. [reference/output.md](reference/output.md) describes its fields and the stable error and finding codes.
 
 ### Markdown report
 `sudo hardn system-details --output markdown > web-01.md` writes a report to hand to an auditor or a manager, as one Markdown document:
@@ -131,7 +188,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 > `TERM=linux`, as under Proxmox VE's `pct console`, gets basic colours and ASCII symbols. Where your terminal can show more, add `[ "$TERM" = linux ] && alias hardn='TERM=xterm-256color LANG=C.UTF-8 hardn'` to `/root/.profile`.
 
 ### Logs
-- `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. Each `hardn confirm` and `hardn rollback` adds a line too, with who ran it, the change's id and how it ended; so does the rollback of a change nobody confirmed. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
+- `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. Each `hardn confirm` and `hardn rollback` adds a line too, with who ran it, the change's id and how it ended; so does the rollback of a change nobody confirmed, and each `hardn check --accept`. A plain `hardn check` adds none. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
 - `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. `10) Logs` and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
 
 ## hardn.yml
