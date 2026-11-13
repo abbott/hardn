@@ -153,6 +153,10 @@ const ExitOK, ExitError, ExitUsage, ExitChanges, ExitInterrupted = 0, 1, 2, 3, 1
 func ExitCode(r Run) int
 
 func WriteJSON(w io.Writer, d Document) error
+type MarkdownOptions struct // the report to hand over, hardn system-details --output markdown
+func WriteMarkdown(w io.Writer, r Run, o MarkdownOptions) error // one write, no escape sequences, host strings as text
+func Markdown(r Run, o MarkdownOptions) string
+func FormatUsed(used, total uint64) string
 type Format uint8 // FormatHuman, FormatJSON
 type Streams struct { Stdout io.Writer; Out term.Env }
 func Emit(s Streams, f Format, r Run, now time.Time) error

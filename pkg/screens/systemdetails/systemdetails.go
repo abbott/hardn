@@ -61,8 +61,6 @@ const (
 	rejects     = "%s rejects %s"
 	sudoRejects = "sudo rejects its rules"
 	missing     = "%s is missing"
-	usedGiB     = "%s of %s GiB (%s)"
-	usedMiB     = "%s of %s MiB (%s)"
 	noLslogins  = "Not known: lslogins isn't installed"
 	notRootRow  = "Not root: %s not read"
 	fromHost    = "%s from %s"
@@ -368,29 +366,8 @@ func memoryRows(r details.Report) []component.KeyValue {
 	return append(rows, cantReadRows(r.Memory.Unread)...)
 }
 
-// gib is n bytes in GiB, one decimal.
-func gib(n uint64) string { return strconv.FormatFloat(float64(n)/(1<<30), 'f', 1, 64) }
-
-// mib is n bytes in whole MiB, rounded.
-func mib(n uint64) string { return strconv.FormatUint((n+1<<19)>>20, 10) }
-
-// usedOf says how much of total is used: "4.2 of 38.6 GiB (11%)"; in whole MiB
-// where total is under 1 GiB, "87 of 256 MiB (34%)", as one decimal of GiB
-// there reads as another percentage than the one shown.
-func usedOf(used, total uint64) string {
-	if total < 1<<30 {
-		return fmt.Sprintf(usedMiB, mib(used), mib(total), percent(used, total))
-	}
-	return fmt.Sprintf(usedGiB, gib(used), gib(total), percent(used, total))
-}
-
-// percent is used of total as a whole percentage.
-func percent(used, total uint64) string {
-	if total == 0 {
-		return "0%"
-	}
-	return fmt.Sprintf("%d%%", (used*100+total/2)/total)
-}
+// usedOf says how much of total is used: "4.2 of 38.6 GiB (11%)" (output.FormatUsed).
+func usedOf(used, total uint64) string { return output.FormatUsed(used, total) }
 
 // loginRows are the Last Login section's rows: one where no answer holds any, its
 // words by why.

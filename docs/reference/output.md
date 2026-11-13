@@ -1,7 +1,7 @@
 # hardn's output: the JSON document, codes, exit statuses and the audit log
 
 > **What this is:** the public contract of what hardn reports, to a script and to a person (brief §2, "A fixed exit-code set and versioned JSON output", decided; brief Phase 3, the JSON contract, the exit codes and the audit log). Built by refactor plan Phase 3, `next/p3-output`, in `pkg/output`; [docs/engine/output.md](../engine/output.md) says what the package guarantees and how. **Once released, none of it changes but by the rules below.**
-> **Status:** built and tested (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake); the operation flags, the screens and `hardn confirm` run on the engine and have run on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs. **JSON reaches the command line on `hardn system-details --output json` alone** (§1.10); no other command has `--output`. Every operation flag and every screen's change reports as §7 says and exits as §3 says; the audit log (§4) records each, and each `hardn confirm` and `hardn rollback` (§4.1). `--yes` and `--confirm-timeout` are flags of `hardn` (refactor plan §3.11, adopted 2026-11-04); §6 says what `--yes` does off a terminal, and what it doesn't.
+> **Status:** built and tested (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake); the operation flags, the screens and `hardn confirm` run on the engine and have run on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs. **JSON reaches the command line on `hardn system-details --output json` alone** (§1.10); no other command has `--output`. The same command's `--output markdown` is the report to hand over (§8). Every operation flag and every screen's change reports as §7 says and exits as §3 says; the audit log (§4) records each, and each `hardn confirm` and `hardn rollback` (§4.1). `--yes` and `--confirm-timeout` are flags of `hardn` (refactor plan §3.11, adopted 2026-11-04); §6 says what `--yes` does off a terminal, and what it doesn't.
 
 ## 1. The JSON document
 
@@ -636,7 +636,7 @@ The record has the nine fields, `changes`, `status` and `findings` empty; `host`
   In the JSON document a deprecated value is a finding, `CONFIG_DEPRECATED_VALUE`; nothing else repeats the warning. The value still works. The main menu does not clear the screen as it opens when hardn.yml warned, so the warning stays above it.
 - **Colour:** stdout and stderr are each styled by their own detection (`term.Detect`): a stream that is not a terminal is plain, as with `--plain` or `HARDN_PLAIN`: no animation, ASCII symbols, and no colour. `NO_COLOR` and `TERM=dumb` turn colour off too. `--color=always` colours a stream whatever else holds; `--color=never` (`--no-color`, deprecated) never does. Under the systemd timer `hardn rollback`'s streams are the journal, under the OpenRC sleeper the null device, so its lines there carry no escape codes ([vmtest.md](../safety/vmtest.md) §4.9).
 - **The operation flags:** the human report of §7 on stdout and the exit statuses of §3; on a terminal a plan with no lockout risk applies without a question; off one, only with `--yes` (§6).
-- **`hardn system-details --output json`** (§1.10) and `-p`'s exit statuses.
+- **`hardn system-details --output json`** (§1.10), **`--output markdown`** (§8), and `-p`'s exit statuses.
 - Nothing else: no other `--output`.
 
 ## 6. Non-interactive use
@@ -655,3 +655,31 @@ One question is open, the maintainer's: *should `--yes` let a lockout-risk plan 
 ## 7. The human report
 
 The same run, for a person, through `pkg/ui`'s components only (design-system README §9.15): a check's status rows; a plan's changes with "No actual changes were made to your system."; an apply's steps, then "Operation Successful", the confirm countdown with when the change is rolled back ("at about …" when the deadline is approximate) and how to undo it now, or the error report naming what was rolled back (the change that failed too, when it had undone its own steps), how to finish a rollback that did not finish, and what undoes a change the journal did not cover; each finding as a warning with its code; each error with its code, a refusal by its why, and its fix as "To go on: …"; a step's failure that its change kind words (`steps.Failure`, DNS's reload without effect) by those words alone, its code on the step's line, and their next step. After the interactive flow, which draws the plan, the steps and "Operation Successful" itself, the countdown follows it. The flow lists the plan's findings before its confirmation, one line each, without their codes (since `next/s2-flow-review`); after it come only those it did not list, a refused plan's, as warnings with their codes. A finding two changes carry is said once; the document keeps one per change. Its words are provisional, as the Phase 2 pages' are; they are not part of this contract. As JSON, none of it is written to stdout.
+
+## 8. The Markdown report
+
+**`hardn system-details --output markdown`** writes **exactly one Markdown document on stdout**, for a person: an auditor or a manager. `system-details` is the one command with `--output`, so it is the one that takes it; `-E` stays refused, and `> file` saves it. Any other value of `--output` is refused, exit status 2: `use --output json or --output markdown`. Built by `output.WriteMarkdown` (`pkg/output/markdown.go`) from the same run `Build` maps; goldens: `pkg/output/testdata/markdown/report.md` (a host read whole) and `report-not-read.md` (nothing read, as a user other than root).
+
+**It is not a contract for a script**: its headings, words and layout may change in any release. A script reads the JSON document.
+
+What it reads, and so what it holds beyond `--output json`'s document: the main menu's status checks (`controls.Status`, which only read), the header probe and the risk level over both. It reads hardn.yml, as `hardn config` does and never creating one: the DNS row is checked against its nameservers, and its deprecated values are findings. A hardn.yml that does not load is said on stderr, exit status 1, with nothing on stdout.
+
+| Section | Holds |
+|---|---|
+| title | `hardn report`, with the hostname; then when it was made (UTC) and hardn's version |
+| a note | only as a user other than root: `Not root: what only root can read shows Unknown.` |
+| Host | hostname, `os.prettyName`, the platform and its support level (Supported, Best effort, Out of scope, Unlisted, Unknown), kernel, uptime, init, how sshd is started, container, Proxmox VE, sudo, doas (§1.3) |
+| Risk level | the main menu's level and gloss, then every factor, each under its control's title; the pending reboot's under `Host` |
+| Status | each control's row in the main menu's order: title, state, detail; then each row's `evidence` |
+| Findings | `findings[]` (§1.7): code, detail, source, control; `No findings.` for none |
+| Errors | `errors[]` (§1.8), only when a check failed; its row is Unknown |
+| Addresses, Users, CPU and load, Disk, Memory, Last login | `details` (§1.10); `Not read` for a section that is `null` |
+
+**The exit status is 0** once the document is written, whatever the checks found: it reports and gates nothing. 1 for a hardn.yml that does not load or a failed write; 2 for a refused flag.
+
+**No colour, and nothing from the host is markup** (`TestMarkdownHostStringsAreText`). The document has no escape sequence, whatever `--color` says. Every string hardn did not write itself (a hostname, a file's line, a command's output, a user name, an error's text) is put on one line and written one of two ways:
+
+- **as a code span**, for a value (a name, a path, an address, an evidence line): Markdown reads nothing inside one. Its backtick strings are longer than any run of backticks in it;
+- **as escaped text**, for a sentence (a status detail, a finding): a backslash before each of `` \ ` * _ [ ] < > & | ~ $ # ! ``. A sentence holding `://`, `www.`, `@` or `mailto:`, which GitHub's Markdown links with no markup at all, is written as a code span instead.
+
+A line end or a tab in a string is a space; any other control or format character (an escape sequence's ESC, a bidirectional override) is written out as `\uXXXX`, as the JSON document escapes it. In a table's cell a `|` is `\|`.

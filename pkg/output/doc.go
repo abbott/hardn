@@ -33,7 +33,10 @@
 // Human, ExitCode) through it, the DNS screen's changes through FlowEngine,
 // and hardn system-details --output json (slice 1, unit (d): Build,
 // WriteJSON); nothing else: the rest of refactor plan §3.11 (--output json
-// on any other command) is not approved. Since next/p3-startup it appends
+// on any other command) is not approved. hardn system-details --output
+// markdown is the report to hand over (WriteMarkdown): the same run, with
+// the status checks and the risk level, as one Markdown document for a
+// person. Since next/p3-startup it appends
 // each engine run, a flag's or a screen's change, to the audit log
 // (Append, NewRecord), and since next/audit-records each hardn confirm and
 // hardn rollback (<id>, --abandon, --boot), with who ran it (BuildRevert,
