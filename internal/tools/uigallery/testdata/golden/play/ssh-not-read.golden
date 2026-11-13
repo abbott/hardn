@@ -37,10 +37,11 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mKey-only login␛[m       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one SSH␛[m$
@@ -66,10 +67,11 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mKey-only login␛[m       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 2$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 2$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one SSH␛[m$
@@ -95,10 +97,11 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mKey-only login␛[m       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 3$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one SSH␛[m$
@@ -124,10 +127,11 @@ $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mDisallow root login␛[m  ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mKey-only login␛[m       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m      ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m             ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -170,10 +174,11 @@ $
    1) Disallow root login  Can't read$
    2) Key-only login       Can't read$
    3) Change SSH port      Can't read$
+   6) SSH keys             Can't read$
 $
    0) Return$
 $
-    > Option [0-3 or q]: 1$
+    > Option [0-3, 6 or q]: 1$
 $
 # Warning$
 # /run/sshd isn't there yet, so sshd -T can't run. Open one SSH$
@@ -199,10 +204,11 @@ $
    1) Disallow root login  Can't read$
    2) Key-only login       Can't read$
    3) Change SSH port      Can't read$
+   6) SSH keys             Can't read$
 $
    0) Return$
 $
-    > Option [0-3 or q]: 2$
+    > Option [0-3, 6 or q]: 2$
 $
 # Warning$
 # /run/sshd isn't there yet, so sshd -T can't run. Open one SSH$
@@ -228,10 +234,11 @@ $
    1) Disallow root login  Can't read$
    2) Key-only login       Can't read$
    3) Change SSH port      Can't read$
+   6) SSH keys             Can't read$
 $
    0) Return$
 $
-    > Option [0-3 or q]: 3$
+    > Option [0-3, 6 or q]: 3$
 $
 # Warning$
 # /run/sshd isn't there yet, so sshd -T can't run. Open one SSH$
@@ -257,10 +264,11 @@ $
    1) Disallow root login  Can't read$
    2) Key-only login       Can't read$
    3) Change SSH port      Can't read$
+   6) SSH keys             Can't read$
 $
    0) Return$
 $
-    > Option [0-3 or q]: 0$
+    > Option [0-3, 6 or q]: 0$
 $
   simulated system ---------------------------------------------$
 $
@@ -313,10 +321,12 @@ $
       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
       ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 1$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 1$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one␛[m$
@@ -351,10 +361,12 @@ $
       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
       ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 2$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 2$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one␛[m$
@@ -389,10 +401,12 @@ $
       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
       ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 3$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 3$
 $
 ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156m/run/sshd isn't there yet, so sshd -T can't run. Open one␛[m$
@@ -427,10 +441,12 @@ $
       ␛[38;2;129;134;156mCan't read␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mChange SSH port␛[m$
       ␛[38;2;129;134;156mCan't read␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSSH keys␛[m$
+      ␛[38;2;129;134;156mCan't read␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3, 6 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

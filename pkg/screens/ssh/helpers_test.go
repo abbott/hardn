@@ -146,7 +146,7 @@ func writes(h *sshHost, n int) []string {
 	var out []string
 	for _, c := range h.Calls()[n:] {
 		switch c.Op {
-		case "read", "read-nofollow", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group":
+		case "read", "read-nofollow", "scan-lines", "stat", "lstat", "readdir", "readlink", "resolve-symlink", "lookup-user", "lookup-group":
 		case "run", "start-detached":
 			if !readOnlyRun(c.Argv) {
 				out = append(out, c.Op+" "+host.FormatArgv(c.Argv))
