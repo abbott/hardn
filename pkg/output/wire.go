@@ -32,7 +32,9 @@ type Document struct {
 // Mode is what the run was asked to do.
 type Mode string
 
-// The modes.
+// The modes of a run of the engine; the audit log's records of hardn
+// confirm and hardn rollback have four more (ModeConfirm and those beside
+// it).
 const (
 	ModeCheck Mode = "check" // read each control's state; change nothing
 	ModePlan  Mode = "plan"  // plan the changes; change nothing (the dry run)
@@ -113,6 +115,10 @@ type Result struct {
 	// a file first: what it kept, and where (§3.16; slice 3 decision 8,
 	// added by next/s3-control).
 	Backup *Kept `json:"backup,omitempty"`
+	// Revert is set on the audit log's records of hardn confirm and hardn
+	// rollback (<id>, --abandon, --boot), and on those alone: who ran it,
+	// and what it did (BuildRevert).
+	Revert *Revert `json:"revert,omitempty"`
 }
 
 // Kept is what an applied change kept a copy of, and where.
