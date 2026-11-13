@@ -522,9 +522,10 @@ func supportWord(s detect.Support) string { return word(supportWords, s) }
 // hostOf maps detect's facts to the schema's Host.
 func hostOf(hostname string, f detect.Facts) Host {
 	return Host{
-		Hostname:  hostname,
-		OS:        OS{ID: f.OS.ID, VersionID: f.OS.VersionID, Codename: f.OS.VersionCodename, PrettyName: f.OS.PrettyName},
-		Platform:  Platform{Distro: word(distroWords, f.Platform.Distro), Version: f.Platform.Version, Support: supportWord(f.Platform.Support)},
+		Hostname: hostname,
+		OS:       OS{ID: f.OS.ID, VersionID: f.OS.VersionID, Codename: f.OS.VersionCodename, PrettyName: f.OS.PrettyName},
+		Platform: Platform{Distro: word(distroWords, f.Platform.Distro), Version: f.Platform.Version, Support: supportWord(f.Platform.Support),
+			SupportEnds: f.Platform.Ends},
 		Init:      word(initWords, f.Init.Kind),
 		SSH:       word(sshWords, f.SSH.Mode),
 		Proxmox:   Proxmox{Installed: triWord(f.Proxmox.Installed), Version: f.Proxmox.Version},

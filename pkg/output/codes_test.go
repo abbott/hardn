@@ -500,6 +500,22 @@ func TestReferenceListsEveryCode(t *testing.T) {
 	}
 }
 
+// TestSupportEndedSaysOutOfScope: the code's meaning does not promise a
+// change on a release hardn refuses. Every ended release in the matrix
+// today is out of scope.
+func TestSupportEndedSaysOutOfScope(t *testing.T) {
+	for _, e := range output.Codes() {
+		if e.Code != engine.CodeSupportEnded {
+			continue
+		}
+		if !strings.Contains(e.What, "unless it is out of scope") {
+			t.Errorf("%s: %q does not except an out-of-scope release", e.Code, e.What)
+		}
+		return
+	}
+	t.Errorf("%s is not registered", engine.CodeSupportEnded)
+}
+
 // TestPrecedence: an error that matches two entries gets the more
 // specific one's code (steps.md §7).
 func TestPrecedence(t *testing.T) {
@@ -701,6 +717,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158
 	want = append(want, ssh.CodeSSHDUnfixedLatent)                                                                               // its line with no password path
 	want = append(want, firewall.CodePortsBlocked, firewall.CodePortsUnread)                                                     // the other listeners Enable blocks
+	want = append(want, engine.CodeSupportEnds, engine.CodeSupportEnded)                                                         // the end-of-support notice
 	for prefix, words := range map[string][]string{
 		"SSHD":    kinds(func(k int) string { return sshd.FindingKind(k).String() }),
 		"PVE":     kinds(func(k int) string { return pve.FindingKind(k).String() }),

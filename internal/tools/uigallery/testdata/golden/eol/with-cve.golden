@@ -1,0 +1,229 @@
+# Golden file of TestEOLGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156meol with-cve␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The soon mock with the CVE alert:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo callouts, the CVE's first, a blank line between.␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mAlpine␛[m ␛[38;2;129;134;156m3.22.4␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+$
+   ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: CVE-2026-123158␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade openssh.␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSelect option:␛[m ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+$
+   ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: Alpine 3.22 support ends 2027-05-01␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade to Alpine 3.24.␛[m$
+$
+␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure ufw rules␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  eol with-cve -------------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. The soon mock with the CVE alert:$
+# two callouts, the CVE's first, a blank line between.$
+$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+$
+# Alpine 3.22.4 ################################################$
+$
+  [BOS-SAN-L01]            192.0.2.10$
+                           182 days, 2 hours, 26 minutes$
+$
+  [*] Risk Level           Moderate ~ medium security$
+$
+  [+] User                 Configured non-root, sudo$
+  [+] SSH Login            Configured root disallowed$
+  [+] SSH Auth             Configured key-only auth$
+  [+] SSH Port             Configured non-default (2230)$
+  [+] Firewall             Configured deny policy$
+  [ ] Auto Updates         Not Configured$
+  [ ] AppArmor             Not Configured$
+$
+   # Warning: CVE-2026-123158$
+   # Upgrade openssh.$
+   # Select option: 2) SSH Login$
+$
+   # Warning: Alpine 3.22 support ends 2027-05-01$
+   # Upgrade to Alpine 3.24.$
+$
+----------------------------------------------------------------$
+$
+  Select an option         Mode Live$
+$
+   1) User Management      Create, configure (sudo, SSH keys)$
+   2) SSH Login            Root login, passwords, port$
+   3) Firewall             Configure ufw rules$
+   4) DNS                  Configure nameservers$
+   6) Run All              Execute hardening operations$
+   7) Backup               Configure hardn backup$
+   8) Configuration        View hardn.yml$
+   9) System Details       View system information$
+  10) Logs                 View log file$
+$
+   0) Exit                 q to quit$
+$
+    > Option [0-4, 6-10 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156meol with-cve␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The soon mock with the CVE␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malert: two callouts, the CVE's first, a blank line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mbetween.␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mAlpine␛[m ␛[38;2;129;134;156m3.22.4␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m$
+      ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+   ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m$
+      ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m$
+$
+   ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: CVE-2026-123158␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade openssh.␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSelect option:␛[m ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+$
+   ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: Alpine 3.22 support ends 2027-05-01␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade to Alpine 3.24.␛[m$
+$
+␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+      ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m$
+      ␛[38;2;129;134;156mCreate, configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+      ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;129;134;156mConfigure ufw rules␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;129;134;156mConfigure nameservers␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m$
+      ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
+      ␛[38;2;129;134;156mConfigure hardn backup␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+      ␛[38;2;129;134;156mView hardn.yml␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+      ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+      ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
+      ␛[38;2;129;134;156mq to quit␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156meol with-cve␛[m ␛[38;2;22;24;29m-------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The soon mock with the CVE alert:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtwo callouts, the CVE's first, a blank line between.␛[m$
+$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mAlpine␛[m ␛[38;2;129;134;156m3.22.4␛[m ␛[38;2;43;47;59m################################################␛[m$
+$
+  ␛[1;38;2;223;223;223;48;2;12;42;192m BOS-SAN-L01 ␛[m            ␛[38;2;129;134;156m192.0.2.10␛[m$
+                           ␛[38;2;86;91;107m182 days, 2 hours, 26 minutes␛[m$
+$
+  ␛[38;2;219;184;83m[*]␛[m ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m~ medium security␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mroot disallowed␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mkey-only auth␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107mdeny policy␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;231;70;105mNot Configured␛[m$
+$
+   ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: CVE-2026-123158␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade openssh.␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSelect option:␛[m ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+$
+   ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: Alpine 3.22 support ends 2027-05-01␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade to Alpine 3.24.␛[m$
+$
+␛[38;2;22;24;29m----------------------------------------------------------------␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser Management␛[m      ␛[38;2;129;134;156mCreate, configure␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure ufw rules␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
+$
+$

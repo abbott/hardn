@@ -20,6 +20,7 @@ package mainmenu
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
@@ -45,6 +46,9 @@ type StatusOptions struct {
 	Config *config.Config
 	// Version is hardn's, as the header shows it ("v0.4.0").
 	Version string
+	// Now is the host's clock, which the end-of-support notice counts
+	// from (output.NoticeOf); nil is time.Now.
+	Now func() time.Time
 }
 
 // Status reads the host as the main menu's status, through o, and returns
@@ -78,5 +82,11 @@ func Status(ctx context.Context, o StatusOptions) (screen.MainMenu, error) {
 	if err := ctx.Err(); err != nil {
 		return screen.MainMenu{}, fmt.Errorf("main menu: header: %w", err)
 	}
-	return output.MainMenuOf(screen.MainMenu{Header: component.Header{Version: o.Version}}, h, reports, risk.Assess(reports, h)), nil
+	vm := output.MainMenuOf(screen.MainMenu{Header: component.Header{Version: o.Version}}, h, reports, risk.Assess(reports, h))
+	now := o.Now
+	if now == nil {
+		now = time.Now
+	}
+	vm.Notice = output.NoticeOf(facts.Platform, now())
+	return vm, nil
 }

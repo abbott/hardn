@@ -541,6 +541,9 @@ var findingCodes = []Entry{
 	finding("DNS_UDHCPC_UNKNOWN", "whether Alpine's udhcpc is the DHCP client is not established"),
 	finding(CodeDeprecated, "a configuration value in a form that is going away; it still works (§3.17)"),
 	finding(engine.CodeBestEffort, "a best-effort release: its vendor still supports it, and hardn changes it but makes no promises for it (P-41)"),
+	// The end-of-support notice's (docs/engine/screen-eol.md).
+	finding(engine.CodeSupportEnds, "the release's vendor support ends within 90 days, by the host's clock"),
+	finding(engine.CodeSupportEnded, "the release's vendor support has ended, by the host's clock; hardn changes it as before, unless it is out of scope"),
 	// The SSH controls' own (next/p4-check-ssh).
 	finding(ssh.CodeMatchAllowsMore, "a Match block lets in more than the global value does (root's login, a password), for the connections it matches"),
 	finding(ssh.CodeNotInEffect, "a listener sshd's configuration names is not bound: the configuration is not in effect"),
