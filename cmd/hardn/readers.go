@@ -19,7 +19,11 @@ import (
 	"os"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/controls"
 	"github.com/abbott/hardn/pkg/engine/details"
+	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -100,15 +104,17 @@ func runLogsScreen(ctx context.Context, c *config.Config) error {
 	return logs.Run(ctx, logs.Options{Prompter: readerPrompter(), System: readerHost(), LogFile: c.LogFile, Term: os.Getenv("TERM")})
 }
 
-// runSystemDetails is hardn system-details, no root check, as ever, and no hardn.yml:
+// runSystemDetails is hardn system-details, no root check, as ever, and no hardn.yml
+// but under --output markdown:
 // form's refusal on stderr, exit status 2, nothing read; its warnings on stderr; the
 // report, or under --output json output.Build's document, on stdout. A failed write
-// is said on stderr, exit status 1.
+// is said on stderr, exit status 1. --output markdown is the report to hand over
+// (handOver), which reads hardn.yml and runs the status checks too.
 func runSystemDetails(form SystemDetailsForm, refused error) {
 	if refuse(refused) {
 		return
 	}
-	if form.JSON {
+	if form.JSON || form.Markdown {
 		outFrame.disarm() // stdout holds one document (frame.go)
 	}
 	var words component.Messages
@@ -120,21 +126,86 @@ func runSystemDetails(form SystemDetailsForm, refused error) {
 		_, _ = io.WriteString(env.Writer(stderr), out+"\n")
 	}
 	ctx := context.Background()
+	var c *config.Config
+	if form.Markdown {
+		var ok bool
+		if c, _, ok = readConfig(); !ok {
+			return
+		}
+	}
 	sys := readerHost()
 	facts := readerFacts(ctx, sys)
 	var err error
-	if form.JSON {
+	switch {
+	case form.Markdown:
+		err = handOver(ctx, sys, facts, c)
+	case form.JSON:
 		report := details.Read(ctx, sys, facts)
 		err = output.WriteJSON(engineStdout, output.Build(output.Run{
 			Mode: output.ModeCheck, HardnVersion: Version, Hostname: report.Host.Hostname, Facts: &facts, Details: &report,
 		}))
-	} else {
+	default:
 		err = systemdetails.Print(ctx, systemdetails.PrintOptions{Out: engineStdout, Env: stdoutEnv(), System: sys, Facts: facts})
 	}
 	if err != nil {
 		fmt.Fprintf(stderr, "hardn: %v\n", err)
 		exit(1)
 	}
+}
+
+// handOver is hardn system-details --output markdown: one Markdown document on
+// stdout (output.WriteMarkdown), the System Details report with what the main menu
+// shows of the host: each status control's check against c, hardn.yml as read
+// (controls.Status; Engine.Check only reads), the header probe and the risk level
+// over both, on facts, detected once. hardn.yml's deprecated values are findings.
+// No root check: as a user other than root the document says that what only root
+// reads shows Unknown. The exit status is 0 whatever the checks found: it reports,
+// and gates nothing.
+func handOver(ctx context.Context, sys host.System, facts detect.Facts, c *config.Config) error {
+	e := engine.New(sys, engine.Options{
+		Detect: func(context.Context, host.System) (detect.Facts, error) { return facts, nil },
+	})
+	reports, err := e.Check(ctx, controls.Status(c))
+	if err != nil {
+		return err
+	}
+	h := header.Read(ctx, sys, facts)
+	level := risk.Assess(reports, h)
+	report := details.Read(ctx, sys, facts)
+	u, uerr := lookupCurrentUser()
+	return output.WriteMarkdown(engineStdout, output.Run{
+		Mode: output.ModeCheck, HardnVersion: Version, Hostname: report.Host.Hostname, Facts: &facts,
+		Reports: reports, RiskLevel: &level, Details: &report, Deprecations: c.Deprecations(), ConfigPath: c.Path(),
+	}, output.MarkdownOptions{Now: revertNow(), NotRoot: uerr == nil && u.Uid != "0"})
+}
+
+// readConfig is hardn.yml as hardn config and the report to hand over read it: the
+// file -f, HARDN_CONFIG or the search path names, never created (loadExisting), the
+// defaults where -f or HARDN_CONFIG names one that is not there, and found, how it
+// was looked for. A file that can't be looked at or does not load is said on
+// stderr, exit status 1, and ok is false.
+func readConfig() (c *config.Config, found config.Found, ok bool) {
+	found = findConfig(configFile)
+	// A file -f or HARDN_CONFIG names that can't be looked at (a directory
+	// this user can't enter) is not a file that isn't there: say why, as
+	// for one that can't be read.
+	if !found.Exists && found.By != config.FoundNone {
+		if _, err := os.Stat(found.Path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+			sayError("Failed to load configuration: %v", err)
+			exit(1)
+			return nil, found, false
+		}
+	}
+	c = config.DefaultConfig()
+	if found.Exists || found.By == config.FoundNone {
+		var err error
+		if c, err = loadExisting(configFile); err != nil {
+			sayError("Failed to load configuration: %v", err)
+			exit(1)
+			return nil, found, false
+		}
+	}
+	return c, found, true
 }
 
 // runConfig is hardn config: what main menu 8 shows, on stdout, with no menu and no
@@ -148,25 +219,9 @@ func runConfig(refused error) {
 	if refuse(refused) {
 		return
 	}
-	found := findConfig(configFile)
-	// A file -f or HARDN_CONFIG names that can't be looked at (a directory
-	// this user can't enter) is not a file that isn't there: say why, as
-	// for one that can't be read.
-	if !found.Exists && found.By != config.FoundNone {
-		if _, err := os.Stat(found.Path); err != nil && !errors.Is(err, fs.ErrNotExist) {
-			sayError("Failed to load configuration: %v", err)
-			exit(1)
-			return
-		}
-	}
-	c := config.DefaultConfig()
-	if found.Exists || found.By == config.FoundNone {
-		var err error
-		if c, err = loadExisting(configFile); err != nil {
-			sayError("Failed to load configuration: %v", err)
-			exit(1)
-			return
-		}
+	c, found, ok := readConfig()
+	if !ok {
+		return
 	}
 	err := configscreen.Print(configscreen.PrintOptions{Out: engineStdout, Env: stdoutEnv(), Config: c, Found: loadedFound(c, found)})
 	if err != nil {

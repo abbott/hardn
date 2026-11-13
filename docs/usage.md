@@ -53,7 +53,7 @@ With no operation flag, `hardn` opens the main menu. Operation flags can be comb
 | `hardn rollback <id>` | Undo that change now, or finish a rollback that stopped partway |
 | `hardn rollback --abandon <id>` | Give up a rollback that can never finish. The host stays as the rollback left it |
 | `hardn rollback --boot` | What hardn's boot unit runs. You don't run it yourself |
-| `hardn system-details` | Print the System Details report. `--output json` prints it as JSON. Save it with `> file` |
+| `hardn system-details` | Print the System Details report. `--output json` prints it as JSON; `--output markdown` prints a [report to hand over](#markdown-report). Save it with `> file` |
 
 **On a terminal, and off one (scripts, cron).** Off a terminal, hardn never asks a question.
 
@@ -73,6 +73,7 @@ sudo hardn -u george -c         # create george, an admin with hardn.yml's keys
 sudo hardn -c -d                # create the user, then turn root login off
 sudo hardn -g --yes             # from cron: set the nameservers
 sudo hardn system-details --output json > web-01.json
+sudo hardn system-details --output markdown > web-01.md
 ```
 
 ## Dry run
@@ -93,6 +94,19 @@ sudo hardn system-details --output json > web-01.json
 
 ### JSON
 `hardn system-details --output json` prints one JSON document on stdout. [reference/output.md](reference/output.md) describes its fields and the stable error and finding codes.
+
+### Markdown report
+`sudo hardn system-details --output markdown > web-01.md` writes a report to hand to an auditor or a manager, as one Markdown document:
+
+- the host, its platform and whether hardn supports it;
+- the risk level, and each thing that raised it;
+- each control's status, as the main menu shows it, with the evidence it was read from;
+- the findings, and any check that failed;
+- System Details: addresses, users, CPU and load, disk, memory, last login.
+
+It changes nothing and exits 0 whatever it found. It doesn't need root, but without root what only root can read shows Unknown, and the report says so. It reads hardn.yml, for the DNS row; a hardn.yml that doesn't load is an error (exit 1).
+
+The document has no colour. Text read from the host is escaped or shown as code, so a hostname or a file's content can't add formatting, links or HTML to the report.
 
 ### Plain output and colour
 Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color=always` colours it anyway, and wins over `--plain`, `NO_COLOR` and `TERM=dumb` too. hardn's messages go to stderr, so stdout holds only a command's output. The environment variables match the flags: `NO_COLOR` (any non-empty value turns colour off), `HARDN_PLAIN=1`, `HARDN_ASCII=1`, `HARDN_THEME=dark|light|auto`. `--color` and `--theme` win over their variables; `--plain` and `--ascii` can only turn plain or ASCII on.
