@@ -8,13 +8,13 @@
 |---|---|---|
 | 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
 | 2) SSH Login | root login, password login, the port, allowed users, as sshd reads them | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
-| 3) Firewall | `ufw` state, policy, rules, application profiles | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
+| 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL); turns off only what hardn turned on. Read only on Proxmox |
 | 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS and automatic updates. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
 | 8) Configuration | which `hardn.yml` hardn read and each key's value | nothing |
-| 9) System Details | OS, kernel, addresses, users, CPU, disk, memory, last logins | nothing |
+| 9) System Details | OS, kernel, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
 _The hardn status for **AppArmor** only displays current state, nothing more._

@@ -138,7 +138,7 @@ The goldens are the reference, each a whole document: `pkg/output/testdata/json/
 | `memory` | object or null | `totalBytes`, and `usedBytes`, what `MemAvailable` leaves; null on a kernel with no `MemAvailable` |
 | `logins` | array or null | root, then each listed user, from one `lslogins` call: `user`, `when` (as `lslogins` prints it), `tty`, `from`, each `""` for none recorded; `unknown: true`, there only then, where nothing is known of the account: `lslogins` had no line for it, or a blank where a source refuses or none holds records. `null` where `lslogins` failed or is not installed, never "no login" |
 
-`host.hostname` and `host.os` hold the rest of what the screen shows. A blank `when` with no `unknown` says "none recorded", which sees only logins with a terminal: `ssh host cmd` moves nothing ([gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 3).
+`host.hostname` and `host.os` hold the rest of what the screen shows, but its Listening Ports section, which the JSON form does not carry. A blank `when` with no `unknown` says "none recorded", which sees only logins with a terminal: `ssh host cmd` moves nothing ([gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 3).
 
 ## 2. Codes
 

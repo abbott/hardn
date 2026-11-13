@@ -30,11 +30,11 @@ var lxc = detect.Container{Detected: detect.Yes, Signal: detect.InitEnviron, Man
 // golden, the host it is drawn on with lxc's container.
 var containerHosts = []struct {
 	name, host string
-	lines      int // drawn at 80x24 and 80x40, the title to the prompt: the host's own (TestHeights) and one
+	lines      int // drawn at 80x24 and 80x40, the title to the prompt: the host's own (TestHeights, the Ports section in it) and one
 }{
-	{"alpine-lxc", "alpine-stock", 22},           // Alpine 3.23 as the LXC dogfood's (alpine.md §7): no ufw, no ss
-	{"alpine-lxc-active", "alpine-runlevel", 32}, // ufw active, every ufw row drawn: over 24, as decision 9 has it
-	{"rocky-lxc", "rocky-stopped", 21},           // firewalld's section
+	{"alpine-lxc", "alpine-stock", 26},           // Alpine 3.23 as the LXC dogfood's (alpine.md §7): no ufw, no ss
+	{"alpine-lxc-active", "alpine-runlevel", 36}, // ufw active, every ufw row drawn: over 24, as decision 9 has it
+	{"rocky-lxc", "rocky-stopped", 25},           // firewalld's section
 }
 
 // TestContainerGoldens pins the screen in a container, opened and left with 0,
@@ -97,7 +97,7 @@ func TestContainerLine(t *testing.T) {
 	}{
 		{"alpine, no ufw", "alpine-stock", lxc, "SSH"},
 		{"debian, active", "active22", lxc, "SSH"},
-		{"rocky, firewalld", "rocky-running", lxc, "Select an option"},
+		{"rocky, firewalld", "rocky-running", lxc, "Ports"},
 		{"not established", "alpine-stock", detect.Container{Detected: detect.Unknown, Err: errors.New("detect: container: /proc/1/environ: permission denied")}, ""},
 		{"not a container", "alpine-stock", detect.Container{Detected: detect.No}, ""},
 		{"proxmox", "pve9", lxc, ""},

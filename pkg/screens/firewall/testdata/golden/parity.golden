@@ -380,7 +380,7 @@ origin/main: menu/firewall_item2_not_installed_hidden_still_runs.golden ()
   probes: which ufw -> error: exit status 1; dpkg-query -W "--showformat=${Status}" pve-manager -> ok; which ufw -> error: exit status 1
   refused: failed: UFW firewall is not installed
 new path: the Firewall screen, typed 2: no such item; -w's plan and apply leave the same
-  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
+  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; ss -Htlnp; ss -Hulnp; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
   refused: no item: the key refused
 agree  files: none
 agree  directories: none
@@ -404,7 +404,7 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
 new path: the Firewall screen, typed 1, y
-  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw; systemctl is-enabled ufw.service; ss -Htlnp; ss -Hulnp
+  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; ss -Htlnp; ss -Hulnp; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw; systemctl is-enabled ufw.service
   run apt-get install -y ufw
   backup: none; journal: journalled first; findings: none
 agree  files: none
@@ -437,7 +437,7 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
 new path: the Firewall screen, typed 1, y
-  probes: sshd -T -f /etc/ssh/sshd_config; systemctl show -p Listen ssh.socket; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw; systemctl is-enabled ufw.service; ss -Htlnp; ss -Hulnp
+  probes: sshd -T -f /etc/ssh/sshd_config; systemctl show -p Listen ssh.socket; ss -Htln; ufw status verbose; ss -Htlnp; ss -Hulnp; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw; systemctl is-enabled ufw.service
   run apt-get install -y ufw
   backup: none; journal: journalled first; findings: none
 agree  files: none
@@ -470,7 +470,7 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
 new path: the Firewall screen, typed 1, y
-  probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; apk info -e ufw; apk add --simulate ufw; ss -Htlnp; ss -Hulnp
+  probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; ss -Htlnp; ss -Hulnp; apk info -e ufw; apk add --simulate ufw
   run apk add ufw
   backup: none; journal: journalled first; findings: none
 agree  files: none
@@ -528,7 +528,7 @@ origin/main: menu/firewall_item1_not_installed_stub.golden ()
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
   refused: stub: isn't yet implemented
 new path: the Firewall screen, typed 1: refused before it asks
-  probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; apk info -e ufw; apk add --simulate ufw
+  probes: /usr/sbin/sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; ss -Htlnp; ss -Hulnp; apk info -e ufw; apk add --simulate ufw
   refused: PACKAGE_NOT_IN_REPOS, before asking
 agree  files: none
 agree  directories: none
@@ -1000,7 +1000,7 @@ origin/main: menu/firewall_item1_not_installed_dry_run.golden ()
   start: Debian 13; ufw not installed; cfg.SshPort 2230; 0 profiles; dryRun true
   probes: which ufw -> error: exit status 1; which ufw -> error: exit status 1
 new path: the Firewall screen under plan only, typed 1
-  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
+  probes: sshd -T -f /etc/ssh/sshd_config; ss -Htln; ufw status verbose; ss -Htlnp; ss -Hulnp; dpkg-query --show "--showformat=${Status}\\t${Version}\\n" ufw; apt-get install -s -y ufw
 agree  refusal: none
 agree  files: none
 agree  directories: none

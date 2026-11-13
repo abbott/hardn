@@ -325,6 +325,8 @@ var readCommands = []string{
 	"sudo --version",
 	host.FormatArgv([]string{"dpkg-query", "--show", "--showformat=${Status}\\t${Version}\\n", "pve-manager"}),
 	"ip -o addr show scope global",
+	"ss -Htlnp",
+	"ss -Hulnp",
 	"df -kP /",
 	"visudo -c",
 	"doas -C /etc/doas.conf",
@@ -368,6 +370,9 @@ func reportHost(f *fixture, d parity.Distro) *hostfake.System {
 	cmds := map[string]hostfake.Response{
 		"ip -o addr show scope global": {Stdout: f.addrs},
 		"df -kP /":                     {Stdout: f.df},
+		// Listening Ports is the new path's alone: origin/main has no such section.
+		"ss -Htlnp": {Stdout: "LISTEN 0 128 0.0.0.0:22 0.0.0.0:* users:((\"sshd\",pid=812,fd=3))\n"},
+		"ss -Hulnp": {},
 	}
 	if f.pool != "" {
 		cmds["zpool list -H -o health "+f.pool] = hostfake.Response{Stdout: "ONLINE\n"}
@@ -1147,7 +1152,7 @@ func table() []tie {
 		every(reportAll, rowDiskUsed, d2+"; "+w6+", Used", "none, Volume in its own words; now the row's, Volume the fact it draws"),
 		every(reportAll, rowMemoryUsed, d2+"; "+w6+", Used", "none, Memory in its own words; now the row's, Memory the fact it draws"),
 		every(renders, "Processor", made+", A value too long for its row", "whole, past a 50-wide box (defect 4); now cut on a terminal, whole off one, which Print holds"),
-		every(slices.Concat(reportAll, []string{"sd-error"}), rowSections, d2+"; "+w6+", System Details sections", "no headings, blank lines alone part the report; now P-17's seven"),
+		every(slices.Concat(reportAll, []string{"sd-error"}), rowSections, d2+"; "+w6+", System Details sections", "no headings, blank lines alone part the report; now P-17's seven, and Listening Ports (gallery-ports.md, adopted 2026-11-13)"),
 		every(screenRuns, rowItems, d5+"; "+w6+", Items", "Refresh Information and Export Information; now Refresh alone, in fewer words, no Export item"),
 		every([]string{"sd-error"}, rowItems, w6+", Items", "Refresh Information, in its words; now Refresh, as on every draw"),
 		every(screenRuns, rowPrompt, d5+"; "+p29, "Enter selection, 0-2, with Export; now Option, 0-1, no Export item"),

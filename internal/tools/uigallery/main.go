@@ -606,7 +606,8 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // "glyphs", "system-details" or "logs" first, the status listing
 // (statusList), the glyphs mode (glyphs), the System Details listing
 // (sdListing) or the Logs listing (logsListing), which size themselves with
-// size too and read no input. No other mode calls either.
+// size too and read no input, as "config" and "ports" (configListing,
+// portsListing) do. No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -626,6 +627,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == configPrefix {
 		return configListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == portsPrefix {
+		return portsListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -637,6 +641,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(sdUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(logsUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(configUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(portsUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

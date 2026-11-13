@@ -3,6 +3,8 @@
 > **Unit:** refactor plan slice 4, unit (c), `next/s4-screen`, from 088c1026. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake, ufw answering from its model. No real terminal, no hardn binary, no VM. Nothing is wired into `cmd/hardn` or `pkg/menu` (unit (d)). The gallery and `TestParity` run `Run`: done, below.
 > *Since `next/s4-replace` (unit (d), below): main menu 4 calls `Run` through `MainMenu.SetFirewall`, "View pve-firewall" on Proxmox VE; `-w` runs the Firewall control's Enable, the hostname typed on a terminal, refused off one; `-n -w` shows the plan. The legacy screen is retired, its goldens frozen under `testdata/legacy`. Still nothing run on Linux: the VM checks below are written, not run (gate 5).*
 
+*Since `next/listening-ports` (2026-11-13) the screen has a Ports section, the listening ports against the rules: [screen-ports.md](screen-ports.md).*
+
 ## What it does
 
 Main menu 4 as adopted on 2026-11-01 ([gallery-firewall.md](gallery-firewall.md) §5, all ten decisions, §6's words), drawn from `firewall.Read` and the Firewall row (`Incoming.Check` through `output.StatusViewOf`, no engine), writing nothing, under plan only too. The row is Check's own reading, a second `ufw status`, kept on purpose so that it is the main menu's row to the letter.

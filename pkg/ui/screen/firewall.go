@@ -149,6 +149,10 @@ type Firewall struct {
 	// UFW, SSH, Rules, Profiles and Interfaces are the sections' rows; a
 	// section with none is left out.
 	UFW, SSH, Rules, Profiles, Interfaces []component.KeyValue
+	// Ports are the section Ports' rows, the listening ports against the
+	// rules (FirewallPorts.Rows), after Rules; none, no section
+	// (docs/engine/screen-ports.md).
+	Ports []component.KeyValue
 	// First is what item 1 does; Risk, that its plan is lockout-risk, which
 	// marks the item.
 	First FirewallFirst
@@ -177,7 +181,7 @@ func (f Firewall) SubMenu() SubMenu {
 	for _, s := range []struct {
 		title string
 		rows  []component.KeyValue
-	}{{firewallSectionUFW, containerRows(f.UFW, f.Container)}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {firewallSectionProfiles, f.Profiles}, {firewallSectionIfaces, f.Interfaces}} {
+	}{{firewallSectionUFW, containerRows(f.UFW, f.Container)}, {firewallSectionSSH, f.SSH}, {firewallSectionRules, f.Rules}, {portsSection, f.Ports}, {firewallSectionProfiles, f.Profiles}, {firewallSectionIfaces, f.Interfaces}} {
 		if len(s.rows) > 0 {
 			vm.Sections = append(vm.Sections, firewallSection(s.title, s.rows))
 		}

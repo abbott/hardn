@@ -690,6 +690,45 @@ func TestParseListening(t *testing.T) {
 	}
 }
 
+// TestParseListeningProcess: the program's name is the host's word, read to
+// ss's own `",pid=` and returned as printed, whatever it holds: a quote, a
+// comma, brackets, an escape sequence, bytes that are not UTF-8; a users
+// column that is cut short names none, and neither moves the address. A
+// line a name's newline starts is not a socket: it lacks ss's columns.
+func TestParseListeningProcess(t *testing.T) {
+	line := func(users string) string { return "LISTEN 0 128 0.0.0.0:8000 0.0.0.0:* " + users + "\n" }
+	for name, want := range map[string]string{
+		"sshd": "sshd", "web server": "web server", `a",b`: `a",b`, `x")),(("y`: `x")),(("y`, "(sd-pam)": "(sd-pam)",
+		"\x1b[31mred": "\x1b[31mred", "caf\xe9": "caf\xe9", "": "", "users:((": "users:((",
+	} {
+		socks, bad := reload.ParseListening([]byte(line(`users:(("`+name+`",pid=7,fd=3))`)), "tcp")
+		if len(socks) != 1 || len(bad) != 0 || socks[0].Process != want || socks[0].Port != 8000 {
+			t.Errorf("%q: %+v, bad %q", name, socks, bad)
+		}
+	}
+	for _, users := range []string{`users:(("sshd"`, `users:((`, `users:(("sshd",fd=3))`, "users", ""} {
+		socks, bad := reload.ParseListening([]byte(line(users)), "tcp")
+		if len(socks) != 1 || len(bad) != 0 || socks[0].Process != "" {
+			t.Errorf("%q: %+v, bad %q", users, socks, bad)
+		}
+	}
+	socks, bad := reload.ParseListening([]byte(line("users:((\"a\nLISTEN 0 0 *:9\",pid=7,fd=3))")), "tcp")
+	if len(socks) != 1 || socks[0].Port != 8000 || socks[0].Process != "" || len(bad) != 1 {
+		t.Errorf("a newline in a name: %+v, bad %q", socks, bad)
+	}
+	// Address is the address as ss writes it, without the port.
+	out := "LISTEN 0 1 0.0.0.0:1 0.0.0.0:*\nLISTEN 0 1 [::]:2 [::]:*\nLISTEN 0 1 *:3 *:*\nLISTEN 0 1 127.0.0.53%lo:4 0.0.0.0:*\n" +
+		"LISTEN 0 1 [fe80::1]%eth0:5 [::]:*\nLISTEN 0 1 [::1]:6 [::]:*\n"
+	socks, bad = reload.ParseListening([]byte(out), "tcp")
+	var got []string
+	for _, s := range socks {
+		got = append(got, s.Address())
+	}
+	if want := []string{"0.0.0.0", "[::]", "*", "127.0.0.53%lo", "[fe80::1]%eth0", "[::1]"}; !slices.Equal(got, want) || len(bad) != 0 {
+		t.Errorf("addresses %q, bad %q", got, bad)
+	}
+}
+
 // TestReadListening: TCP's table, then UDP's, each its own run; a run
 // that fails is the error, and ss missing is host.ErrNotFound.
 func TestReadListening(t *testing.T) {
