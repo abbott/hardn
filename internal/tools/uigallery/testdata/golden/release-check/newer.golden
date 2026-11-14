@@ -7,10 +7,11 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The check is on and v0.4.1 is out:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe first line says so, in the link's place. The menu is no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtaller and nothing waits on it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe line under the link says so. The menu is one row taller␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhile it shows, and nothing waits on it.␛[m$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;192;196;216mv0.4.1 available␛[m$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+                           ␛[38;2;192;196;216mv0.4.1 available␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -52,10 +53,11 @@ $
 $
 # Note$
 # Proposed: no Figma frame. The check is on and v0.4.1 is out:$
-# the first line says so, in the link's place. The menu is no$
-# taller and nothing waits on it.$
+# the line under the link says so. The menu is one row taller$
+# while it shows, and nothing waits on it.$
 $
-hardn  v0.4.0              v0.4.1 available$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+                           v0.4.1 available$
 $
 # Debian 12 (Bookworm) #########################################$
 $
@@ -97,10 +99,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The check is on and v0.4.1 is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mout: the first line says so, in the link's place. The menu␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis no taller and nothing waits on it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mout: the line under the link says so. The menu is one row␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtaller while it shows, and nothing waits on it.␛[m$
 $
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
 ␛[38;2;192;196;216mv0.4.1 available␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
@@ -163,10 +166,11 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The check is on and v0.4.1 is out:␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe first line says so, in the link's place. The menu is no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtaller and nothing waits on it.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe line under the link says so. The menu is one row taller␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhile it shows, and nothing waits on it.␛[m$
 $
-␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;192;196;216mv0.4.1 available␛[m$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+                           ␛[38;2;192;196;216mv0.4.1 available␛[m$
 $
 ␛[38;2;43;47;59m#␛[m ␛[1;38;2;129;134;156mDebian␛[m ␛[38;2;129;134;156m12␛[m ␛[38;2;86;91;107m(Bookworm)␛[m ␛[38;2;43;47;59m#########################################␛[m$
 $

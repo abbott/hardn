@@ -26,10 +26,14 @@
 #      checked again, then mv over /usr/local/bin/hardn; /etc/hardn created
 #      (0755) if missing. Nothing
 #      else is written, and hardn is not run.
+#   7. With HARDN_VERSION, one request to GitHub's API for the latest
+#      release's tag (release_notice): where it is later, a line says so. It
+#      changes nothing else, and the exit status is the install's.
 #
 # The output takes hardn's look (look, below): a mark for each step, a
 # Warning callout where provenance is not checked, a closing line that says
-# what was installed, then what to run. It starts after a blank line and ends
+# what was installed, a later release's line where HARDN_VERSION named an
+# earlier one, then what to run. It starts after a blank line and ends
 # with one, whether it installs or stops, with a blank line between its parts,
 # and keeps to 80 columns but for the attestation's identity: a URL can't
 # break.
@@ -112,6 +116,62 @@ check_version() {
 	*.*.*) return 0 ;;
 	*) return 1 ;;
 	esac
+}
+
+# num prints $1, one to six digits, without its leading zeros.
+num() {
+	case $1 in
+	'' | *[!0-9]* | ???????*) return 1 ;;
+	esac
+	n=$1
+	while :; do
+		case $n in
+		0?*) n=${n#0} ;;
+		*) break ;;
+		esac
+	done
+	printf '%s\n' "$n"
+}
+
+# later: version $1 is later than $2, each <major>.<minor>.<patch> of one to
+# six digits, compared by number, as hardn reads a tag.
+later() {
+	for v in "$1" "$2"; do
+		case $v in
+		*.*.*.*) return 1 ;;
+		*.*.*) ;;
+		*) return 1 ;;
+		esac
+	done
+	a=$1 b=$2
+	for _ in 1 2 3; do
+		x=$(num "${a%%.*}") || return 1
+		y=$(num "${b%%.*}") || return 1
+		[ "$x" -eq "$y" ] || {
+			[ "$x" -gt "$y" ]
+			return
+		}
+		a=${a#*.} b=${b#*.}
+	done
+	return 1
+}
+
+# release_notice says, after a blank line, that a release later than $1
+# (<major>.<minor>.<patch>) is out. It asks GitHub's API once for the latest
+# release's tag, for 5 seconds at most. No answer, a rate limit, or a tag
+# that is not v<major>.<minor>.<patch> or is no later: it says nothing. It
+# never fails.
+release_notice() {
+	curl -fsL --proto '=https' --tlsv1.2 --max-time 5 --max-filesize 65536 \
+		-o "$tmp/newer.json" "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null || return 0
+	latest=$(awk '{ gsub(/[,{}]/, "\n"); print }' "$tmp/newer.json" 2>/dev/null |
+		sed -n 's/^[[:space:]]*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)"[[:space:]]*$/\1/p') || return 0
+	case $latest in
+	v*) ;;
+	*) return 0 ;;
+	esac
+	later "${latest#v}" "$1" || return 0
+	printf '\nhardn %s available (https://github.com/%s)\n' "$latest" "$REPO" || :
 }
 
 # All of it runs from the last line, so a download cut short runs nothing.
@@ -285,6 +345,10 @@ main() {
 	printf '\n'
 	muted "hardn comes with no warranty: GNU AGPL v3, sections 15 and 16."
 	printf '\n%s %sInstalled hardn %s as /usr/local/bin/hardn%s\n' "$bar_ok" "$t_ok" "$tag" "$c_off"
+	# 7. A later release than the one named, said and nothing more: hardn is
+	# installed either way, so an interrupt from here on ends with status 0.
+	trap 'exit 0' HUP INT TERM
+	[ -z "${HARDN_VERSION:-}" ] || release_notice "$version" || :
 	printf '\n%sRun%s %shardn --help%s or %ssudo hardn%s\n\n' "$c_mute" "$c_off" "$t_ok" "$c_off" "$t_ok" "$c_off"
 }
 

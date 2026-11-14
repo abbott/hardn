@@ -25,6 +25,8 @@ curl -fsSLO https://raw.githubusercontent.com/abbott/hardn/v0.9.0/verify.sh
 sh verify.sh 0.9.0 linux-amd64      # leaves ./hardn-linux-amd64 only if both checks pass
 ```
 
+After both checks pass, it asks the GitHub API once for the latest release's tag, and says when it is newer, such as "hardn v0.9.1 available (https://github.com/abbott/hardn)". It waits 5 seconds at most; if GitHub doesn't answer, nothing is said: the binary is verified either way.
+
 To check a binary you already have, such as one installed using [install.sh](../install.sh), use `gh`:
 
 ```sh

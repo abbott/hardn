@@ -466,8 +466,18 @@ func TestPrintVersionInfo(t *testing.T) {
 	if err := NewService("0.4.0", "", "abc").PrintVersionInfo(&b); err != nil {
 		t.Fatal(err)
 	}
-	want := "hardn - Linux hardening tool\nVersion:    0.4.0\nBuild Date: unknown\nGit Commit: abc\nLicense:    GNU AGPL v3, no warranty\n"
+	want := "hardn - Linux hardening tool\nVersion:    0.4.0\nBuild Date: unknown\nGit Commit: abc\nRepo:       https://github.com/abbott/hardn\nLicense:    GNU AGPL v3, no warranty\n"
 	if b.String() != want {
 		t.Errorf("%q", b.String())
+	}
+	// A newer release is said on the Version line, and nowhere else.
+	b.Reset()
+	s := NewService("0.4.0", "", "abc")
+	s.Newer = "v0.4.1"
+	if err := s.PrintVersionInfo(&b); err != nil {
+		t.Fatal(err)
+	}
+	if got := b.String(); got != strings.Replace(want, "Version:    0.4.0\n", "Version:    0.4.0 (v0.4.1 available)\n", 1) {
+		t.Errorf("%q", got)
 	}
 }

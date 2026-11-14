@@ -1,0 +1,60 @@
+# Golden file of TestReleaseNoticeGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice verify␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The last line of sh verify.sh 0.4.0␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlinux-amd64, then the notice, v0.4.1 being out. Fixed text, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten off a terminal: verify.sh is a shell script.␛[m$
+$
+# Verified ./hardn-linux-amd64 (hardn v0.4.0)$
+$
+hardn v0.4.1 available (https://github.com/abbott/hardn)$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  release-notice verify ----------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. The last line of sh verify.sh 0.4.0$
+# linux-amd64, then the notice, v0.4.1 being out. Fixed text, as$
+# written off a terminal: verify.sh is a shell script.$
+$
+# Verified ./hardn-linux-amd64 (hardn v0.4.0)$
+$
+hardn v0.4.1 available (https://github.com/abbott/hardn)$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice verify␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The last line of sh verify.sh␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m0.4.0 linux-amd64, then the notice, v0.4.1 being out.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mFixed text, as written off a terminal: verify.sh is a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshell script.␛[m$
+$
+# Verified ./hardn-linux-amd64 (hardn v0.4.0)$
+$
+hardn v0.4.1 available (https://github.com/abbott/hardn)$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mrelease-notice verify␛[m ␛[38;2;22;24;29m----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The last line of sh verify.sh 0.4.0␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlinux-amd64, then the notice, v0.4.1 being out. Fixed text, as␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten off a terminal: verify.sh is a shell script.␛[m$
+$
+# Verified ./hardn-linux-amd64 (hardn v0.4.0)$
+$
+hardn v0.4.1 available (https://github.com/abbott/hardn)$
+$
+$

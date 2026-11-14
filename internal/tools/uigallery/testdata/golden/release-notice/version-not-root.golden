@@ -1,0 +1,72 @@
+# Golden file of TestReleaseNoticeGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice version-not-root␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. hardn --version as a user other than␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot, v0.4.1 in the cache: nothing said. /var/lib/hardn is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot's alone, so the cache cannot be read.␛[m$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  release-notice version-not-root ------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. hardn --version as a user other than$
+# root, v0.4.1 in the cache: nothing said. /var/lib/hardn is$
+# root's alone, so the cache cannot be read.$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice version-not-root␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. hardn --version as a user other␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthan root, v0.4.1 in the cache: nothing said.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/var/lib/hardn is root's alone, so the cache cannot be␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread.␛[m$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mrelease-notice version-not-root␛[m ␛[38;2;22;24;29m------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. hardn --version as a user other than␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot, v0.4.1 in the cache: nothing said. /var/lib/hardn is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot's alone, so the cache cannot be read.␛[m$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$

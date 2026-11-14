@@ -1,0 +1,77 @@
+# Golden file of TestReleaseNoticeGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice header␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The header alone. Below 64 columns␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe link is already under the version, and the notice goes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder the link.␛[m$
+$
+A newer release:$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+                           ␛[38;2;192;196;216mv0.4.1 available␛[m$
+$
+A failed check:$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+                           ␛[38;2;129;134;156mRelease check failed␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  release-notice header ----------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. The header alone. Below 64 columns$
+# the link is already under the version, and the notice goes$
+# under the link.$
+$
+A newer release:$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+                           v0.4.1 available$
+$
+A failed check:$
+hardn  v0.4.0              https://github.com/abbott/hardn$
+                           Release check failed$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice header␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The header alone. Below 64␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolumns the link is already under the version, and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnotice goes under the link.␛[m$
+$
+A newer release:$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+␛[38;2;192;196;216mv0.4.1 available␛[m$
+$
+A failed check:$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
+␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+␛[38;2;129;134;156mRelease check failed␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mrelease-notice header␛[m ␛[38;2;22;24;29m----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The header alone. Below 64 columns␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe link is already under the version, and the notice goes␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder the link.␛[m$
+$
+A newer release:$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+                           ␛[38;2;192;196;216mv0.4.1 available␛[m$
+$
+A failed check:$
+␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
+                           ␛[38;2;129;134;156mRelease check failed␛[m$
+$
+$

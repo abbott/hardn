@@ -23,6 +23,12 @@ const wordmark = "hardn"
 // A Notice takes the URL's place, and moves down as it does:
 //
 //	hardn  v0.4.0              v0.4.1 available
+//
+// With NoticeBelow (the release check's: screen.Release) the
+// URL stays and the Notice is the line under it, at the URL's column:
+//
+//	hardn  v0.4.0              https://github.com/abbott/hardn
+//	                           v0.4.1 available
 type Header struct {
 	// Version is shown as given, such as "v0.4.0"; empty shows none.
 	Version string
@@ -33,6 +39,9 @@ type Header struct {
 	Notice string
 	// NoticeMuted draws the Notice muted: a fact that asks for nothing.
 	NoticeMuted bool
+	// NoticeBelow keeps the URL and draws the Notice on its own line
+	// under it. Unset, or with no URL or no Notice, nothing changes.
+	NoticeBelow bool
 }
 
 // Render renders the header for c. See Header for the layout.
@@ -48,17 +57,36 @@ func (vm Header) Render(c Ctx) string {
 		}
 	}
 	second := span{c.text(vm.URL), t.URL}
+	var under span
 	if n := c.text(vm.Notice); n != "" {
-		second = span{n, c.Theme.Text.Primary}
+		notice := span{n, c.Theme.Text.Primary}
 		if vm.NoticeMuted {
-			second.style = c.Theme.Text.Muted
+			notice.style = c.Theme.Text.Muted
+		}
+		if vm.NoticeBelow && second.text != "" {
+			under = notice
+		} else {
+			second = notice
 		}
 	}
+	beside := func(s span) bool {
+		return !c.stacked() && head.width() < theme.ValueCol && theme.ValueCol+lipgloss.Width(s.text) <= w
+	}
+	var out string
 	switch {
 	case second.text == "":
 		return c.fit(head, w)
-	case !c.stacked() && head.width() < theme.ValueCol && theme.ValueCol+lipgloss.Width(second.text) <= w:
-		return c.fit(append(head.to(theme.ValueCol), second), w)
+	case beside(second):
+		out = c.fit(append(head.to(theme.ValueCol), second), w)
+	default:
+		out = c.fit(head, w) + "\n" + c.fit(line{second}, w)
 	}
-	return c.fit(head, w) + "\n" + c.fit(line{second}, w)
+	switch {
+	case under.text == "":
+	case beside(second) && beside(under):
+		out += "\n" + c.fit(append(line{}.to(theme.ValueCol), under), w)
+	default:
+		out += "\n" + c.fit(line{under}, w)
+	}
+	return out
 }

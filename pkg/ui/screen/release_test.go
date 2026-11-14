@@ -11,9 +11,9 @@ import (
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
-// TestRelease: a newer release and a failed check take the link's place in
-// the Header, one line for one line; off, up to date, pending, or newer
-// with no tag, the main menu is drawn as with no check at all.
+// TestRelease: a newer release and a failed check are one line under the
+// Header's link, which stays; off, up to date, pending, or newer with no
+// tag, the main menu is drawn as with no check at all.
 func TestRelease(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, false))
 	plain := MainMenuFixture().Render(c)
@@ -21,6 +21,9 @@ func TestRelease(t *testing.T) {
 		vm := MainMenuFixture()
 		vm.Release = r
 		head, rest, _ := strings.Cut(vm.Render(c), "\n")
+		if under, after, _ := strings.Cut(rest, "\n"); under != "" { // the notice
+			return head + "\n" + under, after
+		}
 		return head, rest
 	}
 	_, plainRest, _ := strings.Cut(plain, "\n")
@@ -34,8 +37,8 @@ func TestRelease(t *testing.T) {
 		{"current ignores a tag", Release{State: ReleaseCurrent, Latest: "v0.4.0"}, "hardn  v0.4.0              https://github.com/abbott/hardn"},
 		{"pending", Release{State: ReleasePending}, "hardn  v0.4.0              https://github.com/abbott/hardn"},
 		{"newer with no tag", Release{State: ReleaseNewer}, "hardn  v0.4.0              https://github.com/abbott/hardn"},
-		{"newer", Release{State: ReleaseNewer, Latest: "v0.4.1"}, "hardn  v0.4.0              v0.4.1 available"},
-		{"failed", Release{State: ReleaseFailed}, "hardn  v0.4.0              Release check failed"},
+		{"newer", Release{State: ReleaseNewer, Latest: "v0.4.1"}, "hardn  v0.4.0              https://github.com/abbott/hardn\n                           v0.4.1 available"},
+		{"failed", Release{State: ReleaseFailed}, "hardn  v0.4.0              https://github.com/abbott/hardn\n                           Release check failed"},
 	} {
 		head, rest := first(tt.r)
 		if ansi.Strip(head) != tt.want || rest != plainRest {

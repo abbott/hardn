@@ -9,11 +9,12 @@ import (
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/version"
 )
 
 // RepoURL is the repository link in the main menu's header, as Figma's
 // 00-TUI-MAIN shows it.
-const RepoURL = "https://github.com/abbott/hardn"
+const RepoURL = version.RepoURL
 
 // The host block's words for an address the probe established there is
 // none of (proposed wording, docs/engine/header.md §5.2). An address not

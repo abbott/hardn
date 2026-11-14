@@ -32,7 +32,7 @@ The notice takes the repository link's place, so the menu is no line taller, not
 
 Drawn: every recommendation below that the main menu shows (1 to 4).
 
-1. **Where the line goes.** (a) *Recommended, drawn:* in the header, in the repository link's place. No added row; the link is gone while the notice shows. (b) In the link's place, with the link on a second line, as origin/main's checker drew it: one row more whenever a notice shows. (c) A warning callout above the divider, as the CVE alert: four rows more, and it reads as a problem with the host.
+1. **Where the line goes.** (a) *Recommended, drawn:* in the header, in the repository link's place. No added row; the link is gone while the notice shows. *Reversed 2026-11-14: the notice is now under the link ([gallery-release-notice.md](gallery-release-notice.md), decision 9).* (b) In the link's place, with the link on a second line, as origin/main's checker drew it: one row more whenever a notice shows. (c) A warning callout above the divider, as the CVE alert: four rows more, and it reads as a problem with the host.
 2. **The words for a newer release.** (a) *Recommended, drawn:* "v0.4.1 available". (b) "v0.4.1 available: run install.sh", which says how, and is 34 cells where (a) is 16.
 3. **Up to date.** (a) *Recommended, drawn:* nothing is shown. (b) A muted "Up to date" in the link's place: the link would then never show while the check is on.
 4. **A check that failed.** (a) *Recommended, drawn:* a muted "Release check failed" in the link's place, until a check answers. Without it, a host that cannot reach GitHub looks up to date for ever. (b) Nothing on the menu; only the log says it. A check that has not run yet shows nothing either way.

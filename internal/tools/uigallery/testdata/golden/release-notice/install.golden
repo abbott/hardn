@@ -1,0 +1,57 @@
+# Golden file of TestReleaseNoticeGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice install␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The end of install.sh with␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_VERSION=0.4.0 and v0.4.1 out. Fixed text, as written off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma terminal: install.sh is a shell script.␛[m$
+$
+hardn comes with no warranty: GNU AGPL v3, sections 15 and 16.$
+$
+# Installed hardn v0.4.0 as /usr/local/bin/hardn$
+$
+hardn v0.4.1 available (https://github.com/abbott/hardn)$
+$
+Run hardn --help or sudo hardn$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  release-notice install ---------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. The end of install.sh with$
+# HARDN_VERSION=0.4.0 and v0.4.1 out. Fixed text, as written off$
+# a terminal: install.sh is a shell script.$
+$
+hardn comes with no warranty: GNU AGPL v3, sections 15 and 16.$
+$
+# Installed hardn v0.4.0 as /usr/local/bin/hardn$
+$
+hardn v0.4.1 available (https://github.com/abbott/hardn)$
+$
+Run hardn --help or sudo hardn$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mrelease-notice install␛[m ␛[38;2;22;24;29m---------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. The end of install.sh with␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_VERSION=0.4.0 and v0.4.1 out. Fixed text, as written off␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma terminal: install.sh is a shell script.␛[m$
+$
+hardn comes with no warranty: GNU AGPL v3, sections 15 and 16.$
+$
+# Installed hardn v0.4.0 as /usr/local/bin/hardn$
+$
+hardn v0.4.1 available (https://github.com/abbott/hardn)$
+$
+Run hardn --help or sudo hardn$
+$
+$

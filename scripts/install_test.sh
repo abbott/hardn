@@ -12,12 +12,17 @@
 # would bypass the stubs and the wrappers, so it is skipped, and the run says
 # so. Run from anywhere: sh scripts/install_test.sh. Exits 1 if any case
 # fails. make check-install runs it.
+#
+# It also tests the later release's line that install.sh, given
+# HARDN_VERSION, and verify.sh end with (their release_notice), verify.sh
+# run in a directory of the case against the same stubs.
 
 set -eu
 
 repo=$(cd "$(dirname "$0")/.." && pwd)
 # INSTALL_SH tests another copy, such as a deliberately broken one.
 script=${INSTALL_SH:-$repo/install.sh}
+verify=${VERIFY_SH:-$repo/verify.sh}
 
 work=$(mktemp -d "${TMPDIR:-/tmp}/hardn-install-test.XXXXXX")
 trap 'rm -rf "$work"' EXIT
@@ -79,29 +84,46 @@ printf '%s\n' "$FAKE_UID"
 EOF
 
 # curl: -o <file> and a URL; refuses a call without --proto =https and
-# --tlsv1.2; logs each URL; serves the fake release; a missing file is curl
-# -f's HTTP error, exit 22.
+# --tlsv1.2 (but verify.sh's downloads, FAKE_CURL_LAX=1); logs each URL, with
+# its --max-time where given; serves the fake release; a missing file is curl
+# -f's HTTP error, exit 22. FAKE_API_STATUS is the exit status of a request
+# to the API, such as 28, curl's for a timeout. FAKE_API_SIGNAL is a signal
+# a request to the API sends the script, as Ctrl-C during it would.
 cat >"$stubs/curl" <<EOF
 #!/bin/sh
 out=
 url=
 proto=
 tls=
+limit=
 while [ \$# -gt 0 ]; do
 	case \$1 in
 	-o) out=\$2; shift ;;
 	--proto) proto=\$2; shift ;;
 	--tlsv1.2) tls=1 ;;
+	--max-time) limit=" max-time=\$2"; shift ;;
+	--max-filesize) shift ;;
 	-*) ;;
 	*) url=\$1 ;;
 	esac
 	shift
 done
-if [ "\$proto" != =https ] || [ -z "\$tls" ]; then
-	printf 'curl stub: %s without --proto =https --tlsv1.2\n' "\$url" >&2
-	exit 2
+if [ "\${FAKE_CURL_LAX:-0}" != 1 ] || [ -n "\$limit" ]; then
+	if [ "\$proto" != =https ] || [ -z "\$tls" ]; then
+		printf 'curl stub: %s without --proto =https --tlsv1.2\n' "\$url" >&2
+		exit 2
+	fi
 fi
-printf '%s\n' "\$url" >>"\$FAKE_LOG/curl.log"
+printf '%s%s\n' "\$url" "\$limit" >>"\$FAKE_LOG/curl.log"
+case \$url in
+https://api.github.com/*)
+	if [ -n "\${FAKE_API_SIGNAL:-}" ]; then
+		kill -s "\$FAKE_API_SIGNAL" "\$PPID"
+		exit 130
+	fi
+	[ -z "\${FAKE_API_STATUS:-}" ] || exit "\$FAKE_API_STATUS"
+	;;
+esac
 case \$url in
 https://api.github.com/repos/abbott/hardn/releases/latest) f=\$FAKE_REL/\${FAKE_LATEST:-latest}.json ;;
 https://github.com/abbott/hardn/releases/download/*) f=\$FAKE_REL/\${url#https://github.com/abbott/hardn/releases/download/} ;;
@@ -215,6 +237,19 @@ printf '{"url":"x","tag_name":"v0.4.0","assets":[{"name":"hardn-linux-amd64"}],"
 printf '{"url":"x","name":"v0.4.0"}\n' >"$rel/notag.json"
 printf '{"tag_name":"v0.4.0-rc.1"}\n' >"$rel/rc.json"
 printf '{"tag_name":"v0.3.2"}\n' >"$rel/old.json"
+# For the later release's line: a later tag, two that only numbers order,
+# and tags that are not v<major>.<minor>.<patch>.
+make_release v0.9.0
+make_release v0.10.0
+printf '{"tag_name":"v0.4.1"}\n' >"$rel/newer.json"
+printf '{"tag_name":"v0.9.0"}\n' >"$rel/nine.json"
+printf '{"tag_name":"v0.10.0"}\n' >"$rel/ten.json"
+printf '{"tag_name":"v0.4.1","x":{"tag_name":"v0.4.2"}}\n' >"$rel/two.json"
+printf '{"tag_name":"v0.4.1; rm -rf x"}\n' >"$rel/shell.json"
+printf '{"tag_name":"0.4.1"}\n' >"$rel/nov.json"
+printf '{"tag_name":"v0.4.1234567"}\n' >"$rel/long.json"
+printf '{"tag_name":"v1.0"}\n' >"$rel/short.json"
+printf 'rate limit exceeded\n' >"$rel/text.json"
 
 # v0.3.2: binaries and .intoto.jsonl, no SHA256SUMS.
 mkdir -p "$rel/v0.3.2"
@@ -297,6 +332,19 @@ run_install() {
 		$sh "$script" >"$cdir/out" 2>"$cdir/err" || status=$?
 }
 
+# run_verify <version> [VAR=value ...]: verify.sh <version> linux-amd64 under
+# $sh in the case's own directory, with gh on PATH.
+run_verify() {
+	ver=$1
+	shift
+	mkdir -p "$cdir/pwd"
+	status=0
+	# shellcheck disable=SC2086 # $sh is "busybox sh" for busybox
+	(cd "$cdir/pwd" && env -i PATH="$work/gh:$stubs:$work/sum-sha256sum:$work/tools" HOME="$cdir" TMPDIR="$cdir/tmp" \
+		FAKE_REL="$rel" FAKE_LOG="$cdir/log" FAKE_CURL_LAX=1 "$@" \
+		$sh "$verify" "$ver" linux-amd64 >"$cdir/out" 2>"$cdir/err") || status=$?
+}
+
 # mode <path>: the mode as ls -l prints it (find cannot print it portably).
 # shellcheck disable=SC2012
 mode() { ls -ld "$1" | cut -c1-10; }
@@ -320,6 +368,11 @@ expect_blank_start() { awk 'NR == 1 { exit !($0 == "") } END { if (NR == 0) exit
 expect_err_starts_blank() {
 	first=$(awk 'NR == 1 { print ($0 == "" ? "yes" : "no"); exit }' "$cdir/err")
 	[ "$first" = "$1" ] || fail "stderr starts with a blank line: $first, want $1"
+}
+# stdout from the line that starts with $1 to its end is $2.
+expect_ends() {
+	got=$(awk -v p="$1" 'index($0, p) == 1 { on = 1 } on' "$cdir/out")
+	[ "$got" = "$2" ] || fail "stdout doesn't end: $2"
 }
 expect_no_download() { [ ! -s "$cdir/log/curl.log" ] || fail "curl ran: $(cat "$cdir/log/curl.log")"; }
 expect_downloads() { # the URLs, one per line, in order
@@ -444,7 +497,8 @@ $dl/v0.4.0/$asset"
 		run_install HARDN_VERSION="$v"
 		expect_installed hardn-linux-amd64
 		expect_downloads "$dl/v0.4.0/SHA256SUMS
-$dl/v0.4.0/hardn-linux-amd64"
+$dl/v0.4.0/hardn-linux-amd64
+$api max-time=5"
 	done
 	for v in 0.4 0.4.0.1 1..2 0.4.0-rc.1 '0.4.0/../x'; do
 		new_case "HARDN_VERSION=$v"
@@ -595,6 +649,119 @@ $dl/v0.4.0/hardn-linux-amd64"
 	expect_status 1
 	expect_err "HARDN_INSTALL_ROOT must be an absolute path"
 	expect_no_download
+
+	# 7. The later release's line, with HARDN_VERSION alone: one request to
+	# the API, last, 5 seconds at most; said only for a later tag; never a
+	# failure.
+	said="hardn v0.4.1 available (https://github.com/abbott/hardn)"
+	done_040="# Installed hardn v0.4.0 as /usr/local/bin/hardn"
+	run_line="Run hardn --help or sudo hardn"
+	new_case "notice: a later release"
+	run_install HARDN_VERSION=0.4.0 FAKE_LATEST=newer
+	expect_installed hardn-linux-amd64
+	expect_ends "# Installed" "$done_040
+
+$said
+
+$run_line"
+	expect_blank_end
+	expect_fits
+	expect_downloads "$dl/v0.4.0/SHA256SUMS
+$dl/v0.4.0/hardn-linux-amd64
+$api max-time=5"
+	new_case "notice: later by number, not by letter"
+	run_install HARDN_VERSION=0.9.0 FAKE_LATEST=ten
+	expect_installed hardn-linux-amd64 v0.9.0
+	expect_out "hardn v0.10.0 available (https://github.com/abbott/hardn)"
+	new_case "notice: earlier by number, not by letter"
+	run_install HARDN_VERSION=0.10.0 FAKE_LATEST=nine
+	expect_installed hardn-linux-amd64 v0.10.0
+	expect_ends "# Installed" "# Installed hardn v0.10.0 as /usr/local/bin/hardn
+
+$run_line"
+	# Nothing said, and the install stands: the same release, an earlier
+	# one, a tag that is no version, an answer that is no JSON, no answer
+	# (curl's 22), a timeout (curl's 28).
+	for quiet in FAKE_LATEST=latest FAKE_LATEST=old FAKE_LATEST=rc FAKE_LATEST=notag \
+		FAKE_LATEST=two FAKE_LATEST=shell FAKE_LATEST=nov FAKE_LATEST=long \
+		FAKE_LATEST=short FAKE_LATEST=text FAKE_LATEST=missing FAKE_API_STATUS=28; do
+		new_case "notice: none, $quiet"
+		run_install HARDN_VERSION=0.4.0 "$quiet"
+		expect_installed hardn-linux-amd64
+		expect_ends "# Installed" "$done_040
+
+$run_line"
+		[ ! -s "$cdir/err" ] || fail "stderr is not empty"
+		expect_downloads "$dl/v0.4.0/SHA256SUMS
+$dl/v0.4.0/hardn-linux-amd64
+$api max-time=5"
+	done
+	# An interrupt during the request: hardn is installed, so status 0.
+	for sig in INT TERM HUP; do
+		new_case "notice: $sig during the request"
+		run_install HARDN_VERSION=0.4.0 FAKE_LATEST=newer "FAKE_API_SIGNAL=$sig"
+		expect_installed hardn-linux-amd64
+		expect_out "$done_040"
+	done
+	new_case "notice: no request without HARDN_VERSION"
+	run_install FAKE_LATEST=compact
+	expect_installed hardn-linux-amd64
+	expect_ends "# Installed" "$done_040
+
+$run_line"
+	expect_downloads "$api
+$dl/v0.4.0/SHA256SUMS
+$dl/v0.4.0/hardn-linux-amd64"
+	new_case "notice: no request after a refusal"
+	run_install HARDN_VERSION=9.0.1 FAKE_LATEST=newer
+	expect_nothing_installed
+	expect_downloads "$dl/v9.0.1/SHA256SUMS
+$dl/v9.0.1/hardn-linux-amd64"
+
+	# verify.sh's: the same line after its last, by the same rules.
+	verified="# Verified ./hardn-linux-amd64 (hardn v0.4.0)"
+	new_case "verify.sh: a later release"
+	run_verify 0.4.0 FAKE_LATEST=newer
+	expect_status 0
+	expect_ends "# Verified" "$verified
+
+$said"
+	cmp -s "$cdir/pwd/hardn-linux-amd64" "$rel/v0.4.0/hardn-linux-amd64" || fail "./hardn-linux-amd64 is not the binary"
+	expect_tmp_clean
+	expect_downloads "$dl/v0.4.0/hardn-linux-amd64
+$dl/v0.4.0/SHA256SUMS
+$api max-time=5"
+	new_case "verify.sh: later by number, not by letter"
+	run_verify v0.9.0 FAKE_LATEST=ten
+	expect_status 0
+	expect_out "hardn v0.10.0 available (https://github.com/abbott/hardn)"
+	for quiet in FAKE_LATEST=latest FAKE_LATEST=old FAKE_LATEST=rc FAKE_LATEST=notag \
+		FAKE_LATEST=two FAKE_LATEST=shell FAKE_LATEST=nov FAKE_LATEST=long \
+		FAKE_LATEST=short FAKE_LATEST=text FAKE_LATEST=missing FAKE_API_STATUS=28; do
+		new_case "verify.sh: none, $quiet"
+		run_verify 0.4.0 "$quiet"
+		expect_status 0
+		expect_ends "# Verified" "$verified"
+		cmp -s "$cdir/pwd/hardn-linux-amd64" "$rel/v0.4.0/hardn-linux-amd64" || fail "./hardn-linux-amd64 is not the binary"
+		expect_tmp_clean
+		expect_downloads "$dl/v0.4.0/hardn-linux-amd64
+$dl/v0.4.0/SHA256SUMS
+$api max-time=5"
+	done
+	for sig in INT TERM HUP; do
+		new_case "verify.sh: $sig during the request"
+		run_verify 0.4.0 FAKE_LATEST=newer "FAKE_API_SIGNAL=$sig"
+		expect_status 0
+		expect_out "$verified"
+		cmp -s "$cdir/pwd/hardn-linux-amd64" "$rel/v0.4.0/hardn-linux-amd64" || fail "./hardn-linux-amd64 is not the binary"
+		expect_tmp_clean
+	done
+	new_case "verify.sh: no request after a refusal"
+	run_verify 9.0.1 FAKE_LATEST=newer
+	expect_status 1
+	expect_err "hardn-linux-amd64's SHA-256 is"
+	expect_downloads "$dl/v9.0.1/hardn-linux-amd64
+$dl/v9.0.1/SHA256SUMS"
 done
 
 [ -z "$skipped" ] || printf 'install_test.sh: skipped %s\n' "$skipped"

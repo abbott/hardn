@@ -61,7 +61,7 @@ func TestDisableRootWarning(t *testing.T) {
 // TestVersionFlag: --version and -v print the version, the build date and
 // the commit the ldflags set (main.Version, main.BuildDate,
 // main.GitCommit), as v0.3.2 did, each "unknown" when the build left it
-// empty, on stdout, before the root check, exit status 0; cobra's own
+// empty, then the repository, on stdout, before the root check, exit status 0; cobra's own
 // "hardn version" line never.
 func TestVersionFlag(t *testing.T) {
 	for _, tc := range []struct {
@@ -70,9 +70,9 @@ func TestVersionFlag(t *testing.T) {
 		want                  string
 	}{
 		{"a release build", "0.4.0", "2026-11-04T12:00:00Z", "0123456789abcdef0123456789abcdef01234567",
-			"hardn - Linux hardening tool\nVersion:    0.4.0\nBuild Date: 2026-11-04T12:00:00Z\nGit Commit: 0123456789abcdef0123456789abcdef01234567\nLicense:    GNU AGPL v3, no warranty\n"},
+			"hardn - Linux hardening tool\nVersion:    0.4.0\nBuild Date: 2026-11-04T12:00:00Z\nGit Commit: 0123456789abcdef0123456789abcdef01234567\nRepo:       https://github.com/abbott/hardn\nLicense:    GNU AGPL v3, no warranty\n"},
 		{"go build, no ldflags", "", "", "",
-			"hardn - Linux hardening tool\nVersion:    unknown\nBuild Date: unknown\nGit Commit: unknown\nLicense:    GNU AGPL v3, no warranty\n"},
+			"hardn - Linux hardening tool\nVersion:    unknown\nBuild Date: unknown\nGit Commit: unknown\nRepo:       https://github.com/abbott/hardn\nLicense:    GNU AGPL v3, no warranty\n"},
 	} {
 		for _, flag := range []string{"--version", "-v"} {
 			t.Run(tc.name+" "+flag, func(t *testing.T) {

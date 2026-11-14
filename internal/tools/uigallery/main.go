@@ -21,6 +21,7 @@
 //	go run ./internal/tools/uigallery config [flags] [mock | all]...
 //	go run ./internal/tools/uigallery eol [flags] [mock | all]...
 //	go run ./internal/tools/uigallery release-check [flags] [mock | all]...
+//	go run ./internal/tools/uigallery release-notice [flags] [mock | all]...
 //	go run ./internal/tools/uigallery keys [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
@@ -193,6 +194,9 @@
 // "release-check" lists the mocks of the release check's one line on the main
 // menu (release.go, docs/engine/gallery-release-check.md), with the same flags:
 // each read by hardn's own check from the mock's cache; none makes a request.
+// "release-notice" lists the mocks of that notice where else it is said
+// (releasenotice.go, docs/engine/gallery-release-notice.md): under the
+// repository link, on --version, and ending verify.sh and install.sh.
 // "keys" lists the mocks of the SSH Keys screen, under SSH Login: every key sshd
 // reads, by account, read only (keys.go, docs/engine/gallery-keys.md), with the
 // same flags, each drawn through the real screen's mapping. "play keys" is the
@@ -655,6 +659,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	}
 	if len(args) > 0 && args[0] == releasePrefix {
 		return releaseListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == noticePrefix {
+		return noticeListing.run(args[1:], size, stdout, stderr)
 	}
 	if len(args) > 0 && args[0] == accountsPrefix {
 		return accountsListing.run(args[1:], size, stdout, stderr)

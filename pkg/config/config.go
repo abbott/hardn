@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"go.yaml.in/yaml/v3"
 
@@ -275,10 +276,15 @@ func LoadConfigWithEnvPriority(filePath string) (*Config, error) {
 // the file it finds: the defaults, then the file's keys, and the path and
 // bytes read recorded (setLoaded).
 func readConfigFile(path string) (*Config, error) {
+	return readConfigFileWith(path, os.ReadFile)
+}
+
+// readConfigFileWith is readConfigFile with the read of the file's bytes.
+func readConfigFileWith(path string, read func(string) ([]byte, error)) (*Config, error) {
 	config := DefaultConfig()
 
 	// Read the found config file
-	data, err := os.ReadFile(path)
+	data, err := read(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file %s: %w", path, err)
 	}
@@ -307,12 +313,53 @@ func LoadConfig(filePath string) (*Config, error) {
 // fs.ErrNotExist, as FindConfigFile does not look elsewhere for it.
 // -n's load (cmd/hardn's loadExisting): under -n hardn writes nothing.
 func LoadExisting(filePath string) (*Config, error) {
+	return loadExisting(filePath, os.ReadFile)
+}
+
+// MaxQuickRead is the most of hardn.yml that LoadExistingQuick reads.
+const MaxQuickRead = 1 << 20
+
+// LoadExistingQuick is LoadExisting for --version and --help, which must
+// never wait on hardn.yml or grow with it: a file that is not a regular
+// file (a FIFO, a device), or is larger than MaxQuickRead, is an error,
+// found without blocking on it.
+func LoadExistingQuick(filePath string) (*Config, error) {
+	return loadExisting(filePath, readQuick)
+}
+
+// readQuick reads the regular file at path, MaxQuickRead bytes at most. It
+// opens without blocking, so a FIFO with no writer is refused and not
+// waited on, and checks the file it opened, not the name.
+func readQuick(path string) ([]byte, error) {
+	f, err := os.OpenFile(path, os.O_RDONLY|syscall.O_NONBLOCK, 0) // #nosec G304 -- hardn.yml, where the operator says it is
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = f.Close() }()
+	info, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("%s is not a regular file", path)
+	}
+	data, err := io.ReadAll(io.LimitReader(f, MaxQuickRead+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(data) > MaxQuickRead {
+		return nil, fmt.Errorf("%s is larger than %d bytes", path, MaxQuickRead)
+	}
+	return data, nil
+}
+
+func loadExisting(filePath string, read func(string) ([]byte, error)) (*Config, error) {
 	cfg := DefaultConfig()
 	found := FindConfigFile(filePath)
 	switch {
 	case found.Exists:
 		var err error
-		if cfg, err = readConfigFile(found.Path); err != nil {
+		if cfg, err = readConfigFileWith(found.Path, read); err != nil {
 			return nil, err
 		}
 	case filePath != "":
