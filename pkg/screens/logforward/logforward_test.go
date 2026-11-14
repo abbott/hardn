@@ -188,7 +188,7 @@ func TestView(t *testing.T) {
 		{"mismatch", open(newModel(detect.DistroUbuntu, true).own(t, tcp)), config.LogForwarding{Server: "192.0.2.60"},
 			[]string{"Logger rsyslog", "Server 192.0.2.50:514", "Protocol TCP not encrypted", "Connection Open", "File " + logfwd.DropIn, "Set by hardn", "hardn.yml 192.0.2.60:514 TCP differs"},
 			[]string{"1 Set server: 192.0.2.60:514 TCP", "2 Stop forwarding: Undo hardn's change"}},
-		{"journald, proxmox", newModel(detect.DistroProxmox, false), ymlTCP, []string{"Logger journald alone no syslog forwarder", "Server None", "hardn.yml 192.0.2.50:514 TCP"}, []string{"1 Set server: hardn can't install rsyslog here"}},
+		{"journald, proxmox", newModel(detect.DistroProxmox, false), ymlTCP, []string{"Logger journald alone no syslog forwarder", "Server None", "hardn.yml 192.0.2.50:514 TCP"}, []string{"1 Set server: Installs rsyslog"}},
 		{"journald", newModel(detect.DistroDebian, false), ymlTCP, []string{"Logger journald alone no syslog forwarder", "Server None", "hardn.yml 192.0.2.50:514 TCP"}, []string{"1 Set server: Installs rsyslog"}},
 		{"alpine", newModel(detect.DistroAlpine, false).file(logfwd.ConfD, string(set)), ymlUDP,
 			[]string{"Logger busybox syslogd", "Server 192.0.2.50:514", "Protocol UDP not encrypted, losses unseen", "File " + logfwd.ConfD, "Set by hardn", "hardn.yml 192.0.2.50:514 UDP"},

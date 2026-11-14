@@ -331,12 +331,19 @@ func TestRefusals(t *testing.T) {
 	}
 }
 
-// Proxmox VE with journald alone: hardn installs nothing there
-// (packages.ToolFor), so Set server refuses.
-func TestProxmoxNoInstall(t *testing.T) {
-	_, err := newModel(t, detect.DistroProxmox).plan(logforward.ActionSet, ymlTCP)
-	if output.CodeOf(err) != "PACKAGE_NO_TOOL" {
-		t.Fatalf("Plan = %v, want PACKAGE_NO_TOOL", err)
+// Proxmox VE with journald alone: rsyslog is the one package hardn installs
+// there (steps.Package.Proxmox), so Set server plans as on Debian.
+func TestProxmoxInstalls(t *testing.T) {
+	deb, err := newModel(t, detect.DistroDebian).plan(logforward.ActionSet, ymlTCP)
+	if err != nil {
+		t.Fatalf("Debian: Plan = %v", err)
+	}
+	pve, err := newModel(t, detect.DistroProxmox).plan(logforward.ActionSet, ymlTCP)
+	if err != nil {
+		t.Fatalf("Proxmox VE: Plan = %v", err)
+	}
+	if len(pve) != len(deb) || len(pve) == 0 || pve[0].ID != logforward.ChangeInstall {
+		t.Errorf("Proxmox VE plans %d changes, Debian %d: want the same, the install first", len(pve), len(deb))
 	}
 }
 

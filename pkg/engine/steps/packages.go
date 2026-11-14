@@ -42,6 +42,10 @@ type Package struct {
 	// Community: Alpine keeps the package in its community repository, which
 	// a refusal names.
 	Community bool
+	// Proxmox: installed on Proxmox VE too, through apt-get, where hardn
+	// installs nothing else (packages.ToolFor). rsyslog and its TLS driver
+	// alone (the maintainer, 2026-11-14: "yes, it can install it").
+	Proxmox bool
 }
 
 // PackageToolRefusal is packages.ToolFor's error as a refusal.
@@ -57,6 +61,9 @@ func PackageToolRefusal(err error) error {
 // the tool's removal of p alone, run as it is.
 func PlanPackage(ctx context.Context, sys host.System, f detect.Facts, p Package) ([]engine.Change, error) {
 	tool, err := packages.ToolFor(f)
+	if err != nil && p.Proxmox && f.Platform.Distro == detect.DistroProxmox {
+		tool, err = packages.Apt, nil
+	}
 	if err != nil {
 		return nil, PackageToolRefusal(err)
 	}

@@ -196,7 +196,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 		return nil, err
 	}
 	var cs []engine.Change
-	pkgs := []steps.Package{{ID: ChangeInstall, Name: rsyslogService, After: "installed", Why: ID, Resources: []string{ID}}}
+	pkgs := []steps.Package{{ID: ChangeInstall, Name: rsyslogService, After: "installed", Why: ID, Resources: []string{ID}, Proxmox: true}}
 	if r.Host.Logger != logfwd.Journald {
 		pkgs = nil
 		if res, err := sys.Run(ctx, "rsyslogd", "-N1"); err != nil {
@@ -204,7 +204,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 		}
 	}
 	if want.Proto == logfwd.TLS {
-		pkgs = append(pkgs, steps.Package{ID: ChangeInstallTLS, Name: logfwd.GnuTLSPackage, After: "installed", Why: ID, Resources: []string{ID}})
+		pkgs = append(pkgs, steps.Package{ID: ChangeInstallTLS, Name: logfwd.GnuTLSPackage, After: "installed", Why: ID, Resources: []string{ID}, Proxmox: true})
 	}
 	for _, p := range pkgs {
 		pc, err := steps.PlanPackage(ctx, sys, f, p)

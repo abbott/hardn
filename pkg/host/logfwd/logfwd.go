@@ -121,7 +121,8 @@ type Reading struct {
 	// are read.
 	Forwards []Forward
 	// NoInstall: the logger is Journald, and hardn installs no package on
-	// this distribution (packages.ToolFor; Proxmox VE), so not rsyslog.
+	// this distribution (packages.ToolFor), so not rsyslog. Not Proxmox
+	// VE, where rsyslog is the one install hardn makes.
 	NoInstall bool
 	// Err is why the logger, or its settings, are not read: a file that
 	// cannot be read, or one whose forwarding hardn cannot make out. The
@@ -213,7 +214,9 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) Reading {
 		return Reading{Logger: Rsyslog, Forwards: fw, Err: err}
 	case inst == detect.No && f.Init.Kind == detect.Systemd && f.Init.Running == detect.Yes:
 		_, noTool := packages.ToolFor(f)
-		return Reading{Logger: Journald, NoInstall: noTool != nil}
+		// Proxmox VE has no tool for hardn's other installs, and takes
+		// rsyslog through apt-get (steps.Package.Proxmox).
+		return Reading{Logger: Journald, NoInstall: noTool != nil && f.Platform.Distro != detect.DistroProxmox}
 	case inst == detect.No:
 		return Reading{Err: fmt.Errorf("logfwd: no rsyslog, and systemd did not boot the host: %w", ErrNoLogger)}
 	}

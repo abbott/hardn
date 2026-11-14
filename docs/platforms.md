@@ -22,7 +22,7 @@ What Log Forwarding (main menu 8, then 2) does differs by the host's logger:
 |---|---|---|
 | Ubuntu; Rocky, Alma, RHEL | rsyslog | writes `/etc/rsyslog.d/60-hardn-forward.conf`; UDP, TCP or TLS |
 | Debian 13 and 12 | journald alone, unless rsyslog is installed | installs rsyslog first, which also keeps its own log files under `/var/log` |
-| Proxmox | as Debian | only where rsyslog is already installed: hardn installs no package on Proxmox |
+| Proxmox | as Debian | Set server installs rsyslog where journald runs alone: the one package hardn installs on Proxmox |
 | Alpine | busybox syslogd; with rsyslog also installed, hardn can't tell which one logs and changes nothing | adds `-R <server>:<port> -L` to `SYSLOGD_OPTS` in `/etc/conf.d/syslog`, under a comment naming what it added; UDP only |
 
 - hardn reads rsyslog's forwarding from `/etc/rsyslog.conf` and `/etc/rsyslog.d/*.conf`: `omfwd` actions and the older `@host` and `@@host` lines. A file another `include` names, RELP, and another syslog daemon (syslog-ng) are not read.

@@ -147,8 +147,8 @@ func TestReadLogger(t *testing.T) {
 	if r := logfwd.Read(ctx, debian(t, false), facts(detect.DistroDebian)); r.Logger != logfwd.Journald || r.Err != nil || r.NoInstall {
 		t.Errorf("Debian without rsyslog = %+v, want journald alone", r)
 	}
-	if r := logfwd.Read(ctx, debian(t, false), facts(detect.DistroProxmox)); r.Logger != logfwd.Journald || r.Err != nil || !r.NoInstall {
-		t.Errorf("Proxmox VE without rsyslog = %+v, want journald alone, no install", r)
+	if r := logfwd.Read(ctx, debian(t, false), facts(detect.DistroProxmox)); r.Logger != logfwd.Journald || r.Err != nil || r.NoInstall {
+		t.Errorf("Proxmox VE without rsyslog = %+v, want journald alone, rsyslog installable", r)
 	}
 	noInit := facts(detect.DistroDebian)
 	noInit.Init = detect.Init{}

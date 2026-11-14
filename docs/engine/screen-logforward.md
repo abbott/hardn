@@ -67,7 +67,7 @@ Said before anything is asked, each a `steps.Refusal` ([reference/output.md](../
 | `LOGFWD_CHECK_FAILED` | at apply: rsyslogd refuses its settings with hardn's file; rolled back |
 | `LOGFWD_CHANGED_SINCE` | at apply: `/etc/conf.d/syslog` is not as the plan read it |
 
-A package install's refusals are `PACKAGE_*`, as everywhere: on Proxmox VE with journald alone, `PACKAGE_NO_TOOL`.
+A package install's refusals are `PACKAGE_*`, as everywhere.
 
 ## 4. Settled here, beyond the adopted decisions
 
@@ -76,7 +76,7 @@ Each is the safer reading; those that are product choices are listed for the mai
 1. **IPv6 servers are refused** (`LOGFWD_BAD_SERVER`): how rsyslog's `target` and busybox's `-R` take one was not verified, and an address in brackets is a pattern to the shell that reads `/etc/conf.d/syslog`.
 2. **TLS needs the server's name, not its address**, and `caFile`: the certificate is checked against the name (`StreamDriverPermittedPeers`).
 3. **`caFile` with `udp` or `tcp` is refused**, not ignored: the file says TLS is meant.
-4. **Proxmox VE with journald alone is refused, which is not decision 4 (a)** ("Proxmox VE follows this answer as Debian does, unless the maintainer wants it read-only there"): hardn installs no package on Proxmox VE (`packages.ToolFor`, a rule of every control), so the plan refuses with `PACKAGE_NO_TOOL`, and Set server reads "hardn can't install rsyslog here". With rsyslog already there it is as Debian. **Open, the maintainer's call:** keep this, or have hardn install on Proxmox VE, which changes `packages.ToolFor` for every control.
+4. **Proxmox VE with journald alone installs rsyslog, as Debian does** (decision 4 (a); the maintainer, 2026-11-14: "yes, it can install it"). hardn installs no other package on Proxmox VE (`packages.ToolFor`): `steps.Package.Proxmox` lets rsyslog, and rsyslog-gnutls for TLS, through apt-get there. A plan that would remove a package is refused as on any host, which is what keeps `proxmox-ve` in place. Not run on a Proxmox VE node.
 5. **Alpine's mark.** There is no drop-in, so a comment line names the words hardn added. Stop forwarding takes out exactly those, and refuses where they are gone. `-L` that was there before is the administrator's.
 6. **Three view states the mock had not:** hardn.yml "Not valid" (Set server: "hardn.yml is not valid"); Connection Unknown, the row then Unknown, "connection not read", where `ss` cannot be run (never "None"); a logger hardn cannot tell, Unknown.
 7. **The connection** is `ss -Htnp`: an established socket to the server's address and port; for a server named by name, rsyslogd's established socket to that port.
