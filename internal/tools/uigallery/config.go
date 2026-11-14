@@ -132,16 +132,18 @@ func (m configMock) view(ctx context.Context) (screen.Config, error) {
 // configGroup runs hardn's Configuration group (configscreen.RunGroup) until the
 // user goes back from it: its note above it; its hardn.yml the screen on the
 // typical file, its Log Forwarding and Time Sync the screens on the hosts the
-// main menu's items led to (lfMainHost, tsMainHost).
+// main menu's items led to (lfMainHost, tsMainHost), its Kernel Settings the
+// screen on ksMainHost.
 func (s *session) configGroup(ctx context.Context) error {
 	if err := s.writeNote(configGroupMock, configGroupNote); err != nil {
 		return err
 	}
 	return configscreen.RunGroup(ctx, configscreen.GroupOptions{
-		Prompter:      s.p,
-		File:          s.openConfig(configMainMock),
-		LogForwarding: s.openLogForward(lfMainHost),
-		TimeSync:      s.openTimeSync(tsMainHost),
+		Prompter:       s.p,
+		File:           s.openConfig(configMainMock),
+		LogForwarding:  s.openLogForward(lfMainHost),
+		TimeSync:       s.openTimeSync(tsMainHost),
+		KernelSettings: s.openKernel(ksMainHost),
 	})
 }
 

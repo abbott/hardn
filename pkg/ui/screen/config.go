@@ -56,6 +56,7 @@ var configGroups = []struct {
 	{"Auto Updates", []string{"enableUnattendedUpgrades"}},
 	{"Log Forwarding", []string{"logForwarding"}},
 	{"Time Sync", []string{"ntpServers"}},
+	{"Kernel Settings", []string{"kernelSettings"}},
 	{"Backup", []string{"enableBackups", "backupPath"}},
 	{"General", []string{"dryRun", "confirmTimeout", "checkReleases"}},
 }

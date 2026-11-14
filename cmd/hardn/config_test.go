@@ -63,6 +63,10 @@ const configReport = `# Configuration ##########################################
 
    -  ntpServers           None (default)
 
+  Kernel Settings ----------------------------------------------
+
+   -  kernelSettings       false (default)
+
   Backup -------------------------------------------------------
 
    -  enableBackups        true (default)

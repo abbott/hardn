@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | system-details | system-details/host | logs | logs/host | config | config/menu | config/mock | keys | keys/mock | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | logforward | logforward/host | timesync | timesync/host | runall | runall/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | system-details | system-details/host | logs | logs/host | config | config/menu | config/mock | keys | keys/mock | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | logforward | logforward/host | timesync | timesync/host | sysctl | sysctl/host | runall | runall/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -189,6 +189,22 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
 			return s.play("play "+name, []string{engineNote}, s.openTimeSync(name), stderr)
+		})
+	}
+	if name, ok, err := ksStart(fs.Args()); ok || err != nil {
+		set := map[string]bool{}
+		fs.Visit(func(f *flag.Flag) { set[f.Name] = true })
+		switch {
+		case err != nil:
+			return usage("%v", err)
+		case set["fail"]:
+			return usage("-fail is for the fixture plans of the screen mocks; the Kernel Settings screen fails where its host does")
+		case *sequence != "normal" && *sequence != "dry-run":
+			return usage("-sequence %s: the Kernel Settings screen plays normal or dry-run", *sequence)
+		}
+		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
+			s.sequence = *sequence
+			return s.play("play "+name, []string{engineNote}, s.openKernel(name), stderr)
 		})
 	}
 	if name, ok, err := updStart(fs.Args()); ok || err != nil {

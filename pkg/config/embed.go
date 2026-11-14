@@ -75,6 +75,12 @@ ufwAppProfiles:
 #   - "192.0.2.11"
 
 #################################################
+# Kernel Settings
+#################################################
+# true puts Kernel Settings (main menu 8, then 4) in Run All and on the main menu. Off by default.
+# kernelSettings: true
+
+#################################################
 # Feature Toggles
 #################################################
 enableUfwSshPolicy: false         # Configure UFW with SSH rules

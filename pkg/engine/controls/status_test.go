@@ -8,6 +8,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls"
 	"github.com/abbott/hardn/pkg/engine/controls/dns"
+	"github.com/abbott/hardn/pkg/engine/controls/kernelsettings"
 	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/risk"
@@ -50,6 +51,19 @@ func TestMenu(t *testing.T) {
 		if r.ID == logforward.ID || r.ID == timesync.ID {
 			t.Errorf("%s is a row of the risk level", r.ID)
 		}
+	}
+	// Kernel Settings is checked only where hardn.yml's kernelSettings is
+	// true (gallery-sysctl.md, decision 18 (a)), and never drawn in a
+	// container (decision 16 (a)).
+	asked := config.DefaultConfig()
+	asked.KernelSettings = true
+	if m := controls.Menu(asked); len(m) != len(menu)+1 || m[len(m)-1].ID() != kernelsettings.ID {
+		t.Errorf("kernelSettings true: Menu's last control is %q, of %d", m[len(m)-1].ID(), len(m))
+	}
+	toSet := engine.Report{Control: kernelsettings.ID, Status: engine.Status{State: engine.NotConfigured, Detail: "4 to set"}}
+	boxed := engine.Report{Control: kernelsettings.ID, Status: engine.Status{State: engine.NotApplicable, Detail: kernelsettings.DetailContainer}}
+	if got := controls.MenuReports(asked, []engine.Report{toSet, boxed}); len(got) != 1 || got[0].Status.State != engine.NotConfigured {
+		t.Errorf("Kernel Settings: reports %+v, want every host's but a container's", got)
 	}
 	clock := engine.Report{Control: timesync.ID, Status: engine.Status{State: engine.Partial, Detail: timesync.DetailNotInSync}}
 	inside := engine.Report{Control: timesync.ID, Status: engine.Status{State: engine.NotApplicable, Detail: timesync.DetailContainer}}

@@ -1,5 +1,7 @@
 # The Configuration screen (`pkg/screens/config`, `screen.Config`)
 
+*Since `next/sysctl` (2026-11-14): the menu has a fourth item, `4) Kernel Settings`, "Harden network and kernel" ([gallery-sysctl.md](gallery-sysctl.md), decision 1), the prompt "[0-4 or q]", 10 lines; this screen has a Kernel Settings group (`kernelSettings`). §1.1's drawing is the three items before it.*
+
 *Since `next/time-sync` (2026-11-14): main menu 8, Configuration, is a menu of three screens: `1) hardn.yml`, this screen, unchanged; `2) Log Forwarding` ([screen-logforward.md](screen-logforward.md)); `3) Time Sync` ([screen-timesync.md](screen-timesync.md)). Each returns to it (§1.1). The main menu's keys are unchanged from v0.9.0, and its item 8 reads "hardn.yml, log forwarding, time sync" (the maintainer, 2026-11-14, revising [gallery-logforward.md](gallery-logforward.md)'s decision 8 and [gallery-timesync.md](gallery-timesync.md)'s decision 9). This screen has a Log Forwarding group (`logForwarding`) and a Time Sync group (`ntpServers`).*
 
 Unit (b) of the roadmap's Configuration item ("View and manage hardn.yml" until this unit), `next/config-screen`: the screen [gallery-config.md](gallery-config.md) mocked, as adopted there (2026-11-12, all (a)), now main menu 8. It is the read-only view alone; editing is a later unit.

@@ -1,0 +1,259 @@
+# Golden file of TestSysctlGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156msysctl review-remove␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. configured's Remove settings:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's file deleted, and each value set back to the one the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile recorded, every interface's own.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRemove settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe earlier values are set again.␛[m$
+$
+  ␛[1;38;2;129;134;156mSettings␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mICMP redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156maccepted␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156maccepted␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSending redirects␛[m    ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mon␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProcess tracing␛[m      ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156munrestricted␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDelete hardn's kernel settings␛[m$
+      ␛[38;2;129;134;156m/etc/sysctl.d/90-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,18 +0,0 @@␛[m$
+      ␛[38;2;231;70;105m-# Written by hardn (Kernel Settings).␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.all.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.default.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv4.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.all.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.default.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv6.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.all.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.default.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.eth0.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.lo.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv4.conf.*.send_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: kernel.yama.ptrace_scope = 0␛[m$
+      ␛[38;2;231;70;105m-kernel.yama.ptrace_scope = 1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the earlier values␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.all.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.default.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.eth0.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.all.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.default.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.eth0.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.lo.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.all.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.default.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.eth0.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.yama.ptrace_scope=0␛[m$
+$
+  ␛[38;2;192;196;216mRemove hardn's kernel settings?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  sysctl review-remove -----------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. configured's Remove settings:$
+# hardn's file deleted, and each value set back to the one the$
+# file recorded, every interface's own.$
+$
+  Checking the host...$
+$
+# Remove settings ##############################################$
+$
+# Note$
+# The earlier values are set again.$
+$
+  Settings -----------------------------------------------------$
+$
+   -  ICMP redirects       1 accepted$
+   -  IPv6 redirects       1 accepted$
+   -  Sending redirects    1 on$
+   -  Process tracing      0 unrestricted$
+$
+   -  Delete hardn's kernel settings$
+      /etc/sysctl.d/90-hardn.conf$
+      @@ -1,18 +0,0 @@$
+      -# Written by hardn (Kernel Settings).$
+      -# before: net.ipv4.conf.all.accept_redirects = 1$
+      -# before: net.ipv4.conf.default.accept_redirects = 1$
+      -# before: net.ipv4.conf.eth0.accept_redirects = 1$
+      -# before: net.ipv4.conf.lo.accept_redirects = 1$
+      -net.ipv4.conf.*.accept_redirects = 0$
+      -# before: net.ipv6.conf.all.accept_redirects = 1$
+      -# before: net.ipv6.conf.default.accept_redirects = 1$
+      -# before: net.ipv6.conf.eth0.accept_redirects = 1$
+      -# before: net.ipv6.conf.lo.accept_redirects = 1$
+      -net.ipv6.conf.*.accept_redirects = 0$
+      -# before: net.ipv4.conf.all.send_redirects = 1$
+      -# before: net.ipv4.conf.default.send_redirects = 1$
+      -# before: net.ipv4.conf.eth0.send_redirects = 1$
+      -# before: net.ipv4.conf.lo.send_redirects = 1$
+      -net.ipv4.conf.*.send_redirects = 0$
+      -# before: kernel.yama.ptrace_scope = 0$
+      -kernel.yama.ptrace_scope = 1$
+$
+   -  Set the earlier values$
+      $ sysctl -w net.ipv4.conf.all.accept_redirects=1$
+      $ sysctl -w net.ipv4.conf.default.accept_redirects=1$
+      $ sysctl -w net.ipv4.conf.eth0.accept_redirects=1$
+      $ sysctl -w net.ipv4.conf.lo.accept_redirects=1$
+      $ sysctl -w net.ipv6.conf.all.accept_redirects=1$
+      $ sysctl -w net.ipv6.conf.default.accept_redirects=1$
+      $ sysctl -w net.ipv6.conf.eth0.accept_redirects=1$
+      $ sysctl -w net.ipv6.conf.lo.accept_redirects=1$
+      $ sysctl -w net.ipv4.conf.all.send_redirects=1$
+      $ sysctl -w net.ipv4.conf.default.send_redirects=1$
+      $ sysctl -w net.ipv4.conf.eth0.send_redirects=1$
+      $ sysctl -w net.ipv4.conf.lo.send_redirects=1$
+      $ sysctl -w kernel.yama.ptrace_scope=0$
+$
+  Remove hardn's kernel settings? [y/N, 0 or q]: $
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156msysctl review-remove␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. configured's Remove settings:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's file deleted, and each value set back to the one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe file recorded, every interface's own.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mRemove settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe earlier values are set again.␛[m$
+$
+  ␛[1;38;2;129;134;156mSettings␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mICMP redirects␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156maccepted␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156maccepted␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSending redirects␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mon␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProcess tracing␛[m$
+      ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156munrestricted␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDelete hardn's kernel settings␛[m$
+      ␛[38;2;129;134;156m/etc/sysctl.d/90-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,18 +0,0 @@␛[m$
+      ␛[38;2;231;70;105m-# Written by hardn (Kernel Settings).␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.all.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.default.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv4.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.all.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.default.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv6.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.all.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.default.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.eth0.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.lo.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv4.conf.*.send_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: kernel.yama.ptrace_scope = 0␛[m$
+      ␛[38;2;231;70;105m-kernel.yama.ptrace_scope = 1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the earlier values␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.all.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.default.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.eth0.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.all.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.default.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.eth0.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.lo.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.all.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.default.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.eth0.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.yama.ptrace_scope=0␛[m$
+$
+  ␛[38;2;192;196;216mRemove hardn's kernel settings?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156msysctl review-remove␛[m ␛[38;2;22;24;29m-----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. configured's Remove settings:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's file deleted, and each value set back to the one the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfile recorded, every interface's own.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host...␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mRemove settings␛[m ␛[38;2;43;47;59m##############################################␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe earlier values are set again.␛[m$
+$
+  ␛[1;38;2;129;134;156mSettings␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mICMP redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156maccepted␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156maccepted␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSending redirects␛[m    ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mon␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProcess tracing␛[m      ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156munrestricted␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDelete hardn's kernel settings␛[m$
+      ␛[38;2;129;134;156m/etc/sysctl.d/90-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,18 +0,0 @@␛[m$
+      ␛[38;2;231;70;105m-# Written by hardn (Kernel Settings).␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.all.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.default.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv4.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.all.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.default.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv6.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv6.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.all.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.default.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.eth0.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-# before: net.ipv4.conf.lo.send_redirects = 1␛[m$
+      ␛[38;2;231;70;105m-net.ipv4.conf.*.send_redirects = 0␛[m$
+      ␛[38;2;231;70;105m-# before: kernel.yama.ptrace_scope = 0␛[m$
+      ␛[38;2;231;70;105m-kernel.yama.ptrace_scope = 1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the earlier values␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.all.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.default.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.eth0.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.all.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.default.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.eth0.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.lo.accept_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.all.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.default.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.eth0.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.send_redirects=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.yama.ptrace_scope=0␛[m$
+$
+  ␛[38;2;192;196;216mRemove hardn's kernel settings?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$

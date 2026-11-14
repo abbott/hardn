@@ -28,6 +28,7 @@ import (
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	fwctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/kernelsettings"
 	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
@@ -69,6 +70,8 @@ const (
 	wordsSetServer = "Set server"
 	// wordsSetServers is Time Sync's change, the screen's item.
 	wordsSetServers = "Set servers"
+	// wordsApplySettings is Kernel Settings' change, the screen's item.
+	wordsApplySettings = "Apply settings"
 
 	userMgmt = "User Management's: "
 	sshLogin = "SSH Login's: "
@@ -159,9 +162,10 @@ func IDs() []string {
 }
 
 // IDsFor are the rows' controls with cfg as hardn.yml: IDs, and, before
-// Backup, Log Forwarding where logForwarding names a server and Time Sync
-// where ntpServers names any. With none its row is not listed
-// (gallery-logforward.md, decision 9 (a); gallery-timesync.md, decision 15
+// Backup, Log Forwarding where logForwarding names a server, Time Sync
+// where ntpServers names any, and Kernel Settings where kernelSettings is
+// true. With none its row is not listed (gallery-logforward.md, decision 9
+// (a); gallery-timesync.md, decision 15 (a); gallery-sysctl.md, decision 18
 // (a)).
 func IDsFor(cfg *config.Config) []string {
 	ids := IDs()
@@ -175,11 +179,15 @@ func IDsFor(cfg *config.Config) []string {
 	if len(cfg.NTPServers) > 0 {
 		more = append(more, timesync.ID)
 	}
+	if cfg.KernelSettings {
+		more = append(more, kernelsettings.ID)
+	}
 	return slices.Insert(ids, len(ids)-1, more...)
 }
 
 // Checked are the controls whose checks the rows show: the main menu's,
-// Log Forwarding's and Time Sync's where hardn.yml asks for them (IDsFor),
+// Log Forwarding's, Time Sync's and Kernel Settings' where hardn.yml asks
+// for them (IDsFor),
 // then Backup's.
 func Checked(cfg *config.Config) []engine.Control {
 	out := controls.Status(cfg)
@@ -188,6 +196,9 @@ func Checked(cfg *config.Config) []engine.Control {
 	}
 	if cfg != nil && len(cfg.NTPServers) > 0 {
 		out = append(out, timesync.Controls(cfg)...)
+	}
+	if cfg != nil && cfg.KernelSettings {
+		out = append(out, kernelsettings.Controls()...)
 	}
 	return append(out, backupctl.Settings{Config: cfg})
 }
@@ -219,7 +230,8 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
 // nameservers; enableUnattendedUpgrades true, on (never off);
 // logForwarding's server, Set server (never Stop forwarding); ntpServers,
-// Set servers (never Remove servers). SSH Auth asks
+// Set servers (never Remove servers); kernelSettings true, Apply settings
+// (never Remove settings). SSH Auth asks
 // no key: on Alpine, where sshd lacks CVE-2026-123158's fix, it is the
 // openssh upgrade (sshchange.Upgrade; the maintainer, 2026-11-08). Every
 // other row asks nothing: AppArmor and Backup.
@@ -278,6 +290,12 @@ func Asked(in Input, id string) Ask {
 			return Ask{}
 		}
 		return Ask{Control: timesync.Sync{Action: timesync.ActionSet, Config: cfg}, Words: wordsSetServers}
+	case kernelsettings.ID:
+		// Apply settings alone, never Remove settings (decision 18 (a)).
+		if !cfg.KernelSettings {
+			return Ask{}
+		}
+		return Ask{Control: kernelsettings.Settings{Action: kernelsettings.ActionApply}, Words: wordsApplySettings}
 	}
 	return Ask{}
 }
@@ -380,7 +398,8 @@ func (r Reading) of(k Kind) []Row {
 
 // Read reads the host for Run All, writing nothing: the revert state first,
 // then each row's check; each row hardn.yml asks of (Asked) planned alone,
-// in the screen's order; root login off skipped where the firewall is
+// in the screen's order, Kernel Settings left out in a container; root
+// login off skipped where the firewall is
 // planned too (decision 5 (a)); then the planned rows' controls in one
 // plan, whose refusal refuses Apply all. Where a change is pending, every
 // row asked of but the port and those Not Applicable is Pending and
@@ -402,6 +421,9 @@ func Read(ctx context.Context, in Input) (Reading, error) {
 	}
 	for _, id := range IDsFor(in.Config) {
 		rep, _ := report(reports, id)
+		if id == kernelsettings.ID && !kernelsettings.Shown(rep.Status) {
+			continue // no row in a container (gallery-sysctl.md, decision 16 (a))
+		}
 		r.Reports = append(r.Reports, rep)
 		r.Rows = append(r.Rows, r.pick(ctx, in, id, rep))
 	}

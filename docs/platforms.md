@@ -49,6 +49,22 @@ What Time Sync (main menu 8, then 3) does differs by the host's time service. ha
 - The clock is read with `chronyc -N tracking` for chrony, `timedatectl show` under systemd, and `busybox adjtimex` on Alpine.
 - Not verified on a host yet: everything on this list. The files are as each distribution's package source has them; the commands' output is as their source code prints it. What a package upgrade does with a main file hardn edited (ucf on Debian and Ubuntu, rpm elsewhere) is not known.
 
+## Kernel settings
+
+What Kernel Settings (main menu 8, then 4) writes to `/etc/sysctl.d/90-hardn.conf` differs by the host's `sysctl`:
+
+| Distribution | `sysctl` | hardn's file | At boot |
+|---|---|---|---|
+| Debian, Ubuntu, Proxmox, Rocky, Alma, RHEL, CentOS Stream, Oracle | procps | one line for every interface, such as `net.ipv6.conf.*.accept_redirects = 0` | systemd-sysctl applies it, to an interface that appears later too |
+| Alpine | busybox | a line for each interface by name: busybox reads no `*` | the `sysctl` service applies it, where it is enabled |
+
+- On Alpine an interface added later is not covered until Apply settings runs again.
+- On Alpine with the `sysctl` service in no runlevel, nothing in `/etc/sysctl.d` is applied at boot. hardn sets the values now, says so, and doesn't enable the service: `rc-update add sysctl boot` does.
+- busybox `sysctl` exits 0 even when a setting fails, so hardn reads its messages and reads each value back.
+- A Proxmox node is treated as a host that routes: Sending redirects and Reverse-path filter are left as they are.
+- A setting the kernel doesn't have (IPv6 off) reads "Not Applicable", and is not written.
+- Read on hosts on 2026-11-14: each interface's values, `sysctl -p` with a `*` line and with an unknown key, and a boot with such a file, on Debian 13, Ubuntu 26.04, CentOS Stream 10, Oracle Linux 9 and Alpine 3.23 and 3.24. Not verified on a host yet: hardn's own Apply settings and Remove settings; `sysctl -w`; a Proxmox node; RHEL, Alma and Rocky beyond their values.
+
 ## Alpine
 
 - On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.

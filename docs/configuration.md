@@ -274,6 +274,19 @@ The time servers Time Sync (main menu `8) Configuration`, then 3) and Run All se
 
 What changes on each distribution: [platforms.md](platforms.md#time-sync).
 
+### Kernel Settings
+
+```yaml
+kernelSettings: true
+```
+
+`true` puts Kernel Settings (main menu `8) Configuration`, then 4) in Run All and on the main menu. Off by default: hardn then sets no kernel setting unless you choose Apply settings on the screen, which works either way.
+
+- No screen saves this key. Remove settings leaves it: set it to `false` too, or the next Run All applies the settings again.
+- There is no list of settings to skip. To keep one of your own, set it in a file read after hardn's, such as `/etc/sysctl.d/99-sysctl.conf`: hardn shows it and leaves it.
+
+What differs by distribution: [platforms.md](platforms.md#kernel-settings).
+
 ### Feature Toggles
 
 ```yaml
@@ -295,6 +308,7 @@ The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
 - **`logForwarding`'s `server`:** sends the host's logs to it, as Log Forwarding's Set server. With no server the row is not listed. Run All never stops forwarding.
 - **`ntpServers`:** sets them on the host's time service, as Time Sync's Set servers. With none the row is not listed. Run All never removes them.
+- **`kernelSettings: true`:** sets the kernel settings below hardn's baseline, as Kernel Settings' Apply settings. When false the row is not listed, and in a container never. Run All never removes them.
 - **`sshPort`:** compared with the port sshd listens on; never changed.
 - **No key, on Alpine:** where sshd lacks the fix for CVE-2026-123158, upgrades openssh, then reloads sshd. Root login off, the firewall and creating a user refused for the CVE then wait for the next run.
 - **`enableBackups` and `backupPath`:** the plan's backups.

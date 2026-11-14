@@ -90,6 +90,13 @@ type Config struct {
 	// default, hardn changes nothing. Not written when unset.
 	NTPServers NTPServers `yaml:"ntpServers,omitempty"`
 
+	// Kernel Settings
+	// KernelSettings puts Kernel Settings in Run All and on the main menu
+	// (the maintainer, 2026-11-14; gallery-sysctl.md, decisions 17 and 18).
+	// False, the default, hardn changes nothing there; the screen's Apply
+	// settings works either way. Not written when false.
+	KernelSettings bool `yaml:"kernelSettings,omitempty"`
+
 	// Feature Toggles
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`

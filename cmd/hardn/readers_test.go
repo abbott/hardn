@@ -813,7 +813,7 @@ func TestConfigScreenHook(t *testing.T) {
 				t.Errorf("the group drawn %d times, want %d:\n%s", n, tc.drawn, s.out.String())
 			}
 			for _, w := range []string{"# Configuration ###", "   2) Log Forwarding       Send logs to a syslog server\n", "   3) Time Sync            Keep the clock in sync\n",
-				"Option [0-3 or q]: ", "   -  Path                 " + path + "\n", "   -  From                 Search path\n",
+				"Option [0-4 or q]: ", "   -  Path                 " + path + "\n", "   -  From                 Search path\n",
 				"   -  username             alice\n", "   -  sshPort              2230\n", "   -  dryRun               false (default)", "   0) Return"} {
 				if !strings.Contains(s.out.String(), w) {
 					t.Errorf("no %q in:\n%s", w, s.out.String())

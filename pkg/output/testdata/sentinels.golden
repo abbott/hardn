@@ -101,6 +101,13 @@ host.ErrSymlinkParent SYMLINK_IN_UNSAFE_DIRECTORY
 host.ErrUnknownGroup UNKNOWN_GROUP
 host.ErrUnknownUser UNKNOWN_USER
 host.ErrUntrustedDir UNSAFE_DIRECTORY
+kernelsettings.ErrChangedSince KERNEL_SETTINGS_CHANGED_SINCE
+kernelsettings.ErrContainer KERNEL_SETTINGS_CONTAINER
+kernelsettings.ErrNoTool KERNEL_SETTINGS_NO_SYSCTL
+kernelsettings.ErrNotRead KERNEL_SETTINGS_NOT_READ
+kernelsettings.ErrNotSet KERNEL_SETTINGS_NOT_SET
+kernelsettings.ErrNothingToRemove KERNEL_SETTINGS_NOTHING_TO_REMOVE
+kernelsettings.ErrOutside KERNEL_SETTINGS_FILE_NOT_HARDNS
 logforward.ErrBadServer LOGFWD_BAD_SERVER
 logforward.ErrChangedSince LOGFWD_CHANGED_SINCE
 logforward.ErrCheckFailed LOGFWD_CHECK_FAILED
@@ -236,6 +243,8 @@ sudoers.ErrUnsafeRunDir UNSAFE_DIRECTORY
 sudoers.ErrUnsupported SUDOERS_DOAS_UNSUPPORTED
 sudoers.ErrUserName SUDOERS_USER_NAME
 sudoers.ErrVarName SUDOERS_VAR_NAME
+sysctl.ErrMalformed KERNEL_SETTINGS_NOT_READ
+sysctl.ErrValue KERNEL_SETTINGS_NOT_READ
 timesync.ErrBadServers TIMESYNC_BAD_SERVERS
 timesync.ErrChangedSince TIMESYNC_CHANGED_SINCE
 timesync.ErrContainer TIMESYNC_CONTAINER
