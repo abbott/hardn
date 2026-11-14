@@ -180,6 +180,53 @@ func TestContract(t *testing.T) {
 			wantFile(t, w, "open/audit.jsonl", "{\"a\":1}\n", 0o600)
 			wantNames(t, w, "open", "audit.jsonl")
 		}},
+		{"rotate leaves a file at the limit, and moves one over it and its copies up", func(t *testing.T, w world) {
+			w.file("hardn.log", "12345", 0o644)
+			w.file("hardn.log.1", "one", 0o600)
+			w.file("hardn.log.2", "two", 0o600)
+			if rotated, err := w.sys.RotateFile(ctx, w.path("hardn.log"), 5, 2, false); rotated || err != nil {
+				t.Fatalf("at the limit: rotated %v, %v", rotated, err)
+			}
+			wantNames(t, w, "", "hardn.log", "hardn.log.1", "hardn.log.2")
+			if rotated, err := w.sys.RotateFile(ctx, w.path("hardn.log"), 4, 2, false); !rotated || err != nil {
+				t.Fatalf("over the limit: rotated %v, %v", rotated, err)
+			}
+			wantFile(t, w, "hardn.log.1", "12345", 0o644)
+			wantFile(t, w, "hardn.log.2", "one", 0o600)
+			wantNames(t, w, "", "hardn.log.1", "hardn.log.2")
+			if rotated, err := w.sys.RotateFile(ctx, w.path("hardn.log"), 4, 2, false); rotated || err != nil {
+				t.Errorf("no file: rotated %v, %v", rotated, err)
+			}
+		}},
+		{"rotate refuses a symlink and a directory, at the file or a copy", func(t *testing.T, w world) {
+			w.file("keys", "cluster\n", 0o600)
+			w.symlink("linked.log", w.path("keys"))
+			w.dir("dir.log")
+			w.file("hardn.log", "12345", 0o644)
+			w.symlink("hardn.log.2", w.path("keys"))
+			w.file("audit.jsonl", "12345", 0o600)
+			w.dir("audit.jsonl.1")
+			for name, want := range map[string]error{"linked.log": host.ErrSymlink, "dir.log": fs.ErrInvalid, "hardn.log": host.ErrSymlink, "audit.jsonl": fs.ErrInvalid} {
+				if rotated, err := w.sys.RotateFile(ctx, w.path(name), 4, 2, false); rotated || !errors.Is(err, want) {
+					t.Errorf("%s: rotated %v, err = %v, want %v", name, rotated, err, want)
+				}
+			}
+			wantFile(t, w, "keys", "cluster\n", 0o600)
+			wantFile(t, w, "hardn.log", "12345", 0o644)
+			wantLink(t, w, "hardn.log.2", w.path("keys"))
+			wantNames(t, w, "", "audit.jsonl", "audit.jsonl.1", "dir.log", "hardn.log", "hardn.log.2", "keys", "linked.log")
+		}},
+		{"rotate refuses a directory another user can change, when asked", func(t *testing.T, w world) {
+			w.dir("open")
+			w.file("open/audit.jsonl", "12345", 0o600)
+			if err := w.sys.Chmod(ctx, w.path("open"), 0o777); err != nil {
+				t.Fatal(err)
+			}
+			if rotated, err := w.sys.RotateFile(ctx, w.path("open/audit.jsonl"), 4, 2, true); rotated || !errors.Is(err, host.ErrUntrustedDir) {
+				t.Errorf("rotated %v, err = %v, want ErrUntrustedDir", rotated, err)
+			}
+			wantNames(t, w, "open", "audit.jsonl")
+		}},
 		{"rename over a symlink replaces the link, not its target", func(t *testing.T, w world) {
 			w.file("keys", "cluster\n", 0o600)
 			w.symlink("authorized_keys", w.path("keys"))

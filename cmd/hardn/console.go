@@ -12,11 +12,15 @@ package main
 // journal, as stdout is, so confirm's and rollback's lines still reach it.
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
 
+	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 )
@@ -33,7 +37,9 @@ var logOnStderr bool
 
 // openLog opens hardn's log at path, as hardn has since v0.3.x: its
 // directory made 0755 where missing, the file opened O_CREATE|O_APPEND,
-// 0644. Each step that fails, as for a user other than root, is said on
+// 0644. Before it opens the file it rotates it (rotateLog), so the copy is
+// made before this command's first line; a log not rotated is one warning,
+// and the file is opened and appended to as it is. Each step that fails, as for a user other than root, is said on
 // stderr as a warning, in pkg/logging's words ("Failed to create log
 // directory: …", "Failed to open log file <path>: …"), and the log is then
 // stderr, as pkg/logging's was: the log-only lines (revertFileLog, the
@@ -41,18 +47,48 @@ var logOnStderr bool
 func openLog(path string) {
 	var run component.Messages
 	failed := func(text string) { run = append(run, component.Message{Kind: component.MessageWarn, Text: text}) }
+	made := true
 	if dir := filepath.Dir(path); dir != "." {
 		if err := os.MkdirAll(dir, 0o755); err != nil {
+			made = false
 			failed(fmt.Sprintf("Failed to create log directory: %v", err))
 		}
 	}
-	if f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644); err != nil {
+	var notRotated error
+	if made {
+		notRotated = rotateLog(path)
+	}
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	if errors.Is(err, fs.ErrNotExist) && made {
+		// Renamed away as it was opened, by another hardn rotating it: once more.
+		f, err = os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
+	}
+	if err != nil {
 		failed(fmt.Sprintf("Failed to open log file %s: %v", path, err))
 		hardnLog, logOnStderr = output.NewLog(stderr), true
 	} else {
+		// Said only of a log that opened: one that did not has its own warning.
+		if notRotated != nil {
+			failed(output.NotRotated(path, notRotated))
+		}
 		hardnLog, logOnStderr = output.NewLog(f), false
 	}
 	writeConsole(run)
+}
+
+// rotateLog renames hardn's log at path to path.1 where it is over
+// output.LogMaxSize, the older copies moved up and the oldest of
+// output.LogKeep deleted (host.System.RotateFile, on a host with no run
+// log). Its directory need not be root's alone: /var/log is its group's to
+// write on some releases, and no name is followed. Only openLog calls it,
+// so only a command that writes the log rotates it: never hardn check, the
+// Logs screen or -p (docs/engine/design-log-rotation.md, decision 6).
+func rotateLog(path string) error {
+	if !filepath.IsAbs(path) {
+		return nil
+	}
+	_, err := host.NewReal(host.Options{}).RotateFile(context.Background(), path, output.LogMaxSize, output.LogKeep, false)
+	return err
 }
 
 // logLevel is the log file's level for a console line of kind k.

@@ -239,6 +239,28 @@ func TestAuditNotWritten(t *testing.T) {
 	}
 }
 
+// TestAuditNotRotated: an audit log that cannot be rotated, here a copy
+// that is a symlink, is one warning; the run is applied and its record
+// written to the log as it is.
+func TestAuditNotRotated(t *testing.T) {
+	auditOnRunHost(t)
+	h, cfg := newDNSHost(t, "debian13", dnsTestList)
+	h.AddDir("/var/log/hardn", output.AuditDirMode, 0, 0)
+	h.AddFile(output.AuditPath, bytes.Repeat([]byte("x"), output.AuditMaxSize+1), output.AuditFileMode, 0, 0)
+	h.AddSymlink(output.AuditPath+".1", "/etc/shadow")
+	r, s := runG(t, h, cfg, nil, "--yes", "-g")
+	if r.ended || !strings.Contains(s.out.String(), "Operation Successful") {
+		t.Fatalf("ended %v with %d; stderr:\n%s", r.ended, r.code, r.stderr)
+	}
+	said := flat(r.stderr)
+	if !strings.Contains(said, output.AuditPath+" was not rotated: "+output.AuditPath+".1: refusing a symlink") || strings.Count(said, output.AuditPath) != 2 || strings.Count(said, "Warning") != 1 || strings.Contains(said, "not in the audit log") {
+		t.Errorf("stderr:\n%s", r.stderr)
+	}
+	if e, _ := h.Entry(output.AuditPath); len(e.Data) <= output.AuditMaxSize+1 || e.Data[len(e.Data)-1] != '\n' {
+		t.Errorf("the record was not appended: %d bytes", len(e.Data))
+	}
+}
+
 // TestAuditNotBeforeAnOperation: --help, --version and the non-root
 // refusal run no operation, so nothing reaches the audit log. A usage
 // error ends hardn in flag parsing, before any of them (TestUsageErrors).

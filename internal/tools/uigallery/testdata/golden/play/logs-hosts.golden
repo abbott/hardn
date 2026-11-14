@@ -24,12 +24,13 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mEmpty␛[m                ␛[38;2;129;134;156mNo lines␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mControl characters␛[m   ␛[38;2;129;134;156mEscape sequences, shown safe␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mlogFile elsewhere␛[m    ␛[38;2;129;134;156mhardn.yml says another path␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mBusyBox's less␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mNo pager␛[m             ␛[38;2;129;134;156mNo less installed␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAn older copy␛[m        ␛[38;2;129;134;156mThe log was rotated␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mBusyBox's less␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mNo pager␛[m             ␛[38;2;129;134;156mNo less installed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 6$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 6$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/control␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Lines hold␛[m$
@@ -76,12 +77,13 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mEmpty␛[m                ␛[38;2;129;134;156mNo lines␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mControl characters␛[m   ␛[38;2;129;134;156mEscape sequences, shown safe␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mlogFile elsewhere␛[m    ␛[38;2;129;134;156mhardn.yml says another path␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mBusyBox's less␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mNo pager␛[m             ␛[38;2;129;134;156mNo less installed␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAn older copy␛[m        ␛[38;2;129;134;156mThe log was rotated␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m          ␛[38;2;129;134;156mBusyBox's less␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mNo pager␛[m             ␛[38;2;129;134;156mNo less installed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -111,12 +113,13 @@ $
    5) Empty                No lines$
    6) Control characters   Escape sequences, shown safe$
    7) logFile elsewhere    hardn.yml says another path$
-   8) Alpine 3.23          BusyBox's less$
-   9) No pager             No less installed$
+   8) An older copy        The log was rotated$
+   9) Alpine 3.23          BusyBox's less$
+  10) No pager             No less installed$
 $
    0) Return$
 $
-    > Option [0-9 or q]: 6$
+    > Option [0-10 or q]: 6$
 $
 # Info: logs/control$
 # web-01.example.net runs Debian 13, less installed. Lines hold$
@@ -163,12 +166,13 @@ $
    5) Empty                No lines$
    6) Control characters   Escape sequences, shown safe$
    7) logFile elsewhere    hardn.yml says another path$
-   8) Alpine 3.23          BusyBox's less$
-   9) No pager             No less installed$
+   8) An older copy        The log was rotated$
+   9) Alpine 3.23          BusyBox's less$
+  10) No pager             No less installed$
 $
    0) Return$
 $
-    > Option [0-9 or q]: 0$
+    > Option [0-10 or q]: 0$
 $
   simulated system ---------------------------------------------$
 $
@@ -205,14 +209,16 @@ $
       ␛[38;2;129;134;156mEscape sequences, shown safe␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mlogFile elsewhere␛[m$
       ␛[38;2;129;134;156mhardn.yml says another path␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAn older copy␛[m$
+      ␛[38;2;129;134;156mThe log was rotated␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
       ␛[38;2;129;134;156mBusyBox's less␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mNo pager␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mNo pager␛[m$
       ␛[38;2;129;134;156mNo less installed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 6$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 6$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: logs/control␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, less installed. Lines␛[m$
@@ -267,14 +273,16 @@ $
       ␛[38;2;129;134;156mEscape sequences, shown safe␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mlogFile elsewhere␛[m$
       ␛[38;2;129;134;156mhardn.yml says another path␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mAn older copy␛[m$
+      ␛[38;2;129;134;156mThe log was rotated␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mAlpine 3.23␛[m$
       ␛[38;2;129;134;156mBusyBox's less␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mNo pager␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mNo pager␛[m$
       ␛[38;2;129;134;156mNo less installed␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

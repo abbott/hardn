@@ -221,6 +221,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 ### Logs
 - `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. Each `hardn confirm` and `hardn rollback` adds a line too, with who ran it, the change's id and how it ended; so does the rollback of a change nobody confirmed, and each `hardn check --accept`. A plain `hardn check` adds none. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
 - `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. `10) Logs` and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
+- hardn rotates both. Over 10 MiB, `hardn.log` becomes `hardn.log.1` and a new file starts; four older copies are kept (`.1` to `.4`). `audit.jsonl` does the same over 5 MiB, with nine. Copies are plain files, not compressed. `10) Logs` and `-p` to a terminal show the current file and name `hardn.log.1` where there is one. `hardn check` never rotates.
 
 ## hardn.yml
 

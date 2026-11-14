@@ -22,6 +22,7 @@ const (
 	logsFileSection  = "File"
 	logsPathKey      = "Path"
 	logsSizeKey      = "Size"
+	logsOlderKey     = "Older"
 	logsNoLog        = "No log yet"
 	logsEmpty        = "Empty"
 	logsCantRead     = "Can't read it: %s"
@@ -69,6 +70,9 @@ type Logs struct {
 	// Last is its last lines, oldest first: the screen shows as many of their end
 	// as the terminal holds.
 	Last []component.CodeLine
+	// Older is the rotated copy before this file, "/var/log/hardn.log.1", named
+	// in a row and not read; "" says nothing.
+	Older string
 	// Elsewhere is hardn.yml's logFile where it names another path, said in a row;
 	// "" says nothing.
 	Elsewhere string
@@ -102,6 +106,9 @@ func (l Logs) fileSection() Section {
 		rows = append(rows, component.KeyValue{Key: logsEmpty, State: component.ValueNone})
 	default:
 		rows = append(rows, component.KeyValue{Key: logsSizeKey, Value: sizeWords(l.Size)})
+	}
+	if l.Older != "" {
+		rows = append(rows, component.KeyValue{Key: logsOlderKey, Value: l.Older})
 	}
 	if l.Elsewhere != "" {
 		rows = append(rows, component.KeyValue{Key: fmt.Sprintf(logsElsewhere, l.Elsewhere), State: component.ValueWarn})

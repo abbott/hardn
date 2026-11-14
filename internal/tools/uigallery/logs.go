@@ -98,7 +98,8 @@ var logSample = []string{
 // logOf is lines as a file holds them.
 func logOf(lines []string) string { return strings.Join(lines, "\n") + "\n" }
 
-// longLog is a log of 1204 lines, nothing rotating it (output.LegacyLogPath).
+// longLog is a log of 1204 lines, far under the size hardn rotates it at
+// (output.LogMaxSize).
 func longLog() string {
 	var lines []string
 	for i := range 1204 - len(logSample) {
@@ -155,6 +156,8 @@ func logHosts() []logHost {
 			note: deb + "Lines hold what commands printed: colour, a title and bell, a bidi override, bytes that are not UTF-8, typographic characters. Those a terminal would act on show as ^[ and <U+202E> and <0xe9>, the rest as they are, in either glyph set; origin/main prints them raw to the terminal (logging.go:146; file_logs_repository.go:96; menu/logs_escape.golden)."},
 		{name: "elsewhere", label: "logFile elsewhere", about: "hardn.yml says another path", host: elsewhereLog,
 			note: deb + "hardn.yml says logFile: /srv/log/hardn.log, where nothing writes. The screen reads the file hardn writes and says so; origin/main reads logFile, not what main() opens (P-18; config.go:324)."},
+		{name: "older", label: "An older copy", about: "The log was rotated", host: olderLog,
+			note: deb + "hardn renamed a log over 10 MiB to /var/log/hardn.log.1 and began this one (docs/engine/design-log-rotation.md). The screen reads the current file alone and names the older copy in a row; hardn -p to a terminal does too."},
 		{name: "alpine323", label: "Alpine 3.23", about: "BusyBox's less", host: alpineLog,
 			note: hostFQDN + " runs Alpine 3.23, whose less is a link to BusyBox (vm-runs/s1/01-tools.log). LESSSECURE=1 changes nothing there: s still prompts Log file, E and :e Examine (vm-runs/s1/04-less2-alpine323-vm.log). No path was typed at s, so its write did not run; E did try a name that does not exist. That s writes and E opens any path as root is read (miscutils/less.c, master). It refuses less --version, so it has no Open item (decision 7 (a)). With Alpine's less package there is one [I, not run]."},
 		{name: "no-pager", label: "No pager", about: "No less installed", host: noPagerLog,
@@ -180,6 +183,14 @@ func unreadableLog() *fakeHost {
 // elsewhereLog is Debian 13 whose hardn.yml sets logFile elsewhere.
 func elsewhereLog() *fakeHost {
 	return logOn(logOf(logSample))().withHardnYML("logFile: /srv/log/hardn.log\n")
+}
+
+// olderLog is Debian 13 after a rotation: the sample log, and the copy
+// before it beside it.
+func olderLog() *fakeHost {
+	h := logOn(logOf(logSample))()
+	h.f.AddFile(hardnLog+logview.OlderSuffix, []byte(logOf(logSample[:4])), 0o644, 0, 0)
+	return h
 }
 
 // alpineLog is Alpine 3.23 with BusyBox's less: a link to /bin/busybox, which
@@ -356,6 +367,8 @@ func logsMocks() []listMock {
 	return []listMock{
 		{name: "cli-terminal-tail", note: "hardn -p to a terminal: the file and as many of the last lines as the terminal holds, no menu and no prompt, for a shell to carry on under.",
 			draw: onLogPrint("long", true)},
+		{name: "cli-terminal-older", note: "The same after a rotation: the current file alone, and a row naming the older copy.",
+			draw: onLogPrint("older", true)},
 		{name: "cli-pipe", wide: term80, note: "hardn -p not to a terminal: every line, as written, in no style, no heading, so that a tool reads the log alone: -p runs ahead of the config load (decision 10). Exit 0.",
 			draw: onLogPrint("lines", false)},
 		{name: "cli-pipe-control", wide: term80, note: "The same on the control host: safe off a terminal too, since a pipe may end at one. Who wants the bytes has cat /var/log/hardn.log.",

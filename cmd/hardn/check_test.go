@@ -1,8 +1,11 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"slices"
 	"strings"
 	"testing"
@@ -169,7 +172,7 @@ func TestCheckAcceptThenCheck(t *testing.T) {
 			wrote = append(wrote, strings.Fields(c)[0]+" "+strings.Fields(c)[1])
 		}
 	}
-	if want := []string{"write-atomic " + drift.Path, "append " + output.AuditPath}; !slices.Equal(wrote, want) {
+	if want := []string{"write-atomic " + drift.Path, "rotate " + output.AuditPath, "append " + output.AuditPath}; !slices.Equal(wrote, want) {
 		t.Errorf("--accept wrote %q, want %q", wrote, want)
 	}
 
@@ -382,4 +385,58 @@ func TestBaselineReminderOnFlag(t *testing.T) {
 			t.Errorf("baseline %v: the reminder %v in:\n%s", kept, got, out)
 		}
 	}
+}
+
+// TestCheckNeverRotates: hardn check, which writes nothing, rotates
+// neither log, each over its size: hardn's log is not opened, and no
+// rotation, rename or append reaches the audit log. hardn check --accept,
+// which writes its record, rotates the audit log first, and still leaves
+// hardn's log alone (docs/engine/design-log-rotation.md, decision 6).
+func TestCheckNeverRotates(t *testing.T) {
+	s := newCheckSeams()
+	if r := s.run(t, "check", "--accept"); r.ended {
+		t.Fatalf("--accept: code %d: %s", r.code, r.stderr)
+	}
+	full := bytes.Repeat([]byte("x"), output.AuditMaxSize+1)
+	s.h.AddFile(output.AuditPath, full, output.AuditFileMode, 0, 0)
+	log := filepath.Join(t.TempDir(), "hardn.log")
+	sized(t, log, output.LogMaxSize+1)
+	pathWas, openedWas := startLogPath, logOpened
+	t.Cleanup(func() { startLogPath, logOpened = pathWas, openedWas })
+	startLogPath, logOpened = log, false
+	untouched := func(when string) {
+		t.Helper()
+		if fi, err := os.Lstat(log); err != nil || fi.Size() != output.LogMaxSize+1 || logOpened {
+			t.Errorf("%s: hardn's log: %v, %v, opened %v", when, fi, err, logOpened)
+		}
+		if _, err := os.Lstat(log + ".1"); err == nil {
+			t.Errorf("%s: hardn's log was rotated", when)
+		}
+	}
+
+	for _, args := range [][]string{{"check"}, {"check", "--output", "json"}} {
+		n := len(s.h.Calls())
+		if r := s.run(t, args...); r.ended {
+			t.Fatalf("%v: code %d: %s", args, r.code, r.stderr)
+		}
+		if got := s.changes(n); len(got) != 0 {
+			t.Errorf("%v changed %q", args, got)
+		}
+		if e, _ := s.h.Entry(output.AuditPath); len(e.Data) != len(full) {
+			t.Errorf("%v: the audit log holds %d bytes", args, len(e.Data))
+		}
+		if _, ok := s.h.Entry(output.AuditPath + ".1"); ok {
+			t.Errorf("%v rotated the audit log", args)
+		}
+		untouched(strings.Join(args, " "))
+	}
+
+	if r := s.run(t, "check", "--accept"); r.ended || r.stderr != "" {
+		t.Fatalf("--accept: code %d: %s", r.code, r.stderr)
+	}
+	if e, _ := s.h.Entry(output.AuditPath + ".1"); len(e.Data) != len(full) {
+		t.Errorf("--accept: audit.jsonl.1 holds %d bytes, want the full log", len(e.Data))
+	}
+	wantOneRecord(t, s.h, output.ModeCheck, output.OutcomeApplied)
+	untouched("check --accept")
 }

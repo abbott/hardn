@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io/fs"
 	"path"
+	"strconv"
 	"testing"
 	"time"
 
@@ -138,5 +139,132 @@ func TestAppendInterrupted(t *testing.T) {
 	}
 	if e, ok := sys.Entry(output.AuditPath); !ok || !bytes.Contains(e.Data, []byte(`"outcome":"cancelled"`)) {
 		t.Errorf("the record: %q", e.Data)
+	}
+}
+
+// auditFull is a host whose audit log holds size bytes, with the copies
+// given beside it, each holding its own number.
+func auditFull(size int, copies ...int) *hostfake.System {
+	sys := hostfake.New(host.Options{})
+	sys.AddDir("/var/log", 0o755, 0, 0)
+	sys.AddDir("/var/log/hardn", output.AuditDirMode, 0, 0)
+	sys.AddFile(output.AuditPath, bytes.Repeat([]byte("x"), size), output.AuditFileMode, 0, 0)
+	for _, i := range copies {
+		sys.AddFile(output.AuditPath+"."+strconv.Itoa(i), []byte(strconv.Itoa(i)), output.AuditFileMode, 0, 0)
+	}
+	return sys
+}
+
+// TestAppendRotates: a log at AuditMaxSize is appended to as it is; one
+// byte over, it becomes audit.jsonl.1 first, 0600 still, the nine older
+// copies move up, the ninth is deleted, and the record starts a new file.
+func TestAppendRotates(t *testing.T) {
+	ctx := context.Background()
+	rec := output.NewRecord(fixtures()[0].run, fixtureNow)
+
+	sys := auditFull(output.AuditMaxSize)
+	if err := output.Append(ctx, sys, output.AuditPath, rec); err != nil {
+		t.Fatal(err)
+	}
+	if e, _ := sys.Entry(output.AuditPath); len(e.Data) <= output.AuditMaxSize {
+		t.Errorf("at the limit: the log holds %d bytes, the record not appended", len(e.Data))
+	}
+	if _, ok := sys.Entry(output.AuditPath + ".1"); ok {
+		t.Error("at the limit: rotated")
+	}
+
+	sys = auditFull(output.AuditMaxSize+1, 1, 2, 3, 4, 5, 6, 7, 8, 9)
+	if err := output.Append(ctx, sys, output.AuditPath, rec); err != nil {
+		t.Fatal(err)
+	}
+	if e, _ := sys.Entry(output.AuditPath + ".1"); len(e.Data) != output.AuditMaxSize+1 || e.Mode.Perm() != output.AuditFileMode || e.UID != 0 {
+		t.Errorf("audit.jsonl.1: %d bytes, %v, uid %d", len(e.Data), e.Mode, e.UID)
+	}
+	for i := 2; i <= output.AuditKeep; i++ {
+		if e, _ := sys.Entry(output.AuditPath + "." + strconv.Itoa(i)); string(e.Data) != strconv.Itoa(i-1) {
+			t.Errorf("audit.jsonl.%d holds %q, want what .%d held", i, e.Data, i-1)
+		}
+	}
+	if _, ok := sys.Entry(output.AuditPath + "." + strconv.Itoa(output.AuditKeep+1)); ok {
+		t.Error("a tenth copy was kept")
+	}
+	var got output.Record
+	if e, _ := sys.Entry(output.AuditPath); json.Unmarshal(e.Data, &got) != nil || e.Mode.Perm() != output.AuditFileMode {
+		t.Errorf("the new log: %v, %q", e.Mode, e.Data)
+	}
+}
+
+// TestAppendNotRotated: a copy that is a symlink keeps the log from being
+// rotated, and never the record from being written: a *RotateError, the
+// record appended to the log as it is, the link and its target untouched.
+// A directory that is not root's alone is refused before anything is
+// renamed there.
+func TestAppendNotRotated(t *testing.T) {
+	ctx := context.Background()
+	rec := output.NewRecord(fixtures()[0].run, fixtureNow)
+
+	sys := auditFull(output.AuditMaxSize+1, 1)
+	sys.AddFile("/etc/shadow", []byte("root:x\n"), 0o640, 0, 0)
+	sys.AddSymlink(output.AuditPath+".2", "/etc/shadow")
+	err := output.Append(ctx, sys, output.AuditPath, rec)
+	var notRotated *output.RotateError
+	if !errors.As(err, &notRotated) || !errors.Is(err, host.ErrSymlink) || notRotated.Path != output.AuditPath {
+		t.Fatalf("Append = %v, want a *RotateError wrapping ErrSymlink", err)
+	}
+	if e, _ := sys.Entry(output.AuditPath); len(e.Data) <= output.AuditMaxSize+1 || e.Data[len(e.Data)-1] != '\n' {
+		t.Errorf("the record was not appended: %d bytes", len(e.Data))
+	}
+	if e, _ := sys.Entry(output.AuditPath + ".1"); string(e.Data) != "1" {
+		t.Errorf("audit.jsonl.1 moved: %q", e.Data)
+	}
+	if e, _ := sys.Entry("/etc/shadow"); string(e.Data) != "root:x\n" {
+		t.Errorf("the link's target: %q", e.Data)
+	}
+
+	for name, dir := range map[string][3]int{"writable by its group": {0o770, 0, 0}, "another user's": {0o750, 1000, 1000}} {
+		sys := auditFull(output.AuditMaxSize+1, 1)
+		sys.AddDir("/var/log/hardn", fs.FileMode(dir[0]), dir[1], dir[2])
+		if err := output.Append(ctx, sys, output.AuditPath, rec); !errors.Is(err, output.ErrAuditDir) {
+			t.Errorf("%s: Append = %v, want ErrAuditDir", name, err)
+		}
+		if e, _ := sys.Entry(output.AuditPath); len(e.Data) != output.AuditMaxSize+1 {
+			t.Errorf("%s: the log was renamed or written: %d bytes", name, len(e.Data))
+		}
+		if e, _ := sys.Entry(output.AuditPath + ".1"); string(e.Data) != "1" {
+			t.Errorf("%s: audit.jsonl.1 moved: %q", name, e.Data)
+		}
+		for _, c := range sys.Calls() {
+			if c.Op == "rotate" || c.Op == "rename" || c.Op == "append" {
+				t.Errorf("%s: %v", name, c)
+			}
+		}
+	}
+}
+
+// swapRotate puts another user's directory in place of the audit log's
+// between Append's check of it and the rotation, as swapHost does for the
+// append.
+type swapRotate struct{ *hostfake.System }
+
+func (h swapRotate) RotateFile(ctx context.Context, name string, limit int64, keep int, trusted bool) (bool, error) {
+	e, _ := h.Entry(name)
+	h.AddDir(path.Dir(name), 0o777, 1000, 1000)
+	h.AddFile(name, e.Data, 0o600, 1000, 1000)
+	return h.System.RotateFile(ctx, name, limit, keep, trusted)
+}
+
+// TestAppendRotateSwappedDir: a directory swapped in after the check is
+// refused on the directory the rotation opens: nothing is renamed there.
+func TestAppendRotateSwappedDir(t *testing.T) {
+	sys := swapRotate{auditFull(output.AuditMaxSize + 1)}
+	err := output.Append(context.Background(), sys, output.AuditPath, output.NewRecord(fixtures()[0].run, fixtureNow))
+	if !errors.Is(err, output.ErrAuditDir) || !errors.Is(err, host.ErrUntrustedDir) {
+		t.Errorf("Append = %v, want ErrAuditDir wrapping ErrUntrustedDir", err)
+	}
+	if _, ok := sys.Entry(output.AuditPath + ".1"); ok {
+		t.Error("renamed in a directory another user can change")
+	}
+	if e, _ := sys.Entry(output.AuditPath); len(e.Data) != output.AuditMaxSize+1 {
+		t.Errorf("the log holds %d bytes", len(e.Data))
 	}
 }

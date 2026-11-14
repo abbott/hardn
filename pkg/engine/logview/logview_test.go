@@ -132,8 +132,8 @@ func TestReadLong(t *testing.T) {
 	}
 }
 
-// TestReadWritesNothing: a draw is one scan, on a host with a run log, which
-// gets no line.
+// TestReadWritesNothing: a draw is one scan, and one lstat for the older
+// copy, on a host with a run log, which gets no line.
 func TestReadWritesNothing(t *testing.T) {
 	var log bytes.Buffer
 	f := hostfake.New(host.Options{RunLog: &log})
@@ -142,7 +142,7 @@ func TestReadWritesNothing(t *testing.T) {
 	f.AddFile(logPath, []byte("one\n"), 0o644, 0, 0)
 	logview.Read(context.Background(), f)
 	calls := f.Calls()
-	if len(calls) != 1 || calls[0].Op != "scan-lines" || calls[0].Path != logPath {
+	if len(calls) != 2 || calls[0].Op != "scan-lines" || calls[0].Path != logPath || calls[1].Op != "lstat" || calls[1].Path != logPath+logview.OlderSuffix {
 		t.Errorf("calls = %v", calls)
 	}
 	if log.Len() != 0 {
@@ -390,5 +390,51 @@ func TestHoldsAnything(t *testing.T) {
 	}
 	if got, err := holds(f, "/var/log/lastlog"); got || !errors.Is(err, fs.ErrNotExist) {
 		t.Errorf("lastlog: %t, %v", got, err)
+	}
+}
+
+// TestReadOlder: Read names the newest rotated copy, hardn.log.1, where a
+// regular file is there, with or without a current log, and reads the
+// current file alone; a symlink or a directory there is not named, nor
+// followed. Each, -p's pass off a terminal, names none.
+func TestReadOlder(t *testing.T) {
+	ctx := context.Background()
+	const older = logPath + ".1"
+	for _, tt := range []struct {
+		name string
+		add  func(*hostfake.System)
+		want string
+	}{
+		{"none", func(*hostfake.System) {}, ""},
+		{"a copy", func(f *hostfake.System) { f.AddFile(older, []byte("old\n"), 0o644, 0, 0) }, older},
+		{"a copy and no current log", func(f *hostfake.System) {
+			f.AddFile(older, []byte("old\n"), 0o644, 0, 0)
+			if err := f.Remove(ctx, logPath); err != nil {
+				t.Fatal(err)
+			}
+		}, older},
+		{"a symlink", func(f *hostfake.System) { f.AddSymlink(older, "/etc/shadow") }, ""},
+		{"a directory", func(f *hostfake.System) { f.AddDir(older, 0o755, 0, 0) }, ""},
+	} {
+		f := logHost(t, "2026/10/20 12:00:05 INFO: new\n")
+		tt.add(f)
+		n := len(f.Calls())
+		got := logview.Read(ctx, f)
+		if got.Older != tt.want {
+			t.Errorf("%s: Older = %q, want %q", tt.name, got.Older, tt.want)
+		}
+		for _, l := range got.Last {
+			if l.Text == "old" {
+				t.Errorf("%s: the older copy was read", tt.name)
+			}
+		}
+		for _, c := range f.Calls()[n:] {
+			if c.Op != "scan-lines" && c.Op != "lstat" || c.Op == "scan-lines" && c.Path != logPath {
+				t.Errorf("%s: %v", tt.name, c)
+			}
+		}
+		if each := logview.Each(ctx, f, func(logview.Line) bool { return true }); each.Older != "" {
+			t.Errorf("%s: Each names %q", tt.name, each.Older)
+		}
 	}
 }

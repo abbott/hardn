@@ -7,6 +7,7 @@ import (
 	"io"
 	"io/fs"
 	"reflect"
+	"regexp"
 	"slices"
 	"strings"
 	"testing"
@@ -138,6 +139,35 @@ func TestElsewhere(t *testing.T) {
 				t.Errorf("%q: read %s", tt.logFile, c.Path)
 			}
 		}
+	}
+}
+
+// TestOlder: after a rotation the screen and hardn -p to a terminal name the older
+// copy in one row, and read the current file alone; -p off a terminal writes the
+// current file's lines and nothing else. With no older copy there is no row.
+func TestOlder(t *testing.T) {
+	older := regexp.MustCompile(`Older\s+/var/log/hardn\.log\.1`)
+	h := hostNamed(t, "older")
+	p := playWith(h, off(), logs.Options{Term: "xterm"}, "0")
+	if p.err != nil || len(older.FindAllString(p.out, -1)) != 1 || strings.Contains(p.out, "in the older copy") {
+		t.Errorf("the screen: %v\n%s", p.err, p.out)
+	}
+	s, _, err := printOn(h, terminal(24), "")
+	if plain := strip(s); err != nil || len(older.FindAllString(plain, -1)) != 1 || strings.Contains(plain, "in the older copy") {
+		t.Errorf("-p to a terminal: %v\n%s", err, plain)
+	}
+	s, _, err = printOn(h, off(), "")
+	if err != nil || s != logOf(logSample) {
+		t.Errorf("-p off a terminal: %v\n%s", err, s)
+	}
+	for _, c := range h.Calls() {
+		if c.Op == "scan-lines" && c.Path != logview.File {
+			t.Errorf("read %s", c.Path)
+		}
+	}
+	assertOnlyReads(t, "older", h, 0)
+	if p := playWith(hostNamed(t, "lines"), off(), logs.Options{Term: "xterm"}, "0"); strings.Contains(p.out, "Older") {
+		t.Errorf("no older copy:\n%s", p.out)
 	}
 }
 

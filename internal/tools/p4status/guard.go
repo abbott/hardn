@@ -49,7 +49,7 @@ var decisions = map[string]decision{
 	// probe hands the terminal to a command.
 	"RunInput": refuse, "StartDetached": refuse, "RunInteractive": refuse,
 	"MkdirAll": refuse, "Remove": refuse, "RemoveAll": refuse, "Rename": refuse, "Chmod": refuse,
-	"Chown": refuse, "WriteFileAtomic": refuse, "AppendFile": refuse, "Lock": refuse,
+	"Chown": refuse, "WriteFileAtomic": refuse, "AppendFile": refuse, "RotateFile": refuse, "Lock": refuse,
 }
 
 // guard is the host as p4status reaches it: a host.System over another
@@ -282,6 +282,10 @@ func (g *guard) WriteFileAtomic(_ context.Context, name string, _ []byte, _ fs.F
 
 func (g *guard) AppendFile(_ context.Context, name string, _ []byte, _ fs.FileMode) error {
 	return g.deny("AppendFile", name, changes)
+}
+
+func (g *guard) RotateFile(_ context.Context, name string, _ int64, _ int, _ bool) (bool, error) {
+	return false, g.deny("RotateFile", name, changes)
 }
 
 func (g *guard) Lock(_ context.Context, name string, _ []byte) (func() error, error) {

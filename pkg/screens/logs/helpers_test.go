@@ -109,6 +109,10 @@ func hostNamed(t *testing.T, name string) *hostfake.System {
 		return newLog(controlLog)
 	case "elsewhere":
 		return newLog(logOf(logSample))
+	case "older":
+		h := newLog(logOf(logSample))
+		h.AddFile(logview.File+logview.OlderSuffix, []byte("2026/10/19 09:00:00 INFO: in the older copy\n"), 0o644, 0, 0)
+		return h
 	case "alpine323":
 		h := newLog(logOf(logSample))
 		h.Handler = func(argv []string, _ []byte) hostfake.Response {
@@ -182,7 +186,8 @@ func countOn(h *hostfake.System) counts {
 	return c
 }
 
-// assertOnlyReads fails t for anything h did but read the log, ask less --version and,
+// assertOnlyReads fails t for anything h did but read the log, look for its older copy,
+// ask less --version and,
 // allowed times, run less.
 func assertOnlyReads(t *testing.T, name string, h *hostfake.System, allowed int) {
 	t.Helper()
@@ -190,6 +195,7 @@ func assertOnlyReads(t *testing.T, name string, h *hostfake.System, allowed int)
 	for _, c := range h.Calls() {
 		switch {
 		case c.Op == "scan-lines" && c.Path == logview.File:
+		case c.Op == "lstat" && c.Path == logview.File+logview.OlderSuffix: // is there an older copy
 		case c.Op == "run" && slices.Equal(c.Argv, []string{"less", "--version"}):
 		case c.Op == "run-interactive":
 			opens++
