@@ -30,11 +30,15 @@ const (
 // Release is the release check's one line on the main menu (proposal
 // P-15; docs/engine/screen-release-check.md), drawn from hardn's check
 // (version.Checker, through output.ReleaseOf) where hardn.yml's
-// checkReleases is on. It is a notice in the Header, in the repository
-// link's place, so the menu is no line taller and nothing waits on it:
+// checkReleases is on. It is a notice in the Header, the line under the
+// repository link (docs/engine/gallery-release-notice.md, decision 9), so
+// the menu is one line taller while it shows, and nothing waits on it:
 //
-//	hardn  v0.4.0              v0.4.1 available
-//	hardn  v0.4.0              Release check failed
+//	hardn  v0.4.0              https://github.com/abbott/hardn
+//	                           v0.4.1 available
+//
+//	hardn  v0.4.0              https://github.com/abbott/hardn
+//	                           Release check failed
 //
 // A newer release is in the primary text colour and a failed check muted.
 // Off, up to date or not yet answered, the Header draws its link as ever.
@@ -51,9 +55,9 @@ type Release struct {
 func (r Release) header(h component.Header) component.Header {
 	switch {
 	case r.State == ReleaseNewer && r.Latest != "":
-		h.Notice = r.Latest + releaseAvailable
+		h.Notice, h.NoticeBelow = r.Latest+releaseAvailable, true
 	case r.State == ReleaseFailed:
-		h.Notice, h.NoticeMuted = ReleaseCheckFailed, true
+		h.Notice, h.NoticeMuted, h.NoticeBelow = ReleaseCheckFailed, true, true
 	}
 	return h
 }

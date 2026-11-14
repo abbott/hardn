@@ -6,7 +6,8 @@
 
 - **The main menu warns when a release's vendor support ends within 90 days, or has ended**, and names the release to upgrade to. Every plan carries the same warning (`PLATFORM_SUPPORT_ENDS`, `PLATFORM_SUPPORT_ENDED`). It changes nothing hardn does. Proxmox VE 9 has no date yet, so no warning. The dates are in docs/platforms.md.
 - **The JSON document has `host.platform.supportEnds`**, the date hardn holds for the release.
-- **hardn can tell you when a newer release is out.** Set `checkReleases: true` in hardn.yml, and the main menu's first line says so, such as "v0.9.1 available". It is off by default. On, hardn asks GitHub for the latest release's tag at most once a day and sends nothing about the host. See [docs/configuration.md](../configuration.md).
+- **hardn can tell you when a newer release is out.** Set `checkReleases: true` in hardn.yml, and the main menu says so under the repository link, such as "v0.9.1 available". It is off by default. On, hardn asks GitHub for the latest release's tag at most once a day and sends nothing about the host. See [docs/configuration.md](../configuration.md).
+- **A newer release is said in more places.** As root with `checkReleases` on, `hardn --version` says it from the last check, with no request. verify.sh, and install.sh given `HARDN_VERSION`, ask GitHub once and say it as their last step. `hardn --version` has a new `Repo` line.
 - **Firewall shows each listening port against the rules**: open, let in from some sources, blocked, or local only, with the program. A port the rules let in with nothing listening is flagged. It changes nothing.
 - **System Details lists the listening ports**, and `hardn system-details` prints them. Run it as root to see every program. `--output json` doesn't include them.
 - **SSH Login shows sshd's own brute-force limit.** The row "Brute-Force Limit" reads On, Off (with the file that turns it off) or "Not available" on an sshd before OpenSSH 9.8. It changes nothing.

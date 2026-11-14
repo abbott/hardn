@@ -4,6 +4,7 @@ package main
 // off unless hardn.yml's checkReleases turns it on, and then at the main
 // menu alone, never for a flag or a subcommand. A dry run changes nothing
 // about it, as adopted (docs/engine/gallery-release-check.md §6).
+// --version says what its cache holds (newerRelease) and asks nothing (docs/engine/gallery-release-notice.md).
 
 import (
 	"context"
@@ -27,6 +28,31 @@ var (
 	releaseTransport http.RoundTripper // nil: github.Transport()
 	releaseNow       = time.Now
 )
+
+// releaseConfig is hardn.yml as --version reads it, for
+// checkReleases alone: config.LoadExistingQuick, which writes nothing,
+// offers nothing, and never waits on the file or reads more than 1 MiB of
+// it. A seam for the tests.
+var releaseConfig = config.LoadExistingQuick
+
+// newerRelease is the newer release's tag the release check's cache holds,
+// such as "v0.4.1", for --version; "" where there is none to
+// say. It makes no request (Latest is nil) and writes nothing. It says
+// nothing of why: hardn.yml missing, not valid, not a regular file or
+// larger than 1 MiB (-f, HARDN_CONFIG, then the search path), checkReleases off, a development build, a cache that
+// is missing, fails a check or cannot be read (a user other than root:
+// /var/lib/hardn is root's alone), a failed check, or no newer release.
+func newerRelease(ctx context.Context) string {
+	c, err := releaseConfig(configFile)
+	if err != nil || c == nil || !c.CheckReleases {
+		return ""
+	}
+	check := &version.Checker{On: true, Version: Version, System: releaseHost(), Now: releaseNow}
+	if r := check.Release(ctx); r.State == version.ReleaseNewer {
+		return r.Latest
+	}
+	return ""
+}
 
 // withReleaseCheck returns m with the release check, where c's
 // checkReleases is on: what it knows, drawn on each pass

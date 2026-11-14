@@ -52,7 +52,7 @@ The script installs the latest release as `/usr/local/bin/hardn`, after checking
 
 > [!NOTE]
 > - To update, run it again.
-> - Pinning a version, installing by hand, building from source and troubleshooting: [docs/install.md](docs/install.md). 
+> - Pinning a version, installing by hand, building from source and troubleshooting: [docs/install.md](docs/install.md). With a pinned version, the script also asks GitHub whether a newer release is out.
 > - Checking a release yourself, offline too: [docs/verify.md](docs/verify.md).
 
 ## Quick Start

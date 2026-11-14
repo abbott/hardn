@@ -1,0 +1,71 @@
+# Golden file of TestReleaseNoticeGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice version-none␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. hardn --version with nothing newer␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min the cache. The same with no cache, a failed check or the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcheck off.␛[m$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  release-notice version-none ----------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. hardn --version with nothing newer$
+# in the cache. The same with no cache, a failed check or the$
+# check off.$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mrelease-notice version-none␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. hardn --version with nothing␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnewer in the cache. The same with no cache, a failed check␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mor the check off.␛[m$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mrelease-notice version-none␛[m ␛[38;2;22;24;29m----------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. hardn --version with nothing newer␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min the cache. The same with no cache, a failed check or the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcheck off.␛[m$
+$
+hardn - Linux hardening tool$
+Version:    0.4.0$
+Build Date: 2026-11-04T12:00:00Z$
+Git Commit: 0123456789abcdef0123456789abcdef01234567$
+Repo:       https://github.com/abbott/hardn$
+License:    GNU AGPL v3, no warranty$
+$
+$

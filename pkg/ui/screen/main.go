@@ -119,8 +119,8 @@ const CompactMainMenu = false
 type MainMenu struct {
 	// Header is the wordmark, the version and the repository link.
 	Header component.Header
-	// Release is what the release check found, drawn in the Header in the
-	// link's place; the zero value, the check off, draws nothing (Release).
+	// Release is what the release check found, drawn in the Header under
+	// the link; the zero value, the check off, draws nothing (Release).
 	Release Release
 	// Context is the distribution bar.
 	Context component.ContextBar

@@ -21,6 +21,8 @@ To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have n
 curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo env HARDN_VERSION=0.4.0 sh
 ```
 
+With `HARDN_VERSION`, the script then asks the GitHub API once for the latest release's tag, and says when it is newer, such as "hardn v0.9.1 available (https://github.com/abbott/hardn)". It waits 5 seconds at most; if GitHub doesn't answer, nothing is said and the install stands.
+
 The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except in a dry run._
 
 ## Install Manually

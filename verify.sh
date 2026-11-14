@@ -28,8 +28,13 @@
 # binary moved to ./hardn-<platform>; an existing file there is never
 # overwritten. Nothing is executed.
 #
+# Then one request to GitHub's API for the latest release's tag
+# (release_notice): where it is later than <version>, a last line says so.
+# It changes nothing else, and the exit status is the verification's.
+#
 # The output takes hardn's look (look, below): a mark for each step and one
-# closing line that names the verified file.
+# closing line that names the verified file, and the later release's line
+# after a blank line where there is one.
 
 set -eu
 
@@ -78,6 +83,62 @@ die() {
 		lead='      '
 	done >&2
 	exit 1
+}
+
+# num prints $1, one to six digits, without its leading zeros.
+num() {
+	case $1 in
+	'' | *[!0-9]* | ???????*) return 1 ;;
+	esac
+	n=$1
+	while :; do
+		case $n in
+		0?*) n=${n#0} ;;
+		*) break ;;
+		esac
+	done
+	printf '%s\n' "$n"
+}
+
+# later: version $1 is later than $2, each <major>.<minor>.<patch> of one to
+# six digits, compared by number, as hardn reads a tag.
+later() {
+	for v in "$1" "$2"; do
+		case $v in
+		*.*.*.*) return 1 ;;
+		*.*.*) ;;
+		*) return 1 ;;
+		esac
+	done
+	a=$1 b=$2
+	for _ in 1 2 3; do
+		x=$(num "${a%%.*}") || return 1
+		y=$(num "${b%%.*}") || return 1
+		[ "$x" -eq "$y" ] || {
+			[ "$x" -gt "$y" ]
+			return
+		}
+		a=${a#*.} b=${b#*.}
+	done
+	return 1
+}
+
+# release_notice says, after a blank line, that a release later than $1
+# (<major>.<minor>.<patch>) is out. It asks GitHub's API once for the latest
+# release's tag, for 5 seconds at most. No answer, a rate limit, or a tag
+# that is not v<major>.<minor>.<patch> or is no later: it says nothing. It
+# never fails.
+release_notice() {
+	curl -fsL --proto '=https' --tlsv1.2 --max-time 5 --max-filesize 65536 \
+		-o "$tmp/newer.json" "https://api.github.com/repos/$REPO/releases/latest" 2>/dev/null || return 0
+	latest=$(awk '{ gsub(/[,{}]/, "\n"); print }' "$tmp/newer.json" 2>/dev/null |
+		sed -n 's/^[[:space:]]*"tag_name"[[:space:]]*:[[:space:]]*"\([^"]*\)"[[:space:]]*$/\1/p') || return 0
+	case $latest in
+	v*) ;;
+	*) return 0 ;;
+	esac
+	later "${latest#v}" "$1" || return 0
+	printf '\nhardn %s available (https://github.com/%s)\n' "$latest" "$REPO" || :
 }
 
 usage() {
@@ -172,3 +233,8 @@ mv "$tmp/$binary" "$dest" || die "cannot move the verified binary to $dest"
 ok "Provenance verified: built by"
 detail "$SIGNER_WORKFLOW@refs/tags/$tag"
 printf '\n%s %sVerified %s (hardn %s%s)\n' "$bar_ok" "$t_ok" "$dest" "$tag" "$c_off"
+
+# 4. A later release, said and nothing more: the binary is verified either
+# way, so an interrupt from here on ends with status 0.
+trap 'exit 0' HUP INT TERM
+release_notice "$version" || :

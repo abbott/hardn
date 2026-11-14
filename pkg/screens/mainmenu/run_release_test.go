@@ -13,19 +13,26 @@ import (
 // its one line, and its request beside the menu. The hooks are fakes:
 // nothing here makes a request.
 
-// firstLines are the first lines of each drawing of the main menu in out.
+// firstLines are the first lines of each drawing of the main menu in out,
+// each with the release's notice under it, where it has one.
 func firstLines(out string) []string {
 	var lines []string
-	for _, l := range strings.Split(out, "\n") {
-		if strings.HasPrefix(l, "hardn  v0.4.0") {
-			lines = append(lines, strings.TrimRight(l, " "))
+	all := strings.Split(out, "\n")
+	for i, l := range all {
+		if !strings.HasPrefix(l, "hardn  v0.4.0") {
+			continue
 		}
+		head := strings.TrimRight(l, " ")
+		if i+1 < len(all) && strings.TrimSpace(all[i+1]) != "" { // the notice, under the link
+			head += "\n" + strings.TrimRight(all[i+1], " ")
+		}
+		lines = append(lines, head)
 	}
 	return lines
 }
 
 // TestReleaseLine: what the check knows is asked on every pass and drawn
-// in the header, in the link's place; with no hook the header is as ever.
+// in the header, under the link; with no hook the header is as ever.
 func TestReleaseLine(t *testing.T) {
 	const link = "hardn  v0.4.0              https://github.com/abbott/hardn"
 	m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), "q")
@@ -46,7 +53,8 @@ func TestReleaseLine(t *testing.T) {
 		return states[asked-1]
 	}
 	out, _, ended := session(t, func() { show(m) })
-	want := []string{link, "hardn  v0.4.0              v0.4.1 available", "hardn  v0.4.0              Release check failed"}
+	const under = "\n                           "
+	want := []string{link, link + under + "v0.4.1 available", link + under + "Release check failed"}
 	if got := firstLines(out); ended || asked != 3 || strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Errorf("ended %v, asked %d times; first lines %q, want %q", ended, asked, got, want)
 	}

@@ -5,7 +5,9 @@ Status: built and tested in process on macOS (`make check`). No hardn binary ran
 
 ## 1. What it does
 
-With hardn.yml's `checkReleases: true`, the main menu's first line says "v0.9.1 available" in the repository link's place when a newer release is out, and a muted "Release check failed" when the last check got no answer. Up to date, not answered yet, or off (the default), the line is as before. Nothing is asked, nothing waits, and hardn installs nothing.
+With hardn.yml's `checkReleases: true`, the main menu says "v0.9.1 available" under the repository link when a newer release is out, and a muted "Release check failed" when the last check got no answer. Up to date, not answered yet, or off (the default), the header is as before. Nothing is asked, nothing waits, and hardn installs nothing.
+
+Since `next/release-notice` (2026-11-14) the notice is under the link, not in its place, and `hardn --version`, verify.sh and install.sh say a newer release too: [gallery-release-notice.md](gallery-release-notice.md) §4.
 
 ## 2. The API
 
@@ -14,11 +16,12 @@ With hardn.yml's `checkReleases: true`, the main menu's first line says "v0.9.1 
 - `github.Client{Version, Transport, Timeout}.Latest(ctx)` (`pkg/version/github`): the request. The only package of hardn that imports `net/http`.
 - `revert.ReadStateFile` and `revert.WriteStateFile` (`pkg/host/revert/statefile.go`): a file of hardn's state directory under the journal's trust checks, through `host.System`.
 - `output.ReleaseOf(version.Release) screen.Release`: the one mapping to the view; the gallery's `release-check` mocks draw through it and `version.Checker`, each from a cache on an in-memory host.
+- `newerRelease` (`cmd/hardn/release.go`): the newer tag the cache holds, for `--version`. It builds a `Checker` with no `Latest`, so it can make no request.
 - `mainmenu.Options.Release` (asked on each pass) and `CheckRelease` (started once by `Run`, in one goroutine, cancelled as the menu ends), set by `cmd/hardn`'s `withReleaseCheck`.
 
 ## 3. The rules
 
-- **Off means nothing.** `checkReleases` false: `withReleaseCheck` sets neither hook; no request, and the cache is neither read nor written. Only `menuOptions` builds a check, so no flag and no subcommand makes one.
+- **Off means nothing.** `checkReleases` false: `withReleaseCheck` sets neither hook; no request, and the cache is neither read nor written. Only `menuOptions` builds a check that can ask, so no flag and no subcommand makes a request. `--version` reads hardn.yml for this key and then the cache, and writes nothing.
 - **The request.** `GET https://api.github.com/repos/abbott/hardn/releases/latest`, with `User-Agent: hardn/<version>` and `Accept: application/vnd.github+json` and nothing else. TLS 1.2 or later; a redirect off `api.github.com` or off HTTPS is refused. 5 seconds for all of it; at most 64 KiB read. Only `tag_name` is read.
 - **Once in 24 hours**, from the last attempt, answered or not. The attempt is written to the cache before the request, so whatever ends hardn, no second request follows within the day; where the cache cannot be written, no request is made.
 - **The cache** is `/var/lib/hardn/release.json`, 0600, written by rename. Before it is used: the directory and each above it root's and writable by no one else, the file a regular file (no symlink), root's, writable by no one else, at most 4 KiB; then one JSON object with no unknown field, a time not in the future, and a tag that passes `ParseTag`. One that fails counts as no attempt, is replaced by the next check, and nothing of it is drawn.
@@ -43,7 +46,7 @@ No test makes a network request: `github.Client` gets a fake `http.RoundTripper`
 - `pkg/version/github`: the request's method, URL and its two headers alone; each failing status, a redirect elsewhere, an oversized answer, bad JSON; the timeout.
 - `pkg/host/revert`: `ReadStateFile` and `WriteStateFile`, each refusal.
 - `pkg/screens/mainmenu`: the line in each state; a check that never answers delays no drawing and no key, and ends with the menu or the input.
-- `cmd/hardn`: on, off, and a dry run either way (it checks when on); off by default; the Configuration report's row.
+- `cmd/hardn`: on, off, and a dry run either way (it checks when on); off by default; the Configuration report's row; `--version` (`TestReleaseNotice`).
 - The gallery: the five `release-check` mocks through the real check and mapping, goldens unchanged in what they draw.
 
 ## 6. Not run, not verified

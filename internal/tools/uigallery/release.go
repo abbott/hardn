@@ -42,13 +42,13 @@ type releaseMock struct {
 func releaseMocks() []releaseMock {
 	return []releaseMock{
 		{name: "newer", on: true, cache: `{"checked":"2026-11-13T09:00:00Z","answered":true,"tag":"v0.4.1"}`,
-			note: "The check is on and v0.4.1 is out: the first line says so, in the link's place. The menu is no taller and nothing waits on it."},
+			note: "The check is on and v0.4.1 is out: the line under the link says so. The menu is one row taller while it shows, and nothing waits on it."},
 		{name: "current", on: true, cache: `{"checked":"2026-11-13T09:00:00Z","answered":true,"tag":"v0.4.0"}`,
 			note: "The check is on and this is the latest release: nothing is shown."},
 		{name: "pending", on: true,
 			note: "The check is on and has not answered yet, as at the first start after turning it on: nothing is shown."},
 		{name: "failed", on: true, cache: `{"checked":"2026-11-13T09:00:00Z","answered":false,"failed":true}`,
-			note: "The check is on and the last one got no answer: a muted line in the link's place, until a check answers."},
+			note: "The check is on and the last one got no answer: a muted line under the link, until a check answers."},
 		{name: "off", cache: `{"checked":"2026-11-13T09:00:00Z","answered":true,"tag":"v0.4.1"}`,
 			note: "The check is off, the default: no request is made and nothing is shown."},
 	}

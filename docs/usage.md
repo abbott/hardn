@@ -81,7 +81,7 @@ User Management's `3) Account Review` lists accounts to look at. hardn changes n
 | `-r, --run-all` | Run All's plan from hardn.yml. Can't be combined with `-c`, `-d`, `-w` or `-g` (exit 2) |
 | `-n, --dry-run` | Dry run: show the plan, change nothing |
 | `-p, --print-logs` | Print `/var/log/hardn.log`. On its own, it doesn't need root |
-| `-v, --version` | Print the version, commit and build date |
+| `-v, --version` | Print the version, commit, build date and repository; as root with `checkReleases` on, a newer release too |
 | `--yes` | Off a terminal, apply a change that can't lock you out (see below) |
 | `--confirm-timeout <time>` | How long a lockout-risk change waits for `hardn confirm`: seconds (`300`) or a duration (`5m`). Default 3m, at least 1m |
 | `--color auto\|always\|never` | When to use colour. `auto` (the default) colours a terminal unless `NO_COLOR` is set or `TERM` is `dumb` |

@@ -193,8 +193,10 @@ var rootCmd = &cobra.Command{
 		// Create version service
 		versionService := version.NewService(Version, BuildDate, GitCommit)
 
-		// Check if version flag is set and display version info
+		// Check if version flag is set and display version info, with a
+		// newer release where the check's cache holds one (newerRelease).
 		if showVersion {
+			versionService.Newer = newerRelease(context.Background())
 			if err := versionService.PrintVersionInfo(engineStdout); err != nil {
 				sayError("%v", err)
 				exit(1)
