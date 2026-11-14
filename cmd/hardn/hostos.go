@@ -18,9 +18,7 @@ var osHost = func() host.System { return host.NewReal(host.Options{}) }
 // Alpine or an EL distribution (detect.DistroOther), is refused; Proxmox
 // VE is Debian's. The EL distributions (Rocky Linux, AlmaLinux, RHEL,
 // CentOS Stream, Oracle Linux) are placed by the matrix as the others are
-// (docs/engine/el-changes.md, el-rhel.md); CentOS Stream and Oracle Linux
-// have no row yet, so they start and every change is refused
-// (design-centos-oracle.md §6). It
+// (docs/engine/el-changes.md, el-rhel.md, design-centos-oracle.md). It
 // says nothing of an OS it accepts, and clears nothing: the OS is on the
 // main menu's context bar.
 func hostOS() error {

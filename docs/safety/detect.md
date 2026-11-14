@@ -19,10 +19,10 @@ The legacy `pkg/osdetect` accepts only the `debian`, `ubuntu` and `alpine` IDs, 
 
    | Support | Releases |
    |---|---|
-   | Supported | Debian 13, 12; Ubuntu 26.04, 24.04; Alpine 3.24, 3.23; Proxmox VE 9; Rocky Linux 10, 9; AlmaLinux 10, 9; RHEL 10, 9 |
+   | Supported | Debian 13, 12; Ubuntu 26.04, 24.04; Alpine 3.24, 3.23; Proxmox VE 9; Rocky Linux 10, 9; AlmaLinux 10, 9; RHEL 10, 9; CentOS Stream 10, 9; Oracle Linux 10, 9 |
    | BestEffort | Ubuntu 22.04; Alpine 3.22, 3.21 (vendor support ends 2026-11-01) |
    | OutOfScope | Ubuntu interim releases (by rule: any `YY.MM` that is not April of an even year); Proxmox VE 8 (end of life 2026-08-31) |
-   | Unlisted | any other version (Debian 11, Ubuntu 20.04, Debian testing/sid without `VERSION_ID`, Alpine edge, an Alpine pre-release such as `3.24.0_rc1`), every CentOS Stream and Oracle Linux release (read as EL, no row yet: [design-centos-oracle.md](../engine/design-centos-oracle.md) §6), and any other `ID`; a derivative reports its first known `ID_LIKE` in `Platform.Like`, never a support claim |
+   | Unlisted | any other version (Debian 11, Ubuntu 20.04, Debian testing/sid without `VERSION_ID`, Alpine edge, an Alpine pre-release such as `3.24.0_rc1`), CentOS Linux 8 and 7 (read as CentOS Stream: [design-centos-oracle.md](../engine/design-centos-oracle.md)), and any other `ID`; a derivative reports its first known `ID_LIKE` in `Platform.Like`, never a support claim |
    | SupportUnknown | os-release unreadable or without `ID`; a Debian `ID` whose Proxmox facts are not established (Proxmox VE keeps Debian's os-release); a Proxmox VE whose pve-manager version is not established |
 
    *Amended by `next/p7-surface`* (Phase 7 decision 5, adopted 2026-11-04): Alpine 3.21 moves to OutOfScope, its vendor support having ended 2026-11-01, as Proxmox VE 8 is. *Amended 2026-11-08* (the maintainer: "Out of scope + fixes"): Alpine 3.20 gets an OutOfScope row, its vendor support having ended 2026-04-01 (alpinelinux.org's releases.json; its community repository 2024-11-01), so that its refusal names why rather than "unlisted"; fixture `alpine-3.20`.

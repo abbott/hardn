@@ -25,9 +25,9 @@ const (
 	// 10 and 9 supported for the same changes (docs/engine/el-rhel.md).
 	DistroRHEL Distro = "rhel" // os-release ID
 	// CentOS Stream, which RHEL's next minor release is built from, and
-	// Oracle Linux, a RHEL rebuild: read as EL, with no matrix row yet, so
-	// every change is refused (docs/engine/design-centos-oracle.md §6).
-	// CentOS Linux 8 and 7 say "centos" too.
+	// Oracle Linux, a RHEL rebuild: 10 and 9 supported for the same changes
+	// (docs/engine/design-centos-oracle.md). CentOS Linux 8 and 7 say
+	// "centos" too, and have no row.
 	DistroCentOS Distro = "centos" // os-release ID
 	DistroOracle Distro = "ol"     // os-release ID
 	DistroOther  Distro = "other"  // an os-release ID hardn does not know
@@ -110,6 +110,15 @@ type Release struct {
 //   - RHEL: the end of maintenance support,
 //     https://access.redhat.com/support/policy/updates/errata
 //
+// CentOS Stream's and Oracle Linux's (each read 2026-11-14):
+//   - CentOS Stream 9: "End of Life", https://www.centos.org/cl-vs-cs/
+//   - CentOS Stream 10: CentOS names the year, 2030, and ties the day to
+//     the end of RHEL 10's full support, which Red Hat ends on 2030-05-31
+//     (https://blog.centos.org/2024/12/introducing-centos-stream-10/ and
+//     RHEL's page above)
+//   - Oracle Linux: the end of Premier Support, a month,
+//     https://www.oracle.com/a/ocom/docs/elsp-lifetime-069338.pdf
+//
 // A distribution's supported rows are newest first (Newest).
 var matrix = []Release{
 	{DistroDebian, "13", Supported, "", "2030-06-30"},
@@ -130,6 +139,13 @@ var matrix = []Release{
 	// 9.9 (el-rhel.md §7).
 	{DistroRHEL, "10", Supported, "", "2035-05-31"},
 	{DistroRHEL, "9", Supported, "", "2032-05-31"},
+	// CentOS Stream and Oracle Linux: as Rocky Linux, AlmaLinux and RHEL;
+	// the host kit ran on CentOS Stream 10 and 9 and on Oracle Linux 10.1
+	// and 9.8 (design-centos-oracle.md).
+	{DistroCentOS, "10", Supported, "", "2030-05-31"},
+	{DistroCentOS, "9", Supported, "", "2027-05-31"},
+	{DistroOracle, "10", Supported, "", "2035-06"},
+	{DistroOracle, "9", Supported, "", "2032-06"},
 	{DistroUbuntu, "22.04", BestEffort, "", "2027-05"},
 	{DistroAlpine, "3.22", BestEffort, "", "2027-05-01"},
 	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01", "2026-11-01"},

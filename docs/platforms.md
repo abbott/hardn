@@ -13,6 +13,8 @@ hardn knows when each release's free security updates end. From 90 days before, 
 | Alpine | 3.24: 2028-06-01, 3.23: 2027-11-01, 3.22: 2027-05-01, 3.21: 2026-11-01, 3.20: 2026-04-01 |
 | Proxmox | 9: not announced, so no warning; 8: August 2026 |
 | Rocky, Alma, RHEL | 10: 2035-05-31, 9: 2032-05-31 (RHEL without the paid add-on) |
+| CentOS Stream | 10: 2030-05-31, 9: 2027-05-31 |
+| Oracle | 10: June 2035, 9: June 2032 (the end of Premier Support) |
 
 ## Log forwarding
 
@@ -20,14 +22,14 @@ What Log Forwarding (main menu 8, then 2) does differs by the host's logger:
 
 | Distribution | Logger hardn finds | Set server |
 |---|---|---|
-| Ubuntu; Rocky, Alma, RHEL | rsyslog | writes `/etc/rsyslog.d/60-hardn-forward.conf`; UDP, TCP or TLS |
+| Ubuntu; Rocky, Alma, RHEL, CentOS Stream, Oracle | rsyslog | writes `/etc/rsyslog.d/60-hardn-forward.conf`; UDP, TCP or TLS |
 | Debian 13 and 12 | journald alone, unless rsyslog is installed | installs rsyslog first, which also keeps its own log files under `/var/log` |
 | Proxmox | as Debian | Set server installs rsyslog where journald runs alone: the one package hardn installs on Proxmox |
 | Alpine | busybox syslogd; with rsyslog also installed, hardn can't tell which one logs and changes nothing | adds `-R <server>:<port> -L` to `SYSLOGD_OPTS` in `/etc/conf.d/syslog`, under a comment naming what it added; UDP only |
 
 - hardn reads rsyslog's forwarding from `/etc/rsyslog.conf` and `/etc/rsyslog.d/*.conf`: `omfwd` actions and the older `@host` and `@@host` lines. A file another `include` names, RELP, and another syslog daemon (syslog-ng) are not read.
 - TLS uses rsyslog's `gtls` driver (`rsyslog-gnutls`). Alpine gets no TLS: nothing is installed there.
-- Not verified on a host yet: rsyslog's service name outside Debian (`rsyslog` is used); whether Debian 13's journald hands messages to a newly installed rsyslog unaided; where Ubuntu's AppArmor profile lets rsyslogd read a CA file; the TCP ports SELinux lets rsyslogd reach on Rocky, Alma and RHEL (514, 601, 6514, 10514 and 20514 are labelled for it).
+- Not verified on a host yet: rsyslog's service name outside Debian (`rsyslog` is used); whether Debian 13's journald hands messages to a newly installed rsyslog unaided; where Ubuntu's AppArmor profile lets rsyslogd read a CA file; the TCP ports SELinux lets rsyslogd reach on Rocky, Alma, RHEL, CentOS Stream and Oracle (514, 601, 6514, 10514 and 20514 are labelled for it).
 
 ## Time sync
 
@@ -37,7 +39,7 @@ What Time Sync (main menu 8, then 3) does differs by the host's time service. ha
 |---|---|---|
 | Ubuntu 26.04 | chrony | writes `/etc/chrony/sources.d/hardn.sources`, comments out the pools of `ubuntu-ntp-pools.sources`, then `chronyc reload sources`: no restart |
 | Debian, Proxmox with chrony installed | chrony | writes `hardn.sources`, comments out the `pool` line of `/etc/chrony/chrony.conf`, restarts chrony. On Proxmox the review says to set every node the same way |
-| Rocky, Alma, RHEL | chrony | edits `/etc/chrony.conf` in place, as it reads no directory of yours: its `pool` line commented out, hardn's lines under a comment naming them; restarts chronyd |
+| Rocky, Alma, RHEL, CentOS Stream, Oracle | chrony | edits `/etc/chrony.conf` in place, as it reads no directory of yours: its `pool` line commented out, hardn's lines under a comment naming them; restarts chronyd |
 | Debian 13 and 12; Ubuntu 24.04 and 22.04 | systemd-timesyncd | writes `/etc/systemd/timesyncd.conf.d/60-hardn.conf` with `NTP=`, restarts systemd-timesyncd |
 | Alpine | busybox ntpd where its service is started or in a runlevel; chrony where that package is installed | replaces the `-p` words of `NTPD_OPTS` in `/etc/conf.d/ntpd`, under a comment naming the ones replaced; restarts ntpd |
 
@@ -53,9 +55,9 @@ What Time Sync (main menu 8, then 3) does differs by the host's time service. ha
 - Stock Alpine has no `ss`, so listening ports show "ss not installed" until `iproute2` is installed. Firewall offers to install it.
 - On Alpine, Auto Updates restarts no service. An upgraded service keeps running its old version until it restarts, unless its package restarts it.
 
-## Rocky, Alma and RHEL
+## Rocky, Alma, RHEL, CentOS Stream and Oracle
 
-On Rocky, Alma and RHEL:
+On Rocky, Alma, RHEL, CentOS Stream and Oracle:
 
 - A new SSH port is labelled for sshd in SELinux and let through firewalld before sshd moves.
 - The Firewall screen installs, enables and disables firewalld. It refuses a dnf install that brings a new kernel.
@@ -64,6 +66,8 @@ On Rocky, Alma and RHEL:
 - Auto Updates turns on dnf-automatic's daily security updates; restarts stay as automatic.conf sets them (never, as shipped). Off undoes only what hardn did.
 - DNS is only read.
 - RHEL's repositories come with its subscription: on a host with none enabled, such as one that isn't registered, hardn refuses to install firewalld or dnf-automatic.
+- On a host behind its repositories, hardn refuses an install that would upgrade other packages: install it by hand, then try again.
+- CentOS Linux 8 and 7 are not supported.
 
 ## Proxmox
 

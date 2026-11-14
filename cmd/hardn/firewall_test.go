@@ -103,11 +103,11 @@ func newFWHost(t *testing.T, name string) *fwTestHost {
 		h.facts.OS = detect.OSRelease{ID: "rhel", IDLike: []string{"fedora"}, VersionID: "8.10"}
 		h.facts.Platform = detect.Platform{Distro: detect.DistroRHEL, Version: "8", Support: detect.Unlisted}
 		h.facts.SSH.SSHDUnits = true
-	case "centos": // no matrix row yet: Unlisted
+	case "centos": // placed Unlisted here, as before its matrix rows
 		h.facts.OS = detect.OSRelease{ID: "centos", IDLike: []string{"rhel", "fedora"}, VersionID: "10"}
 		h.facts.Platform = detect.Platform{Distro: detect.DistroCentOS, Version: "10", Support: detect.Unlisted}
 		h.facts.SSH.SSHDUnits = true
-	case "oracle": // no matrix row yet: Unlisted
+	case "oracle": // placed Unlisted here, as before its matrix rows
 		h.facts.OS = detect.OSRelease{ID: "ol", IDLike: []string{"fedora"}, VersionID: "10.1"}
 		h.facts.Platform = detect.Platform{Distro: detect.DistroOracle, Version: "10", Support: detect.Unlisted}
 		h.facts.SSH.SSHDUnits = true

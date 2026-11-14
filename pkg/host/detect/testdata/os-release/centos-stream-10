@@ -1,7 +1,6 @@
-# NOT read from a host: written as best known (design-centos-oracle.md §6).
-# Unit 2 replaces this file with the host's own.
 NAME="CentOS Stream"
 VERSION="10 (Coughlan)"
+RELEASE_TYPE=stable
 ID="centos"
 ID_LIKE="rhel fedora"
 VERSION_ID="10"
