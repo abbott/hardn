@@ -11,20 +11,20 @@ For anyone administering a Linux server, container or virtual machine without a 
 
 ## What It Does
 
-`sudo hardn` displays a [**risk level**](docs/engine/risk.md) for the host's users, SSH, firewall, DNS, automatic updates and AppArmor, and a menu to configure them:
+`sudo hardn` displays a [**risk level**](docs/engine/risk.md) for the host's users, SSH, firewall, DNS, automatic updates and AppArmor, and a menu for each:
 
-| Option | Configures |
-|---|---|
-| 1) User Management | users, admin rights, SSH keys |
-| 2) SSH Login | root login, password login, the port |
-| 3) Firewall | `ufw` or firewalld, with SSH let through |
-| 4) DNS | the nameservers |
-| 5) Auto Updates | the distribution's automatic updates |
-| 6) Run All | options 1 to 5, from `hardn.yml` |
-| 7) Backup | backups of the files hardn changes |
-| 8) Configuration | displays `hardn.yml` |
-| 9) System Details | displays host details |
-| 10) Logs | displays `/var/log/hardn.log` |
+| # | Option | Description |
+|---|---|---|
+| 1 | User Management | Manage: users, admin rights, SSH keys; review accounts |
+| 2 | SSH Login | Manage: root login, password login, the port; list SSH keys |
+| 3 | Firewall | Manage: `ufw` or firewalld, with SSH let through; show listening ports |
+| 4 | DNS | Manage:  nameservers |
+| 5 | Auto Updates | Manage: automatic updates |
+| 6 | Run All | Queue: options 1 to 5, from `hardn.yml` |
+| 7 | Backup | Manage: backups of the files hardn changes |
+| 8 | Configuration | Display: `hardn.yml` |
+| 9 | System Details | Display: host details |
+| 10 | Logs | Display: `/var/log/hardn.log` |
 
 AppArmor is displayed, not configured. What each option shows and changes: [docs/usage.md](docs/usage.md#the-menu).
 
@@ -47,9 +47,12 @@ curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo
 ```
 _When a host uses `doas` (Alpine), pipe to `doas sh` instead of `sudo sh`._
 
-The script installs the latest release as `/usr/local/bin/hardn`, after checking its SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. The SHA-256 shows the download matches the release; only the attestation shows the release was built by hardn's workflow from its tag. To update, run it again.
+The script installs the latest release as `/usr/local/bin/hardn`, after checking its SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. The SHA-256 shows the download matches the release; only the attestation shows the release was built by hardn's workflow from its tag. 
 
-Pinning a version, installing by hand, building from source and troubleshooting: [docs/install.md](docs/install.md). Checking a release yourself, offline too: [docs/verify.md](docs/verify.md).
+> [!NOTE]
+> - To update, run it again.
+> - Pinning a version, installing by hand, building from source and troubleshooting: [docs/install.md](docs/install.md). 
+> - Checking a release yourself, offline too: [docs/verify.md](docs/verify.md).
 
 ## Quick Start
 
@@ -62,6 +65,9 @@ hardn config                    # show hardn.yml
 
 # output system details report as JSON file
 hardn system-details --output json > web-01.json
+
+# output the report to hand over, as Markdown
+hardn system-details --output markdown > web-01.md
 
 sudo hardn                      # no flag: opens the main menu
 sudo hardn -n -r                # show Run All's plan
@@ -88,6 +94,7 @@ See [docs/configuration.md](docs/configuration.md) for every `hardn.yml` key.
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
 - **Out of scope**, and any version not in the table: hardn shows the screens and refuses every change.
 - **Any other distribution**: hardn doesn't start.
+- **End of support**: from 90 days before a release's vendor support ends, the main menu says so.
 - **Tested**: CI runs the tests on the container image of each Supported release but Proxmox (Debian, Ubuntu, Alpine, Rocky, Alma, and Red Hat's UBI for RHEL), and a release waits for them. Proxmox VE has no image: its support is tested against synthetic Proxmox VE 9 files. Since v0.6.0, the release notes name the real hosts a release was tested on, or say that it changed only wording.
 
 What differs on Alpine, on Rocky, Alma and RHEL, and on Proxmox: [docs/platforms.md](docs/platforms.md).
