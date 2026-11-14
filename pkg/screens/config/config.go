@@ -167,6 +167,7 @@ func texts(cfg *config.Config) map[string]string {
 		"enableUnattendedUpgrades": strconv.FormatBool(cfg.EnableUnattendedUpgrades),
 		"logForwarding":            logServer(cfg),
 		"ntpServers":               timeServers(cfg),
+		"kernelSettings":           strconv.FormatBool(cfg.KernelSettings),
 		"enableBackups":            strconv.FormatBool(cfg.EnableBackups), "backupPath": cfg.BackupPath,
 		"dryRun": strconv.FormatBool(cfg.FileDryRun()), "confirmTimeout": timeout, "checkReleases": strconv.FormatBool(cfg.CheckReleases),
 	}

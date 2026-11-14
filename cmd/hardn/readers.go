@@ -89,14 +89,16 @@ var configGroupRun = configscreen.RunGroup
 // runConfigGroup is main menu 8, Configuration: the group until the user goes
 // back (nil) or quits (nav.ErrQuit), or the input ends (prompt.ErrAborted). Its
 // items are the hardn.yml screen (runConfigScreen), Log Forwarding
-// (logforward.go) and Time Sync (timesync.go), each on c, the configuration the
-// main menu holds, and each returning to the group.
+// (logforward.go), Time Sync (timesync.go) and Kernel Settings
+// (kernelsettings.go), each on c, the configuration the main menu holds, and
+// each returning to the group.
 func runConfigGroup(ctx context.Context, c *config.Config, found config.Found) error {
 	return configGroupRun(ctx, configscreen.GroupOptions{
-		Prompter:      readerPrompter(),
-		File:          func() error { return runConfigScreen(ctx, c, found) },
-		LogForwarding: func() error { return runLogForwardScreen(ctx, c) },
-		TimeSync:      func() error { return runTimeSyncScreen(ctx, c) },
+		Prompter:       readerPrompter(),
+		File:           func() error { return runConfigScreen(ctx, c, found) },
+		LogForwarding:  func() error { return runLogForwardScreen(ctx, c) },
+		TimeSync:       func() error { return runTimeSyncScreen(ctx, c) },
+		KernelSettings: func() error { return runKernelSettingsScreen(ctx, c) },
 	})
 }
 

@@ -45,6 +45,7 @@
     "CAFile": ""
   },
   "NTPServers": null,
+  "KernelSettings": false,
   "EnableUnattendedUpgrades": true,
   "EnableUfwSshPolicy": true,
   "ConfigureDns": true,

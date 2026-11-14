@@ -24,6 +24,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/kernelsettings"
 	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
@@ -53,6 +54,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/sysctl"
 	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -215,6 +217,16 @@ var errorCodes = []Entry{
 	is("TIMESYNC_CONTAINER", timectl.ErrContainer),
 	is("TIMESYNC_NOTHING_TO_REMOVE", timectl.ErrNothingToRemove, timesync.ErrNotOwn),
 	is("TIMESYNC_CHANGED_SINCE", timectl.ErrChangedSince),
+	// The Kernel Settings screen's refusals, and its failed apply
+	// (gallery-sysctl.md, adopted 2026-11-14): before the reader's errors
+	// they wrap.
+	is("KERNEL_SETTINGS_NOT_READ", kernelsettings.ErrNotRead, sysctl.ErrMalformed, sysctl.ErrValue),
+	is("KERNEL_SETTINGS_FILE_NOT_HARDNS", kernelsettings.ErrOutside),
+	is("KERNEL_SETTINGS_NO_SYSCTL", kernelsettings.ErrNoTool),
+	is("KERNEL_SETTINGS_CONTAINER", kernelsettings.ErrContainer),
+	is("KERNEL_SETTINGS_NOTHING_TO_REMOVE", kernelsettings.ErrNothingToRemove),
+	is("KERNEL_SETTINGS_CHANGED_SINCE", kernelsettings.ErrChangedSince),
+	is("KERNEL_SETTINGS_NOT_SET", kernelsettings.ErrNotSet),
 	// The save of hardn.yml (steps.PlanSave, next/s2-control).
 	is(steps.CodeConfigChanged, steps.ErrConfigChanged, config.ErrChanged).what("hardn.yml changed since it was read: saving would undo what changed it"),
 

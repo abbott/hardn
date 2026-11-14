@@ -277,6 +277,13 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `TIMESYNC_CONTAINER` | 1 | a container's host keeps the time |
 | `TIMESYNC_NOTHING_TO_REMOVE` | 1 | hardn did not set time servers |
 | `TIMESYNC_CHANGED_SINCE` | 1 | the time service's settings changed since the plan |
+| `KERNEL_SETTINGS_NOT_READ` | 1 | the kernel's settings are not read, so no change is planned (the Kernel Settings screen's refusals, `kernelsettings.Err*`; [gallery-sysctl.md](../engine/gallery-sysctl.md) §9) |
+| `KERNEL_SETTINGS_FILE_NOT_HARDNS` | 1 | a file that is not hardn's is where hardn's kernel settings go |
+| `KERNEL_SETTINGS_NO_SYSCTL` | 1 | the host has no sysctl |
+| `KERNEL_SETTINGS_CONTAINER` | 1 | a container's kernel is its host's |
+| `KERNEL_SETTINGS_NOTHING_TO_REMOVE` | 1 | hardn set no kernel settings |
+| `KERNEL_SETTINGS_CHANGED_SINCE` | 1 | hardn's kernel settings file changed since the plan |
+| `KERNEL_SETTINGS_NOT_SET` | 1 | a kernel setting did not take its value; the change is rolled back |
 | `CONFIG_CHANGED` | 1 | hardn.yml changed since it was read: saving would undo what changed it (the save of hardn.yml, [control-dns.md](../engine/control-dns.md) §2.9; `config.Save`'s too since `next/s2-config-edit`, [config-edit.md](../engine/config-edit.md)) |
 | `CONFIRM_WINDOW_CLOSING` | 1 | the confirm window is closing |
 | `BOOT_UNIT_NOT_INSTALLED` | 1 | the boot unit was not installed, so nothing is armed |

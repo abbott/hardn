@@ -26,6 +26,7 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 | 1) hardn.yml | which `hardn.yml` hardn read and each key's value | nothing |
 | 2) Log Forwarding | the host's logger, the syslog server it sends logs to, by whose file, and the server `hardn.yml` names | sends every log to `hardn.yml`'s server over UDP, TCP or TLS; stops only what hardn set. [More](#log-forwarding) |
 | 3) Time Sync | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#time-sync) |
+| 4) Kernel Settings | the kernel's network and kernel settings against hardn's baseline, each with its value and what it means | sets the ones below the baseline in one file, `/etc/sysctl.d/90-hardn.conf`, and at once; puts the earlier values back. [More](#kernel-settings) |
 
 ### Log forwarding
 
@@ -49,6 +50,22 @@ Time Sync shows which service keeps the host's time (chrony, systemd-timesyncd, 
 - **hardn's servers are plain NTP.** Where the host's own are authenticated (NTS, Ubuntu 26.04's default), the review says so before you answer.
 - **Clock** is the service's or the kernel's own word, read again after each change. Right after a restart it can read "Not in sync" for a while.
 - **On the main menu** the Time Sync row shows on every host but a container. It never changes the risk level.
+
+### Kernel settings
+
+Kernel Settings shows 19 settings of the kernel (sysctl): redirects, source routing, SYN cookies, the reverse-path filter, kernel addresses and the kernel log, address randomizing, process tracing, BPF, and link and `/tmp` protection. Each row has its value, what it means and, below hardn's baseline, what hardn sets. A row reads every network interface and shows the weakest.
+
+- **Apply settings** writes only the settings below the baseline to hardn's own file, `/etc/sysctl.d/90-hardn.conf`, each under the value it had, sets each with `sysctl -w`, and reads each back. If one doesn't take, the file and every value are put back.
+- **Remove settings** deletes the file and sets each earlier value again.
+- **A stricter value is never lowered**, and hardn never changes forwarding or IPv6 router advertisements.
+- **A host that routes** (forwarding on, or a Proxmox VE node) keeps Sending redirects and Reverse-path filter as they are. The rows say why.
+- **A setting another file sets back** after hardn's (`99-sysctl.conf`) is shown with that file's name, and left. That is the way to keep a setting of your own.
+- **With Process tracing set**, `gdb -p` and `strace -p` need root. The review says so before you answer.
+- **In a container** the values are shown and nothing is set: the kernel is the host's.
+- **On Alpine** with the `sysctl` service not enabled, the values are set now and not at boot. The screen says so, with the fix: `rc-update add sysctl boot`.
+- **On the main menu and in Run All** only with [`kernelSettings: true`](configuration.md#kernel-settings) in `hardn.yml`. It never changes the risk level.
+
+What differs by distribution: [platforms.md](platforms.md#kernel-settings).
 
 From 90 days before a release's vendor support ends, the main menu says so, and every plan carries a warning. It changes nothing hardn does. The dates: [platforms.md](platforms.md#end-of-support).
 ### Account Review
@@ -224,7 +241,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 
 ## hardn.yml
 
-hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, `logForwarding`, `ntpServers`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
+hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, `logForwarding`, `ntpServers`, `kernelSettings`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
 
 ```yaml
 username: "george"

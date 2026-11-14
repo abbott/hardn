@@ -1,0 +1,203 @@
+# Golden file of TestSysctlGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156msysctl review-routes␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. routes's Apply settings: four rows,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the notice says what is left alone.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mApply settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn sets these now. Remove settings puts the earlier values␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mback. With Process tracing set, gdb -p and strace -p need␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot. Forwarding, Sending redirects and Reverse-path filter␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mare left as they are.␛[m$
+$
+  ␛[1;38;2;129;134;156mSettings␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mICMP redirects␛[m       ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m       ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel addresses␛[m     ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mhidden from users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProcess tracing␛[m      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mchildren only␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWrite hardn's kernel settings␛[m$
+      ␛[38;2;129;134;156m/etc/sysctl.d/90-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,10 @@␛[m$
+      ␛[38;2;112;212;127m+# Written by hardn (Kernel Settings).␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv4.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+net.ipv4.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv6.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv6.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+net.ipv6.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;112;212;127m+# before: kernel.kptr_restrict = 0␛[m$
+      ␛[38;2;112;212;127m+kernel.kptr_restrict = 1␛[m$
+      ␛[38;2;112;212;127m+# before: kernel.yama.ptrace_scope = 0␛[m$
+      ␛[38;2;112;212;127m+kernel.yama.ptrace_scope = 1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the values now␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.eth0.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.lo.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.kptr_restrict=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.yama.ptrace_scope=1␛[m$
+$
+  ␛[38;2;192;196;216mApply kernel settings?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  sysctl review-routes -----------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. routes's Apply settings: four rows,$
+# and the notice says what is left alone.$
+$
+  Checking the host...$
+$
+# Apply settings ###############################################$
+$
+# Note$
+# hardn sets these now. Remove settings puts the earlier values$
+# back. With Process tracing set, gdb -p and strace -p need$
+# root. Forwarding, Sending redirects and Reverse-path filter$
+# are left as they are.$
+$
+  Settings -----------------------------------------------------$
+$
+   -  ICMP redirects       0 ignored$
+   -  IPv6 redirects       0 ignored$
+   -  Kernel addresses     1 hidden from users$
+   -  Process tracing      1 children only$
+$
+   -  Write hardn's kernel settings$
+      /etc/sysctl.d/90-hardn.conf$
+      @@ -0,0 +1,10 @@$
+      +# Written by hardn (Kernel Settings).$
+      +# before: net.ipv4.conf.lo.accept_redirects = 1$
+      +net.ipv4.conf.*.accept_redirects = 0$
+      +# before: net.ipv6.conf.eth0.accept_redirects = 1$
+      +# before: net.ipv6.conf.lo.accept_redirects = 1$
+      +net.ipv6.conf.*.accept_redirects = 0$
+      +# before: kernel.kptr_restrict = 0$
+      +kernel.kptr_restrict = 1$
+      +# before: kernel.yama.ptrace_scope = 0$
+      +kernel.yama.ptrace_scope = 1$
+$
+   -  Set the values now$
+      $ sysctl -w net.ipv4.conf.lo.accept_redirects=0$
+      $ sysctl -w net.ipv6.conf.eth0.accept_redirects=0$
+      $ sysctl -w net.ipv6.conf.lo.accept_redirects=0$
+      $ sysctl -w kernel.kptr_restrict=1$
+      $ sysctl -w kernel.yama.ptrace_scope=1$
+$
+  Apply kernel settings? [y/N, 0 or q]: $
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156msysctl review-routes␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. routes's Apply settings: four␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrows, and the notice says what is left alone.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mApply settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn sets these now. Remove settings puts the earlier␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mvalues back. With Process tracing set, gdb -p and strace␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m-p need root. Forwarding, Sending redirects and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mReverse-path filter are left as they are.␛[m$
+$
+  ␛[1;38;2;129;134;156mSettings␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mICMP redirects␛[m$
+      ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m$
+      ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel addresses␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mhidden from users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProcess tracing␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mchildren only␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWrite hardn's kernel settings␛[m$
+      ␛[38;2;129;134;156m/etc/sysctl.d/90-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,10 @@␛[m$
+      ␛[38;2;112;212;127m+# Written by hardn (Kernel Settings).␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv4.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+net.ipv4.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv6.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv6.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+net.ipv6.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;112;212;127m+# before: kernel.kptr_restrict = 0␛[m$
+      ␛[38;2;112;212;127m+kernel.kptr_restrict = 1␛[m$
+      ␛[38;2;112;212;127m+# before: kernel.yama.ptrace_scope = 0␛[m$
+      ␛[38;2;112;212;127m+kernel.yama.ptrace_scope = 1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the values now␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.eth0.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.lo.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.kptr_restrict=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.yama.ptrace_scope=1␛[m$
+$
+  ␛[38;2;192;196;216mApply kernel settings?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156msysctl review-routes␛[m ␛[38;2;22;24;29m-----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. routes's Apply settings: four rows,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand the notice says what is left alone.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host...␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mApply settings␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn sets these now. Remove settings puts the earlier values␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mback. With Process tracing set, gdb -p and strace -p need␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mroot. Forwarding, Sending redirects and Reverse-path filter␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mare left as they are.␛[m$
+$
+  ␛[1;38;2;129;134;156mSettings␛[m ␛[38;2;22;24;29m-----------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mICMP redirects␛[m       ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m       ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel addresses␛[m     ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mhidden from users␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProcess tracing␛[m      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mchildren only␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mWrite hardn's kernel settings␛[m$
+      ␛[38;2;129;134;156m/etc/sysctl.d/90-hardn.conf␛[m$
+      ␛[38;2;86;91;107m@@ -0,0 +1,10 @@␛[m$
+      ␛[38;2;112;212;127m+# Written by hardn (Kernel Settings).␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv4.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+net.ipv4.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv6.conf.eth0.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+# before: net.ipv6.conf.lo.accept_redirects = 1␛[m$
+      ␛[38;2;112;212;127m+net.ipv6.conf.*.accept_redirects = 0␛[m$
+      ␛[38;2;112;212;127m+# before: kernel.kptr_restrict = 0␛[m$
+      ␛[38;2;112;212;127m+kernel.kptr_restrict = 1␛[m$
+      ␛[38;2;112;212;127m+# before: kernel.yama.ptrace_scope = 0␛[m$
+      ␛[38;2;112;212;127m+kernel.yama.ptrace_scope = 1␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet the values now␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv4.conf.lo.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.eth0.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w net.ipv6.conf.lo.accept_redirects=0␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.kptr_restrict=1␛[m$
+      ␛[38;2;129;134;156m$ sysctl -w kernel.yama.ptrace_scope=1␛[m$
+$
+  ␛[38;2;192;196;216mApply kernel settings?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$

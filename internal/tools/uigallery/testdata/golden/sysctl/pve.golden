@@ -1,0 +1,232 @@
+# Golden file of TestSysctlGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156msysctl pve␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net is a Proxmox VE 9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnode, forwarding off today: it may route for its guests at any␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtime, so Sending redirects and Reverse-path filter are left␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone. No Proxmox VE node was read: the values are Debian␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mKernel Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mKernel Settings␛[m      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107m4 to set␛[m$
+$
+  ␛[1;38;2;129;134;156mNetwork␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mICMP redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;219;184;83maccepted, hardn sets 0␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;219;184;83maccepted, hardn sets 0␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSource routing␛[m       ␛[38;2;129;134;156m0␛[m ␛[38;2;112;212;127mrefused␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSYN cookies␛[m          ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mon␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBroadcast pings␛[m      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mignored␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBogus ICMP errors␛[m    ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSending redirects␛[m    ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mon, left alone: Proxmox VE␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReverse-path filter␛[m  ␛[38;2;129;134;156m2␛[m ␛[38;2;129;134;156mloose, left alone: Proxmox VE␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mForwarding␛[m           ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156moff␛[m$
+$
+  ␛[1;38;2;129;134;156mKernel␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mKernel addresses␛[m     ␛[38;2;129;134;156m0␛[m ␛[38;2;219;184;83mshown to users, hardn sets 1␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel log␛[m           ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mroot only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAddress randomizing␛[m  ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127mfull␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mProcess tracing␛[m      ␛[38;2;129;134;156m0␛[m ␛[38;2;219;184;83munrestricted, hardn sets 1␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnprivileged BPF␛[m     ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127moff␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mPerformance events␛[m   ␛[38;2;129;134;156m3␛[m ␛[38;2;112;212;127mlimited␛[m$
+$
+  ␛[1;38;2;129;134;156mFiles␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mHard links␛[m           ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSymbolic links␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFIFOs in /tmp␛[m        ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFiles in /tmp␛[m        ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127mprotected␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply settings␛[m       ␛[38;2;129;134;156mSet 4 settings␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  sysctl pve ---------------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. web-01.example.net is a Proxmox VE 9$
+# node, forwarding off today: it may route for its guests at any$
+# time, so Sending redirects and Reverse-path filter are left$
+# alone. No Proxmox VE node was read: the values are Debian$
+# 13's.$
+$
+# Kernel Settings ##############################################$
+$
+  [ ] Kernel Settings      Not Configured 4 to set$
+$
+  Network ------------------------------------------------------$
+$
+  [ ] ICMP redirects       1 accepted, hardn sets 0$
+  [ ] IPv6 redirects       1 accepted, hardn sets 0$
+  [+] Source routing       0 refused$
+  [+] SYN cookies          1 on$
+  [+] Broadcast pings      1 ignored$
+  [+] Bogus ICMP errors    1 ignored$
+   -  Sending redirects    1 on, left alone: Proxmox VE$
+   -  Reverse-path filter  2 loose, left alone: Proxmox VE$
+   -  Forwarding           0 off$
+$
+  Kernel -------------------------------------------------------$
+$
+  [ ] Kernel addresses     0 shown to users, hardn sets 1$
+  [+] Kernel log           1 root only$
+  [+] Address randomizing  2 full$
+  [ ] Process tracing      0 unrestricted, hardn sets 1$
+  [+] Unprivileged BPF     2 off$
+  [+] Performance events   3 limited$
+$
+  Files --------------------------------------------------------$
+$
+  [+] Hard links           1 protected$
+  [+] Symbolic links       1 protected$
+  [+] FIFOs in /tmp        1 protected$
+  [+] Files in /tmp        2 protected$
+$
+  Select an option$
+$
+   1) Apply settings       Set 4 settings$
+$
+   0) Return$
+$
+    > Option [0-1 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156msysctl pve␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net is a Proxmox␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mVE 9 node, forwarding off today: it may route for its␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mguests at any time, so Sending redirects and Reverse-path␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfilter are left alone. No Proxmox VE node was read: the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mvalues are Debian 13's.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mKernel Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mKernel Settings␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107m4 to set␛[m$
+$
+  ␛[1;38;2;129;134;156mNetwork␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mICMP redirects␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;219;184;83maccepted, hardn sets 0␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mIPv6 redirects␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;219;184;83maccepted, hardn sets 0␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSource routing␛[m$
+      ␛[38;2;129;134;156m0␛[m ␛[38;2;112;212;127mrefused␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSYN cookies␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mon␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBroadcast pings␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mignored␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mBogus ICMP errors␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSending redirects␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mon, left alone: Proxmox VE␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReverse-path filter␛[m$
+      ␛[38;2;129;134;156m2␛[m ␛[38;2;129;134;156mloose, left alone: Proxmox VE␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mForwarding␛[m$
+      ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156moff␛[m$
+$
+  ␛[1;38;2;129;134;156mKernel␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mKernel addresses␛[m$
+      ␛[38;2;129;134;156m0␛[m ␛[38;2;219;184;83mshown to users, hardn sets 1␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel log␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mroot only␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAddress randomizing␛[m$
+      ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127mfull␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mProcess tracing␛[m$
+      ␛[38;2;129;134;156m0␛[m ␛[38;2;219;184;83munrestricted, hardn sets 1␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUnprivileged BPF␛[m$
+      ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127moff␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mPerformance events␛[m$
+      ␛[38;2;129;134;156m3␛[m ␛[38;2;112;212;127mlimited␛[m$
+$
+  ␛[1;38;2;129;134;156mFiles␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mHard links␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSymbolic links␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFIFOs in /tmp␛[m$
+      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFiles in /tmp␛[m$
+      ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127mprotected␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply settings␛[m$
+      ␛[38;2;129;134;156mSet 4 settings␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156msysctl pve␛[m ␛[38;2;22;24;29m---------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net is a Proxmox VE 9␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnode, forwarding off today: it may route for its guests at any␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mtime, so Sending redirects and Reverse-path filter are left␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone. No Proxmox VE node was read: the values are Debian␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m13's.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mKernel Settings␛[m ␛[38;2;43;47;59m##############################################␛[m$
+$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mKernel Settings␛[m      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107m4 to set␛[m$
+$
+  ␛[1;38;2;129;134;156mNetwork␛[m ␛[38;2;22;24;29m------------------------------------------------------␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mICMP redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;219;184;83maccepted, hardn sets 0␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mIPv6 redirects␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;219;184;83maccepted, hardn sets 0␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSource routing␛[m       ␛[38;2;129;134;156m0␛[m ␛[38;2;112;212;127mrefused␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSYN cookies␛[m          ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mon␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBroadcast pings␛[m      ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mignored␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mBogus ICMP errors␛[m    ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mignored␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSending redirects␛[m    ␛[38;2;129;134;156m1␛[m ␛[38;2;129;134;156mon, left alone: Proxmox VE␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mReverse-path filter␛[m  ␛[38;2;129;134;156m2␛[m ␛[38;2;129;134;156mloose, left alone: Proxmox VE␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mForwarding␛[m           ␛[38;2;129;134;156m0␛[m ␛[38;2;129;134;156moff␛[m$
+$
+  ␛[1;38;2;129;134;156mKernel␛[m ␛[38;2;22;24;29m-------------------------------------------------------␛[m$
+$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mKernel addresses␛[m     ␛[38;2;129;134;156m0␛[m ␛[38;2;219;184;83mshown to users, hardn sets 1␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mKernel log␛[m           ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mroot only␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAddress randomizing␛[m  ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127mfull␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mProcess tracing␛[m      ␛[38;2;129;134;156m0␛[m ␛[38;2;219;184;83munrestricted, hardn sets 1␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUnprivileged BPF␛[m     ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127moff␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mPerformance events␛[m   ␛[38;2;129;134;156m3␛[m ␛[38;2;112;212;127mlimited␛[m$
+$
+  ␛[1;38;2;129;134;156mFiles␛[m ␛[38;2;22;24;29m--------------------------------------------------------␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mHard links␛[m           ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSymbolic links␛[m       ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFIFOs in /tmp␛[m        ␛[38;2;129;134;156m1␛[m ␛[38;2;112;212;127mprotected␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFiles in /tmp␛[m        ␛[38;2;129;134;156m2␛[m ␛[38;2;112;212;127mprotected␛[m$
+$
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mApply settings␛[m       ␛[38;2;129;134;156mSet 4 settings␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m$
+$
+$

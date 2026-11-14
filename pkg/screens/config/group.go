@@ -22,6 +22,8 @@ type GroupOptions struct {
 	LogForwarding func() error
 	// TimeSync is item 3: pkg/screens/timesync.
 	TimeSync func() error
+	// KernelSettings is item 4: pkg/screens/kernelsettings.
+	KernelSettings func() error
 }
 
 // RunGroup shows the Configuration group (screen.ConfigGroup) until 0 (nil) or
@@ -30,16 +32,17 @@ type GroupOptions struct {
 // returns nil or nav.ErrBack; its q, an abort or any other error ends the group
 // with it. The group reads and writes nothing itself. RunGroup returns an error
 // wrapping fs.ErrInvalid, writing nothing, without a Prompter's In and Out or
-// one of the three screens.
+// one of the four screens.
 func RunGroup(_ context.Context, o GroupOptions) error {
-	if o.Prompter.In == nil || o.Prompter.Out == nil || o.File == nil || o.LogForwarding == nil || o.TimeSync == nil {
-		return fmt.Errorf("configuration menu: %w: it needs a Prompter with In and Out, and its three screens", fs.ErrInvalid)
+	if o.Prompter.In == nil || o.Prompter.Out == nil || o.File == nil || o.LogForwarding == nil || o.TimeSync == nil || o.KernelSettings == nil {
+		return fmt.Errorf("configuration menu: %w: it needs a Prompter with In and Out, and its four screens", fs.ErrInvalid)
 	}
 	sub := screen.ConfigGroup{}.SubMenu()
 	actions := map[string]func() error{
 		screen.ConfigFileItem:       o.File,
 		screen.ConfigLogForwardItem: o.LogForwarding,
 		screen.ConfigTimeSyncItem:   o.TimeSync,
+		screen.ConfigKernelItem:     o.KernelSettings,
 	}
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {

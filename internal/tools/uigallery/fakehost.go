@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
+	"github.com/abbott/hardn/pkg/host/sysctl/sysctlfake"
 	"github.com/abbott/hardn/pkg/host/timesync/timefake"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
@@ -120,6 +121,9 @@ type fakeHost struct {
 	// ts is the host's time service (timehost.go), which answers the Time
 	// Sync control's commands; nil on a host that is no status host.
 	ts *timefake.Sim
+	// ks answers the sysctl tool's commands on the hosts with a kernel
+	// model (sysctl.go); nil on every other.
+	ks *sysctlfake.Sim
 }
 
 // platform is what a simulated host's release ships, as detect reads it.
@@ -618,6 +622,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 	}
 	if r, ok := h.ts.Answer(argv); ok {
 		return hostfake.Response{Stdout: r.Stdout, Stderr: r.Stderr, ExitCode: r.ExitCode}
+	}
+	if r, ok := h.ksAnswer(argv); ok {
+		return r
 	}
 	switch path.Base(argv[0]) {
 	case "sshd":

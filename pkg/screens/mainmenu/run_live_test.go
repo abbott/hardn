@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/sysctl/sysctlfake"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 	"github.com/abbott/hardn/pkg/ui/screen"
@@ -539,6 +540,43 @@ func TestLogForwardingRow(t *testing.T) {
 		if last := vm.Status.Rows[len(vm.Status.Rows)-1]; last.Label != "Time Sync" || last.State != component.StatusConfigured || last.Detail != "0.debian.pool.ntp.org" {
 			t.Errorf("the last row %+v", last)
 		}
+	}
+	if with.Risk != without.Risk {
+		t.Errorf("the risk level with the row %+v, without %+v", with.Risk, without.Risk)
+	}
+}
+
+// TestKernelSettingsRow: the main menu draws a Kernel Settings row only
+// where hardn.yml's kernelSettings is true, last, and the risk level is the
+// same with it and without (gallery-sysctl.md, decisions 17 and 18 (a)).
+func TestKernelSettingsRow(t *testing.T) {
+	ctx := context.Background()
+	read := func(on bool) screen.MainMenu {
+		t.Helper()
+		f, sys := loadStatusHost(t, "debian13")
+		for name, data := range sysctlfake.Files(sysctlfake.Values([]string{"eth0"}, map[string]int{"kernel.yama.ptrace_scope": 0})) {
+			f.AddFile(name, []byte(data), 0o644, 0, 0)
+		}
+		cfg := config.DefaultConfig()
+		cfg.KernelSettings = on
+		vm, err := Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return vm
+	}
+	without, with := read(false), read(true)
+	for _, row := range without.Status.Rows {
+		if row.Label == "Kernel Settings" {
+			t.Fatalf("kernelSettings false: the row is drawn: %+v", row)
+		}
+	}
+	n := len(with.Status.Rows)
+	if n != len(without.Status.Rows)+1 {
+		t.Fatalf("%d rows with kernelSettings true, %d without", n, len(without.Status.Rows))
+	}
+	if row := with.Status.Rows[n-1]; row.Label != "Kernel Settings" || row.State != component.StatusNotConfigured || row.Detail != "2 to set" {
+		t.Errorf("the last row %+v", row)
 	}
 	if with.Risk != without.Risk {
 		t.Errorf("the risk level with the row %+v, without %+v", with.Risk, without.Risk)

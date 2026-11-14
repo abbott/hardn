@@ -629,8 +629,8 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // either.
 // (sdListing) or the Logs listing (logsListing), which size themselves with
 // size too and read no input, as "config", "ports", "logforward" and
-// "timesync" (configListing, portsListing, lfListing, tsListing) do. No
-// other mode calls either.
+// "timesync" (configListing, portsListing, lfListing, tsListing) do, and
+// "sysctl" (ksListing). No other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -673,6 +673,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	}
 	if len(args) > 0 && args[0] == tsPrefix {
 		return tsListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == ksPrefix {
+		return ksListing.run(args[1:], size, stdout, stderr)
 	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)

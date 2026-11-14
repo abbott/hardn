@@ -8,6 +8,7 @@ import (
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/output"
 	configscreen "github.com/abbott/hardn/pkg/screens/config"
+	kernelscreen "github.com/abbott/hardn/pkg/screens/kernelsettings"
 	logforwardscreen "github.com/abbott/hardn/pkg/screens/logforward"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
@@ -18,8 +19,8 @@ import (
 
 // TestMenuOptions: menuOptions, as main fills the main menu's Options, sets
 // every field of them, the User Management, SSH Login, DNS, Firewall,
-// Backup, Auto Updates, Run All, Configuration (its group's Log Forwarding
-// and Time Sync too), System Details and Logs items' (the
+// Backup, Auto Updates, Run All, Configuration (its group's Log Forwarding,
+// Time Sync and Kernel Settings too), System Details and Logs items' (the
 // Firewall item's description's too), the status's and terminal's, the
 // input and stdout, on the configuration given. What each item runs is
 // its own tests' (TestBackupThenDNS, TestFirewallHook, TestUsersHook,
@@ -30,9 +31,9 @@ import (
 func TestMenuOptions(t *testing.T) {
 	h, c := newRunAllHost(t, "debian13", runAllYML)
 	useSSHHost(t, h)
-	statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas, groupWas := menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun, configGroupRun
+	statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas, kernelWas, groupWas := menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun, kernelSettingsRun, configGroupRun
 	t.Cleanup(func() {
-		menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun, configGroupRun = statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas, groupWas
+		menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun, kernelSettingsRun, configGroupRun = statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas, kernelWas, groupWas
 	})
 	var status mainmenu.StatusOptions
 	var runAll runallscreen.Options
@@ -47,6 +48,8 @@ func TestMenuOptions(t *testing.T) {
 	logForwardRun = func(_ context.Context, o logforwardscreen.Options) error { logForward = o; return nil }
 	var timeSync timesyncscreen.Options
 	timeSyncRun = func(_ context.Context, o timesyncscreen.Options) error { timeSync = o; return nil }
+	var kernel kernelscreen.Options
+	kernelSettingsRun = func(_ context.Context, o kernelscreen.Options) error { kernel = o; return nil }
 	const version = "0.4.0-synthetic"
 	o := menuOptions(c, config.Found{}, version)
 	if o.Out != os.Stdout {
@@ -61,13 +64,13 @@ func TestMenuOptions(t *testing.T) {
 	if err := o.Updates(); err != nil {
 		t.Fatal(err)
 	}
-	// Configuration (item 8) runs the group with its three screens.
+	// Configuration (item 8) runs the group with its four screens.
 	var group configscreen.GroupOptions
 	configGroupRun = func(_ context.Context, g configscreen.GroupOptions) error { group = g; return nil }
 	if err := o.Configuration(); err != nil {
 		t.Fatal(err)
 	}
-	if group.Prompter.In == nil || group.Prompter.Out == nil || group.File == nil || group.LogForwarding == nil || group.TimeSync == nil {
+	if group.Prompter.In == nil || group.Prompter.Out == nil || group.File == nil || group.LogForwarding == nil || group.TimeSync == nil || group.KernelSettings == nil {
 		t.Fatalf("the Configuration group's options: %+v", group)
 	}
 	if err := group.LogForwarding(); err != nil {
@@ -87,6 +90,14 @@ func TestMenuOptions(t *testing.T) {
 	if timeSync.Config != c || timeSync.System == nil || timeSync.NewEngine == nil || timeSync.Ran == nil ||
 		timeSync.ApplyContext == nil || timeSync.Prompter.In == nil || timeSync.LogPath != output.LegacyLogPath || timeSync.DryRun != c.DryRun {
 		t.Errorf("the Time Sync screen's options: %+v", timeSync)
+	}
+	// The Kernel Settings screen (the group's 4), the same.
+	if err := group.KernelSettings(); err != nil {
+		t.Fatal(err)
+	}
+	if kernel.Config != c || kernel.System == nil || kernel.NewEngine == nil || kernel.Ran == nil ||
+		kernel.ApplyContext == nil || kernel.Prompter.In == nil || kernel.LogPath != output.LegacyLogPath || kernel.DryRun != c.DryRun {
+		t.Errorf("the Kernel Settings screen's options: %+v", kernel)
 	}
 	if status.Version != "v"+version || runAll.Version != version || updates.Version != version {
 		t.Errorf("hardn's version: status %q, Run All %q, Auto Updates %q; want %q", status.Version, runAll.Version, updates.Version, version)
