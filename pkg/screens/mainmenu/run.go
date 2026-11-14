@@ -54,19 +54,22 @@ type Options struct {
 	DNS func() error
 	// Updates is the Auto Updates item (5): pkg/screens/updates.
 	Updates func() error
-	// RunAll is the Run All item (6): pkg/screens/runall on the planner. No
+	// LogForwarding is the Log Forwarding item (6): pkg/screens/logforward.
+	// No change it makes saves hardn.yml.
+	LogForwarding func() error
+	// RunAll is the Run All item (7): pkg/screens/runall on the planner. No
 	// change it makes saves hardn.yml.
 	RunAll func() error
-	// Backup is the Backup item (7): pkg/screens/backup.
+	// Backup is the Backup item (8): pkg/screens/backup.
 	Backup func() error
-	// Configuration is the Configuration item (8): pkg/screens/config, which
+	// Configuration is the Configuration item (9): pkg/screens/config, which
 	// shows hardn.yml as loaded and changes nothing, under plan only as live.
 	// Its name is not the item's bare word: Config is the field above.
 	Configuration func() error
-	// SystemDetails is the System Details item (9): pkg/screens/systemdetails.
+	// SystemDetails is the System Details item (10): pkg/screens/systemdetails.
 	// It reads and changes nothing else, under plan only as live.
 	SystemDetails func() error
-	// Logs is the Logs item (10): pkg/screens/logs.
+	// Logs is the Logs item (11): pkg/screens/logs.
 	Logs func() error
 
 	// Status reads the main menu's header, host block, risk level and
@@ -325,14 +328,17 @@ func (o Options) firewallDescription() string {
 
 // items is the main menu's items, each bound to the screen cmd/hardn sets
 // for it, and its Exit item "0) Exit", "q to quit" (DEV-030); the hint,
-// generated from the items, says "[0-10 or q]". The order is the
+// generated from the items, says "[0-11 or q]". The order is the
 // maintainer's (2026-11-07): User Management, SSH Login, Firewall, DNS,
-// Auto Updates, Run All, Backup, Configuration, System Details, Logs. Item
+// Auto Updates, Run All, Backup, Configuration, System Details, Logs, with
+// Log Forwarding 6, after Auto Updates, since 2026-11-13
+// (gallery-logforward.md, decision 8 (a)): the five after it each moved
+// down one. Item
 // 1's parenthesis is its aside. Item 2 says what the SSH Login screen
 // changes, "Root login, passwords, port" (legacy-left.md §3, decision 7
 // (a); P-07 (a), P-12); item 3 on Proxmox VE "View pve-firewall" (slice
 // 4, decision 7), on Rocky Linux and AlmaLinux "Configure firewalld"; Auto Updates (slice 7, unit (d)) took the key
-// origin/main's Dry-Run left; item 8, Configuration, "View hardn.yml"
+// origin/main's Dry-Run left; item 9, Configuration, "View hardn.yml"
 // (gallery-config.md §3, decisions 1 and 6 (a)), took the key Environment
 // left. Every
 // item opens under plan only as live: its screen stops each change at its
@@ -349,11 +355,12 @@ func (o Options) items() nav.Menu {
 			{Item: item("3", "Firewall", o.firewallDescription()), Action: o.show(o.Firewall, "mainmenu: the Firewall item has no screen (Options.Firewall)")},
 			{Item: item("4", "DNS", "Configure nameservers"), Action: o.show(o.DNS, "mainmenu: the DNS item has no screen (Options.DNS)")},
 			{Item: item("5", "Auto Updates", "Configure automatic updates"), Action: o.show(o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)")},
-			{Item: item("6", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
-			{Item: item("7", "Backup", "Configure hardn backup"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
-			{Item: item("8", "Configuration", "View hardn.yml"), Action: o.show(o.Configuration, "mainmenu: the Configuration item has no screen (Options.Configuration)")},
-			{Item: item("9", "System Details", "View system information"), Action: o.show(o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)")},
-			{Item: item("10", "Logs", "View log file"), Action: o.show(o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)")},
+			{Item: item("6", "Log Forwarding", "Send logs to a syslog server"), Action: o.show(o.LogForwarding, "mainmenu: the Log Forwarding item has no screen (Options.LogForwarding)")},
+			{Item: item("7", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
+			{Item: item("8", "Backup", "Configure hardn backup"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
+			{Item: item("9", "Configuration", "View hardn.yml"), Action: o.show(o.Configuration, "mainmenu: the Configuration item has no screen (Options.Configuration)")},
+			{Item: item("10", "System Details", "View system information"), Action: o.show(o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)")},
+			{Item: item("11", "Logs", "View log file"), Action: o.show(o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)")},
 		},
 		Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()},
 	}

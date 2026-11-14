@@ -1,5 +1,5 @@
 // Package logs runs hardn's Logs screen on a host (refactor plan slice 1, System
-// Details and Logs, unit (c), next/s1-screen): main menu 10 and hardn -p, as the
+// Details and Logs, unit (c), next/s1-screen): main menu 11 and hardn -p, as the
 // maintainer adopted the mock on 2026-10-30 (docs/engine/gallery-system-details.md
 // §5, decisions 6 (a), 7 (a), 8 (a), 10 (a) and the Made here calls, with §6's
 // words), drawn by pkg/ui/screen (screen.Logs) from what pkg/engine/logview reads

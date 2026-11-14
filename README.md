@@ -20,11 +20,12 @@ For anyone administering a Linux server, container or virtual machine without a 
 | 3) Firewall | `ufw` or firewalld, with SSH let through |
 | 4) DNS | the nameservers |
 | 5) Auto Updates | the distribution's automatic updates |
-| 6) Run All | options 1 to 5, from `hardn.yml` |
-| 7) Backup | backups of the files hardn changes |
-| 8) Configuration | displays `hardn.yml` |
-| 9) System Details | displays host details |
-| 10) Logs | displays `/var/log/hardn.log` |
+| 6) Log Forwarding | a syslog server for the host's logs |
+| 7) Run All | options 1 to 6, from `hardn.yml` |
+| 8) Backup | backups of the files hardn changes |
+| 9) Configuration | displays `hardn.yml` |
+| 10) System Details | displays host details |
+| 11) Logs | displays `/var/log/hardn.log` |
 
 AppArmor is displayed, not configured. What each option shows and changes: [docs/usage.md](docs/usage.md#the-menu).
 

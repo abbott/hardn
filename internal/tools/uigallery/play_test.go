@@ -84,7 +84,7 @@ func TestPlayGolden(t *testing.T) {
 		lines []string
 		code  int
 	}{
-		{"user-management", nil, []string{"6", "0", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
+		{"user-management", nil, []string{"7", "0", "1", "1", "1", "1", "y", "0", "0", "0", "0"}, exitOK},
 		{"user-management-typed", []string{"-sequence", "typed"}, []string{"1", "1", "1", "1", "bos-san-l01", "q"}, exitOK},
 		{"ssh-toggle", nil, []string{"2", "1", "BOS-SAN-L01", "bos-san-l01", "q"}, exitOK},
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},
@@ -163,8 +163,8 @@ func TestPlaySize(t *testing.T) {
 		t.Errorf("play -width 0 on a terminal: exit %d, stdout %q, stderr %q; want exit %d and -width refused", code, out.String(), errs.String(), exitUsage)
 	}
 	vm := screen.MainMenuFixture()
-	i := slices.IndexFunc(vm.Menu.Items, func(it component.MenuItem) bool { return it.Key == "6" })
-	vm.Menu.Items = slices.Insert(vm.Menu.Items, i, updMenuItem) // play's main menu: the Auto Updates screen's item (updates.go)
+	i := slices.IndexFunc(vm.Menu.Items, func(it component.MenuItem) bool { return it.Key == "7" })
+	vm.Menu.Items = slices.Insert(vm.Menu.Items, i, updMenuItem, lfMenuItem) // play's main menu: the items the mock has not (updates.go, logforward.go)
 	drawn := func(height int) string {
 		env := term.Fixed(80, colorprofile.ASCII, false, true)
 		env.Height = height

@@ -38,15 +38,15 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure ufw rules␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
-   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 7-11 or q]:␛[m$
 $
 $
 
@@ -86,15 +86,15 @@ $
    2) SSH Login            Root login, passwords, port$
    3) Firewall             Configure ufw rules$
    4) DNS                  Configure nameservers$
-   6) Run All              Execute hardening operations$
-   7) Backup               Configure hardn backup$
-   8) Configuration        View hardn.yml$
-   9) System Details       View system information$
-  10) Logs                 View log file$
+   7) Run All              Execute hardening operations$
+   8) Backup               Configure hardn backup$
+   9) Configuration        View hardn.yml$
+  10) System Details       View system information$
+  11) Logs                 View log file$
 $
    0) Exit                 q to quit$
 $
-    > Option [0-4, 6-10 or q]:$
+    > Option [0-4, 7-11 or q]:$
 $
 $
 
@@ -150,21 +150,21 @@ $
       ␛[38;2;129;134;156mConfigure ufw rules␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m$
       ␛[38;2;129;134;156mConfigure nameservers␛[m$
-   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
       ␛[38;2;129;134;156mView hardn.yml␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLogs␛[m$
       ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
       ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 7-11 or q]:␛[m$
 $
 $
 
@@ -204,14 +204,14 @@ $
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login, passwords, port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mConfigure ufw rules␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
-   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 6-10 or q]:␛[m$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-4, 7-11 or q]:␛[m$
 $
 $

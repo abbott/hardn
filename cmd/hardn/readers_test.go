@@ -766,7 +766,7 @@ func TestLogsOpenTerm(t *testing.T) {
 	}
 }
 
-// TestConfigScreenHook: main menu 8 shows the configuration the main menu holds and
+// TestConfigScreenHook: main menu 9 shows the configuration the main menu holds and
 // how its file was found when it loaded, hardn.yml never looked for again: a file
 // that has gone, and another -f would now find, change nothing. Under plan only as
 // live, it reaches no host; 0 goes back, q quits, the end of the input aborts.

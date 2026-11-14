@@ -2,7 +2,7 @@
 // docs/engine/control-runall.md): what hardn.yml asks of each control, each
 // control planned alone and skipped, said, where it refuses, doesn't apply
 // or has nothing to change, and the rest in one plan on the engine. The Run
-// All screen (main menu 6) and hardn -r both draw from its Reading, so the
+// All screen (main menu 7) and hardn -r both draw from its Reading, so the
 // two never differ. It reads the host only through host.System and the
 // engine, writes nothing, and renders nothing: its rows are data and words.
 //
@@ -28,6 +28,7 @@ import (
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	fwctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -62,6 +63,9 @@ const (
 	// rollback, or a change that did not finish, is revert's own words,
 	// with its hardn rollback.
 	PendingWords = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
+
+	// wordsSetServer is Log Forwarding's change, the screen's item.
+	wordsSetServer = "Set server"
 
 	userMgmt = "User Management's: "
 	sshLogin = "SSH Login's: "
@@ -151,10 +155,25 @@ func IDs() []string {
 	return append(ids, backupctl.ID)
 }
 
+// IDsFor are the rows' controls with cfg as hardn.yml: IDs, and, where
+// logForwarding names a server, Log Forwarding before Backup. With no
+// server its row is not listed (gallery-logforward.md, decision 9 (a)).
+func IDsFor(cfg *config.Config) []string {
+	ids := IDs()
+	if cfg == nil || cfg.LogForwarding.Server == "" {
+		return ids
+	}
+	return slices.Insert(ids, len(ids)-1, logforward.ID)
+}
+
 // Checked are the controls whose checks the rows show: the main menu's,
-// then Backup's.
+// Log Forwarding's where hardn.yml names a server (IDsFor), then Backup's.
 func Checked(cfg *config.Config) []engine.Control {
-	return append(controls.Status(cfg), backupctl.Settings{Config: cfg})
+	out := controls.Status(cfg)
+	if cfg != nil && cfg.LogForwarding.Server != "" {
+		out = append(out, logforward.Controls(cfg)...)
+	}
+	return append(out, backupctl.Settings{Config: cfg})
 }
 
 // Ask is what hardn.yml asks Run All of one row (decision 4 (a)).
@@ -182,7 +201,8 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // login off, key-only on Proxmox VE, never loosened (sshchange.Disallow,
 // as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
-// nameservers; enableUnattendedUpgrades true, on (never off). SSH Auth asks
+// nameservers; enableUnattendedUpgrades true, on (never off);
+// logForwarding's server, Set server (never Stop forwarding). SSH Auth asks
 // no key: on Alpine, where sshd lacks CVE-2026-123158's fix, it is the
 // openssh upgrade (sshchange.Upgrade; the maintainer, 2026-11-08). Every
 // other row asks nothing: AppArmor and Backup.
@@ -229,6 +249,12 @@ func Asked(in Input, id string) Ask {
 			return Ask{}
 		}
 		return Ask{Control: updates.Auto{Action: updates.AutoOn, Records: in.Revert, Version: in.Version}, Words: "Turn on"}
+	case logforward.ID:
+		// Set server alone, never Stop forwarding (decision 9 (a)).
+		if cfg.LogForwarding.Server == "" {
+			return Ask{}
+		}
+		return Ask{Control: logforward.Forward{Action: logforward.ActionSet, Config: cfg}, Words: wordsSetServer}
 	}
 	return Ask{}
 }
@@ -351,7 +377,7 @@ func Read(ctx context.Context, in Input) (Reading, error) {
 	if err != nil {
 		return Reading{}, fmt.Errorf("runall: %w", err)
 	}
-	for _, id := range IDs() {
+	for _, id := range IDsFor(in.Config) {
 		rep, _ := report(reports, id)
 		r.Reports = append(r.Reports, rep)
 		r.Rows = append(r.Rows, r.pick(ctx, in, id, rep))

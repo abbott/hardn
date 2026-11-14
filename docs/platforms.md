@@ -14,6 +14,21 @@ hardn knows when each release's free security updates end. From 90 days before, 
 | Proxmox | 9: not announced, so no warning; 8: August 2026 |
 | Rocky, Alma, RHEL | 10: 2035-05-31, 9: 2032-05-31 (RHEL without the paid add-on) |
 
+## Log forwarding
+
+What Log Forwarding (main menu 6) does differs by the host's logger:
+
+| Distribution | Logger hardn finds | Set server |
+|---|---|---|
+| Ubuntu; Rocky, Alma, RHEL | rsyslog | writes `/etc/rsyslog.d/60-hardn-forward.conf`; UDP, TCP or TLS |
+| Debian 13 and 12 | journald alone, unless rsyslog is installed | installs rsyslog first, which also keeps its own log files under `/var/log` |
+| Proxmox | as Debian | only where rsyslog is already installed: hardn installs no package on Proxmox |
+| Alpine | busybox syslogd; with rsyslog also installed, hardn can't tell which one logs and changes nothing | adds `-R <server>:<port> -L` to `SYSLOGD_OPTS` in `/etc/conf.d/syslog`, under a comment naming what it added; UDP only |
+
+- hardn reads rsyslog's forwarding from `/etc/rsyslog.conf` and `/etc/rsyslog.d/*.conf`: `omfwd` actions and the older `@host` and `@@host` lines. A file another `include` names, RELP, and another syslog daemon (syslog-ng) are not read.
+- TLS uses rsyslog's `gtls` driver (`rsyslog-gnutls`). Alpine gets no TLS: nothing is installed there.
+- Not verified on a host yet: rsyslog's service name outside Debian (`rsyslog` is used); whether Debian 13's journald hands messages to a newly installed rsyslog unaided; where Ubuntu's AppArmor profile lets rsyslogd read a CA file; the TCP ports SELinux lets rsyslogd reach on Rocky, Alma and RHEL (514, 601, 6514, 10514 and 20514 are labelled for it).
+
 ## Alpine
 
 - On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.

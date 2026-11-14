@@ -13,7 +13,7 @@ This document explains how to configure `hardn`, the simple hardening tool for L
 5. `~/.hardn.yml` (traditional dot-file in home directory)
 6. `./hardn.yml` (the directory `hardn` runs in)
 
-The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `8) Configuration` shows which file was read, or run `sudo hardn config`.
+The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `9) Configuration` shows which file was read, or run `sudo hardn config`.
 
 ## Creating a Configuration File
 
@@ -150,7 +150,7 @@ checkReleases: false                # true: ask GitHub for the latest release's 
 
 #### `enableBackups` and `backupPath`: the Backup screen
 
-The main menu's Backup (7) shows and changes these two settings.
+The main menu's Backup (8) shows and changes these two settings.
 
 - **Showing it writes nothing.** With backups on, it used to write a test file to the backup path each time.
 - **Verify Directory writes nothing.** It checks that only root can change the path.
@@ -238,6 +238,26 @@ Off, the default, hardn makes no network request. On, the main menu's first line
 - **hardn doesn't update itself.** Install the release with [install.sh](install.md).
 - The last answer is kept in `/var/lib/hardn/release.json`, root's alone.
 
+### Log Forwarding
+
+```yaml
+logForwarding:
+  server: "192.0.2.50"   # IPv4 address or name
+  port: 514              # default 514; 6514 for tls
+  protocol: tcp          # udp, tcp or tls; default tcp
+  caFile: ""             # tls only
+```
+
+The syslog server the main menu's Log Forwarding (6) and Run All send the host's logs to. Nothing is set by default: with no `server`, hardn changes nothing.
+
+- **`server`** is an IPv4 address or a host name. An IPv6 address isn't set yet.
+- **`protocol`** is `udp`, `tcp` or `tls`, in lower case. UDP and TCP are not encrypted, and UDP doesn't notice a lost message. On Alpine only `udp` is set: busybox syslogd has no other.
+- **`tls`** needs the server's name, as its certificate has it, and **`caFile`**: the CA's certificate, a file already on the host. hardn checks the server's certificate against it and sends no client certificate.
+- **A value hardn doesn't accept is refused**, and nothing is written: the values go into the logger's settings, so only letters, digits, dots and hyphens in `server`, and letters, digits and `._+-/` in `caFile`.
+- No screen saves this key. Stop forwarding leaves it: remove `server` too, or the next Run All sets it again.
+
+What changes on each distribution: [platforms.md](platforms.md#log-forwarding).
+
 ### Feature Toggles
 
 ```yaml
@@ -249,7 +269,7 @@ disableRootSSH: false               # Run All: true turns root login off
 
 #### What Run All reads
 
-The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
+The main menu's Run All (7) and `hardn -r` plan these keys' changes as one plan:
 
 - **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
 - **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.
@@ -257,6 +277,7 @@ The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 - **`enableUfwSshPolicy: true`:** enables the firewall. On Rocky Linux, AlmaLinux and RHEL the firewall is left to the Firewall screen.
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
+- **`logForwarding`'s `server`:** sends the host's logs to it, as Log Forwarding's Set server. With no server the row is not listed. Run All never stops forwarding.
 - **`sshPort`:** compared with the port sshd listens on; never changed.
 - **No key, on Alpine:** where sshd lacks the fix for CVE-2026-123158, upgrades openssh, then reloads sshd. Root login off, the firewall and creating a user refused for the CVE then wait for the next run.
 - **`enableBackups` and `backupPath`:** the plan's backups.

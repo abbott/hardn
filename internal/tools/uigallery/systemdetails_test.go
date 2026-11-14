@@ -62,9 +62,9 @@ func TestPlaySystemDetailsGolden(t *testing.T) {
 		lines []string
 		cells []uitest.Cell
 	}{
-		{"system-details", nil, []string{"9", "0", "0"}, nil},
+		{"system-details", nil, []string{"10", "0", "0"}, nil},
 		{"system-details-refresh", []string{"system-details/debian13"}, []string{"1", "0"}, append(uitest.Core(), asciiColour)},
-		{"system-details-plan-only", []string{"-sequence", "dry-run"}, []string{"9", "1", "0", "0"}, nil},
+		{"system-details-plan-only", []string{"-sequence", "dry-run"}, []string{"10", "1", "0", "0"}, nil},
 		{"system-details-sudo-rs", []string{"system-details/ubuntu2604"}, []string{"0"}, nil},
 		{"system-details-alpine", []string{"system-details/alpine323"}, []string{"1", "0"}, nil},
 		{"system-details-zfs", []string{"system-details/pve9"}, []string{"1", "0"}, nil},

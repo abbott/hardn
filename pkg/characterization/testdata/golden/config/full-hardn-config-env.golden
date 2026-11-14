@@ -35,6 +35,12 @@
     }
   ],
   "UfwTrustedInterfaces": null,
+  "LogForwarding": {
+    "Server": "",
+    "Port": 0,
+    "Protocol": "",
+    "CAFile": ""
+  },
   "EnableUnattendedUpgrades": true,
   "EnableUfwSshPolicy": true,
   "ConfigureDns": true,

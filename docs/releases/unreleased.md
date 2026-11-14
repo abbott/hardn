@@ -4,6 +4,7 @@
 
 ## New
 
+- **Log Forwarding (main menu 6) sends the host's logs to a syslog server.** Name it in hardn.yml's new `logForwarding` (`server`, `port`, `protocol`: udp, tcp or tls, `caFile`). Set server writes hardn's own rsyslog file, checks it, restarts rsyslog and logs a test line; on a host with journald alone it installs rsyslog (not on Proxmox); on Alpine it sets busybox syslogd's `-R`, UDP only. Stop forwarding undoes only what hardn set. A server set outside hardn is shown, never changed. Run All sets the server too. The main menu shows a Log Forwarding row where a server is named or the host forwards; it never changes the risk level. New error codes: `LOGFWD_*`.
 - **The main menu warns when a release's vendor support ends within 90 days, or has ended**, and names the release to upgrade to. Every plan carries the same warning (`PLATFORM_SUPPORT_ENDS`, `PLATFORM_SUPPORT_ENDED`). It changes nothing hardn does. Proxmox VE 9 has no date yet, so no warning. The dates are in docs/platforms.md.
 - **The JSON document has `host.platform.supportEnds`**, the date hardn holds for the release.
 - **hardn can tell you when a newer release is out.** Set `checkReleases: true` in hardn.yml, and the main menu's first line says so, such as "v0.9.1 available". It is off by default. On, hardn asks GitHub for the latest release's tag at most once a day and sends nothing about the host. See [docs/configuration.md](../configuration.md).
@@ -16,3 +17,7 @@
 - **SSH Login lists every SSH key sshd reads, by account (item 6, SSH keys).** It marks a weak key (DSA, or RSA under 2048 bits), a key more than one account holds, and a key this sshd refuses. A key file it can't read, and lines that are no key, are shown as such. It changes nothing.
 - **`hardn system-details --output markdown` prints a report to hand over**, for an auditor or a manager: the host and its support level, the risk level and why, each control's status with its evidence, the findings, and System Details. It is one Markdown document on stdout: save it with `> web-01.md`. It changes nothing and exits 0. Run it with `sudo` or `doas`: without root, what only root can read shows Unknown, and the report says so. Unlike the other forms of `system-details`, it reads hardn.yml, for the DNS row.
 - **The audit log records confirmations and rollbacks.** Each `hardn confirm` and `hardn rollback` (`<id>`, `--abandon`, `--boot`) adds a line to `/var/log/hardn/audit.jsonl` with who ran it, the change's id and how it ended, refused and failed runs included. The rollback of a change nobody confirmed is recorded too. See [output.md](../reference/output.md) §4.1.
+
+## Changed
+
+- **The main menu's keys moved.** Log Forwarding is 6, so Run All is now 7, Backup 8, Configuration 9, System Details 10 and Logs 11, and the prompt reads `[0-11 or q]`. Typing 6 from habit opens Log Forwarding, which asks before it changes anything.

@@ -6,6 +6,8 @@ import (
 	"testing"
 
 	"github.com/abbott/hardn/pkg/config"
+	"github.com/abbott/hardn/pkg/output"
+	logforwardscreen "github.com/abbott/hardn/pkg/screens/logforward"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
 	updatesscreen "github.com/abbott/hardn/pkg/screens/updates"
@@ -14,7 +16,7 @@ import (
 
 // TestMenuOptions: menuOptions, as main fills the main menu's Options, sets
 // every field of them, the User Management, SSH Login, DNS, Firewall,
-// Backup, Auto Updates, Run All, Configuration, System Details and Logs items' (the
+// Backup, Auto Updates, Log Forwarding, Run All, Configuration, System Details and Logs items' (the
 // Firewall item's description's too), the status's and terminal's, the
 // input and stdout, on the configuration given. What each item runs is
 // its own tests' (TestBackupThenDNS, TestFirewallHook, TestUsersHook,
@@ -25,8 +27,10 @@ import (
 func TestMenuOptions(t *testing.T) {
 	h, c := newRunAllHost(t, "debian13", runAllYML)
 	useSSHHost(t, h)
-	statusWas, runAllWas, updatesWas := menuStatus, runAllRun, updatesRun
-	t.Cleanup(func() { menuStatus, runAllRun, updatesRun = statusWas, runAllWas, updatesWas })
+	statusWas, runAllWas, updatesWas, logForwardWas := menuStatus, runAllRun, updatesRun, logForwardRun
+	t.Cleanup(func() {
+		menuStatus, runAllRun, updatesRun, logForwardRun = statusWas, runAllWas, updatesWas, logForwardWas
+	})
 	var status mainmenu.StatusOptions
 	var runAll runallscreen.Options
 	var updates updatesscreen.Options
@@ -36,6 +40,8 @@ func TestMenuOptions(t *testing.T) {
 	}
 	runAllRun = func(_ context.Context, o runallscreen.Options) error { runAll = o; return nil }
 	updatesRun = func(_ context.Context, o updatesscreen.Options) error { updates = o; return nil }
+	var logForward logforwardscreen.Options
+	logForwardRun = func(_ context.Context, o logforwardscreen.Options) error { logForward = o; return nil }
 	const version = "0.4.0-synthetic"
 	o := menuOptions(c, config.Found{}, version)
 	if o.Out != os.Stdout {
@@ -50,6 +56,16 @@ func TestMenuOptions(t *testing.T) {
 	if err := o.Updates(); err != nil {
 		t.Fatal(err)
 	}
+	if err := o.LogForwarding(); err != nil {
+		t.Fatal(err)
+	}
+	// The Log Forwarding screen (item 6) runs on the host and the engine
+	// hardn builds, with the main menu's configuration, each change a
+	// record of the audit log.
+	if logForward.Config != c || logForward.System == nil || logForward.NewEngine == nil || logForward.Ran == nil ||
+		logForward.ApplyContext == nil || logForward.Prompter.In == nil || logForward.LogPath != output.LegacyLogPath || logForward.DryRun != c.DryRun {
+		t.Errorf("the Log Forwarding screen's options: %+v", logForward)
+	}
 	if status.Version != "v"+version || runAll.Version != version || updates.Version != version {
 		t.Errorf("hardn's version: status %q, Run All %q, Auto Updates %q; want %q", status.Version, runAll.Version, updates.Version, version)
 	}
@@ -58,7 +74,7 @@ func TestMenuOptions(t *testing.T) {
 	}
 	for name, ok := range map[string]bool{
 		"User Management": o.Users != nil, "SSH Login": o.SSH != nil, "DNS": o.DNS != nil, "Firewall": o.Firewall != nil, "the Firewall item's description": o.FirewallPVE != nil, "the Firewall item's description on Rocky Linux and AlmaLinux": o.FirewallEL != nil,
-		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Run All": o.RunAll != nil,
+		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Log Forwarding": o.LogForwarding != nil, "Run All": o.RunAll != nil,
 		"Configuration": o.Configuration != nil, "System Details": o.SystemDetails != nil, "Logs": o.Logs != nil,
 		"the status": o.Status != nil, "the terminal": o.Terminal != nil, "the input": o.Input != nil, "stdout": o.Out != nil,
 		"the configuration": o.Config == c,

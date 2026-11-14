@@ -132,8 +132,8 @@ func TestPlayConfigGolden(t *testing.T) {
 		args  []string
 		lines []string
 	}{
-		{"config", nil, []string{"8", "0", "0"}},
-		{"config-plan-only", []string{"-sequence", "dry-run"}, []string{"8", "0", "0"}},
+		{"config", nil, []string{"9", "0", "0"}},
+		{"config-plan-only", []string{"-sequence", "dry-run"}, []string{"9", "0", "0"}},
 		{"config-unused", []string{"config/unused"}, []string{"q"}},
 		{"config-missing", []string{"config/missing"}, []string{"1", "0"}},
 		{"config-mocks", []string{"config"}, []string{"4", "0", "0"}},

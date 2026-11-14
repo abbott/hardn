@@ -113,6 +113,9 @@ type fakeHost struct {
 	// upd answers the Auto Updates control's commands (updateshost.go); nil on
 	// every other host.
 	upd *updSim
+	// lf answers the Log Forwarding control's commands (logforward.go); nil
+	// on every other host.
+	lf *lfSim
 }
 
 // platform is what a simulated host's release ships, as detect reads it.
@@ -604,6 +607,9 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 		return r
 	}
 	if r, ok := h.upd.answer(h, argv); ok {
+		return r
+	}
+	if r, ok := h.lf.answer(h, argv); ok {
 		return r
 	}
 	switch path.Base(argv[0]) {

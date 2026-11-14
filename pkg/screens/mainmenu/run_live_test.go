@@ -212,8 +212,10 @@ const (
 )
 
 // statusRuns are the commands each host's status runs, per pass of the
-// main menu: detect's, the eight rows' checks' and the header probe's.
-var statusRuns = map[string]int{"debian13": 29, "ubuntu2604": 32, "alpine324": 13, "pve9": 15, "hardened": 29}
+// main menu: detect's, the eight rows' checks', Log Forwarding's (dpkg's
+// word on rsyslog; none on Alpine, whose syslogd's options are a file) and
+// the header probe's.
+var statusRuns = map[string]int{"debian13": 30, "ubuntu2604": 33, "alpine324": 13, "pve9": 16, "hardened": 30}
 
 // queries are the commands a status may run, by their first words: each
 // only reads (docs/engine/vmcheck.md §2.5 has each one's arguments).
@@ -312,10 +314,10 @@ func TestLiveMainMenuGolden(t *testing.T) {
 
 // galleryStatus is the gallery's main menu of host name, in the plain-80
 // cell of its golden file: from the header's line to the prompt's, each
-// line's "$" taken off; with item 5, Auto Updates, above item 6 in its
-// columns and the hint "[0-10 or q]", as the main menu has them since
-// slice 7's unit (d), the gallery's main menus, the mock's items
-// (screen.MainMenuFixture), having no item 5 yet (withUpdatesItem).
+// line's "$" taken off; with items 5, Auto Updates, and 6, Log Forwarding,
+// above item 7 in its columns and the hint "[0-11 or q]", as the main menu
+// has them, the gallery's main menus, the mock's items
+// (screen.MainMenuFixture), having neither (withUpdatesItem).
 func galleryStatus(t *testing.T, name string) string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(goldenDir, name+".golden"))
@@ -328,13 +330,17 @@ func galleryStatus(t *testing.T, name string) string {
 	}
 	var lines []string
 	for _, l := range strings.Split(cell, "\n")[1:] {
-		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-10 or q]", "[0-10 or q]")
+		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 7-11 or q]", "[0-11 or q]")
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
-		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
-			item := "   5) " + updatesItem.Label
-			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+updatesItem.Description, l)
+		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   7) Run All ") && desc > 0 {
+			lines = lines[:len(lines)-1]
+			for _, it := range []component.MenuItem{updatesItem, logForwardItem} {
+				item := "   " + it.Key + ") " + it.Label
+				lines = append(lines, item+strings.Repeat(" ", desc-len(item))+it.Description)
+			}
+			lines = append(lines, l)
 		}
 		if strings.HasPrefix(l, "    > ") && len(lines) > 0 {
 			return strings.Join(lines, "\n")
@@ -497,5 +503,40 @@ func assertRenderGolden(t *testing.T, rel, got string) {
 		if w != g {
 			t.Fatalf("golden %s differs at line %d\nwant: %q\ngot:  %q\n(if the change is intended, rerun with -update and explain the diff in the review description)", path, i+1, w, g)
 		}
+	}
+}
+
+// TestLogForwardingRow: the main menu draws a Log Forwarding row only where
+// hardn.yml names a server or the host forwards, after the others, and the
+// risk level is the same with it and without
+// (gallery-logforward.md, decision 10 (a)).
+func TestLogForwardingRow(t *testing.T) {
+	ctx := context.Background()
+	read := func(server string) screen.MainMenu {
+		t.Helper()
+		_, sys := loadStatusHost(t, "debian13")
+		cfg := config.DefaultConfig()
+		cfg.LogForwarding.Server = server
+		vm, err := Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return vm
+	}
+	without, with := read(""), read("192.0.2.50")
+	for _, row := range without.Status.Rows {
+		if row.Label == "Log Forwarding" {
+			t.Fatalf("no server and nothing forwarded: the row is drawn: %+v", row)
+		}
+	}
+	n := len(with.Status.Rows)
+	if n != len(without.Status.Rows)+1 {
+		t.Fatalf("%d rows with a server named, %d without", n, len(without.Status.Rows))
+	}
+	if last := with.Status.Rows[n-1]; last.Label != "Log Forwarding" || last.State != component.StatusNotConfigured || last.Detail != "not forwarding" {
+		t.Errorf("the last row %+v", last)
+	}
+	if with.Risk != without.Risk {
+		t.Errorf("the risk level with the row %+v, without %+v", with.Risk, without.Risk)
 	}
 }

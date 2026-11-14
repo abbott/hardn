@@ -28,8 +28,8 @@ const configPrefix = "config"
 const configMainMock = configPrefix + "/etc"
 
 // configLinks lead from a menu mock's item to the Configuration screen on a mock,
-// by the menu mock's name and the item's key, beside links: the main menu's 8.
-var configLinks = map[string]string{mainMenuMock + "/8": configMainMock}
+// by the menu mock's name and the item's key, beside links: the main menu's 9.
+var configLinks = map[string]string{mainMenuMock + "/9": configMainMock}
 
 // configLabel is the source label every mock's note opens with.
 const configLabel = "Proposed: no Figma frame."

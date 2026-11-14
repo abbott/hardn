@@ -24,7 +24,7 @@ import (
 // Configuration screen's "From"), and hardn's version: its User Management, SSH Login, DNS,
 // Firewall, Backup, Auto Updates, Run All, Configuration, System Details and
 // Logs items (withUsersScreen, withSSHScreen, withDNSScreen,
-// withFirewallScreen, withBackupScreen, withUpdatesScreen,
+// withFirewallScreen, withBackupScreen, withUpdatesScreen, withLogForwardScreen,
 // withRunAllScreen, withReaderScreens), its status
 // and terminal (withStatus), its release check where hardn.yml turns it on
 // (withReleaseCheck), whether c warned at load or --no-color was
@@ -32,6 +32,7 @@ import (
 func menuOptions(c *config.Config, found config.Found, version string) mainmenu.Options {
 	m := mainmenu.Options{Config: c, Warned: noColorGiven() || loadWarnings(c) != "", Input: engineInput, Out: os.Stdout}
 	m = withUpdatesScreen(withBackupScreen(withDNSScreen(withSSHScreen(withUsersScreen(m, c), c), c), c), c, version)
+	m = withLogForwardScreen(m, c)
 	m = withRunAllScreen(m, c, version)
 	return withReleaseCheck(withStatus(withReaderScreens(withFirewallScreen(m, c), c, found), c, version), c, version)
 }

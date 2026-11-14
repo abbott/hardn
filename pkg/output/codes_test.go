@@ -23,6 +23,7 @@ import (
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -39,6 +40,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/firewalld"
+	"github.com/abbott/hardn/pkg/host/logfwd"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -297,6 +299,22 @@ var sentinels = map[string]error{
 	"sshchange.ErrPortRestricted":     sshchange.ErrPortRestricted,
 	"updates.ErrNotRead":              updates.ErrNotRead,
 	"dnfauto.ErrConf":                 dnfauto.ErrConf,
+	"logforward.ErrNoServer":          logforward.ErrNoServer,
+	"logforward.ErrBadServer":         logforward.ErrBadServer,
+	"logforward.ErrNotRead":           logforward.ErrNotRead,
+	"logforward.ErrOutside":           logforward.ErrOutside,
+	"logforward.ErrUDPOnly":           logforward.ErrUDPOnly,
+	"logforward.ErrNoCAFile":          logforward.ErrNoCAFile,
+	"logforward.ErrNoInit":            logforward.ErrNoInit,
+	"logforward.ErrCheckFailed":       logforward.ErrCheckFailed,
+	"logforward.ErrNothingToStop":     logforward.ErrNothingToStop,
+	"logforward.ErrChangedSince":      logforward.ErrChangedSince,
+	"logfwd.ErrServer":                logfwd.ErrServer,
+	"logfwd.ErrMalformed":             logfwd.ErrMalformed,
+	"logfwd.ErrNoLogger":              logfwd.ErrNoLogger,
+	"logfwd.ErrTwoLoggers":            logfwd.ErrTwoLoggers,
+	"logfwd.ErrForeign":               logfwd.ErrForeign,
+	"logfwd.ErrNotOwn":                logfwd.ErrNotOwn,
 	"updates.ErrPeriodicOff":          updates.ErrPeriodicOff,
 	"updates.ErrTimerOff":             updates.ErrTimerOff,
 	"updates.ErrJobMasked":            updates.ErrJobMasked,

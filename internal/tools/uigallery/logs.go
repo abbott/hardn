@@ -22,7 +22,7 @@ import (
 // next/s1-screen): hardn's Logs screen itself (pkg/screens/logs), drawn from what
 // logview reads of each host, on the hosts the mocks were drawn for, which it
 // replaces (docs/engine/screen-system-details.md). "play logs" is the menu of the
-// hosts and "play logs/<host>" the screen on one; the main menu's 10 leads to it on
+// hosts and "play logs/<host>" the screen on one; the main menu's 11 leads to it on
 // a log of lines, under plan only too (-sequence dry-run).
 //
 // "uigallery logs" lists hardn -p's forms, each through the real Print: its stdout
@@ -38,13 +38,13 @@ const logsPrefix = "logs"
 // plan's "Logs from v0.3.2 + origin/main".
 const logsLabel = "Inferred from v0.3.2 and origin/main."
 
-// logsMainHost is the host the main menu's 10 leads to.
+// logsMainHost is the host the main menu's 11 leads to.
 const logsMainHost = logsPrefix + "/lines"
 
 // logsLinks lead from a menu mock's item to the Logs screen on a host, by
-// the mock's name and the item's key, beside links: the main menu's 10,
+// the mock's name and the item's key, beside links: the main menu's 11,
 // which said the gallery had no screen for it until unit (a).
-var logsLinks = map[string]string{mainMenuMock + "/10": logsMainHost}
+var logsLinks = map[string]string{mainMenuMock + "/11": logsMainHost}
 
 // hardnLog is the file hardn writes, whatever hardn.yml's logFile says
 // (cmd/hardn/main.go:57).

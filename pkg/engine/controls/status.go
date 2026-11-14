@@ -6,11 +6,14 @@
 package controls
 
 import (
+	"slices"
+
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
@@ -31,4 +34,21 @@ func Status(cfg *config.Config) []engine.Control {
 		out = append(out, cs...)
 	}
 	return out
+}
+
+// Menu returns the controls the main menu checks: Status's, then Log
+// Forwarding's, which is no row of risk's: the risk level never counts it
+// (gallery-logforward.md, decision 10 (a)).
+func Menu(cfg *config.Config) []engine.Control {
+	return append(Status(cfg), logforward.Controls(cfg)...)
+}
+
+// MenuReports are Menu's reports as the main menu draws them: Log
+// Forwarding's kept only where cfg, hardn.yml, names a server or the host
+// forwards (logforward.Shown), and then drawn after the others
+// (output.StatusViewOf).
+func MenuReports(cfg *config.Config, reports []engine.Report) []engine.Report {
+	return slices.DeleteFunc(slices.Clone(reports), func(r engine.Report) bool {
+		return r.Control == logforward.ID && !logforward.Shown(cfg, r.Status)
+	})
 }

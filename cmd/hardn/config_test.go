@@ -55,6 +55,10 @@ const configReport = `# Configuration ##########################################
    -  enableUnattendedUpgrades
       false (default)
 
+  Log Forwarding -----------------------------------------------
+
+   -  logForwarding        None (default)
+
   Backup -------------------------------------------------------
 
    -  enableBackups        true (default)
@@ -99,7 +103,7 @@ func runConfigCmd(t *testing.T, s *readerSeams, setup func(), args ...string) re
 	}, append([]string{"config"}, args...)...)
 }
 
-// TestConfigCommand: hardn config prints what main menu 8 shows, with no menu and no
+// TestConfigCommand: hardn config prints what main menu 9 shows, with no menu and no
 // prompt, exit status 0, as a user other than root: for a file on the search path, by
 // -f and by HARDN_CONFIG, for none, and for a named file that is not there. Nothing on
 // stderr, the load's warnings neither; no root check, no host.

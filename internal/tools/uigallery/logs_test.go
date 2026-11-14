@@ -32,9 +32,9 @@ func TestPlayLogsGolden(t *testing.T) {
 		lines []string
 		cells []uitest.Cell
 	}{
-		{"logs", nil, []string{"10", "0", "0"}, nil},
+		{"logs", nil, []string{"11", "0", "0"}, nil},
 		{"logs-refresh", []string{"logs/lines"}, []string{"2", "0"}, append(uitest.Core(), asciiColour)},
-		{"logs-plan-only", []string{"-sequence", "dry-run"}, []string{"10", "2", "0", "0"}, nil},
+		{"logs-plan-only", []string{"-sequence", "dry-run"}, []string{"11", "2", "0", "0"}, nil},
 		{"logs-open", []string{"logs/long"}, []string{"1", "0"}, nil},
 		{"logs-missing", []string{"logs/missing"}, []string{"1", "0"}, nil},
 		{"logs-unreadable", []string{"logs/unreadable"}, []string{"1", "q"}, nil},

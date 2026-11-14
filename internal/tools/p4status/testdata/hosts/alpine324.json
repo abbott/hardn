@@ -54,60 +54,60 @@
 		},
 		{
 			"argv": [
+				"/usr/sbin/sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication yes\npermitemptypasswords no\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\npersourcepenalties crash:90 authfail:5 noauth:1 grace-exceeded:10 refuseconnection:10 max:600 min:15 max-sources4:65536 max-sources6:65536 overflow:permissive overflow6:permissive\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"/usr/sbin/sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication yes\npermitemptypasswords no\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\npersourcepenalties crash:90 authfail:5 noauth:1 grace-exceeded:10 refuseconnection:10 max:600 min:15 max-sources4:65536 max-sources6:65536 overflow:permissive overflow6:permissive\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
+				"/usr/sbin/sshd",
+				"-T",
+				"-f",
+				"/etc/ssh/sshd_config"
+			],
+			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication yes\npermitemptypasswords no\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\npersourcepenalties crash:90 authfail:5 noauth:1 grace-exceeded:10 refuseconnection:10 max:600 min:15 max-sources4:65536 max-sources6:65536 overflow:permissive overflow6:permissive\n"
+		},
+		{
+			"argv": [
+				"ss",
+				"-Htln"
+			],
+			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
+		},
+		{
+			"argv": [
 				"ufw",
 				"status",
 				"verbose"
 			],
 			"exit": -1,
 			"err": "notfound"
-		},
-		{
-			"argv": [
-				"/usr/sbin/sshd",
-				"-T",
-				"-f",
-				"/etc/ssh/sshd_config"
-			],
-			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication yes\npermitemptypasswords no\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
-		},
-		{
-			"argv": [
-				"ss",
-				"-Htln"
-			],
-			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
-		},
-		{
-			"argv": [
-				"/usr/sbin/sshd",
-				"-T",
-				"-f",
-				"/etc/ssh/sshd_config"
-			],
-			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication yes\npermitemptypasswords no\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
-		},
-		{
-			"argv": [
-				"ss",
-				"-Htln"
-			],
-			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
-		},
-		{
-			"argv": [
-				"/usr/sbin/sshd",
-				"-T",
-				"-f",
-				"/etc/ssh/sshd_config"
-			],
-			"stdout": "port 22\nlistenaddress [::]:22\nlistenaddress 0.0.0.0:22\npermitrootlogin prohibit-password\npubkeyauthentication yes\npasswordauthentication yes\nkbdinteractiveauthentication yes\npermitemptypasswords no\nhostbasedauthentication no\ngssapiauthentication no\nkerberosauthentication no\nauthorizedkeysfile .ssh/authorized_keys .ssh/authorized_keys2\nauthenticationmethods any\nciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com\nmacs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com\nkexalgorithms mlkem768x25519-sha256,curve25519-sha256\nhostkeyalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\npubkeyacceptedalgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512,rsa-sha2-256\ncasignaturealgorithms ssh-ed25519,ecdsa-sha2-nistp256,rsa-sha2-512\nauthorizedkeyscommand none\nauthorizedkeyscommanduser none\nauthorizedprincipalsfile none\nauthorizedprincipalscommand none\nauthorizedprincipalscommanduser none\ntrustedusercakeys none\nrevokedkeys none\npubkeyauthoptions none\nmaxauthtries 6\nforcecommand none\nchrootdirectory none\nallowtcpforwarding yes\ngatewayports no\nx11forwarding no\naddressfamily any\n"
-		},
-		{
-			"argv": [
-				"ss",
-				"-Htln"
-			],
-			"stdout": "LISTEN 0      4096                [::]:22   [::]:*\nLISTEN 0      4096             0.0.0.0:22   0.0.0.0:*\n"
 		},
 		{
 			"argv": [
@@ -609,6 +609,27 @@
 			"uid": 0,
 			"gid": 0,
 			"data": "#!/bin/sh\ndetermine_implementation() {\n\t[ -n \"$IF_DHCP_PROGRAM\" ] \u0026\u0026 echo \"$IF_DHCP_PROGRAM\" \u0026\u0026 return\n\t[ -x /sbin/dhcpcd ] \u0026\u0026 echo \"dhcpcd\" \u0026\u0026 return\n\t[ -x /usr/sbin/dhclient ] \u0026\u0026 echo \"dhclient\" \u0026\u0026 return\n\t[ -x /sbin/udhcpc ] \u0026\u0026 echo \"udhcpc\" \u0026\u0026 return\n"
+		},
+		{
+			"path": "/usr/sbin",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/var",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/var/lib",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
 		}
 	]
 }

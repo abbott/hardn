@@ -61,8 +61,8 @@ func TestPlayBackupGolden(t *testing.T) {
 		lines []string
 		cells []uitest.Cell
 	}{
-		{"backup", nil, []string{"7", "3", "0", "0"}, nil},
-		{"backup-plan-only", []string{"-sequence", "dry-run"}, []string{"7", "1", "0", "0"}, nil},
+		{"backup", nil, []string{"8", "3", "0", "0"}, nil},
+		{"backup-plan-only", []string{"-sequence", "dry-run"}, []string{"8", "1", "0", "0"}, nil},
 		{"backup-toggle", []string{"backup/default"}, []string{"1", "y", "1", "y", "0"}, nil},
 		{"backup-path", []string{"backup/default"}, []string{"2", "backups", "/var/backups//hardn/", "/tmp/hardn", "/etc/os-release",
 			"/var/backups/hardn", "/srv/backups/hardn", "y", "0"}, append(uitest.Core(), asciiColour)},
@@ -435,12 +435,12 @@ func TestPlayBackupUsage(t *testing.T) {
 			t.Errorf("%v: exit %d, stdout %q, stderr %q, stdin read %t; want exit %d, a message, no output", args, code, out.String(), errs.String(), read, exitUsage)
 		}
 	}
-	if backupLinks[mainMenuMock+"/7"] != backupMainHost {
-		t.Errorf("the main menu's 7 leads to %q", backupLinks[mainMenuMock+"/7"])
+	if backupLinks[mainMenuMock+"/8"] != backupMainHost {
+		t.Errorf("the main menu's 8 leads to %q", backupLinks[mainMenuMock+"/8"])
 	}
-	code, out, errs, unread := playGallery([]string{"7", "0", "0"}, "-profile", "plain")
+	code, out, errs, unread := playGallery([]string{"8", "0", "0"}, "-profile", "plain")
 	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Info: "+backupMainHost) || !strings.Contains(out, "# Backup Settings #") {
-		t.Errorf("play, 7: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
+		t.Errorf("play, 8: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, _, unread = playGallery([]string{"0"}, "-profile", "plain", "sub-menu/05-backup")
 	if code != exitOK || unread != 0 || !strings.Contains(out, "# Manage Hardn Backups #") {

@@ -192,6 +192,16 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UPDATES_CHANGED_SINCE` | 1 | a file hardn left changed since |
 | `UPDATES_NOTHING_TO_UNDO` | 1 | hardn did not turn updates on |
 | `UPDATES_STAY_ON` | 1 | another file keeps updates on without hardn's |
+| `LOGFWD_NO_SERVER` | 1 | hardn.yml names no log server (the Log Forwarding screen's refusals, `logforward.Err*`; [screen-logforward.md](../engine/screen-logforward.md)) |
+| `LOGFWD_BAD_SERVER` | 1 | hardn.yml's logForwarding is not valid |
+| `LOGFWD_NOT_READ` | 1 | the logger's settings are not read, so no change is planned |
+| `LOGFWD_SET_OUTSIDE` | 1 | log forwarding is set outside hardn |
+| `LOGFWD_UDP_ONLY` | 1 | busybox syslogd forwards over UDP only |
+| `LOGFWD_NO_CA_FILE` | 1 | the CA file is not a file on the host |
+| `LOGFWD_NO_INIT` | 1 | the logger's service is not one hardn restarts here |
+| `LOGFWD_CHECK_FAILED` | 1 | rsyslogd refuses its settings with hardn's file; the file is put back |
+| `LOGFWD_NOTHING_TO_STOP` | 1 | hardn did not set log forwarding |
+| `LOGFWD_CHANGED_SINCE` | 1 | the logger's settings changed since the plan |
 | `CONFIG_CHANGED` | 1 | hardn.yml changed since it was read: saving would undo what changed it (the save of hardn.yml, [control-dns.md](../engine/control-dns.md) §2.9; `config.Save`'s too since `next/s2-config-edit`, [config-edit.md](../engine/config-edit.md)) |
 | `CONFIRM_WINDOW_CLOSING` | 1 | the confirm window is closing |
 | `BOOT_UNIT_NOT_INSTALLED` | 1 | the boot unit was not installed, so nothing is armed |

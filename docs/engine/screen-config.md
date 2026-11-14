@@ -1,5 +1,7 @@
 # The Configuration screen (`pkg/screens/config`, `screen.Config`)
 
+*Since `next/log-forwarding` (2026-11-13; [gallery-logforward.md](gallery-logforward.md), decision 8 (a)): main menu 9 opens Configuration.*
+
 Unit (b) of the roadmap's Configuration item ("View and manage hardn.yml" until this unit), `next/config-screen`: the screen [gallery-config.md](gallery-config.md) mocked, as adopted there (2026-11-12, all (a)), now main menu 8. It is the read-only view alone; editing is a later unit.
 Status: built and tested in process (`make check`, all ten steps). *Run on `deb13-vm` (Debian 13) and `alpine323-vm` (Alpine 3.23.6), 2026-11-12, the linux-amd64 build of `bf7f111c` (`vm-runs/v090/`): `go test ./...` passed on both; `hardn config` as the login user and through sudo or doas, a named file missing by `-f` and by `HARDN_CONFIG`, `config -c` refused, and main menu 8 opened, left with 0 and quit on a terminal. Debian read `/etc/hardn/hardn.yml`; Alpine had no hardn.yml. Not run: the other distributions, arm64.*
 
