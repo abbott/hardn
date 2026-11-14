@@ -66,7 +66,8 @@ func TestConfigLine(t *testing.T) {
 }
 
 // TestHostOS: the OS check reads os-release through pkg/host/detect,
-// refuses none and an OS other than Debian, Ubuntu, Alpine, Rocky Linux or AlmaLinux, and writes nothing: no clear, no ~ line,
+// refuses none and an OS other than Debian, Ubuntu, Alpine or an EL
+// distribution, and writes nothing: no clear, no ~ line,
 // no "detected" line (decision 4 (a)).
 func TestHostOS(t *testing.T) {
 	was := osHost
@@ -81,7 +82,9 @@ func TestHostOS(t *testing.T) {
 		{"rocky", "ID=\"rocky\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"10.2\"\n", ""},
 		{"almalinux", "ID=\"almalinux\"\nID_LIKE=\"rhel centos fedora\"\nVERSION_ID=\"10.1\"\n", ""},
 		{"rhel", "ID=\"rhel\"\nID_LIKE=\"fedora\"\nVERSION_ID=\"9.9\"\n", ""},
-		{"CentOS Stream", "ID=\"centos\"\nID_LIKE=\"rhel fedora\"\nVERSION_ID=\"10\"\n", "unsupported OS type detected: centos"},
+		{"CentOS Stream", "ID=\"centos\"\nID_LIKE=\"rhel fedora\"\nVERSION_ID=\"10\"\n", ""},
+		{"Oracle Linux", "ID=\"ol\"\nID_LIKE=\"fedora\"\nVERSION_ID=\"10.1\"\n", ""},
+		{"Fedora", "ID=fedora\nVERSION_ID=43\n", "unsupported OS type detected: fedora"},
 		{"another OS", "ID=arch\n", "unsupported OS type detected: arch"},
 		{"no os-release", "", "cannot detect OS type: "},
 	} {

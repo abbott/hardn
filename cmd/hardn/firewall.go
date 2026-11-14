@@ -39,7 +39,7 @@ import (
 // refused, nothing armed (enableFirewall). A plain plan ("Start ufw at
 // boot" alone, ufw already running) is applied unasked, on a terminal or
 // off, as any flag's. On Proxmox VE the control
-// refuses (UFW_NOT_APPLICABLE). On Rocky Linux, AlmaLinux and RHEL it is
+// refuses (UFW_NOT_APPLICABLE). On an EL distribution it is
 // refused before anything is planned, whatever hardn.yml says
 // (FIREWALL_EL_READ_ONLY, firewallELOn): the firewall is the Firewall
 // screen's there (el-firewalld.md §1.7). Under -n, or hardn.yml's dryRun: true,
@@ -55,25 +55,20 @@ func configureFirewall(c *config.Config) int {
 	return runControls(c, []engine.Control{firewallctl.Incoming{Action: firewallctl.ActionEnable}}, nil, &enableFirewall)
 }
 
-// firewallEL is -w's refusal on Rocky Linux, AlmaLinux and RHEL
-// (el-firewalld.md §1.7; proposed words).
-var firewallEL = &steps.Refusal{
-	Code: "FIREWALL_EL_READ_ONLY",
-	Why:  "hardn doesn't configure the firewall from -w on Rocky Linux, AlmaLinux or RHEL",
-	Fix:  "use the Firewall screen",
-	Err:  steps.ErrELFirewall,
-}
-
-// firewallELOn is firewallEL on the platform p: without its fix where the
+// firewallELOn is -w's refusal on the EL platform p, its distribution
+// named (el-firewalld.md §1.7; proposed words): without its fix where the
 // matrix takes no change on p (an EL release it doesn't name, such as
 // RHEL 8), since the Firewall screen refuses there too (el-rhel.md).
 func firewallELOn(p detect.Platform) *steps.Refusal {
-	if p.Support == detect.Supported || p.Support == detect.BestEffort {
-		return firewallEL
+	r := &steps.Refusal{
+		Code: "FIREWALL_EL_READ_ONLY",
+		Why:  "hardn doesn't configure the firewall from -w on " + p.Distro.Name(),
+		Err:  steps.ELFirewall(p.Distro),
 	}
-	r := *firewallEL
-	r.Fix = ""
-	return &r
+	if p.Support == detect.Supported || p.Support == detect.BestEffort {
+		r.Fix = "use the Firewall screen"
+	}
+	return r
 }
 
 // refuseControls is a flag's refusal before its plan, err, reported and

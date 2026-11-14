@@ -643,15 +643,16 @@ func TestHostRefusal(t *testing.T) {
 	}
 }
 
-// TestPlanRocky: on Rocky Linux, AlmaLinux and RHEL the nameservers are
-// never planned, whatever resolv.conf looks like (DNS_EL_READ_ONLY). The
-// refusal says what manages the file, as the host's read gives it:
+// TestPlanRocky: on every EL distribution the nameservers are never
+// planned, whatever resolv.conf looks like (DNS_EL_READ_ONLY). The refusal
+// names the host's own distribution, never the others, and says what
+// manages the file, as the host's read gives it:
 // NetworkManager's (rocky10-test-110, rhel10-test-114), cloud-init's
 // (rhel9-test-115), a file with no header, systemd-resolved's link, a file
 // a running systemd-resolved reads as another program's, another program's
 // link, and a read that failed. Only reads run before it.
 func TestPlanRocky(t *testing.T) {
-	const base = "hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet"
+	const base = "BASE" // "hardn doesn't change DNS on <the distribution> yet"
 	for _, c := range []struct {
 		name, file, link string
 		active           bool // systemd-resolved
@@ -670,7 +671,10 @@ func TestPlanRocky(t *testing.T) {
 			why: base + ": /etc/resolv.conf links to /run/connman/resolv.conf, which another program writes", fix: "set the nameservers with that program"},
 		{name: "a directory: not read", why: base, fix: "set the nameservers by hand"},
 	} {
-		for _, d := range []detect.Distro{detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL} {
+		for d, name := range map[detect.Distro]string{detect.DistroRocky: "Rocky Linux", detect.DistroAlma: "AlmaLinux", detect.DistroRHEL: "RHEL",
+			detect.DistroCentOS: "CentOS Stream", detect.DistroOracle: "Oracle Linux"} {
+			c := c
+			c.why = strings.Replace(c.why, base, "hardn doesn't change DNS on "+name+" yet", 1)
 			h := hostfake.New(host.Options{})
 			h.AddDir("/etc", 0o755, 0, 0)
 			switch {

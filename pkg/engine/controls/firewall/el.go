@@ -59,6 +59,7 @@ const (
 // (iproute there), Enable and Disable drive firewalld; saving hardn.yml's
 // lists is as elsewhere; applying ufw's profiles or interfaces is refused.
 func (c Incoming) planEL(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, bool, error) {
+	d := in.Facts.Platform.Distro
 	switch c.Action {
 	case ActionInstall:
 		cs, err := installFirewalld(ctx, sys, in.Facts)
@@ -73,9 +74,9 @@ func (c Incoming) planEL(ctx context.Context, sys host.System, in engine.Input) 
 		cs, err := disableFirewalld(ctx, sys)
 		return cs, true, err
 	case ActionApplyProfiles, ActionApplyInterfaces:
-		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn doesn't apply ufw's profiles or trusted interfaces on Rocky Linux, AlmaLinux or RHEL, which use firewalld", Err: ErrEL}
+		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn doesn't apply ufw's profiles or trusted interfaces on " + d.Name() + ", which uses firewalld", Err: steps.ELFirewall(d)}
 	case ActionLimitSSH: // firewalld has no rule like ufw's limit (gallery-bruteforce.md §3, 8 (a))
-		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn adds no connection limit on Rocky Linux, AlmaLinux or RHEL, which use firewalld", Err: ErrEL}
+		return nil, true, &steps.Refusal{Code: codeEL, Why: "hardn adds no connection limit on " + d.Name() + ", which uses firewalld", Err: steps.ELFirewall(d)}
 	}
 	return nil, false, nil
 }

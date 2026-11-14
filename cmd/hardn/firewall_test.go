@@ -103,6 +103,14 @@ func newFWHost(t *testing.T, name string) *fwTestHost {
 		h.facts.OS = detect.OSRelease{ID: "rhel", IDLike: []string{"fedora"}, VersionID: "8.10"}
 		h.facts.Platform = detect.Platform{Distro: detect.DistroRHEL, Version: "8", Support: detect.Unlisted}
 		h.facts.SSH.SSHDUnits = true
+	case "centos": // no matrix row yet: Unlisted
+		h.facts.OS = detect.OSRelease{ID: "centos", IDLike: []string{"rhel", "fedora"}, VersionID: "10"}
+		h.facts.Platform = detect.Platform{Distro: detect.DistroCentOS, Version: "10", Support: detect.Unlisted}
+		h.facts.SSH.SSHDUnits = true
+	case "oracle": // no matrix row yet: Unlisted
+		h.facts.OS = detect.OSRelease{ID: "ol", IDLike: []string{"fedora"}, VersionID: "10.1"}
+		h.facts.Platform = detect.Platform{Distro: detect.DistroOracle, Version: "10", Support: detect.Unlisted}
+		h.facts.SSH.SSHDUnits = true
 	case "no-hostname":
 		if err := h.Remove(context.Background(), header.HostnameFile); err != nil {
 			t.Fatal(err)
@@ -365,9 +373,11 @@ func TestFirewallHook(t *testing.T) {
 // slice 4, unit (d)), as output.Human says it.
 const fwLockoutWords = "Enabling the firewall here risks a lockout (PLAN_REFUSED)"
 
-// fwELWords are -w's refusal on Rocky Linux and AlmaLinux (proposed,
+// fwELWords are -w's refusal on the EL distribution named (proposed,
 // el-firewalld.md §1.7), as output.Human says it.
-const fwELWords = "hardn doesn't configure the firewall from -w on Rocky Linux, AlmaLinux or RHEL (FIREWALL_EL_READ_ONLY)"
+func fwELWords(name string) string {
+	return "hardn doesn't configure the firewall from -w on " + name + " (FIREWALL_EL_READ_ONLY)"
+}
 
 // runW runs hardn with args as root (runG) on the Firewall host h, its
 // configuration hardn's defaults, the session alice's; stdout's render
@@ -451,11 +461,13 @@ func TestConfigureFirewallFlag(t *testing.T) {
 		{name: "-n off a terminal", host: "debian13", dryRun: true, code: 3, said: []string{"Lockout risk", "No actual changes were made to your system."}},
 		{name: "Proxmox VE", host: "pve9", tty: true, code: 1, said: []string{"UFW_NOT_APPLICABLE"}},
 		{name: "Proxmox VE off a terminal", host: "pve9", code: 1, said: []string{"UFW_NOT_APPLICABLE"}},
-		{name: "Rocky Linux", host: "rocky", tty: true, code: 1, said: []string{fwELWords, "To go on: use the Firewall screen."}, unsaid: []string{"Lockout risk", "Type the hostname"}},
-		{name: "Rocky Linux off a terminal, --yes", host: "rocky", yes: true, code: 1, said: []string{fwELWords}, unsaid: []string{"Lockout risk", fwLockoutWords}},
-		{name: "-n on Rocky Linux", host: "rocky", dryRun: true, code: 1, said: []string{fwELWords}, unsaid: []string{"Lockout risk"}},
-		{name: "RHEL 10, supported", host: "rhel", tty: true, code: 1, said: []string{fwELWords, "To go on: use the Firewall screen."}, unsaid: []string{"Lockout risk", "Type the hostname"}},
-		{name: "RHEL 8, unlisted", host: "rhel8", tty: true, code: 1, said: []string{fwELWords}, unsaid: []string{"To go on: use the Firewall screen.", "Lockout risk", "Type the hostname"}},
+		{name: "Rocky Linux", host: "rocky", tty: true, code: 1, said: []string{fwELWords("Rocky Linux"), "To go on: use the Firewall screen."}, unsaid: []string{"Lockout risk", "Type the hostname"}},
+		{name: "Rocky Linux off a terminal, --yes", host: "rocky", yes: true, code: 1, said: []string{fwELWords("Rocky Linux")}, unsaid: []string{"Lockout risk", fwLockoutWords}},
+		{name: "-n on Rocky Linux", host: "rocky", dryRun: true, code: 1, said: []string{fwELWords("Rocky Linux")}, unsaid: []string{"Lockout risk"}},
+		{name: "RHEL 10, supported", host: "rhel", tty: true, code: 1, said: []string{fwELWords("RHEL"), "To go on: use the Firewall screen."}, unsaid: []string{"Lockout risk", "Type the hostname"}},
+		{name: "RHEL 8, unlisted", host: "rhel8", tty: true, code: 1, said: []string{fwELWords("RHEL")}, unsaid: []string{"To go on: use the Firewall screen.", "Lockout risk", "Type the hostname"}},
+		{name: "CentOS Stream, no row yet", host: "centos", tty: true, code: 1, said: []string{fwELWords("CentOS Stream")}, unsaid: []string{"To go on: use the Firewall screen.", "Lockout risk", "Type the hostname", "Rocky"}},
+		{name: "Oracle Linux, no row yet", host: "oracle", tty: true, code: 1, said: []string{fwELWords("Oracle Linux")}, unsaid: []string{"To go on: use the Firewall screen.", "Lockout risk", "Type the hostname", "Rocky"}},
 		{name: "nothing to change", host: "enabled", tty: true, said: []string{"Nothing needs changing."}},
 	} {
 		args := []string{"-w"}
@@ -490,7 +502,7 @@ func TestConfigureFirewallFlag(t *testing.T) {
 			if h.armed() != tc.applied {
 				t.Errorf("the revert timer armed %t, want %t", h.armed(), tc.applied)
 			}
-			if (tc.host == "rocky" || strings.HasPrefix(tc.host, "rhel")) && len(h.ran) > 0 {
+			if h.facts.Platform.Distro.EL() && len(h.ran) > 0 {
 				t.Errorf("-w planned on %s: ran %q", tc.host, h.ran)
 			}
 			if tc.host == "boot-off" && (h.unit == "enabled") != tc.plain {

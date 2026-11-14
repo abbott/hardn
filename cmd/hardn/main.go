@@ -224,9 +224,9 @@ var rootCmd = &cobra.Command{
 			exit(1)
 		}
 
-		// An OS other than Debian, Ubuntu, Alpine, Rocky Linux, AlmaLinux or
-		// RHEL, or none os-release names, is refused (hostOS); nothing is said of
-		// one that is not.
+		// An OS other than Debian, Ubuntu, Alpine or an EL distribution, or
+		// none os-release names, is refused (hostOS); nothing is said of one
+		// that is not.
 		// Before hardn.yml's load, whose first-run question may write one:
 		// a host hardn refuses is never offered it.
 		if err := detectOS(); err != nil {

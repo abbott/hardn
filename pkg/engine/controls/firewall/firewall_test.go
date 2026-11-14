@@ -985,24 +985,42 @@ func TestCheckBoot(t *testing.T) {
 	}
 }
 
-// TestRockyNeverUFW: on Rocky Linux applying ufw's profiles or trusted
-// interfaces is refused (FIREWALL_EL_READ_ONLY) before any call, and no
-// action runs a ufw command: Install, Enable and Disable drive firewalld
-// (el_test.go). Saving hardn.yml is not refused.
+// elNames are the EL distributions and the name each refusal says.
+var elNames = map[detect.Distro]string{detect.DistroRocky: "Rocky Linux", detect.DistroAlma: "AlmaLinux", detect.DistroRHEL: "RHEL",
+	detect.DistroCentOS: "CentOS Stream", detect.DistroOracle: "Oracle Linux"}
+
+// TestRockyNeverUFW: on every EL distribution applying ufw's profiles or
+// trusted interfaces, or its limit, is refused (FIREWALL_EL_READ_ONLY)
+// before any call, in words that name the host's own distribution alone,
+// and no action runs a ufw command: Install, Enable and Disable drive
+// firewalld (el_test.go). Saving hardn.yml is not refused.
 func TestRockyNeverUFW(t *testing.T) {
 	r := debian13()
 	r.facts.OS = detect.OSRelease{ID: "rocky", VersionID: "10.2"}
 	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
 	r.facts.SSH.SSHDUnits = true
-	for _, a := range []firewall.Action{firewall.ActionApplyProfiles, firewall.ActionApplyInterfaces} {
-		h, facts := site{plat: r, ufw: allow22}.build(t)
-		n := len(h.Calls())
-		_, err := firewall.Incoming{Action: a}.Plan(context.Background(), h, engine.Input{Facts: facts, Config: &config.Config{}})
-		if !errors.Is(err, firewall.ErrEL) || output.CodeOf(err) != "FIREWALL_EL_READ_ONLY" {
-			t.Errorf("action %d: %v (%s), want FIREWALL_EL_READ_ONLY", a, err, output.CodeOf(err))
-		}
-		if calls := h.Calls()[n:]; len(calls) != 0 {
-			t.Errorf("action %d: calls %v before the refusal", a, calls)
+	for d, name := range elNames {
+		for a, why := range map[firewall.Action]string{
+			firewall.ActionApplyProfiles:   "hardn doesn't apply ufw's profiles or trusted interfaces on " + name + ", which uses firewalld",
+			firewall.ActionApplyInterfaces: "hardn doesn't apply ufw's profiles or trusted interfaces on " + name + ", which uses firewalld",
+			firewall.ActionLimitSSH:        "hardn adds no connection limit on " + name + ", which uses firewalld",
+		} {
+			h, facts := site{plat: r, ufw: allow22}.build(t)
+			facts.Platform.Distro = d
+			n := len(h.Calls())
+			_, err := firewall.Incoming{Action: a}.Plan(context.Background(), h, engine.Input{Facts: facts, Config: &config.Config{}})
+			var ref *steps.Refusal
+			if !errors.Is(err, firewall.ErrEL) || output.CodeOf(err) != "FIREWALL_EL_READ_ONLY" || !errors.As(err, &ref) || ref.Why != why {
+				t.Errorf("%s, action %d: %v (%s), want FIREWALL_EL_READ_ONLY, %q", d, a, err, output.CodeOf(err), why)
+			}
+			for other, otherName := range elNames {
+				if err != nil && other != d && strings.Contains(err.Error(), otherName) {
+					t.Errorf("%s, action %d: %q names %s", d, a, err, otherName)
+				}
+			}
+			if calls := h.Calls()[n:]; len(calls) != 0 {
+				t.Errorf("%s, action %d: calls %v before the refusal", d, a, calls)
+			}
 		}
 	}
 	h, facts := site{plat: r, ufw: allow22}.build(t)
@@ -1079,8 +1097,9 @@ func fwUnit(h *hostfake.System, active, enabled string) {
 	h.Respond(hostfake.Response{Stdout: enabled + "\n", ExitCode: map[bool]int{false: 1}[enabled == "enabled"]}, "systemctl", "is-enabled", "firewalld.service")
 }
 
-// TestStepsRefuseUFWOnRocky: steps' ufw planners refuse Rocky Linux
-// themselves (ErrELFirewall), whoever calls them, before any call.
+// TestStepsRefuseUFWOnRocky: steps' ufw planners refuse every EL
+// distribution themselves (ErrELFirewall), whoever calls them, before any
+// call, in words that name it.
 func TestStepsRefuseUFWOnRocky(t *testing.T) {
 	r := debian13()
 	r.facts.Platform = detect.Platform{Distro: detect.DistroRocky, Version: "10", Support: detect.Supported}
@@ -1098,14 +1117,21 @@ func TestStepsRefuseUFWOnRocky(t *testing.T) {
 		"interfaces": func(h host.System, in engine.Input) ([]engine.Change, error) {
 			return steps.PlanUFWInterfaces(ctx, h, in, "t", []string{"eth1"})
 		},
+		"limit": func(h host.System, in engine.Input) ([]engine.Change, error) {
+			return steps.PlanUFWLimit(ctx, h, in, "t", sshd.Listeners{})
+		},
 	} {
-		h, facts := site{plat: r, ufw: allow22}.build(t)
-		n := len(h.Calls())
-		if _, err := plan(h, engine.Input{Facts: facts}); !errors.Is(err, steps.ErrELFirewall) {
-			t.Errorf("%s: %v, want ErrELFirewall", name, err)
-		}
-		if calls := h.Calls()[n:]; len(calls) != 0 {
-			t.Errorf("%s: calls %v", name, calls)
+		for d, distro := range elNames {
+			h, facts := site{plat: r, ufw: allow22}.build(t)
+			facts.Platform.Distro = d
+			n := len(h.Calls())
+			_, err := plan(h, engine.Input{Facts: facts})
+			if want := "hardn doesn't drive ufw on " + distro + ", which uses firewalld"; !errors.Is(err, steps.ErrELFirewall) || err.Error() != want || output.CodeOf(err) != "FIREWALL_EL_READ_ONLY" {
+				t.Errorf("%s, %s: %v, want ErrELFirewall as %q", name, d, err, want)
+			}
+			if calls := h.Calls()[n:]; len(calls) != 0 {
+				t.Errorf("%s, %s: calls %v", name, d, calls)
+			}
 		}
 	}
 }

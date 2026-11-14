@@ -33,7 +33,7 @@ detect's facts in this schema's own words (they are mapped, never written as det
 |---|---|
 | `hostname` | the host's name; `""` when not read |
 | `os.id`, `os.versionId`, `os.codename`, `os.prettyName` | `/etc/os-release`'s `ID`, `VERSION_ID`, `VERSION_CODENAME`, `PRETTY_NAME`, as written there |
-| `platform.distro` | `debian`, `ubuntu`, `alpine`, `proxmox`, `rocky`, `almalinux`, `rhel`, `other`, `unknown` (open) |
+| `platform.distro` | `debian`, `ubuntu`, `alpine`, `proxmox`, `rocky`, `almalinux`, `rhel`, `centos` (CentOS Stream), `ol` (Oracle Linux), `other`, `unknown` (open) |
 | `platform.version` | the support matrix's key (`13`, `24.04`, `3.24`); `""` when not established |
 | `platform.support` | `supported`, `best-effort`, `out-of-scope`, `unlisted`, `unknown` |
 | `platform.supportEnds` | the last day of the vendor's free security updates, as hardn's support matrix holds it: a day (`2027-05-01`), or a month (`2027-05`) where the vendor names a month alone, which lasts to its last day; `""` when hardn has no date for the release. It is not counted against the clock: a plan's `PLATFORM_SUPPORT_ENDS` or `PLATFORM_SUPPORT_ENDED` finding is |
@@ -387,8 +387,8 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `FIREWALL_BOOT_BLOCKED` | 1 | ufw's service is masked or missing |
 | `UFW_ROLLBACK_FAILED` | 1 | an undo of ufw's rules failed; those after it did not run |
 | `UFW_NOT_APPLICABLE` | 1 | ufw is not used on Proxmox VE: pve-firewall manages its packet filter |
-| `FIREWALL_EL_READ_ONLY` | 1 | on Rocky Linux, AlmaLinux and RHEL, which use firewalld: ufw's profiles and trusted interfaces aren't applied, and `-w` doesn't configure the firewall ([el-firewalld.md](../engine/el-firewalld.md)) |
-| `DNS_EL_READ_ONLY` | 1 | hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet; the refusal names what its read finds manages /etc/resolv.conf there, and how to set the nameservers by hand ([el-changes.md](../engine/el-changes.md), [el-rhel.md](../engine/el-rhel.md) §6) |
+| `FIREWALL_EL_READ_ONLY` | 1 | on Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux, which use firewalld (the refusal names the host's own): ufw's profiles and trusted interfaces aren't applied, and `-w` doesn't configure the firewall ([el-firewalld.md](../engine/el-firewalld.md)) |
+| `DNS_EL_READ_ONLY` | 1 | hardn doesn't change DNS on Rocky Linux, AlmaLinux, RHEL, CentOS Stream or Oracle Linux yet; the refusal names the host's own, what its read finds manages /etc/resolv.conf there, and how to set the nameservers by hand ([el-changes.md](../engine/el-changes.md), [el-rhel.md](../engine/el-rhel.md) §6) |
 | `UFW_PROXMOX_UNKNOWN` | 1 | ufw: whether the host runs Proxmox VE (no ufw there) is not established |
 | `UFW_NOT_INSTALLED` | 1 | ufw is not installed |
 | `UFW_LISTENERS_UNKNOWN` | 1 | the SSH listener set is not established |
@@ -594,7 +594,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `UPDATES_PROXMOX_NOT_UPGRADED` | Proxmox VE: no unattended-upgrades origin matches Proxmox VE's repository, so Proxmox VE's own packages are not upgraded ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_ORIGINS_UNKNOWN` | a distribution hardn does not list, built from Debian or Ubuntu: whether unattended-upgrades' origins match its own archives is not established ([check-updates.md](../engine/check-updates.md)) |
 | `UPDATES_CHANGED_SINCE_HARDN` | hardn's record of turning updates on names a file the host no longer holds as hardn left it, or a package hardn installed that is gone: "changed since hardn" ([control-updates.md](../engine/control-updates.md)) |
-| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists, or on Rocky Linux, AlmaLinux and RHEL `dnf needs-restarting -r` exits 1: a package asks for a reboot ([header.md](../engine/header.md)) |
+| `REBOOT_REQUIRED` | `/var/run/reboot-required` exists, or on Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux `dnf needs-restarting -r` exits 1: a package asks for a reboot ([header.md](../engine/header.md)) |
 | `REBOOT_NEWER_KERNEL` | a kernel newer than the one running is installed in `/boot` ([header.md](../engine/header.md)) |
 | `REBOOT_MODULES_MISSING` | Alpine: the running kernel's own modules are not installed, while another kernel's are ([header.md](../engine/header.md)) |
 | `REBOOT_KERNEL_REPLACED` | a kernel Debian built runs, and dpkg has its release's package installed as another version than the build running ([header.md](../engine/header.md)) |
