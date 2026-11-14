@@ -25,7 +25,6 @@ const (
 	logFwdConnKey   = "Connection"
 	logFwdFileKey   = "File"
 	logFwdByKey     = "Set by"
-	logFwdWantKey   = "hardn.yml"
 
 	logFwdRsyslog  = "rsyslog"
 	logFwdBusybox  = "busybox syslogd"
@@ -34,8 +33,6 @@ const (
 
 	logFwdNone       = "None"
 	logFwdNoWant     = "No server"
-	logFwdBadWant    = "Not valid"
-	logFwdDiffers    = "differs"
 	logFwdPlain      = "not encrypted"
 	logFwdLossy      = "not encrypted, losses unseen"
 	logFwdOpen       = "Open"
@@ -57,8 +54,8 @@ const (
 // The items' keys: Set server is 1 wherever it shows, and Stop forwarding is
 // 1 alone and 2 beside it.
 const (
-	LogForwardFirstKey  = "1"
-	LogForwardSecondKey = "2"
+	LogForwardFirstKey  = setUndoFirstKey
+	LogForwardSecondKey = setUndoSecondKey
 )
 
 // LogLogger is the host's syslog daemon.
@@ -215,17 +212,11 @@ func (l LogForward) Rows() []component.KeyValue {
 		}
 		rows = append(rows, component.KeyValue{Key: logFwdFileKey, Value: l.File}, by)
 	}
-	want := component.KeyValue{Key: logFwdWantKey, Value: logFwdNoWant}
-	if l.WantBad {
-		want.Value, want.State = logFwdBadWant, component.ValueWarn
-	}
+	want := ""
 	if l.Want != nil {
-		want.Value = l.Want.String()
-		if l.differs() {
-			want.State, want.Note, want.KeepNote = component.ValueWarn, logFwdDiffers, true
-		}
+		want = l.Want.String()
 	}
-	return append(rows, want)
+	return append(rows, wantRow(want, logFwdNoWant, l.WantBad, l.differs()))
 }
 
 // setItem is Set server, its description what it would do or what is in the
@@ -258,17 +249,13 @@ func (l LogForward) setItem() component.MenuItem {
 // forwards by hardn's own file; and Set server shown as unavailable while it
 // forwards by a file that is not hardn's.
 func (l LogForward) MenuItems() []component.MenuItem {
-	stop := component.MenuItem{Key: LogForwardFirstKey, Label: logFwdStop, Description: logFwdDescStop}
-	switch {
-	case l.Unread != "" || l.Now == nil:
-		return []component.MenuItem{l.setItem()}
-	case !l.ByHardn:
-		return []component.MenuItem{{Key: LogForwardFirstKey, Label: logFwdSet, Description: logFwdDescOther, Disabled: true}}
-	case l.differs():
-		stop.Key = LogForwardSecondKey
-		return []component.MenuItem{l.setItem(), stop}
+	stop := component.MenuItem{Label: logFwdStop, Description: logFwdDescStop}
+	forwards := l.Unread == "" && l.Now != nil
+	off := ""
+	if forwards && !l.ByHardn {
+		off = logFwdDescOther
 	}
-	return []component.MenuItem{stop}
+	return setUndoItems(l.setItem(), stop, off, forwards && l.ByHardn, l.differs())
 }
 
 // Stops reports whether it, one of MenuItems, is Stop forwarding; Set
@@ -288,33 +275,25 @@ func (l LogForward) SubMenu() SubMenu {
 	}
 }
 
-// LogForwardChange is an item's change: the title bar over its flow, its
-// question, and its review.
-type LogForwardChange struct {
-	Step     WorkflowStep
-	Question string
-	Review   flow.Review
-}
-
 // SetChange is Set server's change: its review the server and the protocol
 // as the change leaves them, and its question names the server. With no
 // server in hardn.yml there is nothing to set, and ok is false.
-func (l LogForward) SetChange() (ch LogForwardChange, ok bool) {
+func (l LogForward) SetChange() (ch Change, ok bool) {
 	if l.Want == nil {
-		return LogForwardChange{}, false
+		return Change{}, false
 	}
 	items := []component.KeyValue{{Key: logFwdServerKey, Value: l.Want.endpoint()}, protoRow(l.Want.Proto)}
 	if l.Want.CAFile != "" {
 		items = append(items, component.KeyValue{Key: logFwdCAKey, Value: l.Want.CAFile})
 	}
-	return LogForwardChange{Step: WorkflowStep{Title: trail(logFwdTitle, logFwdSet)},
+	return Change{Step: WorkflowStep{Title: trail(logFwdTitle, logFwdSet)},
 		Question: "Forward logs to " + l.Want.Address + "?",
 		Review:   flow.Review{Title: logFwdSection, Items: items}}, true
 }
 
 // StopChange is Stop forwarding's change: its review the Server row as the
 // change leaves it.
-func (l LogForward) StopChange() LogForwardChange {
-	return LogForwardChange{Step: WorkflowStep{Title: trail(logFwdTitle, logFwdStop)}, Question: logFwdAskStop,
+func (l LogForward) StopChange() Change {
+	return Change{Step: WorkflowStep{Title: trail(logFwdTitle, logFwdStop)}, Question: logFwdAskStop,
 		Review: flow.Review{Title: logFwdSection, Items: []component.KeyValue{{Key: logFwdServerKey, Value: logFwdNone}}}}
 }

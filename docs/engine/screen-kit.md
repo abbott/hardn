@@ -40,6 +40,7 @@ type Session struct { // one run of a screen: what its caller gave it
 }
 func (Session) Change(ctx context.Context, c Change) error
 func (Session) Preplan(ctx context.Context, cfg *config.Config, controls ...engine.Control) (string, error) // "Checking the host…", then the first refusal's words, "" for none
+func (Session) Reviewed(ctx context.Context, cfg *config.Config, control engine.Control, build func() (ch screen.Change, notice string, ok bool)) error // Preplan, the refusal said, then build's change with its notice through Change, y/N
 func (Session) Say(msgs component.Messages) func() error
 func (Session) Write(text string) error
 
@@ -61,6 +62,7 @@ const WordsPending = "A change is waiting for hardn confirm. Confirm it from a n
 func FullStop(s string) string
 func Apart(c component.Ctx, msgs component.Messages) string
 func Warnings(paragraphs ...string) component.Messages
+func StatusRow(id, title string, status engine.Status) component.StatusList // a control's row as the main menu maps it
 ```
 
 ```go
@@ -105,6 +107,7 @@ func OrElse(s, none string) string
 - **Backup** (unit (c), and its (b2)): its reading, items, words and view-model; its control and refusals (unit (b)'s second part); its scenarios and table. *Built in `next/s3-screen` ([screen-backup.md](screen-backup.md)): `pkg/screens/backup` runs each change with `Session.Change` and says its refusals with `Session.Say`, `Warnings`, `NotLoaded` and `FullStop`; no change to this package.*
 - **Environment** (slice 9, unit (c), and its (b2)): its reading, item 1, words and view-model; its scenarios and table. *Built in `next/s9-screen` ([screen-environment.md](screen-environment.md)): `pkg/screens/environment` runs its one change with `Session.Change`, its `Ran` wrapped to say after an applied change that it takes effect at the next sudo hardn, its session's configuration one read from no file (the control saves no setting, so `Adopt` leaves it, and `NotLoaded` does not apply), and says its refusals with `Session.Say`, `Warnings`, `RefusalWords` and `FullStop`; no change to this package.*
 - **A change waiting for hardn confirm** is `WordsPending` in `RefusalWords` since 2026-11-11 (the maintainer: "Yes, match SSH"): SSH's words (gallery-ssh.md §6), moved here from SSH's `planWords`, so the Firewall's and Auto Updates' warnings before asking say it as SSH does. Any other change journalled keeps revert's words, naming its hardn rollback. Run All keeps its own copy, `runall.PendingWords`, in the engine. Tested: `TestRefusalWords`.
+- **An item that sets a service's setting** (`Session.Reviewed`, `StatusRow`) moved here from Log Forwarding's `runner.change` and `StatusRow` on 2026-11-14, for Time sync's screen to use too ([gallery-timesync.md](gallery-timesync.md) §5.5): planned first and its refusal said, the host read afresh by `build`, the review with its notice, y/N. What `build` reads and draws is each screen's.
 - **The plan before asking** (`Session.Preplan`) moved here from Auto Updates' `preplan` on 2026-11-10, as Firewall is its second user: an item the screen's reading doesn't plan is planned on the engine when chosen, its refusal said as a warning before asking. *Since 2026-11-11*, every Firewall change with no form (item 1, Disable, Apply), so that the engine's refusals, a change waiting for hardn confirm among them, come before asking too. SSH keeps its own, which also returns the plan.
 - **The typed confirmation** moved here from Environment in slice 4, unit (c) (`next/s4-screen`), as Firewall is its second user and slices 5 and 6 follow: `Hostname(ctx, sys) (phrase, short, err)`, `TypeTheHostname`, `Session.CantConfirm(err)`. Environment's words and goldens are unchanged.
 

@@ -21,13 +21,13 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"io/fs"
 	"regexp"
 	"strconv"
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/hostaddr"
 	"github.com/abbott/hardn/pkg/host/packages"
 )
 
@@ -80,21 +80,17 @@ type Server struct {
 // ErrServer: a server hardn was asked to write is not one it writes.
 var ErrServer = errors.New("not a server hardn writes")
 
-var (
-	// serverAddress: an IPv4 address or a host name, never an option.
-	serverAddress = regexp.MustCompile(`^[a-z0-9]([a-z0-9.-]{0,251}[a-z0-9])?$`)
-	serverPath    = regexp.MustCompile(`^/[A-Za-z0-9._/+-]+$`)
-)
+var serverPath = regexp.MustCompile(`^/[A-Za-z0-9._/+-]+$`)
 
 // Check refuses, with ErrServer, a server whose text could end a quoted
 // value in rsyslog's file or a word of syslogd's options: the address is
-// lower-case letters, digits, dots and hyphens; the port a number from 1 to
+// lower-case letters, digits, dots and hyphens (hostaddr.Valid); the port a number from 1 to
 // 65535; the CA file, TLS's alone and required there, an absolute path of
 // letters, digits and "._+-/".
 func (s Server) Check() error {
 	port, err := strconv.Atoi(s.Port)
 	switch {
-	case !serverAddress.MatchString(s.Address):
+	case !hostaddr.Valid(s.Address):
 		return fmt.Errorf("logfwd: address %q: %w", s.Address, ErrServer)
 	case err != nil || port < 1 || port > 65535 || strconv.Itoa(port) != s.Port:
 		return fmt.Errorf("logfwd: port %q: %w", s.Port, ErrServer)
@@ -228,14 +224,10 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) Reading {
 }
 
 // readFile is name's bytes; ok is false, with no error, where it is not
-// there.
+// there (host.ReadFileIfThere).
 func readFile(ctx context.Context, sys host.System, name string) (data []byte, ok bool, err error) {
-	data, err = sys.ReadFile(ctx, name)
-	switch {
-	case errors.Is(err, fs.ErrNotExist):
-		return nil, false, nil
-	case err != nil:
+	if data, ok, err = host.ReadFileIfThere(ctx, sys, name); err != nil {
 		return nil, false, fmt.Errorf("logfwd: %w", err)
 	}
-	return data, true, nil
+	return data, ok, nil
 }

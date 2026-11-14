@@ -14,7 +14,6 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/logfwd"
-	"github.com/abbott/hardn/pkg/host/revert"
 )
 
 // Errors of the refusals, testable with errors.Is, each the Err of a
@@ -59,16 +58,6 @@ const (
 	whyTestLine    = "log forwarding set"
 	rsyslogService = "rsyslog"
 )
-
-// refuse is a refusal: its code, its sentinel wrapping cause where there is
-// one, and the Why and Fix screenkit.RefusalWords joins.
-func refuse(code string, sentinel, cause error, why, fix string) error {
-	err := sentinel
-	if cause != nil {
-		err = fmt.Errorf("%w: %w", sentinel, cause)
-	}
-	return &steps.Refusal{Code: code, Why: why, Fix: fix, Err: err}
-}
 
 // The changes' ids, under ID.
 const (
@@ -137,22 +126,23 @@ func unread(r Reading) error {
 	case logfwd.Busybox:
 		what = "syslogd's options"
 	}
-	return refuse(codeNotRead, ErrNotRead, r.Host.Err, "hardn can't read "+what+": "+hostWords(r.Host.Err), tryAgain)
+	return steps.Refuse(codeNotRead, ErrNotRead, r.Host.Err, "hardn can't read "+what+": "+hostWords(r.Host.Err), tryAgain)
 }
 
 // restartArgv is the command that restarts the logger, by the init system
-// that booted the host; a refusal where that is not the one the logger's
-// service belongs to.
+// that booted the host (steps.ServiceArgv); a refusal where that is not the
+// one the logger's service belongs to.
 func restartArgv(f detect.Facts, logger logfwd.Logger) ([]string, error) {
-	switch {
-	case logger == logfwd.Busybox && f.Init.Kind == detect.OpenRC && f.Init.Running == detect.Yes:
-		return []string{"rc-service", logfwd.BusyboxService, "restart"}, nil
-	case logger != logfwd.Busybox && f.Init.Kind == detect.Systemd && f.Init.Running == detect.Yes:
-		return []string{"systemctl", "restart", rsyslogService}, nil
-	case logger == logfwd.Busybox:
-		return nil, refuse(codeNoInit, ErrNoInit, nil, "OpenRC did not boot this host, so hardn can't restart syslogd", "set it by hand")
+	if logger == logfwd.Busybox {
+		if argv, ok := steps.ServiceArgv(f, "", logfwd.BusyboxService, "restart"); ok {
+			return argv, nil
+		}
+		return nil, steps.Refuse(codeNoInit, ErrNoInit, nil, "OpenRC did not boot this host, so hardn can't restart syslogd", "set it by hand")
 	}
-	return nil, refuse(codeNoInit, ErrNoInit, nil, "systemd did not boot this host, so hardn can't restart rsyslog", "set it by hand")
+	if argv, ok := steps.ServiceArgv(f, rsyslogService, "", "restart"); ok {
+		return argv, nil
+	}
+	return nil, steps.Refuse(codeNoInit, ErrNoInit, nil, "systemd did not boot this host, so hardn can't restart rsyslog", "set it by hand")
 }
 
 // planSet is Set server (decisions 3 to 7, 11 and 12). Refused: no server
@@ -168,9 +158,9 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 	switch {
 	case r.WantErr != nil:
 		why := strings.TrimPrefix(r.WantErr.Error(), config.ErrLogForwarding.Error()+": ")
-		return nil, refuse(codeBadServer, ErrBadServer, r.WantErr, "hardn.yml's logForwarding is not valid: "+logview.Safe(why), tryAgain)
+		return nil, steps.Refuse(codeBadServer, ErrBadServer, r.WantErr, "hardn.yml's logForwarding is not valid: "+logview.Safe(why), tryAgain)
 	case r.Want == nil:
-		return nil, refuse(codeNoServer, ErrNoServer, nil, "hardn.yml names no log server", "add logForwarding's server, then try again")
+		return nil, steps.Refuse(codeNoServer, ErrNoServer, nil, "hardn.yml names no log server", "add logForwarding's server, then try again")
 	}
 	if err := unread(r); err != nil {
 		return nil, err
@@ -180,7 +170,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 		return nil, nil // as asked, whoever set it
 	}
 	if o := r.Host.Foreign(); o != nil {
-		return nil, refuse(codeOutside, ErrOutside, nil, logview.Safe(o.File)+" already forwards logs, and hardn leaves it as it is", "remove that setting, then try again")
+		return nil, steps.Refuse(codeOutside, ErrOutside, nil, logview.Safe(o.File)+" already forwards logs, and hardn leaves it as it is", "remove that setting, then try again")
 	}
 	restart, err := restartArgv(f, r.Host.Logger)
 	if err != nil {
@@ -188,7 +178,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 	}
 	if r.Host.Logger == logfwd.Busybox {
 		if want.Proto != logfwd.UDP {
-			return nil, refuse(codeUDPOnly, ErrUDPOnly, nil, "busybox syslogd forwards over UDP only", "set protocol: udp in hardn.yml, then try again")
+			return nil, steps.Refuse(codeUDPOnly, ErrUDPOnly, nil, "busybox syslogd forwards over UDP only", "set protocol: udp in hardn.yml, then try again")
 		}
 		ch, err := optionsChange(ctx, sys, "Set syslogd's server", func(data []byte) ([]byte, error) { return logfwd.SetOpts(data, want) })
 		if err != nil {
@@ -198,7 +188,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 	}
 	if want.Proto == logfwd.TLS {
 		if fi, err := sys.Stat(ctx, want.CAFile); err != nil || !fi.Mode().IsRegular() {
-			return nil, refuse(codeNoCAFile, ErrNoCAFile, err, "hardn.yml's caFile, "+want.CAFile+", is not a file on this host", "put the CA's certificate there, then try again")
+			return nil, steps.Refuse(codeNoCAFile, ErrNoCAFile, err, "hardn.yml's caFile, "+want.CAFile+", is not a file on this host", "put the CA's certificate there, then try again")
 		}
 	}
 	before, err := dropInBefore(ctx, sys)
@@ -210,7 +200,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 	if r.Host.Logger != logfwd.Journald {
 		pkgs = nil
 		if res, err := sys.Run(ctx, "rsyslogd", "-N1"); err != nil {
-			return nil, refuse(codeNotRead, ErrNotRead, err, "rsyslogd can't read its settings: "+checkWords(res, err), tryAgain)
+			return nil, steps.Refuse(codeNotRead, ErrNotRead, err, "rsyslogd can't read its settings: "+checkWords(res, err), tryAgain)
 		}
 	}
 	if want.Proto == logfwd.TLS {
@@ -222,15 +212,15 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 			return nil, err
 		}
 		for i := range pc {
-			pc[i].After = ids(cs)
+			pc[i].After = steps.IDs(cs)
 		}
 		cs = append(cs, pc...)
 	}
 	data, err := logfwd.RsyslogFile(want)
 	if err != nil {
-		return nil, refuse(codeBadServer, ErrBadServer, err, "hardn.yml's logForwarding is not valid", tryAgain)
+		return nil, steps.Refuse(codeBadServer, ErrBadServer, err, "hardn.yml's logForwarding is not valid", tryAgain)
 	}
-	cs = append(cs, fileChange(before, data, ids(cs)))
+	cs = append(cs, fileChange(before, data, steps.IDs(cs)))
 	return append(cs, restartChange("Restart rsyslog", rsyslogService, restart, ChangeFile), testChange()), nil
 }
 
@@ -244,9 +234,9 @@ func dropInBefore(ctx context.Context, sys host.System) (*string, error) {
 	case errors.Is(err, fs.ErrNotExist):
 		return nil, nil
 	case err != nil:
-		return nil, refuse(codeNotRead, ErrNotRead, err, "hardn can't read "+logfwd.DropIn, tryAgain)
+		return nil, steps.Refuse(codeNotRead, ErrNotRead, err, "hardn can't read "+logfwd.DropIn, tryAgain)
 	case !strings.HasPrefix(string(data), logfwd.Header):
-		return nil, refuse(codeOutside, ErrOutside, nil, logfwd.DropIn+" is not hardn's file, and hardn leaves it as it is", "move that file away, then try again")
+		return nil, steps.Refuse(codeOutside, ErrOutside, nil, logfwd.DropIn+" is not hardn's file, and hardn leaves it as it is", "move that file away, then try again")
 	}
 	text := string(data)
 	return &text, nil
@@ -262,7 +252,7 @@ func planStop(ctx context.Context, sys host.System, f detect.Facts, r Reading) (
 		return nil, err
 	}
 	if r.Host.Own() == nil {
-		return nil, refuse(codeNothing, ErrNothingToStop, nil, "hardn did not set log forwarding here", "")
+		return nil, steps.Refuse(codeNothing, ErrNothingToStop, nil, "hardn did not set log forwarding here", "")
 	}
 	restart, err := restartArgv(f, r.Host.Logger)
 	if err != nil {
@@ -277,7 +267,7 @@ func planStop(ctx context.Context, sys host.System, f detect.Facts, r Reading) (
 	}
 	data, err := sys.ReadFile(ctx, logfwd.DropIn)
 	if err != nil {
-		return nil, refuse(codeNotRead, ErrNotRead, err, "hardn can't read "+logfwd.DropIn, tryAgain)
+		return nil, steps.Refuse(codeNotRead, ErrNotRead, err, "hardn can't read "+logfwd.DropIn, tryAgain)
 	}
 	text := string(data)
 	del := engine.Change{ID: ChangeFile, Summary: "Delete hardn's forwarding file " + logfwd.DropIn, Title: "Delete hardn's forwarding file", Target: logfwd.DropIn,
@@ -290,71 +280,44 @@ func planStop(ctx context.Context, sys host.System, f detect.Facts, r Reading) (
 
 // fileChange writes hardn's file, then has rsyslogd check its settings
 // (rsyslogd -N1): a refusal there is the change failed, before the restart,
-// and the engine puts the file back as it was.
+// and the engine puts the file back as it was (steps.WriteOwnFile).
 func fileChange(before *string, data []byte, after []string) engine.Change {
-	text := string(data)
-	return engine.Change{ID: ChangeFile, Summary: "Write hardn's forwarding file " + logfwd.DropIn, Title: "Write hardn's forwarding file", Target: logfwd.DropIn,
-		Diff: engine.FileDiff(logfwd.DropIn, before, &text), Commands: []string{"rsyslogd -N1"},
-		Stage: engine.StageFiles, Resources: []string{ID}, Backups: []string{logfwd.DropIn}, After: after,
-		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			if err := sys.WriteFileAtomic(ctx, logfwd.DropIn, data, 0o644, 0, 0); err != nil {
-				return engine.Ran{}, err
-			}
-			if res, err := sys.Run(ctx, "rsyslogd", "-N1"); err != nil {
-				return engine.Ran{}, refuse(codeCheck, ErrCheckFailed, err, "rsyslogd refuses its settings with hardn's file: "+checkWords(res, err), "")
-			}
-			return engine.Ran{Detail: "rsyslogd -N1: accepted"}, nil
-		}}
+	return steps.WriteOwnFile(steps.OwnFile{Control: ID, ID: ChangeFile, Title: "Write hardn's forwarding file", Path: logfwd.DropIn,
+		Before: before, Data: data, After: after,
+		Check: &steps.FileCheck{Argv: []string{"rsyslogd", "-N1"}, Detail: "rsyslogd -N1: accepted", Refused: func(res host.Result, err error) error {
+			return steps.Refuse(codeCheck, ErrCheckFailed, err, "rsyslogd refuses its settings with hardn's file: "+checkWords(res, err), "")
+		}}})
 }
 
 // optionsChange rewrites /etc/conf.d/syslog with edit (logfwd.SetOpts or
-// ClearOpts), keeping its mode and owner. edit's refusals are said at plan
-// time; the apply edits the file as it is then, and refuses one that is no
-// longer as planned.
+// ClearOpts), keeping its mode and owner (steps.RewriteFile). edit's
+// refusals are said at plan time; the apply edits the file as it is then,
+// and refuses one that is no longer as planned.
 func optionsChange(ctx context.Context, sys host.System, title string, edit func([]byte) ([]byte, error)) (engine.Change, error) {
-	before, err := sys.ReadFile(ctx, logfwd.ConfD)
-	if err != nil {
-		return engine.Change{}, refuse(codeNotRead, ErrNotRead, err, "hardn can't read "+logfwd.ConfD, tryAgain)
-	}
-	after, err := edit(before)
-	switch {
-	case errors.Is(err, logfwd.ErrNotOwn):
-		return engine.Change{}, refuse(codeNothing, ErrNothingToStop, err, "syslogd's options no longer hold what hardn added", "edit "+logfwd.ConfD+" by hand")
-	case errors.Is(err, logfwd.ErrForeign):
-		return engine.Change{}, refuse(codeOutside, ErrOutside, err, logfwd.ConfD+" already forwards logs, and hardn leaves it as it is", "remove that setting, then try again")
-	case err != nil:
-		return engine.Change{}, refuse(codeNotRead, ErrNotRead, err, "hardn can't read syslogd's options: "+hostWords(err), tryAgain)
-	}
-	a, b := string(before), string(after)
-	return engine.Change{ID: ChangeOptions, Summary: title + " in " + logfwd.ConfD, Title: title, Target: logfwd.ConfD,
-		Diff: engine.FileDiff(logfwd.ConfD, &a, &b), Stage: engine.StageFiles, Resources: []string{ID}, Backups: []string{logfwd.ConfD},
-		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			now, err := sys.ReadFile(ctx, logfwd.ConfD)
-			switch {
-			case err != nil:
-				return engine.Ran{}, err
-			case string(now) != a:
-				return engine.Ran{}, refuse(codeChanged, ErrChangedSince, nil, logfwd.ConfD+" changed since the plan", "try again")
-			}
-			return engine.Ran{Detail: "syslogd's options: written"}, host.WriteFileAtomicKeep(ctx, sys, logfwd.ConfD, after, 0o644, 0, 0)
-		}}, nil
+	return steps.RewriteFile(ctx, sys, steps.Rewrite{Control: ID, ID: ChangeOptions, Title: title, Path: logfwd.ConfD, Detail: "syslogd's options: written",
+		Unread: func(err error) error {
+			return steps.Refuse(codeNotRead, ErrNotRead, err, "hardn can't read "+logfwd.ConfD, tryAgain)
+		},
+		Changed: steps.Refuse(codeChanged, ErrChangedSince, nil, logfwd.ConfD+" changed since the plan", "try again"),
+	}, func(before []byte) ([]byte, error) {
+		after, err := edit(before)
+		switch {
+		case errors.Is(err, logfwd.ErrNotOwn):
+			return nil, steps.Refuse(codeNothing, ErrNothingToStop, err, "syslogd's options no longer hold what hardn added", "edit "+logfwd.ConfD+" by hand")
+		case errors.Is(err, logfwd.ErrForeign):
+			return nil, steps.Refuse(codeOutside, ErrOutside, err, logfwd.ConfD+" already forwards logs, and hardn leaves it as it is", "remove that setting, then try again")
+		case err != nil:
+			return nil, steps.Refuse(codeNotRead, ErrNotRead, err, "hardn can't read syslogd's options: "+hostWords(err), tryAgain)
+		}
+		return after, nil
+	})
 }
 
 // restartChange restarts the logger, which reads its settings at start
-// alone (rsyslogd's HUP only closes its files; syslogd has no reload). A
-// rollback restarts it again, once the files are back; not where the
-// command was not found, as nothing ran.
+// alone (rsyslogd's HUP only closes its files; syslogd has no reload), and
+// restarts it again on a rollback (steps.RestartService).
 func restartChange(title, service string, argv []string, after string) engine.Change {
-	undo := engine.Undo{Steps: []revert.Step{{Op: revert.OpRun, Argv: argv, Why: ID}}}
-	return engine.Change{ID: ChangeRestart, Summary: title, Title: title, Target: service, Commands: []string{host.FormatArgv(argv)},
-		Risk: engine.RiskServiceRestart, Stage: engine.StageReload, Resources: []string{ID}, After: []string{after}, Rollback: undo,
-		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			_, err := sys.Run(ctx, argv[0], argv[1:]...)
-			if errors.Is(err, host.ErrNotFound) {
-				return engine.Ran{Rollback: &engine.Undo{}}, err
-			}
-			return engine.Ran{Detail: service + ": restarted"}, err
-		}}
+	return steps.RestartService(ID, ChangeRestart, title, service, argv, after)
 }
 
 // TestArgv is the test line (decision 12): one message through the logger,
@@ -376,31 +339,14 @@ func testChange() engine.Change {
 // output, else the error.
 func checkWords(res host.Result, err error) string {
 	for _, out := range [][]byte{res.Stderr, res.Combined} {
-		if l := strings.TrimSpace(firstLine(string(out))); l != "" {
+		if l := strings.TrimSpace(steps.FirstLine(string(out))); l != "" {
 			return logview.Safe(l)
 		}
 	}
-	return logview.Safe(firstLine(err.Error()))
+	return logview.Safe(steps.FirstLine(err.Error()))
 }
 
-// hostWords is a reading's error in one safe line, without the package's
-// own prefix and its sentinel's words: it names files of the host.
-func hostWords(err error) string {
-	words := strings.TrimPrefix(firstLine(err.Error()), "logfwd: ")
-	return logview.Safe(strings.TrimSuffix(words, ": "+logfwd.ErrMalformed.Error()))
-}
-
-// ids are the ids of cs.
-func ids(cs []engine.Change) []string {
-	var out []string
-	for _, c := range cs {
-		out = append(out, c.ID)
-	}
-	return out
-}
-
-// firstLine is s to its first line break.
-func firstLine(s string) string {
-	l, _, _ := strings.Cut(s, "\n")
-	return l
-}
+// hostWords is a reading's error in one safe line, without logfwd's own
+// prefix and its sentinel's words (steps.HostWords): it names files of the
+// host.
+func hostWords(err error) string { return steps.HostWords(err, "logfwd: ", logfwd.ErrMalformed) }

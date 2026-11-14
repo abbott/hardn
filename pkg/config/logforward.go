@@ -3,10 +3,8 @@ package config
 import (
 	"errors"
 	"fmt"
-	"net/netip"
 	"path"
 	"regexp"
-	"strings"
 )
 
 // LogForwarding is hardn.yml's logForwarding: the syslog server Log
@@ -48,21 +46,16 @@ type LogServer struct {
 // not one hardn writes into the logger's settings.
 var ErrLogForwarding = errors.New("hardn.yml's logForwarding is not valid")
 
-var (
-	// logName is one label of a host name: letters, digits and hyphens,
-	// neither first nor last a hyphen.
-	logName = regexp.MustCompile(`^[a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?$`)
-	// logPath are the characters a caFile may hold: no space, quote,
-	// backslash, "$" or control character reaches the logger's settings.
-	logPath = regexp.MustCompile(`^/[A-Za-z0-9._/+-]*$`)
-)
+// logPath are the characters a caFile may hold: no space, quote, backslash,
+// "$" or control character reaches the logger's settings.
+var logPath = regexp.MustCompile(`^/[A-Za-z0-9._/+-]*$`)
 
 // Resolve checks logForwarding and fills its defaults. ok is false, with no
 // error, where it names no server: there is nothing to set. Any other value
 // that is not exactly what hardn writes is ErrLogForwarding, saying which:
 // the values go into the logger's settings, so nothing is trimmed, guessed
-// or passed through. The server is an IPv4 address or a host name (an IPv6
-// address is refused: not written yet); tls needs the server's name, as its
+// or passed through. The server is an IPv4 address or a host name
+// (ResolveHost; an IPv6 address is refused: not written yet); tls needs the server's name, as its
 // certificate has it, and caFile.
 func (l LogForwarding) Resolve() (s LogServer, ok bool, err error) {
 	if l.Server == "" {
@@ -71,15 +64,14 @@ func (l LogForwarding) Resolve() (s LogServer, ok bool, err error) {
 	bad := func(format string, args ...any) (LogServer, bool, error) {
 		return LogServer{}, false, fmt.Errorf("%w: %s", ErrLogForwarding, fmt.Sprintf(format, args...))
 	}
-	s.Address = strings.ToLower(l.Server)
-	_, addrErr := netip.ParseAddr(s.Address)
-	isAddr := addrErr == nil
+	address, isAddr, err := ResolveHost(l.Server)
 	switch {
-	case isAddr && strings.Contains(s.Address, ":"):
+	case errors.Is(err, ErrHostIPv6):
 		return bad("server is an IPv6 address, which hardn does not set yet")
-	case !isAddr && !validLogName(s.Address):
+	case err != nil:
 		return bad("server is not an IPv4 address or a host name")
 	}
+	s.Address = address
 	switch l.Protocol {
 	case "":
 		s.Protocol = LogTCP
@@ -112,19 +104,4 @@ func (l LogForwarding) Resolve() (s LogServer, ok bool, err error) {
 	}
 	s.CAFile = l.CAFile
 	return s, true, nil
-}
-
-// validLogName reports whether name is a host name: labels of letters,
-// digits and hyphens, 253 characters at most, and not all digits and dots
-// (a mistyped address).
-func validLogName(name string) bool {
-	if len(name) > 253 || strings.Trim(name, "0123456789.") == "" {
-		return false
-	}
-	for _, label := range strings.Split(name, ".") {
-		if !logName.MatchString(label) {
-			return false
-		}
-	}
-	return true
 }

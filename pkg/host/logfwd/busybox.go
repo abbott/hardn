@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
-	"regexp"
 	"slices"
 	"strings"
 
 	"github.com/abbott/hardn/pkg/host"
+	"github.com/abbott/hardn/pkg/host/confd"
 )
 
 // busybox syslogd's settings on Alpine (gallery-logforward.md §3.4): the
@@ -27,73 +27,29 @@ const (
 	optsKey = "SYSLOGD_OPTS"
 )
 
-var (
-	// optsLine is the assignment, its value in double quotes, single quotes
-	// or bare.
-	optsLine = regexp.MustCompile(`^\s*` + optsKey + `=(?:"([^"]*)"|'([^']*)'|(\S*))\s*$`)
-	// optsValue are the characters a value hardn reads may hold: options,
-	// paths, hosts and ports. Anything the shell would expand or split on
-	// other than a space ("$", a backquote, a backslash, a quote, ";") is
-	// ErrMalformed: hardn does not write a line back that it cannot read
-	// exactly.
-	optsValue = regexp.MustCompile(`^[A-Za-z0-9 ._:/@=,+\[\]-]*$`)
-)
-
-// opts is ConfD as read: its lines, where SYSLOGD_OPTS is set, its words,
-// and hardn's mark.
-type opts struct {
-	lines []string
-	at    int      // the assignment's index in lines
-	words []string // the value's words
-	mark  int      // the mark's index in lines; -1 for none
-	added []string // the words the mark names
-}
+// opts is ConfD as read (confd.Parse): where SYSLOGD_OPTS is set, its
+// words, and the words hardn's mark names.
+type opts struct{ confd.Line }
 
 // parseOpts reads ConfD's bytes. SYSLOGD_OPTS set on no line, on two, or
-// to a value outside optsValue, and two marks, are ErrMalformed.
+// to a value hardn does not write back, and two marks, are ErrMalformed,
+// naming the file and the line.
 func parseOpts(data []byte) (opts, error) {
-	o := opts{lines: strings.Split(string(data), "\n"), at: -1, mark: -1}
-	bad := func(line int, what string) (opts, error) {
-		return opts{}, fmt.Errorf("logfwd: %s:%d: %s: %w", ConfD, line, what, ErrMalformed)
+	l, bad := confd.Parse(data, optsKey, Mark)
+	if bad != nil {
+		return opts{}, fmt.Errorf("logfwd: %s:%d: %s: %w", ConfD, bad.Line, bad.What, ErrMalformed)
 	}
-	for i, l := range o.lines {
-		if rest, ok := strings.CutPrefix(l, Mark); ok {
-			if o.mark >= 0 {
-				return bad(i+1, "hardn's mark, twice")
-			}
-			o.mark, o.added = i, strings.Fields(rest)
-			continue
-		}
-		if !strings.HasPrefix(strings.TrimSpace(l), optsKey+"=") {
-			continue
-		}
-		m := optsLine.FindStringSubmatch(l)
-		switch {
-		case m == nil:
-			return bad(i+1, optsKey+" in a form hardn does not read")
-		case o.at >= 0:
-			return bad(i+1, optsKey+" set twice")
-		}
-		v := m[1] + m[2] + m[3]
-		if !optsValue.MatchString(v) {
-			return bad(i+1, optsKey+" holds a character hardn does not write back")
-		}
-		o.at, o.words = i, strings.Fields(v)
-	}
-	if o.at < 0 {
-		return bad(len(o.lines), optsKey+" is not set")
-	}
-	return o, nil
+	return opts{l}, nil
 }
 
 // remotes are the words' -R arguments, each "-R HOST[:PORT]" or
 // "-RHOST[:PORT]", with the index of its first word and how many words it
 // takes.
 func (o opts) remotes() (args []string, at, n []int) {
-	for i := 0; i < len(o.words); i++ {
-		switch w := o.words[i]; {
-		case w == "-R" && i+1 < len(o.words):
-			args, at, n = append(args, o.words[i+1]), append(at, i), append(n, 2)
+	for i := 0; i < len(o.Words); i++ {
+		switch w := o.Words[i]; {
+		case w == "-R" && i+1 < len(o.Words):
+			args, at, n = append(args, o.Words[i+1]), append(at, i), append(n, 2)
 			i++
 		case strings.HasPrefix(w, "-R") && len(w) > 2:
 			args, at, n = append(args, w[2:]), append(at, i), append(n, 1)
@@ -109,10 +65,10 @@ func (o opts) remotes() (args []string, at, n []int) {
 // there, the line edited since.
 func (o opts) own() (idx []int, ok bool) {
 	from := 0
-	for k := 0; k < len(o.added); k++ {
-		w := o.added[k]
+	for k := 0; k < len(o.Marked); k++ {
+		w := o.Marked[k]
 		if w != "-R" {
-			i := slices.Index(o.words[from:], w)
+			i := slices.Index(o.Words[from:], w)
 			if i < 0 {
 				return nil, false
 			}
@@ -120,11 +76,11 @@ func (o opts) own() (idx []int, ok bool) {
 			from += i + 1
 			continue
 		}
-		if k+1 == len(o.added) {
+		if k+1 == len(o.Marked) {
 			return nil, false // a mark hardn does not write
 		}
 		k++
-		i := o.pair(from, o.added[k])
+		i := o.pair(from, o.Marked[k])
 		if i < 0 {
 			return nil, false
 		}
@@ -145,13 +101,6 @@ func (o opts) pair(from int, arg string) int {
 		}
 	}
 	return -1
-}
-
-// bytes is the file with words as SYSLOGD_OPTS's value, in double quotes.
-func (o opts) bytes(words []string) []byte {
-	lines := slices.Clone(o.lines)
-	lines[o.at] = optsKey + `="` + strings.Join(words, " ") + `"`
-	return []byte(strings.Join(lines, "\n"))
 }
 
 // readBusybox reads syslogd's forwarding from ConfD: each -R of
@@ -175,9 +124,9 @@ func readBusybox(ctx context.Context, sys host.System) ([]Forward, error) {
 	for i, a := range args {
 		s := legacyHostPort(a)
 		if s.Address == "" {
-			return nil, fmt.Errorf("logfwd: %s:%d: -R with no host: %w", ConfD, o.at+1, ErrMalformed)
+			return nil, fmt.Errorf("logfwd: %s:%d: -R with no host: %w", ConfD, o.N, ErrMalformed)
 		}
-		out = append(out, Forward{Server: s, File: ConfD, Line: o.at + 1, ByHardn: slices.Contains(mine, at[i])})
+		out = append(out, Forward{Server: s, File: ConfD, Line: o.N, ByHardn: slices.Contains(mine, at[i])})
 	}
 	return out, nil
 }
@@ -205,7 +154,7 @@ func SetOpts(data []byte, s Server) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if o.mark >= 0 {
+	if o.HasMark() {
 		cleared, err := ClearOpts(data)
 		if err != nil {
 			return nil, err
@@ -218,11 +167,10 @@ func SetOpts(data []byte, s Server) ([]byte, error) {
 		return nil, fmt.Errorf("logfwd: %s: -R %s: %w", ConfD, args[0], ErrForeign)
 	}
 	added := []string{"-R", s.Address + ":" + s.Port}
-	if !slices.Contains(o.words, "-L") {
+	if !slices.Contains(o.Words, "-L") {
 		added = append(added, "-L")
 	}
-	out := opts{lines: slices.Insert(slices.Clone(o.lines), o.at, Mark+strings.Join(added, " ")), at: o.at + 1}
-	return out.bytes(append(slices.Clone(o.words), added...)), nil
+	return o.Bytes(append(slices.Clone(o.Words), added...), added), nil
 }
 
 // ErrForeign: syslogd already forwards by words hardn did not add.
@@ -241,16 +189,14 @@ func ClearOpts(data []byte) ([]byte, error) {
 		return nil, err
 	}
 	mine, ok := o.own()
-	if o.mark < 0 || !ok {
+	if !ok { // no mark, or one whose words are not all there
 		return nil, fmt.Errorf("logfwd: %s: %w", ConfD, ErrNotOwn)
 	}
 	var words []string
-	for i, w := range o.words {
+	for i, w := range o.Words {
 		if !slices.Contains(mine, i) {
 			words = append(words, w)
 		}
 	}
-	out := o.bytes(words)
-	lines := strings.Split(string(out), "\n")
-	return []byte(strings.Join(slices.Delete(lines, o.mark, o.mark+1), "\n")), nil
+	return o.Bytes(words, nil), nil
 }

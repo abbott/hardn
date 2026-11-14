@@ -268,9 +268,9 @@ func lfDraw(lh lfHost) func(context.Context, component.Ctx) (string, error) {
 }
 
 // lfReview runs the real screen on a host with key typed and nothing
-// after it, and returns what it drew after the screen itself: the item's
-// refusal, or its review, the engine's plan and the y/N question, left
-// unanswered, so nothing is applied.
+// after it, and returns what it drew after the screen itself (reviewOf):
+// the item's refusal, or its review, the engine's plan and the y/N
+// question, left unanswered, so nothing is applied.
 func lfReview(lh lfHost, key string) func(context.Context, component.Ctx) (string, error) {
 	return func(ctx context.Context, c component.Ctx) (string, error) {
 		h := lh.host()
@@ -283,22 +283,32 @@ func lfReview(lh lfHost, key string) func(context.Context, component.Ctx) (strin
 		if err != nil {
 			return "", err
 		}
-		var out bytes.Buffer
-		in := prompt.New(strings.NewReader(key+"\n"), false)
-		err = lfscreen.Run(ctx, lfscreen.Options{
-			Prompter: nav.Prompter{Ctx: c, In: in, Out: &out}, System: sys, Facts: facts, Config: cfg, LogPath: output.LegacyLogPath, Now: clock,
-			NewEngine: func(progress func(engine.Event)) *engine.Engine { return updEngine(h, progress, &updQuiet) },
-		})
-		if err != nil && !errors.Is(err, prompt.ErrAborted) && !errors.Is(err, io.EOF) {
-			return "", err
-		}
 		first := lfscreen.View(lfctl.Read(ctx, lh.host().sys(), facts, cfg)).SubMenu().Render(c)
-		drawn := strings.TrimPrefix(strings.TrimLeft(out.String(), "\n"), strings.TrimLeft(first, "\n"))
-		if i := strings.Index(drawn, "\n"); i >= 0 {
-			drawn = drawn[i+1:] // the prompt's line, with the key's echo
-		}
-		return strings.Trim(drawn, "\n"), nil
+		return reviewOf(c, key, first, func(p nav.Prompter) error {
+			return lfscreen.Run(ctx, lfscreen.Options{
+				Prompter: p, System: sys, Facts: facts, Config: cfg, LogPath: output.LegacyLogPath, Now: clock,
+				NewEngine: func(progress func(engine.Event)) *engine.Engine { return updEngine(h, progress, &updQuiet) },
+			})
+		})
 	}
+}
+
+// reviewOf runs a screen (run) with key typed and nothing after it, and
+// returns what it drew after first, the screen itself as it was first
+// drawn: the item's refusal, or its review, the plan and the question, left
+// unanswered. The end of the input is not an error.
+func reviewOf(c component.Ctx, key, first string, run func(nav.Prompter) error) (string, error) {
+	var out bytes.Buffer
+	in := prompt.New(strings.NewReader(key+"\n"), false)
+	err := run(nav.Prompter{Ctx: c, In: in, Out: &out})
+	if err != nil && !errors.Is(err, prompt.ErrAborted) && !errors.Is(err, io.EOF) {
+		return "", err
+	}
+	drawn := strings.TrimPrefix(strings.TrimLeft(out.String(), "\n"), strings.TrimLeft(first, "\n"))
+	if i := strings.Index(drawn, "\n"); i >= 0 {
+		drawn = drawn[i+1:] // the prompt's line, with the key's echo
+	}
+	return strings.Trim(drawn, "\n"), nil
 }
 
 // lfMocks are the listing's mocks: each host's screen, then each change's

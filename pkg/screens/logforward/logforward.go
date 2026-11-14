@@ -27,14 +27,12 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	ctl "github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/logview"
-	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/logfwd"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/screens/screenkit"
 	"github.com/abbott/hardn/pkg/ui/component"
-	"github.com/abbott/hardn/pkg/ui/flow"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
@@ -124,32 +122,19 @@ func (r *runner) draw(ctx context.Context) nav.Screen {
 	return sub.Screen(r.o.Prompter.Ctx, menu)
 }
 
-// change runs an item through the flow (screenkit.Session.Change), plain
-// y/N (decision 11): planned first (Preplan) and refused before asking;
-// its review, the section as the change leaves it and the control's
-// notice, from a fresh reading; its plan; the question.
+// change runs an item through the flow (screenkit.Session.Reviewed), plain
+// y/N (decision 11): planned first and refused before asking; its review,
+// the section as the change leaves it and the control's notice, from a
+// fresh reading; its plan; the question.
 func (r *runner) change(ctx context.Context, action ctl.Action) error {
-	c := ctl.Forward{Action: action, Config: r.cfg}
-	switch words, err := r.s.Preplan(ctx, r.cfg, c); {
-	case err != nil:
-		return err
-	case words != "":
-		return r.s.Say(screenkit.Warnings(words))()
-	}
-	rd := ctl.Read(ctx, r.o.System, r.o.Facts, r.cfg)
-	v := View(rd)
-	ch := v.StopChange()
-	if action == ctl.ActionSet {
-		var ok bool
-		if ch, ok = v.SetChange(); !ok {
-			return nil // hardn.yml edited between the plan and here: the screen is drawn again
+	return r.s.Reviewed(ctx, r.cfg, ctl.Forward{Action: action, Config: r.cfg}, func() (screen.Change, string, bool) {
+		rd := ctl.Read(ctx, r.o.System, r.o.Facts, r.cfg)
+		v := View(rd)
+		if action == ctl.ActionSet {
+			ch, ok := v.SetChange()
+			return ch, rd.Notice(action), ok
 		}
-	}
-	ch.Review.Notice = &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{rd.Notice(action)}}}
-	return r.s.Change(ctx, screenkit.Change{
-		Step:     ch.Step,
-		Flow:     flow.Flow{Review: func() flow.Review { return ch.Review }, Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: ch.Question} }},
-		Controls: func(*config.Config) []engine.Control { return []engine.Control{c} },
+		return v.StopChange(), rd.Notice(action), true
 	})
 }
 
@@ -163,14 +148,7 @@ const (
 // StatusRow is the Log Forwarding row as the main menu draws it: the
 // control's status through the main menu's own mapping.
 func StatusRow(rd ctl.Reading) component.StatusList {
-	rp := engine.Report{Control: ctl.ID, Title: ctl.Title, Status: rd.Status()}
-	view := output.StatusViewOf([]engine.Report{rp}, risk.Level{}).Status
-	for _, row := range view.Rows {
-		if row.Label == ctl.Title {
-			return component.StatusList{Rows: []component.StatusRow{row}}
-		}
-	}
-	return component.StatusList{}
+	return screenkit.StatusRow(ctl.ID, ctl.Title, rd.Status())
 }
 
 // server is s as the screen draws it, the host's text made safe.

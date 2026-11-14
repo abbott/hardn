@@ -276,6 +276,20 @@ func WriteFileAtomicKeep(ctx context.Context, sys System, name string, data []by
 	return sys.WriteFileAtomic(ctx, name, data, perm, uid, gid)
 }
 
+// ReadFileIfThere is name's bytes, read with ReadFile; ok is false, with no
+// error, where the file is not there: for a reader to whom a missing file
+// says something, and is no failure.
+func ReadFileIfThere(ctx context.Context, sys System, name string) (data []byte, ok bool, err error) {
+	data, err = sys.ReadFile(ctx, name)
+	switch {
+	case errors.Is(err, fs.ErrNotExist):
+		return nil, false, nil
+	case err != nil:
+		return nil, false, err
+	}
+	return data, true, nil
+}
+
 // WriteFileThroughSymlink writes data to the file the symlink name points
 // to, with WriteFileAtomic, and leaves the link as it is: the explicit way to
 // edit a file through a link (p2-pve: /root/.ssh/authorized_keys into

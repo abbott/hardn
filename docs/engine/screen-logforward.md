@@ -14,6 +14,21 @@ Main menu 6. hardn shows whether the host sends its logs to a syslog server, whe
 | The screen | `pkg/screens/logforward` | `Run`, and `View`, the mapping the gallery's hosts are drawn through too |
 | The view | `pkg/ui/screen/logforward.go` | `screen.LogForward`, the mock's, with three states added (§3) |
 
+**Shared since 2026-11-14** ([gallery-timesync.md](gallery-timesync.md) §5.5), for Time sync to use too, with nothing of Log Forwarding's behaviour changed:
+
+| What | Where |
+|---|---|
+| The address test of `Resolve` | `config.ResolveHost` (`pkg/config/hostname.go`) |
+| The address test of `logfwd.Server.Check` | `hostaddr.Valid` (`pkg/host/hostaddr`) |
+| `/etc/conf.d/syslog`'s parser and writer: the one assignment, hardn's mark | `confd.Parse`, `confd.Line` (`pkg/host/confd`); which words are hardn's stays `logfwd`'s |
+| A file read where "not there" is no error | `host.ReadFileIfThere` |
+| The making of a refusal, an error's safe line | `steps.Refuse`, `steps.HostWords`, `steps.FirstLine`, `steps.IDs` |
+| The restart, the rewrite of `/etc/conf.d/syslog`, the write of hardn's file with rsyslogd's check | `steps.ServiceArgv`, `steps.RestartService`, `steps.RewriteFile`, `steps.WriteOwnFile` ([steps.md](steps.md) §6) |
+| An item's order (planned, refused, read afresh, reviewed), and the row | `screenkit.Session.Reviewed`, `screenkit.StatusRow` ([screen-kit.md](screen-kit.md) §2) |
+| An item's change, the hardn.yml row, the two items | `screen.Change`, `wantRow`, `setUndoItems` (`pkg/ui/screen/change.go`) |
+
+The words, the codes, the files, the commands and their order are the control's, as before.
+
 - **Reading.** rsyslog is the logger where its package is installed (dpkg's or rpm's word); without it, on a host systemd booted, the logger is journald alone; on Alpine it is busybox syslogd where apk's database (`/lib/apk/db/installed`, a file) has no `rsyslog`; with rsyslog installed there, which of the two logs is not established, and the screen says "can't read" (`logfwd.ErrTwoLoggers`, `LOGFWD_NOT_READ`). Whether syslogd's service is in a runlevel is not looked at (unverified: how an installed Alpine adds `syslog` to one). rsyslog's forwarding is read from `/etc/rsyslog.conf` and `/etc/rsyslog.d/*.conf`: each `action(type="omfwd" ...)`, and each older `@host` (UDP) or `@@host` (TCP) line, with its options, port, bracketed address and template ([rsyslog's actions page](https://raw.githubusercontent.com/rsyslog/rsyslog/main/doc/source/configuration/actions.rst), "Remote Machine"); `$ActionSendStreamDriverMode 1` makes the `@@` lines after it TLS. busybox syslogd's is each `-R` of `SYSLOGD_OPTS` in `/etc/conf.d/syslog`. hardn never runs the logger to read it, and never edits a file it did not write.
 - **Not read is not "not forwarding".** A file that cannot be read, an action that does not close, an `omfwd` action or `@` line with no host, `SYSLOGD_OPTS` set twice, not at all, or holding a character the shell expands: the row is Unknown, "can't read", and both items refuse.
 - **Text from the host is made safe** (`logview.Safe`) before the row, the screen or a refusal shows it: a server's name, a file's name, rsyslogd's own error.
@@ -29,7 +44,7 @@ Main menu 6. hardn shows whether the host sends its logs to a syslog server, whe
 `logForwarding`'s values are written between double quotes in rsyslog's file and as words of a line a shell reads on Alpine. Two checks, either of which alone refuses:
 
 - `config.LogForwarding.Resolve`: `server` an IPv4 address or a host name (labels of letters, digits and hyphens); `port` 1 to 65535; `protocol` exactly `udp`, `tcp` or `tls`; `caFile` an absolute, clean path of letters, digits and `._+-/`, for `tls` alone. Nothing is trimmed or passed through.
-- `logfwd.Server.Check`, run by `RsyslogFile` and `SetOpts` whoever calls them: the same character sets.
+- `logfwd.Server.Check`, run by `RsyslogFile` and `SetOpts` whoever calls them: the same character sets. Its address test is `hostaddr.Valid`, and `Resolve`'s is `config.ResolveHost`: two functions in two packages, so they stay two checks.
 
 So no newline, quote, space, backslash, `$`, backquote, `;` or leading `-` reaches either file. On Alpine the existing line is rewritten only where every character of it is one hardn reads exactly; otherwise it is "can't read".
 
