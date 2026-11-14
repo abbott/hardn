@@ -29,6 +29,7 @@ import (
 	timectl "github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
@@ -159,6 +160,10 @@ var sentinels = map[string]error{
 	"firewalld.ErrZoneNoSSH":          firewalld.ErrZoneNoSSH,
 	"firewalld.ErrNotReady":           firewalld.ErrNotReady,
 	"firewalld.ErrFailed":             firewalld.ErrFailed,
+	"drift.ErrFormat":                 drift.ErrFormat,
+	"drift.ErrInvalid":                drift.ErrInvalid,
+	"drift.ErrNoBaseline":             drift.ErrNoBaseline,
+	"drift.ErrUnsafe":                 drift.ErrUnsafe,
 	"firewall.ErrFirewalldMissing":    firewall.ErrFirewalldMissing,
 	"firewall.ErrRunningNotAtBoot":    firewall.ErrRunningNotAtBoot,
 	"firewall.ErrUFWBeside":           firewall.ErrUFWBeside,
@@ -748,6 +753,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, users.CodePasswordNotSet)                                                                                // next/sudo-password-opt-in
 	want = append(want, users.CodeNoKey)                                                                                         // next/s5-control
 	want = append(want, output.CodeDetailsUnreadable)                                                                            // next/s1-readers
+	want = append(want, output.CodeNotCompared)                                                                                  // hardn check (docs/engine/design-check.md)
 	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158
 	want = append(want, ssh.CodeSSHDUnfixedLatent)                                                                               // its line with no password path
 	want = append(want, firewall.CodePortsBlocked, firewall.CodePortsUnread)                                                     // the other listeners Enable blocks

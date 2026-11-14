@@ -103,6 +103,15 @@ func readEffective(ctx context.Context, sys host.System, f detect.Facts) (readin
 	return r, nil
 }
 
+// ReadEffective is sshd -T's answer as the SSH checks read it (readEffective),
+// for another reader of the same settings, hardn check's
+// (pkg/engine/drift), so that the rows and the drift check cannot read
+// sshd differently. It writes nothing.
+func ReadEffective(ctx context.Context, sys host.System, f detect.Facts) (sshd.Effective, error) {
+	r, err := readEffective(ctx, sys, f)
+	return r.eff, err
+}
+
 // allows ranks each value of a keyword by what it lets in: the higher, the
 // more.
 var allows = map[string]map[string]int{

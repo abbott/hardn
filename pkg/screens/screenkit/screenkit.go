@@ -29,6 +29,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
@@ -211,6 +212,11 @@ func (s Session) Change(ctx context.Context, c Change) error {
 		return err
 	}
 	run := fe.Run(out, err)
+	if out == flow.Applied && !s.DryRun {
+		// The host has a baseline of hardn check's: the report says to
+		// accept it again (docs/engine/design-check.md, decision 2).
+		run.Baseline = drift.Kept(context.WithoutCancel(ctx), s.System, revert.Options{})
+	}
 	if after := output.AfterFlow(s.Prompter.Ctx.Env, run, now()); after != "" {
 		if werr := s.Write(after); err == nil {
 			err = werr
