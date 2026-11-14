@@ -113,8 +113,8 @@ func menuOf(out string) string {
 // host, in its plain-80 cell: from the header's line to the prompt's, each
 // line's "$" taken off; with the items hardn's main menu draws in place of
 // the mock's, which the gallery draws (pkg/screens/mainmenu's
-// galleryStatus does the same): items 5, Auto Updates, and 6, Log
-// Forwarding, above item 7 in its columns, the hint "[0-11 or q]", and on
+// galleryStatus does the same): items 5, Auto Updates, 6, Log Forwarding,
+// and 7, Time Sync, above item 8 in its columns, the hint "[0-12 or q]", and on
 // Proxmox VE item 3's "View
 // pve-firewall".
 func galleryMenu(t *testing.T, name string) string {
@@ -129,19 +129,22 @@ func galleryMenu(t *testing.T, name string) string {
 	}
 	var lines []string
 	for _, l := range strings.Split(cell, "\n")[1:] {
-		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 7-11 or q]", "[0-11 or q]")
+		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 8-12 or q]", "[0-12 or q]")
 		if name == "pve9" {
 			l = strings.Replace(l, "   3) Firewall             Configure ufw rules", "   3) Firewall             View pve-firewall", 1)
 		}
 		if strings.HasPrefix(l, "hardn ") {
 			l = strings.Replace(l, "v0.4.0", "      ", 1) // p4status shows no version: not a hardn release
 		}
+		if strings.Contains(l, "] Time Sync  ") {
+			continue // the main menu's row beyond controls.Status, which p4status does not read
+		}
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
-		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   7) Run All ") && desc > 0 {
+		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   8) Run All ") && desc > 0 {
 			lines = lines[:len(lines)-1]
-			for _, it := range [][2]string{{"   5) Auto Updates", "Configure automatic updates"}, {"   6) Log Forwarding", "Send logs to a syslog server"}} {
+			for _, it := range [][2]string{{"   5) Auto Updates", "Configure automatic updates"}, {"   6) Log Forwarding", "Send logs to a syslog server"}, {"   7) Time Sync", "Keep the clock in sync"}} {
 				lines = append(lines, it[0]+strings.Repeat(" ", desc-len(it[0]))+it[1])
 			}
 			lines = append(lines, l)
@@ -175,7 +178,7 @@ func TestMainMenuAsGallery(t *testing.T) {
 
 // TestMainMenuOnEL: on Rocky Linux and AlmaLinux, p4status draws the items
 // hardn's main menu draws there: item 3 "Configure firewalld", item 5,
-// Auto Updates, item 6, Log Forwarding, and the hint "[0-11 or q]". The hosts are the debian13
+// Auto Updates, item 6, Log Forwarding, item 7, Time Sync, and the hint "[0-12 or q]". The hosts are the debian13
 // fixture with Rocky Linux 10.2's os-release (pkg/host/detect's test
 // file) or AlmaLinux 9.6's in place of Debian's: the items turn on
 // detect's distribution alone, and a command the fixture does not answer
@@ -196,8 +199,8 @@ func TestMainMenuOnEL(t *testing.T) {
 			menu := menuOf(o.String())
 			for _, want := range []string{
 				"\n   3) Firewall             Configure firewalld\n",
-				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Log Forwarding       Send logs to a syslog server\n   7) Run All ",
-				"\n    > Option [0-11 or q]:",
+				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Log Forwarding       Send logs to a syslog server\n   7) Time Sync            Keep the clock in sync\n   8) Run All ",
+				"\n    > Option [0-12 or q]:",
 			} {
 				if !strings.Contains(menu, want) {
 					t.Errorf("no %q in the main menu:\n%s", want, menu)

@@ -232,6 +232,17 @@ sudoers.ErrUnsafeRunDir UNSAFE_DIRECTORY
 sudoers.ErrUnsupported SUDOERS_DOAS_UNSUPPORTED
 sudoers.ErrUserName SUDOERS_USER_NAME
 sudoers.ErrVarName SUDOERS_VAR_NAME
+timesync.ErrBadServers TIMESYNC_BAD_SERVERS
+timesync.ErrChangedSince TIMESYNC_CHANGED_SINCE
+timesync.ErrContainer TIMESYNC_CONTAINER
+timesync.ErrMalformed TIMESYNC_NOT_READ
+timesync.ErrNoServers TIMESYNC_NO_SERVERS
+timesync.ErrNoService TIMESYNC_NO_SERVICE
+timesync.ErrNotOwn TIMESYNC_NOTHING_TO_REMOVE
+timesync.ErrNotRead TIMESYNC_NOT_READ
+timesync.ErrNothingToRemove TIMESYNC_NOTHING_TO_REMOVE
+timesync.ErrOutside TIMESYNC_SET_OUTSIDE
+timesync.ErrServer TIMESYNC_BAD_SERVERS
 ufw.ErrBadInterface UFW_BAD_INTERFACE
 ufw.ErrBadProfile UFW_BAD_PROFILE
 ufw.ErrBlocks UFW_WOULD_BLOCK

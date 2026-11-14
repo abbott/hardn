@@ -4,6 +4,7 @@
 
 ## New
 
+- **Time Sync (main menu 7) shows the host's time service and clock, and sets your time servers.** Name one to four in hardn.yml's new `ntpServers`. Set servers makes chrony, systemd-timesyncd or Alpine's busybox ntpd use them in place of its own; Remove servers puts those back, each file as it was. hardn installs and starts no time service. Servers set outside hardn are shown, never changed. Run All sets the servers too. The main menu shows a Time Sync row on every host but a container; it never changes the risk level. System Details and the Markdown report show the time service and the clock, and the JSON document has `details.time`. New error codes: `TIMESYNC_*`. What is written on each distribution: [docs/platforms.md](../platforms.md#time-sync).
 - **Log Forwarding (main menu 6) sends the host's logs to a syslog server.** Name it in hardn.yml's new `logForwarding` (`server`, `port`, `protocol`: udp, tcp or tls, `caFile`). Set server writes hardn's own rsyslog file, checks it, restarts rsyslog and logs a test line; on a host with journald alone it installs rsyslog (not on Proxmox); on Alpine it sets busybox syslogd's `-R`, UDP only. Stop forwarding undoes only what hardn set. A server set outside hardn is shown, never changed. Run All sets the server too. The main menu shows a Log Forwarding row where a server is named or the host forwards; it never changes the risk level. New error codes: `LOGFWD_*`.
 - **The main menu warns when a release's vendor support ends within 90 days, or has ended**, and names the release to upgrade to. Every plan carries the same warning (`PLATFORM_SUPPORT_ENDS`, `PLATFORM_SUPPORT_ENDED`). It changes nothing hardn does. Proxmox VE 9 has no date yet, so no warning. The dates are in docs/platforms.md.
 - **The JSON document has `host.platform.supportEnds`**, the date hardn holds for the release.
@@ -20,4 +21,4 @@
 
 ## Changed
 
-- **The main menu's keys moved.** Log Forwarding is 6, so Run All is now 7, Backup 8, Configuration 9, System Details 10 and Logs 11, and the prompt reads `[0-11 or q]`. Typing 6 from habit opens Log Forwarding, which asks before it changes anything.
+- **The main menu's keys moved.** Log Forwarding is 6 and Time Sync 7, so Run All is now 8, Backup 9, Configuration 10, System Details 11 and Logs 12, and the prompt reads `[0-12 or q]`. Typing an old key opens another screen, which asks before it changes anything.

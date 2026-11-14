@@ -29,6 +29,24 @@ What Log Forwarding (main menu 6) does differs by the host's logger:
 - TLS uses rsyslog's `gtls` driver (`rsyslog-gnutls`). Alpine gets no TLS: nothing is installed there.
 - Not verified on a host yet: rsyslog's service name outside Debian (`rsyslog` is used); whether Debian 13's journald hands messages to a newly installed rsyslog unaided; where Ubuntu's AppArmor profile lets rsyslogd read a CA file; the TCP ports SELinux lets rsyslogd reach on Rocky, Alma and RHEL (514, 601, 6514, 10514 and 20514 are labelled for it).
 
+## Time sync
+
+What Time Sync (main menu 7) does differs by the host's time service. hardn sets the service the host already runs:
+
+| Distribution | Service hardn finds | Set servers |
+|---|---|---|
+| Ubuntu 26.04 | chrony | writes `/etc/chrony/sources.d/hardn.sources`, comments out the pools of `ubuntu-ntp-pools.sources`, then `chronyc reload sources`: no restart |
+| Debian, Proxmox with chrony installed | chrony | writes `hardn.sources`, comments out the `pool` line of `/etc/chrony/chrony.conf`, restarts chrony. On Proxmox the review says to set every node the same way |
+| Rocky, Alma, RHEL | chrony | edits `/etc/chrony.conf` in place, as it reads no directory of yours: its `pool` line commented out, hardn's lines under a comment naming them; restarts chronyd |
+| Debian 13 and 12; Ubuntu 24.04 and 22.04 | systemd-timesyncd | writes `/etc/systemd/timesyncd.conf.d/60-hardn.conf` with `NTP=`, restarts systemd-timesyncd |
+| Alpine | busybox ntpd where its service is started or in a runlevel; chrony where that package is installed | replaces the `-p` words of `NTPD_OPTS` in `/etc/conf.d/ntpd`, under a comment naming the ones replaced; restarts ntpd |
+
+- A line hardn switches off is kept as it was behind `#hardn: `. Remove servers takes the mark off again and deletes what hardn added, so each file is as it was.
+- A file edited between the review and your answer is not written: hardn says so, and you run the item again.
+- Not set, and said so: a host with no time service or a stopped one; a container; servers in a file that is neither the service's own nor hardn's (another `.sources` file, a `confdir` or `include` file, systemd-timesyncd's `NTP=` in any file but hardn's); `NTPD_OPTS` with no `-p`, or not written as one double-quoted line. Another time daemon (openntpd, ntpsec) is not looked for: the screen reads "None".
+- The clock is read with `chronyc -N tracking` for chrony, `timedatectl show` under systemd, and `busybox adjtimex` on Alpine.
+- Not verified on a host yet: everything on this list. The files are as each distribution's package source has them; the commands' output is as their source code prints it. What a package upgrade does with a main file hardn edited (ucf on Debian and Ubuntu, rpm elsewhere) is not known.
+
 ## Alpine
 
 - On Alpine, `ufw` and `sudo` come from the community repository. On Alpine 3.22 and 3.23, the vendor supports only the main repository.

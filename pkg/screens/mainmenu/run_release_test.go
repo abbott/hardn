@@ -36,7 +36,7 @@ func TestReleaseLine(t *testing.T) {
 	// Pending on the first pass, answered by the second.
 	asked := 0
 	states := []screen.Release{{State: screen.ReleasePending}, {State: screen.ReleaseNewer, Latest: "v0.4.1"}, {State: screen.ReleaseFailed}}
-	m = liveMenu(t, plainEnv(), fixtureStatus(new(int)), "11", "11", "q")
+	m = liveMenu(t, plainEnv(), fixtureStatus(new(int)), "12", "12", "q")
 	setLogs(m, func() error { return nil })
 	m.Release = func(ctx context.Context) screen.Release {
 		if ctx.Err() != nil {
@@ -57,7 +57,7 @@ func TestReleaseLine(t *testing.T) {
 // leaving the main menu cancels it.
 func TestReleaseCheckBesideMenu(t *testing.T) {
 	var started, cancelled atomic.Int32
-	m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), "11", "q")
+	m := liveMenu(t, plainEnv(), fixtureStatus(new(int)), "12", "q")
 	setLogs(m, func() error { return nil })
 	m.CheckRelease = func(ctx context.Context) {
 		started.Add(1)

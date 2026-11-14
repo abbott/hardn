@@ -56,6 +56,7 @@ func recordScreens(t *testing.T, m *Options) *[]string {
 	m.Backup = func() error { record("backup"); return nil }
 	m.Updates = func() error { record("updates"); return nil }
 	m.LogForwarding = func() error { record("logForwarding"); return nil }
+	m.TimeSync = func() error { record("timeSync"); return nil }
 	m.RunAll = func() error { record("runAll"); return nil }
 	m.Configuration = func() error { record("configuration"); return nil }
 	m.SystemDetails = func() error { record("systemDetails"); return nil }
@@ -103,19 +104,20 @@ func TestMainMenuKeys(t *testing.T) {
 		{"4 opens DNS", []string{"4", "q"}, false, []string{"dns"}, 0, 0},
 		{"5 opens Auto Updates", []string{"5", "q"}, false, []string{"updates"}, 0, 0},
 		{"6 opens Log Forwarding", []string{"6", "q"}, false, []string{"logForwarding"}, 0, 0},
-		{"7 opens Run All", []string{"7", "q"}, false, []string{"runAll"}, 0, 0},
-		{"8 opens Backup", []string{"8", "q"}, false, []string{"backup"}, 0, 0},
-		{"9 opens Configuration", []string{"9", "q"}, false, []string{"configuration"}, 0, 0},
-		{"10 opens System Details", []string{"10", "q"}, false, []string{"systemDetails"}, 0, 0},
-		{"11 opens Logs", []string{"11", "q"}, false, []string{"logs"}, 0, 0},
-		{"every item in turn", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "0"}, false,
-			[]string{"users", "ssh", "firewall", "dns", "updates", "logForwarding", "runAll", "backup", "configuration", "systemDetails", "logs"}, 0, 0},
+		{"7 opens Time Sync", []string{"7", "q"}, false, []string{"timeSync"}, 0, 0},
+		{"8 opens Run All", []string{"8", "q"}, false, []string{"runAll"}, 0, 0},
+		{"9 opens Backup", []string{"9", "q"}, false, []string{"backup"}, 0, 0},
+		{"10 opens Configuration", []string{"10", "q"}, false, []string{"configuration"}, 0, 0},
+		{"11 opens System Details", []string{"11", "q"}, false, []string{"systemDetails"}, 0, 0},
+		{"12 opens Logs", []string{"12", "q"}, false, []string{"logs"}, 0, 0},
+		{"every item in turn", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "0"}, false,
+			[]string{"users", "ssh", "firewall", "dns", "updates", "logForwarding", "timeSync", "runAll", "backup", "configuration", "systemDetails", "logs"}, 0, 0},
 		{"0 exits", []string{"0"}, false, nil, 0, 0},
 		{"q quits", []string{"q"}, false, nil, 0, 0},
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
-		{"spaces around a key", []string{" 11 ", " q "}, false, []string{"logs"}, 0, 0},
+		{"spaces around a key", []string{" 12 ", " q "}, false, []string{"logs"}, 0, 0},
 		{"an empty line is refused", []string{"", "q"}, false, nil, 1, 0},
-		{"keys no item has are refused", []string{"12", "01", "x", "b", "-1", "1 0", "100", "q"}, false, nil, 7, 0},
+		{"keys no item has are refused", []string{"13", "01", "x", "b", "-1", "1 0", "100", "q"}, false, nil, 7, 0},
 		{"the end of the input", nil, false, nil, 0, prompt.ExitInterrupted},
 		{"the end of the input after a refusal", []string{"x"}, false, nil, 1, prompt.ExitInterrupted},
 		{"Ctrl-C at the prompt", []string{"x"}, true, nil, 1, int(sigint)},
@@ -171,7 +173,7 @@ func TestMainMenuKeys(t *testing.T) {
 // the main menu is not read or drawn again, where origin/main cleared the
 // screen, printed its header and paused (main_menu.go:538-544).
 func TestMainMenuInvalid(t *testing.T) {
-	const prompt = "    > Option [0-11 or q]: "
+	const prompt = "    > Option [0-12 or q]: "
 	for _, tc := range []struct {
 		name string
 		env  term.Env
@@ -207,7 +209,7 @@ func TestMainMenuInvalid(t *testing.T) {
 func TestMainMenuAgain(t *testing.T) {
 	for _, env := range []term.Env{ttyEnv(), plainEnv()} {
 		passes := 0
-		m := liveMenu(t, env, fixtureStatus(&passes), "7", "q")
+		m := liveMenu(t, env, fixtureStatus(&passes), "8", "q")
 		recordScreens(t, m)
 		out, _, ended := session(t, func() { show(m) })
 		clr := clearOn(env)
@@ -276,7 +278,7 @@ func TestMainMenuMode(t *testing.T) {
 // aside, item 2's "Root login, passwords, port" (legacy-left.md §3,
 // decision 7 (a)), item 9's "View hardn.yml", and its Exit row, "q to
 // quit" (DEV-030). The heading and prompt are origin/main's, the hint
-// generated from the items, "[0-11 or q]".
+// generated from the items, "[0-12 or q]".
 func TestMainMenuItems(t *testing.T) {
 	m := &Options{Config: config.DefaultConfig()}
 	view := m.items().View()
@@ -287,7 +289,7 @@ func TestMainMenuItems(t *testing.T) {
 	if !slices.Equal(view.Items, withUpdatesItem(fixture.Menu.Items)) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
 		t.Errorf("the items are not the main-menu mock's:\n%+v\n%+v", view, fixture.Menu)
 	}
-	if hint := m.items().Accepts().Hint(); hint != "0-11 or q" {
+	if hint := m.items().Accepts().Hint(); hint != "0-12 or q" {
 		t.Errorf("the hint is %q", hint)
 	}
 	// The CVE alert's route (output.AlertOf) is to this menu's SSH Login.
@@ -304,7 +306,7 @@ func TestMainMenuItems(t *testing.T) {
 // them (FirewallOf): item 3 "Configure ufw rules" on Debian, "View
 // pve-firewall" on Proxmox VE, "Configure firewalld" on Rocky Linux and
 // AlmaLinux; item 5, Auto Updates, item 6, Log Forwarding, and the hint
-// "[0-11 or q]" on each.
+// "[0-12 or q]" on each.
 func TestMenuOf(t *testing.T) {
 	for _, tc := range []struct {
 		facts    detect.Facts
@@ -322,7 +324,7 @@ func TestMenuOf(t *testing.T) {
 			if !reflect.DeepEqual(got, live.View()) {
 				t.Errorf("MenuOf:\n%+v\nthe main menu's:\n%+v", got, live.View())
 			}
-			if got.Items[2].Description != tc.firewall || got.Items[4] != updatesItem || got.Items[5] != logForwardItem || live.Accepts().Hint() != "0-11 or q" {
+			if got.Items[2].Description != tc.firewall || got.Items[4] != updatesItem || got.Items[5] != logForwardItem || got.Items[6] != timeSyncItem || live.Accepts().Hint() != "0-12 or q" {
 				t.Errorf("item 3 %+v, item 5 %+v, hint %q", got.Items[2], got.Items[4], live.Accepts().Hint())
 			}
 		})
@@ -336,13 +338,17 @@ var updatesItem = component.MenuItem{Key: "5", Label: "Auto Updates", Descriptio
 // decision 8 (a)).
 var logForwardItem = component.MenuItem{Key: "6", Label: "Log Forwarding", Description: "Send logs to a syslog server"}
 
+// timeSyncItem is item 7, Time Sync (gallery-timesync.md §4, decision 9
+// (a)).
+var timeSyncItem = component.MenuItem{Key: "7", Label: "Time Sync", Description: "Keep the clock in sync"}
+
 // withUpdatesItem is the main-menu mock's items (screen.MainMenuFixture)
-// with items 5 and 6 between 4 and 7, as the main menu has them: the mock,
-// pkg/ui/screen's, Figma's frame, has neither Auto Updates nor Log
-// Forwarding.
+// with items 5, 6 and 7 between 4 and 8, as the main menu has them: the
+// mock, pkg/ui/screen's, Figma's frame, has none of Auto Updates, Log
+// Forwarding and Time Sync.
 func withUpdatesItem(items []component.MenuItem) []component.MenuItem {
-	i := slices.IndexFunc(items, func(it component.MenuItem) bool { return it.Key == "7" })
-	return slices.Insert(slices.Clone(items), i, updatesItem, logForwardItem)
+	i := slices.IndexFunc(items, func(it component.MenuItem) bool { return it.Key == "8" })
+	return slices.Insert(slices.Clone(items), i, updatesItem, logForwardItem, timeSyncItem)
 }
 
 // TestMainMenuTopRows: every clear on a terminal leaves topRows blank
@@ -355,7 +361,7 @@ func TestMainMenuTopRows(t *testing.T) {
 	for _, asked := range []bool{false, true} {
 		env := term.Resolve(term.Options{}, term.Facts{StdoutTTY: true, StdinTTY: true, Width: 80, Height: 40,
 			Environ: []string{"TERM=xterm-256color", "NO_COLOR=1"}})
-		m := liveMenu(t, env, fixtureStatus(new(int)), "7", "0", "q")
+		m := liveMenu(t, env, fixtureStatus(new(int)), "8", "0", "q")
 		recordScreens(t, m)
 		m.RunAll = func() error {
 			p := nav.Prompter{Ctx: component.NewCtx(env), In: m.Input(), Out: env.Writer(stdout{})}
@@ -364,7 +370,7 @@ func TestMainMenuTopRows(t *testing.T) {
 			})
 		}
 		if asked {
-			r := prompt.New(strings.NewReader("y\n7\n0\nq\n"), false)
+			r := prompt.New(strings.NewReader("y\n8\n0\nq\n"), false)
 			useReader(t, r)
 			if _, err := r.Ask(io.Discard, "Create hardn.yml? "); err != nil {
 				t.Fatal(err)
@@ -388,15 +394,16 @@ func TestMainMenuTopRows(t *testing.T) {
 // TestMainMenuHeights pins hardn's main menu's heights, one pass drawn on
 // a terminal over the gallery's hardened Debian 13 host (eight rows, no
 // line under any), in its full form at every height, Unicode (C.UTF-8)
-// and ASCII (C): 39 lines at 80x24 and 80x40, the two blank lines under
-// the clear (clearTop) first, 63 at 60 columns, where the rows stack
-// (DEV-021), items 5, Auto Updates, and 6, Log Forwarding, one line each,
-// and two each at 60 columns. The prompt is the terminal's last line, so
-// on 24 rows the first 15 lines scroll off at 80 columns, the blank lines
-// and the header down to the SSH Port row, the risk level among them, and
-// at 60 columns 39, all the status, the heading, the mode and item 1; on
-// 40 rows none at 80 columns, the blank lines on the top two rows and the
-// header under them, and 23 at 60.
+// and ASCII (C): 41 lines at 80x24 and 80x40, the two blank lines under
+// the clear (clearTop) first, 67 at 60 columns, where the rows stack
+// (DEV-021), items 5, Auto Updates, 6, Log Forwarding, and 7, Time Sync,
+// and the Time Sync row one line each, and two each at 60 columns. The
+// prompt is the terminal's last line, so on 24 rows the first 17 lines
+// scroll off at 80 columns, the blank lines and the header down to the DNS
+// row, the risk level among them, and at 60 columns 43, all the status,
+// the heading, the mode and items 1 and 2; on 40 rows one line at 80
+// columns, a blank one, and 27 at 60. Twelve items and the status do not
+// fit 24 rows (gallery-timesync.md, decision 9): nor did eleven.
 // With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
 // TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
@@ -406,11 +413,12 @@ func TestMainMenuHeights(t *testing.T) {
 	for _, tc := range []struct {
 		w, h, lines int
 		visible     string // the first line on screen, stripped of colour and glyphs
+		risk        bool   // the risk level is on screen
 	}{
-		{80, 24, 39, "Firewall             Configured deny policy"},
-		{80, 40, 39, ""}, // the blank lines under the clear, the header under them
-		{60, 24, 63, "Root login, passwords, port"},
-		{60, 40, 63, "Configured deny policy"},
+		{80, 24, 41, "Auto Updates         Configured unattended-upgrades", false},
+		{80, 40, 41, "", true}, // the second blank line under the clear, the header under it
+		{60, 24, 67, "Configure ufw rules", false},
+		{60, 40, 67, "Configured unattended-upgrades", false},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")
@@ -428,7 +436,7 @@ func TestMainMenuHeights(t *testing.T) {
 			ls := strings.Split(stripANSI(strings.TrimSuffix(drawn, " \n")), "\n")
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
 			risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
-			if len(ls) != tc.lines || first != tc.visible || ls[0] != "" || ls[1] != "" || (risk >= len(ls)-tc.h) != (len(ls) <= tc.h) ||
+			if len(ls) != tc.lines || first != tc.visible || ls[0] != "" || ls[1] != "" || (risk >= len(ls)-tc.h) != tc.risk ||
 				!strings.HasPrefix(ls[len(ls)-1], strings.Repeat(" ", theme.PromptCol)+component.NewCtx(env).Theme.Glyphs.Prompt+" Option") {
 				t.Errorf("%dx%d, %s: %d lines, the first on screen %q, the risk level on line %d; want %d, %q:\n%s",
 					tc.w, tc.h, lang, len(ls), first, risk+1, tc.lines, tc.visible, strings.Join(ls, "\n"))

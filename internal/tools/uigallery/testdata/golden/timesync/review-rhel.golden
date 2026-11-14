@@ -1,0 +1,193 @@
+# Golden file of TestTimeSyncGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mtimesync review-rhel␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Set servers on Rocky Linux 10, whose␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchrony reads no directory of the administrator's: in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/chrony.conf the pool commented out and two lines added␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder a comment naming them, then a restart.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSet servers␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's servers take the place of the host's own. Remove␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mservers puts those back.␛[m$
+$
+  ␛[1;38;2;129;134;156mTime␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.10␛[m ␛[38;2;129;134;156mby hardn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.11␛[m ␛[38;2;129;134;156mby hardn␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet chrony's servers␛[m$
+      ␛[38;2;129;134;156m/etc/chrony.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,7 +1,10 @@␛[m$
+      ␛[38;2;129;134;156m # Use four public NTP servers from the pool.ntp.org␛[m$
+      ␛[38;2;129;134;156m↪ project. If this␛[m$
+      ␛[38;2;129;134;156m # host has a static public IP address, please consider␛[m$
+      ␛[38;2;129;134;156m↪ joining the pool:␛[m$
+      ␛[38;2;129;134;156m # https://www.ntppool.org/join.html␛[m$
+      ␛[38;2;231;70;105m-pool 2.rocky.pool.ntp.org iburst␛[m$
+      ␛[38;2;112;212;127m+#hardn: pool 2.rocky.pool.ntp.org iburst␛[m$
+      ␛[38;2;112;212;127m+# Added by hardn (Time Sync): the 2 lines below.␛[m$
+      ␛[38;2;112;212;127m+server 192.0.2.10 iburst␛[m$
+      ␛[38;2;112;212;127m+server 192.0.2.11 iburst␛[m$
+$
+      ␛[38;2;129;134;156m # Use NTP servers from DHCP.␛[m$
+      ␛[38;2;129;134;156m sourcedir /run/chrony-dhcp␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRestart chrony␛[m$
+      ␛[38;2;129;134;156mchronyd␛[m$
+      ␛[38;2;129;134;156m$ systemctl restart chronyd␛[m$
+$
+  ␛[38;2;192;196;216mSet time servers?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  timesync review-rhel -----------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. Set servers on Rocky Linux 10, whose$
+# chrony reads no directory of the administrator's: in$
+# /etc/chrony.conf the pool commented out and two lines added$
+# under a comment naming them, then a restart.$
+$
+  Checking the host...$
+$
+# Set servers ##################################################$
+$
+# Note$
+# hardn's servers take the place of the host's own. Remove$
+# servers puts those back.$
+$
+  Time ---------------------------------------------------------$
+$
+   -  Server               192.0.2.10 by hardn$
+   -  Server               192.0.2.11 by hardn$
+$
+   -  Set chrony's servers$
+      /etc/chrony.conf$
+      @@ -1,7 +1,10 @@$
+       # Use four public NTP servers from the pool.ntp.org$
+      | project. If this$
+       # host has a static public IP address, please consider$
+      | joining the pool:$
+       # https://www.ntppool.org/join.html$
+      -pool 2.rocky.pool.ntp.org iburst$
+      +#hardn: pool 2.rocky.pool.ntp.org iburst$
+      +# Added by hardn (Time Sync): the 2 lines below.$
+      +server 192.0.2.10 iburst$
+      +server 192.0.2.11 iburst$
+$
+       # Use NTP servers from DHCP.$
+       sourcedir /run/chrony-dhcp$
+$
+   -  Restart chrony$
+      chronyd$
+      $ systemctl restart chronyd$
+$
+  Set time servers? [y/N, 0 or q]: $
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mtimesync review-rhel␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Set servers on Rocky Linux 10,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhose chrony reads no directory of the administrator's: in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/chrony.conf the pool commented out and two lines␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156madded under a comment naming them, then a restart.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host…␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSet servers␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's servers take the place of the host's own. Remove␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mservers puts those back.␛[m$
+$
+  ␛[1;38;2;129;134;156mTime␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m$
+      ␛[38;2;129;134;156m192.0.2.10␛[m ␛[38;2;129;134;156mby hardn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m$
+      ␛[38;2;129;134;156m192.0.2.11␛[m ␛[38;2;129;134;156mby hardn␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet chrony's servers␛[m$
+      ␛[38;2;129;134;156m/etc/chrony.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,7 +1,10 @@␛[m$
+      ␛[38;2;129;134;156m # Use four public NTP servers from the pool.ntp.org␛[m$
+      ␛[38;2;129;134;156m↪ project. If this␛[m$
+      ␛[38;2;129;134;156m # host has a static public IP address, please␛[m$
+      ␛[38;2;129;134;156m↪ consider joining the pool:␛[m$
+      ␛[38;2;129;134;156m # https://www.ntppool.org/join.html␛[m$
+      ␛[38;2;231;70;105m-pool 2.rocky.pool.ntp.org iburst␛[m$
+      ␛[38;2;112;212;127m+#hardn: pool 2.rocky.pool.ntp.org iburst␛[m$
+      ␛[38;2;112;212;127m+# Added by hardn (Time Sync): the 2 lines below.␛[m$
+      ␛[38;2;112;212;127m+server 192.0.2.10 iburst␛[m$
+      ␛[38;2;112;212;127m+server 192.0.2.11 iburst␛[m$
+$
+      ␛[38;2;129;134;156m # Use NTP servers from DHCP.␛[m$
+      ␛[38;2;129;134;156m sourcedir /run/chrony-dhcp␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRestart chrony␛[m$
+      ␛[38;2;129;134;156mchronyd␛[m$
+      ␛[38;2;129;134;156m$ systemctl restart chronyd␛[m$
+$
+  ␛[38;2;192;196;216mSet time servers?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mtimesync review-rhel␛[m ␛[38;2;22;24;29m-----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Set servers on Rocky Linux 10, whose␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mchrony reads no directory of the administrator's: in␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/chrony.conf the pool commented out and two lines added␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder a comment naming them, then a restart.␛[m$
+$
+  ␛[38;2;129;134;156mChecking the host...␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSet servers␛[m ␛[38;2;43;47;59m##################################################␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn's servers take the place of the host's own. Remove␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mservers puts those back.␛[m$
+$
+  ␛[1;38;2;129;134;156mTime␛[m ␛[38;2;22;24;29m---------------------------------------------------------␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.10␛[m ␛[38;2;129;134;156mby hardn␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.11␛[m ␛[38;2;129;134;156mby hardn␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet chrony's servers␛[m$
+      ␛[38;2;129;134;156m/etc/chrony.conf␛[m$
+      ␛[38;2;86;91;107m@@ -1,7 +1,10 @@␛[m$
+      ␛[38;2;129;134;156m # Use four public NTP servers from the pool.ntp.org␛[m$
+      ␛[38;2;129;134;156m| project. If this␛[m$
+      ␛[38;2;129;134;156m # host has a static public IP address, please consider␛[m$
+      ␛[38;2;129;134;156m| joining the pool:␛[m$
+      ␛[38;2;129;134;156m # https://www.ntppool.org/join.html␛[m$
+      ␛[38;2;231;70;105m-pool 2.rocky.pool.ntp.org iburst␛[m$
+      ␛[38;2;112;212;127m+#hardn: pool 2.rocky.pool.ntp.org iburst␛[m$
+      ␛[38;2;112;212;127m+# Added by hardn (Time Sync): the 2 lines below.␛[m$
+      ␛[38;2;112;212;127m+server 192.0.2.10 iburst␛[m$
+      ␛[38;2;112;212;127m+server 192.0.2.11 iburst␛[m$
+$
+      ␛[38;2;129;134;156m # Use NTP servers from DHCP.␛[m$
+      ␛[38;2;129;134;156m sourcedir /run/chrony-dhcp␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRestart chrony␛[m$
+      ␛[38;2;129;134;156mchronyd␛[m$
+      ␛[38;2;129;134;156m$ systemctl restart chronyd␛[m$
+$
+  ␛[38;2;192;196;216mSet time servers?␛[m ␛[38;2;192;196;216m[y/N, 0 or q]:␛[m $
+$
+$

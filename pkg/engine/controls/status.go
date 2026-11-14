@@ -15,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
 	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 )
@@ -37,18 +38,19 @@ func Status(cfg *config.Config) []engine.Control {
 }
 
 // Menu returns the controls the main menu checks: Status's, then Log
-// Forwarding's, which is no row of risk's: the risk level never counts it
-// (gallery-logforward.md, decision 10 (a)).
+// Forwarding's and Time Sync's, which are no rows of risk's: the risk level
+// never counts them (gallery-logforward.md, decision 10 (a);
+// gallery-timesync.md, decision 11 (a)).
 func Menu(cfg *config.Config) []engine.Control {
-	return append(Status(cfg), logforward.Controls(cfg)...)
+	return append(append(Status(cfg), logforward.Controls(cfg)...), timesync.Controls(cfg)...)
 }
 
 // MenuReports are Menu's reports as the main menu draws them: Log
 // Forwarding's kept only where cfg, hardn.yml, names a server or the host
-// forwards (logforward.Shown), and then drawn after the others
-// (output.StatusViewOf).
+// forwards (logforward.Shown), Time Sync's on every host but a container
+// (timesync.Shown), and both drawn after the others (output.StatusViewOf).
 func MenuReports(cfg *config.Config, reports []engine.Report) []engine.Report {
 	return slices.DeleteFunc(slices.Clone(reports), func(r engine.Report) bool {
-		return r.Control == logforward.ID && !logforward.Shown(cfg, r.Status)
+		return r.Control == logforward.ID && !logforward.Shown(cfg, r.Status) || r.Control == timesync.ID && !timesync.Shown(r.Status)
 	})
 }

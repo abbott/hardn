@@ -269,12 +269,7 @@ func planStop(ctx context.Context, sys host.System, f detect.Facts, r Reading) (
 	if err != nil {
 		return nil, steps.Refuse(codeNotRead, ErrNotRead, err, "hardn can't read "+logfwd.DropIn, tryAgain)
 	}
-	text := string(data)
-	del := engine.Change{ID: ChangeFile, Summary: "Delete hardn's forwarding file " + logfwd.DropIn, Title: "Delete hardn's forwarding file", Target: logfwd.DropIn,
-		Diff: engine.FileDiff(logfwd.DropIn, &text, nil), Stage: engine.StageFiles, Resources: []string{ID}, Backups: []string{logfwd.DropIn},
-		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
-			return engine.Ran{Detail: "forwarding file: deleted"}, sys.Remove(ctx, logfwd.DropIn)
-		}}
+	del := steps.DeleteOwnFile(ID, ChangeFile, "Delete hardn's forwarding file", logfwd.DropIn, string(data), "forwarding file: deleted")
 	return []engine.Change{del, restartChange("Restart rsyslog", rsyslogService, restart, ChangeFile)}, nil
 }
 

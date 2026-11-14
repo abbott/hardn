@@ -10,6 +10,9 @@ Generated 2026-10-20 12:30 UTC by hardn 0.4.0.
 - Support: Supported
 - Kernel: `6.12.113+deb13-cloud-amd64`
 - Uptime: 182 days, 2 hours, 26 minutes
+- Time service: chrony
+- Clock: In sync
+- Synced to: `2.ntp.ubuntu.com`
 - Init: systemd
 - sshd started by: Unknown
 - Container: Unknown

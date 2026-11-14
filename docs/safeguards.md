@@ -10,7 +10,7 @@ What hardn refuses, and how it undoes a change. The four steps are in the [READM
   - The refusal says why, and in most cases what to do.
 - **The revert timer.** A lockout-risk change runs under a systemd timer, or a process under OpenRC. It rolls the change back unless `hardn confirm` comes from a new connection in time. Where neither systemd nor OpenRC runs, such a change is refused. So is any lockout-risk change when a user other than root can change the hardn binary.
 - **Across a reboot.** Before the first such change, hardn installs a boot unit, `hardn-boot`. At boot, before sshd starts, it restarts the timer for the time left, or rolls the change back if the time ran out. It is removed at the first boot with nothing waiting.
-- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. `8) Backup` lists the runs.
+- **Backups.** Before a change, the files it touches are backed up under `backupPath` (`/var/backups/hardn` by default); with backups off (`enableBackups: false`), only the files a rollback needs are. A rollback restores them. `9) Backup` lists the runs.
 
 Learn more: [revert.md](safety/revert.md) (confirm-or-revert), [revert-boot.md](safety/revert-boot.md) (the boot unit), [atomic.md](safety/atomic.md) (writes and backups), [pve.md](safety/pve.md) (Proxmox), and the index, [safety](safety/README.md).
 

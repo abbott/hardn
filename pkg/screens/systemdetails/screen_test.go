@@ -23,6 +23,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/hostfake"
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -360,21 +361,21 @@ func TestScreenHosts(t *testing.T) {
 		lines int
 		want  []string
 	}{
-		{"debian13", 49, []string{"OS                   Debian 13 (Trixie)", "Kernel               6.12.113+deb13-cloud-amd64", "Uptime               3 days, 5 hours, 12 minutes",
+		{"debian13", 51, []string{"OS                   Debian 13 (Trixie)", "[?] Time service         Not known", "[?] Clock                Not known", "Kernel               6.12.113+deb13-cloud-amd64", "Uptime               3 days, 5 hours, 12 minutes",
 			"Hostname             web-01", "eth0                 192.0.2.20/24", "alice                sudo", "Model                " + vmCPU, "CPUs                 4, 1 socket",
 			"Load (1, 5, 15 min)  0.12, 0.08, 0.03", "/                    /dev/vda1 ext4", "Used                 4.2 of 38.6 GiB (11%)", "Used                 1.2 of 3.8 GiB (30%)",
 			"root                 None recorded", "alice                " + session,
 			"  Listening Ports ---", "22/tcp               0.0.0.0 sshd", "22/tcp               [::] sshd"}},
-		{"ubuntu2604", 49, []string{"OS                   Ubuntu 26.04 (Resolute)", "Kernel               7.0.0-38-generic", "alice                sudo", "alice                " + session}},
-		{"alpine323", 47, []string{"OS                   Alpine 3.23.6", "alice                doas", "Logins               Not known: lslogins isn't installed",
+		{"ubuntu2604", 51, []string{"OS                   Ubuntu 26.04 (Resolute)", "Kernel               7.0.0-38-generic", "alice                sudo", "alice                " + session}},
+		{"alpine323", 49, []string{"OS                   Alpine 3.23.6", "alice                doas", "Logins               Not known: lslogins isn't installed",
 			"  Listening Ports ---", "[?] Listening ports      ss not installed"}},
-		{"pve9", 49, []string{"OS                   Proxmox VE 9.0.10 (Trixie)", "None but root", "/                    " + pveDataset + " zfs", "Used                 50.0 of 450.0 GiB (11%)",
+		{"pve9", 51, []string{"OS                   Proxmox VE 9.0.10 (Trixie)", "None but root", "/                    " + pveDataset + " zfs", "Used                 50.0 of 450.0 GiB (11%)",
 			"[+] Pool rpool           ONLINE", "CPUs                 48, 2 sockets", "root                 " + session, "Used                 33.3 of 125.0 GiB (27%)"}},
-		{"zfs-degraded", 49, []string{"[ ] Pool rpool           DEGRADED"}},
-		{"unreadable", 49, []string{"Can't read /proc/meminfo", "alice                " + session, "Used                 4.2 of 38.6 GiB (11%)"}},
-		{"no-logins", 49, []string{"root                 None recorded", "alice                None recorded"}},
-		{"login-console", 49, []string{"alice                Oct 20 11:42 on tty1"}},
-		{"many", 83, []string{"2001:db8:0:3::20/128", "peggy                No sudo", "bob                  sudo", "bob                  Oct 19 08:01 from 192.0.2.11", "peggy                None recorded"}},
+		{"zfs-degraded", 51, []string{"[ ] Pool rpool           DEGRADED"}},
+		{"unreadable", 51, []string{"Can't read /proc/meminfo", "alice                " + session, "Used                 4.2 of 38.6 GiB (11%)"}},
+		{"no-logins", 51, []string{"root                 None recorded", "alice                None recorded"}},
+		{"login-console", 51, []string{"alice                Oct 20 11:42 on tty1"}},
+		{"many", 85, []string{"2001:db8:0:3::20/128", "peggy                No sudo", "bob                  sudo", "bob                  Oct 19 08:01 from 192.0.2.11", "peggy                None recorded"}},
 	} {
 		h := hosts[tt.host]()
 		p := play(h, "0")
@@ -907,7 +908,7 @@ func TestSDRows(t *testing.T) {
 		report        details.Report
 		want          []component.KeyValue
 	}{
-		{"the kernel not read", "OS", details.Report{OS: details.OSKernel{Unread: unread("/proc/sys/kernel/osrelease")}}, []component.KeyValue{cant("/proc/sys/kernel/osrelease")}},
+		{"the kernel not read", "OS", details.Report{OS: details.OSKernel{Unread: unread("/proc/sys/kernel/osrelease")}}, []component.KeyValue{noService, noClock, cant("/proc/sys/kernel/osrelease")}},
 		{"ip failed, the hostname stays", "Host", details.Report{Host: details.HostIPs{Hostname: "web-01", Unread: unread(details.SourceIP)}},
 			[]component.KeyValue{{Key: rowHostname, Value: "web-01"}, cant(details.SourceIP)}},
 		{"ip answered none", "Host", details.Report{Host: details.HostIPs{Hostname: "web-01", Addresses: []details.Address{}}},
@@ -941,7 +942,7 @@ func TestSDRows(t *testing.T) {
 			Unread: failed("/etc/sudoers", &fs.PathError{Op: "open", Path: "/etc/sudoers", Err: fs.ErrPermission})}},
 			[]component.KeyValue{{Key: "alice", Value: noSudo}, cant("/etc/sudoers")}},
 		{"a missing file elsewhere stays not read", "OS", details.Report{OS: details.OSKernel{Unread: failed("/proc/sys/kernel/osrelease", gone("/proc/sys/kernel/osrelease"))}},
-			[]component.KeyValue{cant("/proc/sys/kernel/osrelease")}},
+			[]component.KeyValue{noService, noClock, cant("/proc/sys/kernel/osrelease")}},
 		{"no grant on doas", "Users", details.Report{Users: details.Users{List: []details.User{{Name: "alice"}}, Root: detect.Yes, Tool: "doas"}},
 			[]component.KeyValue{{Key: "alice", Value: noDoas}}},
 		{"the load not read, the model stays", "CPU", details.Report{CPU: details.CPU{Model: "m", CPUs: 2, Sockets: 2, Unread: unread(details.LoadAvgFile)}},
@@ -1009,5 +1010,40 @@ func TestSDReadsAddrs(t *testing.T) {
 	h.m.addrs = "nonsense\n"
 	if got := rowsOf(readOn(h), "Host"); len(got) != 2 || got[1].Key != "Can't read "+details.SourceIP {
 		t.Errorf("a form not read says so, and not that there are none: %+v", got)
+	}
+}
+
+// The time rows of a report whose host answers none of their reads.
+var (
+	noService = component.KeyValue{Key: rowTimeService, Value: timeNone, State: component.ValueWarn}
+	noClock   = component.KeyValue{Key: rowClock, Value: notKnown, State: component.ValueUnknown}
+)
+
+// TestTimeRows: the time service and the clock as the Time Sync screen says
+// them (gallery-timesync.md, decision 10 (a)); what is not read is not
+// known, never "None".
+func TestTimeRows(t *testing.T) {
+	inSync := component.KeyValue{Key: rowClock, Value: timeInSync, State: component.ValueOK}
+	for _, tt := range []struct {
+		name string
+		time timesync.Reading
+		want []component.KeyValue
+	}{
+		{"chrony in sync", timesync.Reading{Service: timesync.Chrony, Running: detect.Yes, Clock: timesync.InSync, Synced: "192.0.2.10"},
+			[]component.KeyValue{{Key: rowTimeService, Value: "chrony"}, inSync, {Key: rowSyncedTo, Value: "192.0.2.10"}}},
+		{"busybox ntpd names no server", timesync.Reading{Service: timesync.Busybox, Running: detect.Yes, Clock: timesync.InSync},
+			[]component.KeyValue{{Key: rowTimeService, Value: "busybox ntpd"}, inSync}},
+		{"not running, not in sync", timesync.Reading{Service: timesync.Timesyncd, Running: detect.No, Clock: timesync.NotInSync},
+			[]component.KeyValue{{Key: rowTimeService, Value: "systemd-timesyncd", Note: timeNotRunning, State: component.ValueWarn, KeepNote: true},
+				{Key: rowClock, Value: timeNotInSync, State: component.ValueWarn}}},
+		{"no service", timesync.Reading{Clock: timesync.NotInSync}, []component.KeyValue{noService, {Key: rowClock, Value: timeNotInSync, State: component.ValueWarn}}},
+		{"a container", timesync.Reading{Container: true, Clock: timesync.InSync}, []component.KeyValue{{Key: rowTimeService, Value: timeNone}, inSync}},
+		{"the service not told", timesync.Reading{Err: fs.ErrPermission}, []component.KeyValue{{Key: rowTimeService, Value: notKnown, State: component.ValueUnknown}, noClock}},
+		{"an escape in the server's name", timesync.Reading{Service: timesync.Chrony, Running: detect.Yes, Clock: timesync.InSync, Synced: "a\x1b[2Jb"},
+			[]component.KeyValue{{Key: rowTimeService, Value: "chrony"}, inSync, {Key: rowSyncedTo, Value: "a^[[2Jb"}}},
+	} {
+		if got := rowsOf(details.Report{Time: tt.time}, "OS"); !slices.Equal(got, tt.want) {
+			t.Errorf("%s: %+v, want %+v", tt.name, got, tt.want)
+		}
 	}
 }

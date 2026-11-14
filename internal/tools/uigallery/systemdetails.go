@@ -31,7 +31,7 @@ import (
 // for, which it replaces (docs/engine/screen-system-details.md). There is no Figma
 // frame and it is not in v0.3.2: it is inferred from origin/main, with P-17's
 // sections. "play system-details" is the menu of the hosts and "play
-// system-details/<host>" the screen on one; the main menu's 10 leads to it on Debian
+// system-details/<host>" the screen on one; the main menu's 11 leads to it on Debian
 // 13, under plan only too (-sequence dry-run), as unit (d) wires hardn's own.
 //
 // detailsModel is what a simulated host answers the reader, in the forms that ran
@@ -52,13 +52,13 @@ const sdPrefix = "system-details"
 // from origin/main (unreleased)"; P-17).
 const sdLabel = "Inferred from origin/main (unreleased)."
 
-// sdMainHost is the host the main menu's 10 leads to.
+// sdMainHost is the host the main menu's 11 leads to.
 const sdMainHost = sdPrefix + "/debian13"
 
 // sdLinks lead from a menu mock's item to the System Details screen on a
 // host, by the mock's name and the item's key, beside links: the main
 // menu's 9, which said the gallery had no screen for it until unit (a).
-var sdLinks = map[string]string{mainMenuMock + "/10": sdMainHost}
+var sdLinks = map[string]string{mainMenuMock + "/11": sdMainHost}
 
 // sdHost is one simulated host the System Details screen runs on.
 type sdHost struct {

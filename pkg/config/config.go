@@ -84,6 +84,12 @@ type Config struct {
 	// changes nothing. Not written when unset.
 	LogForwarding LogForwarding `yaml:"logForwarding,omitempty"`
 
+	// Time Sync
+	// NTPServers names the time servers the host's time service is set to
+	// use, one to four (the maintainer, 2026-11-14; timesync.go). None, the
+	// default, hardn changes nothing. Not written when unset.
+	NTPServers NTPServers `yaml:"ntpServers,omitempty"`
+
 	// Feature Toggles
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`

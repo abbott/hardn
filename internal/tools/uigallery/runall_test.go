@@ -81,7 +81,7 @@ func TestPlayRunAllGolden(t *testing.T) {
 		{"runall-wrong-phrase", []string{"runall/debian13"}, []string{"1", "WEB-01", "0", "0"}, nil},
 		{"runall-plan-only", []string{"-sequence", "dry-run", "runall/debian13"}, []string{"1", "0"}, raCells()},
 		{"runall-hosts", []string{"runall"}, []string{"4", "0", "0"}, nil},
-		{"runall-main-menu", nil, []string{"7", "0", "0"}, nil},
+		{"runall-main-menu", nil, []string{"8", "0", "0"}, nil},
 	}
 	for _, tt := range tests {
 		cells := tt.cells

@@ -262,6 +262,47 @@
 		},
 		{
 			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"chrony"
+			],
+			"stderr": "dpkg-query: no packages found matching chrony\n",
+			"exit": 1
+		},
+		{
+			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"systemd-timesyncd"
+			],
+			"stdout": "install ok installed\t257.8-1\n"
+		},
+		{
+			"argv": [
+				"systemctl",
+				"is-active",
+				"systemd-timesyncd"
+			],
+			"stdout": "active\n"
+		},
+		{
+			"argv": [
+				"timedatectl",
+				"show-timesync"
+			],
+			"stdout": "FallbackNTPServers=0.debian.pool.ntp.org 1.debian.pool.ntp.org 2.debian.pool.ntp.org 3.debian.pool.ntp.org\nServerName=0.debian.pool.ntp.org\nServerAddress=192.0.2.10\nRootDistanceMaxUSec=5s\nPollIntervalMinUSec=32s\n"
+		},
+		{
+			"argv": [
+				"timedatectl",
+				"show"
+			],
+			"stdout": "Timezone=Etc/UTC\nLocalRTC=no\nCanNTP=yes\nNTP=yes\nNTPSynchronized=yes\nTimeUSec=Sat 2026-11-14 12:00:00 UTC\n"
+		},
+		{
+			"argv": [
 				"ip",
 				"-4",
 				"addr",

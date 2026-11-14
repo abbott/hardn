@@ -570,15 +570,15 @@ func TestCompactForm(t *testing.T) {
   [ ] AppArmor             Not Configured
 
   Select an option         Mode Live
-   1) User Management       8) Backup
-   2) SSH Login             9) Configuration
-   3) Firewall             10) System Details
-   4) DNS                  11) Logs
-   7) Run All
+   1) User Management       9) Backup
+   2) SSH Login            10) Configuration
+   3) Firewall             11) System Details
+   4) DNS                  12) Logs
+   8) Run All
 
    0) Exit                 q to quit
 
-    > Option [0-4, 7-11 or q]:`
+    > Option [0-4, 8-12 or q]:`
 	if out != want || lines(out) != theme.CompactBudget {
 		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
 	}

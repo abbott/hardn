@@ -2,6 +2,8 @@
 
 > **Unit:** the roadmap's "Log forwarding", the real unit, on `next/log-forwarding`, from the mock the maintainer adopted on 2026-11-13 ("Adopt all": [gallery-logforward.md](gallery-logforward.md) §4). **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine. No hardn binary ran, and nothing ran on Linux: §5 lists what only a host can show.
 
+*Since `next/time-sync` (2026-11-14; [gallery-timesync.md](gallery-timesync.md), decision 9 (a)): Run All is main menu 8. Stop forwarding's delete is `steps.DeleteOwnFile`, shared with Time Sync; nothing of Log Forwarding's behaviour changed.*
+
 ## 1. What it does
 
 Main menu 6. hardn shows whether the host sends its logs to a syslog server, where, and by whose file; and sets the server hardn.yml's `logForwarding` names ([configuration.md](../configuration.md#log-forwarding)).

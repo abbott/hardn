@@ -1,5 +1,5 @@
 // Package configscreen runs hardn's Configuration screen (docs/roadmap.md,
-// "Configuration"; unit (b), next/config-screen): main menu 9, as the maintainer
+// "Configuration"; unit (b), next/config-screen): main menu 10, as the maintainer
 // adopted the mock on 2026-11-12 (docs/engine/gallery-config.md §3, all (a), with
 // §4's words). It shows which hardn.yml hardn read and each key's value, drawn by
 // pkg/ui/screen (screen.Config). It only shows: no engine, no host, nothing written,
@@ -30,7 +30,8 @@ import (
 // The values' words (gallery-config.md §4).
 const (
 	none = "None"
-	// notValid is a logForwarding that names a server hardn does not set.
+	// notValid is a logForwarding or an ntpServers that names a server hardn
+	// does not set.
 	notValid = "Not valid"
 	oneKey   = "1 key"
 	manyKey  = "%d keys"
@@ -164,6 +165,7 @@ func texts(cfg *config.Config) map[string]string {
 		"configureDns": strconv.FormatBool(cfg.ConfigureDns), "nameservers": list(cfg.Nameservers),
 		"enableUnattendedUpgrades": strconv.FormatBool(cfg.EnableUnattendedUpgrades),
 		"logForwarding":            logServer(cfg),
+		"ntpServers":               timeServers(cfg),
 		"enableBackups":            strconv.FormatBool(cfg.EnableBackups), "backupPath": cfg.BackupPath,
 		"dryRun": strconv.FormatBool(cfg.FileDryRun()), "confirmTimeout": timeout, "checkReleases": strconv.FormatBool(cfg.CheckReleases),
 	}
@@ -181,6 +183,20 @@ func logServer(cfg *config.Config) string {
 		return none
 	}
 	return fmt.Sprintf("%s:%d %s", s.Address, s.Port, strings.ToUpper(s.Protocol))
+}
+
+// timeServers is ntpServers as the Time Sync screen says the servers,
+// "192.0.2.10, 192.0.2.11"; None with none; notValid where they do not pass
+// config's check, which Set servers refuses.
+func timeServers(cfg *config.Config) string {
+	servers, err := cfg.NTPServers.Resolve()
+	switch {
+	case err != nil:
+		return notValid
+	case len(servers) == 0:
+		return none
+	}
+	return strings.Join(servers, ", ")
 }
 
 // unused are the keys of cfg's file that nothing reads, in the order of hardn's

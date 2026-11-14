@@ -10,6 +10,7 @@ import (
 	logforwardscreen "github.com/abbott/hardn/pkg/screens/logforward"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
+	timesyncscreen "github.com/abbott/hardn/pkg/screens/timesync"
 	updatesscreen "github.com/abbott/hardn/pkg/screens/updates"
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
@@ -27,9 +28,9 @@ import (
 func TestMenuOptions(t *testing.T) {
 	h, c := newRunAllHost(t, "debian13", runAllYML)
 	useSSHHost(t, h)
-	statusWas, runAllWas, updatesWas, logForwardWas := menuStatus, runAllRun, updatesRun, logForwardRun
+	statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas := menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun
 	t.Cleanup(func() {
-		menuStatus, runAllRun, updatesRun, logForwardRun = statusWas, runAllWas, updatesWas, logForwardWas
+		menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun = statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas
 	})
 	var status mainmenu.StatusOptions
 	var runAll runallscreen.Options
@@ -42,6 +43,8 @@ func TestMenuOptions(t *testing.T) {
 	updatesRun = func(_ context.Context, o updatesscreen.Options) error { updates = o; return nil }
 	var logForward logforwardscreen.Options
 	logForwardRun = func(_ context.Context, o logforwardscreen.Options) error { logForward = o; return nil }
+	var timeSync timesyncscreen.Options
+	timeSyncRun = func(_ context.Context, o timesyncscreen.Options) error { timeSync = o; return nil }
 	const version = "0.4.0-synthetic"
 	o := menuOptions(c, config.Found{}, version)
 	if o.Out != os.Stdout {
@@ -66,6 +69,14 @@ func TestMenuOptions(t *testing.T) {
 		logForward.ApplyContext == nil || logForward.Prompter.In == nil || logForward.LogPath != output.LegacyLogPath || logForward.DryRun != c.DryRun {
 		t.Errorf("the Log Forwarding screen's options: %+v", logForward)
 	}
+	// The Time Sync screen (item 7), the same.
+	if err := o.TimeSync(); err != nil {
+		t.Fatal(err)
+	}
+	if timeSync.Config != c || timeSync.System == nil || timeSync.NewEngine == nil || timeSync.Ran == nil ||
+		timeSync.ApplyContext == nil || timeSync.Prompter.In == nil || timeSync.LogPath != output.LegacyLogPath || timeSync.DryRun != c.DryRun {
+		t.Errorf("the Time Sync screen's options: %+v", timeSync)
+	}
 	if status.Version != "v"+version || runAll.Version != version || updates.Version != version {
 		t.Errorf("hardn's version: status %q, Run All %q, Auto Updates %q; want %q", status.Version, runAll.Version, updates.Version, version)
 	}
@@ -74,7 +85,7 @@ func TestMenuOptions(t *testing.T) {
 	}
 	for name, ok := range map[string]bool{
 		"User Management": o.Users != nil, "SSH Login": o.SSH != nil, "DNS": o.DNS != nil, "Firewall": o.Firewall != nil, "the Firewall item's description": o.FirewallPVE != nil, "the Firewall item's description on Rocky Linux and AlmaLinux": o.FirewallEL != nil,
-		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Log Forwarding": o.LogForwarding != nil, "Run All": o.RunAll != nil,
+		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Log Forwarding": o.LogForwarding != nil, "Time Sync": o.TimeSync != nil, "Run All": o.RunAll != nil,
 		"Configuration": o.Configuration != nil, "System Details": o.SystemDetails != nil, "Logs": o.Logs != nil,
 		"the status": o.Status != nil, "the terminal": o.Terminal != nil, "the input": o.Input != nil, "stdout": o.Out != nil,
 		"the configuration": o.Config == c,

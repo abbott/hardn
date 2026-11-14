@@ -2,7 +2,7 @@
 // docs/engine/control-runall.md): what hardn.yml asks of each control, each
 // control planned alone and skipped, said, where it refuses, doesn't apply
 // or has nothing to change, and the rest in one plan on the engine. The Run
-// All screen (main menu 7) and hardn -r both draw from its Reading, so the
+// All screen (main menu 8) and hardn -r both draw from its Reading, so the
 // two never differ. It reads the host only through host.System and the
 // engine, writes nothing, and renders nothing: its rows are data and words.
 //
@@ -31,6 +31,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	"github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/risk"
@@ -66,6 +67,8 @@ const (
 
 	// wordsSetServer is Log Forwarding's change, the screen's item.
 	wordsSetServer = "Set server"
+	// wordsSetServers is Time Sync's change, the screen's item.
+	wordsSetServers = "Set servers"
 
 	userMgmt = "User Management's: "
 	sshLogin = "SSH Login's: "
@@ -155,23 +158,36 @@ func IDs() []string {
 	return append(ids, backupctl.ID)
 }
 
-// IDsFor are the rows' controls with cfg as hardn.yml: IDs, and, where
-// logForwarding names a server, Log Forwarding before Backup. With no
-// server its row is not listed (gallery-logforward.md, decision 9 (a)).
+// IDsFor are the rows' controls with cfg as hardn.yml: IDs, and, before
+// Backup, Log Forwarding where logForwarding names a server and Time Sync
+// where ntpServers names any. With none its row is not listed
+// (gallery-logforward.md, decision 9 (a); gallery-timesync.md, decision 15
+// (a)).
 func IDsFor(cfg *config.Config) []string {
 	ids := IDs()
-	if cfg == nil || cfg.LogForwarding.Server == "" {
+	if cfg == nil {
 		return ids
 	}
-	return slices.Insert(ids, len(ids)-1, logforward.ID)
+	var more []string
+	if cfg.LogForwarding.Server != "" {
+		more = append(more, logforward.ID)
+	}
+	if len(cfg.NTPServers) > 0 {
+		more = append(more, timesync.ID)
+	}
+	return slices.Insert(ids, len(ids)-1, more...)
 }
 
 // Checked are the controls whose checks the rows show: the main menu's,
-// Log Forwarding's where hardn.yml names a server (IDsFor), then Backup's.
+// Log Forwarding's and Time Sync's where hardn.yml asks for them (IDsFor),
+// then Backup's.
 func Checked(cfg *config.Config) []engine.Control {
 	out := controls.Status(cfg)
 	if cfg != nil && cfg.LogForwarding.Server != "" {
 		out = append(out, logforward.Controls(cfg)...)
+	}
+	if cfg != nil && len(cfg.NTPServers) > 0 {
+		out = append(out, timesync.Controls(cfg)...)
 	}
 	return append(out, backupctl.Settings{Config: cfg})
 }
@@ -202,7 +218,8 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
 // nameservers; enableUnattendedUpgrades true, on (never off);
-// logForwarding's server, Set server (never Stop forwarding). SSH Auth asks
+// logForwarding's server, Set server (never Stop forwarding); ntpServers,
+// Set servers (never Remove servers). SSH Auth asks
 // no key: on Alpine, where sshd lacks CVE-2026-123158's fix, it is the
 // openssh upgrade (sshchange.Upgrade; the maintainer, 2026-11-08). Every
 // other row asks nothing: AppArmor and Backup.
@@ -255,6 +272,12 @@ func Asked(in Input, id string) Ask {
 			return Ask{}
 		}
 		return Ask{Control: logforward.Forward{Action: logforward.ActionSet, Config: cfg}, Words: wordsSetServer}
+	case timesync.ID:
+		// Set servers alone, never Remove servers (decision 15 (a)).
+		if len(cfg.NTPServers) == 0 {
+			return Ask{}
+		}
+		return Ask{Control: timesync.Sync{Action: timesync.ActionSet, Config: cfg}, Words: wordsSetServers}
 	}
 	return Ask{}
 }

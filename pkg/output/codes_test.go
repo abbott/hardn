@@ -26,6 +26,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	timectl "github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/header"
@@ -50,6 +51,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -315,6 +317,17 @@ var sentinels = map[string]error{
 	"logfwd.ErrTwoLoggers":            logfwd.ErrTwoLoggers,
 	"logfwd.ErrForeign":               logfwd.ErrForeign,
 	"logfwd.ErrNotOwn":                logfwd.ErrNotOwn,
+	"timesync.ErrNoServers":           timectl.ErrNoServers,
+	"timesync.ErrBadServers":          timectl.ErrBadServers,
+	"timesync.ErrNotRead":             timectl.ErrNotRead,
+	"timesync.ErrOutside":             timectl.ErrOutside,
+	"timesync.ErrNoService":           timectl.ErrNoService,
+	"timesync.ErrContainer":           timectl.ErrContainer,
+	"timesync.ErrNothingToRemove":     timectl.ErrNothingToRemove,
+	"timesync.ErrChangedSince":        timectl.ErrChangedSince,
+	"timesync.ErrServer":              timesync.ErrServer,
+	"timesync.ErrMalformed":           timesync.ErrMalformed,
+	"timesync.ErrNotOwn":              timesync.ErrNotOwn,
 	"updates.ErrPeriodicOff":          updates.ErrPeriodicOff,
 	"updates.ErrTimerOff":             updates.ErrTimerOff,
 	"updates.ErrJobMasked":            updates.ErrJobMasked,

@@ -34,6 +34,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/timesync"
 )
 
 // Report is what Read read of the host, in P-17's order.
@@ -47,6 +48,10 @@ type Report struct {
 	Disk   Disk
 	Memory Memory
 	Logins Logins
+	// Time is the host's time service and clock, as the Time Sync screen
+	// reads them (gallery-timesync.md, decision 10 (a)): drawn with OS and
+	// Kernel, its servers left to that screen.
+	Time timesync.Reading
 }
 
 // Unread says what of a section could not be read: its source, a file or a
@@ -100,6 +105,7 @@ func read(ctx context.Context, sys host.System, f detect.Facts, b bounds) Report
 		Disk:   readDisk(ctx, sys),
 		Memory: readMemory(ctx, sys),
 		Logins: readLogins(ctx, sys, users.List, b.command),
+		Time:   timesync.Read(ctx, sys, f),
 	}
 }
 

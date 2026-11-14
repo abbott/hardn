@@ -1,5 +1,5 @@
 // Package systemdetails runs hardn's System Details screen on a host (refactor
-// plan slice 1, System Details and Logs, unit (c), next/s1-screen): main menu 10
+// plan slice 1, System Details and Logs, unit (c), next/s1-screen): main menu 11
 // and hardn system-details, as the maintainer adopted the mock on 2026-10-30
 // (docs/engine/gallery-system-details.md §5, decisions 2 (a), 3 (a), 4 (a), 5 (a)
 // and the Made here calls, with §6's words), drawn by pkg/ui/screen
@@ -30,6 +30,7 @@ import (
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
@@ -264,7 +265,50 @@ func osRows(r details.Report) []component.KeyValue {
 	if r.OS.Uptime.Known {
 		rows = append(rows, component.KeyValue{Key: rowUptime, Value: output.FormatUptime(r.OS.Uptime.Duration)})
 	}
-	return append(rows, cantReadRows(r.OS.Unread)...)
+	return append(append(rows, timeRows(r.Time)...), cantReadRows(r.OS.Unread)...)
+}
+
+// The time rows, in the Time Sync screen's words.
+const (
+	rowTimeService = "Time service"
+	rowClock       = "Clock"
+	rowSyncedTo    = "Synced to"
+	timeNone       = "None"
+	timeNotRunning = "not running"
+	timeInSync     = "In sync"
+	timeNotInSync  = "Not in sync"
+)
+
+// timeRows are the time service and the clock (gallery-timesync.md,
+// decision 10 (a)), from the Time Sync screen's own reading: "Time
+// service", a warning where it is not running or there is none outside a
+// container; "Clock"; and "Synced to" where the service names a server.
+// What is not read is not known, never "None".
+func timeRows(t timesync.Reading) []component.KeyValue {
+	service := component.KeyValue{Key: rowTimeService, Value: t.Service.String()}
+	switch {
+	case t.Service == timesync.NoService && t.Err != nil:
+		service = notKnownRow(rowTimeService)
+	case t.Service == timesync.NoService:
+		service.Value = timeNone
+		if !t.Container {
+			service.State = component.ValueWarn
+		}
+	case t.Running == detect.No:
+		service.Note, service.State, service.KeepNote = timeNotRunning, component.ValueWarn, true
+	}
+	clock := notKnownRow(rowClock)
+	switch t.Clock {
+	case timesync.InSync:
+		clock = component.KeyValue{Key: rowClock, Value: timeInSync, State: component.ValueOK}
+	case timesync.NotInSync:
+		clock = component.KeyValue{Key: rowClock, Value: timeNotInSync, State: component.ValueWarn}
+	}
+	rows := []component.KeyValue{service, clock}
+	if t.Synced != "" {
+		rows = append(rows, component.KeyValue{Key: rowSyncedTo, Value: t.Synced})
+	}
+	return rows
 }
 
 func hostRows(r details.Report) []component.KeyValue {

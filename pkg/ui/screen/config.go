@@ -3,7 +3,7 @@ package screen
 import "github.com/abbott/hardn/pkg/ui/component"
 
 // The Configuration screen (docs/roadmap.md, "Configuration"; units
-// (a) and (b), next/config-gallery and next/config-screen): main menu 9, read
+// (a) and (b), next/config-gallery and next/config-screen): main menu 10, read
 // only, on the sub-menu layout as the Logs screen is, as the maintainer adopted
 // its mock (docs/engine/gallery-config.md). There is no Figma frame. pkg/ui
 // cannot load hardn.yml: pkg/screens/config fills Config from it as loaded
@@ -54,6 +54,7 @@ var configGroups = []struct {
 	{"DNS", []string{"configureDns", "nameservers"}},
 	{"Auto Updates", []string{"enableUnattendedUpgrades"}},
 	{"Log Forwarding", []string{"logForwarding"}},
+	{"Time Sync", []string{"ntpServers"}},
 	{"Backup", []string{"enableBackups", "backupPath"}},
 	{"General", []string{"dryRun", "confirmTimeout", "checkReleases"}},
 }

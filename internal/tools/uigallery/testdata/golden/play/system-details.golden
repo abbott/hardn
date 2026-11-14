@@ -38,15 +38,16 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTime Sync␛[m            ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-11 or q]:␛[m 10$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 11$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
@@ -63,6 +64,9 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS␛[m                   ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m               ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTime service␛[m         ␛[38;2;129;134;156msystemd-timesyncd␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mClock␛[m                ␛[38;2;112;212;127mIn sync␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSynced to␛[m            ␛[38;2;129;134;156m0.debian.pool.ntp.org␛[m$
 $
   ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -133,15 +137,16 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTime Sync␛[m            ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m                 ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-11 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -185,15 +190,16 @@ $
    4) DNS                  Configure nameservers$
    5) Auto Updates         Configure automatic updates$
    6) Log Forwarding       Send logs to a syslog server$
-   7) Run All              Execute hardening operations$
-   8) Backup               Configure hardn backup$
-   9) Configuration        View hardn.yml$
-  10) System Details       View system information$
-  11) Logs                 View log file$
+   7) Time Sync            Keep the clock in sync$
+   8) Run All              Execute hardening operations$
+   9) Backup               Configure hardn backup$
+  10) Configuration        View hardn.yml$
+  11) System Details       View system information$
+  12) Logs                 View log file$
 $
    0) Exit                 q to quit$
 $
-    > Option [0-11 or q]: 10$
+    > Option [0-12 or q]: 11$
 $
 # Info: system-details/debian13$
 # web-01.example.net runs Debian 13, as the VM of 2026-10-21$
@@ -210,6 +216,9 @@ $
    -  OS                   Debian 13 (Trixie)$
    -  Kernel               6.12.113+deb13-cloud-amd64$
    -  Uptime               3 days, 5 hours, 12 minutes$
+   -  Time service         systemd-timesyncd$
+  [+] Clock                In sync$
+   -  Synced to            0.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $
@@ -280,15 +289,16 @@ $
    4) DNS                  Configure nameservers$
    5) Auto Updates         Configure automatic updates$
    6) Log Forwarding       Send logs to a syslog server$
-   7) Run All              Execute hardening operations$
-   8) Backup               Configure hardn backup$
-   9) Configuration        View hardn.yml$
-  10) System Details       View system information$
-  11) Logs                 View log file$
+   7) Time Sync            Keep the clock in sync$
+   8) Run All              Execute hardening operations$
+   9) Backup               Configure hardn backup$
+  10) Configuration        View hardn.yml$
+  11) System Details       View system information$
+  12) Logs                 View log file$
 $
    0) Exit                 q to quit$
 $
-    > Option [0-11 or q]: 0$
+    > Option [0-12 or q]: 0$
 $
   simulated system ---------------------------------------------$
 $
@@ -349,21 +359,23 @@ $
       ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m$
       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTime Sync␛[m$
+      ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mBackup␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
       ␛[38;2;129;134;156mView hardn.yml␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLogs␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mLogs␛[m$
       ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
       ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-11 or q]:␛[m 10$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 11$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: system-details/debian13␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13, as the VM of 2026-10-21␛[m$
@@ -383,6 +395,12 @@ $
       ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m$
       ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTime service␛[m$
+      ␛[38;2;129;134;156msystemd-timesyncd␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mClock␛[m$
+      ␛[38;2;112;212;127mIn sync␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSynced to␛[m$
+      ␛[38;2;129;134;156m0.debian.pool.ntp.org␛[m$
 $
   ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -484,21 +502,23 @@ $
       ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m$
       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mRun All␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mTime Sync␛[m$
+      ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mRun All␛[m$
       ␛[38;2;129;134;156mExecute hardening operations␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mBackup␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
       ␛[38;2;129;134;156mView hardn.yml␛[m$
-  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
-  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mLogs␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216mLogs␛[m$
       ␛[38;2;129;134;156mView log file␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mExit␛[m$
       ␛[38;2;129;134;156mq to quit␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-11 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

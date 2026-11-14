@@ -128,6 +128,21 @@
 		},
 		{
 			"argv": [
+				"rc-service",
+				"ntpd",
+				"status"
+			],
+			"stdout": " * status: started\n"
+		},
+		{
+			"argv": [
+				"busybox",
+				"adjtimex"
+			],
+			"stdout": "    mode:         0\n-o  offset:       0 us\n-f  freq.adjust:  0 (65536 = 1ppm)\n    maxerror:     16000000\n    esterror:     16000000\n    status:       8193 (PLL | NANO)\n-p  timeconstant: 2\n    precision:    1 us\n    tolerance:    32768000\n-t  tick:         10000 us\n    time.tv_sec:  1794657600\n    time.tv_usec: 0\n    return value: 0 (clock synchronized)\n"
+		},
+		{
+			"argv": [
 				"ip",
 				"-4",
 				"addr",
@@ -167,6 +182,21 @@
 			"mode": "0755",
 			"uid": 0,
 			"gid": 0
+		},
+		{
+			"path": "/etc/conf.d",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/conf.d/ntpd",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "# By default ntpd runs as a client. Add -l to run as a server on port 123.\nNTPD_OPTS=\"-N -p pool.ntp.org\"\n"
 		},
 		{
 			"path": "/etc/doas.conf",

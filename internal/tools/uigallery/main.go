@@ -163,9 +163,9 @@
 // "play system-details" is the menu of the hosts the System Details screen
 // plays on and "play system-details/<host>" hardn's System Details screen itself on
 // one (pkg/screens/systemdetails; systemdetails.go,
-// docs/engine/screen-system-details.md); the main menu's 10 leads to it on Debian 13.
+// docs/engine/screen-system-details.md); the main menu's 11 leads to it on Debian 13.
 // "play logs" and "play logs/<host>" are the same of the Logs screen
-// (pkg/screens/logs; logs.go); the main menu's 11 leads to it on a log of lines. Each
+// (pkg/screens/logs; logs.go); the main menu's 12 leads to it on a log of lines. Each
 // only reads: no plan, no y/N, no journal. -sequence dry-run draws the same screen, as
 // plan only would; -fail is refused there. No pager runs: Open says what hardn would
 // run.
@@ -182,7 +182,7 @@
 // "config" lists the mocks of the Configuration screen, which shows hardn.yml read
 // only (config.go, docs/engine/gallery-config.md), with the same flags. "play config"
 // is the menu of those mocks and "play config/<mock>" hardn's Configuration screen
-// itself on one (pkg/screens/config; docs/engine/screen-config.md); the main menu's 9
+// itself on one (pkg/screens/config; docs/engine/screen-config.md); the main menu's 10
 // leads to it on the typical file.
 //
 // "eol" lists the mocks of the main menu's end-of-support notice (eol.go,
@@ -627,8 +627,9 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // size themselves with size too and read no input. No other mode calls
 // either.
 // (sdListing) or the Logs listing (logsListing), which size themselves with
-// size too and read no input, as "config", "ports" and "logforward"
-// (configListing, portsListing, lfListing) do. No other mode calls either.
+// size too and read no input, as "config", "ports", "logforward" and
+// "timesync" (configListing, portsListing, lfListing, tsListing) do. No
+// other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -669,6 +670,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == lfPrefix {
 		return lfListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == tsPrefix {
+		return tsListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -687,6 +691,7 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(bfUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(portsUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(lfUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(tsUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

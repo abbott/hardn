@@ -3,6 +3,8 @@ package steps
 import (
 	"context"
 	"errors"
+	"io/fs"
+	"path"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/host"
@@ -107,6 +109,9 @@ type OwnFile struct {
 	After []string
 	// Check, when set, is run once the file is written.
 	Check *FileCheck
+	// MkDir: Path's directory is made first where it is not there, root's,
+	// 0755, and a rollback removes the one this change made.
+	MkDir bool
 }
 
 // FileCheck is the service's own check of its settings with hardn's file
@@ -133,11 +138,21 @@ func WriteOwnFile(o OwnFile) engine.Change {
 		ch.Commands = []string{host.FormatArgv(o.Check.Argv)}
 	}
 	ch.Apply = func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
+		ran := engine.Ran{}
+		if o.MkDir {
+			dir := path.Dir(o.Path)
+			if _, err := sys.Lstat(ctx, dir); errors.Is(err, fs.ErrNotExist) {
+				if err := sys.MkdirAll(ctx, dir, 0o755); err != nil {
+					return ran, err
+				}
+				ran.Rollback = &engine.Undo{Steps: []revert.Step{{Op: revert.OpRemoveDir, Path: dir, Why: o.Control}}}
+			}
+		}
 		if err := sys.WriteFileAtomic(ctx, o.Path, o.Data, 0o644, 0, 0); err != nil {
-			return engine.Ran{}, err
+			return ran, err
 		}
 		if o.Check == nil {
-			return engine.Ran{}, nil
+			return ran, nil
 		}
 		if res, err := sys.Run(ctx, o.Check.Argv[0], o.Check.Argv[1:]...); err != nil {
 			return engine.Ran{}, o.Check.Refused(res, err)
@@ -145,4 +160,15 @@ func WriteOwnFile(o OwnFile) engine.Change {
 		return engine.Ran{Detail: o.Check.Detail}, nil
 	}
 	return ch
+}
+
+// DeleteOwnFile deletes hardn's own file at name, whose text now is text,
+// backed up first: the undo of WriteOwnFile. detail is what the apply says
+// it did.
+func DeleteOwnFile(control, id, title, name, text, detail string) engine.Change {
+	return engine.Change{ID: id, Summary: title + " " + name, Title: title, Target: name,
+		Diff: engine.FileDiff(name, &text, nil), Stage: engine.StageFiles, Resources: []string{control}, Backups: []string{name},
+		Apply: func(ctx context.Context, sys host.System, _ engine.Run) (engine.Ran, error) {
+			return engine.Ran{Detail: detail}, sys.Remove(ctx, name)
+		}}
 }

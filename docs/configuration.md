@@ -13,7 +13,7 @@ This document explains how to configure `hardn`, the simple hardening tool for L
 5. `~/.hardn.yml` (traditional dot-file in home directory)
 6. `./hardn.yml` (the directory `hardn` runs in)
 
-The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `9) Configuration` shows which file was read, or run `sudo hardn config`.
+The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `10) Configuration` shows which file was read, or run `sudo hardn config`.
 
 ## Creating a Configuration File
 
@@ -150,7 +150,7 @@ checkReleases: false                # true: ask GitHub for the latest release's 
 
 #### `enableBackups` and `backupPath`: the Backup screen
 
-The main menu's Backup (8) shows and changes these two settings.
+The main menu's Backup (9) shows and changes these two settings.
 
 - **Showing it writes nothing.** With backups on, it used to write a test file to the backup path each time.
 - **Verify Directory writes nothing.** It checks that only root can change the path.
@@ -258,6 +258,22 @@ The syslog server the main menu's Log Forwarding (6) and Run All send the host's
 
 What changes on each distribution: [platforms.md](platforms.md#log-forwarding).
 
+### Time Sync
+
+```yaml
+ntpServers:
+  - "192.0.2.10"
+  - "192.0.2.11"
+```
+
+The time servers the main menu's Time Sync (7) and Run All set on the host's time service, in place of its own. Nothing is set by default: with none, hardn changes nothing.
+
+- **One to four servers**, each an IPv4 address or a host name, in the order the service is given them. An IPv6 address isn't set yet. A name needs DNS before the clock is set.
+- **A value hardn doesn't accept is refused**, and nothing is written: the names go into the service's settings, so only letters, digits, dots and hyphens. No options (`prefer`, `nts`): hardn writes plain NTP servers.
+- No screen saves this key. Remove servers leaves it: take the servers out too, or the next Run All sets them again.
+
+What changes on each distribution: [platforms.md](platforms.md#time-sync).
+
 ### Feature Toggles
 
 ```yaml
@@ -269,7 +285,7 @@ disableRootSSH: false               # Run All: true turns root login off
 
 #### What Run All reads
 
-The main menu's Run All (7) and `hardn -r` plan these keys' changes as one plan:
+The main menu's Run All (8) and `hardn -r` plan these keys' changes as one plan:
 
 - **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
 - **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.
@@ -278,6 +294,7 @@ The main menu's Run All (7) and `hardn -r` plan these keys' changes as one plan:
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
 - **`logForwarding`'s `server`:** sends the host's logs to it, as Log Forwarding's Set server. With no server the row is not listed. Run All never stops forwarding.
+- **`ntpServers`:** sets them on the host's time service, as Time Sync's Set servers. With none the row is not listed. Run All never removes them.
 - **`sshPort`:** compared with the port sshd listens on; never changed.
 - **No key, on Alpine:** where sshd lacks the fix for CVE-2026-123158, upgrades openssh, then reloads sshd. Root login off, the firewall and creating a user refused for the CVE then wait for the next run.
 - **`enableBackups` and `backupPath`:** the plan's backups.

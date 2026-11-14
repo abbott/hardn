@@ -27,6 +27,7 @@
     "Protocol": "",
     "CAFile": ""
   },
+  "NTPServers": null,
   "EnableUnattendedUpgrades": false,
   "EnableUfwSshPolicy": false,
   "ConfigureDns": true,

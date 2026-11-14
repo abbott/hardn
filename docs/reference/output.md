@@ -139,6 +139,7 @@ The goldens are the reference, each a whole document: `pkg/output/testdata/json/
 | `disk` | object or null | `source` and `type` from `/proc/self/mounts`' line for `/` (the device, or on ZFS the dataset), `usedBytes` and `totalBytes`; on ZFS alone, `pool` and `health`: as `zpool` says it (open), or `unknown` where no `zpool` answers, as in an LXC guest on ZFS. Every ZFS form is [unverified]: no ZFS VM |
 | `memory` | object or null | `totalBytes`, and `usedBytes`, what `MemAvailable` leaves; null on a kernel with no `MemAvailable` |
 | `logins` | array or null | root, then each listed user, from one `lslogins` call: `user`, `when` (as `lslogins` prints it), `tty`, `from`, each `""` for none recorded; `unknown: true`, there only then, where nothing is known of the account: `lslogins` had no line for it, or a blank where a source refuses or none holds records. `null` where `lslogins` failed or is not installed, never "no login" |
+| `time` | object | the time service and the clock, as the Time Sync screen reads them: `service` (`chrony`, `systemd-timesyncd`, `busybox ntpd` or `none`; null where hardn could not tell), `running` (null with none, or not read), `clock` (`in sync` or `not in sync`; null where not read), `syncedTo` (the server followed; null for none, and where the service does not say) |
 
 `host.hostname` and `host.os` hold the rest of what the screen shows, but its Listening Ports section, which the JSON form does not carry. A blank `when` with no `unknown` says "none recorded", which sees only logins with a terminal: `ssh host cmd` moves nothing ([gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 3).
 
@@ -202,6 +203,14 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `LOGFWD_CHECK_FAILED` | 1 | rsyslogd refuses its settings with hardn's file; the file is put back |
 | `LOGFWD_NOTHING_TO_STOP` | 1 | hardn did not set log forwarding |
 | `LOGFWD_CHANGED_SINCE` | 1 | the logger's settings changed since the plan |
+| `TIMESYNC_NO_SERVERS` | 1 | hardn.yml names no time servers (the Time Sync screen's refusals, `timesync.Err*`; [screen-timesync.md](../engine/screen-timesync.md)) |
+| `TIMESYNC_BAD_SERVERS` | 1 | hardn.yml's ntpServers is not valid |
+| `TIMESYNC_NOT_READ` | 1 | the time service's settings are not read, so no change is planned |
+| `TIMESYNC_SET_OUTSIDE` | 1 | time servers are set outside hardn |
+| `TIMESYNC_NO_SERVICE` | 1 | no time service is running |
+| `TIMESYNC_CONTAINER` | 1 | a container's host keeps the time |
+| `TIMESYNC_NOTHING_TO_REMOVE` | 1 | hardn did not set time servers |
+| `TIMESYNC_CHANGED_SINCE` | 1 | the time service's settings changed since the plan |
 | `CONFIG_CHANGED` | 1 | hardn.yml changed since it was read: saving would undo what changed it (the save of hardn.yml, [control-dns.md](../engine/control-dns.md) §2.9; `config.Save`'s too since `next/s2-config-edit`, [config-edit.md](../engine/config-edit.md)) |
 | `CONFIRM_WINDOW_CLOSING` | 1 | the confirm window is closing |
 | `BOOT_UNIT_NOT_INSTALLED` | 1 | the boot unit was not installed, so nothing is armed |
@@ -685,7 +694,7 @@ What it reads, and so what it holds beyond `--output json`'s document: the main 
 |---|---|
 | title | `hardn report`, with the hostname; then when it was made (UTC) and hardn's version |
 | a note | only as a user other than root: `Not root: what only root can read shows Unknown.` |
-| Host | hostname, `os.prettyName`, the platform and its support level (Supported, Best effort, Out of scope, Unlisted, Unknown), kernel, uptime, init, how sshd is started, container, Proxmox VE, sudo, doas (§1.3) |
+| Host | hostname, `os.prettyName`, the platform and its support level (Supported, Best effort, Out of scope, Unlisted, Unknown), kernel, uptime, the time service, the clock and the server it follows (`details.time`), init, how sshd is started, container, Proxmox VE, sudo, doas (§1.3) |
 | Risk level | the main menu's level and gloss, then every factor, each under its control's title; the pending reboot's under `Host` |
 | Status | each control's row in the main menu's order: title, state, detail; then each row's `evidence` |
 | Findings | `findings[]` (§1.7): code, detail, source, control; `No findings.` for none |
