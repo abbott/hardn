@@ -105,7 +105,25 @@ A live command that changes nothing there (`hardn -w`, refused on the family) wr
 | the log locked by another user | "/var/log/hardn.log was not rotated: locked by another process"; the lines appended |
 | `hardn check` on full logs | no file changed |
 
+**On three more hosts** (2026-11-14, hardn built from main at 1345ea88: deb13-vm, Debian 13; ubuntu26-vm, Ubuntu 26.04; alpine324-test-116, Alpine 3.24, a container with busybox; the same on all three)
+
+`hardn -w` is not refused there, so the live command was `hardn rollback --abandon 20000101T000000Z-00000000`, with no change pending: it opens the log (`revertPreflight`), refuses ("it is not journalled", exit 1), and writes one line and one audit record. The hosts' own logs were copied aside first and put back after.
+
+| Case | Result |
+|---|---|
+| the host's own `hardn.log`: 45.9 MB (Debian), 37.7 MB (Ubuntu, by the main menu), 0.8 MB (Alpine) | renamed to `.1` on Debian and Ubuntu, a new file begun; appended to on Alpine |
+| no logs | `hardn.log` 0644 and `audit.jsonl` 0600 made |
+| `hardn.log` at 10 MiB exactly | stays |
+| `hardn.log` over it, `audit.jsonl` one byte over 5 MiB | each renamed to `.1`, a new file begun, modes kept |
+| four more rotations | `.1` to `.4` hold the newest four; the first is gone |
+| a symlink to `/etc/passwd` at `hardn.log.2` | "/var/log/hardn.log was not rotated: /var/log/hardn.log.2: refusing a symlink"; nothing renamed, the line appended, `/etc/passwd` unchanged |
+| two commands at once on a full log | one rotation; both commands' lines in the new file |
+| the log locked by `nobody` (`flock`) | "/var/log/hardn.log was not rotated: locked by another process"; the line appended |
+| `hardn check` on full logs | no file changed |
+| `hardn -p` off a terminal | the current file's lines alone |
+
+`pkg/host`'s tests were not run on these three.
+
 **Not verified**
 
-- Debian, Ubuntu and Alpine hosts: the run was on two Red Hat family hosts.
 - A rename failing on a real read-only or full disk; the test injects the failure.

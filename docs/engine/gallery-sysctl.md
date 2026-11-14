@@ -475,4 +475,17 @@ alpine324-test-116 turned out to be a container: the screen read Not Applicable 
 
 So a key that passes when Apply runs but is not what the host boots with is found only after a boot, as Partial; Apply then adds it. The end state differs from the start in those two keys alone, which are now what the host boots with.
 
-Not run on a host: Ubuntu, Proxmox VE, a host that routes, a key held by a later file, and Alpine with its service in no runlevel (decision 20: seen in a container alone).
+**ubuntu26-vm (Ubuntu 26.04, hardn built from main at 1345ea88):**
+
+| Step | Result |
+|---|---|
+| The screen | Not Configured, "3 to set": ICMP redirects, IPv6 redirects, Sending redirects |
+| Apply settings | the file with three `*` lines; 8 `sysctl -w`; Operation Successful; Configured "by hardn". Only those keys changed: both redirects on `eth0` and `lo`, sending on `all`, `default`, `eth0` and `lo` |
+| A boot with the file | every value as right after Apply; Configured |
+| Remove settings | the file deleted (its backup kept), every value as before Apply |
+| A boot without it | every value as before Apply; Not Configured, "3 to set" |
+| `-n -r` with `kernelSettings: true` | the same plan, nothing changed |
+
+The host's `99-cloudimg-ipv6.conf` was left as it was.
+
+Not run on a host: Proxmox VE, a host that routes, a key held by a later file, and Alpine with its service in no runlevel (decision 20: seen in a container alone).
