@@ -171,4 +171,4 @@ gh attestation verify "$tmp/$binary" \
 mv "$tmp/$binary" "$dest" || die "cannot move the verified binary to $dest"
 ok "Provenance verified: built by"
 detail "$SIGNER_WORKFLOW@refs/tags/$tag"
-printf '\n%s %sVerified %s, hardn %s.%s\n' "$bar_ok" "$t_ok" "$dest" "$tag" "$c_off"
+printf '\n%s %sVerified %s (hardn %s%s)\n' "$bar_ok" "$t_ok" "$dest" "$tag" "$c_off"

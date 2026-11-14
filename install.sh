@@ -28,10 +28,11 @@
 #      else is written, and hardn is not run.
 #
 # The output takes hardn's look (look, below): a mark for each step, a
-# Warning callout where provenance is not checked, and one closing line that
-# says what was installed. It starts after a blank line and ends with one,
-# whether it installs or stops, with a blank line between its parts, and
-# keeps to 80 columns but for the attestation's identity: a URL can't break.
+# Warning callout where provenance is not checked, a closing line that says
+# what was installed, then what to run. It starts after a blank line and ends
+# with one, whether it installs or stops, with a blank line between its parts,
+# and keeps to 80 columns but for the attestation's identity: a URL can't
+# break.
 #
 # HARDN_INSTALL_ROOT (default empty) is prefixed to /usr/local/bin and
 # /etc/hardn. It exists for scripts/install_test.sh, which installs into a
@@ -281,10 +282,10 @@ main() {
 		printf '\n'
 	fi
 	muted "hardn writes /etc/hardn/hardn.yml.example the first time it runs."
-	# shellcheck disable=SC2016 # the backticks are printed, not run
-	muted 'Run `hardn --help`.'
+	printf '\n'
 	muted "hardn comes with no warranty: GNU AGPL v3, sections 15 and 16."
-	printf '\n%s %sInstalled hardn %s as /usr/local/bin/hardn.%s\n\n' "$bar_ok" "$t_ok" "$tag" "$c_off"
+	printf '\n%s %sInstalled hardn %s as /usr/local/bin/hardn%s\n' "$bar_ok" "$t_ok" "$tag" "$c_off"
+	printf '\n%sRun%s %shardn --help%s or %ssudo hardn%s\n\n' "$c_mute" "$c_off" "$t_ok" "$c_off" "$t_ok" "$c_off"
 }
 
 main "$@"

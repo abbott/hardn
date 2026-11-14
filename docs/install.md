@@ -13,7 +13,7 @@ _When a host uses `doas` (Alpine), pipe to `doas sh` instead of `sudo sh`._
 - Check the asset's SHA-256 against the release's `SHA256SUMS`, and its attestation too when gh 2.68.0 or later is installed and signed in. If a check fails, it installs nothing. Without gh, it installs on the SHA-256 alone and prints the commands that check the attestation. The SHA-256 shows the download matches the release; only the attestation shows the release was built by hardn's workflow from its tag.
 - Install `/usr/local/bin/hardn` and create `/etc/hardn`.
 
-**Its output** marks each step: `[+]` passed, `[ ]` not checked, `(x)` stopped, with nothing installed. A `Warning` means the attestation wasn't checked. The last line says what was installed. A terminal shows the marks as ⛛, ⭘ and ⨳, in colour unless `NO_COLOR` is set.
+**Its output** marks each step: `[+]` passed, `[ ]` not checked, `(x)` stopped, with nothing installed. A `Warning` means the attestation wasn't checked. The closing lines say what was installed and what to run. A terminal shows the marks as ⛛, ⭘ and ⨳, in colour unless `NO_COLOR` is set.
 
 To pin a version, set `HARDN_VERSION` (v0.4.0 and later; earlier releases have no `SHA256SUMS`):
 

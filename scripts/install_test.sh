@@ -522,8 +522,10 @@ $dl/v0.4.0/hardn-linux-amd64"
 	done
 	# Not a terminal: no colour, and ASCII marks.
 	if LC_ALL=C grep -q '[^ -~]' "$cdir/out"; then fail "stdout has an escape or a non-ASCII byte"; fi
-	[ "$(awk 'NF { l = $0 } END { print l }' "$cdir/out")" = "# Installed hardn v0.4.0 as /usr/local/bin/hardn." ] ||
-		fail "the last line doesn't say what was installed"
+	expect_out "# Installed hardn v0.4.0 as /usr/local/bin/hardn"
+	expect_blank_before "Run hardn --help or sudo hardn"
+	[ "$(awk 'NF { l = $0 } END { print l }' "$cdir/out")" = "Run hardn --help or sudo hardn" ] ||
+		fail "the last line doesn't say what to run"
 	expect_blank_end
 	new_case "gh verifies"
 	run_install GH=1
