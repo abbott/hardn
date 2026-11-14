@@ -338,6 +338,17 @@ var readCommands = []string{
 	"zfs get -Hp -o value used,available rpool/ROOT/pve-1",
 	lslogins("root,alice"),
 	lslogins("root,alice,bob"),
+	// The time rows' reads (pkg/host/timesync), which origin/main has not.
+	host.FormatArgv([]string{"dpkg-query", "--show", "--showformat=${Status}\\t${Version}\\n", "chrony"}),
+	host.FormatArgv([]string{"dpkg-query", "--show", "--showformat=${Status}\\t${Version}\\n", "systemd-timesyncd"}),
+	"systemctl is-active chrony",
+	"systemctl is-active systemd-timesyncd",
+	"chronyc -N tracking",
+	"timedatectl show",
+	"timedatectl show-timesync",
+	"rc-service ntpd status",
+	"rc-service chronyd status",
+	"busybox adjtimex",
 }
 
 func lslogins(names string) string {

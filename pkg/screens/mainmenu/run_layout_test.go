@@ -74,10 +74,10 @@ func (r interrupted) Read(p []byte) (int, error) {
 }
 
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 10 open
-// the User Management, SSH Login, DNS, Firewall, Backup, Auto Updates, Run
-// All, Configuration, System Details and Logs screens cmd/hardn sets
-// (recordScreens), 6 where origin/main's Dry-Run was (slice 7, unit (d)),
-// 7 the Run All screen on the planner (slice 8, unit (d)), and the main
+// the User Management, SSH Login, Firewall, DNS, Auto Updates, Run All,
+// Backup, Configuration, System Details and Logs screens cmd/hardn sets
+// (recordScreens), as v0.9.0's keys did, 6 the Run All screen on the
+// planner (slice 8, unit (d)), 8 the Configuration group, and the main
 // menu is drawn again when it returns; 0 (Exit) and q, in
 // either case, clear the screen and return, opening nothing; spaces
 // around a key are ignored, as origin/main's read trimmed them; an empty
@@ -111,7 +111,7 @@ func TestMainMenuKeys(t *testing.T) {
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
 		{"spaces around a key", []string{" 10 ", " q "}, false, []string{"logs"}, 0, 0},
 		{"an empty line is refused", []string{"", "q"}, false, nil, 1, 0},
-		{"keys no item has are refused", []string{"11", "01", "x", "b", "-1", "1 0", "100", "q"}, false, nil, 7, 0},
+		{"keys no item has are refused", []string{"11", "12", "01", "x", "b", "-1", "1 0", "100", "q"}, false, nil, 8, 0},
 		{"the end of the input", nil, false, nil, 0, prompt.ExitInterrupted},
 		{"the end of the input after a refusal", []string{"x"}, false, nil, 1, prompt.ExitInterrupted},
 		{"Ctrl-C at the prompt", []string{"x"}, true, nil, 1, int(sigint)},
@@ -269,9 +269,10 @@ func TestMainMenuMode(t *testing.T) {
 // with item 5, Auto Updates, "Configure automatic updates", between 4 and
 // 6 (withUpdatesItem): its numbers, labels and descriptions, item 1's
 // aside, item 2's "Root login, passwords, port" (legacy-left.md §3,
-// decision 7 (a)), item 8's "View hardn.yml", and its Exit row, "q to
-// quit" (DEV-030). The heading and prompt are origin/main's, the hint
-// generated from the items, "[0-10 or q]".
+// decision 7 (a)), item 8's "hardn.yml, log forwarding, time sync", and
+// its Exit row, "q to quit" (DEV-030); no Log Forwarding and no Time Sync
+// item, which are under Configuration. The heading and prompt are
+// origin/main's, the hint generated from the items, "[0-10 or q]".
 func TestMainMenuItems(t *testing.T) {
 	m := &Options{Config: config.DefaultConfig()}
 	view := m.items().View()
@@ -281,6 +282,14 @@ func TestMainMenuItems(t *testing.T) {
 	fixture := screen.MainMenuFixture()
 	if !slices.Equal(view.Items, withUpdatesItem(fixture.Menu.Items)) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
 		t.Errorf("the items are not the main-menu mock's:\n%+v\n%+v", view, fixture.Menu)
+	}
+	for _, it := range view.Items {
+		if it.Label == "Log Forwarding" || it.Label == "Time Sync" {
+			t.Errorf("the main menu has the item %+v, which is under Configuration", it)
+		}
+	}
+	if it := view.Items[7]; it.Key != "8" || it.Label != "Configuration" || it.Description != "hardn.yml, log forwarding, time sync" {
+		t.Errorf("item 8 %+v", it)
 	}
 	if hint := m.items().Accepts().Hint(); hint != "0-10 or q" {
 		t.Errorf("the hint is %q", hint)
@@ -316,7 +325,7 @@ func TestMenuOf(t *testing.T) {
 			if !reflect.DeepEqual(got, live.View()) {
 				t.Errorf("MenuOf:\n%+v\nthe main menu's:\n%+v", got, live.View())
 			}
-			if got.Items[2].Description != tc.firewall || got.Items[4] != updatesItem || live.Accepts().Hint() != "0-10 or q" {
+			if got.Items[2].Description != tc.firewall || got.Items[4] != updatesItem || len(got.Items) != 10 || live.Accepts().Hint() != "0-10 or q" {
 				t.Errorf("item 3 %+v, item 5 %+v, hint %q", got.Items[2], got.Items[4], live.Accepts().Hint())
 			}
 		})
@@ -377,15 +386,15 @@ func TestMainMenuTopRows(t *testing.T) {
 // TestMainMenuHeights pins hardn's main menu's heights, one pass drawn on
 // a terminal over the gallery's hardened Debian 13 host (eight rows, no
 // line under any), in its full form at every height, Unicode (C.UTF-8)
-// and ASCII (C): 38 lines at 80x24 and 80x40, the two blank lines under
-// the clear (clearTop) first, 61 at 60 columns, where the rows stack
-// (DEV-021), item 5, Auto Updates, one line, and two at 60 columns (slice
-// 7, unit (d)). The prompt is the terminal's last line, so on 24 rows the
-// first 14 lines scroll off at 80 columns, the blank lines and the header
-// down to the SSH Auth row, the risk level among them, and at 60 columns
-// 37, all the status, the heading, the mode and item 1's label; on 40 rows
-// none at 80 columns, the blank lines on the top two rows and the header
-// under them, and 21 at 60.
+// and ASCII (C): 39 lines at 80x24 and 80x40, the two blank lines under
+// the clear (clearTop) first, 63 at 60 columns, where the rows stack
+// (DEV-021), v0.9.0's ten items and the Time Sync row, one line at 80
+// columns and two at 60. The prompt is the terminal's last line, so on 24
+// rows the first 15 lines scroll off at 80 columns, the blank lines and
+// the header down to the SSH Port row, the risk level among them, and at
+// 60 columns 39, all the status, the heading, the mode and item 1's label;
+// on 40 rows none at 80 columns, the blank lines on the top two rows and
+// the header under them, and 23 at 60.
 // With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
 // TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
@@ -395,11 +404,12 @@ func TestMainMenuHeights(t *testing.T) {
 	for _, tc := range []struct {
 		w, h, lines int
 		visible     string // the first line on screen, stripped of colour and glyphs
+		risk        bool   // the risk level is on screen
 	}{
-		{80, 24, 38, "SSH Port             Configured non-default (2230)"},
-		{80, 40, 38, ""}, // the blank lines under the clear, the header under them
-		{60, 24, 61, "Create, configure (sudo, SSH keys)"},
-		{60, 40, 61, "Configured non-default (2230)"},
+		{80, 24, 39, "Firewall             Configured deny policy", false},
+		{80, 40, 39, "", true}, // the blank lines under the clear, the header under them
+		{60, 24, 63, "Create, configure (sudo, SSH keys)", false},
+		{60, 40, 63, "Configured deny policy", false},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")
@@ -417,7 +427,7 @@ func TestMainMenuHeights(t *testing.T) {
 			ls := strings.Split(stripANSI(strings.TrimSuffix(drawn, " \n")), "\n")
 			first := strings.TrimLeft(ls[max(0, len(ls)-tc.h)], " ⛛[+]")
 			risk := slices.IndexFunc(ls, func(l string) bool { return strings.Contains(l, "Risk Level") })
-			if len(ls) != tc.lines || first != tc.visible || ls[0] != "" || ls[1] != "" || (risk >= len(ls)-tc.h) != (len(ls) <= tc.h) ||
+			if len(ls) != tc.lines || first != tc.visible || ls[0] != "" || ls[1] != "" || (risk >= len(ls)-tc.h) != tc.risk ||
 				!strings.HasPrefix(ls[len(ls)-1], strings.Repeat(" ", theme.PromptCol)+component.NewCtx(env).Theme.Glyphs.Prompt+" Option") {
 				t.Errorf("%dx%d, %s: %d lines, the first on screen %q, the risk level on line %d; want %d, %q:\n%s",
 					tc.w, tc.h, lang, len(ls), first, risk+1, tc.lines, tc.visible, strings.Join(ls, "\n"))

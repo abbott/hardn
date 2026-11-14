@@ -78,6 +78,18 @@ type Config struct {
 	// maintainer, 2026-11-07). Left out when there are none.
 	UfwTrustedInterfaces []string `yaml:"ufwTrustedInterfaces,omitempty"`
 
+	// Log Forwarding
+	// LogForwarding names the syslog server the host's logs go to (the
+	// maintainer, 2026-11-13; logforward.go). No server, the default, hardn
+	// changes nothing. Not written when unset.
+	LogForwarding LogForwarding `yaml:"logForwarding,omitempty"`
+
+	// Time Sync
+	// NTPServers names the time servers the host's time service is set to
+	// use, one to four (the maintainer, 2026-11-14; timesync.go). None, the
+	// default, hardn changes nothing. Not written when unset.
+	NTPServers NTPServers `yaml:"ntpServers,omitempty"`
+
 	// Feature Toggles
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
 	EnableUfwSshPolicy       bool `yaml:"enableUfwSshPolicy"`

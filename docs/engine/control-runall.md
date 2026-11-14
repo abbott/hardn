@@ -1,5 +1,7 @@
 # Run All's planner (slice 8, unit (b))
 
+*Since `next/log-forwarding` and `next/time-sync` (2026-11-14): Run All also plans Log Forwarding's Set server where hardn.yml names a server ([screen-logforward.md](screen-logforward.md)) and Time Sync's Set servers where it names servers ([screen-timesync.md](screen-timesync.md)). The main menu's keys are unchanged from v0.9.0: Run All is 6.*
+
 *Since `next/s8-replace`: main menu 7 and `hardn -r` plan through it; the legacy Run All is deleted, and the keys it leaves unused warn at load ([cmd-engine.md](cmd-engine.md) §2.19).*
 
 `pkg/engine/runall`, `next/s8-control`: what Run All plans, as real code that unit (c)'s screen (main menu 7) and unit (d)'s `hardn -r` both call, so the two never differ. It builds what [gallery-runall.md](gallery-runall.md) §5 adopted (2026-11-04, "Adopt all, start (b)") on the mock's behaviour (`internal/tools/uigallery/runall.go`: `raAsk`, `raReading.pick`, `alone`, `port`, `userThere`). Status: tested on macOS on `hostfake` only; nothing ran on a VM, no hardn binary ran.

@@ -145,6 +145,7 @@ func mdHost(b *strings.Builder, d Document) {
 		}
 		mdItem(b, "Kernel", kernel)
 		mdItem(b, "Uptime", uptime)
+		mdTime(b, d.Details.Time)
 	}
 	mdItem(b, "Init", mdOr(h.Init))
 	mdItem(b, "sshd started by", mdOr(h.SSH))
@@ -164,6 +165,31 @@ func mdHost(b *strings.Builder, d Document) {
 	}
 	mdItem(b, "sudo", sudo)
 	mdItem(b, "doas", mdTri(h.Elevation.Doas))
+}
+
+// mdTime is the time service and the clock: "Time service", with "not
+// running" where it is not, "Clock", and "Synced to" where the service
+// names a server.
+func mdTime(b *strings.Builder, t DetailTime) {
+	service := mdUnknown
+	if t.Service != nil {
+		service = mdNone
+		if *t.Service != "none" {
+			service = mdText(*t.Service)
+		}
+		if t.Running != nil && !*t.Running {
+			service += " (not running)"
+		}
+	}
+	mdItem(b, "Time service", service)
+	clock := mdNotRead
+	if t.Clock != nil {
+		clock = map[string]string{ClockInSync: "In sync", ClockNotInSync: "Not in sync"}[*t.Clock]
+	}
+	mdItem(b, "Clock", clock)
+	if t.SyncedTo != nil {
+		mdItem(b, "Synced to", mdCode(*t.SyncedTo, false))
+	}
 }
 
 // mdOr is one of the schema's open words, Unknown for "unknown".

@@ -57,8 +57,10 @@ type StatusOptions struct {
 // the StatusList (output.MainMenuOf). Its Heading, Mode, Menu and Prompt
 // are left for Run, which draws the layout.
 //
-// The reading is detect's facts, once; Engine.Check over controls.Status
-// on them; the header probe on the same facts; and the risk level over
+// The reading is detect's facts, once; Engine.Check over controls.Menu
+// on them (controls.Status and Log Forwarding, whose row is drawn only
+// where hardn.yml names a server or the host forwards:
+// controls.MenuReports); the header probe on the same facts; and the risk level over
 // both. A check only reads, never plans or applies (Engine.Check), and the
 // engine's signal hold, which only an apply takes, is never taken. A
 // check that fails, or a fact not established, is its row's Unknown, and
@@ -74,10 +76,11 @@ func Status(ctx context.Context, o StatusOptions) (screen.MainMenu, error) {
 			return facts, err
 		},
 	})
-	reports, err := e.Check(ctx, controls.Status(o.Config))
+	reports, err := e.Check(ctx, controls.Menu(o.Config))
 	if err != nil {
 		return screen.MainMenu{}, fmt.Errorf("main menu: %w", err)
 	}
+	reports = controls.MenuReports(o.Config, reports)
 	h := header.Read(ctx, o.System, facts)
 	if err := ctx.Err(); err != nil {
 		return screen.MainMenu{}, fmt.Errorf("main menu: header: %w", err)

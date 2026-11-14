@@ -39,7 +39,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -62,6 +62,9 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mOS␛[m                   ␛[38;2;129;134;156mDebian 13 (Trixie)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m               ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTime service␛[m         ␛[38;2;129;134;156msystemd-timesyncd␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mClock␛[m                ␛[38;2;112;212;127mIn sync␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSynced to␛[m            ␛[38;2;129;134;156m0.debian.pool.ntp.org␛[m$
 $
   ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -133,7 +136,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -184,7 +187,7 @@ $
    5) Auto Updates         Configure automatic updates$
    6) Run All              Execute hardening operations$
    7) Backup               Configure hardn backup$
-   8) Configuration        View hardn.yml$
+   8) Configuration        hardn.yml, log forwarding, time sync$
    9) System Details       View system information$
   10) Logs                 View log file$
 $
@@ -207,6 +210,9 @@ $
    -  OS                   Debian 13 (Trixie)$
    -  Kernel               6.12.113+deb13-cloud-amd64$
    -  Uptime               3 days, 5 hours, 12 minutes$
+   -  Time service         systemd-timesyncd$
+  [+] Clock                In sync$
+   -  Synced to            0.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $
@@ -278,7 +284,7 @@ $
    5) Auto Updates         Configure automatic updates$
    6) Run All              Execute hardening operations$
    7) Backup               Configure hardn backup$
-   8) Configuration        View hardn.yml$
+   8) Configuration        hardn.yml, log forwarding, time sync$
    9) System Details       View system information$
   10) Logs                 View log file$
 $
@@ -348,7 +354,7 @@ $
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
-      ␛[38;2;129;134;156mView hardn.yml␛[m$
+      ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
@@ -377,6 +383,12 @@ $
       ␛[38;2;129;134;156m6.12.113+deb13-cloud-amd64␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUptime␛[m$
       ␛[38;2;129;134;156m3 days, 5 hours, 12 minutes␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mTime service␛[m$
+      ␛[38;2;129;134;156msystemd-timesyncd␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mClock␛[m$
+      ␛[38;2;112;212;127mIn sync␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSynced to␛[m$
+      ␛[38;2;129;134;156m0.debian.pool.ntp.org␛[m$
 $
   ␛[1;38;2;129;134;156mHost and IPs␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -481,7 +493,7 @@ $
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
-      ␛[38;2;129;134;156mView hardn.yml␛[m$
+      ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$

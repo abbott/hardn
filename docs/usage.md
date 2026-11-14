@@ -11,13 +11,44 @@
 | 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles, limits repeated SSH connections. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL); turns off only what hardn turned on. Read only on Proxmox |
-| 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS and automatic updates. Where the firewall and root login both change, root login waits for the next Run All |
+| 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS, automatic updates, log forwarding and time servers. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
-| 8) Configuration | which `hardn.yml` hardn read and each key's value | nothing |
-| 9) System Details | OS, kernel, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
+| 8) Configuration | a menu of three screens, below | log forwarding and time servers |
+| 9) System Details | OS, kernel, the time service and the clock, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
 _The hardn status for **AppArmor** only displays current state, nothing more._
+
+`8) Configuration` opens a menu of its own:
+
+| Option | Displays | Configures |
+|---|---|---|
+| 1) hardn.yml | which `hardn.yml` hardn read and each key's value | nothing |
+| 2) Log Forwarding | the host's logger, the syslog server it sends logs to, by whose file, and the server `hardn.yml` names | sends every log to `hardn.yml`'s server over UDP, TCP or TLS; stops only what hardn set. [More](#log-forwarding) |
+| 3) Time Sync | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#time-sync) |
+
+### Log forwarding
+
+Log Forwarding sends every message the host logs to the syslog server `hardn.yml` names ([`logForwarding`](configuration.md#log-forwarding)). The screen has no form: the server is typed in the file.
+
+- **Set server** writes hardn's own file, `/etc/rsyslog.d/60-hardn-forward.conf`, has rsyslogd check it (`rsyslogd -N1`), restarts rsyslog, then logs one line, `log forwarding set`, for you to find on the server. A failed check or restart puts everything back. On a host with journald alone it installs rsyslog first (not on Proxmox, where hardn installs no package); for TLS, `rsyslog-gnutls`. On Alpine it adds `-R <server>:<port> -L` to busybox syslogd's options.
+- **Stop forwarding** takes out only what hardn set, and restarts the logger. rsyslog stays installed.
+- **A server set by a file hardn didn't write is shown, never changed.** Set server is then unavailable.
+- **Connection** says whether a TCP or TLS connection to the server is open. The host can't know what the server received: look for the test line there. UDP shows nothing.
+- **On the main menu** the Log Forwarding row shows only where `hardn.yml` names a server or the host forwards. It never changes the risk level.
+- It forwards the host's logs, not hardn's audit log (`/var/log/hardn/audit.jsonl`).
+
+### Time sync
+
+Time Sync shows which service keeps the host's time (chrony, systemd-timesyncd, or busybox ntpd on Alpine), whether it runs, whether the clock is in sync and to which server. It sets the servers `hardn.yml` names ([`ntpServers`](configuration.md#time-sync)) on that service. The screen has no form: the servers are typed in the file.
+
+- **Set servers** makes the service use your servers in place of its own. Servers handed out by DHCP stay. What is written differs by service: [platforms.md](platforms.md#time-sync).
+- **Remove servers** undoes only what hardn set: the host's own servers are used again, each file as it was.
+- **hardn installs, starts and swaps no time service.** With none, or one that is not running, Set servers is unavailable. In a container it is too: the host keeps the time.
+- **Servers set by a file hardn didn't write are shown, never changed.** Set servers is then unavailable.
+- **hardn's servers are plain NTP.** Where the host's own are authenticated (NTS, Ubuntu 26.04's default), the review says so before you answer.
+- **Clock** is the service's or the kernel's own word, read again after each change. Right after a restart it can read "Not in sync" for a while.
+- **On the main menu** the Time Sync row shows on every host but a container. It never changes the risk level.
 
 From 90 days before a release's vendor support ends, the main menu says so, and every plan carries a warning. It changes nothing hardn does. The dates: [platforms.md](platforms.md#end-of-support).
 ### Account Review
@@ -136,7 +167,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 
 ## hardn.yml
 
-hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
+hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, `logForwarding`, `ntpServers`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
 
 ```yaml
 username: "george"

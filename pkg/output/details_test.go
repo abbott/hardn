@@ -14,6 +14,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/output"
 )
 
@@ -41,6 +42,7 @@ func wholeReport() details.Report {
 		CPU:    details.CPU{Model: "QEMU Virtual CPU version 2.5+", CPUs: 4, Sockets: 1, Load: [3]string{"0.12", "0.08", "0.03"}},
 		Disk:   details.Disk{Source: "/dev/vda1", Type: "ext4", Used: 4518241280, Total: 41442029568, Known: true},
 		Memory: details.Memory{Total: 4080218931, Available: 2791728742, AvailableKnown: true},
+		Time:   timesync.Reading{Service: timesync.Chrony, Running: detect.Yes, Clock: timesync.InSync, Synced: "2.ntp.ubuntu.com"},
 		Logins: details.Logins{State: details.LoginsRead, List: []details.Login{
 			{User: "root", State: details.LoginNone},
 			{User: "alice", State: details.LoginAt, When: "2026-10-20T11:42:05+00:00", TTY: "pts/0", From: "192.0.2.10", At: at},
@@ -67,6 +69,7 @@ func TestDetailsDocuments(t *testing.T) {
 			CPU:    details.CPU{Unread: []details.Unread{{Source: "/proc/cpuinfo", Err: refused}, {Source: "/proc/loadavg", Err: refused}}},
 			Disk:   details.Disk{Unread: []details.Unread{{Source: "/proc/self/mounts", Err: refused}, {Source: "df", Err: refused}}},
 			Memory: details.Memory{Unread: unread("/proc/meminfo")},
+			Time:   timesync.Reading{Service: timesync.Timesyncd, Running: detect.No, Clock: timesync.NotInSync},
 			Logins: details.Logins{Unread: unread("lslogins")},
 		},
 	} {

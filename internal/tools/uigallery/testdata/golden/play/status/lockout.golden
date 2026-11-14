@@ -34,6 +34,7 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m192.0.2.54, 2001:db8::54␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m7 profiles enforced␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTime Sync␛[m            ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m0.debian.pool.ntp.org␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -46,7 +47,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mView hardn.yml␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -92,6 +93,7 @@ $
   [+] DNS                  Configured 192.0.2.54, 2001:db8::54$
   [+] Auto Updates         Configured unattended-upgrades$
   [+] AppArmor             Configured 7 profiles enforced$
+  [+] Time Sync            Configured 0.debian.pool.ntp.org$
 $
 ----------------------------------------------------------------$
 $
@@ -104,7 +106,7 @@ $
    5) Auto Updates         Configure automatic updates$
    6) Run All              Execute hardening operations$
    7) Backup               Configure hardn backup$
-   8) Configuration        View hardn.yml$
+   8) Configuration        hardn.yml, log forwarding, time sync$
    9) System Details       View system information$
   10) Logs                 View log file$
 $
@@ -162,6 +164,8 @@ $
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
       ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m7 profiles enforced␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mTime Sync␛[m$
+      ␛[38;2;112;212;127mConfigured␛[m ␛[38;2;86;91;107m0.debian.pool.ntp.org␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -183,7 +187,7 @@ $
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
-      ␛[38;2;129;134;156mView hardn.yml␛[m$
+      ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$

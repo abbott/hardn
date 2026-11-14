@@ -651,11 +651,21 @@ var stateDirs = []string{revert.DefaultDir, "/run/hardn", backup.DefaultPath}
 // boot unit's checks (systemd-analyze verify, sh -n) on its copy, and
 // detect's questions (sudo --version, dpkg-query), and the package tools'
 // simulations and reads (apt-get install -s, apk add --simulate, apk info),
-// and sshd's log as sshd.ReadAccepted reads it (journalctl -u).
+// sshd's log as sshd.ReadAccepted reads it (journalctl -u), and the time
+// service's state and the clock's (timedatectl, chronyc tracking, busybox
+// adjtimex, rc-service status).
 func reads(argv []string) bool {
 	switch path.Base(argv[0]) {
-	case "sshd", "ss", "systemd-analyze", "visudo", "dpkg-query":
+	case "sshd", "ss", "systemd-analyze", "visudo", "dpkg-query", "timedatectl":
 		return true
+	case "rpm":
+		return len(argv) == 3 && argv[1] == "-q"
+	case "chronyc":
+		return slices.Contains(argv, "tracking")
+	case "busybox":
+		return len(argv) == 2 && argv[1] == "adjtimex"
+	case "rc-service":
+		return len(argv) == 3 && argv[2] == "status" && (argv[1] == "ntpd" || argv[1] == "chronyd")
 	case "resolvectl":
 		return len(argv) == 3 && argv[1] == "--no-pager" && (argv[2] == "dns" || argv[2] == "domain")
 	case "sudo":

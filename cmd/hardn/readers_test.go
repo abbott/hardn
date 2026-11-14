@@ -766,20 +766,24 @@ func TestLogsOpenTerm(t *testing.T) {
 	}
 }
 
-// TestConfigScreenHook: main menu 8 shows the configuration the main menu holds and
-// how its file was found when it loaded, hardn.yml never looked for again: a file
-// that has gone, and another -f would now find, change nothing. Under plan only as
-// live, it reaches no host; 0 goes back, q quits, the end of the input aborts.
+// TestConfigScreenHook: main menu 8 is the Configuration group, whose 1, hardn.yml,
+// shows the configuration the main menu holds and how its file was found when it
+// loaded, hardn.yml never looked for again: a file that has gone, and another -f would
+// now find, change nothing. Under plan only as live, it reaches no host; 0 goes back to
+// the group, drawn again, and 0 there to the main menu; q quits from either, and the
+// end of the input aborts.
 func TestConfigScreenHook(t *testing.T) {
 	const path = "/etc/hardn/hardn.yml"
 	for _, tc := range []struct {
 		name  string
 		lines []string
 		want  error
+		drawn int // the group
 	}{
-		{"back", []string{"0"}, nil},
-		{"quit", []string{"q"}, nav.ErrQuit},
-		{"the end of the input", nil, prompt.ErrAborted},
+		{"back", []string{"1", "0", "0"}, nil, 2},
+		{"quit", []string{"1", "q"}, nav.ErrQuit, 1},
+		{"quit from the group", []string{"1", "0", "q"}, nav.ErrQuit, 2},
+		{"the end of the input", []string{"1"}, prompt.ErrAborted, 1},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := hostfake.New(host.Options{})
@@ -805,7 +809,11 @@ func TestConfigScreenHook(t *testing.T) {
 			if err := run(); !errors.Is(err, tc.want) || (tc.want == nil && err != nil) {
 				t.Fatalf("= %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			for _, w := range []string{"# Configuration ###", "   -  Path                 " + path + "\n", "   -  From                 Search path\n",
+			if n := strings.Count(s.out.String(), "   1) hardn.yml            View the file hardn reads\n"); n != tc.drawn {
+				t.Errorf("the group drawn %d times, want %d:\n%s", n, tc.drawn, s.out.String())
+			}
+			for _, w := range []string{"# Configuration ###", "   2) Log Forwarding       Send logs to a syslog server\n", "   3) Time Sync            Keep the clock in sync\n",
+				"Option [0-3 or q]: ", "   -  Path                 " + path + "\n", "   -  From                 Search path\n",
 				"   -  username             alice\n", "   -  sshPort              2230\n", "   -  dryRun               false (default)", "   0) Return"} {
 				if !strings.Contains(s.out.String(), w) {
 					t.Errorf("no %q in:\n%s", w, s.out.String())
@@ -861,7 +869,7 @@ func TestLoadedFound(t *testing.T) {
 	useReaderHost(t, h, s)
 	inputWas := engineInput
 	t.Cleanup(func() { engineInput = inputWas })
-	in := prompt.New(uitest.NewTypist(io.Discard, "0"), false)
+	in := prompt.New(uitest.NewTypist(io.Discard, "1", "0", "0"), false)
 	engineInput = func() *prompt.Reader { return in }
 	c := at(etc)
 	if err := withReaderScreens(mainmenu.Options{}, c, loadedFound(c, typo)).Configuration(); err != nil {
