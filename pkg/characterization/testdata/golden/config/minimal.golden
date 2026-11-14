@@ -21,6 +21,13 @@
   "SshKeys": [],
   "UfwAppProfiles": [],
   "UfwTrustedInterfaces": null,
+  "LogForwarding": {
+    "Server": "",
+    "Port": 0,
+    "Protocol": "",
+    "CAFile": ""
+  },
+  "NTPServers": null,
   "EnableUnattendedUpgrades": false,
   "EnableUfwSshPolicy": false,
   "ConfigureDns": false,

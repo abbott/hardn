@@ -1,11 +1,11 @@
 # hardn's output: the JSON document, codes, exit statuses and the audit log
 
 > **What this is:** the public contract of what hardn reports, to a script and to a person (brief §2, "A fixed exit-code set and versioned JSON output", decided; brief Phase 3, the JSON contract, the exit codes and the audit log). Built by refactor plan Phase 3, `next/p3-output`, in `pkg/output`; [docs/engine/output.md](../engine/output.md) says what the package guarantees and how. **Once released, none of it changes but by the rules below.**
-> **Status:** built and tested (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake); the operation flags, the screens and `hardn confirm` run on the engine and have run on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs. **JSON reaches the command line on `hardn system-details --output json` alone** (§1.10); no other command has `--output`. The same command's `--output markdown` is the report to hand over (§8). Every operation flag and every screen's change reports as §7 says and exits as §3 says; the audit log (§4) records each, and each `hardn confirm` and `hardn rollback` (§4.1). `--yes` and `--confirm-timeout` are flags of `hardn` (refactor plan §3.11, adopted 2026-11-04); §6 says what `--yes` does off a terminal, and what it doesn't.
+> **Status:** built and tested (goldens of every document below, the human report of each, the exit statuses, the audit log on the recording fake); the operation flags, the screens and `hardn confirm` run on the engine and have run on the Debian 13, Ubuntu 26.04 and Alpine 3.23 VMs. **JSON reaches the command line on `hardn system-details --output json`** (§1.10) **and `hardn check --output json`** (§1.11); no other command has `--output`. The same command's `--output markdown` is the report to hand over (§8). Every operation flag and every screen's change reports as §7 says and exits as §3 says; the audit log (§4) records each, and each `hardn confirm` and `hardn rollback` (§4.1). `--yes` and `--confirm-timeout` are flags of `hardn` (refactor plan §3.11, adopted 2026-11-04); §6 says what `--yes` does off a terminal, and what it doesn't.
 
 ## 1. The JSON document
 
-One run writes **exactly one JSON value on stdout**, then a newline; everything for a person (progress, warnings, notices) goes to stderr, so stdout parses whole (`TestStdoutIsOneDocument`). The same document, with a `time`, is one line of the audit log (§4). Strings are UTF-8; `<`, `>` and `&` are not escaped; DEL, C1 controls and format characters are, as `\uXXXX`, as stdout may be a terminal, the string's value unchanged (`TestJSONEscapesWhatATerminalActsOn`). **Arrays are never `null`**: an empty one is `[]`. Optional objects (`result.confirm`, `result.rollback`, `result.boot`, `result.backup`, `result.revert`) are left out when they do not apply.
+One run writes **exactly one JSON value on stdout**, then a newline; everything for a person (progress, warnings, notices) goes to stderr, so stdout parses whole (`TestStdoutIsOneDocument`). The same document, with a `time`, is one line of the audit log (§4). Strings are UTF-8; `<`, `>` and `&` are not escaped; DEL, C1 controls and format characters are, as `\uXXXX`, as stdout may be a terminal, the string's value unchanged (`TestJSONEscapesWhatATerminalActsOn`). **Arrays are never `null`**: an empty one is `[]`. Optional objects (`result.confirm`, `result.rollback`, `result.boot`, `result.backup`, `result.revert`, `details`, `check`) are left out when they do not apply.
 
 ### 1.1 `schemaVersion` and the rule for bumping it
 
@@ -125,7 +125,7 @@ The goldens are the reference, each a whole document: `pkg/output/testdata/json/
 
 ### 1.10 `details`: `hardn system-details`'s form alone
 
-**`hardn system-details --output json` reaches it** (`cmd/hardn/readers.go`; `TestDetailsDocuments` holds the form; §3.11's change for this one command, approved on 2026-10-30, narrowed: [gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 1 (a)). The form is the document of §1, mode `check`, with the nine fields and one more; **every other document, and so the audit log's lines (§4), has the nine alone** (`TestDetailsOnThisFormAlone`, `pkg/output/output_test.go`'s `TestStdoutIsOneDocument`). Added as §1.1 allows, so `schemaVersion` stays `1`. Goldens: `pkg/output/testdata/json/details.json` (every section read), `details-unreadable.json` (none).
+**`hardn system-details --output json` reaches it** (`cmd/hardn/readers.go`; `TestDetailsDocuments` holds the form; §3.11's change for this one command, approved on 2026-10-30, narrowed: [gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 1 (a)). The form is the document of §1, mode `check`, with the nine fields and one more; **every other document but `hardn check`'s (§1.11), and so every other line of the audit log (§4), has the nine alone** (`TestDetailsOnThisFormAlone`, `pkg/output/output_test.go`'s `TestStdoutIsOneDocument`). Added as §1.1 allows, so `schemaVersion` stays `1`. Goldens: `pkg/output/testdata/json/details.json` (every section read), `details-unreadable.json` (none).
 
 **Here a `null` is a fact**, where the rest of the document's arrays are never `null`: a section, or one fact of it, that was not read or is not known is `null`. An array read and holding none is `[]`. Each section with anything not read adds one finding, `DETAILS_UNREADABLE`, `detail` `<section> not read`, `source` each thing not read, joined by `, `. It stops nothing: the rest was read, so the exit status stays as it was.
 
@@ -139,8 +139,75 @@ The goldens are the reference, each a whole document: `pkg/output/testdata/json/
 | `disk` | object or null | `source` and `type` from `/proc/self/mounts`' line for `/` (the device, or on ZFS the dataset), `usedBytes` and `totalBytes`; on ZFS alone, `pool` and `health`: as `zpool` says it (open), or `unknown` where no `zpool` answers, as in an LXC guest on ZFS. Every ZFS form is [unverified]: no ZFS VM |
 | `memory` | object or null | `totalBytes`, and `usedBytes`, what `MemAvailable` leaves; null on a kernel with no `MemAvailable` |
 | `logins` | array or null | root, then each listed user, from one `lslogins` call: `user`, `when` (as `lslogins` prints it), `tty`, `from`, each `""` for none recorded; `unknown: true`, there only then, where nothing is known of the account: `lslogins` had no line for it, or a blank where a source refuses or none holds records. `null` where `lslogins` failed or is not installed, never "no login" |
+| `time` | object | the time service and the clock, as the Time Sync screen reads them: `service` (`chrony`, `systemd-timesyncd`, `busybox ntpd` or `none`; null where hardn could not tell), `running` (null with none, or not read), `clock` (`in sync` or `not in sync`; null where not read), `syncedTo` (the server followed; null for none, and where the service does not say) |
 
 `host.hostname` and `host.os` hold the rest of what the screen shows, but its Listening Ports section, which the JSON form does not carry. A blank `when` with no `unknown` says "none recorded", which sees only logins with a terminal: `ssh host cmd` moves nothing ([gallery-system-details.md](../engine/gallery-system-details.md) §5, decision 3).
+
+### 1.11 `check`: `hardn check`'s form alone
+
+**`hardn check --output json` and `hardn check --accept --output json` reach it** (`cmd/hardn/check.go`; `output.BuildCheck`; [design-check.md](../engine/design-check.md), decision 8). The form is the document of §1, mode `check`, with the nine fields and one more, `check`; `changes` and `status` are `[]`. Added as §1.1 allows, so `schemaVersion` stays `1`. Goldens: `pkg/output/testdata/json/drift-same.json`, `drift-differences.json`, `drift-accepted.json`, `drift-no-baseline.json`.
+
+| `result.outcome` | Exit | When |
+|---|---|---|
+| `nothing-to-do` | 0 | no difference from the baseline |
+| `changes-needed` | 3 | at least one difference |
+| `applied` | 0 | `--accept` saved the baseline |
+| `failed` | 1 | no baseline (`BASELINE_MISSING`), a baseline that is not read (`BASELINE_UNSAFE`, `BASELINE_INVALID`), one of another format (`BASELINE_OTHER_FORMAT`), or any other error: `errors[]` has its code |
+| `cancelled` | 130 | interrupted |
+
+| Field | Type | Meaning |
+|---|---|---|
+| `check.accepted` | bool | the run was `--accept`, and saved `check.baseline`; `false` for an `--accept` that saved nothing |
+| `check.baseline` | object or null | the baseline compared with, or just saved: `path`, `format` (the version of the baseline's format, `1`), `saved` (RFC 3339, UTC), `user` (who saved it: the user who ran hardn through sudo or doas, `root` otherwise; the environment's word, as `result.revert.user`), `hardnVersion` (the hardn that saved it). `null` where none was read or saved |
+| `check.differences` | array | each difference, in the order of the facts below, a set's items removed first, then added, each sorted, then the ufw rules' order; `[]` for none, and for `--accept` |
+
+Each difference:
+
+| Field | Meaning |
+|---|---|
+| `fact` | the fact's id (below); open |
+| `change` | `changed` (a value, or whether the fact is established), `added` or `removed` (an item of a set); open |
+| `was`, `is` | what the baseline has and what the host has now. **`null` is "not established"**, as in `details`. For `added`, `was` is `""`; for `removed`, `is` is `""`. A set established on one side alone is one `changed` difference, its items joined by `, `. The same ufw rules in another order are one `changed` difference of `firewall.rules`: the rules both sides have, in each order, joined by `, ` |
+
+The facts. A value's text and an item's form are part of the baseline's format: they change only with a new `format`.
+
+| `fact` | Kind | Value or item |
+|---|---|---|
+| `users.admins` | set | each account a tool (`sudo`, `doas`) lets run every command as root, by name; `<name> (not established)` where a rule hardn does not read may |
+| `users.uid0` | set | each account with uid 0 |
+| `users.keys` | set | `<account> <key type> <fingerprint>` for each key of an admin or uid-0 account in the files sshd reads; `<account> <file> (not established)` for a file that is there and not read |
+| `users.emptyPasswords` | set | each account whose password field is empty |
+| `ssh.rootLogin` | value | `yes`, `no`, `prohibit-password`, `forced-commands-only` |
+| `ssh.passwordLogin` | value | `yes`, `no`: whether a password logs in, as SSH Login reads it |
+| `ssh.ports`, `ssh.listeners`, `ssh.allowUsers` | value | sshd's ports, listeners and `AllowUsers`, sorted, joined by `, `; `""` for none |
+| `firewall.state` | value | `on`, `off`, `not installed` |
+| `firewall.incoming` | value | ufw's default incoming policy (`deny`, `reject`, `allow`); firewalld's `default zone <name>`; pve-firewall's `policy_in` in lower case |
+| `firewall.boot` | value | `yes`, `no` |
+| `firewall.rules` | set | each saved ufw rule, in ufw's order, which is compared too: the first rule that matches applies (`allow in 8080/tcp`, `limit in 22/tcp (IPv6)`, `allow in 22/tcp from 192.0.2.7 on eth0`); for firewalld, `zone <name>: <kind> <value>` for each target, interface, source, service, port and forward |
+| `firewall.ports` | set | `<port>/<proto>` for each listening port the firewall lets in from outside, or does not filter; `<port>/<proto> (not established)` where that is not established. Never a port on loopback alone |
+| `dns.nameservers` | value | the nameservers in use, in their order, joined by `, ` |
+| `updates.auto` | value | `on`, `off`, `not applicable` (Proxmox VE) |
+
+**A fact not compared** is a finding, `CHECK_NOT_COMPARED`, `source` the fact's id, `detail` why: the listening ports on a host with no `ss` (`ss is not installed`), or on one that has it against a baseline saved without (`the baseline was saved without ss`; `--accept` saves one with them). It is no difference and changes no exit status.
+
+A document with two differences, its `check`:
+
+```json
+{
+  "accepted": false,
+  "baseline": {
+    "path": "/var/lib/hardn/baseline.json",
+    "format": 1,
+    "saved": "2026-11-13T10:00:00Z",
+    "user": "george",
+    "hardnVersion": "0.10.0"
+  },
+  "differences": [
+    { "fact": "ssh.passwordLogin", "change": "changed", "was": "no", "is": "yes" },
+    { "fact": "firewall.rules", "change": "added", "was": "", "is": "allow in 8080/tcp" }
+  ]
+}
+```
 
 ## 2. Codes
 
@@ -192,6 +259,24 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `UPDATES_CHANGED_SINCE` | 1 | a file hardn left changed since |
 | `UPDATES_NOTHING_TO_UNDO` | 1 | hardn did not turn updates on |
 | `UPDATES_STAY_ON` | 1 | another file keeps updates on without hardn's |
+| `LOGFWD_NO_SERVER` | 1 | hardn.yml names no log server (the Log Forwarding screen's refusals, `logforward.Err*`; [screen-logforward.md](../engine/screen-logforward.md)) |
+| `LOGFWD_BAD_SERVER` | 1 | hardn.yml's logForwarding is not valid |
+| `LOGFWD_NOT_READ` | 1 | the logger's settings are not read, so no change is planned |
+| `LOGFWD_SET_OUTSIDE` | 1 | log forwarding is set outside hardn |
+| `LOGFWD_UDP_ONLY` | 1 | busybox syslogd forwards over UDP only |
+| `LOGFWD_NO_CA_FILE` | 1 | the CA file is not a file on the host |
+| `LOGFWD_NO_INIT` | 1 | the logger's service is not one hardn restarts here |
+| `LOGFWD_CHECK_FAILED` | 1 | rsyslogd refuses its settings with hardn's file; the file is put back |
+| `LOGFWD_NOTHING_TO_STOP` | 1 | hardn did not set log forwarding |
+| `LOGFWD_CHANGED_SINCE` | 1 | the logger's settings changed since the plan |
+| `TIMESYNC_NO_SERVERS` | 1 | hardn.yml names no time servers (the Time Sync screen's refusals, `timesync.Err*`; [screen-timesync.md](../engine/screen-timesync.md)) |
+| `TIMESYNC_BAD_SERVERS` | 1 | hardn.yml's ntpServers is not valid |
+| `TIMESYNC_NOT_READ` | 1 | the time service's settings are not read, so no change is planned |
+| `TIMESYNC_SET_OUTSIDE` | 1 | time servers are set outside hardn |
+| `TIMESYNC_NO_SERVICE` | 1 | no time service is running |
+| `TIMESYNC_CONTAINER` | 1 | a container's host keeps the time |
+| `TIMESYNC_NOTHING_TO_REMOVE` | 1 | hardn did not set time servers |
+| `TIMESYNC_CHANGED_SINCE` | 1 | the time service's settings changed since the plan |
 | `CONFIG_CHANGED` | 1 | hardn.yml changed since it was read: saving would undo what changed it (the save of hardn.yml, [control-dns.md](../engine/control-dns.md) §2.9; `config.Save`'s too since `next/s2-config-edit`, [config-edit.md](../engine/config-edit.md)) |
 | `CONFIRM_WINDOW_CLOSING` | 1 | the confirm window is closing |
 | `BOOT_UNIT_NOT_INSTALLED` | 1 | the boot unit was not installed, so nothing is armed |
@@ -222,6 +307,10 @@ The *Exit* column is the status an error of the code gives a run (§3).
 | `CHANGE_ROLLED_BACK` | 1 | nothing to confirm: the change was not confirmed in time and was rolled back |
 | `CONFIRM_TIMEOUT_INVALID` | 2 | the confirm timeout is not accepted (confirmTimeout: a duration of at least 60 s) |
 | `CHANGE_ID_INVALID` | 2 | not a change id |
+| `BASELINE_MISSING` | 1 | hardn check has no baseline to compare with: none was saved with hardn check --accept |
+| `BASELINE_UNSAFE` | 1 | hardn check's baseline, or a directory above it, can be changed by a user other than root, or is no regular file: it is not read |
+| `BASELINE_OTHER_FORMAT` | 1 | hardn check's baseline is of another version of its format: it is not compared |
+| `BASELINE_INVALID` | 1 | hardn check's baseline is not one hardn wrote: too large, not its JSON, or facts not in their form |
 | `JOURNAL_INVALID` | 1 | the change journal is not valid |
 | `JOURNAL_UNSAFE` | 1 | the change journal, the run directory, or a directory above them, can be changed by a user other than root |
 | `RECORD_INVALID` | 1 | hardn's record of what it changed for a control is not valid |
@@ -514,6 +603,7 @@ Each primitive's stable kind code, upper case under its prefix (`SSHD_`, `PVE_`,
 | `USERS_NO_KEY` | a new user is planned with no key and no password, so it cannot log in ([control-users.md](../engine/control-users.md)) |
 | `USERS_PASSWORD_NOT_SET` | admin rights that ask a password are planned for a user who has none, so the user cannot use them until one is set ([control-users.md](../engine/control-users.md) §8) |
 | `DETAILS_UNREADABLE` | a section of the System Details report, or a fact of it, was not read: `source` says what; the rest was read (§1.10) |
+| `CHECK_NOT_COMPARED` | hardn check left a fact out of its comparison: `source` names the fact, `detail` says why (the listening ports, on a host with no `ss`) (§1.11) |
 
 The save's finding that hardn.yml's comments would be lost (CONFIG_COMMENTS_LOST, added by `next/s2-control`) is gone: the save now edits the settings that changed and keeps every comment but those of a list item it replaces or removes, which its diff shows, and the maintainer dropped the warning (2026-10-22). It was never merged or released, so no released code went ([config-edit.md](../engine/config-edit.md)).
 
@@ -556,7 +646,7 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
 | Status | When |
 |---|---|
 | `130` | anything in the run was interrupted (`CANCELLED`): Ctrl-C, or `SIGTERM` or a hangup, which hardn treats as Ctrl-C ([engine.md](../engine/engine.md) §2.14), or a prompt aborted (Ctrl-C, the end of the input). An apply interrupted is rolled back first; whether that finished is `result.rollback.finished`, never the outcome: an unfinished one is still `cancelled`, with `result.rollback.command` to finish it |
-| `2` | a usage error: bad flags or configuration (an error whose code's *Exit* is 2: `USAGE`, `CONFIRM_TIMEOUT_INVALID`, `CHANGE_ID_INVALID`), and changes that would be applied without a terminal and without an explicit yes (`CONFIRMATION_REQUIRED`, §6; not for a plan with nothing to change, which is 0). Before anything runs, `cmd/hardn` exits 2 for: a command line cobra rejects; `-r` with `-c`, `-d`, `-w` or `-g` (`-r` runs alone); a bad `--confirm-timeout` or hardn.yml `confirmTimeout`; `hardn confirm` or `hardn rollback` under `-n`; a change id `hardn rollback` cannot take; `system-details`' refused flags |
+| `2` | a usage error: bad flags or configuration (an error whose code's *Exit* is 2: `USAGE`, `CONFIRM_TIMEOUT_INVALID`, `CHANGE_ID_INVALID`), and changes that would be applied without a terminal and without an explicit yes (`CONFIRMATION_REQUIRED`, §6; not for a plan with nothing to change, which is 0). Before anything runs, `cmd/hardn` exits 2 for: a command line cobra rejects; `-r` with `-c`, `-d`, `-w` or `-g` (`-r` runs alone); a bad `--confirm-timeout` or hardn.yml `confirmTimeout`; `hardn confirm` or `hardn rollback` under `-n`; a change id `hardn rollback` cannot take; `system-details`' refused flags; `hardn check` with an operation flag, `-n`, or an `--output` other than `json` |
 | `1` | an error. What this run applied, it rolled back (`result.rollback.finished` says whether that finished; `rollback-incomplete` when it did not, and `result.rollback.command` finishes it). **A refusal is 1 too**: the run did not do what was asked and changed nothing, as `hardn confirm`'s and `hardn rollback`'s refusals already exit 1 ([revert.md](../safety/revert.md) §2.21), and as `hardn rollback --boot` does when it leaves a change to the person (`BOOT_LEFT`: [revert-boot.md](../safety/revert-boot.md) §6 asked for this meaning to be registered or given a code; it is registered here) |
 | `3` | a check found a control not as asked (`not-configured`, `partial`, or `unknown`: a state not established is not taken as hardened, brief §3), a plan has changes to make, or the user declined them at the confirmation or quit (`q`) or went back (`0`) before they were applied (`declined`): so a script can tell when a host has drifted from its hardened state |
 | `0` | success: nothing to change, or every change applied, a change waiting for confirmation included (it is rolled back at its deadline unless confirmed: `result.confirm`) |
@@ -565,6 +655,8 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
 
 **Every operation flag** (`-g`, `-c`, `-d`, `-w`, `-r`) runs on the engine and exits with this function's status, its human report (§7) on stdout. **A dry run** (`-n`, or hardn.yml's `dryRun: true` with no `-n`/`--dry-run` given; `--dry-run=false` turns it off) makes each flag a plan (`mode` `plan`): 3 with changes to make, 0 with none, 1 refused ([dryrun-mode.md](../engine/dryrun-mode.md)). **Several flags in one invocation** run in order, `-c`, `-d`, `-w`, `-g`, then `-p`, and hardn's status is the worst of theirs: a 1 or a 2 over a 3, a 3 over a 0 (`runStatus`, `cmd/hardn/rootcheck.go`). Other statuses outside this function: not root, an OS hardn refuses, a hardn.yml that does not load, or `-c` with no username, is 1 before anything runs; `hardn confirm` exits 1 when it does not confirm, and `hardn rollback` 1 when it refuses.
 
+**`hardn check`** exits by the same statuses (`output.CheckExit`, §1.11): 0 with no difference from the baseline, and for `--accept` once the baseline is saved; 3 with a difference, in either direction; 1 on an error, with no baseline, with one that is not read or of another format, and for a user other than root; 2 for a refused flag; 130 interrupted.
+
 **Signals** (`cmd/hardn/dns.go`, `runControls`; [cmd-engine.md](../engine/cmd-engine.md) §2.5 and §2.6). Ctrl-C, `SIGTERM` or a hangup during a flag's apply cancels it, rolls it back, and ends hardn with 130 once reported. One that reaches the apply or its report without interrupting the apply ends hardn once the flag is reported, the flags after it not run: with the failure's status during the rollback of a failed apply, and with 130 for a change applied, not this function's 0, so that a script never reads 0 for an invocation whose later flags did not run. Before the apply, while it plans, a signal ends hardn by the signal. After a hangup during the apply or its report, the report is not written to a terminal or a pipe, so that a terminal nothing reads any more cannot hang hardn; to a regular file (`hardn -g > report.txt`) it is written. Ctrl-C at a typed-hostname question (`-w`, `-d`, `-r` on a terminal) ends hardn by the signal, its audit record written first; the end of the input there is 130.
 
 ## 4. The audit log
@@ -572,7 +664,7 @@ A public interface (brief §2, decided): `0`, `1`, `2`, `3`, `130`, and no other
 - **Path:** `/var/log/hardn/audit.jsonl` (`output.AuditPath`, the path the refactor plan proposes, row `p3-output`). The directory is made `0750` when missing and must be a directory owned by root that neither its group nor others can write (`AUDIT_DIR_UNSAFE` otherwise), checked by its path and again on the directory the append opens, so that one put in its place in between is refused too; the file is created `0600`. A record holds the plan, its diffs included, so both are root's alone. A run ended by Ctrl-C, `SIGTERM` or a hangup still writes its record.
 - **Format:** one line per run, and per `hardn confirm` or `hardn rollback` (§4.1), appended: `{"time": "<RFC 3339, UTC>", ...the run's document (§1)...}`, the same nine fields as stdout's, so the plan, the results and any rollback (`result.rollback`) are there. Written with one `write(2)` on a descriptor opened with `O_APPEND`, so two runs never overwrite each other's lines. A write cut short (a crash, a full disk) leaves a line that is not valid JSON, and the next record is appended on that same line, so a reader skips any line that does not parse: at most that record and the next are lost. Never rewritten, truncated or rotated by hardn; rotation is the packaging's (`next/p7-install`).
 - **The legacy log**, as the brief's [Verify] asked recorded (`output.LegacyLogPath`; [phase0-findings.md](../refactor/phase0-findings.md) §6, **[V]**): `/var/log/hardn.log`, opened before flags were parsed until `next/p3-startup` (V26); since then by the main menu, the operation flags once they run, never in a dry run, and by `confirm` and `rollback` (`<id>`, `--abandon`, `--boot`) once their refusals of `-n` and of a user other than root are past (`openStartLog`, `cmd/hardn/main.go`; `revertPreflight`, `cmd/hardn/revert.go`); `O_CREATE|O_APPEND`, `0644`, its directory made `0755`; each line Go's `log.LstdFlags` date and time (`2006/01/02 15:04:05`), then `ERROR: `, `WARNING: `, `INFO: `, `SUCCESS: ` or `INSTALLED: ` and the message; not rotated. The `logFile` key is only read (the Logs screen and `-p`), so the two differ when it is changed. It is unchanged: the audit log is new, beside it. **The run log** (`host.Real`'s record of each command's argv, output and exit status, [system.md](../safety/system.md) §2.6) goes where its caller says: `cmd/hardn`'s confirm and rollback commands send it to the legacy log (`revertLog`), and that stays the run log's path, a decision of `next/p3-output`, unchanged by `next/p3-startup`, which made the log's opening lazy: where the log is not opened (a dry run), the run log is written nowhere. **The release check** (hardn.yml's `checkReleases`; [screen-release-check.md](../engine/screen-release-check.md)) writes one `WARNING: Release check failed: <reason>` line here for a check that failed; it has no output code and no audit record, as it runs no engine change.
-- **Written by** `cmd/hardn` since `next/p3-startup` (`audit`, `cmd/hardn/output.go`): one record for each run of the engine, after its report, whatever its outcome: each operation flag's (`-g`, `-c`, `-w`, `-d`, `-r`), a plan alone (`-n`, `mode` `plan`: the one thing a dry run writes, which opens neither the legacy log nor `/etc/hardn/hardn.yml.example` and asks no first-run question), a refusal (`-r`'s by its planner before any plan, a change pending, among them: `outcome` `refused`, its code the refusal's), a confirmation declined, an apply, its rollback, one interrupted (written before hardn ends on the signal); each change a screen plans (DNS, Backup, Firewall, SSH Login, User Management, Environment, Auto Updates, Run All's Apply all), once its flow ends; and `hardn confirm`'s clean-up when it runs; `hardn confirm` and `hardn rollback` write their own (§4.1). Nothing is written before flags are parsed and an operation runs, so never for `--help`, `--version`, a usage error or the non-root refusal. A record that cannot be written (`AUDIT_DIR_UNSAFE`, a full disk) is a warning on stderr with its code: the run goes on, its exit status its own. **Not recorded yet:** a screen's change after which a hangup ends hardn before its flow is drawn.
+- **Written by** `cmd/hardn` since `next/p3-startup` (`audit`, `cmd/hardn/output.go`): one record for each run of the engine, after its report, whatever its outcome: each operation flag's (`-g`, `-c`, `-w`, `-d`, `-r`), a plan alone (`-n`, `mode` `plan`: the one thing a dry run writes, which opens neither the legacy log nor `/etc/hardn/hardn.yml.example` and asks no first-run question), a refusal (`-r`'s by its planner before any plan, a change pending, among them: `outcome` `refused`, its code the refusal's), a confirmation declined, an apply, its rollback, one interrupted (written before hardn ends on the signal); each change a screen plans (DNS, Backup, Firewall, SSH Login, User Management, Environment, Auto Updates, Run All's Apply all), once its flow ends; and `hardn confirm`'s clean-up when it runs; `hardn confirm` and `hardn rollback` write their own (§4.1). **`hardn check --accept`** writes one, its document of §1.11, whatever its outcome: `check.baseline.user` and `saved` say who saved the baseline and when. **A plain `hardn check` writes none**, nor any other file: run every five minutes it would add 105,000 lines a year to a file nothing rotates ([design-check.md](../engine/design-check.md), decision 7). Nothing is written before flags are parsed and an operation runs, so never for `--help`, `--version`, a usage error or the non-root refusal. A record that cannot be written (`AUDIT_DIR_UNSAFE`, a full disk) is a warning on stderr with its code: the run goes on, its exit status its own. **Not recorded yet:** a screen's change after which a hangup ends hardn before its flow is drawn.
 
 ### 4.1 `hardn confirm` and `hardn rollback`
 
@@ -644,6 +736,8 @@ The record has the nine fields, `changes`, `status` and `findings` empty; `host`
 - **Colour:** stdout and stderr are each styled by their own detection (`term.Detect`): a stream that is not a terminal is plain, as with `--plain` or `HARDN_PLAIN`: no animation, ASCII symbols, and no colour. `NO_COLOR` and `TERM=dumb` turn colour off too. `--color=always` colours a stream whatever else holds; `--color=never` (`--no-color`, deprecated) never does. Under the systemd timer `hardn rollback`'s streams are the journal, under the OpenRC sleeper the null device, so its lines there carry no escape codes ([vmtest.md](../safety/vmtest.md) §4.9).
 - **The operation flags:** the human report of §7 on stdout and the exit statuses of §3; on a terminal a plan with no lockout risk applies without a question; off one, only with `--yes` (§6).
 - **`hardn system-details --output json`** (§1.10), **`--output markdown`** (§8), and `-p`'s exit statuses.
+- **`hardn check`** and **`hardn check --accept`**, as text or with `--output json` (§1.11).
+- **After a change applied on a host with a baseline**, the report ends with "Run `sudo hardn check --accept` to keep this as the baseline." ("Once confirmed, run ..." for a change waiting for confirmation): the host no longer matches the baseline until it is accepted again. It is not in the JSON document.
 - Nothing else: no other `--output`.
 
 ## 6. Non-interactive use
@@ -675,7 +769,7 @@ What it reads, and so what it holds beyond `--output json`'s document: the main 
 |---|---|
 | title | `hardn report`, with the hostname; then when it was made (UTC) and hardn's version |
 | a note | only as a user other than root: `Not root: what only root can read shows Unknown.` |
-| Host | hostname, `os.prettyName`, the platform and its support level (Supported, Best effort, Out of scope, Unlisted, Unknown), kernel, uptime, init, how sshd is started, container, Proxmox VE, sudo, doas (§1.3) |
+| Host | hostname, `os.prettyName`, the platform and its support level (Supported, Best effort, Out of scope, Unlisted, Unknown), kernel, uptime, the time service, the clock and the server it follows (`details.time`), init, how sshd is started, container, Proxmox VE, sudo, doas (§1.3) |
 | Risk level | the main menu's level and gloss, then every factor, each under its control's title; the pending reboot's under `Host` |
 | Status | each control's row in the main menu's order: title, state, detail; then each row's `evidence` |
 | Findings | `findings[]` (§1.7): code, detail, source, control; `No findings.` for none |

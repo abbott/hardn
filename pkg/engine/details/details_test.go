@@ -1281,6 +1281,8 @@ func TestReadWritesNothing(t *testing.T) {
 		"doas":     true, // -C
 		"lslogins": true,
 		"ss":       true, // -Htlnp, -Hulnp
+		// The time rows' reads (pkg/host/timesync).
+		"dpkg-query": true, "systemctl": true, "timedatectl": true, "chronyc": true,
 	}
 	wantArgs := map[string]func([]string) bool{
 		"ip":     func(a []string) bool { return a[0] == "-o" && a[1] == "addr" },
@@ -1292,7 +1294,11 @@ func TestReadWritesNothing(t *testing.T) {
 		"ss": func(a []string) bool {
 			return slices.Equal(a, []string{"-Htlnp"}) || slices.Equal(a, []string{"-Hulnp"})
 		},
-		"lslogins": func(a []string) bool { return strings.HasPrefix(a[0], "--time-format") },
+		"lslogins":    func(a []string) bool { return strings.HasPrefix(a[0], "--time-format") },
+		"dpkg-query":  func(a []string) bool { return a[0] == "--show" },
+		"systemctl":   func(a []string) bool { return a[0] == "is-active" },
+		"timedatectl": func(a []string) bool { return a[0] == "show" || a[0] == "show-timesync" },
+		"chronyc":     func(a []string) bool { return slices.Equal(a, []string{"-N", "tracking"}) },
 	}
 	for _, zfs := range []bool{false, true} {
 		var runLog bytes.Buffer

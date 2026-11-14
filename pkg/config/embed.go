@@ -57,6 +57,24 @@ ufwAppProfiles:
       - "30443/tcp" # non-standard 443
 
 #################################################
+# Log Forwarding
+#################################################
+# The syslog server Log Forwarding (main menu 8, then 2) and Run All send the host's logs to. None by default.
+# logForwarding:
+#   server: "192.0.2.50"            # IPv4 address or name
+#   port: 514                       # default 514; 6514 for tls
+#   protocol: tcp                   # udp, tcp or tls; default tcp
+#   caFile: ""                      # tls only: the CA file, such as "/etc/ssl/lab-ca.pem"
+
+#################################################
+# Time Sync
+#################################################
+# The time servers Time Sync (main menu 8, then 3) and Run All set on the host's time service, in place of its own. None by default.
+# ntpServers:                       # one to four, each an IPv4 address or name
+#   - "192.0.2.10"
+#   - "192.0.2.11"
+
+#################################################
 # Feature Toggles
 #################################################
 enableUfwSshPolicy: false         # Configure UFW with SSH rules

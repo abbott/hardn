@@ -28,8 +28,10 @@ import (
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	fwctl "github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	"github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/risk"
@@ -62,6 +64,11 @@ const (
 	// rollback, or a change that did not finish, is revert's own words,
 	// with its hardn rollback.
 	PendingWords = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
+
+	// wordsSetServer is Log Forwarding's change, the screen's item.
+	wordsSetServer = "Set server"
+	// wordsSetServers is Time Sync's change, the screen's item.
+	wordsSetServers = "Set servers"
 
 	userMgmt = "User Management's: "
 	sshLogin = "SSH Login's: "
@@ -151,10 +158,38 @@ func IDs() []string {
 	return append(ids, backupctl.ID)
 }
 
+// IDsFor are the rows' controls with cfg as hardn.yml: IDs, and, before
+// Backup, Log Forwarding where logForwarding names a server and Time Sync
+// where ntpServers names any. With none its row is not listed
+// (gallery-logforward.md, decision 9 (a); gallery-timesync.md, decision 15
+// (a)).
+func IDsFor(cfg *config.Config) []string {
+	ids := IDs()
+	if cfg == nil {
+		return ids
+	}
+	var more []string
+	if cfg.LogForwarding.Server != "" {
+		more = append(more, logforward.ID)
+	}
+	if len(cfg.NTPServers) > 0 {
+		more = append(more, timesync.ID)
+	}
+	return slices.Insert(ids, len(ids)-1, more...)
+}
+
 // Checked are the controls whose checks the rows show: the main menu's,
+// Log Forwarding's and Time Sync's where hardn.yml asks for them (IDsFor),
 // then Backup's.
 func Checked(cfg *config.Config) []engine.Control {
-	return append(controls.Status(cfg), backupctl.Settings{Config: cfg})
+	out := controls.Status(cfg)
+	if cfg != nil && cfg.LogForwarding.Server != "" {
+		out = append(out, logforward.Controls(cfg)...)
+	}
+	if cfg != nil && len(cfg.NTPServers) > 0 {
+		out = append(out, timesync.Controls(cfg)...)
+	}
+	return append(out, backupctl.Settings{Config: cfg})
 }
 
 // Ask is what hardn.yml asks Run All of one row (decision 4 (a)).
@@ -182,7 +217,9 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // login off, key-only on Proxmox VE, never loosened (sshchange.Disallow,
 // as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
-// nameservers; enableUnattendedUpgrades true, on (never off). SSH Auth asks
+// nameservers; enableUnattendedUpgrades true, on (never off);
+// logForwarding's server, Set server (never Stop forwarding); ntpServers,
+// Set servers (never Remove servers). SSH Auth asks
 // no key: on Alpine, where sshd lacks CVE-2026-123158's fix, it is the
 // openssh upgrade (sshchange.Upgrade; the maintainer, 2026-11-08). Every
 // other row asks nothing: AppArmor and Backup.
@@ -229,6 +266,18 @@ func Asked(in Input, id string) Ask {
 			return Ask{}
 		}
 		return Ask{Control: updates.Auto{Action: updates.AutoOn, Records: in.Revert, Version: in.Version}, Words: "Turn on"}
+	case logforward.ID:
+		// Set server alone, never Stop forwarding (decision 9 (a)).
+		if cfg.LogForwarding.Server == "" {
+			return Ask{}
+		}
+		return Ask{Control: logforward.Forward{Action: logforward.ActionSet, Config: cfg}, Words: wordsSetServer}
+	case timesync.ID:
+		// Set servers alone, never Remove servers (decision 15 (a)).
+		if len(cfg.NTPServers) == 0 {
+			return Ask{}
+		}
+		return Ask{Control: timesync.Sync{Action: timesync.ActionSet, Config: cfg}, Words: wordsSetServers}
 	}
 	return Ask{}
 }
@@ -351,7 +400,7 @@ func Read(ctx context.Context, in Input) (Reading, error) {
 	if err != nil {
 		return Reading{}, fmt.Errorf("runall: %w", err)
 	}
-	for _, id := range IDs() {
+	for _, id := range IDsFor(in.Config) {
 		rep, _ := report(reports, id)
 		r.Reports = append(r.Reports, rep)
 		r.Rows = append(r.Rows, r.pick(ctx, in, id, rep))

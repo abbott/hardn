@@ -27,6 +27,9 @@ type Document struct {
 	// (Run.Details); every other document, and so the audit log's lines, has the
 	// nine fields above.
 	Details *Details `json:"details,omitempty"`
+	// Check is hardn check's part, on that command's documents alone
+	// (BuildCheck): the baseline and each difference from it.
+	Check *Check `json:"check,omitempty"`
 }
 
 // Mode is what the run was asked to do.

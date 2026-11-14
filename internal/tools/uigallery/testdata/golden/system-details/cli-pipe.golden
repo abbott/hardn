@@ -18,6 +18,9 @@ $
    -  OS                   Debian 13 (Trixie)$
    -  Kernel               6.12.113+deb13-cloud-amd64$
    -  Uptime               3 days, 5 hours, 12 minutes$
+   -  Time service         systemd-timesyncd$
+  [+] Clock                In sync$
+   -  Synced to            0.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $
@@ -71,6 +74,9 @@ $
    -  OS                   Debian 13 (Trixie)$
    -  Kernel               6.12.113+deb13-cloud-amd64$
    -  Uptime               3 days, 5 hours, 12 minutes$
+   -  Time service         systemd-timesyncd$
+  [+] Clock                In sync$
+   -  Synced to            0.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $
@@ -124,6 +130,9 @@ $
    -  OS                   Debian 13 (Trixie)$
    -  Kernel               6.12.113+deb13-cloud-amd64$
    -  Uptime               3 days, 5 hours, 12 minutes$
+   -  Time service         systemd-timesyncd$
+  [+] Clock                In sync$
+   -  Synced to            0.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $

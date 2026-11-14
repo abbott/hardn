@@ -23,10 +23,13 @@ import (
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	timectl "github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
@@ -39,6 +42,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/firewalld"
+	"github.com/abbott/hardn/pkg/host/logfwd"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -48,6 +52,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/output"
 	"github.com/abbott/hardn/pkg/ui/prompt"
@@ -155,6 +160,10 @@ var sentinels = map[string]error{
 	"firewalld.ErrZoneNoSSH":          firewalld.ErrZoneNoSSH,
 	"firewalld.ErrNotReady":           firewalld.ErrNotReady,
 	"firewalld.ErrFailed":             firewalld.ErrFailed,
+	"drift.ErrFormat":                 drift.ErrFormat,
+	"drift.ErrInvalid":                drift.ErrInvalid,
+	"drift.ErrNoBaseline":             drift.ErrNoBaseline,
+	"drift.ErrUnsafe":                 drift.ErrUnsafe,
 	"firewall.ErrFirewalldMissing":    firewall.ErrFirewalldMissing,
 	"firewall.ErrRunningNotAtBoot":    firewall.ErrRunningNotAtBoot,
 	"firewall.ErrUFWBeside":           firewall.ErrUFWBeside,
@@ -297,6 +306,33 @@ var sentinels = map[string]error{
 	"sshchange.ErrPortRestricted":     sshchange.ErrPortRestricted,
 	"updates.ErrNotRead":              updates.ErrNotRead,
 	"dnfauto.ErrConf":                 dnfauto.ErrConf,
+	"logforward.ErrNoServer":          logforward.ErrNoServer,
+	"logforward.ErrBadServer":         logforward.ErrBadServer,
+	"logforward.ErrNotRead":           logforward.ErrNotRead,
+	"logforward.ErrOutside":           logforward.ErrOutside,
+	"logforward.ErrUDPOnly":           logforward.ErrUDPOnly,
+	"logforward.ErrNoCAFile":          logforward.ErrNoCAFile,
+	"logforward.ErrNoInit":            logforward.ErrNoInit,
+	"logforward.ErrCheckFailed":       logforward.ErrCheckFailed,
+	"logforward.ErrNothingToStop":     logforward.ErrNothingToStop,
+	"logforward.ErrChangedSince":      logforward.ErrChangedSince,
+	"logfwd.ErrServer":                logfwd.ErrServer,
+	"logfwd.ErrMalformed":             logfwd.ErrMalformed,
+	"logfwd.ErrNoLogger":              logfwd.ErrNoLogger,
+	"logfwd.ErrTwoLoggers":            logfwd.ErrTwoLoggers,
+	"logfwd.ErrForeign":               logfwd.ErrForeign,
+	"logfwd.ErrNotOwn":                logfwd.ErrNotOwn,
+	"timesync.ErrNoServers":           timectl.ErrNoServers,
+	"timesync.ErrBadServers":          timectl.ErrBadServers,
+	"timesync.ErrNotRead":             timectl.ErrNotRead,
+	"timesync.ErrOutside":             timectl.ErrOutside,
+	"timesync.ErrNoService":           timectl.ErrNoService,
+	"timesync.ErrContainer":           timectl.ErrContainer,
+	"timesync.ErrNothingToRemove":     timectl.ErrNothingToRemove,
+	"timesync.ErrChangedSince":        timectl.ErrChangedSince,
+	"timesync.ErrServer":              timesync.ErrServer,
+	"timesync.ErrMalformed":           timesync.ErrMalformed,
+	"timesync.ErrNotOwn":              timesync.ErrNotOwn,
 	"updates.ErrPeriodicOff":          updates.ErrPeriodicOff,
 	"updates.ErrTimerOff":             updates.ErrTimerOff,
 	"updates.ErrJobMasked":            updates.ErrJobMasked,
@@ -717,6 +753,7 @@ func TestFindingCodes(t *testing.T) {
 	want = append(want, users.CodePasswordNotSet)                                                                                // next/sudo-password-opt-in
 	want = append(want, users.CodeNoKey)                                                                                         // next/s5-control
 	want = append(want, output.CodeDetailsUnreadable)                                                                            // next/s1-readers
+	want = append(want, output.CodeNotCompared)                                                                                  // hardn check (docs/engine/design-check.md)
 	want = append(want, ssh.CodePasswordBypass, ssh.CodeSSHDUnfixed, ssh.CodeFixUnknown)                                         // CVE-2026-123158
 	want = append(want, ssh.CodeSSHDUnfixedLatent)                                                                               // its line with no password path
 	want = append(want, firewall.CodePortsBlocked, firewall.CodePortsUnread)                                                     // the other listeners Enable blocks

@@ -99,6 +99,7 @@ func runControls(c *config.Config, controls []engine.Control, refuse func(*engin
 		res, err := e.Apply(w.ctx, run.Plan)
 		run.Result, run.Err = &res, err
 	}
+	run = withBaseline(ctx, sys, run)
 	if err := output.Emit(output.Streams{Stdout: engineStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {
 		sayError("%v", err)
 	}

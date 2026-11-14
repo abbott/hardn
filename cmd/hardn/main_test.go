@@ -67,6 +67,13 @@ func resetFlags() {
 		"color", "ascii", "plain", "theme", "confirm-timeout", "no-color", "yes"} {
 		rootCmd.PersistentFlags().Lookup(name).Changed = false
 	}
+	if c, _, err := rootCmd.Find([]string{"check"}); err == nil {
+		for _, name := range []string{"accept", "output"} {
+			f := c.Flags().Lookup(name)
+			_ = f.Value.Set(f.DefValue)
+			f.Changed = false
+		}
+	}
 	if c, _, err := rootCmd.Find([]string{"system-details"}); err == nil {
 		for _, name := range []string{"output", "export", "section", "format", "json", "yaml"} {
 			f := c.Flags().Lookup(name)

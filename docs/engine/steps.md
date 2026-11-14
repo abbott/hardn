@@ -326,6 +326,19 @@ func PlanPackage(ctx context.Context, sys host.System, f detect.Facts, p Package
 func PackageRefusal(tool packages.Tool, name string, community bool, err error) error // PACKAGE_*; community names Alpine's community repository
 func PackageToolRefusal(err error) error                              // PACKAGE_NO_TOOL
 func PackageUndo(argv []string, why string) []revert.Step
+                                                                      // 2026-11-14: moved from the Log Forwarding control, for Time sync too (gallery-timesync.md §5.5); words and codes stay each control's
+func Refuse(code string, sentinel, cause error, why, fix string) error // a *Refusal: the sentinel, wrapping cause where there is one
+func HostWords(err error, prefix string, sentinel error) string       // err's first line, safe, without its package's prefix and its sentinel's words
+func FirstLine(s string) string
+func IDs(cs []engine.Change) []string
+func ServiceArgv(f detect.Facts, unit, service, verb string) (argv []string, ok bool) // systemctl verb unit, or rc-service service verb, by the init that booted the host
+func RestartService(control, id, title, service string, argv []string, after string) engine.Change // StageReload; its rollback runs argv again
+type Rewrite struct { Control, ID, Title, Path, Detail string; Unread func(error) error; Changed error }
+func RewriteFile(ctx context.Context, sys host.System, r Rewrite, edit func([]byte) ([]byte, error)) (engine.Change, error) // a file of the host's: read (r.Unread where it is not), edit, diff; the apply refuses a file changed since (r.Changed), keeps mode and owner
+type OwnFile struct { Control, ID, Title, Path string; Before *string; Data []byte; After []string; Check *FileCheck }
+type FileCheck struct { Argv []string; Refused func(host.Result, error) error; Detail string }
+func WriteOwnFile(o OwnFile) engine.Change                             // hardn's own file, backed up, written atomically, then o.Check where set; o.MkDir makes its directory where missing, and a rollback removes the one it made
+func DeleteOwnFile(control, id, title, name, text, detail string) engine.Change // hardn's own file deleted, backed up first: WriteOwnFile's undo (Log Forwarding's Stop, Time Sync's Remove)
 
 package engine  // added: Input.Session revert.Session; Change.Resources []string; Change.Findings []Finding
                 //   var ErrConflict error

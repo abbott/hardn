@@ -1,5 +1,7 @@
 # The Run All screen on the planner (`pkg/screens/runall`, `screen.RunAll`)
 
+*Since `next/time-sync` (2026-11-14): the main menu's keys are unchanged from v0.9.0: 6 opens Run All. Log Forwarding and Time Sync are under `8) Configuration` (the maintainer, 2026-11-14, revising [gallery-logforward.md](gallery-logforward.md)'s decision 8 and [gallery-timesync.md](gallery-timesync.md)'s decision 9).*
+
 > **Unit:** refactor plan slice 8, unit (c), `next/s8-screen`, from `346e2fb9`. **Status:** built and tested on macOS, in process: the screen through `Run` on its own fake (`host_test.go` and `hosts_test.go` copied from `pkg/engine/runall`'s tests, Create's accounts model from `pkg/screens/users`'), the planner's reads and the plans on the real engine. No real terminal, no hardn binary, no VM. Not yet wired: main menu 7 still runs the legacy Run All until unit (d). *Since `next/s8-replace`: main menu 7 opens this screen, and `hardn -r` runs its plan ([cmd-engine.md](cmd-engine.md) §2.19).*
 
 *Since `next/remove-environment` (2026-11-12): the Environment screen, `-e` and `setup-sudo-env` are removed ([control-environment.md](control-environment.md)); since `next/config-screen` Configuration is main menu 8 ([screen-config.md](screen-config.md)), and System Details and Logs are 9 and 10 again.*

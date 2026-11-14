@@ -44,7 +44,7 @@ func TestBackupItem(t *testing.T) {
 	})
 }
 
-// TestConfigurationItem: the main menu's 8 runs the Configuration screen
+// TestConfigurationItem: the main menu's 8 runs the Configuration group
 // cmd/hardn sets (Options.Configuration), as TestDNSItem's 4 runs the DNS screen,
 // and maps what it returns the same way (next/config-screen); the screen
 // only shows, so the main menu's configuration is as it was.
@@ -168,7 +168,7 @@ func TestRunAllItem(t *testing.T) {
 }
 
 // TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
-// sets, and map what they return as TestDNSItem's 3 does (refactor plan slice 1, unit
+// sets, and map what they return as TestDNSItem's 4 does (refactor plan slice 1, unit
 // (d)); neither saves a setting.
 func TestSystemDetailsAndLogsItems(t *testing.T) {
 	for _, it := range []screenItem{

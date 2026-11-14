@@ -134,7 +134,7 @@ func runTyped(c *config.Config, controls []engine.Control, q typedConfirm) int {
 		},
 	}
 	out, err := f.Run(ctx, p)
-	run := fe.Run(out, err)
+	run := withBaseline(ctx, sys, fe.Run(out, err))
 	if errors.Is(err, prompt.ErrInterrupted) {
 		audit(sys, c, run)
 		typedReraise()

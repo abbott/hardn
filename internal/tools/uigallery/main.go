@@ -182,8 +182,9 @@
 // "config" lists the mocks of the Configuration screen, which shows hardn.yml read
 // only (config.go, docs/engine/gallery-config.md), with the same flags. "play config"
 // is the menu of those mocks and "play config/<mock>" hardn's Configuration screen
-// itself on one (pkg/screens/config; docs/engine/screen-config.md); the main menu's 8
-// leads to it on the typical file.
+// itself on one (pkg/screens/config; docs/engine/screen-config.md). The main menu's 8
+// leads to the Configuration group ("play config/menu"), whose 1 leads to that
+// screen on the typical file, 2 to Log Forwarding and 3 to Time Sync.
 //
 // "eol" lists the mocks of the main menu's end-of-support notice (eol.go,
 // docs/engine/gallery-eol.md), with the same flags, each drawn through the
@@ -627,8 +628,9 @@ func (l look) gallery(stderr io.Writer) (gallery, bool) {
 // size themselves with size too and read no input. No other mode calls
 // either.
 // (sdListing) or the Logs listing (logsListing), which size themselves with
-// size too and read no input, as "config" and "ports" (configListing,
-// portsListing) do. No other mode calls either.
+// size too and read no input, as "config", "ports", "logforward" and
+// "timesync" (configListing, portsListing, lfListing, tsListing) do. No
+// other mode calls either.
 func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr io.Writer) int {
 	if len(args) > 0 && args[0] == "play" {
 		return play(args[1:], stdin, size, stdout, stderr)
@@ -666,6 +668,12 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	if len(args) > 0 && args[0] == portsPrefix {
 		return portsListing.run(args[1:], size, stdout, stderr)
 	}
+	if len(args) > 0 && args[0] == lfPrefix {
+		return lfListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == tsPrefix {
+		return tsListing.run(args[1:], size, stdout, stderr)
+	}
 	fs := flag.NewFlagSet("uigallery", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 	fs.Usage = func() {
@@ -683,6 +691,8 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(keysUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(bfUsage, "usage: "))
 		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(portsUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(lfUsage, "usage: "))
+		fmt.Fprintln(stderr, "       "+strings.TrimPrefix(tsUsage, "usage: "))
 		fs.PrintDefaults()
 	}
 	list := fs.Bool("list", false, "print the names of the states, or with -screens the screen drawings, it would render, and exit")

@@ -218,12 +218,12 @@ func (f Firewall) SubMenu() SubMenu {
 // FirewallLimitChange is Limit SSH's change: what ufw's limit does, above
 // rules, SSH's as the Rules section names them ("22/tcp", "22/tcp (v6)"),
 // each a limit after it; y/N.
-func FirewallLimitChange(rules []string) FirewallChange {
+func FirewallLimitChange(rules []string) Change {
 	items := make([]component.KeyValue, len(rules))
 	for i, r := range rules {
 		items[i] = component.KeyValue{Key: r, Value: firewallLimitValue, State: component.ValueOK}
 	}
-	return FirewallChange{Step: firewallStep(firewallLimitLabel), Question: "Limit SSH?", Review: flow.Review{
+	return Change{Step: firewallStep(firewallLimitLabel), Question: "Limit SSH?", Review: flow.Review{
 		Notice: &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{firewallLimitNotice}}},
 		Title:  firewallSectionRules, Items: items}}
 }
@@ -242,14 +242,6 @@ func firewallSection(title string, rows []component.KeyValue) Section {
 	return Section{Header: component.SectionHeader{Title: title}, Rows: component.BulletList{Items: rows}}
 }
 
-// FirewallChange is one change's words: the title bar over its flow, its
-// question, and its review.
-type FirewallChange struct {
-	Step     WorkflowStep
-	Question string
-	Review   flow.Review
-}
-
 // firewallStep is the title bar of a change on ufw's screen.
 func firewallStep(title string) WorkflowStep {
 	return WorkflowStep{Title: trail(firewallTitle, title)}
@@ -260,19 +252,19 @@ func firewallStep(title string) WorkflowStep {
 // it, active, its policy, and at boot; Disable's (FirewallDisableChange). Its
 // service not read, Enable refuses before this. FirewallRepair and no item have
 // none.
-func (f Firewall) FirstChange() FirewallChange {
+func (f Firewall) FirstChange() Change {
 	w := firewallFirsts[f.First]
 	switch f.First {
 	case FirewallNoFirst, FirewallRepair:
-		return FirewallChange{}
+		return Change{}
 	case FirewallInstall:
-		return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionUFW,
+		return Change{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionUFW,
 			Items: []component.KeyValue{{Key: firewallPackageKey, Value: "ufw"}, {Key: FirewallStatusKey, Value: "Inactive"}}}}
 	case FirewallInstallSS:
-		return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionSSH,
+		return Change{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionSSH,
 			Items: []component.KeyValue{{Key: firewallPackageKey, Value: "iproute2"}}}}
 	case FirewallEnableSS:
-		return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{
+		return Change{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{
 			Notice: &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{firewallNeedsSSNotice}}},
 			Title:  firewallSectionSSH, Items: []component.KeyValue{{Key: firewallPackageKey, Value: "iproute2"}}}}
 	case FirewallDisableFirst:
@@ -282,16 +274,16 @@ func (f Firewall) FirstChange() FirewallChange {
 	if f.KeepsReject {
 		policy = "Reject"
 	}
-	return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionUFW, Items: []component.KeyValue{
+	return Change{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionUFW, Items: []component.KeyValue{
 		{Key: FirewallStatusKey, Value: "Active", State: component.ValueOK}, {Key: FirewallPolicyKey, Value: policy, State: component.ValueOK},
 		{Key: FirewallBootKey, Value: "Yes", State: component.ValueOK}}}}
 }
 
 // FirewallDisableChange is Disable's change, from item 1 or its own: the warning
 // above ufw inactive, y/N (decision 6).
-func FirewallDisableChange() FirewallChange {
+func FirewallDisableChange() Change {
 	w := firewallFirsts[FirewallDisableFirst]
-	return FirewallChange{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{
+	return Change{Step: firewallStep(w.title), Question: w.question, Review: flow.Review{
 		Notice: firewallWarning(firewallDisableWarning),
 		Title:  firewallSectionUFW, Items: []component.KeyValue{{Key: FirewallStatusKey, Value: "Inactive", State: component.ValueWarn}}}}
 }
@@ -360,8 +352,8 @@ func firewallProfileStep(title string) WorkflowStep {
 }
 
 // ApplyChange is Apply's change: the section's rows as they stand, y/N.
-func (f FirewallProfiles) ApplyChange() FirewallChange {
-	return FirewallChange{Step: firewallProfileStep("Apply Profiles"), Question: "Apply the profiles?",
+func (f FirewallProfiles) ApplyChange() Change {
+	return Change{Step: firewallProfileStep("Apply Profiles"), Question: "Apply the profiles?",
 		Review: flow.Review{Title: firewallSectionProfiles, Items: f.Rows}}
 }
 
@@ -425,8 +417,8 @@ func firewallIfaceStep(title string) WorkflowStep {
 }
 
 // ApplyChange is Apply's change: the section's rows as they stand, y/N.
-func (f FirewallInterfaces) ApplyChange() FirewallChange {
-	return FirewallChange{Step: firewallIfaceStep("Apply Interfaces"), Question: "Apply the interfaces?",
+func (f FirewallInterfaces) ApplyChange() Change {
+	return Change{Step: firewallIfaceStep("Apply Interfaces"), Question: "Apply the interfaces?",
 		Review: flow.Review{Title: firewallSectionIfaces, Items: f.Rows}}
 }
 

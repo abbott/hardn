@@ -64,6 +64,11 @@ type Run struct {
 	// so that AfterFlow does not repeat them: each whose detail shows as
 	// a line. It changes nothing in the document.
 	Reviewed bool
+	// Baseline: the host has a baseline of hardn check's (drift.Kept), so
+	// the report of a change applied says to accept the host again
+	// (docs/engine/design-check.md, decision 2). It changes nothing in the
+	// document.
+	Baseline bool
 }
 
 // facts are r's host facts.

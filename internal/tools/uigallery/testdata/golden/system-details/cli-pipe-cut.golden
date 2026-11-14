@@ -17,6 +17,9 @@ $
    -  OS                   Proxmox VE 9.0.10 (Trixie)$
    -  Kernel               6.17.2-1-pve$
    -  Uptime               41 days, 1 hour$
+   -  Time service         chrony$
+  [+] Clock                In sync$
+   -  Synced to            2.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $
@@ -69,6 +72,9 @@ $
    -  OS                   Proxmox VE 9.0.10 (Trixie)$
    -  Kernel               6.17.2-1-pve$
    -  Uptime               41 days, 1 hour$
+   -  Time service         chrony$
+  [+] Clock                In sync$
+   -  Synced to            2.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $
@@ -121,6 +127,9 @@ $
    -  OS                   Proxmox VE 9.0.10 (Trixie)$
    -  Kernel               6.17.2-1-pve$
    -  Uptime               41 days, 1 hour$
+   -  Time service         chrony$
+  [+] Clock                In sync$
+   -  Synced to            2.debian.pool.ntp.org$
 $
   Host and IPs -------------------------------------------------$
 $

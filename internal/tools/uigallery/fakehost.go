@@ -20,6 +20,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/revert"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
+	"github.com/abbott/hardn/pkg/host/timesync/timefake"
 	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
@@ -113,6 +114,12 @@ type fakeHost struct {
 	// upd answers the Auto Updates control's commands (updateshost.go); nil on
 	// every other host.
 	upd *updSim
+	// lf answers the Log Forwarding control's commands (logforward.go); nil
+	// on every other host.
+	lf *lfSim
+	// ts is the host's time service (timehost.go), which answers the Time
+	// Sync control's commands; nil on a host that is no status host.
+	ts *timefake.Sim
 }
 
 // platform is what a simulated host's release ships, as detect reads it.
@@ -605,6 +612,12 @@ func (h *fakeHost) run(argv []string, _ []byte) hostfake.Response {
 	}
 	if r, ok := h.upd.answer(h, argv); ok {
 		return r
+	}
+	if r, ok := h.lf.answer(h, argv); ok {
+		return r
+	}
+	if r, ok := h.ts.Answer(argv); ok {
+		return hostfake.Response{Stdout: r.Stdout, Stderr: r.Stderr, ExitCode: r.ExitCode}
 	}
 	switch path.Base(argv[0]) {
 	case "sshd":

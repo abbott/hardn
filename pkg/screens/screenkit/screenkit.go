@@ -29,7 +29,9 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
+	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -210,6 +212,11 @@ func (s Session) Change(ctx context.Context, c Change) error {
 		return err
 	}
 	run := fe.Run(out, err)
+	if out == flow.Applied && !s.DryRun {
+		// The host has a baseline of hardn check's: the report says to
+		// accept it again (docs/engine/design-check.md, decision 2).
+		run.Baseline = drift.Kept(context.WithoutCancel(ctx), s.System, revert.Options{})
+	}
 	if after := output.AfterFlow(s.Prompter.Ctx.Env, run, now()); after != "" {
 		if werr := s.Write(after); err == nil {
 			err = werr
@@ -222,6 +229,46 @@ func (s Session) Change(ctx context.Context, c Change) error {
 		Adopt(ctx, s.System, s.Config, &edited)
 	}
 	return err
+}
+
+// Reviewed runs an item that sets a service's setting, or undoes hardn's
+// (Log Forwarding's Set server and Stop forwarding), plain y/N: control is
+// planned first (Preplan), with cfg, and its refusal said before anything
+// is asked; then build, which reads the host afresh, returns the change's
+// words and the notice its review opens with; then the review, the plan and
+// the question (Change). ok false from build is nothing to change, hardn.yml
+// edited between the plan and here: the screen is drawn again.
+func (s Session) Reviewed(ctx context.Context, cfg *config.Config, control engine.Control, build func() (ch screen.Change, notice string, ok bool)) error {
+	switch words, err := s.Preplan(ctx, cfg, control); {
+	case err != nil:
+		return err
+	case words != "":
+		return s.Say(Warnings(words))()
+	}
+	ch, notice, ok := build()
+	if !ok {
+		return nil
+	}
+	ch.Review.Notice = &flow.Notice{Callout: component.Callout{Kind: component.MessageInfo, Body: []string{notice}}}
+	return s.Change(ctx, Change{
+		Step:     ch.Step,
+		Flow:     flow.Flow{Review: func() flow.Review { return ch.Review }, Confirm: func(flow.Plan) flow.Confirm { return flow.Confirm{Question: ch.Question} }},
+		Controls: func(*config.Config) []engine.Control { return []engine.Control{control} },
+	})
+}
+
+// StatusRow is a control's row as the main menu draws it: its status
+// through the main menu's own mapping (output.StatusViewOf); no row where
+// that mapping shows none.
+func StatusRow(id, title string, status engine.Status) component.StatusList {
+	rp := engine.Report{Control: id, Title: title, Status: status}
+	view := output.StatusViewOf([]engine.Report{rp}, risk.Level{}).Status
+	for _, row := range view.Rows {
+		if row.Label == title {
+			return component.StatusList{Rows: []component.StatusRow{row}}
+		}
+	}
+	return component.StatusList{}
 }
 
 // Planning is a change's flow.Engine: output.FlowEngine, its engine,

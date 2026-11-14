@@ -131,7 +131,7 @@ func firstAction(first firewallctl.Item) firewallctl.Action {
 // the control's alone, cannot see. Every change with no form takes it. A
 // lockout-risk one, live, checks the hostname before anything is planned, as
 // change does.
-func (r *runner) planned(ctx context.Context, action firewallctl.Action, c screen.FirewallChange, lockout bool) func() error {
+func (r *runner) planned(ctx context.Context, action firewallctl.Action, c screen.Change, lockout bool) func() error {
 	run := r.plain(ctx, action, c, false)
 	return func() error {
 		if lockout && !r.o.DryRun {
@@ -151,7 +151,7 @@ func (r *runner) planned(ctx context.Context, action firewallctl.Action, c scree
 
 // plain returns the action of one change with no form: action planned under c's
 // words, as change runs it.
-func (r *runner) plain(ctx context.Context, action firewallctl.Action, c screen.FirewallChange, lockout bool) func() error {
+func (r *runner) plain(ctx context.Context, action firewallctl.Action, c screen.Change, lockout bool) func() error {
 	return func() error {
 		return r.change(ctx, lockout, func() string { return c.Question }, screenkit.Change{
 			Step: c.Step,

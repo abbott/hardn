@@ -12,6 +12,8 @@ Generated 2026-10-20 12:30 UTC by hardn 0.4.0.
 - Support: Unknown
 - Kernel: Not read
 - Uptime: Not read
+- Time service: Unknown
+- Clock: Not read
 - Init: Unknown
 - sshd started by: Unknown
 - Container: Unknown

@@ -15,6 +15,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/output"
 )
 
@@ -53,6 +54,7 @@ func TestMarkdownDocuments(t *testing.T) {
 		CPU:    details.CPU{Unread: unread("/proc/cpuinfo")},
 		Disk:   details.Disk{Unread: unread("df")},
 		Memory: details.Memory{Unread: unread("/proc/meminfo")},
+		Time:   timesync.Reading{Err: fs.ErrPermission},
 		Logins: details.Logins{Unread: unread("lslogins")},
 	})
 	none.Hostname, none.Facts = "", &detect.Facts{}
@@ -120,6 +122,7 @@ func hostile(p string) output.Run {
 		CPU:    details.CPU{Model: p, CPUs: 2, Sockets: 2, Load: [3]string{p, p, p}},
 		Disk:   details.Disk{Source: p, Type: p, Used: 1, Total: 2, Known: true, Pool: p, Health: p},
 		Memory: details.Memory{Total: 2 << 30, Available: 1 << 30, AvailableKnown: true},
+		Time:   timesync.Reading{Service: timesync.Chrony, Running: detect.Yes, Clock: timesync.InSync, Synced: "ntp|1`.example"},
 		Logins: details.Logins{State: details.LoginsRead, List: []details.Login{{User: p, State: details.LoginAt, When: p, TTY: p, From: p},
 			{User: p, State: details.LoginAt, When: p, TTY: p}, {User: p}}},
 	}

@@ -279,10 +279,11 @@ func (s *session) readStatus(ctx context.Context, h *fakeHost) (hostStatus, erro
 		},
 		Hold: s.hold,
 	})
-	reports, err := e.Check(ctx, controls.Status(cfg))
+	reports, err := e.Check(ctx, controls.Menu(cfg))
 	if err != nil {
 		return hostStatus{}, err
 	}
+	reports = controls.MenuReports(cfg, reports)
 	hd := probe.Read(ctx, sys, facts)
 	return hostStatus{facts: facts, reports: reports, header: hd, level: risk.Assess(reports, hd)}, nil
 }

@@ -73,8 +73,9 @@
 // hardn system-details, and Logs.Terminal hardn -p to a terminal
 // (docs/engine/gallery-system-details.md §5).
 //
-// Config is the Configuration screen (next/config-screen): the main menu's
-// 8, read only, filled from hardn.yml as loaded by pkg/screens/config
+// ConfigGroup is the main menu's 8, a menu of hardn.yml, Log Forwarding and
+// Time Sync. Config is its item 1, the Configuration screen
+// (next/config-screen): read only, filled from hardn.yml as loaded by pkg/screens/config
 // (docs/engine/screen-config.md).
 //
 // # Fixtures and mocks

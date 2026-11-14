@@ -110,23 +110,23 @@ func firewalldStep(title string) WorkflowStep {
 // not running and not started at boot after it; Install iproute's, the
 // package; Enable's, running, at boot, SSH let through; Disable's
 // (FirewalldDisableChange). No item has none.
-func (f Firewalld) FirstChange() FirewallChange {
+func (f Firewalld) FirstChange() Change {
 	w := firewalldFirsts[f.First]
 	switch f.First {
 	case FirewalldInstall:
-		return FirewallChange{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{Title: firewalldSection, Items: []component.KeyValue{
+		return Change{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{Title: firewalldSection, Items: []component.KeyValue{
 			{Key: firewallPackageKey, Value: "firewalld"}, {Key: FirewallStatusKey, Value: "Not running"}, {Key: FirewallBootKey, Value: "No"}}}}
 	case FirewalldInstallSS:
-		return FirewallChange{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionSSH,
+		return Change{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{Title: firewallSectionSSH,
 			Items: []component.KeyValue{{Key: firewallPackageKey, Value: "iproute"}}}}
 	case FirewalldEnable:
-		return FirewallChange{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{Title: firewalldSection, Items: []component.KeyValue{
+		return Change{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{Title: firewalldSection, Items: []component.KeyValue{
 			{Key: FirewallStatusKey, Value: "Running", State: component.ValueOK}, {Key: FirewallBootKey, Value: "Yes", State: component.ValueOK},
 			{Key: firewalldSSHKey, Value: "Let through", State: component.ValueOK}}}}
 	case FirewalldDisable:
 		return FirewalldDisableChange(true)
 	}
-	return FirewallChange{}
+	return Change{}
 }
 
 // FirewalldDisableChange is Disable's change: where it stops firewalld
@@ -134,13 +134,13 @@ func (f Firewalld) FirstChange() FirewallChange {
 // firewall, above not running and not started at boot; beside Enable,
 // where firewalld is stopped and Disable only keeps it from starting at
 // boot, the warning that it won't then, above not started at boot. y/N.
-func FirewalldDisableChange(stops bool) FirewallChange {
+func FirewalldDisableChange(stops bool) Change {
 	w := firewalldFirsts[FirewalldDisable]
 	notice, items := firewalldBootOffWarning, []component.KeyValue{{Key: FirewallBootKey, Value: "No", State: component.ValueWarn}}
 	if stops {
 		notice = firewalldDisableWarning
 		items = append([]component.KeyValue{{Key: FirewallStatusKey, Value: "Not running", State: component.ValueWarn}}, items...)
 	}
-	return FirewallChange{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{
+	return Change{Step: firewalldStep(w.title), Question: w.question, Review: flow.Review{
 		Notice: firewallWarning(notice), Title: firewalldSection, Items: items}}
 }

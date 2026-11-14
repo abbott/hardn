@@ -24,10 +24,13 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
+	timectl "github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
+	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
@@ -40,6 +43,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/dnfauto"
 	"github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/firewalld"
+	"github.com/abbott/hardn/pkg/host/logfwd"
 	"github.com/abbott/hardn/pkg/host/packages"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/reload"
@@ -49,6 +53,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
 	"github.com/abbott/hardn/pkg/host/sudoers"
+	"github.com/abbott/hardn/pkg/host/timesync"
 	"github.com/abbott/hardn/pkg/host/ufw"
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
@@ -188,6 +193,28 @@ var errorCodes = []Entry{
 	is("UPDATES_CHANGED_SINCE", updates.ErrChangedSince),
 	is("UPDATES_NOTHING_TO_UNDO", updates.ErrNothingToUndo),
 	is("UPDATES_STAY_ON", updates.ErrStaysOn),
+	// The Log Forwarding screen's refusals (gallery-logforward.md, adopted
+	// 2026-11-13): before the readers' and packages' errors they wrap.
+	is("LOGFWD_NO_SERVER", logforward.ErrNoServer),
+	is("LOGFWD_BAD_SERVER", logforward.ErrBadServer, logfwd.ErrServer),
+	is("LOGFWD_NOT_READ", logforward.ErrNotRead, logfwd.ErrMalformed, logfwd.ErrNoLogger, logfwd.ErrTwoLoggers),
+	is("LOGFWD_SET_OUTSIDE", logforward.ErrOutside, logfwd.ErrForeign),
+	is("LOGFWD_UDP_ONLY", logforward.ErrUDPOnly),
+	is("LOGFWD_NO_CA_FILE", logforward.ErrNoCAFile),
+	is("LOGFWD_NO_INIT", logforward.ErrNoInit),
+	is("LOGFWD_CHECK_FAILED", logforward.ErrCheckFailed),
+	is("LOGFWD_NOTHING_TO_STOP", logforward.ErrNothingToStop, logfwd.ErrNotOwn),
+	is("LOGFWD_CHANGED_SINCE", logforward.ErrChangedSince),
+	// The Time Sync screen's refusals (gallery-timesync.md, adopted
+	// 2026-11-14): before the reader's errors they wrap.
+	is("TIMESYNC_NO_SERVERS", timectl.ErrNoServers),
+	is("TIMESYNC_BAD_SERVERS", timectl.ErrBadServers, timesync.ErrServer),
+	is("TIMESYNC_NOT_READ", timectl.ErrNotRead, timesync.ErrMalformed),
+	is("TIMESYNC_SET_OUTSIDE", timectl.ErrOutside),
+	is("TIMESYNC_NO_SERVICE", timectl.ErrNoService),
+	is("TIMESYNC_CONTAINER", timectl.ErrContainer),
+	is("TIMESYNC_NOTHING_TO_REMOVE", timectl.ErrNothingToRemove, timesync.ErrNotOwn),
+	is("TIMESYNC_CHANGED_SINCE", timectl.ErrChangedSince),
 	// The save of hardn.yml (steps.PlanSave, next/s2-control).
 	is(steps.CodeConfigChanged, steps.ErrConfigChanged, config.ErrChanged).what("hardn.yml changed since it was read: saving would undo what changed it"),
 
@@ -232,6 +259,10 @@ var errorCodes = []Entry{
 		as(func(e *revert.NotPendingError) bool { return e.RolledBack() })),
 	is("CONFIRM_TIMEOUT_INVALID", revert.ErrTimeout).exit(ExitUsage).what("the confirm timeout is not accepted (confirmTimeout: a duration of at least 60 s)"),
 	is("CHANGE_ID_INVALID", revert.ErrID).exit(ExitUsage),
+	is("BASELINE_MISSING", drift.ErrNoBaseline).what("hardn check has no baseline to compare with: none was saved with hardn check --accept"),
+	is("BASELINE_UNSAFE", drift.ErrUnsafe).what("hardn check's baseline, or a directory above it, can be changed by a user other than root, or is no regular file: it is not read"),
+	is("BASELINE_OTHER_FORMAT", drift.ErrFormat).what("hardn check's baseline is of another version of its format: it is not compared"),
+	is("BASELINE_INVALID", drift.ErrInvalid).what("hardn check's baseline is not one hardn wrote: too large, not its JSON, or facts not in their form"),
 	is("JOURNAL_INVALID", revert.ErrJournal).what("the change journal is not valid"),
 	is("JOURNAL_UNSAFE", revert.ErrUnsafe).what("the change journal, the run directory, or a directory above them, can be changed by a user other than root"),
 	is("RECORD_INVALID", revert.ErrRecord).what("hardn's record of what it changed for a control is not valid"),
@@ -593,6 +624,7 @@ var findingCodes = []Entry{
 	finding(users.CodePasswordNotSet, "admin rights that ask a password are planned for a user who has none, so the user cannot use them until one is set"),
 	// The System Details form's own (slice 1, next/s1-readers).
 	finding(CodeDetailsUnreadable, "a section of the System Details report, or a fact of it, was not read: source says what; the rest was read"),
+	finding(CodeNotCompared, "hardn check left a fact out of its comparison: source names the fact, detail says why (the listening ports, on a host with no ss)"),
 }
 
 // CodeDeprecated is the finding of a configuration value read in a

@@ -5,6 +5,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine/details"
 	"github.com/abbott/hardn/pkg/host/detect"
+	"github.com/abbott/hardn/pkg/host/timesync"
 )
 
 // CodeDetailsUnreadable is the finding of a section of the System Details
@@ -27,6 +28,45 @@ type Details struct {
 	Disk      *DetailDisk     `json:"disk"`
 	Memory    *DetailMemory   `json:"memory"`
 	Logins    []DetailLogin   `json:"logins"`
+	Time      DetailTime      `json:"time"`
+}
+
+// DetailTime is the host's time service and clock (gallery-timesync.md,
+// decision 10 (a)). Service is "chrony", "systemd-timesyncd", "busybox
+// ntpd" or "none", null where hardn could not tell; Running whether it
+// runs, null with none and where that is not read; Clock "in sync" or "not
+// in sync", null where not read; SyncedTo the server the clock follows, as
+// the host names it, null for none and where the service does not say.
+type DetailTime struct {
+	Service  *string `json:"service"`
+	Running  *bool   `json:"running"`
+	Clock    *string `json:"clock"`
+	SyncedTo *string `json:"syncedTo"`
+}
+
+// The clock's words.
+const (
+	ClockInSync    = "in sync"
+	ClockNotInSync = "not in sync"
+)
+
+// detailTime is t as the document has it.
+func detailTime(t timesync.Reading) DetailTime {
+	var d DetailTime
+	if t.Service != timesync.NoService || t.Err == nil {
+		d.Service = ptr(t.Service.String())
+	}
+	if t.Service != timesync.NoService && t.Running != detect.Unknown {
+		d.Running = ptr(t.Running == detect.Yes)
+	}
+	switch t.Clock {
+	case timesync.InSync:
+		d.Clock = ptr(ClockInSync)
+	case timesync.NotInSync:
+		d.Clock = ptr(ClockNotInSync)
+	}
+	d.SyncedTo = nonEmpty(t.Synced)
+	return d
 }
 
 // DetailAddress is one global address, as ip printed it.
@@ -115,6 +155,7 @@ func detailsOf(r details.Report) (*Details, []Finding) {
 		}
 	}
 	d.CPU = detailCPU(r.CPU)
+	d.Time = detailTime(r.Time)
 	d.Disk = detailDisk(r.Disk)
 	if m := r.Memory; m.Total > 0 {
 		d.Memory = &DetailMemory{Total: m.Total}

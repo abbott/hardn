@@ -107,6 +107,12 @@
         "from": "",
         "unknown": true
       }
-    ]
+    ],
+    "time": {
+      "service": "chrony",
+      "running": true,
+      "clock": "in sync",
+      "syncedTo": "2.ntp.ubuntu.com"
+    }
   }
 }

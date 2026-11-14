@@ -1,11 +1,35 @@
 # The Configuration screen (`pkg/screens/config`, `screen.Config`)
 
+*Since `next/time-sync` (2026-11-14): main menu 8, Configuration, is a menu of three screens: `1) hardn.yml`, this screen, unchanged; `2) Log Forwarding` ([screen-logforward.md](screen-logforward.md)); `3) Time Sync` ([screen-timesync.md](screen-timesync.md)). Each returns to it (§1.1). The main menu's keys are unchanged from v0.9.0, and its item 8 reads "hardn.yml, log forwarding, time sync" (the maintainer, 2026-11-14, revising [gallery-logforward.md](gallery-logforward.md)'s decision 8 and [gallery-timesync.md](gallery-timesync.md)'s decision 9). This screen has a Log Forwarding group (`logForwarding`) and a Time Sync group (`ntpServers`).*
+
 Unit (b) of the roadmap's Configuration item ("View and manage hardn.yml" until this unit), `next/config-screen`: the screen [gallery-config.md](gallery-config.md) mocked, as adopted there (2026-11-12, all (a)), now main menu 8. It is the read-only view alone; editing is a later unit.
 Status: built and tested in process (`make check`, all ten steps). *Run on `deb13-vm` (Debian 13) and `alpine323-vm` (Alpine 3.23.6), 2026-11-12, the linux-amd64 build of `bf7f111c` (`vm-runs/v090/`): `go test ./...` passed on both; `hardn config` as the login user and through sudo or doas, a named file missing by `-f` and by `HARDN_CONFIG`, `config -c` refused, and main menu 8 opened, left with 0 and quit on a terminal. Debian read `/etc/hardn/hardn.yml`; Alpine had no hardn.yml. Not run: the other distributions, arm64.*
 
 ## 1. What it does
 
-Main menu `8) Configuration`, "View hardn.yml", shows which hardn.yml hardn read ("Path", "From": `-f`, `HARDN_CONFIG` or "Search path") and each key's value, grouped by the screen that uses it. A key the file does not set says "(default)". Keys the file sets that nothing reads are listed under "Not used", where set to other than their old default: a retired key at its old default, such as `sudoNoPassword: true`, is not listed. `0` returns, `q` quits. It changes nothing, and opens under plan only as live. System Details is 9 and Logs 10 again, the prompt "[0-10 or q]".
+Main menu `8) Configuration`, then `1) hardn.yml`, "View the file hardn reads", shows which hardn.yml hardn read ("Path", "From": `-f`, `HARDN_CONFIG` or "Search path") and each key's value, grouped by the screen that uses it. A key the file does not set says "(default)". Keys the file sets that nothing reads are listed under "Not used", where set to other than their old default: a retired key at its old default, such as `sudoNoPassword: true`, is not listed. `0` returns, `q` quits. It changes nothing, and opens under plan only as live. System Details is 9 and Logs 10 again, the prompt "[0-10 or q]". `hardn config` prints it, as before.
+
+### 1.1 The Configuration menu
+
+Main menu 8 opens a menu, not this screen (the maintainer, 2026-11-14):
+
+```
+# Configuration ################################################
+
+   1) hardn.yml            View the file hardn reads
+   2) Log Forwarding       Send logs to a syslog server
+   3) Time Sync            Keep the clock in sync
+
+   0) Return
+
+    > Option [0-3 or q]:
+```
+
+- Each item opens its screen, unchanged, under the menu; `0` there returns to the menu, which is drawn again, and `q` quits hardn.
+- The menu reads nothing: no state is drawn beside an item.
+- The view is `screen.ConfigGroup` (`pkg/ui/screen/configgroup.go`), the screen `configscreen.RunGroup` (`pkg/screens/config/group.go`), whose three screens `cmd/hardn` gives it (`runConfigGroup`, `cmd/hardn/readers.go`).
+- Tests: `pkg/screens/config/group_test.go` (each key opens its screen and returns, 0, q, a screen's q and errors), `pkg/ui/screen/configgroup_test.go` (the drawing, 9 lines), `cmd/hardn`'s `TestConfigScreenHook` and `TestMenuOptions`.
+- The gallery: the `config` listing's first mock, `menu`; `play config/menu`; the main menu's 8 in `play`.
 
 ## 2. The API
 

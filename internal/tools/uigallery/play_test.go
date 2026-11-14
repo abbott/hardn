@@ -340,9 +340,9 @@ func TestPlayReaches(t *testing.T) {
 		_, linked := links[from]
 		_, sd := sdLinks[from]
 		_, logs := logsLinks[from]
-		if _, mock := findConfigMock(strings.TrimPrefix(to, configPrefix+"/")); !ok || linked || sd || logs || !mock ||
+		if !ok || linked || sd || logs || to != configGroupMock ||
 			!slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == from[i+1:] }) {
-			t.Errorf("Configuration link %s to %s: no menu mock with the item, another link from it too, or no such mock", from, to)
+			t.Errorf("Configuration link %s to %s: no menu mock with the item, another link from it too, or not the group", from, to)
 		}
 	}
 	for name, item := range figmaRecords {

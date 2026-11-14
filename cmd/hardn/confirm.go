@@ -95,7 +95,7 @@ func confirmAndCleanUp(ctx context.Context, sys host.System, s revert.Session, w
 		Revert: revert.Options{Log: revertFileLog{}, Now: revertNow}, Hold: confirmHold, PID: revertPID()})
 	stop()
 	hup.stop()
-	run := output.Run{Mode: output.ModeApply, Plan: o.Plan, Result: o.Result, Err: o.Err}
+	run := withBaseline(ctx, csys, output.Run{Mode: output.ModeApply, Plan: o.Plan, Result: o.Result, Err: o.Err})
 	reported := !o.Done() || !o.Result.Nothing
 	if reported {
 		if err := output.Emit(output.Streams{Stdout: confirmStdout, Out: stdoutEnv()}, output.FormatHuman, run, revertNow()); err != nil {

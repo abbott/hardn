@@ -262,6 +262,7 @@ func statusWith(p platform, aa apparmorState) *fakeHost {
 	f := h.f
 	r := &readings{units: map[string]unit{}, packages: map[string]string{}, addrs: map[string]string{}}
 	h.status = r
+	h.stockTime(p)
 	iface, k := "eth0", debianKernel
 	switch {
 	case p.openRC:

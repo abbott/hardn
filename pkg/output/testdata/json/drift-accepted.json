@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "hardnVersion": "0.4.0",
+  "host": {
+    "hostname": "web-01.example.net",
+    "os": {
+      "id": "debian",
+      "versionId": "13",
+      "codename": "trixie",
+      "prettyName": "Debian GNU/Linux 13 (trixie)"
+    },
+    "platform": {
+      "distro": "debian",
+      "version": "13",
+      "support": "supported",
+      "supportEnds": ""
+    },
+    "init": "systemd",
+    "ssh": "ssh.service",
+    "proxmox": {
+      "installed": "no",
+      "version": ""
+    },
+    "container": {
+      "detected": "no",
+      "manager": ""
+    },
+    "elevation": {
+      "sudo": "yes",
+      "sudoFlavor": "sudo",
+      "doas": "no"
+    }
+  },
+  "mode": "check",
+  "result": {
+    "outcome": "applied",
+    "exitCode": 0,
+    "id": "",
+    "risk": ""
+  },
+  "changes": [],
+  "status": [],
+  "findings": [],
+  "errors": [],
+  "check": {
+    "accepted": true,
+    "baseline": {
+      "path": "/var/lib/hardn/baseline.json",
+      "format": 1,
+      "saved": "2026-11-13T10:00:00Z",
+      "user": "george",
+      "hardnVersion": "0.4.0"
+    },
+    "differences": []
+  }
+}

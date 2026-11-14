@@ -135,6 +135,9 @@ func galleryMenu(t *testing.T, name string) string {
 		if strings.HasPrefix(l, "hardn ") {
 			l = strings.Replace(l, "v0.4.0", "      ", 1) // p4status shows no version: not a hardn release
 		}
+		if strings.Contains(l, "] Time Sync  ") {
+			continue // the main menu's row beyond controls.Status, which p4status does not read
+		}
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
@@ -171,7 +174,7 @@ func TestMainMenuAsGallery(t *testing.T) {
 
 // TestMainMenuOnEL: on Rocky Linux and AlmaLinux, p4status draws the items
 // hardn's main menu draws there: item 3 "Configure firewalld", item 5,
-// Auto Updates, and the hint "[0-10 or q]". The hosts are the debian13
+// Auto Updates, item 8, Configuration, and the hint "[0-10 or q]". The hosts are the debian13
 // fixture with Rocky Linux 10.2's os-release (pkg/host/detect's test
 // file) or AlmaLinux 9.6's in place of Debian's: the items turn on
 // detect's distribution alone, and a command the fixture does not answer
@@ -193,6 +196,7 @@ func TestMainMenuOnEL(t *testing.T) {
 			for _, want := range []string{
 				"\n   3) Firewall             Configure firewalld\n",
 				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
+				"\n   8) Configuration        hardn.yml, log forwarding, time sync\n",
 				"\n    > Option [0-10 or q]:",
 			} {
 				if !strings.Contains(menu, want) {
