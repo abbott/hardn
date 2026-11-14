@@ -176,6 +176,21 @@ type System interface {
 	// goes where no other user can rename, replace or link in front of it.
 	// It is guarded (see System). The audit log (p3-output).
 	AppendFile(ctx context.Context, name string, data []byte, perm fs.FileMode) error
+	// RotateFile renames the regular file name to name.1 once it holds
+	// more than limit bytes, name.1 moved to name.2 first and so on up to
+	// name.keep, which is replaced: the oldest copy is deleted. Renames
+	// alone, so a copy keeps its mode and owner, and a process holding the
+	// file open goes on writing to it under its new name. It creates no
+	// file. rotated is false, with no error, where the file is absent or
+	// within limit, or where another process rotated it first. A symlink at
+	// name or at a copy is refused with ErrSymlink, never followed or
+	// renamed, anything else that is not a regular file with
+	// fs.ErrInvalid; with trusted, the directory holding name must be
+	// trusted (see System), checked on the directory it opens, else
+	// ErrUntrustedDir. Nothing is renamed on an error from these. It is
+	// guarded (see System). hardn's own logs
+	// (docs/engine/design-log-rotation.md).
+	RotateFile(ctx context.Context, name string, limit int64, keep int, trusted bool) (rotated bool, err error)
 	// Lock takes an exclusive lock on the regular file name, creating it
 	// 0600 when absent, writes holder into it, and returns the function
 	// that empties it and releases the lock. It never waits: a lock held
@@ -353,7 +368,8 @@ var (
 	// its directory, so the replacement may not survive a crash. The new
 	// content is in place; roll the change back like any failed step.
 	ErrNotDurable = errors.New("replaced, but the directory could not be synced")
-	// ErrLocked: Lock found the file locked by another open of it.
+	// ErrLocked: Lock found the file locked by another open of it; so did
+	// RotateFile, for all of its wait.
 	ErrLocked = errors.New("locked by another process")
 	// ErrUnknownUser: no such user account.
 	ErrUnknownUser = errors.New("unknown user")

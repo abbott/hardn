@@ -2,6 +2,7 @@ package host
 
 import (
 	"context"
+	"errors"
 	"io/fs"
 	"os"
 
@@ -25,7 +26,9 @@ import (
 // never overwritten. O_NONBLOCK keeps a FIFO swapped in after the lstat
 // from blocking the open (it fails with ENXIO without a reader, and is
 // refused after it). A newly created file's directory entry is not synced:
-// the audit log is a record, not the journal a rollback reads.
+// the audit log is a record, not the journal a rollback reads. An open
+// that finds the file renamed away under it, as RotateFile in another
+// process renames it, is tried again (openAppend).
 func (r *Real) AppendFile(ctx context.Context, name string, data []byte, perm fs.FileMode) error {
 	if err := ctxErr(ctx, "append", name); err != nil {
 		return err
@@ -45,7 +48,7 @@ func (r *Real) AppendFile(ctx context.Context, name string, data []byte, perm fs
 	if err := writable(dfd, base, name); err != nil {
 		return err
 	}
-	fd, err := unix.Openat(dfd, base, unix.O_WRONLY|unix.O_APPEND|unix.O_CREAT|unix.O_NOFOLLOW|unix.O_NONBLOCK|unix.O_CLOEXEC, uint32(perm.Perm()))
+	fd, err := openAppend(dfd, base, perm)
 	switch {
 	case isNoFollow(err):
 		return pathErr("append", name, ErrSymlink)
@@ -68,4 +71,19 @@ func (r *Real) AppendFile(ctx context.Context, name string, data []byte, perm fs
 		return err
 	}
 	return f.Close()
+}
+
+// openAppend opens base in dirfd to append to, creating it with perm. With
+// O_CREAT, "no such file" from an open directory is a file renamed away
+// between the kernel's lookup and its open, seen while another rotates the
+// file (TestRotateFileRace; not run on Linux): the open is tried again,
+// a few times, and then creates the new file.
+func openAppend(dirfd int, base string, perm fs.FileMode) (fd int, err error) {
+	for range 5 {
+		fd, err = unix.Openat(dirfd, base, unix.O_WRONLY|unix.O_APPEND|unix.O_CREAT|unix.O_NOFOLLOW|unix.O_NONBLOCK|unix.O_CLOEXEC, uint32(perm.Perm()))
+		if !errors.Is(err, unix.ENOENT) {
+			break
+		}
+	}
+	return fd, err
 }

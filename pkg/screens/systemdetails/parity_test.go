@@ -835,7 +835,7 @@ func openedOn(t *testing.T, sys host.System, logFile string) string {
 		case "run-interactive":
 			env := slices.DeleteFunc(slices.Clone(c.Env), func(e string) bool { return strings.HasPrefix(e, "PATH=") })
 			ran = append(ran, strings.Join(c.Argv, " ")+"; "+strings.Join(env, " "))
-		case "scan-lines":
+		case "scan-lines", "lstat": // the log, and whether an older copy is beside it
 		case "run":
 			if !slices.Equal(c.Argv, []string{"less", "--version"}) {
 				t.Errorf("Open: %s", c)

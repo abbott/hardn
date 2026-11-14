@@ -10,6 +10,9 @@
 //   - Read gives the path, the size, the number of lines and the last lines,
 //     or why there are none, in the words the row shows. Each gives every line
 //     as it reads, and the same words: hardn -p off a terminal.
+//   - hardn rotates the file (docs/engine/design-log-rotation.md). Both read
+//     the current file alone; Read names the older copy, File.1, where there
+//     is one (Reading.Older).
 //   - Safe and Show make a line of the log safe to show, on the screen and
 //     off it (-p): what a terminal would act on is shown, not stripped.
 //   - ParseLine reads a line's level, for its colour alone.
@@ -37,6 +40,9 @@ import (
 // File is the file hardn writes (cmd/hardn/main.go:57), the one this package
 // reads.
 const File = "/var/log/hardn.log"
+
+// OlderSuffix follows File in the name of the newest rotated copy.
+const OlderSuffix = ".1"
 
 // MaxLast is the most lines Read keeps, oldest dropped. A screen fits what it
 // has room for from their end; each takes a row at least, so no terminal needs
@@ -76,6 +82,9 @@ type Reading struct {
 	Total int
 	// Last is the last lines, oldest first, at most MaxLast.
 	Last []Line
+	// Older is the newest rotated copy's path, Path.1, where Read found a
+	// regular file there, which it does not read; "" otherwise.
+	Older string
 }
 
 // Line is one line of the log, safe to show (Show).
@@ -87,7 +96,8 @@ type Line struct {
 
 // Read reads the log through sys's ScanLines, in memory bounded whatever the
 // file holds, and changes nothing. A symlink at the path, a directory, a FIFO
-// or a device is Unreadable, without blocking (host.System).
+// or a device is Unreadable, without blocking (host.System). One Lstat more
+// finds the older copy (Reading.Older).
 func Read(ctx context.Context, sys host.System) Reading {
 	return read(ctx, sys, File)
 }
@@ -103,12 +113,15 @@ func read(ctx context.Context, sys host.System, file string) Reading {
 			r.Last = append(r.Last, lineOf(l))
 		}
 	}
+	if fi, err := sys.Lstat(ctx, file+OlderSuffix); err == nil && fi.Mode().IsRegular() {
+		r.Older = file + OlderSuffix
+	}
 	return r
 }
 
 // Each gives yield every line of the log as it reads, safe to show, until yield
-// returns false: hardn -p off a terminal, a pass over a log nothing rotates, in
-// memory bounded by the line. What it returns is Read's, Last empty: a failure
+// returns false: hardn -p off a terminal, a pass over the current file, which
+// rotation keeps near output.LogMaxSize, in memory bounded by the line. What it returns is Read's, Last empty: a failure
 // part way, after lines have gone, is Unreadable in Read's words, so -p's "can't
 // read <path>: <reason>" is one form whenever it fails. A caller's write error
 // is the caller's: it returns false, and keeps the error.

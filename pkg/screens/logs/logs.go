@@ -156,7 +156,7 @@ func pagerWords(err error, program string) string {
 // log's path, pager is what Open would run, nil for none. Each line is already safe
 // (logview.Read), and what else is shown is made so.
 func viewOf(r logview.Reading, logFile string, pager *logview.Command) screen.Logs {
-	v := screen.Logs{Path: logview.Safe(r.Path), Reason: logview.Safe(r.Reason), Size: r.Size, Total: r.Total, Elsewhere: logview.Elsewhere(logFile)}
+	v := screen.Logs{Path: logview.Safe(r.Path), Reason: logview.Safe(r.Reason), Size: r.Size, Total: r.Total, Older: logview.Safe(r.Older), Elsewhere: logview.Elsewhere(logFile)}
 	switch r.State {
 	case logview.NoLog:
 		v.State = screen.LogsNoLog

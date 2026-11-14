@@ -2002,7 +2002,7 @@ hardn.yml: none loaded
 origin/main: menu/logs_open.golden ()
   start: the file read holds 239 bytes
   probes: stat /var/log/hardn.log -> file; read /var/log/hardn.log -> 239 bytes
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: run, scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, run, scan-lines; nothing written
   probes: less --version
 agree  refusal: none
 agree  files: none
@@ -2041,7 +2041,7 @@ hardn.yml: none loaded
 origin/main: menu/logs_open.golden ()
   start: the file read holds 239 bytes
   probes: stat /var/log/hardn.log -> file; read /var/log/hardn.log -> 239 bytes
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: run, scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, run, scan-lines; nothing written
   probes: less --version
 agree  refusal: none
 agree  files: none
@@ -2080,7 +2080,7 @@ hardn.yml: none loaded
 origin/main: menu/logs_large.golden ()
   start: the file read holds 868894 bytes
   probes: stat /var/log/hardn.log -> file; read /var/log/hardn.log -> 868894 bytes
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: run, scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, run, scan-lines; nothing written
   probes: less --version
 agree  refusal: none
 agree  files: none
@@ -2120,7 +2120,7 @@ hardn.yml: none loaded
 origin/main: menu/logs_empty.golden ()
   start: the file read holds 0 bytes
   probes: stat /var/log/hardn.log -> file; read /var/log/hardn.log -> 0 bytes
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, scan-lines; nothing written
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -2154,7 +2154,7 @@ host: no log (forced: the golden's synthetic start, with what only the new path 
 hardn.yml: none loaded
 origin/main: menu/logs_missing.golden ()
   probes: stat /var/log/hardn.log -> not-exist
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, scan-lines; nothing written
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -2188,7 +2188,7 @@ hardn.yml: none loaded
 origin/main: menu/logs_unreadable.golden ()
   origin/main's run is mode 0000 as a user; the new path's read is refused the same way, which hardn as root would meet only as the golden's NOTE says [I]
   probes: stat /var/log/hardn.log -> file; read /var/log/hardn.log -> error: open /var/log/hardn.log: permission denied
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: none; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat; nothing written
 agree  refusal: none
 agree  files: none
 agree  directories: none
@@ -2222,7 +2222,7 @@ hardn.yml: none loaded
 origin/main: menu/logs_escape.golden ()
   start: the file read holds 70 bytes
   probes: stat /var/log/hardn.log -> file; read /var/log/hardn.log -> 70 bytes
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: run, scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, run, scan-lines; nothing written
   probes: less --version
 agree  refusal: none
 agree  files: none
@@ -2262,7 +2262,7 @@ host: logFile elsewhere, nothing there (forced: the golden's synthetic start, wi
 hardn.yml: none loaded
 origin/main: menu/logs_other_path.golden ()
   probes: stat /srv/log/custom.log -> not-exist
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: run, scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, run, scan-lines; nothing written
   probes: less --version
 agree  refusal: none
 agree  files: none
@@ -2308,7 +2308,7 @@ hardn.yml: none loaded
 origin/main: menu/logs_other_path_stale.golden ()
   start: the file read holds 38 bytes
   probes: stat /srv/log/custom.log -> file; read /srv/log/custom.log -> 38 bytes
-new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: run, scan-lines; nothing written
+new path: the Logs screen's Run at 80x552, typed "0"; hostfake's record: lstat, run, scan-lines; nothing written
   probes: less --version
 agree  refusal: none
 agree  files: none
@@ -2405,7 +2405,7 @@ origin/main: menu/logs_parser.golden ()
   dead code on origin/main: no live path calls GetLogs (its NOTE); ParseLine is for a line's colour alone (gallery-system-details.md §5, Made here)
   start: <date> <time> INFO: Configuring DNS; <date> <time> WARNING: No backup taken; <date> <time> ERROR: Failed to restart systemd-resolved; <date> <time> SUCCESS: Script completed selected hardening operations.; <date> <time> INSTALLED: ufw; <date> <time> INFO: hangup during the apply: hardn ends; <date> <time> INFO: run 1: $ ufw allow 2230/tcp; <date> <time> INFO: run 1: | Rule added; <date> <time> INFO: run 1: exit 0; <date> <time> INFO: A message; with a second line of more words; two words; ; one more
   probes: the code calls cmd/hardn/main.go: logging.PrintLogs(); the code calls pkg/application/log_manager.go: m.logsService.GetLogs(); the code calls pkg/application/log_manager.go: m.logsService.PrintLogs(); the code calls pkg/application/menu_manager.go: m.logsManager.PrintLogs(); the code calls pkg/domain/service/logs_service.go: s.repository.GetLogs(); the code calls pkg/domain/service/logs_service.go: s.repository.PrintLogs(); the code calls pkg/menu/logs_menu.go: m.menuManager.PrintLogs()
-new path: logview.Read, its lines and each line's level; hostfake's record: scan-lines; nothing written
+new path: logview.Read, its lines and each line's level; hostfake's record: lstat, scan-lines; nothing written
 agree  refusal: none
 agree  files: none
 agree  directories: none

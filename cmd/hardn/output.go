@@ -90,9 +90,14 @@ func auditHostname(ctx context.Context, sys host.System) string {
 }
 
 // auditAppend appends rec to the audit log through sys; a record not
-// written is a warning on stderr, with its code.
+// written is a warning on stderr, with its code, and so is a log that
+// could not be rotated first, its record written all the same.
 func auditAppend(ctx context.Context, sys host.System, rec output.Record) {
-	if err := output.Append(ctx, sys, auditPath, rec); err != nil {
+	var notRotated *output.RotateError
+	switch err := output.Append(ctx, sys, auditPath, rec); {
+	case errors.As(err, &notRotated):
+		sayWarning("%v", notRotated)
+	case err != nil:
 		sayWarning("This run is not in the audit log (%s): %v", output.CodeOf(err), err)
 	}
 }

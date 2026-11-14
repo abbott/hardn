@@ -25,4 +25,5 @@
 
 ## Changed
 
+- **hardn rotates its own logs.** Over 10 MiB, `/var/log/hardn.log` becomes `hardn.log.1` and a new file starts; four older copies are kept. `/var/log/hardn/audit.jsonl` does the same over 5 MiB, with nine. Logs and `hardn -p` to a terminal show the current file and name the older copy.
 - **Configuration (main menu 8) is now a menu**: 1 hardn.yml, the screen it opened before, 2 Log Forwarding, 3 Time Sync. The main menu's keys are the same, and `hardn config` prints hardn.yml as before.

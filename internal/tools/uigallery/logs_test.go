@@ -41,6 +41,7 @@ func TestPlayLogsGolden(t *testing.T) {
 		{"logs-empty", []string{"logs/empty"}, []string{"0"}, nil},
 		{"logs-control", []string{"logs/control"}, []string{"0"}, nil},
 		{"logs-elsewhere", []string{"logs/elsewhere"}, []string{"0"}, nil},
+		{"logs-older", []string{"logs/older"}, []string{"0"}, nil},
 		{"logs-alpine", []string{"logs/alpine323"}, []string{"1", "0"}, nil},
 		{"logs-no-pager", []string{"logs/no-pager"}, []string{"1", "0"}, nil},
 		{"logs-hosts", []string{"logs"}, []string{"6", "0", "0"}, nil},
@@ -71,6 +72,7 @@ func TestLogHosts(t *testing.T) {
 		total     int
 		pager     bool
 		elsewhere string
+		older     string
 	}{
 		{host: "lines", state: logview.Lines, total: 4, pager: true},
 		{host: "long", state: logview.Lines, total: 1204, pager: true},
@@ -79,6 +81,7 @@ func TestLogHosts(t *testing.T) {
 		{host: "empty", state: logview.Empty},
 		{host: "control", state: logview.Lines, total: 6, pager: true},
 		{host: "elsewhere", state: logview.Lines, total: 10, pager: true, elsewhere: "/srv/log/hardn.log"},
+		{host: "older", state: logview.Lines, total: 10, pager: true, older: "/var/log/hardn.log.1"},
 		{host: "alpine323", state: logview.Lines, total: 10},
 		{host: "no-pager", state: logview.Lines, total: 10},
 	}
@@ -98,8 +101,8 @@ func TestLogHosts(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		if r.Path != hardnLog || r.State != tt.state || r.Total != tt.total || (r.State == logview.Lines && pager != tt.pager) || logview.Elsewhere(cfg.LogFile) != tt.elsewhere {
-			t.Errorf("%s: path %s, state %d, %d lines, pager %v, logFile %q", tt.host, r.Path, r.State, r.Total, pager, cfg.LogFile)
+		if r.Path != hardnLog || r.State != tt.state || r.Total != tt.total || (r.State == logview.Lines && pager != tt.pager) || logview.Elsewhere(cfg.LogFile) != tt.elsewhere || r.Older != tt.older {
+			t.Errorf("%s: path %s, state %d, %d lines, pager %v, logFile %q, older %q", tt.host, r.Path, r.State, r.Total, pager, cfg.LogFile, r.Older)
 		}
 	}
 }
