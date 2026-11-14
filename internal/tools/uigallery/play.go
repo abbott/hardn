@@ -20,7 +20,7 @@ import (
 )
 
 // playUsage is the playable mode's usage line.
-const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | system-details | system-details/host | logs | logs/host | config | config/mock | keys | keys/mock | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | logforward | logforward/host | timesync | timesync/host | runall | runall/host]"
+const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen | workflow/sequence | engine | engine/scenario | status | status/host | dns | dns/host | backup | backup/host | backup-restore | system-details | system-details/host | logs | logs/host | config | config/menu | config/mock | keys | keys/mock | firewall | firewall/host | users | users/host | ssh | ssh/host | updates | updates/host | logforward | logforward/host | timesync | timesync/host | runall | runall/host]"
 
 // links say where each menu item leads in the playable mode, by the menu
 // mock's name and the item's key: the mock it opens, as origin/main's
@@ -31,7 +31,8 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // screen (dnsLinks, dnsscreen.go), its 7 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
 // kept among the mocks as Figma's record (figmaRecords), its 8 to the real
-// Configuration screen (configLinks, config.go), its 9 to the real System
+// Configuration group, and through it to the real Configuration, Log
+// Forwarding and Time Sync screens (configLinks, config.go), its 9 to the real System
 // Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
 // (logsLinks, logs.go), its 3 to the real Firewall screen (fwLinks, firewall.go),
 // its 1 to the real User Management screen (usrLinks, users.go) and its 2 to the
@@ -633,9 +634,8 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		if to, ok := raLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openRunAll(to)
 		}
-		if m.Name == mainMenuMock && it.Key == "8" { // the items the main-menu mock has not: Auto Updates (5), Log Forwarding (6) and Time Sync (7)
-			out.Options = append(out.Options, nav.Option{Item: updMenuItem, Action: s.openUpdates(updMainHost)},
-				nav.Option{Item: lfMenuItem, Action: s.openLogForward(lfMainHost)}, nav.Option{Item: tsMenuItem, Action: s.openTimeSync(tsMainHost)})
+		if m.Name == mainMenuMock && it.Key == "6" { // the item the main-menu mock has not: Auto Updates (5)
+			out.Options = append(out.Options, nav.Option{Item: updMenuItem, Action: s.openUpdates(updMainHost)})
 		}
 		out.Options = append(out.Options, nav.Option{Item: it, Action: action})
 	}

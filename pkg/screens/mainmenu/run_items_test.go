@@ -32,25 +32,25 @@ func TestDNSItem(t *testing.T) {
 	})
 }
 
-// TestBackupItem: the main menu's 9 runs the Backup screen cmd/hardn sets
+// TestBackupItem: the main menu's 7 runs the Backup screen cmd/hardn sets
 // (Options.Backup), as TestDNSItem's 4 runs the DNS screen, and maps what it
 // returns the same way (refactor plan slice 3, unit (d)); the main menu
 // holds the backup settings as the screen left them.
 func TestBackupItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "9", name: "BACKUP", set: setBackup,
+		key: "7", name: "BACKUP", set: setBackup,
 		edit:   func(c *config.Config) { c.BackupPath = "/srv/backups/hardn" },
 		edited: func(c *config.Config) bool { return c.BackupPath == "/srv/backups/hardn" },
 	})
 }
 
-// TestConfigurationItem: the main menu's 10 runs the Configuration screen
+// TestConfigurationItem: the main menu's 8 runs the Configuration group
 // cmd/hardn sets (Options.Configuration), as TestDNSItem's 4 runs the DNS screen,
 // and maps what it returns the same way (next/config-screen); the screen
 // only shows, so the main menu's configuration is as it was.
 func TestConfigurationItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "10", name: "CONFIGURATION", set: setConfiguration,
+		key: "8", name: "CONFIGURATION", set: setConfiguration,
 		edit: func(*config.Config) {},
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.BackupPath == config.DefaultConfig().BackupPath
@@ -152,14 +152,14 @@ func TestUpdatesItem(t *testing.T) {
 	})
 }
 
-// TestRunAllItem: the main menu's 8 runs the Run All screen cmd/hardn sets
+// TestRunAllItem: the main menu's 6 runs the Run All screen cmd/hardn sets
 // (Options.RunAll), as TestDNSItem's 4 runs the DNS screen, and maps what it
 // returns the same way (refactor plan slice 8, unit (d)); no change the
 // screen makes saves hardn.yml, so the main menu's configuration is as it
 // was.
 func TestRunAllItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "8", name: "RUN ALL", set: setRunAll,
+		key: "6", name: "RUN ALL", set: setRunAll,
 		edit: func(*config.Config) {},
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53"}) && c.Username == config.DefaultConfig().Username
@@ -167,13 +167,13 @@ func TestRunAllItem(t *testing.T) {
 	})
 }
 
-// TestSystemDetailsAndLogsItems: the main menu's 11 and 12 run the screens cmd/hardn
+// TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
 // sets, and map what they return as TestDNSItem's 4 does (refactor plan slice 1, unit
 // (d)); neither saves a setting.
 func TestSystemDetailsAndLogsItems(t *testing.T) {
 	for _, it := range []screenItem{
-		{key: "11", name: "SYSTEM DETAILS", set: setSystemDetails},
-		{key: "12", name: "LOGS", set: setLogs},
+		{key: "9", name: "SYSTEM DETAILS", set: setSystemDetails},
+		{key: "10", name: "LOGS", set: setLogs},
 	} {
 		t.Run(it.name, func(t *testing.T) {
 			it.edit = func(*config.Config) {}
@@ -238,7 +238,7 @@ func testScreenItem(t *testing.T, item screenItem) {
 				// The screen opens on a cleared screen on a terminal, after the
 				// main menu's prompt and the key typed; off one nothing clears.
 				noClearOff(t, env, out)
-				if !strings.Contains(out, "[0-12 or q]: \n"+clearGapOn(env)+said+"\n") {
+				if !strings.Contains(out, "[0-10 or q]: \n"+clearGapOn(env)+said+"\n") {
 					t.Errorf("the screen does not open on a cleared screen:\n%q", out)
 				}
 				wantPasses := map[bool]int{false: 1, true: 2}[tc.again]

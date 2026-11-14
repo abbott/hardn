@@ -123,17 +123,19 @@ func TestConfigViewReadsAsTheLoader(t *testing.T) {
 }
 
 // TestPlayConfigGolden plays hardn's Configuration screen end to end and pins each
-// transcript: from the main menu's 10, on the typical file, leaving; the same under
-// plan only, which draws the same screen; the keys nothing reads; a named file that
-// is not there; and the mocks' menu.
+// transcript: from the main menu's 8, the Configuration group, and its 1, on the
+// typical file, leaving; the same under plan only, which draws the same screens; the
+// group alone, left by q; the keys nothing reads; a named file that is not there; and
+// the mocks' menu.
 func TestPlayConfigGolden(t *testing.T) {
 	for _, tt := range []struct {
 		name  string
 		args  []string
 		lines []string
 	}{
-		{"config", nil, []string{"10", "0", "0"}},
-		{"config-plan-only", []string{"-sequence", "dry-run"}, []string{"10", "0", "0"}},
+		{"config", nil, []string{"8", "1", "0", "0", "0"}},
+		{"config-plan-only", []string{"-sequence", "dry-run"}, []string{"8", "1", "0", "0", "0"}},
+		{"config-menu", []string{configGroupMock}, []string{"q"}},
 		{"config-unused", []string{"config/unused"}, []string{"q"}},
 		{"config-missing", []string{"config/missing"}, []string{"1", "0"}},
 		{"config-mocks", []string{"config"}, []string{"4", "0", "0"}},

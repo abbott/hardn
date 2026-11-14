@@ -10,7 +10,7 @@ import (
 
 // The Time Sync screen (docs/roadmap.md, "Time sync";
 // docs/engine/gallery-timesync.md, adopted 2026-11-14;
-// docs/engine/screen-timesync.md): main menu 7. Which service keeps the
+// docs/engine/screen-timesync.md): main menu 8, then 3. Which service keeps the
 // host's time, whether it runs, whether the clock is in sync, the servers
 // it uses and where each is set; the servers hardn.yml names; and one or
 // two items named by their result. hardn's servers take the place of the

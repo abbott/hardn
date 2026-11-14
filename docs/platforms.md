@@ -16,7 +16,7 @@ hardn knows when each release's free security updates end. From 90 days before, 
 
 ## Log forwarding
 
-What Log Forwarding (main menu 6) does differs by the host's logger:
+What Log Forwarding (main menu 8, then 2) does differs by the host's logger:
 
 | Distribution | Logger hardn finds | Set server |
 |---|---|---|
@@ -31,7 +31,7 @@ What Log Forwarding (main menu 6) does differs by the host's logger:
 
 ## Time sync
 
-What Time Sync (main menu 7) does differs by the host's time service. hardn sets the service the host already runs:
+What Time Sync (main menu 8, then 3) does differs by the host's time service. hardn sets the service the host already runs:
 
 | Distribution | Service hardn finds | Set servers |
 |---|---|---|

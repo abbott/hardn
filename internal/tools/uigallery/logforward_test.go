@@ -95,20 +95,20 @@ func TestLogForwardUsage(t *testing.T) {
 	}
 }
 
-// TestPlayLogForward plays the screen on the engine: the main menu's 6
-// leads to it; Set server applied on Ubuntu, the screen then Configured
+// TestPlayLogForward plays the screen on the engine: the main menu's 8,
+// then 2, leads to it; Set server applied on Ubuntu, the screen then Configured
 // with Stop forwarding; Stop forwarding applied; rsyslog installed on
 // Debian 13; and a dry run stops at the plan. No command goes unanswered.
 func TestPlayLogForward(t *testing.T) {
-	code, out, errs, unread := playGallery([]string{"6", "1", "y", "1", "y", "0", "0"}, "-profile", "plain")
+	code, out, errs, unread := playGallery([]string{"8", "2", "1", "y", "1", "y", "0", "0", "0"}, "-profile", "plain")
 	for _, want := range []string{"Info: " + lfMainHost, "Forward logs to 192.0.2.50? [y/N, 0 or q]:", "Configured 192.0.2.50:514 TCP", "Connection",
 		"1) Stop forwarding      Undo hardn's change", "Stop forwarding logs? [y/N, 0 or q]:", "$ systemctl restart rsyslog", "$ logger -t hardn"} {
 		if !strings.Contains(out, want) {
-			t.Errorf("play, 6: no %q", want)
+			t.Errorf("play, 8, 2: no %q", want)
 		}
 	}
 	if code != exitOK || errs != "" || unread != 0 || strings.Contains(out, "does not model") {
-		t.Errorf("play, 6: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
+		t.Errorf("play, 8, 2: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, errs, unread = playGallery([]string{"1", "y", "0"}, "-profile", "plain", lfPrefix+"/journald")
 	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "$ apt-get install -y rsyslog\n") || !strings.Contains(out, "Logger               rsyslog") || strings.Contains(out, "does not model") {

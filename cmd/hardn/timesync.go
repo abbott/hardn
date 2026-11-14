@@ -1,35 +1,26 @@
 package main
 
 // Time Sync on the plan/apply engine (docs/roadmap.md, "Time sync";
-// docs/engine/gallery-timesync.md, adopted 2026-11-14): the main menu's Time Sync item (7) runs the Time Sync screen
-// (pkg/screens/timesync), which pkg/screens/mainmenu reaches through the
-// hook set here, as it reaches the Log Forwarding screen (logforward.go). The
-// engine's options are engine.go's. No flag routes to it.
+// docs/engine/gallery-timesync.md, adopted 2026-11-14): the Configuration group's Time Sync item (main menu 8,
+// then 3) runs the Time Sync screen (pkg/screens/timesync), which the group
+// reaches through readers.go's runConfigGroup. The engine's options are
+// engine.go's. No flag routes to it.
 
 import (
 	"context"
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/output"
-	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	timesyncscreen "github.com/abbott/hardn/pkg/screens/timesync"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
 
-// withTimeSyncScreen returns m with its Time Sync item set to the
-// Time Sync screen on c, the configuration m was given
-// (mainmenu.Options.TimeSync).
-func withTimeSyncScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
-	m.TimeSync = func() error { return runTimeSyncScreen(context.Background(), c) }
-	return m
-}
-
 // timeSyncRun is the Time Sync screen's Run, a seam for the tests,
 // which record the options runTimeSyncScreen gives it.
 var timeSyncRun = timesyncscreen.Run
 
-// runTimeSyncScreen is the main menu's Time Sync item: the screen
+// runTimeSyncScreen is the Configuration group's Time Sync item: the screen
 // until the user goes back (nil) or quits (nav.ErrQuit), or the input ends
 // (prompt.ErrAborted), as runUpdatesScreen runs the Auto Updates screen:
 // on the host hardn builds, the facts detected once per visit, through the

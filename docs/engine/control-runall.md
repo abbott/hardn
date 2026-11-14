@@ -1,8 +1,6 @@
 # Run All's planner (slice 8, unit (b))
 
-*Since `next/log-forwarding` (2026-11-13; [gallery-logforward.md](gallery-logforward.md), decision 8 (a)): main menu 7 is Run All; it also plans Log Forwarding's Set server where hardn.yml names a server ([screen-logforward.md](screen-logforward.md)).*
-
-*Since `next/time-sync` (2026-11-14; [gallery-timesync.md](gallery-timesync.md), decision 9 (a)): main menu 8 is Run All; it also plans Time Sync's Set servers where hardn.yml names servers ([screen-timesync.md](screen-timesync.md)).*
+*Since `next/log-forwarding` and `next/time-sync` (2026-11-14): Run All also plans Log Forwarding's Set server where hardn.yml names a server ([screen-logforward.md](screen-logforward.md)) and Time Sync's Set servers where it names servers ([screen-timesync.md](screen-timesync.md)). The main menu's keys are unchanged from v0.9.0: Run All is 6.*
 
 *Since `next/s8-replace`: main menu 7 and `hardn -r` plan through it; the legacy Run All is deleted, and the keys it leaves unused warn at load ([cmd-engine.md](cmd-engine.md) §2.19).*
 

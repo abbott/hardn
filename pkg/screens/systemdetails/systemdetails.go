@@ -1,5 +1,5 @@
 // Package systemdetails runs hardn's System Details screen on a host (refactor
-// plan slice 1, System Details and Logs, unit (c), next/s1-screen): main menu 11
+// plan slice 1, System Details and Logs, unit (c), next/s1-screen): main menu 9
 // and hardn system-details, as the maintainer adopted the mock on 2026-10-30
 // (docs/engine/gallery-system-details.md §5, decisions 2 (a), 3 (a), 4 (a), 5 (a)
 // and the Made here calls, with §6's words), drawn by pkg/ui/screen

@@ -1,5 +1,6 @@
 // Package configscreen runs hardn's Configuration screen (docs/roadmap.md,
-// "Configuration"; unit (b), next/config-screen): main menu 10, as the maintainer
+// "Configuration"; unit (b), next/config-screen): hardn.yml, item 1 of main menu 8's
+// group (RunGroup, group.go), as the maintainer
 // adopted the mock on 2026-11-12 (docs/engine/gallery-config.md §3, all (a), with
 // §4's words). It shows which hardn.yml hardn read and each key's value, drawn by
 // pkg/ui/screen (screen.Config). It only shows: no engine, no host, nothing written,

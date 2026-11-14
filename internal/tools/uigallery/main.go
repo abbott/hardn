@@ -163,9 +163,9 @@
 // "play system-details" is the menu of the hosts the System Details screen
 // plays on and "play system-details/<host>" hardn's System Details screen itself on
 // one (pkg/screens/systemdetails; systemdetails.go,
-// docs/engine/screen-system-details.md); the main menu's 11 leads to it on Debian 13.
+// docs/engine/screen-system-details.md); the main menu's 9 leads to it on Debian 13.
 // "play logs" and "play logs/<host>" are the same of the Logs screen
-// (pkg/screens/logs; logs.go); the main menu's 12 leads to it on a log of lines. Each
+// (pkg/screens/logs; logs.go); the main menu's 10 leads to it on a log of lines. Each
 // only reads: no plan, no y/N, no journal. -sequence dry-run draws the same screen, as
 // plan only would; -fail is refused there. No pager runs: Open says what hardn would
 // run.
@@ -182,8 +182,9 @@
 // "config" lists the mocks of the Configuration screen, which shows hardn.yml read
 // only (config.go, docs/engine/gallery-config.md), with the same flags. "play config"
 // is the menu of those mocks and "play config/<mock>" hardn's Configuration screen
-// itself on one (pkg/screens/config; docs/engine/screen-config.md); the main menu's 10
-// leads to it on the typical file.
+// itself on one (pkg/screens/config; docs/engine/screen-config.md). The main menu's 8
+// leads to the Configuration group ("play config/menu"), whose 1 leads to that
+// screen on the typical file, 2 to Log Forwarding and 3 to Time Sync.
 //
 // "eol" lists the mocks of the main menu's end-of-support notice (eol.go,
 // docs/engine/gallery-eol.md), with the same flags, each drawn through the

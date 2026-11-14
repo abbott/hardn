@@ -29,7 +29,7 @@ import (
 // reads of each host, each change planned on the real engine, on the hosts
 // the mock was drawn for. "uigallery logforward" lists each host's screen,
 // and each change's review up to its question, with no input; the main
-// menu's 6 leads to the screen on Ubuntu 24.04 in play; "play logforward"
+// menu's 8, then 2, leads to the screen on Ubuntu 24.04 in play; "play logforward"
 // is the menu of the hosts and "play logforward/<host>" one.
 
 // lfPrefix names the listing, its goldens, and the hosts in play.
@@ -38,11 +38,9 @@ const lfPrefix = "logforward"
 // lfLabel is the source label every mock's note opens with.
 const lfLabel = "Decided: no Figma frame."
 
-// lfMainHost is the host the main menu's 6 leads to in play.
+// lfMainHost is the host the Configuration group's 2 leads to in play (main
+// menu 8, then 2; config.go).
 const lfMainHost = lfPrefix + "/off"
-
-// lfMenuItem is the main menu's item (decision 8 (a)).
-var lfMenuItem = component.MenuItem{Key: "6", Label: "Log Forwarding", Description: "Send logs to a syslog server"}
 
 // The hosts' files and words.
 const (

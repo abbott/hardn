@@ -17,19 +17,30 @@ import (
 // The Configuration screen's mocks (docs/roadmap.md, "Configuration";
 // docs/engine/gallery-config.md, docs/engine/screen-config.md): read only.
 // "uigallery config" lists them and "play config" runs hardn's screen
-// (pkg/screens/config) on them. Each mock is a hardn.yml, loaded by the real loader
+// (pkg/screens/config) on them. The listing's first mock, "menu", is the
+// Configuration group, main menu 8 (configscreen.RunGroup), which leads to the
+// screen on the typical file, to Log Forwarding and to Time Sync; "play
+// config/menu" runs it. Each mock is a hardn.yml, loaded by the real loader
 // (config.Read) from a fake host, and how hardn found it, which the mock says
 // itself: config.FindConfigFile reads this machine and is never called.
 
 // configPrefix names the listing, its goldens and play's screens.
 const configPrefix = "config"
 
-// configMainMock is the mock the main menu's item leads to: the typical file.
+// configMainMock is the mock the group's hardn.yml leads to: the typical file.
 const configMainMock = configPrefix + "/etc"
 
-// configLinks lead from a menu mock's item to the Configuration screen on a mock,
-// by the menu mock's name and the item's key, beside links: the main menu's 10.
-var configLinks = map[string]string{mainMenuMock + "/10": configMainMock}
+// configGroupName names the Configuration group in the listing and in play,
+// after configPrefix; configGroupMock is its whole name.
+const (
+	configGroupName = "menu"
+	configGroupMock = configPrefix + "/" + configGroupName
+	configGroupNote = "Main menu 8: hardn.yml, Log Forwarding and Time Sync. It reads nothing."
+)
+
+// configLinks lead from a menu mock's item to the Configuration group, by the
+// menu mock's name and the item's key, beside links: the main menu's 8.
+var configLinks = map[string]string{mainMenuMock + "/8": configGroupMock}
 
 // configLabel is the source label every mock's note opens with.
 const configLabel = "Proposed: no Figma frame."
@@ -118,9 +129,29 @@ func (m configMock) view(ctx context.Context) (screen.Config, error) {
 	return configscreen.View(cfg, m.found()), nil
 }
 
+// configGroup runs hardn's Configuration group (configscreen.RunGroup) until the
+// user goes back from it: its note above it; its hardn.yml the screen on the
+// typical file, its Log Forwarding and Time Sync the screens on the hosts the
+// main menu's items led to (lfMainHost, tsMainHost).
+func (s *session) configGroup(ctx context.Context) error {
+	if err := s.writeNote(configGroupMock, configGroupNote); err != nil {
+		return err
+	}
+	return configscreen.RunGroup(ctx, configscreen.GroupOptions{
+		Prompter:      s.p,
+		File:          s.openConfig(configMainMock),
+		LogForwarding: s.openLogForward(lfMainHost),
+		TimeSync:      s.openTimeSync(tsMainHost),
+	})
+}
+
 // openConfig returns the action that opens what name names: the mocks' menu for
-// configPrefix alone, the screen on one mock for "config/<mock>".
+// configPrefix alone, the Configuration group for configGroupMock, the screen on
+// one mock for "config/<mock>".
 func (s *session) openConfig(name string) func() error {
+	if name == configGroupMock {
+		return func() error { return s.configGroup(context.Background()) }
+	}
 	if m, ok := findConfigMock(strings.TrimPrefix(name, configPrefix+"/")); ok && name != configPrefix {
 		return func() error { return s.configScreen(context.Background(), m) }
 	}
@@ -149,15 +180,16 @@ func (s *session) configScreen(ctx context.Context, m configMock) error {
 	return configscreen.Run(ctx, configscreen.Options{Prompter: s.p, Config: cfg, Found: m.found()})
 }
 
-// configStart returns the mocks' menu, or the mock, that args name ("config",
-// "config/<mock>"), and whether they name one; an error for a mock that is not one.
+// configStart returns the mocks' menu, the group or the mock that args name
+// ("config", "config/menu", "config/<mock>"), and whether they name one; an error
+// for a mock that is not one.
 func configStart(args []string) (string, bool, error) {
 	if len(args) != 1 || (args[0] != configPrefix && !strings.HasPrefix(args[0], configPrefix+"/")) {
 		return "", false, nil
 	}
-	if name := strings.TrimPrefix(args[0], configPrefix+"/"); args[0] != configPrefix {
+	if name := strings.TrimPrefix(args[0], configPrefix+"/"); args[0] != configPrefix && args[0] != configGroupMock {
 		if _, ok := findConfigMock(name); !ok {
-			var names []string
+			names := []string{configGroupMock}
 			for _, m := range configMocks() {
 				names = append(names, configPrefix+"/"+m.name)
 			}
@@ -171,9 +203,11 @@ func configStart(args []string) (string, bool, error) {
 const configNote = "Play mode: hardn's Configuration screen (pkg/screens/config), proposed with no Figma frame, on a hardn.yml loaded by the real loader (pkg/config). " +
 	"It only shows: no plan, no y/N, no journal, no host read. Nothing on this machine changes or is read."
 
-// configListMocks are the listing's mocks: each mock's screen.
+// configListMocks are the listing's mocks: the group, then each mock's screen.
 func configListMocks() []listMock {
-	var out []listMock
+	out := []listMock{{name: configGroupName, note: configGroupNote, draw: func(_ context.Context, c component.Ctx) (string, error) {
+		return screen.ConfigGroup{}.SubMenu().Render(c), nil
+	}}}
 	for _, m := range configMocks() {
 		out = append(out, listMock{name: m.name, note: m.note, draw: func(ctx context.Context, c component.Ctx) (string, error) {
 			v, err := m.view(ctx)

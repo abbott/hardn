@@ -66,7 +66,7 @@ To run, as root, on Debian 13, Ubuntu, Alpine (with and without `iproute2`) and 
 
 ```
 ss -Htlnp; ss -Hulnp                 # the forms the parser reads
-sudo hardn                           # 3) Firewall: the Ports section; 11) System Details
+sudo hardn                           # 3) Firewall: the Ports section; 9) System Details
 hardn system-details                 # as a user: no programs, the last line
 ufw allow 8080/tcp                   # a "nothing listening" row; then ufw delete allow 8080/tcp
 firewall-cmd --list-all-zones        # Rocky: the form ReadRuntime reads

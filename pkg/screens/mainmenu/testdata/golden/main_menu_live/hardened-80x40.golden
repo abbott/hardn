@@ -34,14 +34,12 @@ $
    \x1b[1;38;5;251m3)\x1b[m \x1b[38;5;251mFirewall\x1b[m             \x1b[38;5;102mConfigure ufw rules\x1b[m$
    \x1b[1;38;5;251m4)\x1b[m \x1b[38;5;251mDNS\x1b[m                  \x1b[38;5;102mConfigure nameservers\x1b[m$
    \x1b[1;38;5;251m5)\x1b[m \x1b[38;5;251mAuto Updates\x1b[m         \x1b[38;5;102mConfigure automatic updates\x1b[m$
-   \x1b[1;38;5;251m6)\x1b[m \x1b[38;5;251mLog Forwarding\x1b[m       \x1b[38;5;102mSend logs to a syslog server\x1b[m$
-   \x1b[1;38;5;251m7)\x1b[m \x1b[38;5;251mTime Sync\x1b[m            \x1b[38;5;102mKeep the clock in sync\x1b[m$
-   \x1b[1;38;5;251m8)\x1b[m \x1b[38;5;251mRun All\x1b[m              \x1b[38;5;102mExecute hardening operations\x1b[m$
-   \x1b[1;38;5;251m9)\x1b[m \x1b[38;5;251mBackup\x1b[m               \x1b[38;5;102mConfigure hardn backup\x1b[m$
-  \x1b[1;38;5;251m10)\x1b[m \x1b[38;5;251mConfiguration\x1b[m        \x1b[38;5;102mView hardn.yml\x1b[m$
-  \x1b[1;38;5;251m11)\x1b[m \x1b[38;5;251mSystem Details\x1b[m       \x1b[38;5;102mView system information\x1b[m$
-  \x1b[1;38;5;251m12)\x1b[m \x1b[38;5;251mLogs\x1b[m                 \x1b[38;5;102mView log file\x1b[m$
+   \x1b[1;38;5;251m6)\x1b[m \x1b[38;5;251mRun All\x1b[m              \x1b[38;5;102mExecute hardening operations\x1b[m$
+   \x1b[1;38;5;251m7)\x1b[m \x1b[38;5;251mBackup\x1b[m               \x1b[38;5;102mConfigure hardn backup\x1b[m$
+   \x1b[1;38;5;251m8)\x1b[m \x1b[38;5;251mConfiguration\x1b[m        \x1b[38;5;102mhardn.yml, log forwarding, time sync\x1b[m$
+   \x1b[1;38;5;251m9)\x1b[m \x1b[38;5;251mSystem Details\x1b[m       \x1b[38;5;102mView system information\x1b[m$
+  \x1b[1;38;5;251m10)\x1b[m \x1b[38;5;251mLogs\x1b[m                 \x1b[38;5;102mView log file\x1b[m$
 $
    \x1b[1;38;5;102m0)\x1b[m \x1b[38;5;102mExit\x1b[m                 \x1b[38;5;102mq to quit\x1b[m$
 $
-    \x1b[1;38;5;102m❯\x1b[m \x1b[1;38;5;102mOption\x1b[m \x1b[38;5;102m[0-12 or q]:\x1b[m $
+    \x1b[1;38;5;102m❯\x1b[m \x1b[1;38;5;102mOption\x1b[m \x1b[38;5;102m[0-10 or q]:\x1b[m $

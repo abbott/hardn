@@ -7,6 +7,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/output"
+	configscreen "github.com/abbott/hardn/pkg/screens/config"
 	logforwardscreen "github.com/abbott/hardn/pkg/screens/logforward"
 	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	runallscreen "github.com/abbott/hardn/pkg/screens/runall"
@@ -17,7 +18,8 @@ import (
 
 // TestMenuOptions: menuOptions, as main fills the main menu's Options, sets
 // every field of them, the User Management, SSH Login, DNS, Firewall,
-// Backup, Auto Updates, Log Forwarding, Run All, Configuration, System Details and Logs items' (the
+// Backup, Auto Updates, Run All, Configuration (its group's Log Forwarding
+// and Time Sync too), System Details and Logs items' (the
 // Firewall item's description's too), the status's and terminal's, the
 // input and stdout, on the configuration given. What each item runs is
 // its own tests' (TestBackupThenDNS, TestFirewallHook, TestUsersHook,
@@ -28,9 +30,9 @@ import (
 func TestMenuOptions(t *testing.T) {
 	h, c := newRunAllHost(t, "debian13", runAllYML)
 	useSSHHost(t, h)
-	statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas := menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun
+	statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas, groupWas := menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun, configGroupRun
 	t.Cleanup(func() {
-		menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun = statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas
+		menuStatus, runAllRun, updatesRun, logForwardRun, timeSyncRun, configGroupRun = statusWas, runAllWas, updatesWas, logForwardWas, timeSyncWas, groupWas
 	})
 	var status mainmenu.StatusOptions
 	var runAll runallscreen.Options
@@ -59,18 +61,27 @@ func TestMenuOptions(t *testing.T) {
 	if err := o.Updates(); err != nil {
 		t.Fatal(err)
 	}
-	if err := o.LogForwarding(); err != nil {
+	// Configuration (item 8) runs the group with its three screens.
+	var group configscreen.GroupOptions
+	configGroupRun = func(_ context.Context, g configscreen.GroupOptions) error { group = g; return nil }
+	if err := o.Configuration(); err != nil {
 		t.Fatal(err)
 	}
-	// The Log Forwarding screen (item 6) runs on the host and the engine
+	if group.Prompter.In == nil || group.Prompter.Out == nil || group.File == nil || group.LogForwarding == nil || group.TimeSync == nil {
+		t.Fatalf("the Configuration group's options: %+v", group)
+	}
+	if err := group.LogForwarding(); err != nil {
+		t.Fatal(err)
+	}
+	// The Log Forwarding screen (the group's 2) runs on the host and the engine
 	// hardn builds, with the main menu's configuration, each change a
 	// record of the audit log.
 	if logForward.Config != c || logForward.System == nil || logForward.NewEngine == nil || logForward.Ran == nil ||
 		logForward.ApplyContext == nil || logForward.Prompter.In == nil || logForward.LogPath != output.LegacyLogPath || logForward.DryRun != c.DryRun {
 		t.Errorf("the Log Forwarding screen's options: %+v", logForward)
 	}
-	// The Time Sync screen (item 7), the same.
-	if err := o.TimeSync(); err != nil {
+	// The Time Sync screen (the group's 3), the same.
+	if err := group.TimeSync(); err != nil {
 		t.Fatal(err)
 	}
 	if timeSync.Config != c || timeSync.System == nil || timeSync.NewEngine == nil || timeSync.Ran == nil ||
@@ -85,7 +96,7 @@ func TestMenuOptions(t *testing.T) {
 	}
 	for name, ok := range map[string]bool{
 		"User Management": o.Users != nil, "SSH Login": o.SSH != nil, "DNS": o.DNS != nil, "Firewall": o.Firewall != nil, "the Firewall item's description": o.FirewallPVE != nil, "the Firewall item's description on Rocky Linux and AlmaLinux": o.FirewallEL != nil,
-		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Log Forwarding": o.LogForwarding != nil, "Time Sync": o.TimeSync != nil, "Run All": o.RunAll != nil,
+		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Run All": o.RunAll != nil,
 		"Configuration": o.Configuration != nil, "System Details": o.SystemDetails != nil, "Logs": o.Logs != nil,
 		"the status": o.Status != nil, "the terminal": o.Terminal != nil, "the input": o.Input != nil, "stdout": o.Out != nil,
 		"the configuration": o.Config == c,

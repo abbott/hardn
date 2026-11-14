@@ -4,7 +4,7 @@
 
 ## 1. What it does
 
-Main menu 7. hardn shows which service keeps the host's time, whether it runs, whether the clock is in sync and to which server, and each server with where it is set; and makes that service use the servers hardn.yml's `ntpServers` names in place of its own ([configuration.md](../configuration.md#time-sync), [platforms.md](../platforms.md#time-sync)).
+Main menu `8) Configuration`, then `3) Time Sync` (decision 9 as revised on 2026-11-14; [screen-config.md](screen-config.md) §1.1). hardn shows which service keeps the host's time, whether it runs, whether the clock is in sync and to which server, and each server with where it is set; and makes that service use the servers hardn.yml's `ntpServers` names in place of its own ([configuration.md](../configuration.md#time-sync), [platforms.md](../platforms.md#time-sync)).
 
 | Part | Where | What |
 |---|---|---|
@@ -26,7 +26,7 @@ Shared with Log Forwarding, not copied ([screen-logforward.md](screen-logforward
 - **Remove servers** (decision 13): hardn's file deleted, its lines taken out, every line it switched off put back, then the same reload or restart. hardn.yml is not edited.
 - **Rollback.** Every file is backed up and journalled by the engine; a failed reload or restart puts the files back and runs the command again.
 - **Run All** (decision 15): a Time Sync row only where hardn.yml names servers, planned as Set servers. Never Remove.
-- **The main menu** (decisions 9 and 11): item 7; the row is drawn last, on every host but a container. It is no row of `risk.Rows`.
+- **The main menu** (decision 11; decision 9 as revised): no item of its own, under Configuration; the row is drawn last, on every host but a container. It is no row of `risk.Rows`.
 - **System Details and the report** (decision 10): "Time service", "Clock" and "Synced to" with OS and Kernel, from the same reading; the JSON document's `details.time`.
 - **A container** (decision 12): no service is looked for; the Clock row is the kernel's word; the screen's row is Not Applicable.
 - **Notices** (decisions 4 and 18): where the host's own servers are authenticated, "The host's own servers are authenticated (NTS). hardn's are not."; on Proxmox VE, "On a cluster, set every node the same way."
@@ -74,7 +74,7 @@ Each is the safer reading; the product choices among them are in the unit's repo
 6. **A clock not read is Unknown**, on the row too: chronyc's answer is not replaced by the kernel's.
 7. **Other time daemons** (openntpd, ntpsec) are not looked for: the Service row reads "None" there, and the Clock row still tells.
 8. **p4status** keeps to `controls.Status`: it does not draw the Time Sync row.
-9. **Twelve items do not fit 24 rows**: the main menu is 41 lines at 80 columns (39 before), and its top scrolls off, as before.
+9. **The main menu keeps v0.9.0's ten items** (decision 9 as revised). With the Time Sync row it is 39 lines at 80 columns (38 before), and on 24 rows its top scrolls off, as before.
 
 ## 6. Not run
 

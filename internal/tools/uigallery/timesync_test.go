@@ -109,21 +109,21 @@ func TestTimeSyncUsage(t *testing.T) {
 	}
 }
 
-// TestPlayTimeSync plays the screen on the engine: the main menu's 7 leads
-// to it; Set servers applied on Ubuntu 26.04, the screen then Configured on
+// TestPlayTimeSync plays the screen on the engine: the main menu's 8, then
+// 3, leads to it; Set servers applied on Ubuntu 26.04, the screen then Configured on
 // hardn's first server with Remove servers; Remove servers applied, the
 // pools back; set and removed on Rocky Linux, Alpine and Ubuntu 24.04; and
 // a dry run stops at the plan. No command goes unanswered.
 func TestPlayTimeSync(t *testing.T) {
-	code, out, errs, unread := playGallery([]string{"7", "1", "y", "1", "y", "0", "0"}, "-profile", "plain")
+	code, out, errs, unread := playGallery([]string{"8", "3", "1", "y", "1", "y", "0", "0", "0"}, "-profile", "plain")
 	for _, want := range []string{"Info: " + tsMainHost, "Set time servers? [y/N, 0 or q]:", "Configured 192.0.2.10", "Server               192.0.2.10 by hardn",
 		"1) Remove servers       Undo hardn's change", "Remove hardn's time servers? [y/N, 0 or q]:", "$ chronyc reload sources", "Server               ntp-bootstrap.ubuntu.com\n"} {
 		if !strings.Contains(out, want) {
-			t.Errorf("play, 7: no %q", want)
+			t.Errorf("play, 8, 3: no %q", want)
 		}
 	}
 	if code != exitOK || errs != "" || unread != 0 || strings.Contains(out, "does not model") {
-		t.Errorf("play, 7: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
+		t.Errorf("play, 8, 3: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	for host, want := range map[string]string{"rocky": "$ systemctl restart chronyd", "alpine": "$ rc-service ntpd restart", "timesyncd": "$ systemctl restart systemd-timesyncd", "debian-chrony": "$ systemctl restart chrony\n"} {
 		code, out, errs, unread = playGallery([]string{"1", "y", "1", "y", "0"}, "-profile", "plain", tsPrefix+"/"+host)

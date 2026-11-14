@@ -33,11 +33,9 @@ const tsPrefix = "timesync"
 // tsLabel is the source label every mock's note opens with.
 const tsLabel = "Proposed: no Figma frame."
 
-// tsMainHost is the host the main menu's 7 leads to in play.
+// tsMainHost is the host the Configuration group's 3 leads to in play (main
+// menu 8, then 3; config.go).
 const tsMainHost = tsPrefix + "/off"
-
-// tsMenuItem is the main menu's item (decision 9 (a)).
-var tsMenuItem = component.MenuItem{Key: "7", Label: "Time Sync", Description: "Keep the clock in sync"}
 
 // The hosts' hardn.yml, and the files that are not the distribution's.
 const (

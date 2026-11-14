@@ -203,14 +203,14 @@ Eighteen. Drawn: the recommended answer of each but 9, 10, 11, 16 and 17, which 
    - (b) Set servers also turns them off (chrony's `sourcedir /run/chrony-dhcp` commented out; networkd's `UseNTP=no`): hardn's servers truly alone, and two more files of the host's edited, one of them the network's.
    - (c) Set servers unavailable while DHCP hands out servers: nothing surprising, and most DHCP networks could never be set.
 
-9. **Where it lives in the menu.** New. The main menu today: 1 User Management, 2 SSH Login, 3 Firewall, 4 DNS, 5 Auto Updates, 6 Log Forwarding, 7 Run All, 8 Backup, 9 Configuration, 10 System Details, 11 Logs.
+9. **Where it lives in the menu.** *Revised by the maintainer on 2026-11-14: Time Sync is no main-menu item. It lives under `8) Configuration`, as its item 3, with hardn.yml (1) and Log Forwarding (2); the main menu keeps v0.9.0's ten items and keys ([screen-config.md](screen-config.md) §1.1). The adopted answer, (a), is kept below as the record.* New. The main menu today: 1 User Management, 2 SSH Login, 3 Firewall, 4 DNS, 5 Auto Updates, 6 Log Forwarding, 7 Run All, 8 Backup, 9 Configuration, 10 System Details, 11 Logs.
    - (a) *Recommended:* its own item, 7, "Time Sync", "Keep the clock in sync", after Log Forwarding with the other things hardn sets. Run All, Backup, Configuration, System Details and Logs each move down one (8 to 12), the hint reads `[0-12 or q]`, and every page and golden that names those keys changes, as when Log Forwarding went in. Whether twelve items fit an 80×24 terminal with the status rows: unverified, the real unit's heights test says.
    - (b) Item 12, after Logs: nothing moves, and a control sits after the screens that only read.
    - (c) An item of the DNS screen (4), renamed for both: no new main-menu item, and two unrelated services behind one name.
 
    *Gates the real screen unit only; the mocks draw the screen itself.*
 
-10. **Whether "Show it" also appears on System Details and in the Markdown report.** New. The roadmap's first step is read only; System Details (10) and `hardn system-details --output markdown` are where hardn reports a host.
+10. **Whether "Show it" also appears on System Details and in the Markdown report.** New. The roadmap's first step is read only; System Details (main menu 9) and `hardn system-details --output markdown` are where hardn reports a host.
     - (a) *Recommended:* yes, three rows there, "Time service", "Clock" and "Synced to", from the same reading as this screen, with no servers list and no item. A report handed over then says whether the host's clock can be trusted, which its log times depend on.
     - (b) This screen only: one place, and the report says nothing of the clock.
     - (c) System Details only, and no Time Sync item until Set servers is built: the roadmap's two steps as two releases.

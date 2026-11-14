@@ -13,7 +13,7 @@ This document explains how to configure `hardn`, the simple hardening tool for L
 5. `~/.hardn.yml` (traditional dot-file in home directory)
 6. `./hardn.yml` (the directory `hardn` runs in)
 
-The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `10) Configuration` shows which file was read, or run `sudo hardn config`.
+The flags that change the host (`-c`, `-d`, `-g`, `-w`, `-r`) say which file they read on stderr: "Using configuration from: <path>". The main menu shows nothing before it starts; its `8) Configuration`, then `1) hardn.yml`, shows which file was read, or run `sudo hardn config`.
 
 ## Creating a Configuration File
 
@@ -150,7 +150,7 @@ checkReleases: false                # true: ask GitHub for the latest release's 
 
 #### `enableBackups` and `backupPath`: the Backup screen
 
-The main menu's Backup (9) shows and changes these two settings.
+The main menu's Backup (7) shows and changes these two settings.
 
 - **Showing it writes nothing.** With backups on, it used to write a test file to the backup path each time.
 - **Verify Directory writes nothing.** It checks that only root can change the path.
@@ -248,7 +248,7 @@ logForwarding:
   caFile: ""             # tls only
 ```
 
-The syslog server the main menu's Log Forwarding (6) and Run All send the host's logs to. Nothing is set by default: with no `server`, hardn changes nothing.
+The syslog server Log Forwarding (main menu `8) Configuration`, then 2) and Run All send the host's logs to. Nothing is set by default: with no `server`, hardn changes nothing.
 
 - **`server`** is an IPv4 address or a host name. An IPv6 address isn't set yet.
 - **`protocol`** is `udp`, `tcp` or `tls`, in lower case. UDP and TCP are not encrypted, and UDP doesn't notice a lost message. On Alpine only `udp` is set: busybox syslogd has no other.
@@ -266,7 +266,7 @@ ntpServers:
   - "192.0.2.11"
 ```
 
-The time servers the main menu's Time Sync (7) and Run All set on the host's time service, in place of its own. Nothing is set by default: with none, hardn changes nothing.
+The time servers Time Sync (main menu `8) Configuration`, then 3) and Run All set on the host's time service, in place of its own. Nothing is set by default: with none, hardn changes nothing.
 
 - **One to four servers**, each an IPv4 address or a host name, in the order the service is given them. An IPv6 address isn't set yet. A name needs DNS before the clock is set.
 - **A value hardn doesn't accept is refused**, and nothing is written: the names go into the service's settings, so only letters, digits, dots and hyphens. No options (`prefer`, `nts`): hardn writes plain NTP servers.
@@ -285,7 +285,7 @@ disableRootSSH: false               # Run All: true turns root login off
 
 #### What Run All reads
 
-The main menu's Run All (8) and `hardn -r` plan these keys' changes as one plan:
+The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 
 - **`username` and `sshKeys`:** creates the user with admin rights and the keys, as `-c`. A user already there is left to User Management unless they are an admin with every key.
 - **`disableRootSSH: true`:** turns root login off; on Proxmox VE, root key-only. Skipped while you are logged in as root, and when the firewall is enabled in the same run: run Run All again.

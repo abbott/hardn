@@ -1,0 +1,82 @@
+# Golden file of TestConfigGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mconfig menu␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Main menu 8: hardn.yml, Log␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mForwarding and Time Sync. It reads nothing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTime Sync␛[m            ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  config menu --------------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. Main menu 8: hardn.yml, Log$
+# Forwarding and Time Sync. It reads nothing.$
+$
+# Configuration ################################################$
+$
+   1) hardn.yml            View the file hardn reads$
+   2) Log Forwarding       Send logs to a syslog server$
+   3) Time Sync            Keep the clock in sync$
+$
+   0) Return$
+$
+    > Option [0-3 or q]:$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mconfig menu␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Main menu 8: hardn.yml, Log␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mForwarding and Time Sync. It reads nothing.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m$
+      ␛[38;2;129;134;156mView the file hardn reads␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m$
+      ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTime Sync␛[m$
+      ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mconfig menu␛[m ␛[38;2;22;24;29m--------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Main menu 8: hardn.yml, Log␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mForwarding and Time Sync. It reads nothing.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m################################################␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTime Sync␛[m            ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-3 or q]:␛[m$
+$
+$

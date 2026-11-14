@@ -2,11 +2,11 @@
 
 > **Unit:** the roadmap's "Log forwarding", the real unit, on `next/log-forwarding`, from the mock the maintainer adopted on 2026-11-13 ("Adopt all": [gallery-logforward.md](gallery-logforward.md) §4). **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine. No hardn binary ran, and nothing ran on Linux: §5 lists what only a host can show.
 
-*Since `next/time-sync` (2026-11-14; [gallery-timesync.md](gallery-timesync.md), decision 9 (a)): Run All is main menu 8. Stop forwarding's delete is `steps.DeleteOwnFile`, shared with Time Sync; nothing of Log Forwarding's behaviour changed.*
+*Since `next/time-sync` (2026-11-14): the main menu's keys are unchanged from v0.9.0, and Log Forwarding is under `8) Configuration`, its item 2 (the maintainer, 2026-11-14, revising gallery-logforward.md's decision 8 and gallery-timesync.md's decision 9; [screen-config.md](screen-config.md) §1.1). Stop forwarding's delete is `steps.DeleteOwnFile`, shared with Time Sync; nothing of Log Forwarding's behaviour changed.*
 
 ## 1. What it does
 
-Main menu 6. hardn shows whether the host sends its logs to a syslog server, where, and by whose file; and sets the server hardn.yml's `logForwarding` names ([configuration.md](../configuration.md#log-forwarding)).
+Main menu `8) Configuration`, then `2) Log Forwarding`. hardn shows whether the host sends its logs to a syslog server, where, and by whose file; and sets the server hardn.yml's `logForwarding` names ([configuration.md](../configuration.md#log-forwarding)).
 
 | Part | Where | What |
 |---|---|---|
@@ -39,7 +39,7 @@ The words, the codes, the files, the commands and their order are the control's,
 - **Rollback.** Every file is backed up and journalled by the engine. rsyslogd refusing its settings with hardn's file fails the change before the restart (`LOGFWD_CHECK_FAILED`): the file is put back and nothing restarts. A failed restart puts the file back and restarts again. An rsyslog hardn installed in the same change is removed by the rollback.
 - **Stop forwarding** (decision 11): hardn's file deleted, or its words and comment taken out of `SYSLOGD_OPTS`, then the restart. rsyslog stays installed, and hardn.yml is not edited.
 - **Run All** (decision 9): a Log Forwarding row only where hardn.yml names a server, planned as Set server, in the one plan. Never Stop.
-- **The main menu** (decisions 8 and 10): item 6; the row is drawn after AppArmor's, only where hardn.yml names a server or the host forwards (`controls.Menu`, `controls.MenuReports`). It is no row of `risk.Rows`, so the risk level never counts it.
+- **The main menu** (decision 10; decision 8 as revised on 2026-11-14): no item of its own, under Configuration; the row is drawn after AppArmor's, only where hardn.yml names a server or the host forwards (`controls.Menu`, `controls.MenuReports`). It is no row of `risk.Rows`, so the risk level never counts it.
 
 ## 2. Injection surface
 

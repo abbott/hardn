@@ -11,15 +11,21 @@
 | 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles, limits repeated SSH connections. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL); turns off only what hardn turned on. Read only on Proxmox |
-| 6) Log Forwarding | the host's logger, the syslog server it sends logs to, by whose file, and the server `hardn.yml` names | sends every log to `hardn.yml`'s server over UDP, TCP or TLS; stops only what hardn set. [More](#log-forwarding) |
-| 7) Time Sync | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#time-sync) |
-| 8) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS, automatic updates, log forwarding and time servers. Where the firewall and root login both change, root login waits for the next Run All |
-| 9) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
-| 10) Configuration | which `hardn.yml` hardn read and each key's value | nothing |
-| 11) System Details | OS, kernel, the time service and the clock, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
-| 12) Logs | `/var/log/hardn.log` | nothing |
+| 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS, automatic updates, log forwarding and time servers. Where the firewall and root login both change, root login waits for the next Run All |
+| 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
+| 8) Configuration | a menu of three screens, below | log forwarding and time servers |
+| 9) System Details | OS, kernel, the time service and the clock, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
+| 10) Logs | `/var/log/hardn.log` | nothing |
 
 _The hardn status for **AppArmor** only displays current state, nothing more._
+
+`8) Configuration` opens a menu of its own:
+
+| Option | Displays | Configures |
+|---|---|---|
+| 1) hardn.yml | which `hardn.yml` hardn read and each key's value | nothing |
+| 2) Log Forwarding | the host's logger, the syslog server it sends logs to, by whose file, and the server `hardn.yml` names | sends every log to `hardn.yml`'s server over UDP, TCP or TLS; stops only what hardn set. [More](#log-forwarding) |
+| 3) Time Sync | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#time-sync) |
 
 ### Log forwarding
 
@@ -157,7 +163,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 
 ### Logs
 - `/var/log/hardn/audit.jsonl` gets one JSON line for each change hardn plans: from an operation flag, a screen, or `hardn confirm`'s clean-up. That includes changes applied, refused, declined, rolled back or interrupted, and dry runs. Each `hardn confirm` and `hardn rollback` adds a line too, with who ran it, the change's id and how it ended; so does the rollback of a change nobody confirmed. It is root's alone. Read it with `sudo tail -n 5 /var/log/hardn/audit.jsonl`.
-- `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. `12) Logs` and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
+- `/var/log/hardn.log` is hardn's log, including the commands a rollback runs. `10) Logs` and `-p` show it. A dry run doesn't write to it; each plan it shows adds one line to the audit log, and nothing else is written.
 
 ## hardn.yml
 

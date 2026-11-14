@@ -316,10 +316,10 @@ func TestLiveMainMenuGolden(t *testing.T) {
 
 // galleryStatus is the gallery's main menu of host name, in the plain-80
 // cell of its golden file: from the header's line to the prompt's, each
-// line's "$" taken off; with items 5, Auto Updates, 6, Log Forwarding, and
-// 7, Time Sync, above item 8 in its columns and the hint "[0-12 or q]", as
-// the main menu has them, the gallery's main menus, the mock's items
-// (screen.MainMenuFixture), having none of them (withUpdatesItem).
+// line's "$" taken off; with item 5, Auto Updates, above item 6 in its
+// columns and the hint "[0-10 or q]", as the main menu has them since
+// slice 7's unit (d), the gallery's main menus, the mock's items
+// (screen.MainMenuFixture), having no item 5 yet (withUpdatesItem).
 func galleryStatus(t *testing.T, name string) string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(goldenDir, name+".golden"))
@@ -332,17 +332,13 @@ func galleryStatus(t *testing.T, name string) string {
 	}
 	var lines []string
 	for _, l := range strings.Split(cell, "\n")[1:] {
-		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 8-12 or q]", "[0-12 or q]")
+		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-10 or q]", "[0-10 or q]")
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
-		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   8) Run All ") && desc > 0 {
-			lines = lines[:len(lines)-1]
-			for _, it := range []component.MenuItem{updatesItem, logForwardItem, timeSyncItem} {
-				item := "   " + it.Key + ") " + it.Label
-				lines = append(lines, item+strings.Repeat(" ", desc-len(item))+it.Description)
-			}
-			lines = append(lines, l)
+		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
+			item := "   5) " + updatesItem.Label
+			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+updatesItem.Description, l)
 		}
 		if strings.HasPrefix(l, "    > ") && len(lines) > 0 {
 			return strings.Join(lines, "\n")

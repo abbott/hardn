@@ -11,7 +11,7 @@ Status of the mock unit, as it was written: built and tested on macOS in process
 go run ./internal/tools/uigallery logforward [-ascii] [mock | all]   # the listing, no input
 go run ./internal/tools/uigallery logforward -list                    # the mocks' names
 go run ./internal/tools/uigallery play logforward                     # the hosts' menu, played on the engine
-go run ./internal/tools/uigallery play logforward/<host>              # one host; the main menu's 6 leads to "off"
+go run ./internal/tools/uigallery play logforward/<host>              # one host; the main menu's 8, then 2, leads to "off"
 ```
 
 The view is `pkg/ui/screen/logforward.go` (`screen.LogForward`), the hosts `internal/tools/uigallery/logforward.go`, the goldens `internal/tools/uigallery/testdata/golden/logforward/`. Since the real unit each mock is the real screen (`pkg/screens/logforward`) on a simulated host, read by the real control, each review planned by the real engine.
@@ -213,7 +213,7 @@ Fourteen. Drawn: every recommendation below but 8, 9, 10, 13 and 14, which chang
    - (b) Set server stays offered where hardn.yml names another server, adding hardn's file: the host then sends everything twice, to two servers.
    - (c) hardn takes the file over: one source of truth, and hardn rewrites what the administrator wrote.
 
-8. **Where it lives in the menu.** The main menu today: 1 User Management, 2 SSH Login, 3 Firewall, 4 DNS, 5 Auto Updates, 6 Run All, 7 Backup, 8 Configuration, 9 System Details, 10 Logs.
+8. **Where it lives in the menu.** *Revised by the maintainer on 2026-11-14: Log Forwarding is no main-menu item. It lives under `8) Configuration`, as its item 2, with hardn.yml (1) and Time Sync (3); the main menu keeps v0.9.0's ten items and keys ([screen-config.md](screen-config.md) §1.1). The adopted answer, (a), is kept below as the record.* The main menu today: 1 User Management, 2 SSH Login, 3 Firewall, 4 DNS, 5 Auto Updates, 6 Run All, 7 Backup, 8 Configuration, 9 System Details, 10 Logs.
    - (a) *Recommended:* its own item, 6, "Log Forwarding", "Send logs to a syslog server", after Auto Updates with the other things hardn sets. Run All, Backup, Configuration, System Details and Logs each move down one (7 to 11), the hint reads `[0-11 or q]`, and every page and golden that names those keys changes. Someone typing 6 from habit gets this screen, which asks before it changes anything, not Run All.
    - (b) Item 11, after Logs: nothing moves, and a control sits after the two screens that only read.
    - (c) An item of the Logs screen (10): no new main-menu item, but Logs shows hardn's own log, and this is about the host's.

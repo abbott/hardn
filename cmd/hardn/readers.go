@@ -2,10 +2,11 @@ package main
 
 // System Details and Logs (refactor plan slice 1, unit (d), next/s1-replace;
 // docs/engine/screen-system-details.md §7; plan §3.14: the legacy path replaced, not
-// gated): main menu 11 and 12 run the two screens (pkg/screens/systemdetails,
+// gated): main menu 9 and 10 run the two screens (pkg/screens/systemdetails,
 // pkg/screens/logs), which pkg/screens/mainmenu reaches through the hooks set here,
-// so that pkg/screens/mainmenu builds no reader; main menu 10 runs the Configuration
-// screen (pkg/screens/config; docs/engine/screen-config.md), which reads no host; hardn
+// so that pkg/screens/mainmenu builds no reader; main menu 8 runs the Configuration
+// group, whose item 1 is the Configuration screen (pkg/screens/config;
+// docs/engine/screen-config.md), which reads no host; hardn
 // system-details, hardn config and -p print through the same packages. All of this only reads, under
 // plan only as live, on a host with no run log; neither opens hardn's log nor writes
 // /etc/hardn/hardn.yml.example (main.go's openStartLog and liveWrites).
@@ -45,7 +46,7 @@ var readerHost = func() host.System { return host.NewReal(host.Options{}) }
 // set to their screens on c, the configuration m was given, and found, how its file
 // was looked for when it loaded.
 func withReaderScreens(m mainmenu.Options, c *config.Config, found config.Found) mainmenu.Options {
-	m.Configuration = func() error { return runConfigScreen(context.Background(), c, found) }
+	m.Configuration = func() error { return runConfigGroup(context.Background(), c, found) }
 	m.SystemDetails = func() error { return runSystemDetailsScreen(context.Background()) }
 	m.Logs = func() error { return runLogsScreen(context.Background(), c) }
 	return m
@@ -81,7 +82,25 @@ func loadedFound(c *config.Config, found config.Found) config.Found {
 	return config.Found{}
 }
 
-// runConfigScreen is main menu 10: c, hardn.yml as the main menu holds it, and found,
+// configGroupRun is the Configuration group's Run, a seam for the tests, which
+// record the options runConfigGroup gives it.
+var configGroupRun = configscreen.RunGroup
+
+// runConfigGroup is main menu 8, Configuration: the group until the user goes
+// back (nil) or quits (nav.ErrQuit), or the input ends (prompt.ErrAborted). Its
+// items are the hardn.yml screen (runConfigScreen), Log Forwarding
+// (logforward.go) and Time Sync (timesync.go), each on c, the configuration the
+// main menu holds, and each returning to the group.
+func runConfigGroup(ctx context.Context, c *config.Config, found config.Found) error {
+	return configGroupRun(ctx, configscreen.GroupOptions{
+		Prompter:      readerPrompter(),
+		File:          func() error { return runConfigScreen(ctx, c, found) },
+		LogForwarding: func() error { return runLogForwardScreen(ctx, c) },
+		TimeSync:      func() error { return runTimeSyncScreen(ctx, c) },
+	})
+}
+
+// runConfigScreen is the group's item 1, hardn.yml: c, hardn.yml as the main menu holds it, and found,
 // how its file was found when it loaded (main.go's loadedFound), not asked again: the screen
 // names the file whose values it shows. It reads no host and writes nothing, under
 // plan only as live.
@@ -89,7 +108,7 @@ func runConfigScreen(ctx context.Context, c *config.Config, found config.Found) 
 	return configscreen.Run(ctx, configscreen.Options{Prompter: readerPrompter(), Config: c, Found: found})
 }
 
-// runSystemDetailsScreen is main menu 11: the screen until the user goes back (nil) or
+// runSystemDetailsScreen is main menu 9: the screen until the user goes back (nil) or
 // quits (nav.ErrQuit), or the input ends (prompt.ErrAborted),
 // pkg/screens/mainmenu's showScreen mapping what it returns; the facts detected
 // once per visit.
@@ -98,7 +117,7 @@ func runSystemDetailsScreen(ctx context.Context) error {
 	return systemdetails.Run(ctx, systemdetails.Options{Prompter: readerPrompter(), System: sys, Facts: readerFacts(ctx, sys)})
 }
 
-// runLogsScreen is main menu 12, as runSystemDetailsScreen is 11: the log hardn writes,
+// runLogsScreen is main menu 10, as runSystemDetailsScreen is 9: the log hardn writes,
 // c's logFile said where it names another path, TERM for the pager.
 func runLogsScreen(ctx context.Context, c *config.Config) error {
 	return logs.Run(ctx, logs.Options{Prompter: readerPrompter(), System: readerHost(), LogFile: c.LogFile, Term: os.Getenv("TERM")})
@@ -208,7 +227,7 @@ func readConfig() (c *config.Config, found config.Found, ok bool) {
 	return c, found, true
 }
 
-// runConfig is hardn config: what main menu 10 shows, on stdout, with no menu and no
+// runConfig is hardn config: what the Configuration group's hardn.yml shows, on stdout, with no menu and no
 // prompt. No root check, as system-details; refused's words on stderr, exit status 2,
 // nothing read. It writes nothing: no log, no example, and no offer to create
 // hardn.yml (loadExisting). A file -f or HARDN_CONFIG names that is not there is the
