@@ -155,7 +155,7 @@ func activeWord(p ufw.Plan, after bool) string {
 // maintainer, 2026-11-07).
 func PlanUFWEnable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error) {
 	if in.Facts.Platform.Distro.EL() {
-		return nil, ErrELFirewall
+		return nil, ELFirewall(in.Facts.Platform.Distro)
 	}
 	st, err := readSSH(ctx, sys, in, "")
 	if err != nil {
@@ -203,7 +203,7 @@ func (st sshState) enableUFW(ctx context.Context, sys host.System, prefix string
 // (ufw.PlanDisable); any other failure to read is ufw.ErrStateUnknown.
 func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefix string) ([]engine.Change, error) {
 	if in.Facts.Platform.Distro.EL() {
-		return nil, ErrELFirewall
+		return nil, ELFirewall(in.Facts.Platform.Distro)
 	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil && !(st.Status.Known && st.Status.Active) {
@@ -230,7 +230,7 @@ func PlanUFWDisable(ctx context.Context, sys host.System, in engine.Input, prefi
 // left alone (ufw.ErrNoPlainAllow where none is).
 func PlanUFWLimit(ctx context.Context, sys host.System, in engine.Input, prefix string, listeners sshd.Listeners) ([]engine.Change, error) {
 	if in.Facts.Platform.Distro.EL() {
-		return nil, ErrELFirewall
+		return nil, ELFirewall(in.Facts.Platform.Distro)
 	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil {
@@ -300,7 +300,7 @@ const profileMode fs.FileMode = 0o644
 // be. ufw must be active (ufw.ErrInactive).
 func PlanUFWApps(ctx context.Context, sys host.System, in engine.Input, prefix string, profiles []ufw.Profile) ([]engine.Change, error) {
 	if in.Facts.Platform.Distro.EL() {
-		return nil, ErrELFirewall
+		return nil, ELFirewall(in.Facts.Platform.Distro)
 	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil {
@@ -351,7 +351,7 @@ func PlanUFWApps(ctx context.Context, sys host.System, in engine.Input, prefix s
 // there. ufw must be active (ufw.ErrInactive).
 func PlanUFWInterfaces(ctx context.Context, sys host.System, in engine.Input, prefix string, ifaces []string) ([]engine.Change, error) {
 	if in.Facts.Platform.Distro.EL() {
-		return nil, ErrELFirewall
+		return nil, ELFirewall(in.Facts.Platform.Distro)
 	}
 	st, err := ufw.Read(ctx, sys, in.Facts.Proxmox)
 	if err != nil {

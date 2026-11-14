@@ -8,9 +8,9 @@
 |---|---|---|
 | 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state; under Account Review, accounts with an empty password, a password that never expires or no login in 90 days, each with the command to run | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
 | 2) SSH Login | root login, password login, the port, allowed users, sshd's brute-force limit, as sshd reads them; every account's SSH keys, with weak and shared ones marked | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
-| 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles, limits repeated SSH connections. On Rocky, Alma and RHEL: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
+| 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles, limits repeated SSH connections. On Rocky, Alma, RHEL, CentOS Stream and Oracle: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
-| 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL); turns off only what hardn turned on. Read only on Proxmox |
+| 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL, CentOS Stream, Oracle); turns off only what hardn turned on. Read only on Proxmox |
 | 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS, automatic updates, log forwarding and time servers. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
 | 8) Configuration | a menu of three screens, below | log forwarding and time servers |
@@ -76,7 +76,7 @@ User Management's `3) Account Review` lists accounts to look at. hardn changes n
 | `-u, --username <name>` | The user `-c` creates; also the default for Create and Run All |
 | `-c, --create-user` | Create the user with admin rights and every key in hardn.yml's `sshKeys`. Their admin rights ask a password: set one with `passwd <name>` |
 | `-d, --disable-root` | Turn root's SSH login off (key-only on Proxmox). Refused unless another admin can still log in and become root |
-| `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox, Rocky, Alma and RHEL |
+| `-w, --configure-ufw` | Enable `ufw` as Firewall does. Refused on Proxmox, Rocky, Alma, RHEL, CentOS Stream and Oracle |
 | `-g, --configure-dns` | Set hardn.yml's nameservers |
 | `-r, --run-all` | Run All's plan from hardn.yml. Can't be combined with `-c`, `-d`, `-w` or `-g` (exit 2) |
 | `-n, --dry-run` | Dry run: show the plan, change nothing |

@@ -97,6 +97,7 @@ func TestMatrixEnds(t *testing.T) {
 		"proxmox 9": "", "proxmox 8": "2026-08",
 		"rocky 10": "2035-05-31", "rocky 9": "2032-05-31", "almalinux 10": "2035-05-31", "almalinux 9": "2032-05-31",
 		"rhel 10": "2035-05-31", "rhel 9": "2032-05-31",
+		"centos 10": "2030-05-31", "centos 9": "2027-05-31", "ol 10": "2035-06", "ol 9": "2032-06",
 	}
 	far := day(t, "2100-01-01")
 	last := map[detect.Distro]float64{}
@@ -154,6 +155,8 @@ func TestUpgrade(t *testing.T) {
 		{classify("rocky", "9.8"), "rocky 10"},
 		{classify("almalinux", "9.8"), "almalinux 10"},
 		{classify("rhel", "9.9"), "rhel 10"},
+		{classify("centos", "9"), "centos 10"},
+		{classify("ol", "9.8"), "ol 10"},
 		{detect.Platform{Distro: detect.DistroProxmox, Version: "8"}, "proxmox 9"},
 		{detect.Platform{Distro: detect.DistroProxmox, Version: "9"}, ""},
 		{classify("fedora", "43"), ""},

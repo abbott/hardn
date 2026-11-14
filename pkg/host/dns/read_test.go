@@ -580,6 +580,17 @@ func TestReadRocky(t *testing.T) {
 	}
 }
 
+// TestHostOfEL: every EL distribution is one Read reports.
+func TestHostOfEL(t *testing.T) {
+	for _, d := range []detect.Distro{detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL, detect.DistroCentOS, detect.DistroOracle} {
+		w := newWorld(t, "rocky-10.2")
+		w.f.Platform.Distro = d
+		if h, err := dns.HostOf(w.f); err != nil || h.Distro != d {
+			t.Errorf("%s: HostOf = %s, %v", d, h.Distro, err)
+		}
+	}
+}
+
 // TestHostOfRefuses: a distribution or container fact that is not
 // established, another distribution and a container are refused before
 // anything is read.
@@ -591,7 +602,7 @@ func TestHostOfRefuses(t *testing.T) {
 	}{
 		{"distribution unknown", func(f *detect.Facts) { f.Platform = detect.Platform{} }, dns.ErrUnknown},
 		{"another distribution", func(f *detect.Facts) { f.Platform.Distro = detect.DistroOther }, dns.ErrUnsupported},
-		{"another distribution like Rocky", func(f *detect.Facts) { f.Platform.Distro = "centos" }, dns.ErrUnsupported},
+		{"another distribution like Rocky", func(f *detect.Facts) { f.Platform.Distro = "fedora" }, dns.ErrUnsupported},
 		{"container", func(f *detect.Facts) { f.Container = detect.Container{Detected: detect.Yes, Signal: "/.dockerenv"} }, dns.ErrContainer},
 		{"container unknown", func(f *detect.Facts) { f.Container = detect.Container{} }, dns.ErrUnknown},
 	}

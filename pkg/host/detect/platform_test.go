@@ -66,7 +66,19 @@ func TestClassify(t *testing.T) {
 		{"RHEL 9.9 (rhel9-test-115)", read("rhel-9.9"), notPVE, detect.DistroRHEL, "9", detect.Supported, nil},
 		{"RHEL 8.10", detect.OSRelease{ID: "rhel", IDLike: []string{"fedora"}, VersionID: "8.10"}, notPVE, detect.DistroRHEL, "8", detect.Unlisted, nil},
 		{"RHEL VERSION_ID with no minor", detect.OSRelease{ID: "rhel", VersionID: "10"}, notPVE, detect.DistroRHEL, "", detect.Unlisted, nil},
-		{"CentOS Stream is not RHEL", detect.OSRelease{ID: "centos", IDLike: []string{"rhel", "fedora"}, VersionID: "10"}, notPVE, detect.DistroOther, "", detect.Unlisted, nil},
+		// CentOS Stream and Oracle Linux: 10 and 9 supported
+		// (design-centos-oracle.md).
+		{"CentOS Stream 10", read("centos-stream-10"), notPVE, detect.DistroCentOS, "10", detect.Supported, nil},
+		{"CentOS Stream 9", read("centos-stream-9"), notPVE, detect.DistroCentOS, "9", detect.Supported, nil},
+		{"Oracle Linux 10.1", read("oracle-10.1"), notPVE, detect.DistroOracle, "10", detect.Supported, nil},
+		{"Oracle Linux 9.8", read("oracle-9.8"), notPVE, detect.DistroOracle, "9", detect.Supported, nil},
+		{"CentOS Linux 8", detect.OSRelease{ID: "centos", IDLike: []string{"rhel", "fedora"}, VersionID: "8"}, notPVE, detect.DistroCentOS, "8", detect.Unlisted, nil},
+		{"CentOS VERSION_ID with a minor", detect.OSRelease{ID: "centos", VersionID: "10.1"}, notPVE, detect.DistroCentOS, "10", detect.Supported, nil},
+		{"CentOS VERSION_ID missing", detect.OSRelease{ID: "centos"}, notPVE, detect.DistroCentOS, "", detect.Unlisted, nil},
+		{"CentOS VERSION_ID not numeric", detect.OSRelease{ID: "centos", VersionID: "stream"}, notPVE, detect.DistroCentOS, "", detect.Unlisted, nil},
+		{"Oracle Linux VERSION_ID with no minor", detect.OSRelease{ID: "ol", VersionID: "10"}, notPVE, detect.DistroOracle, "", detect.Unlisted, nil},
+		{"Oracle Linux with Proxmox not established", read("oracle-10.1"), detect.Proxmox{Err: errFixture}, detect.DistroOracle, "10", detect.Supported, nil},
+		{"Fedora is not EL", detect.OSRelease{ID: "fedora", VersionID: "43"}, notPVE, detect.DistroOther, "", detect.Unlisted, nil},
 
 		{"os-release unreadable", detect.OSRelease{Err: errFixture}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, errFixture},
 		{"empty OSRelease", detect.OSRelease{}, notPVE, detect.DistroUnknown, "", detect.SupportUnknown, detect.ErrNoSignal},
@@ -86,12 +98,20 @@ func TestClassify(t *testing.T) {
 	}
 }
 
-// EL is Rocky Linux, AlmaLinux and RHEL alone.
+// EL is Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux alone,
+// and each has a name for the refusals to say.
 func TestEL(t *testing.T) {
+	names := map[detect.Distro]string{detect.DistroRocky: "Rocky Linux", detect.DistroAlma: "AlmaLinux", detect.DistroRHEL: "RHEL",
+		detect.DistroCentOS: "CentOS Stream", detect.DistroOracle: "Oracle Linux"}
 	for _, d := range []detect.Distro{detect.DistroUnknown, detect.DistroDebian, detect.DistroUbuntu, detect.DistroAlpine,
-		detect.DistroProxmox, detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL, detect.DistroOther, "centos", "fedora"} {
-		if want := d == detect.DistroRocky || d == detect.DistroAlma || d == detect.DistroRHEL; d.EL() != want {
+		detect.DistroProxmox, detect.DistroRocky, detect.DistroAlma, detect.DistroRHEL, detect.DistroCentOS, detect.DistroOracle,
+		detect.DistroOther, "centos", "ol", "fedora"} {
+		name, want := names[d]
+		if d.EL() != want {
 			t.Errorf("%q.EL() = %v, want %v", d, d.EL(), want)
+		}
+		if want && d.Name() != name {
+			t.Errorf("%q.Name() = %q, want %q", d, d.Name(), name)
 		}
 	}
 }
@@ -112,8 +132,8 @@ func TestMatrix(t *testing.T) {
 	for _, r := range m {
 		count[r.Support]++
 	}
-	if count[detect.Supported] != 13 || count[detect.BestEffort] != 2 || count[detect.OutOfScope] != 3 {
-		t.Errorf("matrix rows by support = %v, want 13 supported, 2 best effort, 3 out of scope", count)
+	if count[detect.Supported] != 17 || count[detect.BestEffort] != 2 || count[detect.OutOfScope] != 3 {
+		t.Errorf("matrix rows by support = %v, want 17 supported, 2 best effort, 3 out of scope", count)
 	}
 	m[0].Support = detect.Unlisted
 	if detect.Matrix()[0].Support == detect.Unlisted {

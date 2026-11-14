@@ -123,11 +123,13 @@ var (
 	// ErrMigrateFirst: hardn's legacy SSH files are on the host; their
 	// migration (PlanMigration) is a change of its own, made first.
 	ErrMigrateFirst = errors.New("legacy hardn SSH files: migrate them first")
-	// ErrELFirewall: the Firewall item's ufw changes are refused on Rocky
-	// Linux, AlmaLinux and RHEL, which use firewalld (firewall.ErrEL;
-	// el-changes.md). A port change still lets its new port through an
-	// installed, active ufw there (EPEL's), as elsewhere.
-	ErrELFirewall = errors.New("hardn doesn't drive ufw on Rocky Linux, AlmaLinux or RHEL, which use firewalld")
+	// ErrELFirewall: the Firewall item's ufw changes are refused on the EL
+	// distributions, which use firewalld (firewall.ErrEL; el-changes.md).
+	// A port change still lets its new port through an installed, active
+	// ufw there (EPEL's), as elsewhere. Its text is the registry's
+	// description; a host's refusal names its own distribution
+	// (ELFirewall).
+	ErrELFirewall = errors.New("hardn doesn't drive ufw on Rocky Linux, AlmaLinux, RHEL, CentOS Stream or Oracle Linux, which use firewalld")
 	// ErrNoNewListener: a port change whose Port line reaches no listener
 	// (a ListenAddress with its own port ignores every Port line).
 	ErrNoNewListener = errors.New("the port change adds no listener")
@@ -143,6 +145,24 @@ var (
 	// Unknown is not a pass. Refused at plan time.
 	ErrProxmoxRoot = errors.New("the cluster's root SSH login by key would not be kept")
 )
+
+// Worded is sentinel in the words text, which name the host:
+// errors.Is(Worded(s, text), s) holds, and Error is text alone. A
+// sentinel's own text names no host, so it lists what it covers.
+func Worded(sentinel error, text string) error { return &worded{sentinel, text} }
+
+type worded struct {
+	sentinel error
+	text     string
+}
+
+func (w *worded) Error() string        { return w.text }
+func (w *worded) Is(target error) bool { return target == w.sentinel }
+
+// ELFirewall is ErrELFirewall on the EL distribution d, named.
+func ELFirewall(d detect.Distro) error {
+	return Worded(ErrELFirewall, "hardn doesn't drive ufw on "+d.Name()+", which uses firewalld")
+}
 
 // Refusal is a refusal at plan time with a report: a stable code, why the
 // host is refused, and how it becomes one hardn can change. Err is the

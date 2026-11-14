@@ -84,6 +84,10 @@ func (d Distro) Name() string {
 		return "AlmaLinux"
 	case DistroRHEL:
 		return "RHEL"
+	case DistroCentOS:
+		return "CentOS Stream"
+	case DistroOracle:
+		return "Oracle Linux"
 	}
 	return ""
 }

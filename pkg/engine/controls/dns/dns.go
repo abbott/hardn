@@ -72,7 +72,7 @@ const (
 	DetailInvalid        = "not valid in hardn.yml" // NotConfigured: hardn.yml's list is one dns.Validate refuses here
 	DetailNotRunning     = "resolved not running"   // NotConfigured: /etc/resolv.conf is systemd-resolved's link, and it does not run
 	DetailContainer      = "container"              // NotApplicable: the container's manager provides the file
-	DetailUnsupported    = "not supported"          // NotApplicable: not Debian, Ubuntu, Alpine, Proxmox VE, Rocky Linux, AlmaLinux or RHEL
+	DetailUnsupported    = "not supported"          // NotApplicable: not Debian, Ubuntu, Alpine, Proxmox VE or an EL distribution
 	DetailNetworkManager = "NetworkManager"         // NotApplicable: reported only (P-37 (a))
 	DetailResolvconf     = "resolvconf"             // NotApplicable: reported only
 	DetailCloudInit      = "cloud-init"             // NotApplicable: reported only
@@ -80,10 +80,11 @@ const (
 	DetailCantRead       = "can't read"             // Unknown
 )
 
-// ErrEL: hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet;
+// ErrEL: hardn doesn't change DNS on the EL distributions yet;
 // NetworkManager or cloud-init manages resolv.conf there
-// (docs/engine/el-changes.md, el-rhel.md §6).
-var ErrEL = errors.New("hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet")
+// (docs/engine/el-changes.md, el-rhel.md §6). Its text is the registry's
+// description; a host's refusal names its own distribution (elRefusal).
+var ErrEL = errors.New("hardn doesn't change DNS on Rocky Linux, AlmaLinux, RHEL, CentOS Stream or Oracle Linux yet")
 
 // The codes of the refusals, the registry's for the sentinels they wrap
 // (pkg/output; pinned by the tests): a Refusal's Code is informative, its
@@ -324,7 +325,8 @@ func evidence(s hostdns.State) []string {
 // changed since it was read (steps.Changed), and the save's.
 func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	if in.Facts.Platform.Distro.EL() {
-		return nil, elRefusal(hostdns.Read(ctx, sys, in.Facts))
+		s, err := hostdns.Read(ctx, sys, in.Facts)
+		return nil, elRefusal(in.Facts.Platform.Distro, s, err)
 	}
 	want := list(in.Config)
 	s, err := hostdns.Read(ctx, sys, in.Facts)
@@ -363,7 +365,7 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 	return append(cs, save...), nil
 }
 
-// elRefusal is a DNS change's refusal on Rocky Linux, AlmaLinux and RHEL,
+// elRefusal is a DNS change's refusal on the EL distribution d, named,
 // whatever is asked, made on the read s alone, before anything is planned:
 // what manages resolv.conf there and how to change it by hand
 // (el-rhel.md §6). systemd-resolved's link: its DNS= setting. A file hardn
@@ -371,8 +373,9 @@ func (n Nameservers) Plan(ctx context.Context, sys host.System, in engine.Input)
 // another program's (it then reads its servers from the file): the file by
 // hand. A link to another program's file, NetworkManager's, resolvconf's
 // or cloud-init's: managed's words. A read that failed: by hand.
-func elRefusal(s hostdns.State, err error) error {
-	why, fix := "hardn doesn't change DNS on Rocky Linux, AlmaLinux or RHEL yet", "set the nameservers by hand"
+func elRefusal(d detect.Distro, s hostdns.State, err error) error {
+	base := "hardn doesn't change DNS on " + d.Name() + " yet"
+	why, fix := base, "set the nameservers by hand"
 	switch {
 	case err != nil || s.Manager == hostdns.ManagerUnknown:
 	case s.Manager == hostdns.ManagerResolved:
@@ -383,7 +386,7 @@ func elRefusal(s hostdns.State, err error) error {
 		mwhy, mfix := managed(s)
 		why, fix = why+": "+mwhy, mfix
 	}
-	return &steps.Refusal{Code: codeEL, Why: why, Fix: fix, Err: ErrEL}
+	return &steps.Refusal{Code: codeEL, Why: why, Fix: fix, Err: steps.Worded(ErrEL, base)}
 }
 
 // heading is the change's title and summary, from the steps p holds: the

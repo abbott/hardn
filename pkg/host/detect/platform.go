@@ -23,13 +23,25 @@ const (
 	DistroAlma  Distro = "almalinux" // os-release ID
 	// Red Hat Enterprise Linux, which Rocky Linux and AlmaLinux rebuild:
 	// 10 and 9 supported for the same changes (docs/engine/el-rhel.md).
-	DistroRHEL  Distro = "rhel"  // os-release ID
-	DistroOther Distro = "other" // an os-release ID hardn does not know
+	DistroRHEL Distro = "rhel" // os-release ID
+	// CentOS Stream, which RHEL's next minor release is built from, and
+	// Oracle Linux, a RHEL rebuild: 10 and 9 supported for the same changes
+	// (docs/engine/design-centos-oracle.md). CentOS Linux 8 and 7 say
+	// "centos" too, and have no row.
+	DistroCentOS Distro = "centos" // os-release ID
+	DistroOracle Distro = "ol"     // os-release ID
+	DistroOther  Distro = "other"  // an os-release ID hardn does not know
 )
 
-// EL reports Rocky Linux, AlmaLinux or RHEL: dnf, SELinux, firewalld or
-// none, NetworkManager, sshd.service.
-func (d Distro) EL() bool { return d == DistroRocky || d == DistroAlma || d == DistroRHEL }
+// EL reports Rocky Linux, AlmaLinux, RHEL, CentOS Stream or Oracle Linux:
+// dnf, SELinux, firewalld or none, NetworkManager, sshd.service.
+func (d Distro) EL() bool {
+	switch d {
+	case DistroRocky, DistroAlma, DistroRHEL, DistroCentOS, DistroOracle:
+		return true
+	}
+	return false
+}
 
 // Support is a platform's place in the support matrix.
 type Support uint8
@@ -60,9 +72,10 @@ func (s Support) String() string {
 type Release struct {
 	Distro Distro
 	// Version is VERSION_ID for Debian and Ubuntu, VERSION_ID's major.minor
-	// for Alpine, VERSION_ID's major for Rocky Linux, AlmaLinux and RHEL
-	// (their minor releases are updates of one major, which the vendor
-	// supports as a whole), and pve-manager's major version for Proxmox VE.
+	// for Alpine, VERSION_ID's major for Rocky Linux, AlmaLinux, RHEL,
+	// CentOS Stream and Oracle Linux (their minor releases are updates of
+	// one major, which the vendor supports as a whole), and pve-manager's
+	// major version for Proxmox VE.
 	Version string
 	Support Support
 	Note    string
@@ -97,6 +110,15 @@ type Release struct {
 //   - RHEL: the end of maintenance support,
 //     https://access.redhat.com/support/policy/updates/errata
 //
+// CentOS Stream's and Oracle Linux's (each read 2026-11-14):
+//   - CentOS Stream 9: "End of Life", https://www.centos.org/cl-vs-cs/
+//   - CentOS Stream 10: CentOS names the year, 2030, and ties the day to
+//     the end of RHEL 10's full support, which Red Hat ends on 2030-05-31
+//     (https://blog.centos.org/2024/12/introducing-centos-stream-10/ and
+//     RHEL's page above)
+//   - Oracle Linux: the end of Premier Support, a month,
+//     https://www.oracle.com/a/ocom/docs/elsp-lifetime-069338.pdf
+//
 // A distribution's supported rows are newest first (Newest).
 var matrix = []Release{
 	{DistroDebian, "13", Supported, "", "2030-06-30"},
@@ -117,6 +139,13 @@ var matrix = []Release{
 	// 9.9 (el-rhel.md §7).
 	{DistroRHEL, "10", Supported, "", "2035-05-31"},
 	{DistroRHEL, "9", Supported, "", "2032-05-31"},
+	// CentOS Stream and Oracle Linux: as Rocky Linux, AlmaLinux and RHEL;
+	// the host kit ran on CentOS Stream 10 and 9 and on Oracle Linux 10.1
+	// and 9.8 (design-centos-oracle.md).
+	{DistroCentOS, "10", Supported, "", "2030-05-31"},
+	{DistroCentOS, "9", Supported, "", "2027-05-31"},
+	{DistroOracle, "10", Supported, "", "2035-06"},
+	{DistroOracle, "9", Supported, "", "2032-06"},
 	{DistroUbuntu, "22.04", BestEffort, "", "2027-05"},
 	{DistroAlpine, "3.22", BestEffort, "", "2027-05-01"},
 	{DistroAlpine, "3.21", OutOfScope, "vendor support ended 2026-11-01", "2026-11-01"},
@@ -174,8 +203,10 @@ func Classify(osr OSRelease, pve Proxmox) Platform {
 			p.Support, p.Note, p.Ends = Unlisted, "VERSION_ID "+osr.VersionID+" is not a stable release's x.y.z", ""
 		}
 		return p
-	case DistroRocky, DistroAlma, DistroRHEL:
+	case DistroRocky, DistroAlma, DistroRHEL, DistroOracle:
 		return lookup(Platform{Distro: d, Version: elMajor(osr.VersionID)})
+	case DistroCentOS:
+		return lookup(Platform{Distro: d, Version: centosMajor(osr.VersionID)})
 	}
 	p := Platform{Distro: DistroOther, Support: Unlisted}
 	for _, id := range osr.IDLike {
@@ -231,15 +262,24 @@ func alpineStable(v string) bool {
 	return len(parts) == 3 && digits(parts[0]) && digits(parts[1]) && digits(parts[2])
 }
 
-// elMajor is "10" for Rocky Linux's and AlmaLinux's "10.2" and RHEL's
-// "10.3": a VERSION_ID of two numeric components, as all three write it.
-// Anything else is "".
+// elMajor is "10" for Rocky Linux's and AlmaLinux's "10.2", RHEL's "10.3"
+// and Oracle Linux's "10.1": a VERSION_ID of two numeric components, as
+// they write it. Anything else is "".
 func elMajor(v string) string {
 	major, minor, ok := strings.Cut(v, ".")
 	if !ok || !digits(major) || !digits(minor) {
 		return ""
 	}
 	return major
+}
+
+// centosMajor is "10" for CentOS Stream's "10", whose VERSION_ID is the
+// major alone; a major.minor is read as elMajor reads it.
+func centosMajor(v string) string {
+	if digits(v) {
+		return v
+	}
+	return elMajor(v)
 }
 
 // pveMajor is "9" for pve-manager's "9.2.22".

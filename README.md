@@ -3,7 +3,7 @@
 [![SLSA 3](https://slsa.dev/images/gh-badge-level3.svg)](docs/verify.md#verify-a-release) [![Signed with Sigstore](https://img.shields.io/badge/Signed%20with-Sigstore-blue)](docs/verify.md#verify-a-release) [![zizmor](https://img.shields.io/badge/%F0%9F%8C%88-zizmor-white?labelColor=white)](https://zizmor.sh/) [![Release](https://img.shields.io/github/v/release/abbott/hardn)](https://github.com/abbott/hardn/releases/latest) ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/abbott/hardn/ci.yml) [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_3-blue.svg)](LICENSE)
 
 Simple, precise hardening for Linux servers.
-> For Debian, Ubuntu, Proxmox, Alpine, Rocky, Alma and RHEL. See each change before it happens. Revert if needed.
+> For Debian, Ubuntu, Proxmox, Alpine, Rocky, Alma, RHEL, CentOS Stream and Oracle. See each change before it happens. Revert if needed.
 
 For anyone administering a Linux server, container or virtual machine without a security team: homelab enthusiasts, students, and small organizations such as schools, clinics and nonprofits.
 
@@ -90,15 +90,17 @@ See [docs/configuration.md](docs/configuration.md) for every `hardn.yml` key.
 | Rocky | 10, 9 | | |
 | Alma | 10, 9 | | |
 | RHEL | 10, 9 | | |
+| CentOS Stream | 10, 9 | | |
+| Oracle | 10, 9 | | |
 
 - **Supported**: hardn changes it.
 - **Best effort**: the vendor still supports it. hardn changes it, but makes no promises, and every plan carries a warning (`PLATFORM_BEST_EFFORT`).
 - **Out of scope**, and any version not in the table: hardn shows the screens and refuses every change.
 - **Any other distribution**: hardn doesn't start.
 - **End of support**: from 90 days before a release's vendor support ends, the main menu says so.
-- **Tested**: CI runs the tests on the container image of each Supported release but Proxmox (Debian, Ubuntu, Alpine, Rocky, Alma, and Red Hat's UBI for RHEL), and a release waits for them. Proxmox VE has no image: its support is tested against synthetic Proxmox VE 9 files. Since v0.6.0, the release notes name the real hosts a release was tested on, or say that it changed only wording.
+- **Tested**: CI runs the tests on the container image of each Supported release but Proxmox (Debian, Ubuntu, Alpine, Rocky, Alma, CentOS Stream, Oracle, and Red Hat's UBI for RHEL), and a release waits for them. Proxmox VE has no image: its support is tested against synthetic Proxmox VE 9 files. Since v0.6.0, the release notes name the real hosts a release was tested on, or say that it changed only wording.
 
-What differs on Alpine, on Rocky, Alma and RHEL, and on Proxmox: [docs/platforms.md](docs/platforms.md).
+What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, and on Proxmox: [docs/platforms.md](docs/platforms.md).
 
 ## Security
 
@@ -116,7 +118,7 @@ What differs on Alpine, on Rocky, Alma and RHEL, and on Proxmox: [docs/platforms
 | [docs/safeguards.md](docs/safeguards.md) | refusals, the revert timer, backups |
 | [docs/install.md](docs/install.md) | install by hand, build from source, troubleshooting |
 | [docs/verify.md](docs/verify.md) | release provenance and how to check it |
-| [docs/platforms.md](docs/platforms.md) | Alpine, Rocky, Alma, RHEL and Proxmox |
+| [docs/platforms.md](docs/platforms.md) | Alpine, Rocky, Alma, RHEL, CentOS Stream, Oracle and Proxmox |
 | [docs/cve.md](docs/cve.md) | the CVEs hardn checks for |
 | [docs/reference/output.md](docs/reference/output.md) | the JSON document and its codes |
 | [docs/roadmap.md](docs/roadmap.md) | planned features |

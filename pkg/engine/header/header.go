@@ -102,7 +102,8 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) Header {
 
 // names are the distributions hardn names, by os-release ID.
 var names = map[string]string{"debian": "Debian", "ubuntu": "Ubuntu", "alpine": "Alpine",
-	"rocky": "Rocky Linux", "almalinux": "AlmaLinux", "rhel": "RHEL"}
+	"rocky": "Rocky Linux", "almalinux": "AlmaLinux", "rhel": "RHEL",
+	"centos": "CentOS Stream", "ol": "Oracle Linux"}
 
 // OSOf names the distribution from detect's facts: Proxmox VE when it is
 // installed (its os-release is Debian's), else by os-release's ID.
