@@ -31,7 +31,7 @@ import (
 // given (warnNoColor), for the main menu to keep the warning, and the line reader every prompt shares and stdout.
 func menuOptions(c *config.Config, found config.Found, version string) mainmenu.Options {
 	m := mainmenu.Options{Config: c, Warned: noColorGiven() || loadWarnings(c) != "", Input: engineInput, Out: os.Stdout}
-	m = withUpdatesScreen(withBackupScreen(withDNSScreen(withSSHScreen(withUsersScreen(m, c), c), c), c), c, version)
+	m = withUpdatesScreen(withBackupScreen(withSSHScreen(withUsersScreen(m, c), c), c), c, version)
 	m = withRunAllScreen(m, c, version)
 	return withReleaseCheck(withStatus(withReaderScreens(withFirewallScreen(m, c), c, found), c, version), c, version)
 }

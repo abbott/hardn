@@ -59,7 +59,7 @@ ufwAppProfiles:
 #################################################
 # Syslog
 #################################################
-# The syslog servers Syslog Settings (main menu 8, then 2) and Run All send the host's logs to. None by default.
+# The syslog servers Syslog Settings (main menu 8, then 4) and Run All send the host's logs to. None by default.
 # syslogServers:                    # one to four
 #   - server: "192.0.2.50"          # IPv4 address or name
 #     port: 514                     # default 514; 6514 for tls
@@ -79,7 +79,7 @@ ufwAppProfiles:
 #################################################
 # Kernel
 #################################################
-# true puts Kernel Settings (main menu 8, then 4) in Run All and on the main menu. Off by default.
+# true puts Kernel Settings (main menu 4) in Run All. Off by default.
 # kernel: true
 
 #################################################

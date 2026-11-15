@@ -48,15 +48,15 @@ const CompactMainMenu = false
 //
 //	  [*] Risk Level           Moderate ~ medium security
 //
-//	  [+] User                 Configured non-root, sudo
+//	  [+] User                 + non-root, sudo
 //	  [ ] Auto Updates         Not Configured
 //
 //	----------------------------------------------------------------
 //
 //	  Select an option         Mode Live
 //
-//	   1) User Management      Create, configure (sudo, SSH keys)
-//	  10) Logs                 View log file
+//	   1) User                 Create, manage (sudo, SSH keys)
+//	  10) Logs                 View hardn logs
 //
 //	   0) Exit                 q to quit
 //
@@ -66,11 +66,13 @@ const CompactMainMenu = false
 // RiskSummary, StatusList, Divider, the MenuHeading with the
 // ModeIndicator beside it, Menu, then the PromptLine after
 // theme.PromptGap blank lines. An empty StatusList is left out with its
-// gap. An Alert, which Figma does not draw, stands between the StatusList
+// gap. Info, a second group of rows which Figma does not draw (DNS, NTP
+// and Syslog, each only with a problem), follows the StatusList after a
+// blank line, and is left out with its gap when it has no row. An Alert, which Figma does not draw, stands between the StatusList
 // and the Divider, in the compact form after the rows: three lines and a
-// gap more. From theme.StackBelow columns up Figma's content takes 35 lines,
-// and a host's eight rows, DNS among them, 36, with each line under a row
-// one more; below that width the rows stack (DEV-021), and at 60 columns
+// gap more. From theme.StackBelow columns up Figma's content, seven rows,
+// takes 35 lines, as a host's seven do since 2026-11-14 (SSH Auth in the
+// SSH Login row, Kernel, no DNS), with each line under a row one more; below that width the rows stack (DEV-021), and at 60 columns
 // Figma's content takes 57. The main menu takes this form at every height
 // (CompactMainMenu): on a terminal shorter than its lines, its top
 // scrolls off, the prompt staying on the terminal's last line.
@@ -78,9 +80,9 @@ const CompactMainMenu = false
 // Gated by CompactMainMenu, its compact form: on a terminal shorter than
 // theme.CompactBelow, or too short for the full form, prompt included, it
 // fits theme.CompactBudget lines, an 80x24 console, with Figma's content
-// from theme.StackBelow columns up (DEV-052); a host's eight rows, DNS
-// among them, take one line more, 25, so that at 80x24 its first line
-// scrolls off, and each line under a row another. In the compact form the
+// from theme.StackBelow columns up (DEV-052), and a host's seven rows too;
+// each line under a row, and each row of Info with its gap, takes one
+// more, so that at 80x24 the first lines scroll off. In the compact form the
 // Header and the Divider are left out; the ContextBar keeps the blank line
 // under it, as a bar always has, Figma's and the sub-screens' title bar
 // alike; the RiskSummary and the StatusList are one group, with no blank
@@ -95,11 +97,11 @@ const CompactMainMenu = false
 //	                           182 days, 2 hours, 26 minutes
 //
 //	  [*] Risk Level           Moderate ~ medium security
-//	  [+] User                 Configured non-root, sudo
+//	  [+] User                 + non-root, sudo
 //	  [ ] Auto Updates         Not Configured
 //
 //	  Select an option         Mode Live
-//	   1) User Management       6) Run All
+//	   1) User                  6) Run All
 //	   5) Backup               10) Logs
 //
 //	   0) Exit                 q to quit
@@ -132,6 +134,11 @@ type MainMenu struct {
 	// lines under the rows they are about; with no rows the block is left
 	// out.
 	Status component.StatusList
+	// Info is a second group of rows under Status, SectionGap blank lines
+	// from it: DNS, NTP and Syslog, each only while it has a problem
+	// (component.StatusRow.Info; the maintainer, 2026-11-14). With no row
+	// it is left out with its gap.
+	Info component.StatusList
 	// Alert is a fact the main menu raises between the status rows and the
 	// Divider, nil for none (Alert).
 	Alert *Alert
@@ -208,17 +215,67 @@ func (vm MainMenu) above(c component.Ctx, short bool) string {
 
 // blocks renders the blocks above the menu heading, which the status
 // model fills: the full form's Header, ContextBar, HostBlock,
-// RiskSummary, StatusList, Alert, Notice and Divider, or, when short is
-// set, the compact form's ContextBar, HostBlock, the RiskSummary and
-// StatusList as one group, the Alert and the Notice. The Alert's route is
+// RiskSummary, StatusList, Info, Alert, Notice and Divider, or, when short
+// is set, the compact form's ContextBar, HostBlock, the RiskSummary and
+// StatusList as one group, Info, the Alert and the Notice. The Alert's route is
 // vm.Menu's item.
 func (vm MainMenu) blocks(c component.Ctx, short bool) []string {
 	alert, notice := vm.Alert.render(c, vm.Menu), vm.Notice.render(c, vm.Menu)
 	if short {
-		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c)), alert, notice}
+		return []string{vm.Context.Render(c), vm.Host.Render(c), stack(vm.Risk.Render(c), vm.Status.Render(c)), vm.Info.Render(c), alert, notice}
 	}
-	return []string{vm.Release.header(vm.Header).Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c),
+	return []string{vm.Release.header(vm.Header).Render(c), vm.Context.Render(c), vm.Host.Render(c), vm.Risk.Render(c), vm.Status.Render(c), vm.Info.Render(c),
 		alert, notice, component.Divider{}.Render(c)}
+}
+
+// The main menu's items' words that differ by host (the maintainer,
+// 2026-11-14; docs/engine/gallery-menu-layout.md, decision 20 (a)).
+const (
+	mainFirewallUFW = "Manage rules, port listening"
+	mainFirewallEL  = "Manage firewalld, port listening"
+	mainFirewallPVE = "View pve-firewall"
+	mainUpdates     = "Enable automatic updates"
+	mainUpdatesPVE  = "Configure automatic updates"
+)
+
+// MainMenuItems are hardn's main menu's ten items, by key, with their
+// words (the maintainer, 2026-11-14; docs/engine/gallery-menu-layout.md,
+// decisions 3 (a) and 20 (a)): User, SSH Login, Firewall, Kernel, Auto
+// Updates, Run All, Backup, Configuration, System Details, Logs. Item 4,
+// Kernel, opens the Kernel Settings screen; DNS, item 4 until v0.10.0, is
+// under Configuration with NTP and Syslog. Item 1's label is "User" and
+// its screen's title "User Management"; its parenthesis, and item 4's, is
+// its aside.
+//
+// Two items differ by host. Item 3: on Proxmox VE (pve) what the screen
+// does there, "View pve-firewall" (gallery-firewall.md §5, decision 7); on
+// Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux (el)
+// firewalld's, which has no rules to manage in hardn (el-firewalld.md
+// §1.6). Item 5: on Proxmox VE, where the screen enables nothing,
+// v0.10.0's words. pkg/screens/mainmenu binds each item to its screen.
+func MainMenuItems(pve, el bool) []component.MenuItem {
+	item := func(key, label, description, aside string) component.MenuItem {
+		return component.MenuItem{Key: key, Label: label, Description: description, Aside: aside}
+	}
+	firewall, updates := mainFirewallUFW, mainUpdates
+	switch {
+	case pve:
+		firewall, updates = mainFirewallPVE, mainUpdatesPVE
+	case el:
+		firewall = mainFirewallEL
+	}
+	return []component.MenuItem{
+		item("1", "User", "Create, manage", "sudo, SSH keys"),
+		item("2", "SSH Login", "Disable root and passwords, set port", ""),
+		item("3", "Firewall", firewall, ""),
+		item("4", "Kernel", "Harden sysctl", "network, kernel"),
+		item("5", "Auto Updates", updates, ""),
+		item("6", "Run All", "Queue hardening actions", ""),
+		item("7", "Backup", "Configure hardn backup", ""),
+		item("8", "Configuration", "hardn.yml, dns, ntp, syslog", ""),
+		item("9", "System Details", "View system info", ""),
+		item("10", "Logs", "View hardn logs", ""),
+	}
 }
 
 // selectOption leads an alert's route to its fix: the menu's item, by its

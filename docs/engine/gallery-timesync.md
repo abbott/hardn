@@ -1,5 +1,7 @@
 # Time sync mock
 
+> **Main menu, 2026-11-14** (`next/menu-layout`; [gallery-menu-layout.md](gallery-menu-layout.md)). The main menu draws an NTP row only with a problem, under the scored rows: the server and "Not in sync" or "Not hardn.yml's", "<service> not running", "No time service" where hardn.yml names servers, or "Can't read". This revises decision 11. The screen is still main menu 8, then 3.
+
 > **Renamed 2026-11-14.** The screen and its Configuration item are now "NTP Settings"; its status row, the main menu's row and the hardn.yml screen's section are "NTP". The main menu's last rows are Syslog, NTP, AppArmor. The `ntpServers` key, the `NTP_*` codes and the control id are unchanged. The record below keeps the old name, Time Sync.
 
 The mock unit of the roadmap's "Time sync". hardn would show which service keeps the host's time, whether it runs, whether the clock is in sync and which servers it uses; and set the servers hardn.yml names on the service the host already runs. This unit draws that screen and its reviews, surveys how each supported release keeps time, lists what the maintainer has to decide (§4), and plans what the real unit shares with Log Forwarding (§5).

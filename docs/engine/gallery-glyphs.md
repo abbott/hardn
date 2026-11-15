@@ -22,7 +22,7 @@ Figma draws three status symbols, each with its colour: ⛛ U+26DB, a measure in
 |---|---|---|---|---|
 | a step done, failed or rolled back (`StepProgress`, an `ErrorReport`'s rolled-back rows), since `next/s2-row-grammar` | ⛛, ⭘, ⭘ | `[+]`, `[ ]`, `[ ]` | `status.ok`, `status.bad`, `status.warn` | `Configured`, `NotConfigured`, `Partial` (P-42 (a2), the maintainer, 2026-10-22); a step pending, running or skipped takes the bullet |
 | a plan's lockout-risk change, "Lockout risk", and a risky menu item's note line | ⭘ | `[ ]` | `status.warn`, bold | `Warn`, a warning (the maintainer, 2026-10-21; `next/p4-bar-shade`); ⛬ `[*]` until then |
-| the host block's "Reboot pending" | - | `-` | `status.warn` | `Bullet`, dash-led (the maintainer, 2026-10-21; `next/p4-risk-lines`); ⭘ `[ ]`, `Partial`, until then |
+| the host block's "Reboot pending" | ~ | `~` | `status.warn` | `component.LineMark`, two cells in, as a line under a row (the maintainer, 2026-11-15); `Bullet`, dash-led, from 2026-10-21 (`next/p4-risk-lines`); ⭘ `[ ]`, `Partial`, until then |
 | a key-value row's warn value | ⭘ | `[ ]` | `status.warn` | `Partial` |
 | a key-value row's unknown and not-applicable values | ? and – | `[?]` and `[-]` | `text.muted` | `Unknown`, `NotApplicable` |
 | a menu item's "Unavailable" | – | `[-]` | `text.faint`, the item's | `NotApplicable` |

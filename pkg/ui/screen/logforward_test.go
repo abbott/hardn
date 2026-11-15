@@ -58,14 +58,14 @@ func TestLogForwardRows(t *testing.T) {
 			[]component.KeyValue{kv("Logger", "rsyslog"), lfRow("192.0.2.50:514 UDP", "losses unseen", component.ValueWarn),
 				kv("File", "/etc/rsyslog.d/50-remote.conf"), kv("Set by", "Not hardn"), kv("hardn.yml", "No server")}},
 		{"tls, down, differs", LogForward{Now: []LogForwarded{lfNow(lfTestTLS, LogConnDown)}, File: "f", ByHardn: true, Want: []LogServer{other}},
-			[]component.KeyValue{kv("Logger", "rsyslog"), lfRow("logs.example.net:6514 TLS", "not reached", component.ValueWarn),
+			[]component.KeyValue{kv("Logger", "rsyslog"), lfRow("logs.example.net:6514 TLS", "unreachable", component.ValueWarn),
 				kv("CA File", "/etc/ssl/lab-ca.pem"), kv("File", "f"), kv("Set by", "hardn"),
 				{Key: "hardn.yml", Value: "192.0.2.60:514 TCP", Note: "differs", State: component.ValueWarn, KeepNote: true}}},
-		// The design's screen (§2.4): three servers, one not reached.
+		// The design's screen (§2.4): three servers, one unreachable.
 		{"three, one down", LogForward{Now: []LogForwarded{lfNow(lfTestTLS, LogConnOpen), lfNow(lfTestTCP2, LogConnDown), lfNow(lfTestUDP2, LogConnNone)},
 			File: own, ByHardn: true, Want: three},
 			[]component.KeyValue{kv("Logger", "rsyslog"), lfRow("logs.example.net:6514 TLS", "Open", component.ValueOK), kv("CA File", "/etc/ssl/lab-ca.pem"),
-				lfRow("192.0.2.51:514 TCP", "not reached", component.ValueWarn), lfRow("192.0.2.52:514 UDP", "losses unseen", component.ValueWarn),
+				lfRow("192.0.2.51:514 TCP", "unreachable", component.ValueWarn), lfRow("192.0.2.52:514 UDP", "losses unseen", component.ValueWarn),
 				kv("File", own), kv("Set by", "hardn"), kv("hardn.yml", "3 servers")}},
 		{"as asked in another order", LogForward{Now: []LogForwarded{lfNow(lfTestUDP2, LogConnNone), lfNow(lfTestTCP2, LogConnOpen)}, File: own, ByHardn: true,
 			Want: []LogServer{lfTestTCP2, lfTestUDP2}},

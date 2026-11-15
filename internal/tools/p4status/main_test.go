@@ -130,20 +130,20 @@ func galleryMenu(t *testing.T, name string) string {
 	for _, l := range strings.Split(cell, "\n")[1:] {
 		l = strings.ReplaceAll(strings.TrimSuffix(l, "$"), "[0-4, 6-10 or q]", "[0-10 or q]")
 		if name == "pve9" {
-			l = strings.Replace(l, "   3) Firewall             Configure ufw rules", "   3) Firewall             View pve-firewall", 1)
+			l = strings.Replace(l, "   3) Firewall             Manage rules, port listening", "   3) Firewall             View pve-firewall", 1)
 		}
 		if strings.HasPrefix(l, "hardn ") {
 			l = strings.Replace(l, "v0.4.0", "      ", 1) // p4status shows no version: not a hardn release
 		}
-		if strings.Contains(l, "] NTP  ") {
-			continue // the main menu's row beyond controls.Status, which p4status does not read
-		}
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
-		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
-			item := "   5) Auto Updates"
-			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+"Configure automatic updates", l)
+		if desc := strings.Index(l, "Queue hardening actions"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
+			item, words := "   5) Auto Updates", "Enable automatic updates"
+			if name == "pve9" {
+				words = "Configure automatic updates"
+			}
+			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+words, l)
 		}
 		if strings.HasPrefix(l, "    > Option") {
 			return strings.Join(lines, "\n")
@@ -173,7 +173,7 @@ func TestMainMenuAsGallery(t *testing.T) {
 }
 
 // TestMainMenuOnEL: on Rocky Linux and AlmaLinux, p4status draws the items
-// hardn's main menu draws there: item 3 "Configure firewalld", item 5,
+// hardn's main menu draws there: item 3 "Manage firewalld, port listening", item 4, Kernel, item 5,
 // Auto Updates, item 8, Configuration, and the hint "[0-10 or q]". The hosts are the debian13
 // fixture with Rocky Linux 10.2's os-release (pkg/host/detect's test
 // file) or AlmaLinux 9.6's in place of Debian's: the items turn on
@@ -194,9 +194,9 @@ func TestMainMenuOnEL(t *testing.T) {
 			run(context.Background(), nil, testEnv(sys, &o, &e))
 			menu := menuOf(o.String())
 			for _, want := range []string{
-				"\n   3) Firewall             Configure firewalld\n",
-				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
-				"\n   8) Configuration        hardn.yml, syslog, ntp, kernel\n",
+				"\n   3) Firewall             Manage firewalld, port listening\n",
+				"\n   4) Kernel               Harden sysctl (network, kernel)\n   5) Auto Updates         Enable automatic updates\n   6) Run All ",
+				"\n   8) Configuration        hardn.yml, dns, ntp, syslog\n",
 				"\n    > Option [0-10 or q]:",
 			} {
 				if !strings.Contains(menu, want) {
@@ -376,7 +376,7 @@ func TestEvidence(t *testing.T) {
 			"  uptime     41 days, 1 hour (", "  reboot     pending no; running 6.17.2-1-pve; own kernel\n"},
 		// Auto Updates is Not Applicable on Proxmox VE (slice 7 decision 7
 		// (a)): it leaves the risk level, and the uptime has no factor.
-		"risk": {"  band       critical, score 18.8, forced false\n"},
+		"risk": {"  band       critical, score 17.6, forced false\n"},
 	} {
 		got := strings.Join(section(out, heading), "\n") + "\n"
 		for _, w := range want {
@@ -507,9 +507,10 @@ func TestProfiles(t *testing.T) {
 	}
 }
 
-// TestStatusControls: the rows p4status checks are the main menu's one
-// list, controls.Status, which pkg/engine/controls's TestStatus holds to
-// the score's rows, as hardn's main menu and the gallery check them; and
+// TestStatusControls: the rows p4status checks are the status controls,
+// controls.Status, which pkg/engine/controls's TestStatus holds to
+// the score's rows and DNS, as hardn's main menu and the gallery check
+// them before NTP and Syslog, which p4status does not read; and
 // hardn.yml is looked for where hardn looks, each path absolute.
 func TestStatusControls(t *testing.T) {
 	e := production()
@@ -520,6 +521,7 @@ func TestStatusControls(t *testing.T) {
 	for _, r := range risk.Rows() {
 		want = append(want, r.ID)
 	}
+	want = append(want, "dns.nameservers")
 	if !slices.Equal(got, want) {
 		t.Errorf("controls %v, want %v", got, want)
 	}

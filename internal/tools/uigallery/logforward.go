@@ -30,7 +30,7 @@ import (
 // reads of each host, each change planned on the real engine, on the hosts
 // the mock was drawn for. "uigallery logforward" lists each host's screen,
 // and each change's review up to its question, with no input; the main
-// menu's 8, then 2, leads to the screen on Ubuntu 24.04 in play; "play logforward"
+// menu's 8, then 4, leads to the screen on Ubuntu 24.04 in play; "play logforward"
 // is the menu of the hosts and "play logforward/<host>" one.
 
 // lfPrefix names the listing, its goldens, and the hosts in play.
@@ -39,8 +39,8 @@ const lfPrefix = "logforward"
 // lfLabel is the source label every mock's note opens with.
 const lfLabel = "Decided: no Figma frame."
 
-// lfMainHost is the host the Configuration group's 2 leads to in play (main
-// menu 8, then 2; config.go).
+// lfMainHost is the host the Configuration group's 4 leads to in play (main
+// menu 8, then 4; config.go).
 const lfMainHost = lfPrefix + "/off"
 
 // The hosts' files and words.
@@ -218,7 +218,7 @@ func lfHosts() []lfHost {
 			note: ubuntu + "No file forwards and hardn.yml names no server: the item stays, says what is missing, and refuses with words."},
 		{name: "tcp", label: "TCP", about: "By hardn's file", host: func() *fakeHost { return lfForwards(lfUbuntu(lfYMLTCP), one(lfTCP), "192.0.2.50:514") },
 			note: ubuntu + "hardn's file forwards over TCP, and ss lists a connection to the server: its row ends in Open. The one item undoes it."},
-		{name: "tcp-down", label: "TCP, not reached", about: "Partial", host: func() *fakeHost { return lfForwards(lfUbuntu(lfYMLTCP), one(lfTCP)) },
+		{name: "tcp-down", label: "TCP, unreachable", about: "Partial", host: func() *fakeHost { return lfForwards(lfUbuntu(lfYMLTCP), one(lfTCP)) },
 			note: ubuntu + "The same file, and no connection to the server: the row is Partial and the Server row a warning."},
 		{name: "udp", label: "UDP", about: "A warning", host: func() *fakeHost { return lfForwards(lfUbuntu(lfYMLUDP), one(lfUDP)) },
 			note: ubuntu + "hardn's file forwards over UDP: the Server row warns that losses are not seen, as UDP has no connection to show."},
@@ -228,9 +228,9 @@ func lfHosts() []lfHost {
 		{name: "several", label: "Three servers", about: "Every connection open", host: func() *fakeHost {
 			return lfWithTLS(lfForwards(lfUbuntu(lfYMLThree), []logfwd.Server{lfTLS, lfTCP1, lfUDP2}, "192.0.2.50:6514", "192.0.2.51:514"))
 		}, note: ubuntu + "hardn's file forwards to hardn.yml's three servers, TLS, TCP and UDP: a Server row each, the status row their count."},
-		{name: "several-down", label: "Three, one not reached", about: "Partial", host: func() *fakeHost {
+		{name: "several-down", label: "Three, one unreachable", about: "Partial", host: func() *fakeHost {
 			return lfWithTLS(lfForwards(lfUbuntu(lfYMLThree), []logfwd.Server{lfTLS, lfTCP1, lfUDP2}, "192.0.2.50:6514"))
-		}, note: ubuntu + "The same three, and no connection to 192.0.2.51: the row is Partial, 1 of 3 not reached, and that server's row a warning."},
+		}, note: ubuntu + "The same three, and no connection to 192.0.2.51: the row is Partial, 1 of 3 unreachable, and that server's row a warning."},
 		{name: "several-differ", label: "Two, three asked", about: "hardn.yml differs", host: func() *fakeHost {
 			return lfForwards(lfUbuntu(lfYMLAdded), []logfwd.Server{lfTCP1, lfUDP2}, "192.0.2.51:514")
 		}, note: ubuntu + "hardn's file forwards to two servers and hardn.yml now names a third: the hardn.yml row warns, Set servers adds it, Stop forwarding is item 2."},

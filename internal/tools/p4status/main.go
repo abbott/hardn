@@ -3,8 +3,8 @@
 // hardn's main menu does, through the real code (hardn.yml, where hardn
 // looks for it; detect's facts, once; Engine.Check over the main menu's
 // status controls, controls.Status: User, SSH Login, SSH Auth, SSH Port,
-// Firewall, DNS (since next/s2-menu-live), Auto Updates, AppArmor; the
-// header probe; the risk level), and prints
+// Firewall, Kernel, Auto Updates, AppArmor, and DNS; the header probe; the
+// risk level), and prints
 //
 //  1. the main menu as hardn will draw it: pkg/output's MainMenuOf over the
 //     main menu's mock, as the gallery's status hosts draw it, with the

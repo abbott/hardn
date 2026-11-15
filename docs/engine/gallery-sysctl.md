@@ -1,5 +1,7 @@
 # Kernel Settings
 
+> **Main menu 4, scored, 2026-11-14** (`next/menu-layout`; [gallery-menu-layout.md](gallery-menu-layout.md)). Kernel Settings is main menu 4, "Kernel", no longer the Configuration group's item 4. Its row is on the main menu on every host, between Firewall and Auto Updates, Not Applicable in a container, and counts 5 points of the risk level, which revises decisions 16, 17 and 18. A Configured row reads "+ 6 items applied", the settings hardn's file sets, or "+ baseline default" where it sets none, for "Configured by hardn". Run All still needs `kernel: true`. Below, "main menu 8, then 4" and "by hardn" are as they were built.
+
 > **Renamed 2026-11-14.** The screen and its Configuration item stay "Kernel Settings"; its status row, the main menu's row (drawn before AppArmor) and the hardn.yml screen's section are now "Kernel", and the hardn.yml key is `kernel` (was `kernelSettings`). The `KERNEL_*` codes and the control id are unchanged. The record below keeps the old names.
 
 The roadmap's "sysctl". hardn shows the kernel's network and kernel settings against a baseline, writes the ones below it to one file in `/etc/sysctl.d`, and sets them at once. This page holds the design: the screen and its reviews (§2), what the hosts have (§3), the decisions (§4), and what is built (§9).

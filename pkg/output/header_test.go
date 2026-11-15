@@ -203,7 +203,7 @@ func TestRebootLine(t *testing.T) {
 				if counted[0].Established {
 					want = component.RebootPending
 				}
-				if out := host.Render(c); !strings.Contains(out, "- "+counted[0].Detail+"\n") && !strings.HasSuffix(out, "- "+counted[0].Detail) {
+				if out := host.Render(c); !strings.Contains(out, component.LineMark+" "+counted[0].Detail+"\n") && !strings.HasSuffix(out, component.LineMark+" "+counted[0].Detail) {
 					t.Errorf("%s: the host block\n%s\ndoes not say %q", name, out, counted[0].Detail)
 				}
 			}

@@ -10,6 +10,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strconv"
 	"strings"
@@ -230,7 +231,7 @@ var queries = []string{"sshd -T", "/usr/sbin/sshd -T", "systemctl is-active", "s
 // (pkg/screens/mainmenu over the host, hardn.yml loaded from it as hardn
 // loads it) on Debian 13, Ubuntu 26.04, Alpine 3.24, Proxmox VE 9 and
 // Debian 13 hardened: the whole main menu, its header, host block, risk
-// level and rows, the DNS row included, its heading, "Mode Live",
+// level and rows, the Kernel row included, its heading, "Mode Live",
 // items and prompt, is line for line the gallery's status host's main
 // menu down to its prompt; the status only reads, its commands every one
 // a query the host answers, as many on every pass (statusRuns), and
@@ -337,7 +338,7 @@ func galleryStatus(t *testing.T, name string) string {
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
 			lines = append(lines, l)
 		}
-		if desc := strings.Index(l, "Execute hardening operations"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
+		if desc := strings.Index(l, "Queue hardening actions"); strings.HasPrefix(l, "   6) Run All ") && desc > 0 {
 			item := "   5) " + updatesItem.Label
 			lines = append(lines[:len(lines)-1], item+strings.Repeat(" ", desc-len(item))+updatesItem.Description, l)
 		}
@@ -505,20 +506,25 @@ func assertRenderGolden(t *testing.T, rel, got string) {
 	}
 }
 
-// TestLogForwardingRow: the main menu draws a Syslog row only where
-// hardn.yml names a server or the host forwards, before NTP, and the risk
-// level is the same with it and without (gallery-logforward.md, decision
-// 10 (a)); and the NTP row before the last, AppArmor, on every host that is
-// no container (gallery-timesync.md, decision 11 (a); the order, the
-// maintainer, 2026-11-14).
-func TestLogForwardingRow(t *testing.T) {
+// TestProblemRows: the main menu draws a Syslog row only with a problem
+// (the maintainer, 2026-11-14; gallery-menu-layout.md, decision 17 (a)):
+// none on a host that forwards nowhere and is asked nothing; "Not
+// forwarding", under the scored rows, where hardn.yml names a server; none
+// for NTP, in sync, and for DNS, hardn.yml listing no nameserver, and one
+// for DNS, the host's nameserver with "Not hardn.yml's" under it, where
+// hardn.yml lists another. The scored rows and the risk level are the same
+// with the rows and without.
+func TestProblemRows(t *testing.T) {
 	ctx := context.Background()
-	read := func(server string) screen.MainMenu {
+	read := func(server, nameserver string) screen.MainMenu {
 		t.Helper()
 		_, sys := loadStatusHost(t, "debian13")
 		cfg := config.DefaultConfig()
 		if server != "" {
 			cfg.SyslogServers = config.SyslogServers{{Server: server}}
+		}
+		if nameserver != "" {
+			cfg.Nameservers = []string{nameserver}
 		}
 		vm, err := Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
 		if err != nil {
@@ -526,36 +532,38 @@ func TestLogForwardingRow(t *testing.T) {
 		}
 		return vm
 	}
-	without, with := read(""), read("192.0.2.50")
-	for _, row := range without.Status.Rows {
-		if row.Label == "Syslog" {
-			t.Fatalf("no server and nothing forwarded: the row is drawn: %+v", row)
-		}
-	}
-	n := len(with.Status.Rows)
-	if n != len(without.Status.Rows)+1 {
-		t.Fatalf("%d rows with a server named, %d without", n, len(without.Status.Rows))
-	}
-	if row := with.Status.Rows[n-3]; row.Label != "Syslog" || row.State != component.StatusNotConfigured || row.Detail != "not forwarding" {
-		t.Errorf("the row before NTP %+v", row)
+	without, with := read("", ""), read("192.0.2.50", "192.0.2.53")
+	if len(without.Info.Rows) != 0 {
+		t.Fatalf("nothing asked, nothing wrong: rows %+v", without.Info.Rows)
 	}
 	for _, vm := range []screen.MainMenu{with, without} {
-		rows := vm.Status.Rows
-		if ntp := rows[len(rows)-2]; ntp.Label != "NTP" || ntp.State != component.StatusConfigured || ntp.Detail != "0.debian.pool.ntp.org" {
-			t.Errorf("the row before the last %+v", ntp)
+		for _, row := range vm.Status.Rows {
+			if row.Label == "Syslog" || row.Label == "NTP" || row.Label == "DNS" || row.Info {
+				t.Errorf("among the scored rows: %+v", row)
+			}
 		}
-		if last := rows[len(rows)-1]; last.Label != "AppArmor" {
-			t.Errorf("the last row %+v", last)
+		if last := vm.Status.Rows[len(vm.Status.Rows)-1]; last.Label != "AppArmor" {
+			t.Errorf("the last scored row %+v", last)
 		}
 	}
-	if with.Risk != without.Risk {
-		t.Errorf("the risk level with the row %+v, without %+v", with.Risk, without.Risk)
+	got := with.Info.Rows
+	if len(got) != 2 || got[0].Label != "DNS" || !got[0].Info || got[0].Problem || got[0].Detail == "" || got[0].Detail == "192.0.2.53" ||
+		len(got[0].Lines) != 1 || got[0].Lines[0] != (component.StatusLine{Text: "Not hardn.yml's", Warn: true}) {
+		t.Errorf("the DNS row %+v", got)
+	}
+	if len(got) != 2 || got[1].Label != "Syslog" || !got[1].Info || !got[1].Problem || got[1].Detail != "Not forwarding" || len(got[1].Lines) != 0 {
+		t.Errorf("the Syslog row %+v", got)
+	}
+	if with.Risk != without.Risk || !reflect.DeepEqual(with.Status, without.Status) {
+		t.Errorf("the risk level and the scored rows with the rows %+v, without %+v", with.Risk, without.Risk)
 	}
 }
 
-// TestKernelSettingsRow: the main menu draws a Kernel row only
-// where hardn.yml's kernel is true, before the last, AppArmor, and the risk level is the
-// same with it and without (gallery-sysctl.md, decisions 17 and 18 (a)).
+// TestKernelSettingsRow: the main menu draws the Kernel row on every host,
+// whatever hardn.yml's kernel says, between Firewall and Auto Updates, and
+// the risk level counts it (the maintainer, 2026-11-14;
+// gallery-menu-layout.md, decisions 1 (a), 4 (a) and 5 (a)): the same row
+// and the same level with the key and without.
 func TestKernelSettingsRow(t *testing.T) {
 	ctx := context.Background()
 	read := func(on bool) screen.MainMenu {
@@ -573,19 +581,15 @@ func TestKernelSettingsRow(t *testing.T) {
 		return vm
 	}
 	without, with := read(false), read(true)
-	for _, row := range without.Status.Rows {
-		if row.Label == "Kernel" {
-			t.Fatalf("kernel false: the row is drawn: %+v", row)
-		}
+	if !reflect.DeepEqual(with.Status, without.Status) || with.Risk != without.Risk {
+		t.Fatalf("kernel true: %+v\nkernel false: %+v", with.Status, without.Status)
 	}
-	n := len(with.Status.Rows)
-	if n != len(without.Status.Rows)+1 {
-		t.Fatalf("%d rows with kernel true, %d without", n, len(without.Status.Rows))
+	rows := without.Status.Rows
+	i := slices.IndexFunc(rows, func(r component.StatusRow) bool { return r.Label == "Kernel" })
+	if i < 1 || i+1 >= len(rows) || rows[i-1].Label != "Firewall" || rows[i+1].Label != "Auto Updates" {
+		t.Fatalf("the Kernel row at %d of %+v", i, rows)
 	}
-	if row := with.Status.Rows[n-2]; row.Label != "Kernel" || row.State != component.StatusNotConfigured || row.Detail != "2 to set" {
-		t.Errorf("the row before the last, AppArmor %+v", row)
-	}
-	if with.Risk != without.Risk {
-		t.Errorf("the risk level with the row %+v, without %+v", with.Risk, without.Risk)
+	if row := rows[i]; row.State != component.StatusNotConfigured || row.Detail != "2 to set" {
+		t.Errorf("the Kernel row %+v", row)
 	}
 }

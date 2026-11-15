@@ -11,18 +11,18 @@ For anyone administering a Linux server, container or virtual machine without a 
 
 ## What It Does
 
-`sudo hardn` displays a [**risk level**](docs/engine/risk.md) for the host's users, SSH, firewall, DNS, automatic updates and AppArmor, and a menu for each:
+`sudo hardn` displays a [**risk level**](docs/engine/risk.md) for the host's users, SSH, firewall, kernel settings, automatic updates and AppArmor, and a menu for each:
 
 | # | Option | Description |
 |---|---|---|
-| 1 | User Management | Manage: users, admin rights, SSH keys; review accounts |
+| 1 | User | Manage: users, admin rights, SSH keys; review accounts |
 | 2 | SSH Login | Manage: root login, password login, the port; list SSH keys |
 | 3 | Firewall | Manage: `ufw` or firewalld, with SSH let through; show listening ports |
-| 4 | DNS | Manage:  nameservers |
+| 4 | Kernel | Manage: network and kernel settings (sysctl) |
 | 5 | Auto Updates | Manage: automatic updates |
-| 6 | Run All | Queue: options 1 to 5, syslog, ntp, kernel |
+| 6 | Run All | Queue: options 1 to 5, dns, ntp, syslog |
 | 7 | Backup | Manage: backups of the files hardn changes |
-| 8 | Configuration | Manage: `hardn.yml`, syslog, ntp, kernel |
+| 8 | Configuration | Manage: `hardn.yml`, dns, ntp, syslog |
 | 9 | System Details | Display: host details |
 | 10 | Logs | Display: `/var/log/hardn.log` |
 

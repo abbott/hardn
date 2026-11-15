@@ -145,7 +145,7 @@ func TestSetThenRemove(t *testing.T) {
 		t.Fatalf("Run = %v, %d unread, %d runs:\n%s", p.err, p.unread, len(p.runs), p.out)
 	}
 	for _, w := range []string{"1) Set servers          192.0.2.10, 192.0.2.11", "Set time servers? [y/N, 0 or q]:", ctl.NoticeSet[:40], "authenticated (NTS)", "$ chronyc reload sources",
-		"Configured 192.0.2.10", "Server               192.0.2.10 by hardn", "1) Remove servers       Undo hardn's change", "Remove hardn's time servers? [y/N, 0 or q]:", ctl.NoticeRemove,
+		"+ 192.0.2.10", "Server               192.0.2.10 by hardn", "1) Remove servers       Undo hardn's change", "Remove hardn's time servers? [y/N, 0 or q]:", ctl.NoticeRemove,
 		"Server               ntp-bootstrap.ubuntu.com"} {
 		if !strings.Contains(p.out, w) {
 			t.Errorf("no %q in:\n%s", w, p.out)

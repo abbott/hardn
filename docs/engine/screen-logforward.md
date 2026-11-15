@@ -1,5 +1,7 @@
 # Log Forwarding (`pkg/screens/logforward`, `logs.forward`)
 
+> **Main menu, 2026-11-14** (`next/menu-layout`; [gallery-menu-layout.md](gallery-menu-layout.md)). The Configuration group's item 4. On the main menu a Syslog row is drawn only with a problem. "not reached" is "unreachable" everywhere.
+
 > **Renamed 2026-11-14.** The screen and its Configuration item are now "Syslog Settings"; its status row, the main menu's row and the hardn.yml screen's section are "Syslog". The main menu's last rows are Syslog, NTP, AppArmor. The control id is unchanged; the codes are now `SYSLOG_*`. The record below keeps the old name, Log Forwarding.
 
 > **Several servers, 2026-11-14.** hardn.yml's `logForwarding` is now `syslogServers`, a list of one to four; the screen has a Server row per server, with its protocol and connection, and no Protocol or Connection row; Set server is Set servers; `hardn check` compares the servers. [design-syslog-servers.md](design-syslog-servers.md) is the design and what was built. The record below is the one-server unit as it was.

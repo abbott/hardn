@@ -1,0 +1,184 @@
+# Golden file of TestMenuLayoutGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mmenu-layout problems␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. DNS, NTP and Syslog have a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow only with a problem, after a blank line under AppArmor:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe host's value and the problem under it, or the problem␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone. None counts in the risk level.␛[m$
+$
+All fine: no row.$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+The syslog server unreachable, DNS and NTP fine:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;86;91;107m10.2.8.240:514 TCP␛[m$
+                             ␛[38;2;219;184;83m~ Unreachable␛[m$
+$
+All three:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;86;91;107m192.168.1.1␛[m$
+                             ␛[38;2;219;184;83m~ Not hardn.yml's␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m                  ␛[38;2;86;91;107m10.2.8.1␛[m$
+                             ␛[38;2;219;184;83m~ Not in sync␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;86;91;107m3 servers␛[m$
+                             ␛[38;2;219;184;83m~ 1 unreachable␛[m$
+$
+hardn.yml names servers, the host has none:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m                  ␛[38;2;219;184;83mNo time service␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;219;184;83mNot forwarding␛[m$
+$
+Not read, and a service stopped:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;219;184;83mCan't read␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m                  ␛[38;2;219;184;83mchrony not running␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  menu-layout problems -----------------------------------------$
+$
+# Note$
+# Adopted 2026-11-14: no Figma frame. DNS, NTP and Syslog have a$
+# row only with a problem, after a blank line under AppArmor:$
+# the host's value and the problem under it, or the problem$
+# alone. None counts in the risk level.$
+$
+All fine: no row.$
+  [+] AppArmor             + 10 profiles enforced$
+$
+The syslog server unreachable, DNS and NTP fine:$
+  [+] AppArmor             + 10 profiles enforced$
+$
+   -  Syslog               10.2.8.240:514 TCP$
+                             ~ Unreachable$
+$
+All three:$
+  [+] AppArmor             + 10 profiles enforced$
+$
+   -  DNS                  192.168.1.1$
+                             ~ Not hardn.yml's$
+   -  NTP                  10.2.8.1$
+                             ~ Not in sync$
+   -  Syslog               3 servers$
+                             ~ 1 unreachable$
+$
+hardn.yml names servers, the host has none:$
+  [+] AppArmor             + 10 profiles enforced$
+$
+   -  NTP                  No time service$
+   -  Syslog               Not forwarding$
+$
+Not read, and a service stopped:$
+  [+] AppArmor             + 10 profiles enforced$
+$
+   -  DNS                  Can't read$
+   -  NTP                  chrony not running$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mmenu-layout problems␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. DNS, NTP and Syslog␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhave a row only with a problem, after a blank line under␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAppArmor: the host's value and the problem under it, or␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe problem alone. None counts in the risk level.␛[m$
+$
+All fine: no row.$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+The syslog server unreachable, DNS and NTP fine:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m$
+      ␛[38;2;86;91;107m10.2.8.240:514 TCP␛[m$
+        ␛[38;2;219;184;83m~ Unreachable␛[m$
+$
+All three:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;86;91;107m192.168.1.1␛[m$
+        ␛[38;2;219;184;83m~ Not hardn.yml's␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m$
+      ␛[38;2;86;91;107m10.2.8.1␛[m$
+        ␛[38;2;219;184;83m~ Not in sync␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m$
+      ␛[38;2;86;91;107m3 servers␛[m$
+        ␛[38;2;219;184;83m~ 1 unreachable␛[m$
+$
+hardn.yml names servers, the host has none:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m$
+      ␛[38;2;219;184;83mNo time service␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m$
+      ␛[38;2;219;184;83mNot forwarding␛[m$
+$
+Not read, and a service stopped:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAppArmor␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$
+      ␛[38;2;219;184;83mCan't read␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m$
+      ␛[38;2;219;184;83mchrony not running␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mmenu-layout problems␛[m ␛[38;2;22;24;29m-----------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. DNS, NTP and Syslog have a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow only with a problem, after a blank line under AppArmor:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe host's value and the problem under it, or the problem␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156malone. None counts in the risk level.␛[m$
+$
+All fine: no row.$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+The syslog server unreachable, DNS and NTP fine:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;86;91;107m10.2.8.240:514 TCP␛[m$
+                             ␛[38;2;219;184;83m~ Unreachable␛[m$
+$
+All three:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;86;91;107m192.168.1.1␛[m$
+                             ␛[38;2;219;184;83m~ Not hardn.yml's␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m                  ␛[38;2;86;91;107m10.2.8.1␛[m$
+                             ␛[38;2;219;184;83m~ Not in sync␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;86;91;107m3 servers␛[m$
+                             ␛[38;2;219;184;83m~ 1 unreachable␛[m$
+$
+hardn.yml names servers, the host has none:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m                  ␛[38;2;219;184;83mNo time service␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;219;184;83mNot forwarding␛[m$
+$
+Not read, and a service stopped:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAppArmor␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m10 profiles enforced␛[m$
+$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;219;184;83mCan't read␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNTP␛[m                  ␛[38;2;219;184;83mchrony not running␛[m$
+$
+$

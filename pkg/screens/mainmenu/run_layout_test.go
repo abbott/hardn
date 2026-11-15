@@ -39,7 +39,7 @@ const invalid = "  (x) Invalid option. Please try again."
 // recordScreens records the screens m's items open in place of running
 // them, until the test ends: each item's screen, which cmd/hardn sets,
 // records its name in the list returned and prints it, as a screen prints
-// over the main menu: "users", "ssh", "dns", "firewall", "backup",
+// over the main menu: "users", "ssh", "kernel", "firewall", "backup",
 // "updates", "runAll", "configuration", "systemDetails" and "logs".
 func recordScreens(t *testing.T, m *Options) *[]string {
 	t.Helper()
@@ -50,7 +50,7 @@ func recordScreens(t *testing.T, m *Options) *[]string {
 	}
 	m.Users = func() error { record("users"); return nil }
 	m.SSH = func() error { record("ssh"); return nil }
-	m.DNS = func() error { record("dns"); return nil }
+	m.Kernel = func() error { record("kernel"); return nil }
 	m.Firewall, m.FirewallPVE = func() error { record("firewall"); return nil }, nil
 	m.Backup = func() error { record("backup"); return nil }
 	m.Updates = func() error { record("updates"); return nil }
@@ -74,7 +74,7 @@ func (r interrupted) Read(p []byte) (int, error) {
 }
 
 // TestMainMenuKeys is the main menu's dispatch, every key: 1 to 10 open
-// the User Management, SSH Login, Firewall, DNS, Auto Updates, Run All,
+// the User Management, SSH Login, Firewall, Kernel Settings, Auto Updates, Run All,
 // Backup, Configuration, System Details and Logs screens cmd/hardn sets
 // (recordScreens), as v0.9.0's keys did, 6 the Run All screen on the
 // planner (slice 8, unit (d)), 8 the Configuration group, and the main
@@ -94,10 +94,10 @@ func TestMainMenuKeys(t *testing.T) {
 		refused int      // the lines refused
 		code    int      // the exit status hardn ended with; 0: the main menu returned
 	}{
-		{"1 opens User Management", []string{"1", "q"}, false, []string{"users"}, 0, 0},
+		{"1 opens User", []string{"1", "q"}, false, []string{"users"}, 0, 0},
 		{"2 opens SSH Login", []string{"2", "q"}, false, []string{"ssh"}, 0, 0},
 		{"3 opens Firewall", []string{"3", "q"}, false, []string{"firewall"}, 0, 0},
-		{"4 opens DNS", []string{"4", "q"}, false, []string{"dns"}, 0, 0},
+		{"4 opens Kernel", []string{"4", "q"}, false, []string{"kernel"}, 0, 0},
 		{"5 opens Auto Updates", []string{"5", "q"}, false, []string{"updates"}, 0, 0},
 		{"6 opens Run All", []string{"6", "q"}, false, []string{"runAll"}, 0, 0},
 		{"7 opens Backup", []string{"7", "q"}, false, []string{"backup"}, 0, 0},
@@ -105,7 +105,7 @@ func TestMainMenuKeys(t *testing.T) {
 		{"9 opens System Details", []string{"9", "q"}, false, []string{"systemDetails"}, 0, 0},
 		{"10 opens Logs", []string{"10", "q"}, false, []string{"logs"}, 0, 0},
 		{"every item in turn", []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "0"}, false,
-			[]string{"users", "ssh", "firewall", "dns", "updates", "runAll", "backup", "configuration", "systemDetails", "logs"}, 0, 0},
+			[]string{"users", "ssh", "firewall", "kernel", "updates", "runAll", "backup", "configuration", "systemDetails", "logs"}, 0, 0},
 		{"0 exits", []string{"0"}, false, nil, 0, 0},
 		{"q quits", []string{"q"}, false, nil, 0, 0},
 		{"Q quits", []string{"Q"}, false, nil, 0, 0},
@@ -266,30 +266,42 @@ func TestMainMenuMode(t *testing.T) {
 
 // TestMainMenuItems: the items on the layout are the main-menu mock's
 // (screen.MainMenuFixture), which the gallery draws its main menus with,
-// with item 5, Auto Updates, "Configure automatic updates", between 4 and
-// 6 (withUpdatesItem): its numbers, labels and descriptions, item 1's
-// aside, item 2's "Root login, passwords, port" (legacy-left.md §3,
-// decision 7 (a)), item 8's "hardn.yml, syslog, ntp, kernel", and
-// its Exit row, "q to quit" (DEV-030); no Syslog Settings and no NTP Settings
-// item, which are under Configuration. The heading and prompt are
-// origin/main's, the hint generated from the items, "[0-10 or q]".
+// with item 5, Auto Updates, "Enable automatic updates", between 4 and
+// 6 (withUpdatesItem): its numbers, labels and descriptions, the
+// maintainer's of 2026-11-14 (gallery-menu-layout.md, decision 20 (a)),
+// each pinned here: item 1 "User" with its aside, item 4 Kernel with its
+// aside, item 8's "hardn.yml, dns, ntp, syslog", and its Exit row, "q to
+// quit" (DEV-030); no DNS, Syslog Settings or NTP Settings item, which are
+// under Configuration. The heading and prompt are origin/main's, the hint
+// generated from the items, "[0-10 or q]".
 func TestMainMenuItems(t *testing.T) {
 	m := &Options{Config: config.DefaultConfig()}
 	view := m.items().View()
-	if view.Items[1] != (component.MenuItem{Key: "2", Label: "SSH Login", Description: "Root login, passwords, port"}) {
-		t.Errorf("item 2 is %+v", view.Items[1])
+	item := func(key, label, description, aside string) component.MenuItem {
+		return component.MenuItem{Key: key, Label: label, Description: description, Aside: aside}
+	}
+	if want := []component.MenuItem{
+		item("1", "User", "Create, manage", "sudo, SSH keys"),
+		item("2", "SSH Login", "Disable root and passwords, set port", ""),
+		item("3", "Firewall", "Manage rules, port listening", ""),
+		item("4", "Kernel", "Harden sysctl", "network, kernel"),
+		item("5", "Auto Updates", "Enable automatic updates", ""),
+		item("6", "Run All", "Queue hardening actions", ""),
+		item("7", "Backup", "Configure hardn backup", ""),
+		item("8", "Configuration", "hardn.yml, dns, ntp, syslog", ""),
+		item("9", "System Details", "View system info", ""),
+		item("10", "Logs", "View hardn logs", ""),
+	}; !slices.Equal(view.Items, want) {
+		t.Errorf("the items:\n%+v\nwant the maintainer's:\n%+v", view.Items, want)
 	}
 	fixture := screen.MainMenuFixture()
 	if !slices.Equal(view.Items, withUpdatesItem(fixture.Menu.Items)) || view.Exit != fixture.Menu.Exit || fixture.Heading != mainHeading || fixture.Prompt != mainPrompt {
 		t.Errorf("the items are not the main-menu mock's:\n%+v\n%+v", view, fixture.Menu)
 	}
 	for _, it := range view.Items {
-		if it.Label == "Syslog" || it.Label == "NTP" {
+		if it.Label == "Syslog" || it.Label == "NTP" || it.Label == "DNS" {
 			t.Errorf("the main menu has the item %+v, which is under Configuration", it)
 		}
-	}
-	if it := view.Items[7]; it.Key != "8" || it.Label != "Configuration" || it.Description != "hardn.yml, syslog, ntp, kernel" {
-		t.Errorf("item 8 %+v", it)
 	}
 	if hint := m.items().Accepts().Hint(); hint != "0-10 or q" {
 		t.Errorf("the hint is %q", hint)
@@ -305,18 +317,22 @@ func TestMainMenuItems(t *testing.T) {
 // TestMenuOf: the items drawn without running the main menu (MenuOf, as
 // internal/tools/p4status draws a host's) are the main menu's items on a
 // host of the same facts, its Firewall hooks answered as cmd/hardn answers
-// them (FirewallOf): item 3 "Configure ufw rules" on Debian, "View
-// pve-firewall" on Proxmox VE, "Configure firewalld" on Rocky Linux and
-// AlmaLinux; item 5, Auto Updates, and the hint "[0-10 or q]" on each.
+// them (FirewallOf): item 3 "Manage rules, port listening" on Debian, "View
+// pve-firewall" on Proxmox VE, "Manage firewalld, port listening" on the EL
+// family; item 5, Auto Updates, "Configure automatic updates" on Proxmox
+// VE, and the hint "[0-10 or q]" on each.
 func TestMenuOf(t *testing.T) {
 	for _, tc := range []struct {
 		facts    detect.Facts
 		firewall string
 	}{
-		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}}, "Configure ufw rules"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroDebian}}, "Manage rules, port listening"},
 		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroProxmox}, Proxmox: detect.Proxmox{Installed: detect.Yes}}, "View pve-firewall"},
-		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroRocky}}, "Configure firewalld"},
-		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlma}}, "Configure firewalld"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroRocky}}, "Manage firewalld, port listening"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroAlma}}, "Manage firewalld, port listening"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroRHEL}}, "Manage firewalld, port listening"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroCentOS}}, "Manage firewalld, port listening"},
+		{detect.Facts{Platform: detect.Platform{Distro: detect.DistroOracle}}, "Manage firewalld, port listening"},
 	} {
 		t.Run(string(tc.facts.Platform.Distro), func(t *testing.T) {
 			pve, el := FirewallOf(tc.facts)
@@ -325,7 +341,11 @@ func TestMenuOf(t *testing.T) {
 			if !reflect.DeepEqual(got, live.View()) {
 				t.Errorf("MenuOf:\n%+v\nthe main menu's:\n%+v", got, live.View())
 			}
-			if got.Items[2].Description != tc.firewall || got.Items[4] != updatesItem || len(got.Items) != 10 || live.Accepts().Hint() != "0-10 or q" {
+			updates := updatesItem
+			if pve {
+				updates.Description = "Configure automatic updates"
+			}
+			if got.Items[2].Description != tc.firewall || got.Items[4] != updates || len(got.Items) != 10 || live.Accepts().Hint() != "0-10 or q" {
 				t.Errorf("item 3 %+v, item 5 %+v, hint %q", got.Items[2], got.Items[4], live.Accepts().Hint())
 			}
 		})
@@ -333,7 +353,7 @@ func TestMenuOf(t *testing.T) {
 }
 
 // updatesItem is item 5, Auto Updates (gallery-updates.md §4, decision 1).
-var updatesItem = component.MenuItem{Key: "5", Label: "Auto Updates", Description: "Configure automatic updates"}
+var updatesItem = component.MenuItem{Key: "5", Label: "Auto Updates", Description: "Enable automatic updates"}
 
 // withUpdatesItem is the main-menu mock's items (screen.MainMenuFixture)
 // with item 5 between 4 and 6, as the main menu has them since slice 7's
@@ -384,17 +404,17 @@ func TestMainMenuTopRows(t *testing.T) {
 }
 
 // TestMainMenuHeights pins hardn's main menu's heights, one pass drawn on
-// a terminal over the gallery's hardened Debian 13 host (eight rows, no
-// line under any), in its full form at every height, Unicode (C.UTF-8)
-// and ASCII (C): 39 lines at 80x24 and 80x40, the two blank lines under
-// the clear (clearTop) first, 63 at 60 columns, where the rows stack
-// (DEV-021), v0.9.0's ten items and the NTP row, one line at 80
-// columns and two at 60. The prompt is the terminal's last line, so on 24
-// rows the first 15 lines scroll off at 80 columns, the blank lines and
-// the header down to the SSH Port row, the risk level among them, and at
-// 60 columns 39, all the status, the heading, the mode and item 1's label;
-// on 40 rows none at 80 columns, the blank lines on the top two rows and
-// the header under them, and 23 at 60.
+// a terminal over the gallery's hardened Debian 13 host (seven rows, no
+// line under any, and none under them: SSH Auth is in the SSH Login row,
+// and DNS and NTP are fine), in its full form at every height, Unicode
+// (C.UTF-8) and ASCII (C): 37 lines at 80x24 and 80x40, the two blank
+// lines under the clear (clearTop) first, 59 at 60 columns, where the rows
+// stack (DEV-021), with the ten items. The prompt is the terminal's last
+// line, so on 24 rows the first 13 lines scroll off at 80 columns, the
+// blank lines and the header down to the SSH Login row, the risk level
+// among them, and at 60 columns 35, all the status, the heading, the mode
+// and item 1's label; on 40 rows none at 80 columns, the blank lines on
+// the top two rows and the header under them, and 19 at 60.
 // With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
 // TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
@@ -406,10 +426,10 @@ func TestMainMenuHeights(t *testing.T) {
 		visible     string // the first line on screen, stripped of colour and glyphs
 		risk        bool   // the risk level is on screen
 	}{
-		{80, 24, 39, "Firewall             Configured deny policy", false},
-		{80, 40, 39, "", true}, // the blank lines under the clear, the header under them
-		{60, 24, 63, "Create, configure (sudo, SSH keys)", false},
-		{60, 40, 63, "Configured deny policy", false},
+		{80, 24, 37, "SSH Port             + non-default (2230)", false},
+		{80, 40, 37, "", true}, // the blank lines under the clear, the header under them
+		{60, 24, 59, "Create, manage (sudo, SSH keys)", false},
+		{60, 40, 59, "non-default (2230)", false},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")

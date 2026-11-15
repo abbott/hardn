@@ -171,7 +171,7 @@ sshKeys:                            # -c adds them all; Create's default is the 
   - "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAI... george@example.com"
 ```
 
-The main menu's User Management (1) shows the users, their admin rights and SSH keys, and changes them.
+The main menu's User (1) shows the users, their admin rights and SSH keys, and changes them.
 
 - **In User Management, `username` and `sshKeys` are only Create's defaults:** they never choose which user a change is about, and no change saves them.
 - **`hardn -c` creates a user with admin rights**, named by `-u`, else by `username`. It asks nothing on a terminal; off one it needs `--yes`, otherwise it shows the plan and exits 2. The user has no password, and every key in `sshKeys`. Their admin rights ask their password, so they can't use sudo (or doas) until root runs `passwd <name>`. With `-n` it shows the plan. A name already taken, or a key that isn't one, is refused, exit status 1. `-c -d` creates the user first, then runs `-d`, which goes on if another admin can still log in and become root; the new user counts only with `adminNoPassword: true`.
@@ -250,7 +250,7 @@ syslogServers:
     caFile: "/etc/ssl/example-ca.pem" # tls only
 ```
 
-The syslog servers Syslog Settings (main menu `8) Configuration`, then 2) and Run All send the host's logs to: one to four, each sent every message. Nothing is set by default: with no list, or an empty one, hardn changes nothing.
+The syslog servers Syslog Settings (main menu `8) Configuration`, then 4) and Run All send the host's logs to: one to four, each sent every message. Nothing is set by default: with no list, or an empty one, hardn changes nothing.
 
 - **`server`** is an IPv4 address or a host name. An IPv6 address isn't set yet.
 - **`protocol`** is `udp`, `tcp` or `tls`, in lower case, and may differ from server to server. UDP and TCP are not encrypted, and UDP doesn't notice a lost message. On Alpine only `udp` is set: busybox syslogd has no other.
@@ -283,7 +283,7 @@ What changes on each distribution: [platforms.md](platforms.md#ntp).
 kernel: true
 ```
 
-`true` puts Kernel Settings (main menu `8) Configuration`, then 4) in Run All and on the main menu. Off by default: hardn then sets no kernel setting unless you choose Apply settings on the screen, which works either way.
+`true` puts Kernel Settings (main menu `4) Kernel`) in Run All. Off by default: hardn then sets no kernel setting unless you choose Apply settings on the screen, which works either way.
 
 - No screen saves this key. Remove settings leaves it: set it to `false` too, or the next Run All applies the settings again.
 - There is no list of settings to skip. To keep one of your own, set it in a file read after hardn's, such as `/etc/sysctl.d/99-sysctl.conf`: hardn shows it and leaves it.

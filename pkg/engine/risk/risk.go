@@ -10,8 +10,7 @@
 // 100: a Configured row earns its weight, a Partial row half of it (none
 // for a Partial line that protects nothing now, or that carries a fact its
 // check left open), a NotConfigured or Unknown row nothing, and a
-// NotApplicable row is left out of both the share and the whole, as is
-// DNS, the row of weight 0, shown and not weighed, whatever its state. Each
+// NotApplicable row is left out of both the share and the whole. Each
 // cross-check the host fails then costs points: ufw set to refuse SSH once
 // it starts, a second root account, a reboot pending, a long uptime
 // without automatic updates, a user account that becomes root without a
@@ -35,8 +34,8 @@ import (
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
-	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/kernelsettings"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
@@ -107,10 +106,10 @@ const CodeUptimeNoUpdates = "UPTIME_NO_AUTO_UPDATES"
 // Row is one status row of the main menu, with what the score weighs it.
 type Row struct {
 	ID, Title string // the control's
-	// Weight is the row's points of 100. A row of weight 0 is shown and
-	// not weighed (DNS; the maintainer, 2026-10-23): Assess leaves it out
-	// of the share and the whole, of whether any row is established, and
-	// of the factors, whatever its state.
+	// Weight is the row's points of 100. Assess leaves a row of weight 0
+	// out of the share and the whole, of whether any row is established,
+	// and of the factors, whatever its state; no row has one since DNS
+	// left the rows (the maintainer, 2026-11-14).
 	Weight int
 }
 
@@ -118,23 +117,27 @@ type Row struct {
 // title alone: Engine.Check runs the areas' own Controls().
 func row(c engine.Control, w int) Row { return Row{ID: c.ID(), Title: c.Title(), Weight: w} }
 
-// rows are the main menu's status rows, each with its weight, together
-// 100 (risk.md §5.1), in the maintainer's order (2026-11-07): Figma's
-// seven, and DNS (next/s2-menu-live), shown and not weighed.
+// rows are the scored controls, each with its weight, together 100
+// (risk.md §5.1), in the maintainer's order (2026-11-07): Figma's seven,
+// and Kernel between Firewall and Auto Updates, its 5 points taken from
+// Auto Updates' 20 (the maintainer, 2026-11-14;
+// docs/engine/gallery-menu-layout.md, decision 4 (a)). DNS, once a row of
+// weight 0, is none: the main menu shows it only with a problem.
 var rows = []Row{
 	row(users.Admin{}, 10),
 	row(ssh.Login{}, 15),
 	row(ssh.Auth{}, 20),
 	row(ssh.Port{}, 5),
 	row(firewall.Incoming{}, 20),
-	row(dns.Nameservers{}, 0),
-	row(updates.Auto{}, 20),
+	row(kernelsettings.Settings{}, 5),
+	row(updates.Auto{}, 15),
 	row(apparmor.Enforce{}, 10),
 }
 
-// Rows returns the main menu's status rows, in their order: User, SSH
-// Login, SSH Auth, SSH Port, Firewall, DNS, Auto Updates, AppArmor (the
-// maintainer's, 2026-11-07). The score weighs all but DNS, of weight 0.
+// Rows returns the scored controls, in the main menu's order: User, SSH
+// Login, SSH Auth, SSH Port, Firewall, Kernel, Auto Updates, AppArmor. The
+// main menu draws SSH Login and SSH Auth as one row (output.StatusViewOf);
+// the score weighs each.
 func Rows() []Row { return slices.Clone(rows) }
 
 // The rows' controls that a cross-check reads.
@@ -252,8 +255,7 @@ type Level struct {
 
 // Assess scores the host from Engine.Check's reports and the header
 // probe's h. A row's first report counts; a row with none counts as
-// Unknown; a report for a control the score does not weigh, a row of
-// weight 0 among them, is left out.
+// Unknown; a report for a control the score does not weigh is left out.
 // The zero Header establishes nothing, so it costs both cross-checks.
 func Assess(reports []engine.Report, h header.Header) Level {
 	byID := map[string]engine.Report{}

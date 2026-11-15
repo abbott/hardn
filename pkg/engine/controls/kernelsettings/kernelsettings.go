@@ -35,7 +35,9 @@ const (
 	DetailToSet     = "%d to set"            // NotConfigured, or Partial beside hardn's file
 	DetailOutside   = "%d set outside hardn" // Partial
 	DetailNotAtBoot = "not set at boot"      // Partial: OpenRC's sysctl service is in no runlevel
-	DetailByHardn   = "by hardn"             // Configured, with hardn's file
+	DetailApplied   = "%d items applied"     // Configured: the settings hardn's file sets
+	DetailOneItem   = "1 item applied"       // Configured: hardn's file sets one
+	DetailBaseline  = "baseline default"     // Configured: at the baseline, and hardn's file sets nothing
 	DetailContainer = "in a container"       // NotApplicable
 	DetailCantRead  = "can't read"           // Unknown
 )
@@ -53,8 +55,8 @@ const (
 	ActionRemove
 )
 
-// Settings is Kernel Settings. The risk level never counts the row
-// (decision 18): it is no row of risk.Rows.
+// Settings is Kernel Settings, a row of risk.Rows, weight 5 (the
+// maintainer, 2026-11-14, revising gallery-sysctl.md's decision 18).
 type Settings struct {
 	Action Action
 }
@@ -69,7 +71,7 @@ func (Settings) ID() string { return ID }
 func (Settings) Title() string { return Title }
 
 // Applies is true on every host: a container's row is Not Applicable with
-// its words, and the main menu leaves it out (Shown).
+// its words.
 func (Settings) Applies(detect.Facts) (bool, string) { return true, "" }
 
 // Read reads the host, writing nothing.
@@ -77,8 +79,9 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) khost.Reading {
 	return khost.Read(ctx, sys, f)
 }
 
-// Shown reports whether the main menu draws the row whose check gave st
-// (decision 16): on every host but a container.
+// Shown reports whether Run All lists the row whose check gave st
+// (decision 16): on every host but a container. The main menu draws the
+// row on every host.
 func Shown(st engine.Status) bool { return st.State != engine.NotApplicable }
 
 // NotAtBoot reports whether hardn's file is there and nothing applies it
@@ -89,7 +92,9 @@ func NotAtBoot(r khost.Reading) bool { return r.Own != nil && r.OpenRC && r.Boot
 // a file is not read, never a pass; Partial where a later file holds a key
 // below the baseline, where a key is below it beside hardn's file, or
 // where hardn's file is not applied at boot; Not Configured with keys to
-// set and no file of hardn's; else Configured.
+// set and no file of hardn's; else Configured, with how many settings
+// hardn's file sets (Applied), or DetailBaseline where it sets none: the
+// host met the baseline as it was.
 func Status(r khost.Reading) engine.Status {
 	unknown := func(err error) engine.Status {
 		st := engine.Status{State: engine.Unknown, Detail: DetailCantRead}
@@ -115,10 +120,19 @@ func Status(r khost.Reading) engine.Status {
 		return engine.Status{State: engine.NotConfigured, Detail: fmt.Sprintf(DetailToSet, below)}
 	case NotAtBoot(r):
 		return engine.Status{State: engine.Partial, Detail: DetailNotAtBoot}
-	case r.Own != nil:
-		return engine.Status{State: engine.Configured, Detail: DetailByHardn}
+	case r.Own != nil && r.Own.Settings() > 0:
+		return engine.Status{State: engine.Configured, Detail: Applied(r.Own.Settings())}
 	}
-	return engine.Status{State: engine.Configured}
+	return engine.Status{State: engine.Configured, Detail: DetailBaseline}
+}
+
+// Applied is a Configured row's detail where hardn's file sets n settings,
+// n at least 1: "6 items applied".
+func Applied(n int) string {
+	if n == 1 {
+		return DetailOneItem
+	}
+	return fmt.Sprintf(DetailApplied, n)
 }
 
 // Check is the row (Status). What is not read is Unknown with no error:

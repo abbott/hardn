@@ -58,7 +58,7 @@ func (stdout) Write(p []byte) (int, error) { return os.Stdout.Write(p) }
 // The items' fields, each set as a test's screenItem sets one.
 func setUsers(o *Options, run func() error)         { o.Users = run }
 func setSSH(o *Options, run func() error)           { o.SSH = run }
-func setDNS(o *Options, run func() error)           { o.DNS = run }
+func setKernel(o *Options, run func() error)        { o.Kernel = run }
 func setBackup(o *Options, run func() error)        { o.Backup = run }
 func setUpdates(o *Options, run func() error)       { o.Updates = run }
 func setRunAll(o *Options, run func() error)        { o.RunAll = run }

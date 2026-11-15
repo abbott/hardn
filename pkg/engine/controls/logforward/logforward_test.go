@@ -233,15 +233,15 @@ func TestStatus(t *testing.T) {
 		{"mismatch", ubuntu().forwards(ymlTCP), config.SyslogServers{{Server: "192.0.2.60"}}, engine.Partial, logforward.DetailNotWanted},
 		{"several, every connection open", ubuntu().forwards(ymlThree), ymlThree, engine.Configured, "3 servers"},
 		{"several, as asked in another order", ubuntu().forwards(ymlThree), config.SyslogServers{ymlThree[2], ymlThree[0], ymlThree[1]}, engine.Configured, "3 servers"},
-		{"several, one down", func() *model { m := ubuntu().forwards(ymlThree); m.ss = down51; return m }(), ymlThree, engine.Partial, "1 of 3 not reached"},
-		{"several, both connections down", func() *model { m := ubuntu().forwards(ymlThree); m.ss = down; return m }(), ymlThree, engine.Partial, "2 of 3 not reached"},
+		{"several, one down", func() *model { m := ubuntu().forwards(ymlThree); m.ss = down51; return m }(), ymlThree, engine.Partial, "1 of 3 unreachable"},
+		{"several, both connections down", func() *model { m := ubuntu().forwards(ymlThree); m.ss = down; return m }(), ymlThree, engine.Partial, "2 of 3 unreachable"},
 		{"several, not hardn.yml's list", ubuntu().forwards(ymlThree), ymlThree[:2], engine.Partial, logforward.DetailNotWanted},
 		{"several, one more asked", ubuntu().forwards(ymlThree[:2]), ymlThree, engine.Partial, logforward.DetailNotWanted},
 		{"two names on a port, one socket", func() *model {
 			m := ubuntu().forwards(ymlNames)
 			m.ss = &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:41236 192.0.2.77:514 users:((\"rsyslogd\",pid=612,fd=10))\n"}
 			return m
-		}(), ymlNames, engine.Partial, "1 of 2 not reached"},
+		}(), ymlNames, engine.Partial, "1 of 2 unreachable"},
 		// §2.6: hardn's file as asked, and one more server by another file.
 		{"own as asked, one more outside hardn", ubuntu().forwards(ymlTCP).file(foreign, "*.* @192.0.2.52\n"), ymlTCP, engine.Partial, logforward.DetailNotWanted},
 		// §2.4: a TCP forward outside hardn to the port is not the named
@@ -280,6 +280,25 @@ func TestStatus(t *testing.T) {
 			if st.State != tc.state || st.Detail != tc.detail {
 				t.Errorf("status = %v %q, want %v %q", st.State, st.Detail, tc.state, tc.detail)
 			}
+			// The main menu's row for a problem: the host's value and the
+			// words under it (gallery-menu-layout.md, decisions 11 and 12).
+			if want, ok := map[string][2]string{
+				"tcp":                            {"", ""},
+				"tcp-down":                       {"Unreachable", "192.0.2.50:514 TCP"},
+				"several, every connection open": {"", ""},
+				"several, one down":              {"1 unreachable", "3 servers"},
+				"several, both connections down": {"2 unreachable", "3 servers"},
+				"mismatch":                       {"Not hardn.yml's", "192.0.2.50:514 TCP"},
+				"several, not hardn.yml's list":  {"Not hardn.yml's", "3 servers"},
+				"several, sockets not read":      {"Connection not read", "3 servers"},
+				"off":                            {"Not forwarding", ""},
+				"no-server":                      {"", ""},
+			}[tc.name]; ok && (st.Problem != want[0] || st.Value != want[1]) {
+				t.Errorf("problem %q, value %q; want %q, %q", st.Problem, st.Value, want[0], want[1])
+			}
+			if (st.Problem == "") != (st.State == engine.Configured || tc.name == "no-server") {
+				t.Errorf("%v: problem %q", st.State, st.Problem)
+			}
 			if strings.ContainsRune(st.Detail+strings.Join(st.Evidence, ""), '\x1b') {
 				t.Errorf("an escape reaches the row: %q %q", st.Detail, st.Evidence)
 			}
@@ -287,29 +306,35 @@ func TestStatus(t *testing.T) {
 	}
 }
 
-// The main menu draws the row only where hardn.yml names a server or the
-// host forwards (decision 10).
-func TestShown(t *testing.T) {
+// TestProblem: the main menu draws the row only with a problem
+// (engine.Status.Problem; gallery-menu-layout.md, decision 17 (a)): not
+// forwarding only where hardn.yml names a server, valid or not; a host
+// that forwards as it should has none; a server unreachable, sockets not
+// read and settings not read each have one, with the host's value where
+// it forwards.
+func TestProblem(t *testing.T) {
 	m := newModel(t, detect.DistroUbuntu, "rsyslog")
 	none := config.SyslogServers{}
-	if logforward.Shown(cfg(none), m.status(none)) || logforward.Shown(nil, m.status(none)) {
-		t.Error("no server and nothing forwarded: the row is shown")
+	if st := m.status(none); st.Problem != "" || st.Value != "" {
+		t.Errorf("no server and nothing forwarded: problem %q, value %q", st.Problem, st.Value)
 	}
 	bad := config.SyslogServers{{Server: "a b"}}
-	if !logforward.Shown(cfg(ymlTCP), m.status(ymlTCP)) || !logforward.Shown(cfg(bad), m.status(bad)) {
-		t.Error("hardn.yml names a server: the row is not shown")
+	for _, yml := range []config.SyslogServers{ymlTCP, bad} {
+		if st := m.status(yml); st.Problem != logforward.ProblemOff || st.Value != "" {
+			t.Errorf("hardn.yml names a server, nothing forwarded: problem %q, value %q", st.Problem, st.Value)
+		}
 	}
 	m.file(foreign, "*.* @192.0.2.50\n")
-	if !logforward.Shown(cfg(none), m.status(none)) {
-		t.Error("the host forwards: the row is not shown")
+	if st := m.status(none); st.State != engine.Configured || st.Problem != "" {
+		t.Errorf("the host forwards: %v, problem %q", st.State, st.Problem)
 	}
 	m.file(foreign, "*.* @@192.0.2.50\n").ss = &hostfake.Response{Err: host.ErrNotFound}
-	if !logforward.Shown(cfg(none), m.status(none)) {
-		t.Error("the host forwards, its sockets not read: the row is not shown")
+	if st := m.status(none); st.Problem != logforward.ProblemConnUnread || st.Value != "192.0.2.50:514 TCP" {
+		t.Errorf("the host forwards, its sockets not read: problem %q, value %q", st.Problem, st.Value)
 	}
 	m.file(foreign, "*.* @@:1\n")
-	if logforward.Shown(cfg(none), m.status(none)) {
-		t.Error("settings not read and no server asked: the row is shown")
+	if st := m.status(none); st.Problem != logforward.ProblemCantRead || st.Value != "" {
+		t.Errorf("settings not read: problem %q, value %q", st.Problem, st.Value)
 	}
 }
 
@@ -702,13 +727,13 @@ func TestAlpineSeveral(t *testing.T) {
 }
 
 // The row's evidence: one line per server, its file and line, and each
-// server not reached said so.
+// server unreachable said so.
 func TestEvidence(t *testing.T) {
 	m := newModel(t, detect.DistroUbuntu, "rsyslog").forwards(ymlThree)
 	m.ss = &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:41236 192.0.2.50:6514 users:((\"rsyslogd\",pid=612,fd=10))\n"}
 	want := []string{
 		logfwd.DropIn + ":2 logs.example.net:6514 TLS",
-		logfwd.DropIn + ":10 192.0.2.51:514 TCP, not reached",
+		logfwd.DropIn + ":10 192.0.2.51:514 TCP, unreachable",
 		logfwd.DropIn + ":14 192.0.2.52:514 UDP",
 	}
 	if st := m.status(ymlThree); !slices.Equal(st.Evidence, want) {

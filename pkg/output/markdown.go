@@ -9,6 +9,7 @@ import (
 	"unicode"
 
 	"github.com/abbott/hardn/pkg/engine/risk"
+	"github.com/abbott/hardn/pkg/ui/component"
 )
 
 // MarkdownOptions is what the Markdown report says beside its run.
@@ -82,11 +83,7 @@ func Markdown(r Run, o MarkdownOptions) string {
 		mdRisk(&b, *r.RiskLevel, titles)
 	}
 	if r.Reports != nil {
-		l := risk.Level{}
-		if r.RiskLevel != nil {
-			l = *r.RiskLevel
-		}
-		mdStatus(&b, StatusViewOf(r.Reports, l), d.Status)
+		mdStatus(&b, ReportRows(r.Reports), d.Status)
 	}
 	mdFindings(&b, d, titles)
 	if d.Details != nil {
@@ -223,12 +220,12 @@ func mdRisk(b *strings.Builder, l risk.Level, titles map[string]string) {
 	}
 }
 
-// mdStatus is each control's row, as the main menu orders and words them, then
+// mdStatus is each control's row (ReportRows), its state's word kept, then
 // the evidence of each, in the document's order.
-func mdStatus(b *strings.Builder, v StatusView, status []Status) {
+func mdStatus(b *strings.Builder, rows []component.StatusRow, status []Status) {
 	b.WriteString("\n## Status\n\n")
 	mdTable(b, "Control", "State", "Detail")
-	for _, row := range v.Status.Rows {
+	for _, row := range rows {
 		mdRow(b, mdCell(row.Label), row.State.String(), mdCell(row.Detail))
 	}
 	var evidence bool

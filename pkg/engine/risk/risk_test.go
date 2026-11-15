@@ -16,7 +16,10 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	"github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/kernelsettings"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
+	"github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
 	"github.com/abbott/hardn/pkg/engine/header"
@@ -36,6 +39,7 @@ const (
 	idPort   = "ssh.port"
 	idAA     = apparmor.ID
 	idUpdate = updates.ID
+	idKernel = kernelsettings.ID
 )
 
 const day = 24 * time.Hour
@@ -64,6 +68,7 @@ func hardened() []engine.Report {
 		rep(idPort, engine.Configured, "non-default (2230)"),
 		rep(idAA, engine.Configured, "34 profiles enforced"),
 		rep(idUpdate, engine.Configured, updates.DetailUnattended),
+		rep(idKernel, engine.Configured, kernelsettings.Applied(6)),
 	}
 }
 
@@ -135,35 +140,47 @@ func TestAssess(t *testing.T) {
 	}{
 		// The bands, each reachable.
 		{"hardened: the top band", hardened(), quiet, want{band: risk.Minimal, score: 100}},
-		{"figma's host", figma(), uptimeOf(figmaUptime), want{band: risk.Moderate, score: 60, factors: []string{"Up 182 days, no updates"}}},
-		{"figma's host, up 3 days", figma(), quiet, want{band: risk.Moderate, score: 70}},
+		{"figma's host", figma(), uptimeOf(figmaUptime), want{band: risk.Moderate, score: 65, factors: []string{"Up 182 days, no updates"}}},
+		{"figma's host, up 3 days", figma(), quiet, want{band: risk.Low, score: 75}},
 		{"AppArmor not configured", with(rep(idAA, engine.NotConfigured, apparmor.DetailNoProfiles)), quiet, want{band: risk.Low, score: 90}},
 		{"weak: the SSH auth, firewall, AppArmor and updates off", with(rep(idAuth, engine.NotConfigured, "password auth on"),
 			rep(idFW, engine.NotConfigured, "inactive"), rep(idAA, engine.NotConfigured, apparmor.DetailOffInKernel),
-			rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff)), quiet, want{band: risk.High, score: 30}},
+			rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff)), quiet, want{band: risk.High, score: 35}},
 		{"nothing configured", []engine.Report{rep(idUser, engine.NotConfigured, "root only"), rep(idFW, engine.NotConfigured, "inactive"),
 			rep(idLogin, engine.NotConfigured, "root allowed"), rep(idAuth, engine.NotConfigured, "password auth on"),
 			rep(idPort, engine.NotConfigured, "default (22)"), rep(idAA, engine.NotConfigured, apparmor.DetailNoProfiles),
-			rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended)}, quiet, want{band: risk.Critical, score: 0}},
-		{"no row established", nil, quiet, want{band: risk.Unknown, score: 0, factors: unreads(7)}},
+			rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended), rep(idKernel, engine.NotConfigured, "6 to set")}, quiet, want{band: risk.Critical, score: 0}},
+		{"no row established", nil, quiet, want{band: risk.Unknown, score: 0, factors: unreads(8)}},
 
 		{"a Proxmox VE node (risk.md §5.5)", []engine.Report{rep(idUser, engine.NotConfigured, "root only"), rep(idFW, engine.NotConfigured, "disabled"),
 			rep(idLogin, engine.Configured, "root key-only (Proxmox)"), rep(idAuth, engine.Configured, "key-only auth"),
 			rep(idPort, engine.Configured, "default (22)"), rep(idAA, engine.Configured, "12 profiles enforced"),
-			rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended)}, uptimeOf(41*day + time.Hour),
+			rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended), rep(idKernel, engine.NotConfigured, "4 to set")}, uptimeOf(41*day + time.Hour),
 			want{band: risk.High, score: 40, factors: []string{"Up 41 days, no updates"}}},
 
 		// The bounds.
 		{"25 is High", with(rep(idFW, engine.NotConfigured, "inactive"), rep(idAuth, engine.NotConfigured, "password auth on"),
 			rep(idPort, engine.NotConfigured, "default (22)"), rep(idAA, engine.NotConfigured, apparmor.DetailNoProfiles),
-			rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff)), quiet, want{band: risk.High, score: 25}},
+			rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff), rep(idKernel, engine.NotConfigured, "6 to set")), quiet, want{band: risk.High, score: 25}},
 		{"50 is Moderate", with(rep(idLogin, engine.NotConfigured, "root allowed"), rep(idPort, engine.NotConfigured, "default (22)"),
-			rep(idAA, engine.NotConfigured, apparmor.DetailNoProfiles), rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff)),
-			quiet, want{band: risk.Moderate, score: 50}},
-		{"75 is Low", with(rep(idPort, engine.NotConfigured, "default (22)"), rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff)),
-			quiet, want{band: risk.Low, score: 75}},
+			rep(idAA, engine.NotConfigured, apparmor.DetailNoProfiles), rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff),
+			rep(idKernel, engine.NotConfigured, "6 to set")), quiet, want{band: risk.Moderate, score: 50}},
+		{"75 is Low", with(rep(idPort, engine.NotConfigured, "default (22)"), rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff),
+			rep(idKernel, engine.NotConfigured, "6 to set")), quiet, want{band: risk.Low, score: 75}},
 		{"95 is Minimal: the port weighs least", with(rep(idPort, engine.NotConfigured, "default (22)")), quiet, want{band: risk.Minimal, score: 95}},
 		{"below 95 is Low", with(rep(idLogin, engine.Partial, "root key-only")), quiet, want{band: risk.Low, score: 92.5}},
+
+		// Kernel weighs 5, taken from Auto Updates (the maintainer,
+		// 2026-11-14): a host hardened with v0.10.0 scores 95 until Kernel
+		// is applied, Minimal with no line under a row. A container's row
+		// is left out.
+		{"Kernel never applied: 95", with(rep(idKernel, engine.NotConfigured, "6 to set")), quiet, want{band: risk.Minimal, score: 95}},
+		{"Kernel with keys below beside hardn's file: half", with(rep(idKernel, engine.Partial, "3 to set")), quiet, want{band: risk.Minimal, score: 97.5}},
+		{"Kernel at the baseline, nothing applied", with(rep(idKernel, engine.Configured, kernelsettings.DetailBaseline)), quiet, want{band: risk.Minimal, score: 100}},
+		{"Kernel in a container", with(rep(idKernel, engine.NotApplicable, kernelsettings.DetailContainer)), quiet, want{band: risk.Minimal, score: 100}},
+		{"Kernel not read", with(rep(idKernel, engine.Unknown, kernelsettings.DetailCantRead)), quiet, want{band: risk.Low, score: 95, factors: []string{unread}}},
+		{"Kernel with no report", without(idKernel), quiet, want{band: risk.Low, score: 95, factors: []string{unread}}},
+		{"Auto Updates off: 15", with(rep(idUpdate, engine.NotConfigured, updates.DetailUpgradesOff)), quiet, want{band: risk.Low, score: 85}},
 
 		// The port weighs less than the auth settings.
 		{"port vs login", with(rep(idLogin, engine.NotConfigured, "root allowed")), quiet, want{band: risk.Low, score: 85}},
@@ -178,20 +195,20 @@ func TestAssess(t *testing.T) {
 		{"firewall kept on at boot, ssh unchecked: unknown", with(rep(idFW, engine.Unknown, "ss not installed")), quiet,
 			want{band: risk.Low, score: 80, factors: []string{unread}}},
 		{"updates off after restart, a timer not ranked: none", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeScheduleUnknown)), quiet,
-			want{band: risk.Low, score: 80, factors: []string{"Can't tell if fully on"}}},
+			want{band: risk.Low, score: 85, factors: []string{"Can't tell if fully on"}}},
 		{"updates off after restart, a value not ranked: none", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeAptValueUnknown)), quiet,
-			want{band: risk.Low, score: 80, factors: []string{"Can't tell if fully on"}}},
+			want{band: risk.Low, score: 85, factors: []string{"Can't tell if fully on"}}},
 		{"updates kept on at boot, a value not ranked: unknown", with(rep(idUpdate, engine.Unknown, updates.DetailCantRead, updates.CodeAptValueUnknown)), quiet,
-			want{band: risk.Low, score: 80, factors: []string{unread}}},
+			want{band: risk.Low, score: 85, factors: []string{unread}}},
 		{"updates lists not refreshed, a fact open: no factor of its own", with(rep(idUpdate, engine.Partial, updates.DetailListsStale, updates.CodeScheduleUnknown)), quiet,
-			want{band: risk.Low, score: 80}},
+			want{band: risk.Low, score: 85}},
 		{"firewall allow policy: none", with(rep(idFW, engine.Partial, firewall.DetailAllowPolicy)), quiet, want{band: risk.Low, score: 80}},
 		{"firewall all ports: none", with(rep(idFW, engine.Partial, firewall.DetailAllPorts)), quiet, want{band: risk.Low, score: 80}},
 		{"pve-firewall accept policy: none", with(rep(idFW, engine.Partial, firewall.DetailAcceptPolicy)), quiet, want{band: risk.Low, score: 80}},
 		{"AppArmor logging only: none", with(rep(idAA, engine.Partial, apparmor.DetailLoggingOnly)), quiet, want{band: risk.Low, score: 90}},
 		{"AppArmor off after restart: half", with(rep(idAA, engine.Partial, apparmor.DetailOffAfterRestart)), quiet, want{band: risk.Minimal, score: 95}},
-		{"updates lists not refreshed: none", with(rep(idUpdate, engine.Partial, updates.DetailListsStale)), quiet, want{band: risk.Low, score: 80}},
-		{"updates off after restart: half", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart)), quiet, want{band: risk.Low, score: 90}},
+		{"updates lists not refreshed: none", with(rep(idUpdate, engine.Partial, updates.DetailListsStale)), quiet, want{band: risk.Low, score: 85}},
+		{"updates off after restart: half", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart)), quiet, want{band: risk.Low, score: 92.5}},
 		{"user without sudo: half", with(rep(idUser, engine.Partial, "non-root, no sudo")), quiet, want{band: risk.Minimal, score: 95}},
 
 		// NotApplicable is left out of the share and the whole.
@@ -206,16 +223,18 @@ func TestAssess(t *testing.T) {
 		{"an LXC with no SSH server, nothing configured", []engine.Report{rep(idUser, engine.NotConfigured, "root only"),
 			rep(idFW, engine.NotConfigured, "ufw not installed"), rep(idLogin, engine.NotApplicable, ssh.DetailNoServer),
 			rep(idAuth, engine.NotApplicable, ssh.DetailNoServer), rep(idPort, engine.NotApplicable, ssh.DetailNoServer),
-			rep(idAA, engine.NotApplicable, apparmor.DetailByHost), rep(idUpdate, engine.NotConfigured, "no apk-cron")},
+			rep(idAA, engine.NotApplicable, apparmor.DetailByHost), rep(idUpdate, engine.NotConfigured, "no apk-cron"),
+			rep(idKernel, engine.NotApplicable, kernelsettings.DetailContainer)},
 			quiet, want{band: risk.Critical, score: 0}},
 		{"an LXC with no SSH server, the firewall and updates on", []engine.Report{rep(idUser, engine.NotConfigured, "root only"),
 			rep(idFW, engine.Configured, "deny policy"), rep(idLogin, engine.NotApplicable, ssh.DetailNoServer),
 			rep(idAuth, engine.NotApplicable, ssh.DetailNoServer), rep(idPort, engine.NotApplicable, ssh.DetailNoServer),
-			rep(idAA, engine.NotApplicable, apparmor.DetailByHost), rep(idUpdate, engine.Configured, "apk-cron")},
-			quiet, want{band: risk.Low, score: 80}},
+			rep(idAA, engine.NotApplicable, apparmor.DetailByHost), rep(idUpdate, engine.Configured, "apk-cron"),
+			rep(idKernel, engine.NotApplicable, kernelsettings.DetailContainer)},
+			quiet, want{band: risk.Low, score: 100 * 35.0 / 45}},
 		{"every row not applicable", []engine.Report{rep(idUser, engine.NotApplicable, "x"), rep(idFW, engine.NotApplicable, "x"),
 			rep(idLogin, engine.NotApplicable, "x"), rep(idAuth, engine.NotApplicable, "x"), rep(idPort, engine.NotApplicable, "x"),
-			rep(idAA, engine.NotApplicable, "x"), rep(idUpdate, engine.NotApplicable, "x")}, quiet, want{band: risk.Unknown}},
+			rep(idAA, engine.NotApplicable, "x"), rep(idUpdate, engine.NotApplicable, "x"), rep(idKernel, engine.NotApplicable, "x")}, quiet, want{band: risk.Unknown}},
 
 		// Unknown counts as not configured, and adds a factor under each
 		// such row.
@@ -227,7 +246,7 @@ func TestAssess(t *testing.T) {
 			want{band: risk.Low, score: 85, factors: []string{unread}}},
 		{"a row with no report is unknown", without(idUser), quiet, want{band: risk.Low, score: 90, factors: []string{unread}}},
 		{"two unknown rows, a factor each", with(rep(idUpdate, engine.Unknown, "can't read"), rep(idUser, engine.Unknown, "can't read")), quiet,
-			want{band: risk.Moderate, score: 70, factors: unreads(2)}},
+			want{band: risk.Low, score: 75, factors: unreads(2)}},
 
 		// The lockout forces Critical, once; the level's gloss says it, and
 		// the Firewall row, so no factor repeats it.
@@ -275,48 +294,54 @@ func TestAssess(t *testing.T) {
 		{"container: no source is not counted", with(rep(idAA, engine.NotApplicable, apparmor.DetailByHost)), inContainer(detect.Unknown),
 			want{band: risk.Minimal, score: 100}},
 		{"the zero header establishes nothing", hardened(), header.Header{}, want{band: risk.Low, score: 90, factors: []string{"Can't tell if reboot pending"}}},
-		{"the zero header, no auto updates", figma(), header.Header{}, want{band: risk.Moderate, score: 50,
+		{"the zero header, no auto updates", figma(), header.Header{}, want{band: risk.Moderate, score: 55,
 			factors: []string{"Can't tell if reboot pending", "Uptime unknown"}}},
 
 		// The long uptime without automatic updates.
 		{"up 30 days, no updates", with(rep(idUpdate, engine.NotConfigured, updates.DetailTimerOff)), uptimeOf(30 * day),
-			want{band: risk.Moderate, score: 70, factors: []string{"Up 30 days, no updates"}}},
+			want{band: risk.Low, score: 75, factors: []string{"Up 30 days, no updates"}}},
 		{"just under 30 days", with(rep(idUpdate, engine.NotConfigured, updates.DetailTimerOff)), uptimeOf(30*day - time.Minute),
-			want{band: risk.Low, score: 80}},
+			want{band: risk.Low, score: 85}},
 		{"up long, updates configured", hardened(), uptimeOf(figmaUptime), want{band: risk.Minimal, score: 100}},
 		{"up long, updates off after restart", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart)), uptimeOf(figmaUptime),
-			want{band: risk.Low, score: 90}},
+			want{band: risk.Low, score: 92.5}},
 		// Off after restart with a fact left open: whether it upgrades is
 		// not established, so "Up 182 days" alone, and no finding (risk.md
 		// §6.3).
 		{"up long, off after restart with a schedule not established", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeScheduleUnknown)),
-			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"Can't tell if fully on", "Up 182 days"}}},
+			uptimeOf(figmaUptime), want{band: risk.Low, score: 75, factors: []string{"Can't tell if fully on", "Up 182 days"}}},
 		{"up long, off after restart with a value not ranked", with(rep(idUpdate, engine.Partial, updates.DetailOffAfterRestart, updates.CodeAptValueUnknown)),
-			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"Can't tell if fully on", "Up 182 days"}}},
+			uptimeOf(figmaUptime), want{band: risk.Low, score: 75, factors: []string{"Can't tell if fully on", "Up 182 days"}}},
 		{"up long, lists not refreshed", with(rep(idUpdate, engine.Partial, updates.DetailListsStale)), uptimeOf(figmaUptime),
-			want{band: risk.Moderate, score: 70, factors: []string{"Up 182 days, no updates"}}},
+			want{band: risk.Low, score: 75, factors: []string{"Up 182 days, no updates"}}},
 		{"up long, lists not refreshed, a fact open", with(rep(idUpdate, engine.Partial, updates.DetailListsStale, updates.CodeAptValueUnknown)),
-			uptimeOf(figmaUptime), want{band: risk.Moderate, score: 70, factors: []string{"Up 182 days, no updates"}}},
+			uptimeOf(figmaUptime), want{band: risk.Low, score: 75, factors: []string{"Up 182 days, no updates"}}},
 		{"up long, a Partial line not known here", with(rep(idUpdate, engine.Partial, "x")), uptimeOf(figmaUptime),
-			want{band: risk.Low, score: 80, factors: []string{"Up 182 days"}}},
+			want{band: risk.Low, score: 82.5, factors: []string{"Up 182 days"}}},
 		{"up long, updates unknown", with(rep(idUpdate, engine.Unknown, updates.DetailCantRead)), uptimeOf(figmaUptime),
-			want{band: risk.Moderate, score: 70, factors: []string{unread, "Up 182 days"}}},
+			want{band: risk.Low, score: 75, factors: []string{unread, "Up 182 days"}}},
 		{"up long, no updates report", without(idUpdate), uptimeOf(figmaUptime),
-			want{band: risk.Moderate, score: 70, factors: []string{unread, "Up 182 days"}}},
+			want{band: risk.Low, score: 75, factors: []string{unread, "Up 182 days"}}},
 		{"up long, Proxmox not upgraded", with(rep(idUpdate, engine.Configured, updates.DetailUnattended, updates.CodeProxmoxNotUpgraded)),
 			uptimeOf(figmaUptime), want{band: risk.Low, score: 90, factors: []string{"Up 182 days, Proxmox not upgraded"}}},
 		{"up long, updates not applicable", with(rep(idUpdate, engine.NotApplicable, "x")), uptimeOf(figmaUptime), want{band: risk.Minimal, score: 100}},
 		{"up long in a container", with(rep(idAA, engine.NotApplicable, apparmor.DetailByHost), rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended)),
 			func() header.Header { h := inContainer(detect.No); h.Uptime.Duration = figmaUptime; return h }(),
-			want{band: risk.Low, score: 100 * 70.0 / 90}},
+			want{band: risk.Low, score: 100 * 75.0 / 90}},
 		{"uptime not read, updates on", hardened(), pending(detect.No), want{band: risk.Minimal, score: 100}},
 
 		// The penalties add up, and the score stays at 0 or more.
 		{"every penalty", []engine.Report{rep(idUser, engine.NotConfigured, "root only", users.CodeUID0)}, header.Header{Reboot: header.Reboot{Pending: detect.Yes}},
-			want{band: risk.Critical, score: 0, factors: append(unreads(6), "Second root account", "Reboot pending", "Uptime unknown")}},
+			want{band: risk.Critical, score: 0, factors: append(unreads(7), "Second root account", "Reboot pending", "Uptime unknown")}},
 
 		// What the score does not weigh.
-		{"a control the score does not weigh", append(hardened(), rep("dns.servers", engine.NotConfigured, "x")), quiet, want{band: risk.Minimal, score: 100}},
+		{"a control the score does not weigh", append(hardened(), rep("other.control", engine.NotConfigured, "x")), quiet, want{band: risk.Minimal, score: 100}},
+		{"DNS not configured", append(hardened(), rep(dns.ID, engine.NotConfigured, "x")), quiet, want{band: risk.Minimal, score: 100}},
+		{"DNS unknown", append(hardened(), rep(dns.ID, engine.Unknown, "x")), quiet, want{band: risk.Minimal, score: 100}},
+		{"NTP not configured", append(hardened(), rep(timesync.ID, engine.NotConfigured, "x")), quiet, want{band: risk.Minimal, score: 100}},
+		{"NTP unknown", append(hardened(), rep(timesync.ID, engine.Unknown, "x")), quiet, want{band: risk.Minimal, score: 100}},
+		{"Syslog not configured", append(hardened(), rep(logforward.ID, engine.NotConfigured, "x")), quiet, want{band: risk.Minimal, score: 100}},
+		{"Syslog unknown", append(hardened(), rep(logforward.ID, engine.Unknown, "x")), quiet, want{band: risk.Minimal, score: 100}},
 		{"a row's first report counts", append(hardened(), rep(idFW, engine.NotConfigured, "inactive")), quiet, want{band: risk.Minimal, score: 100}},
 	}
 	for _, c := range cases {
@@ -422,9 +447,9 @@ func TestUpdatesFromTheCheck(t *testing.T) {
 	for _, f := range l.Factors {
 		factors = append(factors, f.Detail)
 	}
-	if want := []string{"Can't tell if fully on", "Up 182 days"}; l.Band != risk.Moderate || !near(l.Score, 70) ||
+	if want := []string{"Can't tell if fully on", "Up 182 days"}; l.Band != risk.Low || !near(l.Score, 75) ||
 		!slices.Equal(factors, want) || len(l.Findings) != 0 {
-		t.Errorf("got %v %v %q %+v, want moderate 70 %q and no finding", l.Band, l.Score, factors, l.Findings, want)
+		t.Errorf("got %v %v %q %+v, want low 75 %q and no finding", l.Band, l.Score, factors, l.Findings, want)
 	}
 	// Both timers enabled: the same row the check calls Configured.
 	if l := risk.Assess(with(aptRow(t, nil)), uptimeOf(figmaUptime)); l.Band != risk.Minimal {
@@ -618,7 +643,7 @@ func TestFactors(t *testing.T) {
 		rep(idFW, engine.NotConfigured, "enabled, not running", "UFW_SSH_NOT_ALLOWED_AT_START", firewall.CodeSSHUnchecked),
 		rep(idLogin, engine.Configured, "root disallowed"), rep(idAuth, engine.Configured, "key-only auth"),
 		rep(idPort, engine.Unknown, "can't read"), rep(idAA, engine.Configured, "34 profiles enforced"),
-		rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended),
+		rep(idUpdate, engine.NotConfigured, updates.DetailNoUnattended), rep(idKernel, engine.Configured, kernelsettings.DetailBaseline),
 	}, h)
 	want := []risk.Factor{
 		{Kind: risk.KindLockoutAtStart, Control: idFW, Detail: "SSH may be blocked after restart", Established: true, Penalty: risk.PenaltyAtStart},
@@ -632,10 +657,10 @@ func TestFactors(t *testing.T) {
 	if !slices.Equal(l.Factors, want) {
 		t.Errorf("got  %+v\nwant %+v", l.Factors, want)
 	}
-	// User 10, SSH Login 15, SSH Auth 20 and AppArmor 10 earned, less
-	// 10 + 15 + 10 + 10 + 5.
-	if l.Band != risk.Critical || !near(l.Score, 5) {
-		t.Errorf("band %v score %v, want critical 5", l.Band, l.Score)
+	// User 10, SSH Login 15, SSH Auth 20, Kernel 5 and AppArmor 10 earned,
+	// less 10 + 15 + 10 + 10 + 5.
+	if l.Band != risk.Critical || !near(l.Score, 10) {
+		t.Errorf("band %v score %v, want critical 10", l.Band, l.Score)
 	}
 }
 
@@ -789,14 +814,16 @@ func TestUnknownLines(t *testing.T) {
 }
 
 // TestRows: the rows are the six areas' controls, once each, in the
-// maintainer's order (2026-11-07), the weights 100 together, the port
-// lighter than either auth setting, the firewall one row, DNS of weight 0.
+// maintainer's order (2026-11-07; Kernel after Firewall and DNS gone,
+// 2026-11-14), the weights 100 together, the port lighter than either
+// auth setting, the firewall one row, Kernel's 5 taken from Auto Updates,
+// 15.
 // Engine.Check over the areas' Controls(), in this order, gives its
 // reports in that order too (pkg/engine/controls's Status holds the main
 // menu's list to these rows).
 func TestRows(t *testing.T) {
 	var controls []engine.Control
-	for _, cs := range [][]engine.Control{users.Controls(), ssh.Controls(), firewall.Controls(), dns.Controls(nil), updates.Controls(), apparmor.Controls()} {
+	for _, cs := range [][]engine.Control{users.Controls(), ssh.Controls(), firewall.Controls(), kernelsettings.Controls(), updates.Controls(), apparmor.Controls()} {
 		controls = append(controls, cs...)
 	}
 	rows := risk.Rows()
@@ -809,7 +836,7 @@ func TestRows(t *testing.T) {
 		if r.ID != controls[i].ID() || r.Title != controls[i].Title() {
 			t.Errorf("row %d is %s %q, want %s %q", i, r.ID, r.Title, controls[i].ID(), controls[i].Title())
 		}
-		if r.Weight <= 0 && r.ID != dns.ID || r.ID == dns.ID && r.Weight != 0 {
+		if r.Weight <= 0 || r.ID == dns.ID {
 			t.Errorf("%s weighs %d", r.ID, r.Weight)
 		}
 		weight[r.ID] = r.Weight
@@ -819,11 +846,14 @@ func TestRows(t *testing.T) {
 	for _, r := range rows {
 		titles = append(titles, r.Title)
 	}
-	if want := []string{"User", "SSH Login", "SSH Auth", "SSH Port", "Firewall", "DNS", "Auto Updates", "AppArmor"}; !slices.Equal(titles, want) {
+	if want := []string{"User", "SSH Login", "SSH Auth", "SSH Port", "Firewall", "Kernel", "Auto Updates", "AppArmor"}; !slices.Equal(titles, want) {
 		t.Errorf("titles %q, want the maintainer's %q", titles, want)
 	}
 	if sum != 100 {
 		t.Errorf("weights sum to %d, want 100", sum)
+	}
+	if weight[idKernel] != 5 || weight[idUpdate] != 15 {
+		t.Errorf("Kernel %d, Auto Updates %d: want 5 and 15", weight[idKernel], weight[idUpdate])
 	}
 	if weight[idPort] >= weight[idLogin] || weight[idPort] >= weight[idAuth] {
 		t.Errorf("port %d, login %d, auth %d: the port must weigh less", weight[idPort], weight[idLogin], weight[idAuth])
@@ -837,7 +867,8 @@ func TestRows(t *testing.T) {
 	}
 }
 
-// TestShownNotWeighed: the DNS row, of weight 0, changes no level: in
+// TestShownNotWeighed: DNS, no row of the score (shown on the main menu
+// only with a problem, as NTP and Syslog), changes no level: in
 // every state, failed, with a finding, or with no report, the band, the
 // score, the factors and the findings are the ones without it, on every
 // host of TestAssess's kinds; an Unknown DNS row adds no "Counted as not

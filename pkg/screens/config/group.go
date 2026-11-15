@@ -18,12 +18,12 @@ type GroupOptions struct {
 	Prompter nav.Prompter
 	// File is item 1, hardn.yml: the Configuration screen (Run).
 	File func() error
-	// LogForwarding is item 2: pkg/screens/logforward.
-	LogForwarding func() error
+	// DNS is item 2: pkg/screens/dns, which edits hardn.yml's list.
+	DNS func() error
 	// TimeSync is item 3: pkg/screens/timesync.
 	TimeSync func() error
-	// KernelSettings is item 4: pkg/screens/kernelsettings.
-	KernelSettings func() error
+	// LogForwarding is item 4: pkg/screens/logforward.
+	LogForwarding func() error
 }
 
 // RunGroup shows the Configuration group (screen.ConfigGroup) until 0 (nil) or
@@ -34,15 +34,15 @@ type GroupOptions struct {
 // wrapping fs.ErrInvalid, writing nothing, without a Prompter's In and Out or
 // one of the four screens.
 func RunGroup(_ context.Context, o GroupOptions) error {
-	if o.Prompter.In == nil || o.Prompter.Out == nil || o.File == nil || o.LogForwarding == nil || o.TimeSync == nil || o.KernelSettings == nil {
+	if o.Prompter.In == nil || o.Prompter.Out == nil || o.File == nil || o.DNS == nil || o.TimeSync == nil || o.LogForwarding == nil {
 		return fmt.Errorf("configuration menu: %w: it needs a Prompter with In and Out, and its four screens", fs.ErrInvalid)
 	}
 	sub := screen.ConfigGroup{}.SubMenu()
 	actions := map[string]func() error{
 		screen.ConfigFileItem:       o.File,
-		screen.ConfigLogForwardItem: o.LogForwarding,
+		screen.ConfigDNSItem:        o.DNS,
 		screen.ConfigTimeSyncItem:   o.TimeSync,
-		screen.ConfigKernelItem:     o.KernelSettings,
+		screen.ConfigLogForwardItem: o.LogForwarding,
 	}
 	menu := nav.Menu{Exit: sub.Menu.Exit}
 	for _, it := range sub.Menu.Items {

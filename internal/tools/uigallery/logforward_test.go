@@ -29,25 +29,25 @@ func TestLogForwardMocks(t *testing.T) {
 	}{
 		{"off", []string{"Not Configured not forwarding", "Server               None", "1) Set servers          192.0.2.50:514 TCP"}, []string{"Stop forwarding", "Set by"}},
 		{"no-server", []string{"hardn.yml            No server", "1) Set servers          No server in hardn.yml"}, []string{"Unavailable"}},
-		{"tcp", []string{"Configured 192.0.2.50:514 TCP", "[+] Server               192.0.2.50:514 TCP Open",
+		{"tcp", []string{"+ 192.0.2.50:514 TCP", "[+] Server               192.0.2.50:514 TCP Open",
 			"File                 /etc/rsyslog.d/60-hardn-forward.conf", "Set by               hardn", "1) Stop forwarding      Undo hardn's change"}, []string{"Set servers", "Protocol", "Connection", "not encrypted"}},
-		{"tcp-down", []string{"Partial server not reached", "[ ] Server               192.0.2.50:514 TCP not reached"}, []string{"Open"}},
+		{"tcp-down", []string{"Partial server unreachable", "[ ] Server               192.0.2.50:514 TCP unreachable"}, []string{"Open"}},
 		{"udp", []string{"[ ] Server               192.0.2.50:514 UDP losses unseen"}, []string{"Connection", "not encrypted"}},
 		{"tls", []string{"[+] Server               logs.example.net:6514 TLS Open\n   -  CA File              /etc/ssl/lab-ca.pem"}, []string{"not encrypted"}},
 		// The design's screen (design-syslog-servers.md §2.4).
-		{"several", []string{"[+] Syslog               Configured 3 servers", "[+] Server               logs.example.net:6514 TLS Open\n   -  CA File              /etc/ssl/lab-ca.pem\n" +
+		{"several", []string{"[+] Syslog               + 3 servers", "[+] Server               logs.example.net:6514 TLS Open\n   -  CA File              /etc/ssl/lab-ca.pem\n" +
 			"  [+] Server               192.0.2.51:514 TCP Open\n  [ ] Server               192.0.2.52:514 UDP losses unseen\n", "hardn.yml            3 servers\n", "1) Stop forwarding"}, []string{"Set servers", "differs"}},
-		{"several-down", []string{"[ ] Syslog               Partial 1 of 3 not reached", "[+] Server               logs.example.net:6514 TLS Open", "[ ] Server               192.0.2.51:514 TCP not reached",
+		{"several-down", []string{"[ ] Syslog               Partial 1 of 3 unreachable", "[+] Server               logs.example.net:6514 TLS Open", "[ ] Server               192.0.2.51:514 TCP unreachable",
 			"[ ] Server               192.0.2.52:514 UDP losses unseen", "hardn.yml            3 servers\n"}, []string{"Set servers"}},
 		{"several-differ", []string{"Partial not hardn.yml's servers", "hardn.yml            3 servers differs", "1) Set servers          3 servers", "2) Stop forwarding"}, nil},
 		{"long-name", []string{"[+] Server\n      syslog-collector.prod.example.com:6514 TLS Open\n   -  CA File              /etc/ssl/lab-ca.pem",
 			"hardn.yml\n      syslog-collector.prod.example.com:6514 TLS\n"}, nil},
-		{"names", []string{"Partial 1 of 2 not reached", "logs-a.example.net:514 TCP 1 of 2 open", "logs-b.example.net:514 TCP 1 of 2 open"}, []string{"Open"}},
-		{"foreign", []string{"Configured 192.0.2.50:514 TCP", "File                 /etc/rsyslog.d/50-remote.conf", "Set by               Not hardn", "1) Set servers          Set outside hardn", "Unavailable"}, []string{"Stop forwarding"}},
+		{"names", []string{"Partial 1 of 2 unreachable", "logs-a.example.net:514 TCP 1 of 2 open", "logs-b.example.net:514 TCP 1 of 2 open"}, []string{"Open"}},
+		{"foreign", []string{"+ 192.0.2.50:514 TCP", "File                 /etc/rsyslog.d/50-remote.conf", "Set by               Not hardn", "1) Set servers          Set outside hardn", "Unavailable"}, []string{"Stop forwarding"}},
 		{"mismatch", []string{"Partial not hardn.yml's servers", "hardn.yml            192.0.2.60:514 TCP differs", "1) Set servers          192.0.2.60:514 TCP", "2) Stop forwarding"}, nil},
 		{"journald", []string{"Logger               journald alone no syslog forwarder", "1) Set servers          Installs rsyslog"}, []string{"Set by"}},
 		{"alpine", []string{"Logger               busybox syslogd", "File                 /etc/conf.d/syslog", "192.0.2.50:514 UDP losses unseen"}, []string{"Connection"}},
-		{"alpine-several", []string{"Configured 2 servers", "[ ] Server               192.0.2.51:514 UDP losses unseen\n  [ ] Server               192.0.2.52:514 UDP losses unseen", "File                 /etc/conf.d/syslog",
+		{"alpine-several", []string{"+ 2 servers", "[ ] Server               192.0.2.51:514 UDP losses unseen\n  [ ] Server               192.0.2.52:514 UDP losses unseen", "File                 /etc/conf.d/syslog",
 			"1) Stop forwarding"}, []string{"Set servers"}},
 		{"alpine-tcp", []string{"1) Set servers          busybox syslogd is UDP only"}, []string{"Unavailable"}},
 		{"not-read", []string{"Syslog               Unknown", "Server               Unknown", "1) Set servers          Can't read rsyslog's settings"}, []string{"None"}},
@@ -98,7 +98,7 @@ func TestLogForwardMocks(t *testing.T) {
 			}
 		}
 		if tt.mock == "long-name" { // the status row has 37 cells, and cuts the name
-			out = strings.Replace(out, "Configured syslog-collector.prod.e...", "Configured", 1)
+			out = strings.Replace(out, "+ syslog-collector.prod.example.co...", "+", 1)
 		}
 		for _, not := range append(tt.lack, "...", "…") {
 			if strings.Contains(out, not) {
@@ -123,19 +123,19 @@ func TestLogForwardUsage(t *testing.T) {
 }
 
 // TestPlayLogForward plays the screen on the engine: the main menu's 8,
-// then 2, leads to it; Set servers applied on Ubuntu, the screen then Configured
+// then 4, leads to it; Set servers applied on Ubuntu, the screen then Configured
 // with Stop forwarding; Stop forwarding applied; rsyslog installed on
 // Debian 13; and a dry run stops at the plan. No command goes unanswered.
 func TestPlayLogForward(t *testing.T) {
-	code, out, errs, unread := playGallery([]string{"8", "2", "1", "y", "1", "y", "0", "0", "0"}, "-profile", "plain")
-	for _, want := range []string{"Info: " + lfMainHost, "Forward logs to 192.0.2.50? [y/N, 0 or q]:", "Configured 192.0.2.50:514 TCP", "192.0.2.50:514 TCP Open",
+	code, out, errs, unread := playGallery([]string{"8", "4", "1", "y", "1", "y", "0", "0", "0"}, "-profile", "plain")
+	for _, want := range []string{"Info: " + lfMainHost, "Forward logs to 192.0.2.50? [y/N, 0 or q]:", "+ 192.0.2.50:514 TCP", "192.0.2.50:514 TCP Open",
 		"1) Stop forwarding      Undo hardn's change", "Stop forwarding logs? [y/N, 0 or q]:", "$ systemctl restart rsyslog", "$ logger -t hardn"} {
 		if !strings.Contains(out, want) {
-			t.Errorf("play, 8, 2: no %q", want)
+			t.Errorf("play, 8, 4: no %q", want)
 		}
 	}
 	if code != exitOK || errs != "" || unread != 0 || strings.Contains(out, "does not model") {
-		t.Errorf("play, 8, 2: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
+		t.Errorf("play, 8, 4: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, errs, unread = playGallery([]string{"1", "y", "0"}, "-profile", "plain", lfPrefix+"/journald")
 	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "$ apt-get install -y rsyslog\n") || !strings.Contains(out, "Logger               rsyslog") || strings.Contains(out, "does not model") {
@@ -147,16 +147,16 @@ func TestPlayLogForward(t *testing.T) {
 	}
 	// Three servers set, each reached; then one fewer, the same one change.
 	code, out, errs, unread = playGallery([]string{"1", "y", "0"}, "-profile", "plain", lfPrefix+"/several-off")
-	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Forward logs to 3 servers? [y/N, 0 or q]:") || !strings.Contains(out, "Configured 3 servers") ||
+	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Forward logs to 3 servers? [y/N, 0 or q]:") || !strings.Contains(out, "+ 3 servers") ||
 		strings.Count(out, "$ systemctl restart rsyslog") != 2 || strings.Contains(out, "does not model") { // the plan's, and the apply's
 		t.Errorf("play logforward/several-off: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, errs, unread = playGallery([]string{"1", "y", "0"}, "-profile", "plain", lfPrefix+"/several-differ")
-	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Configured 3 servers") || !strings.Contains(out, "192.0.2.53:514 TCP Open") {
+	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "+ 3 servers") || !strings.Contains(out, "192.0.2.53:514 TCP Open") {
 		t.Errorf("play logforward/several-differ: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, errs, unread = playGallery([]string{"1", "y", "1", "y", "0"}, "-profile", "plain", lfPrefix+"/alpine-several-off")
-	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Configured 2 servers") || !strings.Contains(out, "Remove syslogd's servers") || !strings.Contains(out, "+SYSLOGD_OPTS=\"-t\"") {
+	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "+ 2 servers") || !strings.Contains(out, "Remove syslogd's servers") || !strings.Contains(out, "+SYSLOGD_OPTS=\"-t\"") {
 		t.Errorf("play logforward/alpine-several-off: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	last := len(lfHosts())

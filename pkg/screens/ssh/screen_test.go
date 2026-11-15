@@ -38,31 +38,34 @@ const (
 )
 
 // TestSSHHosts holds each host's rows to the real readers, as the gallery's
-// TestSSHHosts did: the three rows' details, and the section's root,
-// password and port values, every call one the fake answers; drawing writes
-// nothing and makes no engine, live and under plan only.
+// TestSSHHosts did: the SSH Login row, which SSH Auth is drawn in as on the
+// main menu (the maintainer, 2026-11-14: the worse of the two states, and
+// the details of the parts in it, cut at the row's 37 cells where both are
+// off alike), the SSH Port row's detail, and the section's root, password
+// and port values, every call one the fake answers; no SSH Auth row;
+// drawing writes nothing and makes no engine, live and under plan only.
 func TestSSHHosts(t *testing.T) {
-	type want struct{ login, auth, port, root, pass, ports string }
+	type want struct{ login, port, root, pass, ports string }
 	wants := map[string]want{
-		"debian13":         {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"ubuntu2604":       {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"alpine323":        {"root locked", "key-only auth", "default (22)", "Locked", "Off", "22"},
-		"hardened":         {"root disallowed", "key-only auth", "non-default (2230)", "Disallowed", "Off", "2230"},
-		"password-login":   {"root key-only", "password auth on", "default (22)", "Key only", "On", "22"},
-		"password-session": {"root key-only", "password auth on", "default (22)", "Key only", "On", "22"},
-		"root-session":     {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"legacy-v032":      {"root disallowed", "key-only auth", "socket and sshd differ", "Disallowed", "Off", "22, 2230"},
-		"legacy-main":      {"root disallowed", "key-only auth", "default (22)", "Disallowed", "Off", "22"}, // by AuthenticationMethods
-		"include-other":    {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"match-allows":     {"match block allows root", "match block allows passwords", "default (22)", "Key only", "Off", "22"},
-		"allow-users":      {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"pve9":             {"root allowed", "password auth on", "default (22)", "Allowed", "On", "22"},
-		"ufw-restricted":   {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"confirm-window":   {"root key-only", "key-only auth", "22 and 2230", "Key only", "Off", "22, 2230"},
-		"not-read":         {"can't read", "can't read", "can't read", "Can't read", "Can't read", "Can't read"},
-		"nopam-locked":     {"root locked", "key-only auth", "default (22)", "Locked", "Off", "22"},
-		"rsa-small":        {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
-		"admin-no-sudo":    {"root key-only", "key-only auth", "default (22)", "Key only", "Off", "22"},
+		"debian13":         {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
+		"ubuntu2604":       {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
+		"alpine323":        {"+ root locked, key-only auth", "default (22)", "Locked", "Off", "22"},
+		"hardened":         {"+ root disallowed, key-only auth", "non-default (2230)", "Disallowed", "Off", "2230"},
+		"password-login":   {"Not Configured password auth on", "default (22)", "Key only", "On", "22"},
+		"password-session": {"Not Configured password auth on", "default (22)", "Key only", "On", "22"},
+		"root-session":     {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
+		"legacy-v032":      {"+ root disallowed, key-only auth", "socket and sshd differ", "Disallowed", "Off", "22, 2230"},
+		"legacy-main":      {"+ root disallowed, key-only auth", "default (22)", "Disallowed", "Off", "22"}, // by AuthenticationMethods
+		"include-other":    {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
+		"match-allows":     {"Partial match block allows root, m...", "default (22)", "Key only", "Off", "22"},
+		"allow-users":      {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
+		"pve9":             {"Not Configured root allowed, passw...", "default (22)", "Allowed", "On", "22"},
+		"ufw-restricted":   {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
+		"confirm-window":   {"Partial root key-only", "22 and 2230", "Key only", "Off", "22, 2230"},
+		"not-read":         {"Unknown can't read", "can't read", "Can't read", "Can't read", "Can't read"},
+		"nopam-locked":     {"+ root locked, key-only auth", "default (22)", "Locked", "Off", "22"},
+		"rsa-small":        {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
+		"admin-no-sudo":    {"Partial root key-only", "default (22)", "Key only", "Off", "22"},
 	}
 	if len(wants) != len(sshHosts) {
 		t.Fatalf("%d hosts, %d wanted", len(sshHosts), len(wants))
@@ -73,12 +76,18 @@ func TestSSHHosts(t *testing.T) {
 			n := len(h.Calls())
 			p := play(h, dryRun, "0")
 			w := wants[name]
-			got := []string{line(p.out, true, "SSH Login"), line(p.out, true, "SSH Auth"), line(p.out, true, "SSH Port"),
+			got := []string{line(p.out, true, "SSH Port"),
 				line(p.out, false, "Root SSH Login"), line(p.out, false, "Password Login"), line(p.out, false, "SSH Port")}
-			for i, s := range []string{w.login, w.auth, w.port, w.root, w.pass, w.ports} {
+			for i, s := range []string{w.port, w.root, w.pass, w.ports} {
 				if !strings.HasSuffix(got[i], " "+s) && !strings.Contains(got[i], " "+s+" ") {
 					t.Errorf("%s: row %d %q, want %q", name, i, got[i], s)
 				}
+			}
+			if got := line(p.out, true, "SSH Login"); got != "SSH Login "+w.login {
+				t.Errorf("%s: the SSH Login row %q, want %q", name, got, "SSH Login "+w.login)
+			}
+			if got := line(p.out, true, "SSH Auth"); got != "" {
+				t.Errorf("%s: an SSH Auth row %q", name, got)
 			}
 			if p.err != nil || p.engines != 0 || len(writes(h, n)) > 0 {
 				t.Errorf("%s, plan only %v: Run = %v, %d engines, wrote %v", name, dryRun, p.err, p.engines, writes(h, n))
@@ -156,7 +165,7 @@ func TestRefusals(t *testing.T) {
 	}
 }
 
-// TestNoHostKeys: where sshd is installed but has no host keys, the three
+// TestNoHostKeys: where sshd is installed but has no host keys, the two
 // rows say so, Unknown, and items 1, 2 and 3 are refused before asking
 // anything, in the refusal's words for the host (on Alpine, apk del with
 // World's entries that keep sshd installed), writing nothing, live and
@@ -170,8 +179,8 @@ func TestNoHostKeys(t *testing.T) {
 		for _, dryRun := range []bool{false, true} {
 			h := ready(t, host)
 			p := play(h, dryRun, "0")
-			for _, row := range []string{"SSH Login", "SSH Auth", "SSH Port"} {
-				if got := line(p.out, true, row); !strings.HasSuffix(got, " sshd off, no host keys") {
+			for _, row := range []string{"SSH Login", "SSH Port"} {
+				if got := line(p.out, true, row); !strings.HasSuffix(got, " Unknown sshd off, no host keys") {
 					t.Errorf("%s: %s row %q, want sshd off, no host keys", host, row, got)
 				}
 			}
@@ -535,7 +544,10 @@ func TestMatchModel(t *testing.T) {
 // many lines at 80x24 as at 80x40, Unicode and ASCII, no line over 80
 // cells; over 24 its top scrolls off.
 func TestHeights(t *testing.T) {
-	want := map[string]int{"match-allows": 26, "legacy-main": 27, "legacy-v032": 28} // with Brute-Force Limit's row and item 6, SSH keys
+	// With Brute-Force Limit's row and item 6, SSH keys; one row fewer since
+	// SSH Auth is in the SSH Login row (2026-11-14), and on not-read the
+	// line the two share is under it once.
+	want := map[string]int{"match-allows": 25, "legacy-main": 26, "legacy-v032": 27, "not-read": 23}
 
 	for _, rows := range []int{24, 40} {
 		for _, unicode := range []bool{true, false} {
@@ -550,7 +562,7 @@ func TestHeights(t *testing.T) {
 				plain := escapes.ReplaceAllString(out.String(), "")
 				w, ok := want[name]
 				if !ok {
-					w = 25 // 23 before item 6, SSH keys (gallery-keys.md, decision 1) and Brute-Force Limit's row
+					w = 24 // 23 before item 6, SSH keys (gallery-keys.md, decision 1) and Brute-Force Limit's row; 25 with an SSH Auth row
 				}
 				if got := drawn(plain); len(got) != 1 || got[0] != w {
 					t.Errorf("%s at 80x%d, unicode %v: %v lines, want %d", name, rows, unicode, got, w)

@@ -37,9 +37,10 @@ Generated 2026-10-20 12:30 UTC by hardn 0.4.0.
 | SSH Auth | Configured | key-only auth |
 | SSH Port | Configured | non-default (2230) |
 | Firewall | Configured | deny policy |
-| DNS | Configured | 192.0.2.54, 2001:db8::54 |
+| Kernel | Configured | 6 items applied |
 | Auto Updates | Not Configured | no unattended-upgrades |
 | AppArmor | Not Configured | no profiles loaded |
+| DNS | Configured | 192.0.2.54, 2001:db8::54 |
 
 ### Evidence
 

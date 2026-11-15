@@ -561,19 +561,19 @@ func TestCompactForm(t *testing.T) {
                            182 days, 2 hours, 26 minutes
 
   [*] Risk Level           Moderate ~ medium security
-  [+] User                 Configured non-root, sudo
-  [+] SSH Login            Configured root disallowed
-  [+] SSH Auth             Configured key-only auth
-  [+] SSH Port             Configured non-default (2230)
-  [+] Firewall             Configured deny policy
+  [+] User                 + non-root, sudo
+  [+] SSH Login            + root disallowed, key-only auth
+  [+] SSH Port             + non-default (2230)
+  [+] Firewall             + deny policy
+  [+] Kernel               + 6 items applied
   [ ] Auto Updates         Not Configured
   [ ] AppArmor             Not Configured
 
   Select an option         Mode Live
-   1) User Management       7) Backup
+   1) User                  7) Backup
    2) SSH Login             8) Configuration
    3) Firewall              9) System Details
-   4) DNS                  10) Logs
+   4) Kernel               10) Logs
    6) Run All
 
    0) Exit                 q to quit
@@ -923,5 +923,30 @@ func TestOutputRules(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+// TestMainMenuInfo: the rows of what has a problem (MainMenu.Info) are a
+// block of their own under the status rows, a blank line between, in the
+// full form and the compact one; with none the block and its gap are left
+// out (the maintainer, 2026-11-14; docs/engine/gallery-menu-layout.md).
+func TestMainMenuInfo(t *testing.T) {
+	vm := MainMenuFixture()
+	c := component.OffTerminal()
+	none := ansi.Strip(vm.Render(c))
+	vm.Info = component.StatusList{Rows: []component.StatusRow{
+		{Label: "NTP", Info: true, Detail: "No time service", Problem: true},
+		{Label: "Syslog", Info: true, Detail: "192.0.2.50:514 TCP", Lines: []component.StatusLine{{Text: "Unreachable", Warn: true}}},
+	}}
+	const rows = "  [ ] AppArmor             Not Configured\n\n   -  NTP                  No time service\n" +
+		"   -  Syslog               192.0.2.50:514 TCP\n                             ~ Unreachable\n\n"
+	for _, short := range []bool{false, true} {
+		got := ansi.Strip(join(vm.blocks(c, short)...)) + "\n\n"
+		if !strings.Contains(got, rows) {
+			t.Errorf("compact %t: no\n%s\nin\n%s", short, rows, got)
+		}
+	}
+	if with := ansi.Strip(vm.Render(c)); lines(with) != lines(none)+4 || strings.Contains(none, "   -  ") {
+		t.Errorf("%d lines with the rows, %d without:\n%s", lines(with), lines(none), with)
 	}
 }

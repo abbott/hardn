@@ -1,5 +1,7 @@
 # Time Sync (`pkg/screens/timesync`, `time.sync`)
 
+> **Main menu, 2026-11-14** (`next/menu-layout`; [gallery-menu-layout.md](gallery-menu-layout.md)). On the main menu an NTP row is drawn only with a problem. The screen is still main menu 8, then 3.
+
 > **Renamed 2026-11-14.** The screen and its Configuration item are now "NTP Settings"; its status row, the main menu's row and the hardn.yml screen's section are "NTP". The main menu's last rows are Syslog, NTP, AppArmor. The `ntpServers` key, the `NTP_*` codes and the control id are unchanged. The record below keeps the old name, Time Sync.
 
 > **Unit:** the roadmap's "Time sync", the real unit, on `next/time-sync`, from the mock the maintainer adopted on 2026-11-14 ("Adopt all": [gallery-timesync.md](gallery-timesync.md) §4). **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine. No hardn binary ran, and nothing ran on Linux: §5 lists what only a host can show. Decision 16 (`hardn check`) is not built: it waits for that branch.

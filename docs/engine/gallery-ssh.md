@@ -1,5 +1,7 @@
 # SSH Login mock (slice 6, unit (a))
 
+*Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the screen has two status rows, SSH Auth drawn in the SSH Login row, as on the main menu ([screen-ssh.md](screen-ssh.md)).*
+
 Unit (a) of slice 6, `next/s6-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`ssh.go`, `sshhost.go`).
 Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM. The hosts' shapes are the VMs' read of 2026-11-03 (`vm-runs/s6/00-inspect-*.log`), their values synthetic. *Since `next/s6-control` the mock runs on the real control, no stand-ins left ([control-ssh.md](control-ssh.md)).*
 *Since `next/s6-screen` ([screen-ssh.md](screen-ssh.md)): the listing and its mocks are gone; git keeps them at `next/s6-control`, and §3 records what they showed. `play ssh` and `play ssh/<host>` run hardn's own screen on the same hosts, as does main menu 2; each `play/ssh-*` golden differs from `3bb26be0` in its opening note alone.*

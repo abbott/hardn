@@ -779,7 +779,7 @@ What it reads, and so what it holds beyond `--output json`'s document: the main 
 | a note | only as a user other than root: `Not root: what only root can read shows Unknown.` |
 | Host | hostname, `os.prettyName`, the platform and its support level (Supported, Best effort, Out of scope, Unlisted, Unknown), kernel, uptime, the time service, the clock and the server it follows (`details.time`), init, how sshd is started, container, Proxmox VE, sudo, doas (§1.3) |
 | Risk level | the main menu's level and gloss, then every factor, each under its control's title; the pending reboot's under `Host` |
-| Status | each control's row in the main menu's order: title, state, detail; then each row's `evidence` |
+| Status | each control's row: the scored controls in the main menu's order, SSH Login and SSH Auth each its own (the main menu draws them as one row), then DNS: title, state in words ("Configured", where the main menu shows "+"), detail; then each row's `evidence` |
 | Findings | `findings[]` (§1.7): code, detail, source, control; `No findings.` for none |
 | Errors | `errors[]` (§1.8), only when a check failed; its row is Unknown |
 | Addresses, Users, CPU and load, Disk, Memory, Last login | `details` (§1.10); `Not read` for a section that is `null` |

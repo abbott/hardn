@@ -1,11 +1,11 @@
 package main
 
 // Kernel Settings on the plan/apply engine (docs/roadmap.md, "sysctl";
-// docs/engine/gallery-sysctl.md, adopted 2026-11-14): the Configuration
-// group's Kernel Settings item (main menu 8, then 4) runs the Kernel
-// Settings screen (pkg/screens/kernelsettings), which the group reaches
-// through readers.go's runConfigGroup. The engine's options are engine.go's.
-// No flag routes to it.
+// docs/engine/gallery-sysctl.md, adopted 2026-11-14): main menu 4, Kernel
+// (the Configuration group's item 4 until docs/engine/gallery-menu-layout.md
+// was adopted the same day), runs the Kernel Settings screen
+// (pkg/screens/kernelsettings), which readers.go's withReaderScreens sets.
+// The engine's options are engine.go's. No flag routes to it.
 
 import (
 	"context"
@@ -21,8 +21,7 @@ import (
 // tests, which record the options runKernelSettingsScreen gives it.
 var kernelSettingsRun = kernelscreen.Run
 
-// runKernelSettingsScreen is the Configuration group's Kernel Settings
-// item: the screen until the user goes back (nil) or quits (nav.ErrQuit),
+// runKernelSettingsScreen is the main menu's Kernel item (4): the screen until the user goes back (nil) or quits (nav.ErrQuit),
 // or the input ends (prompt.ErrAborted), as runTimeSyncScreen runs the NTP
 // Settings screen: on the host hardn builds, the facts detected once per visit,
 // through the one line reader every prompt shares and stdout's render

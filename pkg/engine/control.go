@@ -67,6 +67,14 @@ type Status struct {
 	// the file (brief §3 principle 3); Phase 4 fills in the sources.
 	Evidence []string
 	Findings []Finding
+	// Problem is what is wrong, in sentence case ("Not in sync"), for a
+	// control the main menu shows only with a problem (DNS, NTP, Syslog:
+	// docs/engine/gallery-menu-layout.md, decision 17 (a)); "" while it
+	// has none, and for every other control. Value is what the host has
+	// then ("192.0.2.50:514 TCP"); "" where it has none, or none is read.
+	// Neither is in the JSON, the report or the logs: State and Detail
+	// say it there.
+	Problem, Value string
 }
 
 // Input is what a control plans from.

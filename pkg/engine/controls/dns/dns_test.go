@@ -209,6 +209,20 @@ func TestCheck(t *testing.T) {
 			if code := output.CodeOf(rep.Err); code != tt.err {
 				t.Errorf("error %v (%s), want %s", rep.Err, code, tt.err)
 			}
+			// The main menu's row (gallery-menu-layout.md, decision 17 (a)):
+			// a problem only for a row Not Configured or Unknown, with the
+			// nameservers in use where they were read.
+			problem := map[string]string{dns.DetailNotHardn: "Not hardn.yml's", dns.DetailInvalid: "Not valid in hardn.yml",
+				dns.DetailNotRunning: "resolved not running", dns.DetailCantRead: "Can't read"}[tt.detail]
+			if rep.Status.Problem != problem || (problem == "") != (tt.state != engine.NotConfigured && tt.state != engine.Unknown) {
+				t.Errorf("problem %q, want %q", rep.Status.Problem, problem)
+			}
+			if value := map[string]string{"a file, other nameservers": "192.0.2.1", "a file, hardn.yml's in another order": "192.0.2.54, 2001:db8::54"}[tt.name]; value != "" && rep.Status.Value != value {
+				t.Errorf("value %q, want %q", rep.Status.Value, value)
+			}
+			if rep.Status.Value != "" && tt.state != engine.NotConfigured {
+				t.Errorf("value %q on a row with no nameservers to show", rep.Status.Value)
+			}
 			if w := writes(h); len(w) > 0 {
 				t.Errorf("Check wrote: %v", w)
 			}

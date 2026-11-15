@@ -63,7 +63,7 @@ var statusStates = map[string]component.StatusState{"configured": component.Stat
 func statusList(ss []Status) component.StatusList {
 	var l component.StatusList
 	for _, s := range ss {
-		l.Rows = append(l.Rows, component.StatusRow{Label: s.Title, State: statusStates[s.State], Detail: s.Detail})
+		l.Rows = append(l.Rows, component.StatusRow{Label: s.Title, State: statusStates[s.State], Detail: s.Detail, KeepWord: true})
 	}
 	return l
 }

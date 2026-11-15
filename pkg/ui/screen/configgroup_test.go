@@ -17,9 +17,9 @@ func TestConfigGroup(t *testing.T) {
 	const want = `# Configuration ################################################
 
    1) hardn.yml            View the file hardn reads
-   2) Syslog Settings      Send logs to a syslog server
+   2) DNS Settings         Configure nameservers
    3) NTP Settings         Keep the clock in sync
-   4) Kernel Settings      Harden network and kernel
+   4) Syslog Settings      Send logs to a syslog server
 
    0) Return
 
@@ -30,7 +30,7 @@ func TestConfigGroup(t *testing.T) {
 			t.Errorf("at %d rows, %d lines:\n%s\nwant:\n%s", h, lines(out), out, want)
 		}
 	}
-	for i, key := range []string{ConfigFileItem, ConfigLogForwardItem, ConfigTimeSyncItem, ConfigKernelItem} {
+	for i, key := range []string{ConfigFileItem, ConfigDNSItem, ConfigTimeSyncItem, ConfigLogForwardItem} {
 		if sub.Menu.Items[i].Key != key {
 			t.Errorf("item %d has the key %q, want %q", i+1, sub.Menu.Items[i].Key, key)
 		}

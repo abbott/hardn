@@ -1,5 +1,7 @@
 # The Configuration screen (`pkg/screens/config`, `screen.Config`)
 
+*Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the menu is `1) hardn.yml`, `2) DNS Settings` ("Configure nameservers"), `3) NTP Settings`, `4) Syslog Settings`; Kernel Settings is main menu 4.*
+
 *Since the several-servers unit (2026-11-14): the Syslog group's key is `syslogServers`, its row the servers' addresses alone, under the key when they are over the row's width ([design-syslog-servers.md](design-syslog-servers.md) §2.1, §6).*
 
 *Since `next/sysctl` (2026-11-14): the menu has a fourth item, `4) Kernel Settings`, "Harden network and kernel" ([gallery-sysctl.md](gallery-sysctl.md), decision 1), the prompt "[0-4 or q]", 10 lines; this screen has a Kernel Settings group (`kernelSettings`). §1.1's drawing is the three items before it.*

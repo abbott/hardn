@@ -1,5 +1,7 @@
 # The main menu goes live, with the DNS row (`next/s2-menu-live`)
 
+*Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the main menu checks the scored rows' controls, Kernel among them on every host, then DNS, NTP and Syslog, and draws each of those three only with a problem, under the scored rows. SSH Auth is drawn in the SSH Login row.*
+
 *Since `next/log-forwarding` (2026-11-13; [gallery-logforward.md](gallery-logforward.md), decision 10 (a)): the main menu also checks Log Forwarding, whose row is drawn only where hardn.yml names a server or the host forwards, and never weighs in the risk level.*
 
 *Since `next/time-sync` (2026-11-14; [gallery-timesync.md](gallery-timesync.md), decision 11 (a)): the main menu also checks Time Sync, whose row is drawn on every host but a container, and never weighs in the risk level. The main menu's items and keys are unchanged from v0.9.0.*
@@ -99,7 +101,7 @@ Each line of origin/main's block (`pkg/menu` `displayNormalSecurityStatus`, `pkg
 | The security-update alert in place of the block, then Enter ends hardn | the same, origin/main's code, on either side of the gate | kept (§5); unreachable while V26's gate holds |
 | The OS bar, from `osdetect`: "Debian 13 (Trixie)", "Alpine Linux 3.23.0" | the `ContextBar` from the header probe (os-release): "Debian 13 (Trixie)", "Alpine 3.24.2", "Proxmox VE 9.0.10 (Trixie)" (origin/main showed Debian there) | `next/p4-header`, [header.md](header.md) §5 |
 | The host line: hostname badge and the first address of `GetHostInfo`, "Unknown" without one; the whole host block left out when it failed | hostname badge and the primary address (the default route's), "no default route", "no address", or "Unknown"; always drawn | `next/p4-header`, header.md §2, §5.2 |
-| The uptime line, `MenuManager.FormatUptime` | `output.FormatUptime`, Figma's form ("182 days, 2 hours, 26 minutes", a unit of 0 left out); then "- Reboot pending", or "- Can't tell if reboot pending" | `next/p4-header`; P-04 (approved, implemented); P-21 (decided 2026-10-21) |
+| The uptime line, `MenuManager.FormatUptime` | `output.FormatUptime`, Figma's form ("182 days, 2 hours, 26 minutes", a unit of 0 left out); then "~ Reboot pending", or "~ Can't tell if reboot pending" | `next/p4-header`; P-04 (approved, implemented); P-21 (decided 2026-10-21) |
 | "⛬ Risk Level Moderate ≈ medium security": eight equal booleans counted, Minimal never reached | the same five words and glosses, from the weighted score; "Unknown" when no row is established; "Critical ≈ lockout risk" when the firewall refuses SSH; Minimal reachable | `next/p4-risk`, [risk.md](risk.md) §5, §6; P-06, P-14 (proposed, built as the plan row asks); DEV-016 |
 | — | each factor a line under the row it is about ("Up 182 days, no updates", "No password to become root", "Counted as not configured") | P-06's place decided (2026-10-21), `next/p4-risk-lines` |
 | "Users": "Configured non-root, sudo" (any entry in `/etc/sudoers.d`, or a member of `sudo` or `wheel`), "Not Configured root user only" | "User": "non-root, sudo", "non-root, doas", "non-root, no sudo" (Partial), "root only", "can't read", and the others of [check-users.md](check-users.md) §5 | `next/p4-check-users`; the label Figma's (P-13 (a), proposed) |

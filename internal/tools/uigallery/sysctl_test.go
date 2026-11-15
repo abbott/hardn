@@ -29,10 +29,10 @@ func TestSysctlMocks(t *testing.T) {
 		mock      string
 		has, lack []string
 	}{
-		{"menu", []string{"4) Kernel Settings      Harden network and kernel", "[0-4 or q]"}, nil},
+		{"menu", []string{"4) Kernel               Harden sysctl (network, kernel)", "8) Configuration        hardn.yml, dns, ntp, syslog"}, []string{"Kernel Settings"}},
 		{"default", []string{"Not Configured 4 to set", "[ ] ICMP redirects       1 accepted, hardn sets 0", "[ ] Process tracing      0 unrestricted, hardn sets 1",
 			"[+] Reverse-path filter  1 strict", " -  Forwarding           0 off", "1) Apply settings       Set 4 settings", "[0-1 or q]"}, []string{" -  File ", "Remove settings"}},
-		{"configured", []string{"Configured by hardn", "[+] ICMP redirects       0 ignored", "Set by hardn -", " -  File                 " + sysctl.File, "1) Remove settings      Undo hardn's change"},
+		{"configured", []string{"+ 4 items applied", "[+] ICMP redirects       0 ignored", "Set by hardn -", " -  File                 " + sysctl.File, "1) Remove settings      Undo hardn's change"},
 			[]string{"[ ]", "Apply settings", "At boot"}},
 		{"overridden", []string{"Partial 1 set outside hardn", "[ ] ICMP redirects       1 accepted, set in 99-sysctl.conf", "1) Remove settings"}, []string{"Apply settings", "hardn sets"}},
 		{"routes", []string{" -  Sending redirects    1 on, left alone: this host routes", " -  Reverse-path filter  2 loose, left alone: this host routes", " -  Forwarding           1 on: this host routes",
@@ -109,27 +109,30 @@ func TestSysctlUsage(t *testing.T) {
 	}
 }
 
-// TestPlaySysctl plays the screen on the engine: the main menu's 8, then 4,
-// leads to it; Apply settings applied on Rocky Linux 10, the screen then
-// Configured by hardn with Remove settings; Remove settings applied, the
+// TestPlaySysctl plays the screen on the engine: the main menu's 4 leads
+// to it; Apply settings applied on Rocky Linux 10, the screen then
+// Configured, "4 items applied", with Remove settings; Remove settings applied, the
 // earlier values back; applied and removed on Debian 13 that routes, on
 // Proxmox VE and on Alpine, whose file names each interface; Alpine with
 // the sysctl service off is Partial once applied; and a dry run stops at
 // the plan. No command goes unanswered.
 func TestPlaySysctl(t *testing.T) {
-	code, out, errs, unread := playGallery([]string{"8", "4", "1", "y", "1", "y", "0", "0", "0"}, "-profile", "plain")
-	for _, want := range []string{"Info: " + ksMainHost, "Not Configured 4 to set", "Apply kernel settings? [y/N, 0 or q]:", "$ sysctl -w kernel.yama.ptrace_scope=1", "Configured by hardn",
+	code, out, errs, unread := playGallery([]string{"4", "1", "y", "1", "y", "0", "0"}, "-profile", "plain")
+	for _, want := range []string{"Info: " + ksMainHost, "Not Configured 4 to set", "Apply kernel settings? [y/N, 0 or q]:", "$ sysctl -w kernel.yama.ptrace_scope=1", "+ 4 items applied",
 		"[+] ICMP redirects       0 ignored", "1) Remove settings      Undo hardn's change", "Remove hardn's kernel settings? [y/N, 0 or q]:", "$ sysctl -w kernel.yama.ptrace_scope=0"} {
 		if !strings.Contains(out, want) {
-			t.Errorf("play, 8, 4: no %q", want)
+			t.Errorf("play, 4: no %q", want)
 		}
 	}
 	if code != exitOK || errs != "" || unread != 0 || strings.Contains(out, "does not model") || strings.Count(out, "Not Configured 4 to set") != 2 {
-		t.Errorf("play, 8, 4: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
+		t.Errorf("play, 4: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
+	// The row's count is the settings hardn's file sets, not its lines:
+	// Alpine's file has a line for each interface.
+	applied := map[string]string{"routes": "+ 4 items applied", "pve": "+ 4 items applied", "alpine": "+ 6 items applied"}
 	for host, want := range map[string]string{"routes": "+net.ipv6.conf.*.accept_redirects = 0", "pve": "+kernel.kptr_restrict = 1", "alpine": "+net.ipv6.conf.eth0.accept_redirects = 0"} {
 		code, out, errs, unread = playGallery([]string{"1", "y", "1", "y", "0"}, "-profile", "plain", ksPrefix+"/"+host)
-		if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, want) || !strings.Contains(out, "Configured by hardn") || !strings.Contains(out, "Remove hardn's kernel settings?") ||
+		if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, want) || !strings.Contains(out, applied[host]) || !strings.Contains(out, "Remove hardn's kernel settings?") ||
 			strings.Contains(out, "does not model") || strings.Contains(out, "Rolled back") {
 			t.Errorf("play sysctl/%s: exit %d, stderr %q, %d unread:\n%s", host, code, errs, unread, out)
 		}

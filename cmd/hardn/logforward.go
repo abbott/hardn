@@ -2,7 +2,7 @@ package main
 
 // Syslog Settings on the plan/apply engine (docs/roadmap.md, "Log
 // forwarding"; docs/engine/gallery-logforward.md, adopted 2026-11-13): the
-// Configuration group's Syslog Settings item (main menu 8, then 2) runs the
+// Configuration group's Syslog Settings item (main menu 8, then 4) runs the
 // Syslog Settings screen (pkg/screens/logforward), which the group reaches
 // through readers.go's runConfigGroup. The engine's options are engine.go's.
 // No flag routes to it.

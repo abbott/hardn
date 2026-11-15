@@ -190,7 +190,7 @@ func TestApplyRocky(t *testing.T) {
 		question, after, row string
 		review, writes       []string
 	}{
-		{askOn, disable, "Configured dnf-automatic, security",
+		{askOn, disable, "+ dnf-automatic, security",
 			[]string{"Install dnf-automatic", "Security updates only", "$ set [commands] upgrade_type = security", "Turn on daily security updates",
 				"$ systemctl enable dnf-automatic-install.timer", "$ systemctl start dnf-automatic-install.timer", "Record hardn's changes"},
 			[]string{"dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True dnf-automatic", "write-atomic " + dnfauto.Conf,

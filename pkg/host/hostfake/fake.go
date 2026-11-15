@@ -170,6 +170,15 @@ func (s *System) AddGroup(g host.Group) {
 	s.groups[g.Name] = g
 }
 
+// ResetCalls forgets every call so far: for a model that builds a host's
+// state through the host itself, so that Calls and Runs then hold only
+// what the code under test does.
+func (s *System) ResetCalls() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calls = nil
+}
+
 // Calls returns every call so far, in order.
 func (s *System) Calls() []Call {
 	s.mu.Lock()

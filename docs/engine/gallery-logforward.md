@@ -1,5 +1,7 @@
 # Log forwarding mock
 
+> **Main menu, 2026-11-14** (`next/menu-layout`; [gallery-menu-layout.md](gallery-menu-layout.md)). Syslog Settings is the Configuration group's item 4 (main menu 8, then 4). The main menu draws a Syslog row only with a problem, under the scored rows: the server and "Unreachable", "3 servers" and "1 unreachable", "Not hardn.yml's", "Not forwarding" where hardn.yml names a server, or "Can't read". This revises decision 10. "not reached" is "unreachable" everywhere: "server unreachable", "1 of 3 unreachable", a Server row's "unreachable".
+
 > **Renamed 2026-11-14.** The screen and its Configuration item are now "Syslog Settings"; its status row, the main menu's row and the hardn.yml screen's section are "Syslog". The main menu's last rows are Syslog, NTP, AppArmor. The control id is unchanged; the codes are now `SYSLOG_*`. The record below keeps the old name, Log Forwarding.
 
 > **Several servers, 2026-11-14.** hardn.yml's `logForwarding` is now `syslogServers`, a list of one to four; the screen has a Server row per server, with its protocol and connection, and no Protocol or Connection row; Set server is Set servers; `hardn check` compares the servers. [design-syslog-servers.md](design-syslog-servers.md) is the design and what was built. The record below is the one-server unit as it was.
@@ -15,7 +17,7 @@ Status of the mock unit, as it was written: built and tested on macOS in process
 go run ./internal/tools/uigallery logforward [-ascii] [mock | all]   # the listing, no input
 go run ./internal/tools/uigallery logforward -list                    # the mocks' names
 go run ./internal/tools/uigallery play logforward                     # the hosts' menu, played on the engine
-go run ./internal/tools/uigallery play logforward/<host>              # one host; the main menu's 8, then 2, leads to "off"
+go run ./internal/tools/uigallery play logforward/<host>              # one host; the main menu's 8, then 4, leads to "off"
 ```
 
 The view is `pkg/ui/screen/logforward.go` (`screen.LogForward`), the hosts `internal/tools/uigallery/logforward.go`, the goldens `internal/tools/uigallery/testdata/golden/logforward/`. Since the real unit each mock is the real screen (`pkg/screens/logforward`) on a simulated host, read by the real control, each review planned by the real engine.

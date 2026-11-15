@@ -39,13 +39,25 @@ const Title = "Syslog"
 // the server ("192.0.2.50:514 TCP"), or how many ("3 servers").
 const (
 	DetailOff        = "not forwarding"          // NotConfigured
-	DetailNotReached = "server not reached"      // Partial: the one server, TCP or TLS, no connection
+	DetailNotReached = "server unreachable"      // Partial: the one server, TCP or TLS, no connection
 	DetailNotWanted  = "not hardn.yml's servers" // Partial: forwards elsewhere, or another way
 	DetailCantRead   = "can't read"              // Unknown: the logger's settings
 	DetailConnUnread = "connection not read"     // Unknown: the host's sockets
 
 	detailServers  = "%d servers"           // Configured: several
-	detailSomeDown = "%d of %d not reached" // Partial: several, some with no connection
+	detailSomeDown = "%d of %d unreachable" // Partial: several, some with no connection
+)
+
+// The main menu's words for a row with a problem (engine.Status.Problem;
+// gallery-menu-layout.md, decisions 11 (a) and 12 (a)).
+const (
+	ProblemOff        = "Not forwarding"
+	ProblemNotReached = "Unreachable"
+	ProblemNotWanted  = "Not hardn.yml's"
+	ProblemCantRead   = "Can't read"
+	ProblemConnUnread = "Connection not read"
+
+	problemSomeDown = "%d unreachable"
 )
 
 // Action is what Forward's Plan does.
@@ -64,7 +76,8 @@ const (
 // Forward is Syslog Settings. Config is hardn.yml as loaded, whose
 // syslogServers Check compares the host with; Plan reads the engine's
 // (engine.Input.Config), which is the same file. The risk level never
-// counts the row (decision 10): it is no row of risk.Rows.
+// counts the row (decision 10): it is no row of risk.Rows, and the main
+// menu draws it only with a problem (engine.Status.Problem).
 type Forward struct {
 	Action Action
 	Config *config.Config
@@ -195,15 +208,42 @@ func (r Reading) Differs() bool {
 	return len(r.Want) > 0 && len(r.Now) > 0 && !r.AsAsked()
 }
 
-// Shown reports whether the main menu draws the row whose check gave st
-// (decision 10 (a)): where cfg, hardn.yml, names a server, or the host
-// forwards. A host that forwards nowhere and is asked nothing has no row,
-// read or not.
-func Shown(cfg *config.Config, st engine.Status) bool {
-	if cfg != nil && len(cfg.SyslogServers) > 0 {
-		return true
+// serversWords is Now as a row's value: the server, or how many.
+func (r Reading) serversWords() string {
+	if len(r.Now) == 1 {
+		return ServerWords(r.Now[0].Server)
 	}
-	return st.State == engine.Configured || st.State == engine.Partial || st.Detail == DetailConnUnread
+	return fmt.Sprintf(detailServers, len(r.Now))
+}
+
+// problem is st with the main menu's row for it (engine.Status.Problem
+// and Value): none while the row is Configured; not forwarding only where
+// hardn.yml names servers, and what is not read always (the maintainer,
+// 2026-11-14).
+func (r Reading) problem(st engine.Status) engine.Status {
+	down := r.Down()
+	switch {
+	case st.State == engine.Configured:
+		return st
+	case st.Detail == DetailCantRead:
+		st.Problem = ProblemCantRead
+		return st
+	case st.State == engine.NotConfigured:
+		if len(r.Want) > 0 || r.WantErr != nil {
+			st.Problem = ProblemOff
+		}
+		return st
+	case st.Detail == DetailNotWanted:
+		st.Problem = ProblemNotWanted
+	case st.Detail == DetailConnUnread:
+		st.Problem = ProblemConnUnread
+	case len(r.Now) == 1:
+		st.Problem = ProblemNotReached
+	default:
+		st.Problem = fmt.Sprintf(problemSomeDown, down)
+	}
+	st.Value = r.serversWords()
+	return st
 }
 
 // ServerWords is s as a row says it, safe to show: "192.0.2.50:514 TCP".
@@ -246,8 +286,12 @@ func (r Reading) Down() int {
 // many of several; else Configured, with the server or how many. Its
 // evidence is one line per server, those set outside hardn beside hardn's
 // own last: its file and line, the server, and what is known of a
-// connection that is not open.
-func (r Reading) Status() engine.Status {
+// connection that is not open. A row that is not Configured carries the
+// main menu's problem row (problem).
+func (r Reading) Status() engine.Status { return r.problem(r.status()) }
+
+// status is Status without the main menu's problem row.
+func (r Reading) status() engine.Status {
 	switch {
 	case r.Host.Err != nil:
 		return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: []string{logview.Safe(r.Host.Err.Error())}}
@@ -264,7 +308,7 @@ func (r Reading) Status() engine.Status {
 		case c.Some():
 			line += fmt.Sprintf(", %d of %d open", c.Open, c.Of)
 		case c.Conn == logfwd.ConnDown:
-			line += ", not reached"
+			line += ", unreachable"
 		}
 		ev = append(ev, line)
 	}
@@ -284,10 +328,8 @@ func (r Reading) Status() engine.Status {
 		return engine.Status{State: engine.Partial, Detail: DetailNotReached, Evidence: ev}
 	case down > 0:
 		return engine.Status{State: engine.Partial, Detail: fmt.Sprintf(detailSomeDown, down, len(r.Now)), Evidence: ev}
-	case len(r.Now) == 1:
-		return engine.Status{State: engine.Configured, Detail: ServerWords(r.Now[0].Server), Evidence: ev}
 	}
-	return engine.Status{State: engine.Configured, Detail: fmt.Sprintf(detailServers, len(r.Now)), Evidence: ev}
+	return engine.Status{State: engine.Configured, Detail: r.serversWords(), Evidence: ev}
 }
 
 // Check is the row (Reading.Status). What is not read is Unknown with no

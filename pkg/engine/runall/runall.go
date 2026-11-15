@@ -23,7 +23,6 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/controls"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
 	backupctl "github.com/abbott/hardn/pkg/engine/controls/backup"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
@@ -35,7 +34,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/timesync"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
-	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -150,12 +148,24 @@ func (in Input) getenv(k string) string {
 	return in.Getenv(k)
 }
 
-// IDs are the rows' controls, in the screen's order: the main menu's
-// (risk.Rows), then Backup.
+// rows are the controls Run All lists on every host, in the screen's
+// order, v0.10.0's: the main menu's rows of then, DNS among them and
+// Kernel not (the main menu's own rows changed on 2026-11-14,
+// docs/engine/gallery-menu-layout.md; Run All's did not).
+func rows(cfg *config.Config) []engine.Control {
+	var out []engine.Control
+	for _, cs := range [][]engine.Control{users.Controls(), ssh.Controls(), fwctl.Controls(), dnsctl.Controls(cfg), updates.Controls(), apparmor.Controls()} {
+		out = append(out, cs...)
+	}
+	return out
+}
+
+// IDs are the rows' controls, in the screen's order: User, SSH Login, SSH
+// Auth, SSH Port, Firewall, DNS, Auto Updates, AppArmor, then Backup.
 func IDs() []string {
 	var ids []string
-	for _, r := range risk.Rows() {
-		ids = append(ids, r.ID)
+	for _, c := range rows(nil) {
+		ids = append(ids, c.ID())
 	}
 	return append(ids, backupctl.ID)
 }
@@ -184,12 +194,12 @@ func IDsFor(cfg *config.Config) []string {
 	return slices.Insert(ids, len(ids)-1, more...)
 }
 
-// Checked are the controls whose checks the rows show: the main menu's,
+// Checked are the controls whose checks the rows show: IDs' but Backup's,
 // Syslog Settings', NTP Settings' and Kernel Settings' where hardn.yml asks
 // for them (IDsFor),
 // then Backup's.
 func Checked(cfg *config.Config) []engine.Control {
-	out := controls.Status(cfg)
+	out := rows(cfg)
 	if cfg != nil && len(cfg.SyslogServers) > 0 {
 		out = append(out, logforward.Controls(cfg)...)
 	}

@@ -42,10 +42,11 @@ import (
 // changes, and -p writes nothing to the log it prints.
 var readerHost = func() host.System { return host.NewReal(host.Options{}) }
 
-// withReaderScreens returns m with its Configuration, System Details and Logs items
-// set to their screens on c, the configuration m was given, and found, how its file
+// withReaderScreens returns m with its Kernel, Configuration, System Details and Logs
+// items set to their screens on c, the configuration m was given, and found, how its file
 // was looked for when it loaded.
 func withReaderScreens(m mainmenu.Options, c *config.Config, found config.Found) mainmenu.Options {
+	m.Kernel = func() error { return runKernelSettingsScreen(context.Background(), c) }
 	m.Configuration = func() error { return runConfigGroup(context.Background(), c, found) }
 	m.SystemDetails = func() error { return runSystemDetailsScreen(context.Background()) }
 	m.Logs = func() error { return runLogsScreen(context.Background(), c) }
@@ -88,17 +89,16 @@ var configGroupRun = configscreen.RunGroup
 
 // runConfigGroup is main menu 8, Configuration: the group until the user goes
 // back (nil) or quits (nav.ErrQuit), or the input ends (prompt.ErrAborted). Its
-// items are the hardn.yml screen (runConfigScreen), Syslog Settings
-// (logforward.go), NTP Settings (timesync.go) and Kernel Settings
-// (kernelsettings.go), each on c, the configuration the main menu holds, and
-// each returning to the group.
+// items are the hardn.yml screen (runConfigScreen), DNS Settings (dns.go),
+// NTP Settings (timesync.go) and Syslog Settings (logforward.go), each on c,
+// the configuration the main menu holds, and each returning to the group.
 func runConfigGroup(ctx context.Context, c *config.Config, found config.Found) error {
 	return configGroupRun(ctx, configscreen.GroupOptions{
-		Prompter:       readerPrompter(),
-		File:           func() error { return runConfigScreen(ctx, c, found) },
-		LogForwarding:  func() error { return runLogForwardScreen(ctx, c) },
-		TimeSync:       func() error { return runTimeSyncScreen(ctx, c) },
-		KernelSettings: func() error { return runKernelSettingsScreen(ctx, c) },
+		Prompter:      readerPrompter(),
+		File:          func() error { return runConfigScreen(ctx, c, found) },
+		DNS:           func() error { return runDNSScreen(ctx, c) },
+		TimeSync:      func() error { return runTimeSyncScreen(ctx, c) },
+		LogForwarding: func() error { return runLogForwardScreen(ctx, c) },
 	})
 }
 

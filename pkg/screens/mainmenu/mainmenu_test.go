@@ -52,7 +52,7 @@ func plain(t *testing.T, vm interface{ Render(component.Ctx) string }) string {
 // TestNothingRead: on a host where nothing can be read (no file, every
 // command failing), every row is Unknown, never a guess, and the status
 // is still returned: each weighed row with "Counted as not configured"
-// under it, DNS with its own "can't read" and nothing under it, the risk
+// under it, DNS under them with its own "Can't read", the risk
 // level Unknown, the header the version given; the heading, mode, menu
 // and prompt left for pkg/screens/mainmenu; and every call a read or a command
 // (calls), so no file is written (which commands, this test does not
@@ -68,15 +68,24 @@ func TestNothingRead(t *testing.T) {
 	}
 	out := plain(t, vm.Status)
 	lines := strings.Split(out, "\n")
-	for _, row := range []string{"User", "Firewall", "SSH Login", "SSH Auth", "SSH Port", "AppArmor", "Auto Updates"} {
+	// SSH Auth is in the SSH Login row, and the line both have is under it
+	// once.
+	for _, row := range []string{"User", "SSH Login", "SSH Port", "Firewall", "Kernel", "Auto Updates", "AppArmor"} {
 		i := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "  [?] "+row+" ") })
-		if i < 0 || !strings.Contains(lines[i], "Unknown") || strings.TrimSpace(lines[i+1]) != "- Counted as not configured" {
-			t.Errorf("%s: not Unknown, counted as not configured:\n%s", row, out)
+		if i < 0 || !strings.Contains(lines[i], "Unknown") || strings.TrimSpace(lines[i+1]) != "~ Counted as not configured" ||
+			row == "SSH Login" && !strings.HasPrefix(lines[i+2], "  [") {
+			t.Errorf("%s: not Unknown, counted as not configured once:\n%s", row, out)
 		}
 	}
-	i := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "  [?] DNS ") })
-	if i < 0 || !strings.HasSuffix(lines[i], "Unknown can't read") || i+1 < len(lines) && !strings.HasPrefix(lines[i+1], "  [") {
-		t.Errorf("DNS: want Unknown, \"can't read\", nothing under it:\n%s", out)
+	if strings.Contains(out, "SSH Auth") || strings.Contains(out, "DNS") || len(vm.Status.Rows) != 7 {
+		t.Errorf("an SSH Auth or a DNS row among the scored rows:\n%s", out)
+	}
+	// What is not read is a problem, drawn under the rows with no line.
+	if got := plain(t, vm.Info); got != "   -  DNS                  Can't read\n   -  NTP                  Can't read\n   -  Syslog               Can't read" {
+		t.Errorf("the rows under the scored ones:\n%s", got)
+	}
+	if r := append(vm.Info.Rows, component.StatusRow{})[0]; r.Label != "DNS" || !r.Info || r.Detail != "Can't read" || !r.Problem || len(r.Lines) != 0 {
+		t.Errorf("DNS: want the row \"Can't read\" under the scored rows: %+v", vm.Info.Rows)
 	}
 	if risk := plain(t, vm.Risk); !strings.Contains(risk, "Risk Level           Unknown") {
 		t.Errorf("the risk level is not Unknown:\n%s", risk)

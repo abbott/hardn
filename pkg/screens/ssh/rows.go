@@ -45,13 +45,17 @@ const (
 	noteSocket  = "ssh.socket"
 )
 
-// statusRows are the SSH Login, SSH Auth and SSH Port rows, the main
-// menu's: each check's, through the main menu's own mapping and its
-// assessment, as the gallery drew them (an Unknown row's "Counted as not
-// configured"), with no engine and no header probe: the zero header gives
-// these rows no factor of its own. The CVE's established factor is no line
-// under SSH Auth, as on the main menu (output.AlertOf): the screen's alert
-// says it (the maintainer, 2026-11-09).
+// statusRows are the SSH Login and SSH Port rows, the main menu's: the
+// three checks', through the main menu's own mapping and its assessment,
+// which draws SSH Auth in the SSH Login row (output.StatusViewOf; the
+// maintainer, 2026-11-14), as the gallery drew them (an Unknown row's
+// "Counted as not configured"), with no engine and no header probe: the
+// zero header gives these rows no factor of its own. The screen has the
+// row the main menu has, so that it reads the same in both; its section's
+// Root SSH Login and Password Login rows say each part. The CVE's
+// established factor is no line under the row, as on the main menu
+// (output.AlertOf): the screen's alert says it (the maintainer,
+// 2026-11-09).
 func statusRows(ctx context.Context, sys host.System, f detect.Facts) component.StatusList {
 	var reports []engine.Report
 	var titles []string

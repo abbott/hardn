@@ -47,6 +47,19 @@ func (o Own) Bytes() []byte {
 	return b.Bytes()
 }
 
+// Settings is how many of the baseline's settings (Specs) the file's lines
+// set: Source routing's two keys are one, and so is a per-interface
+// setting written as a line for each interface (busybox).
+func (o Own) Settings() int {
+	seen := map[string]bool{}
+	for _, e := range o.Entries {
+		if s, ok := specOf(e.Key); ok {
+			seen[s.Name] = true
+		}
+	}
+	return len(seen)
+}
+
 // HasMark reports whether data opens with hardn's mark.
 func HasMark(data []byte) bool { return bytes.HasPrefix(data, []byte(Header)) }
 

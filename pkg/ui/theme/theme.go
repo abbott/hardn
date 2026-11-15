@@ -112,9 +112,9 @@ type TitleBarStyles struct {
 type HostStyles struct {
 	Address lipgloss.Style // the IP address
 	Uptime  lipgloss.Style
-	Reboot  lipgloss.Style // "- Reboot pending", bullet and text (proposal P-04)
-	// Unknown is "Unknown", for a value hardn could not read, and "- Can't
-	// tell if reboot pending", bullet and text.
+	Reboot  lipgloss.Style // "~ Reboot pending", mark and text (proposal P-04)
+	// Unknown is "Unknown", for a value hardn could not read, and "~ Can't
+	// tell if reboot pending", mark and text.
 	Unknown lipgloss.Style
 }
 

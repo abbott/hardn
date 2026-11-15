@@ -13,8 +13,9 @@ import (
 	"github.com/abbott/hardn/pkg/ui/term"
 )
 
-// TestDNSItem: the main menu's 4 runs the DNS screen cmd/hardn sets
-// (Options.DNS) from a cleared screen, once, and maps what it returns: Return
+// TestKernelItem: the main menu's 4 runs the Kernel Settings screen
+// cmd/hardn sets (Options.Kernel; DNS, item 4 until v0.10.0, is under
+// Configuration) from a cleared screen, once, and maps what it returns: Return
 // (nil) or back (nav.ErrBack) to the main menu, drawn again on a cleared
 // screen (under the screen, off a terminal), which shows the configuration
 // as the screen left it; q
@@ -22,9 +23,9 @@ import (
 // screen; the end of the input exits 130, Ctrl-C ends hardn by SIGINT,
 // and any other error is printed and exits 1, as at every legacy prompt.
 // With no screen set, a programming error, the item panics.
-func TestDNSItem(t *testing.T) {
+func TestKernelItem(t *testing.T) {
 	testScreenItem(t, screenItem{
-		key: "4", name: "DNS", set: setDNS,
+		key: "4", name: "Kernel", set: setKernel,
 		edit: func(c *config.Config) { c.Nameservers = append(c.Nameservers, "192.0.2.55") },
 		edited: func(c *config.Config) bool {
 			return slices.Equal(c.Nameservers, []string{"192.0.2.53", "192.0.2.55"})
@@ -33,7 +34,7 @@ func TestDNSItem(t *testing.T) {
 }
 
 // TestBackupItem: the main menu's 7 runs the Backup screen cmd/hardn sets
-// (Options.Backup), as TestDNSItem's 4 runs the DNS screen, and maps what it
+// (Options.Backup), as TestKernelItem's 4 runs the Kernel Settings screen, and maps what it
 // returns the same way (refactor plan slice 3, unit (d)); the main menu
 // holds the backup settings as the screen left them.
 func TestBackupItem(t *testing.T) {
@@ -45,7 +46,7 @@ func TestBackupItem(t *testing.T) {
 }
 
 // TestConfigurationItem: the main menu's 8 runs the Configuration group
-// cmd/hardn sets (Options.Configuration), as TestDNSItem's 4 runs the DNS screen,
+// cmd/hardn sets (Options.Configuration), as TestKernelItem's 4 runs the Kernel Settings screen,
 // and maps what it returns the same way (next/config-screen); the screen
 // only shows, so the main menu's configuration is as it was.
 func TestConfigurationItem(t *testing.T) {
@@ -59,7 +60,7 @@ func TestConfigurationItem(t *testing.T) {
 }
 
 // TestFirewallItem: the main menu's 3 runs the Firewall screen cmd/hardn
-// sets (Options.Firewall), as TestDNSItem's 4 runs the DNS screen, and maps what
+// sets (Options.Firewall), as TestKernelItem's 4 runs the Kernel Settings screen, and maps what
 // it returns the same way (refactor plan slice 4, unit (d)); the main menu
 // holds the application profiles as the screen left them.
 func TestFirewallItem(t *testing.T) {
@@ -76,26 +77,33 @@ func TestFirewallItem(t *testing.T) {
 
 // TestFirewallItemOnPVE: the main menu's 3 reads "View pve-firewall" where
 // cmd/hardn says the host is Proxmox VE (Options.Firewall's onPVE; decision 7,
-// adopted 2026-11-01), "Configure firewalld" where it says Rocky Linux or
-// AlmaLinux (Options.FirewallEL; el-firewalld.md §1.6), and origin/main's
-// "Configure ufw rules" where it says neither, or says nothing; its key,
-// label and action are the same.
+// adopted 2026-11-01), "Manage firewalld, port listening" where it says the
+// EL family (Options.FirewallEL; el-firewalld.md §1.6), and "Manage rules,
+// port listening" where it says neither, or says nothing; its key, label
+// and action are the same. Item 5 reads "Enable automatic updates", and on
+// Proxmox VE, where the screen enables nothing, v0.10.0's "Configure
+// automatic updates" (the maintainer, 2026-11-14; gallery-menu-layout.md,
+// decision 20 (a)).
 func TestFirewallItemOnPVE(t *testing.T) {
 	yes, no := func() bool { return true }, func() bool { return false }
 	for _, tc := range []struct {
 		name      string
 		onPVE, el func() bool
 		want      string
+		updates   string
 	}{
-		{"Proxmox VE", yes, no, "View pve-firewall"},
-		{"Rocky Linux or AlmaLinux", no, yes, "Configure firewalld"},
-		{"Rocky Linux or AlmaLinux, Proxmox VE not said", nil, yes, "Configure firewalld"},
-		{"another host", no, no, "Configure ufw rules"},
-		{"not said", nil, nil, "Configure ufw rules"},
+		{"Proxmox VE", yes, no, "View pve-firewall", "Configure automatic updates"},
+		{"Rocky Linux or AlmaLinux", no, yes, "Manage firewalld, port listening", "Enable automatic updates"},
+		{"Rocky Linux or AlmaLinux, Proxmox VE not said", nil, yes, "Manage firewalld, port listening", "Enable automatic updates"},
+		{"another host", no, no, "Manage rules, port listening", "Enable automatic updates"},
+		{"not said", nil, nil, "Manage rules, port listening", "Enable automatic updates"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := &Options{Config: config.DefaultConfig()}
 			m.Firewall, m.FirewallPVE, m.FirewallEL = func() error { return nil }, tc.onPVE, tc.el
+			if it := m.items().Options[4].Item; it.Key != "5" || it.Label != "Auto Updates" || it.Description != tc.updates {
+				t.Errorf("item 5 is %q, %q; want Auto Updates, %q", it.Label, it.Description, tc.updates)
+			}
 			for _, o := range m.items().Options {
 				if o.Item.Key == "3" {
 					if o.Item.Label != "Firewall" || o.Item.Description != tc.want {
@@ -110,7 +118,7 @@ func TestFirewallItemOnPVE(t *testing.T) {
 }
 
 // TestUsersItem: the main menu's 1 runs the User Management screen
-// cmd/hardn sets (Options.Users), as TestDNSItem's 4 runs the DNS screen, and
+// cmd/hardn sets (Options.Users), as TestKernelItem's 4 runs the Kernel Settings screen, and
 // maps what it returns the same way (refactor plan slice 5, unit (d)); no
 // change the screen makes saves hardn.yml, so the main menu's
 // configuration is as it was.
@@ -125,7 +133,7 @@ func TestUsersItem(t *testing.T) {
 }
 
 // TestSSHItem: the main menu's 2 runs the SSH Login screen cmd/hardn sets
-// (Options.SSH), as TestDNSItem's 4 runs the DNS screen, and maps what it
+// (Options.SSH), as TestKernelItem's 4 runs the Kernel Settings screen, and maps what it
 // returns the same way (refactor plan slice 6, unit (d)); no change the
 // screen makes saves hardn.yml, so the main menu's configuration is as it
 // was.
@@ -140,7 +148,7 @@ func TestSSHItem(t *testing.T) {
 }
 
 // TestUpdatesItem: the main menu's 5 runs the Auto Updates screen
-// cmd/hardn sets (Options.Updates), as TestDNSItem's 4 runs the DNS screen, and
+// cmd/hardn sets (Options.Updates), as TestKernelItem's 4 runs the Kernel Settings screen, and
 // maps what it returns the same way (refactor plan slice 7, unit (d));
 // the main menu holds enableUnattendedUpgrades as the screen's off saved
 // it.
@@ -153,7 +161,7 @@ func TestUpdatesItem(t *testing.T) {
 }
 
 // TestRunAllItem: the main menu's 6 runs the Run All screen cmd/hardn sets
-// (Options.RunAll), as TestDNSItem's 4 runs the DNS screen, and maps what it
+// (Options.RunAll), as TestKernelItem's 4 runs the Kernel Settings screen, and maps what it
 // returns the same way (refactor plan slice 8, unit (d)); no change the
 // screen makes saves hardn.yml, so the main menu's configuration is as it
 // was.
@@ -168,7 +176,7 @@ func TestRunAllItem(t *testing.T) {
 }
 
 // TestSystemDetailsAndLogsItems: the main menu's 9 and 10 run the screens cmd/hardn
-// sets, and map what they return as TestDNSItem's 4 does (refactor plan slice 1, unit
+// sets, and map what they return as TestKernelItem's 4 does (refactor plan slice 1, unit
 // (d)); neither saves a setting.
 func TestSystemDetailsAndLogsItems(t *testing.T) {
 	for _, it := range []screenItem{

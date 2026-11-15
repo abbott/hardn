@@ -14,6 +14,10 @@ import (
 // risk score as AppArmor in a container is (the maintainer, 2026-11-07).
 const DetailNoServer = "no SSH server"
 
+// DetailProxmoxKeyOnly is SSH Login's Configured detail on Proxmox VE:
+// root logs in by key alone, as the cluster needs.
+const DetailProxmoxKeyOnly = "root key-only (Proxmox)"
+
 // unread is an SSH row's status where reading sshd failed with err: Not
 // Applicable, DetailNoServer, nil error, where err says that no sshd can
 // run here (noSSHD) and sshd.NoServer establishes that no SSH server is
