@@ -162,6 +162,12 @@ func TestDnfOnRefusals(t *testing.T) {
 	}
 	upgrading := hostfake.Response{Stdout: "Dependencies resolved.\nInstalling:\n dnf-automatic  noarch  4.20.0  baseos  37 k\nUpgrading:\n dnf  noarch  4.20.1  baseos  1 M\n\nTransaction Summary\n",
 		Stderr: "Operation aborted.\n", ExitCode: 1}
+	// Upgrades alone are a host behind its repositories (Oracle Linux 10.1,
+	// 2026-11-14); a removal among them keeps the by-hand fix.
+	behind := hostfake.Response{Stdout: "Dependencies resolved.\nInstalling:\n dnf-automatic  noarch  4.20.1  baseos  37 k\nUpgrading:\n dnf  noarch  4.20.1  baseos  1 M\n dnf-data  noarch  4.20.1  baseos  40 k\n\nTransaction Summary\n",
+		Stderr: "Operation aborted.\n", ExitCode: 1}
+	mixed := hostfake.Response{Stdout: "Dependencies resolved.\nInstalling:\n dnf-automatic  noarch  4.20.0  baseos  37 k\nUpgrading:\n dnf  noarch  4.20.1  baseos  1 M\nRemoving:\n yum-utils  noarch  4.3.0  @baseos  40 k\n\nTransaction Summary\n",
+		Stderr: "Operation aborted.\n", ExitCode: 1}
 	kernel := hostfake.Response{Stdout: "Dependencies resolved.\nInstalling:\n dnf-automatic  noarch  4.20.0  baseos  37 k\nInstalling dependencies:\n kernel-core  x86_64  6.12.0-211.74.1.el10_2  baseos  19 M\n\nTransaction Summary\n",
 		Stderr: "Operation aborted.\n", ExitCode: 1}
 	for _, c := range []struct {
@@ -211,9 +217,19 @@ func TestDnfOnRefusals(t *testing.T) {
 			m.dnfInstall = &hostfake.Response{Stdout: "Updating Subscription Management repositories.\nUnable to read consumer identity\n\nThis system is not registered with an entitlement server. You can use \"rhc\" or \"subscription-manager\" to register.\n\n", Stderr: "Error: There are no enabled repositories in \"/etc/yum.repos.d\", \"/etc/yum/repos.d\", \"/etc/distro.repos.d\".\n", ExitCode: 1} // rhel10-test-114, probe 3
 			return m
 		}},
-		{"another package changed", "UPDATES_OTHER_PACKAGES", "Upgrading dnf", func(t *testing.T) *model {
+		{"another package upgraded", "UPDATES_OTHER_PACKAGES", "Installing dnf-automatic would upgrade other packages: dnf. To go on: update the host (`dnf upgrade`), then try again", func(t *testing.T) *model {
 			m := dnfHost(t, false)
 			m.dnfInstall = &upgrading
+			return m
+		}},
+		{"other packages upgraded", "UPDATES_OTHER_PACKAGES", "Installing dnf-automatic would upgrade other packages: dnf, dnf-data. To go on: update the host (`dnf upgrade`), then try again", func(t *testing.T) *model {
+			m := dnfHost(t, false)
+			m.dnfInstall = &behind
+			return m
+		}},
+		{"an upgrade and a removal", "UPDATES_OTHER_PACKAGES", "Installing dnf-automatic would also change other packages: Upgrading dnf, Removing yum-utils. To go on: install it by hand, then try again", func(t *testing.T) *model {
+			m := dnfHost(t, false)
+			m.dnfInstall = &mixed
 			return m
 		}},
 		{"a new kernel", "PACKAGE_KERNEL", "would also install a new kernel (kernel-core)", func(t *testing.T) *model {

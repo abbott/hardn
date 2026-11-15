@@ -727,7 +727,7 @@ func planELPorts(ctx context.Context, sys host.System, prefix string, hold, add 
 		switch {
 		case errors.Is(err, selinux.ErrNoSemanage):
 			return nil, &Refusal{Code: CodeNoSemanage, Why: fmt.Sprintf("SELinux is on, and semanage isn't installed to let sshd use port %d", port),
-				Fix: "install it (`dnf install policycoreutils-python-utils`), then plan again", Err: err}
+				Fix: "install it (`dnf install policycoreutils-python-utils`, which may upgrade SELinux packages), then plan again", Err: err}
 		case errors.Is(err, selinux.ErrPortTaken):
 			return nil, &Refusal{Code: CodePortTaken, Why: fmt.Sprintf("SELinux gives port %d to another service", port), Fix: "choose another port", Err: err}
 		case err != nil:

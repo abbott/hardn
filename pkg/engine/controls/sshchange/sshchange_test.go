@@ -587,7 +587,7 @@ func TestRefusals(t *testing.T) {
 			v := elPorts(t)
 			v.sshPorts = nil
 			return v
-		}, port2230, "SELINUX_NO_SEMANAGE", selinux.ErrNoSemanage, "SELinux is on, and semanage isn't installed to let sshd use port 2230", true},
+		}, port2230, "SELINUX_NO_SEMANAGE", selinux.ErrNoSemanage, "SELinux is on, and semanage isn't installed to let sshd use port 2230. Install it (`dnf install policycoreutils-python-utils`, which may upgrade SELinux packages), then plan again.", false},
 		{"the port on Rocky Linux, SELinux gives it to another service", func(t *testing.T) *vm {
 			v := elPorts(t)
 			v.otherPorts = map[uint16]string{2230: "http_port_t"}
