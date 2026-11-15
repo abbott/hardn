@@ -115,11 +115,11 @@ type fakeHost struct {
 	// upd answers the Auto Updates control's commands (updateshost.go); nil on
 	// every other host.
 	upd *updSim
-	// lf answers the Log Forwarding control's commands (logforward.go); nil
+	// lf answers the Syslog Settings control's commands (logforward.go); nil
 	// on every other host.
 	lf *lfSim
-	// ts is the host's time service (timehost.go), which answers the Time
-	// Sync control's commands; nil on a host that is no status host.
+	// ts is the host's time service (timehost.go), which answers the NTP
+	// Settings control's commands; nil on a host that is no status host.
 	ts *timefake.Sim
 	// ks answers the sysctl tool's commands on the hosts with a kernel
 	// model (sysctl.go); nil on every other.

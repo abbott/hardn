@@ -39,13 +39,13 @@ var (
 
 // The refusals' codes, the registry's for the errors they wrap (pkg/output).
 const (
-	codeNotRead   = "KERNEL_SETTINGS_NOT_READ"
-	codeOutside   = "KERNEL_SETTINGS_FILE_NOT_HARDNS"
-	codeNoTool    = "KERNEL_SETTINGS_NO_SYSCTL"
-	codeContainer = "KERNEL_SETTINGS_CONTAINER"
-	codeNothing   = "KERNEL_SETTINGS_NOTHING_TO_REMOVE"
-	codeChanged   = "KERNEL_SETTINGS_CHANGED_SINCE"
-	codeNotSet    = "KERNEL_SETTINGS_NOT_SET"
+	codeNotRead   = "KERNEL_NOT_READ"
+	codeOutside   = "KERNEL_FILE_NOT_HARDNS"
+	codeNoTool    = "KERNEL_NO_SYSCTL"
+	codeContainer = "KERNEL_CONTAINER"
+	codeNothing   = "KERNEL_NOTHING_TO_REMOVE"
+	codeChanged   = "KERNEL_CHANGED_SINCE"
+	codeNotSet    = "KERNEL_NOT_SET"
 	tryAgain      = "fix that, then try again"
 )
 

@@ -1,9 +1,9 @@
 package main
 
-// Log Forwarding on the plan/apply engine (docs/roadmap.md, "Log
+// Syslog Settings on the plan/apply engine (docs/roadmap.md, "Log
 // forwarding"; docs/engine/gallery-logforward.md, adopted 2026-11-13): the
-// Configuration group's Log Forwarding item (main menu 8, then 2) runs the
-// Log Forwarding screen (pkg/screens/logforward), which the group reaches
+// Configuration group's Syslog Settings item (main menu 8, then 2) runs the
+// Syslog Settings screen (pkg/screens/logforward), which the group reaches
 // through readers.go's runConfigGroup. The engine's options are engine.go's.
 // No flag routes to it.
 
@@ -17,17 +17,17 @@ import (
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
 
-// logForwardRun is the Log Forwarding screen's Run, a seam for the tests,
+// logForwardRun is the Syslog Settings screen's Run, a seam for the tests,
 // which record the options runLogForwardScreen gives it.
 var logForwardRun = logforwardscreen.Run
 
-// runLogForwardScreen is the Configuration group's Log Forwarding item: the screen
+// runLogForwardScreen is the Configuration group's Syslog Settings item: the screen
 // until the user goes back (nil) or quits (nav.ErrQuit), or the input ends
 // (prompt.ErrAborted), as runUpdatesScreen runs the Auto Updates screen:
 // on the host hardn builds, the facts detected once per visit, through the
 // one line reader every prompt shares and stdout's render environment;
 // each change on an engine with engineOptions; c, the configuration the
-// main menu holds, whose logForwarding names the server and which no
+// main menu holds, whose syslogServers names the servers and which no
 // change saves; a dry run when c says so as the item is chosen. Each
 // change's run is a record of the audit log (auditRan), and each change's
 // apply, and nothing else, runs under engineSignals (screenApplyContext).

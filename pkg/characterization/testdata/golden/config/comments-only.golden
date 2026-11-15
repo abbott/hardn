@@ -20,12 +20,7 @@
   "SshKeys": [],
   "UfwAppProfiles": [],
   "UfwTrustedInterfaces": null,
-  "LogForwarding": {
-    "Server": "",
-    "Port": 0,
-    "Protocol": "",
-    "CAFile": ""
-  },
+  "SyslogServers": null,
   "NTPServers": null,
   "KernelSettings": false,
   "EnableUnattendedUpgrades": false,

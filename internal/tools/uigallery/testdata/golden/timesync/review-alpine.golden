@@ -29,7 +29,8 @@ $
       ␛[38;2;129;134;156m # By default ntpd runs as a client. Add -l to run as a␛[m$
       ␛[38;2;129;134;156m↪ server on port 123.␛[m$
       ␛[38;2;231;70;105m-NTPD_OPTS="-N -p pool.ntp.org"␛[m$
-      ␛[38;2;112;212;127m+# Set by hardn (Time Sync), in place of: -p pool.ntp.org␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn (NTP Settings), in place of: -p␛[m$
+      ␛[38;2;112;212;127m↪ pool.ntp.org␛[m$
       ␛[38;2;112;212;127m+NTPD_OPTS="-N -p 192.0.2.10 -p 192.0.2.11"␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRestart ntpd␛[m$
@@ -67,7 +68,8 @@ $
        # By default ntpd runs as a client. Add -l to run as a$
       | server on port 123.$
       -NTPD_OPTS="-N -p pool.ntp.org"$
-      +# Set by hardn (Time Sync), in place of: -p pool.ntp.org$
+      +# Set by hardn (NTP Settings), in place of: -p$
+      | pool.ntp.org$
       +NTPD_OPTS="-N -p 192.0.2.10 -p 192.0.2.11"$
 $
    -  Restart ntpd$
@@ -108,7 +110,7 @@ $
       ␛[38;2;129;134;156m # By default ntpd runs as a client. Add -l to run as␛[m$
       ␛[38;2;129;134;156m↪ a server on port 123.␛[m$
       ␛[38;2;231;70;105m-NTPD_OPTS="-N -p pool.ntp.org"␛[m$
-      ␛[38;2;112;212;127m+# Set by hardn (Time Sync), in place of: -p␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn (NTP Settings), in place of: -p␛[m$
       ␛[38;2;112;212;127m↪ pool.ntp.org␛[m$
       ␛[38;2;112;212;127m+NTPD_OPTS="-N -p 192.0.2.10 -p 192.0.2.11"␛[m$
 $
@@ -147,7 +149,8 @@ $
       ␛[38;2;129;134;156m # By default ntpd runs as a client. Add -l to run as a␛[m$
       ␛[38;2;129;134;156m| server on port 123.␛[m$
       ␛[38;2;231;70;105m-NTPD_OPTS="-N -p pool.ntp.org"␛[m$
-      ␛[38;2;112;212;127m+# Set by hardn (Time Sync), in place of: -p pool.ntp.org␛[m$
+      ␛[38;2;112;212;127m+# Set by hardn (NTP Settings), in place of: -p␛[m$
+      ␛[38;2;112;212;127m| pool.ntp.org␛[m$
       ␛[38;2;112;212;127m+NTPD_OPTS="-N -p 192.0.2.10 -p 192.0.2.11"␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRestart ntpd␛[m$

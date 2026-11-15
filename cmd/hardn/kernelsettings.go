@@ -23,8 +23,8 @@ var kernelSettingsRun = kernelscreen.Run
 
 // runKernelSettingsScreen is the Configuration group's Kernel Settings
 // item: the screen until the user goes back (nil) or quits (nav.ErrQuit),
-// or the input ends (prompt.ErrAborted), as runTimeSyncScreen runs the Time
-// Sync screen: on the host hardn builds, the facts detected once per visit,
+// or the input ends (prompt.ErrAborted), as runTimeSyncScreen runs the NTP
+// Settings screen: on the host hardn builds, the facts detected once per visit,
 // through the one line reader every prompt shares and stdout's render
 // environment; each change on an engine with engineOptions; c, the
 // configuration the main menu holds, which no change reads a key of or

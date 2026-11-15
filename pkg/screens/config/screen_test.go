@@ -182,6 +182,30 @@ func TestLongValueKeepsItsNote(t *testing.T) {
 	uitest.AssertFits(t, p.out, 80)
 }
 
+// TestSyslogServersRow: syslogServers is its servers' addresses alone
+// (docs/engine/design-syslog-servers.md §2.1); three over the row's width go
+// under the key, whole; a list that is not valid says so; none is None; and
+// logForwarding, the key before it, is not read and not listed.
+func TestSyslogServersRow(t *testing.T) {
+	const three = "syslogServers:\n  - server: logs.example.net\n    protocol: tls\n    caFile: /etc/ssl/example-ca.pem\n  - server: 192.0.2.51\n  - server: 192.0.2.52\n    protocol: udp\n"
+	p := play(read(t, etc, three), found(etc, config.FoundSearch), "0")
+	has(t, "three", p.out, "   -  syslogServers\n      logs.example.net, 192.0.2.51, 192.0.2.52\n")
+	p = play(read(t, etc, "syslogServers:\n  - server: 192.0.2.51\n    port: 1514\n"), found(etc, config.FoundSearch), "0")
+	has(t, "one", p.out, "   -  syslogServers        192.0.2.51\n")
+	p = play(read(t, etc, "syslogServers:\n  - server: 192.0.2.51\n  - server: 192.0.2.51\n"), found(etc, config.FoundSearch), "0")
+	has(t, "a server twice", p.out, "   -  syslogServers        Not valid\n")
+	p = play(read(t, etc, "syslogServers:\n  - protocol: udp\n"), found(etc, config.FoundSearch), "0")
+	has(t, "a block with no server", p.out, "   -  syslogServers        Not valid\n")
+	p = play(read(t, etc, "syslogServers: []\n"), found(etc, config.FoundSearch), "0")
+	has(t, "an empty list", p.out, "   -  syslogServers        None\n")
+	p = play(read(t, etc, "logForwarding:\n  server: 192.0.2.50\n"), found(etc, config.FoundSearch), "0")
+	has(t, "logForwarding", p.out, "   -  syslogServers        None (default)\n")
+	if strings.Contains(p.out, "logForwarding") || strings.Contains(p.out, "192.0.2.50") {
+		t.Errorf("logForwarding is shown:\n%s", p.out)
+	}
+	uitest.AssertFits(t, p.out, 80)
+}
+
 // TestNotUsed: the keys the file sets that nothing reads, in the start-up warning's
 // order: logFile where it names another path, permitRootLogin where it is not the
 // default, then the retired keys, each with its value where that is one word or

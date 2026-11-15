@@ -212,7 +212,7 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 	sys := h.sys()
 	e := engine.New(sys, engine.Options{Detect: func(context.Context, host.System) (detect.Facts, error) { return r.Facts, nil }})
 	status := output.StatusViewOf(r.Reports, risk.Level{}).Status
-	for i, rw := range r.Rows {
+	for _, rw := range r.Rows {
 		c := runall.Asked(r.in, rw.ID).Control
 		checked := runall.Checked(r.Config)
 		j := slices.IndexFunc(checked, func(x engine.Control) bool { return x.ID() == rw.ID })
@@ -220,7 +220,7 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 		if err != nil {
 			t.Fatalf("%s %s: %v", name, rw.ID, err)
 		}
-		if got := status.Rows[i].State; got != raState(reps[0]) {
+		if got := status.Rows[slices.IndexFunc(status.Rows, func(x component.StatusRow) bool { return x.Label == reps[0].Title })].State; got != raState(reps[0]) {
 			t.Errorf("%s %s: row state %v, the check's %v", name, rw.ID, got, raState(reps[0]))
 		}
 		if c == nil || reps[0].Status.State == engine.NotApplicable || rw.Kind == runall.Pending {
@@ -260,11 +260,7 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 // after them.
 func raState(r engine.Report) component.StatusState {
 	rows := output.StatusViewOf([]engine.Report{r}, risk.Level{}).Status.Rows
-	i := slices.IndexFunc(risk.Rows(), func(rw risk.Row) bool { return rw.ID == r.Control })
-	if i < 0 {
-		i = len(rows) - 1
-	}
-	return rows[i].State
+	return rows[slices.IndexFunc(rows, func(x component.StatusRow) bool { return x.Label == r.Title })].State
 }
 
 // TestRunAllUsage: play refuses what it does not take, with status 2 and

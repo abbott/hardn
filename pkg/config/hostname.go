@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// The rule for a server typed in hardn.yml (logForwarding's server): an
+// The rule for a server typed in hardn.yml (a syslogServers server): an
 // IPv4 address or a host name, written into a service's settings, so
 // nothing is trimmed, guessed or passed through.
 var (

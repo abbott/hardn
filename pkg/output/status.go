@@ -48,8 +48,9 @@ type StatusView struct {
 // SSH Port, Firewall, DNS, shown and not weighed, Auto Updates, AppArmor),
 // whatever the reports' order; a row with no report shows
 // Unknown, as the score counts it (DNS: Unknown, with no line, as it is
-// not counted), and a report for a control that is no row comes after
-// them, in its order. A control's first report counts, and a report with an error is
+// not counted), and a report for a control that is no row (Syslog, NTP,
+// Kernel) comes before the last of them, AppArmor, in its order (the
+// maintainer, 2026-11-14). A control's first report counts, and a report with an error is
 // Unknown, as risk.Assess has them. Each of l's factors is a line under
 // the row its Control names, in l's order (risk.Kind's), status.warn for
 // a cost established (the maintainer, 2026-10-21); the pending reboot,
@@ -58,29 +59,34 @@ type StatusView struct {
 // screen's rows carry them. The main menu and SSH Login draw the CVE's
 // established ones as their alert instead (AlertOf). It is pure.
 func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
+	rows := risk.Rows()
+	scored := map[string]bool{}
+	for _, rw := range rows {
+		scored[rw.ID] = true
+	}
 	first := map[string]engine.Report{}
 	var others []engine.Report
 	for _, r := range reports {
 		if _, ok := first[r.Control]; !ok {
 			first[r.Control] = r
-			others = append(others, r)
+			if !scored[r.Control] {
+				others = append(others, r)
+			}
 		}
 	}
 	var v StatusView
 	at := map[string]int{} // a row's index, by control
-	for _, rw := range risk.Rows() {
-		at[rw.ID] = len(v.Status.Rows)
-		r, ok := first[rw.ID]
-		if !ok {
-			v.Status.Rows = append(v.Status.Rows, component.StatusRow{Label: rw.Title, State: component.StatusUnknown})
-			continue
+	for i, rw := range rows {
+		if i == len(rows)-1 {
+			for _, r := range others {
+				v.Status.Rows = append(v.Status.Rows, statusRow(r))
+			}
 		}
-		v.Status.Rows = append(v.Status.Rows, statusRow(r))
-		delete(first, rw.ID)
-	}
-	for _, r := range others {
-		if _, ok := first[r.Control]; ok {
+		at[rw.ID] = len(v.Status.Rows)
+		if r, ok := first[rw.ID]; ok {
 			v.Status.Rows = append(v.Status.Rows, statusRow(r))
+		} else {
+			v.Status.Rows = append(v.Status.Rows, component.StatusRow{Label: rw.Title, State: component.StatusUnknown})
 		}
 	}
 	for _, f := range l.Factors {

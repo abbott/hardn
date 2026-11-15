@@ -60,7 +60,7 @@ type Options struct {
 	// Backup is the Backup item (7): pkg/screens/backup.
 	Backup func() error
 	// Configuration is the Configuration item (8): pkg/screens/config's group,
-	// which leads to hardn.yml as loaded, Log Forwarding and Time Sync
+	// which leads to hardn.yml as loaded, Syslog Settings and NTP Settings
 	// (configscreen.RunGroup). Its name is not the item's bare word: Config is
 	// the field above.
 	Configuration func() error
@@ -329,7 +329,7 @@ func (o Options) firewallDescription() string {
 // generated from the items, says "[0-10 or q]". The order is the
 // maintainer's (2026-11-07): User Management, SSH Login, Firewall, DNS,
 // Auto Updates, Run All, Backup, Configuration, System Details, Logs, as
-// v0.9.0 had them: Log Forwarding and Time Sync are under Configuration
+// v0.9.0 had them: Syslog Settings and NTP Settings are under Configuration
 // (the maintainer, 2026-11-14, revising gallery-logforward.md's decision 8
 // and gallery-timesync.md's decision 9). Item
 // 1's parenthesis is its aside. Item 2 says what the SSH Login screen
@@ -355,7 +355,7 @@ func (o Options) items() nav.Menu {
 			{Item: item("5", "Auto Updates", "Configure automatic updates"), Action: o.show(o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)")},
 			{Item: item("6", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
 			{Item: item("7", "Backup", "Configure hardn backup"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
-			{Item: item("8", "Configuration", "hardn.yml, log forwarding, time sync"), Action: o.show(o.Configuration, "mainmenu: the Configuration item has no screen (Options.Configuration)")},
+			{Item: item("8", "Configuration", "hardn.yml, syslog, ntp, kernel"), Action: o.show(o.Configuration, "mainmenu: the Configuration item has no screen (Options.Configuration)")},
 			{Item: item("9", "System Details", "View system information"), Action: o.show(o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)")},
 			{Item: item("10", "Logs", "View log file"), Action: o.show(o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)")},
 		},

@@ -20,7 +20,7 @@ import (
 const (
 	ConfD = "/etc/conf.d/ntpd"
 	// Mark opens the comment naming the words hardn's took the place of.
-	Mark = "# Set by hardn (Time Sync), in place of: "
+	Mark = "# Set by hardn (NTP Settings), in place of: "
 	// BusyboxService is the OpenRC service that runs ntpd.
 	BusyboxService = "ntpd"
 

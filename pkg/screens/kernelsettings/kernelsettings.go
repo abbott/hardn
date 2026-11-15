@@ -40,7 +40,7 @@ import (
 )
 
 // Options is what the Kernel Settings screen runs with: what cmd/hardn has
-// when its menu item is chosen, as the Time Sync screen's.
+// when its menu item is chosen, as the NTP Settings screen's.
 type Options struct {
 	// Prompter asks the questions and writes the screen through the one line
 	// reader, rendering with its Ctx, whose Env is the terminal's.
@@ -141,7 +141,7 @@ func (r *runner) change(ctx context.Context, action ctl.Action) error {
 // unread is the item's description where the settings are not read.
 const unread = "Can't read the settings"
 
-// StatusRow is the Kernel Settings row as the main menu draws it: the
+// StatusRow is the Kernel row as the main menu draws it: the
 // control's status through the main menu's own mapping.
 func StatusRow(rd khost.Reading) component.StatusList {
 	return screenkit.StatusRow(ctl.ID, ctl.Title, ctl.Status(rd))

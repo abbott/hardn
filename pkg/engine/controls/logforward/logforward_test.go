@@ -26,9 +26,14 @@ var clock = time.Date(2026, 11, 13, 12, 0, 0, 0, time.UTC)
 
 // hardn.yml's servers.
 var (
-	ymlTCP = config.LogForwarding{Server: "192.0.2.50"}
-	ymlUDP = config.LogForwarding{Server: "192.0.2.50", Protocol: "udp"}
-	ymlTLS = config.LogForwarding{Server: "logs.example.net", Protocol: "tls", CAFile: caFile}
+	ymlTCP = config.SyslogServers{{Server: "192.0.2.50"}}
+	ymlUDP = config.SyslogServers{{Server: "192.0.2.50", Protocol: "udp"}}
+	ymlTLS = config.SyslogServers{{Server: "logs.example.net", Protocol: "tls", CAFile: caFile}}
+	// The design's three (design-syslog-servers.md §2.1): TLS by name, TCP, UDP.
+	ymlThree  = config.SyslogServers{ymlTLS[0], {Server: "192.0.2.51"}, {Server: "192.0.2.52", Protocol: "udp"}}
+	ymlName   = config.SyslogServers{{Server: "logs.example.net"}}
+	ymlNames  = config.SyslogServers{{Server: "a.example.net"}, {Server: "b.example.net"}}
+	ymlTwoUDP = config.SyslogServers{{Server: "192.0.2.51", Protocol: "udp"}, {Server: "192.0.2.52", Protocol: "udp"}}
 )
 
 const (
@@ -36,7 +41,8 @@ const (
 	foreign = "/etc/rsyslog.d/50-remote.conf"
 	stock   = "SYSLOGD_OPTS=\"-t\"\n"
 	estab   = "ESTAB 0 0 192.0.2.10:41234 192.0.2.50:514 users:((\"rsyslogd\",pid=612,fd=9))\n" +
-		"ESTAB 0 0 192.0.2.10:41236 192.0.2.51:6514 users:((\"rsyslogd\",pid=612,fd=10))\n"
+		"ESTAB 0 0 192.0.2.10:41236 192.0.2.51:6514 users:((\"rsyslogd\",pid=612,fd=10))\n" +
+		"ESTAB 0 0 192.0.2.10:41238 192.0.2.51:514 users:((\"rsyslogd\",pid=612,fd=11))\n"
 )
 
 // model is a fake host: its packages, and how its commands answer.
@@ -78,14 +84,14 @@ func (m *model) file(name, data string) *model {
 	return m
 }
 
-// forwards is m with hardn's file for yml's server.
-func (m *model) forwards(yml config.LogForwarding) *model {
+// forwards is m with hardn's file for yml's servers.
+func (m *model) forwards(yml config.SyslogServers) *model {
 	m.t.Helper()
-	r := logforward.Read(context.Background(), hostfake.New(host.Options{}), detect.Facts{}, &config.Config{LogForwarding: yml})
+	r := logforward.Read(context.Background(), hostfake.New(host.Options{}), detect.Facts{}, &config.Config{SyslogServers: yml})
 	if r.Want == nil {
 		m.t.Fatalf("%+v names no server: %v", yml, r.WantErr)
 	}
-	data, err := logfwd.RsyslogFile(*r.Want)
+	data, err := logfwd.RsyslogFile(r.Want)
 	if err != nil {
 		m.t.Fatal(err)
 	}
@@ -153,16 +159,16 @@ func (m *model) engine() *engine.Engine {
 	})
 }
 
-func cfg(yml config.LogForwarding) *config.Config { return &config.Config{LogForwarding: yml} }
+func cfg(yml config.SyslogServers) *config.Config { return &config.Config{SyslogServers: yml} }
 
 // plan plans a alone, as the screen's preplan does.
-func (m *model) plan(a logforward.Action, yml config.LogForwarding) ([]engine.Change, error) {
+func (m *model) plan(a logforward.Action, yml config.SyslogServers) ([]engine.Change, error) {
 	return logforward.Forward{Action: a}.Plan(context.Background(), m.f, engine.Input{Facts: m.facts, Config: cfg(yml)})
 }
 
 // apply plans and applies a on the engine; it returns the plan's change
 // ids and the apply's error.
-func (m *model) apply(a logforward.Action, yml config.LogForwarding) ([]string, error) {
+func (m *model) apply(a logforward.Action, yml config.SyslogServers) ([]string, error) {
 	m.t.Helper()
 	ctx := context.Background()
 	e := m.engine()
@@ -186,7 +192,7 @@ func (m *model) content(name string) (string, bool) {
 	return string(data), err == nil
 }
 
-func (m *model) status(yml config.LogForwarding) engine.Status {
+func (m *model) status(yml config.SyslogServers) engine.Status {
 	m.t.Helper()
 	st, err := logforward.Forward{Config: cfg(yml)}.Check(context.Background(), m.f, m.facts)
 	if err != nil {
@@ -200,19 +206,20 @@ func (m *model) status(yml config.LogForwarding) engine.Status {
 func TestStatus(t *testing.T) {
 	ubuntu := func() *model { return newModel(t, detect.DistroUbuntu, "rsyslog") }
 	down := &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:22 192.0.2.1:50514 users:((\"sshd\",pid=700,fd=4))\n"}
-	set, err := logfwd.SetOpts([]byte(stock), logfwd.Server{Address: "192.0.2.50", Port: "514"})
+	down51 := &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:41236 192.0.2.50:6514 users:((\"rsyslogd\",pid=612,fd=10))\n"}
+	set, err := logfwd.SetOpts([]byte(stock), []logfwd.Server{{Address: "192.0.2.50", Port: "514"}})
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, tc := range []struct {
 		name   string
 		m      *model
-		yml    config.LogForwarding
+		yml    config.SyslogServers
 		state  engine.State
 		detail string
 	}{
 		{"off", ubuntu(), ymlTCP, engine.NotConfigured, logforward.DetailOff},
-		{"no-server", ubuntu(), config.LogForwarding{}, engine.NotConfigured, logforward.DetailOff},
+		{"no-server", ubuntu(), config.SyslogServers{}, engine.NotConfigured, logforward.DetailOff},
 		{"tcp", ubuntu().forwards(ymlTCP), ymlTCP, engine.Configured, "192.0.2.50:514 TCP"},
 		{"tcp-down", func() *model { m := ubuntu().forwards(ymlTCP); m.ss = down; return m }(), ymlTCP, engine.Partial, logforward.DetailNotReached},
 		{"udp", func() *model { m := ubuntu().forwards(ymlUDP); m.ss = down; return m }(), ymlUDP, engine.Configured, "192.0.2.50:514 UDP"},
@@ -222,8 +229,34 @@ func TestStatus(t *testing.T) {
 			return m
 		}(), ymlTLS, engine.Configured, "logs.example.net:6514 TLS"},
 		{"foreign", ubuntu().file(foreign, "*.* @@192.0.2.50:514\n"), ymlTCP, engine.Configured, "192.0.2.50:514 TCP"},
-		{"foreign, no hardn.yml server", ubuntu().file(foreign, "*.* @@192.0.2.50:514\n"), config.LogForwarding{}, engine.Configured, "192.0.2.50:514 TCP"},
-		{"mismatch", ubuntu().forwards(ymlTCP), config.LogForwarding{Server: "192.0.2.60"}, engine.Partial, logforward.DetailNotWanted},
+		{"foreign, no hardn.yml server", ubuntu().file(foreign, "*.* @@192.0.2.50:514\n"), config.SyslogServers{}, engine.Configured, "192.0.2.50:514 TCP"},
+		{"mismatch", ubuntu().forwards(ymlTCP), config.SyslogServers{{Server: "192.0.2.60"}}, engine.Partial, logforward.DetailNotWanted},
+		{"several, every connection open", ubuntu().forwards(ymlThree), ymlThree, engine.Configured, "3 servers"},
+		{"several, as asked in another order", ubuntu().forwards(ymlThree), config.SyslogServers{ymlThree[2], ymlThree[0], ymlThree[1]}, engine.Configured, "3 servers"},
+		{"several, one down", func() *model { m := ubuntu().forwards(ymlThree); m.ss = down51; return m }(), ymlThree, engine.Partial, "1 of 3 not reached"},
+		{"several, both connections down", func() *model { m := ubuntu().forwards(ymlThree); m.ss = down; return m }(), ymlThree, engine.Partial, "2 of 3 not reached"},
+		{"several, not hardn.yml's list", ubuntu().forwards(ymlThree), ymlThree[:2], engine.Partial, logforward.DetailNotWanted},
+		{"several, one more asked", ubuntu().forwards(ymlThree[:2]), ymlThree, engine.Partial, logforward.DetailNotWanted},
+		{"two names on a port, one socket", func() *model {
+			m := ubuntu().forwards(ymlNames)
+			m.ss = &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:41236 192.0.2.77:514 users:((\"rsyslogd\",pid=612,fd=10))\n"}
+			return m
+		}(), ymlNames, engine.Partial, "1 of 2 not reached"},
+		// §2.6: hardn's file as asked, and one more server by another file.
+		{"own as asked, one more outside hardn", ubuntu().forwards(ymlTCP).file(foreign, "*.* @192.0.2.52\n"), ymlTCP, engine.Partial, logforward.DetailNotWanted},
+		// §2.4: a TCP forward outside hardn to the port is not the named
+		// server's connection.
+		{"a name down, a socket to the port outside hardn", func() *model {
+			m := ubuntu().forwards(ymlName).file(foreign, "*.* @@192.0.2.60:514\n")
+			m.ss = &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:41236 192.0.2.60:514 users:((\"rsyslogd\",pid=612,fd=10))\n"}
+			return m
+		}(), config.SyslogServers{}, engine.Partial, logforward.DetailNotReached},
+		{"several set outside hardn", ubuntu().file(foreign, "*.* @@192.0.2.50:514\n*.* @192.0.2.52\n"), config.SyslogServers{}, engine.Configured, "2 servers"},
+		{"several, sockets not read", func() *model {
+			m := ubuntu().forwards(ymlThree)
+			m.ss = &hostfake.Response{Err: host.ErrNotFound}
+			return m
+		}(), ymlThree, engine.Unknown, logforward.DetailConnUnread},
 		{"journald", newModel(t, detect.DistroDebian), ymlTCP, engine.NotConfigured, logforward.DetailOff},
 		{"alpine", newModel(t, detect.DistroAlpine).file(logfwd.ConfD, string(set)), ymlUDP, engine.Configured, "192.0.2.50:514 UDP"},
 		{"alpine-tcp", newModel(t, detect.DistroAlpine), ymlTCP, engine.NotConfigured, logforward.DetailOff},
@@ -233,8 +266,14 @@ func TestStatus(t *testing.T) {
 			m.ss = &hostfake.Response{Err: host.ErrNotFound}
 			return m
 		}(), ymlTCP, engine.Unknown, logforward.DetailConnUnread},
-		{"hardn.yml not valid", ubuntu(), config.LogForwarding{Server: "logs example"}, engine.NotConfigured, logforward.DetailOff},
-		{"escape in a foreign file", ubuntu().file(foreign, "*.* @@192.0.2.50\x1b[2J:514\n"), config.LogForwarding{}, engine.Configured, "192.0.2.50^[[2J:514 TCP"},
+		{"hardn.yml not valid", ubuntu(), config.SyslogServers{{Server: "logs example"}}, engine.NotConfigured, logforward.DetailOff},
+		{"escape in a foreign file", func() *model {
+			m := ubuntu().file(foreign, "*.* @@192.0.2.50\x1b[2J:514\n")
+			m.ss = &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:41234 192.0.2.50:514 users:((\"rsyslogd\",pid=612,fd=9))\n"}
+			return m
+		}(), config.SyslogServers{}, engine.Configured, "192.0.2.50^[[2J:514 TCP"},
+		// More of rsyslogd's sockets to the port than names: not told.
+		{"a name, two sockets to its port", ubuntu().forwards(ymlName), ymlName, engine.Unknown, logforward.DetailConnUnread},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			st := tc.m.status(tc.yml)
@@ -252,11 +291,11 @@ func TestStatus(t *testing.T) {
 // host forwards (decision 10).
 func TestShown(t *testing.T) {
 	m := newModel(t, detect.DistroUbuntu, "rsyslog")
-	none := config.LogForwarding{}
+	none := config.SyslogServers{}
 	if logforward.Shown(cfg(none), m.status(none)) || logforward.Shown(nil, m.status(none)) {
 		t.Error("no server and nothing forwarded: the row is shown")
 	}
-	bad := config.LogForwarding{Server: "a b"}
+	bad := config.SyslogServers{{Server: "a b"}}
 	if !logforward.Shown(cfg(ymlTCP), m.status(ymlTCP)) || !logforward.Shown(cfg(bad), m.status(bad)) {
 		t.Error("hardn.yml names a server: the row is not shown")
 	}
@@ -283,34 +322,49 @@ func TestRefusals(t *testing.T) {
 		name  string
 		m     *model
 		a     logforward.Action
-		yml   config.LogForwarding
+		yml   config.SyslogServers
 		is    error
 		code  string
 		words string
 	}{
-		{"no server", ubuntu(), logforward.ActionSet, config.LogForwarding{}, logforward.ErrNoServer, "LOGFWD_NO_SERVER",
-			"hardn.yml names no log server. To go on: add logForwarding's server, then try again"},
-		{"not valid", ubuntu(), logforward.ActionSet, config.LogForwarding{Server: "logs\" x=\"y"}, logforward.ErrBadServer, "LOGFWD_BAD_SERVER",
-			"hardn.yml's logForwarding is not valid: server is not an IPv4 address or a host name"},
-		{"malformed file", ubuntu().file(foreign, "action(type=\"omfwd\" target=\"192.0.2.50\"\n"), logforward.ActionSet, ymlTCP, logforward.ErrNotRead, "LOGFWD_NOT_READ",
+		{"no server", ubuntu(), logforward.ActionSet, config.SyslogServers{}, logforward.ErrNoServer, "SYSLOG_NO_SERVER",
+			"hardn.yml names no syslog server. To go on: add syslogServers, then try again"},
+		{"not valid", ubuntu(), logforward.ActionSet, config.SyslogServers{{Server: "logs\" x=\"y"}}, logforward.ErrBadServer, "SYSLOG_BAD_SERVER",
+			"hardn.yml's syslogServers is not valid: server 1: server is not an IPv4 address or a host name"},
+		{"an empty list", ubuntu(), logforward.ActionSet, config.SyslogServers{}, logforward.ErrNoServer, "SYSLOG_NO_SERVER", "hardn.yml names no syslog server"},
+		{"too many", ubuntu(), logforward.ActionSet, config.SyslogServers{{Server: "192.0.2.51"}, {Server: "192.0.2.52"}, {Server: "192.0.2.53"}, {Server: "192.0.2.54"}, {Server: "192.0.2.55"}},
+			logforward.ErrBadServer, "SYSLOG_BAD_SERVER", "hardn.yml's syslogServers is not valid: more than 4 servers"},
+		{"a server twice", ubuntu(), logforward.ActionSet, config.SyslogServers{{Server: "192.0.2.51"}, {Server: "192.0.2.51", Protocol: "udp"}},
+			logforward.ErrBadServer, "SYSLOG_BAD_SERVER", "hardn.yml's syslogServers is not valid: server 2: the same address and port as server 1"},
+		{"a block with no server", ubuntu(), logforward.ActionSet, config.SyslogServers{{Server: "192.0.2.51"}, {Protocol: "udp"}},
+			logforward.ErrBadServer, "SYSLOG_BAD_SERVER", "hardn.yml's syslogServers is not valid: server 2: no server"},
+		{"one entry of three not valid", ubuntu(), logforward.ActionSet, config.SyslogServers{{Server: "192.0.2.51"}, {Server: "192.0.2.52", Port: 70000}, {Server: "192.0.2.53"}},
+			logforward.ErrBadServer, "SYSLOG_BAD_SERVER", "server 2: port is not between 1 and 65535"},
+		{"one CA file of the list missing", ubuntu(), logforward.ActionSet, ymlThree, logforward.ErrNoCAFile, "SYSLOG_NO_CA_FILE",
+			"logs.example.net's caFile, /etc/ssl/lab-ca.pem, is not a file on this host"},
+		{"alpine, one TCP server in the list", newModel(t, detect.DistroAlpine), logforward.ActionSet, config.SyslogServers{ymlTwoUDP[0], {Server: "logs.example.net"}, ymlTwoUDP[1]}, logforward.ErrUDPOnly, "SYSLOG_UDP_ONLY",
+			"busybox syslogd forwards over UDP only. To go on: set protocol: udp for logs.example.net in hardn.yml, then try again"},
+		{"alpine, a TLS and a TCP server in the list", newModel(t, detect.DistroAlpine).file(caFile, "x"), logforward.ActionSet, ymlThree, logforward.ErrUDPOnly, "SYSLOG_UDP_ONLY",
+			"set protocol: udp for logs.example.net, 192.0.2.51 in hardn.yml"},
+		{"malformed file", ubuntu().file(foreign, "action(type=\"omfwd\" target=\"192.0.2.50\"\n"), logforward.ActionSet, ymlTCP, logforward.ErrNotRead, "SYSLOG_NOT_READ",
 			"hardn can't read rsyslog's settings: /etc/rsyslog.d/50-remote.conf:1: an action that does not close"},
-		{"rsyslogd refuses its settings", func() *model { m := ubuntu(); m.checkBad = func() bool { return true }; return m }(), logforward.ActionSet, ymlTCP, logforward.ErrNotRead, "LOGFWD_NOT_READ",
+		{"rsyslogd refuses its settings", func() *model { m := ubuntu(); m.checkBad = func() bool { return true }; return m }(), logforward.ActionSet, ymlTCP, logforward.ErrNotRead, "SYSLOG_NOT_READ",
 			"rsyslogd can't read its settings: rsyslogd: error during parsing file /etc/rsyslog.d/50-remote.conf, on or before line 3. To go on: fix that, then try again"},
-		{"set outside hardn", ubuntu().file(foreign, "*.* @@192.0.2.60\n"), logforward.ActionSet, ymlTCP, logforward.ErrOutside, "LOGFWD_SET_OUTSIDE",
+		{"set outside hardn", ubuntu().file(foreign, "*.* @@192.0.2.60\n"), logforward.ActionSet, ymlTCP, logforward.ErrOutside, "SYSLOG_SET_OUTSIDE",
 			"/etc/rsyslog.d/50-remote.conf already forwards logs, and hardn leaves it as it is"},
-		{"a file at hardn's path that hardn did not write", ubuntu().file(logfwd.DropIn, "# mine\n*.* /var/log/all.log\n"), logforward.ActionSet, ymlTCP, logforward.ErrOutside, "LOGFWD_SET_OUTSIDE",
+		{"a file at hardn's path that hardn did not write", ubuntu().file(logfwd.DropIn, "# mine\n*.* /var/log/all.log\n"), logforward.ActionSet, ymlTCP, logforward.ErrOutside, "SYSLOG_SET_OUTSIDE",
 			"/etc/rsyslog.d/60-hardn-forward.conf is not hardn's file, and hardn leaves it as it is. To go on: move that file away, then try again"},
-		{"alpine, rsyslog installed", newModel(t, detect.DistroAlpine).file(alpine.InstalledDB, "P:rsyslog\nV:8.2410.0-r1\n\n"), logforward.ActionSet, ymlUDP, logforward.ErrNotRead, "LOGFWD_NOT_READ",
+		{"alpine, rsyslog installed", newModel(t, detect.DistroAlpine).file(alpine.InstalledDB, "P:rsyslog\nV:8.2410.0-r1\n\n"), logforward.ActionSet, ymlUDP, logforward.ErrNotRead, "SYSLOG_NOT_READ",
 			"hardn can't read the logger's settings: rsyslog is installed beside busybox syslogd, so which one logs is not established"},
-		{"alpine, tcp", newModel(t, detect.DistroAlpine), logforward.ActionSet, ymlTCP, logforward.ErrUDPOnly, "LOGFWD_UDP_ONLY",
-			"busybox syslogd forwards over UDP only. To go on: set protocol: udp in hardn.yml, then try again"},
-		{"alpine, set outside hardn", newModel(t, detect.DistroAlpine).file(logfwd.ConfD, "SYSLOGD_OPTS=\"-R 192.0.2.60\"\n"), logforward.ActionSet, ymlUDP, logforward.ErrOutside, "LOGFWD_SET_OUTSIDE", "/etc/conf.d/syslog already forwards logs"},
-		{"alpine, options not read", newModel(t, detect.DistroAlpine).file(logfwd.ConfD, "SYSLOGD_OPTS=\"$X\"\n"), logforward.ActionSet, ymlUDP, logforward.ErrNotRead, "LOGFWD_NOT_READ", "hardn can't read syslogd's options"},
-		{"no CA file", ubuntu(), logforward.ActionSet, ymlTLS, logforward.ErrNoCAFile, "LOGFWD_NO_CA_FILE", "hardn.yml's caFile, /etc/ssl/lab-ca.pem, is not a file on this host"},
-		{"systemd did not boot the host", noInit(ubuntu()), logforward.ActionSet, ymlTCP, logforward.ErrNoInit, "LOGFWD_NO_INIT", "systemd did not boot this host"},
-		{"stop, nothing set", ubuntu(), logforward.ActionStop, ymlTCP, logforward.ErrNothingToStop, "LOGFWD_NOTHING_TO_STOP", "hardn did not set log forwarding here"},
-		{"stop, set outside hardn", ubuntu().file(foreign, "*.* @@192.0.2.50\n"), logforward.ActionStop, ymlTCP, logforward.ErrNothingToStop, "LOGFWD_NOTHING_TO_STOP", "hardn did not set"},
-		{"stop, not read", ubuntu().file(foreign, "*.* @@:1\n"), logforward.ActionStop, ymlTCP, logforward.ErrNotRead, "LOGFWD_NOT_READ", "hardn can't read rsyslog's settings"},
+		{"alpine, tcp", newModel(t, detect.DistroAlpine), logforward.ActionSet, ymlTCP, logforward.ErrUDPOnly, "SYSLOG_UDP_ONLY",
+			"busybox syslogd forwards over UDP only. To go on: set protocol: udp for 192.0.2.50 in hardn.yml, then try again"},
+		{"alpine, set outside hardn", newModel(t, detect.DistroAlpine).file(logfwd.ConfD, "SYSLOGD_OPTS=\"-R 192.0.2.60\"\n"), logforward.ActionSet, ymlUDP, logforward.ErrOutside, "SYSLOG_SET_OUTSIDE", "/etc/conf.d/syslog already forwards logs"},
+		{"alpine, options not read", newModel(t, detect.DistroAlpine).file(logfwd.ConfD, "SYSLOGD_OPTS=\"$X\"\n"), logforward.ActionSet, ymlUDP, logforward.ErrNotRead, "SYSLOG_NOT_READ", "hardn can't read syslogd's options"},
+		{"no CA file", ubuntu(), logforward.ActionSet, ymlTLS, logforward.ErrNoCAFile, "SYSLOG_NO_CA_FILE", "logs.example.net's caFile, /etc/ssl/lab-ca.pem, is not a file on this host"},
+		{"systemd did not boot the host", noInit(ubuntu()), logforward.ActionSet, ymlTCP, logforward.ErrNoInit, "SYSLOG_NO_INIT", "systemd did not boot this host"},
+		{"stop, nothing set", ubuntu(), logforward.ActionStop, ymlTCP, logforward.ErrNothingToStop, "SYSLOG_NOTHING_TO_STOP", "hardn did not set log forwarding here"},
+		{"stop, set outside hardn", ubuntu().file(foreign, "*.* @@192.0.2.50\n"), logforward.ActionStop, ymlTCP, logforward.ErrNothingToStop, "SYSLOG_NOTHING_TO_STOP", "hardn did not set"},
+		{"stop, not read", ubuntu().file(foreign, "*.* @@:1\n"), logforward.ActionStop, ymlTCP, logforward.ErrNotRead, "SYSLOG_NOT_READ", "hardn can't read rsyslog's settings"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			cs, err := tc.m.plan(tc.a, tc.yml)
@@ -353,7 +407,7 @@ func TestSetRsyslog(t *testing.T) {
 	if err != nil || !slices.Equal(ids, []string{"file", "restart", "test"}) {
 		t.Fatalf("apply = %v, %v", ids, err)
 	}
-	want := logfwd.Header + "*.* action(type=\"omfwd\" protocol=\"tcp\"\n    target=\"192.0.2.50\" port=\"514\"\n    queue.type=\"linkedList\")\n"
+	want := logfwd.Header + "*.* action(type=\"omfwd\" protocol=\"tcp\"\n    target=\"192.0.2.50\" port=\"514\"\n    queue.type=\"linkedList\" queue.timeoutEnqueue=\"0\"\n    action.resumeRetryCount=\"-1\")\n"
 	if got, _ := m.content(logfwd.DropIn); got != want {
 		t.Errorf("hardn's file =\n%s\nwant\n%s", got, want)
 	}
@@ -398,7 +452,7 @@ func TestSetCheckFails(t *testing.T) {
 	m := newModel(t, detect.DistroDebian)
 	m.checkBad = func() bool { _, there := m.content(logfwd.DropIn); return there }
 	_, err := m.apply(logforward.ActionSet, ymlTCP)
-	if !errors.Is(err, logforward.ErrCheckFailed) || output.CodeOf(err) != "LOGFWD_CHECK_FAILED" {
+	if !errors.Is(err, logforward.ErrCheckFailed) || output.CodeOf(err) != "SYSLOG_CHECK_FAILED" {
 		t.Fatalf("apply: %v, want ErrCheckFailed", err)
 	}
 	if _, there := m.content(logfwd.DropIn); there {
@@ -417,7 +471,7 @@ func TestSetRestartFails(t *testing.T) {
 	m := newModel(t, detect.DistroUbuntu, "rsyslog").forwards(ymlTCP)
 	before, _ := m.content(logfwd.DropIn)
 	m.restarts = 1
-	_, err := m.apply(logforward.ActionSet, config.LogForwarding{Server: "192.0.2.60"})
+	_, err := m.apply(logforward.ActionSet, config.SyslogServers{{Server: "192.0.2.60"}})
 	if err == nil {
 		t.Fatal("apply: no error")
 	}
@@ -433,7 +487,7 @@ func TestSetRestartFails(t *testing.T) {
 // hardn.yml names another server: hardn's file is rewritten.
 func TestSetMoves(t *testing.T) {
 	m := newModel(t, detect.DistroUbuntu, "rsyslog").forwards(ymlTCP)
-	cs, err := m.plan(logforward.ActionSet, config.LogForwarding{Server: "192.0.2.60"})
+	cs, err := m.plan(logforward.ActionSet, config.SyslogServers{{Server: "192.0.2.60"}})
 	if err != nil || len(cs) != 3 || !strings.Contains(cs[0].Diff, "-    target=\"192.0.2.50\"") || !strings.Contains(cs[0].Diff, "+    target=\"192.0.2.60\"") {
 		t.Fatalf("plan = %v, %v", cs, err)
 	}
@@ -520,6 +574,169 @@ func TestPlanWritesNothing(t *testing.T) {
 	}
 }
 
+// A refused list sets nothing: no file, no option, for the usable servers
+// either (design-syslog-servers.md §2.5, all or nothing).
+func TestRefusedListSetsNothing(t *testing.T) {
+	m := newModel(t, detect.DistroUbuntu, "rsyslog")
+	if cs, err := m.plan(logforward.ActionSet, ymlThree); cs != nil || !errors.Is(err, logforward.ErrNoCAFile) {
+		t.Fatalf("plan = %v, %v", cs, err)
+	}
+	if _, there := m.content(logfwd.DropIn); there {
+		t.Error("hardn's file was written for the usable servers")
+	}
+	a := newModel(t, detect.DistroAlpine)
+	if cs, err := a.plan(logforward.ActionSet, config.SyslogServers{ymlTwoUDP[0], {Server: "192.0.2.53"}}); cs != nil || !errors.Is(err, logforward.ErrUDPOnly) {
+		t.Fatalf("alpine plan = %v, %v", cs, err)
+	}
+	if got, _ := a.content(logfwd.ConfD); got != stock {
+		t.Errorf("%s = %q, want it untouched", logfwd.ConfD, got)
+	}
+}
+
+// Several servers on rsyslog (§2.2, §2.5): one file, one check, one
+// restart, one test line; the list changed is the same one change, its
+// diff the server added; and its rollback puts the whole old file back.
+func TestSetSeveral(t *testing.T) {
+	m := newModel(t, detect.DistroUbuntu, "rsyslog", "rsyslog-gnutls").file(caFile, "-----BEGIN CERTIFICATE-----\n")
+	two := ymlThree[:2]
+	ids, err := m.apply(logforward.ActionSet, two)
+	if err != nil || !slices.Equal(ids, []string{"file", "restart", "test"}) {
+		t.Fatalf("apply = %v, %v", ids, err)
+	}
+	before, _ := m.content(logfwd.DropIn)
+	if strings.Count(before, "*.* action(") != 2 || strings.Count(before, "queue.timeoutEnqueue=\"0\"") != 2 || strings.Count(before, logfwd.Header) != 1 {
+		t.Fatalf("hardn's file =\n%s", before)
+	}
+	if got := m.ran(); strings.Count(strings.Join(got, "\n"), "systemctl restart rsyslog") != 1 || got[len(got)-1] != "logger -t hardn log forwarding set" {
+		t.Errorf("ran %q, want one restart and one test line", got)
+	}
+	// A third server: one change of the file, its diff that server alone.
+	cs, err := m.plan(logforward.ActionSet, ymlThree)
+	if err != nil || len(cs) != 3 || cs[0].ID != logforward.ChangeFile {
+		t.Fatalf("plan = %v, %v", cs, err)
+	}
+	if d := cs[0].Diff; !strings.Contains(d, "+    target=\"192.0.2.52\" port=\"514\"") || strings.Contains(d, "-*.*") || strings.Contains(d, "+    target=\"192.0.2.51\"") {
+		t.Errorf("diff =\n%s", d)
+	}
+	// The restart fails: the old file, both servers, is back.
+	m.restarts = 1
+	if _, err := m.apply(logforward.ActionSet, ymlThree); err == nil {
+		t.Fatal("apply: no error")
+	}
+	if got, _ := m.content(logfwd.DropIn); got != before {
+		t.Errorf("hardn's file after the rollback =\n%s\nwant\n%s", got, before)
+	}
+	// Applied, the three are hardn's; one taken out of hardn.yml is the same change.
+	if _, err := m.apply(logforward.ActionSet, ymlThree); err != nil {
+		t.Fatal(err)
+	}
+	if st := m.status(ymlThree); st.State != engine.Configured || st.Detail != "3 servers" || len(st.Evidence) != 3 {
+		t.Errorf("status = %+v", st)
+	}
+	cs, err = m.plan(logforward.ActionSet, ymlThree[1:])
+	if err != nil || len(cs) != 3 || !strings.Contains(cs[0].Diff, "-    target=\"logs.example.net\" port=\"6514\"") {
+		t.Fatalf("plan with one fewer = %v, %v", cs, err)
+	}
+	// Stop takes every server out.
+	ids, err = m.apply(logforward.ActionStop, ymlThree)
+	if err != nil || !slices.Equal(ids, []string{"file", "restart"}) {
+		t.Fatalf("stop = %v, %v", ids, err)
+	}
+	if _, there := m.content(logfwd.DropIn); there {
+		t.Error("hardn's file is still there")
+	}
+}
+
+// rsyslogd refuses the new list: the old file is back, every server as
+// before, and nothing restarts.
+func TestSetSeveralCheckFails(t *testing.T) {
+	m := newModel(t, detect.DistroUbuntu, "rsyslog").forwards(ymlTwoUDP)
+	before, _ := m.content(logfwd.DropIn)
+	m.checkBad = func() bool { got, _ := m.content(logfwd.DropIn); return got != before }
+	_, err := m.apply(logforward.ActionSet, append(slices.Clone(ymlTwoUDP), config.SyslogServer{Server: "192.0.2.53"}))
+	if !errors.Is(err, logforward.ErrCheckFailed) {
+		t.Fatalf("apply: %v, want ErrCheckFailed", err)
+	}
+	if got, _ := m.content(logfwd.DropIn); got != before {
+		t.Errorf("hardn's file after the rollback =\n%s\nwant\n%s", got, before)
+	}
+	if slices.Contains(m.ran(), "systemctl restart rsyslog") {
+		t.Errorf("rsyslog restarted: %q", m.ran())
+	}
+}
+
+// Several servers on Alpine (§2.3): one -R each, the mark naming them all;
+// the list changed is one change; Stop takes both out.
+func TestAlpineSeveral(t *testing.T) {
+	m := newModel(t, detect.DistroAlpine)
+	ids, err := m.apply(logforward.ActionSet, ymlTwoUDP)
+	if err != nil || !slices.Equal(ids, []string{"options", "restart", "test"}) {
+		t.Fatalf("set = %v, %v", ids, err)
+	}
+	want := logfwd.Mark + "-R 192.0.2.51:514 -R 192.0.2.52:514 -L\nSYSLOGD_OPTS=\"-t -R 192.0.2.51:514 -R 192.0.2.52:514 -L\"\n"
+	if got, _ := m.content(logfwd.ConfD); got != want {
+		t.Errorf("%s =\n%s\nwant\n%s", logfwd.ConfD, got, want)
+	}
+	if st := m.status(ymlTwoUDP); st.State != engine.Configured || st.Detail != "2 servers" {
+		t.Errorf("status after = %+v", st)
+	}
+	if cs, err := m.plan(logforward.ActionSet, ymlTwoUDP); cs != nil || err != nil {
+		t.Errorf("a second Set plans %v, %v", cs, err)
+	}
+	if _, err := m.apply(logforward.ActionSet, ymlTwoUDP[1:]); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := m.content(logfwd.ConfD); got != logfwd.Mark+"-R 192.0.2.52:514 -L\nSYSLOGD_OPTS=\"-t -R 192.0.2.52:514 -L\"\n" {
+		t.Errorf("%s after one fewer = %q", logfwd.ConfD, got)
+	}
+	if _, err := m.apply(logforward.ActionSet, ymlTwoUDP); err != nil {
+		t.Fatal(err)
+	}
+	ids, err = m.apply(logforward.ActionStop, ymlTwoUDP)
+	if err != nil || !slices.Equal(ids, []string{"options", "restart"}) {
+		t.Fatalf("stop = %v, %v", ids, err)
+	}
+	if got, _ := m.content(logfwd.ConfD); got != stock {
+		t.Errorf("%s after stop = %q, want it as it was", logfwd.ConfD, got)
+	}
+}
+
+// The row's evidence: one line per server, its file and line, and each
+// server not reached said so.
+func TestEvidence(t *testing.T) {
+	m := newModel(t, detect.DistroUbuntu, "rsyslog").forwards(ymlThree)
+	m.ss = &hostfake.Response{Stdout: "ESTAB 0 0 192.0.2.10:41236 192.0.2.50:6514 users:((\"rsyslogd\",pid=612,fd=10))\n"}
+	want := []string{
+		logfwd.DropIn + ":2 logs.example.net:6514 TLS",
+		logfwd.DropIn + ":10 192.0.2.51:514 TCP, not reached",
+		logfwd.DropIn + ":14 192.0.2.52:514 UDP",
+	}
+	if st := m.status(ymlThree); !slices.Equal(st.Evidence, want) {
+		t.Errorf("evidence = %q, want %q", st.Evidence, want)
+	}
+}
+
+// A host that forwards to exactly hardn.yml's list by another's file plans
+// nothing; to another list by another's file, Set servers refuses.
+func TestForeignList(t *testing.T) {
+	m := newModel(t, detect.DistroUbuntu, "rsyslog").file(foreign, "*.* @192.0.2.52\n*.* @192.0.2.51\n")
+	if cs, err := m.plan(logforward.ActionSet, ymlTwoUDP); cs != nil || err != nil {
+		t.Errorf("as asked by another's file: plan = %v, %v", cs, err)
+	}
+	if cs, err := m.plan(logforward.ActionSet, ymlTwoUDP[:1]); cs != nil || !errors.Is(err, logforward.ErrOutside) {
+		t.Errorf("another list by another's file: plan = %v, %v; want ErrOutside", cs, err)
+	}
+	// hardn's file as asked and another's beside it: more than was asked.
+	m = newModel(t, detect.DistroUbuntu, "rsyslog").forwards(ymlTCP).file(foreign, "*.* @192.0.2.52\n")
+	if cs, err := m.plan(logforward.ActionSet, ymlTCP); cs != nil || !errors.Is(err, logforward.ErrOutside) {
+		t.Errorf("hardn's as asked beside another's file: plan = %v, %v; want ErrOutside", cs, err)
+	}
+	want := []string{logfwd.DropIn + ":2 192.0.2.50:514 TCP", foreign + ":1 192.0.2.52:514 UDP"}
+	if st := m.status(ymlTCP); !slices.Equal(st.Evidence, want) {
+		t.Errorf("evidence = %q, want %q", st.Evidence, want)
+	}
+}
+
 func TestNotice(t *testing.T) {
 	ctx := context.Background()
 	for _, tc := range []struct {
@@ -533,6 +750,11 @@ func TestNotice(t *testing.T) {
 		{newModel(t, detect.DistroUbuntu, "rsyslog"), logforward.ActionStop, logforward.NoticeStop},
 		{newModel(t, detect.DistroAlpine), logforward.ActionStop, logforward.NoticeStopApk},
 	} {
+		if tc.want == logforward.NoticeAll {
+			if got := logforward.Read(ctx, tc.m.f, tc.m.facts, cfg(ymlThree)).Notice(tc.a); got != logforward.NoticeAllMany {
+				t.Errorf("several servers: %q, want %q", got, logforward.NoticeAllMany)
+			}
+		}
 		if got := logforward.Read(ctx, tc.m.f, tc.m.facts, cfg(ymlTCP)).Notice(tc.a); got != tc.want {
 			t.Errorf("%s, action %d: %q, want %q", tc.m.facts.Platform.Distro, tc.a, got, tc.want)
 		}

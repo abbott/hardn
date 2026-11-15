@@ -26,8 +26,9 @@ import (
 // ID is the control's ID, stable once released.
 const ID = "kernel.settings"
 
-// Title is the row's label, the screen's title and the menu item's.
-const Title = "Kernel Settings"
+// Title is the row's label. The screen's title and the menu item are
+// "Kernel Settings" (pkg/ui/screen).
+const Title = "Kernel"
 
 // The row's details (gallery-sysctl.md §6).
 const (
@@ -58,7 +59,7 @@ type Settings struct {
 	Action Action
 }
 
-// Controls is the Kernel Settings row.
+// Controls is the Kernel row.
 func Controls() []engine.Control { return []engine.Control{Settings{}} }
 
 // ID returns ID.

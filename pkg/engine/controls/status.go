@@ -38,9 +38,9 @@ func Status(cfg *config.Config) []engine.Control {
 	return out
 }
 
-// Menu returns the controls the main menu checks: Status's, then Log
-// Forwarding's and Time Sync's, and Kernel Settings' where cfg's
-// kernelSettings is true, which are no rows of risk's: the risk level never
+// Menu returns the controls the main menu checks: Status's, then Syslog
+// Settings' and NTP Settings', and Kernel Settings' where cfg's
+// kernel is true, which are no rows of risk's: the risk level never
 // counts them (gallery-logforward.md, decision 10 (a); gallery-timesync.md,
 // decision 11 (a); gallery-sysctl.md, decision 18 (a)).
 func Menu(cfg *config.Config) []engine.Control {
@@ -51,11 +51,11 @@ func Menu(cfg *config.Config) []engine.Control {
 	return out
 }
 
-// MenuReports are Menu's reports as the main menu draws them: Log
-// Forwarding's kept only where cfg, hardn.yml, names a server or the host
-// forwards (logforward.Shown), Time Sync's and Kernel Settings' on every
+// MenuReports are Menu's reports as the main menu draws them: Syslog
+// Settings' kept only where cfg, hardn.yml, names a server or the host
+// forwards (logforward.Shown), NTP Settings' and Kernel Settings' on every
 // host but a container (timesync.Shown, kernelsettings.Shown), and all
-// three drawn after the others (output.StatusViewOf).
+// three drawn before AppArmor, the last row (output.StatusViewOf).
 func MenuReports(cfg *config.Config, reports []engine.Report) []engine.Report {
 	return slices.DeleteFunc(slices.Clone(reports), func(r engine.Report) bool {
 		return r.Control == logforward.ID && !logforward.Shown(cfg, r.Status) || r.Control == timesync.ID && !timesync.Shown(r.Status) ||

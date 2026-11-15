@@ -102,7 +102,7 @@ type KernelRow struct {
 // KernelSettings is the Kernel Settings screen's reading of the host, which
 // its caller fills.
 type KernelSettings struct {
-	// Status is the Kernel Settings row.
+	// Status is the Kernel row.
 	Status component.StatusList
 	// Rows are the settings, in order.
 	Rows []KernelRow

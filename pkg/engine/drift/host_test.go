@@ -64,7 +64,11 @@ type simHost struct {
 	nameservers []string
 	updates     bool
 	noSudoers   bool // /etc/sudoers is not readable
-	unexpected  []string
+	// forwards are rsyslog's lines in /etc/rsyslog.d/50-remote.conf, each
+	// "@@192.0.2.51" or "@192.0.2.52:1514"; noRsyslog: it is not installed.
+	forwards   []string
+	noRsyslog  bool
+	unexpected []string
 }
 
 // synthKey is a synthetic ED25519 public key, its 32 bytes seed.
@@ -201,6 +205,13 @@ func (h *simHost) sync() {
 		h.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
 	}
 
+	var fw strings.Builder
+	for _, f := range h.forwards {
+		fw.WriteString("*.* " + f + "\n")
+	}
+	h.AddDir("/etc/rsyslog.d", 0o755, 0, 0)
+	h.AddFile("/etc/rsyslog.d/50-remote.conf", []byte(fw.String()), 0o644, 0, 0)
+
 	var rc strings.Builder
 	for _, ns := range h.nameservers {
 		rc.WriteString("nameserver " + ns + "\n")
@@ -303,6 +314,12 @@ func (h *simHost) answer(argv []string, _ []byte) hostfake.Response {
 		on := map[bool]string{true: "1", false: "0"}[h.updates]
 		return hostfake.Response{Stdout: "APT::Periodic \"\";\nAPT::Periodic::Update-Package-Lists \"" + on + "\";\nAPT::Periodic::Unattended-Upgrade \"" + on + "\";\n" +
 			"Unattended-Upgrade::Origins-Pattern \"\";\nUnattended-Upgrade::Origins-Pattern:: \"origin=Debian,codename=${distro_codename},label=Debian-Security\";\n"}
+	case name == "dpkg-query" && argv[len(argv)-1] == "rsyslog" && h.noRsyslog:
+		return hostfake.Response{Stderr: "dpkg-query: no packages found matching rsyslog\n", ExitCode: 1}
+	case name == "dpkg-query" && argv[len(argv)-1] == "rsyslog":
+		return hostfake.Response{Stdout: "install ok installed\t8.2504.0\n"}
+	case cmd == "rpm -q rsyslog":
+		return hostfake.Response{Stdout: "rsyslog-8.2412.0-1.el10.x86_64\n"}
 	case name == "dpkg-query" && argv[len(argv)-1] == "unattended-upgrades":
 		return hostfake.Response{Stdout: "install ok installed\t2.12\n"}
 	case name == "systemctl" && len(argv) == 3 && strings.HasPrefix(argv[2], "apt-daily"):

@@ -126,7 +126,7 @@ func TestRewriteFile(t *testing.T) {
 }
 
 // TestWriteOwnFile: without a check the file is written and nothing runs.
-// (With one: the Log Forwarding control's tests, through rsyslogd -N1.)
+// (With one: the Syslog Settings control's tests, through rsyslogd -N1.)
 func TestWriteOwnFile(t *testing.T) {
 	ctx := context.Background()
 	const path = "/etc/chrony/sources.d/hardn.sources"

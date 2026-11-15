@@ -1,10 +1,12 @@
 # Time Sync (`pkg/screens/timesync`, `time.sync`)
 
+> **Renamed 2026-11-14.** The screen and its Configuration item are now "NTP Settings"; its status row, the main menu's row and the hardn.yml screen's section are "NTP". The main menu's last rows are Syslog, NTP, AppArmor. The `ntpServers` key, the `NTP_*` codes and the control id are unchanged. The record below keeps the old name, Time Sync.
+
 > **Unit:** the roadmap's "Time sync", the real unit, on `next/time-sync`, from the mock the maintainer adopted on 2026-11-14 ("Adopt all": [gallery-timesync.md](gallery-timesync.md) §4). **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine. No hardn binary ran, and nothing ran on Linux: §5 lists what only a host can show. Decision 16 (`hardn check`) is not built: it waits for that branch.
 
 ## 1. What it does
 
-Main menu `8) Configuration`, then `3) Time Sync` (decision 9 as revised on 2026-11-14; [screen-config.md](screen-config.md) §1.1). hardn shows which service keeps the host's time, whether it runs, whether the clock is in sync and to which server, and each server with where it is set; and makes that service use the servers hardn.yml's `ntpServers` names in place of its own ([configuration.md](../configuration.md#time-sync), [platforms.md](../platforms.md#time-sync)).
+Main menu `8) Configuration`, then `3) Time Sync` (decision 9 as revised on 2026-11-14; [screen-config.md](screen-config.md) §1.1). hardn shows which service keeps the host's time, whether it runs, whether the clock is in sync and to which server, and each server with where it is set; and makes that service use the servers hardn.yml's `ntpServers` names in place of its own ([configuration.md](../configuration.md#ntp), [platforms.md](../platforms.md#ntp)).
 
 | Part | Where | What |
 |---|---|---|
@@ -35,10 +37,10 @@ Shared with Log Forwarding, not copied ([screen-logforward.md](screen-logforward
 
 `/etc/chrony/chrony.conf`, `/etc/chrony.conf`, `ubuntu-ntp-pools.sources` and `/etc/conf.d/ntpd` are the host's.
 
-- **Minimal.** A chrony line is switched off by `#hardn: ` put before it, the line itself untouched. hardn's own lines in a main file sit under one comment that says how many they are: `# Added by hardn (Time Sync): the 2 lines below.` On Alpine, hardn's `-p` words go where the host's were, under `# Set by hardn (Time Sync), in place of: -p pool.ntp.org`.
+- **Minimal.** A chrony line is switched off by `#hardn: ` put before it, the line itself untouched. hardn's own lines in a main file sit under one comment that says how many they are: `# Added by hardn (NTP Settings): the 2 lines below.` On Alpine, hardn's `-p` words go where the host's were, under `# Set by hardn (NTP Settings), in place of: -p pool.ntp.org`.
 - **Exactly reversed.** `ChronyOn` takes the mark off each switched-off server line and deletes hardn's comment with exactly the lines it names; `ClearPeers` puts the comment's words back where hardn's are. Tests hold a file to its bytes after Set then Remove, for files with no final line break, CRLF, indented lines and an administrator's own `#hardn:` comment.
-- **Refused in a form hardn does not write back** (`TIMESYNC_NOT_READ`): a comment of hardn's that does not name exactly the lines under it, or twice; on Alpine, `NTPD_OPTS` not one double-quoted line with single spaces, its `-p` words not side by side, none at all, or a mark that names anything but peers.
-- **Read again at apply.** The engine plans again under its lock and refuses a plan that differs (`PLAN_CHANGED`); the change itself reads the file again and refuses one that is not as planned (`TIMESYNC_CHANGED_SINCE`). The file's mode and owner are kept.
+- **Refused in a form hardn does not write back** (`NTP_NOT_READ`): a comment of hardn's that does not name exactly the lines under it, or twice; on Alpine, `NTPD_OPTS` not one double-quoted line with single spaces, its `-p` words not side by side, none at all, or a mark that names anything but peers.
+- **Read again at apply.** The engine plans again under its lock and refuses a plan that differs (`PLAN_CHANGED`); the change itself reads the file again and refuses one that is not as planned (`NTP_CHANGED_SINCE`). The file's mode and owner are kept.
 
 ## 3. Injection surface
 
@@ -53,20 +55,20 @@ So no space, newline, quote, `#`, `$`, `;` or leading `-` reaches a file. Words 
 
 | Code | When |
 |---|---|
-| `TIMESYNC_NO_SERVERS` | hardn.yml names no servers |
-| `TIMESYNC_BAD_SERVERS` | `ntpServers` does not pass the check; the refusal says which server |
-| `TIMESYNC_NOT_READ` | the service or its settings are not read, or a file is in a form hardn does not write back; also where the init that booted the host is not the one the service belongs to, as whether the service runs is then not read |
-| `TIMESYNC_SET_OUTSIDE` | a file that is neither the service's own nor hardn's sets servers; a systemd-timesyncd drop-in read after hardn's has an empty `NTP=`, which clears hardn's servers; or a file at hardn's path is not hardn's |
-| `TIMESYNC_NO_SERVICE` | no time service, or one that is not running |
-| `TIMESYNC_CONTAINER` | a container |
-| `TIMESYNC_NOTHING_TO_REMOVE` | Remove servers with nothing of hardn's set |
-| `TIMESYNC_CHANGED_SINCE` | at apply: a file is not as the plan read it |
+| `NTP_NO_SERVERS` | hardn.yml names no servers |
+| `NTP_BAD_SERVERS` | `ntpServers` does not pass the check; the refusal says which server |
+| `NTP_NOT_READ` | the service or its settings are not read, or a file is in a form hardn does not write back; also where the init that booted the host is not the one the service belongs to, as whether the service runs is then not read |
+| `NTP_SET_OUTSIDE` | a file that is neither the service's own nor hardn's sets servers; a systemd-timesyncd drop-in read after hardn's has an empty `NTP=`, which clears hardn's servers; or a file at hardn's path is not hardn's |
+| `NTP_NO_SERVICE` | no time service, or one that is not running |
+| `NTP_CONTAINER` | a container |
+| `NTP_NOTHING_TO_REMOVE` | Remove servers with nothing of hardn's set |
+| `NTP_CHANGED_SINCE` | at apply: a file is not as the plan read it |
 
 ## 5. Settled here, beyond the adopted decisions
 
 Each is the safer reading; the product choices among them are in the unit's report.
 
-1. **systemd-timesyncd's main file.** Decision 7 counts a line of a service's main file as the distribution's, to be replaced. For `NTP=` in `timesyncd.conf` hardn refuses instead (`TIMESYNC_SET_OUTSIDE`): systemd adds a drop-in's servers to it, so replacing would mean editing that file or writing an empty `NTP=` first, which the adopted review does not show. A stock file has none.
+1. **systemd-timesyncd's main file.** Decision 7 counts a line of a service's main file as the distribution's, to be replaced. For `NTP=` in `timesyncd.conf` hardn refuses instead (`NTP_SET_OUTSIDE`): systemd adds a drop-in's servers to it, so replacing would mean editing that file or writing an empty `NTP=` first, which the adopted review does not show. A stock file has none.
 2. **`peer` lines are switched off with `server` and `pool`**: all three are sources chronyd would still follow.
 3. **Alpine with no `-p`** is "can't read": ntpd then takes its servers from `/etc/ntp.conf`, which hardn does not read.
 4. **Remove servers is refused while the service is stopped**, as Set servers is: its restart would start it.

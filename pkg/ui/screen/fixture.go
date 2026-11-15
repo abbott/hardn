@@ -42,7 +42,7 @@ func fixtureHeader() component.Header {
 // PNG in item 2, "Root login, passwords, port" where Figma has "Toggle
 // root SSH access" (legacy-left.md §3, decision 7 (a); P-07 (a), P-12),
 // in Dry-Run, which hardn removed (refactor plan slice 2b, decision 1),
-// and in item 8, Configuration, "hardn.yml, log forwarding, time sync",
+// and in item 8, Configuration, "hardn.yml, syslog, ntp, kernel",
 // where Figma and origin/main have Environment ("Configure environment
 // variable"), which hardn removed (the maintainer, 2026-11-12); System
 // Details is 9 and Logs 10, as theirs. The Exit item says "q to quit" (DEV-030),
@@ -74,7 +74,7 @@ func MainMenuFixture() MainMenu {
 			{Key: "4", Label: "DNS", Description: "Configure nameservers"},
 			{Key: "6", Label: "Run All", Description: "Execute hardening operations"},
 			{Key: "7", Label: "Backup", Description: "Configure hardn backup"},
-			{Key: "8", Label: "Configuration", Description: "hardn.yml, log forwarding, time sync"},
+			{Key: "8", Label: "Configuration", Description: "hardn.yml, syslog, ntp, kernel"},
 			{Key: "9", Label: "System Details", Description: "View system information"},
 			{Key: "10", Label: "Logs", Description: "View log file"},
 		}, Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}},

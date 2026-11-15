@@ -141,6 +141,11 @@ type KeyValue struct {
 	// its list, puts them under the key, and a value too wide even there is
 	// cut ahead of the note. Unset, the row is cut at its end, note first.
 	KeepNote bool
+	// StackLong puts a value with no room beside the key under it, this
+	// row alone of its list, rather than cutting it there, as a list of
+	// servers; a value too wide even there is cut at its end, or ahead of
+	// its note with KeepNote.
+	StackLong bool
 	// Finding marks a bullet item as a plan's finding (flow.Finding): with
 	// no colour to tell it from a change's or a row's bullet, a warning's
 	// leads with Glyphs.Warn, ⭘ [ ], the design system's warning marker, in
@@ -162,6 +167,9 @@ func (vm KeyValue) Render(c Ctx) string {
 // bullet item wraps its text under itself.
 func (vm KeyValue) lay(c Ctx, r entry, stack bool) string {
 	if r.value != nil {
+		if vm.StackLong && !c.Whole {
+			stack = stack || theme.ValueCol+r.value.width() > c.width()
+		}
 		if vm.KeepNote {
 			stack, r.value = keepNote(c, r.value, stack)
 		}

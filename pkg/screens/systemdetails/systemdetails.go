@@ -268,7 +268,7 @@ func osRows(r details.Report) []component.KeyValue {
 	return append(append(rows, timeRows(r.Time)...), cantReadRows(r.OS.Unread)...)
 }
 
-// The time rows, in the Time Sync screen's words.
+// The time rows, in the NTP Settings screen's words.
 const (
 	rowTimeService = "Time service"
 	rowClock       = "Clock"
@@ -280,7 +280,7 @@ const (
 )
 
 // timeRows are the time service and the clock (gallery-timesync.md,
-// decision 10 (a)), from the Time Sync screen's own reading: "Time
+// decision 10 (a)), from the NTP Settings screen's own reading: "Time
 // service", a warning where it is not running or there is none outside a
 // container; "Clock"; and "Synced to" where the service names a server.
 // What is not read is not known, never "None".

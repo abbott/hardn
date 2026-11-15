@@ -20,7 +20,7 @@ import (
 const (
 	ConfD = "/etc/conf.d/syslog"
 	// Mark opens the comment naming the words hardn added.
-	Mark = "# Added by hardn (Log Forwarding): "
+	Mark = "# Added by hardn (Syslog Settings): "
 	// BusyboxService is the OpenRC service that runs syslogd.
 	BusyboxService = "syslog"
 
@@ -137,18 +137,27 @@ func legacyHostPort(arg string) Server {
 	return s
 }
 
-// SetOpts is ConfD's bytes with s as syslogd's server: "-R address:port",
-// and "-L", which keeps the local log, where the options have none, added
-// to SYSLOGD_OPTS, and Mark above it naming what was added. Words hardn
-// added before are taken out first (ClearOpts), so a second server replaces
-// the first. s is checked (Server.Check) and must be UDP, all syslogd
-// sends; a -R that is not hardn's is ErrForeign.
-func SetOpts(data []byte, s Server) ([]byte, error) {
-	if err := s.Check(); err != nil {
-		return nil, err
+// SetOpts is ConfD's bytes with servers as syslogd's servers: one
+// "-R address:port" for each, in their order, and "-L", which keeps the
+// local log, where the options have none, added to SYSLOGD_OPTS, and Mark
+// above it naming what was added (design-syslog-servers.md §2.3). Words
+// hardn added before are taken out first (ClearOpts), so a second list
+// replaces the first. Each server is checked (Server.Check) and must be
+// UDP, all syslogd sends: one that is not refuses the whole list. No
+// server is ErrServer; a -R that is not hardn's is ErrForeign.
+func SetOpts(data []byte, servers []Server) ([]byte, error) {
+	if len(servers) == 0 {
+		return nil, fmt.Errorf("logfwd: no server: %w", ErrServer)
 	}
-	if s.Proto != UDP {
-		return nil, fmt.Errorf("logfwd: busybox syslogd sends UDP alone: %w", ErrServer)
+	var added []string
+	for _, s := range servers {
+		if err := s.Check(); err != nil {
+			return nil, err
+		}
+		if s.Proto != UDP {
+			return nil, fmt.Errorf("logfwd: busybox syslogd sends UDP alone: %w", ErrServer)
+		}
+		added = append(added, "-R", s.Address+":"+s.Port)
 	}
 	o, err := parseOpts(data)
 	if err != nil {
@@ -166,7 +175,6 @@ func SetOpts(data []byte, s Server) ([]byte, error) {
 	if args, _, _ := o.remotes(); len(args) > 0 {
 		return nil, fmt.Errorf("logfwd: %s: -R %s: %w", ConfD, args[0], ErrForeign)
 	}
-	added := []string{"-R", s.Address + ":" + s.Port}
 	if !slices.Contains(o.Words, "-L") {
 		added = append(added, "-L")
 	}

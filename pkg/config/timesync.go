@@ -6,7 +6,7 @@ import (
 	"slices"
 )
 
-// NTPServers is hardn.yml's ntpServers: the time servers Time Sync sets
+// NTPServers is hardn.yml's ntpServers: the time servers NTP Settings sets
 // (docs/engine/gallery-timesync.md, decision 2 (a)), in the order the
 // host's time service is given them. None, the default, hardn changes
 // nothing.

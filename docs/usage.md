@@ -13,7 +13,7 @@
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL, CentOS Stream, Oracle); turns off only what hardn turned on. Read only on Proxmox |
 | 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS, automatic updates, log forwarding and time servers. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
-| 8) Configuration | a menu of three screens, below | log forwarding and time servers |
+| 8) Configuration | a menu of four screens, below | log forwarding, time servers and kernel settings |
 | 9) System Details | OS, kernel, the time service and the clock, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
@@ -24,34 +24,36 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 | Option | Displays | Configures |
 |---|---|---|
 | 1) hardn.yml | which `hardn.yml` hardn read and each key's value | nothing |
-| 2) Log Forwarding | the host's logger, the syslog server it sends logs to, by whose file, and the server `hardn.yml` names | sends every log to `hardn.yml`'s server over UDP, TCP or TLS; stops only what hardn set. [More](#log-forwarding) |
-| 3) Time Sync | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#time-sync) |
+| 2) Syslog Settings | the host's logger, the syslog servers it sends logs to, by whose file, and the servers `hardn.yml` names | sends every log to `hardn.yml`'s servers over UDP, TCP or TLS; stops only what hardn set. [More](#syslog-settings) |
+| 3) NTP Settings | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#ntp-settings) |
 | 4) Kernel Settings | the kernel's network and kernel settings against hardn's baseline, each with its value and what it means | sets the ones below the baseline in one file, `/etc/sysctl.d/90-hardn.conf`, and at once; puts the earlier values back. [More](#kernel-settings) |
 
-### Log forwarding
+### Syslog Settings
 
-Log Forwarding sends every message the host logs to the syslog server `hardn.yml` names ([`logForwarding`](configuration.md#log-forwarding)). The screen has no form: the server is typed in the file.
+Syslog Settings sends every message the host logs to each syslog server `hardn.yml` names ([`syslogServers`](configuration.md#syslog), one to four). The screen has no form: the servers are typed in the file.
 
-- **Set server** writes hardn's own file, `/etc/rsyslog.d/60-hardn-forward.conf`, has rsyslogd check it (`rsyslogd -N1`), restarts rsyslog, then logs one line, `log forwarding set`, for you to find on the server. A failed check or restart puts everything back. On a host with journald alone it installs rsyslog first (not on Proxmox, where hardn installs no package); for TLS, `rsyslog-gnutls`. On Alpine it adds `-R <server>:<port> -L` to busybox syslogd's options.
-- **Stop forwarding** takes out only what hardn set, and restarts the logger. rsyslog stays installed.
-- **A server set by a file hardn didn't write is shown, never changed.** Set server is then unavailable.
-- **Connection** says whether a TCP or TLS connection to the server is open. The host can't know what the server received: look for the test line there. UDP shows nothing.
-- **On the main menu** the Log Forwarding row shows only where `hardn.yml` names a server or the host forwards. It never changes the risk level.
+- **Set servers** makes hardn's own file, `/etc/rsyslog.d/60-hardn-forward.conf`, hold exactly `hardn.yml`'s list, has rsyslogd check it (`rsyslogd -N1`), restarts rsyslog, then logs one line, `log forwarding set`, for you to find on each server. Adding or removing a server is the same one change. A failed check or restart puts everything back. On a host with journald alone it installs rsyslog first (not on Proxmox, where hardn installs no package); for TLS, `rsyslog-gnutls`. On Alpine it adds one `-R <server>:<port>` for each server, and `-L`, to busybox syslogd's options.
+- **A list hardn can't set whole is refused**, before anything is asked: an entry that is not valid, a CA file that is not there, a TCP or TLS server on Alpine.
+- **Stop forwarding** takes out every server hardn set, and nothing else, and restarts the logger. rsyslog stays installed.
+- **Servers set by a file hardn didn't write are shown, never changed.** Set servers is then unavailable.
+- **Each Server row** ends in its connection: Open, or not reached, for TCP and TLS. The host can't know what the server received: look for the test line there. UDP has no connection: its row says losses are unseen.
+- **One server not reached makes the row Partial**, "1 of 3 not reached". Where two servers given by name share a port and one connection is open, hardn can say how many are open, not which: "1 of 2 open".
+- **On the main menu** the Syslog row shows only where `hardn.yml` names a server or the host forwards. It never changes the risk level.
 - It forwards the host's logs, not hardn's audit log (`/var/log/hardn/audit.jsonl`).
 
-### Time sync
+### NTP Settings
 
-Time Sync shows which service keeps the host's time (chrony, systemd-timesyncd, or busybox ntpd on Alpine), whether it runs, whether the clock is in sync and to which server. It sets the servers `hardn.yml` names ([`ntpServers`](configuration.md#time-sync)) on that service. The screen has no form: the servers are typed in the file.
+NTP Settings shows which service keeps the host's time (chrony, systemd-timesyncd, or busybox ntpd on Alpine), whether it runs, whether the clock is in sync and to which server. It sets the servers `hardn.yml` names ([`ntpServers`](configuration.md#ntp)) on that service. The screen has no form: the servers are typed in the file.
 
-- **Set servers** makes the service use your servers in place of its own. Servers handed out by DHCP stay. What is written differs by service: [platforms.md](platforms.md#time-sync).
+- **Set servers** makes the service use your servers in place of its own. Servers handed out by DHCP stay. What is written differs by service: [platforms.md](platforms.md#ntp).
 - **Remove servers** undoes only what hardn set: the host's own servers are used again, each file as it was.
 - **hardn installs, starts and swaps no time service.** With none, or one that is not running, Set servers is unavailable. In a container it is too: the host keeps the time.
 - **Servers set by a file hardn didn't write are shown, never changed.** Set servers is then unavailable.
 - **hardn's servers are plain NTP.** Where the host's own are authenticated (NTS, Ubuntu 26.04's default), the review says so before you answer.
 - **Clock** is the service's or the kernel's own word, read again after each change. Right after a restart it can read "Not in sync" for a while.
-- **On the main menu** the Time Sync row shows on every host but a container. It never changes the risk level.
+- **On the main menu** the NTP row shows on every host but a container. It never changes the risk level.
 
-### Kernel settings
+### Kernel Settings
 
 Kernel Settings shows 19 settings of the kernel (sysctl): redirects, source routing, SYN cookies, the reverse-path filter, kernel addresses and the kernel log, address randomizing, process tracing, BPF, and link and `/tmp` protection. Each row has its value, what it means and, below hardn's baseline, what hardn sets. A row reads every network interface and shows the weakest.
 
@@ -63,9 +65,9 @@ Kernel Settings shows 19 settings of the kernel (sysctl): redirects, source rout
 - **With Process tracing set**, `gdb -p` and `strace -p` need root. The review says so before you answer.
 - **In a container** the values are shown and nothing is set: the kernel is the host's.
 - **On Alpine** with the `sysctl` service not enabled, the values are set now and not at boot. The screen says so, with the fix: `rc-update add sysctl boot`.
-- **On the main menu and in Run All** only with [`kernelSettings: true`](configuration.md#kernel-settings) in `hardn.yml`. It never changes the risk level.
+- **On the main menu and in Run All** only with [`kernel: true`](configuration.md#kernel) in `hardn.yml`. It never changes the risk level.
 
-What differs by distribution: [platforms.md](platforms.md#kernel-settings).
+What differs by distribution: [platforms.md](platforms.md#kernel).
 
 From 90 days before a release's vendor support ends, the main menu says so, and every plan carries a warning. It changes nothing hardn does. The dates: [platforms.md](platforms.md#end-of-support).
 ### Account Review
@@ -167,6 +169,7 @@ Admin added: carol
 | Listening ports | each port the firewall lets in from outside. A port on loopback alone is never counted. It needs `ss`: without it, ports aren't compared, and the result says so. After installing `ss`, run `--accept` again |
 | DNS | the nameservers in use |
 | Auto updates | on or off |
+| Syslog servers | each server the host forwards its logs to, hardn's or not, with its port and protocol. Connections aren't compared |
 
 Not compared: AppArmor, sysctl, packages, rules written straight into nftables, a cloud provider's firewall, sshd's `Match` blocks, firewalld's rich rules.
 
@@ -242,7 +245,7 @@ Output off a terminal is plain: no colour, no animation, ASCII symbols. `--color
 
 ## hardn.yml
 
-hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, `logForwarding`, `ntpServers`, `kernelSettings`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
+hardn reads `username`, `sshKeys`, `adminNoPassword`, `dryRun`, `enableBackups`, `backupPath`, `nameservers`, `sshPort` (the default for Change SSH port), `sshConfigFile` (where hardn's old settings are), `confirmTimeout`, `checkReleases`, `ufwAppProfiles`, `ufwTrustedInterfaces`, `syslogServers`, `ntpServers`, `kernel`, and Run All's switches: `enableUnattendedUpgrades`, `enableUfwSshPolicy`, `configureDns` and `disableRootSSH`.
 
 ```yaml
 username: "george"

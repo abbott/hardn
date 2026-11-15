@@ -41,7 +41,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mhardn.yml, syslog, ntp, kernel␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -50,14 +50,14 @@ $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 8$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/menu␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMain menu 8: hardn.yml, Log Forwarding and Time Sync. It reads␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMain menu 8: hardn.yml, Syslog Settings and NTP Settings. It␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads nothing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTime Sync␛[m            ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m      ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m         ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel Settings␛[m      ␛[38;2;129;134;156mHarden network and kernel␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -104,17 +104,17 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableUnattendedUpgrades␛[m$
       ␛[38;2;129;134;156mtrue␛[m$
 $
-  ␛[1;38;2;129;134;156mLog Forwarding␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+  ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mlogForwarding␛[m        ␛[38;2;129;134;156mNone␛[m ␛[38;2;129;134;156m(default)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msyslogServers␛[m        ␛[38;2;129;134;156mNone␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
-  ␛[1;38;2;129;134;156mTime Sync␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+  ␛[1;38;2;129;134;156mNTP␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mntpServers␛[m           ␛[38;2;129;134;156mNone␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
-  ␛[1;38;2;129;134;156mKernel Settings␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+  ␛[1;38;2;129;134;156mKernel␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mkernelSettings␛[m       ␛[38;2;129;134;156mfalse␛[m ␛[38;2;129;134;156m(default)␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mfalse␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
   ␛[1;38;2;129;134;156mBackup␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -134,8 +134,8 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTime Sync␛[m            ␛[38;2;129;134;156mKeep the clock in sync␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m      ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m         ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel Settings␛[m      ␛[38;2;129;134;156mHarden network and kernel␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
@@ -170,7 +170,7 @@ $
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mExecute hardening operations␛[m$
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m               ␛[38;2;129;134;156mConfigure hardn backup␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m        ␛[38;2;129;134;156mhardn.yml, syslog, ntp, kernel␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m                 ␛[38;2;129;134;156mView log file␛[m$
 $
@@ -223,7 +223,7 @@ $
    5) Auto Updates         Configure automatic updates$
    6) Run All              Execute hardening operations$
    7) Backup               Configure hardn backup$
-   8) Configuration        hardn.yml, log forwarding, time sync$
+   8) Configuration        hardn.yml, syslog, ntp, kernel$
    9) System Details       View system information$
   10) Logs                 View log file$
 $
@@ -232,14 +232,14 @@ $
     > Option [0-10 or q]: 8$
 $
 # Info: config/menu$
-# Main menu 8: hardn.yml, Log Forwarding and Time Sync. It reads$
-# nothing.$
+# Main menu 8: hardn.yml, Syslog Settings and NTP Settings. It$
+# reads nothing.$
 $
 # Configuration ################################################$
 $
    1) hardn.yml            View the file hardn reads$
-   2) Log Forwarding       Send logs to a syslog server$
-   3) Time Sync            Keep the clock in sync$
+   2) Syslog Settings      Send logs to a syslog server$
+   3) NTP Settings         Keep the clock in sync$
    4) Kernel Settings      Harden network and kernel$
 $
    0) Return$
@@ -286,17 +286,17 @@ $
    -  enableUnattendedUpgrades$
       true$
 $
-  Log Forwarding -----------------------------------------------$
+  Syslog -------------------------------------------------------$
 $
-   -  logForwarding        None (default)$
+   -  syslogServers        None (default)$
 $
-  Time Sync ----------------------------------------------------$
+  NTP ----------------------------------------------------------$
 $
    -  ntpServers           None (default)$
 $
-  Kernel Settings ----------------------------------------------$
+  Kernel -------------------------------------------------------$
 $
-   -  kernelSettings       false (default)$
+   -  kernel               false (default)$
 $
   Backup -------------------------------------------------------$
 $
@@ -316,8 +316,8 @@ $
 # Configuration ################################################$
 $
    1) hardn.yml            View the file hardn reads$
-   2) Log Forwarding       Send logs to a syslog server$
-   3) Time Sync            Keep the clock in sync$
+   2) Syslog Settings      Send logs to a syslog server$
+   3) NTP Settings         Keep the clock in sync$
    4) Kernel Settings      Harden network and kernel$
 $
    0) Return$
@@ -352,7 +352,7 @@ $
    5) Auto Updates         Configure automatic updates$
    6) Run All              Execute hardening operations$
    7) Backup               Configure hardn backup$
-   8) Configuration        hardn.yml, log forwarding, time sync$
+   8) Configuration        hardn.yml, syslog, ntp, kernel$
    9) System Details       View system information$
   10) Logs                 View log file$
 $
@@ -424,7 +424,7 @@ $
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
-      ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
+      ␛[38;2;129;134;156mhardn.yml, syslog, ntp, kernel␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$
@@ -436,16 +436,16 @@ $
     ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-10 or q]:␛[m 8$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/menu␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMain menu 8: hardn.yml, Log Forwarding and Time Sync. It␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreads nothing.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mMain menu 8: hardn.yml, Syslog Settings and NTP Settings.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mIt reads nothing.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m$
       ␛[38;2;129;134;156mView the file hardn reads␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m$
       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTime Sync␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m$
       ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel Settings␛[m$
       ␛[38;2;129;134;156mHarden network and kernel␛[m$
@@ -506,19 +506,19 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216menableUnattendedUpgrades␛[m$
       ␛[38;2;129;134;156mtrue␛[m$
 $
-  ␛[1;38;2;129;134;156mLog Forwarding␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+  ␛[1;38;2;129;134;156mSyslog␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mlogForwarding␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216msyslogServers␛[m$
       ␛[38;2;129;134;156mNone␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
-  ␛[1;38;2;129;134;156mTime Sync␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+  ␛[1;38;2;129;134;156mNTP␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mntpServers␛[m$
       ␛[38;2;129;134;156mNone␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
-  ␛[1;38;2;129;134;156mKernel Settings␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+  ␛[1;38;2;129;134;156mKernel␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mkernelSettings␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mkernel␛[m$
       ␛[38;2;129;134;156mfalse␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
   ␛[1;38;2;129;134;156mBackup␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
@@ -545,9 +545,9 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m$
       ␛[38;2;129;134;156mView the file hardn reads␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mLog Forwarding␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m$
       ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
-   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mTime Sync␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m$
       ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel Settings␛[m$
       ␛[38;2;129;134;156mHarden network and kernel␛[m$
@@ -603,7 +603,7 @@ $
    ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mBackup␛[m$
       ␛[38;2;129;134;156mConfigure hardn backup␛[m$
    ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mConfiguration␛[m$
-      ␛[38;2;129;134;156mhardn.yml, log forwarding, time sync␛[m$
+      ␛[38;2;129;134;156mhardn.yml, syslog, ntp, kernel␛[m$
    ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mSystem Details␛[m$
       ␛[38;2;129;134;156mView system information␛[m$
   ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mLogs␛[m$

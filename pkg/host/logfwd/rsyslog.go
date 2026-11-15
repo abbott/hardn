@@ -23,32 +23,42 @@ const (
 	RsyslogDir  = "/etc/rsyslog.d"
 	// DropIn is hardn's own file, and Header its first line.
 	DropIn = RsyslogDir + "/60-hardn-forward.conf"
-	Header = "# Written by hardn (Log Forwarding).\n"
+	Header = "# Written by hardn (Syslog Settings).\n"
 	// GnuTLSPackage holds the TLS driver hardn's file names ("gtls").
 	GnuTLSPackage = "rsyslog-gnutls"
 )
 
-// RsyslogFile is hardn's file for s: one omfwd action for every message
-// (rsyslog's omfwd, §3.2), with a queue for TCP so that a server that is
-// away does not block the logger, and for TLS the driver, the server's name
-// and the CA file. s is checked first (Server.Check): its values are
-// written between double quotes.
-func RsyslogFile(s Server) ([]byte, error) {
-	if err := s.Check(); err != nil {
-		return nil, err
+// RsyslogFile is hardn's file for servers: one omfwd action for every
+// message (rsyslog's omfwd, §3.2) per server, in their order
+// (design-syslog-servers.md §2.2). Each action has its own queue, UDP too,
+// retries for ever and drops at once when its queue is full, so that a
+// server that is away holds up neither the others nor the local files; for
+// TLS the driver, the server's name and the CA file. Each server is checked
+// first (Server.Check): its values are written between double quotes. No
+// server is ErrServer.
+func RsyslogFile(servers []Server) ([]byte, error) {
+	if len(servers) == 0 {
+		return nil, fmt.Errorf("logfwd: no server: %w", ErrServer)
 	}
-	open := func(proto string) string {
-		return Header + "*.* action(type=\"omfwd\" protocol=\"" + proto + "\"\n    target=\"" + s.Address + "\" port=\"" + s.Port + "\""
+	const queue = "\n    queue.type=\"linkedList\" queue.timeoutEnqueue=\"0\"\n    action.resumeRetryCount=\"-1\")\n"
+	var b strings.Builder
+	b.WriteString(Header)
+	for _, s := range servers {
+		if err := s.Check(); err != nil {
+			return nil, err
+		}
+		proto := "tcp"
+		if s.Proto == UDP {
+			proto = "udp"
+		}
+		b.WriteString("*.* action(type=\"omfwd\" protocol=\"" + proto + "\"\n    target=\"" + s.Address + "\" port=\"" + s.Port + "\"")
+		if s.Proto == TLS {
+			b.WriteString("\n    StreamDriver=\"gtls\" StreamDriverMode=\"1\"\n    StreamDriverAuthMode=\"x509/name\"\n" +
+				"    StreamDriverPermittedPeers=\"" + s.Address + "\"\n    StreamDriver.CAFile=\"" + s.CAFile + "\"")
+		}
+		b.WriteString(queue)
 	}
-	const queue = "\n    queue.type=\"linkedList\")\n"
-	switch s.Proto {
-	case UDP:
-		return []byte(open("udp") + ")\n"), nil
-	case TLS:
-		return []byte(open("tcp") + "\n    StreamDriver=\"gtls\" StreamDriverMode=\"1\"\n    StreamDriverAuthMode=\"x509/name\"\n" +
-			"    StreamDriverPermittedPeers=\"" + s.Address + "\"\n    StreamDriver.CAFile=\"" + s.CAFile + "\"" + queue), nil
-	}
-	return []byte(open("tcp") + queue), nil
+	return []byte(b.String()), nil
 }
 
 // readRsyslog reads rsyslog's forwarding from RsyslogConf and RsyslogDir's

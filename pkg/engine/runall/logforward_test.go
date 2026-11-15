@@ -21,9 +21,9 @@ import (
 )
 
 // lfRead reads Run All on a bare Ubuntu host whose logger is rsyslog, with
-// yml as hardn.yml's logForwarding: the other rows' checks read a host that
-// answers nothing, which is theirs to say; Log Forwarding's read its files.
-func lfRead(t *testing.T, yml config.LogForwarding, files map[string]string) (runall.Reading, *hostfake.System) {
+// yml as hardn.yml's syslogServers: the other rows' checks read a host that
+// answers nothing, which is theirs to say; Syslog Settings' read its files.
+func lfRead(t *testing.T, yml config.SyslogServers, files map[string]string) (runall.Reading, *hostfake.System) {
 	t.Helper()
 	f := hostfake.New(host.Options{})
 	for _, d := range []string{"/etc/rsyslog.d", "/var/lib", "/var/backups", "/run"} {
@@ -44,7 +44,7 @@ func lfRead(t *testing.T, yml config.LogForwarding, files map[string]string) (ru
 	facts := detect.Facts{Platform: detect.Platform{Distro: detect.DistroUbuntu, Version: "24.04", Support: detect.Supported},
 		Init: detect.Init{Kind: detect.Systemd, Running: detect.Yes}}
 	cfg := config.DefaultConfig()
-	cfg.LogForwarding = yml
+	cfg.SyslogServers = yml
 	now := func() time.Time { return time.Date(2026, 11, 13, 12, 0, 0, 0, time.UTC) }
 	r, err := runall.Read(context.Background(), runall.Input{System: f, Facts: facts, Config: cfg, Revert: revert.Options{Now: now},
 		NewEngine: func(progress func(engine.Event)) *engine.Engine {
@@ -58,13 +58,13 @@ func lfRead(t *testing.T, yml config.LogForwarding, files map[string]string) (ru
 	return r, f
 }
 
-// TestLogForwardingRow: Run All lists Log Forwarding only where hardn.yml
+// TestLogForwardingRow: Run All lists Syslog Settings only where hardn.yml
 // names a server (gallery-logforward.md, decision 9 (a)), before Backup;
-// plans Set server, never Stop forwarding; says "already as asked" where the
+// plans Set servers, never Stop forwarding; says "already as asked" where the
 // host forwards there; and a refusal is the row's, in its words.
 func TestLogForwardingRow(t *testing.T) {
-	server := config.LogForwarding{Server: "192.0.2.50"}
-	ids := runall.IDsFor(&config.Config{LogForwarding: server})
+	server := config.SyslogServers{{Server: "192.0.2.50"}}
+	ids := runall.IDsFor(&config.Config{SyslogServers: server})
 	if n := len(ids); n != len(runall.IDs())+1 || ids[n-2] != logforward.ID || ids[n-1] != backupctl.ID {
 		t.Fatalf("IDsFor with a server = %q", ids)
 	}
@@ -72,9 +72,9 @@ func TestLogForwardingRow(t *testing.T) {
 		t.Fatalf("IDsFor with no server = %q", got)
 	}
 
-	r, f := lfRead(t, config.LogForwarding{}, nil)
+	r, f := lfRead(t, config.SyslogServers{}, nil)
 	if _, ok := r.Row(logforward.ID); ok {
-		t.Error("no server in hardn.yml: Run All lists Log Forwarding")
+		t.Error("no server in hardn.yml: Run All lists Syslog Settings")
 	}
 	if slices.ContainsFunc(f.Runs(), func(argv []string) bool { return argv[len(argv)-1] == "rsyslog" || argv[0] == "rsyslogd" }) {
 		t.Errorf("no server in hardn.yml: Run All read the logger: %q", f.Runs())
@@ -83,7 +83,7 @@ func TestLogForwardingRow(t *testing.T) {
 	r, f = lfRead(t, server, nil)
 	rw, ok := r.Row(logforward.ID)
 	fw, isSet := rw.Control.(logforward.Forward)
-	if !ok || rw.Kind != runall.Planned || rw.Words != "Set server" || rw.Title != logforward.Title || !isSet || fw.Action != logforward.ActionSet {
+	if !ok || rw.Kind != runall.Planned || rw.Words != "Set servers" || rw.Title != logforward.Title || !isSet || fw.Action != logforward.ActionSet {
 		t.Fatalf("the row = %+v", rw)
 	}
 	if r.Plan == nil || !slices.ContainsFunc(r.Plan.Changes, func(c engine.Change) bool { return c.ID == logforward.ChangeFile && c.Target == logfwd.DropIn }) {
@@ -93,7 +93,7 @@ func TestLogForwardingRow(t *testing.T) {
 		t.Error("reading Run All wrote hardn's file")
 	}
 
-	own, err := logfwd.RsyslogFile(logfwd.Server{Address: "192.0.2.50", Port: "514", Proto: logfwd.TCP})
+	own, err := logfwd.RsyslogFile([]logfwd.Server{{Address: "192.0.2.50", Port: "514", Proto: logfwd.TCP}})
 	if err != nil {
 		t.Fatal(err)
 	}

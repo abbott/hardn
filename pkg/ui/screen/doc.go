@@ -73,8 +73,8 @@
 // hardn system-details, and Logs.Terminal hardn -p to a terminal
 // (docs/engine/gallery-system-details.md §5).
 //
-// ConfigGroup is the main menu's 8, a menu of hardn.yml, Log Forwarding,
-// Time Sync and Kernel Settings. Config is its item 1, the Configuration screen
+// ConfigGroup is the main menu's 8, a menu of hardn.yml, Syslog Settings,
+// NTP Settings and Kernel Settings. Config is its item 1, the Configuration screen
 // (next/config-screen): read only, filled from hardn.yml as loaded by pkg/screens/config
 // (docs/engine/screen-config.md).
 //

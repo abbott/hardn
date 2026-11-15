@@ -135,7 +135,7 @@ func galleryMenu(t *testing.T, name string) string {
 		if strings.HasPrefix(l, "hardn ") {
 			l = strings.Replace(l, "v0.4.0", "      ", 1) // p4status shows no version: not a hardn release
 		}
-		if strings.Contains(l, "] Time Sync  ") {
+		if strings.Contains(l, "] NTP  ") {
 			continue // the main menu's row beyond controls.Status, which p4status does not read
 		}
 		if strings.HasPrefix(l, "hardn ") || len(lines) > 0 {
@@ -196,7 +196,7 @@ func TestMainMenuOnEL(t *testing.T) {
 			for _, want := range []string{
 				"\n   3) Firewall             Configure firewalld\n",
 				"\n   4) DNS                  Configure nameservers\n   5) Auto Updates         Configure automatic updates\n   6) Run All ",
-				"\n   8) Configuration        hardn.yml, log forwarding, time sync\n",
+				"\n   8) Configuration        hardn.yml, syslog, ntp, kernel\n",
 				"\n    > Option [0-10 or q]:",
 			} {
 				if !strings.Contains(menu, want) {

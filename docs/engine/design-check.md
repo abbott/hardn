@@ -1,6 +1,6 @@
 # `hardn check`: design
 
-Status: **adopted 2026-11-13**, and built (§6). The maintainer adopted every recommended answer of §4, in these words: "Adopt all". So each decision's (a) stands, and §4 is kept as the record. Three baselines were worked through against the code (2026-11-13); this page compares them.
+Status: **adopted 2026-11-13**, and built (§6). The maintainer adopted every recommended answer of §4, in these words: "Adopt all". So each decision's (a) stands, and §4 is kept as the record. Since 2026-11-14 there is one more fact, `logs.servers`, the syslog servers the host forwards to ([design-syslog-servers.md](design-syslog-servers.md) §2.7, §6). Three baselines were worked through against the code (2026-11-13); this page compares them.
 
 ## 1. The command
 

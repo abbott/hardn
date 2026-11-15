@@ -268,7 +268,7 @@ func (s *session) openKernel(name string) func() error {
 }
 
 // ksScreen runs the Kernel Settings screen on h, kh's host, until the user
-// goes back from it, as tsScreen runs the Time Sync screen.
+// goes back from it, as tsScreen runs the NTP Settings screen.
 func (s *session) ksScreen(ctx context.Context, kh ksHost, h *fakeHost) error {
 	sys, title := h.sys(), ksPrefix+"/"+kh.name
 	facts, err := detect.Detect(ctx, sys)

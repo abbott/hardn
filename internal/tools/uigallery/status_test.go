@@ -161,13 +161,13 @@ func TestStatusHosts(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			// The Time Sync row is drawn after the risk level's rows, on
+			// The NTP row is drawn after the risk level's rows, on
 			// every host but a container (gallery-timesync.md, decision 11).
 			if i := slices.IndexFunc(st.reports, func(r engine.Report) bool { return r.Control == tsctl.ID }); (i >= 0) == (sh.name == "container") {
-				t.Errorf("the Time Sync row at %d of %d", i, len(st.reports))
+				t.Errorf("the NTP row at %d of %d", i, len(st.reports))
 			} else if i >= 0 {
 				if r := st.reports[i]; i != len(st.reports)-1 || r.Status.State != engine.Configured || r.Status.Detail == "" {
-					t.Errorf("the Time Sync row at %d of %d: %+v", i, len(st.reports), r.Status)
+					t.Errorf("the NTP row at %d of %d: %+v", i, len(st.reports), r.Status)
 				}
 				st.reports = st.reports[:i]
 			}

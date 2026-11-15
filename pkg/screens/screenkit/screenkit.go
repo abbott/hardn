@@ -232,7 +232,7 @@ func (s Session) Change(ctx context.Context, c Change) error {
 }
 
 // Reviewed runs an item that sets a service's setting, or undoes hardn's
-// (Log Forwarding's Set server and Stop forwarding), plain y/N: control is
+// (Syslog Settings' Set servers and Stop forwarding), plain y/N: control is
 // planned first (Preplan), with cfg, and its refusal said before anything
 // is asked; then build, which reads the host afresh, returns the change's
 // words and the notice its review opens with; then the review, the plan and

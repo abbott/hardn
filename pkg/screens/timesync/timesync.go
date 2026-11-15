@@ -1,7 +1,7 @@
-// Package timesync runs hardn's Time Sync screen on a host (docs/roadmap.md,
+// Package timesync runs hardn's NTP Settings screen on a host (docs/roadmap.md,
 // "Time sync"; docs/engine/gallery-timesync.md, adopted 2026-11-14;
 // docs/engine/screen-timesync.md): the screen pkg/ui/screen draws, from
-// what the Time Sync control (pkg/engine/controls/timesync) reads of the
+// what the NTP Settings control (pkg/engine/controls/timesync) reads of the
 // host, writing nothing; its items, Set servers and Remove servers, the
 // control's plans through the plan/apply engine in pkg/ui's canonical flow:
 // the review with the control's notice, y/N, the apply, rolled back on
@@ -38,8 +38,8 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// Options is what the Time Sync screen runs with: what cmd/hardn has when
-// its Time Sync menu item is chosen, as the Log Forwarding screen's.
+// Options is what the NTP Settings screen runs with: what cmd/hardn has when
+// its NTP Settings menu item is chosen, as the Syslog Settings screen's.
 type Options struct {
 	// Prompter asks the questions and writes the screen through the one line
 	// reader, rendering with its Ctx, whose Env is the terminal's.
@@ -68,7 +68,7 @@ type Options struct {
 	Ran func(output.Run)
 }
 
-// Run shows the Time Sync screen and runs its items until the user goes
+// Run shows the NTP Settings screen and runs its items until the user goes
 // back with 0 (nil) or quits with q (nav.ErrQuit); the end of the input and
 // Ctrl-C abort (prompt.ErrAborted). Each round reads the host with the
 // control, writing nothing, and draws the row, the section and the items
@@ -80,7 +80,7 @@ type Options struct {
 // or NewEngine.
 func Run(ctx context.Context, o Options) error {
 	if o.Prompter.In == nil || o.Prompter.Out == nil || o.System == nil || o.NewEngine == nil {
-		return fmt.Errorf("time sync screen: %w: it needs a Prompter with In and Out, a System and NewEngine", fs.ErrInvalid)
+		return fmt.Errorf("ntp settings screen: %w: it needs a Prompter with In and Out, a System and NewEngine", fs.ErrInvalid)
 	}
 	if o.Now == nil {
 		o.Now = time.Now
@@ -89,7 +89,7 @@ func Run(ctx context.Context, o Options) error {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
-	r := &runner{o: o, cfg: cfg, s: screenkit.Session{Name: "time sync screen", Prompter: o.Prompter, System: o.System, Config: cfg,
+	r := &runner{o: o, cfg: cfg, s: screenkit.Session{Name: "ntp settings screen", Prompter: o.Prompter, System: o.System, Config: cfg,
 		NewEngine: o.NewEngine, ApplyContext: o.ApplyContext, DryRun: o.DryRun, LogPath: o.LogPath, Now: o.Now, Ran: o.Ran}}
 	return o.Prompter.Run(func() nav.Screen { return r.draw(ctx) })
 }
@@ -145,7 +145,7 @@ var unread = map[tshost.Service]string{
 	tshost.NoService: "Can't tell the time service",
 }
 
-// StatusRow is the Time Sync row as the main menu draws it: the control's
+// StatusRow is the NTP row as the main menu draws it: the control's
 // status through the main menu's own mapping.
 func StatusRow(rd ctl.Reading) component.StatusList {
 	return screenkit.StatusRow(ctl.ID, ctl.Title, rd.Status())

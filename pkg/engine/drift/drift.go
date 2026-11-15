@@ -30,6 +30,7 @@ const (
 	Ports          = "firewall.ports"
 	Nameservers    = "dns.nameservers"
 	AutoUpdates    = "updates.auto"
+	SyslogServers  = "logs.servers"
 )
 
 // Spec is one fact hardn check reads: its id, the words a difference's line
@@ -65,6 +66,7 @@ var Specs = []Spec{
 	{Ports, "Listening ports", "Reachable port", ""},
 	{Nameservers, "Nameservers", "", ""},
 	{AutoUpdates, "Auto updates", "", ""},
+	{SyslogServers, "Syslog servers", "Syslog server", ""},
 }
 
 // Fact is one fact as read. A fact that could not be established has Known

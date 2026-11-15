@@ -79,13 +79,13 @@ type Config struct {
 	// maintainer, 2026-11-07). Left out when there are none.
 	UfwTrustedInterfaces []string `yaml:"ufwTrustedInterfaces,omitempty"`
 
-	// Log Forwarding
-	// LogForwarding names the syslog server the host's logs go to (the
-	// maintainer, 2026-11-13; logforward.go). No server, the default, hardn
-	// changes nothing. Not written when unset.
-	LogForwarding LogForwarding `yaml:"logForwarding,omitempty"`
+	// Syslog Settings
+	// SyslogServers names the syslog servers the host's logs go to, one to
+	// four (the maintainer, 2026-11-14; logforward.go). None, the default,
+	// hardn changes nothing. Not written when unset.
+	SyslogServers SyslogServers `yaml:"syslogServers,omitempty"`
 
-	// Time Sync
+	// NTP Settings
 	// NTPServers names the time servers the host's time service is set to
 	// use, one to four (the maintainer, 2026-11-14; timesync.go). None, the
 	// default, hardn changes nothing. Not written when unset.
@@ -96,7 +96,7 @@ type Config struct {
 	// (the maintainer, 2026-11-14; gallery-sysctl.md, decisions 17 and 18).
 	// False, the default, hardn changes nothing there; the screen's Apply
 	// settings works either way. Not written when false.
-	KernelSettings bool `yaml:"kernelSettings,omitempty"`
+	KernelSettings bool `yaml:"kernel,omitempty"`
 
 	// Feature Toggles
 	EnableUnattendedUpgrades bool `yaml:"enableUnattendedUpgrades"`
