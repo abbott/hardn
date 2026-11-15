@@ -285,7 +285,7 @@ func (c Ctx) bar(fill lipgloss.Style, text line) string {
 //
 // A command in the text is kept whole where it fits a line, so that it
 // copies as one line: a span in backticks, as
-// "(`dnf install policycoreutils-python-utils`),", and the rest of a line
+// "(`dnf install policycoreutils-python-utils`,", and the rest of a line
 // from a "$" word, Glyphs.Command before a command hardn runs (DEV-038),
 // as a log's "run 1: $ systemctl stop <unit>". Either is laid out as one
 // word from the word it starts in to the word it ends in, so where it

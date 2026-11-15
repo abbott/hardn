@@ -1397,11 +1397,11 @@ func TestWrapAtSpaces(t *testing.T) {
 func TestWrapKeepsCommands(t *testing.T) {
 	c := NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
 	got := InlineResult{Kind: MessageBad, Text: "SELinux is on, and semanage isn't installed to let sshd use port 2230. " +
-		"Install it (`dnf install policycoreutils-python-utils`), then plan again."}.Render(c)
+		"Install it (`dnf install policycoreutils-python-utils`, which may upgrade SELinux packages), then plan again."}.Render(c)
 	want := "  (x) SELinux is on, and semanage isn't installed to let sshd\n" +
 		"      use port 2230. Install it\n" +
-		"      (`dnf install policycoreutils-python-utils`), then plan\n" +
-		"      again."
+		"      (`dnf install policycoreutils-python-utils`, which may\n" +
+		"      upgrade SELinux packages), then plan again."
 	if got = ansi.Strip(got); got != want {
 		t.Errorf("got\n%s\nwant\n%s", got, want)
 	}

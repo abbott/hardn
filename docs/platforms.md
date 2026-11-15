@@ -82,7 +82,7 @@ On Rocky, Alma, RHEL, CentOS Stream and Oracle:
 - Auto Updates turns on dnf-automatic's daily security updates; restarts stay as automatic.conf sets them (never, as shipped). Off undoes only what hardn did.
 - DNS is only read.
 - RHEL's repositories come with its subscription: on a host with none enabled, such as one that isn't registered, hardn refuses to install firewalld or dnf-automatic.
-- On a host behind its repositories, hardn refuses an install that would upgrade other packages: install it by hand, then try again.
+- On a host behind its repositories, hardn refuses an install that would upgrade other packages: update the host (`dnf upgrade`) or install it by hand, then try again.
 - CentOS Linux 8 and 7 are not supported.
 
 ## Proxmox

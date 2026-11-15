@@ -327,6 +327,9 @@ func dnfInstallWords(err error) error {
 	case errors.Is(err, packages.ErrNotInRepos):
 		return refuse(codeNotInRepos, ErrNotInRepos, err, "hardn can't find dnf-automatic in dnf's repositories", "check the network and the repositories (dnf repolist), then try again")
 	case errors.As(err, &other):
+		if names := upgradedNames(other.Changes); names != nil {
+			return refuse(codeOtherPackages, ErrOtherPackages, err, "Installing dnf-automatic would upgrade other packages: "+strings.Join(names, ", "), "update the host (`dnf upgrade`), then try again")
+		}
 		return refuse(codeOtherPackages, ErrOtherPackages, err, "Installing dnf-automatic would also change other packages: "+strings.Join(other.Changes, ", "), "install it by hand, then try again")
 	case errors.As(err, &kernel):
 		return refuse(codeKernel, packages.ErrKernel, err, "Installing dnf-automatic would also install a new kernel ("+strings.Join(kernel.Packages, ", ")+")", "run dnf upgrade and restart, then try again")
@@ -334,6 +337,22 @@ func dnfInstallWords(err error) error {
 		return refuse(codeLocked, packages.ErrLocked, err, "another dnf is running", "wait for it to finish, then try again")
 	}
 	return err
+}
+
+// upgradedNames are the packages of changes where every one is an upgrade
+// ("Upgrading <name>", packages' dnfChanges), and nil where any is not: the
+// host is behind its repositories, and updating it is the fix (Oracle Linux
+// 10.1, 2026-11-14).
+func upgradedNames(changes []string) []string {
+	var names []string
+	for _, c := range changes {
+		name, ok := strings.CutPrefix(c, "Upgrading ")
+		if !ok || name == "" {
+			return nil
+		}
+		names = append(names, name)
+	}
+	return names
 }
 
 // sum is data's SHA-256.
