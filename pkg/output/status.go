@@ -1,6 +1,7 @@
 package output
 
 import (
+	"fmt"
 	"slices"
 	"strings"
 
@@ -8,6 +9,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/ui/component"
+	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
 // The risk level's words, by band: origin/main's level and gloss
@@ -54,22 +56,24 @@ type StatusView struct {
 var (
 	loginID = ssh.Login{}.ID()
 	authID  = ssh.Auth{}.ID()
+	portID  = ssh.Port{}.ID()
 )
 
 // StatusViewOf maps Engine.Check's reports and their risk level l
 // (risk.Assess over the same reports) to the main menu's blocks
 // (docs/engine/gallery-menu-layout.md, adopted 2026-11-14). The rows are
-// the score's, in their order (risk.Rows: User, SSH Login, SSH Port,
-// Firewall, Kernel, Auto Updates, AppArmor), whatever the reports' order,
-// with SSH Auth drawn in the SSH Login row (mergeSSH): one row for the
-// screen that changes both, the two controls, their weights, findings and
-// codes as they were. A row with no report shows Unknown, as the score
-// counts it. A control's first report counts, and a report with an error
-// is Unknown, as risk.Assess has them. Each of l's factors is a line under
-// the row its Control names, SSH Auth's under SSH Login and a line the two
+// the score's, in their order (risk.Rows: User, SSH, Firewall, Kernel,
+// Auto Updates, AppArmor), whatever the reports' order, with SSH Login,
+// SSH Auth and SSH Port drawn as the one SSH row (mergeSSH; the
+// maintainer, 2026-11-15): one row for the screen that changes the three,
+// the controls, their weights, findings and codes as they were. A row
+// with no report shows Unknown, as the score counts it. A control's first
+// report counts, and a report with an error is Unknown, as risk.Assess has
+// them. Each of l's factors is a line under the row its Control names, the
+// three SSH controls' under SSH, after the row's own line, and a line they
 // share said once, in l's order (risk.Kind's), status.warn for a cost
 // established (the maintainer, 2026-10-21); the pending reboot, with no row, is the host block's
-// (HeaderViewOf). The main menu and SSH Login draw the CVE's established
+// (HeaderViewOf). The main menu and the SSH screen draw the CVE's established
 // ones as their alert instead (AlertOf).
 //
 // A report for a control that is no row of the score (DNS, NTP, Syslog) is
@@ -96,19 +100,22 @@ func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
 	}
 	at := map[string]int{} // a row's index, by control
 	for _, rw := range rows {
-		if rw.ID == authID {
-			if i, ok := at[loginID]; ok { // SSH Auth is drawn in SSH Login's row
-				v.Status.Rows[i] = mergeSSH(v.Status.Rows[i], rowOf(rw, first))
-				at[rw.ID] = i
-				continue
-			}
+		i, merged := at[loginID]
+		switch {
+		case rw.ID == loginID:
+			part := func(id string) component.StatusRow { return rowOf(risk.Row{ID: id}, first) }
+			at[rw.ID] = len(v.Status.Rows)
+			v.Status.Rows = append(v.Status.Rows, mergeSSH(part(loginID), part(authID), part(portID)))
+		case merged && (rw.ID == authID || rw.ID == portID): // drawn in the SSH row
+			at[rw.ID] = i
+		default:
+			at[rw.ID] = len(v.Status.Rows)
+			v.Status.Rows = append(v.Status.Rows, rowOf(rw, first))
 		}
-		at[rw.ID] = len(v.Status.Rows)
-		v.Status.Rows = append(v.Status.Rows, rowOf(rw, first))
 	}
 	for _, f := range l.Factors {
 		if i, ok := at[f.Control]; ok {
-			// SSH Login's and SSH Auth's share a row: a line both have
+			// The SSH controls share a row: a line more than one has
 			// ("Counted as not configured") is said once.
 			if line := (component.StatusLine{Text: f.Detail, Warn: f.Established}); !slices.Contains(v.Status.Rows[i].Lines, line) {
 				v.Status.Rows[i].Lines = append(v.Status.Rows[i].Lines, line)
@@ -120,8 +127,8 @@ func StatusViewOf(reports []engine.Report, l risk.Level) StatusView {
 }
 
 // ReportRows are the reports as the report to hand over lists them, one
-// row a control: the score's rows in their order (risk.Rows), SSH Login
-// and SSH Auth each its own, a row with no report Unknown; then every
+// row a control: the score's rows in their order (risk.Rows), SSH Login,
+// SSH Auth and SSH Port each its own, a row with no report Unknown; then every
 // other control's report, in the reports' order. No row has a line. It is
 // pure.
 func ReportRows(reports []engine.Report) []component.StatusRow {
@@ -162,39 +169,149 @@ func rowOf(rw risk.Row, first map[string]engine.Report) component.StatusRow {
 var worse = []component.StatusState{component.StatusNotConfigured, component.StatusPartial, component.StatusUnknown,
 	component.StatusConfigured, component.StatusNotApplicable}
 
-// proxmoxNote ends SSH Login's Configured detail on Proxmox VE
-// (ssh.DetailProxmoxKeyOnly). The merged pair leaves it out, to fit the
-// row's 35 cells after "+": "root key-only, key-only auth".
-const proxmoxNote = " (Proxmox)"
+// SSHRow is the label of the main menu's one SSH row, and of the SSH
+// screen's (the maintainer, 2026-11-15).
+const SSHRow = screen.SSHTitle
 
-// mergeSSH is the SSH Login row with SSH Auth's in it (the maintainer,
-// 2026-11-14; gallery-menu-layout.md, decisions 14 (a) and 16 (a)): SSH
-// Login's label, the worse of the two states, and the details of the parts
-// in that state, SSH Login's first: both where both are Configured ("root
-// disallowed, key-only auth"), else what is off alone ("password auth
-// on"), so that the state's word and the detail are about the same part
-// and a row with one part off fits its 37 cells. A part less bad than the
-// row is not said: the SSH Login screen says it. Two parts that say the
-// same say it once.
-func mergeSSH(login, auth component.StatusRow) component.StatusRow {
+// The SSH row's words (the maintainer, 2026-11-15;
+// gallery-menu-layout.md §7). sshRowWords are a Configured part's, by the
+// control's detail: "key+password, no root, port 2230" is his text. On
+// Proxmox VE root logs in by key, so the row does not say "no root",
+// and "(Proxmox)" is left out to fit the row's 35 cells after "+"
+// (proposed). A detail not listed is said as it is.
+var sshRowWords = map[string]string{
+	ssh.DetailKeyOnly:        "key-only",
+	ssh.DetailKeyAndPassword: "key+password",
+	ssh.DetailRootDisallowed: "no root",
+	ssh.DetailProxmoxKeyOnly: "root key-only",
+}
+
+const (
+	sshPort        = "port "             // then the port: "port 2230"
+	sshPorts       = "ports "            // then several: "ports 22 and 2230", "ports 2230, 2231, not 22"
+	sshNPorts      = "%d ports"          // several off 22, Configured: "2 ports", to fit the 35 cells
+	sshDefaultPort = "default port (22)" // his text
+	sshNot22       = ", not 22"          // Proxmox VE, off its port: "port 2230, not 22"
+	sshPortUnknown = "port: "            // then why the port is not read: "port: can't read"
+)
+
+// portWords are the SSH Port row p's words in the SSH row: "port 2230"
+// off 22, "2 ports" for several, which the SSH screen's section lists,
+// "default port (22)" on 22,
+// "ports 22 and 2230" on both. Proxmox VE's baseline is 22: Configured
+// there is "port 22", and off it "port 2230, not 22". Any other detail is
+// said as it is ("other ports configured").
+func portWords(p component.StatusRow) string {
+	ok := p.State == component.StatusConfigured
+	others, off22 := ssh.OtherPorts(p.Detail)
+	lead, n := sshPort, strings.Count(others, ",")+1
+	if n > 1 {
+		lead = sshPorts
+	}
+	switch {
+	case p.Detail == ssh.DetailDefaultPort && ok:
+		return sshPort + "22"
+	case p.Detail == ssh.DetailDefaultPort:
+		return sshDefaultPort
+	case off22 && ok && n > 1:
+		return fmt.Sprintf(sshNPorts, n)
+	case off22 && ok:
+		return lead + others
+	case off22:
+		return lead + others + sshNot22
+	case strings.HasPrefix(p.Detail, ssh.DetailWith22):
+		return sshPorts + p.Detail
+	}
+	return p.Detail
+}
+
+// mergeSSH is the main menu's SSH row: SSH Login's, SSH Auth's and SSH
+// Port's rows as one (the maintainer, 2026-11-15; gallery-menu-layout.md
+// §7), for display alone.
+//
+// Login and auth first, as v0.10.1 merged them (2026-11-14, decisions 14
+// (a) and 16 (a)): the worse of the two states (worse), and the details of
+// the parts in that state, SSH Login's first, else what is off alone
+// ("password auth on"), so that the state's word and the detail are about
+// the same part. Two parts that say the same say it once.
+//
+// Then the port. Where that pair is Configured: with the port Configured
+// too, the three parts in the row's words, auth, login, port ("key-only,
+// no root, port 2230"); with the port on 22, or on 22 and another,
+// the row is Partial and says the port alone ("default port (22)"), never
+// Not Configured for the port's sake; with the port not read it is Unknown
+// ("port: can't read"). Where the pair is not Configured the row is the
+// pair's, and a port on 22 is a line under it in the warning colour
+// ("Default port (22)"); a port off 22, or not read, adds nothing there:
+// the level's factor says a part not read. On Proxmox VE, whose port is
+// 22, the line is for a port off it ("Port 2230, not 22"). The row is
+// Configured for the three Configured alone: with a part Not Applicable
+// (no SSH server, read between two checks) and none off or not read, it
+// is Not Applicable, "no SSH server".
+func mergeSSH(login, auth, port component.StatusRow) component.StatusRow {
 	out := login
+	out.Label = SSHRow
 	for _, s := range worse {
 		if login.State == s || auth.State == s {
 			out.State = s
 			break
 		}
 	}
+	// "+" is for three parts Configured, no fewer: a part Not Applicable
+	// beside one Configured (sshd gone between two reads) makes the row Not
+	// Applicable, in that part's words.
+	if na := component.StatusNotApplicable; out.State == component.StatusConfigured && (login.State == na || auth.State == na) {
+		out.State = na
+	}
+	configured := out.State == component.StatusConfigured
 	var details []string
-	for _, r := range []component.StatusRow{login, auth} {
-		if r.State == out.State && r.Detail != "" && !slices.Contains(details, r.Detail) {
-			details = append(details, r.Detail)
+	say := func(d string) {
+		if d != "" && !slices.Contains(details, d) {
+			details = append(details, d)
 		}
 	}
-	if len(details) > 1 {
-		details[0] = strings.TrimSuffix(details[0], proxmoxNote)
+	parts := []component.StatusRow{login, auth}
+	if configured {
+		parts = []component.StatusRow{auth, login}
+	}
+	for _, r := range parts {
+		if d := r.Detail; r.State == out.State {
+			if w, ok := sshRowWords[d]; ok && configured {
+				d = w
+			}
+			say(d)
+		}
+	}
+	switch off := port.State == component.StatusNotConfigured || port.State == component.StatusPartial; {
+	case !configured:
+		if off && out.State != component.StatusNotApplicable {
+			out.Lines = append(out.Lines, component.StatusLine{Text: upperFirst(portWords(port)), Warn: true})
+		}
+	case port.State == component.StatusConfigured:
+		out.State = component.StatusConfigured
+		say(portWords(port))
+	case off:
+		out.State, details = component.StatusPartial, []string{portWords(port)}
+	case port.State == component.StatusUnknown:
+		out.State, details = component.StatusUnknown, nil
+		if port.Detail != "" {
+			details = []string{sshPortUnknown + port.Detail}
+		}
+	default: // Not Applicable: the row is never Configured without the port
+		out.State, details = port.State, nil
+		say(port.Detail)
 	}
 	out.Detail = strings.Join(details, ", ")
 	return out
+}
+
+// upperFirst is s with its first letter a capital, as a line under a row
+// starts.
+func upperFirst(s string) string {
+	if s == "" {
+		return s
+	}
+	return strings.ToUpper(s[:1]) + s[1:]
 }
 
 // cantRead is an Info row's problem where the check failed and its status

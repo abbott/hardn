@@ -16,7 +16,7 @@ For anyone administering a Linux server, container or virtual machine without a 
 | # | Option | Description |
 |---|---|---|
 | 1 | User | Manage: users, admin rights, SSH keys; review accounts |
-| 2 | SSH Login | Manage: root login, password login, the port; list SSH keys |
+| 2 | SSH | Manage: root login, password login, the port; list SSH keys |
 | 3 | Firewall | Manage: `ufw` or firewalld, with SSH let through; show listening ports |
 | 4 | Kernel | Manage: network and kernel settings (sysctl) |
 | 5 | Auto Updates | Manage: automatic updates |
@@ -35,7 +35,7 @@ AppArmor is displayed, not configured. What each option shows and changes: [docs
 ## How It Works
 
 1. **Plan.** hardn reads the host and shows what will change, with diffs. Some changes are refused at this point, with the reason and what to do (see [safeguards](docs/safeguards.md)).
-2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH Login, enabling the firewall, some user changes, Run All) asks you to type the hostname.
+2. **Review.** A change that can't lock you out asks y/N. A change that could lock you out (SSH, enabling the firewall, some user changes, Run All) asks you to type the hostname.
 3. **Apply.** The files a change touches are backed up first (with backups off, only those a rollback needs). A step that fails rolls the whole change back.
 4. **Confirm or revert.** After a lockout-risk change, a timer starts (3 minutes by default). Open a new SSH connection from another machine, to the new port if the change moved it, and run `sudo hardn confirm`. If nobody confirms in time, the change is rolled back. `sudo hardn rollback <id>` undoes it sooner.
 

@@ -201,6 +201,9 @@ func TestStatusHosts(t *testing.T) {
 			var lines []string
 			for _, r := range vm.Status.Rows {
 				for _, l := range r.Lines {
+					if r.Label == output.SSHRow && l.Text == "Default port (22)" {
+						continue // the SSH row's own line, no factor's (pkg/output's TestMergeSSH)
+					}
 					muted := ""
 					if !l.Warn {
 						muted = " (muted)"
@@ -230,23 +233,19 @@ func TestStatusHosts(t *testing.T) {
 				t.Errorf("header %q, host %+v; want %q, %s at 192.0.2.20, up %q, reboot line %d", bar, hb, want.bar, hostName, want.uptime, want.reboot)
 			}
 			// The main menu's rows are the reports', in risk.Rows' order, SSH
-			// Auth's in the SSH Login row: one row fewer, the row's detail
-			// the detail of whichever of the two is in the row's state.
-			if len(vm.Status.Rows) != len(st.reports)-1 || len(vm.Info.Rows) != 0 {
+			// Login's, SSH Auth's and SSH Port's the one SSH row: two rows
+			// fewer (pkg/output's TestMergeSSH holds its words).
+			if len(vm.Status.Rows) != len(st.reports)-2 || len(vm.Info.Rows) != 0 {
 				t.Fatalf("%d rows and %d under them for %d reports", len(vm.Status.Rows), len(vm.Info.Rows), len(st.reports))
 			}
 			for i, r := range vm.Status.Rows {
 				rp := st.reports[i]
 				if i >= 2 {
-					rp = st.reports[i+1] // after SSH Auth
+					rp = st.reports[i+2] // after SSH Auth and SSH Port
 				}
-				if r.Label != rp.Title || r.Detail != rp.Status.Detail && i != 1 {
+				if i == 1 && r.Label != output.SSHRow || i != 1 && (r.Label != rp.Title || r.Detail != rp.Status.Detail) {
 					t.Errorf("main menu row %d: %+v, want %s %q", i, r, rp.Title, rp.Status.Detail)
 				}
-			}
-			login, auth := st.reports[1].Status.Detail, st.reports[2].Status.Detail
-			if got := vm.Status.Rows[1].Detail; got != login && got != auth && got != login+", "+auth {
-				t.Errorf("the SSH Login row %q, of %q and %q", got, login, auth)
 			}
 			f := st.facts
 			container := sh.name == "container"
@@ -356,7 +355,7 @@ func TestPlayStatus(t *testing.T) {
 			t.Errorf("no %q in the transcript", s)
 		}
 	}
-	if n := strings.Count(out, "+ root disallowed, key-only auth"); n != 2 {
+	if n := strings.Count(out, "+ key-only, no root, port 2230"); n != 2 {
 		t.Errorf("the host's main menu drawn %d times, want twice", n)
 	}
 	code, out, _, _ = playGallery([]string{"q"}, "-profile", "plain", "-sequence", "typed", "-fail", "2", statusPrefix+"/figma")

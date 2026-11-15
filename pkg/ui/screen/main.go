@@ -71,8 +71,8 @@ const CompactMainMenu = false
 // blank line, and is left out with its gap when it has no row. An Alert, which Figma does not draw, stands between the StatusList
 // and the Divider, in the compact form after the rows: three lines and a
 // gap more. From theme.StackBelow columns up Figma's content, seven rows,
-// takes 35 lines, as a host's seven do since 2026-11-14 (SSH Auth in the
-// SSH Login row, Kernel, no DNS), with each line under a row one more; below that width the rows stack (DEV-021), and at 60 columns
+// takes 35 lines; a host's six take 34 since 2026-11-15 (one SSH row,
+// Kernel, no DNS), with each line under a row one more; below that width the rows stack (DEV-021), and at 60 columns
 // Figma's content takes 57. The main menu takes this form at every height
 // (CompactMainMenu): on a terminal shorter than its lines, its top
 // scrolls off, the prompt staying on the terminal's last line.
@@ -266,7 +266,7 @@ func MainMenuItems(pve, el bool) []component.MenuItem {
 	}
 	return []component.MenuItem{
 		item("1", "User", "Create, manage", "sudo, SSH keys"),
-		item("2", "SSH Login", "Disable root and passwords, set port", ""),
+		item("2", SSHTitle, "Disable root and passwords, set port", ""),
 		item("3", "Firewall", firewall, ""),
 		item("4", "Kernel", "Harden sysctl", "network, kernel"),
 		item("5", "Auto Updates", updates, ""),
@@ -297,7 +297,7 @@ const CVEUnfixed = "CVE-2026-123158"
 //
 //	   # Warning: CVE-2026-123158
 //	   # Upgrade openssh.
-//	   # Select option: 2) SSH Login
+//	   # Select option: 2) SSH
 //
 //	----------------------------------------------------------------
 //
@@ -313,7 +313,7 @@ const CVEUnfixed = "CVE-2026-123158"
 //
 //	# Warning: CVE-2026-123158
 //	# Upgrade openssh.
-//	# Select option: 2) SSH Login
+//	# Select option: 2) SSH
 //
 //	# Warning: Alpine 3.22 support ends 2027-05-01
 //	# Upgrade to Alpine 3.24.
@@ -326,7 +326,7 @@ type Alert struct {
 	// Fix is what to do: "Upgrade openssh."; empty for none.
 	Fix string
 	// Item is the label of the main menu's item where the fix is done:
-	// "SSH Login".
+	// "SSH".
 	Item string
 }
 

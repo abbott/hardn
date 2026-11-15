@@ -19,8 +19,7 @@ $
    ␛[38;2;219;184;83m⛬␛[m  ␛[1;38;2;192;196;216mRisk Level␛[m           ␛[38;2;219;184;83mModerate␛[m ␛[38;2;86;91;107m≈ medium security␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, doas␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot locked, key-only auth␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mdefault port (22)␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107m6 to set␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mno apk-cron␛[m$
@@ -28,14 +27,14 @@ $
 $
    ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: CVE-2026-123158␛[m$
    ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade openssh.␛[m$
-   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSelect option:␛[m ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSelect option:␛[m ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mManage rules, port listening␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156mHarden sysctl␛[m ␛[38;2;86;91;107m(network, kernel)␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mRun All␛[m              ␛[38;2;129;134;156mQueue hardening actions␛[m$
@@ -67,8 +66,7 @@ $
   [*] Risk Level           Moderate ~ medium security$
 $
   [+] User                 + non-root, doas$
-  [+] SSH Login            + root locked, key-only auth$
-  [ ] SSH Port             Not Configured default (22)$
+  [ ] SSH                  Partial default port (22)$
   [ ] Firewall             Not Configured ufw not installed$
   [ ] Kernel               Not Configured 6 to set$
   [ ] Auto Updates         Not Configured no apk-cron$
@@ -76,14 +74,14 @@ $
 $
    # Warning: CVE-2026-123158$
    # Upgrade openssh.$
-   # Select option: 2) SSH Login$
+   # Select option: 2) SSH$
 $
 ----------------------------------------------------------------$
 $
   Select an option         Mode Live$
 $
    1) User                 Create, manage (sudo, SSH keys)$
-   2) SSH Login            Disable root and passwords, set port$
+   2) SSH                  Disable root and passwords, set port$
    3) Firewall             Manage rules, port listening$
    4) Kernel               Harden sysctl (network, kernel)$
    6) Run All              Queue hardening actions$
@@ -119,10 +117,8 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, doas␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot locked, key-only auth␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mdefault port (22)␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mKernel␛[m$
@@ -134,7 +130,7 @@ $
 $
    ␛[48;2;210;188;19m ␛[m ␛[1;38;2;219;184;83mWarning: CVE-2026-123158␛[m$
    ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mUpgrade openssh.␛[m$
-   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSelect option:␛[m ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mSelect option:␛[m ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m$
 $
 ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -143,7 +139,7 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mManage rules, port listening␛[m$

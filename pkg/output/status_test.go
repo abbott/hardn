@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/controls/apparmor"
@@ -68,7 +69,7 @@ func upFor(d time.Duration) header.Header {
 }
 
 // TestStatusViewOfFigma: Figma's host, its rows in the rows' order
-// (risk.Rows) with its details, SSH Auth in the SSH Login row, no row for
+// (risk.Rows) with its details, the three SSH controls in the SSH row, no row for
 // DNS, which is fine, and its Moderate level, Figma's one line, with the
 // long uptime its one factor, a cost established under Auto Updates.
 func TestStatusViewOfFigma(t *testing.T) {
@@ -78,8 +79,7 @@ func TestStatusViewOfFigma(t *testing.T) {
 		Risk: component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"},
 		Status: component.StatusList{Rows: []component.StatusRow{
 			{Label: "User", State: component.StatusConfigured, Detail: "non-root, sudo"},
-			{Label: "SSH Login", State: component.StatusConfigured, Detail: "root disallowed, key-only auth"},
-			{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
+			{Label: "SSH", State: component.StatusConfigured, Detail: "key-only, no root, port 2230"},
 			{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
 			{Label: "Kernel", State: component.StatusConfigured, Detail: "6 items applied"},
 			{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades",
@@ -110,8 +110,7 @@ func TestStatusRows(t *testing.T) {
 	counted := []component.StatusLine{{Text: "Counted as not configured"}}
 	want := []component.StatusRow{
 		{Label: "User", State: component.StatusUnknown, Lines: counted},
-		{Label: "SSH Login", State: component.StatusUnknown, Detail: "sshd not running", Lines: counted},
-		{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
+		{Label: "SSH", State: component.StatusUnknown, Detail: "sshd not running", Lines: counted},
 		{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
 		{Label: "Kernel", State: component.StatusConfigured, Detail: "6 items applied"},
 		{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades"},
@@ -126,63 +125,228 @@ func TestStatusRows(t *testing.T) {
 	}
 }
 
-// TestMergeSSH: the SSH Login row with SSH Auth in it (the maintainer,
-// 2026-11-14): the worse of the two states, a part read as off worse than
-// one not read; both details when both are Configured; else the details of
-// the parts in the row's state alone, SSH Login's first, a part less bad
-// not said; two that say the same, once.
+// TestMergeSSH: the one SSH row (the maintainer, 2026-11-15): SSH Login,
+// SSH Auth and SSH Port, labelled "SSH". All three Configured, his words,
+// auth, login, port. Login and auth Configured and the port on 22: Partial,
+// "default port (22)", no line. Login and auth not both Configured: their
+// state and detail as v0.10.1 merged them (the worse of the two, a part
+// read as off worse than one not read, the details of the parts in that
+// state, SSH Login's first), with a line under the row where the port is
+// on 22, and nothing for a port off 22 or not read.
 func TestMergeSSH(t *testing.T) {
 	ok, off, part, na, unk := engine.Configured, engine.NotConfigured, engine.Partial, engine.NotApplicable, engine.Unknown
+	type st struct {
+		state  engine.State
+		detail string
+	}
+	type want struct {
+		state  component.StatusState
+		detail string
+		line   string
+	}
+	const defaultLine = "Default port (22)"
+	set, def, unread := st{ok, "non-default (2230)"}, st{off, ssh.DetailDefaultPort}, st{unk, "can't read"}
+	// Every pair of login and auth, with the port off 22, on 22 and not read.
 	for _, c := range []struct {
-		login       engine.State
-		loginDetail string
-		auth        engine.State
-		authDetail  string
-		want        component.StatusState
-		detail      string
+		login, auth      st
+		set, def, unread want
 	}{
-		{ok, "root disallowed", ok, "key-only auth", component.StatusConfigured, "root disallowed, key-only auth"},
-		{ok, "root disallowed", off, "password auth on", component.StatusNotConfigured, "password auth on"},
-		{off, "root allowed", ok, "key-only auth", component.StatusNotConfigured, "root allowed"},
-		{part, "root key-only", off, "password auth on", component.StatusNotConfigured, "password auth on"},
-		{off, "root allowed", off, "password auth on", component.StatusNotConfigured, "root allowed, password auth on"},
-		{off, "root allowed", part, "match block allows passwords", component.StatusNotConfigured, "root allowed"},
-		{part, "root key-only", ok, "key-only auth", component.StatusPartial, "root key-only"},
-		{ok, "root disallowed", unk, "can't read", component.StatusUnknown, "can't read"},
-		{unk, "can't read", unk, "can't read", component.StatusUnknown, "can't read"},
+		{st{ok, "root disallowed"}, st{ok, "key-only auth"},
+			want{component.StatusConfigured, "key-only, no root, port 2230", ""},
+			want{component.StatusPartial, "default port (22)", ""},
+			want{component.StatusUnknown, "port: can't read", ""}},
+		{st{ok, "root locked"}, st{ok, "key and password"},
+			want{component.StatusConfigured, "key+password, root locked, port 2230", ""},
+			want{component.StatusPartial, "default port (22)", ""},
+			want{component.StatusUnknown, "port: can't read", ""}},
+		{st{ok, "root disallowed"}, st{off, "password auth on"},
+			want{component.StatusNotConfigured, "password auth on", ""},
+			want{component.StatusNotConfigured, "password auth on", defaultLine},
+			want{component.StatusNotConfigured, "password auth on", ""}},
+		{st{off, "root allowed"}, st{ok, "key-only auth"},
+			want{component.StatusNotConfigured, "root allowed", ""},
+			want{component.StatusNotConfigured, "root allowed", defaultLine},
+			want{component.StatusNotConfigured, "root allowed", ""}},
+		{st{part, "root key-only"}, st{off, "password auth on"},
+			want{component.StatusNotConfigured, "password auth on", ""},
+			want{component.StatusNotConfigured, "password auth on", defaultLine},
+			want{component.StatusNotConfigured, "password auth on", ""}},
+		{st{off, "root allowed"}, st{off, "password auth on"},
+			want{component.StatusNotConfigured, "root allowed, password auth on", ""},
+			want{component.StatusNotConfigured, "root allowed, password auth on", defaultLine},
+			want{component.StatusNotConfigured, "root allowed, password auth on", ""}},
+		{st{off, "root allowed"}, st{part, "match block allows passwords"},
+			want{component.StatusNotConfigured, "root allowed", ""},
+			want{component.StatusNotConfigured, "root allowed", defaultLine},
+			want{component.StatusNotConfigured, "root allowed", ""}},
+		{st{part, "root key-only"}, st{ok, "key-only auth"},
+			want{component.StatusPartial, "root key-only", ""},
+			want{component.StatusPartial, "root key-only", defaultLine},
+			want{component.StatusPartial, "root key-only", ""}},
+		{st{part, "root disallowed"}, st{part, "key auth off"}, // a Partial part keeps the control's words
+			want{component.StatusPartial, "root disallowed, key auth off", ""},
+			want{component.StatusPartial, "root disallowed, key auth off", defaultLine},
+			want{component.StatusPartial, "root disallowed, key auth off", ""}},
+		{st{ok, "root disallowed"}, st{unk, "can't read"},
+			want{component.StatusUnknown, "can't read", ""},
+			want{component.StatusUnknown, "can't read", defaultLine},
+			want{component.StatusUnknown, "can't read", ""}},
+		{st{unk, "can't read"}, st{unk, "can't read"},
+			want{component.StatusUnknown, "can't read", ""},
+			want{component.StatusUnknown, "can't read", defaultLine},
+			want{component.StatusUnknown, "can't read", ""}},
 		// A part read as off outranks one not read: what hardn established is said.
-		{off, "root allowed", unk, "can't read", component.StatusNotConfigured, "root allowed"},
-		{unk, "can't tell if root key works", off, "password auth on", component.StatusNotConfigured, "password auth on"},
-		{part, "root key-only", unk, "can't read", component.StatusPartial, "root key-only"},
-		// Proxmox VE's pair fits the row: 28 cells.
-		{ok, ssh.DetailProxmoxKeyOnly, ok, "key-only auth", component.StatusConfigured, "root key-only, key-only auth"},
-		{ok, ssh.DetailProxmoxKeyOnly, off, "password auth on", component.StatusNotConfigured, "password auth on"},
-		{ok, ssh.DetailProxmoxKeyOnly, na, "no SSH server", component.StatusConfigured, ssh.DetailProxmoxKeyOnly},
-		{na, "no SSH server", na, "no SSH server", component.StatusNotApplicable, "no SSH server"},
-		{ok, "root disallowed", na, "no SSH server", component.StatusConfigured, "root disallowed"},
-		{ok, "", ok, "key-only auth", component.StatusConfigured, "key-only auth"},
-		{ok, "", ok, "", component.StatusConfigured, ""},
+		{st{off, "root allowed"}, st{unk, "can't read"},
+			want{component.StatusNotConfigured, "root allowed", ""},
+			want{component.StatusNotConfigured, "root allowed", defaultLine},
+			want{component.StatusNotConfigured, "root allowed", ""}},
+		{st{unk, "can't tell if root key works"}, st{off, "password auth on"},
+			want{component.StatusNotConfigured, "password auth on", ""},
+			want{component.StatusNotConfigured, "password auth on", defaultLine},
+			want{component.StatusNotConfigured, "password auth on", ""}},
+		{st{part, "root key-only"}, st{unk, "can't read"},
+			want{component.StatusPartial, "root key-only", ""},
+			want{component.StatusPartial, "root key-only", defaultLine},
+			want{component.StatusPartial, "root key-only", ""}},
+		// A part Not Applicable beside one Configured (sshd gone between two
+		// reads): never "+", whatever the port.
+		{st{ok, "root disallowed"}, st{na, "no SSH server"},
+			want{component.StatusNotApplicable, "no SSH server", ""},
+			want{component.StatusNotApplicable, "no SSH server", ""},
+			want{component.StatusNotApplicable, "no SSH server", ""}},
+		{st{na, "no SSH server"}, st{ok, "key-only auth"},
+			want{component.StatusNotApplicable, "no SSH server", ""},
+			want{component.StatusNotApplicable, "no SSH server", ""},
+			want{component.StatusNotApplicable, "no SSH server", ""}},
+		{st{na, "no SSH server"}, st{off, "password auth on"}, // what is read as off is still said
+			want{component.StatusNotConfigured, "password auth on", ""},
+			want{component.StatusNotConfigured, "password auth on", defaultLine},
+			want{component.StatusNotConfigured, "password auth on", ""}},
+		{st{ok, ""}, st{ok, "key-only auth"},
+			want{component.StatusConfigured, "key-only, port 2230", ""},
+			want{component.StatusPartial, "default port (22)", ""},
+			want{component.StatusUnknown, "port: can't read", ""}},
 	} {
-		rs := []engine.Report{row("ssh.auth", "SSH Auth", c.auth, c.authDetail), row("ssh.login", "SSH Login", c.login, c.loginDetail)}
-		rows := output.StatusViewOf(rs, risk.Level{}).Status.Rows
-		if len(rows) != len(risk.Rows())-1 || rows[1].Label != "SSH Login" || rows[2].Label != "SSH Port" {
-			t.Fatalf("rows %+v", rows)
-		}
-		if got := rows[1]; got.State != c.want || got.Detail != c.detail {
-			t.Errorf("login %v %q, auth %v %q: %v %q, want %v %q", c.login, c.loginDetail, c.auth, c.authDetail, got.State, got.Detail, c.want, c.detail)
+		for _, p := range []struct {
+			port st
+			want want
+		}{{set, c.set}, {def, c.def}, {unread, c.unread}} {
+			if got := sshRow(t, c.login, c.auth, p.port); got != p.want {
+				t.Errorf("login %+v, auth %+v, port %+v: %+v, want %+v", c.login, c.auth, p.port, got, p.want)
+			}
 		}
 	}
-	// Each control's factor is a line under the one row, in the level's order.
-	l := risk.Level{Factors: []risk.Factor{{Control: "ssh.login", Detail: "Counted as not configured"}, {Control: "ssh.auth", Detail: "Can't tell if sshd is patched"}}}
-	rows := output.StatusViewOf(nil, l).Status.Rows
-	if got := rows[1].Lines; len(got) != 2 || got[0].Text != "Counted as not configured" || got[1].Text != "Can't tell if sshd is patched" {
-		t.Errorf("lines under SSH Login: %+v", got)
+	// The port's other details, and Proxmox VE, whose baseline is port 22
+	// and root by key: the row does not say "no root" there.
+	both, pve := [2]st{{ok, "root disallowed"}, {ok, "key-only auth"}}, [2]st{{ok, ssh.DetailProxmoxKeyOnly}, {ok, "key-only auth"}}
+	keyOnly := [2]st{{part, "root key-only"}, {ok, "key-only auth"}}
+	for _, c := range []struct {
+		pair [2]st
+		port st
+		want want
+	}{
+		{both, st{ok, "non-default (2230, 2231)"}, want{component.StatusConfigured, "key-only, no root, 2 ports", ""}},
+		{both, st{ok, "non-default (22300)"}, want{component.StatusConfigured, "key-only, no root, port 22300", ""}},
+		{both, st{part, "22 and 2230"}, want{component.StatusPartial, "ports 22 and 2230", ""}},
+		{keyOnly, st{part, "22 and 2230"}, want{component.StatusPartial, "root key-only", "Ports 22 and 2230"}},
+		{both, st{unk, "not listening on 2230"}, want{component.StatusUnknown, "port: not listening on 2230", ""}},
+		{both, st{unk, ""}, want{component.StatusUnknown, "", ""}},
+		{both, st{na, "no SSH server"}, want{component.StatusNotApplicable, "no SSH server", ""}},
+		{keyOnly, st{na, "no SSH server"}, want{component.StatusPartial, "root key-only", ""}},
+		{[2]st{{na, "no SSH server"}, {na, "no SSH server"}}, st{ok, "non-default (2230)"}, want{component.StatusNotApplicable, "no SSH server", ""}},
+		{[2]st{{na, "no SSH server"}, {na, "no SSH server"}}, st{na, "no SSH server"}, want{component.StatusNotApplicable, "no SSH server", ""}},
+		{pve, st{ok, ssh.DetailDefaultPort}, want{component.StatusConfigured, "key-only, root key-only, port 22", ""}},
+		{pve, st{off, "non-default (2230)"}, want{component.StatusPartial, "port 2230, not 22", ""}},
+		{pve, st{off, "non-default (2230, 2231)"}, want{component.StatusPartial, "ports 2230, 2231, not 22", ""}},
+		{pve, st{off, "22 and 2230"}, want{component.StatusPartial, "ports 22 and 2230", ""}},
+		{pve, st{off, "other ports configured"}, want{component.StatusPartial, "other ports configured", ""}},
+		{[2]st{{ok, ssh.DetailProxmoxKeyOnly}, {off, "password auth on"}}, st{ok, ssh.DetailDefaultPort}, want{component.StatusNotConfigured, "password auth on", ""}},
+		{[2]st{{part, "root key login blocked"}, {ok, "key-only auth"}}, st{off, "non-default (2230)"}, want{component.StatusPartial, "root key login blocked", "Port 2230, not 22"}},
+	} {
+		if got := sshRow(t, c.pair[0], c.pair[1], c.port); got != c.want {
+			t.Errorf("login %+v, auth %+v, port %+v: %+v, want %+v", c.pair[0], c.pair[1], c.port, got, c.want)
+		}
 	}
-	// A line both have is said once: neither report read.
+	// Every Configured row's detail fits the 35 cells after "+", with a
+	// port of five digits, but "key+password" beside "root locked" or on
+	// Proxmox VE, which have no shorter words.
+	const cells = 35
+	type combo struct{ login, auth, port string }
+	long := map[combo]string{
+		{"root locked", ssh.DetailKeyAndPassword, "non-default (2230)"}:             "key+password, root locked, port 2230",
+		{"root locked", ssh.DetailKeyAndPassword, "non-default (65535)"}:            "key+password, root locked, port 65535",
+		{ssh.DetailProxmoxKeyOnly, ssh.DetailKeyAndPassword, ssh.DetailDefaultPort}: "key+password, root key-only, port 22",
+	}
+	for _, login := range []string{ssh.DetailRootDisallowed, "root locked", ssh.DetailProxmoxKeyOnly} {
+		ports := []string{"non-default (2230)", "non-default (65535)", "non-default (65534, 65535)"}
+		if login == ssh.DetailProxmoxKeyOnly {
+			ports = []string{ssh.DetailDefaultPort}
+		}
+		for _, auth := range []string{ssh.DetailKeyOnly, ssh.DetailKeyAndPassword} {
+			for _, port := range ports {
+				got := sshRow(t, st{ok, login}, st{ok, auth}, st{ok, port})
+				want, over := long[combo{login, auth, port}]
+				switch n := utf8.RuneCountInString(got.detail); {
+				case got.state != component.StatusConfigured:
+					t.Errorf("%s, %s, %s: %+v", login, auth, port, got)
+				case over && (got.detail != want || n <= cells):
+					t.Errorf("%q is %d cells, want %q, over %d", got.detail, n, want, cells)
+				case !over && n > cells:
+					t.Errorf("%q is %d cells of %d", got.detail, n, cells)
+				}
+			}
+		}
+	}
+	if d := sshRow(t, both[0], st{ok, ssh.DetailKeyAndPassword}, st{ok, "non-default (65535)"}).detail; d != "key+password, no root, port 65535" {
+		t.Errorf("%q", d)
+	}
+	// Each control's factor is a line under the one row, in the level's
+	// order, after the port's own line.
+	l := risk.Level{Factors: []risk.Factor{{Control: "ssh.login", Detail: "Counted as not configured"}, {Control: "ssh.auth", Detail: "Can't tell if sshd is patched"},
+		{Control: "ssh.port", Detail: "Counted as not configured"}}}
+	rows := output.StatusViewOf([]engine.Report{row("ssh.port", "SSH Port", off, ssh.DetailDefaultPort)}, l).Status.Rows
+	if got := rows[1].Lines; len(got) != 3 || got[0] != (component.StatusLine{Text: "Default port (22)", Warn: true}) ||
+		got[1].Text != "Counted as not configured" || got[2].Text != "Can't tell if sshd is patched" {
+		t.Errorf("lines under SSH: %+v", got)
+	}
+	// A line the three have is said once: no report read.
 	none := output.StatusViewOf(nil, risk.Assess(nil, upFor(time.Hour))).Status.Rows[1]
-	if none.State != component.StatusUnknown || len(none.Lines) != 1 || none.Lines[0].Text != "Counted as not configured" {
-		t.Errorf("neither read: %+v", none)
+	if none.Label != "SSH" || none.State != component.StatusUnknown || len(none.Lines) != 1 || none.Lines[0].Text != "Counted as not configured" {
+		t.Errorf("none read: %+v", none)
 	}
+}
+
+// sshRow is the SSH row of the three controls' reports, given in an order
+// not the rows': its state, its detail and its one line, "" for none. The
+// row is the second of six, with no SSH Port row after it, and its line is
+// in the warning colour.
+func sshRow(t *testing.T, login, auth, port struct {
+	state  engine.State
+	detail string
+}) struct {
+	state  component.StatusState
+	detail string
+	line   string
+} {
+	t.Helper()
+	rs := []engine.Report{row("ssh.port", "SSH Port", port.state, port.detail), row("ssh.auth", "SSH Auth", auth.state, auth.detail),
+		row("ssh.login", "SSH Login", login.state, login.detail)}
+	rows := output.StatusViewOf(rs, risk.Level{}).Status.Rows
+	if len(rows) != len(risk.Rows())-2 || rows[1].Label != "SSH" || rows[2].Label != "Firewall" {
+		t.Fatalf("rows %+v", rows)
+	}
+	got := struct {
+		state  component.StatusState
+		detail string
+		line   string
+	}{rows[1].State, rows[1].Detail, ""}
+	switch lines := rows[1].Lines; {
+	case len(lines) > 1 || len(lines) == 1 && !lines[0].Warn:
+		t.Fatalf("lines %+v", lines)
+	case len(lines) == 1:
+		got.line = lines[0].Text
+	}
+	return got
 }
 
 // TestInfoRows: DNS, NTP and Syslog have a row only with a problem (the
@@ -265,7 +429,7 @@ func TestFactorLines(t *testing.T) {
 	for _, r := range risk.Rows() {
 		titles[r.ID] = r.Title
 	}
-	titles["ssh.auth"] = titles["ssh.login"] // one row for both (TestMergeSSH)
+	titles["ssh.login"], titles["ssh.auth"], titles["ssh.port"] = "SSH", "SSH", "SSH" // one row for the three (TestMergeSSH)
 	long := upFor(9999 * 24 * time.Hour)
 	long.Reboot.Pending = detect.Yes
 	every := []engine.Report{
@@ -303,7 +467,7 @@ func TestFactorLines(t *testing.T) {
 			case titles[f.Control] == "":
 				t.Errorf("%s: %s %q under %q, a row the main menu does not show", c.name, f.Kind, f.Detail, f.Control)
 			default:
-				// A line SSH Login and SSH Auth share is under their row once.
+				// A line the SSH controls share is under their row once.
 				if line := (component.StatusLine{Text: f.Detail, Warn: f.Established}); !slices.Contains(want[titles[f.Control]], line) {
 					want[titles[f.Control]] = append(want[titles[f.Control]], line)
 				}

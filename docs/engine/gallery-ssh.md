@@ -1,5 +1,7 @@
 # SSH Login mock (slice 6, unit (a))
 
+*Since `next/ssh-row` (2026-11-15; [gallery-menu-layout.md](gallery-menu-layout.md) §7): the screen is titled "SSH" and has one status row, SSH, for login, auth and port ([screen-ssh.md](screen-ssh.md)). `play ssh` lists "SSH hosts".*
+
 *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the screen has two status rows, SSH Auth drawn in the SSH Login row, as on the main menu ([screen-ssh.md](screen-ssh.md)).*
 
 Unit (a) of slice 6, `next/s6-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`ssh.go`, `sshhost.go`).

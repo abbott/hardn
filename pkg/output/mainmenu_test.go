@@ -39,7 +39,7 @@ func TestMainMenuOf(t *testing.T) {
 	if !reflect.DeepEqual(got, want) || got.Alert != nil {
 		t.Errorf("MainMenuOf = %+v\nwant %+v", got, want)
 	}
-	if got.Host.Hostname != "web-01" || got.Context.Codename != "Trixie" || got.Header.Version != "v9.9.9" || len(got.Status.Rows) != len(risk.Rows())-1 ||
+	if got.Host.Hostname != "web-01" || got.Context.Codename != "Trixie" || got.Header.Version != "v9.9.9" || len(got.Status.Rows) != len(risk.Rows())-2 ||
 		len(got.Info.Rows) != 1 || got.Info.Rows[0].Label != "DNS" || got.Info.Rows[0].Detail != "192.0.2.1" {
 		t.Errorf("header %+v, bar %+v, host %+v, %d rows", got.Header, got.Context, got.Host, len(got.Status.Rows))
 	}
@@ -52,13 +52,13 @@ func TestMainMenuOf(t *testing.T) {
 
 // TestAlertOf checks the main menu's alert: each established
 // CVE-2026-123158 factor of SSH Auth raises it, with the approved words and
-// the route to SSH Login, and is then no line under the SSH Login row,
-// which SSH Auth is drawn in, while the
+// the route to SSH, and is then no line under the SSH row, which SSH Auth
+// is drawn in, while the
 // risk level, its band and gloss, stays l's; whether sshd is patched not
 // established stays a line, with no alert; l is not changed; and
 // StatusViewOf over l keeps the line: only AlertOf drops it.
 func TestAlertOf(t *testing.T) {
-	want := &screen.Alert{Title: "CVE-2026-123158", Fix: "Upgrade openssh.", Item: "SSH Login"}
+	want := &screen.Alert{Title: "CVE-2026-123158", Fix: "Upgrade openssh.", Item: "SSH"}
 	for _, c := range []struct {
 		code  string
 		alert bool
@@ -88,12 +88,12 @@ func TestAlertOf(t *testing.T) {
 				lines = append(lines, r.Label+": "+x.Text)
 			}
 		}
-		if has := slices.Contains(lines, "SSH Login: "+c.line); has == c.alert {
+		if has := slices.Contains(lines, "SSH: "+c.line); has == c.alert {
 			t.Errorf("%s: lines %q; the line drawn: %v, want %v", c.code, lines, has, !c.alert)
 		}
 		var kept bool
 		for _, r := range output.StatusViewOf(rs, l).Status.Rows {
-			kept = kept || r.Label == "SSH Login" && slices.ContainsFunc(r.Lines, func(x component.StatusLine) bool { return x.Text == c.line })
+			kept = kept || r.Label == "SSH" && slices.ContainsFunc(r.Lines, func(x component.StatusLine) bool { return x.Text == c.line })
 		}
 		if !kept {
 			t.Errorf("%s: StatusViewOf lost SSH Auth's line %q", c.code, c.line)

@@ -28,7 +28,7 @@ import (
 )
 
 // The main menu's layout (docs/engine/gallery-menu-layout.md, adopted
-// 2026-11-14): "+" for "Configured", SSH Auth in the SSH Login row, a
+// 2026-11-14): "+" for "Configured", one SSH row (2026-11-15), a
 // Kernel row, a row for DNS, NTP or Syslog only with a problem, "~" under
 // a row, and the items' words. Each mock is reports, written here and not
 // read from a host, drawn through hardn's own mapping (risk.Assess,
@@ -156,6 +156,9 @@ func (b mlBlock) rows(c component.Ctx) string {
 	has := map[string]bool{}
 	for _, r := range b.reports {
 		has[r.Title] = true
+		if c := r.Control; c == mlLogin.ID() || c == mlAuth.ID() || c == mlPort.ID() {
+			has[output.SSHRow] = true
+		}
 	}
 	v := mlView(b.reports)
 	var scored component.StatusList
@@ -194,22 +197,39 @@ const (
 	mlDetail40 = "deny policy, 14 rules, 3 profiles in use"
 )
 
-// mlSSHCases are the merged SSH Login row's cases: SSH Login's and SSH
-// Auth's reports on each host.
+// mlSSHCases are the one SSH row's cases (the maintainer, 2026-11-15):
+// SSH Login's, SSH Auth's and SSH Port's reports on each host. The first
+// four are the ones he drew or worded.
 var mlSSHCases = []struct {
-	label       string
-	login, auth engine.Report
+	label             string
+	login, auth, port engine.Report
 }{
-	{"Both configured", mlOK(mlLogin, "root disallowed"), mlOK(mlAuth, "key-only auth")},
-	{"sshd allows passwords", mlOK(mlLogin, "root disallowed"), mlReport(mlAuth, engine.NotConfigured, "password auth on")},
-	{"Root may log in", mlReport(mlLogin, engine.NotConfigured, "root allowed"), mlOK(mlAuth, "key-only auth")},
-	{"Both off, one worse", mlReport(mlLogin, engine.Partial, "root key-only"), mlReport(mlAuth, engine.NotConfigured, "password auth on")},
-	{"Both off alike", mlReport(mlLogin, engine.NotConfigured, "root allowed"), mlReport(mlAuth, engine.NotConfigured, "password auth on")},
-	{"A long detail", mlOK(mlLogin, "root disallowed"), mlReport(mlAuth, engine.Partial, "match block allows passwords")},
-	{"Proxmox VE, both configured", mlOK(mlLogin, ssh.DetailProxmoxKeyOnly), mlOK(mlAuth, "key-only auth")},
-	{"Passwords on, root not read", mlReport(mlLogin, engine.Unknown, "can't tell if root key works"), mlReport(mlAuth, engine.NotConfigured, "password auth on")},
-	{"sshd not read", mlReport(mlLogin, engine.Unknown, "can't read"), mlReport(mlAuth, engine.Unknown, "can't read")},
+	{"All three configured", mlOK(mlLogin, ssh.DetailRootDisallowed), mlOK(mlAuth, ssh.DetailKeyOnly), mlOK(mlPort, "non-default (2230)")},
+	{"The port left on 22", mlOK(mlLogin, ssh.DetailRootDisallowed), mlOK(mlAuth, ssh.DetailKeyOnly), mlDefaultPort},
+	{"Root by key, port 22", mlReport(mlLogin, engine.Partial, "root key-only"), mlOK(mlAuth, ssh.DetailKeyOnly), mlDefaultPort},
+	{"Passwords on, port 22", mlOK(mlLogin, ssh.DetailRootDisallowed), mlReport(mlAuth, engine.NotConfigured, "password auth on"), mlDefaultPort},
+	{"Passwords on, port 2230", mlOK(mlLogin, ssh.DetailRootDisallowed), mlReport(mlAuth, engine.NotConfigured, "password auth on"), mlOK(mlPort, "non-default (2230)")},
+	{"Root may log in, port 22", mlReport(mlLogin, engine.NotConfigured, "root allowed"), mlOK(mlAuth, ssh.DetailKeyOnly), mlDefaultPort},
+	{"Login and auth off, one worse", mlReport(mlLogin, engine.Partial, "root key-only"), mlReport(mlAuth, engine.NotConfigured, "password auth on"), mlDefaultPort},
+	{"Login and auth off alike", mlReport(mlLogin, engine.NotConfigured, "root allowed"), mlReport(mlAuth, engine.NotConfigured, "password auth on"), mlDefaultPort},
+	{"A long detail", mlOK(mlLogin, ssh.DetailRootDisallowed), mlReport(mlAuth, engine.Partial, "match block allows passwords"), mlOK(mlPort, "non-default (2230)")},
+	{"Ports 22 and 2230", mlOK(mlLogin, ssh.DetailRootDisallowed), mlOK(mlAuth, ssh.DetailKeyOnly), mlReport(mlPort, engine.Partial, "22 and 2230")},
+	{"Root by key, ports 22 and 2230", mlReport(mlLogin, engine.Partial, "root key-only"), mlOK(mlAuth, ssh.DetailKeyOnly), mlReport(mlPort, engine.Partial, "22 and 2230")},
+	{"Two ports, neither 22", mlOK(mlLogin, ssh.DetailRootDisallowed), mlOK(mlAuth, ssh.DetailKeyOnly), mlOK(mlPort, "non-default (2230, 2231)")},
+	{"Key and password", mlOK(mlLogin, ssh.DetailRootDisallowed), mlOK(mlAuth, ssh.DetailKeyAndPassword), mlOK(mlPort, "non-default (2230)")},
+	{"The port not read", mlOK(mlLogin, ssh.DetailRootDisallowed), mlOK(mlAuth, ssh.DetailKeyOnly), mlReport(mlPort, engine.Unknown, "not listening on 2230")},
+	{"Passwords on, the port not read", mlOK(mlLogin, ssh.DetailRootDisallowed), mlReport(mlAuth, engine.NotConfigured, "password auth on"), mlReport(mlPort, engine.Unknown, "can't read")},
+	{"Passwords on, root not read, port 22", mlReport(mlLogin, engine.Unknown, "can't tell if root key works"), mlReport(mlAuth, engine.NotConfigured, "password auth on"), mlDefaultPort},
+	{"sshd not read", mlReport(mlLogin, engine.Unknown, "can't read"), mlReport(mlAuth, engine.Unknown, "can't read"), mlReport(mlPort, engine.Unknown, "can't read")},
+	{"No SSH server", mlReport(mlLogin, engine.NotApplicable, ssh.DetailNoServer), mlReport(mlAuth, engine.NotApplicable, ssh.DetailNoServer), mlReport(mlPort, engine.NotApplicable, ssh.DetailNoServer)},
+	{"Proxmox VE, all three configured", mlOK(mlLogin, ssh.DetailProxmoxKeyOnly), mlOK(mlAuth, ssh.DetailKeyOnly), mlOK(mlPort, ssh.DetailDefaultPort)},
+	{"Proxmox VE as installed", mlReport(mlLogin, engine.NotConfigured, "root allowed"), mlReport(mlAuth, engine.NotConfigured, "password auth on"), mlOK(mlPort, ssh.DetailDefaultPort)},
+	{"Proxmox VE, off port 22", mlOK(mlLogin, ssh.DetailProxmoxKeyOnly), mlOK(mlAuth, ssh.DetailKeyOnly), mlReport(mlPort, engine.NotConfigured, "non-default (2230)")},
 }
+
+// mlDefaultPort is SSH Port's report with every listener on 22, off
+// Proxmox VE.
+var mlDefaultPort = mlReport(mlPort, engine.NotConfigured, ssh.DetailDefaultPort)
 
 // mlRocky and mlPVE are a Rocky Linux host's facts and a Proxmox VE
 // node's, and their reports, in the controls' words; the counts are the
@@ -243,7 +263,7 @@ func mlMocks() []listMock {
 	}
 	return []listMock{
 		{name: "menu", draw: menu(debian),
-			note: "A Debian 12 host with everything configured: \"+\" for \"Configured\", SSH Auth in the SSH Login row, a Kernel row, no DNS, NTP or Syslog row, \"~\" under a row, item 4 Kernel."},
+			note: "A Debian 12 host with everything configured: \"+\" for \"Configured\", one SSH row, a Kernel row, no DNS, NTP or Syslog row, \"~\" under a row, item 4 Kernel."},
 		{name: "mixed", draw: func(_ context.Context, c component.Ctx) (string, error) {
 			return apart(mlBlocks(c, mlBlock{label: "Mixed states:", reports: scored(mlMixed())}),
 				mlBlocks(mlNoColour(c), mlBlock{label: "No colour:", reports: scored(mlMixed())})), nil
@@ -251,10 +271,10 @@ func mlMocks() []listMock {
 		{name: "ssh", draw: blocks(func() []mlBlock {
 			var out []mlBlock
 			for _, k := range mlSSHCases {
-				out = append(out, mlBlock{label: k.label + ":", reports: []engine.Report{k.login, k.auth}})
+				out = append(out, mlBlock{label: k.label + ":", reports: []engine.Report{k.login, k.auth, k.port}})
 			}
 			return out
-		}), note: "The SSH Login row with SSH Auth in it: the worse of the two states, and the details of the parts in that state. A part read as off outranks one not read. Both off alike is the one pair cut at 64 columns."},
+		}), note: "Adopted 2026-11-15: one SSH row for SSH Login, SSH Auth and SSH Port. All three configured: auth, login, port. Login and auth configured, the port on 22: Partial, no line. Login and auth not both configured: their state and detail, and the port on 22 a line under the row. The Proxmox VE words, \"ports\", \"2 ports\", \"port:\" and \"not 22\" are proposed. One row is cut: login and auth off alike."},
 		{name: "kernel", draw: blocks(func() []mlBlock {
 			var out []mlBlock
 			for _, k := range []struct {

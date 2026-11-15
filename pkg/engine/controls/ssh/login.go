@@ -126,11 +126,11 @@ func loginState(v string, more bool, want string) (engine.State, string) {
 		return engine.Partial, "match block allows root"
 	case v == want:
 		if want == "no" {
-			return engine.Configured, "root disallowed"
+			return engine.Configured, DetailRootDisallowed
 		}
 		return engine.Partial, "match block denies root" // prohibit-password, and a Match block stricter
 	case v == "no":
-		return engine.Partial, "root disallowed"
+		return engine.Partial, DetailRootDisallowed
 	case v == "forced-commands-only":
 		return engine.Partial, "root commands only"
 	}

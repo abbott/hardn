@@ -21,8 +21,7 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
                              ␛[38;2;219;184;83m~ No password to become root␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot key-only, key-only auth␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, root key-only, port 2230␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdrop policy␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m4 items applied␛[m$
    ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mupdated by hand␛[m$
@@ -33,7 +32,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mView pve-firewall␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156mHarden sysctl␛[m ␛[38;2;86;91;107m(network, kernel)␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$
@@ -68,8 +67,7 @@ $
 $
   [+] User                 + non-root, sudo$
                              ~ No password to become root$
-  [+] SSH Login            + root key-only, key-only auth$
-  [+] SSH Port             + non-default (2230)$
+  [+] SSH                  + key-only, root key-only, port 2230$
   [+] Firewall             + drop policy$
   [+] Kernel               + 4 items applied$
   [-] Auto Updates         Not Applicable updated by hand$
@@ -80,7 +78,7 @@ $
   Select an option         Mode Live$
 $
    1) User                 Create, manage (sudo, SSH keys)$
-   2) SSH Login            Disable root and passwords, set port$
+   2) SSH                  Disable root and passwords, set port$
    3) Firewall             View pve-firewall$
    4) Kernel               Harden sysctl (network, kernel)$
    5) Auto Updates         Configure automatic updates$
@@ -119,10 +117,8 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
         ␛[38;2;219;184;83m~ No password to become root␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot key-only, key-only auth␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, root key-only, port 2230␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdrop policy␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel␛[m$
@@ -139,7 +135,7 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mView pve-firewall␛[m$
@@ -184,8 +180,7 @@ $
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
                              ␛[38;2;219;184;83m~ No password to become root␛[m$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot key-only, key-only auth␛[m$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, root key-only, port 2230␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdrop policy␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m4 items applied␛[m$
   ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mupdated by hand␛[m$
@@ -196,7 +191,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mView pve-firewall␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156mHarden sysctl␛[m ␛[38;2;86;91;107m(network, kernel)␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mConfigure automatic updates␛[m$

@@ -139,7 +139,7 @@ checkReleases: false                # true: ask GitHub for the latest release's 
 
 `dryRun: true` starts `hardn` as a dry run: changes are shown, not applied. `-n` does the same for one run.
 
-- **User Management, SSH Login, Firewall, Backup, Auto Updates and Run All open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
+- **User Management, SSH, Firewall, Backup, Auto Updates and Run All open.** Each of their changes stops at its plan, adding and removing a Firewall profile too.
 - **The flag wins.** `-n` turns dry run on, whatever the file says. `--dry-run=false` turns it off for one run, whatever the file says.
 - **Operation flags show their plan** in a dry run, as with `-n`: `-r`, `-c`, `-d`, `-g` and `-w` exit 3 when there are changes. To apply, add `--dry-run=false`.
 - **`hardn confirm` and `hardn rollback` still run** under the file's `dryRun: true`: they keep or undo a change already made. `-n` refuses them.
@@ -193,7 +193,7 @@ nameservers:                        # DNS servers to configure
 ### SSH Configuration
 
 ```yaml
-sshPort: 22                         # SSH Login's default for Change SSH port
+sshPort: 22                         # SSH's default for Change SSH port
 permitRootLogin: "no"               # not used
                                     # true and false still work but are deprecated: write "no" or "yes"
 sshAllowedUsers:                    # not used
@@ -203,7 +203,7 @@ sshKeyPath: ".ssh_%u"               # not used
 sshConfigFile: "/etc/ssh/sshd_config.d/hardn.conf"  # the old file Move old settings moves
 ```
 
-The main menu's SSH Login (2) shows root login, password login, the SSH port and who is allowed to log in, as sshd reads them, and changes all but the last.
+The main menu's SSH (2) shows root login, password login, the SSH port and who is allowed to log in, as sshd reads them, and changes all but the last.
 
 - **It reads sshd, not hardn.yml.** Opening it changes nothing.
 - **Each change asks you to type the hostname**, since it could lock you out. Run `sudo hardn confirm` from a new session to keep it; if you don't, it is rolled back.

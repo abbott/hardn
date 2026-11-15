@@ -211,7 +211,7 @@ func sshHostMenu() screen.SubMenu {
 		items = append(items, component.MenuItem{Key: fmt.Sprint(i + 1), Label: sh.label, Description: sh.about})
 	}
 	return screen.SubMenu{
-		Title:   component.TitleBar{Title: "SSH Login hosts"},
+		Title:   component.TitleBar{Title: "SSH hosts"},
 		Heading: "Select an option",
 		Menu:    component.Menu{Items: items, Exit: component.MenuItem{Key: "0", Label: "Return"}},
 		Prompt:  "Option",

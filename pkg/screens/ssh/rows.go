@@ -45,10 +45,10 @@ const (
 	noteSocket  = "ssh.socket"
 )
 
-// statusRows are the SSH Login and SSH Port rows, the main menu's: the
-// three checks', through the main menu's own mapping and its assessment,
-// which draws SSH Auth in the SSH Login row (output.StatusViewOf; the
-// maintainer, 2026-11-14), as the gallery drew them (an Unknown row's
+// statusRows are the one SSH row, the main menu's: the three checks',
+// through the main menu's own mapping and its assessment, which draws SSH
+// Login, SSH Auth and SSH Port as one row (output.StatusViewOf; the
+// maintainer, 2026-11-15), as the gallery drew them (an Unknown row's
 // "Counted as not configured"), with no engine and no header probe: the
 // zero header gives these rows no factor of its own. The screen has the
 // row the main menu has, so that it reads the same in both; its section's
@@ -58,18 +58,17 @@ const (
 // 2026-11-09).
 func statusRows(ctx context.Context, sys host.System, f detect.Facts) component.StatusList {
 	var reports []engine.Report
-	var titles []string
 	for _, c := range []engine.Control{sshctl.Login{}, sshctl.Auth{}, sshctl.Port{}} {
 		r := engine.Report{Control: c.ID(), Title: c.Title()}
 		r.Status, r.Err = c.Check(ctx, sys, f) // each applies everywhere
 		if r.Err != nil {
 			r.Status.State = engine.Unknown
 		}
-		reports, titles = append(reports, r), append(titles, c.Title())
+		reports = append(reports, r)
 	}
 	_, level := output.AlertOf(risk.Assess(reports, header.Header{}))
 	view := output.StatusViewOf(reports, level).Status
-	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return !slices.Contains(titles, row.Label) })
+	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != output.SSHRow })
 	return view
 }
 

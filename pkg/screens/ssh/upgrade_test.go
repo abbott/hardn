@@ -15,10 +15,9 @@ const (
 	upgradeQuestion = "Upgrade openssh?"
 	upgradeRow      = "openssh-server 10.2_p1-r0, to 10.2_p1-r1 or later"
 	// upgradeAlert is the alert over the section, pointing to item 5 (the
-	// maintainer's words, 2026-11-08), the SSH Login row, which SSH Auth is
-	// drawn in, with no line of the CVE's (2026-11-09), flat as shows
+	// maintainer's words, 2026-11-08), the one SSH row, with no line of the CVE's (2026-11-09), flat as shows
 	// compares it.
-	upgradeAlert = "SSH Login + root locked, key-only auth [ ] SSH Port Not Configured default (22) # Warning: CVE-2026-123158 # Select option: 5) Upgrade openssh SSH Configuration"
+	upgradeAlert = "SSH Partial default port (22) # Warning: CVE-2026-123158 # Select option: 5) Upgrade openssh SSH Configuration"
 )
 
 // TestUpgradeItem: item 5 is offered on Alpine where sshd lacks
@@ -60,7 +59,7 @@ func TestUpgradeItem(t *testing.T) {
 		if _, stale, err := alpine.ListenerBinary(ctx, h); err != nil || stale {
 			t.Errorf("listener stale %v, %v", stale, err)
 		}
-		if i := strings.LastIndex(p.out, "SSH Login ###"); i < 0 || shows(p.out[i:], "Upgrade openssh") || shows(p.out[i:], "Warning: CVE-2026-123158") {
+		if i := strings.LastIndex(p.out, "SSH ###"); i < 0 || shows(p.out[i:], "Upgrade openssh") || shows(p.out[i:], "Warning: CVE-2026-123158") {
 			t.Errorf("the screen after the upgrade still offers it:\n%s", p.out)
 		}
 		checkHost(t, "alpine-unfixed", h)

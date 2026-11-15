@@ -20,10 +20,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlisten.conf for 2230 written with no daemon-reload, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: socket and sshd differ␛[m$
                              ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
@@ -52,10 +51,9 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf). Move them into 00-hardn.conf first: item 4.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: socket and sshd differ␛[m$
                              ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
@@ -87,10 +85,9 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mdaemon-reload and systemctl restart ssh.socket, check a new␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mconnection to 2230 works, then try again.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: socket and sshd differ␛[m$
                              ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
@@ -139,10 +136,9 @@ $
 # listen.conf for 2230 written with no daemon-reload, so$
 # ssh.socket still listens on 22.$
 $
-# SSH Login ####################################################$
+# SSH ##########################################################$
 $
-  [+] SSH Login            + root disallowed, key-only auth$
-  [?] SSH Port             Unknown socket and sshd differ$
+  [?] SSH                  Unknown port: socket and sshd differ$
                              ~ Counted as not configured$
 $
   SSH Configuration --------------------------------------------$
@@ -171,10 +167,9 @@ $
 # hardn's old SSH files are still here (manage.conf,$
 # listen.conf). Move them into 00-hardn.conf first: item 4.$
 $
-# SSH Login ####################################################$
+# SSH ##########################################################$
 $
-  [+] SSH Login            + root disallowed, key-only auth$
-  [?] SSH Port             Unknown socket and sshd differ$
+  [?] SSH                  Unknown port: socket and sshd differ$
                              ~ Counted as not configured$
 $
   SSH Configuration --------------------------------------------$
@@ -206,10 +201,9 @@ $
 # daemon-reload and systemctl restart ssh.socket, check a new$
 # connection to 2230 works, then try again.$
 $
-# SSH Login ####################################################$
+# SSH ##########################################################$
 $
-  [+] SSH Login            + root disallowed, key-only auth$
-  [?] SSH Port             Unknown socket and sshd differ$
+  [?] SSH                  Unknown port: socket and sshd differ$
                              ~ Counted as not configured$
 $
   SSH Configuration --------------------------------------------$
@@ -259,12 +253,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mand listen.conf for 2230 written with no daemon-reload, so␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket still listens on 22.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: socket and sshd differ␛[m$
         ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
@@ -305,12 +297,10 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mhardn's old SSH files are still here (manage.conf,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mlisten.conf). Move them into 00-hardn.conf first: item 4.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: socket and sshd differ␛[m$
         ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
@@ -354,12 +344,10 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156msystemctl daemon-reload and systemctl restart ssh.socket,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mcheck a new connection to 2230 works, then try again.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107msocket and sshd differ␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: socket and sshd differ␛[m$
         ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$

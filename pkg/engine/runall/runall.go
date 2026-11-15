@@ -71,7 +71,7 @@ const (
 	wordsApplySettings = "Apply settings"
 
 	userMgmt = "User Management's: "
-	sshLogin = "SSH Login's: "
+	sshLogin = "SSH's: "
 	keyOnly  = "Root key-only"
 )
 

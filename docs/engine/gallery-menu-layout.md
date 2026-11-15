@@ -4,6 +4,8 @@
 
 **Status: adopted and built. Not run on a Linux host.** The maintainer answered the design step's decisions on 2026-11-14 ("sounds good"; "we can show them when there are problems"; "perhaps we should use '~'"; §6), then, asked "Do you adopt my recommendations for these eight, with \"baseline default\" for Kernel?", wrote: **"yes, all approved. proceed"**. `make check` passes on macOS. Dates are the maintainer's local ones (EST).
 
+**Since 2026-11-15 the three SSH controls are one row, "SSH", and item 2 is "SSH" (§7).** The drawing below is the menu since then; §3 to §6 are the record of 2026-11-14 and keep "SSH Login" and "SSH Port".
+
 On a Debian 12 host with everything configured, with no colour:
 
 ```
@@ -11,8 +13,7 @@ On a Debian 12 host with everything configured, with no colour:
 
   [+] User                 + non-root, sudo
                              ~ No password to become root
-  [+] SSH Login            + root disallowed, key-only auth
-  [+] SSH Port             + non-default (2230)
+  [+] SSH                  + key-only, no root, port 2230
   [+] Firewall             + deny policy
   [+] Kernel               + 6 items applied
   [+] Auto Updates         + unattended-upgrades
@@ -23,7 +24,7 @@ On a Debian 12 host with everything configured, with no colour:
   Select an option         Mode Live
 
    1) User                 Create, manage (sudo, SSH keys)
-   2) SSH Login            Disable root and passwords, set port
+   2) SSH                  Disable root and passwords, set port
    3) Firewall             Manage rules, port listening
    4) Kernel               Harden sysctl (network, kernel)
    5) Auto Updates         Enable automatic updates
@@ -55,7 +56,7 @@ Each mock is a set of reports, written in the mock and not read from a host, dra
 | --- | --- |
 | `menu` | The whole menu on the configured host: the text above (`TestMenuLayoutMenu`, cell for cell) |
 | `mixed` | Partial, Not Configured, Unknown and Not Applicable rows beside Configured ones, with colour and without |
-| `ssh` | The SSH Login row with SSH Auth in it: nine pairs of states |
+| `ssh` | The one SSH row (§7): 21 cases of login, auth and port |
 | `kernel` | The Kernel row: 6 items applied, 1 item, baseline default, 3 to set, never applied, in a container |
 | `problems` | DNS, NTP and Syslog: no row, one row, all three, no value, not read |
 | `long-detail` | Details of 35 and 40 cells after "+" |
@@ -342,14 +343,98 @@ Not drawn again; the mocks above keep the earlier words.
 - **19, the line under a row.** "~" in place of the indented "⭘" ("perhaps we should use '~'"). With no Unicode the Risk Level's "≈" is also drawn "~"; and 15 (b) would give Partial rows a "~" too.
 - **Syslog's problem words.** "Unreachable" and "server unreachable", not "Not reached" and "server not reached".
 
+## 7. One SSH row (2026-11-15)
+
+`next/ssh-row`, cut from v0.10.1. **Adopted and built. Not run on a Linux host.**
+
+The maintainer drew it:
+
+```
+   ⭘  SSH                  Partial default port (22)
+
+>>>
+
+   ⛛  SSH                  + key-only, no root login, port 2230
+```
+
+and wrote: "use this pattern then", "adopt the rest".
+
+Later the same day he shortened the words: 'i much prefer "no root" if it makes sense to use as opposed to "no root login". Let's go with "+ key+password, no root, port 2230" for now.' So the row says "no root" for "no root login", and "key+password" for SSH Auth's "key and password". The controls' own details are unchanged.
+
+### 7.1 What was adopted
+
+- **S1. One row, "SSH"**: SSH Login, SSH Auth and SSH Port together, for display alone. The three controls, their weights (15, 20, 5), forced levels, factors, findings, codes, the JSON, `hardn check` and the Markdown report stay as they are; the report keeps a row for each control.
+- **S2. All three Configured**: "+ key-only, no root, port 2230". Auth, then login, then "port N". He drew "no root login" and then chose "no root".
+- **S3. Login and auth Configured, the port on 22**: the row is Partial, "Partial default port (22)", his text, with no line under it. The port's own Not Configured never makes the row Not Configured.
+- **S4. Login and auth not both Configured**: the state and detail v0.10.1's merge gives ("Partial root key-only", "Not Configured password auth on"); and where the port is 22, a line under the row in the warning colour, "~ Default port (22)". A port off 22 adds nothing, but on Proxmox VE, whose port is 22 (§7.3, proposed).
+- **S5. Menu item 2 is "SSH"**, its description unchanged. The screen's title is "SSH", and it shows the same one row. Its section and items stay.
+
+### 7.2 Built
+
+| | Where | Tests |
+| --- | --- | --- |
+| S1 to S4 | `pkg/output/status.go` (`StatusViewOf`, `mergeSSH`, `portWords`, `SSHRow`); the control's details the row words again are exported (`pkg/engine/controls/ssh`: `DetailRootDisallowed`, `DetailKeyOnly`, `DetailKeyAndPassword`, `DetailDefaultPort`, `DetailWith22`, `OtherPorts`) | `TestMergeSSH`: 18 pairs of login and auth, each with the port off 22, on 22 and not read; 17 more for the port's other details, a part Not Applicable and Proxmox VE; the 35 cells, measured on every Configured row, the three over them pinned; the lines' order; a shared line once. `TestStatusRows`, `TestStatusViewOfFigma`, `TestFactorLines`, `TestAlertOf`; `ReportRows` unchanged (`TestReportRows`) |
+| S5 | `pkg/ui/screen/ssh.go` (`SSHTitle`), `main.go` (`MainMenuItems`), `pkg/output/mainmenu.go` (the alert's route, "2) SSH"), `pkg/screens/ssh/rows.go` (`statusRows`) | `TestMainMenuItems`, `TestSSHHosts` (19 hosts: the row, the line under it, no SSH Login, SSH Auth or SSH Port row), `TestHeights`, `TestMainMenuHeights` |
+
+The gallery: `menu-layout ssh` draws 21 cases (`mlSSHCases`, `TestMenuLayoutSSH`); every status host has the row. 103 goldens changed. Each changed line was sorted by a script: an SSH, SSH Login, SSH Port or SSH Auth row, the line under the SSH row, "Counted as not configured" said once, item 2 or the alert's route, a title bar, "SSH's:" in Run All, a mock's label or note. None was anything else. The shorter words changed 46 of them again: the row, and the `ssh` mock's note.
+
+### 7.3 The row, by state
+
+| Login and auth | Port | Row | Line under it |
+| --- | --- | --- | --- |
+| both Configured | off 22 | `+ key-only, no root, port 2230` | |
+| both Configured, key and password | off 22 | `+ key+password, no root, port 2230` | |
+| both Configured | on 22 | `Partial default port (22)` | |
+| both Configured | 22 and 2230 | `Partial ports 22 and 2230` | |
+| both Configured | several, none 22 | `+ key-only, no root, 2 ports` | |
+| both Configured | not read | `Unknown port: can't read` | `~ Counted as not configured` |
+| one or both off | off 22 | v0.10.1's: `Not Configured password auth on` | |
+| one or both off | on 22 | the same | `~ Default port (22)` |
+| one or both off | 22 and 2230 | the same | `~ Ports 22 and 2230` |
+| one or both off | not read | the same | `~ Counted as not configured` |
+| neither read | any | `Unknown can't read` | `~ Counted as not configured`, and the port's line where it is on 22 |
+| no SSH server | | `Not Applicable no SSH server` | |
+| Proxmox VE, all three | 22 | `+ key-only, root key-only, port 22` | |
+| Proxmox VE, login and auth Configured | off 22 | `Partial port 2230, not 22` | |
+| Proxmox VE, login or auth off | 22 | v0.10.1's | |
+| Proxmox VE, login or auth off | off 22 | v0.10.1's | `~ Port 2230, not 22` (proposed) |
+| Proxmox VE, login or auth off | other ports, 22 not held | v0.10.1's | `~ Other ports configured` (proposed) |
+| a part Not Applicable, the others Configured | any | `Not Applicable no SSH server` | |
+
+### 7.4 Choices made where the list was silent
+
+1. **The Configured words replace v0.10.1's "root disallowed, key-only auth"**: "key-only" for `key-only auth`, "key+password" for `key and password`, "no root" for `root disallowed` (his words, above). A Configured detail with no word of its own is said as the control has it: "root locked".
+2. **Proxmox VE (proposed)**: "+ key-only, root key-only, port 22", 32 cells. Root logs in by key there, so the row does not say "no root"; 22 is the baseline there, so it is "port 22", not "default port". Off 22 the row is Partial, "port 2230, not 22"; where login or auth is off, that is the line under the row, "~ Port 2230, not 22", as "~ Default port (22)" is elsewhere.
+3. **The port on 22 and another port** ("22 and 2230", the confirm window): as the port on 22, Partial "ports 22 and 2230", or the line "~ Ports 22 and 2230" (proposed).
+4. **Several ports, none 22** (proposed): "2 ports", to fit the 35 cells; the screen's SSH Port row lists them.
+5. **The port not read**, login and auth Configured: the row is Unknown, "port: " and the port's own reason ("port: not listening on 2230") (proposed), with "~ Counted as not configured" under it. Where login or auth is not Configured the port not read adds only that line.
+6. **The order of states holds**: Not Configured, then Partial, then Unknown, among login and auth; the port never changes a row whose login and auth are not both Configured.
+7. **The port's line comes first** under the row, then the level's factors ("Counted as not configured", "Can't tell if sshd is patched"), each once.
+8. **No SSH server**: all three Not Applicable, and the row is too. "+" needs all three Configured: where one part is Not Applicable and the others Configured (sshd removed between two reads), the row is Not Applicable, "no SSH server"; a part read as off is still said.
+9. **Words that name the screen follow it**: the alert's route "Select option: 2) SSH"; Run All's "SSH's: 2230" for a port left to the screen; User Management's refusal "upgrade openssh in SSH (5)". The control `ssh.login` keeps its title "SSH Login" in `hardn check`, the report and Run All's rows.
+10. **Figma's frames and the component fixtures keep their labels** (`pkg/ui/screen/frames.go`, `pkg/ui/component/fixture`): they are the PNGs' record.
+
+### 7.5 What a host now shows differently
+
+- A host hardened with v0.10.1 but still on port 22 showed "+ root disallowed, key-only auth" and "Not Configured default (22)". It now shows one row, "Partial default port (22)". Its score is unchanged.
+- One line fewer on the main menu where the row has no line under it: 36 lines at 80 columns on the hardened host, where v0.10.1 had 37.
+
+### 7.6 Not verified, not done
+
+- **Nothing ran on Linux.** Every test is in process, on macOS, over the fake host.
+- **"key+password" beside "root locked", or on Proxmox VE, is cut** at the 35 cells: "key+password, root locked, port 2230" is 36 (37 with a port of five digits), "key+password, root key-only, port 22" is 36. "key+password, root locked, 2 ports" is 34 and fits. Every other Configured row fits, with a port of five digits ("key+password, no root, port 65535", 33). No shorter wording is chosen for "root locked" or Proxmox VE's "root key-only".
+- **Login and auth off alike** is still cut, as in v0.10.1: "Not Configured root allowed, passw...".
+- **The README's screenshot** is older than this menu.
+- **Read, not run**: on `syslog` (Debian 13, aarch64), 2026-11-15, read-only: `sshd -T` has `permitrootlogin without-password`, `passwordauthentication no`, `kbdinteractiveauthentication no` and `port 22`, with `ssh.service` active. By the rules above its row is "Partial root key-only" with "~ Default port (22)" under it. hardn was not run there.
+
 ## On hosts
 
-2026-11-15, a build of this branch on centos10-test-120 (CentOS Stream 10), oracle10-test-118 (Oracle Linux 10.1) and alpine324-test-116 (Alpine 3.24, a container). The menu and screens were opened and nothing was applied; the hosts were left as they started.
+2026-11-15, v0.10.1's build (`next/menu-layout`, before §7's one SSH row) on centos10-test-120 (CentOS Stream 10), oracle10-test-118 (Oracle Linux 10.1) and alpine324-test-116 (Alpine 3.24, a container). The menu and screens were opened and nothing was applied; the hosts were left as they started.
 
 | Seen | Result |
 |---|---|
 | Configured rows | "+ non-root, sudo", "+ firewalld running"; other states keep their words |
-| The SSH row | one row, "Partial root key-only", no SSH Auth row |
+| The SSH Login row (v0.10.1) | one row, "Partial root key-only", no SSH Auth row |
 | Kernel | "Not Configured 4 to set" on both Red Hat hosts; "Not Applicable in a container" on Alpine |
 | DNS, NTP, Syslog | no row on any of the three |
 | The line under User | "~ No password to become root" |

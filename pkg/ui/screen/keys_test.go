@@ -55,7 +55,7 @@ func TestSSHKeyRow(t *testing.T) {
 func TestSSHKeysWhole(t *testing.T) {
 	v := keysHost(SSHKeysFold - 4)
 	sub := v.SubMenu()
-	if len(sub.Menu.Items) != 0 || sub.Heading != "" || sub.Title.Title != "SSH Keys" || !slices.Equal(sub.Title.Parents, []string{"SSH Login"}) {
+	if len(sub.Menu.Items) != 0 || sub.Heading != "" || sub.Title.Title != "SSH Keys" || !slices.Equal(sub.Title.Parents, []string{"SSH"}) {
 		t.Errorf("menu %+v, heading %q, title %+v", sub.Menu.Items, sub.Heading, sub.Title)
 	}
 	var titles []string

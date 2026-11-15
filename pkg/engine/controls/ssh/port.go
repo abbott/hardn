@@ -110,11 +110,30 @@ func portState(ports []uint16) (engine.State, string) {
 	others := slices.DeleteFunc(slices.Clone(ports), func(p uint16) bool { return p == 22 })
 	switch {
 	case len(others) == len(ports):
-		return engine.Configured, "non-default (" + portList(others) + ")"
+		return engine.Configured, nonDefault + portList(others) + ")"
 	case len(others) == 0:
-		return engine.NotConfigured, "default (22)"
+		return engine.NotConfigured, DetailDefaultPort
 	}
-	return engine.Partial, "22 and " + portList(others) // 22 still open beside the new port: a confirm window, say
+	return engine.Partial, DetailWith22 + portList(others) // 22 still open beside the new port: a confirm window, say
+}
+
+// SSH Port's details that name the ports, which the main menu's SSH row
+// words again (output.StatusViewOf): every listener on 22, and the start
+// of 22 beside other ports ("22 and 2230").
+const (
+	DetailDefaultPort = "default (22)"
+	DetailWith22      = "22 and "
+	nonDefault        = "non-default ("
+)
+
+// OtherPorts is the ports of SSH Port's detail d where it names listeners
+// off 22 alone, "2230" of "non-default (2230)", and whether d does.
+func OtherPorts(d string) (string, bool) {
+	rest, ok := strings.CutPrefix(d, nonDefault)
+	if !ok {
+		return "", false
+	}
+	return strings.CutSuffix(rest, ")")
 }
 
 // notListening is the detail of b.missing: the ports no socket is bound

@@ -141,7 +141,7 @@ func bfMocks() []listMock {
 			draw: bfFW(bfFWOffer, "5\n")},
 		{name: "firewall-limited", note: deb + "After it, or where the administrator ran ufw limit 22/tcp: SSH reads Rate limited, and item 5 is gone. play firewall/" + bfFWLimited + ".",
 			draw: bfFW(bfFWLimited, "")},
-		{name: "firewalld", note: hostFQDN + " runs Rocky Linux 10, firewalld running. firewalld has no rule like ufw's limit, so the screen has no item and no line for one. The host's limit is sshd's, the SSH Login screen's row (ssh-on). Drawn from rows written in the gallery, which simulates no firewalld.",
+		{name: "firewalld", note: hostFQDN + " runs Rocky Linux 10, firewalld running. firewalld has no rule like ufw's limit, so the screen has no item and no line for one. The host's limit is sshd's, the SSH screen's row (ssh-on). Drawn from rows written in the gallery, which simulates no firewalld.",
 			draw: func(_ context.Context, c component.Ctx) (string, error) {
 				return bfFirewalld().SubMenu().Render(c), nil
 			}},

@@ -30,7 +30,7 @@ func TestKeysItem(t *testing.T) {
 				t.Errorf("%s, plan only %v: Run = %v, %d unread, %d engines, wrote %v", tt.host, dryRun, p.err, p.unread, p.engines, writes(h, n))
 			}
 			login, keys, _ := strings.Cut(p.out, "# SSH Keys ###")
-			keys, back, _ := strings.Cut(keys, "# SSH Login ###")
+			keys, back, _ := strings.Cut(keys, "# SSH ###")
 			if !strings.Contains(login, "   6) SSH keys             "+tt.entry+"\n") || !strings.Contains(back, "   6) SSH keys             "+tt.entry+"\n") {
 				t.Errorf("%s: no item %q in:\n%s", tt.host, tt.entry, p.out)
 			}

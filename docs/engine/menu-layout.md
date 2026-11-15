@@ -1,5 +1,7 @@
 # The main menu on its layout (slice 2b, unit (c): `next/s2b-menu`)
 
+*Since `next/ssh-row` (2026-11-15; [gallery-menu-layout.md](gallery-menu-layout.md) §7): item 2 is "SSH", and the status rows are six: SSH Login, SSH Auth and SSH Port are one row, SSH.*
+
 *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the items are User, SSH Login, Firewall, Kernel, Auto Updates, Run All, Backup, Configuration, System Details, Logs, with new descriptions; DNS is under `8) Configuration`. The keys and the hint "[0-10 or q]" are unchanged.*
 
 *Since `next/time-sync` (2026-11-14): the main menu's items and keys are unchanged from v0.9.0, ten, the hint "[0-10 or q]". Log Forwarding and Time Sync are under `8) Configuration`, whose description reads "hardn.yml, log forwarding, time sync" (the maintainer, 2026-11-14, revising [gallery-logforward.md](gallery-logforward.md)'s decision 8 and [gallery-timesync.md](gallery-timesync.md)'s decision 9). With the Time Sync row the main menu is 39 lines at 80 columns, 38 before.*
