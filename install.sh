@@ -19,8 +19,8 @@
 #      binary's SHA-256 must match its one line in SHA256SUMS. Releases before
 #      v0.4.0 have no SHA256SUMS and are refused.
 #   5. The provenance attestation, checked as verify.sh does when gh 2.68.0 or
-#      later is on PATH and signed in; otherwise the script says it was not
-#      checked and prints the command that checks it.
+#      later is on PATH and signed in; otherwise one muted line points to
+#      docs/verify.md, which has the commands that check it.
 #   6. Refused if /usr/local/bin/hardn is a directory or a link to one.
 #      install -m 0755 to a temporary name in /usr/local/bin, its SHA-256
 #      checked again, then mv over /usr/local/bin/hardn; /etc/hardn created
@@ -30,9 +30,9 @@
 #      release's tag (release_notice): where it is later, a line says so. It
 #      changes nothing else, and the exit status is the install's.
 #
-# The output takes hardn's look (look, below): a mark for each step, a
-# Warning callout where provenance is not checked, a closing line that says
-# what was installed, a later release's line where HARDN_VERSION named an
+# The output takes hardn's look (look, below): a mark for each step, a muted
+# line where provenance is not checked, a closing line that says what was
+# installed, a later release's line where HARDN_VERSION named an
 # earlier one, then what to run. It starts after a blank line and ends
 # with one, whether it installs or stops, with a blank line between its parts,
 # and keeps to 80 columns but for the attestation's identity: a URL can't
@@ -59,31 +59,30 @@ spoke=
 # with HARDN_ASCII set) and its 16-colour palette unless NO_COLOR is set. The
 # words are the same either way.
 look() {
-	m_ok='[+]' m_warn='[ ]' m_bad='(x)' m_run=' - '
-	bar_ok='#' bar_warn='#'
-	c_ok='' c_warn='' c_bad='' c_mute='' t_ok='' t_warn='' c_off=''
+	m_ok='[+]' m_bad='(x)' m_run=' - '
+	bar_ok='#'
+	c_ok='' c_bad='' c_mute='' t_ok='' c_off=''
 	[ -t "$1" ] || return 0
 	case ${TERM:-dumb} in dumb) return 0 ;; esac
 	if [ -z "${HARDN_ASCII:-}" ]; then
 		case $TERM/${LC_ALL:-${LC_CTYPE:-${LANG:-}}} in
 		linux/* | */zh* | */ja* | */ko*) ;;
 		*.[Uu][Tt][Ff]-8* | *.[Uu][Tt][Ff]8*)
-			m_ok=' ⛛ ' m_warn=' ⭘ ' m_bad=' ⨳ '
-			bar_ok='█' bar_warn='█'
+			m_ok=' ⛛ ' m_bad=' ⨳ '
+			bar_ok='█'
 			;;
 		esac
 	fi
 	[ -z "${NO_COLOR:-}" ] || return 0
 	e=$(printf '\033')
-	c_ok="${e}[92m" c_warn="${e}[33m" c_bad="${e}[91m" c_mute="${e}[90m"
-	t_ok="${e}[1;92m" t_warn="${e}[1;33m" c_off="${e}[0m"
-	bar_ok="${e}[42m ${e}[0m" bar_warn="${e}[43m ${e}[0m"
+	c_ok="${e}[92m" c_bad="${e}[91m" c_mute="${e}[90m"
+	t_ok="${e}[1;92m" c_off="${e}[0m"
+	bar_ok="${e}[42m ${e}[0m"
 }
 
 # A step's row: its mark in columns 2 to 4, its words from column 6. running
 # is a step under way, detail a line under a step's words.
 ok() { printf '  %s%s%s %s\n' "$c_ok" "$m_ok" "$c_off" "$1"; }
-warn() { printf '  %s%s%s %s\n' "$c_warn" "$m_warn" "$c_off" "$1"; }
 running() { printf '  %s%s %s%s\n' "$c_mute" "$m_run" "$1" "$c_off"; }
 detail() { printf '      %s%s%s\n' "$c_mute" "$1" "$c_off"; }
 muted() { printf '%s%s%s\n' "$c_mute" "$1" "$c_off"; }
@@ -309,15 +308,8 @@ main() {
 		ok "Provenance verified: built by"
 		detail "$identity"
 	else
-		warn "Provenance not checked"
-		printf '\n%s %sWarning%s\n' "$bar_warn" "$t_warn" "$c_off"
-		printf '%s Provenance needs gh 2.68.0 or later, signed in (gh auth login).\n' "$bar_warn"
-		printf '\nTo check it:\n'
-		printf '  gh attestation verify /usr/local/bin/hardn --repo %s \\\n' "$REPO"
-		printf '    --source-ref refs/tags/%s --deny-self-hosted-runners \\\n' "$tag"
-		printf '    --cert-identity \\\n'
-		printf '    %s\n' "$identity"
-		printf 'or, on another machine: sh verify.sh %s %s\n' "$version" "${asset#hardn-}"
+		printf '\n'
+		muted "See docs/verify.md to check provenance"
 	fi
 
 	# 6. Install: a temporary name beside the destination, then mv over it.
