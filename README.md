@@ -122,7 +122,7 @@ What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, and on P
 | [docs/cve.md](docs/cve.md) | the CVEs hardn checks for |
 | [docs/reference/output.md](docs/reference/output.md) | the JSON document and its codes |
 | [docs/roadmap.md](docs/roadmap.md) | planned features |
-| [docs/releases/v0.10.0.md](docs/releases/v0.10.0.md) | the release notes |
+| [docs/releases/v0.10.1.md](docs/releases/v0.10.1.md) | the release notes |
 
 ## Contributing
 
