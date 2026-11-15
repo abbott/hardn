@@ -42,6 +42,7 @@ func TestPlaySSHGolden(t *testing.T) {
 		{"ssh-port-sources-there", []string{"ssh/ufw-sources-there"}, []string{"3", "2230", hostName, "0"}, nil},
 		{"ssh-port-wider", []string{"-sequence", "dry-run", "ssh/ufw-port-wider"}, []string{"3", "2230", "0"}, nil},
 		{"ssh-port-deny", []string{"-sequence", "dry-run", "ssh/ufw-deny-22"}, []string{"3", "2230", "0"}, nil},
+		{"ssh-port-any-port", []string{"ssh/ufw-any-port"}, []string{"3", "2230", hostName, "0"}, nil},
 		{"ssh-port-source-port", []string{"ssh/ufw-source-port"}, []string{"3", "0"}, nil},
 		{"ssh-port-session-out", []string{"ssh/ufw-session-out"}, []string{"3", "0"}, nil},
 		{"ssh-migrate-v032", []string{"ssh/legacy-v032"}, []string{"1", "4", "0"}, nil},

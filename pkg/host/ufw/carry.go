@@ -461,10 +461,16 @@ func ruleNeed(r Rule, port uint16) Need {
 }
 
 // ruleText is a saved rule in a few words, for a finding: "allow 2230/tcp
-// from anywhere", "deny 22/tcp from 192.0.2.99 on eth0".
+// from anywhere", "deny 22/tcp from 192.0.2.99 on eth0", "allow any port
+// from 10.0.0.0/8", "allow any tcp port from fd00::/8".
 func ruleText(r Rule) string {
 	w := r.Action + " " + r.DPort
-	if r.Proto != "any" {
+	switch {
+	case r.DPort == "" && r.Proto != "any":
+		w = r.Action + " any " + r.Proto + " port"
+	case r.DPort == "":
+		w = r.Action + " any port"
+	case r.Proto != "any":
 		w += "/" + r.Proto
 	}
 	if r.Dst != "" {

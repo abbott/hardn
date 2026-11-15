@@ -307,7 +307,7 @@ func TestPlanForSaysWhy(t *testing.T) {
 	m := newModel(t)
 	m.rules = []modelRule{{fam: ufw.IPv4, action: "limit", port: "22"}}
 	_, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, Listeners: stock22(), State: read(t, m), Desired: hardening})
-	want := `listener [::]:22 (IPv6 22) would be blocked by "default deny (incoming); no rule added: \"ufw allow 22/tcp\" would change \"### tuple ### limit tcp 22 0.0.0.0/0 any 0.0.0.0/0 in\""`
+	want := `listener [::]:22 (IPv6 22) would be blocked by "default deny (incoming); no rule added: \"ufw allow 22/tcp\" would change \"limit 22/tcp from anywhere\""`
 	if !errors.Is(err, ufw.ErrBlocks) || !strings.Contains(err.Error(), want) {
 		t.Errorf("PlanFor: %v\nwant it to contain %s", err, want)
 	}

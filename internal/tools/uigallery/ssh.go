@@ -151,6 +151,10 @@ func sshVariants() []sshHost {
 			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{
 				{action: "deny", port: "22", src: "192.0.2.99"}, {action: "allow", port: "22", src: "192.0.2.0/24"}}})
 		}},
+		{name: "ufw-any-port", note: "ufw allows 22 from anywhere, and every port from 198.51.100.0/24: 2230 gets its own rule from anywhere, as 22 has.", env: sudo, host: func() *fakeHost {
+			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{
+				{action: "allow", port: "22"}, {action: "allow", src: "198.51.100.0/24"}}})
+		}},
 		{name: "ufw-source-port", note: "ufw allows 22 from 192.0.2.0/24, and from 198.51.100.0/24 port 1024: a rule hardn can't copy.", env: sudo, host: func() *fakeHost {
 			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{
 				{action: "allow", port: "22", src: "192.0.2.0/24"}, {action: "allow", port: "22", src: "198.51.100.0/24", sport: "1024"}}})

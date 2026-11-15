@@ -213,6 +213,7 @@ The order of steps is unchanged: `ssh/firewall` (now the copies), `ssh/files`, `
 **Choices made here**, where the page was silent:
 
 1. **A rule with no port** counts as a source rule, so its IP version carries, and is never copied. Else such a host would be refused `UFW_WOULD_BLOCK`.
+   *2026-11-15, after a host refused:* where the current port is open to anyone, see "A rule with no port beside an open SSH port" below.
 2. **A rule that names the new port too** (`22:3000/tcp`) gets no copy.
 3. **Before the port is asked, the session is judged on a port no rule names.** A deny of the new port itself for the session's address refuses at the field, `UFW_WOULD_BLOCK`.
 4. **The session check runs wherever one IP version carries**, also for a session in a version that is open or has no rule.
@@ -228,6 +229,21 @@ The order of steps is unchanged: `ssh/firewall` (now the copies), `ssh/files`, `
 14. **The warnings' words:** `ufw has "allow 2230/tcp from anywhere" already, which port 22 has not: left as it is`; `"deny 22/tcp from 192.0.2.99" is not copied from port 22: port 2230 lets that in`.
 15. **A default policy of allow** changes nothing: the rules are still carried.
 16. **`SSH_PORT_SOURCE_RESTRICTED`'s sentinel text is kept** ("ufw lets the SSH port in from some sources alone"); the registry's one line says "by a rule hardn can't copy".
+
+**A rule with no port beside an open SSH port** (2026-11-15). Seen on an Alpine 3.24 host: ufw active with `22/tcp` from anywhere on IPv4 and IPv6, and `ufw allow from 10.0.0.0/8`, which names no port. Change SSH port to 2230 was refused `UFW_WOULD_BLOCK`: on IPv4 the new port read as let in from 10.0.0.0/8 alone, and hardn adds no `ufw allow <port>/tcp` where that would widen a restricted rule (ufw.md §2.8). But 22 is open to anyone there, so opening 2230 to anyone widens nothing about SSH.
+
+Now, in the SSH port change on an active ufw, a new port gets `ufw allow <port>/tcp` in spite of that, where in the IP version:
+
+- each port sshd is on now is let in from anywhere, by an allow or a limit (a limit counts as open, as it does in `sourceRules`; the new port's rule is a plain allow, as on any host with `limit 22/tcp`); and
+- every rule that matches the new port is an allow or limit that names no port and no application.
+
+Hands stay off, as before, for: a rule that names the new port, alone, in a range or list, or by an application; any deny or reject that matches it, with a port or without; a rule not read; a version where the current port is not open to anyone (the carry, or the refusal); and every plan that adds no port (enabling ufw, the Firewall screen), where the allow would open SSH itself. With ufw inactive nothing changes either. `allow 2230/tcp` is its own tuple and replaces no rule; its undo is the usual `ufw delete allow 2230/tcp`, only where ufw answered that it added it.
+
+Code: `everyPort`, `changes`, `allowPorts` in `pkg/host/ufw/plan.go`; `PlanFor` passes the current ports only where ufw is active and a port is added. Tests: `pkg/host/ufw/everyport_test.go`. Mock `ssh/ufw-any-port`, golden `play/ssh-port-any-port`.
+
+Not changed: the carried plan. Where one IP version carries and another has 22 open beside a rule with no port, the open version's new port still gets no rule and the change is refused. Not run on a host.
+
+The refusal's words (`*BlockError`) now name a saved rule as the warnings do (`ruleText`): `restricted by "allow any port from 10.0.0.0/8"`, not ufw's saved line `### tuple ### allow any any 0.0.0.0/0 any 10.0.0.0/8 in`. Where another rule keeps hands off beside the rule with no port (a deny, a rule that names the port), the refusal names it: `restricted by "allow any port from 10.0.0.0/8; no rule added: "ufw allow 2230/tcp" would change "allow 2230/tcp from 10.0.0.0/8""`.
 
 Run All and hardn.yml's `sshPort`: nothing built, as §8 says. Run All's port row reads `sshchange.Read` and plans no port (`pkg/engine/runall/runall.go`, `Reading.port`).
 
