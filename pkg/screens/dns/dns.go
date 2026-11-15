@@ -175,9 +175,11 @@ var managers = map[hostdns.Manager]screen.DNSManager{
 // /etc/resolv.conf, and the nameservers and search domains in use only
 // where they were read, the file's or systemd-resolved's while it runs,
 // and the control's Check is not Unknown; Unknown otherwise, never a
-// guess (a manager hardn only reports, a fact not established). A file's
-// nameservers are its first dns.MaxNameservers, the ones glibc and musl
-// use. hardn.yml's list is the configuration's, not read from the file.
+// guess (a fact not established). Under a manager hardn only reports
+// they are the file's too, its own or its link target's (State.Listed);
+// Unknown where the target is not read. A file's nameservers are its
+// first dns.MaxNameservers, the ones glibc and musl use. hardn.yml's
+// list is the configuration's, not read from the file.
 func (r *runner) read(ctx context.Context) reading {
 	o := r.o
 	s, err := hostdns.Read(ctx, o.System, o.Facts)
@@ -194,7 +196,7 @@ func (r *runner) read(ctx context.Context) reading {
 	}
 	switch {
 	case err != nil, cerr != nil, st.State == engine.Unknown, s.Err != nil:
-	case s.Manager == hostdns.ManagerFile, s.Manager == hostdns.ManagerProxmox:
+	case s.Manager == hostdns.ManagerFile, s.Manager == hostdns.ManagerProxmox, s.Listed:
 		h.view.Read = true
 		h.view.InUse, h.view.Search = own(s.Nameservers[:min(len(s.Nameservers), hostdns.MaxNameservers)]), own(s.Search)
 	case s.Manager == hostdns.ManagerResolved && s.Resolved.Active == detect.Yes:

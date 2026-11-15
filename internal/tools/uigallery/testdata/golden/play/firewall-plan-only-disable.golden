@@ -16,7 +16,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, default deny␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mincoming, allowing 22, where sshd listens.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $
@@ -71,7 +71,7 @@ $
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $
@@ -127,7 +127,7 @@ $
 # web-01.example.net runs Debian 13. ufw active, default deny$
 # incoming, allowing 22, where sshd listens.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + deny policy$
 $
@@ -182,7 +182,7 @@ $
 $
   No actual changes were made to your system.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + deny policy$
 $
@@ -239,7 +239,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13. ufw active, default␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdeny incoming, allowing 22, where sshd listens.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
@@ -309,7 +309,7 @@ $
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$

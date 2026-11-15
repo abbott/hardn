@@ -13,7 +13,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mblocked, local only, 8080, let in with nothing listening, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m5353/udp, which ufw's own rules let in for mDNS alone.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $
@@ -74,7 +74,7 @@ $
 # blocked, local only, 8080, let in with nothing listening, and$
 # 5353/udp, which ufw's own rules let in for mDNS alone.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + deny policy$
 $
@@ -136,7 +136,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156min with nothing listening, and 5353/udp, which ufw's own␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrules let in for mDNS alone.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
@@ -223,7 +223,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mblocked, local only, 8080, let in with nothing listening, and␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m5353/udp, which ufw's own rules let in for mDNS alone.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m###################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m############################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $

@@ -14,17 +14,17 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: dns/networkmanager␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 with NetworkManager;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file. hardn.yml␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54. Every item is refused (P-37␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(a)).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file, naming␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.1 and example.net. hardn.yml lists 192.0.2.54,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54. Every item is refused (P-37 (a)).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mNetworkManager,␛[m ␛[38;2;219;184;83mreported only␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156mUnknown␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mUnknown␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
 $
   ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -48,13 +48,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mNetworkManager,␛[m ␛[38;2;219;184;83mreported only␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156mUnknown␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mUnknown␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
 $
   ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -78,13 +78,13 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m   ␛[38;2;129;134;156mNetworkManager,␛[m ␛[38;2;219;184;83mreported only␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156mUnknown␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mUnknown␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m          ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m       ␛[38;2;129;134;156mexample.net␛[m$
 $
   ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -122,17 +122,17 @@ $
 $
 # Info: dns/networkmanager$
 # web-01.example.net runs Debian 13 with NetworkManager;$
-# /etc/resolv.conf links to NetworkManager's file. hardn.yml$
-# lists 192.0.2.54, 2001:db8::54. Every item is refused (P-37$
-# (a)).$
+# /etc/resolv.conf links to NetworkManager's file, naming$
+# 192.0.2.1 and example.net. hardn.yml lists 192.0.2.54,$
+# 2001:db8::54. Every item is refused (P-37 (a)).$
 $
-# DNS Configuration ############################################$
+# DNS Settings #################################################$
 $
   Current DNS Configuration ------------------------------------$
 $
   [ ] DNS Implementation   NetworkManager, reported only$
-  [?] Nameservers          Unknown$
-  [?] Search Domains       Unknown$
+   -  Nameservers          192.0.2.1$
+   -  Search Domains       example.net$
 $
   Configured Nameservers ---------------------------------------$
 $
@@ -156,13 +156,13 @@ $
 # NetworkManager manages DNS here. Set the nameservers with$
 # nmcli.$
 $
-# DNS Configuration ############################################$
+# DNS Settings #################################################$
 $
   Current DNS Configuration ------------------------------------$
 $
   [ ] DNS Implementation   NetworkManager, reported only$
-  [?] Nameservers          Unknown$
-  [?] Search Domains       Unknown$
+   -  Nameservers          192.0.2.1$
+   -  Search Domains       example.net$
 $
   Configured Nameservers ---------------------------------------$
 $
@@ -186,13 +186,13 @@ $
 # NetworkManager manages DNS here. Set the nameservers with$
 # nmcli.$
 $
-# DNS Configuration ############################################$
+# DNS Settings #################################################$
 $
   Current DNS Configuration ------------------------------------$
 $
   [ ] DNS Implementation   NetworkManager, reported only$
-  [?] Nameservers          Unknown$
-  [?] Search Domains       Unknown$
+   -  Nameservers          192.0.2.1$
+   -  Search Domains       example.net$
 $
   Configured Nameservers ---------------------------------------$
 $
@@ -231,20 +231,20 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: dns/networkmanager␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 with NetworkManager;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file. hardn.yml␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54. Every item is refused␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(P-37 (a)).␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file, naming␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.1 and example.net. hardn.yml lists 192.0.2.54,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54. Every item is refused (P-37 (a)).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
       ␛[38;2;129;134;156mNetworkManager,␛[m ␛[38;2;219;184;83mreported only␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mNameservers␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
 $
   ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -276,16 +276,16 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
       ␛[38;2;129;134;156mNetworkManager,␛[m ␛[38;2;219;184;83mreported only␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mNameservers␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
 $
   ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -317,16 +317,16 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mNetworkManager manages DNS here. Set the nameservers with␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mnmcli.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mDNS Implementation␛[m$
       ␛[38;2;129;134;156mNetworkManager,␛[m ␛[38;2;219;184;83mreported only␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mNameservers␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
-      ␛[38;2;129;134;156mUnknown␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mNameservers␛[m$
+      ␛[38;2;129;134;156m192.0.2.1␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSearch Domains␛[m$
+      ␛[38;2;129;134;156mexample.net␛[m$
 $
   ␛[1;38;2;129;134;156mConfigured Nameservers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

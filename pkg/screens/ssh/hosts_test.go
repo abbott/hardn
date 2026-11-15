@@ -95,6 +95,12 @@ func newHost(t *testing.T, name string) *sshHost {
 		return h.sshFile(sshd.DropInDir+"/10-allow.conf", "AllowUsers george\n", 0o644).withLog("publickey", "george", 1)
 	case "pve9":
 		return pveNode("*").withLog("publickey", "root", 1)
+	case "pve9-keyonly": // Proxmox VE's baseline: root by key alone, port 22
+		h := pveNode("*")
+		return h.sshFile(sshd.MainConfig, sshd.IncludeLine+"\n\nUsePAM yes\nPermitRootLogin prohibit-password\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n", 0o644).
+			withLog("publickey", "root", 1)
+	case "commands-only":
+		return vm(deb).sshFile(sshd.DropInDir+"/20-site.conf", "PermitRootLogin forced-commands-only\n", 0o644).withLog("publickey", "george", 1)
 	case "pve9-password":
 		return pveNode(syntheticHash).withLog("password", "root", 0)
 	case "ufw-restricted":

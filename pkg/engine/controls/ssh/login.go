@@ -123,18 +123,32 @@ func loginState(v string, more bool, want string) (engine.State, string) {
 	case v == "yes":
 		return engine.NotConfigured, "root allowed"
 	case more:
-		return engine.Partial, "match block allows root"
+		return engine.Partial, detailMatchAllows
 	case v == want:
 		if want == "no" {
 			return engine.Configured, DetailRootDisallowed
 		}
-		return engine.Partial, "match block denies root" // prohibit-password, and a Match block stricter
+		return engine.Partial, detailMatchDenies // prohibit-password, and a Match block stricter
 	case v == "no":
 		return engine.Partial, DetailRootDisallowed
 	case v == "forced-commands-only":
 		return engine.Partial, "root commands only"
 	}
 	return engine.Partial, "root key-only"
+}
+
+// SSH Login's details where a Match block is why it is Partial.
+const (
+	detailMatchAllows = "match block allows root"
+	detailMatchDenies = "match block denies root"
+)
+
+// RootPartial reports whether SSH Login's status st is Partial for root's
+// own login (root key-only, root commands only, root disallowed on Proxmox
+// VE, root key login blocked) and not for a Match block: the SSH screen
+// marks its Root SSH Login row by it.
+func RootPartial(st engine.Status) bool {
+	return st.State == engine.Partial && st.Detail != detailMatchAllows && st.Detail != detailMatchDenies
 }
 
 // pveFindings is found with pve.CheckSSH's findings of kinds, each in

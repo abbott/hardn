@@ -65,7 +65,7 @@ func TestDNSScreen(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			vm := tt.d.SubMenu()
-			if vm.Title.Title != "DNS Configuration" || len(vm.Sections) != 2 || vm.Sections[0].Header.Title != "Current DNS Configuration" ||
+			if vm.Title.Title != "DNS Settings" || len(vm.Sections) != 2 || vm.Sections[0].Header.Title != "Current DNS Configuration" ||
 				vm.Sections[1].Header.Title != "Configured Nameservers" || vm.Prompt != "Option" || vm.Menu.Exit.Label != "Return" {
 				t.Fatalf("the screen's frame: %+v", vm)
 			}
@@ -105,7 +105,7 @@ func TestDNSWords(t *testing.T) {
 	if DNSPresets()[0].Nameservers[0] != "1.1.1.1" {
 		t.Error("DNSPresets shares its lists")
 	}
-	if s := d.Step("Add nameserver"); s.Title.Title != "Add nameserver" || !slices.Equal(s.Title.Parents, []string{"DNS Configuration"}) {
+	if s := d.Step("Add nameserver"); s.Title.Title != "Add nameserver" || !slices.Equal(s.Title.Parents, []string{"DNS Settings"}) {
 		t.Errorf("Step = %+v", s)
 	}
 	r := d.Review([]string{"1.1.1.1", "1.0.0.1"})

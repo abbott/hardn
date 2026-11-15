@@ -73,11 +73,7 @@ func TestScreen(t *testing.T) {
 			h, cfg := screenHost(t, tt.host)
 			n := len(h.Calls())
 			p := play(h, h, cfg, dryRun, "0")
-			title := "UFW Firewall Configuration"
-			if strings.HasPrefix(tt.host, "pve") {
-				title = "Firewall Configuration"
-			}
-			s := screens(p.out, title)
+			s := screens(p.out, "Firewall Settings")
 			if p.err != nil || p.unread != 0 || len(s) != 1 {
 				t.Fatalf("%s: Run = %v, %d unread, %d screens:\n%s", tt.host, p.err, p.unread, len(s), p.out)
 			}
@@ -100,7 +96,8 @@ func TestScreen(t *testing.T) {
 // TestRows holds what the sections say to the readers (the gallery's
 // TestFirewallRows, BootRow, AtBoot, InactiveMarks, IPv6Off): every listener with
 // ufw's verdict, never hardn.yml's sshPort (2230 in none.yml); the rules from ufw
-// status verbose or, inactive, its files, said as saved; none a muted item;
+// status verbose or, inactive, its files, said as saved; none a muted item; a
+// refused listener marked only where no bound listener of its port is let in;
 // nothing marked good while ufw filters nothing. ASCII's markers tell ok, plain,
 // unknown and muted apart; warn and bad differ by colour, which the goldens'
 // truecolor cell holds.
@@ -113,6 +110,19 @@ func TestRows(t *testing.T) {
 		{"active22", "[::]:22", "Allowed", "[+]"}, // hardn.yml says 2230
 		{"lockout", "[::]:2230", "Refused", "[ ]"},
 		{"lockout-at-start", "[::]:2230", "Refused at start", "[ ]"},
+		{"lockout", "0.0.0.0:2230", "Refused", "[ ]"},
+		{"lockout-at-start", "0.0.0.0:2230", "Refused at start", "[ ]"},
+		{"denied", "[::]:22", "Refused", "[ ]"},
+		// Refused on IPv6 beside IPv4 let in on the same port: plain, no mark.
+		{"one-family", "[::]:22", "Refused", ""},
+		{"one-family", "0.0.0.0:22", "Some sources", "[ ]"},
+		// The let-in listener not bound opens nothing: the bound one, refused, is bad.
+		{"one-family-unbound", "[::]:22", "Refused", "[ ]"},
+		{"one-family-unbound", "0.0.0.0:22", "Some sources Not bound", "[ ]"},
+		{"ipv6-off-active", "[::]:22", "Refused", ""},
+		{"ipv6-off-active", "0.0.0.0:22", "Allowed", "[+]"},
+		{"v4-at-start", "[::]:22", "Refused at start", ""},
+		{"v4-at-start", "0.0.0.0:22", "Not filtered", ""},
 		{"edit-2230", "0.0.0.0:2230", "Not filtered Not bound", "[ ]"},
 		{"edit-2230", "0.0.0.0:22", "Not filtered Not configured", "[ ]"},
 		{"ubuntu2604", "No firewall rules configured", "", ""},
@@ -227,7 +237,7 @@ func TestInstall(t *testing.T) {
 		if p.err != nil || len(p.runs) != 1 || p.runs[0].Err != nil || h.missing {
 			t.Fatalf("%s: Run = %v, runs %+v:\n%s", host, p.err, p.runs, p.out)
 		}
-		if w := inOrder(p.out, "Install UFW #", "Package ufw", "Status Inactive", "Install ufw? [y/N", "UFW Firewall Configuration #", "Installed Yes", "1) Enable firewall"); w != "" {
+		if w := inOrder(p.out, "Install UFW #", "Package ufw", "Status Inactive", "Install ufw? [y/N", "Firewall Settings #", "Installed Yes", "1) Enable firewall"); w != "" {
 			t.Errorf("%s: %q not shown after what came before it:\n%s", host, w, p.out)
 		}
 		if !strings.Contains(strings.Join(writes(h, 0), "\n"), "run "+cmd) {
@@ -257,7 +267,7 @@ func TestEnableSS(t *testing.T) {
 	}
 	if w := inOrder(p.out, "1) Enable firewall", "Installs iproute2, then starts ufw", "Enable Firewall #",
 		"hardn needs ss, from iproute2, to check which ports SSH uses before it starts ufw.", "Package iproute2", "Install iproute2? [y/N",
-		"Enable Firewall #", "Enable the firewall?", "Type the hostname", "hardn confirm", "UFW Firewall Configuration #", "Status Active"); w != "" {
+		"Enable Firewall #", "Enable the firewall?", "Type the hostname", "hardn confirm", "Firewall Settings #", "Status Active"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}
 	if !strings.Contains(strings.Join(writes(h, 0), "\n"), "run apt-get install -y iproute2") {
@@ -275,7 +285,7 @@ func TestEnableSS(t *testing.T) {
 	if p.err != nil || p.unread != 0 || len(p.runs) != 0 || !h.noSS || h.active || len(writes(h, n)) > 0 {
 		t.Errorf("not in apt's lists: Run = %v, %d unread, runs %+v, ss missing %t, active %t, wrote %v:\n%s", p.err, p.unread, p.runs, h.noSS, h.active, writes(h, n), p.out)
 	}
-	if w := inOrder(p.out, "Option [", "Warning", "hardn can't find iproute2 in apt's package lists", "UFW Firewall Configuration #"); w != "" {
+	if w := inOrder(p.out, "Option [", "Warning", "hardn can't find iproute2 in apt's package lists", "Firewall Settings #"); w != "" {
 		t.Errorf("not in apt's lists: %q not shown after what came before it:\n%s", w, p.out)
 	}
 	for _, not := range []string{"Install iproute2? [y/N", "Operation Failed", "To go on", "Enable the firewall?"} {
@@ -303,7 +313,7 @@ func TestInstallSS(t *testing.T) {
 	if p.err != nil || len(p.runs) != 1 || p.runs[0].Err != nil || h.noSS {
 		t.Fatalf("Run = %v, runs %d, ss missing %t:\n%s", p.err, len(p.runs), h.noSS, p.out)
 	}
-	if w := inOrder(p.out, "1) Install iproute2", "Needed to check SSH gets through", "Install iproute2 #", "Package iproute2", "Install iproute2? [y/N", "UFW Firewall Configuration #"); w != "" {
+	if w := inOrder(p.out, "1) Install iproute2", "Needed to check SSH gets through", "Install iproute2 #", "Package iproute2", "Install iproute2? [y/N", "Firewall Settings #"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}
 	if screens := mainScreens(p.out); len(screens) < 2 || strings.Contains(screens[len(screens)-1], "Install iproute2") {
@@ -326,7 +336,7 @@ func TestEnable(t *testing.T) {
 		t.Fatalf("Run = %v, %d unread, active %t, rule %t, armed %t:\n%s", p.err, p.unread, h.active, hasRule(h, "22"), armed(h, 0), p.out)
 	}
 	if w := inOrder(p.out, "Enable Firewall #", "Status Active", "Incoming policy Deny", "At boot Yes", "Enable the firewall?", "Type the hostname [host-01, 0 or q]: host-02",
-		"Type the hostname [host-01, 0 or q]: host-01", "hardn confirm", "UFW Firewall Configuration #", "Status Active"); w != "" {
+		"Type the hostname [host-01, 0 or q]: host-01", "hardn confirm", "Firewall Settings #", "Status Active"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}
 	h, cfg = screenHost(t, "ubuntu2604")
@@ -403,7 +413,7 @@ func TestHostnameAtTheQuestion(t *testing.T) {
 	if p.err != nil || p.engines != 2 || !strings.Contains(flat(p.out), cantConfirm) || strings.Contains(p.out, "[y/N") || len(p.runs) != 1 || h.active {
 		t.Errorf("Run = %v, %d engines, %d runs, active %t:\n%s", p.err, p.engines, len(p.runs), h.active, p.out)
 	}
-	if w := inOrder(p.out, "Start at Boot #", cantConfirm, "UFW Firewall Configuration #"); w != "" {
+	if w := inOrder(p.out, "Start at Boot #", cantConfirm, "Firewall Settings #"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}
 	if w := writes(h, n); len(w) > 0 {
@@ -420,7 +430,7 @@ func TestDisable(t *testing.T) {
 		if p.err != nil || len(p.runs) != 1 || p.runs[0].Err != nil || h.active || len(h.rules) == 0 {
 			t.Fatalf("%s: Run = %v, active %t, rules %v:\n%s", host, p.err, h.active, h.rules, p.out)
 		}
-		if w := inOrder(p.out, "Disable Firewall #", disableWarns, "Status Inactive", "Disable the firewall? [y/N", "UFW Firewall Configuration #", "Status Inactive", "1) Enable firewall"); w != "" {
+		if w := inOrder(p.out, "Disable Firewall #", disableWarns, "Status Inactive", "Disable the firewall? [y/N", "Firewall Settings #", "Status Inactive", "1) Enable firewall"); w != "" {
 			t.Errorf("%s: %q not shown after what came before it:\n%s", host, w, p.out)
 		}
 	}
@@ -571,7 +581,7 @@ func TestProxmox(t *testing.T) {
 		h, cfg := screenHost(t, host)
 		n := len(h.Calls())
 		p := play(h, h, cfg, false, "1", "2", "0")
-		if p.err != nil || p.unread != 0 || len(screens(p.out, "Firewall Configuration")) != 1 || strings.Count(p.out, "Invalid option") != 2 || !strings.Contains(p.out, "[0 or q]") {
+		if p.err != nil || p.unread != 0 || len(screens(p.out, "Firewall Settings")) != 1 || strings.Count(p.out, "Invalid option") != 2 || !strings.Contains(p.out, "[0 or q]") {
 			t.Errorf("%s: Run = %v, %d unread:\n%s", host, p.err, p.unread, p.out)
 		}
 		if u := ufwCalls(h, n); len(u) > 0 {
@@ -609,7 +619,7 @@ func TestHeights(t *testing.T) {
 		"lockout-at-start": 34, "allowlist": 36, "blocklist": 38, "edit-2230": 35, "moved-2230": 37, "denied": 35, "alpine324": 24, "alpine-stock": 25,
 		"alpine-runlevel": 36, "unit-off": 36, "pve9": 17, "pve9-drop": 17, "profiles": 40, "sub-profiles": 16} // ufw installed: item 3, Trusted Interfaces, a line more; SSH's plain allow on an active ufw: item 5, Limit SSH, another
 	for name, lines := range want {
-		host, keys, at, title := name, []string{"0"}, 0, "Firewall Configuration"
+		host, keys, at, title := name, []string{"0"}, 0, "Firewall Settings"
 		if name == "sub-profiles" {
 			host, keys, at, title = "profiles", []string{"2", "0", "0"}, 1, "Manage UFW Application Profiles"
 		}

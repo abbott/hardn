@@ -10,7 +10,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe Ports section is one row that says so. Item 1 installs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156miproute2, as it does today.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $
@@ -63,7 +63,7 @@ $
 # the Ports section is one row that says so. Item 1 installs$
 # iproute2, as it does today.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + deny policy$
 $
@@ -116,7 +116,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(iproute2): the Ports section is one row that says so.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mItem 1 installs iproute2, as it does today.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
@@ -190,7 +190,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe Ports section is one row that says so. Item 1 installs␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156miproute2, as it does today.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m###################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m############################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $

@@ -11,7 +11,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit 22/tcp: SSH reads Rate limited, and item 5 is gone. play␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirewall/limited.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $
@@ -57,7 +57,7 @@ $
 # limit 22/tcp: SSH reads Rate limited, and item 5 is gone. play$
 # firewall/limited.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + deny policy$
 $
@@ -103,7 +103,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mran ufw limit 22/tcp: SSH reads Rate limited, and item 5␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mis gone. play firewall/limited.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
@@ -162,7 +162,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit 22/tcp: SSH reads Rate limited, and item 5 is gone. play␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirewall/limited.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m###################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m############################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $

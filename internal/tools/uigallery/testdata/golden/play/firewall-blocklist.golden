@@ -18,7 +18,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhether the session's own address is among them is not␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mestablished, so Enable refuses (ufw.ErrBlocks; P-33 (3)).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
 $
@@ -61,7 +61,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mA saved ufw rule would block SSH on port 22, for some␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156maddresses or all. Remove it with ufw delete, then try again.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
 $
@@ -122,7 +122,7 @@ $
 # whether the session's own address is among them is not$
 # established, so Enable refuses (ufw.ErrBlocks; P-33 (3)).$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Not Configured inactive$
 $
@@ -165,7 +165,7 @@ $
 # A saved ufw rule would block SSH on port 22, for some$
 # addresses or all. Remove it with ufw delete, then try again.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Not Configured inactive$
 $
@@ -227,7 +227,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhether the session's own address is among them is not␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mestablished, so Enable refuses (ufw.ErrBlocks; P-33 (3)).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
@@ -282,7 +282,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156maddresses or all. Remove it with ufw delete, then try␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156magain.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$

@@ -55,13 +55,13 @@ func TestPendingBeforeAsking(t *testing.T) {
 		name, host, title string
 		keys              []string
 	}{
-		{"install ufw", "debian13", "UFW Firewall Configuration #", []string{"1", "0"}},
-		{"enable", "ubuntu2604", "UFW Firewall Configuration #", []string{"1", "0"}},
-		{"install iproute2", "no-ss-active", "UFW Firewall Configuration #", []string{"1", "0"}},
-		{"enable without ss", "no-ss", "UFW Firewall Configuration #", []string{"1", "0"}},
+		{"install ufw", "debian13", "Firewall Settings #", []string{"1", "0"}},
+		{"enable", "ubuntu2604", "Firewall Settings #", []string{"1", "0"}},
+		{"install iproute2", "no-ss-active", "Firewall Settings #", []string{"1", "0"}},
+		{"enable without ss", "no-ss", "Firewall Settings #", []string{"1", "0"}},
 		{"apply profiles", "profiles", "Manage UFW Application Profiles #", []string{"2", "3", "0", "0"}},
-		{"install firewalld", "rocky-missing", "Firewall Configuration #", []string{"1", "0"}},
-		{"enable firewalld", "rocky-stopped", "Firewall Configuration #", []string{"1", "0"}},
+		{"install firewalld", "rocky-missing", "Firewall Settings #", []string{"1", "0"}},
+		{"enable firewalld", "rocky-stopped", "Firewall Settings #", []string{"1", "0"}},
 	} {
 		h, cfg := screenHost(t, tc.host)
 		withPending(t, h)

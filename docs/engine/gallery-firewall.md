@@ -64,7 +64,7 @@ Every host's rows come from real readers, never hardn.yml's `sshPort`: the Firew
 Item 2 is Application Profiles wherever ufw is installed; item 3, Disable, on any active ufw whose item 1 is not. The listing also draws the profiles' sub-screen with two and with none, `no-install` (decision 1's alternative), `refusals` (all of §6's), `pve-states` (stopped, sshd elsewhere, a blacklist, ufw left active), and `stale-listener`. `lockout`, plain and ASCII, 31 lines drawn, here its blank lines and the ufw and Rules sections left out:
 
 ```
-# UFW Firewall Configuration ###################################
+# Firewall Settings ############################################
   [ ] Firewall             Partial ssh blocked
 # SSH ----------------------------------------------------------
   [ ] [::]:2230            Refused
@@ -94,7 +94,7 @@ Fit 80x24: the profiles' sub-screen 16, Proxmox VE 17, no ufw 20. Over it: most 
 - `hardn -w` on a terminal asks the typed hostname and arms the timer, and refuses off a terminal; `runControls` gains that question in unit (d), and slice 6's `-d` takes the same answer (4).
 - No rule is saved while ufw stays inactive, and Apply refuses there; a saved blocklist refuses Enable; P-33 (2) stays open for slice 6 (5, [P-33](../refactor/proposals.md#p-33)).
 - `ufw disable` is a plain y/N change that warns, on every active ufw (6).
-- Proxmox VE gets the read-only screen, titled "Firewall Configuration", and main menu 4 reads "View pve-firewall" there. A node where ufw was left active gets a warning row read from `ufw.conf`, with no `ufw` call: the adoption allows that read under brief 2.5. P-20 stays out of this slice (7).
+- Proxmox VE gets the read-only screen, titled "Firewall Settings" (*since 2026-11-15; it was "Firewall Configuration"*), and main menu 4 reads "View pve-firewall" there. A node where ufw was left active gets a warning row read from `ufw.conf`, with no `ufw` call: the adoption allows that read under brief 2.5. P-20 stays out of this slice (7).
 - `ufwDefaultIncomingPolicy` and `ufwDefaultOutgoingPolicy` warn on load, the file still accepted; `ufwAllowedPorts` waits for slice 8 (8).
 - Full sections at every height; the title and the Firewall row scroll off at 24 rows (9).
 - §6's words are decided (10), "No firewall rules configured" under "Rules" with them ([P-30](../refactor/proposals.md#p-30) (b)).
@@ -162,10 +162,10 @@ Decided with decision 10 (2026-11-01). Each is new unless marked origin/main's. 
 
 | Where | Words |
 |---|---|
-| Titles | "UFW Firewall Configuration" and "Manage UFW Application Profiles" (origin/main's); "Firewall Configuration" on Proxmox VE; "Install UFW", "Enable Firewall", "Set Deny Policy", "Let SSH Through", "Start at Boot", "Disable Firewall", "Add Profile", "Remove Profile", "Apply Profiles" |
+| Titles | "Firewall Settings" on every host (*since 2026-11-15; it was origin/main's "UFW Firewall Configuration", and "Firewall Configuration" on Proxmox VE*) and "Manage UFW Application Profiles" (origin/main's); "Install UFW", "Enable Firewall", "Set Deny Policy", "Let SSH Through", "Start at Boot", "Disable Firewall", "Add Profile", "Remove Profile", "Apply Profiles" |
 | Sections | "ufw", "SSH", "Rules", "Application Profiles" (origin/main's), "pve-firewall" |
 | ufw rows | "Installed" Yes/No, "Status" Active/Inactive, "Incoming policy" Deny/Reject/Allow, "At boot" Yes/No/"In no runlevel"/"Service disabled", "IPv6" "Off" |
-| SSH rows | "Allowed", "Rate limited", "Some sources", "Blocked for some", "Refused", "No IPv6", "Not filtered", "Refused at start"; beside them "Not bound", "Not configured"; "Bound sockets" "ss not installed"/"ss failed"/"None on SSH's ports" |
+| SSH rows | "Allowed", "Rate limited", "Some sources", "Blocked for some", "Refused", "No IPv6", "Not filtered", "Refused at start"; beside them "Not bound", "Not configured"; "Bound sockets" "ss not installed"/"ss failed"/"None on SSH's ports". *Since 2026-11-15:* "Refused" and "Refused at start" are marked bad only where no bound listener of the same port is let in; beside one that is (IPv6 refused, IPv4 let in) the row is plain |
 | Rules, profiles | "Allow", "Limit", "Deny", "Reject", "Saved"; "No firewall rules configured" (origin/main's); "Not applied", "Applied"; "No application profiles configured" (origin/main's) |
 | Proxmox VE | "Service" Running/Stopped, "Enabled", "SSH (22)", "Web UI (8006)", "Management network", "From anywhere", "sshd on 2230"; "Rules" "One may block", "Blacklist" "Has entries", "proxmox-firewall" "Not read"; "hardn reads pve-firewall and doesn't change it: a wrong rule can cut off the web UI and the cluster." |
 | Item 1, by what its plan does | "Install UFW" (origin/main's) "Install the ufw package"; ufw not running: "Enable firewall" (origin/main's) "Let SSH through, then start ufw"; running: "Set deny policy" "Let SSH through, deny by default"; "Let SSH through" "Add its rules; other rules stay" or "Add its rules, start at boot"; "Start ufw at boot" "Add it to the boot services"; refused: "Repair firewall" "Refused here: select to see why"; "Disable firewall" (origin/main's) "Stop ufw (not recommended)" |

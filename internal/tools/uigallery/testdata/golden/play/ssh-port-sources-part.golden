@@ -23,9 +23,9 @@ $
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;219;184;83m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
@@ -145,9 +145,9 @@ $
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;219;184;83m22, 2230␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
@@ -213,9 +213,9 @@ $
 $
   SSH Configuration --------------------------------------------$
 $
-   -  Root SSH Login       Key only sshd's default$
+  [ ] Root SSH Login       Key only sshd's default$
    -  Password Login       Off by sshd_config$
-   -  SSH Port             22$
+  [ ] SSH Port             22$
    -  Allowed Users        Anyone$
    -  Brute-Force Limit    On sshd's default$
    -  Logged in as         george, by key$
@@ -335,9 +335,9 @@ $
 $
   SSH Configuration --------------------------------------------$
 $
-   -  Root SSH Login       Key only sshd's default$
+  [ ] Root SSH Login       Key only sshd's default$
    -  Password Login       Off by sshd_config$
-   -  SSH Port             22, 2230$
+  [ ] SSH Port             22, 2230$
    -  Allowed Users        Anyone$
    -  Brute-Force Limit    On sshd's default$
    -  Logged in as         george, by key$
@@ -405,12 +405,12 @@ $
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
-      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;219;184;83m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$
@@ -547,12 +547,12 @@ $
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
-      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby sshd_config␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156m22, 2230␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;219;184;83m22, 2230␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$

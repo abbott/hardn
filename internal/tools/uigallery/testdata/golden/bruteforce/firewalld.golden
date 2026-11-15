@@ -12,7 +12,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit is sshd's, the SSH screen's row (ssh-on). Drawn from␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrows written in the gallery, which simulates no firewalld.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
 $
@@ -44,7 +44,7 @@ $
 # limit is sshd's, the SSH screen's row (ssh-on). Drawn from$
 # rows written in the gallery, which simulates no firewalld.$
 $
-# Firewall Configuration #######################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + firewalld running$
 $
@@ -77,7 +77,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(ssh-on). Drawn from rows written in the gallery, which␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulates no firewalld.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
@@ -116,7 +116,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit is sshd's, the SSH screen's row (ssh-on). Drawn from␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrows written in the gallery, which simulates no firewalld.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m#######################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m############################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
 $

@@ -102,6 +102,50 @@ func TestSSHHosts(t *testing.T) {
 	}
 }
 
+// TestRowMarks: the section's Root SSH Login and SSH Port rows carry a mark
+// where their check is why the SSH row is Partial or Not Configured, so the
+// cause shows: root's own value (key only, commands only) off Proxmox VE,
+// and a port 22 still listened on; none where the check is Configured
+// (Proxmox VE's key-only root and port 22, a moved port, a locked root),
+// where a Match block is the cause (its own row's), or where the check is
+// Unknown.
+func TestRowMarks(t *testing.T) {
+	const marked, plain, unknown = "[ ]", "-", "[?]"
+	for _, tt := range []struct{ host, root, port string }{
+		{"debian13", marked, marked},
+		{"commands-only", marked, marked},
+		{"password-login", marked, marked},
+		{"confirm-window", marked, marked}, // 22 and 2230
+		{"hardened", plain, plain},
+		{"alpine323", plain, marked},    // root locked: SSH Login is Configured
+		{"match-allows", plain, marked}, // the Match row says it
+		{"pve9-keyonly", plain, plain},
+		{"pve9", marked, plain},        // Allowed, bad as before; 22 is Proxmox VE's port
+		{"legacy-v032", plain, plain},  // the port's check Unknown
+		{"not-read", unknown, unknown}, // Can't read
+	} {
+		p := play(ready(t, tt.host), false, "0")
+		if got := [2]string{mark(p.out, "Root SSH Login"), mark(p.out, "SSH Port")}; got != [2]string{tt.root, tt.port} {
+			t.Errorf("%s: marks %q, want %q, %q:\n%s", tt.host, got, tt.root, tt.port, p.out)
+		}
+	}
+	p := play(ready(t, "match-allows"), false, "0")
+	if got := mark(p.out, "Match"); got != marked {
+		t.Errorf("match-allows: the Match row's mark %q", got)
+	}
+}
+
+// mark is the mark before label on its section row: "[ ]", "[?]" or "-".
+func mark(out, label string) string {
+	_, section, _ := strings.Cut(out, "\n  SSH Configuration ")
+	for _, l := range strings.Split(section, "\n") {
+		if i := strings.Index(l, label); i >= 0 {
+			return strings.TrimSpace(l[:i])
+		}
+	}
+	return ""
+}
+
 // line is the first line of out with label after its mark, from the label
 // on: a status row's where status is set, above the section, else a
 // section row's.

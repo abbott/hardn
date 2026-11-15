@@ -82,6 +82,13 @@ func screenHost(t *testing.T, name string) (*fwHost, *config.Config) {
 	case "one-family":
 		st.active = true
 		set = func(h *fwHost) { h.rules = []fwRule{{port: "22", src: "192.0.2.0/24"}} }
+	case "one-family-unbound": // one-family, sshd bound on IPv6 alone: the let-in IPv4 listener answers nothing
+		st.active = true
+		set = func(h *fwHost) {
+			h.rules, h.boundOn = []fwRule{{port: "22", src: "192.0.2.0/24"}}, []string{"[::]:22"}
+		}
+	case "v4-at-start": // ENABLED=yes, not running, ufw's IPv6 off: its saved rule is IPv4's alone
+		set = func(h *fwHost) { h.stale, h.noIPv6, h.rules = true, true, []fwRule{{port: "22"}} }
 	case "blocklist":
 		set = func(h *fwHost) {
 			h.rules = []fwRule{{port: "22", action: "deny", src: "198.51.100.0/24"}, {port: "22"}}
@@ -313,7 +320,7 @@ func screens(out, title string) []string {
 }
 
 // mainScreens are ufw's screens out shows.
-func mainScreens(out string) []string { return screens(out, "UFW Firewall Configuration") }
+func mainScreens(out string) []string { return screens(out, "Firewall Settings") }
 
 // rowOf is the value of the screen's row key in s, its marker dropped, a value
 // wrapped under a long key read from the next line; "" when it has none.

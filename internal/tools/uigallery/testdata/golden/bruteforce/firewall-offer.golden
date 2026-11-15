@@ -11,7 +11,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manywhere: item 5, Limit SSH. The other items keep their keys.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplay firewall/active22.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $
@@ -58,7 +58,7 @@ $
 # anywhere: item 5, Limit SSH. The other items keep their keys.$
 # play firewall/active22.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + deny policy$
 $
@@ -105,7 +105,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manywhere: item 5, Limit SSH. The other items keep their␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys. play firewall/active22.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
@@ -166,7 +166,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manywhere: item 5, Limit SSH. The other items keep their keys.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplay firewall/active22.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m###################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m############################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $

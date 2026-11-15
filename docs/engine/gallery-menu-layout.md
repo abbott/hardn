@@ -111,7 +111,7 @@ Docs: README, `docs/usage.md` (a section "The status rows"), `configuration.md`,
 11. **A hardn.yml list that is not valid counts as naming servers**, for "Not forwarding" and "No time service".
 12. **The report to hand over** lists the scored controls in the main menu's order, SSH Login and SSH Auth each its own, then DNS, fine or not, the state in words. DNS was between Firewall and Auto Updates.
 13. **`internal/tools/p4status` reads the scored controls and DNS**, not NTP or Syslog, as before: it draws no row for a problem of theirs.
-14. **The Configuration item is "DNS Settings", "Configure nameservers"**; the screen's title stays "DNS Configuration".
+14. **The Configuration item is "DNS Settings", "Configure nameservers"**; the screen's title stays "DNS Configuration" (*since 2026-11-15:* "DNS Settings").
 15. **The gallery's sysctl "menu" mock draws the main menu's items**, where it drew the Configuration group.
 16. **`hostfake.System.ResetCalls`** is new: the gallery's hardened host applies its kernel settings through the host, and the fixtures' exporter refuses a host that was written to.
 17. **`controls.MenuReports` and the three `Shown` functions for the main menu are gone**: `output.StatusViewOf` draws a row only for a report with a problem. `kernelsettings.Shown` stays, Run All's.
@@ -295,7 +295,7 @@ Decisions 13 to 20 are the Plus alternative's (§3). Gates first.
     - (b) "- ", as today.
 20. **The items' words.** Drawn: `plus`, `plus-el`, `plus-pve`. Every description fits 37 cells; item 2's is the longest, 36 (`TestMenuLayoutPlusFits`).
     - (a) *Recommended:* his words, and where they do not hold:
-      - Item 1 "User": the item alone. The screen's title stays "User Management", as Firewall's is "Firewall Configuration". It changes `pkg/screens/mainmenu/run.go`, the fixtures, `docs/usage.md`, `docs/design-system/README.md` and about 60 goldens.
+      - Item 1 "User": the item alone. The screen's title stays "User Management", as Firewall's is "Firewall Configuration" (*since 2026-11-15:* "Firewall Settings"). It changes `pkg/screens/mainmenu/run.go`, the fixtures, `docs/usage.md`, `docs/design-system/README.md` and about 60 goldens.
       - Item 3 on Rocky Linux and AlmaLinux: "Manage firewalld, port listening" (32). On Proxmox VE: "View pve-firewall", as today.
       - Item 5 on Proxmox VE: "Not on Proxmox VE", the screen's own words. Elsewhere "Enable automatic updates", though with them on the screen's item is "Disable automatic updates".
       - Item 4 "Harden sysctl", for decision 3's "Configure sysctl".
@@ -307,7 +307,7 @@ Decisions 13 to 20 are the Plus alternative's (§3). Gates first.
 
 - "Brackets bold" means the brackets, not the detail.
 - The info rows' values are in the detail's colour, their mark in the muted one.
-- The DNS item under Configuration is "DNS Settings  Configure nameservers", after its siblings. The screen's title is "DNS Configuration" today.
+- The DNS item under Configuration is "DNS Settings  Configure nameservers", after its siblings. The screen's title is "DNS Configuration" today (*since 2026-11-15:* "DNS Settings").
 - Kernel moves out of Configuration when it becomes main menu 4.
 - "Before the user ever opened the screen" is a host as installed: the row reads the host, so it says "6 to set" with no visit. The count is the mock's.
 - The mock host's risk level is written as Low, for "No password to become root".

@@ -70,7 +70,7 @@ func dnsScreenHosts() []dnsScreenHost {
 		{name: "pve9", label: "Proxmox VE 9", about: "The installer's file", host: dnsHost(pve9Platform),
 			note: hostFQDN + " is a Proxmox VE 9 node; /etc/resolv.conf is its installer's file, naming 192.0.2.1 and example.net." + listed + each},
 		{name: "networkmanager", label: "NetworkManager", about: "Reported only (P-37)", host: networkManagerHost,
-			note: hostFQDN + " runs Debian 13 with NetworkManager; /etc/resolv.conf links to NetworkManager's file." + listed + " Every item is refused (P-37 (a))."},
+			note: hostFQDN + " runs Debian 13 with NetworkManager; /etc/resolv.conf links to NetworkManager's file, naming 192.0.2.1 and example.net." + listed + " Every item is refused (P-37 (a))."},
 		{name: "empty", label: "No nameservers", about: "hardn.yml lists none", host: noListHost,
 			note: debian + " hardn.yml lists no nameserver, so Configure DNS is refused and item 3 is not shown."},
 		{name: "one", label: "One nameserver", about: "hardn.yml lists one", host: oneListHost,

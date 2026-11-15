@@ -17,7 +17,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(check-firewall.md §3: Debian installs it only on request,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[unverified]).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$
 $
@@ -59,7 +59,7 @@ $
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$
 $
@@ -105,7 +105,7 @@ $
 # (check-firewall.md §3: Debian installs it only on request,$
 # [unverified]).$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Not Configured ufw not installed$
 $
@@ -147,7 +147,7 @@ $
 $
   No actual changes were made to your system.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Not Configured ufw not installed$
 $
@@ -194,7 +194,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(check-firewall.md §3: Debian installs it only on request,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m[unverified]).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$
@@ -244,7 +244,7 @@ $
 $
   ␛[38;2;129;134;156mNo actual changes were made to your system.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mufw not installed␛[m$

@@ -341,7 +341,7 @@ func dnsScenarios() []scenario {
 			note: []string{hostFQDN + " is a Proxmox VE 9 node; /etc/resolv.conf is its installer's file, naming 192.0.2.1." + listed, configure + yn},
 			host: dnsHost(pve9Platform), setup: configureDNS, question: "Configure DNS?", answers: []string{yes}, ends: flow.Applied},
 		{name: "dns-refused-networkmanager", label: "Refused: NetworkManager", about: "NetworkManager's DNS (P-37)",
-			note: []string{hostFQDN + " runs Debian 13 with NetworkManager; /etc/resolv.conf links to NetworkManager's file." + listed,
+			note: []string{hostFQDN + " runs Debian 13 with NetworkManager; /etc/resolv.conf links to NetworkManager's file, naming 192.0.2.1 and example.net." + listed,
 				configure + " The plan refuses it, with a report (P-37 (a))."},
 			host: networkManagerHost, setup: configureDNS, question: "Configure DNS?", ends: flow.Failed},
 		{name: "dns-refused-empty", label: "Refused: no nameservers", about: "Configure DNS, hardn.yml lists none",

@@ -141,9 +141,10 @@ type runner struct {
 // (keys; "" in a reading that did not read them).
 type reading struct {
 	sshchange.Reading
-	err    error
-	status component.StatusList
-	keys   string
+	err     error
+	status  component.StatusList
+	checked checked
+	keys    string
 }
 
 // read reads the host as the control reads it (sshchange.Read, writing
@@ -152,7 +153,8 @@ type reading struct {
 // the SSH keys item: Can't read where sshd's settings are not read.
 func (r *runner) read(ctx context.Context) reading {
 	rd, err := sshchange.Read(ctx, r.o.System, r.o.Facts, r.o.Config, r.o.Session, r.o.Getenv)
-	h := reading{Reading: rd, err: err, status: statusRows(ctx, r.o.System, r.o.Facts)}
+	h := reading{Reading: rd, err: err}
+	h.status, h.checked = statusRows(ctx, r.o.System, r.o.Facts)
 	h.keys = sshkeys.View(sshkeys.Read(ctx, r.o.System, func(context.Context) (sshctl.KeySettings, error) {
 		if h.notRead() {
 			return sshctl.KeySettings{}, errors.Join(h.EffErr, h.err)

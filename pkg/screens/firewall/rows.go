@@ -172,7 +172,12 @@ func risky(plan []engine.Change) bool {
 	return slices.ContainsFunc(plan, func(c engine.Change) bool { return c.Risk == engine.RiskLockout })
 }
 
-// verdictRow is a verdict's value and state while ufw is active.
+// refused is the word of a listener ufw refuses.
+const refused = "Refused"
+
+// verdictRow is a verdict's value and state while ufw is active. Refused is
+// bad here; sshRows makes it plain beside a listener of its port that is let
+// in.
 func verdictRow(v ufw.Verdict) (string, component.ValueState) {
 	switch v {
 	case ufw.Allowed:
@@ -184,18 +189,31 @@ func verdictRow(v ufw.Verdict) (string, component.ValueState) {
 	case ufw.Excepted:
 		return "Blocked for some", component.ValueWarn
 	case ufw.Blocked, ufw.Denied:
-		return "Refused", component.ValueBad
+		return refused, component.ValueBad
 	case ufw.Unreachable:
 		return "No IPv6", component.ValuePlain
 	}
 	return "", component.ValueUnknown
 }
 
+// letIn reports whether ufw lets connections to a listener in, all or some:
+// allowed, rate limited, from some sources, or blocked for some. Not
+// ufw.Verdict.OK, which leaves the last two out and counts a listener no
+// connection can reach.
+func letIn(v ufw.Verdict) bool {
+	return v == ufw.Allowed || v == ufw.Limited || v == ufw.Restricted || v == ufw.Excepted
+}
+
 // sshRows are the section SSH's rows: each listener, as sshd accepts on it or is
 // configured to, and ufw's verdict for it, never hardn.yml's sshPort. Not
 // active, ufw filters nothing: "Not filtered"; ENABLED=yes, "Refused at start"
 // for what its saved rules would refuse. A listener configured and not bound, or
-// bound and not configured, says so beside it.
+// bound and not configured, says so beside it. A refused listener is marked
+// bad only where no listener sshd has bound on its port is let in (letIn; at
+// start, one its saved rules would not refuse): beside one that is, such as
+// IPv6 refused while IPv4 gets in, SSH still answers on that port, and the
+// row is plain. A listener configured and not bound answers nothing, so it
+// opens no port.
 func sshRows(r firewallctl.Reading) []component.KeyValue {
 	switch {
 	case r.Sockets.NoServer:
@@ -211,17 +229,31 @@ func sshRows(r firewallctl.Reading) []component.KeyValue {
 	for _, l := range r.Sockets.Conf.All {
 		configured = append(configured, l.String())
 	}
+	atStart := !active && r.State.Installed && r.State.Enabled && r.State.Known()
+	cover := r.Coverage()
+	open := map[uint16]bool{} // the ports with a bound listener let in
+	for _, c := range cover {
+		if slices.Contains(unbound, strings.TrimSuffix(strings.TrimPrefix(c.Need.Why, "listener "), " (dual-stack)")) {
+			continue
+		}
+		if active && letIn(c.Verdict) || atStart && (c.Verdict == ufw.Allowed || c.Verdict == ufw.Limited) {
+			open[c.Need.Port] = true
+		}
+	}
 	var rows []component.KeyValue
-	for _, c := range r.Coverage() {
+	for _, c := range cover {
 		key := strings.TrimPrefix(c.Need.Why, "listener ")
 		row := component.KeyValue{Key: key}
 		switch {
 		case active:
 			row.Value, row.State = verdictRow(c.Verdict)
-		case r.State.Installed && r.State.Enabled && r.State.Known() && !c.Verdict.OK():
+		case atStart && !c.Verdict.OK():
 			row.Value, row.State = "Refused at start", component.ValueBad
 		default:
 			row.Value = "Not filtered"
+		}
+		if row.State == component.ValueBad && open[c.Need.Port] {
+			row.State = component.ValuePlain
 		}
 		base := strings.TrimSuffix(key, " (dual-stack)")
 		switch {

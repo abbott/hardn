@@ -13,7 +13,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.0/24 alone. The same Ports section, after firewalld's,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a port let in from some sources.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
 $
@@ -57,7 +57,7 @@ $
 # 192.0.2.0/24 alone. The same Ports section, after firewalld's,$
 # with a port let in from some sources.$
 $
-# Firewall Configuration #######################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + firewalld running$
 $
@@ -102,7 +102,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msection, after firewalld's, with a port let in from some␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msources.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
@@ -161,7 +161,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.0/24 alone. The same Ports section, after firewalld's,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwith a port let in from some sources.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m#######################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m############################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
 $

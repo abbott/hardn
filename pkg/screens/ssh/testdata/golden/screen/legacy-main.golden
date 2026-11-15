@@ -11,7 +11,7 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby hardn.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby AuthenticationMethods␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;219;184;83m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mOld Settings␛[m         ␛[38;2;219;184;83mhardn.conf␛[m$
@@ -39,7 +39,7 @@ $
 $
    -  Root SSH Login       Disallowed by hardn.conf$
    -  Password Login       Off by AuthenticationMethods$
-   -  SSH Port             22$
+  [ ] SSH Port             22$
    -  Allowed Users        Anyone$
    -  Brute-Force Limit    On sshd's default$
   [ ] Old Settings         hardn.conf$
@@ -70,8 +70,8 @@ $
       ␛[38;2;129;134;156mDisallowed␛[m ␛[38;2;129;134;156mby hardn.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby AuthenticationMethods␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156m22␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;219;184;83m22␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$
