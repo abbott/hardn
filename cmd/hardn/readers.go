@@ -6,7 +6,8 @@ package main
 // pkg/screens/logs), which pkg/screens/mainmenu reaches through the hooks set here,
 // so that pkg/screens/mainmenu builds no reader; main menu 8 runs the Configuration
 // group, whose item 1 is the Configuration screen (pkg/screens/config;
-// docs/engine/screen-config.md), which reads no host; hardn
+// docs/engine/screen-config.md), which also edits hardn.yml through the engine
+// (runConfigScreen), as the other screens save; hardn
 // system-details, hardn config and -p print through the same packages. All of this only reads, under
 // plan only as live, on a host with no run log; neither opens hardn's log nor writes
 // /etc/hardn/hardn.yml.example (main.go's openStartLog and liveWrites).
@@ -102,12 +103,33 @@ func runConfigGroup(ctx context.Context, c *config.Config, found config.Found) e
 	})
 }
 
+// configRun is the hardn.yml screen's Run, a seam for the tests.
+var configRun = configscreen.Run
+
 // runConfigScreen is the group's item 1, hardn.yml: c, hardn.yml as the main menu holds it, and found,
 // how its file was found when it loaded (main.go's loadedFound), not asked again: the screen
-// names the file whose values it shows. It reads no host and writes nothing, under
-// plan only as live.
+// names the file whose values it shows. Its saves go through the engine, as the
+// other screens' do; under plan only they stop at their plan.
 func runConfigScreen(ctx context.Context, c *config.Config, found config.Found) error {
-	return configscreen.Run(ctx, configscreen.Options{Prompter: readerPrompter(), Config: c, Found: found})
+	sys := engineHost()
+	facts, err := engineDetect(ctx, sys)
+	if err != nil {
+		return err
+	}
+	env := stdoutEnv()
+	return configRun(ctx, configscreen.Options{
+		Prompter:     nav.Prompter{Ctx: component.NewCtx(env), In: engineInput(), Out: env.Writer(engineStdout)},
+		Config:       c,
+		Found:        found,
+		System:       sys,
+		Facts:        facts,
+		NewEngine:    newEngine(sys, engineOptions(ctx, sys, c)),
+		ApplyContext: screenApplyContext,
+		DryRun:       c.DryRun,
+		LogPath:      output.LegacyLogPath,
+		Now:          revertNow,
+		Ran:          auditRan(sys, c),
+	})
 }
 
 // runSystemDetailsScreen is main menu 9: the screen until the user goes back (nil) or

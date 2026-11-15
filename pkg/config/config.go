@@ -7,6 +7,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"syscall"
 
@@ -474,6 +475,17 @@ func CreateDefaultConfig(path string, config *Config) error {
 			config.SshKeys = []string{sshKey}
 		}
 
+		// Ask for one NTP server and one syslog server, each checked
+		// and asked again when refused (design-config-edit.md, decisions
+		// 9 to 11). They only fill hardn.yml.
+		if server := askServer("Enter NTP server (optional, press Enter to skip): ", checkNTPAnswer); server != "" {
+			config.NTPServers = NTPServers{server}
+		}
+		if answer := askServer("Enter syslog server (optional, press Enter to skip): ", checkSyslogAnswer); answer != "" {
+			server, _ := parseSyslogAnswer(answer)
+			config.SyslogServers = SyslogServers{server}
+		}
+
 		// Ask for the release check, last: its default a yes hardn's
 		// state already holds (CheckReleasesDefault).
 		def := CheckReleasesDefault != nil && CheckReleasesDefault()
@@ -493,7 +505,94 @@ func CreateDefaultConfig(path string, config *Config) error {
 		fmt.Fprintf(stdout(), "A complete example configuration with all options is available at %s\n", ExampleConfigPath)
 	}
 
+	// Say where the servers given are set: only those given.
+	switch ntp, syslog := len(config.NTPServers) > 0, len(config.SyslogServers) > 0; {
+	case !isInteractive():
+	case ntp && syslog:
+		fmt.Fprintln(stdout(), "Run All sets the NTP and syslog servers.")
+	case ntp:
+		fmt.Fprintln(stdout(), "Run All sets the NTP server.")
+	case syslog:
+		fmt.Fprintln(stdout(), "Run All sets the syslog server.")
+	}
+
 	return nil
+}
+
+// The lines that refuse a first-run server answer.
+const (
+	refusedIPv6 = "An IPv6 address, which hardn does not set yet."
+	refusedHost = "Not an IPv4 address or a host name."
+	refusedPort = "Not a port between 1 and 65535."
+)
+
+// askServer asks question until check refuses nothing, and returns the
+// answer, trimmed; "" for Enter alone, which skips. A refused answer gets
+// check's one line and the question again. The end of the input skips
+// too, so it is never asked without end.
+func askServer(question string, check func(string) string) string {
+	for {
+		fmt.Fprint(stdout(), question)
+		line, ended := readLine()
+		answer := strings.TrimSpace(line)
+		if answer == "" {
+			return ""
+		}
+		why := check(answer)
+		if why == "" {
+			return answer
+		}
+		fmt.Fprintln(stdout(), why)
+		if ended {
+			return ""
+		}
+	}
+}
+
+// refusedAddress is the line for a server hardn does not set.
+func refusedAddress(server string) string {
+	if _, _, err := ResolveHost(server); errors.Is(err, ErrHostIPv6) {
+		return refusedIPv6
+	}
+	return refusedHost
+}
+
+// checkNTPAnswer checks one NTP server as ntpServers is checked
+// (NTPServers.Resolve); "" is valid.
+func checkNTPAnswer(answer string) string {
+	if _, err := (NTPServers{answer}).Resolve(); err != nil {
+		return refusedAddress(answer)
+	}
+	return ""
+}
+
+// checkSyslogAnswer checks one syslog server, host or host:port, as
+// syslogServers is checked (SyslogServers.Resolve); "" is valid.
+func checkSyslogAnswer(answer string) string {
+	_, why := parseSyslogAnswer(answer)
+	return why
+}
+
+// parseSyslogAnswer reads a first-run syslog answer, host or host:port,
+// into a block of syslogServers: tcp, and port 514 unless one is given
+// (both the block's defaults, so neither is written). The whole answer is
+// tried as an address first, so that an IPv6 address gets its own
+// refusal; then the last colon is the port's. why is the refusal, "" for
+// none.
+func parseSyslogAnswer(answer string) (server SyslogServer, why string) {
+	server.Server = answer
+	_, _, err := ResolveHost(answer)
+	if i := strings.LastIndex(answer, ":"); err != nil && !errors.Is(err, ErrHostIPv6) && i >= 0 {
+		port, perr := strconv.Atoi(answer[i+1:])
+		if perr != nil || port < 1 || port > 65535 {
+			return SyslogServer{}, refusedPort
+		}
+		server.Server, server.Port = answer[:i], port
+	}
+	if _, err := (SyslogServers{server}).Resolve(); err != nil {
+		return SyslogServer{}, refusedAddress(server.Server)
+	}
+	return server, ""
 }
 
 // ReleaseQuestion is the question that turns the release check on, with
@@ -638,9 +737,16 @@ func interrupted() {
 // in a loop or a script stops, and reports status 130 for it (brief
 // Phase 3). If SIGINT cannot end it, it exits with 130.
 func readAnswer() string {
+	line, _ := readLine()
+	return line
+}
+
+// readLine is readAnswer, also reporting whether the input ended or
+// failed, after which no question is asked again.
+func readLine() (line string, ended bool) {
 	line, err := input().ReadLine()
 	if errors.Is(err, prompt.ErrInterrupted) {
 		interrupted()
 	}
-	return line
+	return line, err != nil
 }

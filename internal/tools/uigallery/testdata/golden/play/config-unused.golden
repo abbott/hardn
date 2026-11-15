@@ -8,9 +8,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Configuration screen (pkg/screens/config),␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mproposed with no Figma frame, on a hardn.yml loaded by the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal loader (pkg/config). It only shows: no plan, no y/N, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal, no host read. Nothing on this machine changes or is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal loader (pkg/config) from a simulated host. Edit a setting␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaves one key to that host's file through the real engine.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes or is read.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/unused␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe file also sets sudoNoPassword, enableLynis,␛[m$
@@ -84,9 +84,13 @@ $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216menableLynis␛[m          ␛[38;2;219;184;83mtrue␛[m$
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216msudoNoPassword␛[m       ␛[38;2;219;184;83mfalse␛[m$
 $
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEdit a setting␛[m       ␛[38;2;129;134;156mChange a key in hardn.yml␛[m$
+$
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m q$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m q$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -100,9 +104,9 @@ $
 # Note$
 # Play mode: hardn's Configuration screen (pkg/screens/config),$
 # proposed with no Figma frame, on a hardn.yml loaded by the$
-# real loader (pkg/config). It only shows: no plan, no y/N, no$
-# journal, no host read. Nothing on this machine changes or is$
-# read.$
+# real loader (pkg/config) from a simulated host. Edit a setting$
+# saves one key to that host's file through the real engine.$
+# Nothing on this machine changes or is read.$
 $
 # Info: config/unused$
 # The file also sets sudoNoPassword, enableLynis,$
@@ -176,9 +180,13 @@ $
   [ ] enableLynis          true$
   [ ] sudoNoPassword       false$
 $
+  Select an option$
+$
+   1) Edit a setting       Change a key in hardn.yml$
+$
    0) Return$
 $
-    > Option [0 or q]: q$
+    > Option [0-1 or q]: q$
 $
   simulated system ---------------------------------------------$
 $
@@ -192,9 +200,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Configuration screen␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/screens/config), proposed with no Figma frame, on a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml loaded by the real loader (pkg/config). It only␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshows: no plan, no y/N, no journal, no host read. Nothing␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes or is read.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml loaded by the real loader (pkg/config) from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host. Edit a setting saves one key to that␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost's file through the real engine. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes or is read.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/unused␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe file also sets sudoNoPassword, enableLynis,␛[m$
@@ -293,9 +302,14 @@ $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216msudoNoPassword␛[m$
       ␛[38;2;219;184;83mfalse␛[m$
 $
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEdit a setting␛[m$
+      ␛[38;2;129;134;156mChange a key in hardn.yml␛[m$
+$
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m q$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m q$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

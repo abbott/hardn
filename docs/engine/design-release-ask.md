@@ -7,7 +7,7 @@ Status: **adopted 2026-11-15, built the same day** (ยง7; what is not verified: ย
 - **The release check is off unless hardn.yml says `checkReleases: true`.** Off, hardn makes no network request. On, the main menu asks GitHub for the latest release's tag at most once a day and shows "v0.10.2 available" (`cmd/hardn/release.go`, `docs/engine/screen-release-check.md`).
 - **Nothing ever asks.** A person learns of the key only from `docs/configuration.md` or the Configuration screen.
 - **With no hardn.yml, hardn asks to create one** at every start on a terminal: "No configuration file found. Would you like to create one? [Y/n]:" (`pkg/config/config.go`, `ShouldCreateDefaultConfig`).
-- **A yes asks four more questions** (`CreateDefaultConfig`): a default username, the SSH port, "Enable automatic security updates? [y/N]:", an SSH public key. Then hardn.yml is written.
+- **A yes asks four more questions** (`CreateDefaultConfig`): a default username, the SSH port, "Enable automatic security updates? [y/N]:", an SSH public key. Then hardn.yml is written. (Since `next/config-edit`, two more before the release check: an NTP server and a syslog server, `docs/engine/design-config-edit.md`.)
 - **A no writes nothing.** hardn runs on the defaults, and asks again at the next start.
 
 ## 2. What is asked for

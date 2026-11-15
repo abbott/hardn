@@ -8,9 +8,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Configuration screen (pkg/screens/config),␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mproposed with no Figma frame, on a hardn.yml loaded by the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal loader (pkg/config). It only shows: no plan, no y/N, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal, no host read. Nothing on this machine changes or is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal loader (pkg/config) from a simulated host. Edit a setting␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaves one key to that host's file through the real engine.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes or is read.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/missing␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG names a file that is not there: hardn looks␛[m$
@@ -23,6 +23,7 @@ $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156m/home/george/hardn.yml␛[m ␛[38;2;231;70;105mnot found␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFrom␛[m                 ␛[38;2;129;134;156mHARDN_CONFIG␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn is using its defaults.␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mStart hardn again to create one.␛[m$
 $
   ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -94,9 +95,9 @@ $
 # Note$
 # Play mode: hardn's Configuration screen (pkg/screens/config),$
 # proposed with no Figma frame, on a hardn.yml loaded by the$
-# real loader (pkg/config). It only shows: no plan, no y/N, no$
-# journal, no host read. Nothing on this machine changes or is$
-# read.$
+# real loader (pkg/config) from a simulated host. Edit a setting$
+# saves one key to that host's file through the real engine.$
+# Nothing on this machine changes or is read.$
 $
 # Info: config/missing$
 # HARDN_CONFIG names a file that is not there: hardn looks$
@@ -109,6 +110,7 @@ $
   [ ] Path                 /home/george/hardn.yml not found$
    -  From                 HARDN_CONFIG$
    -  hardn is using its defaults.$
+   -  Start hardn again to create one.$
 $
   Users --------------------------------------------------------$
 $
@@ -180,9 +182,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Configuration screen␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/screens/config), proposed with no Figma frame, on a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml loaded by the real loader (pkg/config). It only␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshows: no plan, no y/N, no journal, no host read. Nothing␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes or is read.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml loaded by the real loader (pkg/config) from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host. Edit a setting saves one key to that␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost's file through the real engine. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes or is read.␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/missing␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mHARDN_CONFIG names a file that is not there: hardn looks␛[m$
@@ -197,6 +200,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFrom␛[m$
       ␛[38;2;129;134;156mHARDN_CONFIG␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn is using its defaults.␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mStart hardn again to create one.␛[m$
 $
   ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

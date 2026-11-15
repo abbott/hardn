@@ -54,7 +54,7 @@ $
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView or edit the file hardn reads␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mDNS Settings␛[m         ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m         ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m      ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
@@ -126,13 +126,17 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m ␛[38;2;129;134;156m(default)␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEdit a setting␛[m       ␛[38;2;129;134;156mChange a key in hardn.yml␛[m$
+$
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView the file hardn reads␛[m$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156mView or edit the file hardn reads␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mDNS Settings␛[m         ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m         ␛[38;2;129;134;156mKeep the clock in sync␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mSyslog Settings␛[m      ␛[38;2;129;134;156mSend logs to a syslog server␛[m$
@@ -234,7 +238,7 @@ $
 $
 # Configuration ################################################$
 $
-   1) hardn.yml            View the file hardn reads$
+   1) hardn.yml            View or edit the file hardn reads$
    2) DNS Settings         Configure nameservers$
    3) NTP Settings         Keep the clock in sync$
    4) Syslog Settings      Send logs to a syslog server$
@@ -306,13 +310,17 @@ $
    -  confirmTimeout       3m (default)$
    -  checkReleases        false (default)$
 $
+  Select an option$
+$
+   1) Edit a setting       Change a key in hardn.yml$
+$
    0) Return$
 $
-    > Option [0 or q]: 0$
+    > Option [0-1 or q]: 0$
 $
 # Configuration ################################################$
 $
-   1) hardn.yml            View the file hardn reads$
+   1) hardn.yml            View or edit the file hardn reads$
    2) DNS Settings         Configure nameservers$
    3) NTP Settings         Keep the clock in sync$
    4) Syslog Settings      Send logs to a syslog server$
@@ -436,7 +444,7 @@ $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m$
-      ␛[38;2;129;134;156mView the file hardn reads␛[m$
+      ␛[38;2;129;134;156mView or edit the file hardn reads␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mDNS Settings␛[m$
       ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m$
@@ -531,14 +539,19 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mcheckReleases␛[m$
       ␛[38;2;129;134;156mfalse␛[m ␛[38;2;129;134;156m(default)␛[m$
 $
+  ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mEdit a setting␛[m$
+      ␛[38;2;129;134;156mChange a key in hardn.yml␛[m$
+$
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-1 or q]:␛[m 0$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mhardn.yml␛[m$
-      ␛[38;2;129;134;156mView the file hardn reads␛[m$
+      ␛[38;2;129;134;156mView or edit the file hardn reads␛[m$
    ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mDNS Settings␛[m$
       ␛[38;2;129;134;156mConfigure nameservers␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mNTP Settings␛[m$

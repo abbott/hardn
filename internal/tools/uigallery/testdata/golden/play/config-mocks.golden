@@ -8,9 +8,9 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Configuration screen (pkg/screens/config),␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mproposed with no Figma frame, on a hardn.yml loaded by the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal loader (pkg/config). It only shows: no plan, no y/N, no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mjournal, no host read. Nothing on this machine changes or is␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mreal loader (pkg/config) from a simulated host. Edit a setting␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msaves one key to that host's file through the real engine.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNothing on this machine changes or is read.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration files␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -22,12 +22,13 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mNo file␛[m              ␛[38;2;129;134;156mEvery key a default␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mMinimal␛[m              ␛[38;2;129;134;156mA two-line file␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSyslog servers␛[m       ␛[38;2;129;134;156mThree, the row stacked␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNot used␛[m             ␛[38;2;129;134;156mKeys nothing reads␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMissing␛[m              ␛[38;2;129;134;156mHARDN_CONFIG's file is not there␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mAlpine, TCP syslog␛[m   ␛[38;2;129;134;156mThe logger can't use it␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mNot used␛[m             ␛[38;2;129;134;156mKeys nothing reads␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mMissing␛[m              ␛[38;2;129;134;156mHARDN_CONFIG's file is not there␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-8 or q]:␛[m 4$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 4$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/none␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNo file anywhere: every key at its default.␛[m$
@@ -38,6 +39,7 @@ $
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m                 ␛[38;2;129;134;156mNone found␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn is using its defaults.␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mStart hardn again to create one.␛[m$
 $
   ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -105,12 +107,13 @@ $
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mNo file␛[m              ␛[38;2;129;134;156mEvery key a default␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mMinimal␛[m              ␛[38;2;129;134;156mA two-line file␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSyslog servers␛[m       ␛[38;2;129;134;156mThree, the row stacked␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNot used␛[m             ␛[38;2;129;134;156mKeys nothing reads␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMissing␛[m              ␛[38;2;129;134;156mHARDN_CONFIG's file is not there␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mAlpine, TCP syslog␛[m   ␛[38;2;129;134;156mThe logger can't use it␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mNot used␛[m             ␛[38;2;129;134;156mKeys nothing reads␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mMissing␛[m              ␛[38;2;129;134;156mHARDN_CONFIG's file is not there␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-8 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -124,9 +127,9 @@ $
 # Note$
 # Play mode: hardn's Configuration screen (pkg/screens/config),$
 # proposed with no Figma frame, on a hardn.yml loaded by the$
-# real loader (pkg/config). It only shows: no plan, no y/N, no$
-# journal, no host read. Nothing on this machine changes or is$
-# read.$
+# real loader (pkg/config) from a simulated host. Edit a setting$
+# saves one key to that host's file through the real engine.$
+# Nothing on this machine changes or is read.$
 $
 # Configuration files ##########################################$
 $
@@ -138,12 +141,13 @@ $
    4) No file              Every key a default$
    5) Minimal              A two-line file$
    6) Syslog servers       Three, the row stacked$
-   7) Not used             Keys nothing reads$
-   8) Missing              HARDN_CONFIG's file is not there$
+   7) Alpine, TCP syslog   The logger can't use it$
+   8) Not used             Keys nothing reads$
+   9) Missing              HARDN_CONFIG's file is not there$
 $
    0) Return$
 $
-    > Option [0-8 or q]: 4$
+    > Option [0-9 or q]: 4$
 $
 # Info: config/none$
 # No file anywhere: every key at its default.$
@@ -154,6 +158,7 @@ $
 $
    -  Path                 None found$
    -  hardn is using its defaults.$
+   -  Start hardn again to create one.$
 $
   Users --------------------------------------------------------$
 $
@@ -221,12 +226,13 @@ $
    4) No file              Every key a default$
    5) Minimal              A two-line file$
    6) Syslog servers       Three, the row stacked$
-   7) Not used             Keys nothing reads$
-   8) Missing              HARDN_CONFIG's file is not there$
+   7) Alpine, TCP syslog   The logger can't use it$
+   8) Not used             Keys nothing reads$
+   9) Missing              HARDN_CONFIG's file is not there$
 $
    0) Return$
 $
-    > Option [0-8 or q]: 0$
+    > Option [0-9 or q]: 0$
 $
   simulated system ---------------------------------------------$
 $
@@ -240,9 +246,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mPlay mode: hardn's Configuration screen␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(pkg/screens/config), proposed with no Figma frame, on a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml loaded by the real loader (pkg/config). It only␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mshows: no plan, no y/N, no journal, no host read. Nothing␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mon this machine changes or is read.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhardn.yml loaded by the real loader (pkg/config) from a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulated host. Edit a setting saves one key to that␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mhost's file through the real engine. Nothing on this␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mmachine changes or is read.␛[m$
 $
 ␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mConfiguration files␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
@@ -260,14 +267,16 @@ $
       ␛[38;2;129;134;156mA two-line file␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSyslog servers␛[m$
       ␛[38;2;129;134;156mThree, the row stacked␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNot used␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mAlpine, TCP syslog␛[m$
+      ␛[38;2;129;134;156mThe logger can't use it␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mNot used␛[m$
       ␛[38;2;129;134;156mKeys nothing reads␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMissing␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mMissing␛[m$
       ␛[38;2;129;134;156mHARDN_CONFIG's file is not there␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-8 or q]:␛[m 4$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 4$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: config/none␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mNo file anywhere: every key at its default.␛[m$
@@ -279,6 +288,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPath␛[m$
       ␛[38;2;129;134;156mNone found␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mhardn is using its defaults.␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;129;134;156mStart hardn again to create one.␛[m$
 $
   ␛[1;38;2;129;134;156mUsers␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -370,14 +380,16 @@ $
       ␛[38;2;129;134;156mA two-line file␛[m$
    ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mSyslog servers␛[m$
       ␛[38;2;129;134;156mThree, the row stacked␛[m$
-   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mNot used␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216mAlpine, TCP syslog␛[m$
+      ␛[38;2;129;134;156mThe logger can't use it␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mNot used␛[m$
       ␛[38;2;129;134;156mKeys nothing reads␛[m$
-   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mMissing␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mMissing␛[m$
       ␛[38;2;129;134;156mHARDN_CONFIG's file is not there␛[m$
 $
    ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
 $
-    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-8 or q]:␛[m 0$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-9 or q]:␛[m 0$
 $
   ␛[1;38;2;129;134;156msimulated system␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

@@ -1,0 +1,134 @@
+# Golden file of TestConfigGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mconfig edit␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Edit a setting: the keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mConfiguration edits, numbered, each with its value. The keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manother screen saves, and dryRun, adminNoPassword and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshConfigFile, are not here.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEdit a setting␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216musername␛[m             ␛[38;2;129;134;156mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216msshKeys␛[m              ␛[38;2;129;134;156m1 key␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216msshPort␛[m              ␛[38;2;129;134;156m2222␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mdisableRootSSH␛[m       ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216menableUfwSshPolicy␛[m   ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mconfigureDns␛[m         ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216msyslogServers␛[m        ␛[38;2;129;134;156mNone␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mntpServers␛[m           ␛[38;2;129;134;156mNone␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mfalse␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m $
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  config edit --------------------------------------------------$
+$
+# Note$
+# Proposed: no Figma frame. Edit a setting: the keys$
+# Configuration edits, numbered, each with its value. The keys$
+# another screen saves, and dryRun, adminNoPassword and$
+# sshConfigFile, are not here.$
+$
+# Edit a setting ###############################################$
+$
+   1) username             george$
+   2) sshKeys              1 key$
+   3) sshPort              2222$
+   4) disableRootSSH       true$
+   5) enableUfwSshPolicy   true$
+   6) configureDns         true$
+   7) syslogServers        None$
+   8) ntpServers           None$
+   9) kernel               false$
+  10) confirmTimeout       3m$
+  11) checkReleases        false$
+  12) enableUnattendedUpgrades  true$
+$
+   0) Return$
+$
+    > Option [0-12 or q]: $
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mconfig edit␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Edit a setting: the keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mConfiguration edits, numbered, each with its value. The␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mkeys another screen saves, and dryRun, adminNoPassword and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshConfigFile, are not here.␛[m$
+$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mEdit a setting␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216musername␛[m$
+      ␛[38;2;129;134;156mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216msshKeys␛[m$
+      ␛[38;2;129;134;156m1 key␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216msshPort␛[m$
+      ␛[38;2;129;134;156m2222␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mdisableRootSSH␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216menableUfwSshPolicy␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mconfigureDns␛[m$
+      ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216msyslogServers␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mntpServers␛[m$
+      ␛[38;2;129;134;156mNone␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m$
+      ␛[38;2;129;134;156mfalse␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m$
+      ␛[38;2;129;134;156m3m␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m$
+      ␛[38;2;129;134;156mfalse␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m❯␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m $
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mconfig edit␛[m ␛[38;2;22;24;29m--------------------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. Edit a setting: the keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mConfiguration edits, numbered, each with its value. The keys␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156manother screen saves, and dryRun, adminNoPassword and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msshConfigFile, are not here.␛[m$
+$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mEdit a setting␛[m ␛[38;2;43;47;59m###############################################␛[m$
+$
+   ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216musername␛[m             ␛[38;2;129;134;156mgeorge␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216msshKeys␛[m              ␛[38;2;129;134;156m1 key␛[m$
+   ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216msshPort␛[m              ␛[38;2;129;134;156m2222␛[m$
+   ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mdisableRootSSH␛[m       ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216menableUfwSshPolicy␛[m   ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m6)␛[m ␛[38;2;192;196;216mconfigureDns␛[m         ␛[38;2;129;134;156mtrue␛[m$
+   ␛[1;38;2;192;196;216m7)␛[m ␛[38;2;192;196;216msyslogServers␛[m        ␛[38;2;129;134;156mNone␛[m$
+   ␛[1;38;2;192;196;216m8)␛[m ␛[38;2;192;196;216mntpServers␛[m           ␛[38;2;129;134;156mNone␛[m$
+   ␛[1;38;2;192;196;216m9)␛[m ␛[38;2;192;196;216mkernel␛[m               ␛[38;2;129;134;156mfalse␛[m$
+  ␛[1;38;2;192;196;216m10)␛[m ␛[38;2;192;196;216mconfirmTimeout␛[m       ␛[38;2;129;134;156m3m␛[m$
+  ␛[1;38;2;192;196;216m11)␛[m ␛[38;2;192;196;216mcheckReleases␛[m        ␛[38;2;129;134;156mfalse␛[m$
+  ␛[1;38;2;192;196;216m12)␛[m ␛[38;2;192;196;216menableUnattendedUpgrades  true␛[m$
+$
+   ␛[1;38;2;129;134;156m0)␛[m ␛[38;2;129;134;156mReturn␛[m$
+$
+    ␛[1;38;2;129;134;156m>␛[m ␛[1;38;2;129;134;156mOption␛[m ␛[38;2;129;134;156m[0-12 or q]:␛[m $
+$
+$

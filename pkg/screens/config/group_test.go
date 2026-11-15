@@ -20,7 +20,7 @@ import (
 // Settings, NTP Settings and Syslog Settings, each cmd/hardn's screen.
 
 // groupItems are the group's rows, plain at 80 columns.
-const groupItems = "   1) hardn.yml            View the file hardn reads\n" +
+const groupItems = "   1) hardn.yml            View or edit the file hardn reads\n" +
 	"   2) DNS Settings         Configure nameservers\n" +
 	"   3) NTP Settings         Keep the clock in sync\n" +
 	"   4) Syslog Settings      Send logs to a syslog server\n"

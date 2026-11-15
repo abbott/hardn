@@ -330,5 +330,8 @@ func save(ctx context.Context, sys host.System, c *Config, edit func([]byte, *Co
 	}
 	c.loaded.sum = sum(out)
 	c.loaded.set = setOf(out)
+	if slices.Contains(settings, usernameKey) {
+		c.loaded.username = c.Username // the file's now (FileUsername)
+	}
 	return nil
 }

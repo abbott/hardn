@@ -56,14 +56,26 @@ const nameMax = 32
 // homeOf is a new user's home, which Create states (--home-dir).
 func homeOf(name string) string { return "/home/" + name }
 
+// CheckNameForm refuses a name by its form alone, reading no host: one
+// useradd would refuse (nameForm, nameMax), or hardn does not write into a
+// rule (sudoers.CheckUser, doas's the stricter). CheckName's first check,
+// and hardn.yml's username's where it is edited: the usual value there is a
+// user that already exists (docs/engine/design-config-edit.md, decision 4).
+func CheckNameForm(name string) error {
+	if len(name) > nameMax || !nameForm.MatchString(name) || sudoers.CheckUser(sudoers.ToolDoas, name) != nil {
+		return refuse(codeNameForm, ErrNameForm, nil, "Use lower-case letters, digits, - and _, starting with a letter or _, up to 32", "")
+	}
+	return nil
+}
+
 // CheckName refuses a new user's name: one useradd would refuse (nameForm,
 // nameMax), or hardn does not write into a rule (sudoers.CheckUser, doas's
 // the stricter); one a user or group has (accounts.Read); one whose
 // /home/<name> is there, as undoing Create runs userdel --remove, which
 // would delete it. nil where Create may use it.
 func (r Reading) CheckName(ctx context.Context, sys host.System, name string) error {
-	if len(name) > nameMax || !nameForm.MatchString(name) || sudoers.CheckUser(sudoers.ToolDoas, name) != nil {
-		return refuse(codeNameForm, ErrNameForm, nil, "Use lower-case letters, digits, - and _, starting with a letter or _, up to 32", "")
+	if err := CheckNameForm(name); err != nil {
+		return err
 	}
 	db, err := accounts.Read(ctx, sys)
 	if err != nil {

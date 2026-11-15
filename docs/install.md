@@ -23,7 +23,7 @@ curl -fsSL https://raw.githubusercontent.com/abbott/hardn/main/install.sh | sudo
 
 With `HARDN_VERSION`, the script then asks the GitHub API once for the latest release's tag, and says when it is newer, such as "hardn v0.9.1 available (https://github.com/abbott/hardn)". It waits 5 seconds at most; if GitHub doesn't answer, nothing is said and the install stands.
 
-The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except in a dry run._
+The first time hardn runs **live**, it writes `/etc/hardn/hardn.yml.example`. _On a terminal, a run that finds no hardn.yml offers to create one, except in a dry run._ Its questions, an NTP and a syslog server among them: [configuration.md](configuration.md#1-interactive-creation).
 
 ## Install Manually
 

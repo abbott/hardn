@@ -4,8 +4,8 @@ import "github.com/abbott/hardn/pkg/ui/component"
 
 // The Configuration screen (docs/roadmap.md, "Configuration"; units
 // (a) and (b), next/config-gallery and next/config-screen): hardn.yml, item 1 of main menu 8's
-// group (ConfigGroup), read
-// only, on the sub-menu layout as the Logs screen is, as the maintainer adopted
+// group (ConfigGroup), which
+// since 2026-11-15 edits too (configedit.go), on the sub-menu layout as the Logs screen is, as the maintainer adopted
 // its mock (docs/engine/gallery-config.md). There is no Figma frame. pkg/ui
 // cannot load hardn.yml: pkg/screens/config fills Config from it as loaded
 // (docs/engine/screen-config.md).
@@ -102,7 +102,13 @@ type Config struct {
 	Values map[string]ConfigValue
 	// Unused are the keys the file sets that nothing reads, in order.
 	Unused []ConfigUnused
+	// Notes are warnings, by key, each a line under its key's row: a
+	// syslogServers the host's logger can't use.
+	Notes map[string]string
 }
+
+// read reports whether a file was read: only then is there one to edit.
+func (v Config) read() bool { return v.By != ConfigNoFile && !v.Missing }
 
 // fileSection is the section that names the file and how it was found, ending,
 // where no file was read, with the line that says the defaults are in use.
@@ -149,6 +155,9 @@ func (v Config) sections() []Section {
 			}
 			row.StackLong = configLists[k] // a list too long for the row goes under its key
 			rows = append(rows, row)
+			if note := v.Notes[k]; note != "" {
+				rows = append(rows, component.KeyValue{Key: note, State: component.ValueWarn, Finding: true})
+			}
 		}
 		out = append(out, configSection(g.title, rows))
 	}
@@ -159,15 +168,25 @@ func (v Config) sections() []Section {
 	return append(out, configSection(configUnused, unused))
 }
 
-// SubMenu returns the screen: the title bar; the sections; Return alone; "Option".
-// It has no item: the screen only reads.
+// SubMenu returns the screen: the title bar; the sections; "Edit a setting"
+// where a file was read, under "Select an option"; Return; "Option". With no
+// file read it has no item, and "File" ends with how to create one
+// (design-config-edit.md, decision 7 (a)).
 func (v Config) SubMenu() SubMenu {
-	return SubMenu{
+	sub := SubMenu{
 		Title:    trail(configTitle),
 		Sections: v.sections(),
 		Menu:     component.Menu{Exit: returnItem()},
 		Prompt:   menuPrompt,
 	}
+	if !v.read() {
+		file := &sub.Sections[0].Rows
+		file.Items = append(file.Items, component.KeyValue{Key: configCreate, State: component.ValueNone})
+		return sub
+	}
+	sub.Heading = configHeading
+	sub.Menu.Items = []component.MenuItem{{Key: ConfigEditItem, Label: configEditLabel, Description: configEditDesc}}
+	return sub
 }
 
 // Report renders the title bar and the sections for c, with no menu and no prompt:

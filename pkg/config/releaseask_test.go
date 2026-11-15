@@ -29,12 +29,12 @@ func TestCreateDefaultConfigCheckReleases(t *testing.T) {
 		asked, stateYes bool
 		want            bool
 	}{
-		{"Enter", "\n\n\n\n\n", true, false, false},
-		{"y", "\n\n\n\ny\n", true, false, true},
-		{"n", "\n\n\n\nn\n", true, false, false},
+		{"Enter", "\n\n\n\n\n\n\n", true, false, false},
+		{"y", "\n\n\n\n\n\ny\n", true, false, true},
+		{"n", "\n\n\n\n\n\nn\n", true, false, false},
 		{"the end of the input", "\n\n\n\n", true, false, false},
-		{"Enter, a yes in the state", "\n\n\n\n\n", true, true, true},
-		{"n, a yes in the state", "\n\n\n\nno\n", true, true, false},
+		{"Enter, a yes in the state", "\n\n\n\n\n\n\n", true, true, true},
+		{"n, a yes in the state", "\n\n\n\n\n\nno\n", true, true, false},
 		{"no question", "", false, false, false},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
@@ -49,7 +49,8 @@ func TestCreateDefaultConfigCheckReleases(t *testing.T) {
 			}
 			if tc.asked {
 				q := ReleaseQuestion(tc.stateYes)
-				if want := "Add SSH public key (optional, press Enter to skip): " + q + " Created configuration file at "; !strings.Contains(out, want) ||
+				if want := "Add SSH public key (optional, press Enter to skip): Enter NTP server (optional, press Enter to skip): " +
+					"Enter syslog server (optional, press Enter to skip): " + q + " Created configuration file at "; !strings.Contains(out, want) ||
 					strings.HasSuffix(q, "[Y/n]:") != tc.stateYes {
 					t.Errorf("the question is not the last, or its default is wrong:\n%s", out)
 				}

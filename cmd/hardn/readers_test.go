@@ -809,7 +809,7 @@ func TestConfigScreenHook(t *testing.T) {
 			if err := run(); !errors.Is(err, tc.want) || (tc.want == nil && err != nil) {
 				t.Fatalf("= %v, want %v; screen:\n%s", err, tc.want, s.out.String())
 			}
-			if n := strings.Count(s.out.String(), "   1) hardn.yml            View the file hardn reads\n"); n != tc.drawn {
+			if n := strings.Count(s.out.String(), "   1) hardn.yml            View or edit the file hardn reads\n"); n != tc.drawn {
 				t.Errorf("the group drawn %d times, want %d:\n%s", n, tc.drawn, s.out.String())
 			}
 			for _, w := range []string{"# Configuration ###", "   2) DNS Settings         Configure nameservers\n", "   3) NTP Settings         Keep the clock in sync\n",
