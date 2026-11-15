@@ -32,7 +32,7 @@ func TestWantRow(t *testing.T) {
 // TestSetUndoItems: Set is 1 wherever it shows; the undo is 1 alone and 2
 // beside it; and Set unavailable, with its reason, is the only item.
 func TestSetUndoItems(t *testing.T) {
-	set := component.MenuItem{Key: "1", Label: "Set server", Description: "192.0.2.50:514 TCP"}
+	set := component.MenuItem{Key: "1", Label: "Set servers", Description: "192.0.2.50:514 TCP"}
 	undo := component.MenuItem{Label: "Stop forwarding", Description: "Undo hardn's change"}
 	keyed := func(it component.MenuItem, key string) component.MenuItem { it.Key = key; return it }
 	for _, tc := range []struct {
@@ -45,8 +45,8 @@ func TestSetUndoItems(t *testing.T) {
 		{"nothing of hardn's, whatever differs", "", false, true, []component.MenuItem{set}},
 		{"hardn's, as hardn.yml", "", true, false, []component.MenuItem{keyed(undo, "1")}},
 		{"hardn's, another", "", true, true, []component.MenuItem{set, keyed(undo, "2")}},
-		{"unavailable", "Set outside hardn", false, false, []component.MenuItem{{Key: "1", Label: "Set server", Description: "Set outside hardn", Disabled: true}}},
-		{"unavailable, whatever is hardn's", "No time service", true, true, []component.MenuItem{{Key: "1", Label: "Set server", Description: "No time service", Disabled: true}}},
+		{"unavailable", "Set outside hardn", false, false, []component.MenuItem{{Key: "1", Label: "Set servers", Description: "Set outside hardn", Disabled: true}}},
+		{"unavailable, whatever is hardn's", "No time service", true, true, []component.MenuItem{{Key: "1", Label: "Set servers", Description: "No time service", Disabled: true}}},
 	} {
 		if got := setUndoItems(set, undo, tc.off, tc.own, tc.differs); !reflect.DeepEqual(got, tc.want) {
 			t.Errorf("%s: setUndoItems = %+v, want %+v", tc.name, got, tc.want)

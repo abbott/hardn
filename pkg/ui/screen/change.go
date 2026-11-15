@@ -6,7 +6,7 @@ import (
 )
 
 // Change is one change's words: the title bar over its flow, its question,
-// and its review. The Firewall, Log Forwarding and Time Sync screens' items
+// and its review. The Firewall, Syslog Settings and NTP Settings screens' items
 // each return one.
 type Change struct {
 	Step     WorkflowStep
@@ -14,8 +14,8 @@ type Change struct {
 	Review   flow.Review
 }
 
-// What the screens that set hardn.yml's value on a service share (Log
-// Forwarding, Time Sync; docs/engine/gallery-timesync.md §5): the hardn.yml
+// What the screens that set hardn.yml's value on a service share (Syslog
+// Settings, NTP Settings; docs/engine/gallery-timesync.md §5): the hardn.yml
 // row and the two-item menu. Whose setting the host's is, and what makes
 // Set unavailable, are each screen's own.
 const (

@@ -1,4 +1,4 @@
-// Package timesync holds the Time Sync control (docs/roadmap.md, "Time
+// Package timesync holds the NTP Settings control (docs/roadmap.md, "Time
 // sync"; docs/engine/gallery-timesync.md, adopted 2026-11-14;
 // docs/engine/screen-timesync.md): which service keeps the host's time,
 // whether the clock is in sync, and the two changes that set hardn.yml's
@@ -26,8 +26,9 @@ import (
 // ID is the control's ID, stable once released.
 const ID = "time.sync"
 
-// Title is the row's label, the screen's title and the menu item's.
-const Title = "Time Sync"
+// Title is the row's label. The screen's title and the menu item are
+// "NTP Settings" (pkg/ui/screen).
+const Title = "NTP"
 
 // The row's details (gallery-timesync.md §6); a Configured row's is the
 // server the clock follows, or DetailInSync where the service does not say.
@@ -54,7 +55,7 @@ const (
 	ActionRemove
 )
 
-// Sync is Time Sync. Config is hardn.yml as loaded, whose ntpServers Check
+// Sync is NTP Settings. Config is hardn.yml as loaded, whose ntpServers Check
 // compares the host with; Plan reads the engine's (engine.Input.Config),
 // which is the same file. The risk level never counts the row (decision
 // 11): it is no row of risk.Rows.
@@ -63,7 +64,7 @@ type Sync struct {
 	Config *config.Config
 }
 
-// Controls is the Time Sync row against cfg.
+// Controls is the NTP row against cfg.
 func Controls(cfg *config.Config) []engine.Control { return []engine.Control{Sync{Config: cfg}} }
 
 // ID returns ID.
@@ -76,7 +77,7 @@ func (Sync) Title() string { return Title }
 // its words, and the main menu leaves it out (Shown).
 func (Sync) Applies(detect.Facts) (bool, string) { return true, "" }
 
-// Reading is the host read for Time Sync.
+// Reading is the host read for NTP Settings.
 type Reading struct {
 	// Host is the service, the clock and the servers. Its text is the
 	// host's: Status and the screen make it safe to show.

@@ -1019,7 +1019,7 @@ var (
 	noClock   = component.KeyValue{Key: rowClock, Value: notKnown, State: component.ValueUnknown}
 )
 
-// TestTimeRows: the time service and the clock as the Time Sync screen says
+// TestTimeRows: the time service and the clock as the NTP Settings screen says
 // them (gallery-timesync.md, decision 10 (a)); what is not read is not
 // known, never "None".
 func TestTimeRows(t *testing.T) {

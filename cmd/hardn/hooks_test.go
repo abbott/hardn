@@ -19,8 +19,8 @@ import (
 
 // TestMenuOptions: menuOptions, as main fills the main menu's Options, sets
 // every field of them, the User Management, SSH Login, DNS, Firewall,
-// Backup, Auto Updates, Run All, Configuration (its group's Log Forwarding,
-// Time Sync and Kernel Settings too), System Details and Logs items' (the
+// Backup, Auto Updates, Run All, Configuration (its group's Syslog Settings,
+// NTP Settings and Kernel Settings too), System Details and Logs items' (the
 // Firewall item's description's too), the status's and terminal's, the
 // input and stdout, on the configuration given. What each item runs is
 // its own tests' (TestBackupThenDNS, TestFirewallHook, TestUsersHook,
@@ -76,20 +76,20 @@ func TestMenuOptions(t *testing.T) {
 	if err := group.LogForwarding(); err != nil {
 		t.Fatal(err)
 	}
-	// The Log Forwarding screen (the group's 2) runs on the host and the engine
+	// The Syslog Settings screen (the group's 2) runs on the host and the engine
 	// hardn builds, with the main menu's configuration, each change a
 	// record of the audit log.
 	if logForward.Config != c || logForward.System == nil || logForward.NewEngine == nil || logForward.Ran == nil ||
 		logForward.ApplyContext == nil || logForward.Prompter.In == nil || logForward.LogPath != output.LegacyLogPath || logForward.DryRun != c.DryRun {
-		t.Errorf("the Log Forwarding screen's options: %+v", logForward)
+		t.Errorf("the Syslog Settings screen's options: %+v", logForward)
 	}
-	// The Time Sync screen (the group's 3), the same.
+	// The NTP Settings screen (the group's 3), the same.
 	if err := group.TimeSync(); err != nil {
 		t.Fatal(err)
 	}
 	if timeSync.Config != c || timeSync.System == nil || timeSync.NewEngine == nil || timeSync.Ran == nil ||
 		timeSync.ApplyContext == nil || timeSync.Prompter.In == nil || timeSync.LogPath != output.LegacyLogPath || timeSync.DryRun != c.DryRun {
-		t.Errorf("the Time Sync screen's options: %+v", timeSync)
+		t.Errorf("the NTP Settings screen's options: %+v", timeSync)
 	}
 	// The Kernel Settings screen (the group's 4), the same.
 	if err := group.KernelSettings(); err != nil {

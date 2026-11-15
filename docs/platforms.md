@@ -16,24 +16,24 @@ hardn knows when each release's free security updates end. From 90 days before, 
 | CentOS Stream | 10: 2030-05-31, 9: 2027-05-31 |
 | Oracle | 10: June 2035, 9: June 2032 (the end of Premier Support) |
 
-## Log forwarding
+## Syslog
 
-What Log Forwarding (main menu 8, then 2) does differs by the host's logger:
+What Syslog Settings (main menu 8, then 2) does differs by the host's logger:
 
-| Distribution | Logger hardn finds | Set server |
+| Distribution | Logger hardn finds | Set servers |
 |---|---|---|
-| Ubuntu; Rocky, Alma, RHEL, CentOS Stream, Oracle | rsyslog | writes `/etc/rsyslog.d/60-hardn-forward.conf`; UDP, TCP or TLS |
+| Ubuntu; Rocky, Alma, RHEL, CentOS Stream, Oracle | rsyslog | writes `/etc/rsyslog.d/60-hardn-forward.conf`, one action and its own queue for each server; UDP, TCP or TLS |
 | Debian 13 and 12 | journald alone, unless rsyslog is installed | installs rsyslog first, which also keeps its own log files under `/var/log` |
-| Proxmox | as Debian | Set server installs rsyslog where journald runs alone: the one package hardn installs on Proxmox |
-| Alpine | busybox syslogd; with rsyslog also installed, hardn can't tell which one logs and changes nothing | adds `-R <server>:<port> -L` to `SYSLOGD_OPTS` in `/etc/conf.d/syslog`, under a comment naming what it added; UDP only |
+| Proxmox | as Debian | Set servers installs rsyslog where journald runs alone: the one package hardn installs on Proxmox |
+| Alpine | busybox syslogd; with rsyslog also installed, hardn can't tell which one logs and changes nothing | adds one `-R <server>:<port>` for each server, and `-L`, to `SYSLOGD_OPTS` in `/etc/conf.d/syslog`, under a comment naming what it added; UDP only, so one TCP or TLS server refuses the whole list |
 
 - hardn reads rsyslog's forwarding from `/etc/rsyslog.conf` and `/etc/rsyslog.d/*.conf`: `omfwd` actions and the older `@host` and `@@host` lines. A file another `include` names, RELP, and another syslog daemon (syslog-ng) are not read.
 - TLS uses rsyslog's `gtls` driver (`rsyslog-gnutls`). Alpine gets no TLS: nothing is installed there.
-- Not verified on a host yet: rsyslog's service name outside Debian (`rsyslog` is used); whether Debian 13's journald hands messages to a newly installed rsyslog unaided; where Ubuntu's AppArmor profile lets rsyslogd read a CA file; the TCP ports SELinux lets rsyslogd reach on Rocky, Alma, RHEL, CentOS Stream and Oracle (514, 601, 6514, 10514 and 20514 are labelled for it).
+- Not verified on a host yet: two `-R` on Alpine, read from busybox's source and not run; what rsyslog does while a server is away, read from its documents; hardn's queue lines on rsyslog 8.2112.0 (Ubuntu 22.04); rsyslog's service name outside Debian (`rsyslog` is used); whether Debian 13's journald hands messages to a newly installed rsyslog unaided; where Ubuntu's AppArmor profile lets rsyslogd read a CA file; the TCP ports SELinux lets rsyslogd reach on Rocky, Alma, RHEL, CentOS Stream and Oracle (514, 601, 6514, 10514 and 20514 are labelled for it).
 
-## Time sync
+## NTP
 
-What Time Sync (main menu 8, then 3) does differs by the host's time service. hardn sets the service the host already runs:
+What NTP Settings (main menu 8, then 3) does differs by the host's time service. hardn sets the service the host already runs:
 
 | Distribution | Service hardn finds | Set servers |
 |---|---|---|
@@ -49,7 +49,7 @@ What Time Sync (main menu 8, then 3) does differs by the host's time service. ha
 - The clock is read with `chronyc -N tracking` for chrony, `timedatectl show` under systemd, and `busybox adjtimex` on Alpine.
 - Not verified on a host yet: everything on this list. The files are as each distribution's package source has them; the commands' output is as their source code prints it. What a package upgrade does with a main file hardn edited (ucf on Debian and Ubuntu, rpm elsewhere) is not known.
 
-## Kernel settings
+## Kernel
 
 What Kernel Settings (main menu 8, then 4) writes to `/etc/sysctl.d/90-hardn.conf` differs by the host's `sysctl`:
 

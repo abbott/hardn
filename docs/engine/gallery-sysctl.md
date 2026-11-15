@@ -1,5 +1,7 @@
 # Kernel Settings
 
+> **Renamed 2026-11-14.** The screen and its Configuration item stay "Kernel Settings"; its status row, the main menu's row (drawn before AppArmor) and the hardn.yml screen's section are now "Kernel", and the hardn.yml key is `kernel` (was `kernelSettings`). The `KERNEL_*` codes and the control id are unchanged. The record below keeps the old names.
+
 The roadmap's "sysctl". hardn shows the kernel's network and kernel settings against a baseline, writes the ones below it to one file in `/etc/sysctl.d`, and sets them at once. This page holds the design: the screen and its reviews (§2), what the hosts have (§3), the decisions (§4), and what is built (§9).
 
 Status: **built 2026-11-14, on `next/sysctl`.** The maintainer adopted every recommended answer of §4's decisions 1 to 19, in these words: "Adopt all". §4 is kept as the record. Not run on a Linux host yet: the hosts' behaviour is §3.2's, read on 2026-11-14, and the tests run on a model of it.
@@ -423,13 +425,13 @@ kernel.yama.ptrace_scope = 1
 - The lines of Sending redirects and Reverse-path filter stay when the host begins to route. Apply settings does not set them again, and Remove settings still puts their earlier values back.
 - A file there without hardn's first line is refused. One with it and a line hardn does not write is not read, and refused.
 
-**Apply settings.** The file is written; `sysctl -w` sets each key below the baseline of the rows the review lists, and no other key; each is read back from `/proc/sys`. The file is not loaded (decision 12). A failure is the tool's exit status, on Alpine the word "error" on its stderr, or a value that does not read as set. Then the change fails with `KERNEL_SETTINGS_NOT_SET`, the engine puts the file back as it was, and `sysctl -w` sets back each value (decision 13).
+**Apply settings.** The file is written; `sysctl -w` sets each key below the baseline of the rows the review lists, and no other key; each is read back from `/proc/sys`. The file is not loaded (decision 12). A failure is the tool's exit status, on Alpine the word "error" on its stderr, or a value that does not read as set. Then the change fails with `KERNEL_NOT_SET`, the engine puts the file back as it was, and `sysctl -w` sets back each value (decision 13).
 
 **Remove settings.** The file is deleted, `sysctl -w` sets each recorded key back where the kernel still has it, and each is read back. A failure puts the file back and sets each value back to what it read.
 
 **Never written:** a forwarding key, `accept_ra`, `net.ipv4.conf.all.rp_filter`, and any key outside §3.1's "Set" tables. hardn's file is read with the same rule, so a line added by hand is not acted on.
 
-**Refusals**, before anything is written: `KERNEL_SETTINGS_FILE_NOT_HARDNS`, `KERNEL_SETTINGS_NO_SYSCTL`, `KERNEL_SETTINGS_CONTAINER`, `KERNEL_SETTINGS_NOT_READ`, `KERNEL_SETTINGS_NOTHING_TO_REMOVE`; at the apply, `KERNEL_SETTINGS_CHANGED_SINCE`.
+**Refusals**, before anything is written: `KERNEL_FILE_NOT_HARDNS`, `KERNEL_NO_SYSCTL`, `KERNEL_CONTAINER`, `KERNEL_NOT_READ`, `KERNEL_NOTHING_TO_REMOVE`; at the apply, `KERNEL_CHANGED_SINCE`.
 
 **Run All and the main menu** list Kernel Settings only where hardn.yml has `kernelSettings: true`, and never in a container. Run All plans Apply settings, never Remove settings. The risk level does not count the row.
 

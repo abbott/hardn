@@ -19,7 +19,7 @@ import (
 // "uigallery config" lists them and "play config" runs hardn's screen
 // (pkg/screens/config) on them. The listing's first mock, "menu", is the
 // Configuration group, main menu 8 (configscreen.RunGroup), which leads to the
-// screen on the typical file, to Log Forwarding and to Time Sync; "play
+// screen on the typical file, to Syslog Settings and to NTP Settings; "play
 // config/menu" runs it. Each mock is a hardn.yml, loaded by the real loader
 // (config.Read) from a fake host, and how hardn found it, which the mock says
 // itself: config.FindConfigFile reads this machine and is never called.
@@ -35,7 +35,7 @@ const configMainMock = configPrefix + "/etc"
 const (
 	configGroupName = "menu"
 	configGroupMock = configPrefix + "/" + configGroupName
-	configGroupNote = "Main menu 8: hardn.yml, Log Forwarding and Time Sync. It reads nothing."
+	configGroupNote = "Main menu 8: hardn.yml, Syslog Settings and NTP Settings. It reads nothing."
 )
 
 // configLinks lead from a menu mock's item to the Configuration group, by the
@@ -87,6 +87,8 @@ func configMocks() []configMock {
 			note: "No file anywhere: every key at its default."},
 		{name: "minimal", label: "Minimal", about: "A two-line file", path: hardnYML, by: config.FoundSearch, yml: "username: george\nnameservers: [192.0.2.53]\n",
 			note: "A two-line file: username and nameservers, everything else default."},
+		{name: "syslog", label: "Syslog servers", about: "Three, the row stacked", path: hardnYML, by: config.FoundSearch, yml: configTypical() + lfYMLThree,
+			note: "The typical file with three syslogServers: addresses alone, over the row's width, so under the key."},
 		{name: "unused", label: "Not used", about: "Keys nothing reads", path: hardnYML, by: config.FoundSearch, yml: configTypical() + configUnusedYML,
 			note: "The file also sets sudoNoPassword, enableLynis, sshListenAddress, logFile and permitRootLogin, which nothing reads: the Not used section."},
 		{name: "missing", label: "Missing", about: "HARDN_CONFIG's file is not there", path: "/home/george/hardn.yml", by: config.FoundEnv, missing: true,
@@ -131,7 +133,7 @@ func (m configMock) view(ctx context.Context) (screen.Config, error) {
 
 // configGroup runs hardn's Configuration group (configscreen.RunGroup) until the
 // user goes back from it: its note above it; its hardn.yml the screen on the
-// typical file, its Log Forwarding and Time Sync the screens on the hosts the
+// typical file, its Syslog Settings and NTP Settings the screens on the hosts the
 // main menu's items led to (lfMainHost, tsMainHost), its Kernel Settings the
 // screen on ksMainHost.
 func (s *session) configGroup(ctx context.Context) error {

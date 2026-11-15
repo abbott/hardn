@@ -213,7 +213,7 @@ const (
 )
 
 // statusRuns are the commands each host's status runs, per pass of the
-// main menu: detect's, the eight rows' checks', Log Forwarding's (dpkg's
+// main menu: detect's, the eight rows' checks', Syslog Settings' (dpkg's
 // word on rsyslog; none on Alpine, whose syslogd's options are a file) and
 // the header probe's.
 var statusRuns = map[string]int{"debian13": 35, "ubuntu2604": 36, "alpine324": 15, "pve9": 19, "hardened": 35}
@@ -223,7 +223,7 @@ var statusRuns = map[string]int{"debian13": 35, "ubuntu2604": 36, "alpine324": 1
 var queries = []string{"sshd -T", "/usr/sbin/sshd -T", "systemctl is-active", "systemctl is-enabled", "systemctl show",
 	"ss -Htln", "ufw status", "apt-config dump", "dpkg-query --show", "sudo --version", "visudo -c", "doas -C",
 	"ip -4", "apk info", "rc-service crond", "resolvectl --no-pager",
-	// The Time Sync row's (pkg/host/timesync).
+	// The NTP row's (pkg/host/timesync).
 	"chronyc -N tracking", "timedatectl show", "rc-service ntpd status", "busybox adjtimex"}
 
 // TestLiveStatusOnHosts: the main menu with cmd/hardn's status
@@ -505,18 +505,21 @@ func assertRenderGolden(t *testing.T, rel, got string) {
 	}
 }
 
-// TestLogForwardingRow: the main menu draws a Log Forwarding row only where
-// hardn.yml names a server or the host forwards, after the risk level's
-// rows, and the risk level is the same with it and without
-// (gallery-logforward.md, decision 10 (a)); and the Time Sync row last, on
-// every host that is no container (gallery-timesync.md, decision 11 (a)).
+// TestLogForwardingRow: the main menu draws a Syslog row only where
+// hardn.yml names a server or the host forwards, before NTP, and the risk
+// level is the same with it and without (gallery-logforward.md, decision
+// 10 (a)); and the NTP row before the last, AppArmor, on every host that is
+// no container (gallery-timesync.md, decision 11 (a); the order, the
+// maintainer, 2026-11-14).
 func TestLogForwardingRow(t *testing.T) {
 	ctx := context.Background()
 	read := func(server string) screen.MainMenu {
 		t.Helper()
 		_, sys := loadStatusHost(t, "debian13")
 		cfg := config.DefaultConfig()
-		cfg.LogForwarding.Server = server
+		if server != "" {
+			cfg.SyslogServers = config.SyslogServers{{Server: server}}
+		}
 		vm, err := Status(ctx, StatusOptions{System: sys, Detect: detect.Detect, Config: cfg, Version: "v0.4.0", Now: statusDay})
 		if err != nil {
 			t.Fatal(err)
@@ -525,7 +528,7 @@ func TestLogForwardingRow(t *testing.T) {
 	}
 	without, with := read(""), read("192.0.2.50")
 	for _, row := range without.Status.Rows {
-		if row.Label == "Log Forwarding" {
+		if row.Label == "Syslog" {
 			t.Fatalf("no server and nothing forwarded: the row is drawn: %+v", row)
 		}
 	}
@@ -533,11 +536,15 @@ func TestLogForwardingRow(t *testing.T) {
 	if n != len(without.Status.Rows)+1 {
 		t.Fatalf("%d rows with a server named, %d without", n, len(without.Status.Rows))
 	}
-	if row := with.Status.Rows[n-2]; row.Label != "Log Forwarding" || row.State != component.StatusNotConfigured || row.Detail != "not forwarding" {
-		t.Errorf("the row before the last %+v", row)
+	if row := with.Status.Rows[n-3]; row.Label != "Syslog" || row.State != component.StatusNotConfigured || row.Detail != "not forwarding" {
+		t.Errorf("the row before NTP %+v", row)
 	}
 	for _, vm := range []screen.MainMenu{with, without} {
-		if last := vm.Status.Rows[len(vm.Status.Rows)-1]; last.Label != "Time Sync" || last.State != component.StatusConfigured || last.Detail != "0.debian.pool.ntp.org" {
+		rows := vm.Status.Rows
+		if ntp := rows[len(rows)-2]; ntp.Label != "NTP" || ntp.State != component.StatusConfigured || ntp.Detail != "0.debian.pool.ntp.org" {
+			t.Errorf("the row before the last %+v", ntp)
+		}
+		if last := rows[len(rows)-1]; last.Label != "AppArmor" {
 			t.Errorf("the last row %+v", last)
 		}
 	}
@@ -546,8 +553,8 @@ func TestLogForwardingRow(t *testing.T) {
 	}
 }
 
-// TestKernelSettingsRow: the main menu draws a Kernel Settings row only
-// where hardn.yml's kernelSettings is true, last, and the risk level is the
+// TestKernelSettingsRow: the main menu draws a Kernel row only
+// where hardn.yml's kernel is true, before the last, AppArmor, and the risk level is the
 // same with it and without (gallery-sysctl.md, decisions 17 and 18 (a)).
 func TestKernelSettingsRow(t *testing.T) {
 	ctx := context.Background()
@@ -567,16 +574,16 @@ func TestKernelSettingsRow(t *testing.T) {
 	}
 	without, with := read(false), read(true)
 	for _, row := range without.Status.Rows {
-		if row.Label == "Kernel Settings" {
-			t.Fatalf("kernelSettings false: the row is drawn: %+v", row)
+		if row.Label == "Kernel" {
+			t.Fatalf("kernel false: the row is drawn: %+v", row)
 		}
 	}
 	n := len(with.Status.Rows)
 	if n != len(without.Status.Rows)+1 {
-		t.Fatalf("%d rows with kernelSettings true, %d without", n, len(without.Status.Rows))
+		t.Fatalf("%d rows with kernel true, %d without", n, len(without.Status.Rows))
 	}
-	if row := with.Status.Rows[n-1]; row.Label != "Kernel Settings" || row.State != component.StatusNotConfigured || row.Detail != "2 to set" {
-		t.Errorf("the last row %+v", row)
+	if row := with.Status.Rows[n-2]; row.Label != "Kernel" || row.State != component.StatusNotConfigured || row.Detail != "2 to set" {
+		t.Errorf("the row before the last, AppArmor %+v", row)
 	}
 	if with.Risk != without.Risk {
 		t.Errorf("the risk level with the row %+v, without %+v", with.Risk, without.Risk)

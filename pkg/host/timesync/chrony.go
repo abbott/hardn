@@ -31,7 +31,7 @@ const (
 	Off = "#hardn: "
 	// Added opens the comment over hardn's lines in chrony's main file,
 	// which says how many they are.
-	Added = "# Added by hardn (Time Sync): the "
+	Added = "# Added by hardn (NTP Settings): the "
 
 	chronyDepth = 8 // files that name files, at most
 )

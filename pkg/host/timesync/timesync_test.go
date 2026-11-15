@@ -332,7 +332,7 @@ func TestChronyOffOn(t *testing.T) {
 	const name = timesync.ChronyConfEL
 	got := ok(timesync.ChronyOff(name, []byte(timefake.ELConf), want))
 	wantText := strings.Replace(timefake.ELConf, "pool 2.rocky.pool.ntp.org iburst\n",
-		"#hardn: pool 2.rocky.pool.ntp.org iburst\n# Added by hardn (Time Sync): the 2 lines below.\nserver 192.0.2.10 iburst\nserver 192.0.2.11 iburst\n", 1)
+		"#hardn: pool 2.rocky.pool.ntp.org iburst\n# Added by hardn (NTP Settings): the 2 lines below.\nserver 192.0.2.10 iburst\nserver 192.0.2.11 iburst\n", 1)
 	if got != wantText {
 		t.Fatalf("ChronyOff:\n%s\nwant:\n%s", got, wantText)
 	}
@@ -378,7 +378,7 @@ func TestChronyOffOn(t *testing.T) {
 func TestPeers(t *testing.T) {
 	ok := must(t)
 	set := ok(timesync.SetPeers([]byte(timefake.AlpineConfD), want))
-	wantText := "# By default ntpd runs as a client. Add -l to run as a server on port 123.\n# Set by hardn (Time Sync), in place of: -p pool.ntp.org\nNTPD_OPTS=\"-N -p 192.0.2.10 -p 192.0.2.11\"\n"
+	wantText := "# By default ntpd runs as a client. Add -l to run as a server on port 123.\n# Set by hardn (NTP Settings), in place of: -p pool.ntp.org\nNTPD_OPTS=\"-N -p 192.0.2.10 -p 192.0.2.11\"\n"
 	if set != wantText {
 		t.Fatalf("SetPeers:\n%s", set)
 	}

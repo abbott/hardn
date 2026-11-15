@@ -17,8 +17,8 @@ func TestConfigGroup(t *testing.T) {
 	const want = `# Configuration ################################################
 
    1) hardn.yml            View the file hardn reads
-   2) Log Forwarding       Send logs to a syslog server
-   3) Time Sync            Keep the clock in sync
+   2) Syslog Settings      Send logs to a syslog server
+   3) NTP Settings         Keep the clock in sync
    4) Kernel Settings      Harden network and kernel
 
    0) Return

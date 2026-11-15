@@ -1,5 +1,9 @@
 # Log forwarding mock
 
+> **Renamed 2026-11-14.** The screen and its Configuration item are now "Syslog Settings"; its status row, the main menu's row and the hardn.yml screen's section are "Syslog". The main menu's last rows are Syslog, NTP, AppArmor. The control id is unchanged; the codes are now `SYSLOG_*`. The record below keeps the old name, Log Forwarding.
+
+> **Several servers, 2026-11-14.** hardn.yml's `logForwarding` is now `syslogServers`, a list of one to four; the screen has a Server row per server, with its protocol and connection, and no Protocol or Connection row; Set server is Set servers; `hardn check` compares the servers. [design-syslog-servers.md](design-syslog-servers.md) is the design and what was built. The record below is the one-server unit as it was.
+
 > **Adopted 2026-11-13.** The maintainer adopted every recommended answer of §4, in these words: "Adopt all". The decisions below stay as the record. The real unit is built on them: [screen-logforward.md](screen-logforward.md) says what it is and what it settled beyond them. Two decisions are not built there: 13 (hardn's own audit log) is its own later unit, and 14 (`hardn check`) is a follow-up.
 
 The mock unit of the roadmap's "Log forwarding". hardn shows whether the host sends its logs to a syslog server and where, and sets a server named in hardn.yml. This unit drew that screen and its reviews, surveyed how each supported release forwards, and listed what the maintainer had to decide.
@@ -76,7 +80,7 @@ The reviews open with "Checking the host...", the plan made before asking, as ev
    -  Write hardn's forwarding file
       /etc/rsyslog.d/60-hardn-forward.conf
       @@ -0,0 +1,4 @@
-      +# Written by hardn (Log Forwarding).
+      +# Written by hardn (Syslog Settings).
       +*.* action(type="omfwd" protocol="tcp"
       +    target="192.0.2.50" port="514"
       +    queue.type="linkedList")
@@ -270,7 +274,7 @@ Proposed, decided with §4.
 - Set server is 1 wherever it shows; Stop forwarding is 1 alone and 2 beside it.
 - "File" and "Set by" are two rows: the path and "hardn" do not fit one row at 80 columns.
 - The hardn.yml row is always drawn, so the screen says what Set server would do before it is chosen.
-- hardn's file is `/etc/rsyslog.d/60-hardn-forward.conf`, opening with "# Written by hardn (Log Forwarding).", as Auto Updates' file does. The name and the number are the mock's.
+- hardn's file is `/etc/rsyslog.d/60-hardn-forward.conf`, opening with "# Written by hardn (Syslog Settings).", as Auto Updates' file does. The name and the number are the mock's.
 - The TLS mock names the server by name, not address: the certificate is checked against it.
 - No mock for Rocky, Alma, RHEL or Proxmox VE: their screens would be `off` and `journald` with another name in the note.
 

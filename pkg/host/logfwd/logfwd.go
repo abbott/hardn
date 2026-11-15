@@ -10,7 +10,7 @@
 // did not write is the host's text, as written: the caller makes it safe
 // to show (logview.Safe).
 //
-// DropIn, SetOpts and ClearOpts build what hardn writes: its own file under
+// RsyslogFile, SetOpts and ClearOpts build what hardn writes: its own file under
 // /etc/rsyslog.d, and its words in busybox syslogd's options. Each checks
 // the server again (Server.Check), so that nothing but an address or name,
 // a port and a path of plain characters reaches the logger's settings,
@@ -136,26 +136,24 @@ var ErrMalformed = errors.New("forwarding hardn can't make out")
 // ErrNoLogger: neither rsyslog, busybox syslogd nor journald alone.
 var ErrNoLogger = errors.New("no logger hardn reads")
 
-// Now is the forwarding the screen shows: hardn's own where there is one,
-// else the first; nil for none.
-func (r Reading) Now() *Forward {
-	for i := range r.Forwards {
-		if r.Forwards[i].ByHardn {
-			return &r.Forwards[i]
-		}
+// Shown are the forwardings the screen shows: hardn's own where there are
+// any, else every one; nil for none.
+func (r Reading) Shown() []Forward {
+	if own := r.Own(); len(own) > 0 {
+		return own
 	}
-	if len(r.Forwards) > 0 {
-		return &r.Forwards[0]
-	}
-	return nil
+	return r.Forwards
 }
 
-// Own is hardn's own forwarding; nil for none.
-func (r Reading) Own() *Forward {
-	if f := r.Now(); f != nil && f.ByHardn {
-		return f
+// Own are hardn's own forwardings, in order; nil for none.
+func (r Reading) Own() []Forward {
+	var out []Forward
+	for _, f := range r.Forwards {
+		if f.ByHardn {
+			out = append(out, f)
+		}
 	}
-	return nil
+	return out
 }
 
 // Foreign is the first forwarding that is not hardn's; nil for none.
@@ -167,6 +165,10 @@ func (r Reading) Foreign() *Forward {
 	}
 	return nil
 }
+
+// Words is s as a line says it: "192.0.2.50:514 tcp". The text is the
+// host's where Read returned s: the caller makes it safe to show.
+func (s Server) Words() string { return s.Address + ":" + s.Port + " " + s.Proto.String() }
 
 // ErrTwoLoggers: an Alpine host has rsyslog installed beside busybox
 // syslogd, and hardn does not tell which of them logs.

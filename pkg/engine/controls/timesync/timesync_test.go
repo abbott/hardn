@@ -251,30 +251,30 @@ func TestRefusals(t *testing.T) {
 		code  string
 		words string
 	}{
-		{"no servers", ubuntu(t), timesync.ActionSet, none, timesync.ErrNoServers, "TIMESYNC_NO_SERVERS", "hardn.yml names no time servers. To go on: add ntpServers, then try again"},
-		{"not valid", ubuntu(t), timesync.ActionSet, config.NTPServers{"192.0.2.10 prefer"}, timesync.ErrBadServers, "TIMESYNC_BAD_SERVERS",
+		{"no servers", ubuntu(t), timesync.ActionSet, none, timesync.ErrNoServers, "NTP_NO_SERVERS", "hardn.yml names no time servers. To go on: add ntpServers, then try again"},
+		{"not valid", ubuntu(t), timesync.ActionSet, config.NTPServers{"192.0.2.10 prefer"}, timesync.ErrBadServers, "NTP_BAD_SERVERS",
 			"hardn.yml's ntpServers is not valid: server 1 is not an IPv4 address or a host name"},
-		{"container", ubuntu(t).with(func(m *model) { m.facts.Container.Detected = detect.Yes }), timesync.ActionSet, want, timesync.ErrContainer, "TIMESYNC_CONTAINER", "This is a container: its host keeps the time"},
-		{"not read", ubuntu(t).file(tshost.ChronyConfDebian, "server\n"), timesync.ActionSet, want, timesync.ErrNotRead, "TIMESYNC_NOT_READ",
+		{"container", ubuntu(t).with(func(m *model) { m.facts.Container.Detected = detect.Yes }), timesync.ActionSet, want, timesync.ErrContainer, "NTP_CONTAINER", "This is a container: its host keeps the time"},
+		{"not read", ubuntu(t).file(tshost.ChronyConfDebian, "server\n"), timesync.ActionSet, want, timesync.ErrNotRead, "NTP_NOT_READ",
 			"hardn can't read chrony's settings: /etc/chrony/chrony.conf:1: a server with no name. To go on: fix that"},
-		{"no service", newModel(t, detect.DistroDebian, "", ""), timesync.ActionSet, want, timesync.ErrNoService, "TIMESYNC_NO_SERVICE", "This host has no time service hardn sets, and hardn installs none"},
-		{"stopped", ubuntu(t).with(stopped), timesync.ActionSet, want, timesync.ErrNoService, "TIMESYNC_NO_SERVICE", "chrony is not running, and hardn does not start it. To go on: start it, then try again"},
-		{"set outside hardn", ubuntu(t).file(site, "server 192.0.2.77\n"), timesync.ActionSet, want, timesync.ErrOutside, "TIMESYNC_SET_OUTSIDE",
+		{"no service", newModel(t, detect.DistroDebian, "", ""), timesync.ActionSet, want, timesync.ErrNoService, "NTP_NO_SERVICE", "This host has no time service hardn sets, and hardn installs none"},
+		{"stopped", ubuntu(t).with(stopped), timesync.ActionSet, want, timesync.ErrNoService, "NTP_NO_SERVICE", "chrony is not running, and hardn does not start it. To go on: start it, then try again"},
+		{"set outside hardn", ubuntu(t).file(site, "server 192.0.2.77\n"), timesync.ActionSet, want, timesync.ErrOutside, "NTP_SET_OUTSIDE",
 			"/etc/chrony/sources.d/site.sources already sets time servers, and hardn leaves it as it is"},
-		{"set outside hardn, beside hardn's own", ubuntu(t).set(want).file(site, "server 192.0.2.77\n"), timesync.ActionSet, config.NTPServers{"192.0.2.12"}, timesync.ErrOutside, "TIMESYNC_SET_OUTSIDE",
+		{"set outside hardn, beside hardn's own", ubuntu(t).set(want).file(site, "server 192.0.2.77\n"), timesync.ActionSet, config.NTPServers{"192.0.2.12"}, timesync.ErrOutside, "NTP_SET_OUTSIDE",
 			"/etc/chrony/sources.d/site.sources already sets time servers"},
-		{"timesyncd, cleared after hardn's file", timesyncd(t).file("/etc/systemd/timesyncd.conf.d/90-site.conf", "[Time]\nNTP=\n"), timesync.ActionSet, want, timesync.ErrOutside, "TIMESYNC_SET_OUTSIDE",
+		{"timesyncd, cleared after hardn's file", timesyncd(t).file("/etc/systemd/timesyncd.conf.d/90-site.conf", "[Time]\nNTP=\n"), timesync.ActionSet, want, timesync.ErrOutside, "NTP_SET_OUTSIDE",
 			"/etc/systemd/timesyncd.conf.d/90-site.conf clears the time servers hardn sets, and hardn leaves it as it is. To go on: remove that setting, then try again"},
-		{"a file at hardn's path that hardn did not write", ubuntu(t).file(tshost.ChronySources, "# mine\n"), timesync.ActionSet, want, timesync.ErrOutside, "TIMESYNC_SET_OUTSIDE",
+		{"a file at hardn's path that hardn did not write", ubuntu(t).file(tshost.ChronySources, "# mine\n"), timesync.ActionSet, want, timesync.ErrOutside, "NTP_SET_OUTSIDE",
 			"/etc/chrony/sources.d/hardn.sources is not hardn's file, and hardn leaves it as it is. To go on: move that file away, then try again"},
-		{"timesyncd's main file names a server", timesyncd(t).file(mainFile, "[Time]\nNTP=a.example\n"), timesync.ActionSet, want, timesync.ErrOutside, "TIMESYNC_SET_OUTSIDE", "/etc/systemd/timesyncd.conf already sets time servers"},
-		{"alpine, options not read", alpineHost(t).file(tshost.ConfD, "NTPD_OPTS=\"-N\"\n"), timesync.ActionSet, want, timesync.ErrNotRead, "TIMESYNC_NOT_READ", "hardn can't read ntpd's options: /etc/conf.d/ntpd:1: no -p"},
-		{"alpine, not as hardn writes it back", alpineHost(t).file(tshost.ConfD, "NTPD_OPTS='-N -p pool.ntp.org'\n"), timesync.ActionSet, want, timesync.ErrNotRead, "TIMESYNC_NOT_READ", "NTPD_OPTS is not written as hardn writes it back"},
-		{"another init", ubuntu(t).with(func(m *model) { m.facts.Init.Kind = detect.OpenRC }), timesync.ActionSet, want, timesync.ErrNotRead, "TIMESYNC_NOT_READ", "hardn can't read chrony's settings: whether chrony runs"},
-		{"remove, nothing set", ubuntu(t), timesync.ActionRemove, want, timesync.ErrNothingToRemove, "TIMESYNC_NOTHING_TO_REMOVE", "hardn did not set time servers here"},
-		{"remove, set outside hardn", ubuntu(t).file(site, "server 192.0.2.77\n"), timesync.ActionRemove, want, timesync.ErrNothingToRemove, "TIMESYNC_NOTHING_TO_REMOVE", "hardn did not set"},
-		{"remove, not read", ubuntu(t).file(tshost.ChronyConfDebian, "server\n"), timesync.ActionRemove, want, timesync.ErrNotRead, "TIMESYNC_NOT_READ", "hardn can't read chrony's settings"},
-		{"remove, stopped", ubuntu(t).set(want).with(stopped), timesync.ActionRemove, want, timesync.ErrNoService, "TIMESYNC_NO_SERVICE", "chrony is not running"},
+		{"timesyncd's main file names a server", timesyncd(t).file(mainFile, "[Time]\nNTP=a.example\n"), timesync.ActionSet, want, timesync.ErrOutside, "NTP_SET_OUTSIDE", "/etc/systemd/timesyncd.conf already sets time servers"},
+		{"alpine, options not read", alpineHost(t).file(tshost.ConfD, "NTPD_OPTS=\"-N\"\n"), timesync.ActionSet, want, timesync.ErrNotRead, "NTP_NOT_READ", "hardn can't read ntpd's options: /etc/conf.d/ntpd:1: no -p"},
+		{"alpine, not as hardn writes it back", alpineHost(t).file(tshost.ConfD, "NTPD_OPTS='-N -p pool.ntp.org'\n"), timesync.ActionSet, want, timesync.ErrNotRead, "NTP_NOT_READ", "NTPD_OPTS is not written as hardn writes it back"},
+		{"another init", ubuntu(t).with(func(m *model) { m.facts.Init.Kind = detect.OpenRC }), timesync.ActionSet, want, timesync.ErrNotRead, "NTP_NOT_READ", "hardn can't read chrony's settings: whether chrony runs"},
+		{"remove, nothing set", ubuntu(t), timesync.ActionRemove, want, timesync.ErrNothingToRemove, "NTP_NOTHING_TO_REMOVE", "hardn did not set time servers here"},
+		{"remove, set outside hardn", ubuntu(t).file(site, "server 192.0.2.77\n"), timesync.ActionRemove, want, timesync.ErrNothingToRemove, "NTP_NOTHING_TO_REMOVE", "hardn did not set"},
+		{"remove, not read", ubuntu(t).file(tshost.ChronyConfDebian, "server\n"), timesync.ActionRemove, want, timesync.ErrNotRead, "NTP_NOT_READ", "hardn can't read chrony's settings"},
+		{"remove, stopped", ubuntu(t).set(want).with(stopped), timesync.ActionRemove, want, timesync.ErrNoService, "NTP_NO_SERVICE", "chrony is not running"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			before := len(tc.m.writes()) + len(tc.m.ran())
@@ -366,7 +366,7 @@ func TestChronyInPlace(t *testing.T) {
 	if err != nil || !slices.Equal(ids, []string{"edit/chrony.conf", "restart"}) || !slices.Equal(m.ran(), []string{"systemctl restart chronyd"}) {
 		t.Fatalf("Set = %v, %v, ran %v", ids, err, m.ran())
 	}
-	if got := m.content(tshost.ChronyConfEL); !strings.Contains(got, "#hardn: pool 2.rocky.pool.ntp.org iburst\n# Added by hardn (Time Sync): the 2 lines below.\nserver 192.0.2.10 iburst\nserver 192.0.2.11 iburst\n\n") {
+	if got := m.content(tshost.ChronyConfEL); !strings.Contains(got, "#hardn: pool 2.rocky.pool.ntp.org iburst\n# Added by hardn (NTP Settings): the 2 lines below.\nserver 192.0.2.10 iburst\nserver 192.0.2.11 iburst\n\n") {
 		t.Errorf("main file:\n%s", got)
 	}
 	if !m.gone(tshost.ChronySources) {
@@ -411,7 +411,7 @@ func TestChangedSince(t *testing.T) {
 			if c.Target != tc.file {
 				continue
 			}
-			if _, err := c.Apply(context.Background(), m.f, engine.Run{}); !errors.Is(err, timesync.ErrChangedSince) || output.CodeOf(err) != "TIMESYNC_CHANGED_SINCE" {
+			if _, err := c.Apply(context.Background(), m.f, engine.Run{}); !errors.Is(err, timesync.ErrChangedSince) || output.CodeOf(err) != "NTP_CHANGED_SINCE" {
 				t.Errorf("%s: the change's apply = %v", name, err)
 			}
 		}
@@ -483,7 +483,7 @@ func TestAlpine(t *testing.T) {
 	if err != nil || !slices.Equal(ids, []string{"edit/ntpd", "restart"}) || !slices.Equal(m.ran(), []string{"rc-service ntpd restart"}) {
 		t.Fatalf("Set = %v, %v, ran %v", ids, err, m.ran())
 	}
-	if got := m.content(tshost.ConfD); !strings.HasSuffix(got, "# Set by hardn (Time Sync), in place of: -p pool.ntp.org\nNTPD_OPTS=\"-N -p 192.0.2.10 -p 192.0.2.11\"\n") {
+	if got := m.content(tshost.ConfD); !strings.HasSuffix(got, "# Set by hardn (NTP Settings), in place of: -p pool.ntp.org\nNTPD_OPTS=\"-N -p 192.0.2.10 -p 192.0.2.11\"\n") {
 		t.Errorf("conf.d:\n%s", got)
 	}
 	if cs, err := m.plan(timesync.ActionSet, want); err != nil || cs != nil {

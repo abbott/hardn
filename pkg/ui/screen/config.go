@@ -54,12 +54,16 @@ var configGroups = []struct {
 	{"Firewall", []string{"enableUfwSshPolicy", "ufwAppProfiles", "ufwTrustedInterfaces"}},
 	{"DNS", []string{"configureDns", "nameservers"}},
 	{"Auto Updates", []string{"enableUnattendedUpgrades"}},
-	{"Log Forwarding", []string{"logForwarding"}},
-	{"Time Sync", []string{"ntpServers"}},
-	{"Kernel Settings", []string{"kernelSettings"}},
+	{"Syslog", []string{"syslogServers"}},
+	{"NTP", []string{"ntpServers"}},
+	{"Kernel", []string{"kernel"}},
 	{"Backup", []string{"enableBackups", "backupPath"}},
 	{"General", []string{"dryRun", "confirmTimeout", "checkReleases"}},
 }
+
+// configLists are the keys whose value is a list of servers, which stacks
+// under its key rather than being cut (design-syslog-servers.md §2.1).
+var configLists = map[string]bool{"syslogServers": true}
 
 // ConfigKeys returns the hardn.yml keys the screen has a row for, in its order.
 func ConfigKeys() []string {
@@ -143,6 +147,7 @@ func (v Config) sections() []Section {
 			if !val.Set {
 				row.Note, row.KeepNote = configDefault, true // a long value keeps it
 			}
+			row.StackLong = configLists[k] // a list too long for the row goes under its key
 			rows = append(rows, row)
 		}
 		out = append(out, configSection(g.title, rows))

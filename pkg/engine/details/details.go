@@ -48,7 +48,7 @@ type Report struct {
 	Disk   Disk
 	Memory Memory
 	Logins Logins
-	// Time is the host's time service and clock, as the Time Sync screen
+	// Time is the host's time service and clock, as the NTP Settings screen
 	// reads them (gallery-timesync.md, decision 10 (a)): drawn with OS and
 	// Kernel, its servers left to that screen.
 	Time timesync.Reading

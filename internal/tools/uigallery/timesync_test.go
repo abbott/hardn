@@ -12,7 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/prompt"
 )
 
-// The Time Sync screen on simulated hosts (timesync.go): the control's
+// The NTP Settings screen on simulated hosts (timesync.go): the control's
 // reading through the screen's own mapping, each review the real screen up
 // to its question.
 
@@ -41,18 +41,18 @@ func TestTimeSyncMocks(t *testing.T) {
 		{"timesyncd", []string{"Service              systemd-timesyncd", "Server               ntp.ubuntu.com built in", "Synced to            ntp.ubuntu.com"}, []string{"chrony"}},
 		{"alpine", []string{"Configured in sync", "Service              busybox ntpd", "Server               pool.ntp.org\n"}, []string{"Synced to"}},
 		{"container", []string{"Not Applicable in a container", " -  Service              None", "In a container: the host keeps the time.", "1) Set servers          The host keeps the time", "Unavailable"}, []string{"hardn.yml  ", "Server  "}},
-		{"not-read", []string{"Time Sync            Unknown can't read", "Server               Unknown", "1) Set servers          Can't read chrony's settings"}, []string{"Unavailable", "None"}},
+		{"not-read", []string{"NTP                  Unknown can't read", "Server               Unknown", "1) Set servers          Can't read chrony's settings"}, []string{"Unavailable", "None"}},
 		{"review", []string{"Checking the host\n", "# Set servers ###", "hardn's servers take the place of the host's own.", "Server               192.0.2.10 by hardn",
-			"/etc/chrony/sources.d/hardn.sources", "+# Written by hardn (Time Sync).", "+server 192.0.2.10 iburst\n", "/etc/chrony/sources.d/ubuntu-ntp-pools.sources",
+			"/etc/chrony/sources.d/hardn.sources", "+# Written by hardn (NTP Settings).", "+server 192.0.2.10 iburst\n", "/etc/chrony/sources.d/ubuntu-ntp-pools.sources",
 			"-pool 1.ntp.ubuntu.com iburst maxsources 1 nts prefer", "+#hardn: pool ntp-bootstrap.ubuntu.com", "$ chronyc reload sources", "Set time servers? [y/N, 0 or q]:",
 			"authenticated (NTS). hardn's are not."},
 			[]string{"Lockout risk", "restart", "Server               1.ntp.ubuntu.com"}},
-		{"review-rhel", []string{"/etc/chrony.conf\n", "-pool 2.rocky.pool.ntp.org iburst", "+#hardn: pool 2.rocky.pool.ntp.org iburst", "+# Added by hardn (Time Sync): the 2 lines below.",
+		{"review-rhel", []string{"/etc/chrony.conf\n", "-pool 2.rocky.pool.ntp.org iburst", "+#hardn: pool 2.rocky.pool.ntp.org iburst", "+# Added by hardn (NTP Settings): the 2 lines below.",
 			"+server 192.0.2.11 iburst", " sourcedir /run/chrony-dhcp", "$ systemctl restart chronyd"}, []string{"sources.d", "Server               2.rocky"}},
 		{"review-pve", []string{"/etc/chrony/sources.d/hardn.sources", "Switch off chrony's own servers", "+#hardn: pool 2.debian.pool.ntp.org iburst", "$ systemctl restart chrony\n",
 			"On a cluster, set every node the same"}, []string{"reload sources", "NTS"}},
 		{"review-timesyncd", []string{"/etc/systemd/timesyncd.conf.d/60-hardn.conf", "+[Time]", "+NTP=192.0.2.10 192.0.2.11", "$ systemctl restart systemd-timesyncd"}, []string{"ntp.ubuntu.com", "chrony"}},
-		{"review-alpine", []string{"/etc/conf.d/ntpd", "-NTPD_OPTS=\"-N -p pool.ntp.org\"", "+# Set by hardn (Time Sync), in place of: -p pool.ntp.org", "+NTPD_OPTS=\"-N -p 192.0.2.10 -p 192.0.2.11\"",
+		{"review-alpine", []string{"/etc/conf.d/ntpd", "-NTPD_OPTS=\"-N -p pool.ntp.org\"", "+# Set by hardn (NTP Settings), in place of: -p", "| pool.ntp.org", "+NTPD_OPTS=\"-N -p 192.0.2.10 -p 192.0.2.11\"",
 			"$ rc-service ntpd restart"}, []string{"systemctl", "chrony", "Server               pool.ntp.org"}},
 		{"review-remove", []string{"# Remove servers ###", "-server 192.0.2.10 iburst", "+pool 1.ntp.ubuntu.com iburst maxsources 1 nts prefer", "$ chronyc reload sources", "Remove hardn's time servers? [y/N, 0 or q]:",
 			"The host's own servers are used again.", "Server               1.ntp.ubuntu.com"}, []string{"192.0.2.10 by hardn", "restart"}},

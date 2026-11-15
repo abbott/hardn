@@ -8,19 +8,16 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecided: no Figma frame. web-01.example.net runs Ubuntu 24.04,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhose logger is rsyslog. The same file, and no connection to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe server: the row is Partial and the Connection row a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarning.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe server: the row is Partial and the Server row a warning.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLog Forwarding␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSyslog Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mserver not reached␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mserver not reached␛[m$
 $
   ␛[1;38;2;129;134;156mForwarding␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogger␛[m               ␛[38;2;129;134;156mrsyslog␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.50:514␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProtocol␛[m             ␛[38;2;129;134;156mTCP␛[m ␛[38;2;129;134;156mnot encrypted␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mConnection␛[m           ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.50:514 TCP␛[m ␛[38;2;219;184;83mnot reached␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m                 ␛[38;2;129;134;156m/etc/rsyslog.d/60-hardn-forward.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet by␛[m               ␛[38;2;129;134;156mhardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156m192.0.2.50:514 TCP␛[m$
@@ -41,19 +38,16 @@ $
 # Note$
 # Decided: no Figma frame. web-01.example.net runs Ubuntu 24.04,$
 # whose logger is rsyslog. The same file, and no connection to$
-# the server: the row is Partial and the Connection row a$
-# warning.$
+# the server: the row is Partial and the Server row a warning.$
 $
-# Log Forwarding ###############################################$
+# Syslog Settings ##############################################$
 $
-  [ ] Log Forwarding       Partial server not reached$
+  [ ] Syslog               Partial server not reached$
 $
   Forwarding ---------------------------------------------------$
 $
    -  Logger               rsyslog$
-   -  Server               192.0.2.50:514$
-   -  Protocol             TCP not encrypted$
-  [ ] Connection           None$
+  [ ] Server               192.0.2.50:514 TCP not reached$
    -  File                 /etc/rsyslog.d/60-hardn-forward.conf$
    -  Set by               hardn$
    -  hardn.yml            192.0.2.50:514 TCP$
@@ -75,23 +69,19 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecided: no Figma frame. web-01.example.net runs Ubuntu␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m24.04, whose logger is rsyslog. The same file, and no␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconnection to the server: the row is Partial and the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mConnection row a warning.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mServer row a warning.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mLog Forwarding␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSyslog Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mLog Forwarding␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSyslog␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mserver not reached␛[m$
 $
   ␛[1;38;2;129;134;156mForwarding␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogger␛[m$
       ␛[38;2;129;134;156mrsyslog␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m$
-      ␛[38;2;129;134;156m192.0.2.50:514␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProtocol␛[m$
-      ␛[38;2;129;134;156mTCP␛[m ␛[38;2;129;134;156mnot encrypted␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mConnection␛[m$
-      ␛[38;2;219;184;83mNone␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mServer␛[m$
+      ␛[38;2;129;134;156m192.0.2.50:514 TCP␛[m ␛[38;2;219;184;83mnot reached␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m$
       ␛[38;2;129;134;156m/etc/rsyslog.d/60-hardn-forward.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet by␛[m$
@@ -116,19 +106,16 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mDecided: no Figma frame. web-01.example.net runs Ubuntu 24.04,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhose logger is rsyslog. The same file, and no connection to␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe server: the row is Partial and the Connection row a␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwarning.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe server: the row is Partial and the Server row a warning.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mLog Forwarding␛[m ␛[38;2;43;47;59m###############################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mSyslog Settings␛[m ␛[38;2;43;47;59m##############################################␛[m$
 $
-  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mLog Forwarding␛[m       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mserver not reached␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSyslog␛[m               ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mserver not reached␛[m$
 $
   ␛[1;38;2;129;134;156mForwarding␛[m ␛[38;2;22;24;29m---------------------------------------------------␛[m$
 $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogger␛[m               ␛[38;2;129;134;156mrsyslog␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.50:514␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mProtocol␛[m             ␛[38;2;129;134;156mTCP␛[m ␛[38;2;129;134;156mnot encrypted␛[m$
-  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mConnection␛[m           ␛[38;2;219;184;83mNone␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mServer␛[m               ␛[38;2;129;134;156m192.0.2.50:514 TCP␛[m ␛[38;2;219;184;83mnot reached␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFile␛[m                 ␛[38;2;129;134;156m/etc/rsyslog.d/60-hardn-forward.conf␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSet by␛[m               ␛[38;2;129;134;156mhardn␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mhardn.yml␛[m            ␛[38;2;129;134;156m192.0.2.50:514 TCP␛[m$

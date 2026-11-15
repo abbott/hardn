@@ -16,9 +16,10 @@ import (
 )
 
 var (
-	tcp = logfwd.Server{Address: "192.0.2.50", Port: "514", Proto: logfwd.TCP}
-	udp = logfwd.Server{Address: "192.0.2.50", Port: "514", Proto: logfwd.UDP}
-	tls = logfwd.Server{Address: "logs.example.net", Port: "6514", Proto: logfwd.TLS, CAFile: "/etc/ssl/lab-ca.pem"}
+	tcp  = logfwd.Server{Address: "192.0.2.50", Port: "514", Proto: logfwd.TCP}
+	udp  = logfwd.Server{Address: "192.0.2.50", Port: "514", Proto: logfwd.UDP}
+	udp2 = logfwd.Server{Address: "192.0.2.52", Port: "514", Proto: logfwd.UDP}
+	tls  = logfwd.Server{Address: "logs.example.net", Port: "6514", Proto: logfwd.TLS, CAFile: "/etc/ssl/lab-ca.pem"}
 )
 
 func facts(d detect.Distro) detect.Facts {
@@ -48,7 +49,7 @@ func debian(t *testing.T, rsyslog bool) *hostfake.System {
 	return h
 }
 
-func file(t *testing.T, s logfwd.Server) string {
+func file(t *testing.T, s ...logfwd.Server) string {
 	t.Helper()
 	b, err := logfwd.RsyslogFile(s)
 	if err != nil {
@@ -119,16 +120,23 @@ func TestReadRsyslog(t *testing.T) {
 	}
 }
 
-func TestReadNowPrefersHardn(t *testing.T) {
+func TestShownPrefersHardn(t *testing.T) {
 	h := debian(t, true)
 	h.AddFile("/etc/rsyslog.d/50-remote.conf", []byte("*.* @@192.0.2.60\n"), 0o644, 0, 0)
-	h.AddFile(logfwd.DropIn, []byte(file(t, tcp)), 0o644, 0, 0)
+	h.AddFile(logfwd.DropIn, []byte(file(t, tcp, udp2)), 0o644, 0, 0)
 	r := logfwd.Read(context.Background(), h, facts(detect.DistroDebian))
-	if now := r.Now(); now == nil || !now.ByHardn || r.Own() != now {
-		t.Fatalf("Now = %+v, want hardn's", now)
+	own := r.Own()
+	if len(own) != 2 || own[0].Server != tcp || own[1].Server != udp2 || own[0].Line != 2 || own[1].Line != 6 || !slices.Equal(r.Shown(), own) {
+		t.Fatalf("Own = %+v, Shown = %+v; want hardn's two", own, r.Shown())
 	}
 	if f := r.Foreign(); f == nil || f.Server.Address != "192.0.2.60" {
 		t.Fatalf("Foreign = %+v", f)
+	}
+	h = debian(t, true)
+	h.AddFile("/etc/rsyslog.d/50-remote.conf", []byte("*.* @@192.0.2.60\n*.* @192.0.2.61\n"), 0o644, 0, 0)
+	r = logfwd.Read(context.Background(), h, facts(detect.DistroDebian))
+	if len(r.Own()) != 0 || len(r.Shown()) != 2 {
+		t.Fatalf("with none of hardn's: Own = %+v, Shown = %+v; want every one shown", r.Own(), r.Shown())
 	}
 }
 
@@ -184,7 +192,7 @@ func alpineHost(t *testing.T, confd string) *hostfake.System {
 }
 
 func TestReadBusybox(t *testing.T) {
-	set, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-t\"\n"), udp)
+	set, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-t\"\n"), []logfwd.Server{udp})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -271,7 +279,7 @@ func TestOwnPair(t *testing.T) {
 
 func TestSetAndClearOpts(t *testing.T) {
 	const stock = "# Alpine's\nSYSLOGD_OPTS=\"-t\"\n"
-	set, err := logfwd.SetOpts([]byte(stock), udp)
+	set, err := logfwd.SetOpts([]byte(stock), []logfwd.Server{udp})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -283,7 +291,7 @@ func TestSetAndClearOpts(t *testing.T) {
 		t.Fatalf("ClearOpts = %q, %v; want the file as it was", back, err)
 	}
 	// -L there before is the administrator's: not added, not taken out.
-	kept, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-L -t\"\n"), udp)
+	kept, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-L -t\"\n"), []logfwd.Server{udp})
 	if err != nil || !strings.Contains(string(kept), logfwd.Mark+"-R 192.0.2.50:514\n") {
 		t.Fatalf("SetOpts with -L = %q, %v", kept, err)
 	}
@@ -291,14 +299,14 @@ func TestSetAndClearOpts(t *testing.T) {
 		t.Fatalf("ClearOpts with -L = %q, %v", back, err)
 	}
 	// A second server replaces hardn's first.
-	moved, err := logfwd.SetOpts(set, logfwd.Server{Address: "192.0.2.60", Port: "514"})
+	moved, err := logfwd.SetOpts(set, []logfwd.Server{{Address: "192.0.2.60", Port: "514"}})
 	if err != nil || strings.Contains(string(moved), "192.0.2.50") || strings.Count(string(moved), logfwd.Mark) != 1 {
 		t.Fatalf("SetOpts over hardn's = %q, %v", moved, err)
 	}
-	if _, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-R 192.0.2.60\"\n"), udp); !errors.Is(err, logfwd.ErrForeign) {
+	if _, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-R 192.0.2.60\"\n"), []logfwd.Server{udp}); !errors.Is(err, logfwd.ErrForeign) {
 		t.Errorf("SetOpts over a foreign -R: %v, want ErrForeign", err)
 	}
-	if _, err := logfwd.SetOpts([]byte(stock), tcp); !errors.Is(err, logfwd.ErrServer) {
+	if _, err := logfwd.SetOpts([]byte(stock), []logfwd.Server{tcp}); !errors.Is(err, logfwd.ErrServer) {
 		t.Errorf("SetOpts with TCP: %v, want ErrServer", err)
 	}
 	if _, err := logfwd.ClearOpts([]byte(stock)); !errors.Is(err, logfwd.ErrNotOwn) {
@@ -333,11 +341,14 @@ func TestServerCheck(t *testing.T) {
 		if err := s.Check(); !errors.Is(err, logfwd.ErrServer) {
 			t.Errorf("Check(%+v) = %v, want ErrServer", s, err)
 		}
-		if b, err := logfwd.RsyslogFile(s); err == nil {
-			t.Errorf("RsyslogFile(%+v) wrote %q", s, b)
-		}
-		if b, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-t\"\n"), s); err == nil {
-			t.Errorf("SetOpts(%+v) wrote %q", s, b)
+		// One bad server refuses the whole list, wherever it stands.
+		for _, list := range [][]logfwd.Server{{s}, {udp, s}, {s, udp}} {
+			if b, err := logfwd.RsyslogFile(list); err == nil {
+				t.Errorf("RsyslogFile(%+v) wrote %q", list, b)
+			}
+			if b, err := logfwd.SetOpts([]byte("SYSLOGD_OPTS=\"-t\"\n"), list); err == nil {
+				t.Errorf("SetOpts(%+v) wrote %q", list, b)
+			}
 		}
 	}
 	for _, s := range []logfwd.Server{tcp, udp, tls} {
@@ -347,17 +358,65 @@ func TestServerCheck(t *testing.T) {
 	}
 }
 
+// hardn's file (design-syslog-servers.md §2.2): one action per server, in
+// order, each with its own queue, UDP too.
 func TestRsyslogFile(t *testing.T) {
-	want := logfwd.Header + "*.* action(type=\"omfwd\" protocol=\"tcp\"\n    target=\"192.0.2.50\" port=\"514\"\n    queue.type=\"linkedList\")\n"
-	if got := file(t, tcp); got != want {
-		t.Errorf("tcp =\n%s\nwant\n%s", got, want)
+	const queue = "    queue.type=\"linkedList\" queue.timeoutEnqueue=\"0\"\n    action.resumeRetryCount=\"-1\")\n"
+	one := logfwd.Header + "*.* action(type=\"omfwd\" protocol=\"tcp\"\n    target=\"192.0.2.50\" port=\"514\"\n" + queue
+	if got := file(t, tcp); got != one {
+		t.Errorf("tcp =\n%s\nwant\n%s", got, one)
 	}
-	if got := file(t, tls); !strings.Contains(got, "StreamDriverPermittedPeers=\"logs.example.net\"\n    StreamDriver.CAFile=\"/etc/ssl/lab-ca.pem\"") {
-		t.Errorf("tls =\n%s", got)
+	want := one + "*.* action(type=\"omfwd\" protocol=\"udp\"\n    target=\"192.0.2.52\" port=\"514\"\n" + queue +
+		"*.* action(type=\"omfwd\" protocol=\"tcp\"\n    target=\"logs.example.net\" port=\"6514\"\n" +
+		"    StreamDriver=\"gtls\" StreamDriverMode=\"1\"\n    StreamDriverAuthMode=\"x509/name\"\n" +
+		"    StreamDriverPermittedPeers=\"logs.example.net\"\n    StreamDriver.CAFile=\"/etc/ssl/lab-ca.pem\"\n" + queue
+	if got := file(t, tcp, udp2, tls); got != want {
+		t.Errorf("three =\n%s\nwant\n%s", got, want)
+	}
+	if _, err := logfwd.RsyslogFile(nil); !errors.Is(err, logfwd.ErrServer) {
+		t.Errorf("no server: %v, want ErrServer", err)
+	}
+	// What hardn writes, hardn reads back: each server, hardn's own.
+	h := debian(t, true)
+	h.AddFile(logfwd.DropIn, []byte(want), 0o644, 0, 0)
+	r := logfwd.Read(context.Background(), h, facts(detect.DistroDebian))
+	if r.Err != nil || len(r.Forwards) != 3 || r.Forwards[0].Server != tcp || r.Forwards[1].Server != udp2 || r.Forwards[2].Server != tls || len(r.Own()) != 3 {
+		t.Errorf("read back = %+v", r)
 	}
 }
 
-func TestReadConn(t *testing.T) {
+// Several servers on Alpine (§2.3): one -R each, the mark naming them all,
+// and ClearOpts takes every one back out.
+func TestSetOptsSeveral(t *testing.T) {
+	const stock = "SYSLOGD_OPTS=\"-t\"\n"
+	set, err := logfwd.SetOpts([]byte(stock), []logfwd.Server{udp, udp2})
+	if want := logfwd.Mark + "-R 192.0.2.50:514 -R 192.0.2.52:514 -L\nSYSLOGD_OPTS=\"-t -R 192.0.2.50:514 -R 192.0.2.52:514 -L\"\n"; err != nil || string(set) != want {
+		t.Fatalf("SetOpts = %q, %v; want %q", set, err, want)
+	}
+	r := logfwd.Read(context.Background(), alpineHost(t, string(set)), facts(detect.DistroAlpine))
+	if own := r.Own(); r.Err != nil || len(own) != 2 || own[0].Server != udp || own[1].Server != udp2 || r.Foreign() != nil {
+		t.Fatalf("Read = %+v", r)
+	}
+	// The list changed is one change: the old words out, the new in.
+	moved, err := logfwd.SetOpts(set, []logfwd.Server{udp2})
+	if want := logfwd.Mark + "-R 192.0.2.52:514 -L\nSYSLOGD_OPTS=\"-t -R 192.0.2.52:514 -L\"\n"; err != nil || string(moved) != want {
+		t.Fatalf("SetOpts over two = %q, %v; want %q", moved, err, want)
+	}
+	if back, err := logfwd.ClearOpts(set); err != nil || string(back) != stock {
+		t.Fatalf("ClearOpts = %q, %v; want the file as it was", back, err)
+	}
+	// One TCP or TLS server refuses the list whole.
+	for _, list := range [][]logfwd.Server{{udp, tcp}, {tls, udp}} {
+		if out, err := logfwd.SetOpts([]byte(stock), list); !errors.Is(err, logfwd.ErrServer) || out != nil {
+			t.Errorf("SetOpts(%+v) = %q, %v; want ErrServer", list, out, err)
+		}
+	}
+	if _, err := logfwd.SetOpts([]byte(stock), nil); !errors.Is(err, logfwd.ErrServer) {
+		t.Errorf("no server: %v, want ErrServer", err)
+	}
+}
+
+func TestReadConns(t *testing.T) {
 	const table = "ESTAB 0 0 192.0.2.10:22 192.0.2.1:50514 users:((\"sshd\",pid=700,fd=4))\n" +
 		"ESTAB 0 0 192.0.2.10:41234 192.0.2.50:514 users:((\"rsyslogd\",pid=612,fd=9))\n" +
 		"ESTAB 0 0 [2001:db8::10]:41236 [2001:db8::50]:6514 users:((\"rsyslogd\",pid=612,fd=10))\n" +
@@ -368,26 +427,75 @@ func TestReadConn(t *testing.T) {
 		return h
 	}
 	ctx := context.Background()
+	open, down, untold := logfwd.ConnState{Conn: logfwd.ConnOpen}, logfwd.ConnState{Conn: logfwd.ConnDown}, logfwd.ConnState{Conn: logfwd.ConnUnknown}
+	const to60, to77 = "ESTAB 0 0 192.0.2.10:41242 192.0.2.60:514 users:((\"rsyslogd\",pid=612,fd=13))\n",
+		"ESTAB 0 0 192.0.2.10:41240 192.0.2.77:514 users:((\"rsyslogd\",pid=612,fd=12))\n"
+	out60 := []logfwd.Server{{Address: "192.0.2.60", Port: "514", Proto: logfwd.TCP}}
+	name := func(n, port string) logfwd.Server { return logfwd.Server{Address: n, Port: port, Proto: logfwd.TCP} }
 	for _, tc := range []struct {
-		name string
-		s    logfwd.Server
-		want logfwd.Conn
+		name  string
+		table string
+		s     []logfwd.Server
+		want  []logfwd.ConnState
 	}{
-		{"address, open", tcp, logfwd.ConnOpen},
-		{"address, another port", logfwd.Server{Address: "192.0.2.50", Port: "1514", Proto: logfwd.TCP}, logfwd.ConnDown},
-		{"address, still connecting", logfwd.Server{Address: "192.0.2.60", Port: "514", Proto: logfwd.TCP}, logfwd.ConnDown},
-		{"name, rsyslogd's to that port", tls, logfwd.ConnOpen},
-		{"name, no rsyslogd socket to that port", logfwd.Server{Address: "logs.example.net", Port: "50514", Proto: logfwd.TCP}, logfwd.ConnDown},
-		{"udp", udp, logfwd.ConnNone},
+		{"address, open", table, []logfwd.Server{tcp}, []logfwd.ConnState{open}},
+		{"address, another port", table, []logfwd.Server{{Address: "192.0.2.50", Port: "1514", Proto: logfwd.TCP}}, []logfwd.ConnState{down}},
+		{"address, still connecting", table, []logfwd.Server{{Address: "192.0.2.60", Port: "514", Proto: logfwd.TCP}}, []logfwd.ConnState{down}},
+		{"name, rsyslogd's to that port", table, []logfwd.Server{tls}, []logfwd.ConnState{open}},
+		{"name, no rsyslogd socket to that port", table, []logfwd.Server{name("logs.example.net", "50514")}, []logfwd.ConnState{down}},
+		{"udp", table, []logfwd.Server{udp}, []logfwd.ConnState{{}}},
+		{"mixed list", table, []logfwd.Server{tls, tcp, udp2, {Address: "192.0.2.60", Port: "514", Proto: logfwd.TCP}},
+			[]logfwd.ConnState{open, open, {}, down}},
+		// §2.4: beside 192.0.2.50 on port 514, a dead named server is not
+		// Open on the address server's socket.
+		{"name beside an address on its port, down", table, []logfwd.Server{tcp, name("logs.example.net", "514")}, []logfwd.ConnState{open, down}},
+		{"name beside an address on its port, open", table + "ESTAB 0 0 192.0.2.10:41240 192.0.2.77:514 users:((\"rsyslogd\",pid=612,fd=12))\n",
+			[]logfwd.Server{tcp, name("logs.example.net", "514")}, []logfwd.ConnState{open, open}},
+		{"two names on a port, one socket", table, []logfwd.Server{name("a.example.net", "514"), name("b.example.net", "514")},
+			[]logfwd.ConnState{{Conn: logfwd.ConnDown, Open: 1, Of: 2}, {Conn: logfwd.ConnDown, Open: 1, Of: 2}}},
+		{"two names on a port, two sockets", table + "ESTAB 0 0 192.0.2.10:41240 192.0.2.77:514 users:((\"rsyslogd\",pid=612,fd=12))\n",
+			[]logfwd.Server{name("a.example.net", "514"), name("b.example.net", "514")}, []logfwd.ConnState{open, open}},
+		{"two names on a port, none", "", []logfwd.Server{name("a.example.net", "514"), name("b.example.net", "514")}, []logfwd.ConnState{down, down}},
+		{"a name is not open on another program's socket", "ESTAB 0 0 192.0.2.10:41240 192.0.2.77:514 users:((\"nc\",pid=9,fd=3))\n",
+			[]logfwd.Server{name("a.example.net", "514")}, []logfwd.ConnState{down}},
 	} {
-		if got, err := logfwd.ReadConn(ctx, ss(hostfake.Response{Stdout: table}), tc.s); got != tc.want || err != nil {
-			t.Errorf("%s: ReadConn = %v, %v; want %v", tc.name, got, err, tc.want)
+		if got, err := logfwd.ReadConns(ctx, ss(hostfake.Response{Stdout: tc.table}), tc.s, nil); !slices.Equal(got, tc.want) || err != nil {
+			t.Errorf("%s: ReadConns = %+v, %v; want %+v", tc.name, got, err, tc.want)
 		}
 	}
-	if got, err := logfwd.ReadConn(ctx, ss(hostfake.Response{Err: host.ErrNotFound}), tcp); got != logfwd.ConnUnknown || !errors.Is(err, host.ErrNotFound) {
-		t.Errorf("no ss: ReadConn = %v, %v; want unknown", got, err)
+	// A forward outside the list, to the same port: its socket is not a
+	// named server's (§2.4), and what the sockets do not tell is not Open.
+	a, b := []logfwd.Server{name("a.example.net", "514")}, []logfwd.Server{name("b.example.net", "514")}
+	for _, tc := range []struct {
+		name   string
+		table  string
+		beside []logfwd.Server
+		want   logfwd.ConnState
+	}{
+		{"an address outside the list, the name down", to60, out60, down},
+		{"an address outside the list, the name open", to60 + to77, out60, open},
+		{"more sockets than names", to60 + to77, nil, untold},
+		{"a name outside the list, one socket", to77, b, untold},
+		{"a name outside the list, two sockets", to60 + to77, b, open},
+		{"a name outside the list, no socket", "", b, down},
+		{"udp outside the list", to77, []logfwd.Server{udp2}, open},
+	} {
+		if got, err := logfwd.ReadConns(ctx, ss(hostfake.Response{Stdout: tc.table}), a, tc.beside); len(got) != 1 || got[0] != tc.want || err != nil {
+			t.Errorf("%s: ReadConns = %+v, %v; want %+v", tc.name, got, err, tc.want)
+		}
 	}
-	if got, err := logfwd.ReadConn(ctx, ss(hostfake.Response{ExitCode: 1}), tcp); got != logfwd.ConnUnknown || err == nil {
-		t.Errorf("ss failing: ReadConn = %v, %v; want unknown", got, err)
+	unknown := []logfwd.ConnState{{Conn: logfwd.ConnUnknown}, {}}
+	if got, err := logfwd.ReadConns(ctx, ss(hostfake.Response{Err: host.ErrNotFound}), []logfwd.Server{tcp, udp2}, nil); !slices.Equal(got, unknown) || !errors.Is(err, host.ErrNotFound) {
+		t.Errorf("no ss: ReadConns = %+v, %v; want unknown", got, err)
+	}
+	if got, err := logfwd.ReadConns(ctx, ss(hostfake.Response{ExitCode: 1}), []logfwd.Server{tcp, udp2}, nil); !slices.Equal(got, unknown) || err == nil {
+		t.Errorf("ss failing: ReadConns = %+v, %v; want unknown", got, err)
+	}
+	// UDP alone asks ss nothing.
+	if got, err := logfwd.ReadConns(ctx, hostfake.New(host.Options{}), []logfwd.Server{udp, udp2}, nil); err != nil || !slices.Equal(got, []logfwd.ConnState{{}, {}}) {
+		t.Errorf("udp alone: ReadConns = %+v, %v", got, err)
+	}
+	if !(logfwd.ConnState{Conn: logfwd.ConnDown, Open: 1, Of: 2}).Some() || down.Some() {
+		t.Error("Some")
 	}
 }

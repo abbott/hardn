@@ -8,7 +8,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/flow"
 )
 
-// The Time Sync screen (docs/roadmap.md, "Time sync";
+// The NTP Settings screen (docs/roadmap.md, "Time sync";
 // docs/engine/gallery-timesync.md, adopted 2026-11-14;
 // docs/engine/screen-timesync.md): main menu 8, then 3. Which service keeps the
 // host's time, whether it runs, whether the clock is in sync, the servers
@@ -20,7 +20,7 @@ import (
 
 // The screen's words: proposed (gallery-timesync.md, "Words").
 const (
-	timeTitle   = "Time Sync"
+	timeTitle   = "NTP Settings"
 	timeSection = "Time"
 
 	timeServiceKey = "Service"
@@ -126,10 +126,10 @@ type TimeServer struct {
 	File string
 }
 
-// TimeSync is the Time Sync screen's reading of the host, which its caller
+// TimeSync is the NTP Settings screen's reading of the host, which its caller
 // fills.
 type TimeSync struct {
-	// Status is the Time Sync row.
+	// Status is the NTP row.
 	Status component.StatusList
 	// Service keeps the host's time.
 	Service TimeService
@@ -326,7 +326,7 @@ func (t TimeSync) MenuItems() []component.MenuItem {
 // servers otherwise.
 func (TimeSync) Removes(it component.MenuItem) bool { return it.Label == timeRemove }
 
-// SubMenu returns the Time Sync screen: the title bar; the row; the
+// SubMenu returns the NTP Settings screen: the title bar; the row; the
 // section; the items; Return; "Select an option"; "Option".
 func (t TimeSync) SubMenu() SubMenu {
 	return SubMenu{

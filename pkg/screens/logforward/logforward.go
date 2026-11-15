@@ -1,9 +1,9 @@
-// Package logforward runs hardn's Log Forwarding screen on a host
+// Package logforward runs hardn's Syslog Settings screen on a host
 // (docs/roadmap.md, "Log forwarding"; docs/engine/gallery-logforward.md,
 // adopted 2026-11-13; docs/engine/screen-logforward.md): the screen
-// pkg/ui/screen draws, from what the Log Forwarding control
+// pkg/ui/screen draws, from what the Syslog Settings control
 // (pkg/engine/controls/logforward) reads of the host, writing nothing; its
-// items, Set server and Stop forwarding, the control's plans through the
+// items, Set servers and Stop forwarding, the control's plans through the
 // plan/apply engine in pkg/ui's canonical flow: the review with the
 // control's notice, y/N, the apply, rolled back on failure, then the screen
 // drawn again from a fresh reading. Every refusal is the control's or the
@@ -21,6 +21,7 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"slices"
 	"time"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -37,8 +38,8 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// Options is what the Log Forwarding screen runs with: what cmd/hardn has
-// when its Log Forwarding menu item is chosen, as the Auto Updates
+// Options is what the Syslog Settings screen runs with: what cmd/hardn has
+// when its Syslog Settings menu item is chosen, as the Auto Updates
 // screen's.
 type Options struct {
 	// Prompter asks the questions and writes the screen through the one line
@@ -48,7 +49,7 @@ type Options struct {
 	System host.System
 	// Facts are detect's: the distribution and the init system.
 	Facts detect.Facts
-	// Config is hardn.yml as loaded, whose logForwarding names the server.
+	// Config is hardn.yml as loaded, whose syslogServers names the servers.
 	// No change saves it. Nil has none.
 	Config *config.Config
 	// NewEngine returns the engine an item plans and applies with, progress
@@ -68,7 +69,7 @@ type Options struct {
 	Ran func(output.Run)
 }
 
-// Run shows the Log Forwarding screen and runs its items until the user
+// Run shows the Syslog Settings screen and runs its items until the user
 // goes back with 0 (nil) or quits with q (nav.ErrQuit); the end of the
 // input and Ctrl-C abort (prompt.ErrAborted). Each round reads the host
 // with the control, writing nothing, and draws the row, the section and
@@ -80,7 +81,7 @@ type Options struct {
 // or NewEngine.
 func Run(ctx context.Context, o Options) error {
 	if o.Prompter.In == nil || o.Prompter.Out == nil || o.System == nil || o.NewEngine == nil {
-		return fmt.Errorf("log forwarding screen: %w: it needs a Prompter with In and Out, a System and NewEngine", fs.ErrInvalid)
+		return fmt.Errorf("syslog settings screen: %w: it needs a Prompter with In and Out, a System and NewEngine", fs.ErrInvalid)
 	}
 	if o.Now == nil {
 		o.Now = time.Now
@@ -89,7 +90,7 @@ func Run(ctx context.Context, o Options) error {
 	if cfg == nil {
 		cfg = &config.Config{}
 	}
-	r := &runner{o: o, cfg: cfg, s: screenkit.Session{Name: "log forwarding screen", Prompter: o.Prompter, System: o.System, Config: cfg,
+	r := &runner{o: o, cfg: cfg, s: screenkit.Session{Name: "syslog settings screen", Prompter: o.Prompter, System: o.System, Config: cfg,
 		NewEngine: o.NewEngine, ApplyContext: o.ApplyContext, DryRun: o.DryRun, LogPath: o.LogPath, Now: o.Now, Ran: o.Ran}}
 	return o.Prompter.Run(func() nav.Screen { return r.draw(ctx) })
 }
@@ -145,22 +146,23 @@ const (
 	unreadLogger  = "Can't tell the logger"
 )
 
-// StatusRow is the Log Forwarding row as the main menu draws it: the
+// StatusRow is the Syslog row as the main menu draws it: the
 // control's status through the main menu's own mapping.
 func StatusRow(rd ctl.Reading) component.StatusList {
 	return screenkit.StatusRow(ctl.ID, ctl.Title, rd.Status())
 }
 
 // server is s as the screen draws it, the host's text made safe.
-func server(s logfwd.Server) *screen.LogServer {
+func server(s logfwd.Server) screen.LogServer {
 	proto := map[logfwd.Proto]screen.LogProto{logfwd.UDP: screen.LogUDP, logfwd.TCP: screen.LogTCP, logfwd.TLS: screen.LogTLS}[s.Proto]
-	return &screen.LogServer{Address: logview.Safe(s.Address), Port: logview.Safe(s.Port), Proto: proto, CAFile: logview.Safe(s.CAFile)}
+	return screen.LogServer{Address: logview.Safe(s.Address), Port: logview.Safe(s.Port), Proto: proto, CAFile: logview.Safe(s.CAFile)}
 }
 
 // View is rd as the screen draws it: the mapping the gallery's mocks draw
-// through too. The logger; what is not read, in a few words; the server the
-// host forwards to, its file and whether it is hardn's, every word of the
-// host's made safe; the connection; and hardn.yml's server.
+// through too. The logger; what is not read, in a few words; each server
+// the host forwards to with its connection, their file and whether they
+// are hardn's, every word of the host's made safe; whether another
+// setting forwards beside hardn's; and hardn.yml's servers.
 func View(rd ctl.Reading) screen.LogForward {
 	v := screen.LogForward{Status: StatusRow(rd), WantBad: rd.WantErr != nil}
 	switch rd.Host.Logger {
@@ -179,12 +181,25 @@ func View(rd ctl.Reading) screen.LogForward {
 			v.Unread = unreadLogger
 		}
 	}
-	if rd.Want != nil {
-		v.Want = server(*rd.Want)
+	for _, s := range rd.Want {
+		v.Want = append(v.Want, server(s))
 	}
-	if rd.Now != nil {
-		v.Now, v.File, v.ByHardn = server(rd.Now.Server), logview.Safe(rd.Now.File), rd.Now.ByHardn
-		v.Conn = map[logfwd.Conn]screen.LogConn{logfwd.ConnOpen: screen.LogConnOpen, logfwd.ConnDown: screen.LogConnDown, logfwd.ConnUnknown: screen.LogConnUnknown}[rd.Conn]
+	var files []string
+	for i, f := range rd.Now {
+		n := screen.LogForwarded{LogServer: server(f.Server)}
+		if i < len(rd.Conns) {
+			c := rd.Conns[i]
+			n.Conn = map[logfwd.Conn]screen.LogConn{logfwd.ConnOpen: screen.LogConnOpen, logfwd.ConnDown: screen.LogConnDown, logfwd.ConnUnknown: screen.LogConnUnknown}[c.Conn]
+			n.Open, n.Of = c.Open, c.Of
+		}
+		v.Now = append(v.Now, n)
+		if !slices.Contains(files, f.File) {
+			files = append(files, f.File)
+		}
+	}
+	if len(rd.Now) > 0 {
+		v.File, v.Files, v.ByHardn = logview.Safe(files[0]), len(files), rd.Now[0].ByHardn
+		v.Beside = len(rd.Beside()) > 0
 	}
 	return v
 }

@@ -42,14 +42,14 @@ var (
 
 // The refusals' codes, the registry's for the errors they wrap (pkg/output).
 const (
-	codeNoServers  = "TIMESYNC_NO_SERVERS"
-	codeBadServers = "TIMESYNC_BAD_SERVERS"
-	codeNotRead    = "TIMESYNC_NOT_READ"
-	codeOutside    = "TIMESYNC_SET_OUTSIDE"
-	codeNoService  = "TIMESYNC_NO_SERVICE"
-	codeContainer  = "TIMESYNC_CONTAINER"
-	codeNothing    = "TIMESYNC_NOTHING_TO_REMOVE"
-	codeChanged    = "TIMESYNC_CHANGED_SINCE"
+	codeNoServers  = "NTP_NO_SERVERS"
+	codeBadServers = "NTP_BAD_SERVERS"
+	codeNotRead    = "NTP_NOT_READ"
+	codeOutside    = "NTP_SET_OUTSIDE"
+	codeNoService  = "NTP_NO_SERVICE"
+	codeContainer  = "NTP_CONTAINER"
+	codeNothing    = "NTP_NOTHING_TO_REMOVE"
+	codeChanged    = "NTP_CHANGED_SINCE"
 	tryAgain       = "fix that, then try again"
 )
 

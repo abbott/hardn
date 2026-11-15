@@ -185,7 +185,7 @@
 // is the menu of those mocks and "play config/<mock>" hardn's Configuration screen
 // itself on one (pkg/screens/config; docs/engine/screen-config.md). The main menu's 8
 // leads to the Configuration group ("play config/menu"), whose 1 leads to that
-// screen on the typical file, 2 to Log Forwarding and 3 to Time Sync.
+// screen on the typical file, 2 to Syslog Settings and 3 to NTP Settings.
 //
 // "eol" lists the mocks of the main menu's end-of-support notice (eol.go,
 // docs/engine/gallery-eol.md), with the same flags, each drawn through the

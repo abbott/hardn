@@ -1,5 +1,7 @@
 # Time sync mock
 
+> **Renamed 2026-11-14.** The screen and its Configuration item are now "NTP Settings"; its status row, the main menu's row and the hardn.yml screen's section are "NTP". The main menu's last rows are Syslog, NTP, AppArmor. The `ntpServers` key, the `NTP_*` codes and the control id are unchanged. The record below keeps the old name, Time Sync.
+
 The mock unit of the roadmap's "Time sync". hardn would show which service keeps the host's time, whether it runs, whether the clock is in sync and which servers it uses; and set the servers hardn.yml names on the service the host already runs. This unit draws that screen and its reviews, surveys how each supported release keeps time, lists what the maintainer has to decide (§4), and plans what the real unit shares with Log Forwarding (§5).
 
 **Adopted 2026-11-14.** The maintainer adopted the recommended answer of each of §4's eighteen decisions: "Adopt all". §5's extraction is built (§5.5), and so is the real unit: [screen-timesync.md](screen-timesync.md). From here on this page is the mock's record; where it says nothing is wired, read that page.
@@ -80,7 +82,7 @@ One host, `web-01`, on a network with its own time servers, `192.0.2.10` and `19
        # https://www.ntppool.org/join.html
       -pool 2.rocky.pool.ntp.org iburst
       +#hardn: pool 2.rocky.pool.ntp.org iburst
-      +# Added by hardn (Time Sync): the 2 lines below.
+      +# Added by hardn (NTP Settings): the 2 lines below.
       +server 192.0.2.10 iburst
       +server 192.0.2.11 iburst
 
@@ -289,13 +291,13 @@ Step (2) of §5.4, on 2026-11-14, after Log Forwarding ran on a host of each fam
 
 | Was | Is now | Differs from §5.1 |
 | --- | --- | --- |
-| `logfwd`'s `opts` fields, `parseOpts`'s parser, `opts.bytes`, `optsLine`, `optsValue` | `pkg/host/confd`: `Parse(data, key, mark) (Line, error)`, `Line.Words`, `Line.Marked`, `Line.N`, `Line.HasMark()`, `Line.Bytes(words, marked)`, `*Fault{Line, What}` | `Parse` returns a `*Fault`, not an error, and there is no `confd.ErrMalformed`: the file's name and the sentinel are the caller's, so `logfwd`'s errors read as before (`logfwd: /etc/conf.d/syslog:3: … : forwarding hardn can't make out`, `logfwd.ErrMalformed`, `LOGFWD_NOT_READ`); and an exported sentinel or error type under `pkg/host` or `pkg/engine` must have a code of its own in `pkg/output`'s registry (`TestSentinelsRegistered`, `TestTypedErrors`), which is permanent once released and was not asked for. `N`, the assignment's line, and `HasMark` added: `logfwd` needs both. `Bytes` puts the mark on the line above the assignment, where `SetOpts` put it |
+| `logfwd`'s `opts` fields, `parseOpts`'s parser, `opts.bytes`, `optsLine`, `optsValue` | `pkg/host/confd`: `Parse(data, key, mark) (Line, error)`, `Line.Words`, `Line.Marked`, `Line.N`, `Line.HasMark()`, `Line.Bytes(words, marked)`, `*Fault{Line, What}` | `Parse` returns a `*Fault`, not an error, and there is no `confd.ErrMalformed`: the file's name and the sentinel are the caller's, so `logfwd`'s errors read as before (`logfwd: /etc/conf.d/syslog:3: … : forwarding hardn can't make out`, `logfwd.ErrMalformed`, `SYSLOG_NOT_READ`); and an exported sentinel or error type under `pkg/host` or `pkg/engine` must have a code of its own in `pkg/output`'s registry (`TestSentinelsRegistered`, `TestTypedErrors`), which is permanent once released and was not asked for. `N`, the assignment's line, and `HasMark` added: `logfwd` needs both. `Bytes` puts the mark on the line above the assignment, where `SetOpts` put it |
 | `config`'s `validLogName`, `logName`, `Resolve`'s address test | `pkg/config/hostname.go`: `ResolveHost(s) (host, isAddr, err)`, `ErrHostIPv6`, `ErrHostName` | The two errors added: `Resolve` words each as it did |
 | `logfwd`'s `serverAddress` | `pkg/host/hostaddr`: `Valid(name) bool` | A bool, not `Check(name) error`: no new sentinel to register, as `confd`. `logfwd.Server.Check` keeps its own error (`logfwd: address "…"`, `ErrServer`) |
 | `logfwd`'s `readFile` | `host.ReadFileIfThere(ctx, sys, name) (data, ok, err)` | `pkg/host` had none (`steps.readOptional` reads without following a link, another read). `logfwd.readFile` stays, one line adding its `logfwd: ` prefix |
 | the control's `refuse`, `hostWords`, `firstLine`, `ids` | `steps.Refuse`, `steps.HostWords(err, prefix, sentinel)`, `steps.FirstLine`, `steps.IDs` (`pkg/engine/steps/refuse.go`) | The control keeps `hostWords(err)`, one line naming its prefix and sentinel |
-| `restartArgv`, `restartChange` | `steps.ServiceArgv(facts, unit, service, verb) (argv, ok)`, `steps.RestartService(control, id, title, service, argv, after)` (`service.go`) | `ServiceArgv` returns ok, not a refusal: the words and the code (`LOGFWD_NO_INIT`) are the control's. `RestartService` takes the control's id too: it is the change's resource and its undo's why |
-| `optionsChange` | `steps.RewriteFile(ctx, sys, Rewrite{Control, ID, Title, Path, Detail, Unread, Changed}, edit)` | A struct, not four arguments: the apply's words (`Detail`), the refusal of a file not read (`Unread`, `LOGFWD_NOT_READ`) and of one changed since the plan (`Changed`, `LOGFWD_CHANGED_SINCE`) are the control's. `edit`'s error is returned as it is |
+| `restartArgv`, `restartChange` | `steps.ServiceArgv(facts, unit, service, verb) (argv, ok)`, `steps.RestartService(control, id, title, service, argv, after)` (`service.go`) | `ServiceArgv` returns ok, not a refusal: the words and the code (`SYSLOG_NO_INIT`) are the control's. `RestartService` takes the control's id too: it is the change's resource and its undo's why |
+| `optionsChange` | `steps.RewriteFile(ctx, sys, Rewrite{Control, ID, Title, Path, Detail, Unread, Changed}, edit)` | A struct, not four arguments: the apply's words (`Detail`), the refusal of a file not read (`Unread`, `SYSLOG_NOT_READ`) and of one changed since the plan (`Changed`, `SYSLOG_CHANGED_SINCE`) are the control's. `edit`'s error is returned as it is |
 | `fileChange` | `steps.WriteOwnFile(OwnFile{Control, ID, Title, Path, Before, Data, After, Check})`, `FileCheck{Argv, Refused, Detail}` | A struct. `Check` is optional; Log Forwarding's is `rsyslogd -N1` |
 | `runner.change`'s order, `StatusRow` | `screenkit.Session.Reviewed(ctx, cfg, control, build)`, `screenkit.StatusRow(id, title, status)` | `build` returns the change, its notice and ok. `logforward.StatusRow(rd)` stays, one line |
 | `LogForwardChange`, `TimeSyncChange`, `FirewallChange` | `screen.Change` (`pkg/ui/screen/change.go`) | None |
@@ -329,7 +331,7 @@ Proposed, decided with §4.
 - No "Set by" row: each Server row says it, since one host can have servers from three places.
 - "Synced to" is drawn only for a service that says which server it follows; busybox ntpd does not.
 - A state the user can fix (no servers in hardn.yml, a hardn.yml that is not valid, settings unread) keeps Set servers offered, its description saying what is in the way. A state of the host (set outside hardn, no service, not running, a container) is unavailable. As Log Forwarding.
-- hardn's files and marks are the mock's: `/etc/chrony/sources.d/hardn.sources`, `/etc/systemd/timesyncd.conf.d/60-hardn.conf`, each opening "# Written by hardn (Time Sync)."; `#hardn: ` before a line switched off.
+- hardn's files and marks are the mock's: `/etc/chrony/sources.d/hardn.sources`, `/etc/systemd/timesyncd.conf.d/60-hardn.conf`, each opening "# Written by hardn (NTP Settings)."; `#hardn: ` before a line switched off.
 - The chrony mocks are Ubuntu 26.04, the one default-chrony release whose files were all read; `review-rhel` is Rocky Linux 10. No mock for Debian with timesyncd (as `timesyncd`, four built-in servers), Proxmox VE or a chrony chosen on Alpine.
 - The view (`screen.TimeSync`) has a field, `Restores`, for the servers Remove servers puts back: its review lists them.
 

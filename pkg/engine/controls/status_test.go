@@ -35,10 +35,10 @@ func TestStatus(t *testing.T) {
 	}
 }
 
-// TestMenu: the main menu checks Status's controls, then Log Forwarding
-// and Time Sync, which are no rows of risk's (the risk level never counts
-// them); Time Sync's report is drawn on every host but a container
-// (gallery-timesync.md, decision 11 (a)), and Log Forwarding's
+// TestMenu: the main menu checks Status's controls, then Syslog Settings
+// and NTP Settings, which are no rows of risk's (the risk level never counts
+// them); NTP Settings' report is drawn on every host but a container
+// (gallery-timesync.md, decision 11 (a)), and Syslog Settings'
 // report is drawn only where hardn.yml names a server or the host forwards
 // (gallery-logforward.md, decision 10 (a)).
 func TestMenu(t *testing.T) {
@@ -52,13 +52,13 @@ func TestMenu(t *testing.T) {
 			t.Errorf("%s is a row of the risk level", r.ID)
 		}
 	}
-	// Kernel Settings is checked only where hardn.yml's kernelSettings is
+	// Kernel Settings is checked only where hardn.yml's kernel is
 	// true (gallery-sysctl.md, decision 18 (a)), and never drawn in a
 	// container (decision 16 (a)).
 	asked := config.DefaultConfig()
 	asked.KernelSettings = true
 	if m := controls.Menu(asked); len(m) != len(menu)+1 || m[len(m)-1].ID() != kernelsettings.ID {
-		t.Errorf("kernelSettings true: Menu's last control is %q, of %d", m[len(m)-1].ID(), len(m))
+		t.Errorf("kernel true: Menu's last control is %q, of %d", m[len(m)-1].ID(), len(m))
 	}
 	toSet := engine.Report{Control: kernelsettings.ID, Status: engine.Status{State: engine.NotConfigured, Detail: "4 to set"}}
 	boxed := engine.Report{Control: kernelsettings.ID, Status: engine.Status{State: engine.NotApplicable, Detail: kernelsettings.DetailContainer}}
@@ -68,7 +68,7 @@ func TestMenu(t *testing.T) {
 	clock := engine.Report{Control: timesync.ID, Status: engine.Status{State: engine.Partial, Detail: timesync.DetailNotInSync}}
 	inside := engine.Report{Control: timesync.ID, Status: engine.Status{State: engine.NotApplicable, Detail: timesync.DetailContainer}}
 	if got := controls.MenuReports(cfg, []engine.Report{clock, inside}); len(got) != 1 || got[0].Status.State != engine.Partial {
-		t.Errorf("Time Sync: reports %+v, want every host's but a container's", got)
+		t.Errorf("NTP Settings: reports %+v, want every host's but a container's", got)
 	}
 	off := engine.Report{Control: logforward.ID, Status: engine.Status{State: engine.NotConfigured, Detail: logforward.DetailOff}}
 	on := engine.Report{Control: logforward.ID, Status: engine.Status{State: engine.Configured, Detail: "192.0.2.50:514 TCP"}}
@@ -80,7 +80,7 @@ func TestMenu(t *testing.T) {
 		t.Errorf("the host forwards: reports %+v", got)
 	}
 	named := config.DefaultConfig()
-	named.LogForwarding.Server = "192.0.2.50"
+	named.SyslogServers = config.SyslogServers{{Server: "192.0.2.50"}}
 	if got := controls.MenuReports(named, []engine.Report{other, off}); len(got) != 2 {
 		t.Errorf("hardn.yml names a server: reports %+v", got)
 	}

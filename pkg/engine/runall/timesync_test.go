@@ -24,7 +24,7 @@ import (
 
 // tsRead reads Run All on a bare Ubuntu 26.04 host whose time service is
 // chrony, with yml as hardn.yml's ntpServers: the other rows' checks read a
-// host that answers nothing, which is theirs to say; Time Sync's read its
+// host that answers nothing, which is theirs to say; NTP Settings' read its
 // files.
 func tsRead(t *testing.T, yml config.NTPServers, files map[string]string) (runall.Reading, *hostfake.System) {
 	t.Helper()
@@ -60,21 +60,21 @@ func tsRead(t *testing.T, yml config.NTPServers, files map[string]string) (runal
 	return r, f
 }
 
-// TestTimeSyncRow: Run All lists Time Sync only where hardn.yml names
-// servers (gallery-timesync.md, decision 15 (a)), after Log Forwarding and
+// TestTimeSyncRow: Run All lists NTP Settings only where hardn.yml names
+// servers (gallery-timesync.md, decision 15 (a)), after Syslog Settings and
 // before Backup; plans Set servers, never Remove servers; says "already as
 // asked" where the service uses them alone; and a refusal is the row's, in
 // its words.
 func TestTimeSyncRow(t *testing.T) {
 	servers := config.NTPServers{"192.0.2.10", "192.0.2.11"}
-	ids := runall.IDsFor(&config.Config{NTPServers: servers, LogForwarding: config.LogForwarding{Server: "192.0.2.50"}})
+	ids := runall.IDsFor(&config.Config{NTPServers: servers, SyslogServers: config.SyslogServers{{Server: "192.0.2.50"}}})
 	if n := len(ids); n != len(runall.IDs())+2 || ids[n-3] != logforward.ID || ids[n-2] != timesync.ID || ids[n-1] != backupctl.ID {
 		t.Fatalf("IDsFor with servers = %q", ids)
 	}
 
 	r, f := tsRead(t, nil, nil)
 	if _, ok := r.Row(timesync.ID); ok {
-		t.Error("no servers in hardn.yml: Run All lists Time Sync")
+		t.Error("no servers in hardn.yml: Run All lists NTP Settings")
 	}
 	if slices.ContainsFunc(f.Runs(), func(argv []string) bool { return argv[0] == "chronyc" }) {
 		t.Errorf("no servers in hardn.yml: Run All read the time service: %q", f.Runs())

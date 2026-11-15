@@ -55,17 +55,17 @@ const configReport = `# Configuration ##########################################
    -  enableUnattendedUpgrades
       false (default)
 
-  Log Forwarding -----------------------------------------------
+  Syslog -------------------------------------------------------
 
-   -  logForwarding        None (default)
+   -  syslogServers        None (default)
 
-  Time Sync ----------------------------------------------------
+  NTP ----------------------------------------------------------
 
    -  ntpServers           None (default)
 
-  Kernel Settings ----------------------------------------------
+  Kernel -------------------------------------------------------
 
-   -  kernelSettings       false (default)
+   -  kernel               false (default)
 
   Backup -------------------------------------------------------
 

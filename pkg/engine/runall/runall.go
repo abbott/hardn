@@ -66,9 +66,8 @@ const (
 	// with its hardn rollback.
 	PendingWords = "A change is waiting for hardn confirm. Confirm it from a new connection, or let it roll back, then try again."
 
-	// wordsSetServer is Log Forwarding's change, the screen's item.
-	wordsSetServer = "Set server"
-	// wordsSetServers is Time Sync's change, the screen's item.
+	// wordsSetServers is Syslog Settings' change and NTP Settings', each
+	// screen's item.
 	wordsSetServers = "Set servers"
 	// wordsApplySettings is Kernel Settings' change, the screen's item.
 	wordsApplySettings = "Apply settings"
@@ -162,8 +161,8 @@ func IDs() []string {
 }
 
 // IDsFor are the rows' controls with cfg as hardn.yml: IDs, and, before
-// Backup, Log Forwarding where logForwarding names a server, Time Sync
-// where ntpServers names any, and Kernel Settings where kernelSettings is
+// Backup, Syslog Settings where syslogServers names a server, NTP Settings
+// where ntpServers names any, and Kernel Settings where kernel is
 // true. With none its row is not listed (gallery-logforward.md, decision 9
 // (a); gallery-timesync.md, decision 15 (a); gallery-sysctl.md, decision 18
 // (a)).
@@ -173,7 +172,7 @@ func IDsFor(cfg *config.Config) []string {
 		return ids
 	}
 	var more []string
-	if cfg.LogForwarding.Server != "" {
+	if len(cfg.SyslogServers) > 0 {
 		more = append(more, logforward.ID)
 	}
 	if len(cfg.NTPServers) > 0 {
@@ -186,12 +185,12 @@ func IDsFor(cfg *config.Config) []string {
 }
 
 // Checked are the controls whose checks the rows show: the main menu's,
-// Log Forwarding's, Time Sync's and Kernel Settings' where hardn.yml asks
+// Syslog Settings', NTP Settings' and Kernel Settings' where hardn.yml asks
 // for them (IDsFor),
 // then Backup's.
 func Checked(cfg *config.Config) []engine.Control {
 	out := controls.Status(cfg)
-	if cfg != nil && cfg.LogForwarding.Server != "" {
+	if cfg != nil && len(cfg.SyslogServers) > 0 {
 		out = append(out, logforward.Controls(cfg)...)
 	}
 	if cfg != nil && len(cfg.NTPServers) > 0 {
@@ -229,8 +228,8 @@ func (a Ask) Asked() bool { return a.Control != nil || a.Port != 0 }
 // as -d's); sshPort, compared only;
 // enableUfwSshPolicy true, Enable; configureDns true with nameservers, the
 // nameservers; enableUnattendedUpgrades true, on (never off);
-// logForwarding's server, Set server (never Stop forwarding); ntpServers,
-// Set servers (never Remove servers); kernelSettings true, Apply settings
+// syslogServers, Set servers (never Stop forwarding); ntpServers,
+// Set servers (never Remove servers); kernel true, Apply settings
 // (never Remove settings). SSH Auth asks
 // no key: on Alpine, where sshd lacks CVE-2026-123158's fix, it is the
 // openssh upgrade (sshchange.Upgrade; the maintainer, 2026-11-08). Every
@@ -279,11 +278,11 @@ func Asked(in Input, id string) Ask {
 		}
 		return Ask{Control: updates.Auto{Action: updates.AutoOn, Records: in.Revert, Version: in.Version}, Words: "Turn on"}
 	case logforward.ID:
-		// Set server alone, never Stop forwarding (decision 9 (a)).
-		if cfg.LogForwarding.Server == "" {
+		// Set servers alone, never Stop forwarding (decision 9 (a)).
+		if len(cfg.SyslogServers) == 0 {
 			return Ask{}
 		}
-		return Ask{Control: logforward.Forward{Action: logforward.ActionSet, Config: cfg}, Words: wordsSetServer}
+		return Ask{Control: logforward.Forward{Action: logforward.ActionSet, Config: cfg}, Words: wordsSetServers}
 	case timesync.ID:
 		// Set servers alone, never Remove servers (decision 15 (a)).
 		if len(cfg.NTPServers) == 0 {

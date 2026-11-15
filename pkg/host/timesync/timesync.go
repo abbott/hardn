@@ -184,7 +184,7 @@ var (
 )
 
 // Header opens a file hardn writes: its own, whole.
-const Header = "# Written by hardn (Time Sync).\n"
+const Header = "# Written by hardn (NTP Settings).\n"
 
 // MaxServers is how many servers hardn writes.
 const MaxServers = 4

@@ -269,8 +269,8 @@ func TestMainMenuMode(t *testing.T) {
 // with item 5, Auto Updates, "Configure automatic updates", between 4 and
 // 6 (withUpdatesItem): its numbers, labels and descriptions, item 1's
 // aside, item 2's "Root login, passwords, port" (legacy-left.md §3,
-// decision 7 (a)), item 8's "hardn.yml, log forwarding, time sync", and
-// its Exit row, "q to quit" (DEV-030); no Log Forwarding and no Time Sync
+// decision 7 (a)), item 8's "hardn.yml, syslog, ntp, kernel", and
+// its Exit row, "q to quit" (DEV-030); no Syslog Settings and no NTP Settings
 // item, which are under Configuration. The heading and prompt are
 // origin/main's, the hint generated from the items, "[0-10 or q]".
 func TestMainMenuItems(t *testing.T) {
@@ -284,11 +284,11 @@ func TestMainMenuItems(t *testing.T) {
 		t.Errorf("the items are not the main-menu mock's:\n%+v\n%+v", view, fixture.Menu)
 	}
 	for _, it := range view.Items {
-		if it.Label == "Log Forwarding" || it.Label == "Time Sync" {
+		if it.Label == "Syslog" || it.Label == "NTP" {
 			t.Errorf("the main menu has the item %+v, which is under Configuration", it)
 		}
 	}
-	if it := view.Items[7]; it.Key != "8" || it.Label != "Configuration" || it.Description != "hardn.yml, log forwarding, time sync" {
+	if it := view.Items[7]; it.Key != "8" || it.Label != "Configuration" || it.Description != "hardn.yml, syslog, ntp, kernel" {
 		t.Errorf("item 8 %+v", it)
 	}
 	if hint := m.items().Accepts().Hint(); hint != "0-10 or q" {
@@ -388,7 +388,7 @@ func TestMainMenuTopRows(t *testing.T) {
 // line under any), in its full form at every height, Unicode (C.UTF-8)
 // and ASCII (C): 39 lines at 80x24 and 80x40, the two blank lines under
 // the clear (clearTop) first, 63 at 60 columns, where the rows stack
-// (DEV-021), v0.9.0's ten items and the Time Sync row, one line at 80
+// (DEV-021), v0.9.0's ten items and the NTP row, one line at 80
 // columns and two at 60. The prompt is the terminal's last line, so on 24
 // rows the first 15 lines scroll off at 80 columns, the blank lines and
 // the header down to the SSH Port row, the risk level among them, and at

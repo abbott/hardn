@@ -31,8 +31,8 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // screen (dnsLinks, dnsscreen.go), its 7 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
 // kept among the mocks as Figma's record (figmaRecords), its 8 to the real
-// Configuration group, and through it to the real Configuration, Log
-// Forwarding and Time Sync screens (configLinks, config.go), its 9 to the real System
+// Configuration group, and through it to the real Configuration, Syslog
+// Settings and NTP Settings screens (configLinks, config.go), its 9 to the real System
 // Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
 // (logsLinks, logs.go), its 3 to the real Firewall screen (fwLinks, firewall.go),
 // its 1 to the real User Management screen (usrLinks, users.go) and its 2 to the
@@ -166,9 +166,9 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Log Forwarding screen fails where its host does")
+			return usage("-fail is for the fixture plans of the screen mocks; the Syslog Settings screen fails where its host does")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Log Forwarding screen plays normal or dry-run", *sequence)
+			return usage("-sequence %s: the Syslog Settings screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence
@@ -182,9 +182,9 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the Time Sync screen fails where its host does")
+			return usage("-fail is for the fixture plans of the screen mocks; the NTP Settings screen fails where its host does")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the Time Sync screen plays normal or dry-run", *sequence)
+			return usage("-sequence %s: the NTP Settings screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence

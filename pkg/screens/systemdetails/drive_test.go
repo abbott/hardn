@@ -360,7 +360,7 @@ func reportRowsOf(t *testing.T, d drawing, facts details.Report) []parity.Row {
 // goes unread; "Can't read <source>" stands in any section, and the others' rows are
 // the host's own names.
 var knownRows = map[string][]string{
-	// The three time rows are new with Time Sync (gallery-timesync.md,
+	// The three time rows are new with NTP Settings (gallery-timesync.md,
 	// decision 10): origin/main has none to compare them with.
 	"OS and Kernel": {"OS", "Kernel", "Uptime", "Time service", "Clock", "Synced to"},
 	"CPU and Load":  {"Model", "CPUs", "Load (1, 5, 15 min)"},

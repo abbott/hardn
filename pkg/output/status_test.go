@@ -107,8 +107,8 @@ func TestStatusRows(t *testing.T) {
 		{Label: "Firewall", State: component.StatusConfigured, Detail: "deny policy"},
 		{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"},
 		{Label: "Auto Updates", State: component.StatusNotConfigured, Detail: "no unattended-upgrades"},
-		{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
 		{Label: "Extra", State: component.StatusPartial, Detail: "one server"},
+		{Label: "AppArmor", State: component.StatusNotConfigured, Detail: "no profiles loaded"},
 	}
 	if !reflect.DeepEqual(v.Status.Rows, want) {
 		t.Errorf("got  %+v\nwant %+v", v.Status.Rows, want)

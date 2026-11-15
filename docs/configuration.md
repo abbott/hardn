@@ -238,27 +238,30 @@ Off, the default, hardn makes no network request. On, the main menu says when a 
 - **hardn doesn't update itself.** Install the release with [install.sh](install.md).
 - The last answer is kept in `/var/lib/hardn/release.json`, root's alone.
 
-### Log Forwarding
+### Syslog
 
 ```yaml
-logForwarding:
-  server: "192.0.2.50"   # IPv4 address or name
-  port: 514              # default 514; 6514 for tls
-  protocol: tcp          # udp, tcp or tls; default tcp
-  caFile: ""             # tls only
+syslogServers:
+  - server: "192.0.2.50"            # IPv4 address or name
+    port: 514                       # default 514; 6514 for tls
+    protocol: tcp                   # udp, tcp or tls; default tcp
+  - server: "logs.example.net"
+    protocol: tls
+    caFile: "/etc/ssl/example-ca.pem" # tls only
 ```
 
-The syslog server Log Forwarding (main menu `8) Configuration`, then 2) and Run All send the host's logs to. Nothing is set by default: with no `server`, hardn changes nothing.
+The syslog servers Syslog Settings (main menu `8) Configuration`, then 2) and Run All send the host's logs to: one to four, each sent every message. Nothing is set by default: with no list, or an empty one, hardn changes nothing.
 
 - **`server`** is an IPv4 address or a host name. An IPv6 address isn't set yet.
-- **`protocol`** is `udp`, `tcp` or `tls`, in lower case. UDP and TCP are not encrypted, and UDP doesn't notice a lost message. On Alpine only `udp` is set: busybox syslogd has no other.
-- **`tls`** needs the server's name, as its certificate has it, and **`caFile`**: the CA's certificate, a file already on the host. hardn checks the server's certificate against it and sends no client certificate.
-- **A value hardn doesn't accept is refused**, and nothing is written: the values go into the logger's settings, so only letters, digits, dots and hyphens in `server`, and letters, digits and `._+-/` in `caFile`.
-- No screen saves this key. Stop forwarding leaves it: remove `server` too, or the next Run All sets it again.
+- **`protocol`** is `udp`, `tcp` or `tls`, in lower case, and may differ from server to server. UDP and TCP are not encrypted, and UDP doesn't notice a lost message. On Alpine only `udp` is set: busybox syslogd has no other.
+- **`tls`** needs the server's name, as its certificate has it, and **`caFile`**: the CA's certificate, a file already on the host, each TLS server's own. hardn checks the server's certificate against it and sends no client certificate.
+- **A list hardn doesn't accept is refused whole**, saying which entry ("server 2: port is not between 1 and 65535"), and nothing is written. That is more than four servers, a block with no `server`, the same address and port twice (whatever the protocol), or a value that is not plain: only letters, digits, dots and hyphens in `server`, and letters, digits and `._+-/` in `caFile`. One TCP or TLS server on Alpine, or one missing CA file, refuses the list too: hardn never sets part of it.
+- **Each server has its own queue**, in memory, so that one that is away does not hold up the others or the host's own log files: rsyslog keeps retrying it, and drops that server's messages once the queue is full.
+- No screen saves this key. Stop forwarding leaves it: remove the list too, or the next Run All sets it again.
 
-What changes on each distribution: [platforms.md](platforms.md#log-forwarding).
+What changes on each distribution: [platforms.md](platforms.md#syslog).
 
-### Time Sync
+### NTP
 
 ```yaml
 ntpServers:
@@ -266,18 +269,18 @@ ntpServers:
   - "192.0.2.11"
 ```
 
-The time servers Time Sync (main menu `8) Configuration`, then 3) and Run All set on the host's time service, in place of its own. Nothing is set by default: with none, hardn changes nothing.
+The time servers NTP Settings (main menu `8) Configuration`, then 3) and Run All set on the host's time service, in place of its own. Nothing is set by default: with none, hardn changes nothing.
 
 - **One to four servers**, each an IPv4 address or a host name, in the order the service is given them. An IPv6 address isn't set yet. A name needs DNS before the clock is set.
 - **A value hardn doesn't accept is refused**, and nothing is written: the names go into the service's settings, so only letters, digits, dots and hyphens. No options (`prefer`, `nts`): hardn writes plain NTP servers.
 - No screen saves this key. Remove servers leaves it: take the servers out too, or the next Run All sets them again.
 
-What changes on each distribution: [platforms.md](platforms.md#time-sync).
+What changes on each distribution: [platforms.md](platforms.md#ntp).
 
-### Kernel Settings
+### Kernel
 
 ```yaml
-kernelSettings: true
+kernel: true
 ```
 
 `true` puts Kernel Settings (main menu `8) Configuration`, then 4) in Run All and on the main menu. Off by default: hardn then sets no kernel setting unless you choose Apply settings on the screen, which works either way.
@@ -285,7 +288,7 @@ kernelSettings: true
 - No screen saves this key. Remove settings leaves it: set it to `false` too, or the next Run All applies the settings again.
 - There is no list of settings to skip. To keep one of your own, set it in a file read after hardn's, such as `/etc/sysctl.d/99-sysctl.conf`: hardn shows it and leaves it.
 
-What differs by distribution: [platforms.md](platforms.md#kernel-settings).
+What differs by distribution: [platforms.md](platforms.md#kernel).
 
 ### Feature Toggles
 
@@ -306,9 +309,9 @@ The main menu's Run All (6) and `hardn -r` plan these keys' changes as one plan:
 - **`enableUfwSshPolicy: true`:** enables the firewall. On Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux the firewall is left to the Firewall screen.
 - **`configureDns: true`** with **`nameservers`:** sets the nameservers.
 - **`enableUnattendedUpgrades: true`:** turns automatic updates on; false changes nothing. hardn's first-run setup asks "Enable automatic security updates? [y/N]" and sets it.
-- **`logForwarding`'s `server`:** sends the host's logs to it, as Log Forwarding's Set server. With no server the row is not listed. Run All never stops forwarding.
-- **`ntpServers`:** sets them on the host's time service, as Time Sync's Set servers. With none the row is not listed. Run All never removes them.
-- **`kernelSettings: true`:** sets the kernel settings below hardn's baseline, as Kernel Settings' Apply settings. When false the row is not listed, and in a container never. Run All never removes them.
+- **`syslogServers`:** sends the host's logs to them, as Syslog Settings' Set servers. With none the row is not listed. Run All never stops forwarding.
+- **`ntpServers`:** sets them on the host's time service, as NTP Settings' Set servers. With none the row is not listed. Run All never removes them.
+- **`kernel: true`:** sets the kernel settings below hardn's baseline, as Kernel Settings' Apply settings. When false the row is not listed, and in a container never. Run All never removes them.
 - **`sshPort`:** compared with the port sshd listens on; never changed.
 - **No key, on Alpine:** where sshd lacks the fix for CVE-2026-123158, upgrades openssh, then reloads sshd. Root login off, the firewall and creating a user refused for the CVE then wait for the next run.
 - **`enableBackups` and `backupPath`:** the plan's backups.

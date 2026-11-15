@@ -20,10 +20,10 @@ import (
 // *steps.Refusal in the decided words (gallery-logforward.md §5), wrapping
 // the cause where there is one.
 var (
-	// ErrNoServer: hardn.yml names no log server.
-	ErrNoServer = errors.New("hardn.yml names no log server")
-	// ErrBadServer: hardn.yml's logForwarding is not valid.
-	ErrBadServer = errors.New("hardn.yml's logForwarding is not valid")
+	// ErrNoServer: hardn.yml names no syslog server.
+	ErrNoServer = errors.New("hardn.yml names no syslog server")
+	// ErrBadServer: hardn.yml's syslogServers is not valid.
+	ErrBadServer = errors.New("hardn.yml's syslogServers is not valid")
 	// ErrNotRead: the logger, or its settings, are not read.
 	ErrNotRead = errors.New("the logger's settings are not read, so no change is planned")
 	// ErrOutside: the host forwards by a setting that is not hardn's.
@@ -44,16 +44,16 @@ var (
 
 // The refusals' codes, the registry's for the errors they wrap (pkg/output).
 const (
-	codeNoServer   = "LOGFWD_NO_SERVER"
-	codeBadServer  = "LOGFWD_BAD_SERVER"
-	codeNotRead    = "LOGFWD_NOT_READ"
-	codeOutside    = "LOGFWD_SET_OUTSIDE"
-	codeUDPOnly    = "LOGFWD_UDP_ONLY"
-	codeNoCAFile   = "LOGFWD_NO_CA_FILE"
-	codeNoInit     = "LOGFWD_NO_INIT"
-	codeCheck      = "LOGFWD_CHECK_FAILED"
-	codeNothing    = "LOGFWD_NOTHING_TO_STOP"
-	codeChanged    = "LOGFWD_CHANGED_SINCE"
+	codeNoServer   = "SYSLOG_NO_SERVER"
+	codeBadServer  = "SYSLOG_BAD_SERVER"
+	codeNotRead    = "SYSLOG_NOT_READ"
+	codeOutside    = "SYSLOG_SET_OUTSIDE"
+	codeUDPOnly    = "SYSLOG_UDP_ONLY"
+	codeNoCAFile   = "SYSLOG_NO_CA_FILE"
+	codeNoInit     = "SYSLOG_NO_INIT"
+	codeCheck      = "SYSLOG_CHECK_FAILED"
+	codeNothing    = "SYSLOG_NOTHING_TO_STOP"
+	codeChanged    = "SYSLOG_CHANGED_SINCE"
 	tryAgain       = "fix that, then try again"
 	whyTestLine    = "log forwarding set"
 	rsyslogService = "rsyslog"
@@ -73,6 +73,7 @@ const (
 // beyond its files.
 const (
 	NoticeAll      = "Every message the host logs goes to the server, as it is logged."
+	NoticeAllMany  = "Every message the host logs goes to each server, as it is logged."
 	NoticeJournald = "rsyslog is installed to forward the journal. It also keeps its own log files under /var/log."
 	NoticeUDP      = "busybox syslogd forwards over UDP alone: not encrypted, and a lost message is not noticed."
 	NoticeStop     = "Logs stay on the host alone. rsyslog stays installed."
@@ -90,6 +91,8 @@ func (r Reading) Notice(a Action) string {
 		return NoticeUDP
 	case r.Host.Logger == logfwd.Journald:
 		return NoticeJournald
+	case len(r.Want) > 1:
+		return NoticeAllMany
 	}
 	return NoticeAll
 }
@@ -97,7 +100,7 @@ func (r Reading) Notice(a Action) string {
 // Plan reads the host and plans what Action asks: nothing at ActionNone
 // (engine.ErrNotMigrated); Set (planSet) or Stop (planStop), each refusing
 // with a *steps.Refusal, in the decided words, before anything is written.
-// A host already forwarding to hardn.yml's server plans nothing.
+// A host already forwarding to exactly hardn.yml's servers plans nothing.
 func (c Forward) Plan(ctx context.Context, sys host.System, in engine.Input) ([]engine.Change, error) {
 	cfg := in.Config
 	if cfg == nil {
@@ -145,28 +148,31 @@ func restartArgv(f detect.Facts, logger logfwd.Logger) ([]string, error) {
 	return nil, steps.Refuse(codeNoInit, ErrNoInit, nil, "systemd did not boot this host, so hardn can't restart rsyslog", "set it by hand")
 }
 
-// planSet is Set server (decisions 3 to 7, 11 and 12). Refused: no server
-// in hardn.yml, or one that is not valid; settings not read; forwarding
-// set outside hardn, which hardn neither edits nor adds to, or a file at
-// hardn's path that hardn did not write; on Alpine,
-// TCP or TLS, which busybox syslogd has not; for TLS, a CA file that is
-// not there. Then, on Alpine, syslogd's options and its restart; elsewhere
-// rsyslog installed where the host has journald alone, rsyslog-gnutls for
-// TLS, hardn's file checked with rsyslogd -N1, and the restart. Last, one
-// line through the logger for the server to show.
+// planSet is Set servers (design-syslog-servers.md §2.5): hardn's setting
+// made to hold exactly hardn.yml's list, one change whatever was there.
+// All or nothing: refused, before anything is asked, with no server in
+// hardn.yml, or a list with one entry that is not valid; settings not
+// read; forwarding set outside hardn, which hardn neither edits nor adds
+// to, or a file at hardn's path that hardn did not write; on Alpine, one
+// TCP or TLS server, which busybox syslogd has not; one TLS server's CA
+// file that is not there. Then, on Alpine, syslogd's options and its
+// restart; elsewhere rsyslog installed where the host has journald alone,
+// rsyslog-gnutls for TLS, hardn's file checked with rsyslogd -N1, and the
+// restart. Last, one line through the logger, which sends it to every
+// server.
 func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([]engine.Change, error) {
 	switch {
 	case r.WantErr != nil:
-		why := strings.TrimPrefix(r.WantErr.Error(), config.ErrLogForwarding.Error()+": ")
-		return nil, steps.Refuse(codeBadServer, ErrBadServer, r.WantErr, "hardn.yml's logForwarding is not valid: "+logview.Safe(why), tryAgain)
-	case r.Want == nil:
-		return nil, steps.Refuse(codeNoServer, ErrNoServer, nil, "hardn.yml names no log server", "add logForwarding's server, then try again")
+		why := strings.TrimPrefix(r.WantErr.Error(), config.ErrSyslogServers.Error()+": ")
+		return nil, steps.Refuse(codeBadServer, ErrBadServer, r.WantErr, "hardn.yml's syslogServers is not valid: "+logview.Safe(why), tryAgain)
+	case len(r.Want) == 0:
+		return nil, steps.Refuse(codeNoServer, ErrNoServer, nil, "hardn.yml names no syslog server", "add syslogServers, then try again")
 	}
 	if err := unread(r); err != nil {
 		return nil, err
 	}
-	want := *r.Want
-	if r.Now != nil && r.Now.Server == want {
+	want := r.Want
+	if r.AsAsked() {
 		return nil, nil // as asked, whoever set it
 	}
 	if o := r.Host.Foreign(); o != nil {
@@ -177,18 +183,30 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 		return nil, err
 	}
 	if r.Host.Logger == logfwd.Busybox {
-		if want.Proto != logfwd.UDP {
-			return nil, steps.Refuse(codeUDPOnly, ErrUDPOnly, nil, "busybox syslogd forwards over UDP only", "set protocol: udp in hardn.yml, then try again")
+		var notUDP []string
+		for _, s := range want {
+			if s.Proto != logfwd.UDP {
+				notUDP = append(notUDP, s.Address)
+			}
 		}
-		ch, err := optionsChange(ctx, sys, "Set syslogd's server", func(data []byte) ([]byte, error) { return logfwd.SetOpts(data, want) })
+		if len(notUDP) > 0 {
+			return nil, steps.Refuse(codeUDPOnly, ErrUDPOnly, nil, "busybox syslogd forwards over UDP only",
+				"set protocol: udp for "+strings.Join(notUDP, ", ")+" in hardn.yml, then try again")
+		}
+		ch, err := optionsChange(ctx, sys, "Set syslogd's servers", func(data []byte) ([]byte, error) { return logfwd.SetOpts(data, want) })
 		if err != nil {
 			return nil, err
 		}
 		return []engine.Change{ch, restartChange("Restart syslogd", logfwd.BusyboxService, restart, ChangeOptions), testChange()}, nil
 	}
-	if want.Proto == logfwd.TLS {
-		if fi, err := sys.Stat(ctx, want.CAFile); err != nil || !fi.Mode().IsRegular() {
-			return nil, steps.Refuse(codeNoCAFile, ErrNoCAFile, err, "hardn.yml's caFile, "+want.CAFile+", is not a file on this host", "put the CA's certificate there, then try again")
+	tls := false
+	for _, s := range want {
+		if s.Proto != logfwd.TLS {
+			continue
+		}
+		tls = true
+		if fi, err := sys.Stat(ctx, s.CAFile); err != nil || !fi.Mode().IsRegular() {
+			return nil, steps.Refuse(codeNoCAFile, ErrNoCAFile, err, s.Address+"'s caFile, "+s.CAFile+", is not a file on this host", "put the CA's certificate there, then try again")
 		}
 	}
 	before, err := dropInBefore(ctx, sys)
@@ -203,7 +221,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 			return nil, steps.Refuse(codeNotRead, ErrNotRead, err, "rsyslogd can't read its settings: "+checkWords(res, err), tryAgain)
 		}
 	}
-	if want.Proto == logfwd.TLS {
+	if tls {
 		pkgs = append(pkgs, steps.Package{ID: ChangeInstallTLS, Name: logfwd.GnuTLSPackage, After: "installed", Why: ID, Resources: []string{ID}, Proxmox: true})
 	}
 	for _, p := range pkgs {
@@ -218,7 +236,7 @@ func planSet(ctx context.Context, sys host.System, f detect.Facts, r Reading) ([
 	}
 	data, err := logfwd.RsyslogFile(want)
 	if err != nil {
-		return nil, steps.Refuse(codeBadServer, ErrBadServer, err, "hardn.yml's logForwarding is not valid", tryAgain)
+		return nil, steps.Refuse(codeBadServer, ErrBadServer, err, "hardn.yml's syslogServers is not valid", tryAgain)
 	}
 	cs = append(cs, fileChange(before, data, steps.IDs(cs)))
 	return append(cs, restartChange("Restart rsyslog", rsyslogService, restart, ChangeFile), testChange()), nil
@@ -242,7 +260,8 @@ func dropInBefore(ctx context.Context, sys host.System) (*string, error) {
 	return &text, nil
 }
 
-// planStop is Stop forwarding (decision 11): hardn's own setting only.
+// planStop is Stop forwarding (decision 11): hardn's own setting only,
+// every server of it.
 // Refused where the settings are not read, or nothing forwarding is
 // hardn's. On Alpine hardn's words come out of syslogd's options; elsewhere
 // hardn's file is deleted; then the logger restarts. rsyslog stays
@@ -251,7 +270,7 @@ func planStop(ctx context.Context, sys host.System, f detect.Facts, r Reading) (
 	if err := unread(r); err != nil {
 		return nil, err
 	}
-	if r.Host.Own() == nil {
+	if len(r.Host.Own()) == 0 {
 		return nil, steps.Refuse(codeNothing, ErrNothingToStop, nil, "hardn did not set log forwarding here", "")
 	}
 	restart, err := restartArgv(f, r.Host.Logger)
@@ -259,7 +278,7 @@ func planStop(ctx context.Context, sys host.System, f detect.Facts, r Reading) (
 		return nil, err
 	}
 	if r.Host.Logger == logfwd.Busybox {
-		ch, err := optionsChange(ctx, sys, "Remove syslogd's server", logfwd.ClearOpts)
+		ch, err := optionsChange(ctx, sys, "Remove syslogd's servers", logfwd.ClearOpts)
 		if err != nil {
 			return nil, err
 		}
@@ -316,7 +335,7 @@ func restartChange(title, service string, argv []string, after string) engine.Ch
 }
 
 // TestArgv is the test line (decision 12): one message through the logger,
-// for the administrator to find on the server. The host cannot know what
+// which sends it to every server, for the administrator to find on each. The host cannot know what
 // the server received.
 var TestArgv = []string{"logger", "-t", "hardn", whyTestLine}
 

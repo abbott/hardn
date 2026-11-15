@@ -38,6 +38,7 @@ func TestConfigMocks(t *testing.T) {
 		{mock: "env", set: typical},
 		{mock: "none"},
 		{mock: "minimal", set: []string{"username", "nameservers"}},
+		{mock: "syslog", set: append(slices.Clone(typical), "syslogServers")},
 		{mock: "unused", set: typical, unused: []string{"logFile /srv/log/hardn.log", "permitRootLogin yes", "sshListenAddress 192.0.2.10", "enableLynis true", "sudoNoPassword false"}},
 		{mock: "missing"},
 	}

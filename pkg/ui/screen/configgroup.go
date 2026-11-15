@@ -4,7 +4,7 @@ import "github.com/abbott/hardn/pkg/ui/component"
 
 // The Configuration group (the maintainer, 2026-11-14): main menu 8, a menu of
 // the screens that are settings and no hardening step of their own on the main
-// menu: hardn.yml (Config), Log Forwarding, Time Sync and Kernel Settings
+// menu: hardn.yml (Config), Syslog Settings, NTP Settings and Kernel Settings
 // (gallery-sysctl.md, decision 1). It revises
 // gallery-logforward.md's decision 8 and gallery-timesync.md's decision 9,
 // which had the two on the main menu. Here with no colour and ASCII glyphs:
@@ -12,8 +12,8 @@ import "github.com/abbott/hardn/pkg/ui/component"
 //	# Configuration ################################################
 //
 //	   1) hardn.yml            View the file hardn reads
-//	   2) Log Forwarding       Send logs to a syslog server
-//	   3) Time Sync            Keep the clock in sync
+//	   2) Syslog Settings      Send logs to a syslog server
+//	   3) NTP Settings         Keep the clock in sync
 //	   4) Kernel Settings      Harden network and kernel
 //
 //	   0) Return
@@ -26,19 +26,19 @@ import "github.com/abbott/hardn/pkg/ui/component"
 // The Configuration group's items, by key.
 const (
 	ConfigFileItem       = "1" // hardn.yml: the Configuration screen (Config)
-	ConfigLogForwardItem = "2" // Log Forwarding
-	ConfigTimeSyncItem   = "3" // Time Sync
+	ConfigLogForwardItem = "2" // Syslog Settings
+	ConfigTimeSyncItem   = "3" // NTP Settings
 	ConfigKernelItem     = "4" // Kernel Settings
 )
 
-// The Configuration group's words. The Log Forwarding and Time Sync items say
+// The Configuration group's words. The Syslog Settings and NTP Settings items say
 // what the main menu's said.
 const (
 	configFileLabel       = "hardn.yml"
 	configFileDesc        = "View the file hardn reads"
-	configLogForwardLabel = "Log Forwarding"
+	configLogForwardLabel = logFwdTitle
 	configLogForwardDesc  = "Send logs to a syslog server"
-	configTimeSyncLabel   = "Time Sync"
+	configTimeSyncLabel   = timeTitle
 	configTimeSyncDesc    = "Keep the clock in sync"
 	configKernelDesc      = "Harden network and kernel"
 )

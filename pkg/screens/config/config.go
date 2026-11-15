@@ -31,7 +31,7 @@ import (
 // The values' words (gallery-config.md §4).
 const (
 	none = "None"
-	// notValid is a logForwarding or an ntpServers that names a server hardn
+	// notValid is a syslogServers or an ntpServers that names a server hardn
 	// does not set.
 	notValid = "Not valid"
 	oneKey   = "1 key"
@@ -165,29 +165,33 @@ func texts(cfg *config.Config) map[string]string {
 		"enableUfwSshPolicy": strconv.FormatBool(cfg.EnableUfwSshPolicy), "ufwAppProfiles": profiles, "ufwTrustedInterfaces": list(cfg.UfwTrustedInterfaces),
 		"configureDns": strconv.FormatBool(cfg.ConfigureDns), "nameservers": list(cfg.Nameservers),
 		"enableUnattendedUpgrades": strconv.FormatBool(cfg.EnableUnattendedUpgrades),
-		"logForwarding":            logServer(cfg),
+		"syslogServers":            logServers(cfg),
 		"ntpServers":               timeServers(cfg),
-		"kernelSettings":           strconv.FormatBool(cfg.KernelSettings),
+		"kernel":                   strconv.FormatBool(cfg.KernelSettings),
 		"enableBackups":            strconv.FormatBool(cfg.EnableBackups), "backupPath": cfg.BackupPath,
 		"dryRun": strconv.FormatBool(cfg.FileDryRun()), "confirmTimeout": timeout, "checkReleases": strconv.FormatBool(cfg.CheckReleases),
 	}
 }
 
-// logServer is logForwarding as the Log Forwarding screen says a server,
-// "192.0.2.50:514 TCP"; None with no server; notValid where it does not
-// pass config's check, which Set server refuses.
-func logServer(cfg *config.Config) string {
-	s, ok, err := cfg.LogForwarding.Resolve()
+// logServers is syslogServers as its row says the servers, addresses
+// alone, "logs.example.net, 192.0.2.51"; None with none; notValid where
+// they do not pass config's check, which Set servers refuses.
+func logServers(cfg *config.Config) string {
+	servers, err := cfg.SyslogServers.Resolve()
 	switch {
 	case err != nil:
 		return notValid
-	case !ok:
+	case len(servers) == 0:
 		return none
 	}
-	return fmt.Sprintf("%s:%d %s", s.Address, s.Port, strings.ToUpper(s.Protocol))
+	var names []string
+	for _, s := range servers {
+		names = append(names, s.Address)
+	}
+	return strings.Join(names, ", ")
 }
 
-// timeServers is ntpServers as the Time Sync screen says the servers,
+// timeServers is ntpServers as the NTP Settings screen says the servers,
 // "192.0.2.10, 192.0.2.11"; None with none; notValid where they do not pass
 // config's check, which Set servers refuses.
 func timeServers(cfg *config.Config) string {

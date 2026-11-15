@@ -8,7 +8,7 @@ import (
 
 const (
 	key  = "SYSLOGD_OPTS"
-	mark = "# Added by hardn (Log Forwarding): "
+	mark = "# Added by hardn (Syslog Settings): "
 )
 
 // TestParse: the one assignment in its three forms, and the mark's words.

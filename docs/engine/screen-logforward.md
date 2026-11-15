@@ -1,12 +1,16 @@
 # Log Forwarding (`pkg/screens/logforward`, `logs.forward`)
 
+> **Renamed 2026-11-14.** The screen and its Configuration item are now "Syslog Settings"; its status row, the main menu's row and the hardn.yml screen's section are "Syslog". The main menu's last rows are Syslog, NTP, AppArmor. The control id is unchanged; the codes are now `SYSLOG_*`. The record below keeps the old name, Log Forwarding.
+
+> **Several servers, 2026-11-14.** hardn.yml's `logForwarding` is now `syslogServers`, a list of one to four; the screen has a Server row per server, with its protocol and connection, and no Protocol or Connection row; Set server is Set servers; `hardn check` compares the servers. [design-syslog-servers.md](design-syslog-servers.md) is the design and what was built. The record below is the one-server unit as it was.
+
 > **Unit:** the roadmap's "Log forwarding", the real unit, on `next/log-forwarding`, from the mock the maintainer adopted on 2026-11-13 ("Adopt all": [gallery-logforward.md](gallery-logforward.md) §4). **Status:** built and tested on macOS, in process, on `hostfake`, through the real engine. No hardn binary ran, and nothing ran on Linux: §5 lists what only a host can show.
 
 *Since `next/time-sync` (2026-11-14): the main menu's keys are unchanged from v0.9.0, and Log Forwarding is under `8) Configuration`, its item 2 (the maintainer, 2026-11-14, revising gallery-logforward.md's decision 8 and gallery-timesync.md's decision 9; [screen-config.md](screen-config.md) §1.1). Stop forwarding's delete is `steps.DeleteOwnFile`, shared with Time Sync; nothing of Log Forwarding's behaviour changed.*
 
 ## 1. What it does
 
-Main menu `8) Configuration`, then `2) Log Forwarding`. hardn shows whether the host sends its logs to a syslog server, where, and by whose file; and sets the server hardn.yml's `logForwarding` names ([configuration.md](../configuration.md#log-forwarding)).
+Main menu `8) Configuration`, then `2) Log Forwarding`. hardn shows whether the host sends its logs to a syslog server, where, and by whose file; and sets the server hardn.yml's `logForwarding` names ([configuration.md](../configuration.md#syslog)).
 
 | Part | Where | What |
 |---|---|---|
@@ -31,12 +35,12 @@ Main menu `8) Configuration`, then `2) Log Forwarding`. hardn shows whether the 
 
 The words, the codes, the files, the commands and their order are the control's, as before.
 
-- **Reading.** rsyslog is the logger where its package is installed (dpkg's or rpm's word); without it, on a host systemd booted, the logger is journald alone; on Alpine it is busybox syslogd where apk's database (`/lib/apk/db/installed`, a file) has no `rsyslog`; with rsyslog installed there, which of the two logs is not established, and the screen says "can't read" (`logfwd.ErrTwoLoggers`, `LOGFWD_NOT_READ`). Whether syslogd's service is in a runlevel is not looked at (unverified: how an installed Alpine adds `syslog` to one). rsyslog's forwarding is read from `/etc/rsyslog.conf` and `/etc/rsyslog.d/*.conf`: each `action(type="omfwd" ...)`, and each older `@host` (UDP) or `@@host` (TCP) line, with its options, port, bracketed address and template ([rsyslog's actions page](https://raw.githubusercontent.com/rsyslog/rsyslog/main/doc/source/configuration/actions.rst), "Remote Machine"); `$ActionSendStreamDriverMode 1` makes the `@@` lines after it TLS. busybox syslogd's is each `-R` of `SYSLOGD_OPTS` in `/etc/conf.d/syslog`. hardn never runs the logger to read it, and never edits a file it did not write.
+- **Reading.** rsyslog is the logger where its package is installed (dpkg's or rpm's word); without it, on a host systemd booted, the logger is journald alone; on Alpine it is busybox syslogd where apk's database (`/lib/apk/db/installed`, a file) has no `rsyslog`; with rsyslog installed there, which of the two logs is not established, and the screen says "can't read" (`logfwd.ErrTwoLoggers`, `SYSLOG_NOT_READ`). Whether syslogd's service is in a runlevel is not looked at (unverified: how an installed Alpine adds `syslog` to one). rsyslog's forwarding is read from `/etc/rsyslog.conf` and `/etc/rsyslog.d/*.conf`: each `action(type="omfwd" ...)`, and each older `@host` (UDP) or `@@host` (TCP) line, with its options, port, bracketed address and template ([rsyslog's actions page](https://raw.githubusercontent.com/rsyslog/rsyslog/main/doc/source/configuration/actions.rst), "Remote Machine"); `$ActionSendStreamDriverMode 1` makes the `@@` lines after it TLS. busybox syslogd's is each `-R` of `SYSLOGD_OPTS` in `/etc/conf.d/syslog`. hardn never runs the logger to read it, and never edits a file it did not write.
 - **Not read is not "not forwarding".** A file that cannot be read, an action that does not close, an `omfwd` action or `@` line with no host, `SYSLOGD_OPTS` set twice, not at all, or holding a character the shell expands: the row is Unknown, "can't read", and both items refuse.
 - **Text from the host is made safe** (`logview.Safe`) before the row, the screen or a refusal shows it: a server's name, a file's name, rsyslogd's own error.
-- **hardn's own setting** is `/etc/rsyslog.d/60-hardn-forward.conf` opening with `# Written by hardn (Log Forwarding).`; on Alpine, the words a comment line names: `# Added by hardn (Log Forwarding): -R 192.0.2.50:514 -L`. A file at hardn's path without its first line is not hardn's: Set server refuses (`LOGFWD_SET_OUTSIDE`, "move that file away"), whether or not the file forwards. hardn's file with its action edited out is still hardn's, and the review's diff starts from what is there. On Alpine, `-R` and its address are matched as a pair, two words side by side, so another `-R` on the line is never taken for hardn's.
+- **hardn's own setting** is `/etc/rsyslog.d/60-hardn-forward.conf` opening with `# Written by hardn (Syslog Settings).`; on Alpine, the words a comment line names: `# Added by hardn (Syslog Settings): -R 192.0.2.50:514 -L`. A file at hardn's path without its first line is not hardn's: Set server refuses (`SYSLOG_SET_OUTSIDE`, "move that file away"), whether or not the file forwards. hardn's file with its action edited out is still hardn's, and the review's diff starts from what is there. On Alpine, `-R` and its address are matched as a pair, two words side by side, so another `-R` on the line is never taken for hardn's.
 - **Set server** (decisions 3 to 7, 11, 12): the plan is, in order, `rsyslog` installed where the host has journald alone and `rsyslog-gnutls` for TLS (`steps.PlanPackage`, as other controls install); hardn's file written, then `rsyslogd -N1`; `systemctl restart rsyslog`; `logger -t hardn "log forwarding set"`. On Alpine: `/etc/conf.d/syslog` rewritten with `-R <server>:<port>` and `-L` (kept out where `-L` is already there), its mode and owner kept; `rc-service syslog restart`; the test line. Plain y/N.
-- **Rollback.** Every file is backed up and journalled by the engine. rsyslogd refusing its settings with hardn's file fails the change before the restart (`LOGFWD_CHECK_FAILED`): the file is put back and nothing restarts. A failed restart puts the file back and restarts again. An rsyslog hardn installed in the same change is removed by the rollback.
+- **Rollback.** Every file is backed up and journalled by the engine. rsyslogd refusing its settings with hardn's file fails the change before the restart (`SYSLOG_CHECK_FAILED`): the file is put back and nothing restarts. A failed restart puts the file back and restarts again. An rsyslog hardn installed in the same change is removed by the rollback.
 - **Stop forwarding** (decision 11): hardn's file deleted, or its words and comment taken out of `SYSLOGD_OPTS`, then the restart. rsyslog stays installed, and hardn.yml is not edited.
 - **Run All** (decision 9): a Log Forwarding row only where hardn.yml names a server, planned as Set server, in the one plan. Never Stop.
 - **The main menu** (decision 10; decision 8 as revised on 2026-11-14): no item of its own, under Configuration; the row is drawn after AppArmor's, only where hardn.yml names a server or the host forwards (`controls.Menu`, `controls.MenuReports`). It is no row of `risk.Rows`, so the risk level never counts it.
@@ -56,16 +60,16 @@ Said before anything is asked, each a `steps.Refusal` ([reference/output.md](../
 
 | Code | When |
 |---|---|
-| `LOGFWD_NO_SERVER` | hardn.yml names no server |
-| `LOGFWD_BAD_SERVER` | `logForwarding` does not pass the check; the refusal says which value |
-| `LOGFWD_NOT_READ` | the logger or its settings are not read; or `rsyslogd -N1` already fails before hardn writes, with rsyslogd's first line |
-| `LOGFWD_SET_OUTSIDE` | a setting that is not hardn's forwards already (decision 7) |
-| `LOGFWD_UDP_ONLY` | Alpine, and hardn.yml asks for TCP or TLS (decision 5) |
-| `LOGFWD_NO_CA_FILE` | `caFile` is not a file on the host |
-| `LOGFWD_NO_INIT` | rsyslog on a host systemd did not boot, or syslogd where OpenRC did not |
-| `LOGFWD_NOTHING_TO_STOP` | Stop forwarding with nothing of hardn's set |
-| `LOGFWD_CHECK_FAILED` | at apply: rsyslogd refuses its settings with hardn's file; rolled back |
-| `LOGFWD_CHANGED_SINCE` | at apply: `/etc/conf.d/syslog` is not as the plan read it |
+| `SYSLOG_NO_SERVER` | hardn.yml names no server |
+| `SYSLOG_BAD_SERVER` | `logForwarding` does not pass the check; the refusal says which value |
+| `SYSLOG_NOT_READ` | the logger or its settings are not read; or `rsyslogd -N1` already fails before hardn writes, with rsyslogd's first line |
+| `SYSLOG_SET_OUTSIDE` | a setting that is not hardn's forwards already (decision 7) |
+| `SYSLOG_UDP_ONLY` | Alpine, and hardn.yml asks for TCP or TLS (decision 5) |
+| `SYSLOG_NO_CA_FILE` | `caFile` is not a file on the host |
+| `SYSLOG_NO_INIT` | rsyslog on a host systemd did not boot, or syslogd where OpenRC did not |
+| `SYSLOG_NOTHING_TO_STOP` | Stop forwarding with nothing of hardn's set |
+| `SYSLOG_CHECK_FAILED` | at apply: rsyslogd refuses its settings with hardn's file; rolled back |
+| `SYSLOG_CHANGED_SINCE` | at apply: `/etc/conf.d/syslog` is not as the plan read it |
 
 A package install's refusals are `PACKAGE_*`, as everywhere.
 
@@ -73,7 +77,7 @@ A package install's refusals are `PACKAGE_*`, as everywhere.
 
 Each is the safer reading; those that are product choices are listed for the maintainer in the unit's report.
 
-1. **IPv6 servers are refused** (`LOGFWD_BAD_SERVER`): how rsyslog's `target` and busybox's `-R` take one was not verified, and an address in brackets is a pattern to the shell that reads `/etc/conf.d/syslog`.
+1. **IPv6 servers are refused** (`SYSLOG_BAD_SERVER`): how rsyslog's `target` and busybox's `-R` take one was not verified, and an address in brackets is a pattern to the shell that reads `/etc/conf.d/syslog`.
 2. **TLS needs the server's name, not its address**, and `caFile`: the certificate is checked against the name (`StreamDriverPermittedPeers`).
 3. **`caFile` with `udp` or `tcp` is refused**, not ignored: the file says TLS is meant.
 4. **Proxmox VE with journald alone installs rsyslog, as Debian does** (decision 4 (a); the maintainer, 2026-11-14: "yes, it can install it"). hardn installs no other package on Proxmox VE (`packages.ToolFor`): `steps.Package.Proxmox` lets rsyslog, and rsyslog-gnutls for TLS, through apt-get there. A plan that would remove a package is refused as on any host, which is what keeps `proxmox-ve` in place. Not run on a Proxmox VE node.

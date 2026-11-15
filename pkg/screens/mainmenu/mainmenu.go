@@ -58,7 +58,7 @@ type StatusOptions struct {
 // are left for Run, which draws the layout.
 //
 // The reading is detect's facts, once; Engine.Check over controls.Menu
-// on them (controls.Status and Log Forwarding, whose row is drawn only
+// on them (controls.Status and Syslog Settings, whose row is drawn only
 // where hardn.yml names a server or the host forwards:
 // controls.MenuReports); the header probe on the same facts; and the risk level over
 // both. A check only reads, never plans or applies (Engine.Check), and the

@@ -142,6 +142,27 @@ func TestDifferences(t *testing.T) {
 			want: []string{"dns.nameservers changed [192.0.2.53, 192.0.2.54] [192.0.2.54, 192.0.2.53]"}},
 		{name: "auto updates turned off", change: func(h *simHost) { h.updates = false },
 			want: []string{"updates.auto changed [on] [off]"}},
+		// The set of syslog servers (design-syslog-servers.md §2.7): one
+		// added or removed is one line, whatever the order.
+		{name: "a syslog server added", before: func(h *simHost) { h.forwards = []string{"@@192.0.2.51"} },
+			change: func(h *simHost) { h.forwards = append(h.forwards, "@192.0.2.52:1514") },
+			want:   []string{"logs.servers added [] [192.0.2.52:1514 UDP]"}},
+		{name: "a syslog server removed", before: func(h *simHost) { h.forwards = []string{"@@192.0.2.51", "@192.0.2.52"} },
+			change: func(h *simHost) { h.forwards = h.forwards[1:] },
+			want:   []string{"logs.servers removed [192.0.2.51:514 TCP] []"}},
+		{name: "a syslog server's protocol changed", before: func(h *simHost) { h.forwards = []string{"@@192.0.2.51"} },
+			change: func(h *simHost) { h.forwards = []string{"@192.0.2.51"} },
+			want:   []string{"logs.servers removed [192.0.2.51:514 TCP] []", "logs.servers added [] [192.0.2.51:514 UDP]"}},
+		{name: "the syslog servers in another order", before: func(h *simHost) { h.forwards = []string{"@@192.0.2.51", "@192.0.2.52"} },
+			change: func(h *simHost) { slices.Reverse(h.forwards) }},
+		{name: "forwarding on Rocky Linux", distro: "rocky", change: func(h *simHost) { h.forwards = []string{"@@logs.example.net:6514"} },
+			want: []string{"logs.servers added [] [logs.example.net:6514 TCP]"}},
+		{name: "rsyslog removed, its file left: journald alone forwards nowhere", before: func(h *simHost) { h.forwards = []string{"@@192.0.2.51"} },
+			change: func(h *simHost) { h.noRsyslog = true },
+			want:   []string{"logs.servers removed [192.0.2.51:514 TCP] []"}},
+		{name: "rsyslog's forwarding hardn can't make out", before: func(h *simHost) { h.forwards = []string{"@@192.0.2.51"} },
+			change: func(h *simHost) { h.forwards = []string{"@@:514"} },
+			want:   []string{"logs.servers changed [192.0.2.51:514 TCP] [?]"}},
 		{name: "a new reachable listening port", before: func(h *simHost) { h.rules = append(h.rules, "8080/tcp") },
 			change: func(h *simHost) { h.listen = append(h.listen, "0.0.0.0:8080") },
 			want:   []string{"firewall.ports added [] [8080/tcp]"}},
@@ -312,7 +333,7 @@ func TestCompare(t *testing.T) {
 	}
 
 	ds, _ = drift.Compare(a, a[:len(a)-1])
-	if got := lines(ds); !slices.Equal(got, []string{"updates.auto changed [x] [?]"}) {
+	if got := lines(ds); !slices.Equal(got, []string{"logs.servers changed [x] [?]"}) {
 		t.Errorf("a fact a reading lacks: %q", got)
 	}
 

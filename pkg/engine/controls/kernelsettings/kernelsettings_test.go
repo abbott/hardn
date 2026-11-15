@@ -342,17 +342,17 @@ func TestRefusals(t *testing.T) {
 		code   string
 		words  string
 	}{
-		{"not hardn's file", newModel(t, rocky).file(khost.File, "kernel.kptr_restrict = 0\n"), ks.ActionApply, ks.ErrOutside, "KERNEL_SETTINGS_FILE_NOT_HARDNS", khost.File + " is not hardn's file"},
-		{"not hardn's file, remove", newModel(t, rocky).file(khost.File, "kernel.kptr_restrict = 0\n"), ks.ActionRemove, ks.ErrOutside, "KERNEL_SETTINGS_FILE_NOT_HARDNS", ""},
+		{"not hardn's file", newModel(t, rocky).file(khost.File, "kernel.kptr_restrict = 0\n"), ks.ActionApply, ks.ErrOutside, "KERNEL_FILE_NOT_HARDNS", khost.File + " is not hardn's file"},
+		{"not hardn's file, remove", newModel(t, rocky).file(khost.File, "kernel.kptr_restrict = 0\n"), ks.ActionRemove, ks.ErrOutside, "KERNEL_FILE_NOT_HARDNS", ""},
 		{"no sysctl", func() *model {
 			m := newModel(t, rocky)
 			_ = m.f.Remove(context.Background(), sysctlfake.ProcpsPath)
 			return m
-		}(), ks.ActionApply, ks.ErrNoTool, "KERNEL_SETTINGS_NO_SYSCTL", "no sysctl"},
-		{"container", func() *model { m := newModel(t, rocky); container(m); return m }(), ks.ActionApply, ks.ErrContainer, "KERNEL_SETTINGS_CONTAINER", "container"},
-		{"unreadable key", newModel(t, rocky).file(khost.ProcPath("kernel.dmesg_restrict"), "?\n"), ks.ActionApply, ks.ErrNotRead, "KERNEL_SETTINGS_NOT_READ", "can't read Kernel log"},
-		{"hardn's file, edited", newModel(t, rocky).file(khost.File, khost.Header+"net.ipv4.ip_forward = 1\n"), ks.ActionApply, ks.ErrNotRead, "KERNEL_SETTINGS_NOT_READ", khost.File + ":2"},
-		{"nothing to remove", newModel(t, rocky), ks.ActionRemove, ks.ErrNothingToRemove, "KERNEL_SETTINGS_NOTHING_TO_REMOVE", "hardn set no kernel settings here"},
+		}(), ks.ActionApply, ks.ErrNoTool, "KERNEL_NO_SYSCTL", "no sysctl"},
+		{"container", func() *model { m := newModel(t, rocky); container(m); return m }(), ks.ActionApply, ks.ErrContainer, "KERNEL_CONTAINER", "container"},
+		{"unreadable key", newModel(t, rocky).file(khost.ProcPath("kernel.dmesg_restrict"), "?\n"), ks.ActionApply, ks.ErrNotRead, "KERNEL_NOT_READ", "can't read Kernel log"},
+		{"hardn's file, edited", newModel(t, rocky).file(khost.File, khost.Header+"net.ipv4.ip_forward = 1\n"), ks.ActionApply, ks.ErrNotRead, "KERNEL_NOT_READ", khost.File + ":2"},
+		{"nothing to remove", newModel(t, rocky), ks.ActionRemove, ks.ErrNothingToRemove, "KERNEL_NOTHING_TO_REMOVE", "hardn set no kernel settings here"},
 	}
 	for _, tt := range tests {
 		cs, err := tt.m.plan(tt.action)
@@ -544,7 +544,7 @@ func TestChangedSince(t *testing.T) {
 		edited := rockyFile + "\n"
 		m.file(khost.File, edited)
 		ran, err := cs[0].Apply(context.Background(), m.f, engine.Run{})
-		if !errors.Is(err, ks.ErrChangedSince) || output.CodeOf(err) != "KERNEL_SETTINGS_CHANGED_SINCE" || ran.Rollback == nil || m.content(khost.File) != edited {
+		if !errors.Is(err, ks.ErrChangedSince) || output.CodeOf(err) != "KERNEL_CHANGED_SINCE" || ran.Rollback == nil || m.content(khost.File) != edited {
 			t.Errorf("action %d: the change's apply = %v", a, err)
 		}
 	}

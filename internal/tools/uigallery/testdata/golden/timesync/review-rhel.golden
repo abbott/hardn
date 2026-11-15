@@ -34,7 +34,7 @@ $
       ␛[38;2;129;134;156m # https://www.ntppool.org/join.html␛[m$
       ␛[38;2;231;70;105m-pool 2.rocky.pool.ntp.org iburst␛[m$
       ␛[38;2;112;212;127m+#hardn: pool 2.rocky.pool.ntp.org iburst␛[m$
-      ␛[38;2;112;212;127m+# Added by hardn (Time Sync): the 2 lines below.␛[m$
+      ␛[38;2;112;212;127m+# Added by hardn (NTP Settings): the 2 lines below.␛[m$
       ␛[38;2;112;212;127m+server 192.0.2.10 iburst␛[m$
       ␛[38;2;112;212;127m+server 192.0.2.11 iburst␛[m$
 $
@@ -81,7 +81,7 @@ $
        # https://www.ntppool.org/join.html$
       -pool 2.rocky.pool.ntp.org iburst$
       +#hardn: pool 2.rocky.pool.ntp.org iburst$
-      +# Added by hardn (Time Sync): the 2 lines below.$
+      +# Added by hardn (NTP Settings): the 2 lines below.$
       +server 192.0.2.10 iburst$
       +server 192.0.2.11 iburst$
 $
@@ -130,7 +130,7 @@ $
       ␛[38;2;129;134;156m # https://www.ntppool.org/join.html␛[m$
       ␛[38;2;231;70;105m-pool 2.rocky.pool.ntp.org iburst␛[m$
       ␛[38;2;112;212;127m+#hardn: pool 2.rocky.pool.ntp.org iburst␛[m$
-      ␛[38;2;112;212;127m+# Added by hardn (Time Sync): the 2 lines below.␛[m$
+      ␛[38;2;112;212;127m+# Added by hardn (NTP Settings): the 2 lines below.␛[m$
       ␛[38;2;112;212;127m+server 192.0.2.10 iburst␛[m$
       ␛[38;2;112;212;127m+server 192.0.2.11 iburst␛[m$
 $
@@ -177,7 +177,7 @@ $
       ␛[38;2;129;134;156m # https://www.ntppool.org/join.html␛[m$
       ␛[38;2;231;70;105m-pool 2.rocky.pool.ntp.org iburst␛[m$
       ␛[38;2;112;212;127m+#hardn: pool 2.rocky.pool.ntp.org iburst␛[m$
-      ␛[38;2;112;212;127m+# Added by hardn (Time Sync): the 2 lines below.␛[m$
+      ␛[38;2;112;212;127m+# Added by hardn (NTP Settings): the 2 lines below.␛[m$
       ␛[38;2;112;212;127m+server 192.0.2.10 iburst␛[m$
       ␛[38;2;112;212;127m+server 192.0.2.11 iburst␛[m$
 $

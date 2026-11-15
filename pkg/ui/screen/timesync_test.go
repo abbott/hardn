@@ -7,7 +7,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/component"
 )
 
-// The Time Sync view (timesync.go): its rows, its items and its changes, by
+// The NTP Settings view (timesync.go): its rows, its items and its changes, by
 // the service, the clock, where each server is set and what hardn.yml names.
 
 var (
@@ -140,7 +140,7 @@ func TestTimeSyncChanges(t *testing.T) {
 // over Return.
 func TestTimeSyncSubMenu(t *testing.T) {
 	vm := TimeSync{Want: tsTestWant}.SubMenu()
-	if got := sectionTitles(vm); !slices.Equal(got, []string{"Time"}) || vm.Title.Title != "Time Sync" || len(vm.Menu.Items) != 1 || vm.Menu.Exit.Label != "Return" {
+	if got := sectionTitles(vm); !slices.Equal(got, []string{"Time"}) || vm.Title.Title != "NTP Settings" || len(vm.Menu.Items) != 1 || vm.Menu.Exit.Label != "Return" {
 		t.Errorf("screen: %v, %+v", got, vm.Menu)
 	}
 }

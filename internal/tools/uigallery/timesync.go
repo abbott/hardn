@@ -18,7 +18,7 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// The Time Sync screen (docs/roadmap.md, "Time sync";
+// The NTP Settings screen (docs/roadmap.md, "Time sync";
 // docs/engine/gallery-timesync.md, adopted 2026-11-14;
 // docs/engine/screen-timesync.md): "uigallery timesync" lists it on
 // simulated hosts, and "play timesync" runs it. Each drawing is hardn's
@@ -49,7 +49,7 @@ const (
 // tsReachable are the servers of the gallery's network that answer.
 var tsReachable = []string{"192.0.2.10", "192.0.2.12"}
 
-// rocky10Platform is Rocky Linux 10, for the Time Sync screen alone: Debian
+// rocky10Platform is Rocky Linux 10, for the NTP Settings screen alone: Debian
 // 13's model with Rocky's os-release, as far as detect and the time service
 // read it.
 var rocky10Platform = func() platform {
@@ -129,7 +129,7 @@ func tsSet(h *fakeHost, servers ...string) *fakeHost {
 	return h
 }
 
-// tsHost is one simulated host the Time Sync screen runs on.
+// tsHost is one simulated host the NTP Settings screen runs on.
 type tsHost struct {
 	name, label, about, note string
 	host                     func() *fakeHost
@@ -292,7 +292,7 @@ func (s *session) openTimeSync(name string) func() error {
 	}
 	return func() error {
 		exit := component.MenuItem{Key: "0", Label: "Return"}
-		vm := screen.SubMenu{Title: component.TitleBar{Title: "Time Sync hosts"}, Heading: "Select an option", Prompt: "Option", Menu: component.Menu{Exit: exit}}
+		vm := screen.SubMenu{Title: component.TitleBar{Title: "NTP Settings hosts"}, Heading: "Select an option", Prompt: "Option", Menu: component.Menu{Exit: exit}}
 		menu := nav.Menu{Exit: exit}
 		for i, th := range tsHosts() {
 			it := component.MenuItem{Key: fmt.Sprint(i + 1), Label: th.label, Description: th.about}
@@ -303,8 +303,8 @@ func (s *session) openTimeSync(name string) func() error {
 	}
 }
 
-// tsScreen runs the Time Sync screen on h, th's host, until the user goes
-// back from it, as lfScreen runs the Log Forwarding screen.
+// tsScreen runs the NTP Settings screen on h, th's host, until the user goes
+// back from it, as lfScreen runs the Syslog Settings screen.
 func (s *session) tsScreen(ctx context.Context, th tsHost, h *fakeHost) error {
 	sys, title := h.sys(), tsPrefix+"/"+th.name
 	facts, err := detect.Detect(ctx, sys)

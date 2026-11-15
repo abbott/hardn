@@ -23,7 +23,7 @@ import (
 )
 
 // ksRead reads Run All on a bare Rocky Linux host with over's kernel
-// values and files, kernelSettings as on: the other rows' checks read a
+// values and files, kernel as on: the other rows' checks read a
 // host that answers nothing, which is theirs to say.
 func ksRead(t *testing.T, on bool, container bool, over map[string]int, files map[string]string) (runall.Reading, *hostfake.System) {
 	t.Helper()
@@ -60,26 +60,26 @@ func ksRead(t *testing.T, on bool, container bool, over map[string]int, files ma
 }
 
 // TestKernelSettingsRow: Run All lists Kernel Settings only where
-// hardn.yml's kernelSettings is true (gallery-sysctl.md, decisions 17 and
-// 18 (a)), after Time Sync and before Backup; plans Apply settings, never
+// hardn.yml's kernel is true (gallery-sysctl.md, decisions 17 and
+// 18 (a)), after NTP Settings and before Backup; plans Apply settings, never
 // Remove settings; says "already as asked" with nothing below the baseline;
 // a refusal is the row's, in its words; and a container has no row.
 func TestKernelSettingsRow(t *testing.T) {
 	ids := runall.IDsFor(&config.Config{KernelSettings: true, NTPServers: config.NTPServers{"192.0.2.10"}})
 	if n := len(ids); n != len(runall.IDs())+2 || ids[n-3] != timesync.ID || ids[n-2] != kernelsettings.ID || ids[n-1] != backupctl.ID {
-		t.Fatalf("IDsFor with kernelSettings = %q", ids)
+		t.Fatalf("IDsFor with kernel = %q", ids)
 	}
 	if slices.Contains(runall.IDsFor(config.DefaultConfig()), kernelsettings.ID) {
-		t.Error("kernelSettings is off by default, and Run All lists it")
+		t.Error("kernel is off by default, and Run All lists it")
 	}
 	low := map[string]int{"kernel.yama.ptrace_scope": 0}
 
 	r, f := ksRead(t, false, false, low, nil)
 	if _, ok := r.Row(kernelsettings.ID); ok {
-		t.Error("kernelSettings false: Run All lists Kernel Settings")
+		t.Error("kernel false: Run All lists Kernel Settings")
 	}
 	if slices.ContainsFunc(f.Calls(), func(c hostfake.Call) bool { return strings.HasPrefix(c.Path, khost.Proc+"/kernel/yama") }) {
-		t.Error("kernelSettings false: Run All read the kernel's settings")
+		t.Error("kernel false: Run All read the kernel's settings")
 	}
 
 	r, f = ksRead(t, true, false, low, nil)

@@ -20,9 +20,9 @@ For anyone administering a Linux server, container or virtual machine without a 
 | 3 | Firewall | Manage: `ufw` or firewalld, with SSH let through; show listening ports |
 | 4 | DNS | Manage:  nameservers |
 | 5 | Auto Updates | Manage: automatic updates |
-| 6 | Run All | Queue: options 1 to 5, log forwarding, time sync, kernel settings |
+| 6 | Run All | Queue: options 1 to 5, syslog, ntp, kernel |
 | 7 | Backup | Manage: backups of the files hardn changes |
-| 8 | Configuration | Manage: `hardn.yml`, log forwarding, time sync, kernel settings |
+| 8 | Configuration | Manage: `hardn.yml`, syslog, ntp, kernel |
 | 9 | System Details | Display: host details |
 | 10 | Logs | Display: `/var/log/hardn.log` |
 

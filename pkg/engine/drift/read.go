@@ -8,6 +8,7 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/engine/controls/firewall"
+	"github.com/abbott/hardn/pkg/engine/controls/logforward"
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/sshchange"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
@@ -18,6 +19,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/detect"
 	hostdns "github.com/abbott/hardn/pkg/host/dns"
 	"github.com/abbott/hardn/pkg/host/firewalld"
+	"github.com/abbott/hardn/pkg/host/logfwd"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/ufw"
@@ -58,7 +60,7 @@ func Read(ctx context.Context, sys host.System, f detect.Facts) (Facts, error) {
 	out = append(out, readUsers(ctx, sys, f, eff, effErr)...)
 	out = append(out, readSSH(eff, effErr)...)
 	out = append(out, readFirewall(ctx, sys, f)...)
-	out = append(out, readDNS(ctx, sys, f), readUpdates(ctx, sys, f))
+	out = append(out, readDNS(ctx, sys, f), readUpdates(ctx, sys, f), readSyslog(ctx, sys, f))
 	if err := ctx.Err(); err != nil {
 		return nil, fmt.Errorf("drift: %w", err)
 	}
@@ -476,4 +478,22 @@ func readUpdates(ctx context.Context, sys host.System, f detect.Facts) Fact {
 		return value(AutoUpdates, NotApplicable)
 	}
 	return unknown(AutoUpdates, st.Detail)
+}
+
+// readSyslog is the set of syslog servers the host forwards to, as Syslog
+// Settings reads it (logfwd.Read), hardn's or not, each "192.0.2.51:514
+// TCP" (docs/engine/design-syslog-servers.md §2.7). A host with journald
+// alone forwards to none. Connections are not compared: they come and go.
+// A logger hardn does not read, or settings it cannot make out, is not
+// established.
+func readSyslog(ctx context.Context, sys host.System, f detect.Facts) Fact {
+	r := logfwd.Read(ctx, sys, f)
+	if r.Err != nil {
+		return unknown(SyslogServers, r.Err)
+	}
+	var items []string
+	for _, fw := range r.Forwards {
+		items = append(items, logforward.ServerWords(fw.Server))
+	}
+	return set(SyslogServers, items)
 }
