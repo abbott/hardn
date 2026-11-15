@@ -9,9 +9,11 @@ With hardn.yml's `checkReleases: true`, the main menu says "v0.9.1 available" un
 
 Since `next/release-notice` (2026-11-14) the notice is under the link, not in its place, and `hardn --version`, verify.sh and install.sh say a newer release too: [gallery-release-notice.md](gallery-release-notice.md) §4.
 
+Since `next/release-ask` (2026-11-15) hardn asks to turn the check on, before the main menu: [design-release-ask.md](design-release-ask.md). With no hardn.yml, a yes kept in `/var/lib/hardn/release-ask.json` turns the check on as `checkReleases: true` does; a hardn.yml that exists decides alone. "Off means nothing" (§3) holds for a hardn.yml that sets the key; with none, the main menu and `--version` read that state file, and still make no request without a yes.
+
 ## 2. The API
 
-- `config.Config.CheckReleases` (`checkReleases`, default false, not written when false): a row under "General" on the Configuration screen and in `hardn config`.
+- `config.Config.CheckReleases` (`checkReleases`, default false, written either way since `next/release-ask`): a row under "General" on the Configuration screen and in `hardn config`.
 - `version.Checker{On, Version, System, Dir, Latest, Now, Log}` (`pkg/version/release.go`). `Release(ctx)` is what the check knows, from this process's check or the cache, with no request and no wait. `Check(ctx)` makes the request where one is due. `version.ParseTag` is the one test of a tag: `v<major>.<minor>.<patch>`, one to six digits each.
 - `github.Client{Version, Transport, Timeout}.Latest(ctx)` (`pkg/version/github`): the request. The only package of hardn that imports `net/http`.
 - `revert.ReadStateFile` and `revert.WriteStateFile` (`pkg/host/revert/statefile.go`): a file of hardn's state directory under the journal's trust checks, through `host.System`.

@@ -23,6 +23,8 @@ You can create a configuration file in several ways:
 
 On first run, `hardn` will offer to create a default configuration file interactively if no existing config is found.
 
+Say yes and it asks five things, the last being "Check for new hardn releases, once a day? [y/N]:". The file it writes holds `checkReleases` either way. At the main menu, say no and it asks that one question next, when it is due: see [`checkReleases`](#checkreleases-new-releases).
+
 ### 2. Manual Creation
 
 Copy the example configuration and customize it:
@@ -237,6 +239,15 @@ Off, the default, hardn makes no network request. On, the main menu says when a 
 - **In a dry run too.** It changes nothing on the host but its own file. A dry run writes no log, so a check that fails there leaves no reason in it.
 - **hardn doesn't update itself.** Install the release with [install.sh](install.md).
 - The last answer is kept in `/var/lib/hardn/release.json`, root's alone.
+
+**hardn asks.** Before the main menu, on a terminal, as root: "Check for new hardn releases, once a day? [y/N]:". Enter is no. A flag, a subcommand and `hardn check` don't ask, nor does `-n`. The one exception: a flag run that creates hardn.yml asks it with the other first-run questions.
+
+- **Creating hardn.yml:** it is the last question, and the file holds your answer.
+- **A hardn.yml without the key**, such as one from an older install: hardn asks, then writes your answer to the file, yes or no. The rest of the file and its comments stay. If the file can't be edited in place, hardn says so and writes nothing: set the key by hand.
+- **No hardn.yml:** your answer is kept in `/var/lib/hardn/release-ask.json`, root's alone. A yes turns the check on until a hardn.yml exists; then the file decides. To take a yes back, delete that file or set `checkReleases: false` in a hardn.yml.
+- **A key that is set is never asked about again**, nor is a yes. After a no with no hardn.yml, or no answer, hardn asks again after 30 days or 15 opens of the main menu, whichever comes first.
+- **`dryRun: true` in hardn.yml doesn't stop the question**, and the answer is still written to the file.
+- **If `/var/lib/hardn` can't be written, hardn doesn't ask.** It couldn't keep the answer.
 
 ### Syslog
 

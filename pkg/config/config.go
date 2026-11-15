@@ -50,8 +50,10 @@ type Config struct {
 	// then asks GitHub for the latest release's tag, at most once a day,
 	// and says so in one line when a newer one is out (pkg/version's
 	// Checker; docs/engine/screen-release-check.md). False, the default,
-	// hardn makes no network request. Not written when false.
-	CheckReleases bool `yaml:"checkReleases,omitempty"`
+	// hardn makes no network request. Written either way, so that a
+	// hardn.yml hardn creates holds the key
+	// (docs/engine/design-release-ask.md).
+	CheckReleases bool `yaml:"checkReleases"`
 
 	// Network Configuration
 	Nameservers []string `yaml:"nameservers"`
@@ -471,6 +473,12 @@ func CreateDefaultConfig(path string, config *Config) error {
 		if sshKey != "" {
 			config.SshKeys = []string{sshKey}
 		}
+
+		// Ask for the release check, last: its default a yes hardn's
+		// state already holds (CheckReleasesDefault).
+		def := CheckReleasesDefault != nil && CheckReleasesDefault()
+		fmt.Fprintf(stdout(), "%s ", ReleaseQuestion(def))
+		config.CheckReleases = releaseAnswer(readAnswer(), def)
 	}
 
 	// Save config
@@ -486,6 +494,49 @@ func CreateDefaultConfig(path string, config *Config) error {
 	}
 
 	return nil
+}
+
+// ReleaseQuestion is the question that turns the release check on, with
+// its default, def: no ([y/N]) unless hardn's state already holds a yes
+// (docs/engine/design-release-ask.md, decisions 4, 5 and 8).
+func ReleaseQuestion(def bool) string {
+	if def {
+		return "Check for new hardn releases, once a day? [Y/n]:"
+	}
+	return "Check for new hardn releases, once a day? [y/N]:"
+}
+
+// CheckReleasesDefault, where set, reports whether hardn's state holds a
+// yes to the release question, CreateDefaultConfig's default for it then.
+// cmd/hardn sets it; nil is no.
+var CheckReleasesDefault func() bool
+
+// releaseAnswer reads an answer to ReleaseQuestion: Enter is def, y or yes
+// is yes, and anything else no.
+func releaseAnswer(answer string, def bool) bool {
+	switch strings.TrimSpace(strings.ToLower(answer)) {
+	case "":
+		return def
+	case "y", "yes":
+		return true
+	}
+	return false
+}
+
+// AskCheckReleases asks ReleaseQuestion alone, on the prompt kit as the
+// first-run question is asked, and returns the answer; answered is false
+// at the end of the input or a failed read or write, where nothing is
+// decided. Ctrl-C ends hardn, as at every prompt. The caller asks only
+// where stdin and stdout are terminals.
+func AskCheckReleases(def bool) (yes, answered bool) {
+	response, err := input().Ask(stdout(), ReleaseQuestion(def))
+	if errors.Is(err, prompt.ErrInterrupted) {
+		interrupted()
+	}
+	if err != nil {
+		return false, false
+	}
+	return releaseAnswer(response, def), true
 }
 
 // SaveConfig saves configuration to the specified file: the whole

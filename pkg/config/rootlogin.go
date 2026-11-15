@@ -297,6 +297,16 @@ func (c *Config) canonical() (*yaml.Node, error) {
 // written. host.WriteFileAtomicKeep keeps the file's mode and owner. Once
 // written, c records the bytes written as its own (LoadedFrom).
 func Save(ctx context.Context, sys host.System, c *Config, settings ...string) error {
+	return save(ctx, sys, c, Edit, settings)
+}
+
+// SaveKeys is Save with EditKeys' edit: the settings named are written
+// where the file gives them no value, their defaults too.
+func SaveKeys(ctx context.Context, sys host.System, c *Config, settings ...string) error {
+	return save(ctx, sys, c, EditKeys, settings)
+}
+
+func save(ctx context.Context, sys host.System, c *Config, edit func([]byte, *Config, ...string) ([]byte, error), settings []string) error {
 	path := c.loaded.path
 	if path == "" {
 		return fmt.Errorf("config: %w", ErrNotLoaded)
@@ -308,7 +318,7 @@ func Save(ctx context.Context, sys host.System, c *Config, settings ...string) e
 	if !c.LoadedFrom(data) {
 		return fmt.Errorf("config: saving %s: %w", path, ErrChanged)
 	}
-	out, err := Edit(data, c, settings...)
+	out, err := edit(data, c, settings...)
 	if err != nil {
 		return fmt.Errorf("config: saving %s: %w", path, err)
 	}
