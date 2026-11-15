@@ -7,7 +7,7 @@ Simple, precise hardening for Linux servers.
 
 For anyone administering a Linux server, container or virtual machine without a security team: homelab enthusiasts, students, and small organizations such as schools, clinics and nonprofits.
 
-<img width="1327" height="1803" alt="hardn menu" src="https://github.com/user-attachments/assets/c5967b53-0860-49dd-9bd8-437a7bfcc70a" />
+<img width="1328" height="1678" alt="hardn menu" src="https://github.com/user-attachments/assets/46b65159-b49e-43ea-a64e-fdb0ac53566e" />
 
 ## What It Does
 
@@ -104,7 +104,7 @@ What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, and on P
 
 ## Security
 
-- **No telemetry.** `hardn` makes no network request unless you turn on `checkReleases`, which asks GitHub for the latest release's tag once a day and sends nothing about the host. It needs no account or cloud service.
+- **No telemetry.** `hardn` makes no network request unless you turn the release check on, by answering yes when it asks or with `checkReleases: true`. The check asks GitHub for the latest release's tag once a day and sends nothing about the host. No account or cloud service required.
 - **Releases.** Each binary has [SLSA](https://slsa.dev) Build Level 3 provenance and a [Sigstore](https://www.sigstore.dev/) signature, and a rebuild of a tag is byte-identical: [docs/verify.md](docs/verify.md).
 - **CVEs.** hardn checks for the vendor's fix to a CVE that makes one of its changes unsafe, today one on Alpine: [docs/cve.md](docs/cve.md).
 - **Reporting.** Report security problems as [.github/SECURITY.md](.github/SECURITY.md) says, **<ins>not in a public issue</ins>**.
@@ -122,7 +122,7 @@ What differs on Alpine, on Rocky, Alma, RHEL, CentOS Stream and Oracle, and on P
 | [docs/cve.md](docs/cve.md) | the CVEs hardn checks for |
 | [docs/reference/output.md](docs/reference/output.md) | the JSON document and its codes |
 | [docs/roadmap.md](docs/roadmap.md) | planned features |
-| [docs/releases/v0.10.2.md](docs/releases/v0.10.2.md) | the release notes |
+| [docs/releases/v0.10.3.md](docs/releases/v0.10.3.md) | the release notes |
 
 ## Contributing
 
