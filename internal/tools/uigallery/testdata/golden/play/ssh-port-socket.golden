@@ -17,16 +17,16 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket). As the VM: 60-cloudimg-settings.conf refuses␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpasswords, prohibit-password; otherwise as debian13.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22␛[m ␛[38;2;219;184;83mssh.socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
@@ -141,16 +141,16 @@ $
   ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run␛[m$
   ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m22 and 2230␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+                             ␛[38;2;219;184;83m~ Ports 22 and 2230␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m       ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;219;184;83mssh.socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m        ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m    ␛[38;2;129;134;156mOn␛[m ␛[38;2;129;134;156msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mLogged in as␛[m         ␛[38;2;129;134;156mgeorge, by key␛[m$
@@ -211,16 +211,16 @@ $
 # ssh.socket). As the VM: 60-cloudimg-settings.conf refuses$
 # passwords, prohibit-password; otherwise as debian13.$
 $
-# SSH Login ####################################################$
+# SSH ##########################################################$
 $
-  [ ] SSH Login            Partial root key-only$
-  [ ] SSH Port             Not Configured default (22)$
+  [ ] SSH                  Partial root key-only$
+                             ~ Default port (22)$
 $
   SSH Configuration --------------------------------------------$
 $
-   -  Root SSH Login       Key only sshd's default$
+  [ ] Root SSH Login       Key only sshd's default$
    -  Password Login       Off by 60-cloudimg-settings.conf$
-   -  SSH Port             22 ssh.socket$
+  [ ] SSH Port             22 ssh.socket$
    -  Allowed Users        Anyone$
    -  Brute-Force Limit    On sshd's default$
    -  Logged in as         george, by key$
@@ -335,16 +335,16 @@ $
   back at 12:03:01 UTC. To undo it now, run$
   `sudo hardn rollback 20261020T120000Z-xxxxxxxx`.$
 $
-# SSH Login ####################################################$
+# SSH ##########################################################$
 $
-  [ ] SSH Login            Partial root key-only$
-  [ ] SSH Port             Partial 22 and 2230$
+  [ ] SSH                  Partial root key-only$
+                             ~ Ports 22 and 2230$
 $
   SSH Configuration --------------------------------------------$
 $
-   -  Root SSH Login       Key only sshd's default$
+  [ ] Root SSH Login       Key only sshd's default$
    -  Password Login       Off by 60-cloudimg-settings.conf$
-   -  SSH Port             22, 2230 ssh.socket$
+  [ ] SSH Port             22, 2230 ssh.socket$
    -  Allowed Users        Anyone$
    -  Brute-Force Limit    On sshd's default$
    -  Logged in as         george, by key$
@@ -406,21 +406,20 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mssh.socket). As the VM: 60-cloudimg-settings.conf refuses␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mpasswords, prohibit-password; otherwise as debian13.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mdefault (22)␛[m$
+        ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
-      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156m22␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22␛[m ␛[38;2;219;184;83mssh.socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$
@@ -550,21 +549,20 @@ $
   ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run␛[m$
   ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH Login␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mSSH␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107m22 and 2230␛[m$
+        ␛[38;2;219;184;83m~ Ports 22 and 2230␛[m$
 $
   ␛[1;38;2;129;134;156mSSH Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
-      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;129;134;156msshd's default␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mRoot SSH Login␛[m$
+      ␛[38;2;129;134;156mKey only␛[m ␛[38;2;219;184;83msshd's default␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mPassword Login␛[m$
       ␛[38;2;129;134;156mOff␛[m ␛[38;2;129;134;156mby 60-cloudimg-settings.conf␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;129;134;156mssh.socket␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
+      ␛[38;2;129;134;156m22, 2230␛[m ␛[38;2;219;184;83mssh.socket␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAllowed Users␛[m$
       ␛[38;2;129;134;156mAnyone␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mBrute-Force Limit␛[m$

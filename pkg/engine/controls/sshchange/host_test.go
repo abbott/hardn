@@ -112,11 +112,11 @@ type account struct {
 	keys []string
 }
 
-// ufwRule is an allow rule of ufw's for a TCP port, from src ("" anywhere),
-// on iface ("" any).
+// ufwRule is an allow rule of ufw's for a TCP port, from src ("" anywhere,
+// in both IP versions), on iface ("" any), from source port sport ("" any).
 type ufwRule struct {
-	port       uint16
-	src, iface string
+	port              uint16
+	src, iface, sport string
 }
 
 // vm is a fake host: sshd a model over its files, on 22 through
@@ -128,9 +128,11 @@ type vm struct {
 	// session is the applying session; log is sshd's journal.
 	session revert.Session
 	log     string
-	// rules are ufw's allow rules; noUFW: ufw not installed.
+	// rules are ufw's allow rules; noUFW: ufw not installed. dev is the
+	// interface "ip route get" gives for any address, eth0 where "".
 	rules []ufwRule
 	noUFW bool
+	dev   string
 	// bound is what ss shows; configured is ssh.socket's Listen as the
 	// last daemon-reload set it; socket: ssh.socket holds the listeners.
 	bound, configured []string
@@ -667,7 +669,10 @@ func (v *vm) ufwStatus() string {
 			}
 			to := fmt.Sprintf("%d/tcp%s", r.port, sfx)
 			if r.iface != "" {
-				to = fmt.Sprintf("%d/tcp on %s%s", r.port, r.iface, sfx)
+				to += " on " + r.iface
+			}
+			if r.sport != "" {
+				from += " " + r.sport + "/tcp"
 			}
 			fmt.Fprintf(&b, "%-26s %-12s%-26s\n", to, "ALLOW IN", from)
 		}
@@ -693,7 +698,11 @@ func (v *vm) saveRules() {
 			if r.iface != "" {
 				dir += "_" + r.iface
 			}
-			fmt.Fprintf(&b, "\n### tuple ### allow tcp %d %s any %s %s\n-A ufw-user-input -p tcp --dport %d -j ACCEPT\n", r.port, f.any, src, dir, r.port)
+			sport := "any"
+			if r.sport != "" {
+				sport = r.sport
+			}
+			fmt.Fprintf(&b, "\n### tuple ### allow tcp %d %s %s %s %s\n-A ufw-user-input -p tcp --dport %d -j ACCEPT\n", r.port, f.any, sport, src, dir, r.port)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		v.f.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
@@ -748,6 +757,14 @@ func (v *vm) run(argv []string, _ []byte) hostfake.Response {
 		return hostfake.Response{}
 	case "ufw":
 		return v.ufw(argv)
+	case "ip":
+		if len(argv) == 4 && argv[1] == "route" && argv[2] == "get" { // the route back to the session's client
+			dev := v.dev
+			if dev == "" {
+				dev = "eth0"
+			}
+			return hostfake.Response{Stdout: argv[3] + " via 192.0.2.1 dev " + dev + " src 192.0.2.20 uid 0 \n    cache \n"}
+		}
 	case "systemctl":
 		if r, ok := v.systemctl(argv); ok {
 			return r
@@ -867,6 +884,25 @@ func (v *vm) ufw(argv []string) hostfake.Response {
 	if cmd == "ufw status verbose" {
 		return hostfake.Response{Stdout: v.ufwStatus()}
 	}
+	if r, del, ok := fromRule(argv); ok { // a rule with a source or an interface, for one port over TCP
+		same := func(o ufwRule) bool { return o == r }
+		switch {
+		case del && !slices.ContainsFunc(v.rules, same):
+			return hostfake.Response{Stdout: "Could not delete non-existent rule\n"}
+		case del:
+			v.rules = slices.DeleteFunc(v.rules, same)
+			v.saveRules()
+			return hostfake.Response{Stdout: "Rule deleted\n"}
+		case slices.ContainsFunc(v.rules, same):
+			return hostfake.Response{Stdout: "Skipping adding existing rule\n"}
+		}
+		v.rules = append(v.rules, r)
+		v.saveRules()
+		if r.src == "" {
+			return hostfake.Response{Stdout: "Rule added\nRule added (v6)\n"}
+		}
+		return hostfake.Response{Stdout: "Rule added\n"}
+	}
 	spec := argv[len(argv)-1]
 	n, err := strconv.Atoi(strings.TrimSuffix(spec, "/tcp"))
 	switch {
@@ -882,6 +918,35 @@ func (v *vm) ufw(argv []string) hostfake.Response {
 	}
 	v.t.Errorf("unexpected command %q", cmd)
 	return hostfake.Response{Err: hostfake.ErrUnscripted, ExitCode: -1}
+}
+
+// fromRule reads "ufw [delete] allow [in on <iface>] [from <src>] to any
+// port <port> proto tcp", the commands a carried plan runs and undoes (ufw
+// 0.36.2's forms, read, not run).
+func fromRule(argv []string) (r ufwRule, del, ok bool) {
+	w := argv[1:]
+	if len(w) > 0 && w[0] == "delete" {
+		del, w = true, w[1:]
+	}
+	if len(w) < 7 || w[0] != "allow" || !slices.Equal(w[len(w)-6:len(w)-3], []string{"to", "any", "port"}) || !slices.Equal(w[len(w)-2:], []string{"proto", "tcp"}) {
+		return r, false, false
+	}
+	n, err := strconv.ParseUint(w[len(w)-3], 10, 16)
+	if err != nil {
+		return r, false, false
+	}
+	r.port = uint16(n)
+	for w = w[1 : len(w)-6]; len(w) > 0; {
+		switch {
+		case len(w) >= 3 && w[0] == "in" && w[1] == "on":
+			r.iface, w = w[2], w[3:]
+		case len(w) >= 2 && w[0] == "from":
+			r.src, w = w[1], w[2:]
+		default:
+			return r, false, false
+		}
+	}
+	return r, del, true
 }
 
 // sys is the fake with sudo setuid root, which hostfake has no bit for.

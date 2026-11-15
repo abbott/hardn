@@ -10,8 +10,8 @@ import (
 // The SSH Login screen (refactor plan slice 6, unit (c), next/s6-screen):
 // Figma's 02-SSH_LOGIN and SSH_LOGIN-TOGGLE_CONFIRMATION as the maintainer
 // adopted their mocks on 2026-11-03 (docs/engine/gallery-ssh.md §3 and §5,
-// "Adopt all, start (b)", with the words of §6). One screen: the SSH Login,
-// SSH Auth and SSH Port rows, the SSH Configuration section, and the items
+// "Adopt all, start (b)", with the words of §6). One screen, titled "SSH"
+// since 2026-11-15: the one SSH row (SSH Login, SSH Auth and SSH Port), the SSH Configuration section, and the items
 // named by their result (P-12); and each change's words. pkg/ui cannot reach
 // the host: pkg/screens/ssh reads it through the SSH Login control
 // (pkg/engine/controls/sshchange), fills these with its rows, and runs the
@@ -23,7 +23,10 @@ import (
 // questions, "Now not read" and "held until confirmed" are the adopted
 // mocks'.
 const (
-	sshTitle   = "SSH Login"
+	// SSHTitle is the screen's title, its main menu item's label and the
+	// label of the one status row (the maintainer, 2026-11-15).
+	SSHTitle   = "SSH"
+	sshTitle   = SSHTitle
 	sshSection = "SSH Configuration"
 
 	sshDisallowLabel = "Disallow root login"
@@ -141,8 +144,7 @@ const (
 // SSH is the SSH Login screen's reading of the host, which pkg/screens/ssh
 // fills from the SSH Login control's.
 type SSH struct {
-	// Status is the SSH Login, SSH Auth and SSH Port rows, as the main menu
-	// draws them.
+	// Status is the one SSH row, as the main menu draws it.
 	Status component.StatusList
 	// Rows are the SSH Configuration section: what sshd runs with, each
 	// value's deciding file its note.
@@ -168,8 +170,8 @@ type SSH struct {
 	Keys string
 }
 
-// SubMenu returns the SSH Login screen (02-SSH_LOGIN): the title bar; the
-// three rows; the section; root login, password login and the port, each
+// SubMenu returns the SSH screen (02-SSH_LOGIN): the title bar; the one
+// SSH row; the section; root login, password login and the port, each
 // named by its result, Move old settings with hardn's old files, and
 // Upgrade openssh where sshd lacks CVE-2026-123158's fix, which the alert
 // over the section points to (the maintainer, 2026-11-08);

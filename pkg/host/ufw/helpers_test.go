@@ -1,6 +1,7 @@
 package ufw_test
 
 import (
+	"encoding/hex"
 	"fmt"
 	"net/netip"
 	"slices"
@@ -43,6 +44,9 @@ type modelRule struct {
 	port   string
 	tuple  string // overrides the tuple written from the fields
 	row    string // overrides the status row
+	// key is, for a rule a "from" command added (fromRule), its words
+	// without the action, log type and comment: ufw's tuple.
+	key, verb string
 }
 
 // model is a small ufw: saved rules per IP version, the defaults, whether
@@ -173,6 +177,8 @@ func (m *model) run(h *hostfake.System, argv []string) hostfake.Response {
 	switch {
 	case cmd == "ufw status verbose":
 		out = m.status()
+	case slices.Contains(argv, "proto") && slices.Contains(argv, "port"):
+		out = m.fromRule(argv[1:])
 	case len(argv) == 3 && (argv[1] == "limit" || argv[1] == "allow" && m.has("limit", argv[2])):
 		// set_rule replaces a saved rule of the same tuple and another
 		// action in its place, "Rule updated" while active (ufw.md §3).
@@ -274,4 +280,152 @@ func runs(h *hostfake.System) []string {
 		out = append(out, strings.Join(r, " "))
 	}
 	return out
+}
+
+// saved is a saved rule from its tuple line, the status row made from what
+// ufw.ParseTuples reads of it: "[<to> ]<ports>[/<proto>][ on <iface>]",
+// the action, and the source as read.
+func saved(fam ufw.Family, tuple string) modelRule {
+	rs, bad := ufw.ParseTuples([]byte("### tuple ### "+tuple+"\n"), fam)
+	if len(rs) != 1 || len(bad) > 0 {
+		panic("tuple " + tuple)
+	}
+	r := rs[0]
+	to, from := r.DPort, r.Src
+	if r.Proto != "any" {
+		to += "/" + r.Proto
+	}
+	if r.DPort == "" {
+		to = "Anywhere"
+	}
+	if r.Dst != "" {
+		to = r.Dst + " " + to
+	}
+	if from == "" {
+		from = "Anywhere"
+		if fam == ufw.IPv6 {
+			to, from = to+" (v6)", from+" (v6)"
+		}
+	}
+	if r.Iface != "" {
+		to += " on " + r.Iface
+	}
+	mr := modelRule{fam: fam, tuple: "### tuple ### " + tuple, row: fmt.Sprintf("%-26s %-12s%s", to, strings.ToUpper(r.Action)+" IN", from)}
+	if r.Proto == "tcp" && r.App == "" && !strings.Contains(r.Src, " ") {
+		mr.key, mr.verb = fmt.Sprintf("%d tcp %s %s %s %s", fam, r.DPort, r.Dst, r.Src, r.Iface), strings.Fields(tuple)[0]
+	}
+	return mr
+}
+
+// fromRule answers a rule with a source, a "to" address or an interface,
+// or its delete, as ufw 0.36.2's set_rule does (read, not run): "<action>
+// [in on <iface>] [log|log-all] [from <src>] to <dst> port <port> proto tcp
+// [comment <text>]". The addresses say the IP version; with none, both. A
+// saved rule of the same tuple is skipped where its action, log type and
+// comment are the same, and replaced where not; a delete compares the
+// action and log type, never the comment.
+func (m *model) fromRule(words []string) string {
+	del := words[0] == "delete"
+	if del {
+		words = words[1:]
+	}
+	action, rest := words[0], words[1:]
+	var iface, logType, src, dst, port, comment string
+	for i := 0; i < len(rest); i++ {
+		switch rest[i] {
+		case "in":
+		case "on":
+			i++
+			iface = rest[i]
+		case "log", "log-all":
+			logType = rest[i]
+		case "from":
+			i++
+			src = rest[i]
+		case "to":
+			i++
+			dst = rest[i]
+		case "port":
+			i++
+			port = rest[i]
+		case "proto":
+			i++
+		case "comment":
+			i++
+			comment = rest[i]
+		default:
+			m.t.Errorf("unexpected word %q in %q", rest[i], words)
+		}
+	}
+	if src == "any" {
+		src = ""
+	}
+	if dst == "any" {
+		dst = ""
+	}
+	fams := []ufw.Family{ufw.IPv4, ufw.IPv6}
+	switch {
+	case strings.Contains(src+dst, ":"):
+		fams = fams[1:]
+	case src != "" || dst != "":
+		fams = fams[:1]
+	}
+	verb := action
+	if logType != "" {
+		verb += "_" + logType
+	}
+	var out string
+	for _, fam := range fams {
+		sfx, wild := "", "0.0.0.0/0"
+		if fam == ufw.IPv6 {
+			sfx, wild = " (v6)", "::/0"
+		}
+		if fam == ufw.IPv6 && !m.ipv6 {
+			continue
+		}
+		s, d := src, dst
+		if s == wild {
+			s = ""
+		}
+		key := fmt.Sprintf("%d tcp %s %s %s %s", fam, port, d, s, iface)
+		i := slices.IndexFunc(m.rules, func(r modelRule) bool { return r.key == key })
+		tuple := fmt.Sprintf("%s tcp %s %s any %s in", verb, port, orWild(d, wild), orWild(s, wild))
+		if iface != "" {
+			tuple += "_" + iface
+		}
+		if comment != "" {
+			tuple += " comment=" + hex.EncodeToString([]byte(comment))
+		}
+		r := saved(fam, tuple)
+		r.key, r.verb = key, verb
+		if logType != "" {
+			r.row += " (" + logType + ")"
+		}
+		if comment != "" {
+			r.row += " # " + comment
+		}
+		switch {
+		case del && i >= 0 && m.rules[i].verb == verb:
+			m.rules = slices.Delete(m.rules, i, i+1)
+			out += m.word("Rule deleted", sfx)
+		case del:
+			out += "Could not delete non-existent rule" + sfx + "\n"
+		case i >= 0 && m.rules[i].tuple == r.tuple:
+			out += "Skipping adding existing rule" + sfx + "\n"
+		case i >= 0:
+			m.rules[i] = r
+			out += m.word("Rule updated", sfx)
+		default:
+			m.rules = append(m.rules, r)
+			out += m.word("Rule added", sfx)
+		}
+	}
+	return out
+}
+
+func orWild(a, wild string) string {
+	if a == "" {
+		return wild
+	}
+	return a
 }

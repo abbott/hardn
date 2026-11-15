@@ -181,6 +181,15 @@ func TestCleanupOf(t *testing.T) {
 	if fmt.Sprint(c.Drop) != "[22]" || fmt.Sprint(c.Firewall) != "[[ufw delete allow 2230/tcp] [ufw delete allow 22/tcp]]" {
 		t.Errorf("CleanupOf = %+v", c)
 	}
+	// The port's ufw sources carried (design-ssh-port-sources.md §9 (1) (a)):
+	// the journal's deletes are the new port's rules, for a rollback, and
+	// the clean-up deletes none of them, and no rule of the old port.
+	carried := j
+	carried.Undo = []revert.Step{run("ufw", "delete", "allow", "from", "172.20.8.0/24", "to", "any", "port", "2230", "proto", "tcp"),
+		run("ufw", "delete", "limit", "in", "on", "eth0", "log", "from", "10.2.8.0/24", "to", "any", "port", "2230", "proto", "tcp")}
+	if c := CleanupOf(carried); fmt.Sprint(c.Drop) != "[22]" || c.Firewall != nil {
+		t.Errorf("carried sources: CleanupOf = %+v, want port 22 dropped and no ufw delete", c)
+	}
 	j.ConfirmVia = nil
 	if c := CleanupOf(j); c.Drop != nil || c.Firewall != nil {
 		t.Errorf("a change that moved no port: %+v, want none", c)

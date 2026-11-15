@@ -129,9 +129,9 @@ func (r reading) auth(ctx context.Context, sys host.System, f detect.Facts) (eng
 	case key.Value == "no":
 		st.State, st.Detail = engine.Partial, "key auth off"
 	case restricted && keyAndPassword(lists, pw.Value == "yes", kbd.Value == "yes" && pam.Known && pam.Value == "yes"):
-		st.State, st.Detail = engine.Configured, "key and password"
+		st.State, st.Detail = engine.Configured, DetailKeyAndPassword
 	default:
-		st.State, st.Detail = engine.Configured, "key-only auth"
+		st.State, st.Detail = engine.Configured, DetailKeyOnly
 	}
 	return st, nil
 }

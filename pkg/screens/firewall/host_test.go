@@ -57,6 +57,7 @@ type fwHost struct {
 	noIPv6    bool               // IPV6=no in ufw's defaults
 	unit      string             // what systemctl is-enabled ufw.service prints, "" enabled; "fails" fails
 	bound     []uint16           // the ports sshd is bound on, as ss shows them; nil is ports
+	boundOn   []string           // the listeners ss shows, where not both families of bound; nil is bound's
 	statusOut string             // what ufw status verbose prints, "" the model's
 	ssFails   bool               // ss runs and fails
 	sim       *hostfake.Response // apt-get's simulation, nil aptSim
@@ -424,6 +425,9 @@ func (h *fwHost) ss() string {
 	bound := h.listeners()
 	if h.bound != nil {
 		bound = listenersOn(h.bound)
+	}
+	if h.boundOn != nil {
+		bound = h.boundOn
 	}
 	for _, s := range bound {
 		peer := "0.0.0.0:*"

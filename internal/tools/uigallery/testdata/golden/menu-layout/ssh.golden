@@ -6,39 +6,88 @@
   ␛[1;38;2;129;134;156mmenu-layout ssh␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. The SSH Login row with SSH␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuth in it: the worse of the two states, and the details of␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe parts in that state. A part read as off outranks one not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread. Both off alike is the one pair cut at 64 columns.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. Adopted 2026-11-15: one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mSSH row for SSH Login, SSH Auth and SSH Port. All three␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigured: auth, login, port. Login and auth configured, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport on 22: Partial, no line. Login and auth not both␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigured: their state and detail, and the port on 22 a line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder the row. The Proxmox VE words, "ports", "2 ports",␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"port:" and "not 22" are proposed. One row is cut: login and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mauth off alike.␛[m$
 $
-Both configured:$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
+All three configured:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
 $
-sshd allows passwords:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+The port left on 22:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mdefault port (22)␛[m$
 $
-Root may log in:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed␛[m$
+Root by key, port 22:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
-Both off, one worse:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+Passwords on, port 22:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
-Both off alike:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, passwor…␛[m$
+Passwords on, port 2230:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+$
+Root may log in, port 22:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
+$
+Login and auth off, one worse:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
+$
+Login and auth off alike:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, passwor…␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
 A long detail:$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mmatch block allows passwords␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mmatch block allows passwords␛[m$
 $
-Proxmox VE, both configured:$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot key-only, key-only auth␛[m$
+Ports 22 and 2230:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mports 22 and 2230␛[m$
 $
-Passwords on, root not read:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+Root by key, ports 22 and 2230:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+                             ␛[38;2;219;184;83m~ Ports 22 and 2230␛[m$
+$
+Two ports, neither 22:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, 2 ports␛[m$
+$
+Key and password:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey+password, no root, port 2230␛[m$
+$
+The port not read:$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: not listening on 2230␛[m$
+                             ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+Passwords on, the port not read:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+Passwords on, root not read, port 22:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
                              ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
 sshd not read:$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
                              ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+No SSH server:$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mno SSH server␛[m$
+$
+Proxmox VE, all three configured:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, root key-only, port 22␛[m$
+$
+Proxmox VE as installed:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, passwor…␛[m$
+$
+Proxmox VE, off port 22:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mport 2230, not 22␛[m$
 $
 $
 
@@ -46,39 +95,88 @@ $
   menu-layout ssh ----------------------------------------------$
 $
 # Note$
-# Adopted 2026-11-14: no Figma frame. The SSH Login row with SSH$
-# Auth in it: the worse of the two states, and the details of$
-# the parts in that state. A part read as off outranks one not$
-# read. Both off alike is the one pair cut at 64 columns.$
+# Adopted 2026-11-14: no Figma frame. Adopted 2026-11-15: one$
+# SSH row for SSH Login, SSH Auth and SSH Port. All three$
+# configured: auth, login, port. Login and auth configured, the$
+# port on 22: Partial, no line. Login and auth not both$
+# configured: their state and detail, and the port on 22 a line$
+# under the row. The Proxmox VE words, "ports", "2 ports",$
+# "port:" and "not 22" are proposed. One row is cut: login and$
+# auth off alike.$
 $
-Both configured:$
-  [+] SSH Login            + root disallowed, key-only auth$
+All three configured:$
+  [+] SSH                  + key-only, no root, port 2230$
 $
-sshd allows passwords:$
-  [ ] SSH Login            Not Configured password auth on$
+The port left on 22:$
+  [ ] SSH                  Partial default port (22)$
 $
-Root may log in:$
-  [ ] SSH Login            Not Configured root allowed$
+Root by key, port 22:$
+  [ ] SSH                  Partial root key-only$
+                             ~ Default port (22)$
 $
-Both off, one worse:$
-  [ ] SSH Login            Not Configured password auth on$
+Passwords on, port 22:$
+  [ ] SSH                  Not Configured password auth on$
+                             ~ Default port (22)$
 $
-Both off alike:$
-  [ ] SSH Login            Not Configured root allowed, passw...$
+Passwords on, port 2230:$
+  [ ] SSH                  Not Configured password auth on$
+$
+Root may log in, port 22:$
+  [ ] SSH                  Not Configured root allowed$
+                             ~ Default port (22)$
+$
+Login and auth off, one worse:$
+  [ ] SSH                  Not Configured password auth on$
+                             ~ Default port (22)$
+$
+Login and auth off alike:$
+  [ ] SSH                  Not Configured root allowed, passw...$
+                             ~ Default port (22)$
 $
 A long detail:$
-  [ ] SSH Login            Partial match block allows passwords$
+  [ ] SSH                  Partial match block allows passwords$
 $
-Proxmox VE, both configured:$
-  [+] SSH Login            + root key-only, key-only auth$
+Ports 22 and 2230:$
+  [ ] SSH                  Partial ports 22 and 2230$
 $
-Passwords on, root not read:$
-  [ ] SSH Login            Not Configured password auth on$
+Root by key, ports 22 and 2230:$
+  [ ] SSH                  Partial root key-only$
+                             ~ Ports 22 and 2230$
+$
+Two ports, neither 22:$
+  [+] SSH                  + key-only, no root, 2 ports$
+$
+Key and password:$
+  [+] SSH                  + key+password, no root, port 2230$
+$
+The port not read:$
+  [?] SSH                  Unknown port: not listening on 2230$
+                             ~ Counted as not configured$
+$
+Passwords on, the port not read:$
+  [ ] SSH                  Not Configured password auth on$
+                             ~ Counted as not configured$
+$
+Passwords on, root not read, port 22:$
+  [ ] SSH                  Not Configured password auth on$
+                             ~ Default port (22)$
                              ~ Counted as not configured$
 $
 sshd not read:$
-  [?] SSH Login            Unknown can't read$
+  [?] SSH                  Unknown can't read$
                              ~ Counted as not configured$
+$
+No SSH server:$
+  [-] SSH                  Not Applicable no SSH server$
+$
+Proxmox VE, all three configured:$
+  [+] SSH                  + key-only, root key-only, port 22$
+$
+Proxmox VE as installed:$
+  [ ] SSH                  Not Configured root allowed, passw...$
+$
+Proxmox VE, off port 22:$
+  [ ] SSH                  Partial port 2230, not 22$
 $
 $
 
@@ -86,49 +184,109 @@ $
   ␛[1;38;2;129;134;156mmenu-layout ssh␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. The SSH Login row with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mSSH Auth in it: the worse of the two states, and the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetails of the parts in that state. A part read as off␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156moutranks one not read. Both off alike is the one pair cut␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mat 64 columns.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. Adopted 2026-11-15:␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone SSH row for SSH Login, SSH Auth and SSH Port. All␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthree configured: auth, login, port. Login and auth␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigured, the port on 22: Partial, no line. Login and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mauth not both configured: their state and detail, and the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport on 22 a line under the row. The Proxmox VE words,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"ports", "2 ports", "port:" and "not 22" are proposed. One␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow is cut: login and auth off alike.␛[m$
 $
-Both configured:$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
+All three configured:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
 $
-sshd allows passwords:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+The port left on 22:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mdefault port (22)␛[m$
+$
+Root by key, port 22:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+        ␛[38;2;219;184;83m~ Default port (22)␛[m$
+$
+Passwords on, port 22:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+        ␛[38;2;219;184;83m~ Default port (22)␛[m$
+$
+Passwords on, port 2230:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
 $
-Root may log in:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+Root may log in, port 22:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed␛[m$
+        ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
-Both off, one worse:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+Login and auth off, one worse:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+        ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
-Both off alike:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+Login and auth off alike:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, password auth on␛[m$
+        ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
 A long detail:$
-   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mmatch block allows passwords␛[m$
 $
-Proxmox VE, both configured:$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot key-only, key-only auth␛[m$
+Ports 22 and 2230:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mports 22 and 2230␛[m$
 $
-Passwords on, root not read:$
-   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+Root by key, ports 22 and 2230:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+        ␛[38;2;219;184;83m~ Ports 22 and 2230␛[m$
+$
+Two ports, neither 22:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, 2 ports␛[m$
+$
+Key and password:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey+password, no root, port 2230␛[m$
+$
+The port not read:$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: not listening on 2230␛[m$
+        ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+Passwords on, the port not read:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+        ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+Passwords on, root not read, port 22:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+        ␛[38;2;219;184;83m~ Default port (22)␛[m$
         ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
 sshd not read:$
-   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[38;2;129;134;156m?␛[m  ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
         ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+No SSH server:$
+   ␛[38;2;129;134;156m–␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mno SSH server␛[m$
+$
+Proxmox VE, all three configured:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, root key-only, port 22␛[m$
+$
+Proxmox VE as installed:$
+   ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, password auth on␛[m$
+$
+Proxmox VE, off port 22:$
+   ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mport 2230, not 22␛[m$
 $
 $
 
@@ -136,38 +294,87 @@ $
   ␛[1;38;2;129;134;156mmenu-layout ssh␛[m ␛[38;2;22;24;29m----------------------------------------------␛[m$
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. The SSH Login row with SSH␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAuth in it: the worse of the two states, and the details of␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe parts in that state. A part read as off outranks one not␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mread. Both off alike is the one pair cut at 64 columns.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. Adopted 2026-11-15: one␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mSSH row for SSH Login, SSH Auth and SSH Port. All three␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigured: auth, login, port. Login and auth configured, the␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mport on 22: Partial, no line. Login and auth not both␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mconfigured: their state and detail, and the port on 22 a line␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder the row. The Proxmox VE words, "ports", "2 ports",␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m"port:" and "not 22" are proposed. One row is cut: login and␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mauth off alike.␛[m$
 $
-Both configured:$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
+All three configured:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
 $
-sshd allows passwords:$
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+The port left on 22:$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mdefault port (22)␛[m$
 $
-Root may log in:$
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed␛[m$
+Root by key, port 22:$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
-Both off, one worse:$
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+Passwords on, port 22:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
-Both off alike:$
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, passw...␛[m$
+Passwords on, port 2230:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+$
+Root may log in, port 22:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
+$
+Login and auth off, one worse:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
+$
+Login and auth off alike:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, passw...␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
 $
 A long detail:$
-  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mmatch block allows passwords␛[m$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mmatch block allows passwords␛[m$
 $
-Proxmox VE, both configured:$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot key-only, key-only auth␛[m$
+Ports 22 and 2230:$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mports 22 and 2230␛[m$
 $
-Passwords on, root not read:$
-  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+Root by key, ports 22 and 2230:$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mroot key-only␛[m$
+                             ␛[38;2;219;184;83m~ Ports 22 and 2230␛[m$
+$
+Two ports, neither 22:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, 2 ports␛[m$
+$
+Key and password:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey+password, no root, port 2230␛[m$
+$
+The port not read:$
+  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mport: not listening on 2230␛[m$
+                             ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+Passwords on, the port not read:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+Passwords on, root not read, port 22:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mpassword auth on␛[m$
+                             ␛[38;2;219;184;83m~ Default port (22)␛[m$
                              ␛[38;2;129;134;156m~ Counted as not configured␛[m$
 $
 sshd not read:$
-  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
+  ␛[38;2;129;134;156m[?]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mUnknown␛[m ␛[38;2;86;91;107mcan't read␛[m$
                              ␛[38;2;129;134;156m~ Counted as not configured␛[m$
+$
+No SSH server:$
+  ␛[38;2;129;134;156m[-]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mNot Applicable␛[m ␛[38;2;86;91;107mno SSH server␛[m$
+$
+Proxmox VE, all three configured:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, root key-only, port 22␛[m$
+$
+Proxmox VE as installed:$
+  ␛[38;2;231;70;105m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107mroot allowed, passw...␛[m$
+$
+Proxmox VE, off port 22:$
+  ␛[38;2;219;184;83m[ ]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mport 2230, not 22␛[m$
 $
 $

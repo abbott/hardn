@@ -23,7 +23,7 @@ func TestEOLGolden(t *testing.T) { goldenListing(t, eolListing) }
 // and the notice's lines, plain at 80 columns, between the status rows and
 // the divider.
 func TestEOLMocks(t *testing.T) {
-	const cve = "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH Login\n\n"
+	const cve = "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH\n\n"
 	tests := []struct {
 		mock    string
 		support detect.Support

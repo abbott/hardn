@@ -46,7 +46,7 @@ func TestELInstall(t *testing.T) {
 		t.Errorf("firewalld installed %v, masked %v, %q", h.fwd.installed, h.fwd.masked, h.fwd.enabled)
 	}
 	if w := inOrder(p.out, "1) Install firewalld", "Install the firewalld package", "Install firewalld #", "Package firewalld", "Status Not running", "At boot No",
-		"Install firewalld? [y/N", "Firewall Configuration #", "Installed Yes", "Running No", "At boot No", "1) Enable firewalld"); w != "" {
+		"Install firewalld? [y/N", "Firewall Settings #", "Installed Yes", "Running No", "At boot No", "1) Enable firewalld"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}
 	want := []string{"systemctl mask firewalld.service", "dnf install -y --setopt=install_weak_deps=False --setopt=exit_on_lock=True firewalld", "systemctl unmask firewalld.service"}
@@ -88,11 +88,11 @@ func TestELDisable(t *testing.T) {
 			t.Errorf("%s: firewalld %s, %s", tc.host, h.fwd.active, h.fwd.enabled)
 		}
 		said := append([]string{tc.key + ") Disable firewalld", tc.about, "Disable firewalld #", tc.warning}, tc.review...)
-		said = append(said, "Disable firewalld? [y/N", "Firewall Configuration #", "Running No", "At boot No", "1) Enable firewalld")
+		said = append(said, "Disable firewalld? [y/N", "Firewall Settings #", "Running No", "At boot No", "1) Enable firewalld")
 		if w := inOrder(p.out, said...); w != "" {
 			t.Errorf("%s: %q not shown after what came before it:\n%s", tc.host, w, p.out)
 		}
-		if s := screens(p.out, "Firewall Configuration"); len(s) < 2 || strings.Contains(s[len(s)-1], "2) Disable firewalld") {
+		if s := screens(p.out, "Firewall Settings"); len(s) < 2 || strings.Contains(s[len(s)-1], "2) Disable firewalld") {
 			t.Errorf("%s: Disable still beside Enable once disabled:\n%s", tc.host, p.out)
 		}
 		if got := elChanges(h, 0); !slices.Equal(got, tc.want) {
@@ -155,7 +155,7 @@ func TestELRefusedBeforeAsking(t *testing.T) {
 		if p.err != nil || p.unread != 0 || len(p.runs) != 0 || len(elChanges(h, n)) > 0 {
 			t.Fatalf("%s: Run = %v, %d unread, runs %+v, ran %q:\n%s", tc.host, p.err, p.unread, p.runs, elChanges(h, n), p.out)
 		}
-		if w := inOrder(p.out, "Option [", "Warning", tc.words, "Firewall Configuration #"); w != "" {
+		if w := inOrder(p.out, "Option [", "Warning", tc.words, "Firewall Settings #"); w != "" {
 			t.Errorf("%s: %q not shown after what came before it:\n%s", tc.host, w, p.out)
 		}
 		for _, not := range []string{tc.review, "[y/N", "Operation Failed", "To go on"} {

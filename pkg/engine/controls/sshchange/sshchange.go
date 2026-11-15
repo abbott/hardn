@@ -14,7 +14,8 @@
 //
 // Read gives the screen what it draws, as facts, no words: sshd -T, the
 // files, the admins (users.Read), the session's login from sshd's log,
-// root's account, v0.3.x's listen.conf and ufw's sources for port 22.
+// root's account, v0.3.x's listen.conf, ufw's sources for port 22 and why
+// they could not be carried to a new port.
 // Plan reads the host again the same way and refuses, before anything is
 // written, in the order of the mock (gallery-ssh.md §5 decision 2, the
 // proof): sshd not read, hardn's old files and an Include not first; then
@@ -92,11 +93,20 @@ type Reading struct {
 	// OnlyFromPort is the first port sshd listens on now (22 where its
 	// listeners are not read) that an active ufw lets in from some
 	// sources alone, and OnlyFrom those sources, an interface rule's
-	// "<src> on <iface>" (ufw.OnlyFrom): a new port would be open to
-	// anyone (P-33 (2)). Zero and nil where ufw is not installed, not
-	// read, or lets each such port in from anywhere on any interface.
+	// "<src> on <iface>" (ufw.OnlyFrom): a new port is given the same
+	// rules (design-ssh-port-sources.md, which superseded P-33 (2) (a)).
+	// Zero and nil where ufw is not installed, not read, or lets each such
+	// port in from anywhere on any interface.
 	OnlyFromPort uint16
 	OnlyFrom     []string
+	// CarryErr is why those rules could not be carried to a new port,
+	// whatever the port (ufw.CheckSession): a *ufw.CopyError for a rule
+	// with a source port or a source application, a *ufw.SessionError
+	// where the rules as they would be do not let the session's address
+	// in, or a remote session's address is not read. nil where nothing is
+	// carried, and where ufw's state is not read whole (the planner
+	// refuses that).
+	CarryErr error
 	// Fix is, on Alpine, whether the openssh-server package sshd runs (the
 	// binary OpenRC's script runs) has CVE-2026-123158's fix
 	// (alpine.OpenSSHFix), Unknown where which sshd runs is not read; the
@@ -160,6 +170,9 @@ func Read(ctx context.Context, sys host.System, f detect.Facts, cfg *config.Conf
 					r.OnlyFromPort, r.OnlyFrom = p, srcs
 					break
 				}
+			}
+			if st.Known() {
+				r.CarryErr = ufw.CheckSession(st, ports, steps.UFWSession(ctx, sys, sess, st, ports))
 			}
 		}
 	}

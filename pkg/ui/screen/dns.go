@@ -18,10 +18,13 @@ import (
 // it has them; every other one is proposed (screen-dns.md, its words
 // table).
 
-// The DNS screen's words: origin/main's title, headings, rows and empty
-// list; "Search Domains", "None" and "reported only" proposed.
+// The DNS screen's words: the title "DNS Settings" (the maintainer,
+// 2026-11-15; it was "DNS Configuration", which the review's heading keeps);
+// origin/main's headings, rows and empty list; "Search Domains", "None" and
+// "reported only" proposed.
 const (
-	dnsTitle          = "DNS Configuration"
+	dnsTitle          = "DNS Settings"
+	dnsReview         = "DNS Configuration"
 	dnsCurrent        = "Current DNS Configuration"
 	dnsConfigured     = "Configured Nameservers"
 	dnsNoneConfigured = "No nameservers configured"
@@ -111,7 +114,8 @@ type DNS struct {
 	// InUse and Search are the nameservers and the search domains the
 	// host uses, its own first, then each link's (decision 2: the host's
 	// search domains are kept, so the screen shows them). With Read
-	// false both rows say Unknown, as for a manager hardn only reports.
+	// false both rows say Unknown, as for a manager hardn only reports
+	// whose file was not read.
 	// Read, no search domain is "None"; but no nameserver is Unknown:
 	// given none, a resolver uses a default of its own, which nothing
 	// read (systemd-resolved its FallbackDNS= servers, which resolvectl
@@ -167,7 +171,7 @@ func (d DNS) implementation() component.KeyValue {
 	return component.KeyValue{Key: dnsImplementation, Value: w.words}
 }
 
-// SubMenu returns the DNS screen: the title bar "DNS Configuration"; the
+// SubMenu returns the DNS screen: the title bar "DNS Settings"; the
 // section "Current DNS Configuration", what manages /etc/resolv.conf and
 // the nameservers and search domains in use; the section "Configured
 // Nameservers", hardn.yml's list, "Nameserver 1" and on, or with none
@@ -220,7 +224,7 @@ func (DNS) Step(label string) WorkflowStep {
 // under "DNS Configuration"; the flow ends it with the plan's findings
 // (decision 5).
 func (d DNS) Review(nameservers []string) flow.Review {
-	return flow.Review{Title: dnsTitle, Items: []component.KeyValue{
+	return flow.Review{Title: dnsReview, Items: []component.KeyValue{
 		{Key: dnsServers, Value: strings.Join(nameservers, ", ")},
 		d.row(dnsSearch, d.Search),
 	}}

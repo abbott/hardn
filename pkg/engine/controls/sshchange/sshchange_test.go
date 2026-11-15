@@ -603,27 +603,42 @@ func TestRefusals(t *testing.T) {
 			v.fw.stopped, v.fw.enabled = true, true
 			return v
 		}, port2230, "FIREWALLD_STOPPED", firewalld.ErrStartsAtBoot, "firewalld is stopped and starts at boot", true},
-		{"ufw lets 22 in from 192.0.2.0/24 alone", func(t *testing.T) *vm {
+		{"ufw lets 22 in by a rule with a source port: it can't be copied", func(t *testing.T) *vm {
+			v := debianVM(t)
+			v.rules = []ufwRule{{port: 22, src: "192.0.2.0/24"}, {port: 22, src: "192.0.2.0/24", sport: "1024"}}
+			v.saveRules()
+			return v
+		}, port2230, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
+			"hardn can't copy this ufw rule to a new port: 22/tcp from 192.0.2.0/24 port 1024. Replace it with a rule by address, then try again.", false},
+		{"the session's address is in no rule for 22", func(t *testing.T) *vm {
+			v := debianVM(t)
+			v.rules = []ufwRule{{port: 22, src: "198.51.100.0/24"}, {port: 22, src: "203.0.113.7"}}
+			v.saveRules()
+			return v
+		}, port2230, "SSH_PORT_SESSION_SOURCE", sshchange.ErrPortSession,
+			"No ufw rule for port 22 covers 192.0.2.10, where you're logged in from. You couldn't reach the new port. Add a rule for it first.", false},
+		{"the session's address is in no rule for 2230, where sshd listens now", func(t *testing.T) *vm {
+			v := debianVM(t).file(sshd.HardnDropIn, "Port 2230\n")
+			v.rules = []ufwRule{{port: 22}, {port: 2230, src: "198.51.100.0/24"}}
+			v.saveRules()
+			return v
+		}, sshchange.Port{To: 2231}, "SSH_PORT_SESSION_SOURCE", sshchange.ErrPortSession,
+			"No ufw rule for port 2230 covers 192.0.2.10, where you're logged in from. You couldn't reach the new port. Add a rule for it first.", false},
+		{"22 let in on eth1 alone, the session's route over eth0", func(t *testing.T) *vm {
+			v := debianVM(t)
+			v.rules = []ufwRule{{port: 22, iface: "eth1"}}
+			v.saveRules()
+			return v
+		}, port2230, "SSH_PORT_SESSION_SOURCE", sshchange.ErrPortSession,
+			"No ufw rule for port 22 covers 192.0.2.10, where you're logged in from. You couldn't reach the new port. Add a rule for it first.", false},
+		{"a remote session whose address is not read", func(t *testing.T) *vm {
 			v := debianVM(t)
 			v.rules = []ufwRule{{port: 22, src: "192.0.2.0/24"}}
 			v.saveRules()
+			v.session = revert.Session{Remote: true, Source: "/proc/4242/stat"}
 			return v
-		}, port2230, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
-			"ufw lets port 22 in from 192.0.2.0/24 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
-		{"ufw lets 2230, where sshd listens now, in from 192.0.2.0/24 alone", func(t *testing.T) *vm {
-			v := debianVM(t).file(sshd.HardnDropIn, "Port 2230\n")
-			v.rules = []ufwRule{{port: 22}, {port: 2230, src: "192.0.2.0/24"}}
-			v.saveRules()
-			return v
-		}, sshchange.Port{To: 2231}, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
-			"ufw lets port 2230 in from 192.0.2.0/24 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
-		{"ufw lets 22 in on eth0 alone", func(t *testing.T) *vm {
-			v := debianVM(t)
-			v.rules = []ufwRule{{port: 22, iface: "eth0"}}
-			v.saveRules()
-			return v
-		}, port2230, "SSH_PORT_SOURCE_RESTRICTED", sshchange.ErrPortRestricted,
-			"ufw lets port 22 in from anywhere on eth0 alone. A new port would be open to anyone. Move that rule to the new port by hand first.", false},
+		}, port2230, "SSH_PORT_SESSION_SOURCE", sshchange.ErrPortSession,
+			"hardn can't tell where you're logged in from, so it can't tell ufw would let you in on a new port. Run hardn from a console.", false},
 		{"ssh.socket and ssh.service both enabled", func(t *testing.T) *vm {
 			return bothUnits(debianVM(t))
 		}, port2230, "RELOAD_MODE_UNKNOWN", reload.ErrModeUnknown, bothUnitsWords, false},
@@ -745,6 +760,76 @@ func TestPlans(t *testing.T) {
 	}
 }
 
+// sourcesVM is the host the port's refusal was seen on, in the test's
+// addresses: ufw lets 22 in from 192.0.2.0/24 (the session's) and
+// 198.51.100.0/24 alone, IPv4 only, and holds more besides.
+func sourcesVM(t *testing.T, more ...ufwRule) *vm {
+	v := debianVM(t)
+	v.rules = append([]ufwRule{{port: 22, src: "192.0.2.0/24"}, {port: 22, src: "198.51.100.0/24"}}, more...)
+	v.saveRules()
+	return v
+}
+
+// TestPortCarries: where ufw lets 22 in from some sources alone, the port
+// change is not refused: each source's rule is planned for the new port,
+// before sshd moves, those already there left out; with both there by hand
+// (the host the bug was seen on) ufw has no step and the change goes on.
+func TestPortCarries(t *testing.T) {
+	const a, b = "ufw allow from 192.0.2.0/24 to any port 2230 proto tcp", "ufw allow from 198.51.100.0/24 to any port 2230 proto tcp"
+	for _, tt := range []struct {
+		name string
+		host func(*testing.T) *vm
+		want []string // ufw's commands; nil: no ufw change
+	}{
+		{"nothing on 2230", func(t *testing.T) *vm { return sourcesVM(t) }, []string{a, b}},
+		{"one of two there", func(t *testing.T) *vm { return sourcesVM(t, ufwRule{port: 2230, src: "198.51.100.0/24"}) }, []string{a}},
+		{"both there by hand", func(t *testing.T) *vm {
+			return sourcesVM(t, ufwRule{port: 2230, src: "192.0.2.0/24"}, ufwRule{port: 2230, src: "198.51.100.0/24"})
+		}, nil},
+		{"on eth0, both IP versions", func(t *testing.T) *vm {
+			v := debianVM(t)
+			v.rules = []ufwRule{{port: 22, iface: "eth0"}}
+			v.saveRules()
+			return v
+		}, []string{"ufw allow in on eth0 to any port 2230 proto tcp"}},
+		{"from a console: no session to weigh", func(t *testing.T) *vm {
+			v := debianVM(t).console()
+			v.rules = []ufwRule{{port: 22, src: "198.51.100.0/24"}}
+			v.saveRules()
+			return v
+		}, []string{b}},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			v := tt.host(t)
+			_, p := planOn(t, v, port2230)
+			if err := p.Err(); err != nil || p.Empty() {
+				t.Fatalf("plan: %v, %d changes", err, len(p.Changes))
+			}
+			var fw *engine.Change
+			ids := map[string]int{}
+			for i, c := range p.Changes {
+				ids[c.ID] = i
+				if c.ID == "ssh.port/firewall" {
+					fw = &p.Changes[i]
+				}
+			}
+			switch {
+			case tt.want == nil && fw != nil:
+				t.Errorf("ufw change %q, want none", fw.Commands)
+			case tt.want != nil && (fw == nil || !slices.Equal(fw.Commands, tt.want)):
+				t.Errorf("ufw change %+v, want %q", fw, tt.want)
+			case fw != nil && (fw.Risk != engine.RiskLockout || fw.Stage != engine.StageFirewall || ids[fw.ID] > ids["ssh.port/files"] || ids[fw.ID] > ids["ssh.port/reload"]):
+				t.Errorf("ufw change %s: risk %v, stage %v, order %v", fw.ID, fw.Risk, fw.Stage, ids)
+			case fw != nil && fw.Title != "ufw: allow 2230/tcp from 22's sources":
+				t.Errorf("title %q", fw.Title)
+			}
+			if _, ok := ids["ssh.port/files"]; !ok {
+				t.Errorf("no write of 00-hardn.conf: %v", ids)
+			}
+		})
+	}
+}
+
 // snapshot is every file under the paths the SSH changes write (sshd's
 // files, ufw's rules), with mode and owner.
 func snapshot(v *vm) map[string]string {
@@ -793,6 +878,18 @@ func TestApplyRollBack(t *testing.T) {
 			return newVM(t, debian13(), true, george, a).file(sshd.DropInDir+"/50-cloud-init.conf", "PasswordAuthentication yes\n")
 		}, keyOnly, "passwordauthentication no"},
 		{"the port", debianVM, port2230, "port 2230"},
+		{"the port, 22's two ufw sources carried: the rollback deletes the two", func(t *testing.T) *vm {
+			return sourcesVM(t)
+		}, port2230, "port 2230"},
+		{"the port, one source on 2230 by hand: the rollback leaves it", func(t *testing.T) *vm {
+			return sourcesVM(t, ufwRule{port: 2230, src: "198.51.100.0/24"})
+		}, port2230, "port 2230"},
+		{"the port, 22 let in on eth0 alone", func(t *testing.T) *vm {
+			v := debianVM(t)
+			v.rules = []ufwRule{{port: 22, iface: "eth0"}}
+			v.saveRules()
+			return v
+		}, port2230, "port 2230"},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			v := tt.host(t)

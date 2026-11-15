@@ -1,5 +1,7 @@
 # The main menu goes live, with the DNS row (`next/s2-menu-live`)
 
+*Since `next/ssh-row` (2026-11-15; [gallery-menu-layout.md](gallery-menu-layout.md) §7): the main menu draws SSH Login, SSH Auth and SSH Port as one row, SSH; it still checks the three controls.*
+
 *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the main menu checks the scored rows' controls, Kernel among them on every host, then DNS, NTP and Syslog, and draws each of those three only with a problem, under the scored rows. SSH Auth is drawn in the SSH Login row.*
 
 *Since `next/log-forwarding` (2026-11-13; [gallery-logforward.md](gallery-logforward.md), decision 10 (a)): the main menu also checks Log Forwarding, whose row is drawn only where hardn.yml names a server or the host forwards, and never weighs in the risk level.*

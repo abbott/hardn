@@ -149,12 +149,15 @@ func TestPlanForRules(t *testing.T) {
 		}, ls: sshd.Listeners{SSHD: lo, All: lo, Known: true}, desired: hardening},
 		{name: "no IPv6 in the kernel: IPv6 needs nothing", setup: func(m *model) { m.noKernel6 = true }, add: []uint16{2230},
 			desired: hardening, want: []string{"ufw allow 22/tcp", "ufw allow 2230/tcp", "ufw --force enable"}},
-		{name: "the new port opened wider than the restricted current one", setup: func(m *model) {
+		{name: "the new port opened wider than the current one, which has an exception", setup: func(m *model) {
 			m.active, m.ipv6 = true, false
-			m.rules = []modelRule{{fam: ufw.IPv4, tuple: "### tuple ### allow tcp 22 0.0.0.0/0 any 192.0.2.0/24 in",
-				row: "22/tcp                     ALLOW IN    192.0.2.0/24"}}
+			m.rules = []modelRule{saved(ufw.IPv4, "deny tcp 22 0.0.0.0/0 any 192.0.2.9 in"), allow(ufw.IPv4, "22")}
 		}, ls: v4only, add: []uint16{2230}, desired: hardening, want: []string{"ufw allow 2230/tcp"},
-			finding: []string{"ssh-restricted IPv4 22", "ssh-new-port-wider IPv4 2230"}},
+			finding: []string{"ssh-allowed-except IPv4 22", "ssh-new-port-wider IPv4 2230"}},
+		{name: "the current port from some sources alone: its rule is carried, the new port no wider", setup: func(m *model) {
+			m.active, m.ipv6 = true, false
+			m.rules = []modelRule{saved(ufw.IPv4, "allow tcp 22 0.0.0.0/0 any 192.0.2.0/24 in")}
+		}, ls: v4only, add: []uint16{2230}, desired: hardening, want: []string{"ufw allow from 192.0.2.0/24 to any port 2230 proto tcp"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			m := newModel(t)
@@ -304,7 +307,7 @@ func TestPlanForSaysWhy(t *testing.T) {
 	m := newModel(t)
 	m.rules = []modelRule{{fam: ufw.IPv4, action: "limit", port: "22"}}
 	_, err := ufw.PlanFor(ufw.Input{Proxmox: notPVE, Listeners: stock22(), State: read(t, m), Desired: hardening})
-	want := `listener [::]:22 (IPv6 22) would be blocked by "default deny (incoming); no rule added: \"ufw allow 22/tcp\" would change \"### tuple ### limit tcp 22 0.0.0.0/0 any 0.0.0.0/0 in\""`
+	want := `listener [::]:22 (IPv6 22) would be blocked by "default deny (incoming); no rule added: \"ufw allow 22/tcp\" would change \"limit 22/tcp from anywhere\""`
 	if !errors.Is(err, ufw.ErrBlocks) || !strings.Contains(err.Error(), want) {
 		t.Errorf("PlanFor: %v\nwant it to contain %s", err, want)
 	}

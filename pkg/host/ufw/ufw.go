@@ -124,4 +124,8 @@ type Rule struct {
 	App    string
 	Family Family
 	Line   string // as read
+	// Log is a saved rule's log type ("log", "log-all"; "" for none) and
+	// Comment its comment, decoded from ufw's hex: ParseTuples' alone, what
+	// a copy of the rule repeats (carry.go).
+	Log, Comment string
 }

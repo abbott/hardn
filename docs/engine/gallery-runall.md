@@ -1,5 +1,7 @@
 # Run All mock (slice 8, unit (a))
 
+*Since `next/ssh-row` (2026-11-15; [gallery-menu-layout.md](gallery-menu-layout.md) §7): Run All's rows are unchanged, SSH Login, SSH Auth and SSH Port each its own. The port left to the screen reads "SSH's: 2230", the screen now being "SSH"; it read "SSH Login's: 2230".*
+
 *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): Run All's rows are unchanged, v0.10.0's: User, SSH Login, SSH Auth, SSH Port, Firewall, DNS, Auto Updates, AppArmor, then Syslog, NTP and Kernel where hardn.yml asks, then Backup. They are no longer the main menu's rows (`runall.IDs`).*
 
 Unit (a) of slice 8, `next/s8-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`runall.go`). It replaces the withdrawn removal survey (`next/s8-survey`, kept unmerged), whose §1 to §3 facts it reads; that survey's decisions are void.

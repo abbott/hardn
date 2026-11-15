@@ -91,7 +91,7 @@ func TestPlayDNS(t *testing.T) {
 		notHardn   = "not-configured: not hardn.yml's"
 		written    = "write-atomic "
 		reload     = "systemctl try-reload-or-restart systemd-resolved.service"
-		redrawn    = "DNS Configuration #" // the title bar, as flatText leaves it
+		redrawn    = "DNS Settings #" // the title bar, as flatText leaves it
 	)
 	dropInMade := []string{"mkdir " + dns.DropInDir, "chmod " + dns.DropInDir, written + dns.DropIn, reload}
 	listed := func(list ...string) func(*testing.T, *fakeHost) {
@@ -226,7 +226,7 @@ func TestPlayDNSUsage(t *testing.T) {
 		}
 	}
 	code, out, errs, unread := playGallery([]string{"8", "2", "0", "0", "0"}, "-profile", "plain")
-	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Info: "+dnsMainHost) || !strings.Contains(out, "# DNS Configuration #") {
+	if code != exitOK || errs != "" || unread != 0 || !strings.Contains(out, "Info: "+dnsMainHost) || !strings.Contains(out, "# DNS Settings #") {
 		t.Errorf("play, 8 then 2: exit %d, stderr %q, %d unread:\n%s", code, errs, unread, out)
 	}
 	code, out, _, unread = playGallery([]string{"7", "0", "0"}, "-profile", "plain", dnsPrefix)

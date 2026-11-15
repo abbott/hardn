@@ -10,7 +10,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mRoot login off␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m             ␛[38;2;129;134;156mNothing asked␛[m$
-   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mSSH Login's: 2230␛[m$
+   ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;129;134;156mSSH's: 2230␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m                  ␛[38;2;129;134;156mSet 2 nameservers␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mAlready as asked␛[m$
@@ -35,7 +35,7 @@ $
    -  User                 Already as asked$
    -  SSH Login            Root login off$
    -  SSH Auth             Nothing asked$
-   -  SSH Port             SSH Login's: 2230$
+   -  SSH Port             SSH's: 2230$
    -  Firewall             Already as asked$
    -  DNS                  Set 2 nameservers$
    -  Auto Updates         Already as asked$
@@ -64,7 +64,7 @@ $
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Auth␛[m$
       ␛[38;2;129;134;156mNothing asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;129;134;156mSSH Login's: 2230␛[m$
+      ␛[38;2;129;134;156mSSH's: 2230␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mAlready as asked␛[m$
    ␛[38;2;129;134;156m-␛[m  ␛[38;2;192;196;216mDNS␛[m$

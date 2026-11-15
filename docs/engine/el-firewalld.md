@@ -97,7 +97,7 @@ Item 1 where it runs; beside Enable where it is stopped and starts at boot.
 ### 1.6 The screen and the main menu
 
 On Rocky Linux and AlmaLinux:
-- title "Firewall Configuration";
+- title "Firewall Settings" (*since 2026-11-15; it was "Firewall Configuration"*);
 - a firewalld section: Installed, Running, At boot, Default zone, Active zones; in a container, a muted last line that its host may filter too (since 2026-11-11, [screen-firewall.md](screen-firewall.md));
 - item 1 (Install, Install iproute, Enable or Disable), and Disable beside Enable or Install iproute where `is-enabled` says `enabled`, then Return;
 - item 1 is Disable wherever firewalld runs, `ss` or not: Disable reads no sockets;

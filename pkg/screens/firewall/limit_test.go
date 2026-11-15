@@ -45,14 +45,14 @@ func TestLimit(t *testing.T) {
 		t.Fatalf("Run = %v, %d unread, runs %+v:\n%s", p.err, p.unread, p.runs, p.out)
 	}
 	if w := inOrder(p.out, "5) Limit SSH Block repeated connections", "Limit SSH #", limitNotice, "22/tcp Limit", "22/tcp (v6) Limit",
-		"Limit 22/tcp", "-allow 22/tcp", "+limit 22/tcp", "$ ufw limit 22/tcp", limitAsk, "UFW Firewall Configuration #", "[::]:22 Rate limited", "0.0.0.0:22 Rate limited",
+		"Limit 22/tcp", "-allow 22/tcp", "+limit 22/tcp", "$ ufw limit 22/tcp", limitAsk, "Firewall Settings #", "[::]:22 Rate limited", "0.0.0.0:22 Rate limited",
 		"22/tcp Limit", "22/tcp (v6) Limit", "1) Disable firewall"); w != "" {
 		t.Errorf("%q not shown after what came before it:\n%s", w, p.out)
 	}
 	if strings.Contains(p.out, "Type the hostname") {
 		t.Errorf("the hostname asked: the change is y/N:\n%s", p.out)
 	}
-	s := screens(p.out, "UFW Firewall Configuration")
+	s := screens(p.out, "Firewall Settings")
 	if got := items(s[len(s)-1]); strings.Contains(got, "Limit SSH") || rowOf(s[len(s)-1], "Firewall") != "+ deny policy" {
 		t.Errorf("after: items %q, the row %q", got, rowOf(s[len(s)-1], "Firewall"))
 	}
@@ -99,7 +99,7 @@ func TestLimitFails(t *testing.T) {
 	if got := limitRan(h, n); !slices.Equal(got, []string{"ufw limit 22/tcp", "ufw allow 22/tcp"}) {
 		t.Errorf("ran %q", got)
 	}
-	s := screens(p.out, "UFW Firewall Configuration")
+	s := screens(p.out, "Firewall Settings")
 	if len(h.rules) != 1 || h.rules[0].verb() != "allow" || !strings.Contains(flat(s[len(s)-1]), "0.0.0.0:22 Allowed") {
 		t.Errorf("after: rules %+v:\n%s", h.rules, s[len(s)-1])
 	}

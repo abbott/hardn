@@ -63,7 +63,7 @@ func TestLimitRow(t *testing.T) {
 			if warn := strings.Contains(p.out, "[ ] Brute-Force Limit"); warn != tc.warn {
 				t.Errorf("a warning %t, want %t:\n%s", warn, tc.warn, p.out)
 			}
-			for _, row := range []string{"SSH Login", "SSH Auth", "SSH Port"} {
+			for _, row := range []string{"SSH", "~"} {
 				if a, b := line(p.out, true, row), line(base.out, true, row); a != b {
 					t.Errorf("%s reads %q, with the default %q", row, a, b)
 				}

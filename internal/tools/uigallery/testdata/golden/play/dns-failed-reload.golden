@@ -19,7 +19,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54. Its next reload of systemd-resolved loads␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing new, so a change fails and is rolled back.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -77,7 +77,7 @@ $
   ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[38;2;129;134;156mRun resolvectl dns to see the servers in use.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -134,7 +134,7 @@ $
 # 2001:db8::54. Its next reload of systemd-resolved loads$
 # nothing new, so a change fails and is rolled back.$
 $
-# DNS Configuration ############################################$
+# DNS Settings #################################################$
 $
   Current DNS Configuration ------------------------------------$
 $
@@ -192,7 +192,7 @@ $
   Check the log file at /var/log/hardn.log for details$
   Run resolvectl dns to see the servers in use.$
 $
-# DNS Configuration ############################################$
+# DNS Settings #################################################$
 $
   Current DNS Configuration ------------------------------------$
 $
@@ -250,7 +250,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54. Its next reload of systemd-resolved loads␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing new, so a change fails and is rolled back.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $
@@ -324,7 +324,7 @@ $
   ␛[38;2;129;134;156mCheck the log file at /var/log/hardn.log for details␛[m$
   ␛[38;2;129;134;156mRun resolvectl dns to see the servers in use.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mDNS Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
   ␛[1;38;2;129;134;156mCurrent DNS Configuration␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
 $

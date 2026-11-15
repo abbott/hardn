@@ -9,11 +9,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net runs Rocky Linux␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10, firewalld running. firewalld has no rule like ufw's limit,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso the screen has no item and no line for one. The host's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit is sshd's, the SSH Login screen's row (ssh-on). Drawn␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom rows written in the gallery, which simulates no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirewalld.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit is sshd's, the SSH screen's row (ssh-on). Drawn from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrows written in the gallery, which simulates no firewalld.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
 $
@@ -42,11 +41,10 @@ $
 # Proposed: no Figma frame. web-01.example.net runs Rocky Linux$
 # 10, firewalld running. firewalld has no rule like ufw's limit,$
 # so the screen has no item and no line for one. The host's$
-# limit is sshd's, the SSH Login screen's row (ssh-on). Drawn$
-# from rows written in the gallery, which simulates no$
-# firewalld.$
+# limit is sshd's, the SSH screen's row (ssh-on). Drawn from$
+# rows written in the gallery, which simulates no firewalld.$
 $
-# Firewall Configuration #######################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + firewalld running$
 $
@@ -75,11 +73,11 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net runs Rocky␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mLinux 10, firewalld running. firewalld has no rule like␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mufw's limit, so the screen has no item and no line for␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone. The host's limit is sshd's, the SSH Login screen's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow (ssh-on). Drawn from rows written in the gallery,␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwhich simulates no firewalld.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mone. The host's limit is sshd's, the SSH screen's row␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(ssh-on). Drawn from rows written in the gallery, which␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156msimulates no firewalld.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
@@ -115,11 +113,10 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mProposed: no Figma frame. web-01.example.net runs Rocky Linux␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m10, firewalld running. firewalld has no rule like ufw's limit,␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mso the screen has no item and no line for one. The host's␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit is sshd's, the SSH Login screen's row (ssh-on). Drawn␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfrom rows written in the gallery, which simulates no␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mfirewalld.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlimit is sshd's, the SSH screen's row (ssh-on). Drawn from␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrows written in the gallery, which simulates no firewalld.␛[m$
 $
-␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m#######################################␛[m$
+␛[38;2;43;47;59m#␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m############################################␛[m$
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mfirewalld running␛[m$
 $

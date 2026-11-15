@@ -7,7 +7,7 @@
 | Option | Displays | Configures |
 |---|---|---|
 | 1) User | users, their admin rights (`sudo` or `doas`), SSH keys, password state; under Account Review, accounts with an empty password, a password that never expires or no login in 90 days, each with the command to run | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
-| 2) SSH Login | root login, password login, the port, allowed users, sshd's brute-force limit, as sshd reads them; every account's SSH keys, with weak and shared ones marked | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
+| 2) SSH | root login, password login, the port, allowed users, sshd's brute-force limit, as sshd reads them; every account's SSH keys, with weak and shared ones marked | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
 | 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles, limits repeated SSH connections. On Rocky, Alma, RHEL, CentOS Stream and Oracle: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
 | 4) Kernel | the kernel's network and kernel settings against hardn's baseline, each with its value and what it means | sets the ones below the baseline in one file, `/etc/sysctl.d/90-hardn.conf`, and at once; puts the earlier values back. [More](#kernel-settings) |
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL, CentOS Stream, Oracle); turns off only what hardn turned on. Read only on Proxmox |
@@ -33,8 +33,8 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 ```
   [+] User                 + non-root, sudo
                              ~ No password to become root
-  [ ] SSH Login            Not Configured password auth on
-  [+] SSH Port             + non-default (2230)
+  [ ] SSH                  Not Configured password auth on
+                             ~ Default port (22)
   [+] Firewall             + deny policy
   [ ] Kernel               Not Configured 6 to set
   [+] Auto Updates         + unattended-upgrades
@@ -46,7 +46,11 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 
 - **`+` means Configured.** A row that needs work keeps its word: Partial, Not Configured, Not Applicable or Unknown. The same on every screen's own row. `hardn check`, the JSON and the Markdown report keep the word "Configured".
 - **A line starting with `~`** under a row says what else lowers the risk level, or what hardn could not read.
-- **SSH Login** is root login and password login in one row. It shows the worse of the two, and what is off. `hardn check`, the JSON and the report keep the two controls, `ssh.login` and `ssh.auth`.
+- **SSH** is root login, password login and the port in one row.
+  - All three set: `+ key-only, no root, port 2230`.
+  - Only the port left on 22: `Partial default port (22)`.
+  - Root or password login not set: the worse of the two and what is off, with `~ Default port (22)` under it where the port is 22.
+  - `hardn check`, the JSON and the report keep the three controls, `ssh.login`, `ssh.auth` and `ssh.port`.
 - **Kernel** is on every host: "6 to set", "6 items applied" once hardn's file sets them, "baseline default" where the host met the baseline as it was, and Not Applicable in a container. It counts 5 points of the [risk level](engine/risk.md).
 - **DNS, NTP and Syslog have a row only with a problem**, under the others: the host's value, and the problem under it. For example nameservers that are not `hardn.yml`'s, a clock not in sync, or a syslog server that is unreachable. No time service, and no log forwarding, are a problem only where `hardn.yml` names servers for it. These rows never change the risk level.
 
@@ -246,7 +250,7 @@ MAILTO=root
 
 - the host, its platform and whether hardn supports it;
 - the risk level, and each thing that raised it;
-- each control's status, with the evidence it was read from (SSH Login and SSH Auth each on its own row, and "Configured" in words);
+- each control's status, with the evidence it was read from (SSH Login, SSH Auth and SSH Port each on its own row, and "Configured" in words);
 - the findings, and any check that failed;
 - System Details: addresses, users, CPU and load, disk, memory, last login.
 

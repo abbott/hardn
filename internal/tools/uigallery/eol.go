@@ -82,7 +82,7 @@ func (m eolMock) view() screen.MainMenu {
 	vm.Context = m.bar
 	vm.Notice = output.NoticeOf(m.platform(), eolDay(m.today))
 	if m.cve {
-		vm.Alert = &screen.Alert{Title: output.AlertCVE, Fix: output.AlertFix, Item: "SSH Login"}
+		vm.Alert = &screen.Alert{Title: output.AlertCVE, Fix: output.AlertFix, Item: screen.SSHTitle}
 	}
 	return vm
 }

@@ -40,14 +40,13 @@ func mlDraw(t *testing.T, name string) string {
 
 // mlMenuText is the adopted main menu on the configured host, from the
 // risk level to the Exit item: the maintainer's text of 2026-11-14 with
-// what he adopted after it, SSH Auth in the SSH Login row and "~" under a
-// row.
+// what he adopted after it: "~" under a row, and the one SSH row and item
+// 2's label of 2026-11-15.
 const mlMenuText = `   ⛬  Risk Level           Low ≈ strong security
 
    ⛛  User                 + non-root, sudo
                              ~ No password to become root
-   ⛛  SSH Login            + root disallowed, key-only auth
-   ⛛  SSH Port             + non-default (2230)
+   ⛛  SSH                  + key-only, no root, port 2230
    ⛛  Firewall             + deny policy
    ⛛  Kernel               + 6 items applied
    ⛛  Auto Updates         + unattended-upgrades
@@ -58,7 +57,7 @@ const mlMenuText = `   ⛬  Risk Level           Low ≈ strong security
   Select an option         Mode Live
 
    1) User                 Create, manage (sudo, SSH keys)
-   2) SSH Login            Disable root and passwords, set port
+   2) SSH                  Disable root and passwords, set port
    3) Firewall             Manage rules, port listening
    4) Kernel               Harden sysctl (network, kernel)
    5) Auto Updates         Enable automatic updates
@@ -80,7 +79,7 @@ func TestMenuLayoutMenu(t *testing.T) {
 	if !strings.Contains(got, mlMenuText) {
 		t.Errorf("menu is not the adopted text:\n%s", got)
 	}
-	for _, no := range []string{"Configured", "DNS  ", "NTP  ", "Syslog  ", "SSH Auth"} {
+	for _, no := range []string{"Configured", "DNS  ", "NTP  ", "Syslog  ", "SSH Auth", "SSH Login", "SSH Port"} {
 		if strings.Contains(got, no) {
 			t.Errorf("menu says %q:\n%s", no, got)
 		}
@@ -88,15 +87,14 @@ func TestMenuLayoutMenu(t *testing.T) {
 }
 
 // TestMenuLayoutMixed: a row that is not Configured keeps its word, with
-// colour and without; the SSH Login row is the worse of its two, saying
-// what is off; a line under a row starts two cells in from the value
+// colour and without; the SSH row is the worse of login and auth, saying
+// what is off, with nothing for a port off 22; a line under a row starts two cells in from the value
 // column.
 func TestMenuLayoutMixed(t *testing.T) {
 	draw := mlDraw(t, "mixed")
 	for _, want := range []string{
 		"  [+] User                 + non-root, sudo\n                             ~ No password to become root\n",
-		"  [ ] SSH Login            Not Configured password auth on\n",
-		"  [+] SSH Port             + non-default (2230)\n",
+		"  [ ] SSH                  Not Configured password auth on\n  [?] Firewall",
 		"  [?] Firewall             Unknown can't read\n                             ~ Counted as not configured\n",
 		"  [ ] Kernel               Partial 1 set outside hardn\n",
 		"  [ ] Auto Updates         Not Configured no unattended-upgrades\n",
@@ -106,25 +104,50 @@ func TestMenuLayoutMixed(t *testing.T) {
 			t.Errorf("no %q in\n%s", want, draw)
 		}
 	}
-	if strings.Contains(draw, "SSH Auth") || strings.Contains(draw, strings.Repeat(" ", 5)+"Configured") {
-		t.Errorf("an SSH Auth row, or a Configured row's word:\n%s", draw)
+	if strings.Contains(draw, "SSH Auth") || strings.Contains(draw, "SSH Port") || strings.Contains(draw, strings.Repeat(" ", 5)+"Configured") {
+		t.Errorf("an SSH Auth or SSH Port row, or a Configured row's word:\n%s", draw)
 	}
 }
 
-// TestMenuLayoutSSH: the merged row's cases.
+// TestMenuLayoutSSH: the one SSH row's cases (the maintainer, 2026-11-15),
+// each block whole, plain, at 64 columns: the row, and every line under
+// it. No block has an SSH Login, SSH Auth or SSH Port row.
 func TestMenuLayoutSSH(t *testing.T) {
-	draw := mlDraw(t, "ssh")
-	for _, want := range []string{
-		"Both configured:\n  [+] SSH Login            + root disallowed, key-only auth\n",
-		"sshd allows passwords:\n  [ ] SSH Login            Not Configured password auth on\n",
-		"Root may log in:\n  [ ] SSH Login            Not Configured root allowed\n",
-		"Both off, one worse:\n  [ ] SSH Login            Not Configured password auth on\n",
-		"Both off alike:\n  [ ] SSH Login            Not Configured root allowed, passw...\n",
-		"A long detail:\n  [ ] SSH Login            Partial match block allows passwords\n",
-		"sshd not read:\n  [?] SSH Login            Unknown can't read\n",
-	} {
-		if !strings.Contains(draw, want) {
+	draw := mlDraw(t, "ssh") + "\n\n"
+	wants := []string{
+		"All three configured:\n  [+] SSH                  + key-only, no root, port 2230\n",
+		"The port left on 22:\n  [ ] SSH                  Partial default port (22)\n",
+		"Root by key, port 22:\n  [ ] SSH                  Partial root key-only\n                             ~ Default port (22)\n",
+		"Passwords on, port 22:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Default port (22)\n",
+		"Passwords on, port 2230:\n  [ ] SSH                  Not Configured password auth on\n",
+		"Root may log in, port 22:\n  [ ] SSH                  Not Configured root allowed\n                             ~ Default port (22)\n",
+		"Login and auth off, one worse:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Default port (22)\n",
+		"Login and auth off alike:\n  [ ] SSH                  Not Configured root allowed, passw...\n                             ~ Default port (22)\n",
+		"A long detail:\n  [ ] SSH                  Partial match block allows passwords\n",
+		"Ports 22 and 2230:\n  [ ] SSH                  Partial ports 22 and 2230\n",
+		"Root by key, ports 22 and 2230:\n  [ ] SSH                  Partial root key-only\n                             ~ Ports 22 and 2230\n",
+		"Two ports, neither 22:\n  [+] SSH                  + key-only, no root, 2 ports\n",
+		"Key and password:\n  [+] SSH                  + key+password, no root, port 2230\n",
+		"The port not read:\n  [?] SSH                  Unknown port: not listening on 2230\n                             ~ Counted as not configured\n",
+		"Passwords on, the port not read:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Counted as not configured\n",
+		"Passwords on, root not read, port 22:\n  [ ] SSH                  Not Configured password auth on\n                             ~ Default port (22)\n                             ~ Counted as not configured\n",
+		"sshd not read:\n  [?] SSH                  Unknown can't read\n                             ~ Counted as not configured\n",
+		"No SSH server:\n  [-] SSH                  Not Applicable no SSH server\n",
+		"Proxmox VE, all three configured:\n  [+] SSH                  + key-only, root key-only, port 22\n",
+		"Proxmox VE as installed:\n  [ ] SSH                  Not Configured root allowed, passw...\n",
+		"Proxmox VE, off port 22:\n  [ ] SSH                  Partial port 2230, not 22\n",
+	}
+	if len(wants) != len(mlSSHCases) {
+		t.Fatalf("%d cases, %d wanted", len(mlSSHCases), len(wants))
+	}
+	for _, want := range wants {
+		if !strings.Contains(draw, want+"\n") {
 			t.Errorf("no %q in\n%s", want, draw)
+		}
+	}
+	for _, no := range []string{"SSH Login", "SSH Auth", "SSH Port"} {
+		if strings.Contains(draw, no) {
+			t.Errorf("a row %q in\n%s", no, draw)
 		}
 	}
 }

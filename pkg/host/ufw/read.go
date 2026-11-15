@@ -2,6 +2,7 @@ package ufw
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/fs"
@@ -175,7 +176,9 @@ func isAddr(s string) bool {
 // form ufw keeps its rules in: action, protocol, destination port and
 // address, source port and address, [destination and source application,]
 // then the direction with an optional "_<interface>", and an optional
-// " comment=". An action may carry "_<logtype>" and, for a routed rule,
+// " comment=", the comment as hex (Rule.Comment is it decoded; one that is
+// not hex is a line not read). An action may carry "_log" or "_log-all"
+// (Rule.Log; any other log type is a line not read) and, for a routed rule,
 // "route:".
 func ParseTuples(data []byte, fam Family) (rules []Rule, bad []string) {
 	for _, line := range strings.Split(string(data), "\n") {
@@ -183,19 +186,21 @@ func ParseTuples(data []byte, fam Family) (rules []Rule, bad []string) {
 		if !ok {
 			continue
 		}
-		rest, _, _ = strings.Cut(rest, " comment=")
+		rest, hexed, _ := strings.Cut(rest, " comment=")
+		comment, err := hex.DecodeString(strings.TrimSpace(hexed))
 		f := strings.Fields(rest)
-		if len(f) != 7 && len(f) != 9 {
+		if len(f) != 7 && len(f) != 9 || err != nil {
 			bad = append(bad, line)
 			continue
 		}
 		action, route := strings.CutPrefix(f[0], "route:")
-		action, _, _ = strings.Cut(action, "_")
+		action, logType, _ := strings.Cut(action, "_")
 		dir, iface, _ := strings.Cut(f[len(f)-1], "_")
 		if route {
 			dir = "fwd"
 		}
-		if !validAction(action) || dir != "in" && dir != "out" && dir != "fwd" {
+		if !validAction(action) || logType != "" && logType != "log" && logType != "log-all" ||
+			dir != "in" && dir != "out" && dir != "fwd" {
 			bad = append(bad, line)
 			continue
 		}
@@ -216,6 +221,7 @@ func ParseTuples(data []byte, fam Family) (rules []Rule, bad []string) {
 		rules = append(rules, Rule{
 			Action: action, Dir: dir, Proto: f[1], Dst: anyAddr(f[3]), DPort: anyPort(f[2]),
 			Src: strings.Join(src, " "), Iface: iface, App: app, Family: fam, Line: line,
+			Log: logType, Comment: string(comment),
 		})
 	}
 	return rules, bad

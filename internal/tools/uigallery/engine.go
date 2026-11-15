@@ -341,7 +341,7 @@ func dnsScenarios() []scenario {
 			note: []string{hostFQDN + " is a Proxmox VE 9 node; /etc/resolv.conf is its installer's file, naming 192.0.2.1." + listed, configure + yn},
 			host: dnsHost(pve9Platform), setup: configureDNS, question: "Configure DNS?", answers: []string{yes}, ends: flow.Applied},
 		{name: "dns-refused-networkmanager", label: "Refused: NetworkManager", about: "NetworkManager's DNS (P-37)",
-			note: []string{hostFQDN + " runs Debian 13 with NetworkManager; /etc/resolv.conf links to NetworkManager's file." + listed,
+			note: []string{hostFQDN + " runs Debian 13 with NetworkManager; /etc/resolv.conf links to NetworkManager's file, naming 192.0.2.1 and example.net." + listed,
 				configure + " The plan refuses it, with a report (P-37 (a))."},
 			host: networkManagerHost, setup: configureDNS, question: "Configure DNS?", ends: flow.Failed},
 		{name: "dns-refused-empty", label: "Refused: no nameservers", about: "Configure DNS, hardn.yml lists none",
@@ -653,7 +653,8 @@ var stateDirs = []string{revert.DefaultDir, "/run/hardn", backup.DefaultPath}
 // simulations and reads (apt-get install -s, apk add --simulate, apk info),
 // sshd's log as sshd.ReadAccepted reads it (journalctl -u), and the time
 // service's state and the clock's (timedatectl, chronyc tracking, busybox
-// adjtimex, rc-service status).
+// adjtimex, rc-service status), and the route back to the session's client
+// (ip route get).
 func reads(argv []string) bool {
 	switch path.Base(argv[0]) {
 	case "sshd", "ss", "systemd-analyze", "visudo", "dpkg-query", "timedatectl":
@@ -678,6 +679,8 @@ func reads(argv []string) bool {
 		return slices.Contains([]string{"is-active", "is-enabled", "show", "list-timers"}, argv[1])
 	case "sh":
 		return len(argv) > 1 && argv[1] == "-n"
+	case "ip": // the route back to the session's client (ufw.RouteDev)
+		return len(argv) == 4 && argv[1] == "route" && argv[2] == "get"
 	case "apt-get":
 		return len(argv) > 2 && argv[1] == "install" && argv[2] == "-s"
 	case "apk":

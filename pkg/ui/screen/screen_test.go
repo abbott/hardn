@@ -356,8 +356,8 @@ func TestCompact(t *testing.T) {
 	env := term.Fixed(60, colorprofile.TrueColor, true, true)
 	env.Height = theme.CompactBelow
 	c := component.NewCtx(env)
-	if nFull, nShort := lines(vm.form(c, false)), lines(vm.form(c, true)); nFull != 55 || nShort != 34 {
-		t.Errorf("60 columns: the full form takes %d lines and the compact %d, want 55 and 34 (README §9.12)", nFull, nShort)
+	if nFull, nShort := lines(vm.form(c, false)), lines(vm.form(c, true)); nFull != 53 || nShort != 32 {
+		t.Errorf("60 columns: the full form takes %d lines and the compact %d, want 53 and 32 (README §9.12; one row fewer, stacked, since the one SSH row of 2026-11-15)", nFull, nShort)
 	}
 	if out := ansi.Strip(vm.render(c, true)); strings.HasPrefix(out, "hardn") || !strings.Contains(out, "BOS-SAN-L01") || !strings.Contains(out, "Risk Level") {
 		t.Errorf("60x40: want the compact form, the host badge and the risk line on screen, got:\n%s", out)
@@ -419,16 +419,17 @@ func TestStatusBlocks(t *testing.T) {
 	}
 }
 
-// TestHeights records the main menu's heights with Figma's seven status
-// rows and with an eighth, the DNS row of next/s2-menu-live
+// TestHeights records the main menu's heights with the mock's six status
+// rows (seven until the one SSH row of 2026-11-15) and with a seventh, the
+// DNS row of next/s2-menu-live
 // (docs/engine/menu-live.md §6), on a terminal of 80 and 60 columns, 24
-// and 40 rows, Unicode and ASCII, in both forms: the full form, 35 lines
-// with the eighth row from 64 columns, 57 at 60 columns where the rows
-// stack, so that on 24 rows its top 11 lines scroll off, the risk level
+// and 40 rows, Unicode and ASCII, in both forms: the full form, 34 lines
+// with the seventh row from 64 columns, 55 at 60 columns where the rows
+// stack, so that on 24 rows its top 10 lines scroll off, the risk level
 // among them (one more each with item 6, which slice 2b's unit (d)
 // removed from the menu); and, with the compact form allowed (render),
-// the form it took and its lines: with the eighth row 25 at 80x24, one
-// over theme.CompactBudget, its distribution bar scrolled off, and 35 in
+// the form it took and its lines: with the seventh row 24 at 80x24,
+// theme.CompactBudget, and 34 in
 // full at 80x40. Live: StatusBlocks above a menu of 17 lines after the gap,
 // as hardn's live main menu drew its legacy menu (pkg/menu: heading to
 // prompt) until next/s2b-menu put it on this layout, with each form's
@@ -439,8 +440,8 @@ func TestStatusBlocks(t *testing.T) {
 // TestMainMenuHeights.
 func TestHeights(t *testing.T) {
 	const legacyMenu = 17
-	eight := MainMenuFixture()
-	eight.Status.Rows = append(eight.Status.Rows, component.StatusRow{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"})
+	seven := MainMenuFixture()
+	seven.Status.Rows = append(seven.Status.Rows, component.StatusRow{Label: "DNS", State: component.StatusConfigured, Detail: "192.0.2.54, 2001:db8::54"})
 	for _, tc := range []struct {
 		vm                MainMenu
 		rows, w, h        int
@@ -448,12 +449,12 @@ func TestHeights(t *testing.T) {
 		form              string // with the compact form allowed
 		allowed, liveForm int
 	}{
-		{MainMenuFixture(), 7, 80, 24, 34, 36, "compact", 24, 31},
-		{MainMenuFixture(), 7, 80, 40, 34, 36, "full", 34, 36},
-		{eight, 8, 80, 24, 35, 37, "compact", 25, 32},
-		{eight, 8, 80, 40, 35, 37, "full", 35, 37},
-		{eight, 8, 60, 24, 57, 48, "compact", 36, 42},
-		{eight, 8, 60, 40, 57, 48, "compact", 36, 42},
+		{MainMenuFixture(), 6, 80, 24, 33, 35, "compact", 23, 30},
+		{MainMenuFixture(), 6, 80, 40, 33, 35, "full", 33, 35},
+		{seven, 7, 80, 24, 34, 36, "compact", 24, 31},
+		{seven, 7, 80, 40, 34, 36, "full", 34, 36},
+		{seven, 7, 60, 24, 55, 46, "compact", 34, 40},
+		{seven, 7, 60, 40, 55, 46, "compact", 34, 40},
 	} {
 		for _, unicode := range []bool{true, false} {
 			env := term.Fixed(tc.w, colorprofile.TrueColor, unicode, true)
@@ -550,7 +551,8 @@ func TestScreenMenu(t *testing.T) {
 // TestCompactForm checks what the compact form keeps and leaves out, the
 // form allowed as CompactMainMenu, gated, would allow it, on plain text at
 // 80x24: the context bar keeps its blank line, and the
-// menu's items start on the line under the heading, in 24 lines.
+// menu's items start on the line under the heading, in 23 lines, one under
+// theme.CompactBudget since the one SSH row (2026-11-15).
 func TestCompactForm(t *testing.T) {
 	env := term.Fixed(80, colorprofile.ASCII, false, true)
 	env.Height = term.DefaultHeight
@@ -562,8 +564,7 @@ func TestCompactForm(t *testing.T) {
 
   [*] Risk Level           Moderate ~ medium security
   [+] User                 + non-root, sudo
-  [+] SSH Login            + root disallowed, key-only auth
-  [+] SSH Port             + non-default (2230)
+  [+] SSH                  + key-only, no root, port 2230
   [+] Firewall             + deny policy
   [+] Kernel               + 6 items applied
   [ ] Auto Updates         Not Configured
@@ -571,7 +572,7 @@ func TestCompactForm(t *testing.T) {
 
   Select an option         Mode Live
    1) User                  7) Backup
-   2) SSH Login             8) Configuration
+   2) SSH                   8) Configuration
    3) Firewall              9) System Details
    4) Kernel               10) Logs
    6) Run All
@@ -579,8 +580,8 @@ func TestCompactForm(t *testing.T) {
    0) Exit                 q to quit
 
     > Option [0-4, 6-10 or q]:`
-	if out != want || lines(out) != theme.CompactBudget {
-		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget, want)
+	if out != want || lines(out) != theme.CompactBudget-1 {
+		t.Errorf("compact main menu, %d lines:\n%s\nwant, in %d,\n%s", lines(out), out, theme.CompactBudget-1, want)
 	}
 }
 
@@ -621,7 +622,7 @@ func TestEmptyBlocks(t *testing.T) {
 func cveAlertFixture() MainMenu {
 	vm := MainMenuFixture()
 	vm.Context = component.ContextBar{Name: "Alpine", Version: "3.23.6"}
-	vm.Alert = &Alert{Title: "CVE-2026-123158", Fix: "Upgrade openssh.", Item: "SSH Login"}
+	vm.Alert = &Alert{Title: "CVE-2026-123158", Fix: "Upgrade openssh.", Item: "SSH"}
 	return vm
 }
 
@@ -633,7 +634,7 @@ func cveAlertFixture() MainMenu {
 // columns.
 func TestAlert(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
-	alert := "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH Login"
+	alert := "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH"
 	vm := cveAlertFixture()
 	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, "AppArmor             Not Configured\n\n"+alert+"\n\n----") {
 		t.Errorf("main menu with an alert:\n%s\nwant the rows, a blank line, the alert, a blank line, then the divider:\n%s", out, alert)
@@ -648,7 +649,7 @@ func TestAlert(t *testing.T) {
 	moved := vm
 	moved.Menu.Items = slices.Clone(vm.Menu.Items)
 	moved.Menu.Items[1].Key = "12"
-	if out := ansi.Strip(moved.Render(c)); !strings.Contains(out, "   # Select option: 12) SSH Login\n") {
+	if out := ansi.Strip(moved.Render(c)); !strings.Contains(out, "   # Select option: 12) SSH\n") {
 		t.Errorf("the route names the menu's own key: got\n%s", out)
 	}
 	none := vm
@@ -675,7 +676,7 @@ func TestAlert(t *testing.T) {
 // date. Plain, at 80 columns.
 func TestNotice(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
-	alert := "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH Login"
+	alert := "   # Warning: CVE-2026-123158\n   # Upgrade openssh.\n   # Select option: 2) SSH"
 	soon := EndOfSupport{Release: "Alpine 3.22", Date: "2027-05-01", Upgrade: "Alpine 3.24"}
 	notice := "   # Warning: Alpine 3.22 support ends 2027-05-01\n   # Upgrade to Alpine 3.24."
 	vm := MainMenuFixture()

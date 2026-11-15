@@ -14,8 +14,8 @@ import (
 // The SSH Login screen as pkg/screens/ssh fills it; the hosts behind each are
 // that package's goldens. Synthetic values only.
 var (
-	sshTestStatus = component.StatusList{Rows: []component.StatusRow{{Label: "SSH Login", State: component.StatusPartial, Detail: "root key-only"},
-		{Label: "SSH Auth", State: component.StatusConfigured, Detail: "key-only auth"}, {Label: "SSH Port", State: component.StatusPartial, Detail: "default (22)"}}}
+	sshTestStatus = component.StatusList{Rows: []component.StatusRow{{Label: "SSH", State: component.StatusPartial, Detail: "root key-only",
+		Lines: []component.StatusLine{{Text: "Default port (22)", Warn: true}}}}}
 	sshTestRows = []component.KeyValue{{Key: SSHRootKey, Value: "Key only", Note: "sshd's default"}, {Key: SSHPasswordKey, Value: "Off", Note: "by sshd_config"},
 		{Key: SSHPortKey, Value: "22"}, {Key: SSHUsersKey, Value: "Anyone"}, {Key: SSHYouKey, Value: "george, by key"}}
 	sshTestDebian = SSH{Status: sshTestStatus, Rows: sshTestRows, PasswordsOff: true, Ports: "22"}
@@ -32,7 +32,7 @@ func TestSSHHeights(t *testing.T) {
 	draws := map[string]struct {
 		vm    SubMenu
 		lines int
-	}{"debian13": {sshTestDebian.SubMenu(), 23}, "legacy": {sshTestLegacy.SubMenu(), 26}, "not read": {sshTestNotRead.SubMenu(), 21}}
+	}{"debian13": {sshTestDebian.SubMenu(), 22}, "legacy": {sshTestLegacy.SubMenu(), 25}, "not read": {sshTestNotRead.SubMenu(), 20}}
 	for name, d := range draws {
 		for _, rows := range []int{24, 40} {
 			for _, unicode := range []bool{true, false} {
@@ -90,7 +90,7 @@ func TestSSHAlert(t *testing.T) {
 	c := component.NewCtx(term.Fixed(80, colorprofile.NoTTY, false, true))
 	unfixed := sshTestDebian
 	unfixed.Unfixed = true
-	alert := "  [ ] SSH Port             Partial default (22)\n\n   # Warning: CVE-2026-123158\n   # Select option: 5) Upgrade openssh\n\n  SSH Configuration "
+	alert := "  [ ] SSH                  Partial root key-only\n                             ~ Default port (22)\n\n   # Warning: CVE-2026-123158\n   # Select option: 5) Upgrade openssh\n\n  SSH Configuration "
 	vm := unfixed.SubMenu()
 	if out := ansi.Strip(vm.Render(c)); !strings.Contains(out, alert) {
 		t.Errorf("SSH Login, sshd unfixed:\n%s\nwant\n%s", out, alert)

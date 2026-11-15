@@ -113,11 +113,18 @@ type State struct {
 	Manager    Manager
 	ResolvConf Entry
 	// Nameservers and Search are what /etc/resolv.conf lists, for a file
-	// manager; Resolved.Global is resolved's.
+	// manager and, where Listed, for a manager hardn only reports;
+	// Resolved.Global is resolved's.
 	Nameservers, Search []string
-	Resolved            Resolved
-	UDHCPC              UDHCPC
-	DHCPClients         []string // DHCP clients found in host.SearchPath
+	// Listed: under a manager hardn only reports (NetworkManager,
+	// resolvconf, cloud-init, another program) the file's content was
+	// read, the file's own or its link target's, and Nameservers and
+	// Search are its lists. False where the target was not read: they are
+	// then not known, which is no error and stops nothing.
+	Listed      bool `json:",omitempty"`
+	Resolved    Resolved
+	UDHCPC      UDHCPC
+	DHCPClients []string // DHCP clients found in host.SearchPath
 	// Err joins why Manager or a field the plan needs is Unknown. PlanDNS
 	// refuses a state with one, so a plan's From has none to marshal.
 	Err error `json:"-"`
@@ -157,7 +164,8 @@ func HostOf(f detect.Facts) (Host, error) {
 
 // Read reads the host's DNS configuration, taking detect's facts (HostOf)
 // and never re-detecting. It only reads: /etc/resolv.conf (Lstat, then
-// Readlink or ReadFileNoFollow), on a systemd-booted host `systemctl
+// Readlink or ReadFileNoFollow; under a manager hardn only reports, its
+// link's target, to show its lists), on a systemd-booted host `systemctl
 // is-active systemd-resolved.service`, and for the manager found its
 // files: systemd-resolved's drop-ins and `resolvectl --no-pager dns` and
 // `domain`; for a file, whether dhclient or dhcpcd is installed, and on
@@ -211,9 +219,37 @@ func read(ctx context.Context, sys host.System, h Host) State {
 		}
 		s.DHCPClients, err = lookPath(ctx, sys, dhcpClients)
 		add(err)
+	case ManagerNetworkManager, ManagerResolvconf, ManagerForeign, ManagerCloudInit:
+		if data, ok := reportedData(ctx, sys, s.ResolvConf); ok {
+			s.Listed = true
+			s.Nameservers, s.Search = ParseResolvConf(data)
+		}
 	}
 	s.Err = errors.Join(errs...)
 	return s
+}
+
+// reportedData is /etc/resolv.conf's content under a manager hardn only
+// reports, to show: the regular file's, or the content of the regular
+// file its link leads to. False where that is not read (a link whose
+// target is missing, unreadable or no regular file): the lists are then
+// not known, and that is neither an error of the state nor a refusal.
+func reportedData(ctx context.Context, sys host.System, e Entry) ([]byte, bool) {
+	switch e.Kind {
+	case EntryFile:
+		return e.Data, true
+	case EntrySymlink:
+		p, err := host.JoinLinkTarget(path.Dir(ResolvConf), e.Target)
+		if err != nil {
+			return nil, false
+		}
+		if fi, err := sys.Stat(ctx, p); err != nil || !fi.Mode().IsRegular() {
+			return nil, false
+		}
+		data, err := sys.ReadFile(ctx, p)
+		return data, err == nil
+	}
+	return nil, false
 }
 
 // readEntry reads name without following a symlink there.

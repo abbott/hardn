@@ -17,7 +17,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdatacenter firewall on, policy_in DROP, the management IP set␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mwritten.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdrop policy␛[m$
 $
@@ -56,7 +56,7 @@ $
 # datacenter firewall on, policy_in DROP, the management IP set$
 # written.$
 $
-# Firewall Configuration #######################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + drop policy$
 $
@@ -96,7 +96,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdatacenter firewall on, policy_in DROP, the management IP␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mset written.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdrop policy␛[m$

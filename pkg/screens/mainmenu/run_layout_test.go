@@ -95,7 +95,7 @@ func TestMainMenuKeys(t *testing.T) {
 		code    int      // the exit status hardn ended with; 0: the main menu returned
 	}{
 		{"1 opens User", []string{"1", "q"}, false, []string{"users"}, 0, 0},
-		{"2 opens SSH Login", []string{"2", "q"}, false, []string{"ssh"}, 0, 0},
+		{"2 opens SSH", []string{"2", "q"}, false, []string{"ssh"}, 0, 0},
 		{"3 opens Firewall", []string{"3", "q"}, false, []string{"firewall"}, 0, 0},
 		{"4 opens Kernel", []string{"4", "q"}, false, []string{"kernel"}, 0, 0},
 		{"5 opens Auto Updates", []string{"5", "q"}, false, []string{"updates"}, 0, 0},
@@ -282,7 +282,7 @@ func TestMainMenuItems(t *testing.T) {
 	}
 	if want := []component.MenuItem{
 		item("1", "User", "Create, manage", "sudo, SSH keys"),
-		item("2", "SSH Login", "Disable root and passwords, set port", ""),
+		item("2", "SSH", "Disable root and passwords, set port", ""),
 		item("3", "Firewall", "Manage rules, port listening", ""),
 		item("4", "Kernel", "Harden sysctl", "network, kernel"),
 		item("5", "Auto Updates", "Enable automatic updates", ""),
@@ -309,7 +309,7 @@ func TestMainMenuItems(t *testing.T) {
 	// The CVE alert's route (output.AlertOf) is to this menu's SSH Login.
 	alert, _ := output.AlertOf(risk.Level{Factors: []risk.Factor{{Kind: risk.KindUnfixedLatent, Established: true}}})
 	above := screen.MainMenu{Alert: alert}.Screen(component.OffTerminal(), m.items()).Above
-	if !strings.Contains(stripANSI(above), "# Select option: 2) SSH Login\n") {
+	if !strings.Contains(stripANSI(above), "# Select option: 2) SSH\n") {
 		t.Errorf("the alert's route:\n%s", above)
 	}
 }
@@ -404,17 +404,17 @@ func TestMainMenuTopRows(t *testing.T) {
 }
 
 // TestMainMenuHeights pins hardn's main menu's heights, one pass drawn on
-// a terminal over the gallery's hardened Debian 13 host (seven rows, no
-// line under any, and none under them: SSH Auth is in the SSH Login row,
-// and DNS and NTP are fine), in its full form at every height, Unicode
-// (C.UTF-8) and ASCII (C): 37 lines at 80x24 and 80x40, the two blank
-// lines under the clear (clearTop) first, 59 at 60 columns, where the rows
-// stack (DEV-021), with the ten items. The prompt is the terminal's last
-// line, so on 24 rows the first 13 lines scroll off at 80 columns, the
-// blank lines and the header down to the SSH Login row, the risk level
-// among them, and at 60 columns 35, all the status, the heading, the mode
-// and item 1's label; on 40 rows none at 80 columns, the blank lines on
-// the top two rows and the header under them, and 19 at 60.
+// a terminal over the gallery's hardened Debian 13 host (six rows, no
+// line under any, and none under them: the three SSH controls are the one
+// SSH row since 2026-11-15, and DNS and NTP are fine), in its full form at
+// every height, Unicode (C.UTF-8) and ASCII (C): 36 lines at 80x24 and
+// 80x40, the two blank lines under the clear (clearTop) first, 57 at 60
+// columns, where the rows stack (DEV-021), with the ten items. The prompt
+// is the terminal's last line, so on 24 rows the first 12 lines scroll off
+// at 80 columns, the blank lines and the header down to the User row, the
+// risk level among them, and at 60 columns 33, all the status, the
+// heading, the mode and item 1's label; on 40 rows none at 80 columns, the
+// blank lines on the top two rows and the header under them, and 17 at 60.
 // With screen.CompactMainMenu flipped it skips: pkg/ui/screen's
 // TestHeights and TestCompact hold the forms then.
 func TestMainMenuHeights(t *testing.T) {
@@ -426,10 +426,10 @@ func TestMainMenuHeights(t *testing.T) {
 		visible     string // the first line on screen, stripped of colour and glyphs
 		risk        bool   // the risk level is on screen
 	}{
-		{80, 24, 37, "SSH Port             + non-default (2230)", false},
-		{80, 40, 37, "", true}, // the blank lines under the clear, the header under them
-		{60, 24, 59, "Create, manage (sudo, SSH keys)", false},
-		{60, 40, 59, "non-default (2230)", false},
+		{80, 24, 36, "SSH                  + key-only, no root, port 2230", false},
+		{80, 40, 36, "", true}, // the blank lines under the clear, the header under them
+		{60, 24, 57, "Create, manage (sudo, SSH keys)", false},
+		{60, 40, 57, "key-only, no root, port 2230", false},
 	} {
 		for _, lang := range []string{"C.UTF-8", "C"} {
 			_, sys := loadStatusHost(t, "hardened")

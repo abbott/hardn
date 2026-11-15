@@ -95,11 +95,37 @@ func newHost(t *testing.T, name string) *sshHost {
 		return h.sshFile(sshd.DropInDir+"/10-allow.conf", "AllowUsers george\n", 0o644).withLog("publickey", "george", 1)
 	case "pve9":
 		return pveNode("*").withLog("publickey", "root", 1)
+	case "pve9-keyonly": // Proxmox VE's baseline: root by key alone, port 22
+		h := pveNode("*")
+		return h.sshFile(sshd.MainConfig, sshd.IncludeLine+"\n\nUsePAM yes\nPermitRootLogin prohibit-password\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n", 0o644).
+			withLog("publickey", "root", 1)
+	case "commands-only":
+		return vm(deb).sshFile(sshd.DropInDir+"/20-site.conf", "PermitRootLogin forced-commands-only\n", 0o644).withLog("publickey", "george", 1)
 	case "pve9-password":
 		return pveNode(syntheticHash).withLog("password", "root", 0)
 	case "ufw-restricted":
 		h := vm(deb)
 		h.rules = []rule{{port: 22, src: "192.0.2.0/24"}}
+		h.saveRules()
+		return h.withLog("publickey", "george", 1)
+	case "ufw-two-sources": // the host the port's refusal was seen on, in the gallery's addresses
+		h := vm(deb)
+		h.rules = []rule{{port: 22, src: "192.0.2.0/24"}, {port: 22, src: "198.51.100.0/24"}}
+		h.saveRules()
+		return h.withLog("publickey", "george", 1)
+	case "ufw-sources-there": // both sources on 2230 by hand
+		h := vm(deb)
+		h.rules = []rule{{port: 22, src: "192.0.2.0/24"}, {port: 22, src: "198.51.100.0/24"}, {port: 2230, src: "192.0.2.0/24"}, {port: 2230, src: "198.51.100.0/24"}}
+		h.saveRules()
+		return h.withLog("publickey", "george", 1)
+	case "ufw-source-port":
+		h := vm(deb)
+		h.rules = []rule{{port: 22, src: "192.0.2.0/24"}, {port: 22, src: "198.51.100.0/24", sport: "1024"}}
+		h.saveRules()
+		return h.withLog("publickey", "george", 1)
+	case "ufw-session-out":
+		h := vm(deb)
+		h.rules = []rule{{port: 22, src: "198.51.100.0/24"}}
 		h.saveRules()
 		return h.withLog("publickey", "george", 1)
 	case "confirm-window":

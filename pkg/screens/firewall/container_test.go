@@ -74,7 +74,7 @@ func TestContainerHeights(t *testing.T) {
 				})
 				drawn := strings.Split(colours.ReplaceAllString(out.String(), ""), " or q]:")[0]
 				got := strings.Split(drawn, "\n")
-				for len(got) > 0 && !strings.Contains(got[0], "Firewall Configuration") {
+				for len(got) > 0 && !strings.Contains(got[0], "Firewall Settings") {
 					got = got[1:]
 				}
 				if p.err != nil || len(got) != c.lines || !strings.Contains(drawn, containerLine) {

@@ -22,29 +22,35 @@ import (
 	"github.com/abbott/hardn/pkg/host/reload"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sshd/migrate"
+	"github.com/abbott/hardn/pkg/host/ufw"
 )
 
 // The decided words of the refusals (gallery-ssh.md §6; the mock's
 // sshWords* constants, decision 10, 2026-11-03), each a *steps.Refusal's
 // Why and Fix as screenkit.RefusalWords joins them.
 const (
-	wordsNotRead     = "hardn can't read sshd's settings: %s. Nothing can change until it can."
-	wordsNoRunDir    = "/run/sshd isn't there yet, so sshd -T can't run. Open one SSH connection, then try again."
-	wordsRootOwn     = "You're logged in as root over SSH. Turning root login off would close the way you came in. Log in as an admin and run hardn through sudo."
-	wordsNoSession   = "hardn can't tell how you logged in: sshd's log has no line for this connection. Nothing that closes a way in can change."
-	wordsNoAdmin     = "No admin could log in over SSH afterwards: %s. Fix that first."
-	wordsByPassword  = "You logged in with a password. Turning passwords off would close the way you came in. Log in with a key first."
-	wordsPassNoKey   = "%s would lose SSH login: %s a password and no key. Add a key in User Management first."
-	wordsMatch       = "%s, in %s, lets more in for some connections, and hardn's setting wouldn't change that. Change it there first."
-	wordsPVEKeyOnly  = "Root stays key-only on Proxmox VE: the cluster's nodes log in to each other as root by key."
-	wordsPVEByPass   = "You logged in as root with a password. Making root key-only would close the way you came in. Log in as root with a key first."
-	wordsPVENoKey    = "Root would lose SSH login: %s. Add a key for root first."
-	wordsListenConf  = "hardn v0.3.x's listen.conf (port %s for ssh.socket) never took effect: ssh.socket listens on %s. Moving it now couldn't be undone. Let %s through the firewall, run systemctl daemon-reload and systemctl restart ssh.socket, check a new connection to %s works, then try again."
-	wordsPVEPort     = "The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it."
-	wordsRestricted  = "ufw lets port %d in from %s alone. A new port would be open to anyone. Move that rule to the new port by hand first."
-	wordsMigrate     = "hardn's old SSH files are still here (%s). Move them into 00-hardn.conf first: item 4."
-	wordsIncludeNot  = "sshd_config doesn't start with \"" + sshd.IncludeLine + "\", so hardn's settings wouldn't be read first. Put that line first, then try again."
-	wordsNoAdminRoot = "there's no admin besides root"
+	wordsNotRead    = "hardn can't read sshd's settings: %s. Nothing can change until it can."
+	wordsNoRunDir   = "/run/sshd isn't there yet, so sshd -T can't run. Open one SSH connection, then try again."
+	wordsRootOwn    = "You're logged in as root over SSH. Turning root login off would close the way you came in. Log in as an admin and run hardn through sudo."
+	wordsNoSession  = "hardn can't tell how you logged in: sshd's log has no line for this connection. Nothing that closes a way in can change."
+	wordsNoAdmin    = "No admin could log in over SSH afterwards: %s. Fix that first."
+	wordsByPassword = "You logged in with a password. Turning passwords off would close the way you came in. Log in with a key first."
+	wordsPassNoKey  = "%s would lose SSH login: %s a password and no key. Add a key in User Management first."
+	wordsMatch      = "%s, in %s, lets more in for some connections, and hardn's setting wouldn't change that. Change it there first."
+	wordsPVEKeyOnly = "Root stays key-only on Proxmox VE: the cluster's nodes log in to each other as root by key."
+	wordsPVEByPass  = "You logged in as root with a password. Making root key-only would close the way you came in. Log in as root with a key first."
+	wordsPVENoKey   = "Root would lose SSH login: %s. Add a key for root first."
+	wordsListenConf = "hardn v0.3.x's listen.conf (port %s for ssh.socket) never took effect: ssh.socket listens on %s. Moving it now couldn't be undone. Let %s through the firewall, run systemctl daemon-reload and systemctl restart ssh.socket, check a new connection to %s works, then try again."
+	wordsPVEPort    = "The SSH port stays 22 on Proxmox VE: the cluster and pve-firewall use it."
+	// Adopted by the maintainer, 2026-11-15 (design-ssh-port-sources.md §7,
+	// decision 8 (a)): the port's ufw sources are carried to the new port,
+	// and these are what still refuses.
+	wordsCantCopy      = "hardn can't copy this ufw rule to a new port: %s. Replace it with a rule by address, then try again."
+	wordsSessionOut    = "No ufw rule for port %d covers %s, where you're logged in from. You couldn't reach the new port. Add a rule for it first."
+	wordsSessionUnread = "hardn can't tell where you're logged in from, so it can't tell ufw would let you in on a new port. Run hardn from a console."
+	wordsMigrate       = "hardn's old SSH files are still here (%s). Move them into 00-hardn.conf first: item 4."
+	wordsIncludeNot    = "sshd_config doesn't start with \"" + sshd.IncludeLine + "\", so hardn's settings wouldn't be read first. Put that line first, then try again."
+	wordsNoAdminRoot   = "there's no admin besides root"
 	// Approved by the maintainer, 2026-11-12: both systemd units set to start sshd
 	// (detect.ErrConflict), the unit to disable named where one runs.
 	wordsStartOne    = "%s and %s are both set to start sshd, so hardn can't tell which will after a restart. Run systemctl disable %s (%s is the one running), then try again."
@@ -80,8 +86,14 @@ var (
 	// ErrPVENoRootKey: on Proxmox VE, root could not log in by key afterwards.
 	ErrPVENoRootKey = errors.New("root could not log in by key afterwards")
 	// ErrPortRestricted: ufw lets the port sshd listens on in from some
-	// sources alone.
+	// sources alone, by a rule hardn can't copy to a new port (its source
+	// port or source application). Its text is the code's first meaning,
+	// kept: before the sources were carried, any such rule refused.
 	ErrPortRestricted = errors.New("ufw lets the SSH port in from some sources alone")
+	// ErrPortSession: ufw's rules for the port sshd listens on, carried to
+	// a new port, would not let the session's address in, or that address
+	// is not read.
+	ErrPortSession = errors.New("ufw would not let this session in on a new SSH port")
 )
 
 // The refusals' codes, the registry's for the errors they wrap (pkg/output;
@@ -98,6 +110,7 @@ const (
 	codePVEPasswordSession = "SSH_PVE_ROOT_PASSWORD_SESSION"
 	codePVENoRootKey       = "SSH_PVE_NO_ROOT_KEY"
 	codePortRestricted     = "SSH_PORT_SOURCE_RESTRICTED"
+	codePortSession        = "SSH_PORT_SESSION_SOURCE"
 	codeMigrateFirst       = "SSH_MIGRATE_FIRST"
 	codeIncludeNot         = "SSHD_NO_WRITE_STRATEGY"
 	codePVEPort            = "PVE_PORT_CHANGE_REFUSED"
@@ -296,25 +309,47 @@ func (r Reading) passwordRefusal(ctx context.Context, sys host.System) error {
 }
 
 // portRefusal is why a port change refuses (gallery-ssh.md §5 decision
-// 5): the common refusals; Proxmox VE; ufw letting 22 in from some
-// sources alone (P-33 (2) (a)), the sources joined by ", ".
+// 5), before the port is asked: the common refusals; Proxmox VE; and,
+// where ufw lets 22 in from some sources alone, so that its rules are
+// carried to the new port (design-ssh-port-sources.md §7), a rule hardn
+// can't copy and the session's own address in no carried rule, or not read
+// (carryRefusal).
 func (r Reading) portRefusal() error {
 	if err := r.common(false); err != nil {
 		return err
 	}
-	switch {
-	case r.PVE:
+	if r.PVE {
 		return refuse(codePVEPort, pve.ErrPortChange, nil, wordsPVEPort)
-	case len(r.OnlyFrom) > 0:
-		return refuse(codePortRestricted, ErrPortRestricted, nil, fmt.Sprintf(wordsRestricted, r.OnlyFromPort, strings.Join(r.OnlyFrom, ", ")))
 	}
-	return nil
+	return carryRefusal(r.CarryErr)
+}
+
+// carryRefusal is ufw's refusal to carry a port's sources, in the decided
+// words: a rule it can't copy, named (*ufw.CopyError), and the session's
+// address not let in, or not read (*ufw.SessionError). Any other error is
+// returned as it is, nil too.
+func carryRefusal(err error) error {
+	var ce *ufw.CopyError
+	var se *ufw.SessionError
+	switch {
+	case errors.As(err, &ce):
+		return refuse(codePortRestricted, ErrPortRestricted, err, fmt.Sprintf(wordsCantCopy, ce.Words()))
+	case errors.As(err, &se) && se.Unread:
+		return refuse(codePortSession, ErrPortSession, err, wordsSessionUnread)
+	case errors.As(err, &se):
+		return refuse(codePortSession, ErrPortSession, err, fmt.Sprintf(wordsSessionOut, se.Port, se.Client))
+	}
+	return err
 }
 
 // planned is the planner's refusal in the screen's words where it has
 // them: v0.3.x's listen.conf never in effect (D9), its error kept
-// wrapped. Any other is returned as it is.
+// wrapped, and ufw's refusal to carry the port's sources (carryRefusal).
+// Any other is returned as it is.
 func (r Reading) planned(cs []engine.Change, err error) ([]engine.Change, error) {
+	if errors.Is(err, ufw.ErrCantCopy) || errors.Is(err, ufw.ErrSessionSource) { // ufw changed since Read
+		return nil, carryRefusal(err)
+	}
 	if err == nil || !errors.Is(err, steps.ErrListenConfNotInEffect) {
 		return cs, err
 	}

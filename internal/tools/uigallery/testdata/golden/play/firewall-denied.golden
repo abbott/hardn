@@ -17,7 +17,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22/tcp: hardn doesn't change a rule it finds, so it has␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing to plan and refuses, saying what to do.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$
 $
@@ -57,7 +57,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mufw refuses SSH on [::]:22, and hardn doesn't change a rule it␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mfinds. Fix it with ufw allow or ufw delete, then try again.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$
 $
@@ -114,7 +114,7 @@ $
 # 22/tcp: hardn doesn't change a rule it finds, so it has$
 # nothing to plan and refuses, saying what to do.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Partial ssh blocked$
 $
@@ -154,7 +154,7 @@ $
 # ufw refuses SSH on [::]:22, and hardn doesn't change a rule it$
 # finds. Fix it with ufw allow or ufw delete, then try again.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Partial ssh blocked$
 $
@@ -212,7 +212,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m22/tcp: hardn doesn't change a rule it finds, so it has␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mnothing to plan and refuses, saying what to do.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$
@@ -267,7 +267,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mrule it finds. Fix it with ufw allow or ufw delete, then␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtry again.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$

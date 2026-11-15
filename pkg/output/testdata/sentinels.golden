@@ -207,6 +207,7 @@ sshchange.ErrPasswordOnly SSH_ADMIN_PASSWORD_ONLY
 sshchange.ErrPasswordSession SSH_PASSWORD_SESSION
 sshchange.ErrPasswordsUnfixed SSH_PASSWORDS_UNFIXED
 sshchange.ErrPortRestricted SSH_PORT_SOURCE_RESTRICTED
+sshchange.ErrPortSession SSH_PORT_SESSION_SOURCE
 sshchange.ErrRootSession SSH_ROOT_SESSION
 sshchange.ErrUpgradeUnknown SSH_UPGRADE_UNKNOWN
 sshd.ErrConfig SSHD_CONFIG_INVALID
@@ -259,6 +260,7 @@ timesync.ErrServer NTP_BAD_SERVERS
 ufw.ErrBadInterface UFW_BAD_INTERFACE
 ufw.ErrBadProfile UFW_BAD_PROFILE
 ufw.ErrBlocks UFW_WOULD_BLOCK
+ufw.ErrCantCopy SSH_PORT_SOURCE_RESTRICTED
 ufw.ErrEnabledMismatch UFW_ENABLED_MISMATCH
 ufw.ErrInactive UFW_INACTIVE
 ufw.ErrListenersUnknown UFW_LISTENERS_UNKNOWN
@@ -266,6 +268,7 @@ ufw.ErrNoPlainAllow UFW_NO_PLAIN_ALLOW
 ufw.ErrNotApplicable UFW_NOT_APPLICABLE
 ufw.ErrNotInstalled UFW_NOT_INSTALLED
 ufw.ErrProxmoxUnknown UFW_PROXMOX_UNKNOWN
+ufw.ErrSessionSource SSH_PORT_SESSION_SOURCE
 ufw.ErrStateUnknown UFW_STATE_UNKNOWN
 ufw.ErrVerify UFW_VERIFY_FAILED
 updates.ErrChangedSince UPDATES_CHANGED_SINCE

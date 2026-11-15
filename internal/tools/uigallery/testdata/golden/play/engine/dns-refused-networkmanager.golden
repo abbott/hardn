@@ -14,8 +14,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-refused-networkmanager␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 with NetworkManager;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file. hardn.yml␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file, naming␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.1 and example.net. hardn.yml lists 192.0.2.54,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. The plan␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses it, with a report (P-37 (a)).␛[m$
 $
@@ -43,8 +44,9 @@ $
 $
 # Info: engine/dns-refused-networkmanager$
 # web-01.example.net runs Debian 13 with NetworkManager;$
-# /etc/resolv.conf links to NetworkManager's file. hardn.yml$
-# lists 192.0.2.54, 2001:db8::54.$
+# /etc/resolv.conf links to NetworkManager's file, naming$
+# 192.0.2.1 and example.net. hardn.yml lists 192.0.2.54,$
+# 2001:db8::54.$
 # The change: Configure DNS, hardn.yml's nameservers. The plan$
 # refuses it, with a report (P-37 (a)).$
 $
@@ -73,8 +75,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mInfo: engine/dns-refused-networkmanager␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mweb-01.example.net runs Debian 13 with NetworkManager;␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file. hardn.yml␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mlists 192.0.2.54, 2001:db8::54.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m/etc/resolv.conf links to NetworkManager's file, naming␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m192.0.2.1 and example.net. hardn.yml lists 192.0.2.54,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m2001:db8::54.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mThe change: Configure DNS, hardn.yml's nameservers. The␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan refuses it, with a report (P-37 (a)).␛[m$
 $

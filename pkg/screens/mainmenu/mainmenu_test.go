@@ -68,17 +68,17 @@ func TestNothingRead(t *testing.T) {
 	}
 	out := plain(t, vm.Status)
 	lines := strings.Split(out, "\n")
-	// SSH Auth is in the SSH Login row, and the line both have is under it
-	// once.
-	for _, row := range []string{"User", "SSH Login", "SSH Port", "Firewall", "Kernel", "Auto Updates", "AppArmor"} {
+	// SSH Login, SSH Auth and SSH Port are the one SSH row, and the line
+	// the three have is under it once.
+	for _, row := range []string{"User", "SSH", "Firewall", "Kernel", "Auto Updates", "AppArmor"} {
 		i := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "  [?] "+row+" ") })
 		if i < 0 || !strings.Contains(lines[i], "Unknown") || strings.TrimSpace(lines[i+1]) != "~ Counted as not configured" ||
-			row == "SSH Login" && !strings.HasPrefix(lines[i+2], "  [") {
+			row == "SSH" && !strings.HasPrefix(lines[i+2], "  [") {
 			t.Errorf("%s: not Unknown, counted as not configured once:\n%s", row, out)
 		}
 	}
-	if strings.Contains(out, "SSH Auth") || strings.Contains(out, "DNS") || len(vm.Status.Rows) != 7 {
-		t.Errorf("an SSH Auth or a DNS row among the scored rows:\n%s", out)
+	if strings.Contains(out, "SSH Auth") || strings.Contains(out, "SSH Login") || strings.Contains(out, "SSH Port") || strings.Contains(out, "DNS") || len(vm.Status.Rows) != 6 {
+		t.Errorf("an SSH Login, SSH Auth, SSH Port or DNS row among the scored rows:\n%s", out)
 	}
 	// What is not read is a problem, drawn under the rows with no line.
 	if got := plain(t, vm.Info); got != "   -  DNS                  Can't read\n   -  NTP                  Can't read\n   -  Syslog               Can't read" {

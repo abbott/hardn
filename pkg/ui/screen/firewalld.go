@@ -12,7 +12,7 @@ import (
 // Firewall control's reading. Its words are proposed.
 
 const (
-	firewalldTitle   = "Firewall Configuration"
+	firewalldTitle   = "Firewall Settings"
 	firewalldSection = "firewalld"
 
 	firewalldDisableLabel   = "Disable firewalld"

@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/abbott/hardn/pkg/engine"
-	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/header"
 	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -61,7 +60,7 @@ func AlertOf(l risk.Level) (*screen.Alert, risk.Level) {
 	rest.Factors = nil
 	for _, f := range l.Factors {
 		if slices.Contains(alertKinds, f.Kind) {
-			alert = &screen.Alert{Title: AlertCVE, Fix: AlertFix, Item: ssh.Login{}.Title()}
+			alert = &screen.Alert{Title: AlertCVE, Fix: AlertFix, Item: screen.SSHTitle}
 			continue
 		}
 		rest.Factors = append(rest.Factors, f)

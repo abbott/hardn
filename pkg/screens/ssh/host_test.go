@@ -149,10 +149,11 @@ func alice() simUser {
 	return simUser{name: "alice", uid: 1001, groups: []string{"sudo"}, pw: syntheticHash, shell: "/bin/bash"}
 }
 
-// rule is one of ufw's allow rules: a port, from src ("" anywhere).
+// rule is one of ufw's allow rules: a port, from src ("" anywhere), from
+// source port sport ("" any).
 type rule struct {
-	port uint16
-	src  string
+	port       uint16
+	src, sport string
 }
 
 // sshHost is a host as a test runs the screen on it: the fake, its facts,
@@ -782,6 +783,9 @@ func (h *sshHost) ufwStatus() string {
 			case r.src == "":
 				from = "Anywhere"
 			}
+			if r.sport != "" {
+				from += " " + r.sport + "/tcp"
+			}
 			fmt.Fprintf(&b, "%-26s %-12s%s\n", to, "ALLOW IN", from)
 		}
 	}
@@ -811,7 +815,11 @@ func (h *sshHost) saveRules() {
 			case src == "":
 				src = f.any
 			}
-			fmt.Fprintf(&b, "\n### tuple ### allow tcp %d %s any %s in\n-A ufw-user-input -p tcp --dport %d -j ACCEPT\n", r.port, f.any, src, r.port)
+			sport := "any"
+			if r.sport != "" {
+				sport = r.sport
+			}
+			fmt.Fprintf(&b, "\n### tuple ### allow tcp %d %s %s %s in\n-A ufw-user-input -p tcp --dport %d -j ACCEPT\n", r.port, f.any, sport, src, r.port)
 		}
 		b.WriteString("\n### END RULES ###\nCOMMIT\n")
 		h.AddFile(f.path, []byte(b.String()), 0o640, 0, 0)
@@ -887,6 +895,10 @@ func (h *sshHost) answer(argv []string, _ []byte) hostfake.Response {
 		if r, ok := h.ufw(argv); ok {
 			return r
 		}
+	case "ip": // the route back to the session's client (ufw.RouteDev)
+		if len(argv) == 4 && argv[1] == "route" && argv[2] == "get" {
+			return hostfake.Response{Stdout: argv[3] + " via 192.0.2.1 dev eth0 src 192.0.2.20 uid 0 \n    cache \n"}
+		}
 	case "systemctl":
 		if r, ok := h.systemctl(argv); ok {
 			return r
@@ -948,6 +960,15 @@ func (h *sshHost) systemctl(argv []string) (hostfake.Response, bool) {
 func (h *sshHost) ufw(argv []string) (hostfake.Response, bool) {
 	if strings.Join(argv, " ") == "ufw status verbose" {
 		return hostfake.Response{Stdout: h.ufwStatus()}, true
+	}
+	if len(argv) == 10 && slices.Equal(argv[1:3], []string{"allow", "from"}) && slices.Equal(argv[4:7], []string{"to", "any", "port"}) && slices.Equal(argv[8:], []string{"proto", "tcp"}) {
+		// A source's rule for one port (design-ssh-port-sources.md §3), as
+		// ufw 0.36.2's sources read, not run on a host.
+		if p, err := strconv.ParseUint(argv[7], 10, 16); err == nil {
+			h.rules = append(h.rules, rule{port: uint16(p), src: argv[3]})
+			h.saveRules()
+			return hostfake.Response{Stdout: "Rule added\n"}, true
+		}
 	}
 	n, err := strconv.Atoi(strings.TrimSuffix(argv[len(argv)-1], "/tcp"))
 	switch {

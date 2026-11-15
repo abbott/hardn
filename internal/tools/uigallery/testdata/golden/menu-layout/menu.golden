@@ -7,9 +7,9 @@
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. A Debian 12 host with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meverything configured: "+" for "Configured", SSH Auth in the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mSSH Login row, a Kernel row, no DNS, NTP or Syslog row, "~"␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder a row, item 4 Kernel.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meverything configured: "+" for "Configured", one SSH row, a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mKernel row, no DNS, NTP or Syslog row, "~" under a row, item 4␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mKernel.␛[m$
 $
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
 $
@@ -22,8 +22,7 @@ $
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
                              ␛[38;2;219;184;83m~ No password to become root␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m6 items applied␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
@@ -34,7 +33,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mManage rules, port listening␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156mHarden sysctl␛[m ␛[38;2;86;91;107m(network, kernel)␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mEnable automatic updates␛[m$
@@ -55,9 +54,9 @@ $
 $
 # Note$
 # Adopted 2026-11-14: no Figma frame. A Debian 12 host with$
-# everything configured: "+" for "Configured", SSH Auth in the$
-# SSH Login row, a Kernel row, no DNS, NTP or Syslog row, "~"$
-# under a row, item 4 Kernel.$
+# everything configured: "+" for "Configured", one SSH row, a$
+# Kernel row, no DNS, NTP or Syslog row, "~" under a row, item 4$
+# Kernel.$
 $
 hardn  v0.4.0              https://github.com/abbott/hardn$
 $
@@ -70,8 +69,7 @@ $
 $
   [+] User                 + non-root, sudo$
                              ~ No password to become root$
-  [+] SSH Login            + root disallowed, key-only auth$
-  [+] SSH Port             + non-default (2230)$
+  [+] SSH                  + key-only, no root, port 2230$
   [+] Firewall             + deny policy$
   [+] Kernel               + 6 items applied$
   [+] Auto Updates         + unattended-upgrades$
@@ -82,7 +80,7 @@ $
   Select an option         Mode Live$
 $
    1) User                 Create, manage (sudo, SSH keys)$
-   2) SSH Login            Disable root and passwords, set port$
+   2) SSH                  Disable root and passwords, set port$
    3) Firewall             Manage rules, port listening$
    4) Kernel               Harden sysctl (network, kernel)$
    5) Auto Updates         Enable automatic updates$
@@ -103,9 +101,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. A Debian 12 host with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meverything configured: "+" for "Configured", SSH Auth in␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mthe SSH Login row, a Kernel row, no DNS, NTP or Syslog␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrow, "~" under a row, item 4 Kernel.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meverything configured: "+" for "Configured", one SSH row,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156ma Kernel row, no DNS, NTP or Syslog row, "~" under a row,␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mitem 4 Kernel.␛[m$
 $
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m$
 ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
@@ -122,10 +120,8 @@ $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
         ␛[38;2;219;184;83m~ No password to become root␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Login␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH Port␛[m$
-      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mSSH␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mKernel␛[m$
@@ -142,7 +138,7 @@ $
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m$
       ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m$
       ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;129;134;156mManage rules, port listening␛[m$
@@ -173,9 +169,9 @@ $
 $
 ␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. A Debian 12 host with␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meverything configured: "+" for "Configured", SSH Auth in the␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mSSH Login row, a Kernel row, no DNS, NTP or Syslog row, "~"␛[m$
-␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156munder a row, item 4 Kernel.␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156meverything configured: "+" for "Configured", one SSH row, a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mKernel row, no DNS, NTP or Syslog row, "~" under a row, item 4␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mKernel.␛[m$
 $
 ␛[1;38;2;192;196;216mhardn␛[m ␛[38;2;129;134;156;48;2;22;24;29m v0.4.0 ␛[m             ␛[38;2;86;91;107mhttps://github.com/abbott/hardn␛[m$
 $
@@ -188,8 +184,7 @@ $
 $
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-root, sudo␛[m$
                              ␛[38;2;219;184;83m~ No password to become root␛[m$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mroot disallowed, key-only auth␛[m$
-  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH Port␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mnon-default (2230)␛[m$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mkey-only, no root, port 2230␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107m6 items applied␛[m$
   ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107munattended-upgrades␛[m$
@@ -200,7 +195,7 @@ $
   ␛[4;38;2;129;134;156;4mS␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4ml␛[m␛[4;38;2;129;134;156;4me␛[m␛[4;38;2;129;134;156;4mc␛[m␛[4;38;2;129;134;156;4mt␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4ma␛[m␛[4;38;2;129;134;156;4mn␛[m␛[38;2;129;134;156;4m ␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mp␛[m␛[4;38;2;129;134;156;4mt␛[m␛[4;38;2;129;134;156;4mi␛[m␛[4;38;2;129;134;156;4mo␛[m␛[4;38;2;129;134;156;4mn␛[m         ␛[38;2;129;134;156mMode␛[m ␛[38;2;219;184;83mLive␛[m$
 $
    ␛[1;38;2;192;196;216m1)␛[m ␛[38;2;192;196;216mUser␛[m                 ␛[38;2;129;134;156mCreate, manage␛[m ␛[38;2;86;91;107m(sudo, SSH keys)␛[m$
-   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH Login␛[m            ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
+   ␛[1;38;2;192;196;216m2)␛[m ␛[38;2;192;196;216mSSH␛[m                  ␛[38;2;129;134;156mDisable root and passwords, set port␛[m$
    ␛[1;38;2;192;196;216m3)␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;129;134;156mManage rules, port listening␛[m$
    ␛[1;38;2;192;196;216m4)␛[m ␛[38;2;192;196;216mKernel␛[m               ␛[38;2;129;134;156mHarden sysctl␛[m ␛[38;2;86;91;107m(network, kernel)␛[m$
    ␛[1;38;2;192;196;216m5)␛[m ␛[38;2;192;196;216mAuto Updates␛[m         ␛[38;2;129;134;156mEnable automatic updates␛[m$

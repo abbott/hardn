@@ -417,6 +417,15 @@ func sshUFWRestricted() *fakeHost {
 		rules: []simRule{{action: "allow", port: "22", src: "192.0.2.0/24"}}})
 }
 
+// sshUFWSources is Debian 13 with ufw allowing 22 from 192.0.2.0/24, where
+// george is logged in from, and 198.51.100.0/24 alone, IPv4 only, as the
+// host the port's refusal was seen on (its addresses 10.2.8.0/24 and
+// 172.20.8.0/24), with more rules besides.
+func sshUFWSources(more ...simRule) *fakeHost {
+	rules := append([]simRule{{action: "allow", port: "22", src: "192.0.2.0/24"}, {action: "allow", port: "22", src: "198.51.100.0/24"}}, more...)
+	return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: rules})
+}
+
 // sshNotRead is Ubuntu 26.04 before its first connection: no /run/sshd,
 // so sshd -T fails.
 func sshNotRead() *fakeHost {

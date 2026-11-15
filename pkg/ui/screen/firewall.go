@@ -16,14 +16,17 @@ import (
 // Firewall control (pkg/engine/controls/firewall), fills these with its rows,
 // and runs the items (docs/engine/screen-firewall.md).
 
-// The screen's words: origin/main's titles, labels and "Install UFW"; Backup's
+// The screen's words: the title "Firewall Settings" on every host (the
+// maintainer, 2026-11-15; it was "UFW Firewall Configuration", and "Firewall
+// Configuration" on Proxmox VE); origin/main's other titles, labels and
+// "Install UFW"; Backup's
 // heading and prompt (fixtureHeading, menuPrompt); the rest decided with
 // decision 10 (gallery-firewall.md §6), but the sub-screen's item descriptions
 // and the review's "Package", which are the adopted mocks' and proposed
 // (screen-firewall.md).
 const (
-	firewallTitle         = "UFW Firewall Configuration"
-	firewallPVETitle      = "Firewall Configuration"
+	firewallTitle         = "Firewall Settings"
+	firewallPVETitle      = "Firewall Settings"
 	firewallProfilesTitle = "Manage UFW Application Profiles"
 	// The trusted interfaces' words, as the profiles' screen words its own:
 	// approved by the maintainer, 2026-11-07 (gallery-firewall.md §6).

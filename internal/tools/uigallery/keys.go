@@ -201,7 +201,7 @@ func keysMocks() []keysMock {
 				{name: "george", uid: 1000, lines: []string{synthKey(0x59, "george@laptop-1")}},
 			}},
 		{name: "login", accounts: weak, login: true,
-			note: "SSH Login on the weak host, with the item that opens the screen: 6, SSH keys."},
+			note: "SSH on the weak host, with the item that opens the screen: 6, SSH keys."},
 	}
 }
 
@@ -247,14 +247,12 @@ func (m keysMock) view(ctx context.Context) screen.SSHKeys {
 	return v
 }
 
-// keysLogin is SSH Login as a hardened host draws it, with the item that opens
+// keysLogin is the SSH screen as a hardened host draws it, with the item that opens
 // the SSH Keys screen on v: the rows are a mock's own, no host read.
 func keysLogin(v screen.SSHKeys) screen.SSH {
 	return screen.SSH{
 		Status: component.StatusList{Rows: []component.StatusRow{
-			{Label: "SSH Login", State: component.StatusConfigured, Detail: "root disallowed"},
-			{Label: "SSH Auth", State: component.StatusConfigured, Detail: "key-only auth"},
-			{Label: "SSH Port", State: component.StatusConfigured, Detail: "non-default (2230)"},
+			{Label: screen.SSHTitle, State: component.StatusConfigured, Detail: "key-only, no root, port 2230"},
 		}},
 		Rows: []component.KeyValue{
 			{Key: screen.SSHRootKey, Value: "Disallowed"},

@@ -150,9 +150,9 @@ func play(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr
 		case err != nil:
 			return usage("%v", err)
 		case set["fail"]:
-			return usage("-fail is for the fixture plans of the screen mocks; the SSH Login screen fails where its host does")
+			return usage("-fail is for the fixture plans of the screen mocks; the SSH screen fails where its host does")
 		case *sequence != "normal" && *sequence != "dry-run":
-			return usage("-sequence %s: the SSH Login screen plays normal or dry-run", *sequence)
+			return usage("-sequence %s: the SSH screen plays normal or dry-run", *sequence)
 		}
 		return startPlay(look, fs, size, stdin, stdout, stderr, func(s *session) int {
 			s.sequence = *sequence

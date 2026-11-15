@@ -399,7 +399,7 @@ func TestDNSScreenSignals(t *testing.T) {
 			if strings.Count(out, "Check the log file at "+output.LegacyLogPath) != 2 {
 				t.Errorf("the failures' reports do not both name %s:\n%s", output.LegacyLogPath, out)
 			}
-			if last := out[strings.LastIndex(out, "# DNS Configuration #"):]; strings.Contains(last, "Unknown") {
+			if last := out[strings.LastIndex(out, "# DNS Settings #"):]; strings.Contains(last, "Unknown") {
 				t.Errorf("the screen after the signal did not read the host:\n%s", last)
 			}
 			if got := h.content(hostdns.DropIn); got != "<absent>" {

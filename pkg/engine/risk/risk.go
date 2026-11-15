@@ -136,8 +136,8 @@ var rows = []Row{
 
 // Rows returns the scored controls, in the main menu's order: User, SSH
 // Login, SSH Auth, SSH Port, Firewall, Kernel, Auto Updates, AppArmor. The
-// main menu draws SSH Login and SSH Auth as one row (output.StatusViewOf);
-// the score weighs each.
+// main menu draws SSH Login, SSH Auth and SSH Port as one row, SSH
+// (output.StatusViewOf; 2026-11-15); the score weighs each.
 func Rows() []Row { return slices.Clone(rows) }
 
 // The rows' controls that a cross-check reads.

@@ -322,7 +322,7 @@ func (o Options) items() nav.Menu {
 		unset string
 	}{
 		{o.Users, "mainmenu: the User item has no screen (Options.Users)"},
-		{o.SSH, "mainmenu: the SSH Login item has no screen (Options.SSH)"},
+		{o.SSH, "mainmenu: the SSH item has no screen (Options.SSH)"},
 		{o.Firewall, "mainmenu: the Firewall item has no screen (Options.Firewall)"},
 		{o.Kernel, "mainmenu: the Kernel item has no screen (Options.Kernel)"},
 		{o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)"},

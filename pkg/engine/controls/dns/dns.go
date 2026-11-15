@@ -243,11 +243,15 @@ func (n Nameservers) check(ctx context.Context, sys host.System, f detect.Facts)
 }
 
 // InUse are the nameservers in use on a host read as s, in their order:
-// the file's, or systemd-resolved's global ones. Check compares them, and
-// hardn check keeps them (pkg/engine/drift).
+// the file's, or systemd-resolved's global ones; none under a manager
+// hardn only reports, whose lists the DNS screen alone shows. Check
+// compares them, and hardn check keeps them (pkg/engine/drift).
 func InUse(s hostdns.State) []string {
 	if s.Manager == hostdns.ManagerResolved {
 		return s.Resolved.Global
+	}
+	if _, ok := reportedOnly[s.Manager]; ok {
+		return nil
 	}
 	return s.Nameservers
 }

@@ -18,7 +18,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156maccepts SSH is not what is configured, so Enable refuses␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156m(decision 2; mock stale-listener has what the real plan does).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
 $
@@ -59,7 +59,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtell which ports SSH uses. Reload sshd or restart ssh.socket,␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mthen try again.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
 $
@@ -117,7 +117,7 @@ $
 # accepts SSH is not what is configured, so Enable refuses$
 # (decision 2; mock stale-listener has what the real plan does).$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Not Configured inactive$
 $
@@ -158,7 +158,7 @@ $
 # tell which ports SSH uses. Reload sshd or restart ssh.socket,$
 # then try again.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Not Configured inactive$
 $
@@ -218,7 +218,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mrefuses (decision 2; mock stale-listener has what the real␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mplan does).␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$
@@ -272,7 +272,7 @@ $
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mtell which ports SSH uses. Reload sshd or restart␛[m$
 ␛[48;2;210;188;19m ␛[m ␛[38;2;129;134;156mssh.socket, then try again.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;231;70;105m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;231;70;105mNot Configured␛[m ␛[38;2;86;91;107minactive␛[m$

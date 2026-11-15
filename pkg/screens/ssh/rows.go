@@ -45,10 +45,10 @@ const (
 	noteSocket  = "ssh.socket"
 )
 
-// statusRows are the SSH Login and SSH Port rows, the main menu's: the
-// three checks', through the main menu's own mapping and its assessment,
-// which draws SSH Auth in the SSH Login row (output.StatusViewOf; the
-// maintainer, 2026-11-14), as the gallery drew them (an Unknown row's
+// statusRows are the one SSH row, the main menu's: the three checks',
+// through the main menu's own mapping and its assessment, which draws SSH
+// Login, SSH Auth and SSH Port as one row (output.StatusViewOf; the
+// maintainer, 2026-11-15), as the gallery drew them (an Unknown row's
 // "Counted as not configured"), with no engine and no header probe: the
 // zero header gives these rows no factor of its own. The screen has the
 // row the main menu has, so that it reads the same in both; its section's
@@ -56,22 +56,27 @@ const (
 // established factor is no line under the row, as on the main menu
 // (output.AlertOf): the screen's alert says it (the maintainer,
 // 2026-11-09).
-func statusRows(ctx context.Context, sys host.System, f detect.Facts) component.StatusList {
+func statusRows(ctx context.Context, sys host.System, f detect.Facts) (component.StatusList, checked) {
 	var reports []engine.Report
-	var titles []string
 	for _, c := range []engine.Control{sshctl.Login{}, sshctl.Auth{}, sshctl.Port{}} {
 		r := engine.Report{Control: c.ID(), Title: c.Title()}
 		r.Status, r.Err = c.Check(ctx, sys, f) // each applies everywhere
 		if r.Err != nil {
 			r.Status.State = engine.Unknown
 		}
-		reports, titles = append(reports, r), append(titles, c.Title())
+		reports = append(reports, r)
 	}
 	_, level := output.AlertOf(risk.Assess(reports, header.Header{}))
 	view := output.StatusViewOf(reports, level).Status
-	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return !slices.Contains(titles, row.Label) })
-	return view
+	view.Rows = slices.DeleteFunc(view.Rows, func(row component.StatusRow) bool { return row.Label != output.SSHRow })
+	return view, checked{login: reports[0].Status, port: reports[2].Status}
 }
+
+// checked are SSH Login's and SSH Port's statuses as the status row's
+// checks gave them, a check that failed Unknown: the section's Root SSH
+// Login and SSH Port rows are marked by them, so that the row that makes
+// the status row Partial or Not Configured shows it.
+type checked struct{ login, port engine.Status }
 
 // mainView is h as the screen draws it.
 func mainView(h reading) screen.SSH {
@@ -178,7 +183,9 @@ func limitRow(h reading) component.KeyValue {
 }
 
 // rootRow is Root SSH Login: Locked where no account logs in as root, else
-// PermitRootLogin's value.
+// PermitRootLogin's value; marked (ValueWarn) where SSH Login's check is
+// Partial for root's own login (sshctl.RootPartial), a Match block's being
+// the Match row's, and an Unknown check marking nothing.
 func rootRow(h reading) component.KeyValue {
 	row := component.KeyValue{Key: screen.SSHRootKey, Value: keyOnly, Note: byNote(h, "permitrootlogin")}
 	switch v := h.RootValue(); {
@@ -190,6 +197,9 @@ func rootRow(h reading) component.KeyValue {
 		row.Value, row.State = allowed, component.ValueBad
 	case v == "forced-commands-only":
 		row.Value = commandsOnly
+	}
+	if row.State == component.ValuePlain && sshctl.RootPartial(h.checked.login) {
+		row.State = component.ValueWarn
 	}
 	return row
 }
@@ -212,11 +222,16 @@ func passwordRow(h reading) component.KeyValue {
 	return component.KeyValue{Key: screen.SSHPasswordKey, Value: onKbd, State: component.ValueWarn, Note: byNote(h, "kbdinteractiveauthentication")}
 }
 
-// portRow is SSH Port: the ports sshd listens on, ssh.socket's noted.
+// portRow is SSH Port: the ports sshd listens on, ssh.socket's noted;
+// marked (ValueWarn) where SSH Port's check is Not Configured or Partial
+// (22 still listened on, off Proxmox VE), an Unknown check marking nothing.
 func portRow(h reading) component.KeyValue {
 	row := component.KeyValue{Key: screen.SSHPortKey, Value: strings.Join(ports(h), ", ")}
 	if row.Value == "" {
 		row.Value, row.State = cantRead, component.ValueUnknown
+	}
+	if st := h.checked.port.State; row.State == component.ValuePlain && (st == engine.NotConfigured || st == engine.Partial) {
+		row.State = component.ValueWarn
 	}
 	if h.Facts.SSH.Mode == detect.SSHSocket {
 		row.Note = noteSocket

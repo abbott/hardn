@@ -35,9 +35,9 @@ func fixtureHeader() component.Header {
 // SSH port 2230, its Moderate risk, and the live mode. The rows and items
 // are hardn's, the maintainer's of 2026-11-14
 // (docs/engine/gallery-menu-layout.md), not the PNG's: the rows as the
-// main menu draws them (output.StatusViewOf), SSH Auth in the SSH Login
-// row and Kernel after Firewall, a Configured row's detail after "+"; the
-// items User, SSH Login, Firewall, Kernel, Run All, Backup, Configuration,
+// main menu draws them (output.StatusViewOf), the one SSH row (2026-11-15)
+// and Kernel after Firewall, a Configured row's detail after "+"; the
+// items User, SSH, Firewall, Kernel, Run All, Backup, Configuration,
 // System Details, Logs. The items are hardn's (pkg/screens/mainmenu
 // run.go, held equal by its TestMainMenuItems) but item 5, Auto Updates,
 // which the mock has not yet. Dry-Run and Environment, Figma's and
@@ -56,8 +56,7 @@ func MainMenuFixture() MainMenu {
 		Risk:    component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"},
 		Status: component.StatusList{Rows: []component.StatusRow{
 			configured("User", "non-root, sudo"),
-			configured("SSH Login", "root disallowed, key-only auth"),
-			configured("SSH Port", "non-default (2230)"),
+			configured(SSHTitle, "key-only, no root, port 2230"),
 			configured("Firewall", "deny policy"),
 			configured("Kernel", "6 items applied"),
 			{Label: "Auto Updates", State: component.StatusNotConfigured},
@@ -66,7 +65,7 @@ func MainMenuFixture() MainMenu {
 		Heading: fixtureHeading,
 		Menu: component.Menu{Items: []component.MenuItem{
 			{Key: "1", Label: "User", Description: "Create, manage", Aside: "sudo, SSH keys"},
-			{Key: "2", Label: "SSH Login", Description: "Disable root and passwords, set port"},
+			{Key: "2", Label: SSHTitle, Description: "Disable root and passwords, set port"},
 			{Key: "3", Label: "Firewall", Description: "Manage rules, port listening"},
 			{Key: "4", Label: "Kernel", Description: "Harden sysctl", Aside: "network, kernel"},
 			{Key: "6", Label: "Run All", Description: "Queue hardening actions"},

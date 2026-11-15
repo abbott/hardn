@@ -17,7 +17,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mallowing 443 alone: a new SSH session is refused. Item 1 lets␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mit through.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$
 $
@@ -129,7 +129,7 @@ $
   ␛[38;2;129;134;156mback at 12:03:01 UTC. To undo it now, run␛[m$
   ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$
 $
@@ -206,7 +206,7 @@ $
 # allowing 443 alone: a new SSH session is refused. Item 1 lets$
 # it through.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [ ] Firewall             Partial ssh blocked$
 $
@@ -318,7 +318,7 @@ $
   back at 12:03:01 UTC. To undo it now, run$
   `sudo hardn rollback 20261020T120000Z-xxxxxxxx`.$
 $
-# UFW Firewall Configuration ###################################$
+# Firewall Settings ############################################$
 $
   [+] Firewall             + deny policy$
 $
@@ -396,7 +396,7 @@ $
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mactive allowing 443 alone: a new SSH session is refused.␛[m$
 ␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mItem 1 lets it through.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;219;184;83m⭘␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;219;184;83mPartial␛[m ␛[38;2;86;91;107mssh blocked␛[m$
@@ -530,7 +530,7 @@ $
   ␛[38;2;129;134;156mrolled back at 12:03:01 UTC. To undo it now, run␛[m$
   ␛[38;2;129;134;156m`sudo hardn rollback 20261020T120000Z-xxxxxxxx`.␛[m$
 $
-␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mUFW Firewall Configuration␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
+␛[38;2;43;47;59m░␛[m ␛[1;38;2;192;196;216mFirewall Settings␛[m ␛[38;2;43;47;59m░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░░␛[m$
 $
    ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
       ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy␛[m$

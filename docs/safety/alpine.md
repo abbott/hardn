@@ -199,7 +199,7 @@ Not run: Alpine 3.24; `openssh-server-krb5`.
 > **Unit:** `next/alpine-openssh-upgrade`, the roadmap's "SSH on Alpine (CVE-2026-123158)" (both items, now off it), the maintainer's decisions of 2026-11-08: SSH Login's item 5 and Run All; Run All upgrades on an exposed host rather than turning password login off; a simulation listing anything but openssh's upgrades is refused; the upgrade has no undo, outside confirm-or-revert.
 > **Status:** built and tested on macOS against `hostfake`; a real upgrade run on `alpine323-vm` (below).
 
-**Where.** SSH Login's item 5, "Upgrade openssh", offered on Alpine where the `openssh-server` package sshd runs (the `-pam` or `-krb5` build where the init script runs it, `reload.OpenRCFlavour`) lacks the fix (`sshchange.ReadFix`), and Run All's SSH Auth row there, which no `hardn.yml` key asks for (Nothing asked where the fix is there or not established). In Run All it claims sshd, so Disallow root login and Firewall Enable wait, "After the openssh upgrade: run Run All again", as does a Create refused for the fix (`USERS_PASSWORD_BYPASS`), which the upgrade lifts.
+**Where.** The SSH screen's item 5, "Upgrade openssh", offered on Alpine where the `openssh-server` package sshd runs (the `-pam` or `-krb5` build where the init script runs it, `reload.OpenRCFlavour`) lacks the fix (`sshchange.ReadFix`), and Run All's SSH Auth row there, which no `hardn.yml` key asks for (Nothing asked where the fix is there or not established). In Run All it claims sshd, so Disallow root login and Firewall Enable wait, "After the openssh upgrade: run Run All again", as does a Create refused for the fix (`USERS_PASSWORD_BYPASS`), which the upgrade lifts.
 
 **The plan** (`alpine.PlanUpgrade`, reads only; a dry run writes nothing):
 

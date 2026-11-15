@@ -88,7 +88,7 @@ func sshHosts() []sshHost {
 		{name: "pve9", label: "Proxmox VE 9", about: "Root allowed", host: sshPVE, env: root,
 			note: hostFQDN + " is a Proxmox VE 9 node as installed: PermitRootLogin yes, passwords on; root alone, by key; no ufw. hardn runs from root's login."},
 		{name: "ufw-restricted", label: "ufw, 22 restricted", about: "From 192.0.2.0/24", host: sshUFWRestricted, env: sudo,
-			note: deb + "debian13, but ufw allows 22 from 192.0.2.0/24 alone (P-33 (2))."},
+			note: deb + "debian13, but ufw allows 22 from 192.0.2.0/24 alone, where george is logged in from: Change SSH port gives the new port the same rule (design-ssh-port-sources.md)."},
 		{name: "confirm-window", label: "Confirm pending", about: "22 and 2230 held", host: sshConfirmWindow, env: sudo,
 			note: deb + "debian13 after Change SSH port to 2230, applied a minute ago: 22 and 2230 held, hardn confirm pending."},
 		{name: "not-read", label: "sshd not read", about: "Before the first connection", host: sshNotRead, env: sudo,
@@ -133,6 +133,34 @@ func sshVariants() []sshHost {
 			_ = h.f.Remove(context.Background(), "/home/george/.ssh/authorized_keys")
 			h.f.AddFile("/home/george/.ssh/authorized_keys2", data, 0o600, 1000, 1000)
 			return h
+		}},
+		{name: "ufw-two-sources", note: "ufw allows 22 from 192.0.2.0/24 and 198.51.100.0/24 alone: both are carried to the new port.", env: sudo, host: func() *fakeHost {
+			return sshUFWSources()
+		}},
+		{name: "ufw-sources-part", note: "ufw-two-sources, with 198.51.100.0/24 on 2230 by hand: the other is added.", env: sudo, host: func() *fakeHost {
+			return sshUFWSources(simRule{action: "allow", port: "2230", src: "198.51.100.0/24"})
+		}},
+		{name: "ufw-sources-there", note: "ufw-two-sources, with both sources on 2230 by hand: ufw has no step.", env: sudo, host: func() *fakeHost {
+			return sshUFWSources(simRule{action: "allow", port: "2230", src: "192.0.2.0/24"}, simRule{action: "allow", port: "2230", src: "198.51.100.0/24"})
+		}},
+		{name: "ufw-port-wider", note: "ufw-restricted, with 2230 open from anywhere already: the rule is left, and the review says the new port lets in more.", env: sudo, host: func() *fakeHost {
+			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{
+				{action: "allow", port: "22", src: "192.0.2.0/24"}, {action: "allow", port: "2230"}}})
+		}},
+		{name: "ufw-deny-22", note: "ufw denies 22 from 192.0.2.99, then allows it from 192.0.2.0/24: the deny is not copied, and the review says so.", env: sudo, host: func() *fakeHost {
+			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{
+				{action: "deny", port: "22", src: "192.0.2.99"}, {action: "allow", port: "22", src: "192.0.2.0/24"}}})
+		}},
+		{name: "ufw-any-port", note: "ufw allows 22 from anywhere, and every port from 198.51.100.0/24: 2230 gets its own rule from anywhere, as 22 has.", env: sudo, host: func() *fakeHost {
+			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{
+				{action: "allow", port: "22"}, {action: "allow", src: "198.51.100.0/24"}}})
+		}},
+		{name: "ufw-source-port", note: "ufw allows 22 from 192.0.2.0/24, and from 198.51.100.0/24 port 1024: a rule hardn can't copy.", env: sudo, host: func() *fakeHost {
+			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{
+				{action: "allow", port: "22", src: "192.0.2.0/24"}, {action: "allow", port: "22", src: "198.51.100.0/24", sport: "1024"}}})
+		}},
+		{name: "ufw-session-out", note: "ufw allows 22 from 198.51.100.0/24 alone; the session is from 192.0.2.10.", env: sudo, host: func() *fakeHost {
+			return simulateUFW(sshDebian13(), ufwSim{incoming: "deny", active: true, enabled: true, rules: []simRule{{action: "allow", port: "22", src: "198.51.100.0/24"}}})
 		}},
 		{name: "no-accepted", note: "sshd's log has no line for the session.", env: sudo, host: func() *fakeHost {
 			h := sshDebian13()
@@ -211,7 +239,7 @@ func sshHostMenu() screen.SubMenu {
 		items = append(items, component.MenuItem{Key: fmt.Sprint(i + 1), Label: sh.label, Description: sh.about})
 	}
 	return screen.SubMenu{
-		Title:   component.TitleBar{Title: "SSH Login hosts"},
+		Title:   component.TitleBar{Title: "SSH hosts"},
 		Heading: "Select an option",
 		Menu:    component.Menu{Items: items, Exit: component.MenuItem{Key: "0", Label: "Return"}},
 		Prompt:  "Option",

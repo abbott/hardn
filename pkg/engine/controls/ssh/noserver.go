@@ -18,6 +18,14 @@ const DetailNoServer = "no SSH server"
 // root logs in by key alone, as the cluster needs.
 const DetailProxmoxKeyOnly = "root key-only (Proxmox)"
 
+// SSH Login's and SSH Auth's Configured details off Proxmox VE, which the
+// main menu's SSH row words again (output.StatusViewOf).
+const (
+	DetailRootDisallowed = "root disallowed"
+	DetailKeyOnly        = "key-only auth"
+	DetailKeyAndPassword = "key and password"
+)
+
 // unread is an SSH row's status where reading sshd failed with err: Not
 // Applicable, DetailNoServer, nil error, where err says that no sshd can
 // run here (noSSHD) and sshd.NoServer establishes that no SSH server is
