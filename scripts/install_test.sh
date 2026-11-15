@@ -351,6 +351,18 @@ mode() { ls -ld "$1" | cut -c1-10; }
 
 expect_status() { [ "$status" = "$1" ] || fail "exit $status, want $1"; }
 expect_out() { grep -qF -- "$1" "$cdir/out" || fail "stdout lacks: $1"; }
+expect_lacks() { ! grep -qF -- "$1" "$cdir/out" || fail "stdout has: $1"; }
+# Provenance not checked: one line that points to docs/verify.md, with a
+# blank line on each side, and no mark, Warning or command.
+see="See docs/verify.md to check provenance"
+expect_quiet() {
+	[ "$(grep -c -i -e provenance -e 'verify' "$cdir/out")" = 1 ] || fail "more than one line on provenance"
+	awk -v s="$see" '$0 == s { found = 1; ok = prev == ""; getline; ok = ok && $0 == "" } { prev = $0 } END { exit !(found && ok) }' "$cdir/out" ||
+		fail "no line between blank lines: $see"
+	for gone in "not checked" "[ ]" Warning "To check it" "gh " "verify.sh" "--cert-identity"; do
+		expect_lacks "$gone"
+	done
+}
 expect_err() { grep -qF -- "$1" "$cdir/err" || fail "stderr lacks: $1"; }
 # The layout: every stdout line within 80 columns but the identity URL, a
 # blank line before the line that starts with $1, and one at the end.
@@ -558,20 +570,14 @@ $api max-time=5"
 	new_case "gh absent"
 	run_install
 	expect_installed hardn-linux-amd64
-	expect_out "Provenance not checked"
-	expect_out "gh attestation verify /usr/local/bin/hardn --repo abbott/hardn"
-	expect_out "    --cert-identity \\"
-	expect_out "    $identity"
-	expect_out "--source-ref refs/tags/v0.4.0 --deny-self-hosted-runners"
-	expect_out "sh verify.sh 0.4.0 linux-amd64"
+	expect_quiet
 	expect_out "Downloading hardn-linux-amd64 ..."
 	expect_blank_start
 	expect_fits
 	expect_out "  [+] Downloaded hardn-linux-amd64"
 	expect_out "  [+] SHA-256 matches SHA256SUMS"
-	expect_out "  [ ] Provenance not checked"
 	expect_out "  [+] Created /etc/hardn"
-	for part in "   -  Downloading" "# Warning" "To check it:" "  [+] Created" "hardn writes" "# Installed hardn"; do
+	for part in "   -  Downloading" "$see" "  [+] Created" "hardn writes" "# Installed hardn"; do
 		expect_blank_before "$part"
 	done
 	# Not a terminal: no colour, and ASCII marks.
@@ -585,6 +591,7 @@ $api max-time=5"
 	run_install GH=1
 	expect_installed hardn-linux-amd64
 	expect_out "  [+] Provenance verified: built by"
+	expect_lacks "$see"
 	expect_out "      $identity"
 	expect_fits
 	expect_blank_before "   -  Verifying the provenance"
@@ -598,12 +605,12 @@ $api max-time=5"
 	new_case "gh signed out"
 	run_install GH=1 FAKE_GH_AUTH=0
 	expect_installed hardn-linux-amd64
-	expect_out "Provenance not checked"
+	expect_quiet
 	! grep -q "^attestation verify /" "$cdir/log/gh.log" || fail "gh verified while signed out"
 	new_case "gh too old"
 	run_install GH=1 FAKE_GH_HELP=old
 	expect_installed hardn-linux-amd64
-	expect_out "Provenance not checked"
+	expect_quiet
 	! grep -q "^attestation verify /" "$cdir/log/gh.log" || fail "gh verified without --source-ref"
 
 	# 6. The install.

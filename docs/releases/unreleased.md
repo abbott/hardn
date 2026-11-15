@@ -14,3 +14,4 @@
 - **"not reached" is now "unreachable"** on the Syslog row and screen: "server unreachable", "1 of 3 unreachable".
 - **The main menu's items have new words.** Item 1 is "User" (the screen is still User Management). The keys 0 to 10 are unchanged.
 - **The Markdown report lists Kernel, and DNS last.** DNS was between Firewall and Auto Updates.
+- **install.sh says one line when it can't check provenance**: "See docs/verify.md to check provenance", in place of the warning and the gh command. With gh signed in, it checks as before.
