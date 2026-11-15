@@ -27,13 +27,8 @@ Features hardn doesn't have yet. None has a release or a date.
 
 - **Restore a backup run.** Backup (7) lists past runs and their files, and only reads. A rollback already puts back the files of the change it undoes. Restoring a run you choose would go through the same steps as any change: shown first, asked, and confirm-or-revert where it restores SSH or firewall files.
 
-## Audit log
-
-- **Record confirmations and rollbacks.** `/var/log/hardn/audit.jsonl` doesn't record `hardn confirm`'s confirmation itself, `hardn rollback <id>` (the revert timer's included), `--abandon` or `--boot`.
-
 ## Checks
 
-Both are off by default. hardn makes no network request today, and the README promises it never phones home: each would be a request only where you turn it on in hardn.yml.
+Off by default: a request only where you turn it on in hardn.yml.
 
-- **Check for new hardn releases.** hardn would read GitHub's latest release (`api.github.com/repos/abbott/hardn/releases/latest`, as `install.sh` does) at most once a day, and say so in one line on the main menu, never in its way. Updating would stay `install.sh`'s, which checks a release against `SHA256SUMS`. An earlier checker is kept, disabled, in `pkg/version/checker.go`: it checked at every start, and cached in `/tmp`, where another user could plant a fake update. Proposal P-15 sets the fix: a cache in a directory root owns, checked before it's read.
 - **Check for new applicable CVEs.** hardn knows one CVE today: Alpine's sshd password bypass (CVE-2026-123158). It reads openssh-server's installed version against each Alpine branch's first fixed release, warns on the main menu, raises the risk level to Critical, and offers Upgrade openssh. This check would read every installed package (apk, dpkg, rpm) against vulnerability data and list the CVEs an available update fixes, with the update that fixes them. OSV.dev's format covers Debian, Ubuntu, Alpine, Rocky Linux, AlmaLinux and Red Hat, keyed by source package, so installed packages would be mapped to their source first. Proxmox VE's own packages and Arch aren't covered there.
