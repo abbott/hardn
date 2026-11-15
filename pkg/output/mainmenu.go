@@ -16,7 +16,8 @@ import (
 // reading of a host (refactor plan Phase 4, next/p4-vmcheck): the header,
 // the distribution's bar and the host block from the header probe's h
 // (HeaderViewOf, with base's version), the risk summary and the status
-// rows from Engine.Check's reports and their risk level l (StatusViewOf),
+// rows, and the rows of what has a problem, from Engine.Check's reports
+// and their risk level l (StatusViewOf),
 // and the alert from l (AlertOf), whose factors are then no line under a
 // row. base keeps its menu items, heading, mode and prompt, which are not
 // the status model's: the gallery's status hosts pass the mock's,
@@ -29,7 +30,7 @@ func MainMenuOf(base screen.MainMenu, h header.Header, reports []engine.Report, 
 	alert, rest := AlertOf(l)
 	sv := StatusViewOf(reports, rest)
 	base.Header, base.Context, base.Host = hv.Header, hv.Context, hv.Host
-	base.Risk, base.Status, base.Alert = sv.Risk, sv.Status, alert
+	base.Risk, base.Status, base.Info, base.Alert = sv.Risk, sv.Status, sv.Info, alert
 	return base
 }
 

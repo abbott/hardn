@@ -33,6 +33,7 @@ import (
 
 	"github.com/abbott/hardn/pkg/config"
 	"github.com/abbott/hardn/pkg/engine"
+	"github.com/abbott/hardn/pkg/engine/logview"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -168,36 +169,63 @@ func list(cfg *config.Config) []string {
 // the row's state, only which reason it names (the host's own, once
 // established, or the empty list's). Each finding of the host
 // (dns.State.Findings) explains the line where the host was read; none
-// sets it.
+// sets it. A row that is Not Configured or Unknown carries the main
+// menu's problem row (engine.Status.Problem and Value: the row's words in
+// sentence case, and the nameservers in use).
 func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, error) {
+	st, s, err := n.check(ctx, sys, f)
+	switch st.State {
+	case engine.Unknown:
+		st.Problem = ProblemCantRead
+	case engine.NotConfigured:
+		st.Problem, st.Value = problems[st.Detail], logview.Safe(strings.Join(InUse(s), ", "))
+	}
+	return st, err
+}
+
+// The main menu's words for a row with a problem (engine.Status.Problem;
+// gallery-menu-layout.md, decision 11 (a)).
+const (
+	ProblemNotHardn   = "Not hardn.yml's"
+	ProblemInvalid    = "Not valid in hardn.yml"
+	ProblemNotRunning = "resolved not running"
+	ProblemCantRead   = "Can't read"
+)
+
+// problems are the Not Configured details' words on the main menu.
+var problems = map[string]string{DetailNotHardn: ProblemNotHardn, DetailInvalid: ProblemInvalid, DetailNotRunning: ProblemNotRunning}
+
+// check is Check without the main menu's problem row, and the host as
+// read.
+func (n Nameservers) check(ctx context.Context, sys host.System, f detect.Facts) (engine.Status, hostdns.State, error) {
 	s, err := hostdns.Read(ctx, sys, f)
 	switch {
 	case errors.Is(err, hostdns.ErrContainer):
-		return engine.Status{State: engine.NotApplicable, Detail: DetailContainer, Evidence: []string{"container: " + f.Container.Signal}}, nil
+		return engine.Status{State: engine.NotApplicable, Detail: DetailContainer, Evidence: []string{"container: " + f.Container.Signal}}, s, nil
 	case errors.Is(err, hostdns.ErrUnsupported): // detect's family, established
-		return engine.Status{State: engine.NotApplicable, Detail: DetailUnsupported, Evidence: []string{"distribution: " + string(f.Platform.Distro)}}, nil
+		return engine.Status{State: engine.NotApplicable, Detail: DetailUnsupported, Evidence: []string{"distribution: " + string(f.Platform.Distro)}}, s, nil
 	}
 	var ev []string
 	if err == nil {
 		ev = evidence(s)
 		if d, ok := reportedOnly[s.Manager]; ok {
-			return engine.Status{State: engine.NotApplicable, Detail: d, Evidence: ev}, nil
+			return engine.Status{State: engine.NotApplicable, Detail: d, Evidence: ev}, s, nil
 		}
 	}
 	read := err == nil && s.Manager != hostdns.ManagerUnknown && s.Err == nil
 	want := list(n.Config)
 	if len(want) == 0 {
-		return none(n.Config, s, read, ev), nil
+		return none(n.Config, s, read, ev), s, nil
 	}
 	switch {
 	case err != nil:
-		return engine.Status{State: engine.Unknown, Detail: DetailCantRead}, err
+		return engine.Status{State: engine.Unknown, Detail: DetailCantRead}, s, err
 	case !read:
 		why := s.Err
 		if why == nil {
 			why = hostdns.ErrUnknown
 		}
-		return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: ev}, fmt.Errorf("dns: %w", why)
+		return engine.Status{State: engine.Unknown, Detail: DetailCantRead, Evidence: ev}, s, fmt.Errorf("dns: %w", why)
 	}
 	st := engine.Status{State: engine.NotConfigured, Evidence: append(ev, listEvidence(n.Config)...), Findings: findings(s)}
 	inUse := InUse(s)
@@ -211,7 +239,7 @@ func (n Nameservers) Check(ctx context.Context, sys host.System, f detect.Facts)
 	default:
 		st.Detail = DetailNotHardn
 	}
-	return st, nil
+	return st, s, nil
 }
 
 // InUse are the nameservers in use on a host read as s, in their order:

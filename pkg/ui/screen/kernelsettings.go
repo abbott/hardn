@@ -10,7 +10,7 @@ import (
 
 // The Kernel Settings screen (docs/roadmap.md, "sysctl";
 // docs/engine/gallery-sysctl.md, adopted 2026-11-14,
-// built in its §9): main menu 8, then 4. One row a setting,
+// built in its §9): main menu 4 (the group's item 4 until 2026-11-14). One row a setting,
 // in plain words: its value, what the value means and, below hardn's
 // baseline, what hardn sets or which file holds it. A row stands for its
 // keys, every interface's among them, and shows the weakest. One or two

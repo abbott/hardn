@@ -17,15 +17,17 @@ import (
 	"github.com/abbott/hardn/pkg/ui/screen"
 )
 
-// TestMainMenuOf checks that MainMenuOf fills the five blocks the status
-// model owns as HeaderViewOf and StatusViewOf map them, with base's
-// version, and keeps the rest of base, which it does not change.
+// TestMainMenuOf checks that MainMenuOf fills the blocks the status model
+// owns as HeaderViewOf and StatusViewOf map them, the rows of what has a
+// problem among them, with base's version, and keeps the rest of base,
+// which it does not change.
 func TestMainMenuOf(t *testing.T) {
 	h := upFor(182*24*time.Hour + 2*time.Hour + 26*time.Minute)
 	h.OS = header.OS{Name: "Debian", Version: "13", Codename: "trixie"}
 	h.Hostname = header.Hostname{Name: "web-01"}
 	h.Address.IPv4 = header.Family{Route: detect.Yes, Iface: "eth0", Addr: netip.MustParseAddr("192.0.2.20")}
 	rs := figmaReports()
+	rs[len(rs)-2].Status.State, rs[len(rs)-2].Status.Problem, rs[len(rs)-2].Status.Value = engine.NotConfigured, "Not hardn.yml's", "192.0.2.1" // DNS
 	l := risk.Assess(rs, h)
 	base := screen.MainMenuFixture()
 	base.Header.Version = "v9.9.9"
@@ -33,11 +35,12 @@ func TestMainMenuOf(t *testing.T) {
 	got := output.MainMenuOf(base, h, rs, l)
 	hv, sv := output.HeaderViewOf("v9.9.9", h), output.StatusViewOf(rs, l)
 	want := base
-	want.Header, want.Context, want.Host, want.Risk, want.Status = hv.Header, hv.Context, hv.Host, sv.Risk, sv.Status
+	want.Header, want.Context, want.Host, want.Risk, want.Status, want.Info = hv.Header, hv.Context, hv.Host, sv.Risk, sv.Status, sv.Info
 	if !reflect.DeepEqual(got, want) || got.Alert != nil {
 		t.Errorf("MainMenuOf = %+v\nwant %+v", got, want)
 	}
-	if got.Host.Hostname != "web-01" || got.Context.Codename != "Trixie" || got.Header.Version != "v9.9.9" || len(got.Status.Rows) != len(risk.Rows()) {
+	if got.Host.Hostname != "web-01" || got.Context.Codename != "Trixie" || got.Header.Version != "v9.9.9" || len(got.Status.Rows) != len(risk.Rows())-1 ||
+		len(got.Info.Rows) != 1 || got.Info.Rows[0].Label != "DNS" || got.Info.Rows[0].Detail != "192.0.2.1" {
 		t.Errorf("header %+v, bar %+v, host %+v, %d rows", got.Header, got.Context, got.Host, len(got.Status.Rows))
 	}
 	again := screen.MainMenuFixture()
@@ -49,7 +52,8 @@ func TestMainMenuOf(t *testing.T) {
 
 // TestAlertOf checks the main menu's alert: each established
 // CVE-2026-123158 factor of SSH Auth raises it, with the approved words and
-// the route to SSH Login, and is then no line under SSH Auth, while the
+// the route to SSH Login, and is then no line under the SSH Login row,
+// which SSH Auth is drawn in, while the
 // risk level, its band and gloss, stays l's; whether sshd is patched not
 // established stays a line, with no alert; l is not changed; and
 // StatusViewOf over l keeps the line: only AlertOf drops it.
@@ -84,12 +88,12 @@ func TestAlertOf(t *testing.T) {
 				lines = append(lines, r.Label+": "+x.Text)
 			}
 		}
-		if has := slices.Contains(lines, "SSH Auth: "+c.line); has == c.alert {
+		if has := slices.Contains(lines, "SSH Login: "+c.line); has == c.alert {
 			t.Errorf("%s: lines %q; the line drawn: %v, want %v", c.code, lines, has, !c.alert)
 		}
 		var kept bool
 		for _, r := range output.StatusViewOf(rs, l).Status.Rows {
-			kept = kept || r.Label == "SSH Auth" && slices.ContainsFunc(r.Lines, func(x component.StatusLine) bool { return x.Text == c.line })
+			kept = kept || r.Label == "SSH Login" && slices.ContainsFunc(r.Lines, func(x component.StatusLine) bool { return x.Text == c.line })
 		}
 		if !kept {
 			t.Errorf("%s: StatusViewOf lost SSH Auth's line %q", c.code, c.line)

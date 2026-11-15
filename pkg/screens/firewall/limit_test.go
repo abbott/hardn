@@ -53,7 +53,7 @@ func TestLimit(t *testing.T) {
 		t.Errorf("the hostname asked: the change is y/N:\n%s", p.out)
 	}
 	s := screens(p.out, "UFW Firewall Configuration")
-	if got := items(s[len(s)-1]); strings.Contains(got, "Limit SSH") || rowOf(s[len(s)-1], "Firewall") != "Configured deny policy" {
+	if got := items(s[len(s)-1]); strings.Contains(got, "Limit SSH") || rowOf(s[len(s)-1], "Firewall") != "+ deny policy" {
 		t.Errorf("after: items %q, the row %q", got, rowOf(s[len(s)-1], "Firewall"))
 	}
 	if got := limitRan(h, n); !slices.Equal(got, []string{"ufw limit 22/tcp"}) {

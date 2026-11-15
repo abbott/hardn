@@ -22,6 +22,7 @@
 //	go run ./internal/tools/uigallery eol [flags] [mock | all]...
 //	go run ./internal/tools/uigallery release-check [flags] [mock | all]...
 //	go run ./internal/tools/uigallery release-notice [flags] [mock | all]...
+//	go run ./internal/tools/uigallery menu-layout [flags] [mock | all]...
 //	go run ./internal/tools/uigallery keys [flags] [mock | all]...
 //
 // With no argument, or "all", it renders every state; "menu" renders every
@@ -185,7 +186,8 @@
 // is the menu of those mocks and "play config/<mock>" hardn's Configuration screen
 // itself on one (pkg/screens/config; docs/engine/screen-config.md). The main menu's 8
 // leads to the Configuration group ("play config/menu"), whose 1 leads to that
-// screen on the typical file, 2 to Syslog Settings and 3 to NTP Settings.
+// screen on the typical file, 2 to DNS Settings, 3 to NTP Settings and 4 to
+// Syslog Settings.
 //
 // "eol" lists the mocks of the main menu's end-of-support notice (eol.go,
 // docs/engine/gallery-eol.md), with the same flags, each drawn through the
@@ -197,6 +199,10 @@
 // "release-notice" lists the mocks of that notice where else it is said
 // (releasenotice.go, docs/engine/gallery-release-notice.md): under the
 // repository link, on --version, and ending verify.sh and install.sh.
+// "menu-layout" lists the mocks of the main menu's layout, adopted 2026-11-14
+// (menulayout.go, docs/engine/gallery-menu-layout.md): "+" for "Configured",
+// SSH Auth in the SSH Login row, a Kernel row, a DNS, NTP or Syslog row only
+// with a problem. Each is drawn through hardn's own mapping.
 // "keys" lists the mocks of the SSH Keys screen, under SSH Login: every key sshd
 // reads, by account, read only (keys.go, docs/engine/gallery-keys.md), with the
 // same flags, each drawn through the real screen's mapping. "play keys" is the
@@ -662,6 +668,9 @@ func run(args []string, stdin func() *prompt.Reader, size sizer, stdout, stderr 
 	}
 	if len(args) > 0 && args[0] == noticePrefix {
 		return noticeListing.run(args[1:], size, stdout, stderr)
+	}
+	if len(args) > 0 && args[0] == mlPrefix {
+		return mlListing.run(args[1:], size, stdout, stderr)
 	}
 	if len(args) > 0 && args[0] == accountsPrefix {
 		return accountsListing.run(args[1:], size, stdout, stderr)

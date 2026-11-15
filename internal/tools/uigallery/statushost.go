@@ -12,6 +12,7 @@ import (
 	"github.com/abbott/hardn/pkg/host/alpine"
 	"github.com/abbott/hardn/pkg/host/detect"
 	"github.com/abbott/hardn/pkg/host/hostfake"
+	"github.com/abbott/hardn/pkg/host/logfwd"
 	"github.com/abbott/hardn/pkg/host/pve"
 	"github.com/abbott/hardn/pkg/host/sshd"
 	"github.com/abbott/hardn/pkg/host/sudoers"
@@ -256,8 +257,26 @@ const (
 // installed.
 func statusOn(p platform) *fakeHost { return statusWith(p, apparmorStock) }
 
-// statusWith is statusOn with AppArmor's module in state aa.
+// statusWith is statusOn with AppArmor's module in state aa, and the
+// platform's kernel settings as a host of it read them on 2026-11-14
+// (sysctl.go: ksDebian, ksAlpine, ksRocky), with its sysctl tool: the
+// Kernel row is the main menu's on every host (the maintainer,
+// 2026-11-14). Ubuntu and Proxmox VE, not read, have Debian's.
 func statusWith(p platform, aa apparmorState) *fakeHost {
+	iface, values := "eth0", ksDebian
+	switch {
+	case p.openRC:
+		values = ksAlpine
+	case p.proxmox != "":
+		iface = "vmbr0"
+	case strings.Contains(p.osRelease, "ID_LIKE=\"rhel"):
+		values = ksRocky
+	}
+	return statusBase(p, aa).kernel(p, []string{iface}, true, values)
+}
+
+// statusBase is statusWith without the kernel settings.
+func statusBase(p platform, aa apparmorState) *fakeHost {
 	h := simulate(p)
 	f := h.f
 	r := &readings{units: map[string]unit{}, packages: map[string]string{}, addrs: map[string]string{}}
@@ -301,6 +320,10 @@ func statusWith(p platform, aa apparmorState) *fakeHost {
 		f.AddDir(alpine.DailyDir, 0o755, 0, 0)
 		f.AddFile(alpine.InitScript, []byte("#!/sbin/openrc-run\n"), 0o755, 0, 0)
 		f.AddSymlink(alpine.RunlevelLink, alpine.InitScript)
+		// busybox syslogd's stock options (logforward.go's lfAlpine): the
+		// main menu reads them on every host, and shows a Syslog row for
+		// options it can't read.
+		f.AddFile(logfwd.ConfD, []byte("SYSLOGD_OPTS=\"-t\"\n"), 0o644, 0, 0)
 		r.crond = true
 		return h
 	}
@@ -461,7 +484,8 @@ func (h *fakeHost) unattendedUpgrades() {
 // PasswordAuthentication no and KbdInteractiveAuthentication no, sshd
 // reloaded onto 2230, ufw allowing 2230 alone, and unattended-upgrades on;
 // and DNS as Configure DNS leaves Debian 13 (dnsConfigured: hardn.yml's
-// nameservers in use, next/s2-menu-live).
+// nameservers in use, next/s2-menu-live); and the kernel settings as Apply
+// settings leaves them (ksApplied).
 func (h *fakeHost) harden() {
 	h.f.AddFile(sshd.DropInDir+"/00-hardn.conf", []byte("Port 2230\nPermitRootLogin no\nPasswordAuthentication no\nKbdInteractiveAuthentication no\n"), 0o644, 0, 0)
 	h.boot()
@@ -469,6 +493,8 @@ func (h *fakeHost) harden() {
 	h.saveRules()
 	h.unattendedUpgrades()
 	h.dnsConfigured()
+	ksApplied(h)
+	h.f.ResetCalls() // ksApplied read and wrote through the host
 }
 
 // ufwAsShipped is ufw as Ubuntu ships it: installed and inactive, with

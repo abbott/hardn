@@ -51,8 +51,8 @@ func TestScreen(t *testing.T) {
 	}{
 		{"debian13", "Not Configured ufw not installed", "1 Install UFW", false},
 		{"ubuntu2604", "Not Configured inactive", "1 Enable firewall" + p2, true},
-		{"active22", "Configured deny policy", "1 Disable firewall" + p2 + l5, false},
-		{"hardened", "Configured deny policy", "1 Disable firewall" + p2 + l5, false},
+		{"active22", "+ deny policy", "1 Disable firewall" + p2 + l5, false},
+		{"hardened", "+ deny policy", "1 Disable firewall" + p2 + l5, false},
 		{"allow-policy", "Partial allow policy", "1 Set deny policy" + p2 + d3, true},
 		{"lockout", "Partial ssh blocked", "1 Let SSH through" + p2 + d3, true},
 		{"lockout-at-start", "Not Configured enabled, not running", "1 Enable firewall" + p2, false},
@@ -66,8 +66,8 @@ func TestScreen(t *testing.T) {
 		{"alpine-runlevel", "Partial off after restart", "1 Start ufw at boot" + p2 + d3 + l5, false},
 		{"unit-off", "Partial off after restart", "1 Start ufw at boot" + p2 + d3 + l5, false},
 		{"pve9", "Not Configured disabled", "", false},
-		{"pve9-drop", "Configured drop policy", "", false},
-		{"profiles", "Configured deny policy", "1 Disable firewall" + p2 + l5, false},
+		{"pve9-drop", "+ drop policy", "", false},
+		{"profiles", "+ deny policy", "1 Disable firewall" + p2 + l5, false},
 	} {
 		for _, dryRun := range []bool{false, true} {
 			h, cfg := screenHost(t, tt.host)

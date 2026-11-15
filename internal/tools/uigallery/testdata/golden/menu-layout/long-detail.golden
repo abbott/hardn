@@ -1,0 +1,66 @@
+# Golden file of TestMenuLayoutGolden, written by pkg/ui/uitest. Do not edit: regenerate with make golden-update.
+# One section per cell: "=== <cell>: <env>", then the output as written through term.Env.Writer.
+# Control characters are Unicode Control Pictures (ESC is ␛) and every line ends with $.
+
+=== truecolor-dark-unicode-80: width 80, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mmenu-layout long-detail␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. Details of 35 and 40␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcells, made up: no scored row's is this long. At 64 columns a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetail after "+" has 35 cells; a longer one is cut.␛[m$
+$
+35 and 40 cells:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy, 9 rules, 3 profiles on␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy, 14 rules, 3 profiles…␛[m$
+$
+$
+
+=== plain-80: width 80, height 24, profile notty, dark, glyphs ascii, plain
+  menu-layout long-detail --------------------------------------$
+$
+# Note$
+# Adopted 2026-11-14: no Figma frame. Details of 35 and 40$
+# cells, made up: no scored row's is this long. At 64 columns a$
+# detail after "+" has 35 cells; a longer one is cut.$
+$
+35 and 40 cells:$
+  [+] Firewall             + deny policy, 9 rules, 3 profiles on$
+$
+  [+] Firewall             + deny policy, 14 rules, 3 profile...$
+$
+$
+
+=== truecolor-dark-unicode-60: width 60, height 24, profile truecolor, dark, glyphs unicode
+  ␛[1;38;2;129;134;156mmenu-layout long-detail␛[m ␛[38;2;22;24;29m╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌╌␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. Details of 35 and 40␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcells, made up: no scored row's is this long. At 64␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcolumns a detail after "+" has 35 cells; a longer one is␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcut.␛[m$
+$
+35 and 40 cells:$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy, 9 rules, 3 profiles on␛[m$
+$
+   ␛[38;2;112;212;127m⛛␛[m  ␛[38;2;192;196;216mFirewall␛[m$
+      ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy, 14 rules, 3 profiles in use␛[m$
+$
+$
+
+=== truecolor-dark-ascii-80: width 80, height 24, profile truecolor, dark, glyphs ascii
+  ␛[1;38;2;129;134;156mmenu-layout long-detail␛[m ␛[38;2;22;24;29m--------------------------------------␛[m$
+$
+␛[48;2;129;134;156m ␛[m ␛[1;38;2;192;196;216mNote␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mAdopted 2026-11-14: no Figma frame. Details of 35 and 40␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mcells, made up: no scored row's is this long. At 64 columns a␛[m$
+␛[48;2;129;134;156m ␛[m ␛[38;2;129;134;156mdetail after "+" has 35 cells; a longer one is cut.␛[m$
+$
+35 and 40 cells:$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy, 9 rules, 3 profiles on␛[m$
+$
+  ␛[38;2;112;212;127m[+]␛[m ␛[38;2;192;196;216mFirewall␛[m             ␛[38;2;112;212;127m+␛[m ␛[38;2;86;91;107mdeny policy, 14 rules, 3 profile...␛[m$
+$
+$

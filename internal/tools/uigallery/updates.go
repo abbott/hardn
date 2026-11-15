@@ -39,7 +39,7 @@ const updMainHost = updPrefix + "/debian13"
 
 // updMenuItem is play's main menu's item for it (decision 1): key 5, named
 // as the row is, before Run All; unit (d) wires hardn's.
-var updMenuItem = component.MenuItem{Key: "5", Label: "Auto Updates", Description: "Configure automatic updates"}
+var updMenuItem = component.MenuItem{Key: "5", Label: "Auto Updates", Description: "Enable automatic updates"}
 
 // What hardn writes, as the fake's hosts hold it: its own apt file, and
 // the record (P-43 (4)) at revert.RecordPath's default.

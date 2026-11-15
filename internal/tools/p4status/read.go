@@ -113,9 +113,11 @@ func (r row) Check(ctx context.Context, sys host.System, f detect.Facts) (engine
 // mainMenu is r's main menu as hardn will draw it, rendered in env:
 // output.MainMenuOf over the main menu's mock, as the gallery's status
 // hosts draw theirs, with the items hardn's main menu draws on a host of
-// r's facts (mainmenu.MenuOf): "Configure firewalld" on Rocky Linux and
-// AlmaLinux, "View pve-firewall" on Proxmox VE, and item 5, Auto Updates,
-// which the mock has not. Its header shows no version, as hardn's does when
+// r's facts (mainmenu.MenuOf): "Manage firewalld, port listening" on the
+// EL family, "View pve-firewall" on Proxmox VE, and item 5, Auto Updates,
+// which the mock has not. NTP and Syslog are not read (controls.Status),
+// so no row is drawn for a problem of theirs, as hardn's main menu draws
+// one. Its header shows no version, as hardn's does when
 // built without one: p4status is not a hardn release, and the mock's
 // version is not this build's.
 func mainMenu(env term.Env, r reading) string {

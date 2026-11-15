@@ -407,3 +407,31 @@ func TestProcPath(t *testing.T) {
 		t.Errorf("no such key: %v", v.Err)
 	}
 }
+
+// TestOwnSettings: hardn's file counted by setting, not by line: Source
+// routing's two keys are one, a per-interface setting written as a line
+// for each interface is one, and a key that is no setting's is none.
+func TestOwnSettings(t *testing.T) {
+	for _, tc := range []struct {
+		name string
+		keys []string
+		want int
+	}{
+		{"no line", nil, 0},
+		{"one plain key", []string{sysctl.PtraceKey}, 1},
+		{"source routing's two keys", []string{"net.ipv4.conf.all.accept_source_route", "net.ipv6.conf.all.accept_source_route"}, 1},
+		{"a glob", []string{"net.ipv4.conf.*.accept_redirects"}, 1},
+		{"a line an interface (busybox)", []string{"net.ipv4.conf.all.accept_redirects", "net.ipv4.conf.default.accept_redirects", "net.ipv4.conf.eth0.accept_redirects"}, 1},
+		{"two families are two settings", []string{"net.ipv4.conf.*.accept_redirects", "net.ipv6.conf.*.accept_redirects"}, 2},
+		{"several", []string{"net.ipv4.conf.*.accept_redirects", "net.ipv4.conf.*.send_redirects", "kernel.kptr_restrict", "fs.protected_fifos", sysctl.PtraceKey, "kernel.dmesg_restrict"}, 6},
+		{"a key of no setting", []string{"net.ipv4.ip_forward", "kernel.kptr_restrict"}, 1},
+	} {
+		var o sysctl.Own
+		for _, k := range tc.keys {
+			o.Entries = append(o.Entries, sysctl.Entry{Key: k, N: 1})
+		}
+		if got := o.Settings(); got != tc.want {
+			t.Errorf("%s: %d settings, want %d", tc.name, got, tc.want)
+		}
+	}
+}

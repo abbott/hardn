@@ -32,22 +32,19 @@ func fixtureHeader() component.Header {
 
 // MainMenuFixture returns the main menu as Figma's 00-TUI-MAIN fills it,
 // with synthetic data: Figma's mock host BOS-SAN-L01 at 192.0.2.10, its
-// SSH port 2230, Figma's seven status rows and its Moderate risk, and the
-// live mode. The rows and items are in hardn's order, the maintainer's
-// (2026-11-07), not the PNG's: the rows as risk.Rows has them, without
-// DNS; the items User Management, SSH Login, Firewall, DNS, Run All,
-// Backup, Configuration, System Details, Logs. The items are hardn's
-// (pkg/screens/mainmenu run.go, held equal by its TestMainMenuItems) but
-// item 5, Auto Updates, which the mock has not yet; they differ from the
-// PNG in item 2, "Root login, passwords, port" where Figma has "Toggle
-// root SSH access" (legacy-left.md §3, decision 7 (a); P-07 (a), P-12),
-// in Dry-Run, which hardn removed (refactor plan slice 2b, decision 1),
-// and in item 8, Configuration, "hardn.yml, syslog, ntp, kernel",
-// where Figma and origin/main have Environment ("Configure environment
-// variable"), which hardn removed (the maintainer, 2026-11-12); System
-// Details is 9 and Logs 10, as theirs. The Exit item says "q to quit" (DEV-030),
-// and the prompt is "Option" where Figma's says "Enter your choice"
-// (P-29 (a)).
+// SSH port 2230, its Moderate risk, and the live mode. The rows and items
+// are hardn's, the maintainer's of 2026-11-14
+// (docs/engine/gallery-menu-layout.md), not the PNG's: the rows as the
+// main menu draws them (output.StatusViewOf), SSH Auth in the SSH Login
+// row and Kernel after Firewall, a Configured row's detail after "+"; the
+// items User, SSH Login, Firewall, Kernel, Run All, Backup, Configuration,
+// System Details, Logs. The items are hardn's (pkg/screens/mainmenu
+// run.go, held equal by its TestMainMenuItems) but item 5, Auto Updates,
+// which the mock has not yet. Dry-Run and Environment, Figma's and
+// origin/main's, hardn removed (refactor plan slice 2b, decision 1; the
+// maintainer, 2026-11-12). The Exit item says "q to quit" (DEV-030), and
+// the prompt is "Option" where Figma's says "Enter your choice" (P-29
+// (a)).
 func MainMenuFixture() MainMenu {
 	configured := func(label, detail string) component.StatusRow {
 		return component.StatusRow{Label: label, State: component.StatusConfigured, Detail: detail}
@@ -59,24 +56,24 @@ func MainMenuFixture() MainMenu {
 		Risk:    component.RiskSummary{Band: component.RiskModerate, Level: "Moderate", Gloss: "medium security"},
 		Status: component.StatusList{Rows: []component.StatusRow{
 			configured("User", "non-root, sudo"),
-			configured("SSH Login", "root disallowed"),
-			configured("SSH Auth", "key-only auth"),
+			configured("SSH Login", "root disallowed, key-only auth"),
 			configured("SSH Port", "non-default (2230)"),
 			configured("Firewall", "deny policy"),
+			configured("Kernel", "6 items applied"),
 			{Label: "Auto Updates", State: component.StatusNotConfigured},
 			{Label: "AppArmor", State: component.StatusNotConfigured},
 		}},
 		Heading: fixtureHeading,
 		Menu: component.Menu{Items: []component.MenuItem{
-			{Key: "1", Label: "User Management", Description: "Create, configure", Aside: "sudo, SSH keys"},
-			{Key: "2", Label: "SSH Login", Description: "Root login, passwords, port"},
-			{Key: "3", Label: "Firewall", Description: "Configure ufw rules"},
-			{Key: "4", Label: "DNS", Description: "Configure nameservers"},
-			{Key: "6", Label: "Run All", Description: "Execute hardening operations"},
+			{Key: "1", Label: "User", Description: "Create, manage", Aside: "sudo, SSH keys"},
+			{Key: "2", Label: "SSH Login", Description: "Disable root and passwords, set port"},
+			{Key: "3", Label: "Firewall", Description: "Manage rules, port listening"},
+			{Key: "4", Label: "Kernel", Description: "Harden sysctl", Aside: "network, kernel"},
+			{Key: "6", Label: "Run All", Description: "Queue hardening actions"},
 			{Key: "7", Label: "Backup", Description: "Configure hardn backup"},
-			{Key: "8", Label: "Configuration", Description: "hardn.yml, syslog, ntp, kernel"},
-			{Key: "9", Label: "System Details", Description: "View system information"},
-			{Key: "10", Label: "Logs", Description: "View log file"},
+			{Key: "8", Label: "Configuration", Description: "hardn.yml, dns, ntp, syslog"},
+			{Key: "9", Label: "System Details", Description: "View system info"},
+			{Key: "10", Label: "Logs", Description: "View hardn logs"},
 		}, Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}},
 		Prompt: menuPrompt,
 	}

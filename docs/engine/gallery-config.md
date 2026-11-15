@@ -1,5 +1,7 @@
 # Configuration mock (unit (a))
 
+*Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): the menu's items are hardn.yml, DNS Settings, NTP Settings and Syslog Settings. Kernel Settings is main menu 4.*
+
 *Since `next/config-screen` (2026-11-12): the screen is built and is main menu 8 ([screen-config.md](screen-config.md)). The mocks draw through its mapping, `play config` runs it, and a long value keeps its "(default)" (decision 2's second cost is fixed). Where this page says nothing is wired, or names `configView`, this note is current.*
 
 *Since `next/sysctl` (2026-11-14): the menu's fourth item is Kernel Settings ([gallery-sysctl.md](gallery-sysctl.md)).*

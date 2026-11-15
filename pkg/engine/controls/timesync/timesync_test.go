@@ -197,6 +197,21 @@ func (m *model) set(yml config.NTPServers) *model {
 	return m
 }
 
+// problems are TestStatus's rows the main menu draws, by name, with the
+// problem's words and the host's value (engine.Status.Problem and Value;
+// gallery-menu-layout.md, decision 17 (a)): no row while the clock is in
+// sync, or in a container; no time service only where hardn.yml names
+// servers.
+var problems = map[string]struct{ problem, value string }{
+	"not-synced":          {timesync.ProblemNotInSync, "2 servers"},
+	"stopped":             {"chrony not running", ""},
+	"no-service":          {timesync.ProblemNoService, ""},
+	"mismatch":            {timesync.ProblemNotWanted, "2 servers"},
+	"not-read":            {timesync.ProblemCantRead, ""},
+	"clock not read":      {timesync.ProblemCantRead, ""},
+	"no-service, unasked": {"", ""},
+}
+
 // TestStatus: the row in every state the mocks show (gallery-timesync.md
 // §2), and those a fact not read adds.
 func TestStatus(t *testing.T) {
@@ -213,6 +228,7 @@ func TestStatus(t *testing.T) {
 		{"not-synced", ubuntu(t).set(config.NTPServers{"192.0.2.98", "192.0.2.99"}), config.NTPServers{"192.0.2.98", "192.0.2.99"}, engine.Partial, timesync.DetailNotInSync},
 		{"stopped", ubuntu(t).with(func(m *model) { m.sim.Stopped = true }), want, engine.NotConfigured, "chrony not running"},
 		{"no-service", newModel(t, detect.DistroDebian, "", ""), want, engine.NotConfigured, timesync.DetailNoService},
+		{"no-service, unasked", newModel(t, detect.DistroDebian, "", ""), none, engine.NotConfigured, timesync.DetailNoService},
 		{"foreign", ubuntu(t).file(site, "server 192.0.2.77\n"), want, engine.Configured, "2.ntp.ubuntu.com"},
 		{"mismatch", ubuntu(t).set(want), config.NTPServers{"192.0.2.10", "192.0.2.12"}, engine.Partial, timesync.DetailNotWanted},
 		{"timesyncd", timesyncd(t), want, engine.Configured, "ntp.ubuntu.com"},
@@ -231,8 +247,8 @@ func TestStatus(t *testing.T) {
 			if strings.ContainsRune(st.Detail+strings.Join(st.Evidence, ""), '\x1b') {
 				t.Errorf("an escape reaches the row: %q %q", st.Detail, st.Evidence)
 			}
-			if timesync.Shown(st) != (tc.name != "container") {
-				t.Errorf("Shown = %v", timesync.Shown(st))
+			if want := problems[tc.name]; st.Problem != want.problem || st.Value != want.value {
+				t.Errorf("problem %q, value %q; want %q, %q", st.Problem, st.Value, want.problem, want.value)
 			}
 		})
 	}

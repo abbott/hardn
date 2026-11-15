@@ -182,7 +182,7 @@ func TestView(t *testing.T) {
 			[]string{"Logger rsyslog", "Server 192.0.2.50:514 TCP Open", "File " + logfwd.DropIn, "Set by hardn", "hardn.yml 192.0.2.50:514 TCP"},
 			[]string{"1 Stop forwarding: Undo hardn's change"}},
 		{"tcp-down", newModel(detect.DistroUbuntu, true).own(t, tcp), ymlTCP,
-			[]string{"Logger rsyslog", "Server 192.0.2.50:514 TCP not reached", "File " + logfwd.DropIn, "Set by hardn", "hardn.yml 192.0.2.50:514 TCP"},
+			[]string{"Logger rsyslog", "Server 192.0.2.50:514 TCP unreachable", "File " + logfwd.DropIn, "Set by hardn", "hardn.yml 192.0.2.50:514 TCP"},
 			[]string{"1 Stop forwarding: Undo hardn's change"}},
 		{"sockets not read", func() *model { m := newModel(detect.DistroUbuntu, true).own(t, tcp); m.noSS = true; return m }(), ymlTCP,
 			[]string{"Logger rsyslog", "Server 192.0.2.50:514 TCP", "File " + logfwd.DropIn, "Set by hardn", "hardn.yml 192.0.2.50:514 TCP"},
@@ -193,9 +193,9 @@ func TestView(t *testing.T) {
 		{"mismatch", open(newModel(detect.DistroUbuntu, true).own(t, tcp)), config.SyslogServers{{Server: "192.0.2.60"}},
 			[]string{"Logger rsyslog", "Server 192.0.2.50:514 TCP Open", "File " + logfwd.DropIn, "Set by hardn", "hardn.yml 192.0.2.60:514 TCP differs"},
 			[]string{"1 Set servers: 192.0.2.60:514 TCP", "2 Stop forwarding: Undo hardn's change"}},
-		// The design's screen (design-syslog-servers.md §2.4): three servers, one not reached.
-		{"three, one not reached", open(newModel(detect.DistroUbuntu, true).own(t, tls, tcp, udp2)), ymlThree,
-			[]string{"Logger rsyslog", "Server logs.example.net:6514 TLS not reached", "CA File " + caFile, "Server 192.0.2.50:514 TCP Open", "Server 192.0.2.52:514 UDP losses unseen",
+		// The design's screen (design-syslog-servers.md §2.4): three servers, one unreachable.
+		{"three, one unreachable", open(newModel(detect.DistroUbuntu, true).own(t, tls, tcp, udp2)), ymlThree,
+			[]string{"Logger rsyslog", "Server logs.example.net:6514 TLS unreachable", "CA File " + caFile, "Server 192.0.2.50:514 TCP Open", "Server 192.0.2.52:514 UDP losses unseen",
 				"File " + logfwd.DropIn, "Set by hardn", "hardn.yml 3 servers"},
 			[]string{"1 Stop forwarding: Undo hardn's change"}},
 		{"hardn's two, three asked", open(newModel(detect.DistroUbuntu, true).own(t, tcp, udp2)), ymlThree,
@@ -263,7 +263,7 @@ func TestSetThenStop(t *testing.T) {
 		t.Fatalf("err %v, %d unread, %d runs:\n%s", p.err, p.unread, len(p.runs), p.out)
 	}
 	want := []string{"1) Set servers", "Every message the host logs goes to the server, as it is logged.", "Write hardn's forwarding file", "$ rsyslogd -N1",
-		"Forward logs to 192.0.2.50? [y/N, 0 or q]:", "Configured 192.0.2.50:514 TCP", "1) Stop forwarding", "Logs stay on the host alone. rsyslog stays installed.",
+		"Forward logs to 192.0.2.50? [y/N, 0 or q]:", "+ 192.0.2.50:514 TCP", "1) Stop forwarding", "Logs stay on the host alone. rsyslog stays installed.",
 		"Delete hardn's forwarding file", "Stop forwarding logs? [y/N, 0 or q]:", "Not Configured not forwarding"}
 	at, out := 0, flat(p.out)
 	for _, w := range want {
@@ -294,7 +294,7 @@ func TestSetSeveral(t *testing.T) {
 	want := []string{"1) Set servers 2 servers", "Every message the host logs goes to each server, as it is logged.",
 		"Server 192.0.2.50:514 TCP", "Server 192.0.2.52:514 UDP losses unseen", "Write hardn's forwarding file",
 		"+ target=\"192.0.2.50\" port=\"514\"", "+ target=\"192.0.2.52\" port=\"514\"", "$ rsyslogd -N1",
-		"Forward logs to 2 servers? [y/N, 0 or q]:", "Configured 2 servers", "Server 192.0.2.50:514 TCP Open", "Server 192.0.2.52:514 UDP losses unseen",
+		"Forward logs to 2 servers? [y/N, 0 or q]:", "+ 2 servers", "Server 192.0.2.50:514 TCP Open", "Server 192.0.2.52:514 UDP losses unseen",
 		"hardn.yml 2 servers", "1) Stop forwarding", "Stop forwarding logs? [y/N, 0 or q]:", "Not Configured not forwarding"}
 	at, out := 0, flat(p.out)
 	for _, w := range want {

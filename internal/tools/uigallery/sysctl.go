@@ -35,9 +35,12 @@ const ksPrefix = "sysctl"
 // ksLabel is the source label every mock's note opens with.
 const ksLabel = "Proposed: no Figma frame."
 
-// ksMainHost is the host the Configuration group's 4 leads to in play (main
-// menu 8, then 4; config.go).
+// ksMainHost is the host the main menu's 4 leads to in play.
 const ksMainHost = ksPrefix + "/default"
+
+// ksLinks lead from a menu mock's item to the Kernel Settings screen on a
+// host, by the mock's name and the item's key, beside links.
+var ksLinks = map[string]string{mainMenuMock + "/4": ksMainHost}
 
 // The hosts' values over the model's baseline, as read on 2026-11-14:
 // every interface's own value among them (F1).
@@ -61,8 +64,7 @@ var (
 // interfaces, and its release's sysctl: procps's, or busybox's on Alpine,
 // the sysctl service in the boot runlevel where boot.
 func ksOn(p platform, ifaces []string, boot bool, over ...map[string]int) *fakeHost {
-	h := statusOn(p)
-	return h.kernel(p, ifaces, boot, over...)
+	return statusBase(p, apparmorStock).kernel(p, ifaces, boot, over...)
 }
 
 // kernel gives h its kernel values and its sysctl tool (ksOn).
@@ -207,15 +209,16 @@ func ksReview(kh ksHost, key string) func(context.Context, component.Ctx) (strin
 	}
 }
 
-// ksGroup is the Configuration group, Kernel Settings its item 4.
+// ksGroup is the main menu's items, Kernel its item 4: Kernel Settings
+// left the Configuration group (the maintainer, 2026-11-14).
 func ksGroup(_ context.Context, c component.Ctx) (string, error) {
-	return screen.ConfigGroup{}.SubMenu().Render(c), nil
+	return component.Menu{Items: screen.MainMenuItems(false, false)}.Render(c), nil
 }
 
 // ksMocks are the listing's mocks: the group's menu, each host's screen,
 // then each change's review up to its question, and a refusal.
 func ksMocks() []listMock {
-	out := []listMock{{name: "menu", note: "Main menu 8, the Configuration group, with Kernel Settings as item 4.", draw: ksGroup}}
+	out := []listMock{{name: "menu", note: "The main menu's items: Kernel, item 4, opens Kernel Settings.", draw: ksGroup}}
 	for _, kh := range ksHosts() {
 		out = append(out, listMock{name: kh.name, note: kh.note, draw: ksDraw(kh)})
 	}

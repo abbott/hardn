@@ -31,7 +31,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine"
 	"github.com/abbott/hardn/pkg/engine/drift"
 	"github.com/abbott/hardn/pkg/engine/header"
-	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/steps"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/revert"
@@ -257,18 +256,13 @@ func (s Session) Reviewed(ctx context.Context, cfg *config.Config, control engin
 	})
 }
 
-// StatusRow is a control's row as the main menu draws it: its status
-// through the main menu's own mapping (output.StatusViewOf); no row where
-// that mapping shows none.
+// StatusRow is a control's own row on its screen: its title, its state
+// and its detail, through pkg/output's mapping of a report
+// (output.StatusRowOf), as the main menu's scored rows are drawn. The
+// main menu draws NTP's and Syslog's only with a problem, and then as the
+// host's value (output.StatusViewOf); their screens draw this row always.
 func StatusRow(id, title string, status engine.Status) component.StatusList {
-	rp := engine.Report{Control: id, Title: title, Status: status}
-	view := output.StatusViewOf([]engine.Report{rp}, risk.Level{}).Status
-	for _, row := range view.Rows {
-		if row.Label == title {
-			return component.StatusList{Rows: []component.StatusRow{row}}
-		}
-	}
-	return component.StatusList{}
+	return component.StatusList{Rows: []component.StatusRow{output.StatusRowOf(engine.Report{Control: id, Title: title, Status: status})}}
 }
 
 // Planning is a change's flow.Engine: output.FlowEngine, its engine,

@@ -33,7 +33,7 @@ type Options struct {
 	// plan only or live (DryRun, DryRunSource).
 	Config *config.Config
 
-	// Users is the User Management item (1): pkg/screens/users. No change
+	// Users is the User item (1): pkg/screens/users, User Management. No change
 	// it makes saves hardn.yml (gallery-users.md §5, decision 7 (a)).
 	Users func() error
 	// SSH is the SSH Login item (2): pkg/screens/ssh. No change it makes
@@ -43,15 +43,16 @@ type Options struct {
 	Firewall func() error
 	// FirewallPVE, asked as the main menu is drawn, says whether the host
 	// is Proxmox VE, where item 3 reads "View pve-firewall"
-	// (gallery-firewall.md §5, decision 7); nil is never.
+	// (gallery-firewall.md §5, decision 7) and item 5 "Configure automatic
+	// updates"; nil is never.
 	FirewallPVE func() bool
 	// FirewallEL, asked as the main menu is drawn, says whether the host
-	// is Rocky Linux or AlmaLinux, where item 3 reads "Configure firewalld"
-	// (el-firewalld.md §1.6); nil is never.
+	// is Rocky Linux, AlmaLinux, RHEL, CentOS Stream or Oracle Linux, where
+	// item 3 reads "Manage firewalld, port listening" (el-firewalld.md
+	// §1.6); nil is never.
 	FirewallEL func() bool
-	// DNS is the DNS item (4): pkg/screens/dns, which edits hardn.yml's
-	// list in Config.
-	DNS func() error
+	// Kernel is the Kernel item (4): pkg/screens/kernelsettings.
+	Kernel func() error
 	// Updates is the Auto Updates item (5): pkg/screens/updates.
 	Updates func() error
 	// RunAll is the Run All item (6): pkg/screens/runall on the planner. No
@@ -60,8 +61,8 @@ type Options struct {
 	// Backup is the Backup item (7): pkg/screens/backup.
 	Backup func() error
 	// Configuration is the Configuration item (8): pkg/screens/config's group,
-	// which leads to hardn.yml as loaded, Syslog Settings and NTP Settings
-	// (configscreen.RunGroup). Its name is not the item's bare word: Config is
+	// which leads to hardn.yml as loaded, DNS Settings, NTP Settings and
+	// Syslog Settings (configscreen.RunGroup). Its name is not the item's bare word: Config is
 	// the field above.
 	Configuration func() error
 	// SystemDetails is the System Details item (9): pkg/screens/systemdetails.
@@ -310,62 +311,37 @@ func (o Options) mode() component.ModeIndicator {
 	return mode
 }
 
-// firewallDescription is the Firewall item's description: origin/main's,
-// or on Proxmox VE what the screen does there (gallery-firewall.md §5,
-// decision 7), or on Rocky Linux and AlmaLinux firewalld's
-// (el-firewalld.md §1.6).
-func (o Options) firewallDescription() string {
-	switch {
-	case o.FirewallPVE != nil && o.FirewallPVE():
-		return "View pve-firewall"
-	case o.FirewallEL != nil && o.FirewallEL():
-		return "Configure firewalld"
-	}
-	return "Configure ufw rules"
-}
-
-// items is the main menu's items, each bound to the screen cmd/hardn sets
+// items is the main menu's items (screen.MainMenuItems, for the host as
+// the Firewall hooks say it is), each bound to the screen cmd/hardn sets
 // for it, and its Exit item "0) Exit", "q to quit" (DEV-030); the hint,
-// generated from the items, says "[0-10 or q]". The order is the
-// maintainer's (2026-11-07): User Management, SSH Login, Firewall, DNS,
-// Auto Updates, Run All, Backup, Configuration, System Details, Logs, as
-// v0.9.0 had them: Syslog Settings and NTP Settings are under Configuration
-// (the maintainer, 2026-11-14, revising gallery-logforward.md's decision 8
-// and gallery-timesync.md's decision 9). Item
-// 1's parenthesis is its aside. Item 2 says what the SSH Login screen
-// changes, "Root login, passwords, port" (legacy-left.md §3, decision 7
-// (a); P-07 (a), P-12); item 3 on Proxmox VE "View pve-firewall" (slice
-// 4, decision 7), on Rocky Linux and AlmaLinux "Configure firewalld"; Auto Updates (slice 7, unit (d)) took the key
-// origin/main's Dry-Run left; item 8, Configuration, "hardn.yml, log
-// forwarding, time sync", took the key Environment left
-// (gallery-config.md §3, decision 1). Every
-// item opens under plan only as live: its screen stops each change at its
-// plan.
+// generated from the items, says "[0-10 or q]". Every item opens under
+// plan only as live: its screen stops each change at its plan.
 func (o Options) items() nav.Menu {
-	item := func(key, label, description string) component.MenuItem {
-		return component.MenuItem{Key: key, Label: label, Description: description}
+	screens := []struct {
+		run   func() error
+		unset string
+	}{
+		{o.Users, "mainmenu: the User item has no screen (Options.Users)"},
+		{o.SSH, "mainmenu: the SSH Login item has no screen (Options.SSH)"},
+		{o.Firewall, "mainmenu: the Firewall item has no screen (Options.Firewall)"},
+		{o.Kernel, "mainmenu: the Kernel item has no screen (Options.Kernel)"},
+		{o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)"},
+		{o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)"},
+		{o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)"},
+		{o.Configuration, "mainmenu: the Configuration item has no screen (Options.Configuration)"},
+		{o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)"},
+		{o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)"},
 	}
-	return nav.Menu{
-		Options: []nav.Option{
-			{Item: component.MenuItem{Key: "1", Label: "User Management", Description: "Create, configure", Aside: "sudo, SSH keys"},
-				Action: o.show(o.Users, "mainmenu: the User Management item has no screen (Options.Users)")},
-			{Item: item("2", "SSH Login", "Root login, passwords, port"), Action: o.show(o.SSH, "mainmenu: the SSH Login item has no screen (Options.SSH)")},
-			{Item: item("3", "Firewall", o.firewallDescription()), Action: o.show(o.Firewall, "mainmenu: the Firewall item has no screen (Options.Firewall)")},
-			{Item: item("4", "DNS", "Configure nameservers"), Action: o.show(o.DNS, "mainmenu: the DNS item has no screen (Options.DNS)")},
-			{Item: item("5", "Auto Updates", "Configure automatic updates"), Action: o.show(o.Updates, "mainmenu: the Auto Updates item has no screen (Options.Updates)")},
-			{Item: item("6", "Run All", "Execute hardening operations"), Action: o.show(o.RunAll, "mainmenu: the Run All item has no screen (Options.RunAll)")},
-			{Item: item("7", "Backup", "Configure hardn backup"), Action: o.show(o.Backup, "mainmenu: the Backup item has no screen (Options.Backup)")},
-			{Item: item("8", "Configuration", "hardn.yml, syslog, ntp, kernel"), Action: o.show(o.Configuration, "mainmenu: the Configuration item has no screen (Options.Configuration)")},
-			{Item: item("9", "System Details", "View system information"), Action: o.show(o.SystemDetails, "mainmenu: the System Details item has no screen (Options.SystemDetails)")},
-			{Item: item("10", "Logs", "View log file"), Action: o.show(o.Logs, "mainmenu: the Logs item has no screen (Options.Logs)")},
-		},
-		Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()},
+	menu := nav.Menu{Exit: component.MenuItem{Key: "0", Label: "Exit", Description: keys.Set{keys.Quit()}.Help()}}
+	for i, it := range screen.MainMenuItems(o.FirewallPVE != nil && o.FirewallPVE(), o.FirewallEL != nil && o.FirewallEL()) {
+		menu.Options = append(menu.Options, nav.Option{Item: it, Action: o.show(screens[i].run, screens[i].unset)})
 	}
+	return menu
 }
 
 // FirewallOf is what the Firewall item's description turns on, from
 // detect's facts f: whether the host is Proxmox VE (Options.FirewallPVE)
-// and whether it is Rocky Linux or AlmaLinux (Options.FirewallEL).
+// and whether it is of the EL family (Options.FirewallEL).
 // cmd/hardn's hooks answer with it. It is pure.
 func FirewallOf(f detect.Facts) (pve, el bool) {
 	return f.Proxmox.Installed == detect.Yes, f.Platform.Distro.EL()

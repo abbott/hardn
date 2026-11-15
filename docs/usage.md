@@ -2,18 +2,18 @@
 
 ## The menu
 
-`sudo hardn` opens the main menu. Each option shows the current state, and most configure it:
+`sudo hardn` opens the main menu. Above the options it shows the risk level and a status row for each of options 1 to 5 and for AppArmor: [The status rows](#the-status-rows). Each option shows the current state, and most configure it:
 
 | Option | Displays | Configures |
 |---|---|---|
-| 1) User Management | users, their admin rights (`sudo` or `doas`), SSH keys, password state; under Account Review, accounts with an empty password, a password that never expires or no login in 90 days, each with the command to run | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
+| 1) User | users, their admin rights (`sudo` or `doas`), SSH keys, password state; under Account Review, accounts with an empty password, a password that never expires or no login in 90 days, each with the command to run | create a user, grant or remove admin rights, ask or don't ask a password for them, add or remove an SSH key |
 | 2) SSH Login | root login, password login, the port, allowed users, sshd's brute-force limit, as sshd reads them; every account's SSH keys, with weak and shared ones marked | root login off or key-only, password login off or on, the SSH port, key-based authentication, moves hardn's old sshd settings into `00-hardn.conf` |
 | 3) Firewall | `ufw` state, policy, rules, application profiles, and each listening port: open, blocked or local only | installs `ufw`, enables secure defaults (SSH let through, incoming denied, started at boot), disables it, applies profiles, limits repeated SSH connections. On Rocky, Alma, RHEL, CentOS Stream and Oracle: firewalld, without profiles or interfaces. On Proxmox: "View pve-firewall", read only |
-| 4) DNS | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
+| 4) Kernel | the kernel's network and kernel settings against hardn's baseline, each with its value and what it means | sets the ones below the baseline in one file, `/etc/sysctl.d/90-hardn.conf`, and at once; puts the earlier values back. [More](#kernel-settings) |
 | 5) Auto Updates | whether the host updates itself | turns on unattended-upgrades (Debian, Ubuntu), apk-cron and crond (Alpine) or dnf-automatic's security updates (Rocky, Alma, RHEL, CentOS Stream, Oracle); turns off only what hardn turned on. Read only on Proxmox |
-| 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, DNS, automatic updates, log forwarding and time servers. Where the firewall and root login both change, root login waits for the next Run All |
+| 6) Run All | what `hardn.yml` would change | one plan for the user, root login, the firewall, kernel settings, automatic updates, DNS, log forwarding and time servers. Where the firewall and root login both change, root login waits for the next Run All |
 | 7) Backup | backups on or off, the backup path, past backup runs | automatic backup of modified configuration files, changes the path |
-| 8) Configuration | a menu of four screens, below | log forwarding, time servers and kernel settings |
+| 8) Configuration | a menu of four screens, below | nameservers, time servers and log forwarding |
 | 9) System Details | OS, kernel, the time service and the clock, addresses, listening ports, users, CPU, disk, memory, last logins | nothing |
 | 10) Logs | `/var/log/hardn.log` | nothing |
 
@@ -24,9 +24,31 @@ _The hardn status for **AppArmor** only displays current state, nothing more._
 | Option | Displays | Configures |
 |---|---|---|
 | 1) hardn.yml | which `hardn.yml` hardn read and each key's value | nothing |
-| 2) Syslog Settings | the host's logger, the syslog servers it sends logs to, by whose file, and the servers `hardn.yml` names | sends every log to `hardn.yml`'s servers over UDP, TCP or TLS; stops only what hardn set. [More](#syslog-settings) |
+| 2) DNS Settings | what manages `/etc/resolv.conf`, the nameservers in use | sets nameservers (custom, or Cloudflare, Quad9, Google); where NetworkManager, resolvconf or a container manages DNS, it only reports |
 | 3) NTP Settings | the service that keeps the host's time, whether the clock is in sync, the servers it uses and where each is set | makes that service use `hardn.yml`'s servers in place of its own; puts its own back. [More](#ntp-settings) |
-| 4) Kernel Settings | the kernel's network and kernel settings against hardn's baseline, each with its value and what it means | sets the ones below the baseline in one file, `/etc/sysctl.d/90-hardn.conf`, and at once; puts the earlier values back. [More](#kernel-settings) |
+| 4) Syslog Settings | the host's logger, the syslog servers it sends logs to, by whose file, and the servers `hardn.yml` names | sends every log to `hardn.yml`'s servers over UDP, TCP or TLS; stops only what hardn set. [More](#syslog-settings) |
+
+### The status rows
+
+```
+  [+] User                 + non-root, sudo
+                             ~ No password to become root
+  [ ] SSH Login            Not Configured password auth on
+  [+] SSH Port             + non-default (2230)
+  [+] Firewall             + deny policy
+  [ ] Kernel               Not Configured 6 to set
+  [+] Auto Updates         + unattended-upgrades
+  [+] AppArmor             + 10 profiles enforced
+
+   -  Syslog               192.0.2.50:514 TCP
+                             ~ Unreachable
+```
+
+- **`+` means Configured.** A row that needs work keeps its word: Partial, Not Configured, Not Applicable or Unknown. The same on every screen's own row. `hardn check`, the JSON and the Markdown report keep the word "Configured".
+- **A line starting with `~`** under a row says what else lowers the risk level, or what hardn could not read.
+- **SSH Login** is root login and password login in one row. It shows the worse of the two, and what is off. `hardn check`, the JSON and the report keep the two controls, `ssh.login` and `ssh.auth`.
+- **Kernel** is on every host: "6 to set", "6 items applied" once hardn's file sets them, "baseline default" where the host met the baseline as it was, and Not Applicable in a container. It counts 5 points of the [risk level](engine/risk.md).
+- **DNS, NTP and Syslog have a row only with a problem**, under the others: the host's value, and the problem under it. For example nameservers that are not `hardn.yml`'s, a clock not in sync, or a syslog server that is unreachable. No time service, and no log forwarding, are a problem only where `hardn.yml` names servers for it. These rows never change the risk level.
 
 ### Syslog Settings
 
@@ -36,9 +58,9 @@ Syslog Settings sends every message the host logs to each syslog server `hardn.y
 - **A list hardn can't set whole is refused**, before anything is asked: an entry that is not valid, a CA file that is not there, a TCP or TLS server on Alpine.
 - **Stop forwarding** takes out every server hardn set, and nothing else, and restarts the logger. rsyslog stays installed.
 - **Servers set by a file hardn didn't write are shown, never changed.** Set servers is then unavailable.
-- **Each Server row** ends in its connection: Open, or not reached, for TCP and TLS. The host can't know what the server received: look for the test line there. UDP has no connection: its row says losses are unseen.
-- **One server not reached makes the row Partial**, "1 of 3 not reached". Where two servers given by name share a port and one connection is open, hardn can say how many are open, not which: "1 of 2 open".
-- **On the main menu** the Syslog row shows only where `hardn.yml` names a server or the host forwards. It never changes the risk level.
+- **Each Server row** ends in its connection: Open, or unreachable, for TCP and TLS. The host can't know what the server received: look for the test line there. UDP has no connection: its row says losses are unseen.
+- **One server unreachable makes the row Partial**, "1 of 3 unreachable". Where two servers given by name share a port and one connection is open, hardn can say how many are open, not which: "1 of 2 open".
+- **On the main menu** a Syslog row shows only with a problem: a server unreachable, servers that are not `hardn.yml`'s, settings hardn can't read, or no forwarding where `hardn.yml` names a server. It never changes the risk level.
 - It forwards the host's logs, not hardn's audit log (`/var/log/hardn/audit.jsonl`).
 
 ### NTP Settings
@@ -51,7 +73,7 @@ NTP Settings shows which service keeps the host's time (chrony, systemd-timesync
 - **Servers set by a file hardn didn't write are shown, never changed.** Set servers is then unavailable.
 - **hardn's servers are plain NTP.** Where the host's own are authenticated (NTS, Ubuntu 26.04's default), the review says so before you answer.
 - **Clock** is the service's or the kernel's own word, read again after each change. Right after a restart it can read "Not in sync" for a while.
-- **On the main menu** the NTP row shows on every host but a container. It never changes the risk level.
+- **On the main menu** an NTP row shows only with a problem: the clock not in sync, the service not running, servers that are not `hardn.yml`'s, or no time service where `hardn.yml` names servers. It never changes the risk level.
 
 ### Kernel Settings
 
@@ -65,7 +87,7 @@ Kernel Settings shows 19 settings of the kernel (sysctl): redirects, source rout
 - **With Process tracing set**, `gdb -p` and `strace -p` need root. The review says so before you answer.
 - **In a container** the values are shown and nothing is set: the kernel is the host's.
 - **On Alpine** with the `sysctl` service not enabled, the values are set now and not at boot. The screen says so, with the fix: `rc-update add sysctl boot`.
-- **On the main menu and in Run All** only with [`kernel: true`](configuration.md#kernel) in `hardn.yml`. It never changes the risk level.
+- **On the main menu** the Kernel row shows on every host, and counts 5 points of the risk level. **In Run All** only with [`kernel: true`](configuration.md#kernel) in `hardn.yml`.
 
 What differs by distribution: [platforms.md](platforms.md#kernel).
 
@@ -224,11 +246,11 @@ MAILTO=root
 
 - the host, its platform and whether hardn supports it;
 - the risk level, and each thing that raised it;
-- each control's status, as the main menu shows it, with the evidence it was read from;
+- each control's status, with the evidence it was read from (SSH Login and SSH Auth each on its own row, and "Configured" in words);
 - the findings, and any check that failed;
 - System Details: addresses, users, CPU and load, disk, memory, last login.
 
-It changes nothing and exits 0 whatever it found. It doesn't need root, but without root what only root can read shows Unknown, and the report says so. It reads hardn.yml, for the DNS row; a hardn.yml that doesn't load is an error (exit 1).
+It changes nothing and exits 0 whatever it found. It doesn't need root, but without root what only root can read shows Unknown, and the report says so. It reads hardn.yml, for the DNS row, which the report lists whether it has a problem or not; a hardn.yml that doesn't load is an error (exit 1).
 
 The document has no colour. Text read from the host is escaped or shown as code, so a hostname or a file's content can't add formatting, links or HTML to the report.
 

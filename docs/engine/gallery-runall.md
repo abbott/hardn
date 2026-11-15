@@ -1,5 +1,7 @@
 # Run All mock (slice 8, unit (a))
 
+*Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): Run All's rows are unchanged, v0.10.0's: User, SSH Login, SSH Auth, SSH Port, Firewall, DNS, Auto Updates, AppArmor, then Syslog, NTP and Kernel where hardn.yml asks, then Backup. They are no longer the main menu's rows (`runall.IDs`).*
+
 Unit (a) of slice 8, `next/s8-gallery`: a proposal for review. Nothing reaches hardn; the mock is in `internal/tools/uigallery` (`runall.go`). It replaces the withdrawn removal survey (`next/s8-survey`, kept unmerged), whose §1 to §3 facts it reads; that survey's decisions are void.
 Status: built and tested on macOS in process (`go test ./internal/tools/uigallery/`); no hardn binary ran, nothing ran on a VM. Decisions adopted 2026-11-04. Since unit (b) (`next/s8-control`) the mock reads each host with Run All's planner, `pkg/engine/runall` ([control-runall.md](control-runall.md)); its stand-ins are gone but `raTyped`, unit (c)'s (§7). The hosts' shapes are the VMs' reads (`vm-runs/s6/`, `vm-runs/s7/00-inspect-*.log`), their values synthetic.
 Since `next/s8-screen` the listing, its mocks and `raTyped` are gone: `play runall` and `play runall/<host>` run hardn's own screen, `pkg/screens/runall` ([screen-runall.md](screen-runall.md)), on the same hosts with the gallery's engine and record, and main menu 7 still leads to `runall/debian13`. git keeps the listing (`next/s8-gallery`); §1's first line and the listing's mocks below are its record.

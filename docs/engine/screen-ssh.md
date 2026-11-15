@@ -1,5 +1,7 @@
 # The SSH Login screen on the SSH Login control (`pkg/screens/ssh`, `screen.SSH`)
 
+> **One row, 2026-11-14** (`next/menu-layout`; [gallery-menu-layout.md](gallery-menu-layout.md), decisions 14 (a) and 16 (a)). The screen has two status rows, SSH Login and SSH Port: SSH Auth is drawn in the SSH Login row, as on the main menu, the worse of the two states and the details of the parts in it ("+ root disallowed, key-only auth", "Not Configured password auth on"). The section's Root SSH Login and Password Login rows say each part. The controls, `ssh.login` and `ssh.auth`, are unchanged.
+
 > **Unit:** refactor plan slice 6, unit (c), `next/s6-screen`, from `aca6a977`. **Status:** built and tested on macOS, in process: the screen through `Run` on `host_test.go`'s fake (the gallery's SSH Login hosts, its `sshSim` and engine fake copied), the control's plans on the real engine. No real terminal, no hardn binary, no VM. *Wired in `next/s6-replace` (unit (d)): main menu 2 runs `Run`, and `-d` plans the control's Disallow root login ([cmd-engine.md](cmd-engine.md) §2.16, §2.17).*
 
 ## What it does

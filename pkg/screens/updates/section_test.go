@@ -50,7 +50,7 @@ func TestSectionRows(t *testing.T) {
 			m := aptHost(t, debian13(), autoOn)
 			m.file(confDir+"/99site", "Unattended-Upgrade::Origins-Pattern:: \"origin=Debian\";\n")
 			return m
-		}, []string{"Configured unattended-upgrades", "1) Enable automatic updates"}, "Turned on outside hardn"},
+		}, []string{"+ unattended-upgrades", "1) Enable automatic updates"}, "Turned on outside hardn"},
 		{"dnf, off after restart", func(t *testing.T) *model {
 			m := dnfHost(t, true)
 			m.units["is-active "+dnfauto.InstallTimer], m.units["is-enabled "+dnfauto.InstallTimer] = "active", "disabled"

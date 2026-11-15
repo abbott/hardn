@@ -42,7 +42,8 @@ type StatusOptions struct {
 	// Detect establishes the host's facts, once a pass (detect.Detect);
 	// the checks and the probe read them.
 	Detect func(ctx context.Context, sys host.System) (detect.Facts, error)
-	// Config is hardn.yml as loaded: the DNS row's list.
+	// Config is hardn.yml as loaded: the lists DNS, NTP and Syslog are
+	// checked against.
 	Config *config.Config
 	// Version is hardn's, as the header shows it ("v0.4.0").
 	Version string
@@ -54,14 +55,15 @@ type StatusOptions struct {
 // Status reads the host as the main menu's status, through o, and returns
 // the main menu's view-model with the blocks the status model fills: the
 // Header (o.Version), the ContextBar, the HostBlock, the RiskSummary and
-// the StatusList (output.MainMenuOf). Its Heading, Mode, Menu and Prompt
-// are left for Run, which draws the layout.
+// the StatusList, with the rows of what has a problem under it
+// (output.MainMenuOf). Its Heading, Mode, Menu and Prompt are left for
+// Run, which draws the layout.
 //
 // The reading is detect's facts, once; Engine.Check over controls.Menu
-// on them (controls.Status and Syslog Settings, whose row is drawn only
-// where hardn.yml names a server or the host forwards:
-// controls.MenuReports); the header probe on the same facts; and the risk level over
-// both. A check only reads, never plans or applies (Engine.Check), and the
+// on them (the scored rows' controls, Kernel among them on every host,
+// then DNS, NTP Settings and Syslog Settings, each drawn only while it
+// has a problem: output.StatusViewOf); the header probe on the same
+// facts; and the risk level over both. A check only reads, never plans or applies (Engine.Check), and the
 // engine's signal hold, which only an apply takes, is never taken. A
 // check that fails, or a fact not established, is its row's Unknown, and
 // the status is returned. The error is ctx's alone (Engine.Check's:
@@ -80,7 +82,6 @@ func Status(ctx context.Context, o StatusOptions) (screen.MainMenu, error) {
 	if err != nil {
 		return screen.MainMenu{}, fmt.Errorf("main menu: %w", err)
 	}
-	reports = controls.MenuReports(o.Config, reports)
 	h := header.Read(ctx, o.System, facts)
 	if err := ctx.Err(); err != nil {
 		return screen.MainMenu{}, fmt.Errorf("main menu: header: %w", err)

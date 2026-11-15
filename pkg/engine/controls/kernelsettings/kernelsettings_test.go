@@ -191,7 +191,8 @@ const rockyFile = khost.Header +
 // TestApplyAndRemove: Apply settings writes hardn's file, sets its values
 // with a "sysctl -w" for each key below the baseline and reads them back,
 // every interface's among them;
-// the row is then Configured by hardn. Remove settings deletes the file and
+// the row is then Configured, "4 items applied", the settings its file
+// sets. Remove settings deletes the file and
 // sets every recorded value back.
 func TestApplyAndRemove(t *testing.T) {
 	m := newModel(t, rocky)
@@ -217,7 +218,7 @@ func TestApplyAndRemove(t *testing.T) {
 	if m.value(khost.PtraceKey) != 1 || m.value("net.ipv4.ip_forward") != 0 || m.value("net.ipv6.conf.all.accept_ra") != 1 {
 		t.Error("tracing not set, or a key hardn never writes changed")
 	}
-	if st := m.status(); st.State != engine.Configured || st.Detail != ks.DetailByHardn {
+	if st := m.status(); st.State != engine.Configured || st.Detail != "4 items applied" {
 		t.Errorf("status after = %+v", st)
 	}
 	if cs, err := m.plan(ks.ActionApply); err != nil || len(cs) != 0 {
@@ -393,7 +394,7 @@ func TestStatus(t *testing.T) {
 		t.Errorf("the file as it is, set again: %v, %v", ids, err)
 	}
 	clean := newModel(t, map[string]int{"net.ipv4.conf.*.send_redirects": 0})
-	if st := clean.status(); st.State != engine.Configured || st.Detail != "" {
+	if st := clean.status(); st.State != engine.Configured || st.Detail != ks.DetailBaseline || ks.DetailBaseline != "baseline default" {
 		t.Errorf("at the baseline = %+v", st)
 	}
 	inside := newModel(t, rocky)
@@ -588,5 +589,16 @@ func TestPlanWritesNothing(t *testing.T) {
 	}
 	if n := len(cs[1].Rollback.Steps); n != 13 {
 		t.Errorf("%d undo steps, want one for each value that changes", n)
+	}
+}
+
+// TestApplied: a Configured row's detail by how many settings hardn's
+// file sets (the maintainer, 2026-11-14: "6 items applied"), one said in
+// the singular.
+func TestApplied(t *testing.T) {
+	for n, want := range map[int]string{1: "1 item applied", 2: "2 items applied", 6: "6 items applied", 18: "18 items applied"} {
+		if got := ks.Applied(n); got != want {
+			t.Errorf("%d: %q, want %q", n, got, want)
+		}
 	}
 }

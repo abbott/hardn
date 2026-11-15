@@ -104,7 +104,7 @@ func (r reading) permitted(ctx context.Context, sys host.System, f detect.Facts,
 	case chk.RootKeyOnly != detect.Yes:
 		st.State, st.Detail = engine.Unknown, "can't read"
 	case chk.RootByKey == detect.Yes:
-		st.State, st.Detail = engine.Configured, "root key-only (Proxmox)"
+		st.State, st.Detail = engine.Configured, DetailProxmoxKeyOnly
 	case chk.RootByKey == detect.No:
 		st.State, st.Detail = engine.Partial, detailBlocked
 	default:

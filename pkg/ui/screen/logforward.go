@@ -40,7 +40,7 @@ const (
 	logFwdNoWant     = "No server"
 	logFwdLossy      = "losses unseen"
 	logFwdOpen       = "Open"
-	logFwdDown       = "not reached"
+	logFwdDown       = "unreachable"
 	logFwdSomeOpen   = "%d of %d open"
 	logFwdServers    = "%d servers"
 	logFwdFiles      = "%d files"
@@ -230,7 +230,7 @@ func serverRow(s LogServer, note string, state component.ValueState) component.K
 }
 
 // nowRow is the Server row of a server the host forwards to, ending in its
-// connection: Open is good; not reached, or some of a port's named servers
+// connection: Open is good; unreachable, or some of a port's named servers
 // open, a warning; UDP, which has no connection, warns that losses are
 // not seen; sockets not read is Unknown.
 func nowRow(n LogForwarded) component.KeyValue {

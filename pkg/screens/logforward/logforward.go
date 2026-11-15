@@ -8,7 +8,7 @@
 // control's notice, y/N, the apply, rolled back on failure, then the screen
 // drawn again from a fresh reading. Every refusal is the control's or the
 // engine's, said before anything is asked. Run is the one entry point,
-// which cmd/hardn calls for the Configuration group's item 2 (main menu 8).
+// which cmd/hardn calls for the Configuration group's item 4 (main menu 8).
 //
 // The change runs through the glue every area's screen shares
 // (pkg/screens/screenkit). The package reaches the host only through

@@ -11,8 +11,8 @@ type RebootLine int
 // The reboot lines. The zero value is RebootNone: no line.
 const (
 	RebootNone    RebootLine = iota
-	RebootPending            // "- Reboot pending", in status.warn
-	RebootUnknown            // "- Can't tell if reboot pending", in text.muted
+	RebootPending            // "~ Reboot pending", in status.warn
+	RebootUnknown            // "~ Can't tell if reboot pending", in text.muted
 )
 
 // The reboot lines' words (the maintainer, 2026-10-21; P-21 for the line,
@@ -30,7 +30,7 @@ const (
 //	0 2   6                    27
 //	  [BOS-SAN-L01]            192.0.2.10
 //	                           182 days, 2 hours, 26 minutes
-//	                           - Reboot pending
+//	                             ~ Reboot pending
 //
 // A value hardn could not read shows "Unknown" in text.muted; so does
 // an empty hostname, in place of the badge. A badge that reaches the value
@@ -44,10 +44,11 @@ type HostBlock struct {
 	// Uptime is shown as given, such as "182 days, 2 hours, 26 minutes".
 	Uptime string
 	// Reboot adds the reboot line, the pending reboot's only place on the
-	// main menu (it has no status row): Glyphs.Bullet and "Reboot
-	// pending", in status.warn (Host.Reboot), or "Can't tell if reboot
-	// pending", in text.muted (Host.Unknown), dash-led as the lines under
-	// the status rows are (the maintainer, 2026-10-21). P-04 places the
+	// main menu (it has no status row): "Reboot pending", in status.warn
+	// (Host.Reboot), or "Can't tell if reboot pending", in text.muted
+	// (Host.Unknown), after LineMark and LineIndent cells in from the
+	// value, as the lines under the status rows are (the maintainer,
+	// 2026-10-21; the mark and indent, 2026-11-15). P-04 places the
 	// flag next to the uptime, which a long uptime leaves no room for
 	// beside the label, so it goes under it.
 	Reboot RebootLine
@@ -64,11 +65,11 @@ func (vm HostBlock) Render(c Ctx) string {
 		c.known(vm.Address, t.Address, t.Unknown),
 		c.known(vm.Uptime, t.Uptime, t.Unknown),
 	}
-	switch b := c.Theme.Glyphs.Bullet + " "; vm.Reboot {
+	switch b := LineMark + " "; vm.Reboot {
 	case RebootPending:
-		values = append(values, line{{b + rebootPending, t.Reboot}})
+		values = append(values, line{gap(LineIndent), {b + rebootPending, t.Reboot}})
 	case RebootUnknown:
-		values = append(values, line{{b + rebootUnknown, t.Unknown}})
+		values = append(values, line{gap(LineIndent), {b + rebootUnknown, t.Unknown}})
 	}
 	return c.columns(label, values...)
 }

@@ -112,8 +112,8 @@ Every line the three blocks can show, with the host's state that gives it, in Fi
 | address | a `Header` `Read` did not fill | `Unknown` |
 | uptime | read | Figma's form (§2.10): `182 days, 2 hours, 26 minutes` (Figma's), `41 days, 1 hour`, `3 days, 5 minutes`, `1 day`, `0 minutes` |
 | uptime | not read, in no form known, or a `Header` `Read` did not fill | `Unknown` |
-| reboot | a reboot pending (Yes) | `- Reboot pending`, the same in ASCII, bullet and text in `status.warn`, under the uptime: the pending reboot's one place on the main menu (**the maintainer, 2026-10-21**: "the Reboot pending item should also be dash-led, not a circle glyph ⭘"; `next/p4-risk-lines`). It was `⭘ Reboot pending` (`[ ]` in ASCII), Partial's marker, until then |
-| reboot | Unknown (not established), but not inside a container of a distribution the reboot check reads; a `Header` `Read` did not fill | `- Can't tell if reboot pending`, bullet and text in `text.muted`, at the same place (the maintainer, 2026-10-21); no line until `next/p4-risk-lines` |
+| reboot | a reboot pending (Yes) | `~ Reboot pending`, two cells in ("-" at the value column until 2026-11-15), the same in ASCII, mark and text in `status.warn`, under the uptime: the pending reboot's one place on the main menu (**the maintainer, 2026-10-21**: "the Reboot pending item should also be dash-led, not a circle glyph ⭘"; `next/p4-risk-lines`). It was `⭘ Reboot pending` (`[ ]` in ASCII), Partial's marker, until then |
+| reboot | Unknown (not established), but not inside a container of a distribution the reboot check reads; a `Header` `Read` did not fill | `~ Can't tell if reboot pending`, mark and text in `text.muted`, at the same place (the maintainer, 2026-10-21); no line until `next/p4-risk-lines` |
 | reboot | No; Unknown inside a container of a distribution the reboot check reads (`HostKernel`: the kernel is the host's) | no line |
 
 ### 5.3 The findings (*proposed*)

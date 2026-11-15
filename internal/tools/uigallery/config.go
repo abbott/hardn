@@ -19,7 +19,7 @@ import (
 // "uigallery config" lists them and "play config" runs hardn's screen
 // (pkg/screens/config) on them. The listing's first mock, "menu", is the
 // Configuration group, main menu 8 (configscreen.RunGroup), which leads to the
-// screen on the typical file, to Syslog Settings and to NTP Settings; "play
+// screen on the typical file, to DNS Settings, NTP Settings and Syslog Settings; "play
 // config/menu" runs it. Each mock is a hardn.yml, loaded by the real loader
 // (config.Read) from a fake host, and how hardn found it, which the mock says
 // itself: config.FindConfigFile reads this machine and is never called.
@@ -35,7 +35,7 @@ const configMainMock = configPrefix + "/etc"
 const (
 	configGroupName = "menu"
 	configGroupMock = configPrefix + "/" + configGroupName
-	configGroupNote = "Main menu 8: hardn.yml, Syslog Settings and NTP Settings. It reads nothing."
+	configGroupNote = "Main menu 8: hardn.yml, DNS Settings, NTP Settings and Syslog Settings. It reads nothing."
 )
 
 // configLinks lead from a menu mock's item to the Configuration group, by the
@@ -133,19 +133,18 @@ func (m configMock) view(ctx context.Context) (screen.Config, error) {
 
 // configGroup runs hardn's Configuration group (configscreen.RunGroup) until the
 // user goes back from it: its note above it; its hardn.yml the screen on the
-// typical file, its Syslog Settings and NTP Settings the screens on the hosts the
-// main menu's items led to (lfMainHost, tsMainHost), its Kernel Settings the
-// screen on ksMainHost.
+// typical file, its DNS Settings, NTP Settings and Syslog Settings the screens
+// on dnsMainHost, tsMainHost and lfMainHost.
 func (s *session) configGroup(ctx context.Context) error {
 	if err := s.writeNote(configGroupMock, configGroupNote); err != nil {
 		return err
 	}
 	return configscreen.RunGroup(ctx, configscreen.GroupOptions{
-		Prompter:       s.p,
-		File:           s.openConfig(configMainMock),
-		LogForwarding:  s.openLogForward(lfMainHost),
-		TimeSync:       s.openTimeSync(tsMainHost),
-		KernelSettings: s.openKernel(ksMainHost),
+		Prompter:      s.p,
+		File:          s.openConfig(configMainMock),
+		DNS:           s.openDNS(dnsMainHost),
+		TimeSync:      s.openTimeSync(tsMainHost),
+		LogForwarding: s.openLogForward(lfMainHost),
 	})
 }
 

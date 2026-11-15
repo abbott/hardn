@@ -2,10 +2,11 @@ package main
 
 // DNS on the plan/apply engine (refactor plan slice 2, the DNS pilot,
 // unit (d), next/s2-replace; the maintainer, 2026-10-22: the legacy path
-// replaced, not gated): -g plans and applies the DNS control, and the main
-// menu's DNS item runs the DNS screen (pkg/screens/dns), which pkg/screens/mainmenu
-// reaches through the hook set here, so that pkg/screens/mainmenu builds no engine.
-// The engine's options are engine.go's.
+// replaced, not gated): -g plans and applies the DNS control, and the
+// Configuration group's DNS Settings item (main menu 8, then 2; main menu 4
+// until v0.10.0) runs the DNS screen (pkg/screens/dns), which the group
+// reaches through readers.go's runConfigGroup, so that no screen package
+// builds an engine. The engine's options are engine.go's.
 
 import (
 	"context"
@@ -15,7 +16,6 @@ import (
 	dnsctl "github.com/abbott/hardn/pkg/engine/controls/dns"
 	"github.com/abbott/hardn/pkg/output"
 	dnsscreen "github.com/abbott/hardn/pkg/screens/dns"
-	"github.com/abbott/hardn/pkg/screens/mainmenu"
 	"github.com/abbott/hardn/pkg/ui/component"
 	"github.com/abbott/hardn/pkg/ui/nav"
 )
@@ -175,14 +175,8 @@ func endControls(run output.Run, settle func() bool) int {
 	return code
 }
 
-// withDNSScreen returns m with its DNS item set to the DNS screen on c,
-// the configuration m was given (mainmenu.Options.DNS).
-func withDNSScreen(m mainmenu.Options, c *config.Config) mainmenu.Options {
-	m.DNS = func() error { return runDNSScreen(context.Background(), c) }
-	return m
-}
-
-// runDNSScreen is the main menu's DNS item: the DNS screen until the user
+// runDNSScreen is the Configuration group's DNS Settings item (main menu
+// 8, then 2; main menu 4 until v0.10.0): the DNS screen until the user
 // goes back (nil) or quits (nav.ErrQuit), or the input ends
 // (prompt.ErrAborted). It runs on the host hardn builds, with its run log
 // in hardn's log, the facts detected once, through the one line reader

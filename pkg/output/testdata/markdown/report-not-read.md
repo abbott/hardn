@@ -30,6 +30,7 @@ Generated 2026-10-20 12:30 UTC by hardn 0.4.0.
 - SSH Auth: Counted as not configured
 - SSH Port: Counted as not configured
 - Firewall: Counted as not configured
+- Kernel: Counted as not configured
 - Auto Updates: Counted as not configured
 - AppArmor: Counted as not configured
 - Host: Can't tell if reboot pending
@@ -44,7 +45,7 @@ Generated 2026-10-20 12:30 UTC by hardn 0.4.0.
 | SSH Auth | Unknown |  |
 | SSH Port | Unknown |  |
 | Firewall | Unknown |  |
-| DNS | Unknown |  |
+| Kernel | Unknown |  |
 | Auto Updates | Unknown |  |
 | AppArmor | Unknown |  |
 

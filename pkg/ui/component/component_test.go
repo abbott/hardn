@@ -238,11 +238,11 @@ func TestLayout(t *testing.T) {
 		{"host: zero-width values are unknown", HostBlock{Hostname: "\u200b", Address: "\u200b", Uptime: "\u200d"}, 80, false,
 			"  Unknown                  Unknown\n                           Unknown"},
 		{"host: a pending reboot under the uptime", HostBlock{Hostname: "web-01", Address: "192.0.2.10", Uptime: "41 days", Reboot: RebootPending}, from, true,
-			"  [web-01]                 192.0.2.10\n                           41 days\n                           - Reboot pending"},
+			"  [web-01]                 192.0.2.10\n                           41 days\n                             ~ Reboot pending"},
 		{"host: a reboot not established", HostBlock{Hostname: "web-01", Address: "192.0.2.10", Uptime: "41 days", Reboot: RebootUnknown}, from, false,
-			"  [web-01]                 192.0.2.10\n                           41 days\n                           - Can't tell if reboot pending"},
+			"  [web-01]                 192.0.2.10\n                           41 days\n                             ~ Can't tell if reboot pending"},
 		{"host: the reboot line stacked", HostBlock{Hostname: "web-01", Uptime: "41 days", Reboot: RebootPending}, below, false,
-			"  [web-01]\n      Unknown\n      41 days\n      - Reboot pending"},
+			"  [web-01]\n      Unknown\n      41 days\n        ~ Reboot pending"},
 		{"host: no reboot line for a value outside the three", HostBlock{Hostname: "web-01", Address: "192.0.2.10", Uptime: "41 days", Reboot: RebootLine(9)}, from, false,
 			"  [web-01]                 192.0.2.10\n                           41 days"},
 		{"risk: a Unicode icon is centred in the marker column", figmaRisk, 80, true,
@@ -272,11 +272,32 @@ func TestLayout(t *testing.T) {
 		{"bar: view-model text is cleaned", ContextBar{Name: " Deb\x1b[31mian\x00\t", Version: "1\n2"}, 60, false,
 			"# Debian 1 2 " + strings.Repeat("#", 47)},
 		{"status: side by side from StackBelow", sshPort, from, false,
-			"  [+] SSH Port             Configured non-default (2230)"},
+			"  [+] SSH Port             + non-default (2230)"},
 		{"status: a Unicode glyph is centred in the marker column", figmaStatus.Rows[0], from, true,
-			"   ⛛  User                 Configured non-root, sudo"},
+			"   ⛛  User                 + non-root, sudo"},
 		{"status: stacked below StackBelow", sshPort, below, false,
-			"  [+] SSH Port\n      Configured non-default (2230)"},
+			"  [+] SSH Port\n      + non-default (2230)"},
+		// "+" stands for "Configured" before a detail (the maintainer,
+		// 2026-11-14); every other row keeps its word.
+		{"status: a Configured row with no detail keeps its word", StatusRow{Label: "Kernel", State: StatusConfigured, Detail: " "}, from, false,
+			"  [+] Kernel               Configured"},
+		{"status: KeepWord keeps a Configured row's word", StatusRow{Label: "SSH Port", State: StatusConfigured, Detail: "non-default (2230)", KeepWord: true}, from, false,
+			"  [+] SSH Port             Configured non-default (2230)"},
+		{"status: no other state takes a sign", StatusList{Rows: []StatusRow{
+			{Label: "a", State: StatusNotConfigured, Detail: "x"}, {Label: "b", State: StatusPartial, Detail: "x"},
+			{Label: "c", State: StatusNotApplicable, Detail: "x"}, {Label: "d", Detail: "x"},
+		}}, from, false,
+			"  [ ] a                    Not Configured x\n  [ ] b                    Partial x\n" +
+				"  [-] c                    Not Applicable x\n  [?] d                    Unknown x"},
+		// An Info row: the bullet, no state word, the value; the problem a
+		// line under it, or the row's value itself.
+		{"status: an info row has the bullet and no state word", StatusRow{Label: "Syslog", Info: true, Detail: "192.0.2.50:514 TCP",
+			Lines: []StatusLine{{Text: "Unreachable", Warn: true}}}, from, false,
+			"   -  Syslog               192.0.2.50:514 TCP\n                             ~ Unreachable"},
+		{"status: an info row whose value is the problem", StatusRow{Label: "NTP", Info: true, Problem: true, Detail: "No time service", State: StatusConfigured}, from, false,
+			"   -  NTP                  No time service"},
+		{"status: an info row stacked", StatusRow{Label: "DNS", Info: true, Detail: "192.0.2.1", Lines: []StatusLine{{Text: "Not hardn.yml's", Warn: true}}}, below, false,
+			"   -  DNS\n      192.0.2.1\n        ~ Not hardn.yml's"},
 		{"status: each state has its word", StatusList{Rows: []StatusRow{
 			{Label: "a", State: StatusNotConfigured}, {Label: "b", State: StatusPartial},
 			{Label: "c", State: StatusNotApplicable}, {Label: "d", State: StatusState(9)},
@@ -297,32 +318,32 @@ func TestLayout(t *testing.T) {
 		{"status: a long label is whole when stacked", StatusRow{Label: "Unattended Upgrades Mail Reports", State: StatusConfigured}, below, false,
 			"  [+] Unattended Upgrades Mail Reports\n      Configured"},
 		{"status: a long detail is cut at the content width", StatusRow{Label: "SSH Auth", State: StatusConfigured, Detail: strings.Repeat("x", 60)}, from, false,
-			"  [+] SSH Auth             Configured " + strings.Repeat("x", cut) + "..."},
+			"  [+] SSH Auth             + " + strings.Repeat("x", cut+len("Configured")-len("+")) + "..."},
 		{"status: no label ends with the glyph", StatusRow{}, below, false,
 			"  [?]\n      Unknown"},
 		{"status: no label leaves the label column blank", StatusRow{}, from, true,
 			"   ?                       Unknown"},
 		{"status: an empty list is nothing", StatusList{}, 80, false, ""},
-		{"status: lines under the row at the value column, an empty one skipped", StatusRow{Label: "User", State: StatusConfigured, Detail: "non-root, sudo",
+		{"status: lines under the row, two cells in from the value column, an empty one skipped", StatusRow{Label: "User", State: StatusConfigured, Detail: "non-root, sudo",
 			Lines: []StatusLine{{Text: "Second root account", Warn: true}, {Text: " \t"}, {Text: "Maybe no password to become root"}}}, from, true,
-			"   ⛛  User                 Configured non-root, sudo\n" +
-				"                           - Second root account\n                           - Maybe no password to become root"},
+			"   ⛛  User                 + non-root, sudo\n" +
+				"                             ~ Second root account\n                             ~ Maybe no password to become root"},
 		{"status: lines under the stacked value, at its indent", StatusRow{Label: "User", State: StatusConfigured, Detail: "non-root, sudo",
 			Lines: []StatusLine{{Text: "No password to become root", Warn: true}}}, below, false,
-			"  [+] User\n      Configured non-root, sudo\n      - No password to become root"},
+			"  [+] User\n      + non-root, sudo\n        ~ No password to become root"},
 		{"status: a long line is cut at the content width, not wrapped", StatusRow{Label: "SSH Port", State: StatusConfigured,
 			Lines: []StatusLine{{Text: strings.Repeat("x", 60)}}}, from, false,
-			"  [+] SSH Port             Configured\n" + strings.Repeat(" ", theme.ValueCol) + "- " +
-				strings.Repeat("x", maxWidth(StatusRow{}, from)-theme.ValueCol-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis)) + "..."},
+			"  [+] SSH Port             Configured\n" + strings.Repeat(" ", theme.ValueCol+LineIndent) + "~ " +
+				strings.Repeat("x", maxWidth(StatusRow{}, from)-theme.ValueCol-LineIndent-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis)) + "..."},
 		{"status: a long line under a stacked value is cut at the content width", StatusRow{Label: "SSH Port", State: StatusConfigured,
 			Lines: []StatusLine{{Text: strings.Repeat("x", 70)}}}, below, false,
-			"  [+] SSH Port\n      Configured\n      - " +
-				strings.Repeat("x", max(0, maxWidth(StatusRow{}, below)-theme.StackCol-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis))) + "..."},
+			"  [+] SSH Port\n      Configured\n        ~ " +
+				strings.Repeat("x", max(0, maxWidth(StatusRow{}, below)-theme.StackCol-LineIndent-2-lipgloss.Width(ascii.Theme.Glyphs.Ellipsis))) + "..."},
 		{"status: a row's lines keep the rows one block", StatusList{Rows: []StatusRow{
 			{Label: "AppArmor", Detail: "can't read", Lines: []StatusLine{{Text: "Counted as not configured"}}},
 			{Label: "Auto Updates", State: StatusNotConfigured},
 		}}, from, false,
-			"  [?] AppArmor             Unknown can't read\n                           - Counted as not configured\n" +
+			"  [?] AppArmor             Unknown can't read\n                             ~ Counted as not configured\n" +
 				"  [ ] Auto Updates         Not Configured"},
 		{"divider: fills the bar width", Divider{}, 120, false, strings.Repeat("-", maxWidth(Divider{}, 120))},
 		{"divider: Unicode rule", Divider{}, 60, true, strings.Repeat("╌", 60)},
@@ -873,24 +894,27 @@ func TestStatusStates(t *testing.T) {
 }
 
 // TestLineStyles checks that a line under a status row takes its colour,
-// bullet and text alike: Status.LineWarn for a cost hardn established,
+// mark and text alike: Status.LineWarn for a cost hardn established,
 // Status.Line otherwise; and that the host block's reboot line takes
 // Host.Reboot when a reboot is pending and Host.Unknown when that is not
-// established, each after the bullet, never a state's glyph (the
-// maintainer, 2026-10-21).
+// established, each after LineMark, never a state's glyph (the
+// maintainer, 2026-10-21; the mark, 2026-11-15).
 func TestLineStyles(t *testing.T) {
 	for _, unicode := range []bool{true, false} {
 		c := NewCtx(term.Fixed(80, colorprofile.TrueColor, unicode, true))
-		st, h, b := c.Theme.Status, c.Theme.Host, c.Theme.Glyphs.Bullet+" "
+		// A status row's line and the host block's reboot line start with
+		// LineMark, LineIndent cells in.
+		st, h, in, m := c.Theme.Status, c.Theme.Host, strings.Repeat(" ", LineIndent), LineMark+" "
 		tests := []struct {
 			name string
 			vm   renderer
 			want string
 		}{
-			{"warn line", StatusRow{Label: "User", Lines: []StatusLine{{Text: "Second root account", Warn: true}}}, st.LineWarn.Render(b + "Second root account")},
-			{"muted line", StatusRow{Label: "User", Lines: []StatusLine{{Text: "Counted as not configured"}}}, st.Line.Render(b + "Counted as not configured")},
-			{"reboot pending", HostBlock{Reboot: RebootPending}, h.Reboot.Render(b + "Reboot pending")},
-			{"reboot not established", HostBlock{Reboot: RebootUnknown}, h.Unknown.Render(b + "Can't tell if reboot pending")},
+			{"warn line", StatusRow{Label: "User", Lines: []StatusLine{{Text: "Second root account", Warn: true}}}, in + st.LineWarn.Render(m+"Second root account")},
+			{"muted line", StatusRow{Label: "User", Lines: []StatusLine{{Text: "Counted as not configured"}}}, in + st.Line.Render(m+"Counted as not configured")},
+			{"an info row's problem", StatusRow{Label: "Syslog", Info: true, Detail: "x", Lines: []StatusLine{{Text: "Unreachable", Warn: true}}}, in + st.LineWarn.Render(m+"Unreachable")},
+			{"reboot pending", HostBlock{Reboot: RebootPending}, in + h.Reboot.Render(m+"Reboot pending")},
+			{"reboot not established", HostBlock{Reboot: RebootUnknown}, in + h.Unknown.Render(m+"Can't tell if reboot pending")},
 		}
 		for _, tt := range tests {
 			if got := tt.vm.Render(c); !strings.Contains(got, "\n"+strings.Repeat(" ", theme.ValueCol)+tt.want) {
@@ -1458,5 +1482,32 @@ func TestCalloutChoice(t *testing.T) {
 	}
 	if strings.Contains(got, "Root login") {
 		t.Errorf("the description is drawn: %q", got)
+	}
+}
+
+// TestStatusSignStyles: ConfiguredSign takes the Configured colour and the
+// detail keeps its own (the maintainer, 2026-11-14); an Info row's mark is
+// the line's colour, its value the detail's, or the warning's with
+// Problem.
+func TestStatusSignStyles(t *testing.T) {
+	c := NewCtx(term.Fixed(80, colorprofile.TrueColor, true, true))
+	st := c.Theme.Status
+	for name, tc := range map[string]struct {
+		row  StatusRow
+		want string
+	}{
+		"the sign":       {StatusRow{Label: "SSH Port", State: StatusConfigured, Detail: "non-default"}, st.Configured.Render(ConfiguredSign) + " " + st.Detail.Render("non-default")},
+		"an info value":  {StatusRow{Label: "DNS", Info: true, Detail: "192.0.2.1"}, st.Label.Render("DNS") + strings.Repeat(" ", theme.ValueCol-theme.LabelCol-3) + st.Detail.Render("192.0.2.1")},
+		"an info mark":   {StatusRow{Label: "DNS", Info: true, Detail: "192.0.2.1"}, st.Line.Render(c.Theme.Glyphs.Bullet)},
+		"a problem":      {StatusRow{Label: "NTP", Info: true, Problem: true, Detail: "No time service"}, st.LineWarn.Render("No time service")},
+		"a kept word":    {StatusRow{Label: "SSH Port", State: StatusConfigured, Detail: "x", KeepWord: true}, st.Configured.Render("Configured") + " " + st.Detail.Render("x")},
+		"no bare detail": {StatusRow{Label: "SSH Port", State: StatusConfigured}, st.Configured.Render("Configured")},
+	} {
+		if got := tc.row.Render(c); !strings.Contains(got, tc.want) {
+			t.Errorf("%s: %q has no %q", name, got, tc.want)
+		}
+	}
+	if ConfiguredSign != "+" || LineMark != "~" || LineIndent != 2 {
+		t.Errorf("the sign %q, the mark %q, the indent %d", ConfiguredSign, LineMark, LineIndent)
 	}
 }

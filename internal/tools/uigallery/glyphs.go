@@ -248,15 +248,19 @@ func riskRow(c component.Ctx) string {
 
 // row draws r as StatusRow draws it, with the set's glyph and colour for
 // its state: the label cut to the label column when the row does not
-// stack, the state's word in the state's colour, the detail one cell after
-// it in Status.Detail.
+// stack, the state's word in the state's colour, or "+" for a Configured
+// row with a detail, the detail one cell after it in Status.Detail.
 func (s glyphSet) row(c component.Ctx, r component.StatusRow) string {
 	glyph, p, labelPaint := s.look(c, r.State)
 	label := r.Label
 	if termWidth(c.Env) >= theme.StackBelow {
 		label = cut(c, label, theme.LabelWidth-1)
 	}
-	value := []piece{{r.State.String(), p}}
+	word := r.State.String()
+	if r.State == component.StatusConfigured && r.Detail != "" {
+		word = component.ConfiguredSign
+	}
+	value := []piece{{word, p}}
 	if r.Detail != "" {
 		value = append(value, pad(1), piece{r.Detail, c.Theme.Status.Detail.Render})
 	}

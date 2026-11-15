@@ -27,12 +27,12 @@ const playUsage = "usage: go run ./internal/tools/uigallery play [flags] [screen
 // menus lead (docs/refactor/phase0/interaction.md §9): the main menu to
 // its sub-menus, User Management's Manage User to the user list and on to
 // george's menu, its Sudo Method to the sudo change, and SSH Login's first
-// item to the root-login toggle. The main menu's 4 leads to the real DNS
-// screen (dnsLinks, dnsscreen.go), its 7 to the real Backup screen
+// item to the root-login toggle. The main menu's 4 leads to the real Kernel
+// Settings screen (ksLinks, sysctl.go), its 7 to the real Backup screen
 // (backupLinks, backupscreen.go), where it led to Figma's 05-BACKUP frame,
 // kept among the mocks as Figma's record (figmaRecords), its 8 to the real
-// Configuration group, and through it to the real Configuration, Syslog
-// Settings and NTP Settings screens (configLinks, config.go), its 9 to the real System
+// Configuration group, and through it to the real Configuration, DNS,
+// NTP Settings and Syslog Settings screens (configLinks, config.go), its 9 to the real System
 // Details screen (sdLinks, systemdetails.go) and its 10 to the real Logs screen
 // (logsLinks, logs.go), its 3 to the real Firewall screen (fwLinks, firewall.go),
 // its 1 to the real User Management screen (usrLinks, users.go) and its 2 to the
@@ -607,8 +607,8 @@ func (s *session) open(m screen.Mock) func() error {
 }
 
 // menu returns the menu of menu mock m bound to its actions: each item
-// opens the mock links name for it, or the DNS, Backup, Configuration, System
-// Details or Logs screen on the host dnsLinks, backupLinks, configLinks, sdLinks
+// opens the mock links name for it, or the Kernel Settings, Backup, Configuration, System
+// Details or Logs screen on the host ksLinks, backupLinks, configLinks, sdLinks
 // or logsLinks name, an item m
 // refuses says why, and an item with none of these says that the gallery
 // has no screen for it.
@@ -623,8 +623,8 @@ func (s *session) menu(m screen.Mock) nav.Menu {
 		if to, ok := links[m.Name+"/"+it.Key]; ok {
 			action = s.open(s.mocks[to])
 		}
-		if to, ok := dnsLinks[m.Name+"/"+it.Key]; ok {
-			action = s.openDNS(to)
+		if to, ok := ksLinks[m.Name+"/"+it.Key]; ok {
+			action = s.openKernel(to)
 		}
 		if to, ok := backupLinks[m.Name+"/"+it.Key]; ok {
 			action = s.openBackup(to)

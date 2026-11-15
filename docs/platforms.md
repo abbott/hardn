@@ -18,7 +18,7 @@ hardn knows when each release's free security updates end. From 90 days before, 
 
 ## Syslog
 
-What Syslog Settings (main menu 8, then 2) does differs by the host's logger:
+What Syslog Settings (main menu 8, then 4) does differs by the host's logger:
 
 | Distribution | Logger hardn finds | Set servers |
 |---|---|---|
@@ -51,7 +51,7 @@ What NTP Settings (main menu 8, then 3) does differs by the host's time service.
 
 ## Kernel
 
-What Kernel Settings (main menu 8, then 4) writes to `/etc/sysctl.d/90-hardn.conf` differs by the host's `sysctl`:
+What Kernel Settings (main menu 4) writes to `/etc/sysctl.d/90-hardn.conf` differs by the host's `sysctl`:
 
 | Distribution | `sysctl` | hardn's file | At boot |
 |---|---|---|---|

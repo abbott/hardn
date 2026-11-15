@@ -13,6 +13,7 @@ package timesync
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	"github.com/abbott/hardn/pkg/config"
@@ -42,6 +43,18 @@ const (
 	DetailCantRead   = "can't read"              // Unknown
 )
 
+// The main menu's words for a row with a problem (engine.Status.Problem;
+// gallery-menu-layout.md, decision 11 (a)). A service that is not running
+// is said in the row's own words, the service's name first.
+const (
+	ProblemNotInSync = "Not in sync"
+	ProblemNotWanted = "Not hardn.yml's"
+	ProblemNoService = "No time service"
+	ProblemCantRead  = "Can't read"
+
+	problemServers = "%d servers"
+)
+
 // Action is what Sync's Plan does.
 type Action uint8
 
@@ -58,7 +71,8 @@ const (
 // Sync is NTP Settings. Config is hardn.yml as loaded, whose ntpServers Check
 // compares the host with; Plan reads the engine's (engine.Input.Config),
 // which is the same file. The risk level never counts the row (decision
-// 11): it is no row of risk.Rows.
+// 11): it is no row of risk.Rows, and the main menu draws it only with a
+// problem (engine.Status.Problem).
 type Sync struct {
 	Action Action
 	Config *config.Config
@@ -74,7 +88,7 @@ func (Sync) ID() string { return ID }
 func (Sync) Title() string { return Title }
 
 // Applies is true on every host: a container's row is Not Applicable with
-// its words, and the main menu leaves it out (Shown).
+// its words.
 func (Sync) Applies(detect.Facts) (bool, string) { return true, "" }
 
 // Reading is the host read for NTP Settings.
@@ -105,16 +119,52 @@ func (r Reading) Differs() bool {
 	return len(r.Want) > 0 && len(own) > 0 && !slices.Equal(r.Want, own)
 }
 
-// Shown reports whether the main menu draws the row whose check gave st
-// (decision 11 (a)): on every host but a container.
-func Shown(st engine.Status) bool { return st.State != engine.NotApplicable }
+// serversWords are the servers the service uses as a row's value: the
+// server, or how many; "" with none.
+func (r Reading) serversWords() string {
+	switch s := r.Host.Servers; len(s) {
+	case 0:
+		return ""
+	case 1:
+		return logview.Safe(s[0].Name)
+	default:
+		return fmt.Sprintf(problemServers, len(s))
+	}
+}
+
+// problem is st with the main menu's row for it (engine.Status.Problem
+// and Value): none while the row is Configured, or in a container; no
+// time service only where hardn.yml names servers, and what is not read
+// always (the maintainer, 2026-11-14).
+func (r Reading) problem(st engine.Status) engine.Status {
+	switch {
+	case st.State == engine.Configured, st.State == engine.NotApplicable:
+	case st.State == engine.Unknown:
+		st.Problem = ProblemCantRead
+	case st.Detail == DetailNoService:
+		if len(r.Want) > 0 || r.WantErr != nil {
+			st.Problem = ProblemNoService
+		}
+	case st.State == engine.NotConfigured:
+		st.Problem = st.Detail // "chrony not running"
+	case st.Detail == DetailNotInSync:
+		st.Problem, st.Value = ProblemNotInSync, r.serversWords()
+	default:
+		st.Problem, st.Value = ProblemNotWanted, r.serversWords()
+	}
+	return st
+}
 
 // Status is the row: Not Applicable in a container; Unknown where the
 // service, its settings or the clock are not read, never a pass; Not
 // Configured with no time service or one that is not running; Partial
 // where the clock is not in sync, or hardn's own setting is not hardn.yml's
-// servers; else Configured, with the server the clock follows.
-func (r Reading) Status() engine.Status {
+// servers; else Configured, with the server the clock follows. A row with
+// a problem carries the main menu's row for it (problem).
+func (r Reading) Status() engine.Status { return r.problem(r.status()) }
+
+// status is Status without the main menu's problem row.
+func (r Reading) status() engine.Status {
 	h := r.Host
 	unknown := func(err error) engine.Status {
 		st := engine.Status{State: engine.Unknown, Detail: DetailCantRead}

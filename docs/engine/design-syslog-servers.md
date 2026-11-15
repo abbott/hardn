@@ -1,5 +1,7 @@
 # Several syslog servers: design
 
+> **Words, 2026-11-14** (`next/menu-layout`; [gallery-menu-layout.md](gallery-menu-layout.md)). "not reached" is "unreachable": "server unreachable", "1 of 3 unreachable", a Server row's "unreachable", the evidence's ", unreachable". The main menu draws the row only with a problem: "3 servers" with "1 unreachable" under it.
+
 Status: **adopted 2026-11-14.** The maintainer adopted every recommended answer, (a), of §4's twelve decisions, in these words: "Adopt all". Units (a) to (d) are built and tested in process (§6); nothing has run on a host (§5). He decided the same day that hardn.yml's `logForwarding`, one server, becomes `syslogServers`, a list, and hardn forwards to each, "for flexibility and scalability". Nothing of the feature is released, so the old key gets no shim. §1 to §4 are the design as he adopted it; where the build differs, §6 says so.
 
 ## 1. What is there

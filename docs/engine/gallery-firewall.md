@@ -1,5 +1,7 @@
 # Firewall in the gallery, before any build (slice 4, unit (a): `firewall`, `play firewall`)
 
+> *Since `next/menu-layout` (2026-11-14; [gallery-menu-layout.md](gallery-menu-layout.md)): main menu 3 reads "Manage rules, port listening", on Rocky Linux, AlmaLinux, RHEL, CentOS Stream and Oracle Linux "Manage firewalld, port listening", and on Proxmox VE "View pve-firewall" as before.*
+
 > **Unit:** refactor plan slice 4, unit (a), `next/s4-gallery`: a proposal for the maintainer's review, nothing of it wired into hardn. No change under `pkg/` or `cmd/`.
 > **Status:** built and tested on macOS, in process; no hardn binary ran. One existing golden changed: `play/user-management` recorded main menu 4's "no screen for Firewall" line, so it now takes 7, Run All, for that line. The ten decisions of §5 are adopted (the maintainer, 2026-11-01), with the Made here calls as stated and the words of §6.
 > *Since `next/s4-replace` (unit (d), [screen-firewall.md](screen-firewall.md)): main menu 4 runs that screen, "View pve-firewall" on Proxmox VE (decision 7); `-w` asks "Enable the firewall?" with the hostname typed on a terminal and refuses off one (decision 4); `-n -w` shows the plan; decision 8's keys warn on load.*

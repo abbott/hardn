@@ -132,9 +132,11 @@ func TestBackupThenDNS(t *testing.T) {
 	h, cfg := newDNSHost(t, "debian13", dnsTestList)
 	h.AddDir("/srv", 0o755, 0, 0)
 	s := useDNSHost(t, h, "3", "2", "y", "0", "2", backupTestPath, "y", "0", "2", "192.0.2.55", "y", "0")
-	set := withBackupScreen(withDNSScreen(mainmenu.Options{}, cfg), cfg)
-	if set.DNS == nil || set.Backup == nil {
-		t.Fatal("withDNSScreen and withBackupScreen did not set the DNS and Backup items' screens on the menu given")
+	set := struct {
+		DNS, Backup func() error
+	}{func() error { return runDNSScreen(context.Background(), cfg) }, withBackupScreen(mainmenu.Options{}, cfg).Backup}
+	if set.Backup == nil {
+		t.Fatal("withBackupScreen did not set the Backup item's screen on the menu given")
 	}
 	if err := set.DNS(); err != nil {
 		t.Fatalf("the DNS item, first = %v; screen:\n%s", err, s.out.String())

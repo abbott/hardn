@@ -156,7 +156,7 @@ func TestApplyThenRemove(t *testing.T) {
 	}
 	for _, w := range []string{"Not Configured 4 to set", "ICMP redirects       1 accepted, hardn sets 0", "1) Apply settings       Set 4 settings",
 		"Apply kernel settings? [y/N, 0 or q]:", ctl.NoticeApply[:40], "gdb -p", "+net.ipv6.conf.*.accept_redirects = 0", "+# before: net.ipv6.conf.eth0.accept_redirects = 1",
-		"$ sysctl -w kernel.yama.ptrace_scope=1", "Configured by hardn", "ICMP redirects       0 ignored", "File                 " + khost.File,
+		"$ sysctl -w kernel.yama.ptrace_scope=1", "+ 4 items applied", "ICMP redirects       0 ignored", "File                 " + khost.File,
 		"1) Remove settings      Undo hardn's change", "Remove hardn's kernel settings? [y/N, 0 or q]:", ctl.NoticeRemove,
 		"$ sysctl -w kernel.yama.ptrace_scope=0", "Process tracing      0 unrestricted"} {
 		if !strings.Contains(p.out, w) {

@@ -70,13 +70,13 @@ func TestMenuOptions(t *testing.T) {
 	if err := o.Configuration(); err != nil {
 		t.Fatal(err)
 	}
-	if group.Prompter.In == nil || group.Prompter.Out == nil || group.File == nil || group.LogForwarding == nil || group.TimeSync == nil || group.KernelSettings == nil {
+	if group.Prompter.In == nil || group.Prompter.Out == nil || group.File == nil || group.DNS == nil || group.LogForwarding == nil || group.TimeSync == nil {
 		t.Fatalf("the Configuration group's options: %+v", group)
 	}
 	if err := group.LogForwarding(); err != nil {
 		t.Fatal(err)
 	}
-	// The Syslog Settings screen (the group's 2) runs on the host and the engine
+	// The Syslog Settings screen (the group's 4) runs on the host and the engine
 	// hardn builds, with the main menu's configuration, each change a
 	// record of the audit log.
 	if logForward.Config != c || logForward.System == nil || logForward.NewEngine == nil || logForward.Ran == nil ||
@@ -91,8 +91,8 @@ func TestMenuOptions(t *testing.T) {
 		timeSync.ApplyContext == nil || timeSync.Prompter.In == nil || timeSync.LogPath != output.LegacyLogPath || timeSync.DryRun != c.DryRun {
 		t.Errorf("the NTP Settings screen's options: %+v", timeSync)
 	}
-	// The Kernel Settings screen (the group's 4), the same.
-	if err := group.KernelSettings(); err != nil {
+	// The Kernel Settings screen (main menu 4), the same.
+	if err := o.Kernel(); err != nil {
 		t.Fatal(err)
 	}
 	if kernel.Config != c || kernel.System == nil || kernel.NewEngine == nil || kernel.Ran == nil ||
@@ -106,7 +106,7 @@ func TestMenuOptions(t *testing.T) {
 		t.Error("the status has no clock: the end-of-support notice counts from the engine's (revertNow)")
 	}
 	for name, ok := range map[string]bool{
-		"User Management": o.Users != nil, "SSH Login": o.SSH != nil, "DNS": o.DNS != nil, "Firewall": o.Firewall != nil, "the Firewall item's description": o.FirewallPVE != nil, "the Firewall item's description on Rocky Linux and AlmaLinux": o.FirewallEL != nil,
+		"User Management": o.Users != nil, "SSH Login": o.SSH != nil, "Kernel": o.Kernel != nil, "Firewall": o.Firewall != nil, "the Firewall item's description": o.FirewallPVE != nil, "the Firewall item's description on Rocky Linux and AlmaLinux": o.FirewallEL != nil,
 		"Backup": o.Backup != nil, "Auto Updates": o.Updates != nil, "Run All": o.RunAll != nil,
 		"Configuration": o.Configuration != nil, "System Details": o.SystemDetails != nil, "Logs": o.Logs != nil,
 		"the status": o.Status != nil, "the terminal": o.Terminal != nil, "the input": o.Input != nil, "stdout": o.Out != nil,

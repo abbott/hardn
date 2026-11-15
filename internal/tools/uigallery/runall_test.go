@@ -17,7 +17,6 @@ import (
 	"github.com/abbott/hardn/pkg/engine/controls/ssh"
 	"github.com/abbott/hardn/pkg/engine/controls/updates"
 	"github.com/abbott/hardn/pkg/engine/controls/users"
-	"github.com/abbott/hardn/pkg/engine/risk"
 	"github.com/abbott/hardn/pkg/engine/runall"
 	"github.com/abbott/hardn/pkg/host"
 	"github.com/abbott/hardn/pkg/host/detect"
@@ -211,7 +210,7 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 	t.Helper()
 	sys := h.sys()
 	e := engine.New(sys, engine.Options{Detect: func(context.Context, host.System) (detect.Facts, error) { return r.Facts, nil }})
-	status := output.StatusViewOf(r.Reports, risk.Level{}).Status
+	status := component.StatusList{Rows: output.ReportRows(r.Reports)} // one row a control: SSH Login and SSH Auth each its own
 	for _, rw := range r.Rows {
 		c := runall.Asked(r.in, rw.ID).Control
 		checked := runall.Checked(r.Config)
@@ -255,13 +254,9 @@ func raHeldToControls(ctx context.Context, t *testing.T, name string, r raReadin
 	}
 }
 
-// raState is a report's row state, as the main menu maps it
-// (output.StatusViewOf over that report alone): its risk row, or the row
-// after them.
-func raState(r engine.Report) component.StatusState {
-	rows := output.StatusViewOf([]engine.Report{r}, risk.Level{}).Status.Rows
-	return rows[slices.IndexFunc(rows, func(x component.StatusRow) bool { return x.Label == r.Title })].State
-}
+// raState is a report's row state, as pkg/output maps a report
+// (output.StatusRowOf).
+func raState(r engine.Report) component.StatusState { return output.StatusRowOf(r).State }
 
 // TestRunAllUsage: play refuses what it does not take, with status 2 and
 // nothing on stdout.

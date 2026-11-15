@@ -27,10 +27,10 @@ func TestTimeSyncMocks(t *testing.T) {
 		mock      string
 		has, lack []string
 	}{
-		{"default", []string{"Configured 2.ntp.ubuntu.com", "Service              chrony\n", "Clock                In sync", "Synced to            2.ntp.ubuntu.com",
+		{"default", []string{"+ 2.ntp.ubuntu.com", "Service              chrony\n", "Clock                In sync", "Synced to            2.ntp.ubuntu.com",
 			"Server               ntp-bootstrap.ubuntu.com\n", "hardn.yml            No servers", "1) Set servers          No servers in hardn.yml"}, []string{"Unavailable", "Remove servers", "File"}},
 		{"off", []string{"hardn.yml            192.0.2.10, 192.0.2.11", "1) Set servers          192.0.2.10, 192.0.2.11"}, []string{"by hardn", "Remove servers"}},
-		{"hardn", []string{"Configured 192.0.2.10", "Synced to            192.0.2.10", "Server               192.0.2.10 by hardn", "Server               192.0.2.11 by hardn",
+		{"hardn", []string{"+ 192.0.2.10", "Synced to            192.0.2.10", "Server               192.0.2.10 by hardn", "Server               192.0.2.11 by hardn",
 			"File                 /etc/chrony/sources.d/hardn.sources", "1) Remove servers       Undo hardn's change"}, []string{"Set servers", "differs", "ubuntu.com"}},
 		{"not-synced", []string{"Partial not in sync", "[ ] Clock                Not in sync", "[ ] Synced to            None"}, []string{"In sync"}},
 		{"stopped", []string{"Not Configured chrony not running", "[ ] Service              chrony not running", "1) Set servers          chrony is not running", "Unavailable"}, []string{"Synced to"}},
@@ -39,7 +39,7 @@ func TestTimeSyncMocks(t *testing.T) {
 		{"dhcp", []string{"Server               192.0.2.1 from DHCP", "1) Set servers          192.0.2.10, 192.0.2.11"}, []string{"Unavailable"}},
 		{"mismatch", []string{"Partial not hardn.yml's servers", "[ ] hardn.yml            192.0.2.10, 192.0.2.12 differs", "1) Set servers          192.0.2.10, 192.0.2.12", "2) Remove servers"}, nil},
 		{"timesyncd", []string{"Service              systemd-timesyncd", "Server               ntp.ubuntu.com built in", "Synced to            ntp.ubuntu.com"}, []string{"chrony"}},
-		{"alpine", []string{"Configured in sync", "Service              busybox ntpd", "Server               pool.ntp.org\n"}, []string{"Synced to"}},
+		{"alpine", []string{"+ in sync", "Service              busybox ntpd", "Server               pool.ntp.org\n"}, []string{"Synced to"}},
 		{"container", []string{"Not Applicable in a container", " -  Service              None", "In a container: the host keeps the time.", "1) Set servers          The host keeps the time", "Unavailable"}, []string{"hardn.yml  ", "Server  "}},
 		{"not-read", []string{"NTP                  Unknown can't read", "Server               Unknown", "1) Set servers          Can't read chrony's settings"}, []string{"Unavailable", "None"}},
 		{"review", []string{"Checking the host\n", "# Set servers ###", "hardn's servers take the place of the host's own.", "Server               192.0.2.10 by hardn",
@@ -116,7 +116,7 @@ func TestTimeSyncUsage(t *testing.T) {
 // a dry run stops at the plan. No command goes unanswered.
 func TestPlayTimeSync(t *testing.T) {
 	code, out, errs, unread := playGallery([]string{"8", "3", "1", "y", "1", "y", "0", "0", "0"}, "-profile", "plain")
-	for _, want := range []string{"Info: " + tsMainHost, "Set time servers? [y/N, 0 or q]:", "Configured 192.0.2.10", "Server               192.0.2.10 by hardn",
+	for _, want := range []string{"Info: " + tsMainHost, "Set time servers? [y/N, 0 or q]:", "+ 192.0.2.10", "Server               192.0.2.10 by hardn",
 		"1) Remove servers       Undo hardn's change", "Remove hardn's time servers? [y/N, 0 or q]:", "$ chronyc reload sources", "Server               ntp-bootstrap.ubuntu.com\n"} {
 		if !strings.Contains(out, want) {
 			t.Errorf("play, 8, 3: no %q", want)

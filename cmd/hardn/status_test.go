@@ -30,10 +30,12 @@ func TestReadStatus(t *testing.T) {
 	statusHost = func() host.System { return h }
 	engineHost = func() host.System { t.Error("the status read engineHost, whose run log takes every command"); return h }
 
+	// rows are the rows under the scored ones: DNS's, drawn only while it
+	// has a problem (the maintainer, 2026-11-14).
 	rows := func(vm screen.MainMenu) string {
 		var b strings.Builder
 		env := stdoutEnv()
-		_, _ = io.WriteString(env.Writer(&b), vm.Status.Render(component.NewCtx(env)))
+		_, _ = io.WriteString(env.Writer(&b), vm.Info.Render(component.NewCtx(env)))
 		return b.String()
 	}
 	vm, err := readStatus(context.Background(), cfg, "0.4.0")
@@ -41,12 +43,12 @@ func TestReadStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 	if vm.Header.Version != "v0.4.0" || vm.Heading != "" || len(vm.Menu.Items) != 0 || vm.Prompt != "" ||
-		!strings.Contains(rows(vm), "  [+] DNS                  Configured 192.0.2.53, 192.0.2.54") {
-		t.Errorf("not the status with the DNS row Configured, and nothing of the menu:\n%+v\n%s", vm, rows(vm))
+		strings.Contains(rows(vm), "DNS") || len(vm.Status.Rows) == 0 {
+		t.Errorf("not the status with no DNS row, hardn.yml's nameservers in use, and nothing of the menu:\n%+v\n%s", vm, rows(vm))
 	}
 	cfg.Nameservers = []string{"192.0.2.55"} // a list the DNS screen saved
 	vm, err = readStatus(context.Background(), cfg, "0.4.0")
-	if err != nil || !strings.Contains(rows(vm), "  [ ] DNS                  Not Configured not hardn.yml's") {
+	if err != nil || !strings.Contains(rows(vm), "   -  DNS                  192.0.2.53, 192.0.2.54\n                             ~ Not hardn.yml's") {
 		t.Errorf("the DNS row does not follow the configuration (%v):\n%s", err, rows(vm))
 	}
 	if vm, err = readStatus(context.Background(), cfg, ""); err != nil || vm.Header.Version != "" {

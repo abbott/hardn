@@ -89,7 +89,7 @@ func TestPlayGolden(t *testing.T) {
 		{"ssh-toggle", nil, []string{"2", "1", "BOS-SAN-L01", "bos-san-l01", "q"}, exitOK},
 		{"fail", []string{"-fail", "2", "workflow-step/user-manage-sudo-confirmation"}, []string{"y"}, exitOK},
 		{"abort", []string{"sub-menu/01-user"}, []string{"2", "alice"}, prompt.ExitInterrupted},
-		{"dns", nil, []string{"4", "2", "999.1.1.1", "192.0.2.54", "192.0.2.53", "y", "0", "0"}, exitOK},
+		{"dns", nil, []string{"8", "2", "2", "999.1.1.1", "192.0.2.54", "192.0.2.53", "y", "0", "0", "0"}, exitOK}, // main menu 8, then 2: DNS Settings
 		{"dns-ubuntu2604", []string{"dns/ubuntu2604"}, []string{"1", "y", "0"}, exitOK},
 		{"dns-alpine324", []string{"dns/alpine324"}, []string{"1", "y", "y", "0"}, exitOK},
 		{"dns-pve9", []string{"dns/pve9"}, []string{"1", "y", "0"}, exitOK},
@@ -292,8 +292,8 @@ func TestPlayFail(t *testing.T) {
 }
 
 // TestPlayReaches checks the playable mode's links: each leads from an
-// item of a menu mock to a mock, or to the DNS, Backup or Configuration
-// screen on a host or mock (dnsLinks, backupLinks, configLinks), every menu mock's
+// item of a menu mock to a mock, or to the Kernel Settings, Backup or Configuration
+// screen on a host or mock (ksLinks, backupLinks, configLinks), every menu mock's
 // screen is one whose menu play binds, an item it refuses is one of its
 // menu's and has no link, and every mock can be reached from the main
 // menu, but Figma's records of screens hardn now draws itself
@@ -315,20 +315,23 @@ func TestPlayReaches(t *testing.T) {
 			}
 		}
 	}
-	for from, to := range dnsLinks {
+	for from, to := range ksLinks {
 		i := strings.LastIndex(from, "/")
 		menu, ok := menuOf(mocks[from[:i]].Screen)
 		_, linked := links[from]
-		if _, host := findDNSHost(strings.TrimPrefix(to, dnsPrefix+"/")); !ok || linked || !host ||
+		if _, host := findKSHost(strings.TrimPrefix(to, ksPrefix+"/")); !ok || linked || !host ||
 			!slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == from[i+1:] }) {
-			t.Errorf("DNS link %s to %s: no menu mock with the item, a mock link from it too, or no such host", from, to)
+			t.Errorf("Kernel Settings link %s to %s: no menu mock with the item, a mock link from it too, or no such host", from, to)
 		}
+	}
+	if _, host := findDNSHost(strings.TrimPrefix(dnsMainHost, dnsPrefix+"/")); !host {
+		t.Errorf("the Configuration group's DNS Settings leads to %s, no host", dnsMainHost)
 	}
 	for from, to := range backupLinks {
 		i := strings.LastIndex(from, "/")
 		menu, ok := menuOf(mocks[from[:i]].Screen)
 		_, linked := links[from]
-		_, dns := dnsLinks[from]
+		_, dns := ksLinks[from]
 		if _, host := findBackupHost(strings.TrimPrefix(to, backupPrefix+"/")); !ok || linked || dns || !host ||
 			!slices.ContainsFunc(menu.Items, func(it component.MenuItem) bool { return it.Key == from[i+1:] }) {
 			t.Errorf("Backup link %s to %s: no menu mock with the item, another link from it too, or no such host", from, to)

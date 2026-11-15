@@ -168,15 +168,6 @@
 		},
 		{
 			"argv": [
-				"systemctl",
-				"is-active",
-				"systemd-resolved.service"
-			],
-			"stdout": "inactive\n",
-			"exit": 3
-		},
-		{
-			"argv": [
 				"apt-config",
 				"dump",
 				"APT::Periodic",
@@ -252,13 +243,12 @@
 		},
 		{
 			"argv": [
-				"dpkg-query",
-				"--show",
-				"--showformat=${Status}\\t${Version}\\n",
-				"rsyslog"
+				"systemctl",
+				"is-active",
+				"systemd-resolved.service"
 			],
-			"stderr": "dpkg-query: no packages found matching rsyslog\n",
-			"exit": 1
+			"stdout": "inactive\n",
+			"exit": 3
 		},
 		{
 			"argv": [
@@ -300,6 +290,16 @@
 				"show"
 			],
 			"stdout": "Timezone=Etc/UTC\nLocalRTC=no\nCanNTP=yes\nNTP=yes\nNTPSynchronized=yes\nTimeUSec=Sat 2026-11-14 12:00:00 UTC\n"
+		},
+		{
+			"argv": [
+				"dpkg-query",
+				"--show",
+				"--showformat=${Status}\\t${Version}\\n",
+				"rsyslog"
+			],
+			"stderr": "dpkg-query: no packages found matching rsyslog\n",
+			"exit": 1
 		},
 		{
 			"argv": [
@@ -475,6 +475,21 @@
 			"gid": 0
 		},
 		{
+			"path": "/etc/sysctl.d",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/etc/sysctl.d/90-hardn.conf",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "# Written by hardn (Kernel Settings).\n# before: net.ipv4.conf.lo.accept_redirects = 1\nnet.ipv4.conf.*.accept_redirects = 0\n# before: net.ipv6.conf.eth0.accept_redirects = 1\n# before: net.ipv6.conf.lo.accept_redirects = 1\nnet.ipv6.conf.*.accept_redirects = 0\n# before: net.ipv4.conf.all.send_redirects = 1\n# before: net.ipv4.conf.default.send_redirects = 1\n# before: net.ipv4.conf.eth0.send_redirects = 1\n# before: net.ipv4.conf.lo.send_redirects = 1\nnet.ipv4.conf.*.send_redirects = 0\n# before: kernel.kptr_restrict = 0\nkernel.kptr_restrict = 1\n# before: kernel.yama.ptrace_scope = 0\nkernel.yama.ptrace_scope = 1\n"
+		},
+		{
 			"path": "/etc/systemd",
 			"type": "dir",
 			"mode": "0755",
@@ -601,11 +616,58 @@
 			"gid": 0
 		},
 		{
+			"path": "/proc/sys/fs",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/fs/protected_fifos",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
+			"path": "/proc/sys/fs/protected_hardlinks",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
+			"path": "/proc/sys/fs/protected_regular",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "2\n"
+		},
+		{
+			"path": "/proc/sys/fs/protected_symlinks",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
 			"path": "/proc/sys/kernel",
 			"type": "dir",
 			"mode": "0755",
 			"uid": 0,
 			"gid": 0
+		},
+		{
+			"path": "/proc/sys/kernel/dmesg_restrict",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
 		},
 		{
 			"path": "/proc/sys/kernel/hostname",
@@ -616,12 +678,44 @@
 			"data": "web-01\n"
 		},
 		{
+			"path": "/proc/sys/kernel/kptr_restrict",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
 			"path": "/proc/sys/kernel/osrelease",
 			"type": "file",
 			"mode": "0444",
 			"uid": 0,
 			"gid": 0,
 			"data": "6.12.43+deb13-amd64\n"
+		},
+		{
+			"path": "/proc/sys/kernel/perf_event_paranoid",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "3\n"
+		},
+		{
+			"path": "/proc/sys/kernel/randomize_va_space",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "2\n"
+		},
+		{
+			"path": "/proc/sys/kernel/unprivileged_bpf_disabled",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "2\n"
 		},
 		{
 			"path": "/proc/sys/kernel/version",
@@ -632,6 +726,21 @@
 			"data": "#1 SMP PREEMPT_DYNAMIC Debian 6.12.43-1 (2025-08-27)\n"
 		},
 		{
+			"path": "/proc/sys/kernel/yama",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/kernel/yama/ptrace_scope",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
 			"path": "/proc/sys/net",
 			"type": "dir",
 			"mode": "0755",
@@ -639,11 +748,328 @@
 			"gid": 0
 		},
 		{
+			"path": "/proc/sys/net/ipv4",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/all",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/all/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/all/accept_source_route",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/all/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/all/rp_filter",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/all/send_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/default",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/default/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/default/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/default/rp_filter",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "2\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/default/send_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/eth0",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/eth0/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/eth0/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/eth0/rp_filter",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "2\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/eth0/send_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/lo",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/lo/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/lo/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/lo/rp_filter",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "2\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/conf/lo/send_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/icmp_echo_ignore_broadcasts",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/icmp_ignore_bogus_error_responses",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/ip_forward",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv4/tcp_syncookies",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "1\n"
+		},
+		{
 			"path": "/proc/sys/net/ipv6",
 			"type": "dir",
 			"mode": "0555",
 			"uid": 0,
 			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/all",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/all/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/all/accept_source_route",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/all/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/default",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/default/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/default/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/eth0",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/eth0/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/eth0/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/lo",
+			"type": "dir",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/lo/accept_redirects",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
+		},
+		{
+			"path": "/proc/sys/net/ipv6/conf/lo/forwarding",
+			"type": "file",
+			"mode": "0644",
+			"uid": 0,
+			"gid": 0,
+			"data": "0\n"
 		},
 		{
 			"path": "/proc/uptime",
@@ -790,6 +1216,13 @@
 			"uid": 0,
 			"gid": 0,
 			"data": "ELF"
+		},
+		{
+			"path": "/usr/sbin/sysctl",
+			"type": "file",
+			"mode": "0755",
+			"uid": 0,
+			"gid": 0
 		},
 		{
 			"path": "/var",
